@@ -11,6 +11,13 @@ Use this checklist before starting the first non-trivial implementation task.
 - [ ] `docs/sample-policy.md`
 - [ ] `docs/onboarding-decisions.md`
 
+## Level Fit
+
+- [ ] Onboarding level is explicit: O0 / O1 / O2
+- [ ] O0 is used only for lightweight adoption or small low-risk repositories
+- [ ] O1 includes full onboarding docs and first vertical slice
+- [ ] O2 includes explicit high-risk, release, and approval boundaries
+
 ## Human Decision Role
 
 - [ ] AI drafted the documents from conversation
@@ -57,4 +64,3 @@ Choose one:
 - [ ] `NEEDS_MORE_COMMUNICATION`
 - [ ] `BLOCKED_BY_DECISION`
 - [ ] `BLOCKED_BY_RISK`
-

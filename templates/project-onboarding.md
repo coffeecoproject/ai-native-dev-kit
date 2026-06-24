@@ -8,6 +8,12 @@ Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
 
 Last updated:
 
+## Onboarding Level
+
+O0 / O1 / O2:
+
+Rationale:
+
 ## Source Conversation
 
 Summarize the human-provided context in plain terms.
@@ -71,4 +77,3 @@ Choose one:
 - [ ] NOT_READY
 
 Reason:
-

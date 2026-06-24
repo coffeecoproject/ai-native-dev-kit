@@ -30,6 +30,12 @@ For project onboarding:
 - run `node scripts/check-project-onboarding.mjs .` for baseline
 - use `node scripts/check-project-onboarding.mjs . --strict` only after human confirmation
 
+For workflow artifacts:
+
+- use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI log files
+- run `node scripts/check-workflow-artifacts.mjs .` before implementation when workflow artifacts exist
+- fix placeholder or missing artifact content before coding
+
 For review:
 
 - lead with findings

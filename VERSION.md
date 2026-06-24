@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.8.0`
+Current version: `0.9.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.8.0`
 
 ## Current Release
 
-`0.8.0`
+`0.9.0`
 
 Includes:
 
@@ -32,3 +32,8 @@ Includes:
 - project onboarding workflow where AI drafts project context and humans only confirm decisions
 - onboarding templates for project profile, technology strategy, business spec index, sample policy, and decision log
 - project onboarding baseline and strict readiness check
+- quickstart and Codex-first usage guides
+- workflow item generator for request, preflight, spec, eval, task, and AI task log files
+- workflow artifact quality checker for filled specs, evals, tasks, requests, preflights, and AI logs
+- concrete web internal admin first-slice example
+- O0/O1/O2 onboarding levels for lightweight, normal, and high-risk adoption

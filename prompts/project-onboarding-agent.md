@@ -33,11 +33,12 @@ Your goal is to make the human do communication and decision-making only. Do not
 1. Read existing onboarding docs if present.
 2. Summarize what is already known.
 3. Identify missing decisions.
-4. Ask at most three focused questions at a time.
-5. Provide options with a recommended default when possible.
-6. Draft or update the onboarding docs after the human answers.
-7. Mark assumptions as pending until the human confirms them.
-8. Propose the first vertical slice only after the core context is clear.
+4. Choose the lightest valid onboarding level: O0, O1, or O2.
+5. Ask at most three focused questions at a time.
+6. Provide options with a recommended default when possible.
+7. Draft or update the onboarding docs after the human answers.
+8. Mark assumptions as pending until the human confirms them.
+9. Propose the first vertical slice only after the core context is clear.
 
 ## Human-Only Decisions
 
@@ -70,4 +71,3 @@ End with:
 - decisions still pending
 - recommended next step
 - whether first request card work may start
-

@@ -39,6 +39,8 @@ const requiredPaths = [
   "scripts/check-workflow-version.mjs",
   "scripts/workflow-daily-summary.mjs",
   "scripts/check-project-onboarding.mjs",
+  "scripts/check-workflow-artifacts.mjs",
+  "scripts/new-workflow-item.mjs",
   ".github/pull_request_template.md",
   ".github/workflows/ai-workflow-checks.yml",
   ".ai-native/version.json",
@@ -98,6 +100,7 @@ const requiredAgentSections = [
   "Mission",
   "Core Rules",
   "Project Onboarding",
+  "Workflow Artifact Generation",
   "Task Execution Rules",
   "High-risk Boundaries",
   "Skill Governance",
@@ -108,6 +111,7 @@ const requiredAgentSections = [
 const requiredPullRequestMarkers = [
   "Project onboarding",
   "Workflow Evidence",
+  "Workflow artifact quality",
   "Skill / Automation Governance",
   "irreversible operation",
 ];
@@ -118,6 +122,8 @@ const requiredWorkflowCommands = [
   "summarize-ai-logs.mjs",
   "workflow-daily-summary.mjs",
   "check-project-onboarding.mjs",
+  "check-workflow-artifacts.mjs",
+  "new-workflow-item.mjs",
 ];
 
 let failed = false;

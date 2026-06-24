@@ -16,6 +16,16 @@ node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-
 
 Update mode may add missing onboarding docs, missing workflow directories, refresh injected workflow scripts/CI, and append missing governance markers to `.github/pull_request_template.md`. It must not overwrite existing project docs, specs, tasks, logs, or business code.
 
+Injected workflow scripts:
+
+- `scripts/check-ai-workflow.mjs`
+- `scripts/check-project-onboarding.mjs`
+- `scripts/check-workflow-artifacts.mjs`
+- `scripts/check-workflow-version.mjs`
+- `scripts/new-workflow-item.mjs`
+- `scripts/summarize-ai-logs.mjs`
+- `scripts/workflow-daily-summary.mjs`
+
 ## check-ai-workflow.mjs
 
 Check whether a project contains the minimum AI Native workflow assets.
@@ -23,6 +33,29 @@ Check whether a project contains the minimum AI Native workflow assets.
 ```bash
 node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project
 ```
+
+## new-workflow-item.mjs
+
+Create numbered workflow files from templates and keep basic cross-references aligned.
+
+```bash
+node scripts/new-workflow-item.mjs --type request --name first-slice
+node scripts/new-workflow-item.mjs --type preflight --from requests/001-first-slice.md
+node scripts/new-workflow-item.mjs --type spec --name first-slice --request requests/001-first-slice.md --preflight preflight/001-first-slice.md
+node scripts/new-workflow-item.mjs --type eval --spec specs/001-first-slice.md
+node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md --eval evals/001-first-slice.md --level L1
+node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md
+```
+
+## check-workflow-artifacts.mjs
+
+Check filled workflow artifacts for required sections, placeholder content, and cross-file references.
+
+```bash
+node scripts/check-workflow-artifacts.mjs .
+```
+
+This check is intentionally stricter than `check-ai-workflow.mjs`. It should run before implementation once request/spec/eval/task files exist.
 
 ## check-dev-kit.mjs
 

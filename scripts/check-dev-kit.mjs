@@ -54,6 +54,8 @@ function checkRequiredFiles() {
     "README.zh-CN.md",
     "LICENSE.md",
     "VERSION.md",
+    "docs/quickstart.md",
+    "docs/codex-usage.md",
     "core/workflow.md",
     "core/task-levels.md",
     "core/gates.md",
@@ -108,13 +110,23 @@ function checkRequiredFiles() {
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-workflow-artifacts.mjs",
+    "scripts/new-workflow-item.mjs",
     "platforms/codex/AGENTS.template.md",
+    "platforms/codex/quickstart.md",
     "platforms/cursor/rules-template.md",
     "platforms/claude/instructions.md",
     "platforms/github/ci-ai-workflow.yml",
     "platforms/github/pull_request_template.md",
     "starters/generic-project/AGENTS.md",
     "examples/generic-first-change/README.md",
+    "examples/web-internal-admin-first-slice/README.md",
+    "examples/web-internal-admin-first-slice/request-card.md",
+    "examples/web-internal-admin-first-slice/preflight-report.md",
+    "examples/web-internal-admin-first-slice/spec.md",
+    "examples/web-internal-admin-first-slice/eval.md",
+    "examples/web-internal-admin-first-slice/task-card.md",
+    "examples/web-internal-admin-first-slice/ai-task-log.example.md",
   ];
 
   for (const file of required) {
@@ -165,6 +177,8 @@ function checkVersionMetadata() {
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-workflow-artifacts.mjs",
+    "scripts/new-workflow-item.mjs",
     "docs/project-onboarding.md",
     "docs/project-profile.md",
     "docs/tech-stack-strategy.md",
@@ -300,7 +314,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -309,7 +323,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Project Onboarding", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Project Onboarding", "Workflow Artifact Generation", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -318,7 +332,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Project onboarding", "Workflow Evidence", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -348,7 +362,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["onboarding", "skill", "automation", "daily summary"]) {
+    for (const marker of ["onboarding", "artifact", "skill", "automation", "daily summary"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -363,6 +377,8 @@ function checkPlatformAdapters() {
     "summarize-ai-logs.mjs",
     "workflow-daily-summary.mjs",
     "check-project-onboarding.mjs",
+    "check-workflow-artifacts.mjs",
+    "new-workflow-item.mjs",
   ]) {
     if (githubCi.includes(command)) {
       pass(`platforms/github/ci-ai-workflow.yml runs ${command}`);
@@ -373,7 +389,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -392,6 +408,11 @@ function checkReadmePointers() {
     "codex-ios-app",
     "codex-android-app",
     "examples/generic-first-change",
+    "examples/web-internal-admin-first-slice",
+    "docs/quickstart",
+    "docs/codex-usage",
+    "check-workflow-artifacts",
+    "new-workflow-item",
     "self-iteration",
     "skill-candidates",
     "automation-proposals",
@@ -481,6 +502,58 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project workflow daily summary");
 
+  const emptyArtifactCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+  ]);
+  if (emptyArtifactCheck.status !== 0) {
+    fail(`generated project empty workflow artifact check failed: ${emptyArtifactCheck.stderr || emptyArtifactCheck.stdout}`);
+    return;
+  }
+  pass("generated project empty workflow artifact check");
+
+  const generatedRequest = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "request",
+    "--name",
+    "generated-check",
+  ]);
+  if (generatedRequest.status !== 0) {
+    fail(`generated project new workflow item failed: ${generatedRequest.stderr || generatedRequest.stdout}`);
+    return;
+  }
+  if (!fs.existsSync(path.join(target, "requests", "001-generated-check.md"))) {
+    fail("generated project new workflow item did not create request");
+    return;
+  }
+  pass("generated project new workflow item creates request");
+
+  fs.unlinkSync(path.join(target, "requests", "001-generated-check.md"));
+
+  const exampleCopies = [
+    ["examples/web-internal-admin-first-slice/request-card.md", "requests/001-admin-work-item-list.md"],
+    ["examples/web-internal-admin-first-slice/preflight-report.md", "preflight/001-admin-work-item-list.md"],
+    ["examples/web-internal-admin-first-slice/spec.md", "specs/001-admin-work-item-list.md"],
+    ["examples/web-internal-admin-first-slice/eval.md", "evals/001-admin-work-item-list.md"],
+    ["examples/web-internal-admin-first-slice/task-card.md", "tasks/001-admin-work-item-list.md"],
+    ["examples/web-internal-admin-first-slice/ai-task-log.example.md", "ai-logs/2026-06-24-admin-work-item-list.md"],
+  ];
+  for (const [source, dest] of exampleCopies) {
+    fs.copyFileSync(path.join(kitRoot, source), path.join(target, dest));
+  }
+  const artifactCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+  ]);
+  if (artifactCheck.status !== 0) {
+    fail(`generated project workflow artifact quality check failed: ${artifactCheck.stderr || artifactCheck.stdout}`);
+    return;
+  }
+  pass("generated project workflow artifact quality check");
+
   const updateResult = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
@@ -533,6 +606,16 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project workflow daily summary after update");
 
+  const artifactCheckAfterUpdate = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+  ]);
+  if (artifactCheckAfterUpdate.status !== 0) {
+    fail(`generated project workflow artifact quality check after update failed: ${artifactCheckAfterUpdate.stderr || artifactCheckAfterUpdate.stdout}`);
+    return;
+  }
+  pass("generated project workflow artifact quality check after update");
+
   const legacyTarget = path.join(tempRoot, "legacy-project");
   fs.mkdirSync(legacyTarget, { recursive: true });
   fs.writeFileSync(path.join(legacyTarget, "AGENTS.md"), "# Legacy\n");
@@ -578,7 +661,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const legacyPrTemplateContent = fs.readFileSync(legacyPrTemplate, "utf8");
-      for (const marker of ["Project onboarding", "Workflow Evidence", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
     if (!legacyPrTemplateContent.includes(marker)) {
       fail(`legacy project workflow update PR template missing ${marker}`);
       return;

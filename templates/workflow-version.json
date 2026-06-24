@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.8.0",
+  "devKitVersion": "0.9.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -13,6 +13,8 @@
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-workflow-artifacts.mjs",
+    "scripts/new-workflow-item.mjs",
     "docs/project-onboarding.md",
     "docs/project-profile.md",
     "docs/tech-stack-strategy.md",

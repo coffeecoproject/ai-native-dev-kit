@@ -53,6 +53,18 @@ node scripts/check-project-onboarding.mjs .
 node scripts/check-project-onboarding.mjs . --strict
 ```
 
+## Workflow Artifact Generation
+
+Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI task log files instead of hand-copying templates.
+
+Before implementation, run:
+
+```bash
+node scripts/check-workflow-artifacts.mjs .
+```
+
+If artifact quality fails, fix the workflow artifacts before writing code.
+
 ## High-risk Boundaries
 
 Stop and ask before:

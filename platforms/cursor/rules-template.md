@@ -33,6 +33,12 @@ Before non-trivial work, read:
 - Ask focused questions, propose options, record assumptions, and request confirmation.
 - Run `node scripts/check-project-onboarding.mjs .` for baseline and `node scripts/check-project-onboarding.mjs . --strict` after decisions are confirmed.
 
+## Workflow Artifacts
+
+- Use `node scripts/new-workflow-item.mjs` to create numbered workflow files.
+- Run `node scripts/check-workflow-artifacts.mjs .` before implementation when request/spec/eval/task files exist.
+- Fix placeholder or missing artifact content before writing code.
+
 ## Skill Governance
 
 - Repeated execution patterns may become `skill-candidates/` entries.

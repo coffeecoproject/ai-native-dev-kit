@@ -74,6 +74,18 @@ node scripts/check-project-onboarding.mjs .
 
 Use `--strict` only after the human confirms onboarding decisions.
 
+## Workflow Artifact Generation
+
+Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI task log files.
+
+Before implementation, run:
+
+```bash
+node scripts/check-workflow-artifacts.mjs .
+```
+
+If artifact quality fails, fix the workflow artifacts before writing code.
+
 ## Review Focus
 
 When reviewing changes, focus on:

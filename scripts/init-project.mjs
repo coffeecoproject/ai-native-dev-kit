@@ -95,7 +95,7 @@ function ensurePullRequestTemplate(targetPath, starter) {
   }
 
   const content = fs.readFileSync(dest, "utf8");
-  const requiredMarkers = ["Project onboarding", "Workflow Evidence", "Skill / Automation Governance", "irreversible operation"];
+  const requiredMarkers = ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"];
   if (requiredMarkers.every((marker) => content.includes(marker))) {
     console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
     return;
@@ -107,6 +107,7 @@ function ensurePullRequestTemplate(targetPath, starter) {
     "",
     "- [ ] Project onboarding is confirmed or not applicable for this change",
     "- [ ] Request / preflight / spec / eval / task links are included or marked not applicable",
+    "- [ ] Workflow artifact quality check passed or is not applicable",
     "- [ ] AI task log is written for L1/L2/L3 work or marked not applicable",
     "- [ ] Verification evidence is included",
     "- [ ] Workflow daily summary impact is reviewed when workflow assets changed",
@@ -174,6 +175,12 @@ function copySharedAssets(targetPath, options = {}) {
   const onboardingCheckDest = path.join(projectScriptsDir, "check-project-onboarding.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-project-onboarding.mjs"), onboardingCheckDest, options);
 
+  const artifactCheckDest = path.join(projectScriptsDir, "check-workflow-artifacts.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"), artifactCheckDest, options);
+
+  const newWorkflowItemDest = path.join(projectScriptsDir, "new-workflow-item.mjs");
+  copyFile(path.join(kitRoot, "scripts", "new-workflow-item.mjs"), newWorkflowItemDest, options);
+
   const githubWorkflowDir = path.join(targetPath, ".github", "workflows");
   fs.mkdirSync(githubWorkflowDir, { recursive: true });
   const ciDest = path.join(githubWorkflowDir, "ai-workflow-checks.yml");
@@ -239,6 +246,8 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-workflow-version.mjs",
       "scripts/workflow-daily-summary.mjs",
       "scripts/check-project-onboarding.mjs",
+      "scripts/check-workflow-artifacts.mjs",
+      "scripts/new-workflow-item.mjs",
       "docs/project-onboarding.md",
       "docs/project-profile.md",
       "docs/tech-stack-strategy.md",
@@ -291,4 +300,6 @@ console.log("1. Run project onboarding by using .ai-native/prompts/project-onboa
 console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
 console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
 console.log("4. Create the first request card only after onboarding is ready.");
-console.log("5. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+console.log("5. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
+console.log("6. Run scripts/check-workflow-artifacts.mjs before implementation.");
+console.log("7. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

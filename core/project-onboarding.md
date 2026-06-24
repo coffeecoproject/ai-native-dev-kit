@@ -36,6 +36,18 @@ Run project onboarding after `init-project.mjs` and before the first non-trivial
 
 It may also run again when the project changes category, target platform, architecture, risk level, or core business scope.
 
+## Onboarding Levels
+
+Use the lightest level that still makes the project safe to work on.
+
+| Level | Use When | Required Minimum |
+|---|---|---|
+| O0 | Small existing repository, low-risk maintenance, or a narrow trial | `project-profile`, `tech-stack-strategy`, open decisions |
+| O1 | Normal app or service project | full onboarding docs, first vertical slice, verification strategy |
+| O2 | High-risk, multi-platform, regulated, production-sensitive, identity, payment, migration, or security-heavy work | full onboarding docs, risk policy, release policy, explicit approval gates |
+
+Default to O1 for new projects. Use O0 only when the human explicitly wants a lightweight adoption path. Use O2 when in doubt about risk.
+
 ## Required Outputs
 
 The project should have these project-level documents:
@@ -104,4 +116,3 @@ Stop and ask for human decision before:
 Onboarding does not replace request, preflight, spec, eval, or task cards.
 
 Onboarding creates the project context that later work reads before producing request cards, specs, evals, and tasks.
-

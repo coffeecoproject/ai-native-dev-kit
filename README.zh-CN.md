@@ -4,6 +4,8 @@
 
 它的目标不是“让 AI 多写代码”，而是把软件开发拆成可沟通、可决策、可执行、可验证、可审查、可复盘的过程。
 
+快速开始见 [docs/quickstart.md](docs/quickstart.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
+
 ## 核心原则
 
 1. 先规格，后实现。
@@ -147,7 +149,9 @@ scripts/
   verify.sh
   check-ai-workflow.mjs
   check-project-onboarding.mjs
+  check-workflow-artifacts.mjs
   check-workflow-version.mjs
+  new-workflow-item.mjs
   summarize-ai-logs.mjs
   workflow-daily-summary.mjs
 .github/pull_request_template.md
@@ -184,6 +188,7 @@ node ai-native-dev-kit/scripts/check-dev-kit.mjs
 node scripts/check-ai-workflow.mjs .
 node scripts/check-project-onboarding.mjs .
 node scripts/check-workflow-version.mjs .
+node scripts/check-workflow-artifacts.mjs .
 node scripts/summarize-ai-logs.mjs .
 node scripts/workflow-daily-summary.mjs .
 ```
@@ -234,6 +239,36 @@ Automation proposal 必须写在 `automation-proposals/`，并明确：
 
 生成项目会包含 `.ai-native/version.json`，用于记录 dev-kit 版本、starter 和最近一次 workflow asset 更新时间。
 
+## 示例
+
+抽象结构示例：
+
+```text
+examples/generic-first-change/
+```
+
+具体 first-slice 示例：
+
+```text
+examples/web-internal-admin-first-slice/
+```
+
+## 生成 Workflow 文件
+
+```bash
+node scripts/new-workflow-item.mjs --type request --name first-slice
+node scripts/new-workflow-item.mjs --type preflight --from requests/001-first-slice.md
+node scripts/new-workflow-item.mjs --type spec --name first-slice --request requests/001-first-slice.md --preflight preflight/001-first-slice.md
+node scripts/new-workflow-item.mjs --type eval --spec specs/001-first-slice.md
+node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md --eval evals/001-first-slice.md --level L1
+```
+
+实现前检查 artifact 质量：
+
+```bash
+node scripts/check-workflow-artifacts.mjs .
+```
+
 ## License
 
 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
@@ -241,3 +276,5 @@ This project is licensed under the Creative Commons Attribution-NonCommercial 4.
 You may view, download, copy, adapt, and share this material for personal, educational, and non-commercial purposes with attribution.
 
 Commercial use, resale, paid redistribution, or use as part of commercial consulting/service delivery is not permitted without prior written permission.
+
+Commercial licensing is available on request.

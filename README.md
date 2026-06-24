@@ -2,6 +2,8 @@
 
 中文详细说明见 [README.zh-CN.md](README.zh-CN.md)。
 
+快速开始见 [docs/quickstart.md](docs/quickstart.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
+
 ## 定位
 
 `ai-native-dev-kit` 是一套新项目启动时可复用的 AI Native 软件开发工作流底座。
@@ -46,6 +48,7 @@ ai-native-dev-kit/
   prompts/       不同 AI agent 角色的稳定 prompt
   checklists/    scope、risk、verification、release 等检查清单
   scripts/       初始化和工作流完整性检查脚本
+  docs/          quickstart 和 Codex 使用说明
   platforms/     Codex、Cursor、Claude、GitHub 等平台适配
   profiles/      Web、Backend、iOS、Android、Internal Admin、高风险变更等可选 profile
   starters/      供 init-project 使用的新项目骨架，不建议手动直接复制
@@ -88,6 +91,8 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 - `scripts/check-workflow-version.mjs`
 - `scripts/workflow-daily-summary.mjs`
 - `scripts/check-project-onboarding.mjs`
+- `scripts/check-workflow-artifacts.mjs`
+- `scripts/new-workflow-item.mjs`
 - 缺失的 `docs/project-onboarding.md`
 - 缺失的 `docs/project-profile.md`
 - 缺失的 `docs/tech-stack-strategy.md`
@@ -142,6 +147,8 @@ scripts/
   check-workflow-version.mjs
   workflow-daily-summary.mjs
   check-project-onboarding.mjs
+  check-workflow-artifacts.mjs
+  new-workflow-item.mjs
 .github/pull_request_template.md
 .github/workflows/ai-workflow-checks.yml
 ```
@@ -160,21 +167,24 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 2. AI 根据沟通草拟 `docs/project-onboarding.md`、project profile、tech stack strategy、business spec index、sample policy 和 decision log。
 3. 人只做确认、否决、选择、补充和风险接受，不手工填完整套文档。
 4. 运行 `node scripts/check-project-onboarding.mjs .` 检查 baseline；决策确认后可运行 `node scripts/check-project-onboarding.mjs . --strict`。
-5. 在 `requests/` 写第一张需求入口。
+5. 用 `node scripts/new-workflow-item.mjs --type request --name <name>` 创建第一张需求入口。
 6. 用 Preflight Agent 生成 `preflight/`。
 7. 用 `.ai-native/templates/` 写 `specs/` 和 `evals/`。
 8. 用 `.ai-native/templates/task-card.md` 拆成 `tasks/` 中的小任务卡。
-9. 让 AI 只执行一个 task card。
-10. 跑 `scripts/verify.sh`。
-11. 审查 diff 和 risk gate。
-12. 合并后写 `ai-logs/`。
-13. 阶段性写 `workflow-retros/`。
-14. 重复问题写 `workflow-improvements/`。
-15. 重复执行模式适合封装时写 `skill-candidates/`，但不能自动启用 Skill。
-16. 项目需要定时自动化时，先写 `automation-proposals/` 并获得人工确认。
-17. 需要回写共享 dev-kit 时写 `dev-kit-proposals/`。
+9. 跑 `node scripts/check-workflow-artifacts.mjs .` 检查 artifact 质量。
+10. 让 AI 只执行一个 task card。
+11. 跑 `scripts/verify.sh`。
+12. 审查 diff 和 risk gate。
+13. 合并后写 `ai-logs/`。
+14. 阶段性写 `workflow-retros/`。
+15. 重复问题写 `workflow-improvements/`。
+16. 重复执行模式适合封装时写 `skill-candidates/`，但不能自动启用 Skill。
+17. 项目需要定时自动化时，先写 `automation-proposals/` 并获得人工确认。
+18. 需要回写共享 dev-kit 时写 `dev-kit-proposals/`。
 
 可以先参考 [examples/generic-first-change](examples/generic-first-change) 写第一组 request/preflight/spec/eval/task。该示例只表达工作流结构，不绑定任何业务域。
+
+更具体的 first-slice 示例见 [examples/web-internal-admin-first-slice](examples/web-internal-admin-first-slice)。
 
 ## Dev Kit 自检
 
@@ -193,6 +203,7 @@ node ai-native-dev-kit/scripts/check-dev-kit.mjs
 - Skill governance 是否进入 core、template、checklist 和 generated project baseline
 - Automation governance 是否进入 core、template、checklist 和 generated project baseline
 - Project onboarding 是否进入 core、template、prompt、checklist、generated project baseline 和 CI
+- workflow item generator 和 artifact quality checker 是否进入 generated project baseline 和 CI
 - init-project 是否能生成完整项目并更新 workflow assets
 - workflow-daily-summary 是否能在生成项目中运行
 - 脚本语法是否可解析
@@ -326,3 +337,5 @@ This project is licensed under the Creative Commons Attribution-NonCommercial 4.
 You may view, download, copy, adapt, and share this material for personal, educational, and non-commercial purposes with attribution.
 
 Commercial use, resale, paid redistribution, or use as part of commercial consulting/service delivery is not permitted without prior written permission.
+
+Commercial licensing is available on request.

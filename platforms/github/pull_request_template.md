@@ -16,6 +16,7 @@
 
 - [ ] Project onboarding is confirmed or not applicable for this change
 - [ ] Request / preflight / spec / eval / task links are included or marked not applicable
+- [ ] Workflow artifact quality check passed or is not applicable
 - [ ] AI task log is written for L1/L2/L3 work or marked not applicable
 - [ ] Verification evidence is included
 - [ ] Workflow daily summary impact is reviewed when workflow assets changed
