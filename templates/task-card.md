@@ -1,0 +1,83 @@
+# Task <number>: <task-name>
+
+## Task Level
+
+L0 / L1 / L2 / L3
+
+## Related Spec
+
+`specs/<file>.md`
+
+## Related Eval
+
+`evals/<file>.md`
+
+## Goal
+
+Implement one narrow change:
+
+## Scope
+
+Allowed:
+
+- 
+
+Not allowed:
+
+- 
+
+## Acceptance Criteria
+
+- 
+
+## Commands
+
+Run:
+
+```bash
+scripts/verify.sh
+```
+
+## AI Budget
+
+Max agent runs:
+Max repair runs:
+Use high reasoning model:
+Stop if:
+
+## Risk Gate
+
+This task touches:
+
+- [ ] auth
+- [ ] permission
+- [ ] migration
+- [ ] regulated operation
+- [ ] irreversible operation
+- [ ] value transfer
+- [ ] safety-critical behavior
+- [ ] data deletion
+- [ ] production config
+- [ ] secrets
+- [ ] personal data
+- [ ] regulated data
+
+If any item is checked, implementation requires explicit human approval before code changes.
+
+## Stop Conditions
+
+Stop and report if:
+
+- required spec/eval is missing or contradictory
+- scope requires forbidden files
+- same test fails twice
+- production data/config/secrets are needed
+- high-risk decision is required
+
+## Final Report Required
+
+- What changed
+- What did not change
+- Tests run
+- Risks remaining
+- Suggested next step

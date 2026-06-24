@@ -1,0 +1,23 @@
+name: AI Workflow Checks
+
+on:
+  pull_request:
+
+jobs:
+  workflow-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check AI workflow files
+        run: node scripts/check-ai-workflow.mjs .
+      - name: Check AI workflow version file
+        run: node scripts/check-workflow-version.mjs .
+      - name: Check project onboarding baseline
+        run: node scripts/check-project-onboarding.mjs .
+      - name: Summarize AI workflow logs
+        run: node scripts/summarize-ai-logs.mjs .
+      - name: Run daily workflow signal check
+        run: node scripts/workflow-daily-summary.mjs .

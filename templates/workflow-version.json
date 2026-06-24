@@ -1,0 +1,25 @@
+{
+  "devKitVersion": "0.8.0",
+  "starter": "<starter-name>",
+  "initializedAt": "<ISO-8601 timestamp>",
+  "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
+  "workflowAssets": [
+    ".ai-native/core",
+    ".ai-native/templates",
+    ".ai-native/prompts",
+    ".ai-native/checklists",
+    "scripts/check-ai-workflow.mjs",
+    "scripts/summarize-ai-logs.mjs",
+    "scripts/check-workflow-version.mjs",
+    "scripts/workflow-daily-summary.mjs",
+    "scripts/check-project-onboarding.mjs",
+    "docs/project-onboarding.md",
+    "docs/project-profile.md",
+    "docs/tech-stack-strategy.md",
+    "docs/business-spec-index.md",
+    "docs/sample-policy.md",
+    "docs/onboarding-decisions.md",
+    ".github/pull_request_template.md",
+    ".github/workflows/ai-workflow-checks.yml"
+  ]
+}
