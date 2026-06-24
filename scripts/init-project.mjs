@@ -9,11 +9,24 @@ const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
 const currentDevKitVersion = readCurrentVersion();
 const requiredPullRequestTemplateMarkers = [
+  "Bootstrap state",
   "Project onboarding",
   "Workflow Evidence",
   "Workflow artifact quality",
   "Skill / Automation Governance",
   "irreversible operation",
+];
+const requiredAgentGovernanceMarkers = [
+  "Mission",
+  "Core Rules",
+  "Bootstrap Entry",
+  "Project Onboarding",
+  "Workflow Artifact Generation",
+  "Task Execution Rules",
+  "High-risk Boundaries",
+  "Skill Governance",
+  "Automation Governance",
+  "Final Report",
 ];
 
 function readCurrentVersion() {
@@ -96,6 +109,7 @@ function pullRequestTemplateGovernanceAppendix() {
     "",
     "## Workflow Evidence",
     "",
+    "- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed",
     "- [ ] Project onboarding is confirmed or not applicable for this change",
     "- [ ] Request / preflight / spec / eval / task links are included or marked not applicable",
     "- [ ] Workflow artifact quality check passed or is not applicable",
@@ -119,6 +133,10 @@ function pullRequestTemplateGovernanceAppendix() {
 
 function pullRequestTemplateMigrationReportPath(targetPath) {
   return path.join(targetPath, ".ai-native", "migration-reports", "pr-template-governance.md");
+}
+
+function agentsGovernanceMigrationReportPath(targetPath) {
+  return path.join(targetPath, ".ai-native", "migration-reports", "agents-governance.md");
 }
 
 function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, options = {}) {
@@ -227,6 +245,243 @@ function ensurePullRequestTemplate(targetPath, starter, options = {}) {
   console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix after explicit approval`);
 }
 
+function agentGovernanceSectionContent() {
+  return new Map([
+    ["Mission", [
+      "## Mission",
+      "",
+      "This repository follows an AI-native, spec-first development workflow.",
+      "",
+      "Do not implement vague requests directly. Convert broad work into request, preflight, spec, eval, and task assets before implementation.",
+      "",
+    ].join("\n")],
+    ["Core Rules", [
+      "## Core Rules",
+      "",
+      "1. Perform preflight before coding when the request is vague, large, cross-module, or high-risk.",
+      "2. Every non-trivial change must have acceptance criteria before implementation.",
+      "3. Prefer vertical slices over broad rewrites.",
+      "4. Keep changes minimal and scoped.",
+      "5. Do not add production dependencies without explicit approval.",
+      "6. Do not modify auth, permission, migration, production config, secrets, high-risk, safety-critical, or security-sensitive logic without a risk report and explicit approval.",
+      "7. Every implementation must include tests or explain why tests are not applicable.",
+      "8. If the same verification failure repeats twice, stop and report instead of blindly retrying.",
+      "9. After implementation, produce a final report with changed files, tests run, remaining risks, and next step.",
+      "",
+    ].join("\n")],
+    ["Bootstrap Entry", [
+      "## Bootstrap Entry",
+      "",
+      "When the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat that as execution bootstrap intent.",
+      "",
+      "Execution bootstrap intent allows workflow and governance asset setup only. Do not modify business code during bootstrap.",
+      "",
+      "When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.",
+      "",
+      "For bootstrap work, first use `.ai-native/prompts/bootstrap-agent.md` when present, then run:",
+      "",
+      "```bash",
+      "node scripts/workflow-next.mjs .",
+      "```",
+      "",
+      "Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.",
+      "",
+    ].join("\n")],
+    ["Project Onboarding", [
+      "## Project Onboarding",
+      "",
+      "Before the first non-trivial implementation, run project onboarding.",
+      "",
+      "Use `.ai-native/prompts/project-onboarding-agent.md` and `.ai-native/core/project-onboarding.md` to draft project onboarding docs. AI drafts; humans decide.",
+      "",
+      "Run:",
+      "",
+      "```bash",
+      "node scripts/check-project-onboarding.mjs .",
+      "node scripts/check-project-onboarding.mjs . --strict",
+      "```",
+      "",
+    ].join("\n")],
+    ["Workflow Artifact Generation", [
+      "## Workflow Artifact Generation",
+      "",
+      "Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI task log files instead of hand-copying templates.",
+      "",
+      "Before implementation, run:",
+      "",
+      "```bash",
+      "node scripts/check-workflow-artifacts.mjs .",
+      "```",
+      "",
+      "If artifact quality fails, fix the workflow artifacts before writing code.",
+      "",
+    ].join("\n")],
+    ["Task Execution Rules", [
+      "## Task Execution Rules",
+      "",
+      "When a task card exists:",
+      "",
+      "1. Read `AGENTS.md`.",
+      "2. Read the linked spec.",
+      "3. Read the linked eval if present.",
+      "4. Follow allowed and forbidden scope.",
+      "5. Respect stop conditions.",
+      "6. Run requested verification.",
+      "7. Report evidence and remaining risk.",
+      "",
+    ].join("\n")],
+    ["High-risk Boundaries", [
+      "## High-risk Boundaries",
+      "",
+      "Stop and ask before changing production release paths, secrets, auth, permission policy, database schema, destructive data operations, production data access, infrastructure, or other irreversible or security-sensitive behavior.",
+      "",
+    ].join("\n")],
+    ["Skill Governance", [
+      "## Skill Governance",
+      "",
+      "Use `.ai-native/templates/skill-candidate.md` for candidate drafts and `.ai-native/checklists/skill-review.md` before any Skill generation or update. Do not write to `.codex/skills/` unless the user explicitly approves that exact Skill.",
+      "",
+    ].join("\n")],
+    ["Automation Governance", [
+      "## Automation Governance",
+      "",
+      "Codex may propose project-scoped automations during setup, release preparation, or workflow review.",
+      "",
+      "Use `automation-proposals/` and `.ai-native/templates/project-automation-proposal.md` before creating or updating any Codex App automation. Do not create, update, resume, delete, or enable automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.",
+      "",
+    ].join("\n")],
+    ["Final Report", [
+      "## Final Report",
+      "",
+      "Every implementation response must include:",
+      "",
+      "- What changed",
+      "- What did not change",
+      "- Tests run",
+      "- Risks remaining",
+      "- Suggested next step",
+      "",
+    ].join("\n")],
+  ]);
+}
+
+function agentGovernanceAppendix(missingMarkers) {
+  const sections = agentGovernanceSectionContent();
+  const selected = missingMarkers
+    .map((marker) => sections.get(marker))
+    .filter(Boolean);
+  return [
+    "",
+    "# AI Native Workflow Governance Appendix",
+    "",
+    ...selected,
+  ].join("\n");
+}
+
+function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, options = {}) {
+  const status = options.status || (options.applied ? "APPLIED" : "PENDING_HUMAN_APPROVAL");
+  const reportPath = agentsGovernanceMigrationReportPath(targetPath);
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+  const existed = fs.existsSync(reportPath);
+  const statusNotes = {
+    PENDING_HUMAN_APPROVAL: "The AGENTS.md file was left unchanged. Review the proposed governance appendix before applying it.",
+    APPLIED: "The proposed governance appendix was applied by explicit command approval.",
+    RESOLVED_MANUALLY: "AGENTS.md already contains all required governance markers. No script change to AGENTS.md was needed.",
+  };
+  const reasonLines = status === "RESOLVED_MANUALLY"
+    ? [
+        "The project AGENTS.md now contains all required AI Native workflow governance markers.",
+        "",
+        "A previous pending migration report was resolved after AGENTS.md was updated manually or by another approved process.",
+      ]
+    : [
+        "The project already has AGENTS.md, but it is missing AI Native workflow governance markers.",
+        "",
+        "The update command does not modify an existing project AGENTS.md unless the human explicitly approves that migration.",
+      ];
+  const missingMarkerLines = missingMarkers.length > 0 ? missingMarkers.map((marker) => `- ${marker}`) : ["- none"];
+  const applyLines = status === "PENDING_HUMAN_APPROVAL"
+    ? [
+        "After human review, either merge the proposed appendix manually or run:",
+        "",
+        "```bash",
+        "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
+        "```",
+      ]
+    : ["No apply command is needed for this report status."];
+  const content = [
+    "# Migration Report: AGENTS.md Governance",
+    "",
+    `Status: ${status}`,
+    `Dev kit version: ${currentDevKitVersion}`,
+    "",
+    "## Status Notes",
+    "",
+    statusNotes[status] || statusNotes.PENDING_HUMAN_APPROVAL,
+    "",
+    "## Target",
+    "",
+    "`AGENTS.md`",
+    "",
+    "## Reason",
+    "",
+    ...reasonLines,
+    "",
+    "## Missing Markers",
+    "",
+    ...missingMarkerLines,
+    "",
+    "## Proposed Appendix",
+    "",
+    "```md",
+    agentGovernanceAppendix(missingMarkers).trim(),
+    "```",
+    "",
+    "## Apply",
+    "",
+    ...applyLines,
+    "",
+    "Do not apply this migration if the project uses centrally managed agent instructions and governance must be added elsewhere.",
+    "",
+  ].join("\n");
+  fs.writeFileSync(reportPath, content);
+  console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), reportPath)}`);
+}
+
+function ensureAgentsGovernance(targetPath, options = {}) {
+  const { applyAgentGovernance = false } = options;
+  const dest = path.join(targetPath, "AGENTS.md");
+  if (!fs.existsSync(dest)) {
+    fs.copyFileSync(path.join(kitRoot, "platforms", "codex", "AGENTS.template.md"), dest);
+    console.log(`created ${path.relative(process.cwd(), dest)}`);
+    return;
+  }
+
+  const content = fs.readFileSync(dest, "utf8");
+  const missingMarkers = requiredAgentGovernanceMarkers.filter((marker) => !content.includes(marker));
+  if (missingMarkers.length === 0) {
+    const reportPath = agentsGovernanceMigrationReportPath(targetPath);
+    if (fs.existsSync(reportPath)) {
+      const report = fs.readFileSync(reportPath, "utf8");
+      if (report.includes("PENDING_HUMAN_APPROVAL")) {
+        writeAgentsGovernanceMigrationReport(targetPath, [], { status: "RESOLVED_MANUALLY" });
+      }
+    }
+    console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
+    return;
+  }
+
+  if (!applyAgentGovernance) {
+    writeAgentsGovernanceMigrationReport(targetPath, missingMarkers);
+    console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .ai-native/migration-reports/agents-governance.md`);
+    return;
+  }
+
+  fs.appendFileSync(dest, `${content.endsWith("\n") ? "" : "\n"}${agentGovernanceAppendix(missingMarkers)}`);
+  writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, { applied: true });
+  console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix after explicit approval`);
+}
+
 function ensureProjectOnboardingDocs(targetPath) {
   const docs = [
     ["project-onboarding.md", "project-onboarding.md"],
@@ -251,7 +506,7 @@ function ensureProjectOnboardingDocs(targetPath) {
 }
 
 function copySharedAssets(targetPath, options = {}) {
-  const { starter = "generic-project", applyPrTemplateGovernance = false } = options;
+  const { starter = "generic-project", applyPrTemplateGovernance = false, applyAgentGovernance = false } = options;
   const sharedDirs = ["core", "templates", "prompts", "checklists"];
   for (const dir of sharedDirs) {
     copyDir(path.join(kitRoot, dir), path.join(targetPath, ".ai-native", dir), options);
@@ -280,12 +535,16 @@ function copySharedAssets(targetPath, options = {}) {
   const newWorkflowItemDest = path.join(projectScriptsDir, "new-workflow-item.mjs");
   copyFile(path.join(kitRoot, "scripts", "new-workflow-item.mjs"), newWorkflowItemDest, options);
 
+  const workflowNextDest = path.join(projectScriptsDir, "workflow-next.mjs");
+  copyFile(path.join(kitRoot, "scripts", "workflow-next.mjs"), workflowNextDest, options);
+
   const githubWorkflowDir = path.join(targetPath, ".github", "workflows");
   fs.mkdirSync(githubWorkflowDir, { recursive: true });
   const ciDest = path.join(githubWorkflowDir, "ai-workflow-checks.yml");
   copyFile(path.join(kitRoot, "platforms", "github", "ci-ai-workflow.yml"), ciDest, options);
 
   ensureProjectOnboardingDocs(targetPath);
+  ensureAgentsGovernance(targetPath, { applyAgentGovernance });
   ensurePullRequestTemplate(targetPath, starter, { applyPrTemplateGovernance });
   ensureWorkflowDirs(targetPath);
 }
@@ -340,6 +599,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".ai-native/templates",
       ".ai-native/prompts",
       ".ai-native/checklists",
+      "AGENTS.md",
       "scripts/check-ai-workflow.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/check-workflow-version.mjs",
@@ -347,6 +607,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-project-onboarding.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/workflow-next.mjs",
       "docs/project-onboarding.md",
       "docs/project-profile.md",
       "docs/tech-stack-strategy.md",
@@ -365,11 +626,13 @@ const args = parseArgs(process.argv.slice(2));
 const target = args.target;
 const updateWorkflowAssets = Boolean(args["update-workflow-assets"]);
 const applyPrTemplateGovernance = Boolean(args["apply-pr-template-governance"]);
+const applyAgentGovernance = Boolean(args["apply-agent-governance"]);
 
 if (!target) {
   console.error("Usage: node scripts/init-project.mjs --starter generic-project --target ../my-project");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
+  console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance");
   process.exit(1);
 }
 
@@ -382,12 +645,12 @@ if (updateWorkflowAssets) {
     console.error(`Target does not exist for workflow update: ${targetPath}`);
     process.exit(1);
   }
-  copySharedAssets(targetPath, { overwrite: true, starter, applyPrTemplateGovernance });
+  copySharedAssets(targetPath, { overwrite: true, starter, applyPrTemplateGovernance, applyAgentGovernance });
   writeVersionFile(targetPath, starter, { update: true });
   console.log("");
   console.log(`Updated workflow assets at ${targetPath}`);
-  console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, and missing workflow directories.");
-  console.log("Existing PR templates are left unchanged unless --apply-pr-template-governance is passed; review .ai-native/migration-reports/ when present.");
+  console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, missing AGENTS.md, and missing workflow directories.");
+  console.log("Existing PR templates and AGENTS.md files are left unchanged unless an explicit apply flag is passed; review .ai-native/migration-reports/ when present.");
   process.exit(0);
 }
 

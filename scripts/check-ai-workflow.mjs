@@ -41,6 +41,7 @@ const requiredPaths = [
   "scripts/check-project-onboarding.mjs",
   "scripts/check-workflow-artifacts.mjs",
   "scripts/new-workflow-item.mjs",
+  "scripts/workflow-next.mjs",
   ".github/pull_request_template.md",
   ".github/workflows/ai-workflow-checks.yml",
   ".ai-native/version.json",
@@ -75,6 +76,7 @@ const requiredPaths = [
   ".ai-native/templates/starter-readiness.md",
   ".ai-native/templates/platform-risk-policy.md",
   ".ai-native/templates/verification-matrix.md",
+  ".ai-native/prompts/bootstrap-agent.md",
   ".ai-native/prompts/preflight-agent.md",
   ".ai-native/prompts/project-onboarding-agent.md",
   ".ai-native/prompts/spec-agent.md",
@@ -99,6 +101,7 @@ const requiredPaths = [
 const requiredAgentSections = [
   "Mission",
   "Core Rules",
+  "Bootstrap Entry",
   "Project Onboarding",
   "Workflow Artifact Generation",
   "Task Execution Rules",
@@ -109,6 +112,7 @@ const requiredAgentSections = [
 ];
 
 const requiredPullRequestMarkers = [
+  "Bootstrap state",
   "Project onboarding",
   "Workflow Evidence",
   "Workflow artifact quality",
@@ -124,6 +128,7 @@ const requiredWorkflowCommands = [
   "check-project-onboarding.mjs",
   "check-workflow-artifacts.mjs",
   "new-workflow-item.mjs",
+  "workflow-next.mjs",
 ];
 
 let failed = false;

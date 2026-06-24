@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`0.9.2`
+`0.10.0`
 
 ## Project Version File
 
@@ -21,4 +21,5 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Workflow asset updates must not overwrite project docs, specs, tasks, logs, or business code.
 - Workflow asset updates may add missing onboarding docs and missing workflow directories.
 - Existing `.github/pull_request_template.md` files are not modified unless `--apply-pr-template-governance` is explicitly used after reviewing `.ai-native/migration-reports/pr-template-governance.md`.
+- Existing `AGENTS.md` files are not modified unless `--apply-agent-governance` is explicitly used after reviewing `.ai-native/migration-reports/agents-governance.md`.
 - Version mismatch means the project may not have the latest workflow assets.

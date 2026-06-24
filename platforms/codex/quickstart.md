@@ -4,6 +4,20 @@ This adapter is for projects where Codex is the daily coding agent.
 
 ## Install Into A Project
 
+If you want Codex to choose the setup path, provide the dev-kit path or repo URL and say:
+
+```text
+Read this AI Native Dev Kit and configure the current project yourself.
+```
+
+Codex should use `.ai-native/prompts/bootstrap-agent.md` or `prompts/bootstrap-agent.md` to classify intent, then run:
+
+```bash
+node ai-native-dev-kit/scripts/workflow-next.mjs .
+```
+
+If you ask Codex to review or discuss first, it should not write files.
+
 From the parent directory:
 
 ```bash

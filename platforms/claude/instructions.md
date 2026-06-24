@@ -20,6 +20,15 @@ For implementation:
 - run verification
 - summarize evidence and risks
 
+For bootstrap entry:
+
+- if the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat it as execution bootstrap intent
+- execution bootstrap intent may write workflow and governance assets only; do not modify business code during bootstrap
+- if the user asks to look, review, evaluate, discuss, or not execute yet, treat it as discussion-only intent and do not write files
+- use `.ai-native/prompts/bootstrap-agent.md` when present
+- run `node scripts/workflow-next.mjs .` and follow `NEXT_ACTION`
+- stop for human approval before applying migration reports
+
 For project onboarding:
 
 - before first non-trivial implementation, use `.ai-native/prompts/project-onboarding-agent.md`

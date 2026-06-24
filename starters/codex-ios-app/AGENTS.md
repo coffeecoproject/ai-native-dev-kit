@@ -27,6 +27,22 @@ Do not implement vague requests directly. Convert broad work into request, prefl
 
 If unsure, use the higher level.
 
+## Bootstrap Entry
+
+When the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat that as execution bootstrap intent.
+
+Execution bootstrap intent allows workflow and governance asset setup only. Do not modify business code during bootstrap.
+
+When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
+
+For bootstrap work, first use `.ai-native/prompts/bootstrap-agent.md` when present, then run:
+
+```bash
+node scripts/workflow-next.mjs .
+```
+
+Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
+
 ## Project Onboarding
 
 Before the first non-trivial implementation, run project onboarding.

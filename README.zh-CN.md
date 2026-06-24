@@ -6,6 +6,21 @@
 
 快速开始见 [docs/quickstart.md](docs/quickstart.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
 
+## Codex 一句话入口
+
+在 Codex 中，你可以把这个 dev-kit 的 Git 地址、目录或文件给 Codex，然后说：
+
+```text
+请读取这套 AI Native Dev Kit，并自己判断当前项目状态，然后完成 workflow 配置。
+```
+
+Codex 应先用 `prompts/bootstrap-agent.md` 判断你的意图：
+
+- 如果你说的是“配置、接入、初始化、自己处理”，Codex 可以执行 workflow 配置。
+- 如果你说的是“先看看、沟通、评估、不要执行”，Codex 只能读取和分析，不能写文件。
+
+进入执行配置后，Codex 再运行 `scripts/workflow-next.mjs` 判断当前项目是新项目、旧项目还是已接入项目，并按 `NEXT_ACTION` 处理。
+
 ## 核心原则
 
 1. 先规格，后实现。
@@ -103,10 +118,27 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 - 刷新 workflow scripts
 - 刷新 GitHub Actions workflow
 - 补齐缺失的 onboarding docs
+- 补齐缺失的 `AGENTS.md`
 - 补齐缺失的 workflow 目录
+- 生成 `AGENTS.md` governance 迁移报告
 - 生成 PR template governance 迁移报告
 
 更新模式不会覆盖已有项目文档、specs、tasks、logs 或业务代码。
+
+如果已有项目已经有 `AGENTS.md`，但缺少 workflow governance 标记，默认不会直接修改这个文件。它会生成：
+
+```text
+.ai-native/migration-reports/agents-governance.md
+```
+
+人工确认后再显式应用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-agent-governance
+```
 
 如果已有项目已经有 `.github/pull_request_template.md`，但缺少 workflow governance 标记，默认不会直接修改这个文件。它会生成：
 
@@ -169,6 +201,7 @@ scripts/
   new-workflow-item.mjs
   summarize-ai-logs.mjs
   workflow-daily-summary.mjs
+  workflow-next.mjs
 .github/pull_request_template.md
 .github/workflows/ai-workflow-checks.yml
 ```
@@ -204,6 +237,7 @@ node scripts/check-ai-workflow.mjs .
 node scripts/check-project-onboarding.mjs .
 node scripts/check-workflow-version.mjs .
 node scripts/check-workflow-artifacts.mjs .
+node scripts/workflow-next.mjs .
 node scripts/summarize-ai-logs.mjs .
 node scripts/workflow-daily-summary.mjs .
 ```

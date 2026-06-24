@@ -102,6 +102,7 @@ function checkRequiredFiles() {
     "checklists/skill-review.md",
     "checklists/automation-review.md",
     "checklists/project-onboarding-review.md",
+    "prompts/bootstrap-agent.md",
     "prompts/project-onboarding-agent.md",
     "scripts/init-project.mjs",
     "scripts/check-ai-workflow.mjs",
@@ -112,6 +113,7 @@ function checkRequiredFiles() {
     "scripts/check-project-onboarding.mjs",
     "scripts/check-workflow-artifacts.mjs",
     "scripts/new-workflow-item.mjs",
+    "scripts/workflow-next.mjs",
     "platforms/codex/AGENTS.template.md",
     "platforms/codex/quickstart.md",
     "platforms/cursor/rules-template.md",
@@ -172,6 +174,7 @@ function checkVersionMetadata() {
   }
 
   for (const asset of [
+    "AGENTS.md",
     "scripts/check-ai-workflow.mjs",
     "scripts/summarize-ai-logs.mjs",
     "scripts/check-workflow-version.mjs",
@@ -179,6 +182,7 @@ function checkVersionMetadata() {
     "scripts/check-project-onboarding.mjs",
     "scripts/check-workflow-artifacts.mjs",
     "scripts/new-workflow-item.mjs",
+    "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
     "docs/project-profile.md",
     "docs/tech-stack-strategy.md",
@@ -314,7 +318,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -323,7 +327,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Project Onboarding", "Workflow Artifact Generation", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Workflow Artifact Generation", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -332,7 +336,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -362,7 +366,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["onboarding", "artifact", "skill", "automation", "daily summary"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -379,6 +383,7 @@ function checkPlatformAdapters() {
     "check-project-onboarding.mjs",
     "check-workflow-artifacts.mjs",
     "new-workflow-item.mjs",
+    "workflow-next.mjs",
   ]) {
     if (githubCi.includes(command)) {
       pass(`platforms/github/ci-ai-workflow.yml runs ${command}`);
@@ -389,7 +394,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -413,7 +418,10 @@ function checkReadmePointers() {
     "docs/codex-usage",
     "check-workflow-artifacts",
     "new-workflow-item",
+    "workflow-next",
+    "bootstrap-agent",
     "--apply-pr-template-governance",
+    "--apply-agent-governance",
     "migration-reports",
     "self-iteration",
     "skill-candidates",
@@ -462,6 +470,16 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project workflow check");
+
+  const nextCheck = runNode([
+    path.join(target, "scripts", "workflow-next.mjs"),
+    target,
+  ]);
+  if (nextCheck.status !== 0 || !nextCheck.stdout.includes("PROJECT_STATE: BOOTSTRAPPED_PROJECT")) {
+    fail(`generated project workflow next check failed: ${nextCheck.stderr || nextCheck.stdout}`);
+    return;
+  }
+  pass("generated project workflow next check");
 
   const summaryCheck = runNode([
     path.join(target, "scripts", "summarize-ai-logs.mjs"),
@@ -578,6 +596,16 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project workflow check after update");
 
+  const nextCheckAfterUpdate = runNode([
+    path.join(target, "scripts", "workflow-next.mjs"),
+    target,
+  ]);
+  if (nextCheckAfterUpdate.status !== 0 || !nextCheckAfterUpdate.stdout.includes("PROJECT_STATE: BOOTSTRAPPED_PROJECT")) {
+    fail(`generated project workflow next check after update failed: ${nextCheckAfterUpdate.stderr || nextCheckAfterUpdate.stdout}`);
+    return;
+  }
+  pass("generated project workflow next check after update");
+
   const versionCheckAfterUpdate = runNode([
     path.join(target, "scripts", "check-workflow-version.mjs"),
     target,
@@ -657,13 +685,92 @@ function checkGeneratedProjectE2E() {
   }
   pass("legacy project workflow update creates missing onboarding docs");
 
+  const legacyAgentsContent = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
+  if (legacyAgentsContent !== "# Legacy\n") {
+    fail("legacy project AGENTS.md was modified without explicit approval");
+    return;
+  }
+  const legacyAgentsReport = path.join(legacyTarget, ".ai-native", "migration-reports", "agents-governance.md");
+  if (!fs.existsSync(legacyAgentsReport)) {
+    fail("legacy project update missing AGENTS.md governance migration report");
+    return;
+  }
+  const legacyAgentsReportContent = fs.readFileSync(legacyAgentsReport, "utf8");
+  if (!legacyAgentsReportContent.includes("PENDING_HUMAN_APPROVAL") || !legacyAgentsReportContent.includes("--apply-agent-governance")) {
+    fail("legacy project AGENTS.md governance report missing pending status or apply command");
+    return;
+  }
+  pass("legacy project workflow update creates AGENTS.md migration report without modifying AGENTS.md");
+
+  const legacyNext = runNode([
+    path.join(kitRoot, "scripts", "workflow-next.mjs"),
+    legacyTarget,
+  ]);
+  if (legacyNext.status !== 0 || !legacyNext.stdout.includes("NEXT_ACTION: REVIEW_GOVERNANCE_MIGRATION")) {
+    fail(`legacy project workflow next did not report governance migration: ${legacyNext.stderr || legacyNext.stdout}`);
+    return;
+  }
+  pass("legacy project workflow next reports pending governance migration");
+
+  const legacyAgentsApply = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    legacyTarget,
+    "--update-workflow-assets",
+    "--apply-agent-governance",
+  ]);
+  if (legacyAgentsApply.status !== 0) {
+    fail(`legacy project AGENTS.md explicit governance apply failed: ${legacyAgentsApply.stderr || legacyAgentsApply.stdout}`);
+    return;
+  }
+  const appliedLegacyAgents = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
+  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Workflow Artifact Generation", "Skill Governance", "Automation Governance", "Final Report"]) {
+    if (!appliedLegacyAgents.includes(marker)) {
+      fail(`legacy project AGENTS.md explicit apply missing ${marker}`);
+      return;
+    }
+  }
+  const appliedLegacyAgentsReport = fs.readFileSync(legacyAgentsReport, "utf8");
+  if (!appliedLegacyAgentsReport.includes("APPLIED")) {
+    fail("legacy project AGENTS.md governance report missing applied status after explicit apply");
+    return;
+  }
+  pass("legacy project AGENTS.md explicit governance apply updates AGENTS.md");
+
+  const legacyNoAgentsTarget = path.join(tempRoot, "legacy-no-agents");
+  fs.mkdirSync(legacyNoAgentsTarget, { recursive: true });
+  fs.writeFileSync(path.join(legacyNoAgentsTarget, "README.md"), "# Existing Project\n");
+  const legacyNoAgentsUpdate = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    legacyNoAgentsTarget,
+    "--update-workflow-assets",
+  ]);
+  if (legacyNoAgentsUpdate.status !== 0) {
+    fail(`legacy no-AGENTS workflow update failed: ${legacyNoAgentsUpdate.stderr || legacyNoAgentsUpdate.stdout}`);
+    return;
+  }
+  const createdAgents = path.join(legacyNoAgentsTarget, "AGENTS.md");
+  if (!fs.existsSync(createdAgents)) {
+    fail("legacy no-AGENTS workflow update did not create AGENTS.md");
+    return;
+  }
+  const createdAgentsContent = fs.readFileSync(createdAgents, "utf8");
+  for (const marker of ["Bootstrap Entry", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+    if (!createdAgentsContent.includes(marker)) {
+      fail(`created AGENTS.md missing ${marker}`);
+      return;
+    }
+  }
+  pass("legacy no-AGENTS workflow update creates governed AGENTS.md");
+
   const legacyPrTemplate = path.join(legacyTarget, ".github", "pull_request_template.md");
   if (!fs.existsSync(legacyPrTemplate)) {
     fail("legacy project workflow update missing PR template");
     return;
   }
   const legacyPrTemplateContent = fs.readFileSync(legacyPrTemplate, "utf8");
-  for (const marker of ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
     if (!legacyPrTemplateContent.includes(marker)) {
       fail(`legacy project workflow update PR template missing ${marker}`);
       return;
@@ -754,7 +861,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
-  for (const marker of ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
     if (!appliedCustomPrTemplate.includes(marker)) {
       fail(`legacy custom PR template explicit apply missing ${marker}`);
       return;

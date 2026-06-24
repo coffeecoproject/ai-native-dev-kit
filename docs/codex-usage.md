@@ -20,6 +20,27 @@ Humans decide:
 - release readiness
 - active Skill or automation creation
 
+## Bootstrap Prompt
+
+Use this when you want Codex to configure a new, existing, or already bootstrapped project without hand-running the steps yourself:
+
+```text
+Read this AI Native Dev Kit and configure the current project yourself.
+Detect whether this is a new project, existing project, or already bootstrapped project.
+Do not modify business code during bootstrap.
+Stop for any migration report that needs my approval.
+```
+
+Expected Codex behavior:
+
+- Classify intent with `prompts/bootstrap-agent.md`.
+- If the user asked only to review, discuss, evaluate, or look first, do not write files.
+- If the user clearly asked to configure, run `scripts/workflow-next.mjs <project-root>` or emulate it from the dev-kit checkout.
+- Follow `NEXT_ACTION`.
+- Use `init-project.mjs` for initialization or workflow asset updates.
+- Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
+- Run baseline checks after setup when scripts are available.
+
 ## New Project Prompt
 
 ```text
@@ -32,6 +53,8 @@ Do not implement code until I approve the first request/spec/eval/task chain.
 Expected Codex behavior:
 
 - Read `AGENTS.md`.
+- Use `.ai-native/prompts/bootstrap-agent.md` if the project setup state is unclear.
+- Run `node scripts/workflow-next.mjs .` after initialization.
 - Use `.ai-native/prompts/project-onboarding-agent.md`.
 - Draft `docs/project-onboarding.md`, `docs/project-profile.md`, `docs/tech-stack-strategy.md`, `docs/business-spec-index.md`, `docs/sample-policy.md`, and `docs/onboarding-decisions.md`.
 - Ask for human decisions only where the workflow requires confirmation.
@@ -64,7 +87,14 @@ After that, run the baseline checks and tell me what decisions remain.
 Expected Codex command:
 
 ```bash
+node ai-native-dev-kit/scripts/workflow-next.mjs .
 node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets
+```
+
+If `.ai-native/migration-reports/agents-governance.md` is created, Codex should summarize it and wait for human approval before applying the AGENTS.md governance appendix:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets --apply-agent-governance
 ```
 
 If `.ai-native/migration-reports/pr-template-governance.md` is created, Codex should summarize it and wait for human approval before applying the PR template governance appendix:
@@ -95,6 +125,7 @@ Codex should stop and report when:
 - the task card is missing or contradictory
 - the requested implementation exceeds approved scope
 - high-risk changes need human approval
+- an `AGENTS.md` or PR template migration report needs approval
 - production secrets, data, or config are required
 - the same verification failure repeats
 - a workflow change would create or enable an active Skill or automation

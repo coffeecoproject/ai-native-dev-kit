@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.9.2",
+  "devKitVersion": "0.10.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -8,6 +8,7 @@
     ".ai-native/templates",
     ".ai-native/prompts",
     ".ai-native/checklists",
+    "AGENTS.md",
     "scripts/check-ai-workflow.mjs",
     "scripts/summarize-ai-logs.mjs",
     "scripts/check-workflow-version.mjs",
@@ -15,6 +16,7 @@
     "scripts/check-project-onboarding.mjs",
     "scripts/check-workflow-artifacts.mjs",
     "scripts/new-workflow-item.mjs",
+    "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
     "docs/project-profile.md",
     "docs/tech-stack-strategy.md",

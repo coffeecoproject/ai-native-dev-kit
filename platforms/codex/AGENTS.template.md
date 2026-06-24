@@ -23,6 +23,22 @@ Do not implement vague requests directly.
    - risks remaining
    - next suggested step
 
+## Bootstrap Entry
+
+When the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat that as execution bootstrap intent.
+
+Execution bootstrap intent allows workflow and governance asset setup only. Do not modify business code during bootstrap.
+
+When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
+
+For bootstrap work, first use `.ai-native/prompts/bootstrap-agent.md` when present, then run:
+
+```bash
+node scripts/workflow-next.mjs .
+```
+
+Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
+
 ## Required Preflight Output
 
 Before coding, output:
@@ -86,6 +102,20 @@ node scripts/check-workflow-artifacts.mjs .
 
 If artifact quality fails, fix the workflow artifacts before writing code.
 
+## High-risk Boundaries
+
+Stop and ask before:
+
+- production release or deployment
+- production environment variables or secrets
+- authentication, session, token, cookie, or permission policy changes
+- database schema changes with production compatibility risk
+- destructive database migration or data cleanup
+- production data access, export, repair, or migration
+- irreversible, regulated, value-transfer, identity, safety-critical, or destructive decisions
+- adding production dependencies
+- changing infrastructure, DNS, TLS, CDN, WAF, hosting, or equivalent runtime config
+
 ## Review Focus
 
 When reviewing changes, focus on:
@@ -107,9 +137,23 @@ When reviewing changes, focus on:
 - Repeated execution patterns may become Skill candidates, but active Skills must not be created, updated, installed, or enabled without explicit human approval.
 - Proposed dev-kit changes must pass proposal review and `check-dev-kit.mjs`.
 
+## Skill Governance
+
+Use `.ai-native/templates/skill-candidate.md` for candidate drafts and `.ai-native/checklists/skill-review.md` before any Skill generation or update. Do not write to `.codex/skills/` unless the user explicitly approves that exact Skill.
+
 ## Automation Governance
 
 - Codex may propose project-scoped automations during setup, release preparation, or workflow review.
 - Proposals must be written in `automation-proposals/` using `.ai-native/templates/project-automation-proposal.md`.
 - Do not create, update, resume, delete, or enable Codex App automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.
 - Do not attach project automation to a parent directory unless the user explicitly approves a multi-project monitor.
+
+## Final Report
+
+Every implementation response must include:
+
+- What changed
+- What did not change
+- Tests run
+- Risks remaining
+- Suggested next step

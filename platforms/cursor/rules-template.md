@@ -24,6 +24,14 @@ Before non-trivial work, read:
 - the linked request, preflight, spec, eval, and task card when they exist
 - project docs that define architecture, permissions, risks, and verification
 
+## Bootstrap Entry
+
+- When the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat that as execution bootstrap intent.
+- Execution bootstrap intent may write workflow and governance assets only; do not modify business code during bootstrap.
+- When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
+- For bootstrap work, use `.ai-native/prompts/bootstrap-agent.md` when present, then run `node scripts/workflow-next.mjs .`.
+- Follow `NEXT_ACTION` and stop for human approval before applying migration reports.
+
 ## Project Onboarding
 
 - Before the first non-trivial implementation, run project onboarding.

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.9.2`
+Current version: `0.10.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.9.2`
 
 ## Current Release
 
-`0.9.2`
+`0.10.0`
 
 Includes:
 
@@ -38,3 +38,6 @@ Includes:
 - workflow artifact quality checker for filled specs, evals, tasks, requests, preflights, and AI logs
 - concrete web internal admin first-slice example
 - O0/O1/O2 onboarding levels for lightweight, normal, and high-risk adoption
+- Codex bootstrap entry prompt for execution-vs-discussion intent gating
+- `workflow-next.mjs` project state and next-action detector
+- `AGENTS.md` governance migration report with explicit apply flag during workflow asset updates

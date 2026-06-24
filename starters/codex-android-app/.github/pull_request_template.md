@@ -14,6 +14,7 @@
 
 ## Workflow Evidence
 
+- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed
 - [ ] Project onboarding is confirmed or not applicable for this change
 - [ ] Request / preflight / spec / eval / task links are included or marked not applicable
 - [ ] Workflow artifact quality check passed or is not applicable

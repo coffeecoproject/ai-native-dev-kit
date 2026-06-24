@@ -4,6 +4,20 @@ This guide is for starting or upgrading a project with the AI Native Dev Kit.
 
 The workflow goal is simple: let AI draft and execute, while humans keep decisions, risk acceptance, and final review.
 
+## Codex Bootstrap
+
+When using Codex, you can provide the dev-kit path, repo URL, archive, or copied files and say:
+
+```text
+Read this AI Native Dev Kit and configure the current project yourself.
+```
+
+Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to review or discuss first, it should not write files. If you ask it to configure, it should run `workflow-next` to decide the next step:
+
+```bash
+node ai-native-dev-kit/scripts/workflow-next.mjs .
+```
+
 ## New Project
 
 Initialize from a starter:
@@ -27,6 +41,7 @@ Then enter the generated project and check the baseline:
 ```bash
 cd ../my-new-project
 node scripts/check-ai-workflow.mjs .
+node scripts/workflow-next.mjs .
 node scripts/check-project-onboarding.mjs .
 node scripts/check-workflow-version.mjs .
 ```
@@ -79,6 +94,21 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 ```
 
 This updates `.ai-native/`, workflow scripts, CI, missing onboarding docs, and missing workflow directories. It does not overwrite existing product docs, specs, tasks, logs, or business code.
+
+It creates `AGENTS.md` when missing. If the project already has `AGENTS.md` and it is missing workflow governance markers, the update command writes a migration report instead of modifying the file:
+
+```text
+.ai-native/migration-reports/agents-governance.md
+```
+
+After human review, apply the proposed appendix explicitly:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-agent-governance
+```
 
 If the project already has `.github/pull_request_template.md` and it is missing workflow governance markers, the update command writes a migration report instead of modifying the template:
 

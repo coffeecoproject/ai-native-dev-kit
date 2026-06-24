@@ -14,7 +14,19 @@ Update workflow assets in an existing project without overwriting existing proje
 node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-workflow-assets
 ```
 
-Update mode may add missing onboarding docs, missing workflow directories, and refresh injected workflow scripts/CI. It must not overwrite existing project docs, specs, tasks, logs, business code, or an existing `.github/pull_request_template.md`.
+Update mode may add missing onboarding docs, missing workflow directories, missing `AGENTS.md`, and refresh injected workflow scripts/CI. It must not overwrite existing project docs, specs, tasks, logs, business code, an existing `AGENTS.md`, or an existing `.github/pull_request_template.md`.
+
+If `AGENTS.md` is missing, update mode creates it from the Codex platform template. If an existing `AGENTS.md` is missing workflow governance markers, update mode writes:
+
+```text
+.ai-native/migration-reports/agents-governance.md
+```
+
+Apply the proposed appendix only after human review:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance
+```
 
 If an existing PR template is missing workflow governance markers, update mode writes:
 
@@ -37,6 +49,7 @@ Injected workflow scripts:
 - `scripts/new-workflow-item.mjs`
 - `scripts/summarize-ai-logs.mjs`
 - `scripts/workflow-daily-summary.mjs`
+- `scripts/workflow-next.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -45,6 +58,18 @@ Check whether a project contains the minimum AI Native workflow assets.
 ```bash
 node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project
 ```
+
+## workflow-next.mjs
+
+Detect whether a target is a new project, existing project, or bootstrapped project, then print the next safe workflow action.
+
+```bash
+node ai-native-dev-kit/scripts/workflow-next.mjs ../my-project
+node scripts/workflow-next.mjs .
+node scripts/workflow-next.mjs . --json
+```
+
+This script does not interpret natural language and does not write files. Codex should use `.ai-native/prompts/bootstrap-agent.md` for execution-vs-discussion intent, then use `workflow-next.mjs` for project state.
 
 ## new-workflow-item.mjs
 

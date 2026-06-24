@@ -25,6 +25,19 @@ Do not write implementation code for vague, large, or high-risk requests before 
 
 ## Modes
 
+### Bootstrap Mode
+
+Use when the user asks Codex to configure, apply, initialize, inject, install, or bootstrap this workflow into a project.
+
+Rules:
+
+- classify execution-vs-discussion intent with `bootstrap-agent.md`
+- do not write files when the user only asks to review, evaluate, discuss, or look first
+- run `workflow-next.mjs` to detect project state
+- configure workflow and governance assets only
+- do not modify business code during bootstrap
+- stop for human approval before applying migration reports
+
 ### Preflight Mode
 
 Use when the user asks for a broad feature, new product, unclear bug, or risky change.
@@ -71,4 +84,3 @@ Review diff against:
 - task card
 
 Prioritize permission, data isolation, missing tests, scope creep, and release risk.
-

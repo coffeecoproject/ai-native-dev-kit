@@ -57,6 +57,14 @@ ai-native-dev-kit/
 
 ## 新项目推荐用法
 
+如果你在 Codex 中使用，可以直接给 Codex 这个 dev-kit 的地址或文件，并说：
+
+```text
+请读取这套 AI Native Dev Kit，并自己判断当前项目状态，然后完成 workflow 配置。
+```
+
+Codex 应先使用 `prompts/bootstrap-agent.md` 判断这是执行配置还是只沟通。如果是执行配置，它再运行 `scripts/workflow-next.mjs` 判断新项目、旧项目或已接入项目的下一步。
+
 第一阶段先用 `init-project.mjs` 初始化，不急着做 Skill 或复杂 CLI。
 
 不要手动直接复制 `starters/<name>/`。starter 只是骨架，完整项目还需要初始化脚本注入 `.ai-native/`、workflow scripts 和 CI workflow。
@@ -93,15 +101,32 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 - `scripts/check-project-onboarding.mjs`
 - `scripts/check-workflow-artifacts.mjs`
 - `scripts/new-workflow-item.mjs`
+- `scripts/workflow-next.mjs`
 - 缺失的 `docs/project-onboarding.md`
 - 缺失的 `docs/project-profile.md`
 - 缺失的 `docs/tech-stack-strategy.md`
 - 缺失的 `docs/business-spec-index.md`
 - 缺失的 `docs/sample-policy.md`
 - 缺失的 `docs/onboarding-decisions.md`
+- 缺失的 `AGENTS.md`
 - `.github/workflows/ai-workflow-checks.yml`
 
-不会修改业务代码，不会覆盖已有项目 docs，不会覆盖既有 requests、specs、tasks、ai-logs 等工作记录；只会补齐缺失的 onboarding docs 和工作流目录。
+不会修改业务代码，不会覆盖已有项目 docs，不会覆盖既有 requests、specs、tasks、ai-logs 等工作记录；只会补齐缺失的 onboarding docs、缺失的 `AGENTS.md` 和工作流目录。
+
+如果已有项目已经有 `AGENTS.md`，但缺少 AI Native workflow governance 标记，更新模式默认不会直接改这个文件。它会生成：
+
+```text
+.ai-native/migration-reports/agents-governance.md
+```
+
+人工确认后再显式应用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-agent-governance
+```
 
 如果已有项目已经有 `.github/pull_request_template.md`，但缺少 workflow governance 标记，更新模式默认不会直接改这个文件。它会生成：
 
@@ -164,6 +189,7 @@ scripts/
   check-project-onboarding.mjs
   check-workflow-artifacts.mjs
   new-workflow-item.mjs
+  workflow-next.mjs
 .github/pull_request_template.md
 .github/workflows/ai-workflow-checks.yml
 ```
@@ -174,7 +200,13 @@ scripts/
 node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets
 ```
 
-更新模式会刷新共享 `.ai-native/` 资产、workflow scripts、workflow CI，补齐缺失的 onboarding docs 和 workflow 目录。已有 PR template 缺少 governance 标记时，默认只生成迁移报告；人工确认后可用 `--apply-pr-template-governance` 应用。它不会覆盖已有业务文档、specs、tasks、logs 或业务代码。
+更新模式会刷新共享 `.ai-native/` 资产、workflow scripts、workflow CI，补齐缺失的 onboarding docs、缺失的 `AGENTS.md` 和 workflow 目录。已有 `AGENTS.md` 或 PR template 缺少 governance 标记时，默认只生成迁移报告；人工确认后可用 `--apply-agent-governance` 或 `--apply-pr-template-governance` 应用。它不会覆盖已有业务文档、specs、tasks、logs 或业务代码。
+
+之后先看项目状态：
+
+```bash
+node scripts/workflow-next.mjs .
+```
 
 然后按这个节奏工作：
 
