@@ -117,16 +117,50 @@ function pullRequestTemplateGovernanceAppendix() {
   ].join("\n");
 }
 
+function pullRequestTemplateMigrationReportPath(targetPath) {
+  return path.join(targetPath, ".ai-native", "migration-reports", "pr-template-governance.md");
+}
+
 function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, options = {}) {
-  const { applied = false } = options;
-  const reportPath = path.join(targetPath, ".ai-native", "migration-reports", "pr-template-governance.md");
+  const status = options.status || (options.applied ? "APPLIED" : "PENDING_HUMAN_APPROVAL");
+  const reportPath = pullRequestTemplateMigrationReportPath(targetPath);
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-  const status = applied ? "APPLIED" : "PENDING_HUMAN_APPROVAL";
+  const existed = fs.existsSync(reportPath);
+  const statusNotes = {
+    PENDING_HUMAN_APPROVAL: "The PR template was left unchanged. Review the proposed appendix before applying it.",
+    APPLIED: "The proposed appendix was applied by explicit command approval.",
+    RESOLVED_MANUALLY: "The PR template already contains all required governance markers. No script change to the PR template was needed.",
+  };
+  const reasonLines = status === "RESOLVED_MANUALLY"
+    ? [
+        "The project PR template now contains all required AI Native workflow governance markers.",
+        "",
+        "A previous pending migration report was resolved after the template was updated manually or by another approved process.",
+      ]
+    : [
+        "The project already has a pull request template, but it is missing AI Native workflow governance markers.",
+        "",
+        "The update command does not modify an existing project PR template unless the human explicitly approves that migration.",
+      ];
+  const missingMarkerLines = missingMarkers.length > 0 ? missingMarkers.map((marker) => `- ${marker}`) : ["- none"];
+  const applyLines = status === "PENDING_HUMAN_APPROVAL"
+    ? [
+        "After human review, either merge the proposed appendix manually or run:",
+        "",
+        "```bash",
+        "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
+        "```",
+      ]
+    : ["No apply command is needed for this report status."];
   const content = [
     "# Migration Report: PR Template Governance",
     "",
     `Status: ${status}`,
     `Dev kit version: ${currentDevKitVersion}`,
+    "",
+    "## Status Notes",
+    "",
+    statusNotes[status] || statusNotes.PENDING_HUMAN_APPROVAL,
     "",
     "## Target",
     "",
@@ -134,13 +168,11 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
     "",
     "## Reason",
     "",
-    "The project already has a pull request template, but it is missing AI Native workflow governance markers.",
-    "",
-    "The update command does not modify an existing project PR template unless the human explicitly approves that migration.",
+    ...reasonLines,
     "",
     "## Missing Markers",
     "",
-    ...missingMarkers.map((marker) => `- ${marker}`),
+    ...missingMarkerLines,
     "",
     "## Proposed Appendix",
     "",
@@ -150,17 +182,13 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
     "",
     "## Apply",
     "",
-    "After human review, either merge the proposed appendix manually or run:",
-    "",
-    "```bash",
-    "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
-    "```",
+    ...applyLines,
     "",
     "Do not apply this migration if the project uses a centrally managed pull request template and governance must be added elsewhere.",
     "",
   ].join("\n");
   fs.writeFileSync(reportPath, content);
-  console.log(`${applied ? "updated" : "created"} ${path.relative(process.cwd(), reportPath)}`);
+  console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), reportPath)}`);
 }
 
 function ensurePullRequestTemplate(targetPath, starter, options = {}) {
@@ -177,6 +205,13 @@ function ensurePullRequestTemplate(targetPath, starter, options = {}) {
   const content = fs.readFileSync(dest, "utf8");
   const missingMarkers = requiredPullRequestTemplateMarkers.filter((marker) => !content.includes(marker));
   if (missingMarkers.length === 0) {
+    const reportPath = pullRequestTemplateMigrationReportPath(targetPath);
+    if (fs.existsSync(reportPath)) {
+      const report = fs.readFileSync(reportPath, "utf8");
+      if (report.includes("PENDING_HUMAN_APPROVAL")) {
+        writePullRequestTemplateMigrationReport(targetPath, [], { status: "RESOLVED_MANUALLY" });
+      }
+    }
     console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
     return;
   }

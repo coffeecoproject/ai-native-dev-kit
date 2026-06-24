@@ -703,6 +703,45 @@ function checkGeneratedProjectE2E() {
   }
   pass("legacy custom PR template update creates migration report without modifying template");
 
+  const legacyManualPrTarget = path.join(tempRoot, "legacy-manual-pr-template");
+  fs.mkdirSync(path.join(legacyManualPrTarget, ".github"), { recursive: true });
+  const legacyManualPrTemplate = path.join(legacyManualPrTarget, ".github", "pull_request_template.md");
+  fs.writeFileSync(legacyManualPrTemplate, originalCustomPrTemplate);
+  const legacyManualPrUpdate = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    legacyManualPrTarget,
+    "--update-workflow-assets",
+  ]);
+  if (legacyManualPrUpdate.status !== 0) {
+    fail(`legacy manual PR template workflow update failed: ${legacyManualPrUpdate.stderr || legacyManualPrUpdate.stdout}`);
+    return;
+  }
+  const manualMigrationReport = path.join(legacyManualPrTarget, ".ai-native", "migration-reports", "pr-template-governance.md");
+  const manualMigrationReportContent = fs.readFileSync(manualMigrationReport, "utf8");
+  const proposedAppendixMatch = manualMigrationReportContent.match(/```md\n([\s\S]*?)\n```/);
+  if (!proposedAppendixMatch) {
+    fail("legacy manual PR template migration report missing proposed appendix");
+    return;
+  }
+  fs.appendFileSync(legacyManualPrTemplate, `\n${proposedAppendixMatch[1]}\n`);
+  const legacyManualPrResolve = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    legacyManualPrTarget,
+    "--update-workflow-assets",
+  ]);
+  if (legacyManualPrResolve.status !== 0) {
+    fail(`legacy manual PR template resolution failed: ${legacyManualPrResolve.stderr || legacyManualPrResolve.stdout}`);
+    return;
+  }
+  const resolvedMigrationReportContent = fs.readFileSync(manualMigrationReport, "utf8");
+  if (!resolvedMigrationReportContent.includes("RESOLVED_MANUALLY") || resolvedMigrationReportContent.includes("PENDING_HUMAN_APPROVAL")) {
+    fail("legacy manual PR template migration report was not resolved after manual appendix merge");
+    return;
+  }
+  pass("legacy manual PR template merge resolves pending migration report");
+
   const legacyCustomPrApply = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
