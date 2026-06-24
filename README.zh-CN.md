@@ -234,3 +234,10 @@ Automation proposal 必须写在 `automation-proposals/`，并明确：
 
 生成项目会包含 `.ai-native/version.json`，用于记录 dev-kit 版本、starter 和最近一次 workflow asset 更新时间。
 
+## License
+
+This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+
+You may view, download, copy, adapt, and share this material for personal, educational, and non-commercial purposes with attribution.
+
+Commercial use, resale, paid redistribution, or use as part of commercial consulting/service delivery is not permitted without prior written permission.

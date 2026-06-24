@@ -52,6 +52,7 @@ function checkRequiredFiles() {
   const required = [
     "README.md",
     "README.zh-CN.md",
+    "LICENSE.md",
     "VERSION.md",
     "core/workflow.md",
     "core/task-levels.md",
