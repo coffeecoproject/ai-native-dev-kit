@@ -413,6 +413,8 @@ function checkReadmePointers() {
     "docs/codex-usage",
     "check-workflow-artifacts",
     "new-workflow-item",
+    "--apply-pr-template-governance",
+    "migration-reports",
     "self-iteration",
     "skill-candidates",
     "automation-proposals",
@@ -667,7 +669,64 @@ function checkGeneratedProjectE2E() {
       return;
     }
   }
-  pass("legacy project workflow update creates PR governance markers");
+  pass("legacy project workflow update creates missing PR template with governance markers");
+
+  const legacyCustomPrTarget = path.join(tempRoot, "legacy-custom-pr-template");
+  fs.mkdirSync(path.join(legacyCustomPrTarget, ".github"), { recursive: true });
+  const legacyCustomPrTemplate = path.join(legacyCustomPrTarget, ".github", "pull_request_template.md");
+  const originalCustomPrTemplate = "# Existing PR Template\n\n- [ ] Existing project checklist\n";
+  fs.writeFileSync(legacyCustomPrTemplate, originalCustomPrTemplate);
+  const legacyCustomPrUpdate = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    legacyCustomPrTarget,
+    "--update-workflow-assets",
+  ]);
+  if (legacyCustomPrUpdate.status !== 0) {
+    fail(`legacy custom PR template workflow update failed: ${legacyCustomPrUpdate.stderr || legacyCustomPrUpdate.stdout}`);
+    return;
+  }
+  const unchangedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
+  if (unchangedCustomPrTemplate !== originalCustomPrTemplate) {
+    fail("legacy custom PR template was modified without explicit approval");
+    return;
+  }
+  const migrationReport = path.join(legacyCustomPrTarget, ".ai-native", "migration-reports", "pr-template-governance.md");
+  if (!fs.existsSync(migrationReport)) {
+    fail("legacy custom PR template update missing migration report");
+    return;
+  }
+  const migrationReportContent = fs.readFileSync(migrationReport, "utf8");
+  if (!migrationReportContent.includes("PENDING_HUMAN_APPROVAL") || !migrationReportContent.includes("--apply-pr-template-governance")) {
+    fail("legacy custom PR template migration report missing pending status or apply command");
+    return;
+  }
+  pass("legacy custom PR template update creates migration report without modifying template");
+
+  const legacyCustomPrApply = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    legacyCustomPrTarget,
+    "--update-workflow-assets",
+    "--apply-pr-template-governance",
+  ]);
+  if (legacyCustomPrApply.status !== 0) {
+    fail(`legacy custom PR template explicit governance apply failed: ${legacyCustomPrApply.stderr || legacyCustomPrApply.stdout}`);
+    return;
+  }
+  const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
+  for (const marker of ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
+    if (!appliedCustomPrTemplate.includes(marker)) {
+      fail(`legacy custom PR template explicit apply missing ${marker}`);
+      return;
+    }
+  }
+  const appliedMigrationReportContent = fs.readFileSync(migrationReport, "utf8");
+  if (!appliedMigrationReportContent.includes("APPLIED")) {
+    fail("legacy custom PR template migration report missing applied status after explicit apply");
+    return;
+  }
+  pass("legacy custom PR template explicit governance apply updates template");
 }
 
 checkRequiredFiles();

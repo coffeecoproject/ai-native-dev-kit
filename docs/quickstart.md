@@ -78,7 +78,22 @@ node ai-native-dev-kit/scripts/init-project.mjs \
   --update-workflow-assets
 ```
 
-This updates `.ai-native/`, workflow scripts, CI, missing onboarding docs, missing workflow directories, and PR governance markers. It does not overwrite existing product docs, specs, tasks, logs, or business code.
+This updates `.ai-native/`, workflow scripts, CI, missing onboarding docs, and missing workflow directories. It does not overwrite existing product docs, specs, tasks, logs, or business code.
+
+If the project already has `.github/pull_request_template.md` and it is missing workflow governance markers, the update command writes a migration report instead of modifying the template:
+
+```text
+.ai-native/migration-reports/pr-template-governance.md
+```
+
+After human review, apply the proposed appendix explicitly:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-pr-template-governance
+```
 
 ## After Implementation
 

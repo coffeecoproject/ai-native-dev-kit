@@ -67,6 +67,12 @@ Expected Codex command:
 node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets
 ```
 
+If `.ai-native/migration-reports/pr-template-governance.md` is created, Codex should summarize it and wait for human approval before applying the PR template governance appendix:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets --apply-pr-template-governance
+```
+
 ## Daily Summary Prompt
 
 ```text

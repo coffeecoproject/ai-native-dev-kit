@@ -104,9 +104,24 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 - 刷新 GitHub Actions workflow
 - 补齐缺失的 onboarding docs
 - 补齐缺失的 workflow 目录
-- 给 PR template 追加缺失的 governance 标记
+- 生成 PR template governance 迁移报告
 
 更新模式不会覆盖已有项目文档、specs、tasks、logs 或业务代码。
+
+如果已有项目已经有 `.github/pull_request_template.md`，但缺少 workflow governance 标记，默认不会直接修改这个文件。它会生成：
+
+```text
+.ai-native/migration-reports/pr-template-governance.md
+```
+
+人工确认后再显式应用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-pr-template-governance
+```
 
 ## 项目生成后包含什么
 

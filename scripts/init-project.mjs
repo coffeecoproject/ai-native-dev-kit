@@ -8,6 +8,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
 const currentDevKitVersion = readCurrentVersion();
+const requiredPullRequestTemplateMarkers = [
+  "Project onboarding",
+  "Workflow Evidence",
+  "Workflow artifact quality",
+  "Skill / Automation Governance",
+  "irreversible operation",
+];
 
 function readCurrentVersion() {
   const versionPath = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."), "VERSION.md");
@@ -84,24 +91,8 @@ function resolvePullRequestTemplateSource(starter) {
   return path.join(kitRoot, "platforms", "github", "pull_request_template.md");
 }
 
-function ensurePullRequestTemplate(targetPath, starter) {
-  const dest = path.join(targetPath, ".github", "pull_request_template.md");
-  const source = resolvePullRequestTemplateSource(starter);
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  if (!fs.existsSync(dest)) {
-    fs.copyFileSync(source, dest);
-    console.log(`created ${path.relative(process.cwd(), dest)}`);
-    return;
-  }
-
-  const content = fs.readFileSync(dest, "utf8");
-  const requiredMarkers = ["Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"];
-  if (requiredMarkers.every((marker) => content.includes(marker))) {
-    console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
-    return;
-  }
-
-  const appendix = [
+function pullRequestTemplateGovernanceAppendix() {
+  return [
     "",
     "## Workflow Evidence",
     "",
@@ -124,8 +115,81 @@ function ensurePullRequestTemplate(targetPath, starter) {
     "- [ ] irreversible operation",
     "",
   ].join("\n");
-  fs.appendFileSync(dest, `${content.endsWith("\n") ? "" : "\n"}${appendix}`);
-  console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix`);
+}
+
+function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, options = {}) {
+  const { applied = false } = options;
+  const reportPath = path.join(targetPath, ".ai-native", "migration-reports", "pr-template-governance.md");
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+  const status = applied ? "APPLIED" : "PENDING_HUMAN_APPROVAL";
+  const content = [
+    "# Migration Report: PR Template Governance",
+    "",
+    `Status: ${status}`,
+    `Dev kit version: ${currentDevKitVersion}`,
+    "",
+    "## Target",
+    "",
+    "`.github/pull_request_template.md`",
+    "",
+    "## Reason",
+    "",
+    "The project already has a pull request template, but it is missing AI Native workflow governance markers.",
+    "",
+    "The update command does not modify an existing project PR template unless the human explicitly approves that migration.",
+    "",
+    "## Missing Markers",
+    "",
+    ...missingMarkers.map((marker) => `- ${marker}`),
+    "",
+    "## Proposed Appendix",
+    "",
+    "```md",
+    pullRequestTemplateGovernanceAppendix().trim(),
+    "```",
+    "",
+    "## Apply",
+    "",
+    "After human review, either merge the proposed appendix manually or run:",
+    "",
+    "```bash",
+    "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
+    "```",
+    "",
+    "Do not apply this migration if the project uses a centrally managed pull request template and governance must be added elsewhere.",
+    "",
+  ].join("\n");
+  fs.writeFileSync(reportPath, content);
+  console.log(`${applied ? "updated" : "created"} ${path.relative(process.cwd(), reportPath)}`);
+}
+
+function ensurePullRequestTemplate(targetPath, starter, options = {}) {
+  const { applyPrTemplateGovernance = false } = options;
+  const dest = path.join(targetPath, ".github", "pull_request_template.md");
+  const source = resolvePullRequestTemplateSource(starter);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  if (!fs.existsSync(dest)) {
+    fs.copyFileSync(source, dest);
+    console.log(`created ${path.relative(process.cwd(), dest)}`);
+    return;
+  }
+
+  const content = fs.readFileSync(dest, "utf8");
+  const missingMarkers = requiredPullRequestTemplateMarkers.filter((marker) => !content.includes(marker));
+  if (missingMarkers.length === 0) {
+    console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
+    return;
+  }
+
+  if (!applyPrTemplateGovernance) {
+    writePullRequestTemplateMigrationReport(targetPath, missingMarkers);
+    console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .ai-native/migration-reports/pr-template-governance.md`);
+    return;
+  }
+
+  fs.appendFileSync(dest, `${content.endsWith("\n") ? "" : "\n"}${pullRequestTemplateGovernanceAppendix()}`);
+  writePullRequestTemplateMigrationReport(targetPath, missingMarkers, { applied: true });
+  console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix after explicit approval`);
 }
 
 function ensureProjectOnboardingDocs(targetPath) {
@@ -152,7 +216,7 @@ function ensureProjectOnboardingDocs(targetPath) {
 }
 
 function copySharedAssets(targetPath, options = {}) {
-  const { starter = "generic-project" } = options;
+  const { starter = "generic-project", applyPrTemplateGovernance = false } = options;
   const sharedDirs = ["core", "templates", "prompts", "checklists"];
   for (const dir of sharedDirs) {
     copyDir(path.join(kitRoot, dir), path.join(targetPath, ".ai-native", dir), options);
@@ -187,7 +251,7 @@ function copySharedAssets(targetPath, options = {}) {
   copyFile(path.join(kitRoot, "platforms", "github", "ci-ai-workflow.yml"), ciDest, options);
 
   ensureProjectOnboardingDocs(targetPath);
-  ensurePullRequestTemplate(targetPath, starter);
+  ensurePullRequestTemplate(targetPath, starter, { applyPrTemplateGovernance });
   ensureWorkflowDirs(targetPath);
 }
 
@@ -265,10 +329,12 @@ function writeVersionFile(targetPath, starter, options = {}) {
 const args = parseArgs(process.argv.slice(2));
 const target = args.target;
 const updateWorkflowAssets = Boolean(args["update-workflow-assets"]);
+const applyPrTemplateGovernance = Boolean(args["apply-pr-template-governance"]);
 
 if (!target) {
   console.error("Usage: node scripts/init-project.mjs --starter generic-project --target ../my-project");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
+  console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
   process.exit(1);
 }
 
@@ -281,11 +347,12 @@ if (updateWorkflowAssets) {
     console.error(`Target does not exist for workflow update: ${targetPath}`);
     process.exit(1);
   }
-  copySharedAssets(targetPath, { overwrite: true, starter });
+  copySharedAssets(targetPath, { overwrite: true, starter, applyPrTemplateGovernance });
   writeVersionFile(targetPath, starter, { update: true });
   console.log("");
   console.log(`Updated workflow assets at ${targetPath}`);
-  console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, missing workflow directories, and PR template governance markers.");
+  console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, and missing workflow directories.");
+  console.log("Existing PR templates are left unchanged unless --apply-pr-template-governance is passed; review .ai-native/migration-reports/ when present.");
   process.exit(0);
 }
 

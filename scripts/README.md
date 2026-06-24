@@ -14,7 +14,19 @@ Update workflow assets in an existing project without overwriting existing proje
 node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-workflow-assets
 ```
 
-Update mode may add missing onboarding docs, missing workflow directories, refresh injected workflow scripts/CI, and append missing governance markers to `.github/pull_request_template.md`. It must not overwrite existing project docs, specs, tasks, logs, or business code.
+Update mode may add missing onboarding docs, missing workflow directories, and refresh injected workflow scripts/CI. It must not overwrite existing project docs, specs, tasks, logs, business code, or an existing `.github/pull_request_template.md`.
+
+If an existing PR template is missing workflow governance markers, update mode writes:
+
+```text
+.ai-native/migration-reports/pr-template-governance.md
+```
+
+Apply the proposed appendix only after human review:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance
+```
 
 Injected workflow scripts:
 

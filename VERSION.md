@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.9.0`
+Current version: `0.9.1`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.9.0`
 
 ## Current Release
 
-`0.9.0`
+`0.9.1`
 
 Includes:
 
@@ -28,7 +28,7 @@ Includes:
 - project automation proposal governance
 - platform adapter governance synchronization for Codex, Cursor, Claude, GitHub PRs, and GitHub Actions
 - generated project baseline checks for PR governance and workflow CI commands
-- safe PR template governance appendix during workflow asset updates
+- PR template governance migration report with explicit apply flag during workflow asset updates
 - project onboarding workflow where AI drafts project context and humans only confirm decisions
 - onboarding templates for project profile, technology strategy, business spec index, sample policy, and decision log
 - project onboarding baseline and strict readiness check

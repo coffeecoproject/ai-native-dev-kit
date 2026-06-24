@@ -103,6 +103,21 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 
 不会修改业务代码，不会覆盖已有项目 docs，不会覆盖既有 requests、specs、tasks、ai-logs 等工作记录；只会补齐缺失的 onboarding docs 和工作流目录。
 
+如果已有项目已经有 `.github/pull_request_template.md`，但缺少 workflow governance 标记，更新模式默认不会直接改这个文件。它会生成：
+
+```text
+.ai-native/migration-reports/pr-template-governance.md
+```
+
+人工确认后再显式应用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-pr-template-governance
+```
+
 初始化后，新项目会得到：
 
 ```text
@@ -159,7 +174,7 @@ scripts/
 node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets
 ```
 
-更新模式会刷新共享 `.ai-native/` 资产、workflow scripts、workflow CI，补齐缺失的 onboarding docs、workflow 目录和 PR template governance 标记。它不会覆盖已有业务文档、specs、tasks、logs 或业务代码。
+更新模式会刷新共享 `.ai-native/` 资产、workflow scripts、workflow CI，补齐缺失的 onboarding docs 和 workflow 目录。已有 PR template 缺少 governance 标记时，默认只生成迁移报告；人工确认后可用 `--apply-pr-template-governance` 应用。它不会覆盖已有业务文档、specs、tasks、logs 或业务代码。
 
 然后按这个节奏工作：
 
