@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "0.1",
+  "id": "cloudbase-industrial",
+  "type": "capability",
+  "displayName": "CloudBase Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": [],
+  "compatiblePacks": [
+    "web-app-industrial",
+    "wechat-miniprogram-industrial",
+    "backend-api-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/cloudbase-runtime-security-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-cloudbase-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/cloudbase-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/cloudbase-release-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/cloudbase-change-record.md"
+  ],
+  "riskMappings": {
+    "cloud-function": ["external side effect", "security"],
+    "access-rule": ["permission", "security"],
+    "managed-storage": ["data persistence", "privacy"],
+    "environment-config": ["production config", "secrets"],
+    "deployment": ["release", "operational risk"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["cloud-function", "access-rule", "managed-storage"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["environment-config", "deployment", "secrets", "value-transfer"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "cloud-change": [
+      "environment separation evidence",
+      "cloud function boundary evidence",
+      "access rule evidence"
+    ],
+    "data-change": [
+      "managed storage boundary evidence",
+      "database access evidence",
+      "privacy data handling evidence"
+    ],
+    "release": [
+      "deployment evidence",
+      "rollback or mitigation plan",
+      "monitoring evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "environment-config",
+    "access-rule",
+    "secrets",
+    "deployment",
+    "managed-storage",
+    "value-transfer",
+    "regulated-data"
+  ]
+}

@@ -64,7 +64,7 @@ const docsByLevel = {
 
 const requiredSections = {
   "docs/project-onboarding.md": ["## Status", "## Onboarding Level", "## Source Conversation", "## Open Decisions", "## First Vertical Slice Candidate", "## Ready For First Request Card"],
-  "docs/project-profile.md": ["## Status", "## Project Type", "## Purpose", "## High-risk Boundaries"],
+  "docs/project-profile.md": ["## Status", "## Project Type", "## Selected Profiles", "## Purpose", "## High-risk Boundaries"],
   "docs/tech-stack-strategy.md": ["## Status", "## Decision Summary", "## Dependency Policy", "## Verification Strategy"],
   "docs/business-spec-index.md": ["## Status", "## Capability Map", "## Domain Entities", "## First Request Candidates"],
   "docs/sample-policy.md": ["## Status", "## Rules", "## Sample Creation Gate", "## Planned Samples"],

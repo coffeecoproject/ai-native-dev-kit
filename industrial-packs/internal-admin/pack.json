@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "0.1",
+  "id": "internal-admin-industrial",
+  "type": "capability",
+  "displayName": "Internal Admin Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": ["internal-admin"],
+  "compatiblePacks": [
+    "web-app-industrial",
+    "backend-api-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/admin-permission-operation-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-internal-admin-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/internal-admin-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/admin-operation-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/admin-operation-record.md"
+  ],
+  "riskMappings": {
+    "admin-role": ["permission", "security"],
+    "privileged-operation": ["regulated operation", "security"],
+    "production-data": ["regulated data", "privacy"],
+    "manual-override": ["irreversible operation", "operational risk"],
+    "destructive-operation": ["irreversible operation", "data deletion"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["admin-role", "privileged-operation", "production-data"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["manual-override", "destructive-operation", "value-transfer", "regulated-data"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "admin-change": [
+      "role matrix evidence",
+      "forbidden state evidence",
+      "resource scope evidence"
+    ],
+    "operation-change": [
+      "audit trail evidence",
+      "confirmation or rollback evidence",
+      "production data boundary evidence"
+    ],
+    "release": [
+      "operator impact review",
+      "rollback or mitigation plan",
+      "monitoring evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "admin-role",
+    "privileged-operation",
+    "production-data",
+    "manual-override",
+    "destructive-operation",
+    "value-transfer"
+  ]
+}

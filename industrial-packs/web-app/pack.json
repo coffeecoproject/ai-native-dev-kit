@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "0.1",
+  "id": "web-app-industrial",
+  "type": "primary-platform",
+  "displayName": "Web App Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": ["web-app"],
+  "compatiblePacks": [
+    "backend-api-industrial",
+    "internal-admin-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/web-runtime-baseline.md",
+    "baselines/web-security-permission-baseline.md",
+    "baselines/web-release-readiness-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-web-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/web-existing-project-audit.md",
+    "audit/web-release-readiness.md"
+  ],
+  "requiredChecklists": [
+    "checklists/web-ui-state-checklist.md",
+    "checklists/web-security-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/release-record.md",
+    "templates/incident-record.md"
+  ],
+  "riskMappings": {
+    "auth": ["permission", "security"],
+    "permission": ["permission", "security"],
+    "client-secret": ["secrets", "security"],
+    "production-config": ["production config"],
+    "external-side-effect": ["regulated operation"],
+    "destructive-operation": ["irreversible operation", "data deletion"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["auth", "permission", "production-config"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["secrets", "value-transfer", "regulated-data", "destructive-operation"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "ui-change": [
+      "loading-empty-error-forbidden evidence",
+      "responsive behavior evidence",
+      "critical flow behavior evidence"
+    ],
+    "permission-change": [
+      "server-side permission test evidence",
+      "forbidden state evidence",
+      "resource scope evidence"
+    ],
+    "release": [
+      "release record",
+      "rollback plan",
+      "monitoring evidence"
+    ],
+    "production-config": [
+      "environment variable review",
+      "secret exposure review",
+      "deployment configuration evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "auth",
+    "permission",
+    "production-config",
+    "secrets",
+    "irreversible-operation",
+    "destructive-operation",
+    "value-transfer"
+  ]
+}
+

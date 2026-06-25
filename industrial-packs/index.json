@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "0.1",
+  "baselineLevels": ["BL0_LIGHTWEIGHT", "BL1_STANDARD", "BL2_INDUSTRIAL"],
+  "packTypes": ["primary-platform", "capability", "risk-overlay"],
+  "packs": [
+    {
+      "id": "web-app-industrial",
+      "type": "primary-platform",
+      "status": "draft",
+      "path": "web-app",
+      "displayName": "Web App Industrial Pack",
+      "appliesToProfiles": ["web-app"]
+    },
+    {
+      "id": "ios-app-industrial",
+      "type": "primary-platform",
+      "status": "draft",
+      "path": "ios-app",
+      "displayName": "iOS App Industrial Pack",
+      "appliesToProfiles": ["ios-app"]
+    },
+    {
+      "id": "android-app-industrial",
+      "type": "primary-platform",
+      "status": "draft",
+      "path": "android-app",
+      "displayName": "Android App Industrial Pack",
+      "appliesToProfiles": ["android-app"]
+    },
+    {
+      "id": "wechat-miniprogram-industrial",
+      "type": "primary-platform",
+      "status": "draft",
+      "path": "wechat-miniprogram",
+      "displayName": "WeChat Mini Program Industrial Pack",
+      "appliesToProfiles": []
+    },
+    {
+      "id": "backend-api-industrial",
+      "type": "capability",
+      "status": "draft",
+      "path": "backend-api",
+      "displayName": "Backend API Industrial Pack",
+      "appliesToProfiles": ["backend-api"]
+    },
+    {
+      "id": "internal-admin-industrial",
+      "type": "capability",
+      "status": "draft",
+      "path": "internal-admin",
+      "displayName": "Internal Admin Industrial Pack",
+      "appliesToProfiles": ["internal-admin"]
+    },
+    {
+      "id": "data-storage-industrial",
+      "type": "capability",
+      "status": "draft",
+      "path": "data-storage",
+      "displayName": "Data Storage Industrial Pack",
+      "appliesToProfiles": []
+    },
+    {
+      "id": "cloudbase-industrial",
+      "type": "capability",
+      "status": "draft",
+      "path": "cloudbase",
+      "displayName": "CloudBase Industrial Pack",
+      "appliesToProfiles": []
+    },
+    {
+      "id": "auth-permission-industrial",
+      "type": "capability",
+      "status": "draft",
+      "path": "auth-permission",
+      "displayName": "Auth and Permission Industrial Pack",
+      "appliesToProfiles": []
+    },
+    {
+      "id": "payment-value-transfer-industrial",
+      "type": "risk-overlay",
+      "status": "draft",
+      "path": "payment-value-transfer",
+      "displayName": "Payment and Value Transfer Industrial Pack",
+      "appliesToProfiles": []
+    },
+    {
+      "id": "high-risk-change-industrial",
+      "type": "risk-overlay",
+      "status": "draft",
+      "path": "high-risk-change",
+      "displayName": "High-risk Change Industrial Pack",
+      "appliesToProfiles": ["high-risk-change"]
+    }
+  ]
+}

@@ -25,6 +25,7 @@ Rationale:
 - `docs/domain-model.md`
 - `docs/permission-model.md`
 - `docs/test-strategy.md`
+- `docs/verification-matrix.md`
 
 Additional docs:
 
@@ -80,5 +81,6 @@ Required starter additions:
 - [ ] Has explicit non-applicability
 - [ ] Has verification expectations
 - [ ] Has high-risk boundaries
+- [ ] Has matching `baseline.json`
+- [ ] `baseline.json` id matches the profile directory
 - [ ] Does not include one-project facts
-

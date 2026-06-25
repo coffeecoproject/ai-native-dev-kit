@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "0.1",
+  "id": "ios-app-industrial",
+  "type": "primary-platform",
+  "displayName": "iOS App Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": ["ios-app"],
+  "compatiblePacks": [
+    "backend-api-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/ios-runtime-release-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-ios-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/ios-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/ios-release-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/ios-release-record.md"
+  ],
+  "riskMappings": {
+    "app-signing": ["release", "production config"],
+    "privacy-permission": ["privacy", "regulated data"],
+    "local-storage": ["data persistence", "privacy"],
+    "network-boundary": ["external side effect", "security"],
+    "system-integration": ["runtime behavior", "platform dependency"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["privacy-permission", "local-storage", "system-integration"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["app-signing", "production-config", "regulated-data", "value-transfer"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "runtime-change": [
+      "supported device and OS matrix evidence",
+      "critical flow simulator or device evidence",
+      "offline and degraded network evidence"
+    ],
+    "privacy-change": [
+      "permission prompt evidence",
+      "privacy data handling evidence",
+      "sensitive local storage review"
+    ],
+    "release": [
+      "release configuration review",
+      "signing readiness evidence",
+      "crash and monitoring evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "app-signing",
+    "production-config",
+    "privacy-permission",
+    "regulated-data",
+    "value-transfer",
+    "irreversible-operation"
+  ]
+}

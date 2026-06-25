@@ -58,6 +58,46 @@ Pick one level before the first implementation task:
 
 AI may draft the onboarding documents. Human review decides whether they are accepted.
 
+## Platform Baseline
+
+After onboarding, select target runtime profiles in `docs/project-profile.md`:
+
+```md
+## Selected Profiles
+
+- web-app
+- backend-api
+```
+
+Then run:
+
+```bash
+node scripts/check-platform-baseline.mjs .
+node scripts/resolve-platform-baseline.mjs .
+```
+
+Profiles do not change the workflow. They define platform-specific task levels, risk gates, verification evidence, and release checks.
+
+## Industrial Baseline
+
+Use baseline levels for project governance strength:
+
+```text
+BL0_LIGHTWEIGHT = AI Native workflow only
+BL1_STANDARD = workflow plus platform profiles
+BL2_INDUSTRIAL = workflow plus profiles and selected industrial packs
+```
+
+Industrial packs are optional BL2 assets. They define production-grade evidence standards; they do not prove a real project is ready by themselves.
+
+```bash
+node scripts/check-industrial-pack.mjs .
+node scripts/resolve-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs .
+```
+
+For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.ai-native/templates/`, then use `check-industrial-baseline.mjs --strict` only after the human has approved baseline level, selected packs, exceptions, and residual risks.
+
 ## First Workflow Package
 
 Create a request:

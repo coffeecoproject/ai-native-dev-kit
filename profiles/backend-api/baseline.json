@@ -1,0 +1,67 @@
+{
+  "id": "backend-api",
+  "name": "Backend API",
+  "defaultTaskLevel": "L1",
+  "escalationRules": [
+    {
+      "when": ["data-contract", "permission", "migration", "concurrency", "external-integration"],
+      "minLevel": "L2"
+    },
+    {
+      "when": ["production-data", "secrets", "irreversible-operation", "value-transfer", "regulated-data"],
+      "minLevel": "L3"
+    }
+  ],
+  "requiredDocs": [
+    "docs/product-vision.md",
+    "docs/engineering-principles.md",
+    "docs/risk-policy.md",
+    "docs/architecture.md",
+    "docs/domain-model.md",
+    "docs/permission-model.md",
+    "docs/test-strategy.md",
+    "docs/verification-matrix.md"
+  ],
+  "riskGateMappings": {
+    "auth": ["auth", "permission"],
+    "permission": ["permission"],
+    "migration": ["migration"],
+    "secrets": ["secrets"],
+    "regulated-data": ["regulated data"]
+  },
+  "requiredVerification": [
+    "contract tests",
+    "permission tests",
+    "migration tests when schema changes",
+    "integration tests for success and rejection paths",
+    "load/performance smoke checks when relevant"
+  ],
+  "verificationKeywords": ["contract", "permission", "migration", "integration", "rejection", "performance"],
+  "verifyScriptKeywords": ["test"],
+  "highRiskKeywords": ["auth", "authorization", "migration", "destructive", "secrets", "audit"],
+  "humanApprovalRequiredFor": [
+    "auth",
+    "permission",
+    "migration",
+    "production-data",
+    "secrets",
+    "destructive-operation",
+    "external-side-effect"
+  ],
+  "releaseChecks": [
+    "API contract changes documented and reviewed",
+    "database migration and rollback path reviewed when schema changes",
+    "production data, secrets, and external side effects approved before release"
+  ],
+  "aiBoundaries": {
+    "may": [
+      "edit API handlers, service logic, validation, tests, and documentation inside approved task scope",
+      "propose schema, contract, and integration changes with explicit migration and rollback notes"
+    ],
+    "mustNot": [
+      "access or mutate production data without explicit human approval",
+      "change secrets, production config, permissions, migrations, or external side effects without human approval"
+    ]
+  },
+  "compatibleStarters": ["generic-project"]
+}

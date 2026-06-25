@@ -44,6 +44,11 @@ Injected workflow scripts:
 
 - `scripts/check-ai-workflow.mjs`
 - `scripts/check-project-onboarding.mjs`
+- `scripts/check-platform-baseline.mjs`
+- `scripts/resolve-platform-baseline.mjs`
+- `scripts/check-industrial-pack.mjs`
+- `scripts/resolve-industrial-baseline.mjs`
+- `scripts/check-industrial-baseline.mjs`
 - `scripts/check-workflow-artifacts.mjs`
 - `scripts/check-workflow-version.mjs`
 - `scripts/new-workflow-item.mjs`
@@ -73,6 +78,55 @@ node scripts/workflow-next.mjs . --enforce
 This script does not interpret natural language and does not write files. Codex should use `.ai-native/prompts/bootstrap-agent.md` for execution-vs-discussion intent, then use `workflow-next.mjs` for project state.
 
 `--enforce` exits non-zero when workflow assets are missing, versions mismatch, migration reports need approval, or onboarding is not ready.
+
+## resolve-platform-baseline.mjs
+
+Resolve `docs/project-profile.md` `Selected Profiles` into an effective platform baseline from `.ai-native/profiles/*/baseline.json`, including required docs, escalation rules, risk mappings, verification, release checks, and AI boundaries.
+
+```bash
+node scripts/resolve-platform-baseline.mjs .
+node scripts/resolve-platform-baseline.mjs . --json
+```
+
+## check-platform-baseline.mjs
+
+Check selected platform profiles, required docs, starter compatibility, verification coverage, `scripts/verify.sh` coverage, risk policy coverage, and permission model coverage.
+
+```bash
+node scripts/check-platform-baseline.mjs .
+node scripts/check-platform-baseline.mjs . --strict
+node scripts/check-platform-baseline.mjs . --json
+```
+
+Default mode allows pending profile decisions and reports incomplete coverage as `PENDING`. Strict mode is for confirmed project baselines and turns incomplete coverage into `FAIL`. `--json` emits machine-readable JSON only.
+
+## check-industrial-pack.mjs
+
+Check AI Native industrial pack structure, metadata, references, required files, and basic purity rules. This validates the dev-kit pack itself or the `.ai-native/industrial-packs` assets injected into a project; it does not certify that a real project is industrial-ready.
+
+```bash
+node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --json
+```
+
+## resolve-industrial-baseline.mjs
+
+Resolve `docs/baseline-selection.md` and selected industrial packs into an effective project industrial baseline.
+
+```bash
+node scripts/resolve-industrial-baseline.mjs .
+node scripts/resolve-industrial-baseline.mjs . --json
+```
+
+## check-industrial-baseline.mjs
+
+Check project-level BL2 readiness. Default mode reports missing human decisions or evidence as `PENDING`; strict mode turns incomplete BL2 readiness into `FAIL`.
+
+```bash
+node scripts/check-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs . --strict
+node scripts/check-industrial-baseline.mjs . --json
+```
 
 ## new-workflow-item.mjs
 

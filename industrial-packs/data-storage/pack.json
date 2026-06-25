@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "0.1",
+  "id": "data-storage-industrial",
+  "type": "capability",
+  "displayName": "Data Storage Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": [],
+  "compatiblePacks": [
+    "web-app-industrial",
+    "ios-app-industrial",
+    "android-app-industrial",
+    "wechat-miniprogram-industrial",
+    "backend-api-industrial",
+    "internal-admin-industrial",
+    "auth-permission-industrial",
+    "cloudbase-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/storage-schema-recovery-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-data-storage-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/data-storage-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/storage-migration-recovery-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/storage-change-record.md"
+  ],
+  "riskMappings": {
+    "schema-change": ["migration", "compatibility"],
+    "data-migration": ["migration", "regulated data"],
+    "data-deletion": ["irreversible operation", "data deletion"],
+    "backup-restore": ["recovery", "operational risk"],
+    "retention-policy": ["privacy", "regulated data"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["schema-change", "backup-restore", "retention-policy"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["data-migration", "data-deletion", "regulated-data", "production-data"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "schema-change": [
+      "schema intent evidence",
+      "compatibility evidence",
+      "rollback or recovery evidence"
+    ],
+    "data-operation": [
+      "resource scope evidence",
+      "backup or restore evidence",
+      "integrity check evidence"
+    ],
+    "privacy-change": [
+      "retention policy evidence",
+      "deletion behavior evidence",
+      "regulated data handling evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "data-migration",
+    "data-deletion",
+    "production-data",
+    "regulated-data",
+    "retention-policy",
+    "irreversible-operation"
+  ]
+}

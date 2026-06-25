@@ -49,8 +49,10 @@ ai-native-dev-kit/
   checklists/    scope、risk、verification、release 等检查清单
   scripts/       初始化和工作流完整性检查脚本
   docs/          quickstart 和 Codex 使用说明
-  platforms/     Codex、Cursor、Claude、GitHub 等平台适配
-  profiles/      Web、Backend、iOS、Android、Internal Admin、高风险变更等可选 profile
+  platforms/     Codex、Cursor、Claude、GitHub 等 AI 执行平台适配
+  profiles/      Web、Backend、iOS、Android、Internal Admin、高风险变更等目标运行平台基线
+  industrial-packs/ BL0/BL1/BL2 工业级工程基线包
+  industrial-pack-candidates/ 旧工业基线迁移候选区，不作为正式 workflow asset 注入项目
   starters/      供 init-project 使用的新项目骨架，不建议手动直接复制
   examples/      纯工作流示例，不作为业务模板
 ```
@@ -99,6 +101,11 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 - `scripts/check-workflow-version.mjs`
 - `scripts/workflow-daily-summary.mjs`
 - `scripts/check-project-onboarding.mjs`
+- `scripts/check-platform-baseline.mjs`
+- `scripts/resolve-platform-baseline.mjs`
+- `scripts/check-industrial-pack.mjs`
+- `scripts/resolve-industrial-baseline.mjs`
+- `scripts/check-industrial-baseline.mjs`
 - `scripts/check-workflow-artifacts.mjs`
 - `scripts/new-workflow-item.mjs`
 - `scripts/workflow-next.mjs`
@@ -108,6 +115,7 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 - 缺失的 `docs/business-spec-index.md`
 - 缺失的 `docs/sample-policy.md`
 - 缺失的 `docs/onboarding-decisions.md`
+- 缺失的 `docs/verification-matrix.md`
 - 缺失的 `AGENTS.md`
 - `.github/workflows/ai-workflow-checks.yml`
 
@@ -153,6 +161,8 @@ README.md
   templates/
   prompts/
   checklists/
+  profiles/
+  industrial-packs/
 docs/
   ai-workflow.md
   project-onboarding.md
@@ -168,6 +178,7 @@ docs/
   domain-model.md
   permission-model.md
   test-strategy.md
+  verification-matrix.md
 requests/
 preflight/
 specs/
@@ -187,6 +198,11 @@ scripts/
   check-workflow-version.mjs
   workflow-daily-summary.mjs
   check-project-onboarding.mjs
+  check-platform-baseline.mjs
+  resolve-platform-baseline.mjs
+  check-industrial-pack.mjs
+  resolve-industrial-baseline.mjs
+  check-industrial-baseline.mjs
   check-workflow-artifacts.mjs
   new-workflow-item.mjs
   workflow-next.mjs
@@ -218,23 +234,93 @@ node scripts/workflow-next.mjs . --enforce
 3. AI 根据沟通草拟 `docs/project-onboarding.md`、project profile、tech stack strategy、business spec index、sample policy 和 decision log。
 4. 人只做确认、否决、选择、补充和风险接受，不手工填完整套文档。
 5. 运行 `node scripts/check-project-onboarding.mjs .` 检查 baseline；决策确认后可运行 `node scripts/check-project-onboarding.mjs . --strict`。
-6. 用 `node scripts/new-workflow-item.mjs --type request --name <name>` 创建第一张需求入口。
-7. 用 Preflight Agent 生成 `preflight/`。
-8. 用 `.ai-native/templates/` 写 `specs/` 和 `evals/`。
-9. 用 `.ai-native/templates/task-card.md` 拆成 `tasks/` 中的小任务卡。
-10. 跑 `node scripts/check-workflow-artifacts.mjs . --mode ready` 检查 artifact 质量。
+6. 在 `docs/project-profile.md` 里确认 `Selected Profiles`，例如 `web-app`、`backend-api`、`ios-app`。
+7. 运行 `node scripts/check-platform-baseline.mjs .` 检查平台基线；需要查看合成结果时运行 `node scripts/resolve-platform-baseline.mjs .`。
+8. 如果项目选择 BL2，用 `.ai-native/templates/baseline-selection.md` 和 `.ai-native/templates/baseline-evidence.md` 草拟项目工业基线，然后运行 `node scripts/check-industrial-pack.mjs .` 和 `node scripts/check-industrial-baseline.mjs .`。
+9. 用 `node scripts/new-workflow-item.mjs --type request --name <name>` 创建第一张需求入口。
+10. 用 Preflight Agent 生成 `preflight/`。
+11. 用 `.ai-native/templates/` 写 `specs/` 和 `evals/`。
+12. 用 `.ai-native/templates/task-card.md` 拆成 `tasks/` 中的小任务卡。
+13. 跑 `node scripts/check-workflow-artifacts.mjs . --mode ready` 检查 artifact 质量。
    草稿阶段可用 `--mode draft`，实现前用 `--mode ready`，高风险实现门禁用 `--mode implementation --task <task-card>`。
    CI 中建议用 `--mode ready --changed-only --base <base-ref>`，避免历史草稿阻塞无关 PR。
    如果 task 的 Risk Gate 有勾选项，`Human Approval` 必须记录审批状态和 `Approval scope`；implementation 模式要求 `Status: Approved`。
-11. 让 AI 只执行一个 task card。
-12. 跑 `scripts/verify.sh`。
-13. 审查 diff 和 risk gate。
-14. 合并后写 `ai-logs/`。
-15. 阶段性写 `workflow-retros/`。
-16. 重复问题写 `workflow-improvements/`。
-17. 重复执行模式适合封装时写 `skill-candidates/`，但不能自动启用 Skill。
-18. 项目需要定时自动化时，先写 `automation-proposals/` 并获得人工确认。
-19. 需要回写共享 dev-kit 时写 `dev-kit-proposals/`。
+14. 让 AI 只执行一个 task card。
+15. 跑 `scripts/verify.sh`。
+16. 审查 diff 和 risk gate。
+17. 合并后写 `ai-logs/`。
+18. 阶段性写 `workflow-retros/`。
+19. 重复问题写 `workflow-improvements/`。
+20. 重复执行模式适合封装时写 `skill-candidates/`，但不能自动启用 Skill。
+21. 项目需要定时自动化时，先写 `automation-proposals/` 并获得人工确认。
+22. 需要回写共享 dev-kit 时写 `dev-kit-proposals/`。
+
+## Platform Baseline Profiles
+
+`profiles/` 是目标运行平台基线，不是 AI 执行适配。这里的 platform baseline 是项目工程基线层，一个项目可以选择多个 profile：
+
+```md
+## Selected Profiles
+
+- web-app
+- backend-api
+- internal-admin
+```
+
+检查和解析：
+
+```bash
+node scripts/check-platform-baseline.mjs .
+node scripts/check-platform-baseline.mjs . --strict
+node scripts/check-platform-baseline.mjs . --json
+node scripts/resolve-platform-baseline.mjs .
+node scripts/resolve-platform-baseline.mjs . --json
+```
+
+resolver 会合成 selected profiles 的 required docs、task level 升级规则、风险门禁映射、验证证据、发布检查和 AI 边界。profile 不改变统一 workflow，只影响默认 task level、风险门禁、验证证据和发布要求。
+
+## Industrial Baseline Packs
+
+`industrial-packs/` 是 BL2 工业级工程标准层。它不替代 core workflow，也不是 starter。它回答“这个项目怎样才算工业级可交付”。
+
+Baseline level 与其他等级分开：
+
+```text
+O-level  = onboarding 深度：O0 / O1 / O2
+L-level  = 单个 task 风险等级：L0 / L1 / L2 / L3
+BL-level = 项目工程治理强度：BL0 / BL1 / BL2
+```
+
+当前内置：
+
+```text
+industrial-packs/web-app                   draft pack
+industrial-packs/ios-app                   draft pack
+industrial-packs/android-app               draft pack
+industrial-packs/wechat-miniprogram        draft pack
+industrial-packs/backend-api               draft pack
+industrial-packs/internal-admin            draft pack
+industrial-packs/data-storage              draft pack
+industrial-packs/cloudbase                 draft pack
+industrial-packs/auth-permission           draft pack
+industrial-packs/payment-value-transfer    draft pack
+industrial-packs/high-risk-change          draft pack
+industrial-pack-candidates/                legacy pack migration staging area
+```
+
+检查工业包自身：
+
+```bash
+node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --json
+node scripts/resolve-industrial-baseline.mjs .
+node scripts/resolve-industrial-baseline.mjs . --json
+node scripts/check-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs . --strict
+node scripts/check-industrial-baseline.mjs . --json
+```
+
+`check-industrial-pack.mjs` 只检查 pack 结构、元数据、引用、必需文件和基础 purity；不证明某个真实项目已经工业达标。真实项目证据应放入 `docs/baseline-selection.md` 和 `docs/baseline-evidence.md`，再由 `resolve-industrial-baseline.mjs` 合成项目选择，由 `check-industrial-baseline.mjs` 检查 BL2 是否可执行。
 
 可以先参考 [examples/generic-first-change](examples/generic-first-change) 写第一组 request/preflight/spec/eval/task。该示例只表达工作流结构，不绑定任何业务域。
 

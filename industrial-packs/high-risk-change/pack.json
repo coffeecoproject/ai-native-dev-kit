@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "0.1",
+  "id": "high-risk-change-industrial",
+  "type": "risk-overlay",
+  "displayName": "High-risk Change Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": ["high-risk-change"],
+  "compatiblePacks": [
+    "web-app-industrial",
+    "ios-app-industrial",
+    "android-app-industrial",
+    "wechat-miniprogram-industrial",
+    "backend-api-industrial",
+    "internal-admin-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "cloudbase-industrial",
+    "payment-value-transfer-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/high-risk-change-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-high-risk-change-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/high-risk-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/high-risk-change-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/high-risk-change-record.md"
+  ],
+  "riskMappings": {
+    "production-config": ["production config", "secrets"],
+    "destructive-operation": ["irreversible operation", "data deletion"],
+    "regulated-data": ["regulated data", "privacy"],
+    "breaking-change": ["compatibility", "release"],
+    "migration": ["data migration", "recovery"],
+    "security-sensitive": ["security", "permission"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["breaking-change", "security-sensitive", "regulated-data"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["production-config", "destructive-operation", "migration", "secrets", "irreversible-operation"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "risk-classification": [
+      "risk classification evidence",
+      "blast radius evidence",
+      "approval scope evidence"
+    ],
+    "execution-readiness": [
+      "verification matrix evidence",
+      "rollback or mitigation plan",
+      "monitoring and incident response evidence"
+    ],
+    "production-safety": [
+      "production configuration review",
+      "secret exposure review",
+      "recovery evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "production-config",
+    "destructive-operation",
+    "regulated-data",
+    "breaking-change",
+    "migration",
+    "security-sensitive",
+    "secrets",
+    "irreversible-operation"
+  ]
+}

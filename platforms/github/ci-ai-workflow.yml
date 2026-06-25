@@ -21,8 +21,24 @@ jobs:
         run: node scripts/check-workflow-version.mjs .
       - name: Check project onboarding baseline
         run: node scripts/check-project-onboarding.mjs .
+      - name: Check platform baseline
+        run: node scripts/check-platform-baseline.mjs .
+      - name: Check industrial packs
+        run: node scripts/check-industrial-pack.mjs .
+      - name: Check industrial baseline
+        run: node scripts/check-industrial-baseline.mjs .
       - name: Check workflow item generator syntax
         run: node --check scripts/new-workflow-item.mjs
+      - name: Check platform baseline resolver syntax
+        run: node --check scripts/resolve-platform-baseline.mjs
+      - name: Check platform baseline checker syntax
+        run: node --check scripts/check-platform-baseline.mjs
+      - name: Check industrial pack checker syntax
+        run: node --check scripts/check-industrial-pack.mjs
+      - name: Check industrial baseline resolver syntax
+        run: node --check scripts/resolve-industrial-baseline.mjs
+      - name: Check industrial baseline checker syntax
+        run: node --check scripts/check-industrial-baseline.mjs
       - name: Check workflow next syntax
         run: node --check scripts/workflow-next.mjs
       - name: Check workflow artifact quality

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-native-dev-kit/baseline-selection.schema.json",
+  "title": "AI Native Project Baseline Selection",
+  "type": "object",
+  "required": [
+    "baselineLevel",
+    "selectedProfiles",
+    "selectedIndustrialPacks",
+    "rationale",
+    "humanApproval",
+    "exceptions",
+    "residualRisks"
+  ],
+  "properties": {
+    "baselineLevel": {
+      "enum": ["BL0_LIGHTWEIGHT", "BL1_STANDARD", "BL2_INDUSTRIAL"]
+    },
+    "selectedProfiles": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "selectedIndustrialPacks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rationale": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "humanApproval": {
+      "type": "object",
+      "required": ["status", "scope"],
+      "properties": {
+        "status": {
+          "enum": ["PENDING", "APPROVED", "REJECTED"]
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    },
+    "exceptions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "residualRisks": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
+

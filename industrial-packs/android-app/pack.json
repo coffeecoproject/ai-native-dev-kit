@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "0.1",
+  "id": "android-app-industrial",
+  "type": "primary-platform",
+  "displayName": "Android App Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": ["android-app"],
+  "compatiblePacks": [
+    "backend-api-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/android-runtime-release-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-android-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/android-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/android-release-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/android-release-record.md"
+  ],
+  "riskMappings": {
+    "app-signing": ["release", "production config"],
+    "privacy-permission": ["privacy", "regulated data"],
+    "local-storage": ["data persistence", "privacy"],
+    "background-work": ["runtime behavior", "platform dependency"],
+    "network-boundary": ["external side effect", "security"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["privacy-permission", "local-storage", "background-work"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["app-signing", "production-config", "regulated-data", "value-transfer"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "runtime-change": [
+      "supported SDK and device matrix evidence",
+      "critical flow emulator or device evidence",
+      "offline and background behavior evidence"
+    ],
+    "privacy-change": [
+      "permission prompt evidence",
+      "privacy data handling evidence",
+      "sensitive local storage review"
+    ],
+    "release": [
+      "release configuration review",
+      "signing readiness evidence",
+      "crash and monitoring evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "app-signing",
+    "production-config",
+    "privacy-permission",
+    "regulated-data",
+    "value-transfer",
+    "irreversible-operation"
+  ]
+}

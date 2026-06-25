@@ -39,9 +39,20 @@ const workflowRequiredPaths = [
   "scripts/summarize-ai-logs.mjs",
   "scripts/workflow-daily-summary.mjs",
   "scripts/workflow-next.mjs",
+  "scripts/check-platform-baseline.mjs",
+  "scripts/resolve-platform-baseline.mjs",
+  "scripts/check-industrial-pack.mjs",
+  "scripts/resolve-industrial-baseline.mjs",
+  "scripts/check-industrial-baseline.mjs",
   ".github/workflows/ai-workflow-checks.yml",
   ".ai-native/version.json",
   ".ai-native/core/workflow.md",
+  ".ai-native/profiles/web-app/baseline.json",
+  ".ai-native/profiles/backend-api/baseline.json",
+  ".ai-native/profiles/ios-app/baseline.json",
+  ".ai-native/profiles/android-app/baseline.json",
+  ".ai-native/profiles/internal-admin/baseline.json",
+  ".ai-native/profiles/high-risk-change/baseline.json",
   ".ai-native/core/project-onboarding.md",
   ".ai-native/prompts/bootstrap-agent.md",
   ".ai-native/prompts/project-onboarding-agent.md",
@@ -51,7 +62,13 @@ const workflowRequiredPaths = [
   ".ai-native/templates/business-spec-index.md",
   ".ai-native/templates/sample-policy.md",
   ".ai-native/templates/onboarding-decisions.md",
+  ".ai-native/templates/baseline-selection.md",
+  ".ai-native/templates/baseline-evidence.md",
   ".ai-native/checklists/project-onboarding-review.md",
+  ".ai-native/checklists/industrial-pack-review.md",
+  ".ai-native/industrial-packs/index.json",
+  ".ai-native/industrial-packs/web-app/pack.json",
+  "docs/verification-matrix.md",
 ];
 
 const requiredAgentSections = [
@@ -59,6 +76,8 @@ const requiredAgentSections = [
   "Core Rules",
   "Bootstrap Entry",
   "Project Onboarding",
+  "Platform Baseline",
+  "Industrial Baseline",
   "Workflow Artifact Generation",
   "Task Execution Rules",
   "High-risk Boundaries",
@@ -122,6 +141,21 @@ function readJson(rel) {
   } catch {
     return null;
   }
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sectionBody(content, heading) {
+  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
+  if (!match) return null;
+  const start = match.index;
+  const lineEnd = content.indexOf("\n", start);
+  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
+  const next = content.slice(bodyStart).search(/^## /m);
+  const bodyEnd = next === -1 ? content.length : bodyStart + next;
+  return content.slice(bodyStart, bodyEnd).trim();
 }
 
 function localKitRoot() {
@@ -195,6 +229,192 @@ function onboardingState() {
   return { state: "READY", missing: [], pending: [] };
 }
 
+function cleanProfileId(value) {
+  return String(value || "")
+    .replace(/[`*_#[\]]/g, "")
+    .replace(/\(.+\)$/g, "")
+    .trim();
+}
+
+function unique(values) {
+  return [...new Set(values.filter(Boolean))].sort();
+}
+
+function isProfilePlaceholder(value) {
+  return !value
+    || value.includes("<")
+    || /^(profile-id|selected profile|none|n\/a|pending|tbd|todo|not_ready)$/i.test(value)
+    || /PENDING|TBD|TODO|NOT_READY/i.test(value);
+}
+
+function selectedProfiles() {
+  const content = read("docs/project-profile.md");
+  if (!content) return [];
+  const body = sectionBody(content, "Selected Profiles");
+  if (!body) return [];
+  return [...new Set(body
+    .split("\n")
+    .map((line) => line.match(/^\s*-\s+(.+?)\s*$/)?.[1])
+    .map(cleanProfileId)
+    .filter((value) => !isProfilePlaceholder(value)))].sort();
+}
+
+function cleanListValue(value) {
+  return String(value || "")
+    .replace(/[`*_#[\]]/g, "")
+    .replace(/\(.+\)$/g, "")
+    .trim();
+}
+
+function isBaselinePlaceholder(value) {
+  return !value
+    || value.includes("<")
+    || /^(industrial-pack-id|none|n\/a|pending|tbd|todo|not_ready)$/i.test(value)
+    || /PENDING|TBD|TODO|NOT_READY/i.test(value);
+}
+
+function parseSingleEnum(body, allowed) {
+  if (!body) return null;
+  const allowedPattern = allowed.map(escapeRegExp).join("|");
+  for (const line of body.split("\n")) {
+    const matches = line.match(new RegExp(`\\b(${allowedPattern})\\b`, "g")) || [];
+    const distinct = unique(matches);
+    if (distinct.length === 1) return distinct[0];
+  }
+  const matches = body.match(new RegExp(`\\b(${allowedPattern})\\b`, "g")) || [];
+  const distinct = unique(matches);
+  return distinct.length === 1 ? distinct[0] : null;
+}
+
+function selectedBaselineLevel() {
+  const content = read("docs/baseline-selection.md");
+  if (!content) return null;
+  return parseSingleEnum(sectionBody(content, "Baseline Level"), ["BL0_LIGHTWEIGHT", "BL1_STANDARD", "BL2_INDUSTRIAL"]);
+}
+
+function selectedIndustrialPacks() {
+  const content = read("docs/baseline-selection.md");
+  if (!content) return [];
+  const body = sectionBody(content, "Selected Industrial Packs");
+  if (!body) return [];
+  const packs = [];
+  for (const line of body.split("\n")) {
+    const match = line.match(/^\s*-\s+(.+?)\s*$/);
+    if (!match) continue;
+    const value = cleanListValue(match[1]);
+    if (isBaselinePlaceholder(value)) continue;
+    const token = value.match(/\b[a-z0-9][a-z0-9-]*-industrial\b/i)?.[0];
+    if (token && !isBaselinePlaceholder(token)) packs.push(token);
+  }
+  return unique(packs);
+}
+
+function industrialHumanApprovalStatus() {
+  const content = read("docs/baseline-selection.md");
+  if (!content) return null;
+  return parseSingleEnum(sectionBody(content, "Human Approval"), ["PENDING", "APPROVED", "REJECTED"]);
+}
+
+function industrialBaselineState() {
+  const hasSelection = exists("docs/baseline-selection.md");
+  const baselineLevel = selectedBaselineLevel();
+  const selectedPacks = selectedIndustrialPacks();
+  const humanApprovalStatus = industrialHumanApprovalStatus();
+  const selectedProfileIds = selectedProfiles();
+  const base = {
+    baselineLevel,
+    selectedIndustrialPacks: selectedPacks,
+    humanApprovalStatus,
+    unknownPacks: [],
+    plannedPacks: [],
+    invalidPacks: [],
+    incompatiblePacks: [],
+    missingProjectDocs: [],
+  };
+
+  if (!hasSelection || !baselineLevel) {
+    return { ...base, state: "NOT_SELECTED" };
+  }
+  if (baselineLevel !== "BL2_INDUSTRIAL") {
+    return { ...base, state: "NOT_APPLICABLE" };
+  }
+
+  const index = readJson(".ai-native/industrial-packs/index.json");
+  if (!index?.packs) {
+    return { ...base, state: "PACK_INDEX_MISSING" };
+  }
+  if (selectedPacks.length === 0) {
+    return { ...base, state: "PACKS_NOT_SELECTED" };
+  }
+
+  const entriesById = new Map(index.packs.map((entry) => [entry.id, entry]));
+  const unknownPacks = selectedPacks.filter((packId) => !entriesById.has(packId));
+  const plannedPacks = selectedPacks
+    .map((packId) => entriesById.get(packId))
+    .filter((entry) => entry?.status === "planned")
+    .map((entry) => entry.id);
+  const invalidPacks = [];
+  const incompatiblePacks = [];
+  for (const packId of selectedPacks) {
+    const entry = entriesById.get(packId);
+    if (!entry || entry.status === "planned") continue;
+    const manifest = readJson(path.join(".ai-native", "industrial-packs", entry.path || "", "pack.json"));
+    if (!manifest) {
+      invalidPacks.push(packId);
+      continue;
+    }
+    const appliesToProfiles = Array.isArray(manifest.appliesToProfiles) ? manifest.appliesToProfiles : entry.appliesToProfiles || [];
+    if (appliesToProfiles.length > 0
+      && selectedProfileIds.length > 0
+      && !appliesToProfiles.some((profileId) => selectedProfileIds.includes(profileId))) {
+      incompatiblePacks.push(packId);
+    }
+  }
+
+  if (unknownPacks.length > 0 || invalidPacks.length > 0) {
+    return { ...base, state: "PACKS_INVALID", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks };
+  }
+  if (plannedPacks.length > 0) {
+    return { ...base, state: "PACKS_NOT_AVAILABLE", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks };
+  }
+  if (incompatiblePacks.length > 0) {
+    return { ...base, state: "PACKS_INCOMPATIBLE", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks };
+  }
+
+  const missingProjectDocs = ["docs/baseline-selection.md", "docs/baseline-evidence.md"].filter((rel) => !exists(rel));
+  if (missingProjectDocs.length > 0) {
+    return { ...base, state: "EVIDENCE_MISSING", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
+  }
+  if (humanApprovalStatus !== "APPROVED") {
+    return { ...base, state: "NEEDS_HUMAN_APPROVAL", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
+  }
+  return { ...base, state: "BASELINE_READY", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
+}
+
+function platformBaselineState() {
+  if (!exists("docs/project-profile.md")) {
+    return { state: "MISSING_PROFILE", selectedProfiles: [], missingProfiles: [], missingRequiredDocs: [] };
+  }
+  const selected = selectedProfiles();
+  if (selected.length === 0) {
+    return { state: "MISSING_PROFILE", selectedProfiles: [], missingProfiles: [], missingRequiredDocs: [] };
+  }
+  const missingProfiles = selected.filter((profileId) => !exists(path.join(".ai-native", "profiles", profileId, "baseline.json")));
+  if (missingProfiles.length > 0) {
+    return { state: "PROFILE_INVALID", selectedProfiles: selected, missingProfiles, missingRequiredDocs: [] };
+  }
+  const requiredDocs = new Set();
+  for (const profileId of selected) {
+    const baseline = readJson(path.join(".ai-native", "profiles", profileId, "baseline.json"));
+    for (const rel of baseline?.requiredDocs || []) requiredDocs.add(rel);
+  }
+  const missingRequiredDocs = [...requiredDocs].filter((rel) => !exists(rel)).sort();
+  if (missingRequiredDocs.length > 0) {
+    return { state: "BASELINE_DOCS_MISSING", selectedProfiles: selected, missingProfiles: [], missingRequiredDocs };
+  }
+  return { state: "BASELINE_READY", selectedProfiles: selected, missingProfiles: [], missingRequiredDocs: [] };
+}
+
 function workflowArtifactCount() {
   return workflowArtifactDirs.reduce((count, dir) => count + listMarkdownFiles(dir).length, 0);
 }
@@ -209,6 +429,12 @@ function commandFor(action, kitRoot) {
   }
   if (action === "RUN_PROJECT_ONBOARDING") {
     return "Use .ai-native/prompts/project-onboarding-agent.md, then run node scripts/check-project-onboarding.mjs .";
+  }
+  if (action === "RUN_PLATFORM_BASELINE_SETUP") {
+    return "Select project profiles in docs/project-profile.md, then run node scripts/check-platform-baseline.mjs .";
+  }
+  if (action === "RUN_INDUSTRIAL_BASELINE_SETUP") {
+    return "For BL2 work, draft docs/baseline-selection.md and docs/baseline-evidence.md from .ai-native/templates, then run node scripts/check-industrial-baseline.mjs .";
   }
   if (action === "REVIEW_GOVERNANCE_MIGRATION") {
     return "Review .ai-native/migration-reports/ and apply only after explicit human approval.";
@@ -233,6 +459,8 @@ function buildResult() {
       projectState: "TARGET_MISSING",
       workflowState: "UNAVAILABLE",
       onboardingState: "UNAVAILABLE",
+      platformBaselineState: "UNAVAILABLE",
+      industrialBaselineState: "UNAVAILABLE",
       versionState: "UNAVAILABLE",
       nextAction: "SELECT_OR_CREATE_TARGET",
       canWriteWorkflowAssets: "no",
@@ -257,6 +485,8 @@ function buildResult() {
       projectState: "DEV_KIT_REPOSITORY",
       workflowState: "DEV_KIT_SOURCE",
       onboardingState: "NOT_APPLICABLE",
+      platformBaselineState: "NOT_APPLICABLE",
+      industrialBaselineState: "NOT_APPLICABLE",
       versionState: localVersion ? "CURRENT" : "UNKNOWN_LOCAL_DEV_KIT",
       nextAction: "RUN_DEV_KIT_SELF_CHECK",
       canWriteWorkflowAssets: "not_applicable",
@@ -281,6 +511,8 @@ function buildResult() {
   const pendingReports = pendingMigrationReports();
   const agentMissing = missingAgentSections();
   const onboarding = onboardingState();
+  const platformBaseline = platformBaselineState();
+  const industrialBaseline = industrialBaselineState();
   const artifactCount = workflowArtifactCount();
 
   let projectState;
@@ -331,6 +563,18 @@ function buildResult() {
     nextAction = "RUN_WORKFLOW_ASSET_UPDATE";
   } else if (onboarding.state !== "READY") {
     nextAction = "RUN_PROJECT_ONBOARDING";
+  } else if (platformBaseline.state !== "BASELINE_READY") {
+    nextAction = "RUN_PLATFORM_BASELINE_SETUP";
+  } else if ([
+    "PACK_INDEX_MISSING",
+    "PACKS_NOT_SELECTED",
+    "PACKS_INVALID",
+    "PACKS_NOT_AVAILABLE",
+    "PACKS_INCOMPATIBLE",
+    "EVIDENCE_MISSING",
+    "NEEDS_HUMAN_APPROVAL",
+  ].includes(industrialBaseline.state)) {
+    nextAction = "RUN_INDUSTRIAL_BASELINE_SETUP";
   } else if (artifactCount === 0) {
     nextAction = "READY_FOR_FIRST_REQUEST";
   } else {
@@ -345,6 +589,20 @@ function buildResult() {
   if (pendingReports.length > 0) notes.push(`${pendingReports.length} migration report(s) need human approval.`);
   if (onboarding.state === "NEEDS_HUMAN_CONFIRMATION") notes.push(`${onboarding.pending.length} onboarding doc(s) still have pending decisions.`);
   if (onboarding.state === "MISSING") notes.push(`${onboarding.missing.length} onboarding doc(s) are missing.`);
+  if (platformBaseline.state === "MISSING_PROFILE") notes.push("Project profile has not selected platform profiles.");
+  if (platformBaseline.state === "PROFILE_INVALID") notes.push(`${platformBaseline.missingProfiles.length} selected platform profile(s) are missing.`);
+  if (platformBaseline.state === "BASELINE_DOCS_MISSING") notes.push(`${platformBaseline.missingRequiredDocs.length} platform baseline doc(s) are missing.`);
+  if (platformBaseline.selectedProfiles.length > 0) notes.push(`Selected platform profiles: ${platformBaseline.selectedProfiles.join(", ")}.`);
+  if (industrialBaseline.baselineLevel) notes.push(`Selected baseline level: ${industrialBaseline.baselineLevel}.`);
+  if (industrialBaseline.selectedIndustrialPacks.length > 0) notes.push(`Selected industrial packs: ${industrialBaseline.selectedIndustrialPacks.join(", ")}.`);
+  if (industrialBaseline.state === "NOT_SELECTED") notes.push("Industrial baseline level is not selected; BL2 checks are not active.");
+  if (industrialBaseline.state === "PACK_INDEX_MISSING") notes.push("Industrial pack index is missing.");
+  if (industrialBaseline.state === "PACKS_NOT_SELECTED") notes.push("BL2 is selected but no industrial packs are selected.");
+  if (industrialBaseline.state === "PACKS_INVALID") notes.push("One or more selected industrial packs are unknown or invalid.");
+  if (industrialBaseline.state === "PACKS_NOT_AVAILABLE") notes.push("One or more selected industrial packs are planned but not executable yet.");
+  if (industrialBaseline.state === "PACKS_INCOMPATIBLE") notes.push("One or more selected industrial packs do not match selected platform profiles.");
+  if (industrialBaseline.state === "EVIDENCE_MISSING") notes.push(`${industrialBaseline.missingProjectDocs.length} BL2 project evidence doc(s) are missing.`);
+  if (industrialBaseline.state === "NEEDS_HUMAN_APPROVAL") notes.push("BL2 industrial baseline still needs explicit human approval.");
   if (artifactCount > 0) notes.push(`${artifactCount} workflow artifact file(s) exist.`);
   if (notes.length === 0) notes.push("No blocking workflow issue detected.");
 
@@ -355,10 +613,14 @@ function buildResult() {
     projectState,
     workflowState,
     onboardingState: onboarding.state,
+    platformBaselineState: platformBaseline.state,
+    industrialBaselineState: industrialBaseline.state,
+    baselineLevel: industrialBaseline.baselineLevel,
+    selectedIndustrialPacks: industrialBaseline.selectedIndustrialPacks,
     versionState,
     nextAction,
-    canWriteWorkflowAssets: ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING"].includes(nextAction) ? "yes_with_execution_intent" : "not_without_more_input",
-    mustStopForHuman: humanStopActions.has(nextAction) || pendingReports.length > 0 ? "yes" : "no",
+    canWriteWorkflowAssets: ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction) ? "yes_with_execution_intent" : "not_without_more_input",
+    mustStopForHuman: humanStopActions.has(nextAction) || pendingReports.length > 0 || industrialBaseline.state === "NEEDS_HUMAN_APPROVAL" ? "yes" : "no",
     pendingMigrationReports: pendingReports,
     missingWorkflowAssets,
     missingAgentSections: agentMissing,
@@ -379,6 +641,9 @@ if (outputJson) {
   console.log(`PROJECT_STATE: ${result.projectState}`);
   console.log(`WORKFLOW_STATE: ${result.workflowState}`);
   console.log(`ONBOARDING_STATE: ${result.onboardingState}`);
+  console.log(`PLATFORM_BASELINE_STATE: ${result.platformBaselineState}`);
+  console.log(`INDUSTRIAL_BASELINE_STATE: ${result.industrialBaselineState}`);
+  console.log(`BASELINE_LEVEL: ${result.baselineLevel || "none"}`);
   console.log(`VERSION_STATE: ${result.versionState}`);
   console.log(`NEXT_ACTION: ${result.nextAction}`);
   console.log(`CAN_WRITE_WORKFLOW_ASSETS: ${result.canWriteWorkflowAssets}`);
@@ -424,5 +689,7 @@ function enforceReasons(result) {
   if (result.workflowState === "BOOTSTRAPPED_WITH_PENDING_MIGRATION") reasons.push("migration reports need human approval");
   if (result.nextAction === "RUN_WORKFLOW_ASSET_UPDATE") reasons.push("workflow asset update is required");
   if (result.nextAction === "RUN_PROJECT_ONBOARDING") reasons.push("project onboarding is not ready");
+  if (result.nextAction === "RUN_PLATFORM_BASELINE_SETUP") reasons.push("platform baseline is not ready");
+  if (result.nextAction === "RUN_INDUSTRIAL_BASELINE_SETUP") reasons.push("industrial baseline is not ready");
   return [...new Set(reasons)];
 }

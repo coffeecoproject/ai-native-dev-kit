@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "0.1",
+  "id": "wechat-miniprogram-industrial",
+  "type": "primary-platform",
+  "displayName": "WeChat Mini Program Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": [],
+  "compatiblePacks": [
+    "backend-api-industrial",
+    "cloudbase-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/miniprogram-runtime-release-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-miniprogram-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/miniprogram-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/miniprogram-release-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/miniprogram-release-record.md"
+  ],
+  "riskMappings": {
+    "platform-permission": ["privacy", "platform dependency"],
+    "cloud-function": ["external side effect", "production config"],
+    "mini-program-release": ["release", "production config"],
+    "client-storage": ["data persistence", "privacy"],
+    "value-transfer": ["regulated operation", "irreversible operation"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["platform-permission", "client-storage", "cloud-function"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["mini-program-release", "production-config", "value-transfer", "regulated-data"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "runtime-change": [
+      "runtime capability evidence",
+      "critical flow behavior evidence",
+      "denied permission evidence"
+    ],
+    "cloud-change": [
+      "cloud function boundary evidence",
+      "storage access evidence",
+      "production configuration review"
+    ],
+    "release": [
+      "release submission readiness",
+      "rollback or mitigation plan",
+      "monitoring evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "mini-program-release",
+    "platform-permission",
+    "production-config",
+    "cloud-function",
+    "value-transfer",
+    "regulated-data",
+    "irreversible-operation"
+  ]
+}

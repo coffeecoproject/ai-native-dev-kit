@@ -13,6 +13,16 @@ Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
 - Delivery model:
 - Expected lifecycle:
 
+## Selected Profiles
+
+- <profile-id>
+
+## Profile Rationale
+
+| Profile | Why it applies | Human confirmed |
+|---|---|---|
+|  |  | Yes / No |
+
 ## Purpose
 
 What problem does this project solve?
@@ -64,10 +74,10 @@ Stop before:
 - [ ] `docs/domain-model.md`
 - [ ] `docs/permission-model.md`
 - [ ] `docs/test-strategy.md`
+- [ ] `docs/verification-matrix.md`
 
 ## Open Assumptions
 
 | Assumption | Impact | Needs human confirmation |
 |---|---|---|
 |  |  | Yes / No |
-

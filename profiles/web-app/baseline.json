@@ -1,0 +1,66 @@
+{
+  "id": "web-app",
+  "name": "Web App",
+  "defaultTaskLevel": "L1",
+  "escalationRules": [
+    {
+      "when": ["auth", "permission", "data-contract", "routing-architecture", "cross-module-state"],
+      "minLevel": "L2"
+    },
+    {
+      "when": ["production-data", "secrets", "irreversible-operation", "value-transfer", "regulated-data"],
+      "minLevel": "L3"
+    }
+  ],
+  "requiredDocs": [
+    "docs/product-vision.md",
+    "docs/engineering-principles.md",
+    "docs/risk-policy.md",
+    "docs/architecture.md",
+    "docs/domain-model.md",
+    "docs/permission-model.md",
+    "docs/test-strategy.md",
+    "docs/verification-matrix.md"
+  ],
+  "riskGateMappings": {
+    "auth": ["auth", "permission"],
+    "permission": ["permission"],
+    "production-config": ["production config"],
+    "secrets": ["secrets"],
+    "regulated-data": ["regulated data"]
+  },
+  "requiredVerification": [
+    "desktop and mobile behavior check",
+    "loading/empty/error state review",
+    "API error handling",
+    "lint/typecheck/unit/build",
+    "E2E or manual behavior check for critical flows"
+  ],
+  "verificationKeywords": ["desktop", "mobile", "state", "api", "lint", "typecheck", "build", "e2e"],
+  "verifyScriptKeywords": ["lint", "typecheck", "test", "build"],
+  "highRiskKeywords": ["auth", "permission", "production config", "secrets", "migration", "destructive"],
+  "humanApprovalRequiredFor": [
+    "auth",
+    "permission",
+    "production-config",
+    "secrets",
+    "destructive-operation",
+    "regulated-data"
+  ],
+  "releaseChecks": [
+    "desktop and mobile critical flows verified when UI behavior changes",
+    "API contract and permission changes reviewed before release",
+    "client-side secrets and production config exposure reviewed"
+  ],
+  "aiBoundaries": {
+    "may": [
+      "edit web UI, routing, state, tests, and documentation inside approved task scope",
+      "propose API contract changes with spec and verification evidence"
+    ],
+    "mustNot": [
+      "store secrets or privileged decisions only in client-side code",
+      "change production config, auth, permission, or irreversible behavior without human approval"
+    ]
+  },
+  "compatibleStarters": ["generic-project", "codex-web-app"]
+}

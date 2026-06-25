@@ -39,6 +39,20 @@ For project onboarding:
 - run `node scripts/check-project-onboarding.mjs .` for baseline
 - use `node scripts/check-project-onboarding.mjs . --strict` only after human confirmation
 
+For platform baseline:
+
+- select target runtime profiles in `docs/project-profile.md` under `Selected Profiles`
+- run `node scripts/check-platform-baseline.mjs .` before the first non-trivial implementation
+- use `node scripts/resolve-platform-baseline.mjs .` to inspect effective platform verification and risk requirements
+- use strict mode only after humans confirm selected profiles and project docs
+
+For industrial baseline:
+
+- baseline level is `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`; it is not task level
+- run `node scripts/check-industrial-pack.mjs .` to validate injected industrial pack assets
+- run `node scripts/resolve-industrial-baseline.mjs .` and `node scripts/check-industrial-baseline.mjs .` to inspect project-level BL2 readiness
+- do not treat BL2 or selected industrial packs as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and project-level industrial baseline status
+
 For workflow artifacts:
 
 - use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI log files

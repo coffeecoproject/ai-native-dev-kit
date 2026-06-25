@@ -88,6 +88,8 @@ function checkRequiredFiles() {
     "templates/starter-readiness.md",
     "templates/platform-risk-policy.md",
     "templates/verification-matrix.md",
+    "templates/baseline-selection.md",
+    "templates/baseline-evidence.md",
     "templates/workflow-version.json",
     "templates/version-record.md",
     "checklists/scope-gate.md",
@@ -96,6 +98,7 @@ function checkRequiredFiles() {
     "checklists/release-gate.md",
     "checklists/profile-review.md",
     "checklists/starter-review.md",
+    "checklists/industrial-pack-review.md",
     "checklists/core-purity-review.md",
     "checklists/self-iteration-review.md",
     "checklists/daily-summary-review.md",
@@ -111,6 +114,11 @@ function checkRequiredFiles() {
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-platform-baseline.mjs",
+    "scripts/resolve-platform-baseline.mjs",
+    "scripts/check-industrial-pack.mjs",
+    "scripts/resolve-industrial-baseline.mjs",
+    "scripts/check-industrial-baseline.mjs",
     "scripts/check-workflow-artifacts.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
@@ -120,6 +128,31 @@ function checkRequiredFiles() {
     "platforms/claude/instructions.md",
     "platforms/github/ci-ai-workflow.yml",
     "platforms/github/pull_request_template.md",
+    "profiles/web-app/baseline.json",
+    "profiles/backend-api/baseline.json",
+    "profiles/ios-app/baseline.json",
+    "profiles/android-app/baseline.json",
+    "profiles/internal-admin/baseline.json",
+    "profiles/high-risk-change/baseline.json",
+    "industrial-packs/README.md",
+    "industrial-packs/index.json",
+    "industrial-packs/schema/pack.schema.json",
+    "industrial-packs/schema/baseline-selection.schema.json",
+    "industrial-packs/web-app/pack.md",
+    "industrial-packs/web-app/pack.json",
+    "industrial-packs/web-app/baselines/web-runtime-baseline.md",
+    "industrial-packs/web-app/baselines/web-security-permission-baseline.md",
+    "industrial-packs/web-app/baselines/web-release-readiness-baseline.md",
+    "industrial-packs/web-app/executions/codex-web-industrial-execution.md",
+    "industrial-packs/web-app/audit/web-existing-project-audit.md",
+    "industrial-packs/web-app/audit/web-release-readiness.md",
+    "industrial-packs/web-app/checklists/web-ui-state-checklist.md",
+    "industrial-packs/web-app/checklists/web-security-checklist.md",
+    "industrial-packs/web-app/templates/release-record.md",
+    "industrial-packs/web-app/templates/incident-record.md",
+    "industrial-packs/web-app/bootstrap-kit/README.md",
+    "industrial-pack-candidates/README.md",
+    "industrial-pack-candidates/web-app/README.md",
     "starters/generic-project/AGENTS.md",
     "examples/generic-first-change/README.md",
     "examples/web-internal-admin-first-slice/README.md",
@@ -180,6 +213,11 @@ function checkVersionMetadata() {
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-platform-baseline.mjs",
+    "scripts/resolve-platform-baseline.mjs",
+    "scripts/check-industrial-pack.mjs",
+    "scripts/resolve-industrial-baseline.mjs",
+    "scripts/check-industrial-baseline.mjs",
     "scripts/check-workflow-artifacts.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
@@ -189,6 +227,9 @@ function checkVersionMetadata() {
     "docs/business-spec-index.md",
     "docs/sample-policy.md",
     "docs/onboarding-decisions.md",
+    "docs/verification-matrix.md",
+    ".ai-native/profiles",
+    ".ai-native/industrial-packs",
     ".github/pull_request_template.md",
     ".github/workflows/ai-workflow-checks.yml",
   ]) {
@@ -262,8 +303,13 @@ function checkProfiles() {
   for (const entry of fs.readdirSync(profileRoot, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const profilePath = path.join(profileRoot, entry.name, "profile.md");
+    const baselinePath = path.join(profileRoot, entry.name, "baseline.json");
     if (!fs.existsSync(profilePath)) {
       fail(`profile missing profile.md: profiles/${entry.name}`);
+      continue;
+    }
+    if (!fs.existsSync(baselinePath)) {
+      fail(`profile missing baseline.json: profiles/${entry.name}`);
       continue;
     }
     const content = fs.readFileSync(profilePath, "utf8");
@@ -275,8 +321,109 @@ function checkProfiles() {
     if (!content.includes("L0") && !content.includes("L1") && !content.includes("L2") && !content.includes("L3")) {
       fail(`profiles/${entry.name}/profile.md missing task level reference`);
     }
+    let baseline;
+    try {
+      baseline = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
+    } catch (error) {
+      fail(`profiles/${entry.name}/baseline.json invalid JSON: ${error.message}`);
+      continue;
+    }
+    for (const key of [
+      "id",
+      "defaultTaskLevel",
+      "escalationRules",
+      "requiredDocs",
+      "riskGateMappings",
+      "requiredVerification",
+      "verificationKeywords",
+      "verifyScriptKeywords",
+      "highRiskKeywords",
+      "humanApprovalRequiredFor",
+      "releaseChecks",
+      "aiBoundaries",
+      "compatibleStarters",
+    ]) {
+      if (!(key in baseline)) {
+        fail(`profiles/${entry.name}/baseline.json missing ${key}`);
+      }
+    }
+    for (const key of [
+      "escalationRules",
+      "requiredDocs",
+      "requiredVerification",
+      "verificationKeywords",
+      "verifyScriptKeywords",
+      "highRiskKeywords",
+      "humanApprovalRequiredFor",
+      "releaseChecks",
+      "compatibleStarters",
+    ]) {
+      if (key in baseline && !Array.isArray(baseline[key])) {
+        fail(`profiles/${entry.name}/baseline.json ${key} must be an array`);
+      }
+    }
+    if (baseline.riskGateMappings && typeof baseline.riskGateMappings !== "object") {
+      fail(`profiles/${entry.name}/baseline.json riskGateMappings must be an object`);
+    }
+    if (!baseline.aiBoundaries
+      || typeof baseline.aiBoundaries !== "object"
+      || !Array.isArray(baseline.aiBoundaries.may)
+      || !Array.isArray(baseline.aiBoundaries.mustNot)) {
+      fail(`profiles/${entry.name}/baseline.json aiBoundaries must include may and mustNot arrays`);
+    }
+    if (baseline.id !== entry.name) {
+      fail(`profiles/${entry.name}/baseline.json id must match directory name`);
+    }
     pass(`profile structure checked: ${entry.name}`);
   }
+}
+
+function checkIndustrialPacks() {
+  const result = runNode(["scripts/check-industrial-pack.mjs", kitRoot, "--json"]);
+  if (result.status !== 0) {
+    fail(`industrial pack check failed: ${result.stderr || result.stdout}`);
+    return;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch (error) {
+    fail(`industrial pack check JSON is not parseable: ${error.message}`);
+    return;
+  }
+  if (parsed.status !== "PASS") {
+    fail(`industrial pack check status is ${parsed.status}`);
+    return;
+  }
+  if (!parsed.checkedPacks || parsed.checkedPacks < 11) {
+    fail(`industrial pack check validated ${parsed.checkedPacks || 0} concrete pack(s), expected at least 11`);
+    return;
+  }
+  if (parsed.plannedPacks?.length > 0) {
+    fail(`industrial pack check still has planned packs: ${parsed.plannedPacks.join(", ")}`);
+    return;
+  }
+  pass("industrial pack structure checked");
+}
+
+function checkIndustrialBaselineResolver() {
+  const result = runNode(["scripts/check-industrial-baseline.mjs", kitRoot, "--json"]);
+  if (result.status !== 0) {
+    fail(`industrial baseline check failed: ${result.stderr || result.stdout}`);
+    return;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch (error) {
+    fail(`industrial baseline check JSON is not parseable: ${error.message}`);
+    return;
+  }
+  if (parsed.checkStatus !== "PENDING" || parsed.state !== "NOT_SELECTED") {
+    fail(`dev-kit source industrial baseline should be pending/not selected, got ${parsed.checkStatus}/${parsed.state}`);
+    return;
+  }
+  pass("industrial baseline resolver checked");
 }
 
 function checkStarters() {
@@ -318,7 +465,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -327,7 +474,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Workflow Artifact Generation", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -381,6 +528,11 @@ function checkPlatformAdapters() {
     "summarize-ai-logs.mjs",
     "workflow-daily-summary.mjs",
     "check-project-onboarding.mjs",
+    "check-platform-baseline.mjs",
+    "resolve-platform-baseline.mjs",
+    "check-industrial-pack.mjs",
+    "resolve-industrial-baseline.mjs",
+    "check-industrial-baseline.mjs",
     "check-workflow-artifacts.mjs",
     "new-workflow-item.mjs",
     "workflow-next.mjs",
@@ -402,7 +554,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -425,6 +577,11 @@ function checkReadmePointers() {
     "docs/quickstart",
     "docs/codex-usage",
     "check-workflow-artifacts",
+    "check-platform-baseline",
+    "resolve-platform-baseline",
+    "check-industrial-pack",
+    "resolve-industrial-baseline",
+    "check-industrial-baseline",
     "new-workflow-item",
     "--mode ready",
     "--mode implementation",
@@ -435,6 +592,9 @@ function checkReadmePointers() {
     "O0",
     "O1",
     "O2",
+    "BL0",
+    "BL1",
+    "BL2",
     "workflow-next",
     "--enforce",
     "bootstrap-agent",
@@ -445,6 +605,9 @@ function checkReadmePointers() {
     "skill-candidates",
     "automation-proposals",
     "project-onboarding",
+    "Selected Profiles",
+    "platform baseline",
+    "industrial-packs",
     "check-project-onboarding",
     "workflow-daily-summary",
     "VERSION",
@@ -528,6 +691,165 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project onboarding check");
+
+  for (const rel of [
+    "scripts/check-platform-baseline.mjs",
+    "scripts/resolve-platform-baseline.mjs",
+    "scripts/check-industrial-pack.mjs",
+    "scripts/resolve-industrial-baseline.mjs",
+    "scripts/check-industrial-baseline.mjs",
+    ".ai-native/profiles/web-app/baseline.json",
+    ".ai-native/industrial-packs/index.json",
+    ".ai-native/industrial-packs/web-app/pack.json",
+    ".ai-native/templates/baseline-selection.md",
+    ".ai-native/templates/baseline-evidence.md",
+    "docs/verification-matrix.md",
+  ]) {
+    if (!fs.existsSync(path.join(target, rel))) {
+      fail(`generated project missing platform baseline asset: ${rel}`);
+      return;
+    }
+  }
+  pass("generated project platform baseline assets");
+
+  const industrialPackCheck = runNode([
+    path.join(target, "scripts", "check-industrial-pack.mjs"),
+    target,
+  ]);
+  if (industrialPackCheck.status !== 0 || !industrialPackCheck.stdout.includes("Industrial pack structure is ready")) {
+    fail(`generated project industrial pack check failed: ${industrialPackCheck.stderr || industrialPackCheck.stdout}`);
+    return;
+  }
+  pass("generated project industrial pack check");
+
+  const industrialBaselinePending = runNode([
+    path.join(target, "scripts", "check-industrial-baseline.mjs"),
+    target,
+  ]);
+  if (industrialBaselinePending.status !== 0 || !industrialBaselinePending.stdout.includes("PENDING baseline level is not selected")) {
+    fail(`generated project industrial baseline check should be pending before baseline selection: ${industrialBaselinePending.stderr || industrialBaselinePending.stdout}`);
+    return;
+  }
+  pass("generated project industrial baseline check is pending before baseline selection");
+
+  const platformBaselinePending = runNode([
+    path.join(target, "scripts", "check-platform-baseline.mjs"),
+    target,
+  ]);
+  if (platformBaselinePending.status !== 0 || !platformBaselinePending.stdout.includes("PENDING")) {
+    fail(`generated project platform baseline check should be pending before profile selection: ${platformBaselinePending.stderr || platformBaselinePending.stdout}`);
+    return;
+  }
+  pass("generated project platform baseline check is pending before profile selection");
+
+  const projectProfilePath = path.join(target, "docs", "project-profile.md");
+  const projectProfileContent = fs.readFileSync(projectProfilePath, "utf8")
+    .replace(/## Selected Profiles\n\n[\s\S]*?\n## Profile Rationale/, "## Selected Profiles\n\n- web-app\n\n## Profile Rationale")
+    .replace("|  |  | Yes / No |", "| web-app | browser-based UI | Yes |");
+  fs.writeFileSync(projectProfilePath, projectProfileContent);
+
+  const platformBaselineResolved = runNode([
+    path.join(target, "scripts", "resolve-platform-baseline.mjs"),
+    target,
+  ]);
+  if (platformBaselineResolved.status !== 0 || !platformBaselineResolved.stdout.includes("PLATFORM_BASELINE_STATE: BASELINE_READY")) {
+    fail(`generated project platform baseline resolver failed after profile selection: ${platformBaselineResolved.stderr || platformBaselineResolved.stdout}`);
+    return;
+  }
+  pass("generated project platform baseline resolver handles selected profile");
+
+  const platformBaselineCheck = runNode([
+    path.join(target, "scripts", "check-platform-baseline.mjs"),
+    target,
+  ]);
+  if (platformBaselineCheck.status !== 0 || !platformBaselineCheck.stdout.includes("selected profiles: web-app")) {
+    fail(`generated project platform baseline check failed after profile selection: ${platformBaselineCheck.stderr || platformBaselineCheck.stdout}`);
+    return;
+  }
+  pass("generated project platform baseline check handles selected profile");
+
+  const platformBaselineJson = runNode([
+    path.join(target, "scripts", "check-platform-baseline.mjs"),
+    target,
+    "--json",
+  ]);
+  if (platformBaselineJson.status !== 0) {
+    fail(`generated project platform baseline JSON check failed: ${platformBaselineJson.stderr || platformBaselineJson.stdout}`);
+    return;
+  }
+  try {
+    const parsed = JSON.parse(platformBaselineJson.stdout);
+    if (parsed.checkStatus !== "PENDING" && parsed.checkStatus !== "PASS") {
+      fail(`generated project platform baseline JSON has unexpected status: ${parsed.checkStatus}`);
+      return;
+    }
+    if (!parsed.effectiveRiskGateMappings?.permission || !parsed.effectiveAiBoundaries?.mustNot?.length) {
+      fail("generated project platform baseline JSON missing effective risk mappings or AI boundaries");
+      return;
+    }
+  } catch (error) {
+    fail(`generated project platform baseline JSON output is not parseable: ${error.message}`);
+    return;
+  }
+  pass("generated project platform baseline JSON is machine-readable");
+
+  fs.copyFileSync(
+    path.join(target, ".ai-native", "templates", "baseline-selection.md"),
+    path.join(target, "docs", "baseline-selection.md"),
+  );
+  fs.copyFileSync(
+    path.join(target, ".ai-native", "templates", "baseline-evidence.md"),
+    path.join(target, "docs", "baseline-evidence.md"),
+  );
+  const baselineSelectionPath = path.join(target, "docs", "baseline-selection.md");
+  const baselineSelectionContent = fs.readFileSync(baselineSelectionPath, "utf8")
+    .replace("BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL:", "BL2_INDUSTRIAL:")
+    .replace("- <industrial-pack-id>", "- web-app-industrial")
+    .replace("Status: PENDING / APPROVED / REJECTED", "Status: APPROVED")
+    .replace("|  |  | Yes / No |", "| web-app-industrial | production-grade web delivery | Yes |")
+    .replace("|  |  |  |  |  | Yes / No |", "| none | none | none | owner | 2026-06-25 | Yes |")
+    .replace("|  |  |  |  |  | Yes / No |", "| none | none | none | owner | 2026-06-25 | Yes |");
+  fs.writeFileSync(baselineSelectionPath, baselineSelectionContent);
+  const baselineEvidencePath = path.join(target, "docs", "baseline-evidence.md");
+  const baselineEvidenceContent = fs.readFileSync(baselineEvidencePath, "utf8")
+    .replace("Draft status: DRAFT / CONFIRMED", "Draft status: CONFIRMED")
+    .replace("Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED", "Human decision status: CONFIRMED")
+    .replace("- ", [
+      "- loading-empty-error-forbidden evidence",
+      "- responsive behavior evidence",
+      "- critical flow behavior evidence",
+      "- server-side permission test evidence",
+      "- forbidden state evidence",
+      "- resource scope evidence",
+      "- release record",
+      "- rollback plan",
+      "- monitoring evidence",
+      "- environment variable review",
+      "- secret exposure review",
+      "- deployment configuration evidence",
+    ].join("\n"));
+  fs.writeFileSync(baselineEvidencePath, baselineEvidenceContent);
+
+  const industrialBaselineResolved = runNode([
+    path.join(target, "scripts", "resolve-industrial-baseline.mjs"),
+    target,
+  ]);
+  if (industrialBaselineResolved.status !== 0 || !industrialBaselineResolved.stdout.includes("INDUSTRIAL_BASELINE_STATE: BASELINE_READY")) {
+    fail(`generated project industrial baseline resolver failed after BL2 selection: ${industrialBaselineResolved.stderr || industrialBaselineResolved.stdout}`);
+    return;
+  }
+  pass("generated project industrial baseline resolver handles BL2 selection");
+
+  const industrialBaselineCheck = runNode([
+    path.join(target, "scripts", "check-industrial-baseline.mjs"),
+    target,
+    "--strict",
+  ]);
+  if (industrialBaselineCheck.status !== 0 || !industrialBaselineCheck.stdout.includes("Industrial baseline is ready")) {
+    fail(`generated project industrial baseline strict check failed after BL2 selection: ${industrialBaselineCheck.stderr || industrialBaselineCheck.stdout}`);
+    return;
+  }
+  pass("generated project industrial baseline strict check handles BL2 selection");
 
   const onboardingO0Check = runNode([
     path.join(target, "scripts", "check-project-onboarding.mjs"),
@@ -847,6 +1169,7 @@ function checkGeneratedProjectE2E() {
     "docs/business-spec-index.md",
     "docs/sample-policy.md",
     "docs/onboarding-decisions.md",
+    "docs/verification-matrix.md",
   ];
   for (const rel of legacyExpectedOnboardingDocs) {
     if (!fs.existsSync(path.join(legacyTarget, rel))) {
@@ -895,7 +1218,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedLegacyAgents = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
-  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Workflow Artifact Generation", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!appliedLegacyAgents.includes(marker)) {
       fail(`legacy project AGENTS.md explicit apply missing ${marker}`);
       return;
@@ -927,7 +1250,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const createdAgentsContent = fs.readFileSync(createdAgents, "utf8");
-  for (const marker of ["Bootstrap Entry", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Platform Baseline", "Industrial Baseline", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!createdAgentsContent.includes(marker)) {
       fail(`created AGENTS.md missing ${marker}`);
       return;
@@ -1051,6 +1374,8 @@ checkDefaultStarter();
 checkVersionMetadata();
 checkCorePurity();
 checkProfiles();
+checkIndustrialPacks();
+checkIndustrialBaselineResolver();
 checkStarters();
 checkPlatformAdapters();
 checkScriptSyntax();

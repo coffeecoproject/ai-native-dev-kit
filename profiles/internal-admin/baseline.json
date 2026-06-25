@@ -1,0 +1,65 @@
+{
+  "id": "internal-admin",
+  "name": "Internal Admin",
+  "defaultTaskLevel": "L2",
+  "escalationRules": [
+    {
+      "when": ["permission", "sensitive-record", "audit", "bulk-operation", "approval-flow"],
+      "minLevel": "L2"
+    },
+    {
+      "when": ["destructive-operation", "regulated-operation", "production-data", "sensitive-data-export"],
+      "minLevel": "L3"
+    }
+  ],
+  "requiredDocs": [
+    "docs/product-vision.md",
+    "docs/engineering-principles.md",
+    "docs/risk-policy.md",
+    "docs/architecture.md",
+    "docs/domain-model.md",
+    "docs/permission-model.md",
+    "docs/test-strategy.md",
+    "docs/verification-matrix.md"
+  ],
+  "riskGateMappings": {
+    "permission": ["permission"],
+    "destructive-operation": ["irreversible operation", "data deletion"],
+    "sensitive-data-export": ["personal data", "regulated data"],
+    "audit": ["regulated operation"]
+  },
+  "requiredVerification": [
+    "admin-only route checks",
+    "audit event checks",
+    "confirmation dialogs for destructive actions",
+    "export privacy review",
+    "permission rejection tests"
+  ],
+  "verificationKeywords": ["admin", "audit", "confirmation", "export", "permission", "rejection"],
+  "verifyScriptKeywords": ["test"],
+  "highRiskKeywords": ["permission", "audit", "destructive", "export", "production data", "approval"],
+  "humanApprovalRequiredFor": [
+    "permission",
+    "destructive-operation",
+    "bulk-operation",
+    "sensitive-data-export",
+    "production-data",
+    "approval-flow"
+  ],
+  "releaseChecks": [
+    "admin permission and rejection behavior reviewed before release",
+    "audit events verified for sensitive or destructive operations",
+    "bulk operations, exports, and destructive actions have approval and rollback or disable evidence"
+  ],
+  "aiBoundaries": {
+    "may": [
+      "edit admin UI, admin workflows, tests, audit documentation, and permission documentation inside approved task scope",
+      "propose safer confirmation, audit, and approval-flow behavior with verification evidence"
+    ],
+    "mustNot": [
+      "grant broad admin access, weaken auditability, or add sensitive export behavior without human approval",
+      "perform destructive, bulk, production-data, or approval-flow changes without explicit human approval"
+    ]
+  },
+  "compatibleStarters": ["generic-project", "codex-web-app"]
+}

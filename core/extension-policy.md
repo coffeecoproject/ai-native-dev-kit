@@ -52,6 +52,8 @@ Allowed:
 - starter readiness template
 - platform risk policy template
 - verification matrix template
+- baseline selection template
+- baseline evidence template
 
 Not allowed:
 
@@ -71,6 +73,7 @@ Allowed:
 - release review
 - profile review
 - starter review
+- industrial pack review
 - core purity review
 - self-iteration review
 - skill review
@@ -95,6 +98,34 @@ Examples:
 - `high-risk-change`
 
 Profiles may define platform-specific or project-type-specific risks and verification expectations, but they must not include current project facts such as app name, bundle ID, package name, API URL, production credentials, team member names, or release accounts.
+
+### Industrial Packs
+
+`industrial-packs/<pack-name>/` contains industrial delivery standards, evidence requirements, audit entry points, and bootstrap assets.
+
+Industrial packs may be platform-specific or capability-specific, but they are standards, not project evidence.
+
+Allowed:
+
+- BL2 industrial evidence standards
+- pack metadata and schema
+- required baselines, execution docs, audit docs, checklists, and templates
+- task-level escalation rules
+- human approval requirements
+- release, recovery, security, privacy, and operations evidence expectations
+
+Not allowed:
+
+- concrete app names
+- bundle IDs or package names
+- production API URLs
+- production accounts
+- certificates, provisioning identifiers, credentials, tokens, or secrets
+- real customer data
+- team member names
+- customer-specific business decisions
+
+`industrial-pack-candidates/` is a staging area for legacy material. Candidate packs are not official workflow assets and must not be copied into target projects by initialization.
 
 ### Starters
 
@@ -158,6 +189,14 @@ Any new starter must pass:
 - `checklists/starter-review.md`
 - `scripts/check-dev-kit.mjs`
 
+Any new industrial pack must pass:
+
+- `industrial-packs/schema/pack.schema.json`
+- `checklists/industrial-pack-review.md`
+- `scripts/check-industrial-pack.mjs`
+- `scripts/check-industrial-baseline.mjs` in at least one approved dogfood project before marking the pack stable
+- `scripts/check-dev-kit.mjs`
+
 Any change to `core/`, `templates/`, `prompts/`, or default starter must pass:
 
 - `checklists/core-purity-review.md`
@@ -192,6 +231,13 @@ Profiles:
 
 ```text
 profiles/<kebab-case-name>/profile.md
+```
+
+Industrial packs:
+
+```text
+industrial-packs/<kebab-case-name>/pack.md
+industrial-packs/<kebab-case-name>/pack.json
 ```
 
 Starters:

@@ -63,6 +63,9 @@ Expected Codex behavior:
 - Run `node scripts/workflow-next.mjs .` after initialization.
 - Use `.ai-native/prompts/project-onboarding-agent.md`.
 - Draft `docs/project-onboarding.md`, `docs/project-profile.md`, `docs/tech-stack-strategy.md`, `docs/business-spec-index.md`, `docs/sample-policy.md`, and `docs/onboarding-decisions.md`.
+- Draft `Selected Profiles` in `docs/project-profile.md` and run `node scripts/check-platform-baseline.mjs .`.
+- Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
+- For BL2 industrial work, run `node scripts/check-industrial-pack.mjs .`, recommend industrial packs, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-baseline.mjs .`.
 - Ask for human decisions only where the workflow requires confirmation.
 
 ## Task Prompt
@@ -142,3 +145,5 @@ Codex should stop and report when:
 ## Platform Notes
 
 For web, iOS, Android, backend, internal admin, or high-risk projects, choose the matching project profile and starter. The core workflow stays the same; platform-specific rules live in profiles, starter docs, and `AGENTS.md`.
+
+Industrial packs are BL2 governance assets. They should be recommended for production, customer delivery, long-lived, regulated, or high-risk projects, but they must not be silently treated as accepted without human confirmation. Use `resolve-industrial-baseline.mjs` to inspect selected packs and `check-industrial-baseline.mjs --strict` only after baseline level, exceptions, and residual risks are approved.

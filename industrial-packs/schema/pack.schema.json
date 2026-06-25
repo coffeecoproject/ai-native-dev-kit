@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-native-dev-kit/industrial-pack.schema.json",
+  "title": "AI Native Industrial Pack",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "type",
+    "displayName",
+    "status",
+    "appliesToProfiles",
+    "compatiblePacks",
+    "conflictsWith",
+    "requiredBaselines",
+    "requiredExecutionDocs",
+    "requiredAuditDocs",
+    "requiredChecklists",
+    "requiredTemplates",
+    "riskMappings",
+    "taskLevelEscalation",
+    "requiredEvidence",
+    "humanApprovalRequiredFor"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-industrial$"
+    },
+    "type": {
+      "enum": ["primary-platform", "capability", "risk-overlay"]
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "status": {
+      "enum": ["draft", "stable"]
+    },
+    "appliesToProfiles": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "compatiblePacks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "conflictsWith": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "requiredBaselines": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "requiredExecutionDocs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "requiredAuditDocs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "requiredChecklists": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "requiredTemplates": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "riskMappings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "taskLevelEscalation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["when", "minTaskLevel"],
+        "properties": {
+          "when": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "minTaskLevel": {
+            "enum": ["L0", "L1", "L2", "L3"]
+          }
+        }
+      }
+    },
+    "requiredEvidence": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    },
+    "humanApprovalRequiredFor": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
+

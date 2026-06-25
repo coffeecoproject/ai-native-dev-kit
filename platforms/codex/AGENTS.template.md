@@ -90,6 +90,32 @@ node scripts/check-project-onboarding.mjs .
 
 Use `--strict` only after the human confirms onboarding decisions.
 
+## Platform Baseline
+
+Before the first non-trivial implementation, select target runtime profiles in `docs/project-profile.md` under `Selected Profiles`.
+
+Run:
+
+```bash
+node scripts/check-platform-baseline.mjs .
+```
+
+Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Use `--strict` only after the human confirms selected profiles and project docs.
+
+## Industrial Baseline
+
+Baseline level describes project governance strength: `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`. It is separate from task level `L0` / `L1` / `L2` / `L3`.
+
+Run:
+
+```bash
+node scripts/check-industrial-pack.mjs .
+node scripts/resolve-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs .
+```
+
+Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is no worse than pending. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.
+
 ## Workflow Artifact Generation
 
 Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI task log files.

@@ -1,0 +1,72 @@
+{
+  "id": "android-app",
+  "name": "Android App",
+  "defaultTaskLevel": "L1",
+  "escalationRules": [
+    {
+      "when": ["architecture", "persistence", "networking-contract", "runtime-permission", "background-work", "cross-module-state"],
+      "minLevel": "L2"
+    },
+    {
+      "when": ["signing", "keystore", "play-console-release", "sensitive-permission", "destructive-migration", "value-transfer"],
+      "minLevel": "L3"
+    }
+  ],
+  "requiredDocs": [
+    "docs/product-vision.md",
+    "docs/engineering-principles.md",
+    "docs/risk-policy.md",
+    "docs/architecture.md",
+    "docs/domain-model.md",
+    "docs/permission-model.md",
+    "docs/test-strategy.md",
+    "docs/verification-matrix.md"
+  ],
+  "recommendedDocs": [
+    "docs/android-build-settings.md",
+    "docs/android-release-policy.md",
+    "docs/privacy-data-inventory.md"
+  ],
+  "riskGateMappings": {
+    "runtime-permission": ["permission", "personal data"],
+    "manifest-permission": ["permission"],
+    "signing": ["production config", "secrets"],
+    "destructive-migration": ["migration", "data deletion"],
+    "value-transfer": ["value transfer"]
+  },
+  "requiredVerification": [
+    "Gradle build check",
+    "unit tests where present",
+    "Android lint where present",
+    "connected/emulator tests for critical flows where present",
+    "manifest permission review when permissions change"
+  ],
+  "verificationKeywords": ["gradle", "build", "unit", "lint", "emulator", "manifest", "permission"],
+  "verifyScriptKeywords": ["gradle", "test", "lint", "assemble"],
+  "highRiskKeywords": ["signing", "keystore", "manifest", "permission", "migration", "release"],
+  "humanApprovalRequiredFor": [
+    "signing",
+    "keystore",
+    "runtime-permission",
+    "manifest-permission",
+    "destructive-migration",
+    "play-console-release",
+    "value-transfer"
+  ],
+  "releaseChecks": [
+    "signing, keystore, manifest permissions, and Play Console release settings reviewed when touched",
+    "emulator or device launch evidence captured for UI and runtime changes",
+    "Play Console, billing, and release actions require human approval"
+  ],
+  "aiBoundaries": {
+    "may": [
+      "edit Android UI, app logic, tests, build-safe configuration, and documentation inside approved task scope",
+      "diagnose Gradle, lint, emulator, and test failures from local evidence"
+    ],
+    "mustNot": [
+      "change signing credentials, keystores, sensitive permissions, billing, or Play Console release behavior without human approval",
+      "handle secrets, destructive migrations, or value-transfer behavior without human approval"
+    ]
+  },
+  "compatibleStarters": ["generic-project", "codex-android-app"]
+}

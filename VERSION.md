@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.12.0`
+Current version: `0.15.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.12.0`
 
 ## Current Release
 
-`0.12.0`
+`0.15.0`
 
 Includes:
 
@@ -46,5 +46,15 @@ Includes:
 - structured Human Approval gate for checked risk items
 - Human Approval scope gate for checked risk items
 - GitHub Actions workflow artifact check uses ready mode only for changed artifacts
+- platform baseline profiles with machine-readable baseline JSON
+- platform baseline resolver and checker scripts
+- `workflow-next` reports platform baseline readiness
 - project onboarding checks for O0, O1, and O2 levels
 - `workflow-next --enforce` for optional project-state gating
+- industrial baseline pack framework with BL0/BL1/BL2 governance levels
+- industrial pack schema, index, candidate policy, and full draft pack coverage
+- draft industrial packs for Web, iOS, Android, WeChat Mini Program, Backend API, Internal Admin, Data Storage, CloudBase, Auth/Permission, Payment/Value Transfer, and High-risk Change
+- industrial pack structure and purity checker
+- project-level industrial baseline resolver and checker
+- `workflow-next` reports BL2 industrial baseline readiness
+- baseline selection and baseline evidence templates

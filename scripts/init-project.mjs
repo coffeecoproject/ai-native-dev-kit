@@ -21,6 +21,8 @@ const requiredAgentGovernanceMarkers = [
   "Core Rules",
   "Bootstrap Entry",
   "Project Onboarding",
+  "Platform Baseline",
+  "Industrial Baseline",
   "Workflow Artifact Generation",
   "Task Execution Rules",
   "High-risk Boundaries",
@@ -302,6 +304,36 @@ function agentGovernanceSectionContent() {
       "```",
       "",
     ].join("\n")],
+    ["Platform Baseline", [
+      "## Platform Baseline",
+      "",
+      "Before the first non-trivial implementation, select target runtime profiles in `docs/project-profile.md` under `Selected Profiles`.",
+      "",
+      "Run:",
+      "",
+      "```bash",
+      "node scripts/check-platform-baseline.mjs .",
+      "```",
+      "",
+      "Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Use strict mode only after humans confirm selected profiles and project docs.",
+      "",
+    ].join("\n")],
+    ["Industrial Baseline", [
+      "## Industrial Baseline",
+      "",
+      "Baseline level describes project governance strength: `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`. It is separate from task level `L0` / `L1` / `L2` / `L3`.",
+      "",
+      "Run:",
+      "",
+      "```bash",
+      "node scripts/check-industrial-pack.mjs .",
+      "node scripts/resolve-industrial-baseline.mjs .",
+      "node scripts/check-industrial-baseline.mjs .",
+      "```",
+      "",
+      "Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is no worse than pending. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.",
+      "",
+    ].join("\n")],
     ["Workflow Artifact Generation", [
       "## Workflow Artifact Generation",
       "",
@@ -492,6 +524,7 @@ function ensureProjectOnboardingDocs(targetPath) {
     ["business-spec-index.md", "business-spec-index.md"],
     ["sample-policy.md", "sample-policy.md"],
     ["onboarding-decisions.md", "onboarding-decisions.md"],
+    ["verification-matrix.md", "verification-matrix.md"],
   ];
 
   for (const [templateName, docName] of docs) {
@@ -509,7 +542,7 @@ function ensureProjectOnboardingDocs(targetPath) {
 
 function copySharedAssets(targetPath, options = {}) {
   const { starter = "generic-project", applyPrTemplateGovernance = false, applyAgentGovernance = false } = options;
-  const sharedDirs = ["core", "templates", "prompts", "checklists"];
+  const sharedDirs = ["core", "templates", "prompts", "checklists", "profiles", "industrial-packs"];
   for (const dir of sharedDirs) {
     copyDir(path.join(kitRoot, dir), path.join(targetPath, ".ai-native", dir), options);
   }
@@ -530,6 +563,21 @@ function copySharedAssets(targetPath, options = {}) {
 
   const onboardingCheckDest = path.join(projectScriptsDir, "check-project-onboarding.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-project-onboarding.mjs"), onboardingCheckDest, options);
+
+  const platformBaselineCheckDest = path.join(projectScriptsDir, "check-platform-baseline.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-platform-baseline.mjs"), platformBaselineCheckDest, options);
+
+  const platformBaselineResolveDest = path.join(projectScriptsDir, "resolve-platform-baseline.mjs");
+  copyFile(path.join(kitRoot, "scripts", "resolve-platform-baseline.mjs"), platformBaselineResolveDest, options);
+
+  const industrialPackCheckDest = path.join(projectScriptsDir, "check-industrial-pack.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-industrial-pack.mjs"), industrialPackCheckDest, options);
+
+  const industrialBaselineResolveDest = path.join(projectScriptsDir, "resolve-industrial-baseline.mjs");
+  copyFile(path.join(kitRoot, "scripts", "resolve-industrial-baseline.mjs"), industrialBaselineResolveDest, options);
+
+  const industrialBaselineCheckDest = path.join(projectScriptsDir, "check-industrial-baseline.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-industrial-baseline.mjs"), industrialBaselineCheckDest, options);
 
   const artifactCheckDest = path.join(projectScriptsDir, "check-workflow-artifacts.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"), artifactCheckDest, options);
@@ -601,12 +649,19 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".ai-native/templates",
       ".ai-native/prompts",
       ".ai-native/checklists",
+      ".ai-native/profiles",
+      ".ai-native/industrial-packs",
       "AGENTS.md",
       "scripts/check-ai-workflow.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/workflow-daily-summary.mjs",
       "scripts/check-project-onboarding.mjs",
+      "scripts/check-platform-baseline.mjs",
+      "scripts/resolve-platform-baseline.mjs",
+      "scripts/check-industrial-pack.mjs",
+      "scripts/resolve-industrial-baseline.mjs",
+      "scripts/check-industrial-baseline.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/workflow-next.mjs",
@@ -616,6 +671,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "docs/business-spec-index.md",
       "docs/sample-policy.md",
       "docs/onboarding-decisions.md",
+      "docs/verification-matrix.md",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
     ],
@@ -666,7 +722,9 @@ console.log("Next steps:");
 console.log("1. Run project onboarding by using .ai-native/prompts/project-onboarding-agent.md.");
 console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
 console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
-console.log("4. Create the first request card only after onboarding is ready.");
-console.log("5. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
-console.log("6. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-console.log("7. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+console.log("4. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
+console.log("5. For BL2 industrial work, run node scripts/check-industrial-pack.mjs . and node scripts/check-industrial-baseline.mjs . before using selected packs.");
+console.log("6. Create the first request card only after onboarding is ready.");
+console.log("7. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
+console.log("8. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
+console.log("9. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

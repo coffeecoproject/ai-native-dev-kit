@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "0.1",
+  "id": "backend-api-industrial",
+  "type": "capability",
+  "displayName": "Backend API Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": ["backend-api"],
+  "compatiblePacks": [
+    "web-app-industrial",
+    "ios-app-industrial",
+    "android-app-industrial",
+    "wechat-miniprogram-industrial",
+    "internal-admin-industrial",
+    "auth-permission-industrial",
+    "data-storage-industrial",
+    "cloudbase-industrial",
+    "payment-value-transfer-industrial",
+    "high-risk-change-industrial"
+  ],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/api-contract-runtime-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/codex-backend-api-industrial-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/backend-api-existing-project-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/api-security-release-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/api-change-record.md"
+  ],
+  "riskMappings": {
+    "api-contract": ["compatibility", "integration boundary"],
+    "auth": ["permission", "security"],
+    "permission": ["permission", "security"],
+    "data-write": ["data persistence", "external side effect"],
+    "production-config": ["production config", "release"],
+    "destructive-operation": ["irreversible operation", "data deletion"]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": ["api-contract", "auth", "permission", "data-write"],
+      "minTaskLevel": "L2"
+    },
+    {
+      "when": ["production-config", "migration", "destructive-operation", "value-transfer"],
+      "minTaskLevel": "L3"
+    }
+  ],
+  "requiredEvidence": {
+    "api-change": [
+      "contract compatibility evidence",
+      "validation and error behavior evidence",
+      "integration boundary evidence"
+    ],
+    "permission-change": [
+      "server-side permission test evidence",
+      "forbidden state evidence",
+      "resource scope evidence"
+    ],
+    "release": [
+      "rollback plan",
+      "observability evidence",
+      "incident readiness evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "auth",
+    "permission",
+    "production-config",
+    "migration",
+    "destructive-operation",
+    "value-transfer",
+    "regulated-data"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "id": "high-risk-change",
+  "name": "High-risk Change",
+  "defaultTaskLevel": "L3",
+  "escalationRules": [
+    {
+      "when": ["irreversible-operation", "regulated-operation", "safety-critical", "production-impact", "value-transfer", "destructive-operation", "sensitive-data"],
+      "minLevel": "L3"
+    }
+  ],
+  "requiredDocs": [
+    "docs/product-vision.md",
+    "docs/engineering-principles.md",
+    "docs/risk-policy.md",
+    "docs/architecture.md",
+    "docs/domain-model.md",
+    "docs/permission-model.md",
+    "docs/test-strategy.md",
+    "docs/verification-matrix.md"
+  ],
+  "riskGateMappings": {
+    "irreversible-operation": ["irreversible operation"],
+    "regulated-operation": ["regulated operation"],
+    "safety-critical": ["safety-critical behavior"],
+    "value-transfer": ["value transfer"],
+    "destructive-operation": ["data deletion"],
+    "sensitive-data": ["personal data", "regulated data"]
+  },
+  "requiredVerification": [
+    "full relevant verification suite",
+    "rejection path tests",
+    "audit evidence review",
+    "rollback or disable evidence",
+    "manual approval record"
+  ],
+  "verificationKeywords": ["full", "rejection", "audit", "rollback", "approval", "evidence"],
+  "verifyScriptKeywords": [],
+  "highRiskKeywords": ["approval", "rollback", "audit", "production", "destructive", "regulated"],
+  "humanApprovalRequiredFor": [
+    "irreversible-operation",
+    "regulated-operation",
+    "production-impact",
+    "value-transfer",
+    "destructive-operation",
+    "sensitive-data"
+  ],
+  "releaseChecks": [
+    "manual approval record is present and scoped",
+    "rollback, disable, or recovery path is documented and verified",
+    "post-release monitoring or follow-up verification is defined"
+  ],
+  "aiBoundaries": {
+    "may": [
+      "draft risk analysis, verification plans, rollback notes, and implementation proposals",
+      "execute only the approved low-level task steps after explicit human approval is recorded"
+    ],
+    "mustNot": [
+      "self-approve high-risk implementation, release, rollback, or production-impacting decisions",
+      "perform irreversible, regulated, destructive, value-transfer, or sensitive-data changes without explicit human approval"
+    ]
+  },
+  "compatibleStarters": ["generic-project", "codex-web-app", "codex-ios-app", "codex-android-app"]
+}

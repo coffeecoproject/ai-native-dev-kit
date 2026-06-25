@@ -41,6 +41,20 @@ Before non-trivial work, read:
 - Ask focused questions, propose options, record assumptions, and request confirmation.
 - Run `node scripts/check-project-onboarding.mjs .` for baseline and `node scripts/check-project-onboarding.mjs . --strict` after decisions are confirmed.
 
+## Platform Baseline
+
+- Select target runtime profiles in `docs/project-profile.md` under `Selected Profiles`.
+- Run `node scripts/check-platform-baseline.mjs .` before the first non-trivial implementation.
+- Use `node scripts/resolve-platform-baseline.mjs .` when effective platform verification or risk requirements need review.
+- Use strict mode only after humans confirm selected profiles and project docs.
+
+## Industrial Baseline
+
+- Baseline level is `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`; it is not task level.
+- Run `node scripts/check-industrial-pack.mjs .` to validate injected industrial pack assets.
+- Run `node scripts/resolve-industrial-baseline.mjs .` and `node scripts/check-industrial-baseline.mjs .` to inspect project-level BL2 readiness.
+- Do not treat BL2 or selected industrial packs as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and project-level industrial baseline status.
+
 ## Workflow Artifacts
 
 - Use `node scripts/new-workflow-item.mjs` to create numbered workflow files.

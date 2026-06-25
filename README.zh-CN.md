@@ -165,6 +165,8 @@ README.md
   templates/
   prompts/
   checklists/
+  profiles/
+  industrial-packs/
 docs/
   ai-workflow.md
   project-onboarding.md
@@ -180,6 +182,7 @@ docs/
   domain-model.md
   permission-model.md
   test-strategy.md
+  verification-matrix.md
 requests/
 preflight/
 specs/
@@ -196,6 +199,11 @@ scripts/
   verify.sh
   check-ai-workflow.mjs
   check-project-onboarding.mjs
+  check-platform-baseline.mjs
+  resolve-platform-baseline.mjs
+  check-industrial-pack.mjs
+  resolve-industrial-baseline.mjs
+  check-industrial-baseline.mjs
   check-workflow-artifacts.mjs
   check-workflow-version.mjs
   new-workflow-item.mjs
@@ -210,18 +218,80 @@ scripts/
 
 1. 运行 project onboarding，让 AI 根据沟通生成项目上下文草案。
 2. 人确认项目方向、技术栈、高风险边界、第一条 vertical slice。
-3. 创建 `requests/` 下的需求入口。
-4. 大需求先做 preflight。
-5. 写 spec 和 eval。
-6. 拆 task card。
-7. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。
-8. AI 只执行一个 task card。
-9. 跑 verification。
-10. 人审查 diff、风险和证据。
-11. 合并后写 AI task log。
-12. 阶段性复盘进入 workflow retros。
-13. 重复问题进入 workflow improvements。
-14. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
+3. 在 `docs/project-profile.md` 里确认 `Selected Profiles`，例如 `web-app`、`backend-api`、`ios-app`。
+4. 运行 `node scripts/check-platform-baseline.mjs .`，需要看合成结果时运行 `node scripts/resolve-platform-baseline.mjs .`。
+5. 创建 `requests/` 下的需求入口。
+6. 大需求先做 preflight。
+7. 写 spec 和 eval。
+8. 拆 task card。
+9. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。
+10. AI 只执行一个 task card。
+11. 跑 verification。
+12. 人审查 diff、风险和证据。
+13. 合并后写 AI task log。
+14. 阶段性复盘进入 workflow retros。
+15. 重复问题进入 workflow improvements。
+16. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
+
+## Platform Baseline
+
+`platforms/` 是 Codex、Cursor、Claude、GitHub 这些 AI 执行平台适配。
+`profiles/` 是 Web、Backend、iOS、Android 等目标运行平台基线。
+
+项目可以选择多个 profile：
+
+```md
+## Selected Profiles
+
+- web-app
+- backend-api
+```
+
+resolver 会合成 selected profiles 的 required docs、task level 升级规则、风险门禁映射、验证证据、发布检查和 AI 边界。profile 不改变统一 workflow，只影响默认 task level、风险门禁、验证证据和发布要求。
+
+## Industrial Baseline Packs
+
+`industrial-packs/` 是 BL2 工业级工程标准层。
+
+三套等级含义分开：
+
+```text
+O-level  = onboarding 深度：O0 / O1 / O2
+L-level  = 单个 task 风险等级：L0 / L1 / L2 / L3
+BL-level = 项目工程治理强度：BL0 / BL1 / BL2
+```
+
+当前内置 11 个 draft pack：
+
+```text
+industrial-packs/web-app
+industrial-packs/ios-app
+industrial-packs/android-app
+industrial-packs/wechat-miniprogram
+industrial-packs/backend-api
+industrial-packs/internal-admin
+industrial-packs/data-storage
+industrial-packs/cloudbase
+industrial-packs/auth-permission
+industrial-packs/payment-value-transfer
+industrial-packs/high-risk-change
+```
+
+`industrial-pack-candidates/` 保留为旧工业基线迁移候选区。
+
+检查工业包自身：
+
+```bash
+node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --json
+node scripts/resolve-industrial-baseline.mjs .
+node scripts/resolve-industrial-baseline.mjs . --json
+node scripts/check-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs . --strict
+node scripts/check-industrial-baseline.mjs . --json
+```
+
+`check-industrial-pack.mjs` 只证明 pack 结构健康，不证明真实项目已经工业达标。真实项目证据应进入 `docs/baseline-selection.md` 和 `docs/baseline-evidence.md`，再由 `resolve-industrial-baseline.mjs` 合成项目选择，由 `check-industrial-baseline.mjs` 检查 BL2 是否可执行。
 
 ## 自检
 
@@ -236,6 +306,9 @@ node ai-native-dev-kit/scripts/check-dev-kit.mjs
 ```bash
 node scripts/check-ai-workflow.mjs .
 node scripts/check-project-onboarding.mjs .
+node scripts/check-platform-baseline.mjs .
+node scripts/resolve-platform-baseline.mjs .
+node scripts/check-industrial-pack.mjs .
 node scripts/check-workflow-version.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready
 node scripts/workflow-next.mjs .
