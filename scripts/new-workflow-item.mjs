@@ -186,15 +186,13 @@ function fillPreflight(content, context) {
 function fillSpec(content, context) {
   let output = setTitle(content, `# Spec ${context.number}: ${context.title}`);
   output = setSection(output, "Status", "Draft");
-  output = insertSectionBefore(
-    output,
-    "Problem",
-    "Source",
-    [
-      refLine("Request", context.requestRef),
-      refLine("Preflight", context.preflightRef),
-    ].join("\n"),
-  );
+  const sourceBody = [
+    refLine("Request", context.requestRef),
+    refLine("Preflight", context.preflightRef),
+  ].join("\n");
+  output = sectionRange(output, "Source")
+    ? setSection(output, "Source", sourceBody)
+    : insertSectionBefore(output, "Problem", "Source", sourceBody);
   return output;
 }
 
@@ -218,6 +216,17 @@ function fillTask(content, context) {
       "Max repair runs: 1",
       `Use high reasoning model: ${(context.level || "L1") === "L2" || (context.level || "L1") === "L3" ? "Yes" : "No"}`,
       "Stop if: acceptance criteria, scope, or risk boundary becomes unclear.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Human Approval",
+    [
+      "Required: No",
+      "Status: Not Required",
+      "Approved by:",
+      "Approved at:",
+      "Approval notes:",
     ].join("\n"),
   );
   return output;
@@ -303,4 +312,5 @@ console.log("");
 console.log("Next steps:");
 console.log("- Fill all placeholder sections from project conversation and evidence.");
 console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");
-console.log("- Run node scripts/check-workflow-artifacts.mjs . before implementation.");
+console.log("- Run node scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
+console.log("- If any Risk Gate item is checked, run node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card> after approval.");

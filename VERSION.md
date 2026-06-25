@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.10.0`
+Current version: `0.11.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.10.0`
 
 ## Current Release
 
-`0.10.0`
+`0.11.0`
 
 Includes:
 
@@ -41,3 +41,8 @@ Includes:
 - Codex bootstrap entry prompt for execution-vs-discussion intent gating
 - `workflow-next.mjs` project state and next-action detector
 - `AGENTS.md` governance migration report with explicit apply flag during workflow asset updates
+- workflow artifact checker modes for draft, ready, and implementation gates
+- task-scoped workflow artifact checks with graph consistency validation
+- structured Human Approval gate for checked risk items
+- project onboarding checks for O0, O1, and O2 levels
+- `workflow-next --enforce` for optional project-state gating

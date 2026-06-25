@@ -76,6 +76,14 @@ This task touches:
 
 If any item is checked, implementation requires explicit human approval before code changes.
 
+## Human Approval
+
+Required: Yes
+Status: Pending
+Approved by:
+Approved at:
+Approval notes: Permission boundary must be approved before implementation.
+
 ## Stop Conditions
 
 Stop and report if:

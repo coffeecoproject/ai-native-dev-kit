@@ -12,6 +12,10 @@
 
 - 
 
+## Rules
+
+-
+
 ## iOS Permissions
 
 - Location:
@@ -30,4 +34,3 @@ Sensitive permission checks must be enforced in the trusted execution layer, not
 ## Audit Events
 
 - 
-

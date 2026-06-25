@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const enforce = Boolean(args.enforce);
 
 const pendingPattern = /<[^>\n]+>|PENDING_CONFIRMATION|PENDING\b|TBD|TODO|NOT_READY/;
 const ignoredRootEntries = new Set([".git", ".DS_Store", "node_modules"]);
@@ -367,6 +368,7 @@ function buildResult() {
 }
 
 const result = buildResult();
+const enforceFailures = enforceReasons(result);
 
 if (outputJson) {
   console.log(JSON.stringify(result, null, 2));
@@ -397,4 +399,30 @@ if (outputJson) {
   console.log("## Suggested Command");
   console.log("");
   console.log(result.suggestedCommand);
+  if (enforce) {
+    console.log("");
+    console.log("## Enforce");
+    console.log("");
+    if (enforceFailures.length === 0) {
+      console.log("PASS");
+    } else {
+      for (const reason of enforceFailures) console.log(`FAIL ${reason}`);
+    }
+  }
+}
+
+if (enforce && enforceFailures.length > 0) {
+  process.exit(2);
+}
+
+function enforceReasons(result) {
+  const reasons = [];
+  if (result.projectState === "TARGET_MISSING") reasons.push("target path is missing");
+  if (result.versionState === "MISMATCH") reasons.push("workflow version is not current");
+  if (result.workflowState === "PARTIAL_BOOTSTRAP") reasons.push("workflow bootstrap is partial");
+  if (result.workflowState === "BOOTSTRAPPED_WITH_MISSING_ASSETS") reasons.push("workflow assets or AGENTS.md governance sections are missing");
+  if (result.workflowState === "BOOTSTRAPPED_WITH_PENDING_MIGRATION") reasons.push("migration reports need human approval");
+  if (result.nextAction === "RUN_WORKFLOW_ASSET_UPDATE") reasons.push("workflow asset update is required");
+  if (result.nextAction === "RUN_PROJECT_ONBOARDING") reasons.push("project onboarding is not ready");
+  return [...new Set(reasons)];
 }

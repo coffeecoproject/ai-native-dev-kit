@@ -67,9 +67,12 @@ Detect whether a target is a new project, existing project, or bootstrapped proj
 node ai-native-dev-kit/scripts/workflow-next.mjs ../my-project
 node scripts/workflow-next.mjs .
 node scripts/workflow-next.mjs . --json
+node scripts/workflow-next.mjs . --enforce
 ```
 
 This script does not interpret natural language and does not write files. Codex should use `.ai-native/prompts/bootstrap-agent.md` for execution-vs-discussion intent, then use `workflow-next.mjs` for project state.
+
+`--enforce` exits non-zero when workflow assets are missing, versions mismatch, migration reports need approval, or onboarding is not ready.
 
 ## new-workflow-item.mjs
 
@@ -90,7 +93,17 @@ Check filled workflow artifacts for required sections, placeholder content, and 
 
 ```bash
 node scripts/check-workflow-artifacts.mjs .
+node scripts/check-workflow-artifacts.mjs . --mode draft
+node scripts/check-workflow-artifacts.mjs . --mode ready
+node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/001-first-slice.md
+node scripts/check-workflow-artifacts.mjs . --task tasks/001-first-slice.md
 ```
+
+Modes:
+
+- `draft`: checks structure and resolvable references, but allows placeholders.
+- `ready`: default; checks placeholders, single-choice fields, graph consistency, and task approval structure.
+- `implementation`: requires `--task` and requires checked risk items to have approved human approval.
 
 This check is intentionally stricter than `check-ai-workflow.mjs`. It should run before implementation once request/spec/eval/task files exist.
 
@@ -133,9 +146,12 @@ Check whether project onboarding assets are present.
 ```bash
 node scripts/check-project-onboarding.mjs .
 node scripts/check-project-onboarding.mjs . --strict
+node scripts/check-project-onboarding.mjs . --level O0
+node scripts/check-project-onboarding.mjs . --level O1
+node scripts/check-project-onboarding.mjs . --level O2
 ```
 
-Default mode verifies that onboarding files and workflow assets exist. Strict mode is for after human decisions are confirmed; it fails while placeholders or pending decisions remain.
+Default mode verifies that onboarding files and workflow assets exist. It reads `## Onboarding Level` from `docs/project-onboarding.md` when possible and otherwise defaults to O1. Strict mode is for after human decisions are confirmed; it fails while placeholders or pending decisions remain.
 
 ## check-workflow-version.mjs
 

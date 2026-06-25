@@ -78,10 +78,18 @@ node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md -
 Fill the files from conversation and project evidence, then run:
 
 ```bash
-node scripts/check-workflow-artifacts.mjs .
+node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
 
 Only after the request, spec, eval, and task card are clear should an agent implement code.
+
+For a high-risk implementation task, run the task-scoped implementation gate:
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/001-first-slice.md
+```
+
+If any Risk Gate item is checked, the task card must include `## Human Approval` with `Status: Approved` before implementation.
 
 ## Existing Project
 

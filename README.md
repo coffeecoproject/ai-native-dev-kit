@@ -206,28 +206,34 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 
 ```bash
 node scripts/workflow-next.mjs .
+node scripts/workflow-next.mjs . --enforce
 ```
+
+`--enforce` 可作为项目状态门禁；当 workflow 资产缺失、版本不匹配、迁移报告待审批或 onboarding 未就绪时返回非零。
 
 然后按这个节奏工作：
 
 1. 用 `.ai-native/prompts/project-onboarding-agent.md` 做项目 onboarding。
-2. AI 根据沟通草拟 `docs/project-onboarding.md`、project profile、tech stack strategy、business spec index、sample policy 和 decision log。
-3. 人只做确认、否决、选择、补充和风险接受，不手工填完整套文档。
-4. 运行 `node scripts/check-project-onboarding.mjs .` 检查 baseline；决策确认后可运行 `node scripts/check-project-onboarding.mjs . --strict`。
-5. 用 `node scripts/new-workflow-item.mjs --type request --name <name>` 创建第一张需求入口。
-6. 用 Preflight Agent 生成 `preflight/`。
-7. 用 `.ai-native/templates/` 写 `specs/` 和 `evals/`。
-8. 用 `.ai-native/templates/task-card.md` 拆成 `tasks/` 中的小任务卡。
-9. 跑 `node scripts/check-workflow-artifacts.mjs .` 检查 artifact 质量。
-10. 让 AI 只执行一个 task card。
-11. 跑 `scripts/verify.sh`。
-12. 审查 diff 和 risk gate。
-13. 合并后写 `ai-logs/`。
-14. 阶段性写 `workflow-retros/`。
-15. 重复问题写 `workflow-improvements/`。
-16. 重复执行模式适合封装时写 `skill-candidates/`，但不能自动启用 Skill。
-17. 项目需要定时自动化时，先写 `automation-proposals/` 并获得人工确认。
-18. 需要回写共享 dev-kit 时写 `dev-kit-proposals/`。
+2. 选择 onboarding level：`O0` 用于轻量试验，`O1` 用于普通项目，`O2` 用于高风险或生产敏感项目。
+3. AI 根据沟通草拟 `docs/project-onboarding.md`、project profile、tech stack strategy、business spec index、sample policy 和 decision log。
+4. 人只做确认、否决、选择、补充和风险接受，不手工填完整套文档。
+5. 运行 `node scripts/check-project-onboarding.mjs .` 检查 baseline；决策确认后可运行 `node scripts/check-project-onboarding.mjs . --strict`。
+6. 用 `node scripts/new-workflow-item.mjs --type request --name <name>` 创建第一张需求入口。
+7. 用 Preflight Agent 生成 `preflight/`。
+8. 用 `.ai-native/templates/` 写 `specs/` 和 `evals/`。
+9. 用 `.ai-native/templates/task-card.md` 拆成 `tasks/` 中的小任务卡。
+10. 跑 `node scripts/check-workflow-artifacts.mjs .` 检查 artifact 质量。
+   草稿阶段可用 `--mode draft`，实现前用 `--mode ready`，高风险实现门禁用 `--mode implementation --task <task-card>`。
+   如果 task 的 Risk Gate 有勾选项，`Human Approval` 必须记录审批状态；implementation 模式要求 `Status: Approved`。
+11. 让 AI 只执行一个 task card。
+12. 跑 `scripts/verify.sh`。
+13. 审查 diff 和 risk gate。
+14. 合并后写 `ai-logs/`。
+15. 阶段性写 `workflow-retros/`。
+16. 重复问题写 `workflow-improvements/`。
+17. 重复执行模式适合封装时写 `skill-candidates/`，但不能自动启用 Skill。
+18. 项目需要定时自动化时，先写 `automation-proposals/` 并获得人工确认。
+19. 需要回写共享 dev-kit 时写 `dev-kit-proposals/`。
 
 可以先参考 [examples/generic-first-change](examples/generic-first-change) 写第一组 request/preflight/spec/eval/task。该示例只表达工作流结构，不绑定任何业务域。
 

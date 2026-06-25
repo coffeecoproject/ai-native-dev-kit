@@ -418,7 +418,15 @@ function checkReadmePointers() {
     "docs/codex-usage",
     "check-workflow-artifacts",
     "new-workflow-item",
+    "--mode ready",
+    "--mode implementation",
+    "--task",
+    "Human Approval",
+    "O0",
+    "O1",
+    "O2",
     "workflow-next",
+    "--enforce",
     "bootstrap-agent",
     "--apply-pr-template-governance",
     "--apply-agent-governance",
@@ -511,6 +519,41 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project onboarding check");
 
+  const onboardingO0Check = runNode([
+    path.join(target, "scripts", "check-project-onboarding.mjs"),
+    target,
+    "--level",
+    "O0",
+  ]);
+  if (onboardingO0Check.status !== 0) {
+    fail(`generated project O0 onboarding check failed: ${onboardingO0Check.stderr || onboardingO0Check.stdout}`);
+    return;
+  }
+  pass("generated project O0 onboarding check");
+
+  const onboardingO2Check = runNode([
+    path.join(target, "scripts", "check-project-onboarding.mjs"),
+    target,
+    "--level",
+    "O2",
+  ]);
+  if (onboardingO2Check.status !== 0) {
+    fail(`generated project O2 onboarding check failed: ${onboardingO2Check.stderr || onboardingO2Check.stdout}`);
+    return;
+  }
+  pass("generated project O2 onboarding check");
+
+  const workflowNextEnforcePending = runNode([
+    path.join(target, "scripts", "workflow-next.mjs"),
+    target,
+    "--enforce",
+  ]);
+  if (workflowNextEnforcePending.status === 0 || !workflowNextEnforcePending.stdout.includes("project onboarding is not ready")) {
+    fail(`generated project workflow-next enforce should fail while onboarding is pending: ${workflowNextEnforcePending.stderr || workflowNextEnforcePending.stdout}`);
+    return;
+  }
+  pass("generated project workflow-next enforce fails while onboarding is pending");
+
   const dailySummaryCheck = runNode([
     path.join(target, "scripts", "workflow-daily-summary.mjs"),
     target,
@@ -551,6 +594,41 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project new workflow item creates request");
 
+  const draftArtifactCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "draft",
+  ]);
+  if (draftArtifactCheck.status !== 0) {
+    fail(`generated project draft workflow artifact check failed: ${draftArtifactCheck.stderr || draftArtifactCheck.stdout}`);
+    return;
+  }
+  pass("generated project draft workflow artifact check tolerates placeholders");
+
+  const readyPlaceholderCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "ready",
+  ]);
+  if (readyPlaceholderCheck.status === 0 || !readyPlaceholderCheck.stderr.includes("placeholder")) {
+    fail(`generated project ready workflow artifact check should reject placeholders: ${readyPlaceholderCheck.stderr || readyPlaceholderCheck.stdout}`);
+    return;
+  }
+  pass("generated project ready workflow artifact check rejects placeholders");
+
+  const unknownArtifactOption = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--unknown-option",
+  ]);
+  if (unknownArtifactOption.status === 0 || !unknownArtifactOption.stderr.includes("unknown option")) {
+    fail(`generated project workflow artifact check should reject unknown options: ${unknownArtifactOption.stderr || unknownArtifactOption.stdout}`);
+    return;
+  }
+  pass("generated project workflow artifact check rejects unknown options");
+
   fs.unlinkSync(path.join(target, "requests", "001-generated-check.md"));
 
   const exampleCopies = [
@@ -564,6 +642,25 @@ function checkGeneratedProjectE2E() {
   for (const [source, dest] of exampleCopies) {
     fs.copyFileSync(path.join(kitRoot, source), path.join(target, dest));
   }
+
+  const taskPath = path.join(target, "tasks", "001-admin-work-item-list.md");
+  const originalTaskContent = fs.readFileSync(taskPath, "utf8");
+  fs.writeFileSync(taskPath, originalTaskContent.replace("`specs/001-admin-work-item-list.md`", "`specs/<file>.md`"));
+  const placeholderRefCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (placeholderRefCheck.status === 0 || !placeholderRefCheck.stderr.includes("placeholder file")) {
+    fail(`generated project ready workflow artifact check should reject placeholder refs: ${placeholderRefCheck.stderr || placeholderRefCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(taskPath, originalTaskContent);
+  pass("generated project ready workflow artifact check rejects placeholder refs");
+
   const artifactCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),
     target,
@@ -573,6 +670,53 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project workflow artifact quality check");
+
+  const taskScopedArtifactCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (taskScopedArtifactCheck.status !== 0) {
+    fail(`generated project task-scoped workflow artifact check failed: ${taskScopedArtifactCheck.stderr || taskScopedArtifactCheck.stdout}`);
+    return;
+  }
+  pass("generated project task-scoped workflow artifact check");
+
+  const pendingImplementationCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (pendingImplementationCheck.status === 0 || !pendingImplementationCheck.stderr.includes("Status: Approved")) {
+    fail(`generated project implementation mode should require approved human approval: ${pendingImplementationCheck.stderr || pendingImplementationCheck.stdout}`);
+    return;
+  }
+  pass("generated project implementation mode rejects pending human approval");
+
+  const copiedTaskPath = path.join(target, "tasks", "001-admin-work-item-list.md");
+  const copiedTaskContent = fs.readFileSync(copiedTaskPath, "utf8")
+    .replace("Status: Pending", "Status: Approved")
+    .replace("Approved by:", "Approved by: human-review")
+    .replace("Approved at:", "Approved at: 2026-06-25T00:00:00.000Z");
+  fs.writeFileSync(copiedTaskPath, copiedTaskContent);
+
+  const approvedImplementationCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (approvedImplementationCheck.status !== 0) {
+    fail(`generated project implementation mode with approved human approval failed: ${approvedImplementationCheck.stderr || approvedImplementationCheck.stdout}`);
+    return;
+  }
+  pass("generated project implementation mode accepts approved human approval");
 
   const updateResult = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),

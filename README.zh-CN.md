@@ -214,13 +214,14 @@ scripts/
 4. 大需求先做 preflight。
 5. 写 spec 和 eval。
 6. 拆 task card。
-7. AI 只执行一个 task card。
-8. 跑 verification。
-9. 人审查 diff、风险和证据。
-10. 合并后写 AI task log。
-11. 阶段性复盘进入 workflow retros。
-12. 重复问题进入 workflow improvements。
-13. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
+7. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`。
+8. AI 只执行一个 task card。
+9. 跑 verification。
+10. 人审查 diff、风险和证据。
+11. 合并后写 AI task log。
+12. 阶段性复盘进入 workflow retros。
+13. 重复问题进入 workflow improvements。
+14. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
 
 ## 自检
 

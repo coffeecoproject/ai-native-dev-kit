@@ -42,7 +42,9 @@ For project onboarding:
 For workflow artifacts:
 
 - use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI log files
-- run `node scripts/check-workflow-artifacts.mjs .` before implementation when workflow artifacts exist
+- run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when workflow artifacts exist
+- run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded
+- if any Risk Gate item is checked, `Human Approval` must be recorded before implementation
 - fix placeholder or missing artifact content before coding
 
 For review:

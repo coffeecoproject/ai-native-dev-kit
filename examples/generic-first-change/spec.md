@@ -4,6 +4,11 @@
 
 Ready
 
+## Source
+
+- Request: `requests/001-first-capability-slice.md`
+- Preflight: `preflight/001-first-capability-slice.md`
+
 ## Problem
 
 The project needs one minimal capability to validate the implementation path and AI Native workflow.
@@ -104,4 +109,3 @@ Remove the first slice files or disable the operation if it must be reverted.
 ## Open Questions
 
 - Which stack-specific verification commands should replace the starter `scripts/verify.sh`?
-

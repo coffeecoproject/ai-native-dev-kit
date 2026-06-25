@@ -41,6 +41,12 @@ Expected Codex behavior:
 - Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
 - Run baseline checks after setup when scripts are available.
 
+Optional project-state gate:
+
+```bash
+node scripts/workflow-next.mjs . --enforce
+```
+
 ## New Project Prompt
 
 ```text
@@ -71,6 +77,8 @@ Stop if the scope, risk gate, or acceptance criteria are unclear.
 Expected Codex behavior:
 
 - Read the linked request, preflight, spec, eval, and task card.
+- Run `node scripts/check-workflow-artifacts.mjs . --task <task-card>` before implementation.
+- For high-risk work, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after human approval is recorded.
 - Refuse to widen scope without approval.
 - Request explicit approval before high-risk code changes.
 - Report changed files, verification, residual risks, and next step.

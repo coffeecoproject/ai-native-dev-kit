@@ -97,8 +97,16 @@ Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec,
 Before implementation, run:
 
 ```bash
-node scripts/check-workflow-artifacts.mjs .
+node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
+
+For high-risk implementation, run:
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>
+```
+
+If any Risk Gate item is checked, `Human Approval` must be recorded before implementation.
 
 If artifact quality fails, fix the workflow artifacts before writing code.
 
