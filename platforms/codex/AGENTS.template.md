@@ -106,7 +106,7 @@ For high-risk implementation, run:
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>
 ```
 
-If any Risk Gate item is checked, `Human Approval` must be recorded before implementation.
+If any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation.
 
 If artifact quality fails, fix the workflow artifacts before writing code.
 

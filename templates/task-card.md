@@ -68,6 +68,7 @@ If any item is checked, implementation requires explicit human approval before c
 
 Required: No
 Status: Not Required
+Approval scope: Not Required
 Approved by:
 Approved at:
 Approval notes:

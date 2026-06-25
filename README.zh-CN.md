@@ -214,7 +214,7 @@ scripts/
 4. 大需求先做 preflight。
 5. 写 spec 和 eval。
 6. 拆 task card。
-7. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`。
+7. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。
 8. AI 只执行一个 task card。
 9. 跑 verification。
 10. 人审查 diff、风险和证据。
@@ -237,7 +237,7 @@ node ai-native-dev-kit/scripts/check-dev-kit.mjs
 node scripts/check-ai-workflow.mjs .
 node scripts/check-project-onboarding.mjs .
 node scripts/check-workflow-version.mjs .
-node scripts/check-workflow-artifacts.mjs .
+node scripts/check-workflow-artifacts.mjs . --mode ready
 node scripts/workflow-next.mjs .
 node scripts/summarize-ai-logs.mjs .
 node scripts/workflow-daily-summary.mjs .
@@ -316,7 +316,7 @@ node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md -
 实现前检查 artifact 质量：
 
 ```bash
-node scripts/check-workflow-artifacts.mjs .
+node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
 
 ## License

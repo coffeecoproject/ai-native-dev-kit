@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -24,7 +26,7 @@ jobs:
       - name: Check workflow next syntax
         run: node --check scripts/workflow-next.mjs
       - name: Check workflow artifact quality
-        run: node scripts/check-workflow-artifacts.mjs .
+        run: node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base origin/${{ github.base_ref }}
       - name: Summarize AI workflow logs
         run: node scripts/summarize-ai-logs.mjs .
       - name: Run daily workflow signal check

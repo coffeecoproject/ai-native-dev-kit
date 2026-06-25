@@ -62,7 +62,7 @@ node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md -
 Ask Codex to fill the artifacts from conversation. Then run:
 
 ```bash
-node scripts/check-workflow-artifacts.mjs .
+node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
 
 Implementation should happen only after the task card is approved.

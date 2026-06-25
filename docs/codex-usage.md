@@ -77,8 +77,9 @@ Stop if the scope, risk gate, or acceptance criteria are unclear.
 Expected Codex behavior:
 
 - Read the linked request, preflight, spec, eval, and task card.
-- Run `node scripts/check-workflow-artifacts.mjs . --task <task-card>` before implementation.
+- Run `node scripts/check-workflow-artifacts.mjs . --mode ready --task <task-card>` before implementation.
 - For high-risk work, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after human approval is recorded.
+- For checked risk items, `Human Approval` must include the approved `Approval scope`.
 - Refuse to widen scope without approval.
 - Request explicit approval before high-risk code changes.
 - Report changed files, verification, residual risks, and next step.

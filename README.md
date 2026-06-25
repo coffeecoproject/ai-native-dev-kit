@@ -222,9 +222,10 @@ node scripts/workflow-next.mjs . --enforce
 7. 用 Preflight Agent 生成 `preflight/`。
 8. 用 `.ai-native/templates/` 写 `specs/` 和 `evals/`。
 9. 用 `.ai-native/templates/task-card.md` 拆成 `tasks/` 中的小任务卡。
-10. 跑 `node scripts/check-workflow-artifacts.mjs .` 检查 artifact 质量。
+10. 跑 `node scripts/check-workflow-artifacts.mjs . --mode ready` 检查 artifact 质量。
    草稿阶段可用 `--mode draft`，实现前用 `--mode ready`，高风险实现门禁用 `--mode implementation --task <task-card>`。
-   如果 task 的 Risk Gate 有勾选项，`Human Approval` 必须记录审批状态；implementation 模式要求 `Status: Approved`。
+   CI 中建议用 `--mode ready --changed-only --base <base-ref>`，避免历史草稿阻塞无关 PR。
+   如果 task 的 Risk Gate 有勾选项，`Human Approval` 必须记录审批状态和 `Approval scope`；implementation 模式要求 `Status: Approved`。
 11. 让 AI 只执行一个 task card。
 12. 跑 `scripts/verify.sh`。
 13. 审查 diff 和 risk gate。

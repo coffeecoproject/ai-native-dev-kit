@@ -391,6 +391,14 @@ function checkPlatformAdapters() {
       fail(`platforms/github/ci-ai-workflow.yml missing ${command}`);
     }
   }
+
+  for (const marker of ["fetch-depth: 0", "--mode ready", "--changed-only", "--base origin/${{ github.base_ref }}"]) {
+    if (githubCi.includes(marker)) {
+      pass(`platforms/github/ci-ai-workflow.yml includes ${marker}`);
+    } else {
+      fail(`platforms/github/ci-ai-workflow.yml missing ${marker}`);
+    }
+  }
 }
 
 function checkScriptSyntax() {
@@ -421,7 +429,9 @@ function checkReadmePointers() {
     "--mode ready",
     "--mode implementation",
     "--task",
+    "--changed-only",
     "Human Approval",
+    "Approval scope",
     "O0",
     "O1",
     "O2",
@@ -645,6 +655,23 @@ function checkGeneratedProjectE2E() {
 
   const taskPath = path.join(target, "tasks", "001-admin-work-item-list.md");
   const originalTaskContent = fs.readFileSync(taskPath, "utf8");
+
+  fs.writeFileSync(taskPath, originalTaskContent.replace(/^Approval scope:.*$/m, "Approval scope:"));
+  const missingApprovalScopeCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (missingApprovalScopeCheck.status === 0 || !missingApprovalScopeCheck.stderr.includes("Approval scope")) {
+    fail(`generated project ready workflow artifact check should reject missing approval scope: ${missingApprovalScopeCheck.stderr || missingApprovalScopeCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(taskPath, originalTaskContent);
+  pass("generated project ready workflow artifact check rejects missing approval scope");
+
   fs.writeFileSync(taskPath, originalTaskContent.replace("`specs/001-admin-work-item-list.md`", "`specs/<file>.md`"));
   const placeholderRefCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),

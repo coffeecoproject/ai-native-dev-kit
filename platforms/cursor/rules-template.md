@@ -46,7 +46,7 @@ Before non-trivial work, read:
 - Use `node scripts/new-workflow-item.mjs` to create numbered workflow files.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when request/spec/eval/task files exist.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded.
-- If any Risk Gate item is checked, `Human Approval` must be recorded before implementation.
+- If any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation.
 - Fix placeholder or missing artifact content before writing code.
 
 ## Skill Governance

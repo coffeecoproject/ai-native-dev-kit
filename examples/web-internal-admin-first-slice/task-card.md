@@ -80,6 +80,7 @@ If any item is checked, implementation requires explicit human approval before c
 
 Required: Yes
 Status: Pending
+Approval scope: Permission boundary only; no schema migration, production config, deployment, or data migration approved.
 Approved by:
 Approved at:
 Approval notes: Permission boundary must be approved before implementation.

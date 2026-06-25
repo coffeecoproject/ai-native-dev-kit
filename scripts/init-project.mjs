@@ -310,8 +310,10 @@ function agentGovernanceSectionContent() {
       "Before implementation, run:",
       "",
       "```bash",
-      "node scripts/check-workflow-artifacts.mjs .",
+      "node scripts/check-workflow-artifacts.mjs . --mode ready",
       "```",
+      "",
+      "For high-risk implementation, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after `Human Approval` records status and scope.",
       "",
       "If artifact quality fails, fix the workflow artifacts before writing code.",
       "",
@@ -666,5 +668,5 @@ console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-s
 console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
 console.log("4. Create the first request card only after onboarding is ready.");
 console.log("5. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
-console.log("6. Run scripts/check-workflow-artifacts.mjs before implementation.");
+console.log("6. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
 console.log("7. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

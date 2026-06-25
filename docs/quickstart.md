@@ -89,7 +89,7 @@ For a high-risk implementation task, run the task-scoped implementation gate:
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/001-first-slice.md
 ```
 
-If any Risk Gate item is checked, the task card must include `## Human Approval` with `Status: Approved` before implementation.
+If any Risk Gate item is checked, the task card must include `## Human Approval` with a concrete `Approval scope` and `Status: Approved` before implementation.
 
 ## Existing Project
 

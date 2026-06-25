@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.11.0`
+Current version: `0.12.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.11.0`
 
 ## Current Release
 
-`0.11.0`
+`0.12.0`
 
 Includes:
 
@@ -44,5 +44,7 @@ Includes:
 - workflow artifact checker modes for draft, ready, and implementation gates
 - task-scoped workflow artifact checks with graph consistency validation
 - structured Human Approval gate for checked risk items
+- Human Approval scope gate for checked risk items
+- GitHub Actions workflow artifact check uses ready mode only for changed artifacts
 - project onboarding checks for O0, O1, and O2 levels
 - `workflow-next --enforce` for optional project-state gating

@@ -228,7 +228,7 @@ function requireSubList(file, content, section, label) {
 function labeledValue(content, section, label) {
   const body = sectionBody(content, section);
   if (!body) return "";
-  const pattern = new RegExp(`^${escapeRegExp(label)}:\\s*(.+)$`, "im");
+  const pattern = new RegExp(`^${escapeRegExp(label)}:[^\\S\\r\\n]*(.*)$`, "im");
   const match = body.match(pattern);
   return match ? match[1].trim() : "";
 }
@@ -307,6 +307,7 @@ function requireHumanApproval(file, content) {
 
   const required = labeledValue(content, "Human Approval", "Required");
   const status = labeledValue(content, "Human Approval", "Status");
+  const approvalScope = labeledValue(content, "Human Approval", "Approval scope");
   const approvedBy = labeledValue(content, "Human Approval", "Approved by");
   const approvedAt = labeledValue(content, "Human Approval", "Approved at");
 
@@ -316,6 +317,9 @@ function requireHumanApproval(file, content) {
     }
     if (!/^(Pending|Approved)$/i.test(status)) {
       fail(`${file} checked risk items require Human Approval Status: Pending or Approved`);
+    }
+    if (!approvalScope || /^Not Required$/i.test(approvalScope)) {
+      fail(`${file} checked risk items require Human Approval scope`);
     }
     if (mode === "implementation" && !/^Approved$/i.test(status)) {
       fail(`${file} implementation mode requires Human Approval Status: Approved`);

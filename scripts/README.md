@@ -92,20 +92,21 @@ node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md
 Check filled workflow artifacts for required sections, placeholder content, and cross-file references.
 
 ```bash
-node scripts/check-workflow-artifacts.mjs .
-node scripts/check-workflow-artifacts.mjs . --mode draft
 node scripts/check-workflow-artifacts.mjs . --mode ready
+node scripts/check-workflow-artifacts.mjs . --mode draft
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/001-first-slice.md
 node scripts/check-workflow-artifacts.mjs . --task tasks/001-first-slice.md
+node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base origin/main
 ```
 
 Modes:
 
 - `draft`: checks structure and resolvable references, but allows placeholders.
 - `ready`: default; checks placeholders, single-choice fields, graph consistency, and task approval structure.
-- `implementation`: requires `--task` and requires checked risk items to have approved human approval.
+- `implementation`: requires `--task` and requires checked risk items to have approved human approval with scope.
 
 This check is intentionally stricter than `check-ai-workflow.mjs`. It should run before implementation once request/spec/eval/task files exist.
+In CI, prefer `--mode ready --changed-only --base <base-ref>` so historical draft artifacts do not block unrelated changes.
 
 ## check-dev-kit.mjs
 

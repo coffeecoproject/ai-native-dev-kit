@@ -27,5 +27,5 @@ ai-logs/2026-06-24-admin-work-item-list.md
 Then run:
 
 ```bash
-node scripts/check-workflow-artifacts.mjs .
+node scripts/check-workflow-artifacts.mjs . --mode ready
 ```

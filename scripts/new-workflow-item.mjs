@@ -224,6 +224,7 @@ function fillTask(content, context) {
     [
       "Required: No",
       "Status: Not Required",
+      "Approval scope: Not Required",
       "Approved by:",
       "Approved at:",
       "Approval notes:",
