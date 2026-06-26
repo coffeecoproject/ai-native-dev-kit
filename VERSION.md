@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.36.0`
+Current version: `0.37.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `0.36.0`
 
 ## Current Release
 
-`0.36.0`
+`0.37.0`
 
 Includes:
 
+- Productization Hardcut phase `0.37.0`: manifest authoritative asset source
+- `dev-kit-manifest.json` is now the authoritative source for source required files, target required paths, workflow readiness paths, workflow version assets, and safe static copy rules
+- `check-ai-workflow.mjs`, `workflow-next.mjs`, `check-dev-kit.mjs`, and `init-project.mjs` now consume manifest data for their asset lists
+- generated projects now receive `.ai-native/dev-kit-manifest.json` and `scripts/lib/manifest.mjs`
+- `scripts/check-manifest.mjs` now validates authoritative manifest shape, copy rule sources, target group coverage, workflow version asset sync, and script consumption markers
 - Productization Hardcut phase `0.36.0`: CLI Front Door
 - `package.json` with private package metadata, `ai-native` bin mapping, and productization scripts
 - `scripts/cli.mjs` as a thin CLI facade for init, update, next, check, doctor, new, fixtures, and self-check

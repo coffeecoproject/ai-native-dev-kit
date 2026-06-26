@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
+import { sourceRequiredPaths } from "./lib/manifest.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,7 +50,7 @@ function walkFiles(dir) {
 }
 
 function checkRequiredFiles() {
-  const required = [
+  const required = sourceRequiredPaths(kitRoot, { fallback: [
     "README.md",
     "README.zh-CN.md",
     "LICENSE.md",
@@ -369,7 +370,7 @@ function checkRequiredFiles() {
     "test-fixtures/bad-goal-mode-readonly-write/goal-cards/001-readonly-write.md",
     "test-fixtures/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
     "test-fixtures/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
-  ];
+  ] });
 
   for (const file of required) {
     if (exists(file)) pass(file);
@@ -431,6 +432,7 @@ function checkVersionMetadata() {
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
+    "scripts/lib/manifest.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
@@ -454,6 +456,7 @@ function checkVersionMetadata() {
     "customer-handoffs",
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
+    ".ai-native/dev-kit-manifest.json",
     ".ai-native/docs/artifact-decision-tree.md",
     ".ai-native/docs/goal-subagent-usage.md",
     ".github/pull_request_template.md",
@@ -601,12 +604,14 @@ function checkManifestProtocol() {
   const manifest = JSON.parse(read("dev-kit-manifest.json"));
   if (manifest.schemaVersion === "1.0") pass("manifest schemaVersion is 1.0");
   else fail("manifest schemaVersion must be 1.0");
-  if (manifest.mode === "read-only") pass("manifest mode is read-only");
-  else fail("manifest mode must be read-only");
-  if (manifest.compatibilityPolicy?.readOnly === true && manifest.compatibilityPolicy?.authoritative === false) {
-    pass("manifest compatibility policy is read-only and non-authoritative");
+  if (manifest.mode === "authoritative") pass("manifest mode is authoritative");
+  else fail("manifest mode must be authoritative for phase 0.37.0");
+  if (manifest.compatibilityPolicy?.readOnly === false
+    && manifest.compatibilityPolicy?.authoritative === true
+    && manifest.compatibilityPolicy?.changesRuntimeBehavior === true) {
+    pass("manifest compatibility policy is authoritative");
   } else {
-    fail("manifest compatibility policy must be read-only and non-authoritative");
+    fail("manifest compatibility policy must be authoritative for phase 0.37.0");
   }
 
   for (const group of [
@@ -620,6 +625,7 @@ function checkManifestProtocol() {
     "profiles",
     "industrialPackRegistry",
     "workflowDirs",
+    "workflowReadiness",
     "scripts",
     "platformAdapters",
     "examples",
@@ -628,6 +634,26 @@ function checkManifestProtocol() {
   ]) {
     if (Array.isArray(manifest.groups?.[group])) pass(`manifest contains group ${group}`);
     else fail(`manifest missing group ${group}`);
+  }
+  if (Array.isArray(manifest.copyRules?.directories) && Array.isArray(manifest.copyRules?.files)) {
+    pass("manifest contains copy rules");
+  } else {
+    fail("manifest must contain copyRules.directories and copyRules.files");
+  }
+  for (const marker of [
+    ".ai-native/dev-kit-manifest.json",
+    "scripts/lib/manifest.mjs",
+  ]) {
+    if (manifest.groups.targetCore.includes(marker) && manifest.groups.targetFull.includes(marker)) {
+      pass(`manifest target required paths include ${marker}`);
+    } else {
+      fail(`manifest target required paths must include ${marker}`);
+    }
+    if (manifest.groups.workflowVersionAssets.includes(marker)) {
+      pass(`manifest workflow version assets include ${marker}`);
+    } else {
+      fail(`manifest workflow version assets must include ${marker}`);
+    }
   }
 
   const manifestCheck = runNode(["scripts/check-manifest.mjs"]);
@@ -643,12 +669,12 @@ function checkManifestProtocol() {
     fs.writeFileSync(invalidManifest, JSON.stringify({
       schemaVersion: "1.0",
       devKitVersion: currentVersion(),
-      mode: "read-only",
+      mode: "authoritative",
       compatibilityPolicy: {
-        readOnly: true,
-        authoritative: false,
-        changesRuntimeBehavior: false,
-        phase: "0.35.0",
+        readOnly: false,
+        authoritative: true,
+        changesRuntimeBehavior: true,
+        phase: "0.37.0",
       },
       groups: {
         sourceRequired: [],
@@ -662,16 +688,51 @@ function checkManifestProtocol() {
       fail(`manifest check must reject invalid manifest before drift checking: ${invalidOutput}`);
     }
 
-    const driftManifest = path.join(tempRoot, "drift-manifest.json");
-    const drift = JSON.parse(JSON.stringify(manifest));
-    drift.groups.sourceRequired.push("fake/manifest-drift.md");
-    fs.writeFileSync(driftManifest, JSON.stringify(drift, null, 2));
-    const driftResult = runNode(["scripts/check-manifest.mjs", kitRoot, "--manifest", driftManifest]);
-    const driftOutput = `${driftResult.stdout}\n${driftResult.stderr}`;
-    if (driftResult.status !== 0 && driftOutput.includes("sourceRequired") && driftOutput.includes("fake/manifest-drift.md")) {
-      pass("manifest check reports sourceRequired drift");
+    const sourceManifest = path.join(tempRoot, "source-required-manifest.json");
+    const sourceRequired = JSON.parse(JSON.stringify(manifest));
+    sourceRequired.groups.sourceRequired.push("fake/manifest-source-required.md");
+    fs.writeFileSync(sourceManifest, JSON.stringify(sourceRequired, null, 2));
+    const sourceRequiredResult = runNode(["scripts/check-manifest.mjs", kitRoot, "--manifest", sourceManifest]);
+    const sourceRequiredOutput = `${sourceRequiredResult.stdout}\n${sourceRequiredResult.stderr}`;
+    if (sourceRequiredResult.status !== 0
+      && sourceRequiredOutput.includes("sourceRequired")
+      && sourceRequiredOutput.includes("fake/manifest-source-required.md")) {
+      pass("manifest check reports missing sourceRequired asset");
     } else {
-      fail(`manifest check must report sourceRequired drift: ${driftOutput}`);
+      fail(`manifest check must report missing sourceRequired asset: ${sourceRequiredOutput}`);
+    }
+
+    const target = path.join(tempRoot, "target-project");
+    const init = runNode(["scripts/init-project.mjs", "--starter", "generic-project", "--target", target]);
+    if (init.status !== 0) {
+      fail(`manifest authoritative generated target init failed: ${init.stderr || init.stdout}`);
+      return;
+    }
+    const targetManifestPath = path.join(target, ".ai-native", "dev-kit-manifest.json");
+    const targetManifest = JSON.parse(fs.readFileSync(targetManifestPath, "utf8"));
+    targetManifest.groups.targetCore.push("fake/manifest-target-required.md");
+    targetManifest.groups.targetFull.push("fake/manifest-target-required.md");
+    targetManifest.groups.workflowReadiness.push("fake/manifest-target-required.md");
+    fs.writeFileSync(targetManifestPath, JSON.stringify(targetManifest, null, 2));
+
+    const targetCheck = runNode([path.join(target, "scripts", "check-ai-workflow.mjs"), target, "--mode", "core"]);
+    const targetCheckOutput = `${targetCheck.stdout}\n${targetCheck.stderr}`;
+    if (targetCheck.status !== 0 && targetCheckOutput.includes("fake/manifest-target-required.md")) {
+      pass("target check-ai-workflow reads target required paths from manifest");
+    } else {
+      fail(`target check-ai-workflow must report manifest-added required path: ${targetCheckOutput}`);
+    }
+
+    const targetNext = runNode([path.join(target, "scripts", "workflow-next.mjs"), target, "--json"]);
+    if (targetNext.status === 0) {
+      const nextResult = JSON.parse(targetNext.stdout);
+      if ((nextResult.missingWorkflowAssets || []).includes("fake/manifest-target-required.md")) {
+        pass("workflow-next reads workflow readiness paths from manifest");
+      } else {
+        fail(`workflow-next missingWorkflowAssets must include manifest-added path: ${targetNext.stdout}`);
+      }
+    } else {
+      fail(`workflow-next manifest target check failed: ${targetNext.stderr || targetNext.stdout}`);
     }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });

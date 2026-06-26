@@ -5,10 +5,7 @@ import path from "node:path";
 import {
   currentDevKitVersion,
   diffLists,
-  extractConstStringArray,
-  extractPropertyStringArray,
   kitRoot,
-  loadManifest,
   manifestGroupNames,
   normalizePath,
   readJson,
@@ -98,7 +95,9 @@ function validateSchemaFile(schema) {
   if (!schema) return;
   if (schema.type !== "object") fail("manifest schema file must define type object");
   if (!Array.isArray(schema.required)) fail("manifest schema file must define required array");
+  if (!schema.required.includes("copyRules")) fail("manifest schema file must require copyRules");
   if (!schema.properties?.groups?.properties) fail("manifest schema file must define groups properties");
+  if (!schema.properties?.copyRules?.properties) fail("manifest schema file must define copyRules properties");
   for (const groupName of manifestGroupNames) {
     if (!schema.properties?.groups?.properties?.[groupName]) {
       fail(`manifest schema file missing group property: ${groupName}`);
@@ -117,14 +116,17 @@ function validateManifestShape(manifest) {
   if (typeof manifest.devKitVersion !== "string" || manifest.devKitVersion.length === 0) {
     fail("manifest schema validation: devKitVersion must be a non-empty string");
   }
-  if (manifest.mode !== "read-only") {
-    fail("manifest schema validation: mode must be read-only for phase 0.35.0");
+  if (manifest.mode !== "authoritative") {
+    fail("manifest schema validation: mode must be authoritative for phase 0.37.0");
   }
-  if (manifest.compatibilityPolicy?.readOnly !== true) {
-    fail("manifest schema validation: compatibilityPolicy.readOnly must be true");
+  if (manifest.compatibilityPolicy?.readOnly !== false) {
+    fail("manifest schema validation: compatibilityPolicy.readOnly must be false");
   }
-  if (manifest.compatibilityPolicy?.authoritative !== false) {
-    fail("manifest schema validation: compatibilityPolicy.authoritative must be false");
+  if (manifest.compatibilityPolicy?.authoritative !== true) {
+    fail("manifest schema validation: compatibilityPolicy.authoritative must be true");
+  }
+  if (manifest.compatibilityPolicy?.changesRuntimeBehavior !== true) {
+    fail("manifest schema validation: compatibilityPolicy.changesRuntimeBehavior must be true");
   }
   if (!manifest.groups || typeof manifest.groups !== "object" || Array.isArray(manifest.groups)) {
     fail("manifest schema validation: groups must be an object");
@@ -132,120 +134,57 @@ function validateManifestShape(manifest) {
   }
 
   for (const groupName of manifestGroupNames) {
-    const group = manifest.groups[groupName];
-    if (!Array.isArray(group)) {
-      fail(`manifest schema validation: groups.${groupName} must be an array`);
+    validatePathList(manifest.groups[groupName], `groups.${groupName}`);
+  }
+
+  if (!manifest.copyRules || typeof manifest.copyRules !== "object" || Array.isArray(manifest.copyRules)) {
+    fail("manifest schema validation: copyRules must be an object");
+    return;
+  }
+  validateRuleList(manifest.copyRules.directories, "copyRules.directories");
+  validateRuleList(manifest.copyRules.files, "copyRules.files");
+}
+
+function validatePathList(group, label) {
+  if (!Array.isArray(group)) {
+    fail(`manifest schema validation: ${label} must be an array`);
+    return;
+  }
+  const seen = new Set();
+  for (const item of group) {
+    if (typeof item !== "string" || item.length === 0) {
+      fail(`manifest schema validation: ${label} contains a non-empty string violation`);
       continue;
     }
-    const seen = new Set();
-    for (const item of group) {
-      if (typeof item !== "string" || item.length === 0) {
-        fail(`manifest schema validation: groups.${groupName} contains a non-empty string violation`);
-        continue;
-      }
-      if (path.isAbsolute(item) || item.includes("\\")) {
-        fail(`manifest schema validation: groups.${groupName} contains non-portable path ${item}`);
-      }
-      if (seen.has(item)) {
-        fail(`manifest schema validation: groups.${groupName} contains duplicate ${item}`);
-      }
-      seen.add(item);
+    if (path.isAbsolute(item) || item.includes("\\")) {
+      fail(`manifest schema validation: ${label} contains non-portable path ${item}`);
     }
+    if (seen.has(item)) {
+      fail(`manifest schema validation: ${label} contains duplicate ${item}`);
+    }
+    seen.add(item);
   }
 }
 
-function sourceRequiredFromCheckDevKit() {
-  const content = readText(projectRoot, "scripts/check-dev-kit.mjs");
-  return extractConstStringArray(content, "required");
-}
-
-function targetPathsFromCheckAiWorkflow(constName) {
-  const content = readText(projectRoot, "scripts/check-ai-workflow.mjs");
-  return extractConstStringArray(content, constName);
-}
-
-function workflowAssetsFromInitProject() {
-  const content = readText(projectRoot, "scripts/init-project.mjs");
-  return extractPropertyStringArray(content, "workflowAssets");
-}
-
-function workflowAssetsFromTemplate() {
-  return sortedUnique(readJson(projectRoot, "templates/workflow-version.json").workflowAssets || []);
-}
-
-function groupFromPrefix(paths, prefix) {
-  return sortedUnique(paths.filter((item) => item.startsWith(prefix)));
-}
-
-function workflowDirsFromTarget(paths) {
-  return sortedUnique(paths.filter((item) => !item.includes("/") && !path.extname(item)));
-}
-
-function industrialPackRegistryFromSource(paths) {
-  const registry = new Set([
-    "industrial-packs/README.md",
-    "industrial-packs/selection-guide.md",
-    "industrial-packs/index.json",
-    "industrial-packs/schema/pack.schema.json",
-    "industrial-packs/schema/baseline-selection.schema.json",
-    "industrial-pack-candidates/README.md",
-    "industrial-pack-candidates/web-app/README.md",
-  ]);
-  return sortedUnique(paths.filter((item) => registry.has(item)));
-}
-
-function expectedGroups() {
-  const sourceRequired = sourceRequiredFromCheckDevKit();
-  const targetCore = targetPathsFromCheckAiWorkflow("coreRequiredPaths");
-  const targetFull = targetPathsFromCheckAiWorkflow("fullRequiredPaths");
-  return {
-    sourceRequired,
-    targetCore,
-    targetFull,
-    aiNativeCore: groupFromPrefix(targetFull, ".ai-native/core/"),
-    templates: groupFromPrefix(sourceRequired, "templates/"),
-    prompts: groupFromPrefix(sourceRequired, "prompts/"),
-    checklists: groupFromPrefix(sourceRequired, "checklists/"),
-    profiles: groupFromPrefix(sourceRequired, "profiles/"),
-    industrialPackRegistry: industrialPackRegistryFromSource(sourceRequired),
-    workflowDirs: workflowDirsFromTarget(targetCore),
-    scripts: groupFromPrefix(sourceRequired, "scripts/"),
-    platformAdapters: groupFromPrefix(sourceRequired, "platforms/"),
-    examples: groupFromPrefix(sourceRequired, "examples/"),
-    fixtures: groupFromPrefix(sourceRequired, "test-fixtures/"),
-    workflowVersionAssets: workflowAssetsFromTemplate(),
-  };
-}
-
-function checkGroupDrift(manifest) {
-  const expected = expectedGroups();
-  for (const groupName of manifestGroupNames) {
-    const actual = sortedUnique(manifest.groups[groupName] || []);
-    const comparison = diffLists(expected[groupName] || [], actual);
-    if (comparison.missing.length === 0 && comparison.extra.length === 0) {
-      pass(`manifest group ${groupName} matches current source`);
+function validateRuleList(rules, label) {
+  if (!Array.isArray(rules)) {
+    fail(`manifest schema validation: ${label} must be an array`);
+    return;
+  }
+  const seen = new Set();
+  for (const rule of rules) {
+    if (!rule || typeof rule !== "object" || Array.isArray(rule)) {
+      fail(`manifest schema validation: ${label} contains non-object rule`);
       continue;
     }
-    if (comparison.missing.length > 0) {
-      fail(`manifest group ${groupName} missing: ${comparison.missing.join(", ")}`);
+    for (const key of ["source", "target"]) {
+      if (typeof rule[key] !== "string" || rule[key].length === 0 || path.isAbsolute(rule[key]) || rule[key].includes("\\")) {
+        fail(`manifest schema validation: ${label}.${key} must be a portable non-empty path`);
+      }
     }
-    if (comparison.extra.length > 0) {
-      fail(`manifest group ${groupName} extra: ${comparison.extra.join(", ")}`);
-    }
-  }
-
-  const initProjectWorkflowAssets = workflowAssetsFromInitProject();
-  const templateWorkflowAssets = workflowAssetsFromTemplate();
-  const workflowAssetsComparison = diffLists(templateWorkflowAssets, initProjectWorkflowAssets);
-  if (workflowAssetsComparison.missing.length === 0 && workflowAssetsComparison.extra.length === 0) {
-    pass("init-project workflowAssets match templates/workflow-version.json");
-  } else {
-    if (workflowAssetsComparison.missing.length > 0) {
-      fail(`init-project workflowAssets missing template asset(s): ${workflowAssetsComparison.missing.join(", ")}`);
-    }
-    if (workflowAssetsComparison.extra.length > 0) {
-      fail(`init-project workflowAssets extra asset(s): ${workflowAssetsComparison.extra.join(", ")}`);
-    }
+    const signature = `${rule.source} -> ${rule.target}`;
+    if (seen.has(signature)) fail(`manifest schema validation: ${label} contains duplicate ${signature}`);
+    seen.add(signature);
   }
 }
 
@@ -255,6 +194,105 @@ function checkVersion(manifest) {
     pass(`manifest devKitVersion matches VERSION.md (${currentVersion})`);
   } else {
     fail(`manifest devKitVersion ${manifest.devKitVersion} does not match VERSION.md ${currentVersion}`);
+  }
+}
+
+function checkSourceRequiredAssets(manifest) {
+  for (const asset of sortedUnique(manifest.groups.sourceRequired || [])) {
+    if (!fs.existsSync(path.join(projectRoot, asset))) {
+      fail(`manifest sourceRequired asset missing: ${asset}`);
+      continue;
+    }
+  }
+  if (!failed) pass("manifest sourceRequired assets exist");
+}
+
+function checkCopyRules(manifest) {
+  for (const rule of manifest.copyRules.directories || []) {
+    const source = path.join(projectRoot, rule.source);
+    if (!fs.existsSync(source) || !fs.statSync(source).isDirectory()) {
+      fail(`manifest copyRules.directories source missing directory: ${rule.source}`);
+    }
+  }
+  for (const rule of manifest.copyRules.files || []) {
+    const source = path.join(projectRoot, rule.source);
+    if (!fs.existsSync(source) || !fs.statSync(source).isFile()) {
+      fail(`manifest copyRules.files source missing file: ${rule.source}`);
+    }
+  }
+  if (!failed) pass("manifest copy rule sources exist");
+
+  const targets = sortedUnique([
+    ...(manifest.copyRules.directories || []).map((rule) => rule.target),
+    ...(manifest.copyRules.files || []).map((rule) => rule.target),
+  ]);
+  for (const requiredTarget of [
+    ".ai-native/dev-kit-manifest.json",
+    "scripts/lib/manifest.mjs",
+    "scripts/check-ai-workflow.mjs",
+    "scripts/workflow-next.mjs",
+    ".github/workflows/ai-workflow-checks.yml",
+  ]) {
+    if (targets.includes(requiredTarget)) {
+      pass(`manifest copy rules include ${requiredTarget}`);
+    } else {
+      fail(`manifest copy rules must include ${requiredTarget}`);
+    }
+  }
+}
+
+function checkTargetGroups(manifest) {
+  const targetCore = sortedUnique(manifest.groups.targetCore || []);
+  const targetFull = sortedUnique(manifest.groups.targetFull || []);
+  const targetFullSet = new Set(targetFull);
+  const missingFromFull = targetCore.filter((item) => !targetFullSet.has(item));
+  if (missingFromFull.length === 0) {
+    pass("manifest targetCore is a subset of targetFull");
+  } else {
+    fail(`manifest targetFull missing targetCore path(s): ${missingFromFull.join(", ")}`);
+  }
+
+  for (const requiredTarget of [".ai-native/dev-kit-manifest.json", "scripts/lib/manifest.mjs"]) {
+    if (targetCore.includes(requiredTarget) && targetFull.includes(requiredTarget)) {
+      pass(`manifest target groups include ${requiredTarget}`);
+    } else {
+      fail(`manifest target groups must include ${requiredTarget}`);
+    }
+  }
+}
+
+function checkWorkflowVersionAssets(manifest) {
+  const templateAssets = sortedUnique(readJson(projectRoot, "templates/workflow-version.json").workflowAssets || []);
+  const manifestAssets = sortedUnique(manifest.groups.workflowVersionAssets || []);
+  const comparison = diffLists(manifestAssets, templateAssets);
+  if (comparison.missing.length === 0 && comparison.extra.length === 0) {
+    pass("templates/workflow-version.json matches manifest workflowVersionAssets");
+  } else {
+    if (comparison.missing.length > 0) {
+      fail(`templates/workflow-version.json missing manifest workflow asset(s): ${comparison.missing.join(", ")}`);
+    }
+    if (comparison.extra.length > 0) {
+      fail(`templates/workflow-version.json has non-manifest workflow asset(s): ${comparison.extra.join(", ")}`);
+    }
+  }
+}
+
+function checkScriptConsumption() {
+  const consumers = [
+    ["scripts/check-ai-workflow.mjs", "targetRequiredPaths(projectRoot, workflowMode"],
+    ["scripts/workflow-next.mjs", "manifestWorkflowRequiredPaths(projectRoot"],
+    ["scripts/check-dev-kit.mjs", "sourceRequiredPaths(kitRoot"],
+    ["scripts/init-project.mjs", "manifestCopyRules(kitRoot"],
+    ["scripts/init-project.mjs", "workflowVersionAssets(kitRoot"],
+    ["scripts/init-project.mjs", "manifestGroup(kitRoot, \"workflowDirs\""],
+  ];
+  for (const [file, marker] of consumers) {
+    const content = readText(projectRoot, file);
+    if (content.includes(marker)) {
+      pass(`${file} consumes authoritative manifest marker`);
+    } else {
+      fail(`${file} missing authoritative manifest marker: ${marker}`);
+    }
   }
 }
 
@@ -272,7 +310,11 @@ validateManifestShape(manifest);
 exitIfFailed();
 
 checkVersion(manifest);
-checkGroupDrift(manifest);
+checkSourceRequiredAssets(manifest);
+checkCopyRules(manifest);
+checkTargetGroups(manifest);
+checkWorkflowVersionAssets(manifest);
+checkScriptConsumption();
 
 emitJsonIfNeeded();
 if (failed) process.exit(1);

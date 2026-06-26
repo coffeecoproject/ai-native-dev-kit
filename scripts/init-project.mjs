@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "./lib/manifest.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -742,82 +743,14 @@ function copyIndustrialAssets(targetPath, options = {}) {
 
 function copySharedAssets(targetPath, options = {}) {
   const { starter = "generic-project", applyPrTemplateGovernance = false, applyAgentGovernance = false } = options;
-  const sharedDirs = ["core", "templates", "prompts", "checklists", "profiles"];
-  for (const dir of sharedDirs) {
-    copyDir(path.join(kitRoot, dir), path.join(targetPath, ".ai-native", dir), options);
+  const copyRules = manifestCopyRules(kitRoot, { fallback: fallbackCopyRules() });
+  for (const rule of copyRules.directories || []) {
+    copyDir(path.join(kitRoot, rule.source), path.join(targetPath, rule.target), options);
   }
-  copyFile(
-    path.join(kitRoot, "docs", "artifact-decision-tree.md"),
-    path.join(targetPath, ".ai-native", "docs", "artifact-decision-tree.md"),
-    options,
-  );
-  copyFile(
-    path.join(kitRoot, "docs", "goal-subagent-usage.md"),
-    path.join(targetPath, ".ai-native", "docs", "goal-subagent-usage.md"),
-    options,
-  );
+  for (const rule of copyRules.files || []) {
+    copyFile(path.join(kitRoot, rule.source), path.join(targetPath, rule.target), options);
+  }
   copyIndustrialAssets(targetPath, options);
-
-  const projectScriptsDir = path.join(targetPath, "scripts");
-  fs.mkdirSync(projectScriptsDir, { recursive: true });
-  const workflowCheckDest = path.join(projectScriptsDir, "check-ai-workflow.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-ai-workflow.mjs"), workflowCheckDest, options);
-
-  const summarizeDest = path.join(projectScriptsDir, "summarize-ai-logs.mjs");
-  copyFile(path.join(kitRoot, "scripts", "summarize-ai-logs.mjs"), summarizeDest, options);
-
-  const versionCheckDest = path.join(projectScriptsDir, "check-workflow-version.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-workflow-version.mjs"), versionCheckDest, options);
-
-  const dailySummaryDest = path.join(projectScriptsDir, "workflow-daily-summary.mjs");
-  copyFile(path.join(kitRoot, "scripts", "workflow-daily-summary.mjs"), dailySummaryDest, options);
-
-  const onboardingCheckDest = path.join(projectScriptsDir, "check-project-onboarding.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-project-onboarding.mjs"), onboardingCheckDest, options);
-
-  const engineeringBaselineCheckDest = path.join(projectScriptsDir, "check-engineering-baseline.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-engineering-baseline.mjs"), engineeringBaselineCheckDest, options);
-
-  const platformBaselineCheckDest = path.join(projectScriptsDir, "check-platform-baseline.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-platform-baseline.mjs"), platformBaselineCheckDest, options);
-
-  const platformBaselineResolveDest = path.join(projectScriptsDir, "resolve-platform-baseline.mjs");
-  copyFile(path.join(kitRoot, "scripts", "resolve-platform-baseline.mjs"), platformBaselineResolveDest, options);
-
-  const industrialPackCheckDest = path.join(projectScriptsDir, "check-industrial-pack.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-industrial-pack.mjs"), industrialPackCheckDest, options);
-
-  const industrialBaselineResolveDest = path.join(projectScriptsDir, "resolve-industrial-baseline.mjs");
-  copyFile(path.join(kitRoot, "scripts", "resolve-industrial-baseline.mjs"), industrialBaselineResolveDest, options);
-
-  const industrialBaselineCheckDest = path.join(projectScriptsDir, "check-industrial-baseline.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-industrial-baseline.mjs"), industrialBaselineCheckDest, options);
-
-  const artifactCheckDest = path.join(projectScriptsDir, "check-workflow-artifacts.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"), artifactCheckDest, options);
-
-  const reviewLoopCheckDest = path.join(projectScriptsDir, "check-review-loop.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-review-loop.mjs"), reviewLoopCheckDest, options);
-
-  const nextStepBoundaryCheckDest = path.join(projectScriptsDir, "check-next-step-boundary.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-next-step-boundary.mjs"), nextStepBoundaryCheckDest, options);
-
-  const goalModeCheckDest = path.join(projectScriptsDir, "check-goal-mode.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-goal-mode.mjs"), goalModeCheckDest, options);
-
-  const subagentOrchestrationCheckDest = path.join(projectScriptsDir, "check-subagent-orchestration.mjs");
-  copyFile(path.join(kitRoot, "scripts", "check-subagent-orchestration.mjs"), subagentOrchestrationCheckDest, options);
-
-  const newWorkflowItemDest = path.join(projectScriptsDir, "new-workflow-item.mjs");
-  copyFile(path.join(kitRoot, "scripts", "new-workflow-item.mjs"), newWorkflowItemDest, options);
-
-  const workflowNextDest = path.join(projectScriptsDir, "workflow-next.mjs");
-  copyFile(path.join(kitRoot, "scripts", "workflow-next.mjs"), workflowNextDest, options);
-
-  const githubWorkflowDir = path.join(targetPath, ".github", "workflows");
-  fs.mkdirSync(githubWorkflowDir, { recursive: true });
-  const ciDest = path.join(githubWorkflowDir, "ai-workflow-checks.yml");
-  copyFile(path.join(kitRoot, "platforms", "github", "ci-ai-workflow.yml"), ciDest, options);
 
   ensureProjectOnboardingDocs(targetPath);
   ensureAgentsGovernance(targetPath, { applyAgentGovernance });
@@ -825,8 +758,45 @@ function copySharedAssets(targetPath, options = {}) {
   ensureWorkflowDirs(targetPath);
 }
 
+function fallbackCopyRules() {
+  return {
+    directories: [
+      { source: "core", target: ".ai-native/core" },
+      { source: "templates", target: ".ai-native/templates" },
+      { source: "prompts", target: ".ai-native/prompts" },
+      { source: "checklists", target: ".ai-native/checklists" },
+      { source: "profiles", target: ".ai-native/profiles" },
+    ],
+    files: [
+      { source: "dev-kit-manifest.json", target: ".ai-native/dev-kit-manifest.json" },
+      { source: "docs/artifact-decision-tree.md", target: ".ai-native/docs/artifact-decision-tree.md" },
+      { source: "docs/goal-subagent-usage.md", target: ".ai-native/docs/goal-subagent-usage.md" },
+      { source: "scripts/check-ai-workflow.mjs", target: "scripts/check-ai-workflow.mjs" },
+      { source: "scripts/summarize-ai-logs.mjs", target: "scripts/summarize-ai-logs.mjs" },
+      { source: "scripts/check-workflow-version.mjs", target: "scripts/check-workflow-version.mjs" },
+      { source: "scripts/workflow-daily-summary.mjs", target: "scripts/workflow-daily-summary.mjs" },
+      { source: "scripts/check-project-onboarding.mjs", target: "scripts/check-project-onboarding.mjs" },
+      { source: "scripts/check-engineering-baseline.mjs", target: "scripts/check-engineering-baseline.mjs" },
+      { source: "scripts/check-platform-baseline.mjs", target: "scripts/check-platform-baseline.mjs" },
+      { source: "scripts/resolve-platform-baseline.mjs", target: "scripts/resolve-platform-baseline.mjs" },
+      { source: "scripts/check-industrial-pack.mjs", target: "scripts/check-industrial-pack.mjs" },
+      { source: "scripts/resolve-industrial-baseline.mjs", target: "scripts/resolve-industrial-baseline.mjs" },
+      { source: "scripts/check-industrial-baseline.mjs", target: "scripts/check-industrial-baseline.mjs" },
+      { source: "scripts/check-workflow-artifacts.mjs", target: "scripts/check-workflow-artifacts.mjs" },
+      { source: "scripts/check-review-loop.mjs", target: "scripts/check-review-loop.mjs" },
+      { source: "scripts/check-next-step-boundary.mjs", target: "scripts/check-next-step-boundary.mjs" },
+      { source: "scripts/check-goal-mode.mjs", target: "scripts/check-goal-mode.mjs" },
+      { source: "scripts/check-subagent-orchestration.mjs", target: "scripts/check-subagent-orchestration.mjs" },
+      { source: "scripts/lib/manifest.mjs", target: "scripts/lib/manifest.mjs" },
+      { source: "scripts/new-workflow-item.mjs", target: "scripts/new-workflow-item.mjs" },
+      { source: "scripts/workflow-next.mjs", target: "scripts/workflow-next.mjs" },
+      { source: "platforms/github/ci-ai-workflow.yml", target: ".github/workflows/ai-workflow-checks.yml" },
+    ],
+  };
+}
+
 function ensureWorkflowDirs(targetPath) {
-  const dirs = [
+  const dirs = manifestGroup(kitRoot, "workflowDirs", { fallback: [
     "requests",
     "preflight",
     "specs",
@@ -850,7 +820,7 @@ function ensureWorkflowDirs(targetPath) {
     "follow-up-proposals",
     "final-reports",
     "releases",
-  ];
+  ] });
   for (const dir of dirs) {
     const fullDir = path.join(targetPath, dir);
     fs.mkdirSync(fullDir, { recursive: true });
@@ -881,7 +851,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
     starter: existing.starter || starter,
     initializedAt: existing.initializedAt || now,
     lastWorkflowAssetUpdateAt: options.update ? now : existing.lastWorkflowAssetUpdateAt || now,
-    workflowAssets: [
+    workflowAssets: workflowVersionAssets(kitRoot, { fallback: [
       ".ai-native/core",
       ".ai-native/templates",
       ".ai-native/prompts",
@@ -930,7 +900,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "final-reports",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
-    ],
+    ] }),
   };
   fs.writeFileSync(versionPath, `${JSON.stringify(version, null, 2)}\n`);
   console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), versionPath)}`);

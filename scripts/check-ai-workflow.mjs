@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { targetRequiredPaths } from "./lib/manifest.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -350,7 +351,9 @@ const coreRequiredPaths = [
   ".ai-native/checklists/release-gate.md",
 ];
 
-const requiredPaths = workflowMode === "core" ? coreRequiredPaths : fullRequiredPaths;
+const requiredPaths = targetRequiredPaths(projectRoot, workflowMode, {
+  fallback: workflowMode === "core" ? coreRequiredPaths : fullRequiredPaths,
+});
 
 const requiredAgentSections = [
   "Mission",

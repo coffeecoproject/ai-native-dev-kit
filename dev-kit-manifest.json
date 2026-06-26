@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "0.36.0",
-  "mode": "read-only",
+  "devKitVersion": "0.37.0",
+  "mode": "authoritative",
   "compatibilityPolicy": {
-    "readOnly": true,
-    "authoritative": false,
-    "changesRuntimeBehavior": false,
-    "phase": "0.35.0+"
+    "readOnly": false,
+    "authoritative": true,
+    "changesRuntimeBehavior": true,
+    "phase": "0.37.0"
   },
   "groups": {
     "sourceRequired": [
@@ -56,6 +56,7 @@
       "core/workflow.md",
       "decision-briefs/035-readonly-manifest.md",
       "decision-briefs/036-cli-front-door.md",
+      "decision-briefs/037-manifest-authoritative.md",
       "dev-kit-manifest.json",
       "docs/artifact-decision-tree.md",
       "docs/codex-usage.md",
@@ -67,6 +68,7 @@
       "evals/034-baseline-freeze-self-ci.md",
       "evals/035-readonly-manifest.md",
       "evals/036-cli-front-door.md",
+      "evals/037-manifest-authoritative.md",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
@@ -139,9 +141,11 @@
       "final-reports/034-baseline-freeze-self-ci.md",
       "final-reports/035-readonly-manifest.md",
       "final-reports/036-cli-front-door.md",
+      "final-reports/037-manifest-authoritative.md",
       "goal-cards/034-baseline-freeze-self-ci.md",
       "goal-cards/035-readonly-manifest.md",
       "goal-cards/036-cli-front-door.md",
+      "goal-cards/037-manifest-authoritative.md",
       "industrial-pack-candidates/README.md",
       "industrial-pack-candidates/web-app/README.md",
       "industrial-packs/README.md",
@@ -200,6 +204,7 @@
       "preflight/034-baseline-freeze-self-ci.md",
       "preflight/035-readonly-manifest.md",
       "preflight/036-cli-front-door.md",
+      "preflight/037-manifest-authoritative.md",
       "profiles/android-app/baseline.json",
       "profiles/backend-api/baseline.json",
       "profiles/high-risk-change/baseline.json",
@@ -218,15 +223,19 @@
       "releases/0.34.0/phase-report.md",
       "releases/0.35.0/phase-report.md",
       "releases/0.36.0/phase-report.md",
+      "releases/0.37.0/phase-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",
+      "requests/037-manifest-authoritative.md",
       "review-loop-reports/034-baseline-freeze-self-ci.md",
       "review-loop-reports/035-readonly-manifest.md",
       "review-loop-reports/036-cli-front-door.md",
+      "review-loop-reports/037-manifest-authoritative.md",
       "review-packets/034-baseline-freeze-self-ci.md",
       "review-packets/035-readonly-manifest.md",
       "review-packets/036-cli-front-door.md",
+      "review-packets/037-manifest-authoritative.md",
       "schemas/dev-kit-manifest.schema.json",
       "scripts/check-ai-workflow.mjs",
       "scripts/check-dev-kit.mjs",
@@ -257,13 +266,16 @@
       "specs/034-baseline-freeze-self-ci.md",
       "specs/035-readonly-manifest.md",
       "specs/036-cli-front-door.md",
+      "specs/037-manifest-authoritative.md",
       "starters/generic-project/AGENTS.md",
       "subagent-run-plans/034-baseline-freeze-self-ci.md",
       "subagent-run-plans/035-readonly-manifest.md",
       "subagent-run-plans/036-cli-front-door.md",
+      "subagent-run-plans/037-manifest-authoritative.md",
       "tasks/034-baseline-freeze-self-ci.md",
       "tasks/035-readonly-manifest.md",
       "tasks/036-cli-front-door.md",
+      "tasks/037-manifest-authoritative.md",
       "templates/adoption-assessment.md",
       "templates/ai-task-log.md",
       "templates/baseline-evidence.md",
@@ -361,6 +373,7 @@
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/workflow.md",
+      ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/artifact-decision-tree.md",
       ".ai-native/docs/goal-subagent-usage.md",
       ".ai-native/prompts/architect-agent.md",
@@ -454,6 +467,7 @@
       "scripts/check-subagent-orchestration.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
+      "scripts/lib/manifest.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/verify.sh",
@@ -501,6 +515,7 @@
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/workflow.md",
+      ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/artifact-decision-tree.md",
       ".ai-native/docs/goal-subagent-usage.md",
       ".ai-native/industrial-packs/README.md",
@@ -621,6 +636,7 @@
       "scripts/check-subagent-orchestration.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
+      "scripts/lib/manifest.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -903,6 +919,7 @@
     "workflowVersionAssets": [
       ".ai-native/checklists",
       ".ai-native/core",
+      ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/artifact-decision-tree.md",
       ".ai-native/docs/goal-subagent-usage.md",
       ".ai-native/industrial-packs",
@@ -941,6 +958,7 @@
       "scripts/check-subagent-orchestration.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
+      "scripts/lib/manifest.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -949,6 +967,221 @@
       "scripts/workflow-next.mjs",
       "status-reports",
       "subagent-run-plans"
+    ],
+    "workflowReadiness": [
+      ".ai-native/checklists/engineering-baseline-review.md",
+      ".ai-native/checklists/goal-mode-review.md",
+      ".ai-native/checklists/industrial-pack-review.md",
+      ".ai-native/checklists/next-step-boundary-review.md",
+      ".ai-native/checklists/project-onboarding-review.md",
+      ".ai-native/checklists/review-loop-review.md",
+      ".ai-native/checklists/subagent-orchestration-review.md",
+      ".ai-native/core/engineering-baseline.md",
+      ".ai-native/core/glossary.md",
+      ".ai-native/core/goal-mode.md",
+      ".ai-native/core/next-step-boundary.md",
+      ".ai-native/core/output-protocol.md",
+      ".ai-native/core/project-onboarding.md",
+      ".ai-native/core/review-loop.md",
+      ".ai-native/core/subagent-orchestration.md",
+      ".ai-native/core/workflow.md",
+      ".ai-native/docs/artifact-decision-tree.md",
+      ".ai-native/docs/goal-subagent-usage.md",
+      ".ai-native/industrial-packs/index.json",
+      ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
+      ".ai-native/industrial-packs/schema/pack.schema.json",
+      ".ai-native/industrial-packs/selection-guide.md",
+      ".ai-native/profiles/android-app/baseline.json",
+      ".ai-native/profiles/backend-api/baseline.json",
+      ".ai-native/profiles/high-risk-change/baseline.json",
+      ".ai-native/profiles/internal-admin/baseline.json",
+      ".ai-native/profiles/ios-app/baseline.json",
+      ".ai-native/profiles/web-app/baseline.json",
+      ".ai-native/profiles/wechat-miniprogram/baseline.json",
+      ".ai-native/prompts/bootstrap-agent.md",
+      ".ai-native/prompts/engineering-baseline-agent.md",
+      ".ai-native/prompts/goal-planner-agent.md",
+      ".ai-native/prompts/project-onboarding-agent.md",
+      ".ai-native/prompts/reporter-agent.md",
+      ".ai-native/templates/adoption-assessment.md",
+      ".ai-native/templates/baseline-evidence.md",
+      ".ai-native/templates/baseline-selection.md",
+      ".ai-native/templates/business-spec-index.md",
+      ".ai-native/templates/customer-handoff.md",
+      ".ai-native/templates/decision-brief.md",
+      ".ai-native/templates/engineering-baseline.md",
+      ".ai-native/templates/existing-governance-map.md",
+      ".ai-native/templates/final-report.md",
+      ".ai-native/templates/follow-up-proposal.md",
+      ".ai-native/templates/goal-card.md",
+      ".ai-native/templates/gpt-review-prompt.md",
+      ".ai-native/templates/human-status-report.md",
+      ".ai-native/templates/onboarding-decisions.md",
+      ".ai-native/templates/plain-review-summary.md",
+      ".ai-native/templates/project-onboarding.md",
+      ".ai-native/templates/project-profile.md",
+      ".ai-native/templates/review-loop-report.md",
+      ".ai-native/templates/review-packet.md",
+      ".ai-native/templates/sample-policy.md",
+      ".ai-native/templates/subagent-run-plan.md",
+      ".ai-native/templates/tech-stack-strategy.md",
+      ".ai-native/version.json",
+      ".github/workflows/ai-workflow-checks.yml",
+      "AGENTS.md",
+      "customer-handoffs",
+      "decision-briefs",
+      "docs/business-spec-index.md",
+      "docs/onboarding-decisions.md",
+      "docs/project-onboarding.md",
+      "docs/project-profile.md",
+      "docs/sample-policy.md",
+      "docs/tech-stack-strategy.md",
+      "docs/verification-matrix.md",
+      "final-reports",
+      "follow-up-proposals",
+      "goal-cards",
+      "gpt-review-prompts",
+      "review-loop-reports",
+      "review-packets",
+      "review-summaries",
+      "scripts/check-ai-workflow.mjs",
+      "scripts/check-engineering-baseline.mjs",
+      "scripts/check-goal-mode.mjs",
+      "scripts/check-industrial-baseline.mjs",
+      "scripts/check-industrial-pack.mjs",
+      "scripts/check-next-step-boundary.mjs",
+      "scripts/check-platform-baseline.mjs",
+      "scripts/check-project-onboarding.mjs",
+      "scripts/check-review-loop.mjs",
+      "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-workflow-artifacts.mjs",
+      "scripts/check-workflow-version.mjs",
+      "scripts/new-workflow-item.mjs",
+      "scripts/resolve-industrial-baseline.mjs",
+      "scripts/resolve-platform-baseline.mjs",
+      "scripts/summarize-ai-logs.mjs",
+      "scripts/workflow-daily-summary.mjs",
+      "scripts/workflow-next.mjs",
+      "status-reports",
+      "subagent-run-plans"
+    ]
+  },
+  "copyRules": {
+    "directories": [
+      {
+        "source": "core",
+        "target": ".ai-native/core"
+      },
+      {
+        "source": "templates",
+        "target": ".ai-native/templates"
+      },
+      {
+        "source": "prompts",
+        "target": ".ai-native/prompts"
+      },
+      {
+        "source": "checklists",
+        "target": ".ai-native/checklists"
+      },
+      {
+        "source": "profiles",
+        "target": ".ai-native/profiles"
+      }
+    ],
+    "files": [
+      {
+        "source": "dev-kit-manifest.json",
+        "target": ".ai-native/dev-kit-manifest.json"
+      },
+      {
+        "source": "docs/artifact-decision-tree.md",
+        "target": ".ai-native/docs/artifact-decision-tree.md"
+      },
+      {
+        "source": "docs/goal-subagent-usage.md",
+        "target": ".ai-native/docs/goal-subagent-usage.md"
+      },
+      {
+        "source": "scripts/check-ai-workflow.mjs",
+        "target": "scripts/check-ai-workflow.mjs"
+      },
+      {
+        "source": "scripts/summarize-ai-logs.mjs",
+        "target": "scripts/summarize-ai-logs.mjs"
+      },
+      {
+        "source": "scripts/check-workflow-version.mjs",
+        "target": "scripts/check-workflow-version.mjs"
+      },
+      {
+        "source": "scripts/workflow-daily-summary.mjs",
+        "target": "scripts/workflow-daily-summary.mjs"
+      },
+      {
+        "source": "scripts/check-project-onboarding.mjs",
+        "target": "scripts/check-project-onboarding.mjs"
+      },
+      {
+        "source": "scripts/check-engineering-baseline.mjs",
+        "target": "scripts/check-engineering-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-platform-baseline.mjs",
+        "target": "scripts/check-platform-baseline.mjs"
+      },
+      {
+        "source": "scripts/resolve-platform-baseline.mjs",
+        "target": "scripts/resolve-platform-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-industrial-pack.mjs",
+        "target": "scripts/check-industrial-pack.mjs"
+      },
+      {
+        "source": "scripts/resolve-industrial-baseline.mjs",
+        "target": "scripts/resolve-industrial-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-industrial-baseline.mjs",
+        "target": "scripts/check-industrial-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-workflow-artifacts.mjs",
+        "target": "scripts/check-workflow-artifacts.mjs"
+      },
+      {
+        "source": "scripts/check-review-loop.mjs",
+        "target": "scripts/check-review-loop.mjs"
+      },
+      {
+        "source": "scripts/check-next-step-boundary.mjs",
+        "target": "scripts/check-next-step-boundary.mjs"
+      },
+      {
+        "source": "scripts/check-goal-mode.mjs",
+        "target": "scripts/check-goal-mode.mjs"
+      },
+      {
+        "source": "scripts/check-subagent-orchestration.mjs",
+        "target": "scripts/check-subagent-orchestration.mjs"
+      },
+      {
+        "source": "scripts/lib/manifest.mjs",
+        "target": "scripts/lib/manifest.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item.mjs",
+        "target": "scripts/new-workflow-item.mjs"
+      },
+      {
+        "source": "scripts/workflow-next.mjs",
+        "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      }
     ]
   }
 }

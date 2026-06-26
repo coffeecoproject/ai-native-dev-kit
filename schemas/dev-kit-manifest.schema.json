@@ -9,7 +9,8 @@
     "devKitVersion",
     "mode",
     "compatibilityPolicy",
-    "groups"
+    "groups",
+    "copyRules"
   ],
   "properties": {
     "schemaVersion": {
@@ -21,7 +22,7 @@
     },
     "mode": {
       "type": "string",
-      "const": "read-only"
+      "const": "authoritative"
     },
     "compatibilityPolicy": {
       "type": "object",
@@ -35,15 +36,15 @@
       "properties": {
         "readOnly": {
           "type": "boolean",
-          "const": true
+          "const": false
         },
         "authoritative": {
           "type": "boolean",
-          "const": false
+          "const": true
         },
         "changesRuntimeBehavior": {
           "type": "boolean",
-          "const": false
+          "const": true
         },
         "phase": {
           "type": "string"
@@ -64,6 +65,7 @@
         "profiles",
         "industrialPackRegistry",
         "workflowDirs",
+        "workflowReadiness",
         "scripts",
         "platformAdapters",
         "examples",
@@ -101,6 +103,9 @@
         "workflowDirs": {
           "$ref": "#/$defs/pathList"
         },
+        "workflowReadiness": {
+          "$ref": "#/$defs/pathList"
+        },
         "scripts": {
           "$ref": "#/$defs/pathList"
         },
@@ -117,6 +122,22 @@
           "$ref": "#/$defs/pathList"
         }
       }
+    },
+    "copyRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "directories",
+        "files"
+      ],
+      "properties": {
+        "directories": {
+          "$ref": "#/$defs/copyRuleList"
+        },
+        "files": {
+          "$ref": "#/$defs/copyRuleList"
+        }
+      }
     }
   },
   "$defs": {
@@ -126,6 +147,30 @@
         "type": "string",
         "minLength": 1,
         "pattern": "^[^\\\\]+$"
+      },
+      "uniqueItems": true
+    },
+    "copyRuleList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "target"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\\\]+$"
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\\\]+$"
+          }
+        }
       },
       "uniqueItems": true
     }

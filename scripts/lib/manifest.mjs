@@ -18,6 +18,7 @@ export const manifestGroupNames = [
   "profiles",
   "industrialPackRegistry",
   "workflowDirs",
+  "workflowReadiness",
   "scripts",
   "platformAdapters",
   "examples",
@@ -41,8 +42,58 @@ export function readJson(root, relativePath) {
   return readJsonFile(path.join(root, relativePath));
 }
 
-export function loadManifest(root = kitRoot, manifestPath = "dev-kit-manifest.json") {
-  return readJson(root, manifestPath);
+export function manifestPathForRoot(root = kitRoot, manifestPath = null) {
+  if (manifestPath) {
+    return path.isAbsolute(manifestPath) ? manifestPath : path.join(root, manifestPath);
+  }
+  const sourceManifest = path.join(root, "dev-kit-manifest.json");
+  if (fs.existsSync(sourceManifest)) return sourceManifest;
+  return path.join(root, ".ai-native", "dev-kit-manifest.json");
+}
+
+export function loadManifest(root = kitRoot, manifestPath = null) {
+  return readJsonFile(manifestPathForRoot(root, manifestPath));
+}
+
+export function loadManifestOrNull(root = kitRoot, manifestPath = null) {
+  const resolved = manifestPathForRoot(root, manifestPath);
+  if (!fs.existsSync(resolved)) return null;
+  return readJsonFile(resolved);
+}
+
+export function manifestGroup(root, groupName, options = {}) {
+  const manifest = loadManifestOrNull(root, options.manifestPath);
+  if (!manifest) {
+    if (options.fallback) return sortedUnique(options.fallback);
+    throw new Error(`Manifest not found for ${root}`);
+  }
+  return sortedUnique(manifest.groups?.[groupName] || []);
+}
+
+export function sourceRequiredPaths(root = kitRoot, options = {}) {
+  return manifestGroup(root, "sourceRequired", options);
+}
+
+export function targetRequiredPaths(root, mode = "full", options = {}) {
+  const groupName = mode === "core" ? "targetCore" : "targetFull";
+  return manifestGroup(root, groupName, options);
+}
+
+export function workflowRequiredPaths(root, options = {}) {
+  return manifestGroup(root, "workflowReadiness", options);
+}
+
+export function workflowVersionAssets(root = kitRoot, options = {}) {
+  return manifestGroup(root, "workflowVersionAssets", options);
+}
+
+export function manifestCopyRules(root = kitRoot, options = {}) {
+  const manifest = loadManifestOrNull(root, options.manifestPath);
+  if (!manifest) {
+    if (options.fallback) return options.fallback;
+    throw new Error(`Manifest not found for ${root}`);
+  }
+  return manifest.copyRules || {};
 }
 
 export function currentDevKitVersion(root = kitRoot) {

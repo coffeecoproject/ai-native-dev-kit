@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { workflowRequiredPaths as manifestWorkflowRequiredPaths } from "./lib/manifest.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,7 +33,7 @@ const onboardingDocs = [
   "docs/onboarding-decisions.md",
 ];
 
-const workflowRequiredPaths = [
+const fallbackWorkflowRequiredPaths = [
   "AGENTS.md",
   "docs/project-onboarding.md",
   "docs/project-profile.md",
@@ -129,6 +130,10 @@ const workflowRequiredPaths = [
   ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
   "docs/verification-matrix.md",
 ];
+
+const workflowRequiredPaths = manifestWorkflowRequiredPaths(projectRoot, {
+  fallback: fallbackWorkflowRequiredPaths,
+});
 
 const requiredAgentSections = [
   "Mission",
