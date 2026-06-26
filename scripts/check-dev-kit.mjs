@@ -209,6 +209,18 @@ function checkRequiredFiles() {
     "industrial-pack-candidates/web-app/README.md",
     "starters/generic-project/AGENTS.md",
     "examples/generic-first-change/README.md",
+    "examples/review-loop-l2-first-slice/README.md",
+    "examples/review-loop-l2-first-slice/requests/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/preflight/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/specs/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/evals/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/tasks/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/review-packets/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/gpt-review-prompts/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/review-loop-reports/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/final-reports/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/follow-up-proposals/001-review-loop-l2-slice.md",
+    "examples/review-loop-l2-first-slice/review-summaries/001-review-loop-l2-slice.md",
     "examples/web-internal-admin-first-slice/README.md",
     "examples/web-internal-admin-first-slice/request-card.md",
     "examples/web-internal-admin-first-slice/preflight-report.md",
@@ -818,6 +830,7 @@ function checkReadmePointers() {
     "codex-ios-app",
     "codex-android-app",
     "examples/generic-first-change",
+    "examples/review-loop-l2-first-slice",
     "examples/web-internal-admin-first-slice",
     "examples/web-industrial-bl2-first-slice",
     "examples/miniprogram-industrial-bl2-first-slice",
@@ -908,6 +921,67 @@ function runNode(args, options = {}) {
     cwd: options.cwd || kitRoot,
     encoding: "utf8",
   });
+}
+
+function checkReviewLoopL2DogfoodExample() {
+  const exampleRoot = path.join(kitRoot, "examples", "review-loop-l2-first-slice");
+  const requiredMarkers = [
+    ["review-loop-reports/001-review-loop-l2-slice.md", "AUTO_FIX"],
+    ["review-loop-reports/001-review-loop-l2-slice.md", "NEEDS_HUMAN_DECISION"],
+    ["review-loop-reports/001-review-loop-l2-slice.md", "DIRECT_FOLLOW_UP"],
+    ["review-loop-reports/001-review-loop-l2-slice.md", "DO_NOT_PROCEED"],
+    ["final-reports/001-review-loop-l2-slice.md", "DIRECT_FOLLOW_UP"],
+    ["final-reports/001-review-loop-l2-slice.md", "DO_NOT_PROCEED"],
+  ];
+  for (const [file, marker] of requiredMarkers) {
+    const content = fs.readFileSync(path.join(exampleRoot, file), "utf8");
+    if (!content.includes(marker)) {
+      fail(`Review Loop L2 dogfood example missing ${marker} in ${file}`);
+      return;
+    }
+  }
+
+  const artifactCheck = runNode([
+    path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"),
+    exampleRoot,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-review-loop-l2-slice.md",
+  ]);
+  if (artifactCheck.status !== 0) {
+    fail(`Review Loop L2 dogfood workflow artifact check failed: ${artifactCheck.stderr || artifactCheck.stdout}`);
+    return;
+  }
+  pass("Review Loop L2 dogfood workflow artifact check");
+
+  const reviewLoopCheck = runNode([
+    path.join(kitRoot, "scripts", "check-review-loop.mjs"),
+    exampleRoot,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-review-loop-l2-slice.md",
+  ]);
+  if (reviewLoopCheck.status !== 0) {
+    fail(`Review Loop L2 dogfood review loop check failed: ${reviewLoopCheck.stderr || reviewLoopCheck.stdout}`);
+    return;
+  }
+  pass("Review Loop L2 dogfood review loop check");
+
+  const nextStepCheck = runNode([
+    path.join(kitRoot, "scripts", "check-next-step-boundary.mjs"),
+    exampleRoot,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-review-loop-l2-slice.md",
+  ]);
+  if (nextStepCheck.status !== 0) {
+    fail(`Review Loop L2 dogfood next-step boundary check failed: ${nextStepCheck.stderr || nextStepCheck.stdout}`);
+    return;
+  }
+  pass("Review Loop L2 dogfood next-step boundary check");
 }
 
 function checkWebBl2ExampleArtifacts() {
@@ -2444,6 +2518,7 @@ checkStarters();
 checkPlatformAdapters();
 checkScriptSyntax();
 checkReadmePointers();
+checkReviewLoopL2DogfoodExample();
 checkWebBl2ExampleArtifacts();
 checkMiniProgramBl2ExampleArtifacts();
 checkGeneratedProjectE2E();

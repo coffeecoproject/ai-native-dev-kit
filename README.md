@@ -409,10 +409,12 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.27.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.28.0`。
 
 新增内容：
 
+- 新增 `examples/review-loop-l2-first-slice`，专门演示 L2 Review Loop 里的 `AUTO_FIX`、`NEEDS_HUMAN_DECISION`、`DIRECT_FOLLOW_UP` 和 `DO_NOT_PROCEED`。
+- `check-dev-kit` 会对这个 Review Loop L2 dogfood 示例跑 workflow artifact、Review Loop 和 Next-Step 语义检查。
 - 新增 `scripts/check-review-loop.mjs`，检查 Review Loop Report 的语义边界、AUTO_FIX 轮次、人类决策队列和修复后验证。
 - 新增 `scripts/check-next-step-boundary.mjs`，检查 Next-Step Suggestions 的类型、能否当前执行、所需入口和风险/批准一致性。
 - 新增 `docs/artifact-decision-tree.md`，说明什么时候用哪个 artifact，降低模板数量带来的使用成本。
@@ -520,6 +522,7 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 示例：
 
 - `examples/generic-first-change`
+- `examples/review-loop-l2-first-slice`
 - `examples/web-internal-admin-first-slice`
 - `examples/web-industrial-bl2-first-slice`
 - `examples/miniprogram-industrial-bl2-first-slice`

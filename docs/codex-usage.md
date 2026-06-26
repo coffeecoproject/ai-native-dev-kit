@@ -100,6 +100,16 @@ Expected Codex behavior:
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
 - Report changed files, verification, residual risks, classified Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.
 
+GPT Pro or second-model review should stay semi-automatic unless an approved automation adapter exists:
+
+1. Codex generates a Review Packet.
+2. Codex generates a GPT Review Prompt paired with that packet.
+3. The human copies the packet and prompt to GPT Pro or another reviewer.
+4. The human pastes reviewer findings back to Codex.
+5. Codex records findings in the Review Loop Report.
+6. Codex fixes only `AUTO_FIX` items that stay inside the approved task scope.
+7. Codex routes `NEEDS_HUMAN_DECISION` items to the human and stops before implementing them.
+
 ## Output Prompt
 
 Use this when Codex needs to explain workflow state, baseline readiness, adoption results, review loop results, or handoff status to a human:

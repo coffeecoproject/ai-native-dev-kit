@@ -504,6 +504,12 @@ Automation proposal 必须写在 `automation-proposals/`，并明确：
 examples/generic-first-change/
 ```
 
+Review Loop L2 dogfood 示例：
+
+```text
+examples/review-loop-l2-first-slice/
+```
+
 具体 first-slice 示例：
 
 ```text
