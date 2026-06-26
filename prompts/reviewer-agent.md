@@ -27,6 +27,8 @@ Check whether:
 6. Permission, data isolation, dependency, migration, production config, release, and rollback risks are addressed.
 7. Existing dirty worktree changes are separated from the reviewed task.
 8. Baseline, industrial pack, or release evidence is present when required by the task level or project governance.
+9. Engineering baseline was checked when the change touched structure, types, API contracts, schema, domain model, permissions, migrations, dependencies, or cross-module state.
+10. The change did not create or upgrade project-wide engineering conventions without a documented source of truth or human approval.
 
 ## Finding Categories
 

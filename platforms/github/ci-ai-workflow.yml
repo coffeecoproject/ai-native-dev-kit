@@ -21,6 +21,8 @@ jobs:
         run: node scripts/check-workflow-version.mjs .
       - name: Check project onboarding baseline
         run: node scripts/check-project-onboarding.mjs .
+      - name: Check engineering baseline
+        run: node scripts/check-engineering-baseline.mjs .
       - name: Check platform baseline
         run: node scripts/check-platform-baseline.mjs .
       - name: Check selected industrial packs
@@ -41,6 +43,8 @@ jobs:
         run: node --check scripts/check-industrial-baseline.mjs
       - name: Check workflow next syntax
         run: node --check scripts/workflow-next.mjs
+      - name: Check engineering baseline checker syntax
+        run: node --check scripts/check-engineering-baseline.mjs
       - name: Check workflow artifact quality
         run: node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base origin/${{ github.base_ref }}
       - name: Check review loop semantics

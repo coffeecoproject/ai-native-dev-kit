@@ -23,6 +23,7 @@ What is happening now?
 | Scope and behavior need to be agreed | `specs/` | implementation log |
 | Acceptance needs to be testable | `evals/` | test output |
 | AI needs a narrow implementation unit | `tasks/` | broad roadmap |
+| Code structure, type source, contract, schema, permission, migration, dependency, or state-model rules are missing | `docs/engineering-baseline.md` or `decision-briefs/` | universal coding style guide |
 | AI completed L1/L2/L3 work | `ai-logs/` | final product documentation |
 | A change needs independent review | `review-packets/` | approval |
 | GPT Pro, a second model, or a reviewer needs a prompt | `gpt-review-prompts/` | whole-repo context dump |
@@ -44,6 +45,7 @@ What is happening now?
 ```text
 request
 -> preflight when unclear or risky
+-> engineering baseline check when structural engineering decisions are touched
 -> spec
 -> eval
 -> task
@@ -81,6 +83,28 @@ Finding touches scope, risk, architecture, dependency, permission, migration, pr
 ```
 
 Review Packet is input. Review Loop Report is process history. GPT Review Prompt is reviewer instruction.
+
+## Engineering Baseline Flow
+
+Use this before implementation when Codex is about to make or change project-wide engineering decisions.
+
+```text
+Task only changes local behavior?
+-> follow nearby existing local pattern
+-> record baseline gap if found
+
+Task touches structure, API contract, DTO/schema/domain boundary, enum/string/lookup/state, permission, migration, dependency, generated types, or cross-module state?
+-> check docs/engineering-baseline.md
+
+Baseline answers the decision?
+-> follow it
+
+Baseline is missing or ambiguous?
+-> decision-brief or Human Decisions Needed
+-> do not create a new project standard silently
+```
+
+Engineering Baseline is a project source-of-truth document. It should not become a universal platform directory rule or source-code scanning gate by default.
 
 ## Next-Step Flow
 

@@ -109,6 +109,7 @@ When execution intent is clear, allowed writes are limited to:
 - `AGENTS.md` when absent, or migration reports for existing `AGENTS.md`
 - `docs/project-onboarding.md`
 - `docs/project-profile.md`
+- `docs/engineering-baseline.md`
 - `docs/tech-stack-strategy.md`
 - `docs/business-spec-index.md`
 - `docs/sample-policy.md`
@@ -141,6 +142,7 @@ The human must confirm:
 - target platform or starter when it materially changes setup
 - project profile and onboarding level
 - technology stack strategy
+- project-wide engineering conventions
 - high-risk boundaries
 - sample policy
 - first vertical slice

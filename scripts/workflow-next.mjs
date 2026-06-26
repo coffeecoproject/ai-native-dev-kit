@@ -42,6 +42,7 @@ const workflowRequiredPaths = [
   "docs/onboarding-decisions.md",
   "scripts/check-ai-workflow.mjs",
   "scripts/check-project-onboarding.mjs",
+  "scripts/check-engineering-baseline.mjs",
   "scripts/check-workflow-artifacts.mjs",
   "scripts/check-review-loop.mjs",
   "scripts/check-next-step-boundary.mjs",
@@ -80,10 +81,12 @@ const workflowRequiredPaths = [
   ".ai-native/profiles/internal-admin/baseline.json",
   ".ai-native/profiles/high-risk-change/baseline.json",
   ".ai-native/core/project-onboarding.md",
+  ".ai-native/core/engineering-baseline.md",
   ".ai-native/prompts/bootstrap-agent.md",
   ".ai-native/prompts/project-onboarding-agent.md",
   ".ai-native/prompts/reporter-agent.md",
   ".ai-native/templates/project-onboarding.md",
+  ".ai-native/templates/engineering-baseline.md",
   ".ai-native/templates/project-profile.md",
   ".ai-native/templates/tech-stack-strategy.md",
   ".ai-native/templates/business-spec-index.md",
@@ -103,6 +106,7 @@ const workflowRequiredPaths = [
   ".ai-native/templates/baseline-selection.md",
   ".ai-native/templates/baseline-evidence.md",
   ".ai-native/checklists/project-onboarding-review.md",
+  ".ai-native/checklists/engineering-baseline-review.md",
   ".ai-native/checklists/review-loop-review.md",
   ".ai-native/checklists/next-step-boundary-review.md",
   ".ai-native/checklists/industrial-pack-review.md",
@@ -118,6 +122,7 @@ const requiredAgentSections = [
   "Core Rules",
   "Bootstrap Entry",
   "Project Onboarding",
+  "Engineering Baseline",
   "Platform Baseline",
   "Industrial Baseline",
   "Workflow Artifact Generation",
@@ -615,7 +620,7 @@ function commandFor(action, kitRoot) {
     return `${initProject} --target ${projectRoot} --update-workflow-assets`;
   }
   if (action === "RUN_PROJECT_ONBOARDING") {
-    return "Use .ai-native/prompts/project-onboarding-agent.md, then run node scripts/check-project-onboarding.mjs .";
+    return "Use .ai-native/prompts/project-onboarding-agent.md, draft docs/engineering-baseline.md when structural decisions are needed, then run node scripts/check-project-onboarding.mjs . and node scripts/check-engineering-baseline.mjs .";
   }
   if (action === "RUN_PLATFORM_BASELINE_SETUP") {
     return "Select project profiles in docs/project-profile.md, then run node scripts/check-platform-baseline.mjs .";

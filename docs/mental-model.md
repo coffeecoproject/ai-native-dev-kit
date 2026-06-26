@@ -10,6 +10,7 @@ Use the smallest layer that can control the risk.
 
 ```text
 Workflow
+  -> Engineering Baseline
   -> Profile
   -> BL Level
   -> Selected Industrial Pack
@@ -42,6 +43,28 @@ It answers:
 - What should be logged and improved after the task?
 
 If the project is a prototype, internal experiment, or low-risk local tool, the core workflow plus O0/O1 onboarding may be enough.
+
+## Engineering Baseline
+
+Use Engineering Baseline when Codex is about to make project-wide engineering decisions.
+
+It answers:
+
+- Where does code belong?
+- Which types are source of truth?
+- How are DTO, schema, domain model, and view model separated?
+- Where do API contracts and generated types come from?
+- How should enum / string / lookup / state-machine choices be decided?
+- Who owns schema, migration, permission, dependency, and cross-module state decisions?
+
+Engineering Baseline does not prescribe a universal directory layout or platform style. It says where the project decision lives and whether Codex may decide.
+
+```text
+Codex may follow local patterns for low-risk local work.
+Codex must not invent a project standard.
+```
+
+If the baseline is missing or ambiguous and the task touches structural engineering decisions, Codex should create a Decision Brief or ask for human confirmation before implementation.
 
 ## Profile
 

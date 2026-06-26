@@ -14,6 +14,7 @@ Codex should do four things:
 Humans decide:
 
 - project onboarding acceptance
+- project-wide engineering conventions
 - task priority and task level
 - high-risk approval
 - technology strategy
@@ -67,6 +68,8 @@ Expected Codex behavior:
 - Use `node scripts/check-ai-workflow.mjs . --mode core` for routine project checks. Use `--mode full` only after installing or updating the complete workflow asset set.
 - Use `.ai-native/prompts/project-onboarding-agent.md`.
 - Draft `docs/project-onboarding.md`, `docs/project-profile.md`, `docs/tech-stack-strategy.md`, `docs/business-spec-index.md`, `docs/sample-policy.md`, and `docs/onboarding-decisions.md`.
+- Draft `docs/engineering-baseline.md` before structural, contract, schema, permission, migration, dependency, generated type, or cross-module state decisions.
+- Run `node scripts/check-engineering-baseline.mjs .`; default mode is advisory and reports pending decisions without blocking low-risk local work.
 - Draft `Selected Profiles` in `docs/project-profile.md` and run `node scripts/check-platform-baseline.mjs .`.
 - Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
 - For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial packs, install them with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-pack.mjs . --selected-only` and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
@@ -85,9 +88,11 @@ Expected Codex behavior:
 
 - Read the linked request, preflight, spec, eval, and task card.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode ready --task <task-card>` before implementation.
+- Run `node scripts/check-engineering-baseline.mjs .` before implementation when the task touches structure, API contracts, DTO / schema / domain boundaries, enum / string / lookup / state-machine choices, schema or migrations, permission model, generated type source, dependencies, or cross-module state.
 - For high-risk work, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after human approval is recorded.
 - For checked risk items, `Human Approval` must include the approved `Approval scope`.
 - Refuse to widen scope without approval.
+- Do not create or upgrade project-wide engineering conventions without a documented source of truth or human approval.
 - Request explicit approval before high-risk code changes.
 - Generate `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when the change needs independent human, GPT Pro, or second-model review.
 - Generate `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need automatic-fix and re-review tracking.
@@ -98,6 +103,7 @@ Expected Codex behavior:
 - Run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when a Final Report, Review Loop Report, review summary, or Follow-up Proposal includes next-step suggestions.
 - Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
+- Route missing engineering baseline decisions to a Decision Brief or Human Decisions Needed instead of silently choosing.
 - Report changed files, verification, residual risks, classified Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.
 
 GPT Pro or second-model review should stay semi-automatic unless an approved automation adapter exists:

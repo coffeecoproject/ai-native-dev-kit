@@ -16,10 +16,11 @@ Request -> Preflight -> Spec -> Eval -> Task -> Execute -> Verify -> Review -> R
 2. Let AI draft onboarding docs from conversation.
 3. Human confirms project direction, stack decisions, risk boundaries, and first slice.
 4. Run `node scripts/check-project-onboarding.mjs .`.
-5. Run `node scripts/check-project-onboarding.mjs . --strict` after decisions are confirmed.
-6. Use `.ai-native/templates/request-card.md` to create the first request card in `requests/`.
-7. Use `.ai-native/templates/ai-task-log.md` after L1/L2/L3 work.
-8. Use `.ai-native/templates/workflow-retro.md` for milestone retrospectives.
+5. Run `node scripts/check-engineering-baseline.mjs .` before structural engineering decisions.
+6. Run `node scripts/check-project-onboarding.mjs . --strict` after decisions are confirmed.
+7. Use `.ai-native/templates/request-card.md` to create the first request card in `requests/`.
+8. Use `.ai-native/templates/ai-task-log.md` after L1/L2/L3 work.
+9. Use `.ai-native/templates/workflow-retro.md` for milestone retrospectives.
 
 AI drafts. Humans decide. Do not ask the human to manually fill all onboarding files.
 
@@ -46,6 +47,7 @@ bash scripts/verify.sh
 
 ```bash
 node scripts/check-project-onboarding.mjs .
+node scripts/check-engineering-baseline.mjs .
 ```
 
 ## Summarize Workflow Learning

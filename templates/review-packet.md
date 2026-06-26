@@ -104,6 +104,12 @@ Approved at:
 
 Onboarding state:
 
+Engineering baseline checked: Yes / No / Not applicable
+
+Engineering baseline ref:
+
+Engineering baseline gaps:
+
 Platform baseline state:
 
 Selected profiles:
@@ -160,6 +166,7 @@ Skipped evidence and reason:
 - [ ] Risk Gate items match the actual touched areas.
 - [ ] Human Approval is present when required.
 - [ ] Verification evidence is enough for the stated risk.
+- [ ] Engineering baseline is checked when structure, contracts, schema, permissions, migrations, dependencies, or cross-module state changed.
 - [ ] Baseline or industrial evidence gaps are called out.
 - [ ] Dirty worktree or pre-existing changes are separated from this task.
 - [ ] No secrets, production config, migrations, or release paths changed without approval.

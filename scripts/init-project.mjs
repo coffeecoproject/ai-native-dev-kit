@@ -12,6 +12,7 @@ const requiredPullRequestTemplateMarkers = [
   "Human Summary",
   "Bootstrap state",
   "Project onboarding",
+  "Engineering baseline",
   "Workflow Evidence",
   "Workflow artifact quality",
   "Review Packet / Review Loop Report",
@@ -24,6 +25,7 @@ const requiredAgentGovernanceMarkers = [
   "Core Rules",
   "Bootstrap Entry",
   "Project Onboarding",
+  "Engineering Baseline",
   "Platform Baseline",
   "Industrial Baseline",
   "Workflow Artifact Generation",
@@ -171,6 +173,7 @@ function pullRequestTemplateGovernanceAppendix() {
     "",
     "- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed",
     "- [ ] Project onboarding is confirmed or not applicable for this change",
+    "- [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state",
     "- [ ] Request / preflight / spec / eval / task links are included or marked not applicable",
     "- [ ] Workflow artifact quality check passed or is not applicable",
     "- [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable",
@@ -369,6 +372,20 @@ function agentGovernanceSectionContent() {
       "node scripts/check-project-onboarding.mjs .",
       "node scripts/check-project-onboarding.mjs . --strict",
       "```",
+      "",
+    ].join("\n")],
+    ["Engineering Baseline", [
+      "## Engineering Baseline",
+      "",
+      "Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.ai-native/core/engineering-baseline.md` when present.",
+      "",
+      "Run:",
+      "",
+      "```bash",
+      "node scripts/check-engineering-baseline.mjs .",
+      "```",
+      "",
+      "Codex may follow existing local patterns for low-risk local changes. Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval. If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.",
       "",
     ].join("\n")],
     ["Platform Baseline", [
@@ -630,6 +647,7 @@ function ensureProjectOnboardingDocs(targetPath) {
     ["sample-policy.md", "sample-policy.md"],
     ["onboarding-decisions.md", "onboarding-decisions.md"],
     ["verification-matrix.md", "verification-matrix.md"],
+    ["engineering-baseline.md", "engineering-baseline.md"],
   ];
 
   for (const [templateName, docName] of docs) {
@@ -712,6 +730,9 @@ function copySharedAssets(targetPath, options = {}) {
 
   const onboardingCheckDest = path.join(projectScriptsDir, "check-project-onboarding.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-project-onboarding.mjs"), onboardingCheckDest, options);
+
+  const engineeringBaselineCheckDest = path.join(projectScriptsDir, "check-engineering-baseline.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-engineering-baseline.mjs"), engineeringBaselineCheckDest, options);
 
   const platformBaselineCheckDest = path.join(projectScriptsDir, "check-platform-baseline.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-platform-baseline.mjs"), platformBaselineCheckDest, options);
@@ -822,6 +843,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-workflow-version.mjs",
       "scripts/workflow-daily-summary.mjs",
       "scripts/check-project-onboarding.mjs",
+      "scripts/check-engineering-baseline.mjs",
       "scripts/check-platform-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
@@ -839,6 +861,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "docs/sample-policy.md",
       "docs/onboarding-decisions.md",
       "docs/verification-matrix.md",
+      "docs/engineering-baseline.md",
       "review-packets",
       "gpt-review-prompts",
       "review-loop-reports",
@@ -911,12 +934,14 @@ console.log("Next steps:");
 console.log("1. Run project onboarding by using .ai-native/prompts/project-onboarding-agent.md.");
 console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
 console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
-console.log("4. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
-console.log("5. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
-console.log("6. Create the first request card only after onboarding is ready.");
-console.log("7. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
-console.log("8. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-console.log("9. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
-console.log("10. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
-console.log("11. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
-console.log("12. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+console.log("4. Draft docs/engineering-baseline.md before structural, schema, contract, permission, migration, dependency, or cross-module state decisions.");
+console.log("5. Run node scripts/check-engineering-baseline.mjs . and route pending engineering decisions to humans before high-impact code changes.");
+console.log("6. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
+console.log("7. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
+console.log("8. Create the first request card only after onboarding is ready.");
+console.log("9. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
+console.log("10. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
+console.log("11. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
+console.log("12. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
+console.log("13. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
+console.log("14. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

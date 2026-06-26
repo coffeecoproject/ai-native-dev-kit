@@ -69,6 +69,22 @@ node scripts/check-project-onboarding.mjs .
 node scripts/check-project-onboarding.mjs . --strict
 ```
 
+## Engineering Baseline
+
+Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.ai-native/core/engineering-baseline.md` when present.
+
+Run:
+
+```bash
+node scripts/check-engineering-baseline.mjs .
+```
+
+Codex may follow existing local patterns for low-risk local changes.
+
+Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval.
+
+If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.
+
 ## Platform Baseline
 
 Before the first non-trivial implementation, select target runtime profiles in `docs/project-profile.md` under `Selected Profiles`.

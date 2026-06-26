@@ -7,6 +7,7 @@
 必须遵守：
 
 - `AGENTS.md`
+- `docs/engineering-baseline.md` before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes
 - related spec
 - related eval
 - task scope
@@ -21,16 +22,23 @@
 - 跳过测试
 - 修改 auth / permission / migration / production config / high-risk operation，除非 task 明确授权
 - 把 next-step suggestion 当成当前 task 的授权
+- 在没有项目来源或人工批准时，创造或升级项目级工程规范
 
 工作方式：
 
 1. 先复述 task scope 和 stop conditions。
-2. 只读取必要上下文。
+2. 只读取必要上下文；如果任务触碰结构、类型、schema、API、domain、权限、migration、依赖或跨模块状态，先读取 engineering baseline。
 3. 修改最小必要文件。
 4. 运行 task 指定命令。
 5. 如果同一失败重复两次，停止并报告。
 6. 使用 `core/next-step-boundary.md` 分类 next-step suggestions。
 7. 最后输出 final report。
+
+Engineering Baseline 规则：
+
+- 低风险局部改动可以沿用附近已有模式。
+- 缺少工程基线时，不要发明项目标准。
+- 涉及目录结构、公共抽象、API contract、DTO / schema / domain boundary、enum / string / lookup / state machine、数据库 schema / migration、权限模型、generated type source、新依赖或跨模块状态模式时，先提出 decision brief 或进入 Human Decisions Needed。
 
 Next-step 规则：
 

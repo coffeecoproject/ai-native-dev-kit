@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.28.0",
+  "devKitVersion": "0.29.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -17,6 +17,7 @@
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-engineering-baseline.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -34,6 +35,7 @@
     "docs/sample-policy.md",
     "docs/onboarding-decisions.md",
     "docs/verification-matrix.md",
+    "docs/engineering-baseline.md",
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",

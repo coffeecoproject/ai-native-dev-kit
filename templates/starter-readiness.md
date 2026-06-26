@@ -24,6 +24,7 @@ Starters are not standalone deliverables. They are copied through `scripts/init-
 - [ ] `README.md`
 - [ ] `docs/ai-workflow.md`
 - [ ] generated project receives `docs/project-onboarding.md`
+- [ ] generated project receives `docs/engineering-baseline.md`
 - [ ] generated project receives `docs/project-profile.md`
 - [ ] generated project receives `docs/tech-stack-strategy.md`
 - [ ] generated project receives `docs/business-spec-index.md`
@@ -86,6 +87,7 @@ What high-risk areas must remain explicitly gated?
 - [ ] Generated project includes injected workflow scripts
 - [ ] Generated project includes injected workflow CI
 - [ ] Generated project includes onboarding prompt, templates, checklist, docs, and `check-project-onboarding.mjs`
+- [ ] Generated project includes engineering baseline prompt/docs/checklist and `check-engineering-baseline.mjs`
 - [ ] Default verify script gives a useful result before stack setup
 - [ ] Starter does not contain project-specific secrets or facts
 - [ ] Starter does not weaken core gates

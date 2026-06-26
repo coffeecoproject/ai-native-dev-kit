@@ -49,6 +49,7 @@ cd ../my-new-project
 node scripts/check-ai-workflow.mjs . --mode core
 node scripts/workflow-next.mjs .
 node scripts/check-project-onboarding.mjs .
+node scripts/check-engineering-baseline.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 
@@ -65,6 +66,28 @@ Pick one level before the first implementation task:
 | O2 | Regulated, financial, privacy-sensitive, production-critical, or multi-team work | Confirm all O1 items plus compliance boundary, permission model, release policy, and rollback policy |
 
 AI may draft the onboarding documents. Human review decides whether they are accepted.
+
+## Engineering Baseline
+
+Before Codex makes structural engineering decisions, use `docs/engineering-baseline.md`.
+
+This file answers:
+
+- where code belongs
+- which types are source of truth
+- how DTO / schema / domain boundaries work
+- when enum / string / lookup / state-machine choices need human decision
+- where API contracts, generated types, permissions, migrations, and cross-module state rules come from
+
+Default check:
+
+```bash
+node scripts/check-engineering-baseline.mjs .
+```
+
+The default mode is advisory. It may report `PENDING` while still allowing low-risk local work. Use `--strict` only after the project wants the baseline to block missing or pending engineering decisions.
+
+Codex must not invent or upgrade project-wide engineering conventions when this baseline is missing.
 
 ## Platform Baseline
 

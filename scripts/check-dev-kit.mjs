@@ -67,6 +67,7 @@ function checkRequiredFiles() {
     "core/skill-governance.md",
     "core/automation-governance.md",
     "core/project-onboarding.md",
+    "core/engineering-baseline.md",
     "core/review-loop.md",
     "core/next-step-boundary.md",
     "core/output-protocol.md",
@@ -97,6 +98,7 @@ function checkRequiredFiles() {
     "templates/project-automation-proposal.md",
     "templates/daily-automation-prompt.md",
     "templates/project-onboarding.md",
+    "templates/engineering-baseline.md",
     "templates/project-profile.md",
     "templates/tech-stack-strategy.md",
     "templates/business-spec-index.md",
@@ -123,6 +125,7 @@ function checkRequiredFiles() {
     "checklists/skill-review.md",
     "checklists/automation-review.md",
     "checklists/project-onboarding-review.md",
+    "checklists/engineering-baseline-review.md",
     "checklists/review-loop-review.md",
     "checklists/next-step-boundary-review.md",
     "prompts/bootstrap-agent.md",
@@ -136,6 +139,7 @@ function checkRequiredFiles() {
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-engineering-baseline.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -301,6 +305,7 @@ function checkVersionMetadata() {
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
+    "scripts/check-engineering-baseline.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -318,6 +323,7 @@ function checkVersionMetadata() {
     "docs/sample-policy.md",
     "docs/onboarding-decisions.md",
     "docs/verification-matrix.md",
+    "docs/engineering-baseline.md",
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
@@ -474,6 +480,50 @@ function checkNextStepBoundaryProtocol() {
     pass("task card constrains authorized next actions");
   } else {
     fail("task card must constrain authorized next actions and next-step implementation");
+  }
+}
+
+function checkEngineeringBaselineProtocol() {
+  const files = {
+    "core/engineering-baseline.md": read("core/engineering-baseline.md"),
+    "templates/engineering-baseline.md": read("templates/engineering-baseline.md"),
+    "checklists/engineering-baseline-review.md": read("checklists/engineering-baseline-review.md"),
+    "prompts/builder-agent.md": read("prompts/builder-agent.md"),
+    "prompts/reviewer-agent.md": read("prompts/reviewer-agent.md"),
+    "templates/review-packet.md": read("templates/review-packet.md"),
+  };
+  const combined = Object.values(files).join("\n");
+  const requiredMarkers = [
+    "docs/engineering-baseline.md",
+    "project-wide engineering conventions",
+    "low-risk local changes",
+    "DTO / schema / domain",
+    "enum / string / lookup",
+    "state-machine",
+    "API Contract Source",
+    "generated type",
+    "Decision Brief",
+    "Engineering baseline checked",
+    "Engineering baseline gaps",
+    "not a coding style guide",
+    "source-code scanning gates",
+  ];
+
+  for (const marker of requiredMarkers) {
+    if (combined.includes(marker)) {
+      pass(`engineering baseline protocol includes ${marker}`);
+    } else {
+      fail(`engineering baseline protocol missing ${marker}`);
+    }
+  }
+
+  const checker = read("scripts/check-engineering-baseline.mjs");
+  for (const marker of ["advisory", "PENDING", "args.strict", "args.json", "docs/engineering-baseline.md"]) {
+    if (checker.includes(marker)) {
+      pass(`engineering baseline checker includes ${marker}`);
+    } else {
+      fail(`engineering baseline checker missing ${marker}`);
+    }
   }
 }
 
@@ -680,6 +730,7 @@ function checkStarters() {
     "docs/ai-workflow.md",
     "docs/product-vision.md",
     "docs/engineering-principles.md",
+    "docs/engineering-baseline.md",
     "docs/risk-policy.md",
     "docs/architecture.md",
     "docs/domain-model.md",
@@ -720,7 +771,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -729,7 +780,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -738,7 +789,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -783,6 +834,7 @@ function checkPlatformAdapters() {
     "summarize-ai-logs.mjs",
     "workflow-daily-summary.mjs",
     "check-project-onboarding.mjs",
+    "check-engineering-baseline.mjs",
     "check-platform-baseline.mjs",
     "resolve-platform-baseline.mjs",
     "check-industrial-pack.mjs",
@@ -811,7 +863,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -838,6 +890,8 @@ function checkReadmePointers() {
     "docs/codex-usage",
     "docs/mental-model",
     "docs/artifact-decision-tree",
+    "engineering-baseline",
+    "check-engineering-baseline",
     "check-workflow-artifacts",
     "check-review-loop",
     "check-next-step-boundary",
@@ -1190,6 +1244,7 @@ function checkGeneratedProjectE2E() {
     "scripts/check-industrial-baseline.mjs",
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
+    "scripts/check-engineering-baseline.mjs",
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
@@ -1199,6 +1254,9 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/baseline-selection.md",
     ".ai-native/templates/baseline-evidence.md",
     ".ai-native/docs/artifact-decision-tree.md",
+    ".ai-native/core/engineering-baseline.md",
+    ".ai-native/templates/engineering-baseline.md",
+    ".ai-native/checklists/engineering-baseline-review.md",
     ".ai-native/core/next-step-boundary.md",
     ".ai-native/templates/follow-up-proposal.md",
     ".ai-native/templates/final-report.md",
@@ -1217,6 +1275,7 @@ function checkGeneratedProjectE2E() {
     "follow-up-proposals/.gitkeep",
     "final-reports/.gitkeep",
     "docs/verification-matrix.md",
+    "docs/engineering-baseline.md",
   ]) {
     if (!fs.existsSync(path.join(target, rel))) {
       fail(`generated project missing platform baseline asset: ${rel}`);
@@ -1224,6 +1283,16 @@ function checkGeneratedProjectE2E() {
     }
   }
   pass("generated project platform baseline assets");
+
+  const engineeringBaselineCheck = runNode([
+    path.join(target, "scripts", "check-engineering-baseline.mjs"),
+    target,
+  ]);
+  if (engineeringBaselineCheck.status !== 0 || !engineeringBaselineCheck.stdout.includes("PENDING")) {
+    fail(`generated project engineering baseline check should be pending before human confirmation: ${engineeringBaselineCheck.stderr || engineeringBaselineCheck.stdout}`);
+    return;
+  }
+  pass("generated project engineering baseline check is advisory pending");
 
   if (fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
     fail("generated project default bootstrap should not install concrete web-app industrial pack");
@@ -2305,6 +2374,7 @@ function checkGeneratedProjectE2E() {
     "docs/sample-policy.md",
     "docs/onboarding-decisions.md",
     "docs/verification-matrix.md",
+    "docs/engineering-baseline.md",
   ];
   for (const rel of legacyExpectedOnboardingDocs) {
     if (!fs.existsSync(path.join(legacyTarget, rel))) {
@@ -2353,7 +2423,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedLegacyAgents = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
-  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!appliedLegacyAgents.includes(marker)) {
       fail(`legacy project AGENTS.md explicit apply missing ${marker}`);
       return;
@@ -2385,7 +2455,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const createdAgentsContent = fs.readFileSync(createdAgents, "utf8");
-  for (const marker of ["Bootstrap Entry", "Platform Baseline", "Industrial Baseline", "Bounded Next-Step", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Bounded Next-Step", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!createdAgentsContent.includes(marker)) {
       fail(`created AGENTS.md missing ${marker}`);
       return;
@@ -2399,7 +2469,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const legacyPrTemplateContent = fs.readFileSync(legacyPrTemplate, "utf8");
-  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
     if (!legacyPrTemplateContent.includes(marker)) {
       fail(`legacy project workflow update PR template missing ${marker}`);
       return;
@@ -2490,7 +2560,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
-  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
     if (!appliedCustomPrTemplate.includes(marker)) {
       fail(`legacy custom PR template explicit apply missing ${marker}`);
       return;
@@ -2508,6 +2578,7 @@ checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
 checkCorePurity();
+checkEngineeringBaselineProtocol();
 checkReviewLoopProtocol();
 checkNextStepBoundaryProtocol();
 checkOutputExperienceProtocol();

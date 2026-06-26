@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.28.0`
+Current version: `0.29.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `0.28.0`
 
 ## Current Release
 
-`0.28.0`
+`0.29.0`
 
 Includes:
 
+- Engineering Baseline Entry for pre-coding engineering decision governance
+- `core/engineering-baseline.md`, `templates/engineering-baseline.md`, `checklists/engineering-baseline-review.md`, and `scripts/check-engineering-baseline.mjs`
+- generated projects and workflow asset updates now include `docs/engineering-baseline.md`
+- AGENTS, Builder/Reviewer prompts, Cursor, Claude, and GitHub PR governance now constrain Codex from creating or upgrading project-wide engineering conventions without source-of-truth or human approval
+- Review Packet now records Engineering Baseline checked/ref/gaps
 - dedicated Review Loop L2 dogfood example with request, preflight, spec, eval, task, review packet, GPT review prompt, review loop report, final report, follow-up proposal, and plain review summary
 - Review Loop L2 dogfood coverage for `AUTO_FIX`, `NEEDS_HUMAN_DECISION`, `DIRECT_FOLLOW_UP`, and `DO_NOT_PROCEED`
 - dev-kit self-check now validates the dedicated Review Loop L2 dogfood example with workflow artifact, review loop, and next-step semantic gates

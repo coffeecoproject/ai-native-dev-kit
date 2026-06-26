@@ -18,6 +18,7 @@
 
 - [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed
 - [ ] Project onboarding is confirmed or not applicable for this change
+- [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state
 - [ ] Request / preflight / spec / eval / task links are included or marked not applicable
 - [ ] Workflow artifact quality check passed or is not applicable
 - [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable

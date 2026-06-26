@@ -44,6 +44,7 @@ Injected workflow scripts:
 
 - `scripts/check-ai-workflow.mjs`
 - `scripts/check-project-onboarding.mjs`
+- `scripts/check-engineering-baseline.mjs`
 - `scripts/check-platform-baseline.mjs`
 - `scripts/resolve-platform-baseline.mjs`
 - `scripts/check-industrial-pack.mjs`
@@ -267,6 +268,18 @@ node scripts/check-project-onboarding.mjs . --level O2
 ```
 
 Default mode verifies that onboarding files and workflow assets exist. It reads `## Onboarding Level` from `docs/project-onboarding.md` when possible and otherwise defaults to O1. Strict mode is for after human decisions are confirmed; it fails while placeholders or pending decisions remain.
+
+## check-engineering-baseline.mjs
+
+Check whether `docs/engineering-baseline.md` exists and whether required engineering decision sections are filled or still pending.
+
+```bash
+node scripts/check-engineering-baseline.mjs .
+node scripts/check-engineering-baseline.mjs . --strict
+node scripts/check-engineering-baseline.mjs . --json
+```
+
+Default mode is advisory and exits successfully with `PENDING` when decisions still need human confirmation. Strict mode is for projects that deliberately make engineering baseline readiness a blocking gate.
 
 ## check-workflow-version.mjs
 

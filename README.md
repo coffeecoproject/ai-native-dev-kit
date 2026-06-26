@@ -80,6 +80,7 @@ CAN_WRITE_WORKFLOW_ASSETS: no
   -> 项目上下文
   -> 需求卡
   -> 预检查
+  -> 工程决策基线
   -> 规格说明
   -> 验收标准
   -> 任务卡
@@ -116,6 +117,34 @@ review-summaries/      复审结果的人话摘要
 customer-handoffs/     交付或里程碑摘要
 releases/              发布和证据记录
 ```
+
+## 工程决策基线
+
+从 `0.29.0` 开始，新增 Engineering Baseline Entry。
+
+它解决的不是“代码格式怎么写”，而是 Codex 写代码前能不能替项目做工程决策：
+
+```text
+代码放哪里
+类型谁是源头
+DTO / schema / domain model 怎么分
+enum / string / lookup / state machine 怎么决策
+API contract、generated types、权限、migration、跨模块状态由谁决定
+```
+
+项目入口文件：
+
+```text
+docs/engineering-baseline.md
+```
+
+检查命令：
+
+```bash
+node scripts/check-engineering-baseline.mjs .
+```
+
+默认检查是 advisory：可以提示 `PENDING`，但不会阻断低风险局部改动。涉及结构、contract、schema、权限、migration、依赖或跨模块状态时，如果工程基线缺失，Codex 必须提决策或记录 gap，不能自己发明项目标准。
 
 ## 输出体验层
 
@@ -217,6 +246,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --starter codex-android-app --ta
 
 ```bash
 node scripts/check-project-onboarding.mjs .
+node scripts/check-engineering-baseline.mjs .
 ```
 
 ## 已有项目怎么用
@@ -409,10 +439,15 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.28.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.29.0`。
 
 新增内容：
 
+- 新增 Engineering Baseline Entry，控制 Codex 写代码前能否替项目做工程决策。
+- 新增 `core/engineering-baseline.md`、`templates/engineering-baseline.md`、`checklists/engineering-baseline-review.md` 和 `scripts/check-engineering-baseline.mjs`。
+- 新项目和 workflow asset update 会补齐 `docs/engineering-baseline.md`，默认是 DRAFT/PENDING，不假装工程决策已完成。
+- AGENTS、Builder/Reviewer、Cursor、Claude、GitHub PR 模板都补上 Engineering Baseline 规则：Codex 可以沿用局部模式，但不能创造或升级项目级工程规范。
+- Review Packet 增加 Engineering Baseline checked/ref/gaps 字段，方便复审时检查是否违反工程决策来源。
 - 新增 `examples/review-loop-l2-first-slice`，专门演示 L2 Review Loop 里的 `AUTO_FIX`、`NEEDS_HUMAN_DECISION`、`DIRECT_FOLLOW_UP` 和 `DO_NOT_PROCEED`。
 - `check-dev-kit` 会对这个 Review Loop L2 dogfood 示例跑 workflow artifact、Review Loop 和 Next-Step 语义检查。
 - 新增 `scripts/check-review-loop.mjs`，检查 Review Loop Report 的语义边界、AUTO_FIX 轮次、人类决策队列和修复后验证。
@@ -504,10 +539,14 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `templates/review-loop-report.md`
 - `templates/follow-up-proposal.md`
 - `templates/final-report.md`
+- `core/engineering-baseline.md`
+- `templates/engineering-baseline.md`
+- `checklists/engineering-baseline-review.md`
 - `core/next-step-boundary.md`
 - `checklists/next-step-boundary-review.md`
 - `core/review-loop.md`
 - `scripts/check-project-onboarding.mjs`
+- `scripts/check-engineering-baseline.mjs`
 - `scripts/check-platform-baseline.mjs`
 - `scripts/resolve-platform-baseline.mjs`
 - `scripts/check-industrial-pack.mjs`

@@ -42,6 +42,14 @@ Before non-trivial work, read:
 - Ask focused questions, propose options, record assumptions, and request confirmation.
 - Run `node scripts/check-project-onboarding.mjs .` for baseline and `node scripts/check-project-onboarding.mjs . --strict` after decisions are confirmed.
 
+## Engineering Baseline
+
+- Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.ai-native/core/engineering-baseline.md` when present.
+- Run `node scripts/check-engineering-baseline.mjs .` for advisory baseline status.
+- Cursor may follow existing local patterns for low-risk local changes.
+- Cursor must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval.
+- If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.
+
 ## Platform Baseline
 
 - Select target runtime profiles in `docs/project-profile.md` under `Selected Profiles`.

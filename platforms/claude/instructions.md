@@ -40,6 +40,14 @@ For project onboarding:
 - run `node scripts/check-project-onboarding.mjs .` for baseline
 - use `node scripts/check-project-onboarding.mjs . --strict` only after human confirmation
 
+For engineering baseline:
+
+- before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.ai-native/core/engineering-baseline.md` when present
+- run `node scripts/check-engineering-baseline.mjs .` for advisory baseline status
+- Claude may follow existing local patterns for low-risk local changes
+- Claude must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval
+- if the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns
+
 For platform baseline:
 
 - select target runtime profiles in `docs/project-profile.md` under `Selected Profiles`

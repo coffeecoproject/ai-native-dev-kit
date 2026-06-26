@@ -62,6 +62,7 @@ Intent
   -> Project Onboarding
   -> Request Card
   -> Preflight
+  -> Engineering Baseline
   -> Spec
   -> Eval
   -> Task Card
@@ -109,6 +110,41 @@ node scripts/check-project-onboarding.mjs . --strict
 ```
 
 普通模式检查 onboarding 资产是否存在。`--strict` 用于人确认决策之后；如果仍有占位符或 pending 决策，会失败。
+
+## Engineering Baseline
+
+Engineering Baseline 是 Codex 写代码前的工程决策基线。
+
+它不规定统一目录，也不是代码风格大全。它只回答：
+
+- 代码应该放哪里
+- 类型谁是源头
+- DTO / schema / domain model 怎么分
+- enum / string / lookup / state machine 怎么决策
+- API contract、generated types、权限、migration、跨模块状态由谁决定
+- Codex 缺少规则时能不能自己决定
+
+项目入口文件：
+
+```text
+docs/engineering-baseline.md
+```
+
+检查命令：
+
+```bash
+node scripts/check-engineering-baseline.mjs .
+node scripts/check-engineering-baseline.mjs . --strict
+```
+
+默认模式是 advisory。它可以提示 `PENDING`，但不会阻断低风险局部改动。`--strict` 只适合项目已经决定把工程基线作为强门禁时使用。
+
+核心规则：
+
+```text
+Codex 可以沿用已有局部模式。
+Codex 不能自己创造或升级项目级工程规范。
+```
 
 ## 新项目初始化
 
@@ -194,6 +230,7 @@ README.md
 docs/
   ai-workflow.md
   project-onboarding.md
+  engineering-baseline.md
   project-profile.md
   tech-stack-strategy.md
   business-spec-index.md
@@ -232,6 +269,7 @@ scripts/
   verify.sh
   check-ai-workflow.mjs
   check-project-onboarding.mjs
+  check-engineering-baseline.mjs
   check-platform-baseline.mjs
   resolve-platform-baseline.mjs
   check-industrial-pack.mjs
@@ -439,6 +477,7 @@ node ai-native-dev-kit/scripts/check-dev-kit.mjs
 node scripts/check-ai-workflow.mjs .
 node scripts/check-ai-workflow.mjs . --mode core
 node scripts/check-project-onboarding.mjs .
+node scripts/check-engineering-baseline.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/resolve-platform-baseline.mjs .
 node scripts/check-industrial-pack.mjs . --selected-only
