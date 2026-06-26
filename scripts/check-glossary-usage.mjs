@@ -2,6 +2,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "./lib/args.mjs";
+import { createCheckRecorder } from "./lib/check-result.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const root = path.resolve(process.cwd(), args._[0] || ".");
@@ -29,37 +31,7 @@ const requiredTerms = [
   "Risk Gate",
   "Next-Step Suggestion",
 ];
-const checks = [];
-let failed = false;
-
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
-
-function record(status, message) {
-  checks.push({ status, message });
-  if (status === "FAIL") failed = true;
-  if (!outputJson) {
-    const write = status === "FAIL" ? console.error : console.log;
-    write(`${status} ${message}`);
-  }
-}
+const recorder = createCheckRecorder({ outputJson });
 
 function splitRow(line) {
   return line.split("|").slice(1, -1).map((cell) => cell.trim());
@@ -82,33 +54,32 @@ function isConcreteMeaning(value) {
 }
 
 if (!fs.existsSync(glossaryPath)) {
-  record("FAIL", "missing core/glossary.md");
+  recorder.fail("missing core/glossary.md");
 } else {
   const glossary = fs.readFileSync(glossaryPath, "utf8");
   const terms = parseTerms(glossary);
   for (const term of requiredTerms) {
     const meaning = terms.get(term);
     if (!meaning) {
-      record("FAIL", `missing glossary term: ${term}`);
+      recorder.fail(`missing glossary term: ${term}`);
     } else if (!isConcreteMeaning(meaning)) {
-      record("FAIL", `glossary term has weak explanation: ${term}`);
+      recorder.fail(`glossary term has weak explanation: ${term}`);
     } else {
-      record("PASS", `glossary term explained: ${term}`);
+      recorder.pass(`glossary term explained: ${term}`);
     }
   }
 }
 
 if (outputJson) {
   console.log(JSON.stringify({
-    status: failed ? "FAIL" : "PASS",
-    checks,
+    status: recorder.failed ? "FAIL" : "PASS",
+    checks: recorder.checks,
   }, null, 2));
 }
 
-if (failed) process.exit(1);
+if (recorder.failed) process.exit(1);
 
 if (!outputJson) {
   console.log("");
   console.log("Glossary usage check passed.");
 }
-

@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { sourceRequiredPaths } from "./lib/manifest.mjs";
+import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,19 +35,8 @@ function read(relativePath) {
   return fs.readFileSync(path.join(kitRoot, relativePath), "utf8");
 }
 
-function walkFiles(dir) {
-  const fullDir = path.join(kitRoot, dir);
-  if (!fs.existsSync(fullDir)) return [];
-  const results = [];
-  for (const entry of fs.readdirSync(fullDir, { withFileTypes: true })) {
-    const full = path.join(fullDir, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...walkFiles(path.relative(kitRoot, full)));
-    } else {
-      results.push(full);
-    }
-  }
-  return results;
+function walkSourceFiles(dir) {
+  return walkProjectFiles(path.join(kitRoot, dir));
 }
 
 function checkRequiredFiles() {
@@ -642,6 +632,11 @@ function checkManifestProtocol() {
   }
   for (const marker of [
     ".ai-native/dev-kit-manifest.json",
+    "scripts/lib/args.mjs",
+    "scripts/lib/check-result.mjs",
+    "scripts/lib/git.mjs",
+    "scripts/lib/markdown.mjs",
+    "scripts/lib/project-signals.mjs",
     "scripts/lib/manifest.mjs",
   ]) {
     if (manifest.groups.targetCore.includes(marker) && manifest.groups.targetFull.includes(marker)) {
@@ -908,7 +903,7 @@ function checkCorePurity() {
   ];
 
   for (const dir of scannedDirs) {
-    for (const file of walkFiles(dir)) {
+    for (const file of walkSourceFiles(dir)) {
       const content = fs.readFileSync(file, "utf8");
       for (const pattern of bannedPatterns) {
         if (pattern.test(content)) {
@@ -1544,7 +1539,41 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/cli.mjs", "scripts/lib/frontmatter.mjs", "scripts/lib/manifest.mjs", "scripts/check-manifest.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  const scripts = [
+    "scripts/init-project.mjs",
+    "scripts/check-ai-workflow.mjs",
+    "scripts/check-dev-kit.mjs",
+    "scripts/summarize-ai-logs.mjs",
+    "scripts/check-workflow-version.mjs",
+    "scripts/workflow-daily-summary.mjs",
+    "scripts/check-project-onboarding.mjs",
+    "scripts/check-engineering-baseline.mjs",
+    "scripts/check-platform-baseline.mjs",
+    "scripts/resolve-platform-baseline.mjs",
+    "scripts/check-industrial-pack.mjs",
+    "scripts/resolve-industrial-baseline.mjs",
+    "scripts/check-industrial-baseline.mjs",
+    "scripts/check-workflow-artifacts.mjs",
+    "scripts/check-review-loop.mjs",
+    "scripts/check-next-step-boundary.mjs",
+    "scripts/check-goal-mode.mjs",
+    "scripts/check-subagent-orchestration.mjs",
+    "scripts/cli.mjs",
+    "scripts/lib/args.mjs",
+    "scripts/lib/check-result.mjs",
+    "scripts/lib/frontmatter.mjs",
+    "scripts/lib/git.mjs",
+    "scripts/lib/manifest.mjs",
+    "scripts/lib/markdown.mjs",
+    "scripts/lib/project-signals.mjs",
+    "scripts/check-manifest.mjs",
+    "scripts/check-fixtures.mjs",
+    "scripts/score-output-quality.mjs",
+    "scripts/check-glossary-usage.mjs",
+    "scripts/new-workflow-item.mjs",
+    "scripts/workflow-next.mjs",
+  ];
+  for (const script of scripts) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });

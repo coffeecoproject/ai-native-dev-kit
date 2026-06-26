@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "0.40.0",
+  "devKitVersion": "0.40.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "0.40.0"
+    "phase": "0.40.1"
   },
   "groups": {
     "sourceRequired": [
@@ -59,6 +59,7 @@
       "decision-briefs/037-manifest-authoritative.md",
       "decision-briefs/038-init-update-safety.md",
       "decision-briefs/039-artifact-frontmatter-schema.md",
+      "decision-briefs/040-checker-library-refactor.md",
       "decision-briefs/040-fixture-matrix-expansion.md",
       "dev-kit-manifest.json",
       "docs/artifact-decision-tree.md",
@@ -74,6 +75,7 @@
       "evals/037-manifest-authoritative.md",
       "evals/038-init-update-safety.md",
       "evals/039-artifact-frontmatter-schema.md",
+      "evals/040-checker-library-refactor.md",
       "evals/040-fixture-matrix-expansion.md",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
@@ -150,6 +152,7 @@
       "final-reports/037-manifest-authoritative.md",
       "final-reports/038-init-update-safety.md",
       "final-reports/039-artifact-frontmatter-schema.md",
+      "final-reports/040-checker-library-refactor.md",
       "final-reports/040-fixture-matrix-expansion.md",
       "goal-cards/034-baseline-freeze-self-ci.md",
       "goal-cards/035-readonly-manifest.md",
@@ -157,6 +160,7 @@
       "goal-cards/037-manifest-authoritative.md",
       "goal-cards/038-init-update-safety.md",
       "goal-cards/039-artifact-frontmatter-schema.md",
+      "goal-cards/040-checker-library-refactor.md",
       "goal-cards/040-fixture-matrix-expansion.md",
       "industrial-pack-candidates/README.md",
       "industrial-pack-candidates/web-app/README.md",
@@ -219,6 +223,7 @@
       "preflight/037-manifest-authoritative.md",
       "preflight/038-init-update-safety.md",
       "preflight/039-artifact-frontmatter-schema.md",
+      "preflight/040-checker-library-refactor.md",
       "preflight/040-fixture-matrix-expansion.md",
       "profiles/android-app/baseline.json",
       "profiles/backend-api/baseline.json",
@@ -242,12 +247,14 @@
       "releases/0.38.0/phase-report.md",
       "releases/0.39.0/phase-report.md",
       "releases/0.40.0/phase-report.md",
+      "releases/0.40.1/phase-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",
       "requests/037-manifest-authoritative.md",
       "requests/038-init-update-safety.md",
       "requests/039-artifact-frontmatter-schema.md",
+      "requests/040-checker-library-refactor.md",
       "requests/040-fixture-matrix-expansion.md",
       "review-loop-reports/034-baseline-freeze-self-ci.md",
       "review-loop-reports/035-readonly-manifest.md",
@@ -255,6 +262,7 @@
       "review-loop-reports/037-manifest-authoritative.md",
       "review-loop-reports/038-init-update-safety.md",
       "review-loop-reports/039-artifact-frontmatter-schema.md",
+      "review-loop-reports/040-checker-library-refactor.md",
       "review-loop-reports/040-fixture-matrix-expansion.md",
       "review-packets/034-baseline-freeze-self-ci.md",
       "review-packets/035-readonly-manifest.md",
@@ -262,6 +270,7 @@
       "review-packets/037-manifest-authoritative.md",
       "review-packets/038-init-update-safety.md",
       "review-packets/039-artifact-frontmatter-schema.md",
+      "review-packets/040-checker-library-refactor.md",
       "review-packets/040-fixture-matrix-expansion.md",
       "schemas/artifacts/eval.schema.json",
       "schemas/artifacts/goal-card.schema.json",
@@ -290,8 +299,13 @@
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
       "scripts/init-project.mjs",
+      "scripts/lib/args.mjs",
+      "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
+      "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
+      "scripts/lib/markdown.mjs",
+      "scripts/lib/project-signals.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -305,6 +319,7 @@
       "specs/037-manifest-authoritative.md",
       "specs/038-init-update-safety.md",
       "specs/039-artifact-frontmatter-schema.md",
+      "specs/040-checker-library-refactor.md",
       "specs/040-fixture-matrix-expansion.md",
       "starters/generic-project/AGENTS.md",
       "subagent-run-plans/034-baseline-freeze-self-ci.md",
@@ -313,6 +328,7 @@
       "subagent-run-plans/037-manifest-authoritative.md",
       "subagent-run-plans/038-init-update-safety.md",
       "subagent-run-plans/039-artifact-frontmatter-schema.md",
+      "subagent-run-plans/040-checker-library-refactor.md",
       "subagent-run-plans/040-fixture-matrix-expansion.md",
       "tasks/034-baseline-freeze-self-ci.md",
       "tasks/035-readonly-manifest.md",
@@ -320,6 +336,7 @@
       "tasks/037-manifest-authoritative.md",
       "tasks/038-init-update-safety.md",
       "tasks/039-artifact-frontmatter-schema.md",
+      "tasks/040-checker-library-refactor.md",
       "tasks/040-fixture-matrix-expansion.md",
       "templates/adoption-assessment.md",
       "templates/ai-task-log.md",
@@ -443,6 +460,7 @@
       ".ai-native/prompts/reporter-agent.md",
       ".ai-native/prompts/reviewer-agent.md",
       ".ai-native/prompts/spec-agent.md",
+      ".ai-native/schemas/artifacts",
       ".ai-native/templates/adoption-assessment.md",
       ".ai-native/templates/ai-task-log.md",
       ".ai-native/templates/business-spec-index.md",
@@ -478,7 +496,6 @@
       ".ai-native/templates/workflow-daily-summary.md",
       ".ai-native/templates/workflow-improvement.md",
       ".ai-native/templates/workflow-retro.md",
-      ".ai-native/schemas/artifacts",
       ".ai-native/version.json",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
@@ -524,8 +541,13 @@
       "scripts/check-subagent-orchestration.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
+      "scripts/lib/args.mjs",
+      "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
+      "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
+      "scripts/lib/markdown.mjs",
+      "scripts/lib/project-signals.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/verify.sh",
@@ -606,6 +628,7 @@
       ".ai-native/prompts/reporter-agent.md",
       ".ai-native/prompts/reviewer-agent.md",
       ".ai-native/prompts/spec-agent.md",
+      ".ai-native/schemas/artifacts",
       ".ai-native/templates/adoption-assessment.md",
       ".ai-native/templates/ai-task-log.md",
       ".ai-native/templates/baseline-evidence.md",
@@ -646,7 +669,6 @@
       ".ai-native/templates/workflow-daily-summary.md",
       ".ai-native/templates/workflow-improvement.md",
       ".ai-native/templates/workflow-retro.md",
-      ".ai-native/schemas/artifacts",
       ".ai-native/version.json",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
@@ -695,8 +717,13 @@
       "scripts/check-subagent-orchestration.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
+      "scripts/lib/args.mjs",
+      "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
+      "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
+      "scripts/lib/markdown.mjs",
+      "scripts/lib/project-signals.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -864,8 +891,13 @@
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
       "scripts/init-project.mjs",
+      "scripts/lib/args.mjs",
+      "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
+      "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
+      "scripts/lib/markdown.mjs",
+      "scripts/lib/project-signals.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -1031,8 +1063,13 @@
       "scripts/check-subagent-orchestration.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
+      "scripts/lib/args.mjs",
+      "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
+      "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
+      "scripts/lib/markdown.mjs",
+      "scripts/lib/project-signals.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -1181,88 +1218,108 @@
         "target": ".ai-native/docs/goal-subagent-usage.md"
       },
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
         "source": "scripts/check-ai-workflow.mjs",
         "target": "scripts/check-ai-workflow.mjs"
-      },
-      {
-        "source": "scripts/summarize-ai-logs.mjs",
-        "target": "scripts/summarize-ai-logs.mjs"
-      },
-      {
-        "source": "scripts/check-workflow-version.mjs",
-        "target": "scripts/check-workflow-version.mjs"
-      },
-      {
-        "source": "scripts/workflow-daily-summary.mjs",
-        "target": "scripts/workflow-daily-summary.mjs"
-      },
-      {
-        "source": "scripts/check-project-onboarding.mjs",
-        "target": "scripts/check-project-onboarding.mjs"
       },
       {
         "source": "scripts/check-engineering-baseline.mjs",
         "target": "scripts/check-engineering-baseline.mjs"
       },
       {
-        "source": "scripts/check-platform-baseline.mjs",
-        "target": "scripts/check-platform-baseline.mjs"
-      },
-      {
-        "source": "scripts/resolve-platform-baseline.mjs",
-        "target": "scripts/resolve-platform-baseline.mjs"
-      },
-      {
-        "source": "scripts/check-industrial-pack.mjs",
-        "target": "scripts/check-industrial-pack.mjs"
-      },
-      {
-        "source": "scripts/resolve-industrial-baseline.mjs",
-        "target": "scripts/resolve-industrial-baseline.mjs"
+        "source": "scripts/check-goal-mode.mjs",
+        "target": "scripts/check-goal-mode.mjs"
       },
       {
         "source": "scripts/check-industrial-baseline.mjs",
         "target": "scripts/check-industrial-baseline.mjs"
       },
       {
-        "source": "scripts/check-workflow-artifacts.mjs",
-        "target": "scripts/check-workflow-artifacts.mjs"
-      },
-      {
-        "source": "scripts/check-review-loop.mjs",
-        "target": "scripts/check-review-loop.mjs"
+        "source": "scripts/check-industrial-pack.mjs",
+        "target": "scripts/check-industrial-pack.mjs"
       },
       {
         "source": "scripts/check-next-step-boundary.mjs",
         "target": "scripts/check-next-step-boundary.mjs"
       },
       {
-        "source": "scripts/check-goal-mode.mjs",
-        "target": "scripts/check-goal-mode.mjs"
+        "source": "scripts/check-platform-baseline.mjs",
+        "target": "scripts/check-platform-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-project-onboarding.mjs",
+        "target": "scripts/check-project-onboarding.mjs"
+      },
+      {
+        "source": "scripts/check-review-loop.mjs",
+        "target": "scripts/check-review-loop.mjs"
       },
       {
         "source": "scripts/check-subagent-orchestration.mjs",
         "target": "scripts/check-subagent-orchestration.mjs"
       },
       {
-        "source": "scripts/lib/manifest.mjs",
-        "target": "scripts/lib/manifest.mjs"
+        "source": "scripts/check-workflow-artifacts.mjs",
+        "target": "scripts/check-workflow-artifacts.mjs"
+      },
+      {
+        "source": "scripts/check-workflow-version.mjs",
+        "target": "scripts/check-workflow-version.mjs"
+      },
+      {
+        "source": "scripts/lib/args.mjs",
+        "target": "scripts/lib/args.mjs"
+      },
+      {
+        "source": "scripts/lib/check-result.mjs",
+        "target": "scripts/lib/check-result.mjs"
       },
       {
         "source": "scripts/lib/frontmatter.mjs",
         "target": "scripts/lib/frontmatter.mjs"
       },
       {
+        "source": "scripts/lib/git.mjs",
+        "target": "scripts/lib/git.mjs"
+      },
+      {
+        "source": "scripts/lib/manifest.mjs",
+        "target": "scripts/lib/manifest.mjs"
+      },
+      {
+        "source": "scripts/lib/markdown.mjs",
+        "target": "scripts/lib/markdown.mjs"
+      },
+      {
+        "source": "scripts/lib/project-signals.mjs",
+        "target": "scripts/lib/project-signals.mjs"
+      },
+      {
         "source": "scripts/new-workflow-item.mjs",
         "target": "scripts/new-workflow-item.mjs"
       },
       {
-        "source": "scripts/workflow-next.mjs",
-        "target": "scripts/workflow-next.mjs"
+        "source": "scripts/resolve-industrial-baseline.mjs",
+        "target": "scripts/resolve-industrial-baseline.mjs"
       },
       {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
+        "source": "scripts/resolve-platform-baseline.mjs",
+        "target": "scripts/resolve-platform-baseline.mjs"
+      },
+      {
+        "source": "scripts/summarize-ai-logs.mjs",
+        "target": "scripts/summarize-ai-logs.mjs"
+      },
+      {
+        "source": "scripts/workflow-daily-summary.mjs",
+        "target": "scripts/workflow-daily-summary.mjs"
+      },
+      {
+        "source": "scripts/workflow-next.mjs",
+        "target": "scripts/workflow-next.mjs"
       }
     ]
   }

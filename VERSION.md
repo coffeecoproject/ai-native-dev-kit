@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.40.0`
+Current version: `0.40.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `0.40.0`
 
 ## Current Release
 
-`0.40.0`
+`0.40.1`
 
 Includes:
 
+- Productization Hardcut phase `0.40.1`: checker library refactor
+- Added shared checker helpers under `scripts/lib/args.mjs`, `scripts/lib/markdown.mjs`, `scripts/lib/check-result.mjs`, `scripts/lib/git.mjs`, and `scripts/lib/project-signals.mjs`
+- Checker scripts now reuse shared argument parsing, Markdown section extraction, git state, file walking, and result recording helpers where fixture coverage protects behavior
+- `init-project.mjs` and `new-workflow-item.mjs` keep local script-specific helpers where behavior differs from generic checker plumbing
+- Generated projects now receive the shared helper libraries needed by copied checker scripts
 - Productization Hardcut phase `0.40.0`: fixture matrix expansion
 - `test-fixtures/` is organized into golden, bad, migration, CLI, init/update, and output-quality fixture areas
 - `test-fixtures/fixture-cases.json` now records case type, checker coverage, expected output, and repair guidance

@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "./lib/args.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,26 +26,6 @@ const outputJson = Boolean(args.json);
 let failed = false;
 const results = [];
 const allowedCaseTypes = new Set(["golden", "bad", "migration", "cli", "init-update", "output-quality"]);
-
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
 
 function loadCases() {
   if (!fs.existsSync(casesPath)) {

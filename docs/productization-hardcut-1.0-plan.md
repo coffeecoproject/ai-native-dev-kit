@@ -6,7 +6,7 @@ Status: Active execution plan
 
 Current baseline: `0.33.0` frozen in `releases/0.33.0/`
 
-Current executed phase: `0.40.0` Fixture Matrix Expansion
+Current executed phase: `0.40.1` Checker Library Refactor
 
 Target release: `1.0.0`
 

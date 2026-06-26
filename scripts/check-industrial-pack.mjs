@@ -2,6 +2,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "./lib/args.mjs";
+import { sectionBody } from "./lib/markdown.mjs";
+import { walkFiles } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -18,26 +21,6 @@ for (const key of Object.keys(args)) {
 let failed = false;
 const checks = [];
 const repairHints = [];
-
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
 
 function record(status, message) {
   checks.push({ status, message });
@@ -77,21 +60,6 @@ function readJson(filePath) {
     fail(`${path.relative(projectRoot, filePath)} invalid JSON: ${error.message}`);
     return null;
   }
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function sectionBody(content, heading) {
-  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
-  if (!match) return null;
-  const start = match.index;
-  const lineEnd = content.indexOf("\n", start);
-  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
-  const next = content.slice(bodyStart).search(/^## /m);
-  const bodyEnd = next === -1 ? content.length : bodyStart + next;
-  return content.slice(bodyStart, bodyEnd).trim();
 }
 
 function selectedPackIds(root) {
@@ -143,17 +111,6 @@ function requireObject(object, key, context) {
     return {};
   }
   return object[key];
-}
-
-function walkFiles(dir) {
-  if (!fs.existsSync(dir)) return [];
-  const results = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) results.push(...walkFiles(full));
-    else results.push(full);
-  }
-  return results.sort();
 }
 
 function sortedArray(value) {

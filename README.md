@@ -368,6 +368,8 @@ node scripts/check-goal-mode.mjs examples/goal-mode-first-route
 
 `0.40.0` 开始，fixture 变成 typed matrix：`golden`、`bad`、`migration`、`cli`、`init-update`、`output-quality`。这不是给真实项目加负担，而是让 dev-kit 自己的 checker 行为更稳定，方便后续安全重构。
 
+`0.40.1` 开始，重复 checker 工具函数被收敛到 `scripts/lib/`。这一步主要是降低维护成本，不改变真实项目的接入方式。
+
 ## 新项目怎么用
 
 推荐让 Codex 自己读取并配置。你也可以手动运行初始化脚本：
@@ -624,7 +626,14 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.32.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.40.1`。
+
+0.40.1 新增内容：
+
+- 把 checker 脚本里重复的参数解析、Markdown section 读取、git 状态读取、文件扫描和检查结果记录，沉淀到 `scripts/lib/`。
+- 保留 `init-project` 和 `new-workflow-item` 的特殊本地逻辑，避免为了抽公共库而改变行为。
+- 生成项目会带上这些共享 helper，保证复制过去的 checker 脚本能正常运行。
+- fixture matrix 已用于证明这轮是内部整理，不是规则改写。
 
 0.32.0 新增内容：
 

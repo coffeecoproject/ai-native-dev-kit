@@ -2,9 +2,18 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "./lib/args.mjs";
+import { gitWorktreeState } from "./lib/git.mjs";
+import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { workflowRequiredPaths as manifestWorkflowRequiredPaths } from "./lib/manifest.mjs";
+import {
+  defaultIgnoredDirs,
+  hasProjectSignals as hasProjectSignalsForRoot,
+  projectSignalDirs,
+  projectSignalFiles,
+  walkRelativePaths as walkRelativePathsForRoot,
+} from "./lib/project-signals.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -156,21 +165,6 @@ const requiredAgentSections = [
 ];
 
 const workflowArtifactDirs = ["requests", "specs", "evals", "tasks"];
-const projectSignalFiles = [
-  "package.json",
-  "pnpm-lock.yaml",
-  "yarn.lock",
-  "package-lock.json",
-  "pyproject.toml",
-  "go.mod",
-  "Cargo.toml",
-  "Package.swift",
-  "pom.xml",
-  "build.gradle",
-  "settings.gradle",
-  "README.md",
-];
-const projectSignalDirs = ["src", "app", "pages", "components", "ios", "android", "server", "backend", "frontend", "services"];
 const governanceSignalPaths = [
   "AGENTS.md",
   "agent.md",
@@ -215,40 +209,7 @@ const productionSignalPaths = [
   "infra/staging",
 ];
 const productionPathPattern = /\b(prod|production|staging|release|deploy|deployment|rollback|recovery|incident|runbook|monitoring|observability|migration|backup|restore)\b/i;
-const ignoredSignalDirs = new Set([
-  ".git",
-  ".DS_Store",
-  "node_modules",
-  ".pnpm-store",
-  "dist",
-  "build",
-  "coverage",
-  ".next",
-  ".nuxt",
-  ".cache",
-  "tmp",
-  "var",
-]);
-
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
+const ignoredSignalDirs = defaultIgnoredDirs;
 
 function exists(rel) {
   return fs.existsSync(path.join(projectRoot, rel));
@@ -268,21 +229,6 @@ function readJson(rel) {
   } catch {
     return null;
   }
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function sectionBody(content, heading) {
-  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
-  if (!match) return null;
-  const start = match.index;
-  const lineEnd = content.indexOf("\n", start);
-  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
-  const next = content.slice(bodyStart).search(/^## /m);
-  const bodyEnd = next === -1 ? content.length : bodyStart + next;
-  return content.slice(bodyStart, bodyEnd).trim();
 }
 
 function localKitRoot() {
@@ -306,71 +252,30 @@ function rootEntries() {
 }
 
 function hasProjectSignals() {
-  return projectSignalFiles.some((rel) => exists(rel)) || projectSignalDirs.some((rel) => exists(rel));
+  return hasProjectSignalsForRoot(projectRoot, {
+    files: projectSignalFiles,
+    dirs: projectSignalDirs,
+  });
 }
 
-function walkRelativePaths(relDir = ".", maxDepth = 4) {
-  const fullDir = path.join(projectRoot, relDir);
-  if (!fs.existsSync(fullDir) || maxDepth < 0) return [];
-  const results = [];
-  for (const entry of fs.readdirSync(fullDir, { withFileTypes: true })) {
-    if (ignoredSignalDirs.has(entry.name)) continue;
-    const relPath = relDir === "." ? entry.name : path.join(relDir, entry.name);
-    results.push(relPath);
-    if (entry.isDirectory()) {
-      results.push(...walkRelativePaths(relPath, maxDepth - 1));
-    }
-  }
-  return results;
+function projectRelativePaths(relDir = ".", maxDepth = 4) {
+  return walkRelativePathsForRoot(projectRoot, relDir, { maxDepth, ignoredDirs: ignoredSignalDirs });
 }
 
 function matchedExistingPaths(paths) {
   return paths.filter((rel) => exists(rel)).sort();
 }
 
-function gitWorktreeState() {
-  const inside = spawnSync("git", ["-C", projectRoot, "rev-parse", "--is-inside-work-tree"], {
-    encoding: "utf8",
-  });
-  if (inside.status !== 0 || inside.stdout.trim() !== "true") {
-    return {
-      isGitRepository: false,
-      isDirty: false,
-      currentBranch: null,
-      changedFileCount: 0,
-      changedFilesSample: [],
-    };
-  }
-
-  const branch = spawnSync("git", ["-C", projectRoot, "branch", "--show-current"], {
-    encoding: "utf8",
-  });
-  const status = spawnSync("git", ["-C", projectRoot, "status", "--porcelain"], {
-    encoding: "utf8",
-  });
-  const changedFiles = status.status === 0
-    ? status.stdout.split("\n").map((line) => line.trim()).filter(Boolean)
-    : [];
-
-  return {
-    isGitRepository: true,
-    isDirty: changedFiles.length > 0,
-    currentBranch: branch.status === 0 ? branch.stdout.trim() || null : null,
-    changedFileCount: changedFiles.length,
-    changedFilesSample: changedFiles.slice(0, 12),
-  };
-}
-
 function governanceSignals() {
   const basicSignals = matchedExistingPaths(governanceSignalPaths);
   const directProductionSignals = matchedExistingPaths(productionSignalPaths);
-  const pathSignals = walkRelativePaths(".", 4)
+  const pathSignals = projectRelativePaths(".", 4)
     .filter((rel) => productionPathPattern.test(rel))
     .filter((rel) => !rel.startsWith(".ai-native/"))
     .slice(0, 50)
     .sort();
   const productionSignals = unique([...directProductionSignals, ...pathSignals]);
-  const git = gitWorktreeState();
+  const git = gitWorktreeState(projectRoot);
   const hasAgentRules = ["AGENTS.md", "agent.md", ".agent.md"].some((rel) => basicSignals.includes(rel));
   const hasCi = basicSignals.includes(".github/workflows");
   const hasGuard = basicSignals.some((rel) => rel.startsWith("scripts/"));

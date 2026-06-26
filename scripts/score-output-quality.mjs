@@ -2,6 +2,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "./lib/args.mjs";
+import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
+import { walkFiles } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const root = path.resolve(process.cwd(), args._[0] || ".");
@@ -36,66 +39,20 @@ const requiredQualitySections = [
 let failed = false;
 const results = [];
 
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
-
 function rel(fullPath) {
   return path.relative(root, fullPath).replaceAll(path.sep, "/") || ".";
-}
-
-function walk(dir) {
-  if (!fs.existsSync(dir)) return [];
-  const results = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) results.push(...walk(full));
-    else if (entry.isFile() && entry.name.endsWith(".md")) results.push(full);
-  }
-  return results;
 }
 
 function listReportFiles() {
   const files = [];
   for (const dir of reportDirs) {
-    files.push(...walk(path.join(root, dir)));
+    files.push(...walkFiles(path.join(root, dir), { extensions: [".md"] }));
   }
   return files.sort();
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function hasSection(content, heading) {
   return new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m").test(content);
-}
-
-function sectionBody(content, heading) {
-  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
-  if (!match) return "";
-  const start = match.index;
-  const lineEnd = content.indexOf("\n", start);
-  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
-  const next = content.slice(bodyStart).search(/^## /m);
-  const bodyEnd = next === -1 ? content.length : bodyStart + next;
-  return content.slice(bodyStart, bodyEnd).trim();
 }
 
 function stripMarkdown(value) {
@@ -188,4 +145,3 @@ if (failed) {
   }
   process.exit(1);
 }
-

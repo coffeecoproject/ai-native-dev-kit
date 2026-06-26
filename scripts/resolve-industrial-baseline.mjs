@@ -3,46 +3,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "./lib/args.mjs";
+import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const baselineLevels = ["BL0_LIGHTWEIGHT", "BL1_STANDARD", "BL2_INDUSTRIAL"];
 const decisionStatuses = ["PENDING", "APPROVED", "REJECTED"];
-
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function sectionBody(content, heading) {
-  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
-  if (!match) return null;
-  const start = match.index;
-  const lineEnd = content.indexOf("\n", start);
-  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
-  const next = content.slice(bodyStart).search(/^## /m);
-  const bodyEnd = next === -1 ? content.length : bodyStart + next;
-  return content.slice(bodyStart, bodyEnd).trim();
-}
 
 function readJson(fullPath) {
   try {

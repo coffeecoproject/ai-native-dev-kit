@@ -2,9 +2,11 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "./lib/args.mjs";
 import { parseFrontmatter, validateFrontmatter } from "./lib/frontmatter.mjs";
+import { changedFiles } from "./lib/git.mjs";
+import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { resolveIndustrialBaseline } from "./resolve-industrial-baseline.mjs";
 import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
 
@@ -68,26 +70,6 @@ const checkedFiles = new Set();
 const frontmatterByFile = new Map();
 const taskLevelRank = { L0: 0, L1: 1, L2: 2, L3: 3 };
 
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
-
 function fail(message) {
   failed = true;
   console.error(`FAIL ${message}`);
@@ -109,10 +91,6 @@ function toProjectPath(value) {
   return path.relative(projectRoot, path.resolve(projectRoot, value)).replaceAll(path.sep, "/");
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function listMarkdownFiles(dir) {
   const fullDir = path.join(projectRoot, dir);
   if (!fs.existsSync(fullDir)) return [];
@@ -121,17 +99,6 @@ function listMarkdownFiles(dir) {
     .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
     .map((entry) => path.join(fullDir, entry.name))
     .sort();
-}
-
-function sectionBody(content, heading) {
-  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
-  if (!match) return null;
-  const start = match.index;
-  const lineEnd = content.indexOf("\n", start);
-  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
-  const next = content.slice(bodyStart).search(/^## /m);
-  const bodyEnd = next === -1 ? content.length : bodyStart + next;
-  return content.slice(bodyStart, bodyEnd).trim();
 }
 
 function hasMeaning(body) {
@@ -887,18 +854,12 @@ function filesForTask(taskRef) {
 }
 
 function changedArtifactFiles() {
-  const result = spawnSync("git", ["diff", "--name-only", "--diff-filter=ACMR", changedBase, "--", ...artifactDirs], {
-    cwd: projectRoot,
-    encoding: "utf8",
-  });
-  if (result.status !== 0) {
+  const result = changedFiles(projectRoot, { base: changedBase, pathspecs: artifactDirs });
+  if (!result.ok) {
     fail(`changed-only diff failed from ${changedBase}: ${result.stderr || result.stdout}`);
     return [];
   }
-  return result.stdout
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
+  return result.files
     .filter((line) => line.endsWith(".md"))
     .map((line) => path.join(projectRoot, line))
     .filter((file) => fs.existsSync(file))

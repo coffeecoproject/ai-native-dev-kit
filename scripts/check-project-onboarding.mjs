@@ -2,6 +2,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "./lib/args.mjs";
+import { sectionBody } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const strict = Boolean(args.strict);
@@ -114,26 +116,6 @@ const pendingPattern = /<[^>\n]+>|PENDING_CONFIRMATION|PENDING\b|TBD|TODO|NOT_RE
 let failed = false;
 let pending = false;
 
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
-
 function fail(message) {
   failed = true;
   console.error(`FAIL ${message}`);
@@ -146,21 +128,6 @@ function pass(message) {
 function warn(message) {
   pending = true;
   console.log(`PENDING ${message}`);
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function sectionBody(content, heading) {
-  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
-  if (!match) return null;
-  const start = match.index;
-  const lineEnd = content.indexOf("\n", start);
-  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
-  const next = content.slice(bodyStart).search(/^## /m);
-  const bodyEnd = next === -1 ? content.length : bodyStart + next;
-  return content.slice(bodyStart, bodyEnd).trim();
 }
 
 function hasMeaning(body) {

@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "./lib/args.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -11,26 +12,6 @@ const sinceDays = Number(args["since-days"] || 1);
 const writeState = Boolean(args["write-state"]);
 const state = readJson(statePath);
 const since = state.lastRunAt ? new Date(state.lastRunAt) : new Date(now.getTime() - sinceDays * 24 * 60 * 60 * 1000);
-
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
 
 function readJson(file) {
   if (!fs.existsSync(file)) return {};

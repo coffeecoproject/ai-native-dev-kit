@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "./lib/args.mjs";
 import {
   currentDevKitVersion,
   diffLists,
@@ -29,26 +30,6 @@ for (const key of Object.keys(args)) {
 
 let failed = false;
 const results = [];
-
-function parseArgs(argv) {
-  const parsed = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith("--")) {
-      parsed._.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      parsed[key] = true;
-    } else {
-      parsed[key] = next;
-      index += 1;
-    }
-  }
-  return parsed;
-}
 
 function pass(message) {
   results.push({ status: "PASS", message });
