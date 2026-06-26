@@ -72,6 +72,7 @@ const workflowRequiredPaths = [
   "final-reports",
   ".ai-native/version.json",
   ".ai-native/docs/artifact-decision-tree.md",
+  ".ai-native/docs/goal-subagent-usage.md",
   ".ai-native/core/workflow.md",
   ".ai-native/core/review-loop.md",
   ".ai-native/core/goal-mode.md",

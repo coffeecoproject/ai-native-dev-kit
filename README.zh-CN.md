@@ -4,7 +4,7 @@
 
 它的目标不是“让 AI 多写代码”，而是把软件开发拆成可沟通、可决策、可执行、可验证、可审查、可复盘的过程。
 
-快速开始见 [docs/quickstart.md](docs/quickstart.md)，心智模型见 [docs/mental-model.md](docs/mental-model.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
+快速开始见 [docs/quickstart.md](docs/quickstart.md)，心智模型见 [docs/mental-model.md](docs/mental-model.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)，Goal + Subagent 使用说明见 [docs/goal-subagent-usage.md](docs/goal-subagent-usage.md)。
 
 ## Codex 一句话入口
 
@@ -129,6 +129,42 @@ node scripts/check-subagent-orchestration.mjs .
 
 Subagent 用完必须关闭或跳过。最终回复、提交或任务结束前，不能留下 `RUNNING` 的 helper agent，也不能让它继续占位。
 
+## Goal + Subagent 流程彩排
+
+从 `0.33.0` 开始，新增 `examples/goal-subagent-l2-feature`。
+
+它是 simulated dogfood，不是真实项目验证，也不是行业模板。它用一个很小的“状态筛选”任务，把下面这些东西串成完整闭环：
+
+```text
+Goal Card
+Subagent Run Plan
+Engineering Baseline
+Request / Preflight / Spec / Eval / Task
+Review Packet
+Review Loop Report
+Final Report
+Follow-up Proposal
+Review Summary
+```
+
+这份样例主要回答一个问题：
+
+```text
+如果不用真实项目，0.31 的 Goal Mode 和 0.32 的 Subagent Orchestration 能不能完整跑通？
+```
+
+检查命令：
+
+```bash
+node scripts/check-goal-mode.mjs examples/goal-subagent-l2-feature
+node scripts/check-subagent-orchestration.mjs examples/goal-subagent-l2-feature
+node scripts/check-engineering-baseline.mjs examples/goal-subagent-l2-feature --strict
+node scripts/check-workflow-artifacts.mjs examples/goal-subagent-l2-feature --mode ready --task tasks/001-project-status-filter.md
+node scripts/check-review-loop.mjs examples/goal-subagent-l2-feature --task tasks/001-project-status-filter.md
+node scripts/check-next-step-boundary.mjs examples/goal-subagent-l2-feature --task tasks/001-project-status-filter.md
+node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80
+```
+
 ## Project Onboarding
 
 项目初始化后不要直接进入功能开发。先运行 project onboarding。
@@ -237,6 +273,8 @@ node scripts/check-subagent-orchestration.mjs examples/subagent-orchestration-cl
 `0.31.0` 新增 Goal Mode Entry：Codex 可以先用 Goal Card 判断该沟通、接入项目、定义工作、执行任务、复审、修复、做决策还是出报告。目标项目会带上 `goal-cards/`、`core/goal-mode.md`、`templates/goal-card.md`、`prompts/goal-planner-agent.md` 和 `scripts/check-goal-mode.mjs`。没有 Goal Card 时检查会跳过，不强制每个项目默认创建。
 
 `0.32.0` 新增 Subagent Orchestration：当 Codex 使用 helper agent 时，用 Subagent Run Plan 记录角色、权限、交接和关闭。目标项目会带上 `subagent-run-plans/`、`core/subagent-orchestration.md`、`templates/subagent-run-plan.md`、`checklists/subagent-orchestration-review.md`、`prompts/engineering-baseline-agent.md` 和 `scripts/check-subagent-orchestration.mjs`。没有 Subagent Run Plan 时检查会跳过，不强制每个项目默认创建。
+
+`0.33.0` 新增 Goal + Subagent L2 流程彩排：`examples/goal-subagent-l2-feature` 用一个模拟功能把 Goal Card、Subagent Run Plan、工程基线、任务工件、Review Loop、后续建议边界和最终报告串起来。它用于验证流程闭环，不代表真实项目已经完成验证。
 
 ## 新项目初始化
 

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.32.0`
+Current version: `0.33.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `0.32.0`
 
 ## Current Release
 
-`0.32.0`
+`0.33.0`
 
 Includes:
 
+- Simulated Goal + Subagent L2 feature dogfood for rehearsing a full task closure without requiring a real project
+- `docs/goal-subagent-usage.md` for plain-language Goal Card and Subagent Run Plan usage
+- `examples/goal-subagent-l2-feature/` with Goal Card, Subagent Run Plan, Engineering Baseline, request, preflight, spec, eval, task, Review Packet, GPT review prompt, Review Loop Report, final report, follow-up proposal, and review summary
+- dev-kit self-check now validates the Goal + Subagent L2 feature example through Goal Mode, Subagent Orchestration, Engineering Baseline strict mode, workflow artifacts, Review Loop, Bounded Next-Step, and output quality gates
+- target-project bootstrap now installs `.ai-native/docs/goal-subagent-usage.md` as a usage guide, not as a business workflow artifact
 - Subagent Orchestration Protocol for goal-oriented helper-agent planning, read-only research, review, repair analysis, and reporting
 - `core/subagent-orchestration.md`, `templates/subagent-run-plan.md`, `checklists/subagent-orchestration-review.md`, and `prompts/engineering-baseline-agent.md`
 - `scripts/check-subagent-orchestration.mjs` for enforcing many readers / one writer, role authority, handoff, lifecycle closure, and no lingering `RUNNING` subagents

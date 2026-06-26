@@ -751,6 +751,11 @@ function copySharedAssets(targetPath, options = {}) {
     path.join(targetPath, ".ai-native", "docs", "artifact-decision-tree.md"),
     options,
   );
+  copyFile(
+    path.join(kitRoot, "docs", "goal-subagent-usage.md"),
+    path.join(targetPath, ".ai-native", "docs", "goal-subagent-usage.md"),
+    options,
+  );
   copyIndustrialAssets(targetPath, options);
 
   const projectScriptsDir = path.join(targetPath, "scripts");
@@ -884,6 +889,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".ai-native/profiles",
       ".ai-native/industrial-packs",
       ".ai-native/docs/artifact-decision-tree.md",
+      ".ai-native/docs/goal-subagent-usage.md",
       "AGENTS.md",
       "scripts/check-ai-workflow.mjs",
       "scripts/summarize-ai-logs.mjs",

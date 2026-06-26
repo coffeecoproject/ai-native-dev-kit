@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.32.0",
+  "devKitVersion": "0.33.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -11,6 +11,7 @@
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
     ".ai-native/docs/artifact-decision-tree.md",
+    ".ai-native/docs/goal-subagent-usage.md",
     "AGENTS.md",
     "scripts/check-ai-workflow.mjs",
     "scripts/summarize-ai-logs.mjs",

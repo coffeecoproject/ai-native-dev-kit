@@ -15,6 +15,9 @@ The goal is not to add more governance layers. The goal is to make existing gove
 
 0.32.x Subagent Orchestration Protocol
   Let helper agents support planning, review, repair analysis, and reporting while keeping writes controlled by one writer and closing agents after handoff.
+
+0.33.x Simulated Closed-loop Dogfood
+  Rehearse Goal Mode + Subagent Orchestration + Review Loop together without claiming real project validation.
 ```
 
 ## Current Goal
@@ -22,7 +25,7 @@ The goal is not to add more governance layers. The goal is to make existing gove
 Goal:
 
 ```text
-Turn the 0.30.0 governance-hardening plan into repository assets and start executing it with fixture-driven checks.
+Keep the 0.30.x to 0.33.x governance hardening path verifiable with examples, fixtures, and closed-loop dogfood checks.
 ```
 
 Planning classification:
@@ -39,8 +42,8 @@ L1
 
 Reason:
 
-- The change affects dev-kit docs, examples, fixtures, and self-check scripts.
-- It does not change target-project bootstrap semantics.
+- The change affects dev-kit docs, examples, fixtures, target-project usage docs, and self-check scripts.
+- It may add lightweight workflow usage docs to target-project bootstrap assets.
 - It does not introduce source-code scanning gates.
 - It does not introduce automated external reviewer calls.
 
@@ -231,6 +234,40 @@ All subagents must be CLOSED or SKIPPED before the main thread sends the final t
 ```
 
 No subagent may remain `RUNNING`, standing by, or occupying a slot after handoff.
+
+## 0.33.0 Simulated Closed-loop Dogfood
+
+This phase does not add a new governance layer.
+
+It connects the existing 0.31 and 0.32 capabilities into one simulated L2 feature flow:
+
+```text
+Goal Card
+Subagent Run Plan
+Engineering Baseline
+Request / Preflight / Spec / Eval / Task
+Review Packet
+Review Loop Report
+Final Report
+Follow-up Proposal
+Review Summary
+```
+
+Required assets:
+
+```text
+docs/goal-subagent-usage.md
+examples/goal-subagent-l2-feature/
+```
+
+Required behavior:
+
+- The example must clearly state that it is simulated dogfood, not real project validation.
+- The example must not become a platform or business baseline.
+- The Review Loop must include one bounded `AUTO_FIX` item and one `NEEDS_HUMAN_DECISION` item.
+- The Subagent Run Plan must close or skip every helper agent.
+- The follow-up proposal must prevent out-of-scope future work from becoming current-task execution.
+- `scripts/check-dev-kit.mjs` must run the example through Goal Mode, Subagent Orchestration, Engineering Baseline, workflow artifact, Review Loop, Next-Step Boundary, and Output Quality checks.
 
 ## Acceptance Criteria For This Phase
 

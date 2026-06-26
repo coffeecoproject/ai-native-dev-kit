@@ -10,7 +10,7 @@
 - 已有项目：不重写代码，先补上下文，再逐步接管新需求，慢慢治理历史问题。
 - 已上线或已有强治理项目：先只读评估和映射现有治理，不直接初始化或覆盖。
 
-详细说明见 [README.zh-CN.md](README.zh-CN.md)。快速上手见 [docs/quickstart.md](docs/quickstart.md)。心智模型见 [docs/mental-model.md](docs/mental-model.md)。Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
+详细说明见 [README.zh-CN.md](README.zh-CN.md)。快速上手见 [docs/quickstart.md](docs/quickstart.md)。心智模型见 [docs/mental-model.md](docs/mental-model.md)。Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。Goal + Subagent 使用说明见 [docs/goal-subagent-usage.md](docs/goal-subagent-usage.md)。
 
 ## 我该怎么选
 
@@ -184,6 +184,34 @@ node scripts/check-subagent-orchestration.mjs .
 ```
 
 Subagent 用完必须关闭或跳过。不能在最终回复、提交或任务结束时留下 `RUNNING` 的 helper agent，也不能让它继续占位等下次使用。
+
+## Goal + Subagent 流程彩排
+
+从 `0.33.0` 开始，新增 `examples/goal-subagent-l2-feature`。
+
+它不是一个真实项目，也不是行业模板，而是 simulated dogfood：用一个很小的“状态筛选”任务，把 Goal Card、Subagent Run Plan、Engineering Baseline、request、preflight、spec、eval、task、Review Packet、Review Loop、Final Report 和 Follow-up Proposal 串起来。
+
+它证明的是：
+
+```text
+这套流程可以从目标判断一路走到复审和报告。
+```
+
+它不证明：
+
+```text
+某个真实项目已经被验证过。
+```
+
+可以用它来理解完整闭环：
+
+```bash
+node scripts/check-goal-mode.mjs examples/goal-subagent-l2-feature
+node scripts/check-subagent-orchestration.mjs examples/goal-subagent-l2-feature
+node scripts/check-workflow-artifacts.mjs examples/goal-subagent-l2-feature --mode ready --task tasks/001-project-status-filter.md
+node scripts/check-review-loop.mjs examples/goal-subagent-l2-feature --task tasks/001-project-status-filter.md
+node scripts/check-next-step-boundary.mjs examples/goal-subagent-l2-feature --task tasks/001-project-status-filter.md
+```
 
 ## 工程决策基线
 

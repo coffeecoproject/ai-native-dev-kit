@@ -58,6 +58,7 @@ function checkRequiredFiles() {
     "docs/codex-usage.md",
     "docs/mental-model.md",
     "docs/artifact-decision-tree.md",
+    "docs/goal-subagent-usage.md",
     "docs/governance-hardening-roadmap.md",
     "core/workflow.md",
     "core/task-levels.md",
@@ -281,6 +282,21 @@ function checkRequiredFiles() {
     "examples/goal-mode-first-route/goal-cards/001-define-work.md",
     "examples/subagent-orchestration-closed-run/README.md",
     "examples/subagent-orchestration-closed-run/subagent-run-plans/001-closed-review.md",
+    "examples/goal-subagent-l2-feature/README.md",
+    "examples/goal-subagent-l2-feature/docs/engineering-baseline.md",
+    "examples/goal-subagent-l2-feature/goal-cards/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/subagent-run-plans/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/requests/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/preflight/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/specs/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/evals/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/tasks/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/review-packets/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/gpt-review-prompts/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/review-loop-reports/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/final-reports/001-project-status-filter.md",
+    "examples/goal-subagent-l2-feature/follow-up-proposals/001-status-filter-lookup-admin.md",
+    "examples/goal-subagent-l2-feature/review-summaries/001-project-status-filter.md",
     "test-fixtures/README.md",
     "test-fixtures/fixture-cases.json",
     "test-fixtures/bad-engineering-baseline/docs/engineering-baseline.md",
@@ -389,6 +405,7 @@ function checkVersionMetadata() {
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
     ".ai-native/docs/artifact-decision-tree.md",
+    ".ai-native/docs/goal-subagent-usage.md",
     ".github/pull_request_template.md",
     ".github/workflows/ai-workflow-checks.yml",
   ]) {
@@ -1093,11 +1110,13 @@ function checkReadmePointers() {
     "examples/next-step-boundary-suggestions",
     "examples/goal-mode-first-route",
     "examples/subagent-orchestration-closed-run",
+    "examples/goal-subagent-l2-feature",
     "test-fixtures",
     "docs/quickstart",
     "docs/codex-usage",
     "docs/mental-model",
     "docs/artifact-decision-tree",
+    "docs/goal-subagent-usage",
     "docs/governance-hardening-roadmap",
     "engineering-baseline",
     "check-engineering-baseline",
@@ -1128,6 +1147,8 @@ function checkReadmePointers() {
     "subagent-orchestration",
     "Subagent Orchestration",
     "Many readers, one writer",
+    "Goal + Subagent",
+    "simulated dogfood",
     "CLOSED",
     "SKIPPED",
     "DISCUSS_ONLY",
@@ -1280,6 +1301,81 @@ function checkReviewLoopL2DogfoodExample() {
     return;
   }
   pass("Review Loop L2 dogfood next-step boundary check");
+}
+
+function checkGoalSubagentL2FeatureExample() {
+  const exampleRoot = path.join(kitRoot, "examples", "goal-subagent-l2-feature");
+  const requiredMarkers = [
+    ["README.md", "simulated dogfood"],
+    ["README.md", "not real project validation"],
+    ["goal-cards/001-project-status-filter.md", "IMPLEMENT_TASK"],
+    ["subagent-run-plans/001-project-status-filter.md", "Many readers, one writer: Yes"],
+    ["subagent-run-plans/001-project-status-filter.md", "All subagents closed: Yes"],
+    ["review-loop-reports/001-project-status-filter.md", "AUTO_FIX"],
+    ["review-loop-reports/001-project-status-filter.md", "NEEDS_HUMAN_DECISION"],
+    ["review-loop-reports/001-project-status-filter.md", "DIRECT_FOLLOW_UP"],
+    ["review-loop-reports/001-project-status-filter.md", "DO_NOT_PROCEED"],
+    ["final-reports/001-project-status-filter.md", "DIRECT_FOLLOW_UP"],
+    ["follow-up-proposals/001-status-filter-lookup-admin.md", "Can AI Do This Now?"],
+  ];
+  for (const [file, marker] of requiredMarkers) {
+    const content = fs.readFileSync(path.join(exampleRoot, file), "utf8");
+    if (!content.includes(marker)) {
+      fail(`Goal + Subagent L2 feature example missing ${marker} in ${file}`);
+      return;
+    }
+  }
+
+  const checks = [
+    ["Goal + Subagent L2 feature Goal Mode check", [
+      path.join(kitRoot, "scripts", "check-goal-mode.mjs"),
+      exampleRoot,
+    ]],
+    ["Goal + Subagent L2 feature Subagent Orchestration check", [
+      path.join(kitRoot, "scripts", "check-subagent-orchestration.mjs"),
+      exampleRoot,
+    ]],
+    ["Goal + Subagent L2 feature Engineering Baseline strict check", [
+      path.join(kitRoot, "scripts", "check-engineering-baseline.mjs"),
+      exampleRoot,
+      "--strict",
+    ]],
+    ["Goal + Subagent L2 feature workflow artifact check", [
+      path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"),
+      exampleRoot,
+      "--mode",
+      "ready",
+      "--task",
+      "tasks/001-project-status-filter.md",
+    ]],
+    ["Goal + Subagent L2 feature review loop check", [
+      path.join(kitRoot, "scripts", "check-review-loop.mjs"),
+      exampleRoot,
+      "--task",
+      "tasks/001-project-status-filter.md",
+    ]],
+    ["Goal + Subagent L2 feature next-step boundary check", [
+      path.join(kitRoot, "scripts", "check-next-step-boundary.mjs"),
+      exampleRoot,
+      "--task",
+      "tasks/001-project-status-filter.md",
+    ]],
+    ["Goal + Subagent L2 feature output quality check", [
+      path.join(kitRoot, "scripts", "score-output-quality.mjs"),
+      exampleRoot,
+      "--min-score",
+      "80",
+    ]],
+  ];
+
+  for (const [label, args] of checks) {
+    const result = runNode(args);
+    if (result.status !== 0) {
+      fail(`${label} failed: ${result.stderr || result.stdout}`);
+      return;
+    }
+    pass(label);
+  }
 }
 
 function checkWebBl2ExampleArtifacts() {
@@ -1500,6 +1596,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/baseline-selection.md",
     ".ai-native/templates/baseline-evidence.md",
     ".ai-native/docs/artifact-decision-tree.md",
+    ".ai-native/docs/goal-subagent-usage.md",
     ".ai-native/core/engineering-baseline.md",
     ".ai-native/templates/engineering-baseline.md",
     ".ai-native/checklists/engineering-baseline-review.md",
@@ -2956,6 +3053,7 @@ checkScriptSyntax();
 checkReadmePointers();
 checkFixtureSuite();
 checkReviewLoopL2DogfoodExample();
+checkGoalSubagentL2FeatureExample();
 checkWebBl2ExampleArtifacts();
 checkMiniProgramBl2ExampleArtifacts();
 checkGeneratedProjectE2E();
