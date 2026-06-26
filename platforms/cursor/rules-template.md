@@ -70,6 +70,13 @@ Before non-trivial work, read:
 - AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
 
+## Output Experience
+
+- Use `.ai-native/core/output-protocol.md` and `.ai-native/prompts/reporter-agent.md` for workflow, baseline, adoption, review, release, and automation status.
+- Human-facing output starts with a human summary, current status, decision needed, next safe step, what AI can do, and what AI must not do.
+- Put technical fields, paths, commands, and audit notes after the plain-language status.
+- Use `.ai-native/core/glossary.md` when internal terms need translation.
+
 ## Skill Governance
 
 - Repeated execution patterns may become `skill-candidates/` entries.

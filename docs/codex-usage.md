@@ -36,6 +36,7 @@ Expected Codex behavior:
 - Classify intent with `prompts/bootstrap-agent.md`.
 - If the user asked only to review, discuss, evaluate, or look first, do not write files.
 - If the user clearly asked to configure, run `scripts/workflow-next.mjs <project-root>` or emulate it from the dev-kit checkout.
+- Report `workflow-next` results with a human summary first, then technical state fields. Use `--format technical` only when the user or automation asks for raw technical output.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce an adoption assessment and existing governance map first.
 - If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, do not create workflow artifacts, execute task cards, or edit files until the human confirms how to handle existing changes.
 - Follow `NEXT_ACTION`.
@@ -94,6 +95,24 @@ Expected Codex behavior:
 - Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
 - Report changed files, verification, residual risks, and next step.
+
+## Output Prompt
+
+Use this when Codex needs to explain workflow state, baseline readiness, adoption results, review loop results, or handoff status to a human:
+
+```text
+Summarize this using the AI Native Output Experience Protocol.
+Start with whether AI can continue, what I need to decide, and the next safe step.
+Keep technical fields and audit notes after the human summary.
+```
+
+Expected Codex behavior:
+
+- Read `.ai-native/core/output-protocol.md`.
+- Use `.ai-native/core/glossary.md` when internal terms need plain-language explanation.
+- Use `.ai-native/prompts/reporter-agent.md` when converting technical state into a report.
+- Generate `human-status-report`, `decision-brief`, `plain-review-summary`, or `customer-handoff` only when a file record is useful.
+- Do not treat any report as Human Approval, release approval, risk acceptance, or permission to apply migrations.
 
 ## Existing Project Prompt
 

@@ -1,5 +1,19 @@
 # AI Task Log: <date>-<task-name>
 
+## Human Summary
+
+One-sentence conclusion:
+
+## Decision Needed
+
+Does this task result require human decision before follow-up work: Yes / No
+
+Decision:
+
+## Next Safe Step
+
+Next action:
+
 ## Task
 
 `tasks/<file>.md`

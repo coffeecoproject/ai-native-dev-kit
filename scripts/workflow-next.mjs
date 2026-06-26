@@ -9,8 +9,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
-const outputJson = Boolean(args.json);
+const outputFormat = args.json ? "json" : String(args.format || "human");
+const outputJson = outputFormat === "json";
 const enforce = Boolean(args.enforce);
+const allowedOutputFormats = new Set(["human", "technical", "json"]);
+
+if (!allowedOutputFormats.has(outputFormat)) {
+  console.error(`FAIL unknown --format: ${outputFormat}`);
+  console.error("Use --format human, --format technical, --format json, or --json.");
+  process.exit(1);
+}
 
 const pendingPattern = /<[^>\n]+>|PENDING_CONFIRMATION|PENDING\b|TBD|TODO|NOT_READY/;
 const ignoredRootEntries = new Set([".git", ".DS_Store", "node_modules"]);
@@ -49,9 +57,15 @@ const workflowRequiredPaths = [
   "review-packets",
   "gpt-review-prompts",
   "review-loop-reports",
+  "status-reports",
+  "decision-briefs",
+  "review-summaries",
+  "customer-handoffs",
   ".ai-native/version.json",
   ".ai-native/core/workflow.md",
   ".ai-native/core/review-loop.md",
+  ".ai-native/core/output-protocol.md",
+  ".ai-native/core/glossary.md",
   ".ai-native/profiles/web-app/baseline.json",
   ".ai-native/profiles/backend-api/baseline.json",
   ".ai-native/profiles/ios-app/baseline.json",
@@ -62,6 +76,7 @@ const workflowRequiredPaths = [
   ".ai-native/core/project-onboarding.md",
   ".ai-native/prompts/bootstrap-agent.md",
   ".ai-native/prompts/project-onboarding-agent.md",
+  ".ai-native/prompts/reporter-agent.md",
   ".ai-native/templates/project-onboarding.md",
   ".ai-native/templates/project-profile.md",
   ".ai-native/templates/tech-stack-strategy.md",
@@ -73,6 +88,10 @@ const workflowRequiredPaths = [
   ".ai-native/templates/review-packet.md",
   ".ai-native/templates/gpt-review-prompt.md",
   ".ai-native/templates/review-loop-report.md",
+  ".ai-native/templates/human-status-report.md",
+  ".ai-native/templates/decision-brief.md",
+  ".ai-native/templates/plain-review-summary.md",
+  ".ai-native/templates/customer-handoff.md",
   ".ai-native/templates/baseline-selection.md",
   ".ai-native/templates/baseline-evidence.md",
   ".ai-native/checklists/project-onboarding-review.md",
@@ -94,6 +113,7 @@ const requiredAgentSections = [
   "Industrial Baseline",
   "Workflow Artifact Generation",
   "Task Execution Rules",
+  "Output Experience",
   "High-risk Boundaries",
   "Skill Governance",
   "Automation Governance",
@@ -615,7 +635,7 @@ function commandFor(action, kitRoot) {
     return "Use the approved task card, then run verification.";
   }
   if (action === "RUN_DEV_KIT_SELF_CHECK") {
-    return "Run node scripts/check-dev-kit.mjs from the dev-kit repository.";
+    return "node scripts/check-dev-kit.mjs";
   }
   return "Select or create a valid project root.";
 }
@@ -845,6 +865,56 @@ if (outputJson) {
 } else {
   console.log("# Workflow Next");
   console.log("");
+  if (outputFormat === "human") {
+    printHumanOutput(result);
+    console.log("");
+    console.log("## Technical Details");
+    console.log("");
+  }
+  printTechnicalOutput(result, enforceFailures);
+}
+
+if (enforce && enforceFailures.length > 0) {
+  process.exit(2);
+}
+
+function printHumanOutput(result) {
+  const human = buildHumanOutput(result);
+  console.log("## Human Summary");
+  console.log("");
+  console.log(human.summary);
+  console.log("");
+  console.log("## Current Status");
+  console.log("");
+  console.log(`- Status: ${human.status}`);
+  console.log(`- Reason: ${human.reason}`);
+  console.log(`- Risk level: ${human.riskLevel}`);
+  console.log(`- Can AI continue: ${human.canAiContinue}`);
+  console.log("");
+  console.log("## What I Need From You");
+  console.log("");
+  for (const item of human.decisions) console.log(`- ${item}`);
+  console.log("");
+  console.log("## Recommended Next Step");
+  console.log("");
+  console.log(human.nextStep);
+  if (result.suggestedCommand) {
+    console.log("");
+    console.log("```bash");
+    console.log(result.suggestedCommand);
+    console.log("```");
+  }
+  console.log("");
+  console.log("## What AI Can Do Safely");
+  console.log("");
+  for (const item of human.aiCanDo) console.log(`- ${item}`);
+  console.log("");
+  console.log("## What AI Must Not Do");
+  console.log("");
+  for (const item of human.aiMustNotDo) console.log(`- ${item}`);
+}
+
+function printTechnicalOutput(result, enforceFailures) {
   console.log(`PROJECT_ROOT: ${result.projectRoot}`);
   console.log(`PROJECT_STATE: ${result.projectState}`);
   console.log(`PROJECT_STATE_TAGS: ${(result.projectStateTags || []).join(", ") || "none"}`);
@@ -889,10 +959,6 @@ if (outputJson) {
   }
 }
 
-if (enforce && enforceFailures.length > 0) {
-  process.exit(2);
-}
-
 function enforceReasons(result) {
   const reasons = [];
   if (result.projectState === "TARGET_MISSING") reasons.push("target path is missing");
@@ -907,4 +973,207 @@ function enforceReasons(result) {
   if (result.nextAction === "RUN_ADOPTION_ASSESSMENT") reasons.push("read-only adoption assessment is required before workflow writes");
   if (result.nextAction === "REVIEW_DIRTY_WORKTREE") reasons.push("dirty production-governed worktree needs human confirmation before task execution");
   return [...new Set(reasons)];
+}
+
+function buildHumanOutput(result) {
+  const common = {
+    decisions: ["No human decision is needed for the current next action."],
+    aiCanDo: ["Read workflow files and report status.", "Run non-destructive local checks when requested."],
+    aiMustNotDo: ["Do not expand scope or change risk approvals without explicit human confirmation."],
+  };
+
+  const action = result.nextAction;
+  const stateReason = result.notes?.[0] || "Workflow state was inspected.";
+
+  if (result.projectState === "TARGET_MISSING") {
+    return {
+      summary: "The target project path does not exist, so AI cannot inspect or configure the project yet.",
+      status: "Must stop",
+      reason: "The target directory is missing.",
+      riskLevel: "medium",
+      canAiContinue: "no",
+      decisions: ["Confirm the correct project path or create the target directory."],
+      nextStep: "Select or create a valid project root, then run workflow-next again.",
+      aiCanDo: ["Wait for a valid project path."],
+      aiMustNotDo: ["Do not create workflow files in an unknown or unintended location."],
+    };
+  }
+
+  if (result.projectState === "DEV_KIT_REPOSITORY") {
+    return {
+      summary: "This directory is the AI Native Dev Kit source repository, not a target project.",
+      status: "Can continue",
+      reason: "Dev-kit self-check is the appropriate next action here.",
+      riskLevel: "low",
+      canAiContinue: "yes",
+      decisions: ["No project setup decision is needed."],
+      nextStep: "Run the dev-kit self-check before changing shared workflow assets.",
+      aiCanDo: ["Run dev-kit checks.", "Edit shared workflow assets when that is the active task."],
+      aiMustNotDo: ["Do not treat this repository as a generated target project."],
+    };
+  }
+
+  if (action === "RUN_ADOPTION_ASSESSMENT") {
+    return {
+      summary: "This looks like an existing governed, production-sensitive, or dirty project. AI should first perform a read-only adoption assessment instead of writing workflow assets.",
+      status: "Needs confirmation",
+      reason: "Existing governance or worktree risk was detected.",
+      riskLevel: "high",
+      canAiContinue: "limited",
+      decisions: [
+        "Confirm whether the adoption assessment should stay in chat or be written to an approved file location.",
+        "Confirm whether adapter setup is allowed after the assessment is reviewed.",
+      ],
+      nextStep: "Create a read-only adoption assessment and existing governance map, then wait for approval before any setup writes.",
+      aiCanDo: [
+        "Read existing governance files.",
+        "Draft adoption assessment and governance mapping.",
+        "Summarize gaps and conflicts.",
+      ],
+      aiMustNotDo: [
+        "Do not run init-project or update workflow assets.",
+        "Do not create migration reports or modify project files without approval.",
+        "Do not change business code, CI, release, production config, or agent rules.",
+      ],
+    };
+  }
+
+  if (action === "REVIEW_DIRTY_WORKTREE") {
+    return {
+      summary: "This project is already bootstrapped and production-governed, but the worktree has existing changes. AI should stop before starting a new task.",
+      status: "Must stop",
+      reason: "Dirty production-governed worktree protection is active.",
+      riskLevel: "high",
+      canAiContinue: "no",
+      decisions: [
+        "Confirm who owns the existing changes.",
+        "Choose whether to continue, split, stash, commit, or package the changes for review.",
+      ],
+      nextStep: "Review git status with the human before creating artifacts or executing a task.",
+      aiCanDo: ["Summarize changed files.", "Prepare a review packet if the human asks for one."],
+      aiMustNotDo: ["Do not create new task artifacts or edit files until the current changes are confirmed."],
+    };
+  }
+
+  if (action === "REVIEW_GOVERNANCE_MIGRATION") {
+    return {
+      summary: "Workflow assets are present, but one or more governance migration reports need human approval before they can be applied.",
+      status: "Needs confirmation",
+      reason: "Applying AGENTS.md or PR template governance changes can affect project rules.",
+      riskLevel: "medium",
+      canAiContinue: "limited",
+      decisions: ["Review the pending migration reports and approve, reject, or manually merge them."],
+      nextStep: "Summarize the migration reports and wait for explicit approval before applying them.",
+      aiCanDo: ["Read and summarize migration reports.", "Explain the proposed appendix and missing markers."],
+      aiMustNotDo: ["Do not apply AGENTS.md or PR template migrations without explicit approval."],
+    };
+  }
+
+  if (action === "INIT_WITH_STARTER") {
+    return {
+      summary: "This appears to be a new project location. AI can initialize the workflow starter if the user intended setup.",
+      status: "Can continue",
+      reason: "No existing project or governance signals were detected.",
+      riskLevel: "low",
+      canAiContinue: "yes",
+      decisions: ["Confirm the intended starter if a platform-specific starter is preferred."],
+      nextStep: "Initialize the generic starter, or choose a platform starter first.",
+      aiCanDo: ["Create workflow assets and starter files.", "Run onboarding checks after setup."],
+      aiMustNotDo: ["Do not add business implementation before project onboarding and the first task chain."],
+    };
+  }
+
+  if (action === "RUN_WORKFLOW_ASSET_UPDATE") {
+    return {
+      summary: "The project has AI Native workflow assets, but they are missing or not current. AI can update workflow assets if setup intent is confirmed.",
+      status: "Can continue",
+      reason: stateReason,
+      riskLevel: "medium",
+      canAiContinue: "limited",
+      decisions: ["Confirm that workflow asset update is allowed for this project."],
+      nextStep: "Run workflow asset update, then review any migration reports before applying them.",
+      aiCanDo: ["Refresh .ai-native assets and workflow scripts.", "Create migration reports for existing governance files."],
+      aiMustNotDo: ["Do not overwrite existing project docs, task files, logs, specs, or business code."],
+    };
+  }
+
+  if (action === "RUN_PROJECT_ONBOARDING") {
+    return {
+      summary: "The workflow is installed, but project context still needs confirmation before normal implementation.",
+      status: "Needs confirmation",
+      reason: "Project onboarding is missing or still has pending decisions.",
+      riskLevel: "medium",
+      canAiContinue: "limited",
+      decisions: ["Confirm project direction, selected profiles, technology strategy, risk boundaries, and first vertical slice."],
+      nextStep: "Let AI draft onboarding docs from the conversation, then ask for focused confirmation.",
+      aiCanDo: ["Draft onboarding docs.", "Ask focused questions.", "Run onboarding checks."],
+      aiMustNotDo: ["Do not start broad feature implementation until onboarding is ready or an explicit narrow exception is approved."],
+    };
+  }
+
+  if (action === "RUN_PLATFORM_BASELINE_SETUP") {
+    return {
+      summary: "Project context exists, but the runtime profile baseline is not ready yet.",
+      status: "Needs confirmation",
+      reason: "Selected profiles or required platform baseline docs are missing.",
+      riskLevel: "medium",
+      canAiContinue: "limited",
+      decisions: ["Confirm which project profiles apply and whether required docs are acceptable."],
+      nextStep: "Select profiles in docs/project-profile.md and run the platform baseline check.",
+      aiCanDo: ["Recommend profiles from project context.", "Draft missing baseline docs.", "Run platform baseline checks."],
+      aiMustNotDo: ["Do not assume a platform profile or weaken required verification without confirmation."],
+    };
+  }
+
+  if (action === "RUN_INDUSTRIAL_BASELINE_SETUP") {
+    return {
+      summary: "The project selected or needs strict industrial governance, but baseline selection, packs, evidence, or approval is not ready yet.",
+      status: result.industrialBaselineState === "EVIDENCE_MISSING" ? "Needs missing evidence" : "Needs confirmation",
+      reason: "BL2 work requires selected packs, evidence, and human approval before strict execution.",
+      riskLevel: "high",
+      canAiContinue: "limited",
+      decisions: ["Confirm BL level, selected industrial packs, exceptions, residual risks, and Human Approval."],
+      nextStep: "Use the industrial pack selection guide, draft baseline selection/evidence, install selected packs, then run BL2 checks.",
+      aiCanDo: ["Read the selection guide.", "Recommend the smallest relevant pack set.", "Draft baseline evidence and explain gaps."],
+      aiMustNotDo: ["Do not treat BL2 or any industrial pack as accepted until the human confirms it."],
+    };
+  }
+
+  if (action === "READY_FOR_FIRST_REQUEST") {
+    return {
+      summary: "The project workflow is ready enough to start the first request card.",
+      status: "Can continue",
+      reason: "No blocking setup issue was detected, but no workflow artifact exists yet.",
+      riskLevel: "low",
+      canAiContinue: "yes",
+      decisions: ["Confirm the first small request or vertical slice."],
+      nextStep: "Create the first request card and continue through preflight, spec, eval, and task.",
+      aiCanDo: ["Create the first request card.", "Draft preflight, spec, eval, and task after the request is clear."],
+      aiMustNotDo: ["Do not skip spec/eval/task for non-trivial implementation."],
+    };
+  }
+
+  if (action === "READY_FOR_TASK_EXECUTION") {
+    return {
+      summary: "Workflow setup is ready and task artifacts exist. AI can proceed only through an approved task card and required verification.",
+      status: "Can continue",
+      reason: "No blocking workflow setup issue was detected.",
+      riskLevel: "medium",
+      canAiContinue: "yes",
+      decisions: ["Confirm which task card should be executed next if more than one exists."],
+      nextStep: "Use the selected task card, run artifact checks, implement within scope, verify, and record the result.",
+      aiCanDo: ["Execute one approved task card.", "Run verification.", "Create AI task log and review assets when required."],
+      aiMustNotDo: ["Do not widen scope, bypass Risk Gate, or self-approve high-risk decisions."],
+    };
+  }
+
+  return {
+    summary: `Workflow-next selected ${action}. Review the technical details before continuing.`,
+    status: result.mustStopForHuman === "yes" ? "Needs confirmation" : "Can continue",
+    reason: stateReason,
+    riskLevel: result.mustStopForHuman === "yes" ? "medium" : "low",
+    canAiContinue: result.mustStopForHuman === "yes" ? "limited" : "yes",
+    nextStep: result.suggestedCommand || "Follow NEXT_ACTION.",
+    ...common,
+  };
 }

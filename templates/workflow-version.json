@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.24.0",
+  "devKitVersion": "0.25.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -34,6 +34,10 @@
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
+    "status-reports",
+    "decision-briefs",
+    "review-summaries",
+    "customer-handoffs",
     ".github/pull_request_template.md",
     ".github/workflows/ai-workflow-checks.yml"
   ]

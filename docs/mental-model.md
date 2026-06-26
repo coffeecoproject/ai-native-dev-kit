@@ -15,6 +15,7 @@ Workflow
   -> Selected Industrial Pack
   -> Project Evidence
   -> Task Gate
+  -> Output Experience
 ```
 
 For an already governed or already-online project, add one step before setup:
@@ -206,6 +207,32 @@ Use a Review Loop when a task needs more than a final report:
 
 Codex can only auto-fix deterministic, low-risk issues inside the approved task scope, and only for 2 rounds. Scope expansion, risk acceptance, permission model, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope decisions stay with humans.
 
+## Output Experience
+
+Use Output Experience for every important workflow status, blocked state, review result, baseline result, adoption assessment, release summary, or automation proposal.
+
+It answers:
+
+- What happened?
+- Can AI continue?
+- Why?
+- What does the human need to decide?
+- What is the next safe step?
+- What may AI do now?
+- What must AI avoid?
+
+It does not replace technical details. It moves them after the human-facing summary.
+
+Use:
+
+- `core/output-protocol.md`
+- `core/glossary.md`
+- `prompts/reporter-agent.md`
+- `templates/human-status-report.md`
+- `templates/decision-brief.md`
+- `templates/plain-review-summary.md`
+- `templates/customer-handoff.md`
+
 ## Practical Choices
 
 Use this decision path:
@@ -225,6 +252,9 @@ BL2 selected?
 
 Single task touches a risky area?
   Raise task level, check Risk Gate, and require Human Approval where needed.
+
+Reporting status to a human?
+  Start with Output Experience, then include technical details.
 ```
 
 ## What Not To Do

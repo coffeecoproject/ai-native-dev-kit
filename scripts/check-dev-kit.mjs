@@ -67,6 +67,8 @@ function checkRequiredFiles() {
     "core/automation-governance.md",
     "core/project-onboarding.md",
     "core/review-loop.md",
+    "core/output-protocol.md",
+    "core/glossary.md",
     "templates/request-card.md",
     "templates/preflight-report.md",
     "templates/spec.md",
@@ -82,6 +84,10 @@ function checkRequiredFiles() {
     "templates/review-packet.md",
     "templates/gpt-review-prompt.md",
     "templates/review-loop-report.md",
+    "templates/human-status-report.md",
+    "templates/decision-brief.md",
+    "templates/plain-review-summary.md",
+    "templates/customer-handoff.md",
     "templates/dev-kit-change-proposal.md",
     "templates/skill-candidate.md",
     "templates/project-automation-proposal.md",
@@ -117,6 +123,7 @@ function checkRequiredFiles() {
     "prompts/bootstrap-agent.md",
     "prompts/project-onboarding-agent.md",
     "prompts/reviewer-agent.md",
+    "prompts/reporter-agent.md",
     "scripts/init-project.mjs",
     "scripts/check-ai-workflow.mjs",
     "scripts/check-dev-kit.mjs",
@@ -293,6 +300,10 @@ function checkVersionMetadata() {
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
+    "status-reports",
+    "decision-briefs",
+    "review-summaries",
+    "customer-handoffs",
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
     ".github/pull_request_template.md",
@@ -391,6 +402,58 @@ function checkReviewLoopProtocol() {
     pass("review loop protocol keeps hook automation future-scoped");
   } else {
     fail("review loop protocol must keep hook automation future-scoped");
+  }
+}
+
+function checkOutputExperienceProtocol() {
+  const files = {
+    "core/output-protocol.md": read("core/output-protocol.md"),
+    "core/glossary.md": read("core/glossary.md"),
+    "templates/human-status-report.md": read("templates/human-status-report.md"),
+    "templates/decision-brief.md": read("templates/decision-brief.md"),
+    "templates/plain-review-summary.md": read("templates/plain-review-summary.md"),
+    "templates/customer-handoff.md": read("templates/customer-handoff.md"),
+    "prompts/reporter-agent.md": read("prompts/reporter-agent.md"),
+  };
+  const combined = Object.values(files).join("\n");
+  const requiredMarkers = [
+    "Human first. Technical second. Machine last.",
+    "Human Summary",
+    "Current Status",
+    "What I Need From You",
+    "Recommended Next Step",
+    "What AI Can Do Safely",
+    "What AI Must Not Do",
+    "Technical Details",
+    "Audit Notes",
+    "Machine-readable Output",
+    "owner",
+    "developer",
+    "reviewer",
+    "audit",
+    "Must stop",
+    "Approval scope",
+    "Review Packet",
+    "AUTO_FIX",
+    "Decision Brief",
+    "Customer Handoff Summary",
+  ];
+
+  for (const marker of requiredMarkers) {
+    if (combined.includes(marker)) {
+      pass(`output experience protocol includes ${marker}`);
+    } else {
+      fail(`output experience protocol missing ${marker}`);
+    }
+  }
+
+  const workflowNext = read("scripts/workflow-next.mjs");
+  for (const marker of ["--format human", "--format technical", "## Human Summary", "## Technical Details"]) {
+    if (workflowNext.includes(marker)) {
+      pass(`workflow-next supports output marker ${marker}`);
+    } else {
+      fail(`workflow-next missing output marker ${marker}`);
+    }
   }
 }
 
@@ -564,6 +627,10 @@ function checkStarters() {
     "review-packets/.gitkeep",
     "gpt-review-prompts/.gitkeep",
     "review-loop-reports/.gitkeep",
+    "status-reports/.gitkeep",
+    "decision-briefs/.gitkeep",
+    "review-summaries/.gitkeep",
+    "customer-handoffs/.gitkeep",
     "releases/.gitkeep",
     "scripts/verify.sh",
     ".github/pull_request_template.md",
@@ -588,7 +655,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -597,7 +664,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -627,7 +694,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -728,6 +795,13 @@ function checkReadmePointers() {
     "gpt-review-prompt",
     "review-loop-report",
     "review-loop",
+    "output-protocol",
+    "glossary",
+    "human-status-report",
+    "decision-brief",
+    "plain-review-summary",
+    "customer-handoff",
+    "reporter-agent",
     "dogfood-observation",
     "--enforce",
     "bootstrap-agent",
@@ -925,6 +999,17 @@ function checkGeneratedProjectE2E() {
     ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
     ".ai-native/templates/baseline-selection.md",
     ".ai-native/templates/baseline-evidence.md",
+    ".ai-native/core/output-protocol.md",
+    ".ai-native/core/glossary.md",
+    ".ai-native/prompts/reporter-agent.md",
+    ".ai-native/templates/human-status-report.md",
+    ".ai-native/templates/decision-brief.md",
+    ".ai-native/templates/plain-review-summary.md",
+    ".ai-native/templates/customer-handoff.md",
+    "status-reports/.gitkeep",
+    "decision-briefs/.gitkeep",
+    "review-summaries/.gitkeep",
+    "customer-handoffs/.gitkeep",
     "docs/verification-matrix.md",
   ]) {
     if (!fs.existsSync(path.join(target, rel))) {
@@ -1593,6 +1678,70 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project new workflow item creates review loop report");
 
+  const generatedHumanStatusReport = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "human-status-report",
+    "--name",
+    "workflow-next",
+  ]);
+  if (generatedHumanStatusReport.status !== 0
+    || !fs.existsSync(path.join(target, "status-reports", "001-workflow-next.md"))) {
+    fail(`generated project human status report item failed: ${generatedHumanStatusReport.stderr || generatedHumanStatusReport.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates human status report");
+
+  const generatedDecisionBrief = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "decision-brief",
+    "--name",
+    "baseline-selection",
+  ]);
+  if (generatedDecisionBrief.status !== 0
+    || !fs.existsSync(path.join(target, "decision-briefs", "001-baseline-selection.md"))) {
+    fail(`generated project decision brief item failed: ${generatedDecisionBrief.stderr || generatedDecisionBrief.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates decision brief");
+
+  const generatedPlainReviewSummary = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "plain-review-summary",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedPlainReviewSummary.status !== 0
+    || !fs.existsSync(path.join(target, "review-summaries", "001-admin-work-item-list.md"))) {
+    fail(`generated project plain review summary item failed: ${generatedPlainReviewSummary.stderr || generatedPlainReviewSummary.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates plain review summary");
+
+  const generatedCustomerHandoff = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "customer-handoff",
+    "--name",
+    "release-001",
+  ]);
+  if (generatedCustomerHandoff.status !== 0
+    || !fs.existsSync(path.join(target, "customer-handoffs", "001-release-001.md"))) {
+    fail(`generated project customer handoff item failed: ${generatedCustomerHandoff.stderr || generatedCustomerHandoff.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates customer handoff");
+
   const missedRiskTaskContent = originalTaskContent
     .replace("- [x] permission", "- [ ] permission")
     .replace("Required: Yes", "Required: No")
@@ -1827,7 +1976,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy project workflow update failed: ${legacyUpdateResult.stderr || legacyUpdateResult.stdout}`);
     return;
   }
-  const legacyExpectedDirs = ["skill-candidates", "automation-proposals", "workflow-retros", "workflow-improvements", "review-packets", "gpt-review-prompts", "review-loop-reports"];
+  const legacyExpectedDirs = ["skill-candidates", "automation-proposals", "workflow-retros", "workflow-improvements", "review-packets", "gpt-review-prompts", "review-loop-reports", "status-reports", "decision-briefs", "review-summaries", "customer-handoffs"];
   for (const dir of legacyExpectedDirs) {
     if (!fs.existsSync(path.join(legacyTarget, dir))) {
       fail(`legacy project workflow update missing ${dir}`);
@@ -1938,7 +2087,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const legacyPrTemplateContent = fs.readFileSync(legacyPrTemplate, "utf8");
-  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
     if (!legacyPrTemplateContent.includes(marker)) {
       fail(`legacy project workflow update PR template missing ${marker}`);
       return;
@@ -2029,7 +2178,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
-  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
     if (!appliedCustomPrTemplate.includes(marker)) {
       fail(`legacy custom PR template explicit apply missing ${marker}`);
       return;
@@ -2048,6 +2197,7 @@ checkDefaultStarter();
 checkVersionMetadata();
 checkCorePurity();
 checkReviewLoopProtocol();
+checkOutputExperienceProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

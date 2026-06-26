@@ -146,6 +146,14 @@ For L2/L3 work or when review findings need closure, run `node scripts/new-workf
 
 If GPT Pro or a second model is used for review, run `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` and pair it with the Review Packet. The reviewer is read-only and must not approve risk, release, scope, architecture, dependencies, migrations, production config, Human Approval, or Approval scope.
 
+## Output Experience
+
+Use `.ai-native/core/output-protocol.md` and `.ai-native/prompts/reporter-agent.md` when reporting workflow, baseline, adoption, review, release, or automation status.
+
+Human-facing output must lead with a human summary, current status, decision needed, next safe step, what AI can do, and what AI must not do. Keep technical fields, paths, commands, and audit notes after that.
+
+Use `.ai-native/core/glossary.md` to translate internal workflow terms when the user may not know them.
+
 ## High-risk Boundaries
 
 Stop and ask before:

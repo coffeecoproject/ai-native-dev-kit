@@ -68,6 +68,13 @@ For workflow artifacts:
 - AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds
 - route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human
 
+For output experience:
+
+- use `.ai-native/core/output-protocol.md` and `.ai-native/prompts/reporter-agent.md` for workflow, baseline, adoption, review, release, and automation status
+- start human-facing output with a human summary, current status, decision needed, next safe step, what AI can do, and what AI must not do
+- keep technical fields, paths, commands, and audit notes after the plain-language status
+- use `.ai-native/core/glossary.md` when internal workflow terms need translation
+
 For review:
 
 - lead with findings

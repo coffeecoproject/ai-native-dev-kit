@@ -1,5 +1,19 @@
 # Baseline Evidence
 
+## Human Summary
+
+One-sentence conclusion:
+
+## Decision Needed
+
+Does baseline evidence need human confirmation before AI continues: Yes / No
+
+Decision:
+
+## Next Safe Step
+
+Next action:
+
 ## Status
 
 Draft status: DRAFT / CONFIRMED

@@ -78,11 +78,16 @@ Detect whether a target is a new project, existing project, or bootstrapped proj
 ```bash
 node ai-native-dev-kit/scripts/workflow-next.mjs ../my-project
 node scripts/workflow-next.mjs .
+node scripts/workflow-next.mjs . --format human
+node scripts/workflow-next.mjs . --format technical
+node scripts/workflow-next.mjs . --format json
 node scripts/workflow-next.mjs . --json
 node scripts/workflow-next.mjs . --enforce
 ```
 
 This script does not interpret natural language and does not write files. Codex should use `.ai-native/prompts/bootstrap-agent.md` for execution-vs-discussion intent, then use `workflow-next.mjs` for project state.
+
+Default output is `--format human`: a human summary first, followed by technical state fields. Use `--format technical` for raw field-first output and `--format json` or `--json` for machine-readable output.
 
 `--enforce` exits non-zero when workflow assets are missing, versions mismatch, migration reports need approval, or onboarding is not ready.
 
@@ -167,6 +172,10 @@ node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type human-status-report --name workflow-next
+node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection
+node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type customer-handoff --name release-001
 ```
 
 ## check-workflow-artifacts.mjs

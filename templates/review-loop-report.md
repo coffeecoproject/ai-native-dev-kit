@@ -4,6 +4,20 @@ Use this file to record task-level review, automatic fixes, re-review, and human
 
 This report does not approve risk, scope, merge, or release. It records what was reviewed and what remains.
 
+## Human Summary
+
+One-sentence conclusion:
+
+## Decision Needed
+
+Does this review require human decision before AI continues: Yes / No
+
+Decision:
+
+## Next Safe Step
+
+Next action:
+
 ## Status
 
 Task:

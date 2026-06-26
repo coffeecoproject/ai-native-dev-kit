@@ -1,5 +1,17 @@
 # Workflow Retro: <period-or-milestone>
 
+## Human Summary
+
+One-sentence conclusion:
+
+## Decision Needed
+
+Which workflow change, if any, needs human approval:
+
+## Next Safe Step
+
+Next action:
+
 ## Period
 
 Date range / milestone:

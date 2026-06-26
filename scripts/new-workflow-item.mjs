@@ -19,6 +19,10 @@ const typeMap = {
   "gpt-review-prompt": { dir: "gpt-review-prompts", template: "gpt-review-prompt.md", defaultName: "gpt-review-prompt" },
   "adoption-assessment": { dir: ".ai-native/adoption", template: "adoption-assessment.md", defaultName: "adoption-assessment" },
   "governance-map": { dir: ".ai-native/adoption", template: "existing-governance-map.md", defaultName: "existing-governance-map" },
+  "human-status-report": { dir: "status-reports", template: "human-status-report.md", defaultName: "status-report" },
+  "decision-brief": { dir: "decision-briefs", template: "decision-brief.md", defaultName: "decision-brief" },
+  "plain-review-summary": { dir: "review-summaries", template: "plain-review-summary.md", defaultName: "review-summary" },
+  "customer-handoff": { dir: "customer-handoffs", template: "customer-handoff.md", defaultName: "customer-handoff" },
 };
 
 const aliases = {
@@ -38,6 +42,16 @@ const aliases = {
   adoption: "adoption-assessment",
   assessment: "adoption-assessment",
   "existing-governance-map": "governance-map",
+  status: "human-status-report",
+  "status-report": "human-status-report",
+  humanstatus: "human-status-report",
+  "human-status": "human-status-report",
+  decision: "decision-brief",
+  "human-decision": "decision-brief",
+  "review-summary": "plain-review-summary",
+  reviewsummary: "plain-review-summary",
+  handoff: "customer-handoff",
+  "customer-summary": "customer-handoff",
 };
 
 function parseArgs(argv) {
@@ -74,6 +88,10 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md");
   console.error("  node scripts/new-workflow-item.mjs --type adoption-assessment --name existing-project");
   console.error("  node scripts/new-workflow-item.mjs --type governance-map --name existing-project");
+  console.error("  node scripts/new-workflow-item.mjs --type human-status-report --name workflow-next");
+  console.error("  node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection");
+  console.error("  node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md");
+  console.error("  node scripts/new-workflow-item.mjs --type customer-handoff --name release-001");
 }
 
 function fail(message) {
@@ -328,6 +346,17 @@ function fillTask(content, context) {
 
 function fillLog(content, context) {
   let output = setTitle(content, `# AI Task Log: ${context.date}-${context.slug}`);
+  output = setSection(output, "Human Summary", `One-sentence conclusion:\n\nTask log for ${context.title}.`);
+  output = setSection(
+    output,
+    "Decision Needed",
+    [
+      "Does this task result require human decision before follow-up work: Yes / No",
+      "",
+      "Decision:",
+    ].join("\n"),
+  );
+  output = setSection(output, "Next Safe Step", "Next action:");
   output = setSection(output, "Task", `\`${context.taskRef}\``);
   output = setSection(output, "Agent / Tool", context.agent || "Codex");
   output = setSection(
@@ -390,6 +419,25 @@ function fillReviewLoopReport(content, context) {
     ? `${level} work requires a Review Packet and at least one read-only reviewer pass.`
     : `${level} work does not require Review Loop unless the human or task risk asks for it.`;
   let output = setTitle(content, `# Review Loop Report: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Summary",
+    [
+      "One-sentence conclusion:",
+      "",
+      `${context.title} review loop is open. Review findings decide whether AI may auto-fix, must stop, or needs human decision.`,
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Decision Needed",
+    [
+      "Does this review require human decision before AI continues: Yes / No",
+      "",
+      "Decision:",
+    ].join("\n"),
+  );
+  output = setSection(output, "Next Safe Step", "Next action: Record reviewer findings before any AUTO_FIX attempt.");
   output = setSection(
     output,
     "Status",
@@ -471,6 +519,21 @@ function fillAdoptionAssessment(content, context) {
   let output = setTitle(content, `# Existing Governed Project Adoption Assessment: ${context.slug}`);
   output = setSection(
     output,
+    "Human Summary",
+    [
+      "One-sentence conclusion:",
+      "",
+      "This is a read-only assessment. It does not approve workflow setup or project writes.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Decision Needed",
+    "Should AI stay read-only, write adapter docs, or proceed to workflow asset setup after approval:",
+  );
+  output = setSection(output, "Next Safe Step", "Next action: Map existing governance before proposing any writes.");
+  output = setSection(
+    output,
     "Assessment Status",
     [
       "Mode: READ_ONLY",
@@ -498,6 +561,136 @@ function fillGovernanceMap(content, context) {
       "Owner:",
       "",
       `Reviewed at: ${context.date}`,
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillHumanStatusReport(content, context) {
+  let output = setTitle(content, `# Human Status Report: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Summary",
+    [
+      "One-sentence conclusion:",
+      "",
+      `Status report for ${context.title}.`,
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Technical Details",
+    [
+      "State fields:",
+      "",
+      "```text",
+      context.taskRef ? `TASK: ${context.taskRef}` : "TASK:",
+      context.specRef ? `SPEC: ${context.specRef}` : "SPEC:",
+      context.evalRef ? `EVAL: ${context.evalRef}` : "EVAL:",
+      "```",
+      "",
+      "Files / paths:",
+      "",
+      context.taskRef ? `- \`${context.taskRef}\`` : "- ",
+      context.specRef ? `- \`${context.specRef}\`` : "- ",
+      context.evalRef ? `- \`${context.evalRef}\`` : "- ",
+      "",
+      "Commands run:",
+      "",
+      "```text",
+      "",
+      "```",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillDecisionBrief(content, context) {
+  let output = setTitle(content, `# Decision Brief: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Decision Needed",
+    [
+      "Question:",
+      "",
+      "Owner: human",
+      "",
+      "Decision deadline, if any:",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Technical Basis",
+    [
+      "Related files:",
+      "",
+      context.taskRef ? `- \`${context.taskRef}\`` : "- ",
+      context.specRef ? `- \`${context.specRef}\`` : "- ",
+      context.evalRef ? `- \`${context.evalRef}\`` : "- ",
+      "",
+      "Related checks:",
+      "",
+      "```text",
+      "",
+      "```",
+      "",
+      "Related workflow fields:",
+      "",
+      "```text",
+      "",
+      "```",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillPlainReviewSummary(content, context) {
+  let output = setTitle(content, `# Review Summary: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Technical Review Details",
+    [
+      context.reviewPacketRef ? `Review Packet: \`${context.reviewPacketRef}\`` : "Review Packet:",
+      "",
+      context.reviewLoopReportRef ? `Review Loop Report: \`${context.reviewLoopReportRef}\`` : "Review Loop Report:",
+      "",
+      "Reviewer:",
+      "",
+      "Commands run:",
+      "",
+      "```text",
+      "",
+      "```",
+      "",
+      "Findings table:",
+      "",
+      "| ID | Severity | Category | Status | Evidence |",
+      "|---|---|---|---|---|",
+      "|  | P0 / P1 / P2 | AUTO_FIX / NEEDS_HUMAN_DECISION / NEEDS_CLARIFICATION / NO_ACTION |  |  |",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillCustomerHandoff(content, context) {
+  let output = setTitle(content, `# Customer Handoff Summary: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Technical Details",
+    [
+      context.taskRef ? `Related task: \`${context.taskRef}\`` : "Related task:",
+      "",
+      "Related release record:",
+      "",
+      "Related evidence:",
+      "",
+      "- ",
+      "",
+      "Commands run:",
+      "",
+      "```text",
+      "",
+      "```",
     ].join("\n"),
   );
   return output;
@@ -560,6 +753,8 @@ const reviewPacketRef = resolveRef(projectRoot, args["review-packet"] || args.pa
   || siblingArtifactRef(projectRoot, "review-packets", number, slug);
 const gptReviewPromptRef = resolveRef(projectRoot, args["gpt-review-prompt"] || args.prompt, "GPT review prompt")
   || siblingArtifactRef(projectRoot, "gpt-review-prompts", number, slug);
+const reviewLoopReportRef = resolveRef(projectRoot, args["review-loop-report"] || args["loop-report"], "review loop report")
+  || siblingArtifactRef(projectRoot, "review-loop-reports", number, slug);
 const baseContext = {
   date,
   evalRef,
@@ -575,6 +770,7 @@ const baseContext = {
   logRef,
   reviewPacketRef,
   gptReviewPromptRef,
+  reviewLoopReportRef,
   title,
   agent: args.agent,
 };
@@ -591,6 +787,10 @@ if (type === "review-loop-report") content = fillReviewLoopReport(content, baseC
 if (type === "gpt-review-prompt") content = fillGptReviewPrompt(content, baseContext);
 if (type === "adoption-assessment") content = fillAdoptionAssessment(content, baseContext);
 if (type === "governance-map") content = fillGovernanceMap(content, baseContext);
+if (type === "human-status-report") content = fillHumanStatusReport(content, baseContext);
+if (type === "decision-brief") content = fillDecisionBrief(content, baseContext);
+if (type === "plain-review-summary") content = fillPlainReviewSummary(content, baseContext);
+if (type === "customer-handoff") content = fillCustomerHandoff(content, baseContext);
 
 const created = writeArtifact(projectRoot, config.dir, filename, content);
 
@@ -612,6 +812,18 @@ if (type === "review-packet") {
 } else if (type === "adoption-assessment" || type === "governance-map") {
   console.log("- Keep this read-only until the human approves adapter setup or the target write location.");
   console.log("- Do not use this file as permission to run init-project or update workflow assets.");
+} else if (type === "human-status-report") {
+  console.log("- Start with status, risk, whether AI can continue, and the next safe step.");
+  console.log("- Keep technical fields and command output under Technical Details.");
+} else if (type === "decision-brief") {
+  console.log("- Fill the decision question, options, recommendation, and what AI must not do before confirmation.");
+  console.log("- Do not treat this brief as approval; record the human decision after it is made.");
+} else if (type === "plain-review-summary") {
+  console.log("- Summarize Review Loop results for a human before listing technical findings.");
+  console.log("- Route scope, risk, approval, release, and production decisions to the human.");
+} else if (type === "customer-handoff") {
+  console.log("- Summarize delivered scope, verification, exclusions, risks, and decisions needed.");
+  console.log("- Do not treat this handoff summary as release approval by itself.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

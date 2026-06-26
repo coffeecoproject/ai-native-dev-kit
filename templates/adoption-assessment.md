@@ -4,6 +4,18 @@ Use this file when a project already has governance, CI gates, evidence, release
 
 This assessment is read-only by default. It does not authorize workflow asset installation, AGENTS.md changes, PR template changes, project doc edits, production changes, or business code changes.
 
+## Human Summary
+
+One-sentence conclusion:
+
+## Decision Needed
+
+Should AI stay read-only, write adapter docs, or proceed to workflow asset setup after approval:
+
+## Next Safe Step
+
+Next action:
+
 ## Assessment Status
 
 Mode: READ_ONLY

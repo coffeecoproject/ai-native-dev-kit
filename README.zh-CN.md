@@ -221,6 +221,10 @@ dev-kit-proposals/
 review-packets/
 gpt-review-prompts/
 review-loop-reports/
+status-reports/
+decision-briefs/
+review-summaries/
+customer-handoffs/
 releases/
 scripts/
   verify.sh
@@ -239,6 +243,55 @@ scripts/
   workflow-next.mjs
 .github/pull_request_template.md
 .github/workflows/ai-workflow-checks.yml
+```
+
+## 输出体验层
+
+这套东西越来越完整后，输出不能只给工程师看。
+
+所以新增了 Output Experience Layer：所有复杂状态先说人话，再放技术细节。
+
+核心文件：
+
+```text
+core/output-protocol.md
+core/glossary.md
+prompts/reporter-agent.md
+templates/human-status-report.md
+templates/decision-brief.md
+templates/plain-review-summary.md
+templates/customer-handoff.md
+```
+
+它要求 Codex 先说明：
+
+```text
+现在能不能继续
+为什么
+需要你决定什么
+下一步建议是什么
+AI 现在可以做什么
+AI 现在不能做什么
+```
+
+技术字段、脚本输出、审计记录仍然保留，但放在后面。
+
+`workflow-next` 默认会先输出 Human Summary，再输出技术状态：
+
+```bash
+node scripts/workflow-next.mjs .
+node scripts/workflow-next.mjs . --format human
+node scripts/workflow-next.mjs . --format technical
+node scripts/workflow-next.mjs . --format json
+```
+
+需要沉淀成文件时可以生成：
+
+```bash
+node scripts/new-workflow-item.mjs --type human-status-report --name workflow-next
+node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection
+node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type customer-handoff --name release-001
 ```
 
 ## 日常使用顺序
@@ -480,6 +533,22 @@ review-loop-reports/
 gpt-review-prompts/
 ```
 
+输出体验层：
+
+```text
+core/output-protocol.md
+core/glossary.md
+prompts/reporter-agent.md
+templates/human-status-report.md
+templates/decision-brief.md
+templates/plain-review-summary.md
+templates/customer-handoff.md
+status-reports/
+decision-briefs/
+review-summaries/
+customer-handoffs/
+```
+
 ## 生成 Workflow 文件
 
 ```bash
@@ -491,6 +560,10 @@ node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md -
 node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type human-status-report --name workflow-next
+node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection
+node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type customer-handoff --name release-001
 ```
 
 实现前检查 artifact 质量：

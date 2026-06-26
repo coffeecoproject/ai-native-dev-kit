@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.24.0`
+Current version: `0.25.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.24.0`
 
 ## Current Release
 
-`0.24.0`
+`0.25.0`
 
 Includes:
 
@@ -98,3 +98,11 @@ Includes:
 - review loop directories for generated projects and starter projects
 - review loop protocol self-checks in `check-dev-kit.mjs`
 - adoption assessment and governance map generation entries
+- Output Experience Protocol for human-first workflow, baseline, adoption, review, release, and audit reporting
+- plain-language glossary for AI Native workflow terms
+- reporter agent prompt for converting technical workflow state into human-readable status
+- human status report, decision brief, plain review summary, and customer handoff templates
+- `workflow-next --format human|technical|json` with human summary before technical fields by default
+- workflow item generation for human status reports, decision briefs, plain review summaries, and customer handoffs
+- generated project output report directories for status reports, decision briefs, review summaries, and customer handoffs
+- AGENTS.md governance includes Output Experience rules

@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
 const currentDevKitVersion = readCurrentVersion();
 const requiredPullRequestTemplateMarkers = [
+  "Human Summary",
   "Bootstrap state",
   "Project onboarding",
   "Workflow Evidence",
@@ -26,6 +27,7 @@ const requiredAgentGovernanceMarkers = [
   "Industrial Baseline",
   "Workflow Artifact Generation",
   "Review Loop",
+  "Output Experience",
   "Task Execution Rules",
   "High-risk Boundaries",
   "Skill Governance",
@@ -158,6 +160,10 @@ function resolvePullRequestTemplateSource(starter) {
 
 function pullRequestTemplateGovernanceAppendix() {
   return [
+    "",
+    "## Human Summary",
+    "",
+    "Explain the change, current status, risk, and next safe step in plain language.",
     "",
     "## Workflow Evidence",
     "",
@@ -413,6 +419,16 @@ function agentGovernanceSectionContent() {
       "Review Packet is the input. GPT Review Prompt is read-only reviewer instruction. Review Loop Report records review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items.",
       "",
       "Reviewer agents are read-only. Codex may auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds. Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to humans.",
+      "",
+    ].join("\n")],
+    ["Output Experience", [
+      "## Output Experience",
+      "",
+      "Use `.ai-native/core/output-protocol.md` and `.ai-native/prompts/reporter-agent.md` when reporting workflow, baseline, adoption, review, release, or automation status.",
+      "",
+      "Human-facing output must explain status, risk, decision needed, next safe step, what AI can do, and what AI must not do before technical details. Do not hide technical details; move them under `Technical Details` or `Audit Notes`.",
+      "",
+      "Use `.ai-native/core/glossary.md` to translate internal workflow terms when the user may not know them.",
       "",
     ].join("\n")],
     ["Task Execution Rules", [
@@ -719,6 +735,10 @@ function ensureWorkflowDirs(targetPath) {
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
+    "status-reports",
+    "decision-briefs",
+    "review-summaries",
+    "customer-handoffs",
     "releases",
   ];
   for (const dir of dirs) {
@@ -782,6 +802,10 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "review-packets",
       "gpt-review-prompts",
       "review-loop-reports",
+      "status-reports",
+      "decision-briefs",
+      "review-summaries",
+      "customer-handoffs",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
     ],
