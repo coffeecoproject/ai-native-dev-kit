@@ -113,7 +113,7 @@ Do not treat BL2 or any industrial pack as accepted until humans confirm baselin
 
 ## Workflow Artifact Generation
 
-Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI task log, review packet, GPT review prompt, review loop report, follow-up proposal, and final report files instead of hand-copying templates.
+Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI task log, review packet, GPT review prompt, review loop report, goal card, follow-up proposal, and final report files instead of hand-copying templates.
 
 Before implementation, run:
 
@@ -132,6 +132,30 @@ If any Risk Gate item is checked, `Human Approval` status and `Approval scope` m
 If artifact quality fails, fix the workflow artifacts before writing code.
 
 When independent review is needed, run `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` and fill the packet before handing the change to a human reviewer or second model. A review packet is not approval.
+
+## Goal Mode
+
+Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.
+
+Goal Mode chooses one of:
+
+- `DISCUSS_ONLY`
+- `ADOPT_PROJECT`
+- `DEFINE_WORK`
+- `IMPLEMENT_TASK`
+- `REVIEW_TASK`
+- `REPAIR_TASK`
+- `BASELINE_DECISION`
+- `HANDOFF_OR_REPORT`
+
+Create a Goal Card with:
+
+```bash
+node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>
+node scripts/check-goal-mode.mjs .
+```
+
+A Goal Card is route selection only. It does not approve implementation, risk acceptance, release, Human Approval, Approval scope, or subagent orchestration.
 
 ## Review Loop
 

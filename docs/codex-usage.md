@@ -6,10 +6,11 @@ Use this guide when Codex is the main implementation agent.
 
 Codex should do four things:
 
-1. Turn conversation into workflow artifacts.
-2. Execute one approved task card at a time.
-3. Run verification and report evidence.
-4. Propose workflow improvements without applying governance changes automatically.
+1. Classify the human goal before choosing a path.
+2. Turn conversation into workflow artifacts.
+3. Execute one approved task card at a time.
+4. Run verification and report evidence.
+5. Propose workflow improvements without applying governance changes automatically.
 
 Humans decide:
 
@@ -44,6 +45,7 @@ Expected Codex behavior:
 - Use `init-project.mjs` for initialization or workflow asset updates.
 - Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
 - Run baseline checks after setup when scripts are available.
+- Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
 
 Optional project-state gate:
 
@@ -74,6 +76,26 @@ Expected Codex behavior:
 - Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
 - For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial packs, install them with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-pack.mjs . --selected-only` and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
 - Ask for human decisions only where the workflow requires confirmation.
+
+## Goal Mode Prompt
+
+Use this when the next user request is broad, ambiguous, high-risk, or could mean discussion, setup, definition, implementation, review, repair, decision, or report:
+
+```text
+Classify this request with Goal Mode first.
+Create a Goal Card only if a durable route record is useful.
+Do not treat the Goal Card as permission to implement.
+```
+
+Expected Codex behavior:
+
+- Read `.ai-native/core/goal-mode.md`.
+- Use `.ai-native/prompts/goal-planner-agent.md` when present.
+- Choose one mode: `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`.
+- Generate `node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>` when route evidence is useful.
+- Run `node scripts/check-goal-mode.mjs .` when Goal Cards exist.
+- Continue only through the artifacts and approvals required by the selected mode.
+- Do not let Goal Mode bypass request, preflight, spec, eval, task, Engineering Baseline, Review Loop, Risk Gate, Human Approval, or Approval scope.
 
 ## Task Prompt
 

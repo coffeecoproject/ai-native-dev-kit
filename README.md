@@ -77,6 +77,7 @@ CAN_WRITE_WORKFLOW_ASSETS: no
 
 ```text
 想法
+  -> Goal Mode
   -> 项目上下文
   -> 需求卡
   -> 预检查
@@ -115,8 +116,45 @@ status-reports/        人能直接看懂的状态报告
 decision-briefs/       需要人决策时的简报
 review-summaries/      复审结果的人话摘要
 customer-handoffs/     交付或里程碑摘要
+goal-cards/            开始前的目标路线卡
 releases/              发布和证据记录
 ```
+
+## Goal Mode
+
+从 `0.31.0` 开始，新增 Goal Mode Entry。
+
+它解决的是：
+
+```text
+用户说一句自然语言后，Codex 先判断应该沟通、接入项目、定义需求、执行任务、复审、修复、做决策，还是出报告。
+```
+
+Goal Mode 不是许可，也不是自动执行器。它只做路线选择。
+
+可选模式：
+
+```text
+DISCUSS_ONLY
+ADOPT_PROJECT
+DEFINE_WORK
+IMPLEMENT_TASK
+REVIEW_TASK
+REPAIR_TASK
+BASELINE_DECISION
+HANDOFF_OR_REPORT
+```
+
+需要留痕时生成 Goal Card：
+
+```bash
+node scripts/new-workflow-item.mjs --type goal-card --name first-slice --goal-mode DEFINE_WORK
+node scripts/check-goal-mode.mjs .
+```
+
+Goal Card 会写清楚目标、路线、需要哪些 artifact、AI 可以做什么、AI 不能做什么、哪些决定必须由人确认，以及下一步安全动作。
+
+它不会替代 request、preflight、spec、eval、task、Engineering Baseline、Review Loop 或 Human Approval。
 
 ## 工程决策基线
 
@@ -207,6 +245,7 @@ Machine-readable Output
 详细导航见 `docs/artifact-decision-tree.md`。它把常见场景对应到具体 artifact：
 
 ```text
+开始前需要判断路线 -> goal-card
 需要独立审查 -> review-packet
 需要 GPT Pro / 第二模型审查 -> gpt-review-prompt
 需要多轮复审闭环 -> review-loop-report
@@ -240,6 +279,7 @@ docs/governance-hardening-roadmap.md
 node scripts/check-fixtures.mjs
 node scripts/score-output-quality.mjs examples/next-step-boundary-suggestions --min-score 80
 node scripts/check-glossary-usage.mjs .
+node scripts/check-goal-mode.mjs examples/goal-mode-first-route
 ```
 
 这些检查只用于 dev-kit 自身，不会作为目标项目 workflow asset 注入。
@@ -467,7 +507,17 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.30.2`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.31.0`。
+
+0.31.0 新增内容：
+
+- 新增 Goal Mode Entry，让 Codex 在执行前先判断目标路线。
+- 新增 `core/goal-mode.md`、`templates/goal-card.md`、`checklists/goal-mode-review.md` 和 `prompts/goal-planner-agent.md`。
+- 新增 `scripts/check-goal-mode.mjs`，检查 Goal Card 是否越过边界。
+- `new-workflow-item` 支持 `--type goal-card`。
+- 新增 `examples/goal-mode-first-route` 正例，以及 invalid mode / read-only adoption write 的坏例子。
+- 新项目和 workflow asset update 会带上 `goal-cards/`、Goal Mode 资产和检查脚本。
+- CI 会检查 Goal Mode 语义；没有 Goal Card 时会跳过，不会强制每个项目默认创建。
 
 0.30.2 新增内容：
 

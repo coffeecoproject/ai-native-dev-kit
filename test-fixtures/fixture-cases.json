@@ -40,6 +40,14 @@
     "howToFix": "Keep required glossary terms explained in core/glossary.md."
   },
   {
+    "name": "good goal mode first route",
+    "script": "scripts/check-goal-mode.mjs",
+    "args": ["examples/goal-mode-first-route"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Goal Mode check passed"],
+    "howToFix": "Keep the Goal Mode example routed through a legal mode with clear required artifacts and boundaries."
+  },
+  {
     "name": "bad engineering baseline missing type source",
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["test-fixtures/bad-engineering-baseline", "--strict"],
@@ -102,5 +110,21 @@
     "expectStatus": "nonzero",
     "expectStderrIncludes": ["missing glossary term: Engineering Baseline"],
     "howToFix": "The glossary checker must keep rejecting glossaries that omit required human-facing workflow terms."
+  },
+  {
+    "name": "bad goal mode invalid selected mode",
+    "script": "scripts/check-goal-mode.mjs",
+    "args": ["test-fixtures/bad-goal-mode-invalid"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["invalid Goal Mode"],
+    "howToFix": "The Goal Mode checker must keep rejecting unknown modes."
+  },
+  {
+    "name": "bad goal mode readonly adoption allows writes",
+    "script": "scripts/check-goal-mode.mjs",
+    "args": ["test-fixtures/bad-goal-mode-readonly-write"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["READ_ONLY adoption must not allow workflow asset writes"],
+    "howToFix": "The Goal Mode checker must keep blocking init-project or workflow asset writes during read-only adoption."
   }
 ]

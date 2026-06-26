@@ -10,6 +10,7 @@ Use the smallest layer that can control the risk.
 
 ```text
 Workflow
+  -> Goal Mode
   -> Engineering Baseline
   -> Profile
   -> BL Level
@@ -43,6 +44,20 @@ It answers:
 - What should be logged and improved after the task?
 
 If the project is a prototype, internal experiment, or low-risk local tool, the core workflow plus O0/O1 onboarding may be enough.
+
+## Goal Mode
+
+Use Goal Mode when Codex needs to decide what kind of work the human is asking for before creating artifacts or writing code.
+
+It answers:
+
+- Is this discussion only?
+- Is this existing project adoption?
+- Should Codex define work before implementation?
+- Is there an approved task to implement?
+- Is the user asking for review, repair, a baseline decision, or a report?
+
+Goal Mode can create `goal-cards/` for durable route records. It is not approval to implement and does not replace task cards, Engineering Baseline, Review Loop, or Human Approval.
 
 ## Engineering Baseline
 

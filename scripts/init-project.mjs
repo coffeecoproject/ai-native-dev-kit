@@ -30,6 +30,7 @@ const requiredAgentGovernanceMarkers = [
   "Industrial Baseline",
   "Workflow Artifact Generation",
   "Review Loop",
+  "Goal Mode",
   "Bounded Next-Step",
   "Output Experience",
   "Task Execution Rules",
@@ -174,6 +175,7 @@ function pullRequestTemplateGovernanceAppendix() {
     "- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed",
     "- [ ] Project onboarding is confirmed or not applicable for this change",
     "- [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state",
+    "- [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step",
     "- [ ] Request / preflight / spec / eval / task links are included or marked not applicable",
     "- [ ] Workflow artifact quality check passed or is not applicable",
     "- [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable",
@@ -438,6 +440,23 @@ function agentGovernanceSectionContent() {
       "For L2/L3 work or when review creates findings, create `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` to record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and cannot change scope, risk acceptance, Human Approval, architecture, dependencies, migrations, production config, release, or rollback decisions.",
       "",
       "When a next-step suggestion is related but outside current scope, create `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>`. When a task result needs durable reporting, create `node scripts/new-workflow-item.mjs --type final-report --task <task-card>`.",
+      "",
+    ].join("\n")],
+    ["Goal Mode", [
+      "## Goal Mode",
+      "",
+      "Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.",
+      "",
+      "Goal Mode chooses one of: `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`.",
+      "",
+      "Create a Goal Card with:",
+      "",
+      "```bash",
+      "node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>",
+      "node scripts/check-goal-mode.mjs .",
+      "```",
+      "",
+      "A Goal Card is route selection only. It does not approve implementation, risk acceptance, release, Human Approval, Approval scope, or subagent orchestration.",
       "",
     ].join("\n")],
     ["Review Loop", [
@@ -758,6 +777,9 @@ function copySharedAssets(targetPath, options = {}) {
   const nextStepBoundaryCheckDest = path.join(projectScriptsDir, "check-next-step-boundary.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-next-step-boundary.mjs"), nextStepBoundaryCheckDest, options);
 
+  const goalModeCheckDest = path.join(projectScriptsDir, "check-goal-mode.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-goal-mode.mjs"), goalModeCheckDest, options);
+
   const newWorkflowItemDest = path.join(projectScriptsDir, "new-workflow-item.mjs");
   copyFile(path.join(kitRoot, "scripts", "new-workflow-item.mjs"), newWorkflowItemDest, options);
 
@@ -791,6 +813,7 @@ function ensureWorkflowDirs(targetPath) {
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
+    "goal-cards",
     "status-reports",
     "decision-briefs",
     "review-summaries",
@@ -852,6 +875,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-next-step-boundary.mjs",
+      "scripts/check-goal-mode.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/workflow-next.mjs",
       "docs/project-onboarding.md",
@@ -865,6 +889,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "review-packets",
       "gpt-review-prompts",
       "review-loop-reports",
+      "goal-cards",
       "status-reports",
       "decision-briefs",
       "review-summaries",
@@ -944,4 +969,6 @@ console.log("10. Run scripts/check-workflow-artifacts.mjs . --mode ready before 
 console.log("11. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
 console.log("12. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
 console.log("13. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
-console.log("14. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+console.log("14. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
+console.log("15. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
+console.log("16. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

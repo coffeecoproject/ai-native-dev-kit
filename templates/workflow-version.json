@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.30.2",
+  "devKitVersion": "0.31.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -26,6 +26,7 @@
     "scripts/check-workflow-artifacts.mjs",
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
+    "scripts/check-goal-mode.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
@@ -39,6 +40,7 @@
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
+    "goal-cards",
     "follow-up-proposals",
     "final-reports",
     "status-reports",

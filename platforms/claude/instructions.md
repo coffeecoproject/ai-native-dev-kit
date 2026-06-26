@@ -6,6 +6,12 @@ Use the AI Native Development Workflow:
 Request -> Preflight -> Spec -> Eval -> Task -> Execute -> Verify -> Review -> Release -> Log
 ```
 
+When the route is unclear, first use Goal Mode:
+
+```text
+Goal Mode -> Request / Adoption / Task / Review / Repair / Decision / Report
+```
+
 For vague or large requests:
 
 - do not write code first
@@ -65,13 +71,15 @@ For industrial baseline:
 
 For workflow artifacts:
 
-- use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI log, review packet, GPT review prompt, review loop report, follow-up proposal, and final report files
+- use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI log, review packet, GPT review prompt, review loop report, goal card, follow-up proposal, and final report files
+- use `node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows
 - use `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when a change needs independent human, GPT Pro, or second-model review
 - use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure
 - use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet
 - use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope
 - use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report
 - run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists
+- run `node scripts/check-goal-mode.mjs .` when Goal Cards exist
 - run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when next-step suggestions are recorded
 - run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when workflow artifacts exist
 - run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded
@@ -79,6 +87,12 @@ For workflow artifacts:
 - fix placeholder or missing artifact content before coding
 - AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds
 - route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human
+
+For Goal Mode:
+
+- read `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when present
+- choose one of `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`
+- never treat a Goal Card as implementation approval, risk acceptance, release approval, Human Approval, Approval scope, or subagent orchestration approval
 
 For bounded next-step suggestions:
 

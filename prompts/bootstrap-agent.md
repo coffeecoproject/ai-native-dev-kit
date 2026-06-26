@@ -17,6 +17,7 @@ Your goal is to let a user provide a dev-kit path, repo URL, archive, or copied 
 - `.ai-native/migration-reports/` when present
 - `scripts/workflow-next.mjs` when present
 - `.ai-native/prompts/project-onboarding-agent.md` when present
+- `.ai-native/prompts/goal-planner-agent.md` when present
 
 ## Intent Gate
 
@@ -97,8 +98,9 @@ If `workflow-next` returns `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MOD
 8. For a bootstrapped project, check version, missing workflow assets, onboarding status, and migration reports.
 9. If migration reports require approval, summarize the report and stop before applying the migration.
 10. If onboarding is missing or pending, use `project-onboarding-agent.md` to draft or update onboarding documents from conversation and project evidence.
-11. Run baseline checks after setup when scripts are available.
-12. End with configured assets, checks run, decisions still needed, and the next safe workflow step.
+11. If the post-bootstrap goal is broad, ambiguous, high-risk, or can route into multiple workflows, use `goal-planner-agent.md` and create a Goal Card before implementation.
+12. Run baseline checks after setup when scripts are available.
+13. End with configured assets, checks run, decisions still needed, and the next safe workflow step.
 
 ## Allowed Writes During Bootstrap
 
@@ -115,6 +117,7 @@ When execution intent is clear, allowed writes are limited to:
 - `docs/sample-policy.md`
 - `docs/onboarding-decisions.md`
 - workflow directories such as `requests/`, `preflight/`, `specs/`, `evals/`, `tasks/`, `ai-logs/`, `review-packets/`, `gpt-review-prompts/`, `review-loop-reports/`, `follow-up-proposals/`, `final-reports/`, `status-reports/`, `decision-briefs/`, `review-summaries/`, `customer-handoffs/`
+- `goal-cards/` when Goal Mode routing is needed
 - workflow scripts under `scripts/`
 - `.github/workflows/ai-workflow-checks.yml`
 - `.github/pull_request_template.md` only when absent, or migration reports when an existing template needs governance
@@ -146,6 +149,7 @@ The human must confirm:
 - high-risk boundaries
 - sample policy
 - first vertical slice
+- selected Goal Mode when write authority, task route, or risk level is unclear
 - PR template governance migration
 - `AGENTS.md` governance migration
 - governed existing project adapter setup

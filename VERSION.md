@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.30.2`
+Current version: `0.31.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,17 @@ Current version: `0.30.2`
 
 ## Current Release
 
-`0.30.2`
+`0.31.0`
 
 Includes:
 
+- Goal Mode Entry for classifying user intent before selecting workflow artifacts
+- `core/goal-mode.md`, `templates/goal-card.md`, `checklists/goal-mode-review.md`, and `prompts/goal-planner-agent.md`
+- `scripts/check-goal-mode.mjs` for Goal Card semantic checks
+- `new-workflow-item --type goal-card`
+- generated projects and workflow asset updates now include `goal-cards/` and Goal Mode assets
+- Goal Mode golden example and bad fixtures for invalid mode and read-only adoption write attempts
+- CI and dev-kit self-check now include Goal Mode semantics without requiring every target project to create Goal Cards by default
 - Output Quality and Glossary checks for dev-kit human-facing report quality
 - `scripts/score-output-quality.mjs` for scoring final reports, status reports, decision briefs, review summaries, and customer handoffs
 - `scripts/check-glossary-usage.mjs` for required plain-language explanations of important workflow terms

@@ -51,6 +51,8 @@ jobs:
         run: node scripts/check-review-loop.mjs .
       - name: Check next-step boundary semantics
         run: node scripts/check-next-step-boundary.mjs .
+      - name: Check Goal Mode semantics
+        run: node scripts/check-goal-mode.mjs .
       - name: Summarize AI workflow logs
         run: node scripts/summarize-ai-logs.mjs .
       - name: Run daily workflow signal check

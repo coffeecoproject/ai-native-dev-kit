@@ -18,6 +18,7 @@ What is happening now?
 
 | Situation | Use | Do not use it as |
 |---|---|---|
+| User intent needs route selection before artifacts or code | `goal-cards/` | implementation approval |
 | User asks for a change | `requests/` | approval to implement a vague request |
 | Request is unclear, broad, cross-module, or risky | `preflight/` | final spec |
 | Scope and behavior need to be agreed | `specs/` | implementation log |
@@ -43,6 +44,8 @@ What is happening now?
 ## Task Flow
 
 ```text
+goal-card when route is ambiguous, high-risk, or multi-step
+->
 request
 -> preflight when unclear or risky
 -> engineering baseline check when structural engineering decisions are touched
@@ -56,6 +59,43 @@ request
 -> final report when durable result record is needed
 -> AI task log for L1/L2/L3 work
 ```
+
+## Goal Mode Flow
+
+Use this before artifact creation or implementation when the human request can route in more than one way.
+
+```text
+Need discussion only?
+-> DISCUSS_ONLY
+
+Existing governed or production-sensitive project?
+-> ADOPT_PROJECT
+-> adoption assessment / governance map before writes
+
+Need to turn broad work into executable artifacts?
+-> DEFINE_WORK
+-> request / preflight / spec / eval / task
+
+Selected task exists and user asks to execute?
+-> IMPLEMENT_TASK
+
+Need independent review?
+-> REVIEW_TASK
+-> review-packet
+
+Need to fix review findings?
+-> REPAIR_TASK
+-> AUTO_FIX only, max 2 rounds
+
+Need human-owned baseline or risk decision?
+-> BASELINE_DECISION
+-> decision-brief
+
+Need a status, final report, or handoff?
+-> HANDOFF_OR_REPORT
+```
+
+Goal Card is route selection only. It is not approval to implement, approve risk, approve release, or bypass workflow gates.
 
 ## Review Flow
 
@@ -158,6 +198,7 @@ Human-facing artifacts should start with what happened, whether AI can continue,
 ## What Not To Do
 
 - Do not create all artifacts by default.
+- Do not use a Goal Card as implementation approval.
 - Do not use a Review Packet as approval.
 - Do not use a Final Report as release approval.
 - Do not use a Follow-up Proposal as permission to implement.

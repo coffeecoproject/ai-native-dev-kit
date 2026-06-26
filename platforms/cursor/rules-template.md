@@ -68,12 +68,14 @@ Before non-trivial work, read:
 ## Workflow Artifacts
 
 - Use `node scripts/new-workflow-item.mjs` to create numbered workflow files.
+- Use `node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.
 - Use `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when a change needs independent human, GPT Pro, or second-model review.
 - Use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure.
 - Use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet.
 - Use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope.
 - Use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report.
 - Run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists.
+- Run `node scripts/check-goal-mode.mjs .` when Goal Cards exist.
 - Run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when next-step suggestions are recorded.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when request/spec/eval/task files exist.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded.
@@ -81,6 +83,12 @@ Before non-trivial work, read:
 - Fix placeholder or missing artifact content before writing code.
 - AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
+
+## Goal Mode
+
+- Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` before creating artifacts or writing code when the route is unclear.
+- Select one of `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`.
+- A Goal Card is route selection only. It is not permission to implement, approve risk, approve release, change Human Approval, or activate subagent orchestration.
 
 ## Bounded Next-Step
 

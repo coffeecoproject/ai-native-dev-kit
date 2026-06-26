@@ -25,6 +25,7 @@ const typeMap = {
   "customer-handoff": { dir: "customer-handoffs", template: "customer-handoff.md", defaultName: "customer-handoff" },
   "follow-up-proposal": { dir: "follow-up-proposals", template: "follow-up-proposal.md", defaultName: "follow-up-proposal" },
   "final-report": { dir: "final-reports", template: "final-report.md", defaultName: "final-report" },
+  "goal-card": { dir: "goal-cards", template: "goal-card.md", defaultName: "goal" },
 };
 
 const aliases = {
@@ -60,6 +61,10 @@ const aliases = {
   final: "final-report",
   report: "final-report",
   finalreport: "final-report",
+  goal: "goal-card",
+  goalcard: "goal-card",
+  route: "goal-card",
+  "goal-mode": "goal-card",
 };
 
 function parseArgs(argv) {
@@ -102,6 +107,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type customer-handoff --name release-001");
   console.error("  node scripts/new-workflow-item.mjs --type follow-up-proposal --task tasks/001-first-slice.md");
   console.error("  node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-slice.md");
+  console.error("  node scripts/new-workflow-item.mjs --type goal-card --name first-slice --goal-mode DEFINE_WORK");
 }
 
 function fail(message) {
@@ -799,6 +805,169 @@ function fillFinalReport(content, context) {
   return output;
 }
 
+const allowedGoalModes = new Set([
+  "DISCUSS_ONLY",
+  "ADOPT_PROJECT",
+  "DEFINE_WORK",
+  "IMPLEMENT_TASK",
+  "REVIEW_TASK",
+  "REPAIR_TASK",
+  "BASELINE_DECISION",
+  "HANDOFF_OR_REPORT",
+]);
+
+function normalizedGoalMode(value) {
+  const mode = String(value || "DEFINE_WORK").trim().toUpperCase().replace(/-/g, "_");
+  if (!allowedGoalModes.has(mode)) fail(`invalid goal mode: ${value}`);
+  return mode;
+}
+
+function fillGoalCard(content, context) {
+  const goalMode = normalizedGoalMode(context.goalMode);
+  let output = setTitle(content, `# Goal Card: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Summary",
+    [
+      "One-sentence conclusion:",
+      "",
+      `${context.title} is routed through ${goalMode}. This card selects the workflow path; it is not implementation approval.`,
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Goal",
+    [
+      `Goal: ${context.title}`,
+      "",
+      context.taskRef ? `Source: \`${context.taskRef}\`` : "Source: Human conversation.",
+      "",
+      "Non-goals: Do not implement, approve risk, approve release, or bypass required artifacts from this card alone.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Goal Mode",
+    [
+      `Selected: ${goalMode}`,
+      "",
+      "Why: Select the smallest safe workflow route before creating artifacts, implementing, reviewing, repairing, deciding, or reporting.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Project State",
+    [
+      "Project state:",
+      "",
+      "Workflow state:",
+      "",
+      "Adoption mode:",
+      "",
+      "Current `workflow-next` result:",
+      "",
+      "```text",
+      "NEXT_ACTION:",
+      "CAN_WRITE_WORKFLOW_ASSETS:",
+      "MUST_STOP_FOR_HUMAN:",
+      "```",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Risk And Level",
+    [
+      `Task level: ${context.level || "L1"}`,
+      "",
+      "Baseline level: BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL / not selected",
+      "",
+      "Risk reason:",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Engineering Baseline Touch",
+    [
+      "Does this goal touch project-wide engineering decisions: Yes / No",
+      "",
+      "If yes, related decision area:",
+      "",
+      "- structure / module boundary",
+      "- DTO / schema / domain boundary",
+      "- enum / string / lookup / state-machine",
+      "- API contract / generated type",
+      "- permission / migration / dependency / cross-module state",
+      "",
+      "Engineering baseline status:",
+      "",
+      "Decision Brief needed: Yes / No",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Required Artifacts",
+    [
+      "| Artifact | Required | Path / Status | Reason |",
+      "|---|---|---|---|",
+      `| Request | ${goalMode === "DEFINE_WORK" ? "Yes" : "No"} | ${context.requestRef ? `\`${context.requestRef}\`` : ""} |  |`,
+      `| Preflight | ${goalMode === "DEFINE_WORK" ? "Yes" : "No"} | ${context.preflightRef ? `\`${context.preflightRef}\`` : ""} |  |`,
+      `| Spec | ${goalMode === "DEFINE_WORK" ? "Yes" : "No"} | ${context.specRef ? `\`${context.specRef}\`` : ""} |  |`,
+      `| Eval | ${goalMode === "DEFINE_WORK" ? "Yes" : "No"} | ${context.evalRef ? `\`${context.evalRef}\`` : ""} |  |`,
+      `| Task | ${goalMode === "IMPLEMENT_TASK" || goalMode === "DEFINE_WORK" ? "Yes" : "No"} | ${context.taskRef ? `\`${context.taskRef}\`` : ""} |  |`,
+      `| Review Packet | ${goalMode === "REVIEW_TASK" || (context.level || "").match(/^L[23]$/) ? "Yes" : "No"} | ${context.reviewPacketRef ? `\`${context.reviewPacketRef}\`` : ""} |  |`,
+      `| Review Loop Report | ${goalMode === "REPAIR_TASK" || (context.level || "").match(/^L[23]$/) ? "Yes" : "No"} | ${context.reviewLoopReportRef ? `\`${context.reviewLoopReportRef}\`` : ""} |  |`,
+      `| Decision Brief | ${goalMode === "BASELINE_DECISION" ? "Yes" : "No"} |  |  |`,
+      `| Final Report / Handoff | ${goalMode === "HANDOFF_OR_REPORT" ? "Yes" : "No"} | ${context.finalReportRef ? `\`${context.finalReportRef}\`` : ""} |  |`,
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Allowed Actions",
+    [
+      "- Read project and workflow files needed to route the goal.",
+      "- Create or update only the artifacts listed as required after the selected mode permits writes.",
+      "- Run non-destructive local checks referenced by the selected route.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Forbidden Actions",
+    [
+      "- Do not treat this Goal Card as approval to implement.",
+      "- Do not bypass request, preflight, spec, eval, task, Engineering Baseline, Review Loop, Risk Gate, Human Approval, or Approval scope.",
+      "- Do not widen scope, accept risk, approve release, change production config, add dependencies, change migrations, change permission model, or modify architecture without the required human decision.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Human Decisions Needed",
+    [
+      "| Decision | Owner | Needed Before | Current Status |",
+      "|---|---|---|---|",
+      "| Confirm selected goal mode if risk or write authority is unclear | human | next action | Pending / Not needed |",
+    ].join("\n"),
+  );
+  output = setSection(output, "Next Safe Step", "Next action:");
+  output = setSection(
+    output,
+    "Technical Details",
+    [
+      "Related files:",
+      "",
+      context.taskRef ? `- \`${context.taskRef}\`` : "- ",
+      context.specRef ? `- \`${context.specRef}\`` : "- ",
+      context.evalRef ? `- \`${context.evalRef}\`` : "- ",
+      "",
+      "Commands run:",
+      "",
+      "```text",
+      "",
+      "```",
+    ].join("\n"),
+  );
+  return output;
+}
+
 const args = parseArgs(process.argv.slice(2));
 const rawType = args.type ? String(args.type) : "";
 const type = aliases[rawType] || rawType;
@@ -810,7 +979,7 @@ if (!type || !typeMap[type]) {
 
 const projectRoot = path.resolve(process.cwd(), args.root || ".");
 const config = typeMap[type];
-const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report"]);
+const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report", "goal-card"]);
 
 let requestRef = resolveRef(projectRoot, args.request || (type === "preflight" ? args.from : null), "request");
 let preflightRef = resolveRef(projectRoot, args.preflight, "preflight");
@@ -879,6 +1048,7 @@ const baseContext = {
   finalReportRef,
   title,
   agent: args.agent,
+  goalMode: args["goal-mode"] || args.mode,
 };
 
 let content = readTemplate(projectRoot, config.template);
@@ -899,6 +1069,7 @@ if (type === "plain-review-summary") content = fillPlainReviewSummary(content, b
 if (type === "customer-handoff") content = fillCustomerHandoff(content, baseContext);
 if (type === "follow-up-proposal") content = fillFollowUpProposal(content, baseContext);
 if (type === "final-report") content = fillFinalReport(content, baseContext);
+if (type === "goal-card") content = fillGoalCard(content, baseContext);
 
 const created = writeArtifact(projectRoot, config.dir, filename, content);
 
@@ -938,6 +1109,10 @@ if (type === "review-packet") {
 } else if (type === "final-report") {
   console.log("- Fill Completed, Verified, Not Changed, Risks Remaining, Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.");
   console.log("- Keep next-step suggestions bounded, classified, and actionable.");
+} else if (type === "goal-card") {
+  console.log("- Confirm the selected Goal Mode before executing any write or implementation path.");
+  console.log("- Run node scripts/check-goal-mode.mjs . after filling the card.");
+  console.log("- Do not treat the Goal Card as implementation approval.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

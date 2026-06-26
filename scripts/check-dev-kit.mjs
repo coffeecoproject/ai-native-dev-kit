@@ -70,6 +70,7 @@ function checkRequiredFiles() {
     "core/project-onboarding.md",
     "core/engineering-baseline.md",
     "core/review-loop.md",
+    "core/goal-mode.md",
     "core/next-step-boundary.md",
     "core/output-protocol.md",
     "core/glossary.md",
@@ -88,6 +89,7 @@ function checkRequiredFiles() {
     "templates/review-packet.md",
     "templates/gpt-review-prompt.md",
     "templates/review-loop-report.md",
+    "templates/goal-card.md",
     "templates/follow-up-proposal.md",
     "templates/final-report.md",
     "templates/human-status-report.md",
@@ -129,9 +131,11 @@ function checkRequiredFiles() {
     "checklists/project-onboarding-review.md",
     "checklists/engineering-baseline-review.md",
     "checklists/review-loop-review.md",
+    "checklists/goal-mode-review.md",
     "checklists/next-step-boundary-review.md",
     "prompts/bootstrap-agent.md",
     "prompts/project-onboarding-agent.md",
+    "prompts/goal-planner-agent.md",
     "prompts/reviewer-agent.md",
     "prompts/reporter-agent.md",
     "scripts/init-project.mjs",
@@ -150,6 +154,7 @@ function checkRequiredFiles() {
     "scripts/check-workflow-artifacts.mjs",
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
+    "scripts/check-goal-mode.mjs",
     "scripts/check-fixtures.mjs",
     "scripts/score-output-quality.mjs",
     "scripts/check-glossary-usage.mjs",
@@ -267,6 +272,8 @@ function checkRequiredFiles() {
     "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
     "examples/next-step-boundary-suggestions/README.md",
     "examples/next-step-boundary-suggestions/final-reports/001-suggestions.md",
+    "examples/goal-mode-first-route/README.md",
+    "examples/goal-mode-first-route/goal-cards/001-define-work.md",
     "test-fixtures/README.md",
     "test-fixtures/fixture-cases.json",
     "test-fixtures/bad-engineering-baseline/docs/engineering-baseline.md",
@@ -285,6 +292,8 @@ function checkRequiredFiles() {
     "test-fixtures/bad-next-step-risk-decision/final-reports/001-risk-decision.md",
     "test-fixtures/bad-output-quality/final-reports/001-low-quality.md",
     "test-fixtures/bad-glossary-usage/core/glossary.md",
+    "test-fixtures/bad-goal-mode-invalid/goal-cards/001-invalid-mode.md",
+    "test-fixtures/bad-goal-mode-readonly-write/goal-cards/001-readonly-write.md",
   ];
 
   for (const file of required) {
@@ -345,6 +354,7 @@ function checkVersionMetadata() {
     "scripts/check-workflow-artifacts.mjs",
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
+    "scripts/check-goal-mode.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
@@ -358,6 +368,7 @@ function checkVersionMetadata() {
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
+    "goal-cards",
     "follow-up-proposals",
     "final-reports",
     "status-reports",
@@ -511,6 +522,76 @@ function checkNextStepBoundaryProtocol() {
     pass("task card constrains authorized next actions");
   } else {
     fail("task card must constrain authorized next actions and next-step implementation");
+  }
+}
+
+function checkGoalModeProtocol() {
+  const files = {
+    "core/goal-mode.md": read("core/goal-mode.md"),
+    "templates/goal-card.md": read("templates/goal-card.md"),
+    "checklists/goal-mode-review.md": read("checklists/goal-mode-review.md"),
+    "prompts/goal-planner-agent.md": read("prompts/goal-planner-agent.md"),
+    "platforms/codex/AGENTS.template.md": read("platforms/codex/AGENTS.template.md"),
+    "starters/generic-project/AGENTS.md": read("starters/generic-project/AGENTS.md"),
+  };
+  const combined = Object.values(files).join("\n");
+  const requiredMarkers = [
+    "Goal Mode is the workflow entry layer",
+    "routing protocol, not execution approval",
+    "DISCUSS_ONLY",
+    "ADOPT_PROJECT",
+    "DEFINE_WORK",
+    "IMPLEMENT_TASK",
+    "REVIEW_TASK",
+    "REPAIR_TASK",
+    "BASELINE_DECISION",
+    "HANDOFF_OR_REPORT",
+    "Goal Card is route selection only",
+    "does not approve implementation",
+    "ADOPTION_MODE: READ_ONLY",
+    "RUN_ADOPTION_ASSESSMENT",
+    "request, preflight, spec, eval, and task",
+    "AUTO_FIX",
+    "maximum 2 auto-fix rounds",
+    "Decision Brief",
+    "Subagent orchestration is not activated",
+    "Do not call external GPT/API reviewers",
+    "node scripts/check-goal-mode.mjs .",
+  ];
+
+  for (const marker of requiredMarkers) {
+    if (combined.includes(marker)) {
+      pass(`goal mode protocol includes ${marker}`);
+    } else {
+      fail(`goal mode protocol missing ${marker}`);
+    }
+  }
+
+  const checker = read("scripts/check-goal-mode.mjs");
+  for (const marker of [
+    "legalModes",
+    "DISCUSS_ONLY allowed actions must stay read-only",
+    "ADOPT_PROJECT with READ_ONLY adoption must not allow workflow asset writes",
+    "IMPLEMENT_TASK requires a selected task card",
+    "REPAIR_TASK must reference AUTO_FIX findings",
+    "L2/L3 Goal Card must plan Review Packet handling",
+    "Allowed Actions must not approve release",
+  ]) {
+    if (checker.includes(marker)) {
+      pass(`goal mode checker includes ${marker}`);
+    } else {
+      fail(`goal mode checker missing ${marker}`);
+    }
+  }
+
+  const goodExample = runNode([
+    path.join(kitRoot, "scripts", "check-goal-mode.mjs"),
+    path.join(kitRoot, "examples", "goal-mode-first-route"),
+  ]);
+  if (goodExample.status !== 0) {
+    fail(`Goal Mode example check failed: ${goodExample.stderr || goodExample.stdout}`);
+  } else {
+    pass("Goal Mode example check");
   }
 }
 
@@ -781,6 +862,7 @@ function checkStarters() {
     "review-packets/.gitkeep",
     "gpt-review-prompts/.gitkeep",
     "review-loop-reports/.gitkeep",
+    "goal-cards/.gitkeep",
     "follow-up-proposals/.gitkeep",
     "final-reports/.gitkeep",
     "status-reports/.gitkeep",
@@ -802,7 +884,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -811,7 +893,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Goal Mode", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -874,6 +956,7 @@ function checkPlatformAdapters() {
     "check-workflow-artifacts.mjs",
     "check-review-loop.mjs",
     "check-next-step-boundary.mjs",
+    "check-goal-mode.mjs",
     "new-workflow-item.mjs",
     "workflow-next.mjs",
   ]) {
@@ -894,7 +977,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -920,6 +1003,7 @@ function checkReadmePointers() {
     "examples/engineering-baseline-enum-vs-lookup",
     "examples/engineering-baseline-api-dto-domain",
     "examples/next-step-boundary-suggestions",
+    "examples/goal-mode-first-route",
     "test-fixtures",
     "docs/quickstart",
     "docs/codex-usage",
@@ -931,6 +1015,7 @@ function checkReadmePointers() {
     "check-workflow-artifacts",
     "check-review-loop",
     "check-next-step-boundary",
+    "check-goal-mode",
     "check-fixtures",
     "score-output-quality",
     "check-glossary-usage",
@@ -944,6 +1029,18 @@ function checkReadmePointers() {
     "--mode core",
     "--mode full",
     "new-workflow-item",
+    "goal-card",
+    "goal-cards",
+    "goal-mode",
+    "Goal Mode",
+    "DISCUSS_ONLY",
+    "ADOPT_PROJECT",
+    "DEFINE_WORK",
+    "IMPLEMENT_TASK",
+    "REVIEW_TASK",
+    "REPAIR_TASK",
+    "BASELINE_DECISION",
+    "HANDOFF_OR_REPORT",
     "--mode ready",
     "--mode implementation",
     "--task",
@@ -1294,6 +1391,7 @@ function checkGeneratedProjectE2E() {
     "scripts/check-industrial-baseline.mjs",
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
+    "scripts/check-goal-mode.mjs",
     "scripts/check-engineering-baseline.mjs",
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
@@ -1308,9 +1406,13 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/engineering-baseline.md",
     ".ai-native/checklists/engineering-baseline-review.md",
     ".ai-native/core/next-step-boundary.md",
+    ".ai-native/core/goal-mode.md",
     ".ai-native/templates/follow-up-proposal.md",
     ".ai-native/templates/final-report.md",
+    ".ai-native/templates/goal-card.md",
     ".ai-native/checklists/next-step-boundary-review.md",
+    ".ai-native/checklists/goal-mode-review.md",
+    ".ai-native/prompts/goal-planner-agent.md",
     ".ai-native/core/output-protocol.md",
     ".ai-native/core/glossary.md",
     ".ai-native/prompts/reporter-agent.md",
@@ -1319,6 +1421,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/plain-review-summary.md",
     ".ai-native/templates/customer-handoff.md",
     "status-reports/.gitkeep",
+    "goal-cards/.gitkeep",
     "decision-briefs/.gitkeep",
     "review-summaries/.gitkeep",
     "customer-handoffs/.gitkeep",
@@ -1333,6 +1436,16 @@ function checkGeneratedProjectE2E() {
     }
   }
   pass("generated project platform baseline assets");
+
+  const emptyGoalModeCheck = runNode([
+    path.join(target, "scripts", "check-goal-mode.mjs"),
+    target,
+  ]);
+  if (emptyGoalModeCheck.status !== 0 || !emptyGoalModeCheck.stdout.includes("Goal Mode check skipped")) {
+    fail(`generated project empty Goal Mode check should pass by skipping: ${emptyGoalModeCheck.stderr || emptyGoalModeCheck.stdout}`);
+    return;
+  }
+  pass("generated project empty Goal Mode check skips");
 
   const engineeringBaselineCheck = runNode([
     path.join(target, "scripts", "check-engineering-baseline.mjs"),
@@ -2109,6 +2222,48 @@ function checkGeneratedProjectE2E() {
   fs.writeFileSync(finalReportPath, originalFinalReportContent);
   pass("generated project next-step boundary semantic check rejects out-of-scope immediate work");
 
+  const generatedGoalCard = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "goal-card",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+    "--goal-mode",
+    "IMPLEMENT_TASK",
+  ]);
+  const goalCardPath = path.join(target, "goal-cards", "001-admin-work-item-list.md");
+  if (generatedGoalCard.status !== 0 || !fs.existsSync(goalCardPath)) {
+    fail(`generated project goal card item failed: ${generatedGoalCard.stderr || generatedGoalCard.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates goal card");
+
+  const generatedGoalModeCheck = runNode([
+    path.join(target, "scripts", "check-goal-mode.mjs"),
+    target,
+  ]);
+  if (generatedGoalModeCheck.status !== 0) {
+    fail(`generated project Goal Mode semantic check failed: ${generatedGoalModeCheck.stderr || generatedGoalModeCheck.stdout}`);
+    return;
+  }
+  pass("generated project Goal Mode semantic check");
+
+  const originalGoalCardContent = fs.readFileSync(goalCardPath, "utf8");
+  const invalidGoalCardContent = originalGoalCardContent.replace("Selected: IMPLEMENT_TASK", "Selected: AUTO_IMPLEMENT");
+  fs.writeFileSync(goalCardPath, invalidGoalCardContent);
+  const invalidGoalModeCheck = runNode([
+    path.join(target, "scripts", "check-goal-mode.mjs"),
+    target,
+  ]);
+  if (invalidGoalModeCheck.status === 0 || !invalidGoalModeCheck.stderr.includes("invalid Goal Mode")) {
+    fail(`generated project Goal Mode check should reject invalid mode: ${invalidGoalModeCheck.stderr || invalidGoalModeCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(goalCardPath, originalGoalCardContent);
+  pass("generated project Goal Mode semantic check rejects invalid mode");
+
   const generatedHumanStatusReport = runNode([
     path.join(target, "scripts", "new-workflow-item.mjs"),
     "--root",
@@ -2631,6 +2786,7 @@ checkCorePurity();
 checkEngineeringBaselineProtocol();
 checkReviewLoopProtocol();
 checkNextStepBoundaryProtocol();
+checkGoalModeProtocol();
 checkOutputExperienceProtocol();
 checkProfiles();
 checkIndustrialPacks();
