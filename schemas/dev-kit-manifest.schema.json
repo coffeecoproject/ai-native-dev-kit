@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-native-dev-kit/dev-kit-manifest.schema.json",
+  "title": "AI Native Dev Kit Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "devKitVersion",
+    "mode",
+    "compatibilityPolicy",
+    "groups"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "devKitVersion": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "const": "read-only"
+    },
+    "compatibilityPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readOnly",
+        "authoritative",
+        "changesRuntimeBehavior",
+        "phase"
+      ],
+      "properties": {
+        "readOnly": {
+          "type": "boolean",
+          "const": true
+        },
+        "authoritative": {
+          "type": "boolean",
+          "const": false
+        },
+        "changesRuntimeBehavior": {
+          "type": "boolean",
+          "const": false
+        },
+        "phase": {
+          "type": "string"
+        }
+      }
+    },
+    "groups": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceRequired",
+        "targetCore",
+        "targetFull",
+        "aiNativeCore",
+        "templates",
+        "prompts",
+        "checklists",
+        "profiles",
+        "industrialPackRegistry",
+        "workflowDirs",
+        "scripts",
+        "platformAdapters",
+        "examples",
+        "fixtures",
+        "workflowVersionAssets"
+      ],
+      "properties": {
+        "sourceRequired": {
+          "$ref": "#/$defs/pathList"
+        },
+        "targetCore": {
+          "$ref": "#/$defs/pathList"
+        },
+        "targetFull": {
+          "$ref": "#/$defs/pathList"
+        },
+        "aiNativeCore": {
+          "$ref": "#/$defs/pathList"
+        },
+        "templates": {
+          "$ref": "#/$defs/pathList"
+        },
+        "prompts": {
+          "$ref": "#/$defs/pathList"
+        },
+        "checklists": {
+          "$ref": "#/$defs/pathList"
+        },
+        "profiles": {
+          "$ref": "#/$defs/pathList"
+        },
+        "industrialPackRegistry": {
+          "$ref": "#/$defs/pathList"
+        },
+        "workflowDirs": {
+          "$ref": "#/$defs/pathList"
+        },
+        "scripts": {
+          "$ref": "#/$defs/pathList"
+        },
+        "platformAdapters": {
+          "$ref": "#/$defs/pathList"
+        },
+        "examples": {
+          "$ref": "#/$defs/pathList"
+        },
+        "fixtures": {
+          "$ref": "#/$defs/pathList"
+        },
+        "workflowVersionAssets": {
+          "$ref": "#/$defs/pathList"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "pathList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[^\\\\]+$"
+      },
+      "uniqueItems": true
+    }
+  }
+}

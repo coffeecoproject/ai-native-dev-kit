@@ -61,6 +61,8 @@ function checkRequiredFiles() {
     "docs/goal-subagent-usage.md",
     "docs/governance-hardening-roadmap.md",
     "docs/productization-hardcut-1.0-plan.md",
+    "dev-kit-manifest.json",
+    "schemas/dev-kit-manifest.schema.json",
     ".github/workflows/dev-kit-pr-checks.yml",
     ".github/workflows/dev-kit-release-checks.yml",
     ".github/pull_request_template.md",
@@ -80,6 +82,18 @@ function checkRequiredFiles() {
     "releases/0.33.0/baseline-freeze.md",
     "releases/0.33.0/self-check-report.md",
     "releases/0.34.0/phase-report.md",
+    "requests/035-readonly-manifest.md",
+    "preflight/035-readonly-manifest.md",
+    "specs/035-readonly-manifest.md",
+    "evals/035-readonly-manifest.md",
+    "tasks/035-readonly-manifest.md",
+    "goal-cards/035-readonly-manifest.md",
+    "subagent-run-plans/035-readonly-manifest.md",
+    "decision-briefs/035-readonly-manifest.md",
+    "review-packets/035-readonly-manifest.md",
+    "review-loop-reports/035-readonly-manifest.md",
+    "final-reports/035-readonly-manifest.md",
+    "releases/0.35.0/phase-report.md",
     "core/workflow.md",
     "core/task-levels.md",
     "core/gates.md",
@@ -181,6 +195,8 @@ function checkRequiredFiles() {
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
+    "scripts/lib/manifest.mjs",
+    "scripts/check-manifest.mjs",
     "scripts/check-fixtures.mjs",
     "scripts/score-output-quality.mjs",
     "scripts/check-glossary-usage.mjs",
@@ -451,6 +467,7 @@ function checkDevKitFirstPartyCi() {
     "actions/setup-node",
     "node-version: 22",
     "node scripts/check-dev-kit.mjs",
+    "node scripts/check-manifest.mjs",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -474,6 +491,7 @@ function checkDevKitFirstPartyCi() {
     "actions/setup-node",
     "node-version: 22",
     "node scripts/check-dev-kit.mjs",
+    "node scripts/check-manifest.mjs",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -562,6 +580,87 @@ function checkDevKitFirstPartyCi() {
   ]) {
     if (phaseReport.includes(marker)) pass(`0.34 phase report includes ${marker}`);
     else fail(`0.34 phase report missing ${marker}`);
+  }
+}
+
+function checkManifestProtocol() {
+  const manifest = JSON.parse(read("dev-kit-manifest.json"));
+  if (manifest.schemaVersion === "1.0") pass("manifest schemaVersion is 1.0");
+  else fail("manifest schemaVersion must be 1.0");
+  if (manifest.mode === "read-only") pass("manifest mode is read-only");
+  else fail("manifest mode must be read-only");
+  if (manifest.compatibilityPolicy?.readOnly === true && manifest.compatibilityPolicy?.authoritative === false) {
+    pass("manifest compatibility policy is read-only and non-authoritative");
+  } else {
+    fail("manifest compatibility policy must be read-only and non-authoritative");
+  }
+
+  for (const group of [
+    "sourceRequired",
+    "targetCore",
+    "targetFull",
+    "aiNativeCore",
+    "templates",
+    "prompts",
+    "checklists",
+    "profiles",
+    "industrialPackRegistry",
+    "workflowDirs",
+    "scripts",
+    "platformAdapters",
+    "examples",
+    "fixtures",
+    "workflowVersionAssets",
+  ]) {
+    if (Array.isArray(manifest.groups?.[group])) pass(`manifest contains group ${group}`);
+    else fail(`manifest missing group ${group}`);
+  }
+
+  const manifestCheck = runNode(["scripts/check-manifest.mjs"]);
+  if (manifestCheck.status === 0) {
+    pass("manifest check");
+  } else {
+    fail(`manifest check failed: ${manifestCheck.stderr || manifestCheck.stdout}`);
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-manifest-check-"));
+  try {
+    const invalidManifest = path.join(tempRoot, "invalid-manifest.json");
+    fs.writeFileSync(invalidManifest, JSON.stringify({
+      schemaVersion: "1.0",
+      devKitVersion: currentVersion(),
+      mode: "read-only",
+      compatibilityPolicy: {
+        readOnly: true,
+        authoritative: false,
+        changesRuntimeBehavior: false,
+        phase: "0.35.0",
+      },
+      groups: {
+        sourceRequired: [],
+      },
+    }, null, 2));
+    const invalidResult = runNode(["scripts/check-manifest.mjs", kitRoot, "--manifest", invalidManifest]);
+    const invalidOutput = `${invalidResult.stdout}\n${invalidResult.stderr}`;
+    if (invalidResult.status !== 0 && invalidOutput.includes("manifest schema validation")) {
+      pass("manifest check rejects invalid manifest before drift checking");
+    } else {
+      fail(`manifest check must reject invalid manifest before drift checking: ${invalidOutput}`);
+    }
+
+    const driftManifest = path.join(tempRoot, "drift-manifest.json");
+    const drift = JSON.parse(JSON.stringify(manifest));
+    drift.groups.sourceRequired.push("fake/manifest-drift.md");
+    fs.writeFileSync(driftManifest, JSON.stringify(drift, null, 2));
+    const driftResult = runNode(["scripts/check-manifest.mjs", kitRoot, "--manifest", driftManifest]);
+    const driftOutput = `${driftResult.stdout}\n${driftResult.stderr}`;
+    if (driftResult.status !== 0 && driftOutput.includes("sourceRequired") && driftOutput.includes("fake/manifest-drift.md")) {
+      pass("manifest check reports sourceRequired drift");
+    } else {
+      fail(`manifest check must report sourceRequired drift: ${driftOutput}`);
+    }
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 }
 
@@ -1230,7 +1329,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/lib/manifest.mjs", "scripts/check-manifest.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -3186,6 +3285,7 @@ checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
 checkDevKitFirstPartyCi();
+checkManifestProtocol();
 checkCorePurity();
 checkEngineeringBaselineProtocol();
 checkReviewLoopProtocol();

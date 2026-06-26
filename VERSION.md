@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.34.0`
+Current version: `0.35.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `0.34.0`
 
 ## Current Release
 
-`0.34.0`
+`0.35.0`
 
 Includes:
 
+- Productization Hardcut phase `0.35.0`: read-only dev-kit manifest introduction
+- `dev-kit-manifest.json` with grouped source and generated-project asset inventory
+- manifest schema, loader, and drift checker through `schemas/dev-kit-manifest.schema.json`, `scripts/lib/manifest.mjs`, and `scripts/check-manifest.mjs`
+- dev-kit self-check and CI coverage for manifest validation, invalid manifest rejection, and drift reporting
+- decision brief and phase evidence for keeping manifest read-only and non-authoritative
 - Productization Hardcut phase `0.34.0`: Baseline Freeze + Self CI
 - first-party dev-kit PR and release CI under `.github/workflows/`
 - repository PR template, CODEOWNERS draft guidance, CONTRIBUTING, and SECURITY docs

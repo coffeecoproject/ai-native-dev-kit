@@ -26,6 +26,9 @@ jobs:
       - name: Dev-kit self-check
         run: node scripts/check-dev-kit.mjs
 
+      - name: Manifest check
+        run: node scripts/check-manifest.mjs
+
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs
 

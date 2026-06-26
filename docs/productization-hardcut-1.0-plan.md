@@ -6,7 +6,7 @@ Status: Active execution plan
 
 Current baseline: `0.33.0` frozen in `releases/0.33.0/`
 
-Current executed phase: `0.34.0` Baseline Freeze + Self CI
+Current executed phase: `0.35.0` Manifest Introduction, read-only
 
 Target release: `1.0.0`
 
