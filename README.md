@@ -11,6 +11,18 @@
 
 详细说明见 [README.zh-CN.md](README.zh-CN.md)。快速上手见 [docs/quickstart.md](docs/quickstart.md)。心智模型见 [docs/mental-model.md](docs/mental-model.md)。Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
 
+## 我该怎么选
+
+先按项目风险选一条路，不要一开始把所有规则都打开：
+
+```text
+轻量试验：O0 + BL0 + core workflow
+普通真实项目：O1 + selected profiles + BL1
+生产、客户、权限、数据或发布风险项目：O2 + selected profiles + BL2 + selected industrial packs
+```
+
+Web 和微信小程序都有 BL2 dogfood 示例；小程序 BL2 现在适合真实项目受控试跑，但仍是 draft，不是 stable 工业标准。
+
 ## 一句话用法
 
 在 Codex 里，把这个仓库地址或目录给它，然后说：
@@ -252,7 +264,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.21.1`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.21.2`。
 
 新增内容：
 
@@ -264,6 +276,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - `Risk Gate Exclusions` 增加防滥用约束，超过 3 项时需要在实现前明确人工批准范围。
 - `check-ai-workflow.mjs` 增加 `--mode core` / `--mode full`，日常 CI 可只检查核心工作流，完整升级时再跑 full。
 - `check-industrial-pack` 和 `check-industrial-baseline` 在 selected pack 缺失时会直接给出安装修复命令。
+- README 顶部补充三条使用路径，帮助项目先选轻量、普通或 BL2 受控试跑路线。
 - 微信小程序工业包补齐 runtime、云函数/访问规则、权限隐私、支付、发布审核等 BL2 样板文件。
 - 新增 `examples/miniprogram-industrial-bl2-first-slice`，串起小程序 baseline selection、evidence、task gate、release record 和 AI log。
 - selection guide 补充“小程序 + 可选后台/后端/云开发”的组合方式，后台作为 `internal-admin` 等 companion packs 接入。
@@ -326,6 +339,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - `examples/generic-first-change`
 - `examples/web-internal-admin-first-slice`
 - `examples/web-industrial-bl2-first-slice`
+- `examples/miniprogram-industrial-bl2-first-slice`
 
 Starter：
 

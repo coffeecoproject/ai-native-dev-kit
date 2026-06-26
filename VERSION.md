@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.21.1`
+Current version: `0.21.2`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.21.1`
 
 ## Current Release
 
-`0.21.1`
+`0.21.2`
 
 Includes:
 
@@ -84,3 +84,5 @@ Includes:
 - `check-ai-workflow.mjs --mode core|full` for routine target-project checks versus full asset checks
 - target-project bootstrap now carries industrial pack selection guidance without installing concrete packs by default
 - dogfood observation template for measuring real project workflow cost, evidence effort, missed-risk behavior, and AI collaboration quality
+- README path guidance for O0/BL0, O1/BL1, and O2/BL2 adoption choices
+- README quick index includes the Mini Program BL2 dogfood example

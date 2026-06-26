@@ -21,6 +21,18 @@ Codex 应先用 `prompts/bootstrap-agent.md` 判断你的意图：
 
 进入执行配置后，Codex 再运行 `scripts/workflow-next.mjs` 判断当前项目是新项目、旧项目还是已接入项目，并按 `NEXT_ACTION` 处理。
 
+## 三条使用路径
+
+先按项目风险选一条路，不要一开始把所有规则都打开：
+
+```text
+轻量试验：O0 + BL0 + core workflow
+普通真实项目：O1 + selected profiles + BL1
+生产、客户、权限、数据或发布风险项目：O2 + selected profiles + BL2 + selected industrial packs
+```
+
+Web 和微信小程序都有 BL2 dogfood 示例。微信小程序 BL2 现在适合真实项目受控试跑，但仍是 draft，不是 stable 工业标准。
+
 ## 核心原则
 
 1. 先规格，后实现。
@@ -421,6 +433,8 @@ examples/generic-first-change/
 
 ```text
 examples/web-internal-admin-first-slice/
+examples/web-industrial-bl2-first-slice/
+examples/miniprogram-industrial-bl2-first-slice/
 ```
 
 ## 生成 Workflow 文件
