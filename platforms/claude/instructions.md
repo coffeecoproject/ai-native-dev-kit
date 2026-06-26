@@ -51,6 +51,7 @@ For industrial baseline:
 - baseline level is `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`; it is not task level
 - run `node scripts/check-industrial-pack.mjs . --selected-only` to validate selected industrial pack assets
 - run `node scripts/resolve-industrial-baseline.mjs .` and `node scripts/check-industrial-baseline.mjs . --bl2-only` to inspect project-level BL2 readiness when BL2 is selected
+- read `.ai-native/industrial-packs/selection-guide.md` before recommending pack combinations
 - do not treat BL2 or selected industrial packs as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and project-level industrial baseline status
 
 For workflow artifacts:

@@ -4,6 +4,8 @@ This example shows how a Web BL2 slice connects project baseline selection, base
 
 It is not a product template and does not bind the project to a framework or hosting provider.
 
+This example intentionally exercises many Web evidence categories. A real task should require only the evidence subset triggered by its Risk Gate, selected packs, and release scope.
+
 Flow:
 
 ```text

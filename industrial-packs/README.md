@@ -34,6 +34,8 @@ Do not use BL0/BL1/BL2 for task risk. Task risk remains `L0` / `L1` / `L2` / `L3
 
 Projects may select multiple packs. The effective baseline is the conservative union of selected pack requirements.
 
+Use [selection-guide.md](selection-guide.md) to choose the smallest relevant pack set. The guide is copied into target projects by default because pack selection is a governance decision, not an implementation detail.
+
 ## Included Draft Packs
 
 ```text

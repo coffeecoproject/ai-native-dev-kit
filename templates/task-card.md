@@ -76,6 +76,7 @@ If any item is checked, implementation requires explicit human approval before c
 ## Risk Gate Exclusions
 
 Use only when a high-risk term appears in the task/spec text but is explicitly out of scope.
+If more than three exclusions are accepted, implementation requires Human Approval scope to explicitly cover Risk Gate Exclusions.
 
 | Mentioned term | Not checked because | Human accepted |
 |---|---|---|

@@ -599,6 +599,7 @@ function copyIndustrialAssets(targetPath, options = {}) {
   }
 
   copyFile(path.join(sourceRoot, "README.md"), path.join(destRoot, "README.md"), options);
+  copyFile(path.join(sourceRoot, "selection-guide.md"), path.join(destRoot, "selection-guide.md"), options);
   copyFile(path.join(sourceRoot, "index.json"), path.join(destRoot, "index.json"), options);
   copyDir(path.join(sourceRoot, "schema"), path.join(destRoot, "schema"), options);
 

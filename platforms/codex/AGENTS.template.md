@@ -116,6 +116,8 @@ node scripts/check-industrial-baseline.mjs . --bl2-only
 
 Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.
 
+Before recommending packs, read `.ai-native/industrial-packs/selection-guide.md` when present. Select the smallest relevant pack set; do not select Web or all packs by default.
+
 ## Workflow Artifact Generation
 
 Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI task log files.

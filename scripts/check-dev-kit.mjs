@@ -137,6 +137,7 @@ function checkRequiredFiles() {
     "profiles/internal-admin/baseline.json",
     "profiles/high-risk-change/baseline.json",
     "industrial-packs/README.md",
+    "industrial-packs/selection-guide.md",
     "industrial-packs/index.json",
     "industrial-packs/schema/pack.schema.json",
     "industrial-packs/schema/baseline-selection.schema.json",
@@ -564,7 +565,7 @@ function checkPlatformAdapters() {
     }
   }
 
-  for (const marker of ["fetch-depth: 0", "--selected-only", "--bl2-only", "--mode ready", "--changed-only", "--base origin/${{ github.base_ref }}"]) {
+  for (const marker of ["fetch-depth: 0", "--mode core", "--selected-only", "--bl2-only", "--mode ready", "--changed-only", "--base origin/${{ github.base_ref }}"]) {
     if (githubCi.includes(marker)) {
       pass(`platforms/github/ci-ai-workflow.yml includes ${marker}`);
     } else {
@@ -606,6 +607,8 @@ function checkReadmePointers() {
     "check-industrial-baseline",
     "--selected-only",
     "--bl2-only",
+    "--mode core",
+    "--mode full",
     "new-workflow-item",
     "--mode ready",
     "--mode implementation",
@@ -633,6 +636,7 @@ function checkReadmePointers() {
     "Selected Profiles",
     "platform baseline",
     "industrial-packs",
+    "selection-guide",
     "check-project-onboarding",
     "workflow-daily-summary",
     "VERSION",
@@ -708,6 +712,18 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project workflow check");
 
+  const projectCoreCheck = runNode([
+    path.join(target, "scripts", "check-ai-workflow.mjs"),
+    target,
+    "--mode",
+    "core",
+  ]);
+  if (projectCoreCheck.status !== 0) {
+    fail(`generated project core workflow check failed: ${projectCoreCheck.stderr || projectCoreCheck.stdout}`);
+    return;
+  }
+  pass("generated project core workflow check");
+
   const nextCheck = runNode([
     path.join(target, "scripts", "workflow-next.mjs"),
     target,
@@ -757,6 +773,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
+    ".ai-native/industrial-packs/selection-guide.md",
     ".ai-native/industrial-packs/schema/pack.schema.json",
     ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
     ".ai-native/templates/baseline-selection.md",
@@ -1295,9 +1312,66 @@ function checkGeneratedProjectE2E() {
     fail(`generated project implementation mode should accept human-approved Risk Gate Exclusions: ${excludedRiskImplementationCheck.stderr || excludedRiskImplementationCheck.stdout}`);
     return;
   }
+  const tooManyExclusionsTaskContent = missedRiskTaskContent.replace("## Human Approval", [
+    "## Risk Gate Exclusions",
+    "",
+    "| Mentioned term | Not checked because | Human accepted |",
+    "|---|---|---|",
+    "| permission | self-check verifies an explicit human-accepted exclusion can override a text-only risk mention | Yes |",
+    "| auth | self-check fixture mentions auth only as a non-goal for this task | Yes |",
+    "| migration | self-check fixture mentions migration only as a non-goal for this task | Yes |",
+    "| production config | self-check fixture mentions production config only as a non-goal for this task | Yes |",
+    "",
+    "## Human Approval",
+  ].join("\n"));
+  fs.writeFileSync(taskPath, tooManyExclusionsTaskContent);
+  const tooManyExclusionsReadyCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (tooManyExclusionsReadyCheck.status !== 0 || !tooManyExclusionsReadyCheck.stdout.includes("accepted Risk Gate Exclusions")) {
+    fail(`generated project ready mode should warn on too many Risk Gate Exclusions: ${tooManyExclusionsReadyCheck.stderr || tooManyExclusionsReadyCheck.stdout}`);
+    return;
+  }
+  const tooManyExclusionsImplementationCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (tooManyExclusionsImplementationCheck.status === 0 || !tooManyExclusionsImplementationCheck.stderr.includes("Risk Gate Exclusions")) {
+    fail(`generated project implementation mode should reject too many Risk Gate Exclusions without approval scope: ${tooManyExclusionsImplementationCheck.stderr || tooManyExclusionsImplementationCheck.stdout}`);
+    return;
+  }
+  const approvedTooManyExclusionsTaskContent = tooManyExclusionsTaskContent
+    .replace("Required: No", "Required: Yes")
+    .replace("Status: Not Required", "Status: Approved")
+    .replace(/^Approval scope:.*$/m, "Approval scope: Risk Gate Exclusions accepted for this self-check fixture.")
+    .replace("Approved by:", "Approved by: human-review")
+    .replace("Approved at:", "Approved at: 2026-06-25T00:00:00.000Z");
+  fs.writeFileSync(taskPath, approvedTooManyExclusionsTaskContent);
+  const approvedTooManyExclusionsImplementationCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (approvedTooManyExclusionsImplementationCheck.status !== 0) {
+    fail(`generated project implementation mode should accept explicitly approved Risk Gate Exclusions: ${approvedTooManyExclusionsImplementationCheck.stderr || approvedTooManyExclusionsImplementationCheck.stdout}`);
+    return;
+  }
   fs.writeFileSync(taskPath, originalTaskContent);
   pass("generated project workflow artifact check detects missed Risk Gate checks");
   pass("generated project workflow artifact check accepts human-approved Risk Gate Exclusions");
+  pass("generated project workflow artifact check guards excessive Risk Gate Exclusions");
 
   const pendingImplementationCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),

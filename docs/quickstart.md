@@ -42,11 +42,13 @@ Then enter the generated project and check the baseline:
 
 ```bash
 cd ../my-new-project
-node scripts/check-ai-workflow.mjs .
+node scripts/check-ai-workflow.mjs . --mode core
 node scripts/workflow-next.mjs .
 node scripts/check-project-onboarding.mjs .
 node scripts/check-workflow-version.mjs .
 ```
+
+Use `node scripts/check-ai-workflow.mjs . --mode full` after installing or updating the complete workflow asset set.
 
 ## Onboarding Level
 
@@ -91,6 +93,8 @@ BL2_INDUSTRIAL = workflow plus profiles and selected industrial packs
 ```
 
 Industrial packs are optional BL2 assets. They define production-grade evidence standards; they do not prove a real project is ready by themselves.
+
+Use `industrial-packs/selection-guide.md` before approving BL2. It explains the current draft packs and how to combine primary platform, capability, and risk-overlay packs without defaulting to Web or selecting everything.
 
 ```bash
 node scripts/check-industrial-pack.mjs . --selected-only

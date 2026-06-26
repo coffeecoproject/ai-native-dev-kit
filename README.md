@@ -192,6 +192,8 @@ node scripts/resolve-platform-baseline.mjs .
 
 `industrial-packs/` 里放的是可组合的工业级工程包，比如 Web、iOS、Android、微信小程序、后端接口、权限、数据存储、支付或高风险变更。
 
+不是只有 Web 包。Web 目前是深化最完整的 draft 包；Backend、Auth、Data、Internal Admin、iOS、Android、微信小程序等也都有 draft 包。选择时先看 [industrial-packs/selection-guide.md](industrial-packs/selection-guide.md)，按项目实际运行端、能力和风险组合，不要默认全选。
+
 检查命令：
 
 ```bash
@@ -244,17 +246,21 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 如果任务卡里勾选了风险项，`Human Approval` 必须写清楚是否批准，并补上 `Approval scope`。进入 implementation 模式时，高风险任务必须已经批准。
 
 如果高风险词只是作为明确的非目标或排除范围出现，可以在任务卡写 `Risk Gate Exclusions`，说明为什么不勾选，并由人确认。这样不用为了过检查把文本写得含糊。
+如果同一任务接受了超过 3 个 Risk Gate Exclusions，ready 模式会提醒；进入 implementation 模式时，`Human Approval` 的 `Approval scope` 必须明确覆盖这些排除项。
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.19.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.20.0`。
 
 新增内容：
 
+- 新增 `industrial-packs/selection-guide.md`，说明工业包不是只有 Web，并给出主平台、能力包、风险覆盖包的选择和组合规则。
 - 默认初始化改为轻量工业包入口，只注入 registry/schema，不默认塞入所有具体工业包。
 - CI 模板改为 `--selected-only` 和 `--bl2-only`，BL0/BL1 项目不承担 BL2 检查成本。
 - `workflow-next` 移除 Web pack 全局硬编码，具体 pack 由 BL2 selected packs 决定。
 - 新增 `Risk Gate Exclusions`，让误报或明确非目标可以被人类接受并留下审计理由。
+- `Risk Gate Exclusions` 增加防滥用约束，超过 3 项时需要在实现前明确人工批准范围。
+- `check-ai-workflow.mjs` 增加 `--mode core` / `--mode full`，日常 CI 可只检查核心工作流，完整升级时再跑 full。
 - 文档补清楚 baseline evidence、task evidence、release evidence 三层关系。
 - BL2 证据改成结构化记录，不再只靠关键词。
 - `Done` 状态必须有真实存在的证据文件。

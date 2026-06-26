@@ -91,6 +91,8 @@ Industrial packs should not be selected just because they exist. Select them whe
 
 The dev kit keeps the industrial pack registry and schemas available by default, but concrete pack files should be installed only when selected. This keeps BL0 and BL1 projects light while preserving a clear path to BL2.
 
+Use `industrial-packs/selection-guide.md` when deciding pack combinations. Web is currently the deepest draft pack, but it is not the only pack; Backend, Auth/Permission, Data Storage, Internal Admin, iOS, Android, WeChat Mini Program, CloudBase, Payment/Value Transfer, and High-risk Change packs are also available as draft BL2 inputs.
+
 ## Evidence
 
 BL2 requires evidence, not claims.
@@ -132,7 +134,7 @@ Before implementation, the task should prove:
 
 If a high-risk area appears in the task or related spec but Risk Gate is not checked, ready mode should warn and implementation mode should fail.
 
-If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete reason and human acceptance. Do not make the wording vague just to pass the checker.
+If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete reason and human acceptance. Do not make the wording vague just to pass the checker. More than three accepted exclusions is a signal to review scope quality; implementation then needs Human Approval scope to explicitly cover those exclusions.
 
 ## Practical Choices
 

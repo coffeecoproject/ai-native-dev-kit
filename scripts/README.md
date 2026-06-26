@@ -62,7 +62,14 @@ Check whether a project contains the minimum AI Native workflow assets.
 
 ```bash
 node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project
+node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project --mode core
+node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project --mode full
 ```
+
+Modes:
+
+- `core`: checks the daily workflow runtime, project context docs, templates, prompts, checklists, scripts, PR template, and CI entry. Use this for routine target-project CI.
+- `full`: default; also checks platform profiles, industrial registry/schema, baseline templates, and profile-specific baseline assets. Use this after installing or updating the full workflow kit.
 
 ## workflow-next.mjs
 
@@ -112,6 +119,8 @@ node scripts/check-industrial-pack.mjs . --json
 
 Use full mode for the dev-kit repository. Use `--selected-only` in target projects so only packs selected in `docs/baseline-selection.md` are required.
 
+Target projects include `.ai-native/industrial-packs/selection-guide.md` by default. Use it before selecting packs; concrete pack files are still installed only when selected or explicitly requested.
+
 ## resolve-industrial-baseline.mjs
 
 Resolve `docs/baseline-selection.md` and selected industrial packs into an effective project industrial baseline.
@@ -138,7 +147,7 @@ Use `--bl2-only` in routine target-project CI so BL0/BL1 projects skip industria
 
 For Web BL2 projects, `web-app-industrial` includes additional required evidence for form interactions, API failure behavior, accessibility, performance, and runtime quality when those areas are touched. These rules stay framework-neutral and are resolved through the industrial baseline pack.
 
-`check-workflow-artifacts.mjs` also detects likely missed Risk Gate checks from the task and linked spec. Ready mode reports a warning; implementation mode fails unless the task has a human-accepted `Risk Gate Exclusions` entry for the text-only risk mention.
+`check-workflow-artifacts.mjs` also detects likely missed Risk Gate checks from the task and linked spec. Ready mode reports a warning; implementation mode fails unless the task has a human-accepted `Risk Gate Exclusions` entry for the text-only risk mention. If a task has more than three accepted exclusions, ready mode warns and implementation mode requires `Human Approval` scope to explicitly cover Risk Gate Exclusions.
 
 ## new-workflow-item.mjs
 

@@ -565,6 +565,7 @@ function requireTaskGraph(file, content) {
 function requireHumanApproval(file, content) {
   if (mode === "draft") return;
   const riskCount = checkedRiskCount(content);
+  const manyExclusions = riskGateExclusions(content).length > 3;
   const approval = sectionBody(content, "Human Approval");
   if (approval === null) {
     fail(`${file} missing section: Human Approval`);
@@ -577,15 +578,16 @@ function requireHumanApproval(file, content) {
   const approvedBy = labeledValue(content, "Human Approval", "Approved by");
   const approvedAt = labeledValue(content, "Human Approval", "Approved at");
 
-  if (riskCount > 0) {
+  if (riskCount > 0 || (mode === "implementation" && manyExclusions)) {
+    const reason = riskCount > 0 ? "checked risk items" : "more than three Risk Gate Exclusions";
     if (!/^Yes$/i.test(required)) {
-      fail(`${file} checked risk items require Human Approval Required: Yes`);
+      fail(`${file} ${reason} require Human Approval Required: Yes`);
     }
     if (!/^(Pending|Approved)$/i.test(status)) {
-      fail(`${file} checked risk items require Human Approval Status: Pending or Approved`);
+      fail(`${file} ${reason} require Human Approval Status: Pending or Approved`);
     }
     if (!approvalScope || /^Not Required$/i.test(approvalScope)) {
-      fail(`${file} checked risk items require Human Approval scope`);
+      fail(`${file} ${reason} require Human Approval scope`);
     }
     if (mode === "implementation" && !/^Approved$/i.test(status)) {
       fail(`${file} implementation mode requires Human Approval Status: Approved`);
@@ -602,6 +604,23 @@ function requireHumanApproval(file, content) {
   if (/^Approved$/i.test(status)) {
     if (!approvedBy) fail(`${file} approved Human Approval must include Approved by`);
     if (!approvedAt) fail(`${file} approved Human Approval must include Approved at`);
+  }
+}
+
+function requireRiskGateExclusionGovernance(file, content) {
+  if (mode === "draft") return;
+  const exclusions = riskGateExclusions(content);
+  if (exclusions.length <= 3) return;
+
+  const message = `${file} has ${exclusions.length} accepted Risk Gate Exclusions; approval scope must explicitly cover Risk Gate Exclusions before implementation.`;
+  if (mode !== "implementation") {
+    warn(message);
+    return;
+  }
+
+  const approvalScope = labeledValue(content, "Human Approval", "Approval scope");
+  if (!/(?:risk gate exclusions|exclusion)/i.test(approvalScope)) {
+    fail(message);
   }
 }
 
@@ -709,6 +728,7 @@ function checkTask(file, content) {
   }
 
   requireHumanApproval(file, content);
+  requireRiskGateExclusionGovernance(file, content);
   requireTaskGraph(file, content);
   requireNoMissedRiskGate(file, content);
   requireBaselineImplementationGates(file, content);

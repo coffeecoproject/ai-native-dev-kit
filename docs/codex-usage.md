@@ -61,11 +61,12 @@ Expected Codex behavior:
 - Read `AGENTS.md`.
 - Use `.ai-native/prompts/bootstrap-agent.md` if the project setup state is unclear.
 - Run `node scripts/workflow-next.mjs .` after initialization.
+- Use `node scripts/check-ai-workflow.mjs . --mode core` for routine project checks. Use `--mode full` only after installing or updating the complete workflow asset set.
 - Use `.ai-native/prompts/project-onboarding-agent.md`.
 - Draft `docs/project-onboarding.md`, `docs/project-profile.md`, `docs/tech-stack-strategy.md`, `docs/business-spec-index.md`, `docs/sample-policy.md`, and `docs/onboarding-decisions.md`.
 - Draft `Selected Profiles` in `docs/project-profile.md` and run `node scripts/check-platform-baseline.mjs .`.
 - Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
-- For BL2 industrial work, recommend selected industrial packs, install them with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-pack.mjs . --selected-only` and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
+- For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial packs, install them with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-pack.mjs . --selected-only` and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
 - Ask for human decisions only where the workflow requires confirmation.
 
 ## Task Prompt

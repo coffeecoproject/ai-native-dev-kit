@@ -224,7 +224,7 @@ scripts/
 6. 大需求先做 preflight。
 7. 写 spec 和 eval。
 8. 拆 task card。
-9. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。如果风险词只是明确的非目标或排除范围，写入 `Risk Gate Exclusions`，说明原因并由人确认。
+9. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。如果风险词只是明确的非目标或排除范围，写入 `Risk Gate Exclusions`，说明原因并由人确认；如果同一任务排除项超过 3 个，实现前必须由人明确批准这些排除项。
 10. AI 只执行一个 task card。
 11. 跑 verification。
 12. 人审查 diff、风险和证据。
@@ -276,6 +276,8 @@ industrial-packs/auth-permission
 industrial-packs/payment-value-transfer
 industrial-packs/high-risk-change
 ```
+
+不是只有 Web。Web 目前是深化最完整的 draft pack；Backend、Auth、Data、Internal Admin、iOS、Android、微信小程序等也都有 draft pack。选择时先看 `industrial-packs/selection-guide.md`，按项目真实运行端、能力和风险组合，不要默认全选。
 
 `industrial-pack-candidates/` 保留为旧工业基线迁移候选区。
 
@@ -336,6 +338,7 @@ node ai-native-dev-kit/scripts/check-dev-kit.mjs
 
 ```bash
 node scripts/check-ai-workflow.mjs .
+node scripts/check-ai-workflow.mjs . --mode core
 node scripts/check-project-onboarding.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/resolve-platform-baseline.mjs .

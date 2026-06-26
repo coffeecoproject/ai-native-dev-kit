@@ -67,6 +67,7 @@ const workflowRequiredPaths = [
   ".ai-native/templates/baseline-evidence.md",
   ".ai-native/checklists/project-onboarding-review.md",
   ".ai-native/checklists/industrial-pack-review.md",
+  ".ai-native/industrial-packs/selection-guide.md",
   ".ai-native/industrial-packs/index.json",
   ".ai-native/industrial-packs/schema/pack.schema.json",
   ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
@@ -436,7 +437,7 @@ function commandFor(action, kitRoot) {
     return "Select project profiles in docs/project-profile.md, then run node scripts/check-platform-baseline.mjs .";
   }
   if (action === "RUN_INDUSTRIAL_BASELINE_SETUP") {
-    return "For BL2 work, draft docs/baseline-selection.md and docs/baseline-evidence.md from .ai-native/templates, install selected packs with init-project --industrial-packs <pack-id>, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.";
+    return "For BL2 work, read .ai-native/industrial-packs/selection-guide.md, draft docs/baseline-selection.md and docs/baseline-evidence.md from .ai-native/templates, install selected packs with init-project --industrial-packs <pack-id>, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.";
   }
   if (action === "REVIEW_GOVERNANCE_MIGRATION") {
     return "Review .ai-native/migration-reports/ and apply only after explicit human approval.";

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.19.0`
+Current version: `0.20.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.19.0`
 
 ## Current Release
 
-`0.19.0`
+`0.20.0`
 
 Includes:
 
@@ -73,4 +73,9 @@ Includes:
 - BL2-only industrial baseline checks for routine CI
 - `workflow-next` no longer treats the Web industrial pack as a global required asset
 - human-accepted `Risk Gate Exclusions` for auditable missed-risk false positives
+- abuse guard for tasks with more than three accepted `Risk Gate Exclusions`
 - evidence layering guidance for baseline, task, and release evidence
+- industrial pack selection guide for primary platform, capability, and risk-overlay combinations
+- draft-to-stable promotion requirements for industrial packs
+- `check-ai-workflow.mjs --mode core|full` for routine target-project checks versus full asset checks
+- target-project bootstrap now carries industrial pack selection guidance without installing concrete packs by default
