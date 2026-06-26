@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`0.21.0`
+`0.21.1`
 
 ## Project Version File
 

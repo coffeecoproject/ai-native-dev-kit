@@ -125,6 +125,8 @@ For WeChat Mini Program BL2 projects, use `wechat-miniprogram-industrial` for th
 
 See `examples/miniprogram-industrial-bl2-first-slice` for a Mini Program dogfood package covering login state, cloud read boundary, permission and failure states, release readiness, and AI task logging.
 
+For a real project trial, copy `.ai-native/templates/dogfood-observation.md` into `workflow-retros/<date>-dogfood-observation.md` or another agreed project observation location. Use it to track workflow cost, evidence effort, Risk Gate false positives or false negatives, and AI collaboration quality. It is an observation record, not a replacement for task artifacts or release evidence.
+
 ## First Workflow Package
 
 Create a request:

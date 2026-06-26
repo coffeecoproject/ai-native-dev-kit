@@ -252,7 +252,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.21.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.21.1`。
 
 新增内容：
 
@@ -281,6 +281,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - 工业包新增版本和稳定性元数据，方便后续区分 draft 与 stable。
 - 新增 mental model 文档，说明什么时候只用 workflow、什么时候选 profile、什么时候上 BL2。
 - 新增 Web BL2 dogfood 示例，串起 baseline selection、evidence、task gate、release record 和 AI log。
+- 新增 `templates/dogfood-observation.md`，真实项目试跑时可以记录 workflow 成本、证据负担、风险误报漏报和 AI 协作质量。
 
 ## 它会自我迭代吗
 
@@ -294,6 +295,8 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - `skill-candidates/`
 - `automation-proposals/`
 - `dev-kit-proposals/`
+
+真实项目试跑时，可以从 `.ai-native/templates/dogfood-observation.md` 复制一份到 `workflow-retros/` 或项目约定的观察记录位置，用来观察这套流程是否过重、哪里误报、哪里需要补规则。这个记录不替代 request、spec、task、AI log 或 release evidence。
 
 是否真的升级成 Skill、自动化或 dev-kit 规则，需要人确认。
 

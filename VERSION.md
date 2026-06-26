@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.21.0`
+Current version: `0.21.1`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.21.0`
 
 ## Current Release
 
-`0.21.0`
+`0.21.1`
 
 Includes:
 
@@ -83,3 +83,4 @@ Includes:
 - draft-to-stable promotion requirements for industrial packs
 - `check-ai-workflow.mjs --mode core|full` for routine target-project checks versus full asset checks
 - target-project bootstrap now carries industrial pack selection guidance without installing concrete packs by default
+- dogfood observation template for measuring real project workflow cost, evidence effort, missed-risk behavior, and AI collaboration quality

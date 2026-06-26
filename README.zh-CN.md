@@ -312,6 +312,8 @@ examples/miniprogram-industrial-bl2-first-slice
 
 它展示 baseline selection、baseline evidence、request、preflight、spec、eval、task、runtime evidence、release record 和 AI task log 如何串成一条可检查链路。
 
+真实项目试跑时，可以使用 `.ai-native/templates/dogfood-observation.md` 记录 workflow 成本、证据负担、风险误报漏报和 AI 协作质量。它是观察记录，不替代 request、spec、task、AI log、release evidence 或 workflow retro。
+
 检查工业包自身：
 
 ```bash

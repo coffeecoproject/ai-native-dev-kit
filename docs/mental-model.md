@@ -93,6 +93,8 @@ The dev kit keeps the industrial pack registry and schemas available by default,
 
 Use `industrial-packs/selection-guide.md` when deciding pack combinations. Web remains the most dogfooded draft pack, and WeChat Mini Program now has a deeper BL2 draft with its own dogfood example. Backend, Auth/Permission, Data Storage, Internal Admin, iOS, Android, CloudBase, Payment/Value Transfer, and High-risk Change packs are also available as BL2 inputs when relevant.
 
+When dogfooding the workflow on a real project, use `.ai-native/templates/dogfood-observation.md` as a separate observation record. It measures whether the workflow is affordable and accurate in practice: setup time, evidence effort, Risk Gate misses, false positives, false negatives, AI drift, and follow-up improvements. It should inform retros and dev-kit proposals, but it should not become another required task gate.
+
 ## Evidence
 
 BL2 requires evidence, not claims.
