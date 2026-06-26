@@ -9,6 +9,7 @@ const strict = Boolean(args.strict);
 const outputJson = Boolean(args.json);
 const bl2Only = Boolean(args["bl2-only"]);
 const checks = [];
+const repairHints = [];
 let failed = false;
 let pending = false;
 
@@ -62,6 +63,26 @@ function warn(message) {
   else record("PENDING", message);
 }
 
+function hint(message) {
+  repairHints.push(message);
+  if (!outputJson) console.error(`HINT ${message}`);
+}
+
+function installSelectedPacksCommand(packIds) {
+  return [
+    "node <ai-native-dev-kit>/scripts/init-project.mjs",
+    `--target ${projectRoot}`,
+    "--update-workflow-assets",
+    `--industrial-packs ${[...new Set(packIds)].sort().join(",")}`,
+  ].join(" ");
+}
+
+function missingInstalledPackIds(result) {
+  return result.invalidPacks
+    .filter((item) => /pack\.json not found/i.test(item.error || ""))
+    .map((item) => item.packId);
+}
+
 function recordTermCoverage(kind, missing) {
   if (missing.length === 0) {
     pass(`${kind} coverage`);
@@ -93,6 +114,7 @@ if (bl2Only && result.baselineLevel !== "BL2_INDUSTRIAL") {
       checkMode: strict ? "strict" : "baseline",
       bl2Only,
       checkStatus: "PASS",
+      repairHints,
       checks,
     }, null, 2));
   } else {
@@ -122,6 +144,11 @@ for (const packId of result.unknownPacks) {
 
 for (const item of result.invalidPacks) {
   fail(`selected industrial pack is invalid: ${item.packId} (${item.error})`);
+}
+
+const missingInstalledPacks = missingInstalledPackIds(result);
+if (missingInstalledPacks.length > 0) {
+  hint(`Install missing selected industrial pack(s): ${installSelectedPacksCommand(missingInstalledPacks)}`);
 }
 
 for (const packId of result.plannedPacks) {
@@ -178,6 +205,7 @@ if (outputJson) {
     checkMode: strict ? "strict" : "baseline",
     bl2Only,
     checkStatus: status,
+    repairHints,
     checks,
   }, null, 2));
 }

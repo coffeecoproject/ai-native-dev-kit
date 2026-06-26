@@ -36,6 +36,8 @@ Projects may select multiple packs. The effective baseline is the conservative u
 
 Use [selection-guide.md](selection-guide.md) to choose the smallest relevant pack set. The guide is copied into target projects by default because pack selection is a governance decision, not an implementation detail.
 
+For Mini Program products with an admin backend, keep the Mini Program runtime pack separate from operations/backend packs. Select `internal-admin-industrial`, `backend-api-industrial`, `cloudbase-industrial`, `auth-permission-industrial`, `data-storage-industrial`, or `payment-value-transfer-industrial` only when those surfaces are in scope.
+
 ## Included Draft Packs
 
 ```text

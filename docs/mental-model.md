@@ -91,7 +91,7 @@ Industrial packs should not be selected just because they exist. Select them whe
 
 The dev kit keeps the industrial pack registry and schemas available by default, but concrete pack files should be installed only when selected. This keeps BL0 and BL1 projects light while preserving a clear path to BL2.
 
-Use `industrial-packs/selection-guide.md` when deciding pack combinations. Web is currently the deepest draft pack, but it is not the only pack; Backend, Auth/Permission, Data Storage, Internal Admin, iOS, Android, WeChat Mini Program, CloudBase, Payment/Value Transfer, and High-risk Change packs are also available as draft BL2 inputs.
+Use `industrial-packs/selection-guide.md` when deciding pack combinations. Web remains the most dogfooded draft pack, and WeChat Mini Program now has a deeper BL2 draft with its own dogfood example. Backend, Auth/Permission, Data Storage, Internal Admin, iOS, Android, CloudBase, Payment/Value Transfer, and High-risk Change packs are also available as BL2 inputs when relevant.
 
 ## Evidence
 

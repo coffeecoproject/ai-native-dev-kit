@@ -121,6 +121,10 @@ For Web BL2 projects, the Web industrial pack now expects runtime evidence for U
 
 See `examples/web-industrial-bl2-first-slice` for a framework-neutral dogfood package that connects baseline selection, evidence, task gate, release record, and AI task log.
 
+For WeChat Mini Program BL2 projects, use `wechat-miniprogram-industrial` for the mini program runtime. Add `internal-admin-industrial`, `backend-api-industrial`, `cloudbase-industrial`, `auth-permission-industrial`, `data-storage-industrial`, or `payment-value-transfer-industrial` only when those companion surfaces are actually in scope.
+
+See `examples/miniprogram-industrial-bl2-first-slice` for a Mini Program dogfood package covering login state, cloud read boundary, permission and failure states, release readiness, and AI task logging.
+
 ## First Workflow Package
 
 Create a request:

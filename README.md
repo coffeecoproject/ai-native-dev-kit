@@ -192,7 +192,9 @@ node scripts/resolve-platform-baseline.mjs .
 
 `industrial-packs/` 里放的是可组合的工业级工程包，比如 Web、iOS、Android、微信小程序、后端接口、权限、数据存储、支付或高风险变更。
 
-不是只有 Web 包。Web 目前是深化最完整的 draft 包；Backend、Auth、Data、Internal Admin、iOS、Android、微信小程序等也都有 draft 包。选择时先看 [industrial-packs/selection-guide.md](industrial-packs/selection-guide.md)，按项目实际运行端、能力和风险组合，不要默认全选。
+不是只有 Web 包。Web 目前仍是 dogfood 最完整的 draft 包；微信小程序已经补到独立 BL2 样板层，Backend、Auth、Data、Internal Admin、iOS、Android 等也都有 draft 包。选择时先看 [industrial-packs/selection-guide.md](industrial-packs/selection-guide.md)，按项目实际运行端、能力和风险组合，不要默认全选。
+
+小程序项目如果带后台，不把后台并入小程序包本体；按实际范围组合 `wechat-miniprogram-industrial`、`internal-admin-industrial`、`backend-api-industrial` 或 `cloudbase-industrial`、`auth-permission-industrial`、`data-storage-industrial`，涉及支付时再加 `payment-value-transfer-industrial`。
 
 检查命令：
 
@@ -250,7 +252,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.20.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.21.0`。
 
 新增内容：
 
@@ -261,6 +263,10 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - 新增 `Risk Gate Exclusions`，让误报或明确非目标可以被人类接受并留下审计理由。
 - `Risk Gate Exclusions` 增加防滥用约束，超过 3 项时需要在实现前明确人工批准范围。
 - `check-ai-workflow.mjs` 增加 `--mode core` / `--mode full`，日常 CI 可只检查核心工作流，完整升级时再跑 full。
+- `check-industrial-pack` 和 `check-industrial-baseline` 在 selected pack 缺失时会直接给出安装修复命令。
+- 微信小程序工业包补齐 runtime、云函数/访问规则、权限隐私、支付、发布审核等 BL2 样板文件。
+- 新增 `examples/miniprogram-industrial-bl2-first-slice`，串起小程序 baseline selection、evidence、task gate、release record 和 AI log。
+- selection guide 补充“小程序 + 可选后台/后端/云开发”的组合方式，后台作为 `internal-admin` 等 companion packs 接入。
 - 文档补清楚 baseline evidence、task evidence、release evidence 三层关系。
 - BL2 证据改成结构化记录，不再只靠关键词。
 - `Done` 状态必须有真实存在的证据文件。

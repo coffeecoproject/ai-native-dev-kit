@@ -121,6 +121,8 @@ Use full mode for the dev-kit repository. Use `--selected-only` in target projec
 
 Target projects include `.ai-native/industrial-packs/selection-guide.md` by default. Use it before selecting packs; concrete pack files are still installed only when selected or explicitly requested.
 
+If a selected pack is missing from the target project, the checker prints a repair command that installs the selected pack through `init-project --update-workflow-assets --industrial-packs <pack-id>`.
+
 ## resolve-industrial-baseline.mjs
 
 Resolve `docs/baseline-selection.md` and selected industrial packs into an effective project industrial baseline.
@@ -144,6 +146,8 @@ node scripts/check-industrial-baseline.mjs . --json
 Strict mode validates the structured `docs/baseline-evidence.md` evidence index. `Done` rows must point to existing project files through `Evidence Ref`; `Not applicable` rows must include `Reason if skipped`.
 
 Use `--bl2-only` in routine target-project CI so BL0/BL1 projects skip industrial readiness checks until `BL2_INDUSTRIAL` is selected.
+
+If BL2 selected packs are declared but not installed, the checker prints a repair command that installs the missing packs before evidence validation continues.
 
 For Web BL2 projects, `web-app-industrial` includes additional required evidence for form interactions, API failure behavior, accessibility, performance, and runtime quality when those areas are touched. These rules stay framework-neutral and are resolved through the industrial baseline pack.
 

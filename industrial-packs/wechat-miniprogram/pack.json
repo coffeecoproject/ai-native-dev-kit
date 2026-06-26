@@ -13,6 +13,7 @@
   ],
   "compatiblePacks": [
     "backend-api-industrial",
+    "internal-admin-industrial",
     "cloudbase-industrial",
     "auth-permission-industrial",
     "data-storage-industrial",
@@ -21,36 +22,72 @@
   ],
   "conflictsWith": [],
   "requiredBaselines": [
-    "baselines/miniprogram-runtime-release-baseline.md"
+    "baselines/miniprogram-runtime-release-baseline.md",
+    "baselines/miniprogram-runtime-baseline.md",
+    "baselines/miniprogram-cloudbase-security-baseline.md",
+    "baselines/miniprogram-privacy-payment-baseline.md",
+    "baselines/miniprogram-release-readiness-baseline.md"
   ],
   "requiredExecutionDocs": [
     "executions/codex-miniprogram-industrial-execution.md"
   ],
   "requiredAuditDocs": [
-    "audit/miniprogram-existing-project-audit.md"
+    "audit/miniprogram-existing-project-audit.md",
+    "audit/miniprogram-runtime-quality-audit.md",
+    "audit/miniprogram-release-readiness.md"
   ],
   "requiredChecklists": [
-    "checklists/miniprogram-release-checklist.md"
+    "checklists/miniprogram-release-checklist.md",
+    "checklists/miniprogram-ui-state-checklist.md",
+    "checklists/miniprogram-cloud-function-checklist.md",
+    "checklists/miniprogram-auth-permission-checklist.md",
+    "checklists/miniprogram-payment-checklist.md",
+    "checklists/miniprogram-release-review-checklist.md"
   ],
   "requiredTemplates": [
-    "templates/miniprogram-release-record.md"
+    "templates/miniprogram-release-record.md",
+    "templates/miniprogram-runtime-evidence.md",
+    "templates/miniprogram-incident-record.md"
   ],
   "riskMappings": {
+    "wechat-login": [
+      "auth",
+      "permission",
+      "personal data"
+    ],
     "platform-permission": [
       "privacy",
-      "platform dependency"
+      "platform dependency",
+      "personal data",
+      "app signing / platform release"
     ],
     "cloud-function": [
+      "cloud function / access rule",
       "external side effect",
-      "production config"
+      "production config",
+      "api failure"
+    ],
+    "cloud-access-rule": [
+      "cloud function / access rule",
+      "permission",
+      "personal data"
+    ],
+    "subscription-message": [
+      "external side effect",
+      "platform dependency"
+    ],
+    "share-entry": [
+      "external side effect",
+      "platform dependency"
     ],
     "mini-program-release": [
-      "release",
+      "app signing / platform release",
       "production config"
     ],
     "client-storage": [
       "data persistence",
-      "privacy"
+      "privacy",
+      "personal data"
     ],
     "value-transfer": [
       "regulated operation",
@@ -60,9 +97,13 @@
   "taskLevelEscalation": [
     {
       "when": [
+        "wechat-login",
         "platform-permission",
         "client-storage",
-        "cloud-function"
+        "cloud-function",
+        "cloud-access-rule",
+        "subscription-message",
+        "share-entry"
       ],
       "minTaskLevel": "L2"
     },
@@ -77,27 +118,58 @@
     }
   ],
   "requiredEvidence": {
-    "runtime-change": [
-      "runtime capability evidence",
-      "critical flow behavior evidence",
+    "ui-state": [
+      "mini program loading-empty-error-forbidden evidence",
+      "mini program lifecycle evidence",
+      "navigation and return-path evidence",
+      "critical flow behavior evidence"
+    ],
+    "wechat-login": [
+      "WeChat login state evidence",
+      "session binding evidence",
       "denied permission evidence"
     ],
-    "cloud-change": [
+    "platform-permission": [
+      "platform permission prompt evidence",
+      "denied permission evidence",
+      "privacy authorization evidence"
+    ],
+    "cloud-function-access-rule": [
       "cloud function boundary evidence",
+      "cloud access rule evidence",
       "storage access evidence",
+      "API failure and recovery evidence",
       "production configuration review"
     ],
+    "client-storage": [
+      "client storage minimization evidence",
+      "sensitive data handling evidence"
+    ],
+    "subscription-share": [
+      "subscription message authorization evidence",
+      "share entry behavior evidence"
+    ],
+    "payment": [
+      "payment request validation evidence",
+      "payment callback idempotency evidence",
+      "refund or failure recovery evidence"
+    ],
     "release": [
+      "experience version evidence",
       "release submission readiness",
+      "platform review readiness",
       "rollback or mitigation plan",
       "monitoring evidence"
     ]
   },
   "humanApprovalRequiredFor": [
+    "wechat-login",
     "mini-program-release",
     "platform-permission",
     "production-config",
     "cloud-function",
+    "cloud-access-rule",
+    "subscription-message",
     "value-transfer",
     "regulated-data",
     "irreversible-operation"

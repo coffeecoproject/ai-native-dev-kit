@@ -17,6 +17,7 @@ for (const key of Object.keys(args)) {
 
 let failed = false;
 const checks = [];
+const repairHints = [];
 
 function parseArgs(argv) {
   const parsed = { _: [] };
@@ -53,6 +54,20 @@ function pass(message) {
 function fail(message) {
   failed = true;
   record("FAIL", message);
+}
+
+function hint(message) {
+  repairHints.push(message);
+  if (!outputJson) console.error(`HINT ${message}`);
+}
+
+function installSelectedPacksCommand(packIds) {
+  return [
+    "node <ai-native-dev-kit>/scripts/init-project.mjs",
+    `--target ${projectRoot}`,
+    "--update-workflow-assets",
+    `--industrial-packs ${[...new Set(packIds)].sort().join(",")}`,
+  ].join(" ");
 }
 
 function readJson(filePath) {
@@ -292,6 +307,7 @@ const knownPackIds = new Set();
 const plannedPackIds = new Set();
 const selectedIds = selectedOnly ? selectedPackIds(projectRoot) : null;
 let checkedPacks = 0;
+const missingInstalledSelectedPackIds = new Set();
 
 if (index) {
   if (index.schemaVersion !== "0.1") fail("industrial-packs/index.json schemaVersion must be 0.1");
@@ -322,10 +338,15 @@ if (index) {
     const packRoot = path.join(industrialRoot, item.path);
     const packMdPath = path.join(packRoot, "pack.md");
     const packJsonPath = path.join(packRoot, "pack.json");
-    if (!fs.existsSync(packMdPath)) fail(`${item.id} missing pack.md`);
-    else pass(`${item.id} pack.md`);
+    if (!fs.existsSync(packMdPath)) {
+      fail(`${item.id} missing pack.md`);
+      if (selectedOnly) missingInstalledSelectedPackIds.add(item.id);
+    } else {
+      pass(`${item.id} pack.md`);
+    }
     if (!fs.existsSync(packJsonPath)) {
       fail(`${item.id} missing pack.json`);
+      if (selectedOnly) missingInstalledSelectedPackIds.add(item.id);
       continue;
     }
     pass(`${item.id} pack.json`);
@@ -384,6 +405,10 @@ if (index) {
   }
 }
 
+if (selectedOnly && missingInstalledSelectedPackIds.size > 0) {
+  hint(`Install missing selected industrial pack(s): ${installSelectedPacksCommand(missingInstalledSelectedPackIds)}`);
+}
+
 if (outputJson) {
   console.log(JSON.stringify({
     projectRoot,
@@ -392,6 +417,7 @@ if (outputJson) {
     selectedOnly,
     selectedPacks: selectedIds || null,
     plannedPacks: [...plannedPackIds].sort(),
+    repairHints,
     status: failed ? "FAIL" : "PASS",
     checks,
   }, null, 2));

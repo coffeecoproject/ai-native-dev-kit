@@ -161,6 +161,27 @@ function checkRequiredFiles() {
     "industrial-packs/web-app/templates/incident-record.md",
     "industrial-packs/web-app/templates/web-runtime-evidence.md",
     "industrial-packs/web-app/bootstrap-kit/README.md",
+    "industrial-packs/wechat-miniprogram/pack.md",
+    "industrial-packs/wechat-miniprogram/pack.json",
+    "industrial-packs/wechat-miniprogram/baselines/miniprogram-runtime-release-baseline.md",
+    "industrial-packs/wechat-miniprogram/baselines/miniprogram-runtime-baseline.md",
+    "industrial-packs/wechat-miniprogram/baselines/miniprogram-cloudbase-security-baseline.md",
+    "industrial-packs/wechat-miniprogram/baselines/miniprogram-privacy-payment-baseline.md",
+    "industrial-packs/wechat-miniprogram/baselines/miniprogram-release-readiness-baseline.md",
+    "industrial-packs/wechat-miniprogram/executions/codex-miniprogram-industrial-execution.md",
+    "industrial-packs/wechat-miniprogram/audit/miniprogram-existing-project-audit.md",
+    "industrial-packs/wechat-miniprogram/audit/miniprogram-runtime-quality-audit.md",
+    "industrial-packs/wechat-miniprogram/audit/miniprogram-release-readiness.md",
+    "industrial-packs/wechat-miniprogram/checklists/miniprogram-release-checklist.md",
+    "industrial-packs/wechat-miniprogram/checklists/miniprogram-ui-state-checklist.md",
+    "industrial-packs/wechat-miniprogram/checklists/miniprogram-cloud-function-checklist.md",
+    "industrial-packs/wechat-miniprogram/checklists/miniprogram-auth-permission-checklist.md",
+    "industrial-packs/wechat-miniprogram/checklists/miniprogram-payment-checklist.md",
+    "industrial-packs/wechat-miniprogram/checklists/miniprogram-release-review-checklist.md",
+    "industrial-packs/wechat-miniprogram/templates/miniprogram-release-record.md",
+    "industrial-packs/wechat-miniprogram/templates/miniprogram-runtime-evidence.md",
+    "industrial-packs/wechat-miniprogram/templates/miniprogram-incident-record.md",
+    "industrial-packs/wechat-miniprogram/bootstrap-kit/README.md",
     "industrial-pack-candidates/README.md",
     "industrial-pack-candidates/web-app/README.md",
     "starters/generic-project/AGENTS.md",
@@ -183,6 +204,17 @@ function checkRequiredFiles() {
     "examples/web-industrial-bl2-first-slice/evidence/web-runtime-evidence.md",
     "examples/web-industrial-bl2-first-slice/releases/001-web-runtime-quality-release.md",
     "examples/web-industrial-bl2-first-slice/ai-logs/2026-06-26-web-runtime-quality.md",
+    "examples/miniprogram-industrial-bl2-first-slice/README.md",
+    "examples/miniprogram-industrial-bl2-first-slice/docs/baseline-selection.md",
+    "examples/miniprogram-industrial-bl2-first-slice/docs/baseline-evidence.md",
+    "examples/miniprogram-industrial-bl2-first-slice/requests/001-miniprogram-login-cloud-read.md",
+    "examples/miniprogram-industrial-bl2-first-slice/preflight/001-miniprogram-login-cloud-read.md",
+    "examples/miniprogram-industrial-bl2-first-slice/specs/001-miniprogram-login-cloud-read.md",
+    "examples/miniprogram-industrial-bl2-first-slice/evals/001-miniprogram-login-cloud-read.md",
+    "examples/miniprogram-industrial-bl2-first-slice/tasks/001-miniprogram-login-cloud-read.md",
+    "examples/miniprogram-industrial-bl2-first-slice/evidence/miniprogram-runtime-evidence.md",
+    "examples/miniprogram-industrial-bl2-first-slice/releases/001-miniprogram-login-cloud-read-release.md",
+    "examples/miniprogram-industrial-bl2-first-slice/ai-logs/2026-06-26-miniprogram-login-cloud-read.md",
   ];
 
   for (const file of required) {
@@ -596,6 +628,7 @@ function checkReadmePointers() {
     "examples/generic-first-change",
     "examples/web-internal-admin-first-slice",
     "examples/web-industrial-bl2-first-slice",
+    "examples/miniprogram-industrial-bl2-first-slice",
     "docs/quickstart",
     "docs/codex-usage",
     "docs/mental-model",
@@ -685,6 +718,48 @@ function checkWebBl2ExampleArtifacts() {
     return;
   }
   pass("web BL2 example implementation artifact check");
+}
+
+function checkMiniProgramBl2ExampleArtifacts() {
+  const exampleRoot = path.join(kitRoot, "examples", "miniprogram-industrial-bl2-first-slice");
+  const readyArtifactCheck = runNode([
+    path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"),
+    exampleRoot,
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/001-miniprogram-login-cloud-read.md",
+  ]);
+  if (readyArtifactCheck.status !== 0) {
+    fail(`Mini Program BL2 example ready artifact check failed: ${readyArtifactCheck.stderr || readyArtifactCheck.stdout}`);
+    return;
+  }
+  pass("Mini Program BL2 example ready artifact check");
+
+  const implementationArtifactCheck = runNode([
+    path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"),
+    exampleRoot,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-miniprogram-login-cloud-read.md",
+  ]);
+  if (implementationArtifactCheck.status !== 0) {
+    fail(`Mini Program BL2 example implementation artifact check failed: ${implementationArtifactCheck.stderr || implementationArtifactCheck.stdout}`);
+    return;
+  }
+  pass("Mini Program BL2 example implementation artifact check");
+
+  const baselineCheck = runNode([
+    path.join(kitRoot, "scripts", "check-industrial-baseline.mjs"),
+    exampleRoot,
+    "--strict",
+  ]);
+  if (baselineCheck.status !== 0 || !baselineCheck.stdout.includes("Industrial baseline is ready")) {
+    fail(`Mini Program BL2 example strict baseline check failed: ${baselineCheck.stderr || baselineCheck.stdout}`);
+    return;
+  }
+  pass("Mini Program BL2 example strict baseline check");
 }
 
 function checkGeneratedProjectE2E() {
@@ -899,11 +974,30 @@ function checkGeneratedProjectE2E() {
     target,
     "--selected-only",
   ]);
-  if (selectedPackMissingCheck.status === 0 || !selectedPackMissingCheck.stderr.includes("missing pack.md")) {
+  const selectedPackMissingOutput = `${selectedPackMissingCheck.stderr}\n${selectedPackMissingCheck.stdout}`;
+  if (selectedPackMissingCheck.status === 0
+    || !selectedPackMissingOutput.includes("missing pack.md")
+    || !selectedPackMissingOutput.includes("--update-workflow-assets")
+    || !selectedPackMissingOutput.includes("--industrial-packs web-app-industrial")) {
     fail(`generated project selected industrial pack check should reject missing selected pack: ${selectedPackMissingCheck.stderr || selectedPackMissingCheck.stdout}`);
     return;
   }
-  pass("generated project selected industrial pack check rejects missing selected pack");
+  pass("generated project selected industrial pack check rejects missing selected pack with repair hint");
+
+  const selectedPackMissingBaselineCheck = runNode([
+    path.join(target, "scripts", "check-industrial-baseline.mjs"),
+    target,
+    "--bl2-only",
+  ]);
+  const selectedPackMissingBaselineOutput = `${selectedPackMissingBaselineCheck.stderr}\n${selectedPackMissingBaselineCheck.stdout}`;
+  if (selectedPackMissingBaselineCheck.status === 0
+    || !selectedPackMissingBaselineOutput.includes("selected industrial pack is invalid: web-app-industrial")
+    || !selectedPackMissingBaselineOutput.includes("--update-workflow-assets")
+    || !selectedPackMissingBaselineOutput.includes("--industrial-packs web-app-industrial")) {
+    fail(`generated project industrial baseline check should reject missing selected pack with repair hint: ${selectedPackMissingBaselineCheck.stderr || selectedPackMissingBaselineCheck.stdout}`);
+    return;
+  }
+  pass("generated project industrial baseline check rejects missing selected pack with repair hint");
 
   const installSelectedPack = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
@@ -1722,6 +1816,7 @@ checkPlatformAdapters();
 checkScriptSyntax();
 checkReadmePointers();
 checkWebBl2ExampleArtifacts();
+checkMiniProgramBl2ExampleArtifacts();
 checkGeneratedProjectE2E();
 
 if (failed) {

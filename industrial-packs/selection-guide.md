@@ -26,7 +26,8 @@ Current maturity shape:
 |---|---|---|
 | Web | deepest draft | Web has runtime quality, interaction, API failure, accessibility, performance, release evidence, and a BL2 dogfood example. |
 | Backend / Auth / Data / Internal Admin | usable draft | Best treated as Web BL2 companion packs for real service-backed work. |
-| iOS / Android / WeChat Mini Program | platform draft | Runtime and release baselines exist, but they need more project dogfood before stable use. |
+| iOS / Android | platform draft | Runtime and release baselines exist, but they need more project dogfood before stable use. |
+| WeChat Mini Program | deeper platform draft | Runtime, login, permission, cloud/access-rule, privacy/payment, release-review baselines, and a BL2 dogfood example exist; real project dogfood is still required before stable use. |
 | Payment / Value Transfer / High-risk Change | risk-overlay draft | Use only when the risk exists and human approval is explicit. |
 | CloudBase | capability draft | Use when managed cloud functions, access rules, storage, or platform cloud services are part of the project. |
 
@@ -78,8 +79,27 @@ These are starting points, not fixed recipes.
 | API-first service | `backend-api` | `backend-api-industrial`; add `auth-permission-industrial` or `data-storage-industrial` only when touched. |
 | Mobile app backed by APIs | `ios-app` or `android-app`, `backend-api` | mobile platform pack + `backend-api-industrial`; add auth/data packs when relevant. |
 | WeChat Mini Program with cloud functions | `wechat-miniprogram` | `wechat-miniprogram-industrial`, `cloudbase-industrial`; add auth/data packs when relevant. |
+| WeChat Mini Program with admin backend | `wechat-miniprogram`, `internal-admin`, plus `backend-api` or cloud service profile | `wechat-miniprogram-industrial`, `internal-admin-industrial`, `auth-permission-industrial`, `data-storage-industrial`, plus `backend-api-industrial` or `cloudbase-industrial` depending on the backend. |
 | Any project with value movement | relevant platform profiles | relevant platform/capability packs + `payment-value-transfer-industrial` |
 | Any high-risk project change | relevant profiles, optionally `high-risk-change` | relevant packs + `high-risk-change-industrial` |
+
+## Mini Program With Backend Or Admin
+
+A mini program is usually only one runtime in a broader product. Do not put the whole backend or operations console inside `wechat-miniprogram-industrial`.
+
+Use this split:
+
+| Area | Use |
+|---|---|
+| Mini program user runtime | `wechat-miniprogram-industrial` |
+| Operations or management backend | `internal-admin-industrial` |
+| Server API contracts | `backend-api-industrial` |
+| Cloud functions, cloud storage, managed cloud rules | `cloudbase-industrial` |
+| Login, roles, tenants, protected resources | `auth-permission-industrial` |
+| Persistent records, schema, backup, recovery | `data-storage-industrial` |
+| WeChat Pay, balance, refund, value movement | `payment-value-transfer-industrial` |
+
+The backend/admin packs are optional, but they become required when those surfaces are in project scope. The mini program pack should reference those companion packs; it should not absorb their responsibilities.
 
 ## Selection Procedure
 
