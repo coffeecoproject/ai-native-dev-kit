@@ -6,7 +6,7 @@ Status: Active execution plan
 
 Current baseline: `0.33.0` frozen in `releases/0.33.0/`
 
-Current executed phase: `0.40.1` Checker Library Refactor
+Current executed phase: `0.41.0` Industrial Pack Maturity + License Boundary
 
 Target release: `1.0.0`
 
@@ -697,6 +697,9 @@ Stop conditions:
 Goal Mode: `BASELINE_DECISION` then `IMPLEMENT_TASK`
 
 Subagent mode: `READ_ONLY_RESEARCH` for license review, `PLAN_THEN_BUILD` for docs and manifests
+
+Execution status: implemented in `0.41.0`; legal review or owner risk acceptance remains a required
+human decision before `1.0.0` release materials treat license wording as final.
 
 Objective:
 

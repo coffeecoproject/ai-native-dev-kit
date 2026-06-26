@@ -1,9 +1,9 @@
 {
-  "schemaVersion": "0.1",
-  "packVersion": "0.1.0",
-  "minimumDevKitVersion": "0.18.0",
-  "lastReviewedAt": "2026-06-26",
-  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
+  "schemaVersion": "0.2",
+  "packVersion": "0.2.0",
+  "minimumDevKitVersion": "0.41.0",
+  "lastReviewedAt": "2026-06-27",
+  "stabilityNotes": "Draft pack; requires real project dogfood, false-positive review, and strict BL2 evidence before promotion.",
   "id": "wechat-miniprogram-industrial",
   "type": "primary-platform",
   "displayName": "WeChat Mini Program Industrial Pack",
@@ -173,5 +173,54 @@
     "value-transfer",
     "regulated-data",
     "irreversible-operation"
-  ]
+  ],
+  "maturity": {
+    "stage": "draft",
+    "stageReason": "Draft pack; requires real project dogfood, false-positive review, and strict BL2 evidence before promotion.",
+    "lastMaturityReviewAt": "2026-06-27",
+    "reviewedBy": "AI Native Dev Kit maintainers",
+    "evidenceDocs": [
+      "maturity.md",
+      "evidence.md",
+      "dogfood.md",
+      "false-positive-log.md",
+      "owner.md",
+      "changelog.md"
+    ],
+    "evidenceSummary": [
+      "Pack structure exists and is checked by `check-industrial-pack.mjs`.",
+      "Required baseline, execution, audit, checklist, template, and bootstrap docs are present.",
+      "No real project evidence is embedded in the pack; project proof belongs in adopting project docs."
+    ],
+    "missingEvidenceBeforeCandidate": [
+      "At least one real project dogfood with recorded BL2 selection and baseline evidence.",
+      "A review loop report that records findings, false positives, and fixes.",
+      "A maintainer review confirming the pack did not require unsafe bypasses."
+    ],
+    "missingEvidenceBeforeStable": [
+      "At least two real project dogfoods use the pack without bypassing required gates.",
+      "At least one existing-project adoption records no blocking mismatch or records the fix.",
+      "`check-industrial-pack.mjs` passes for the pack.",
+      "`check-industrial-baseline.mjs --strict` passes in a project that selected the pack.",
+      "False positives, missing checks, and follow-up changes are recorded."
+    ],
+    "promotionCriteria": [
+      "At least two real project dogfoods use the pack without bypassing required gates.",
+      "At least one existing-project adoption records no blocking mismatch or records the fix.",
+      "`check-industrial-pack.mjs` passes for the pack.",
+      "`check-industrial-baseline.mjs --strict` passes in a project that selected the pack.",
+      "False positives, missing checks, and follow-up changes are recorded."
+    ],
+    "demotionTriggers": [
+      "A pack gate repeatedly blocks valid work without a documented fix.",
+      "A project adoption finds unsafe guidance, missing evidence, or misleading claims.",
+      "A platform or toolchain change makes required checks obsolete.",
+      "The owner cannot review the pack before a stage-changing release."
+    ],
+    "knownLimitations": [
+      "Draft status means this pack is not stable and not a default project standard.",
+      "The pack describes required evidence; it does not prove an adopting project has that evidence.",
+      "Project-specific architecture, data, permission, release, and rollback decisions remain outside the pack."
+    ]
+  }
 }

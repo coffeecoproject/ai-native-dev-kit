@@ -22,7 +22,7 @@
 生产、客户、权限、数据或发布风险项目：O2 + selected profiles + BL2 + selected industrial packs
 ```
 
-Web 和微信小程序都有 BL2 dogfood 示例；小程序 BL2 现在适合真实项目受控试跑，但仍是 draft，不是 stable 工业标准。
+Web 和微信小程序都有 BL2 dogfood 示例；小程序 BL2 现在适合真实项目受控试跑，但仍是 draft，不是 stable 工业标准。每个工业包现在都有 maturity 记录，说明它为什么是 draft、缺什么证据、什么时候才能升级。
 
 ## 一句话用法
 
@@ -504,6 +504,8 @@ node scripts/resolve-platform-baseline.mjs .
 
 不是只有 Web 包。Web 目前仍是 dogfood 最完整的 draft 包；微信小程序已经补到独立 BL2 样板层，Backend、Auth、Data、Internal Admin、iOS、Android 等也都有 draft 包。选择时先看 [industrial-packs/selection-guide.md](industrial-packs/selection-guide.md)，按项目实际运行端、能力和风险组合，不要默认全选。
 
+BL2 不等于“已经生产就绪”。工业包有五档成熟度：`draft`、`candidate`、`stable`、`deprecated`、`retired`。当前内置包都保持 `draft`，需要真实项目证据、误报记录和严格检查通过后才能升级。
+
 小程序项目如果带后台，不把后台并入小程序包本体；按实际范围组合 `wechat-miniprogram-industrial`、`internal-admin-industrial`、`backend-api-industrial` 或 `cloudbase-industrial`、`auth-permission-industrial`、`data-storage-industrial`，涉及支付时再加 `payment-value-transfer-industrial`。
 
 检查命令：
@@ -626,7 +628,14 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.40.1`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.41.0`。
+
+0.41.0 新增内容：
+
+- 工业包新增 maturity 结构：stage、证据文档、dogfood、误报记录、owner、changelog 和升级条件。
+- `check-industrial-pack.mjs` 会检查 maturity 元数据和文档，并拦住 draft 包的稳定/生产就绪过度表述。
+- 增加 [LICENSE-FAQ.md](LICENSE-FAQ.md)、[LICENSE-COMMERCIAL.md](LICENSE-COMMERCIAL.md) 和 [NOTICE.md](NOTICE.md)，用白话说明非商业授权和商业使用边界。
+- 所有工业包仍保持 `draft`，没有因为补文档而升级成熟度。
 
 0.40.1 新增内容：
 
@@ -858,3 +867,9 @@ This project is licensed under the Creative Commons Attribution-NonCommercial 4.
 You may view, download, copy, adapt, and share this material for personal, educational, and non-commercial purposes with attribution.
 
 Commercial use, resale, paid redistribution, or use as part of commercial consulting/service delivery is not permitted without prior written permission.
+
+Plain-language license guidance:
+
+- [LICENSE-FAQ.md](LICENSE-FAQ.md)
+- [LICENSE-COMMERCIAL.md](LICENSE-COMMERCIAL.md)
+- [NOTICE.md](NOTICE.md)

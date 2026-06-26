@@ -24,7 +24,8 @@
     "riskMappings",
     "taskLevelEscalation",
     "requiredEvidence",
-    "humanApprovalRequiredFor"
+    "humanApprovalRequiredFor",
+    "maturity"
   ],
   "properties": {
     "schemaVersion": {
@@ -57,7 +58,7 @@
       "type": "string"
     },
     "status": {
-      "enum": ["draft", "stable"]
+      "enum": ["draft", "candidate", "stable", "deprecated", "retired"]
     },
     "appliesToProfiles": {
       "type": "array",
@@ -129,6 +130,75 @@
     "humanApprovalRequiredFor": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "maturity": {
+      "type": "object",
+      "required": [
+        "stage",
+        "stageReason",
+        "lastMaturityReviewAt",
+        "reviewedBy",
+        "evidenceDocs",
+        "evidenceSummary",
+        "missingEvidenceBeforeCandidate",
+        "missingEvidenceBeforeStable",
+        "promotionCriteria",
+        "demotionTriggers",
+        "knownLimitations"
+      ],
+      "properties": {
+        "stage": {
+          "enum": ["draft", "candidate", "stable", "deprecated", "retired"]
+        },
+        "stageReason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lastMaturityReviewAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "reviewedBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceDocs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 6
+        },
+        "evidenceSummary": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "missingEvidenceBeforeCandidate": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "missingEvidenceBeforeStable": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "promotionCriteria": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "demotionTriggers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "knownLimitations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

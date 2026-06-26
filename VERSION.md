@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.40.1`
+Current version: `0.41.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,17 @@ Current version: `0.40.1`
 
 ## Current Release
 
-`0.40.1`
+`0.41.0`
 
 Includes:
 
+- Productization Hardcut phase `0.41.0`: industrial pack maturity and license boundary
+- Industrial packs now expose maturity metadata with stage, evidence docs, dogfood, false-positive log, owner, changelog, promotion criteria, demotion triggers, and known limitations
+- All concrete industrial packs remain `draft`; no pack is promoted by file completeness alone
+- `check-industrial-pack.mjs` now validates maturity metadata/docs and scans draft packs for stable or production-ready overclaims
+- `industrial-packs/README.md` and `industrial-packs/selection-guide.md` now define `draft`, `candidate`, `stable`, `deprecated`, and `retired`
+- Added `LICENSE-FAQ.md`, `LICENSE-COMMERCIAL.md`, and `NOTICE.md` as conservative license-boundary explanations subordinate to `LICENSE.md`
+- Productization Hardcut phase `0.41.0` records that qualified legal review or owner risk acceptance remains required before 1.0 release materials treat license wording as final
 - Productization Hardcut phase `0.40.1`: checker library refactor
 - Added shared checker helpers under `scripts/lib/args.mjs`, `scripts/lib/markdown.mjs`, `scripts/lib/check-result.mjs`, `scripts/lib/git.mjs`, and `scripts/lib/project-signals.mjs`
 - Checker scripts now reuse shared argument parsing, Markdown section extraction, git state, file walking, and result recording helpers where fixture coverage protects behavior

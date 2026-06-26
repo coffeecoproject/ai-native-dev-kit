@@ -10,6 +10,15 @@ const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const selectedOnly = Boolean(args["selected-only"]);
+const maturityStages = ["draft", "candidate", "stable", "deprecated", "retired"];
+const requiredMaturityDocs = [
+  "maturity.md",
+  "evidence.md",
+  "dogfood.md",
+  "false-positive-log.md",
+  "owner.md",
+  "changelog.md",
+];
 
 for (const key of Object.keys(args)) {
   if (!["_", "json", "selected-only"].includes(key)) {
@@ -125,6 +134,7 @@ function validateNoProjectFacts(packRoot, packId) {
   const scanned = [
     path.join(packRoot, "pack.md"),
     path.join(packRoot, "pack.json"),
+    ...requiredMaturityDocs.map((rel) => path.join(packRoot, rel)),
     ...walkFiles(path.join(packRoot, "baselines")),
     ...walkFiles(path.join(packRoot, "executions")),
     ...walkFiles(path.join(packRoot, "audit")),
@@ -154,7 +164,101 @@ function validateNoProjectFacts(packRoot, packId) {
   pass(`${packId} purity scan`);
 }
 
-function validatePackJson(pack, context) {
+function validateDraftClaims(packRoot, packId, stage) {
+  if (stage !== "draft") return;
+  const scanned = [
+    path.join(packRoot, "pack.md"),
+    ...requiredMaturityDocs.map((rel) => path.join(packRoot, rel)),
+  ].filter((file) => fs.existsSync(file) && fs.statSync(file).isFile());
+
+  const bannedClaimPatterns = [
+    /\bis production[- ]ready\b/i,
+    /\bready for production\b/i,
+    /\bstable default\b/i,
+    /\bfully validated\b/i,
+    /\bvalidated for production\b/i,
+  ];
+
+  for (const file of scanned) {
+    const lines = fs.readFileSync(file, "utf8").split("\n");
+    lines.forEach((line, index) => {
+      const normalized = line.toLowerCase();
+      if (normalized.includes("not production-ready")
+        || normalized.includes("not stable")
+        || normalized.includes("does not prove")
+        || normalized.includes("do not mean")
+        || normalized.includes("must not")
+        || normalized.includes("cannot move")
+        || normalized.includes("before stable")) {
+        return;
+      }
+      if (bannedClaimPatterns.some((pattern) => pattern.test(line))) {
+        fail(`${packId} draft maturity overclaim in ${path.relative(projectRoot, file)}:${index + 1}`);
+      }
+    });
+  }
+  pass(`${packId} draft maturity claim scan`);
+}
+
+function validateMaturity(pack, packRoot, context) {
+  const maturity = requireObject(pack, "maturity", context);
+  if (!maturity || Object.keys(maturity).length === 0) return;
+
+  if (!maturityStages.includes(maturity.stage)) {
+    fail(`${context} maturity.stage must be ${maturityStages.join("/")}`);
+  }
+  if (maturity.stage && pack.status && maturity.stage !== pack.status) {
+    fail(`${context} maturity.stage must match status`);
+  }
+  if (!String(maturity.stageReason || "").trim()) {
+    fail(`${context} maturity.stageReason must not be empty`);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(maturity.lastMaturityReviewAt || "")) {
+    fail(`${context} maturity.lastMaturityReviewAt must use YYYY-MM-DD`);
+  }
+  if (!String(maturity.reviewedBy || "").trim()) {
+    fail(`${context} maturity.reviewedBy must not be empty`);
+  }
+
+  for (const key of [
+    "evidenceDocs",
+    "evidenceSummary",
+    "missingEvidenceBeforeCandidate",
+    "missingEvidenceBeforeStable",
+    "promotionCriteria",
+    "demotionTriggers",
+    "knownLimitations",
+  ]) {
+    requireArray(maturity, key, `${context} maturity`, { nonEmpty: true });
+  }
+
+  for (const rel of requiredMaturityDocs) {
+    if (!Array.isArray(maturity.evidenceDocs) || !maturity.evidenceDocs.includes(rel)) {
+      fail(`${context} maturity.evidenceDocs must include ${rel}`);
+    }
+  }
+
+  for (const rel of maturity.evidenceDocs || []) {
+    if (!isSafeRelativePath(rel)) {
+      fail(`${context} maturity evidence doc path is unsafe: ${rel}`);
+      continue;
+    }
+    const full = path.join(packRoot, rel);
+    if (!fs.existsSync(full)) {
+      fail(`${context} missing maturity evidence doc: ${rel}`);
+      continue;
+    }
+    const content = fs.readFileSync(full, "utf8").trim();
+    if (!content) fail(`${context} maturity evidence doc is empty: ${rel}`);
+    else pass(`${pack.id} ${rel}`);
+  }
+
+  if (maturity.stage === "stable" && (maturity.promotionCriteria || []).length < 3) {
+    fail(`${context} stable maturity requires explicit promotion criteria`);
+  }
+}
+
+function validatePackJson(pack, context, packRoot) {
   const requiredKeys = [
     "schemaVersion",
     "packVersion",
@@ -177,6 +281,7 @@ function validatePackJson(pack, context) {
     "taskLevelEscalation",
     "requiredEvidence",
     "humanApprovalRequiredFor",
+    "maturity",
   ];
   for (const key of requiredKeys) {
     if (!(key in pack)) fail(`${context} missing ${key}`);
@@ -188,8 +293,8 @@ function validatePackJson(pack, context) {
   if (!["primary-platform", "capability", "risk-overlay"].includes(pack.type)) {
     fail(`${context} type must be primary-platform, capability, or risk-overlay`);
   }
-  if (!["draft", "stable"].includes(pack.status)) {
-    fail(`${context} status must be draft or stable`);
+  if (!maturityStages.includes(pack.status)) {
+    fail(`${context} status must be ${maturityStages.join("/")}`);
   }
   if (!/^\d+\.\d+\.\d+$/.test(pack.packVersion || "")) {
     fail(`${context} packVersion must use semantic version format x.y.z`);
@@ -223,6 +328,7 @@ function validatePackJson(pack, context) {
   }
   requireObject(pack, "riskMappings", context);
   requireObject(pack, "requiredEvidence", context);
+  if (packRoot) validateMaturity(pack, packRoot, context);
 
   for (const item of pack.taskLevelEscalation || []) {
     if (!item || typeof item !== "object") {
@@ -267,7 +373,10 @@ let checkedPacks = 0;
 const missingInstalledSelectedPackIds = new Set();
 
 if (index) {
-  if (index.schemaVersion !== "0.1") fail("industrial-packs/index.json schemaVersion must be 0.1");
+  if (index.schemaVersion !== "0.2") fail("industrial-packs/index.json schemaVersion must be 0.2");
+  if (!sameArray(index.maturityStages, maturityStages)) {
+    fail(`industrial-packs/index.json maturityStages must be ${maturityStages.join(", ")}`);
+  }
   const packs = requireArray(index, "packs", "industrial-packs/index.json");
   for (const item of packs) {
     if (!item || typeof item !== "object") {
@@ -278,7 +387,10 @@ if (index) {
     if (knownPackIds.has(item.id)) fail(`duplicate industrial pack id: ${item.id}`);
     knownPackIds.add(item.id);
     if (item.status === "planned") plannedPackIds.add(item.id);
-    if (!["planned", "draft", "stable"].includes(item.status)) fail(`${item.id} index status must be planned, draft, or stable`);
+    if (!["planned", ...maturityStages].includes(item.status)) fail(`${item.id} index status must be planned or ${maturityStages.join("/")}`);
+    if (item.status !== "planned" && !maturityStages.includes(item.maturityStage)) {
+      fail(`${item.id} index maturityStage must be ${maturityStages.join("/")}`);
+    }
     if (!["primary-platform", "capability", "risk-overlay"].includes(item.type)) fail(`${item.id} index type invalid`);
     if (!isSafeRelativePath(item.path)) fail(`${item.id} index path must be safe relative path`);
     if (!item.displayName) fail(`${item.id} index displayName is required`);
@@ -311,11 +423,12 @@ if (index) {
     const pack = readJson(packJsonPath);
     if (!pack) continue;
     checkedPacks += 1;
-    validatePackJson(pack, `${item.id} pack.json`);
+    validatePackJson(pack, `${item.id} pack.json`, packRoot);
     if (pack.id !== item.id) fail(`${item.id} pack.json id must match index id`);
     if (pack.displayName !== item.displayName) fail(`${item.id} pack.json displayName must match index displayName`);
     if (pack.type !== item.type) fail(`${item.id} pack.json type must match index type`);
     if (pack.status !== item.status) fail(`${item.id} pack.json status must match index status`);
+    if (pack.maturity?.stage !== item.maturityStage) fail(`${item.id} pack.json maturity.stage must match index maturityStage`);
     if (!sameArray(pack.appliesToProfiles, item.appliesToProfiles)) {
       fail(`${item.id} pack.json appliesToProfiles must match index appliesToProfiles`);
     }
@@ -351,6 +464,7 @@ if (index) {
       else fail(`${item.id} missing ${dir}/`);
     }
     validateNoProjectFacts(packRoot, item.id);
+    validateDraftClaims(packRoot, item.id, pack.maturity?.stage || pack.status);
   }
 
   if (selectedOnly) {

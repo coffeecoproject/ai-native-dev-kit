@@ -20,6 +20,19 @@ Do not select a pack because it exists. Select it because the project would be u
 
 All current industrial packs are draft packs. They are executable with explicit human confirmation, but they are not yet stable defaults.
 
+BL2 selection means the project chose stronger governance. It does not mean the selected pack is
+stable, production-ready, or externally validated.
+
+Lifecycle stages:
+
+| Stage | Use |
+|---|---|
+| `draft` | Controlled dogfood with explicit human acceptance. |
+| `candidate` | Broader governed trial after early real-project evidence. |
+| `stable` | Normal BL2 input after repeated real-project evidence and false-positive review. |
+| `deprecated` | Existing reference only; avoid new selection. |
+| `retired` | No longer an active baseline input. |
+
 Current maturity shape:
 
 | Area | Current state | Notes |
@@ -160,3 +173,5 @@ Minimum promotion bar:
 - Workflow retros record false positives, missing checks, and follow-up changes.
 
 Until those conditions are met, keep the pack as draft and require explicit human acceptance before using it as a BL2 project baseline.
+
+Pack files prove the standard exists. They do not prove that a real project already satisfies it.

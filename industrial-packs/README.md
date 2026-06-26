@@ -1,6 +1,9 @@
 # Industrial Baseline Packs
 
-Industrial Baseline Packs define evidence-backed engineering standards for projects that need production-grade delivery governance.
+Industrial Baseline Packs define evidence-backed engineering standards for projects that need stronger delivery governance.
+
+BL2 and industrial pack selection do not mean a pack is production-ready. Pack maturity is tracked
+separately from pack availability.
 
 They do not replace the AI Native core workflow. They sit above platform profiles:
 
@@ -61,6 +64,12 @@ Each non-planned pack must include:
 ```text
 pack.md
 pack.json
+maturity.md
+evidence.md
+dogfood.md
+false-positive-log.md
+owner.md
+changelog.md
 baselines/
 executions/
 audit/
@@ -69,19 +78,27 @@ checklists/
 templates/
 ```
 
-`pack.md` is for humans and AI agents. `pack.json` is for scripts.
+`pack.md` is for humans and AI agents. `pack.json` is for scripts. The maturity files explain the
+pack stage, evidence, dogfood record, false-positive history, owner, and change history.
 
-## Pack Status
+## Pack Status And Maturity
 
-Use pack status to prevent premature use:
+Use pack status and maturity to prevent premature use:
 
-| Status | Meaning |
+| Stage | Meaning |
 |---|---|
-| `planned` | Registered roadmap item only. It may appear in `industrial-packs/index.json`, but must not be selected as executable project baseline. |
-| `draft` | Concrete pack exists and can be dogfooded with explicit human confirmation. |
-| `stable` | Pack has repeated project evidence and can be used as a normal BL2 baseline input. |
+| `planned` | Registry-only roadmap item. It may appear in `industrial-packs/index.json`, but must not be selected as an executable project baseline. |
+| `draft` | Concrete pack exists and can be dogfooded with explicit human confirmation. It is not stable and not production-ready. |
+| `candidate` | Pack has early real project evidence and can be tested in additional governed projects with explicit acceptance. |
+| `stable` | Pack has repeated project evidence, documented false-positive handling, and strict BL2 validation in real adoption. |
+| `deprecated` | Pack remains readable for migration or compatibility but should not be selected for new BL2 adoption. |
+| `retired` | Pack is no longer an active baseline input. Use a replacement or a project-specific decision. |
 
-`check-industrial-pack.mjs` validates concrete draft/stable pack structure. `check-industrial-baseline.mjs` rejects selected `planned` packs in real projects.
+`check-industrial-pack.mjs` validates concrete pack structure and maturity evidence docs.
+`check-industrial-baseline.mjs` rejects selected `planned` packs in real projects.
+
+Every concrete pack currently remains `draft` until real project dogfood and review evidence justify
+promotion.
 
 ## Project Use
 
@@ -148,6 +165,7 @@ legacy baseline
   -> run check-industrial-pack
   -> dogfood with a project
   -> run check-industrial-baseline in that project
+  -> record false positives and maturity evidence
   -> promote to industrial-packs/
 ```
 

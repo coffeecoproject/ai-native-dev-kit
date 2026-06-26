@@ -1,7 +1,15 @@
 {
-  "schemaVersion": "0.1",
-  "baselineLevels": ["BL0_LIGHTWEIGHT", "BL1_STANDARD", "BL2_INDUSTRIAL"],
-  "packTypes": ["primary-platform", "capability", "risk-overlay"],
+  "schemaVersion": "0.2",
+  "baselineLevels": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "packTypes": [
+    "primary-platform",
+    "capability",
+    "risk-overlay"
+  ],
   "packs": [
     {
       "id": "web-app-industrial",
@@ -9,7 +17,10 @@
       "status": "draft",
       "path": "web-app",
       "displayName": "Web App Industrial Pack",
-      "appliesToProfiles": ["web-app"]
+      "appliesToProfiles": [
+        "web-app"
+      ],
+      "maturityStage": "draft"
     },
     {
       "id": "ios-app-industrial",
@@ -17,7 +28,10 @@
       "status": "draft",
       "path": "ios-app",
       "displayName": "iOS App Industrial Pack",
-      "appliesToProfiles": ["ios-app"]
+      "appliesToProfiles": [
+        "ios-app"
+      ],
+      "maturityStage": "draft"
     },
     {
       "id": "android-app-industrial",
@@ -25,7 +39,10 @@
       "status": "draft",
       "path": "android-app",
       "displayName": "Android App Industrial Pack",
-      "appliesToProfiles": ["android-app"]
+      "appliesToProfiles": [
+        "android-app"
+      ],
+      "maturityStage": "draft"
     },
     {
       "id": "wechat-miniprogram-industrial",
@@ -33,7 +50,10 @@
       "status": "draft",
       "path": "wechat-miniprogram",
       "displayName": "WeChat Mini Program Industrial Pack",
-      "appliesToProfiles": ["wechat-miniprogram"]
+      "appliesToProfiles": [
+        "wechat-miniprogram"
+      ],
+      "maturityStage": "draft"
     },
     {
       "id": "backend-api-industrial",
@@ -41,7 +61,10 @@
       "status": "draft",
       "path": "backend-api",
       "displayName": "Backend API Industrial Pack",
-      "appliesToProfiles": ["backend-api"]
+      "appliesToProfiles": [
+        "backend-api"
+      ],
+      "maturityStage": "draft"
     },
     {
       "id": "internal-admin-industrial",
@@ -49,7 +72,10 @@
       "status": "draft",
       "path": "internal-admin",
       "displayName": "Internal Admin Industrial Pack",
-      "appliesToProfiles": ["internal-admin"]
+      "appliesToProfiles": [
+        "internal-admin"
+      ],
+      "maturityStage": "draft"
     },
     {
       "id": "data-storage-industrial",
@@ -57,7 +83,8 @@
       "status": "draft",
       "path": "data-storage",
       "displayName": "Data Storage Industrial Pack",
-      "appliesToProfiles": []
+      "appliesToProfiles": [],
+      "maturityStage": "draft"
     },
     {
       "id": "cloudbase-industrial",
@@ -65,7 +92,8 @@
       "status": "draft",
       "path": "cloudbase",
       "displayName": "CloudBase Industrial Pack",
-      "appliesToProfiles": []
+      "appliesToProfiles": [],
+      "maturityStage": "draft"
     },
     {
       "id": "auth-permission-industrial",
@@ -73,7 +101,8 @@
       "status": "draft",
       "path": "auth-permission",
       "displayName": "Auth and Permission Industrial Pack",
-      "appliesToProfiles": []
+      "appliesToProfiles": [],
+      "maturityStage": "draft"
     },
     {
       "id": "payment-value-transfer-industrial",
@@ -81,7 +110,8 @@
       "status": "draft",
       "path": "payment-value-transfer",
       "displayName": "Payment and Value Transfer Industrial Pack",
-      "appliesToProfiles": []
+      "appliesToProfiles": [],
+      "maturityStage": "draft"
     },
     {
       "id": "high-risk-change-industrial",
@@ -89,7 +119,17 @@
       "status": "draft",
       "path": "high-risk-change",
       "displayName": "High-risk Change Industrial Pack",
-      "appliesToProfiles": ["high-risk-change"]
+      "appliesToProfiles": [
+        "high-risk-change"
+      ],
+      "maturityStage": "draft"
     }
+  ],
+  "maturityStages": [
+    "draft",
+    "candidate",
+    "stable",
+    "deprecated",
+    "retired"
   ]
 }

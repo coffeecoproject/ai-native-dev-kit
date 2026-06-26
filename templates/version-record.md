@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`0.40.1`
+`0.41.0`
 
 ## Project Version File
 
@@ -25,6 +25,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Legacy artifacts without frontmatter produce migration warnings by default and fail only when `check-workflow-artifacts.mjs --strict-schema` is used.
 - Dev-kit fixture checks use a typed matrix covering golden, bad, migration, CLI, init/update, and output-quality cases.
 - Checker scripts use shared helper libraries under `scripts/lib/`; generated projects must keep those helper files with copied checker scripts.
+- Industrial pack maturity metadata and license boundary docs are part of the dev-kit update surface.
 - Workflow asset updates must not overwrite project docs, specs, tasks, logs, or business code.
 - Workflow asset updates may add missing onboarding docs and missing workflow directories.
 - Existing `.github/pull_request_template.md` files are not modified unless `--apply-pr-template-governance` is explicitly used after reviewing `.ai-native/migration-reports/pr-template-governance.md`.
