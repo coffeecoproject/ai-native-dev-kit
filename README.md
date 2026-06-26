@@ -39,6 +39,30 @@ Codex 会先判断你的意思：
 
 这个入口由 `prompts/bootstrap-agent.md` 约束。进入执行后，Codex 会通过 `scripts/workflow-next.mjs` 判断下一步；需要强制检查时可以用 `workflow-next --enforce`。
 
+## 推荐命令入口
+
+从 `0.36.0` 开始，日常使用优先走统一入口：
+
+```bash
+node scripts/cli.mjs --help
+```
+
+安装或链接成命令后，对人来说就是：
+
+```bash
+ai-native init --starter generic-project --target ../my-project
+ai-native update --target ../my-project
+ai-native next ../my-project
+ai-native check ../my-project --mode core
+ai-native doctor ../my-project
+ai-native fixtures
+ai-native self-check
+```
+
+其中 `ai-native init` 和 `ai-native update` 会在写入前打印它实际调用的底层命令。`ai-native migrate` 仍是后续阶段的计划命令，当前不会假装已经可用。
+
+Lower-level scripts 仍然保留，例如 `scripts/init-project.mjs`、`scripts/workflow-next.mjs`、`scripts/check-ai-workflow.mjs`、`scripts/check-dev-kit.mjs`。它们适合 CI、调试、复查证据和需要精确命令的场景。
+
 如果项目已经有 `agent.md` / `AGENTS.md`、CI、guard、baseline、evidence、release、rollback、production 或 dirty worktree，`workflow-next` 会自动进入 `READ_ONLY` 接入评估：
 
 ```text

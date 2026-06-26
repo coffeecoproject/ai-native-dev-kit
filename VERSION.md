@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.35.0`
+Current version: `0.36.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `0.35.0`
 
 ## Current Release
 
-`0.35.0`
+`0.36.0`
 
 Includes:
 
+- Productization Hardcut phase `0.36.0`: CLI Front Door
+- `package.json` with private package metadata, `ai-native` bin mapping, and productization scripts
+- `scripts/cli.mjs` as a thin CLI facade for init, update, next, check, doctor, new, fixtures, and self-check
+- planned-only `ai-native migrate` placeholder that does not pretend migration is implemented before its approved phase
+- CLI smoke coverage in `scripts/check-dev-kit.mjs`, including help, version, dry-run routing, fixture delegation, and generated-project init smoke
+- README guidance that prefers CLI for human usage while keeping lower-level scripts for CI, debugging, and exact evidence
 - Productization Hardcut phase `0.35.0`: read-only dev-kit manifest introduction
 - `dev-kit-manifest.json` with grouped source and generated-project asset inventory
 - manifest schema, loader, and drift checker through `schemas/dev-kit-manifest.schema.json`, `scripts/lib/manifest.mjs`, and `scripts/check-manifest.mjs`

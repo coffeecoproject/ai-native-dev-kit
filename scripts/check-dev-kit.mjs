@@ -54,6 +54,7 @@ function checkRequiredFiles() {
     "README.zh-CN.md",
     "LICENSE.md",
     "VERSION.md",
+    "package.json",
     "docs/quickstart.md",
     "docs/codex-usage.md",
     "docs/mental-model.md",
@@ -94,6 +95,18 @@ function checkRequiredFiles() {
     "review-loop-reports/035-readonly-manifest.md",
     "final-reports/035-readonly-manifest.md",
     "releases/0.35.0/phase-report.md",
+    "requests/036-cli-front-door.md",
+    "preflight/036-cli-front-door.md",
+    "specs/036-cli-front-door.md",
+    "evals/036-cli-front-door.md",
+    "tasks/036-cli-front-door.md",
+    "goal-cards/036-cli-front-door.md",
+    "subagent-run-plans/036-cli-front-door.md",
+    "decision-briefs/036-cli-front-door.md",
+    "review-packets/036-cli-front-door.md",
+    "review-loop-reports/036-cli-front-door.md",
+    "final-reports/036-cli-front-door.md",
+    "releases/0.36.0/phase-report.md",
     "core/workflow.md",
     "core/task-levels.md",
     "core/gates.md",
@@ -195,6 +208,7 @@ function checkRequiredFiles() {
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
+    "scripts/cli.mjs",
     "scripts/lib/manifest.mjs",
     "scripts/check-manifest.mjs",
     "scripts/check-fixtures.mjs",
@@ -658,6 +672,130 @@ function checkManifestProtocol() {
       pass("manifest check reports sourceRequired drift");
     } else {
       fail(`manifest check must report sourceRequired drift: ${driftOutput}`);
+    }
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function checkCliFrontDoor() {
+  const pkg = JSON.parse(read("package.json"));
+  if (pkg.version === currentVersion()) pass("package.json version matches current version");
+  else fail(`package.json version ${pkg.version} does not match ${currentVersion()}`);
+
+  if (pkg.type === "module") pass("package.json declares module type");
+  else fail("package.json must declare module type");
+
+  if (pkg.private === true) pass("package.json remains private during CLI front-door phase");
+  else fail("package.json must remain private until package publishing is explicitly approved");
+
+  if (pkg.bin?.["ai-native"] === "./scripts/cli.mjs") pass("package.json exposes ai-native bin");
+  else fail("package.json must expose ai-native bin at ./scripts/cli.mjs");
+
+  for (const scriptName of ["check", "self-check", "fixtures", "smoke:init"]) {
+    if (typeof pkg.scripts?.[scriptName] === "string" && pkg.scripts[scriptName].length > 0) {
+      pass(`package.json script ${scriptName}`);
+    } else {
+      fail(`package.json missing script ${scriptName}`);
+    }
+  }
+
+  const help = runNode(["scripts/cli.mjs", "--help"]);
+  const helpOutput = `${help.stdout}\n${help.stderr}`;
+  if (help.status !== 0) {
+    fail(`CLI help failed: ${helpOutput}`);
+    return;
+  }
+  for (const marker of [
+    "AI Native Dev Kit CLI",
+    currentVersion(),
+    "Manifest: dev-kit-manifest.json",
+    "init",
+    "update",
+    "next",
+    "check",
+    "doctor",
+    "new",
+    "migrate (planned)",
+    "fixtures",
+    "self-check",
+    "--dry-run",
+    "Lower-level scripts remain supported",
+  ]) {
+    if (helpOutput.includes(marker)) pass(`CLI help includes ${marker}`);
+    else fail(`CLI help missing ${marker}`);
+  }
+
+  const version = runNode(["scripts/cli.mjs", "--version"]);
+  if (version.status === 0 && version.stdout.trim() === currentVersion()) {
+    pass("CLI version matches VERSION.md");
+  } else {
+    fail(`CLI version mismatch: ${version.stderr || version.stdout}`);
+  }
+
+  const next = runNode(["scripts/cli.mjs", "next", "."]);
+  if (next.status === 0 && next.stdout.includes("NEXT_ACTION:")) {
+    pass("CLI next delegates to workflow-next");
+  } else {
+    fail(`CLI next failed or hid workflow-next output: ${next.stderr || next.stdout}`);
+  }
+
+  const fixtures = runNode(["scripts/cli.mjs", "fixtures"]);
+  if (fixtures.status === 0 && fixtures.stdout.includes("Fixture checks passed")) {
+    pass("CLI fixtures delegates to fixture suite");
+  } else {
+    fail(`CLI fixtures failed: ${fixtures.stderr || fixtures.stdout}`);
+  }
+
+  const selfCheckDryRun = runNode(["scripts/cli.mjs", "self-check", "--dry-run"]);
+  if (selfCheckDryRun.status === 0 && selfCheckDryRun.stdout.includes("node scripts/check-dev-kit.mjs")) {
+    pass("CLI self-check dry-run delegates to check-dev-kit");
+  } else {
+    fail(`CLI self-check dry-run missing check-dev-kit mapping: ${selfCheckDryRun.stderr || selfCheckDryRun.stdout}`);
+  }
+
+  const updateDryRun = runNode(["scripts/cli.mjs", "update", "--target", "/tmp/ai-native-cli-dry-run", "--dry-run"]);
+  if (updateDryRun.status === 0
+    && updateDryRun.stdout.includes("node scripts/init-project.mjs")
+    && updateDryRun.stdout.includes("--update-workflow-assets")) {
+    pass("CLI update dry-run prints underlying update command");
+  } else {
+    fail(`CLI update dry-run missing underlying update command: ${updateDryRun.stderr || updateDryRun.stdout}`);
+  }
+
+  const doctorDryRun = runNode(["scripts/cli.mjs", "doctor", ".", "--dry-run"]);
+  if (doctorDryRun.status === 0
+    && doctorDryRun.stdout.includes("node scripts/workflow-next.mjs .")
+    && doctorDryRun.stdout.includes("node scripts/check-ai-workflow.mjs . --mode core")) {
+    pass("CLI doctor dry-run shows workflow-next and core check sequence");
+  } else {
+    fail(`CLI doctor dry-run missing sequence: ${doctorDryRun.stderr || doctorDryRun.stdout}`);
+  }
+
+  const migrate = runNode(["scripts/cli.mjs", "migrate"]);
+  if (migrate.status === 2 && `${migrate.stdout}\n${migrate.stderr}`.includes("planned but not implemented")) {
+    pass("CLI migrate is explicitly planned, not falsely implemented");
+  } else {
+    fail(`CLI migrate must be planned-only in 0.36.0: ${migrate.stderr || migrate.stdout}`);
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-"));
+  try {
+    const target = path.join(tempRoot, "project");
+    const init = runNode(["scripts/cli.mjs", "init", "--starter", "generic-project", "--target", target]);
+    if (init.status !== 0) {
+      fail(`CLI init failed: ${init.stderr || init.stdout}`);
+      return;
+    }
+    if (!init.stdout.includes("Underlying command: node scripts/init-project.mjs")) {
+      fail("CLI init must print the underlying write command");
+      return;
+    }
+    const check = runNode([path.join(target, "scripts", "check-ai-workflow.mjs"), target, "--mode", "core"]);
+    if (check.status === 0) {
+      pass("CLI init generated project passes core workflow check");
+    } else {
+      fail(`CLI init generated project failed core check: ${check.stderr || check.stdout}`);
     }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
@@ -1329,7 +1467,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/lib/manifest.mjs", "scripts/check-manifest.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/cli.mjs", "scripts/lib/manifest.mjs", "scripts/check-manifest.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -1365,6 +1503,15 @@ function checkReadmePointers() {
     "docs/artifact-decision-tree",
     "docs/goal-subagent-usage",
     "docs/governance-hardening-roadmap",
+    "scripts/cli.mjs",
+    "ai-native init",
+    "ai-native update",
+    "ai-native next",
+    "ai-native check",
+    "ai-native doctor",
+    "ai-native fixtures",
+    "ai-native self-check",
+    "Lower-level scripts",
     "engineering-baseline",
     "check-engineering-baseline",
     "check-workflow-artifacts",
@@ -3286,6 +3433,7 @@ checkDefaultStarter();
 checkVersionMetadata();
 checkDevKitFirstPartyCi();
 checkManifestProtocol();
+checkCliFrontDoor();
 checkCorePurity();
 checkEngineeringBaselineProtocol();
 checkReviewLoopProtocol();

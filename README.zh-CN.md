@@ -21,6 +21,30 @@ Codex 应先用 `prompts/bootstrap-agent.md` 判断你的意图：
 
 进入执行配置后，Codex 再运行 `scripts/workflow-next.mjs` 判断当前项目是新项目、旧项目还是已接入项目，并按 `NEXT_ACTION` 处理。
 
+## 推荐命令入口
+
+从 `0.36.0` 开始，日常使用优先走统一入口：
+
+```bash
+node scripts/cli.mjs --help
+```
+
+如果后续把它链接成命令，对人来说就是：
+
+```bash
+ai-native init --starter generic-project --target ../my-project
+ai-native update --target ../my-project
+ai-native next ../my-project
+ai-native check ../my-project --mode core
+ai-native doctor ../my-project
+ai-native fixtures
+ai-native self-check
+```
+
+写入型命令会先打印它实际调用的底层命令，方便你知道它准备做什么。`ai-native migrate` 目前只是后续阶段的计划命令，不会假装已经可用。
+
+Lower-level scripts 仍然保留，比如 `scripts/init-project.mjs`、`scripts/workflow-next.mjs`、`scripts/check-ai-workflow.mjs`、`scripts/check-dev-kit.mjs`。它们更适合 CI、调试、复查证据和需要精确命令的场景。
+
 如果项目已经上线、已有强治理，或当前工作区有未提交改动，Codex 不应直接配置。`workflow-next` 会自动进入只读接入评估：
 
 ```text

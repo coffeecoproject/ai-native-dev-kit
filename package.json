@@ -1,0 +1,15 @@
+{
+  "name": "ai-native-dev-kit",
+  "version": "0.36.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ai-native": "./scripts/cli.mjs"
+  },
+  "scripts": {
+    "check": "node scripts/check-ai-workflow.mjs . --mode core",
+    "self-check": "node scripts/check-dev-kit.mjs",
+    "fixtures": "node scripts/check-fixtures.mjs",
+    "smoke:init": "node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-cli-smoke"
+  }
+}
