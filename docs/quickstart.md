@@ -4,6 +4,8 @@ This guide is for starting or upgrading a project with the AI Native Dev Kit.
 
 The workflow goal is simple: let AI draft and execute, while humans keep decisions, risk acceptance, and final review.
 
+For the decision model behind workflow, profiles, BL levels, and industrial packs, see `docs/mental-model.md`.
+
 ## Codex Bootstrap
 
 When using Codex, you can provide the dev-kit path, repo URL, archive, or copied files and say:
@@ -99,6 +101,10 @@ node scripts/check-industrial-baseline.mjs .
 For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.ai-native/templates/`, then use `check-industrial-baseline.mjs --strict` only after the human has approved baseline level, selected packs, exceptions, and residual risks.
 
 `baseline-evidence.md` must reference real project evidence. Rows with `Status: Done` need an existing `Evidence Ref`; rows marked `Not applicable` need a reason.
+
+For Web BL2 projects, the Web industrial pack now expects runtime evidence for UI states, form interactions, API failure behavior, accessibility, performance or asset impact, release, rollback, and monitoring when those areas are touched. It remains framework-neutral; framework or hosting-specific rules should live in separate candidate packs until stabilized.
+
+See `examples/web-industrial-bl2-first-slice` for a framework-neutral dogfood package that connects baseline selection, evidence, task gate, release record, and AI task log.
 
 ## First Workflow Package
 

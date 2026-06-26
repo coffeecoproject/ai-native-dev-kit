@@ -1,5 +1,9 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "cloudbase-industrial",
   "type": "capability",
   "displayName": "CloudBase Industrial Pack",
@@ -31,19 +35,43 @@
     "templates/cloudbase-change-record.md"
   ],
   "riskMappings": {
-    "cloud-function": ["external side effect", "security"],
-    "access-rule": ["permission", "security"],
-    "managed-storage": ["data persistence", "privacy"],
-    "environment-config": ["production config", "secrets"],
-    "deployment": ["release", "operational risk"]
+    "cloud-function": [
+      "external side effect",
+      "security"
+    ],
+    "access-rule": [
+      "permission",
+      "security"
+    ],
+    "managed-storage": [
+      "data persistence",
+      "privacy"
+    ],
+    "environment-config": [
+      "production config",
+      "secrets"
+    ],
+    "deployment": [
+      "release",
+      "operational risk"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["cloud-function", "access-rule", "managed-storage"],
+      "when": [
+        "cloud-function",
+        "access-rule",
+        "managed-storage"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["environment-config", "deployment", "secrets", "value-transfer"],
+      "when": [
+        "environment-config",
+        "deployment",
+        "secrets",
+        "value-transfer"
+      ],
       "minTaskLevel": "L3"
     }
   ],

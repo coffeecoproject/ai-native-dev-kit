@@ -130,6 +130,10 @@ node scripts/check-industrial-baseline.mjs . --json
 
 Strict mode validates the structured `docs/baseline-evidence.md` evidence index. `Done` rows must point to existing project files through `Evidence Ref`; `Not applicable` rows must include `Reason if skipped`.
 
+For Web BL2 projects, `web-app-industrial` includes additional required evidence for form interactions, API failure behavior, accessibility, performance, and runtime quality when those areas are touched. These rules stay framework-neutral and are resolved through the industrial baseline pack.
+
+`check-workflow-artifacts.mjs` also detects likely missed Risk Gate checks from the task and linked spec/eval. Ready mode reports a warning; implementation mode fails.
+
 ## new-workflow-item.mjs
 
 Create numbered workflow files from templates and keep basic cross-references aligned.

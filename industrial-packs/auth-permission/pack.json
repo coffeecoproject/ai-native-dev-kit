@@ -1,5 +1,9 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "auth-permission-industrial",
   "type": "capability",
   "displayName": "Auth and Permission Industrial Pack",
@@ -34,20 +38,48 @@
     "templates/permission-change-record.md"
   ],
   "riskMappings": {
-    "auth": ["permission", "security"],
-    "permission": ["permission", "security"],
-    "role-change": ["permission", "security"],
-    "tenant-boundary": ["resource scope", "regulated data"],
-    "credential-lifecycle": ["secrets", "security"],
-    "privileged-access": ["regulated operation", "security"]
+    "auth": [
+      "permission",
+      "security"
+    ],
+    "permission": [
+      "permission",
+      "security"
+    ],
+    "role-change": [
+      "permission",
+      "security"
+    ],
+    "tenant-boundary": [
+      "resource scope",
+      "regulated data"
+    ],
+    "credential-lifecycle": [
+      "secrets",
+      "security"
+    ],
+    "privileged-access": [
+      "regulated operation",
+      "security"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["auth", "permission", "role-change", "tenant-boundary"],
+      "when": [
+        "auth",
+        "permission",
+        "role-change",
+        "tenant-boundary"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["credential-lifecycle", "privileged-access", "secrets", "regulated-data"],
+      "when": [
+        "credential-lifecycle",
+        "privileged-access",
+        "secrets",
+        "regulated-data"
+      ],
       "minTaskLevel": "L3"
     }
   ],

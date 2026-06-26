@@ -9,6 +9,8 @@ Assess whether a Web change has enough release, rollback, monitoring, and residu
 - verification readiness
 - production config readiness
 - permission and security readiness
+- runtime quality readiness
+- accessibility and performance exception readiness
 - rollback or disable readiness
 - monitoring and post-release check readiness
 - exception and residual risk acceptance
@@ -24,4 +26,3 @@ Use one of:
 - `not_applicable`
 
 Do not use a single `pass` to cover production, release, security, privacy, and recovery readiness.
-

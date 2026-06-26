@@ -1,10 +1,16 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "high-risk-change-industrial",
   "type": "risk-overlay",
   "displayName": "High-risk Change Industrial Pack",
   "status": "draft",
-  "appliesToProfiles": ["high-risk-change"],
+  "appliesToProfiles": [
+    "high-risk-change"
+  ],
   "compatiblePacks": [
     "web-app-industrial",
     "ios-app-industrial",
@@ -34,20 +40,48 @@
     "templates/high-risk-change-record.md"
   ],
   "riskMappings": {
-    "production-config": ["production config", "secrets"],
-    "destructive-operation": ["irreversible operation", "data deletion"],
-    "regulated-data": ["regulated data", "privacy"],
-    "breaking-change": ["compatibility", "release"],
-    "migration": ["data migration", "recovery"],
-    "security-sensitive": ["security", "permission"]
+    "production-config": [
+      "production config",
+      "secrets"
+    ],
+    "destructive-operation": [
+      "irreversible operation",
+      "data deletion"
+    ],
+    "regulated-data": [
+      "regulated data",
+      "privacy"
+    ],
+    "breaking-change": [
+      "compatibility",
+      "release"
+    ],
+    "migration": [
+      "data migration",
+      "recovery"
+    ],
+    "security-sensitive": [
+      "security",
+      "permission"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["breaking-change", "security-sensitive", "regulated-data"],
+      "when": [
+        "breaking-change",
+        "security-sensitive",
+        "regulated-data"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["production-config", "destructive-operation", "migration", "secrets", "irreversible-operation"],
+      "when": [
+        "production-config",
+        "destructive-operation",
+        "migration",
+        "secrets",
+        "irreversible-operation"
+      ],
       "minTaskLevel": "L3"
     }
   ],

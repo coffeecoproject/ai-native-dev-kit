@@ -56,6 +56,7 @@ function checkRequiredFiles() {
     "VERSION.md",
     "docs/quickstart.md",
     "docs/codex-usage.md",
+    "docs/mental-model.md",
     "core/workflow.md",
     "core/task-levels.md",
     "core/gates.md",
@@ -144,13 +145,20 @@ function checkRequiredFiles() {
     "industrial-packs/web-app/baselines/web-runtime-baseline.md",
     "industrial-packs/web-app/baselines/web-security-permission-baseline.md",
     "industrial-packs/web-app/baselines/web-release-readiness-baseline.md",
+    "industrial-packs/web-app/baselines/web-interaction-api-baseline.md",
+    "industrial-packs/web-app/baselines/web-performance-accessibility-baseline.md",
     "industrial-packs/web-app/executions/codex-web-industrial-execution.md",
     "industrial-packs/web-app/audit/web-existing-project-audit.md",
     "industrial-packs/web-app/audit/web-release-readiness.md",
+    "industrial-packs/web-app/audit/web-runtime-quality-audit.md",
     "industrial-packs/web-app/checklists/web-ui-state-checklist.md",
     "industrial-packs/web-app/checklists/web-security-checklist.md",
+    "industrial-packs/web-app/checklists/web-form-interaction-checklist.md",
+    "industrial-packs/web-app/checklists/web-api-error-handling-checklist.md",
+    "industrial-packs/web-app/checklists/web-performance-accessibility-checklist.md",
     "industrial-packs/web-app/templates/release-record.md",
     "industrial-packs/web-app/templates/incident-record.md",
+    "industrial-packs/web-app/templates/web-runtime-evidence.md",
     "industrial-packs/web-app/bootstrap-kit/README.md",
     "industrial-pack-candidates/README.md",
     "industrial-pack-candidates/web-app/README.md",
@@ -163,6 +171,17 @@ function checkRequiredFiles() {
     "examples/web-internal-admin-first-slice/eval.md",
     "examples/web-internal-admin-first-slice/task-card.md",
     "examples/web-internal-admin-first-slice/ai-task-log.example.md",
+    "examples/web-industrial-bl2-first-slice/README.md",
+    "examples/web-industrial-bl2-first-slice/docs/baseline-selection.md",
+    "examples/web-industrial-bl2-first-slice/docs/baseline-evidence.md",
+    "examples/web-industrial-bl2-first-slice/requests/001-web-runtime-quality.md",
+    "examples/web-industrial-bl2-first-slice/preflight/001-web-runtime-quality.md",
+    "examples/web-industrial-bl2-first-slice/specs/001-web-runtime-quality.md",
+    "examples/web-industrial-bl2-first-slice/evals/001-web-runtime-quality.md",
+    "examples/web-industrial-bl2-first-slice/tasks/001-web-runtime-quality.md",
+    "examples/web-industrial-bl2-first-slice/evidence/web-runtime-evidence.md",
+    "examples/web-industrial-bl2-first-slice/releases/001-web-runtime-quality-release.md",
+    "examples/web-industrial-bl2-first-slice/ai-logs/2026-06-26-web-runtime-quality.md",
   ];
 
   for (const file of required) {
@@ -575,8 +594,10 @@ function checkReadmePointers() {
     "codex-android-app",
     "examples/generic-first-change",
     "examples/web-internal-admin-first-slice",
+    "examples/web-industrial-bl2-first-slice",
     "docs/quickstart",
     "docs/codex-usage",
+    "docs/mental-model",
     "check-workflow-artifacts",
     "check-platform-baseline",
     "resolve-platform-baseline",
@@ -626,6 +647,37 @@ function runNode(args, options = {}) {
     cwd: options.cwd || kitRoot,
     encoding: "utf8",
   });
+}
+
+function checkWebBl2ExampleArtifacts() {
+  const exampleRoot = path.join(kitRoot, "examples", "web-industrial-bl2-first-slice");
+  const readyArtifactCheck = runNode([
+    path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"),
+    exampleRoot,
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/001-web-runtime-quality.md",
+  ]);
+  if (readyArtifactCheck.status !== 0) {
+    fail(`web BL2 example ready artifact check failed: ${readyArtifactCheck.stderr || readyArtifactCheck.stdout}`);
+    return;
+  }
+  pass("web BL2 example ready artifact check");
+
+  const implementationArtifactCheck = runNode([
+    path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"),
+    exampleRoot,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-web-runtime-quality.md",
+  ]);
+  if (implementationArtifactCheck.status !== 0) {
+    fail(`web BL2 example implementation artifact check failed: ${implementationArtifactCheck.stderr || implementationArtifactCheck.stdout}`);
+    return;
+  }
+  pass("web BL2 example implementation artifact check");
 }
 
 function checkGeneratedProjectE2E() {
@@ -822,8 +874,17 @@ function checkGeneratedProjectE2E() {
   ].join("\n"));
   const evidenceRows = [
     "loading-empty-error-forbidden evidence",
+    "success and layout stability evidence",
     "responsive behavior evidence",
     "critical flow behavior evidence",
+    "form submission validation and duplicate-submit evidence",
+    "destructive action and recovery evidence",
+    "API failure and recovery evidence",
+    "auth and validation error behavior evidence",
+    "keyboard focus and accessible name evidence",
+    "status message and contrast evidence",
+    "bundle asset and loading impact evidence",
+    "interaction responsiveness evidence",
     "server-side permission test evidence",
     "forbidden state evidence",
     "resource scope evidence",
@@ -833,6 +894,8 @@ function checkGeneratedProjectE2E() {
     "environment variable review",
     "secret exposure review",
     "deployment configuration evidence",
+    "dependency rationale and vulnerability review",
+    "client bundle impact review",
   ].map((requirement) => `| ${requirement} | doc | releases/generated-bl2-evidence.md | Done |  | self-check | 2026-06-25 |`);
   const baselineEvidenceContent = [
     "# Baseline Evidence",
@@ -1141,6 +1204,39 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project task-scoped workflow artifact check");
+
+  const missedRiskTaskContent = originalTaskContent
+    .replace("- [x] permission", "- [ ] permission")
+    .replace("Required: Yes", "Required: No")
+    .replace("Status: Pending", "Status: Not Required")
+    .replace(/^Approval scope:.*$/m, "Approval scope: Not Required");
+  fs.writeFileSync(taskPath, missedRiskTaskContent);
+  const missedRiskReadyCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (missedRiskReadyCheck.status !== 0 || !missedRiskReadyCheck.stdout.includes("without matching Risk Gate checks")) {
+    fail(`generated project ready workflow artifact check should warn on missed Risk Gate checks: ${missedRiskReadyCheck.stderr || missedRiskReadyCheck.stdout}`);
+    return;
+  }
+  const missedRiskImplementationCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (missedRiskImplementationCheck.status === 0 || !missedRiskImplementationCheck.stderr.includes("without matching Risk Gate checks")) {
+    fail(`generated project implementation mode should reject missed Risk Gate checks: ${missedRiskImplementationCheck.stderr || missedRiskImplementationCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(taskPath, originalTaskContent);
+  pass("generated project workflow artifact check detects missed Risk Gate checks");
 
   const pendingImplementationCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),
@@ -1490,6 +1586,7 @@ checkStarters();
 checkPlatformAdapters();
 checkScriptSyntax();
 checkReadmePointers();
+checkWebBl2ExampleArtifacts();
 checkGeneratedProjectE2E();
 
 if (failed) {

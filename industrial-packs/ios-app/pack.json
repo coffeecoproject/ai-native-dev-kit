@@ -1,10 +1,16 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "ios-app-industrial",
   "type": "primary-platform",
   "displayName": "iOS App Industrial Pack",
   "status": "draft",
-  "appliesToProfiles": ["ios-app"],
+  "appliesToProfiles": [
+    "ios-app"
+  ],
   "compatiblePacks": [
     "backend-api-industrial",
     "auth-permission-industrial",
@@ -29,19 +35,43 @@
     "templates/ios-release-record.md"
   ],
   "riskMappings": {
-    "app-signing": ["release", "production config"],
-    "privacy-permission": ["privacy", "regulated data"],
-    "local-storage": ["data persistence", "privacy"],
-    "network-boundary": ["external side effect", "security"],
-    "system-integration": ["runtime behavior", "platform dependency"]
+    "app-signing": [
+      "release",
+      "production config"
+    ],
+    "privacy-permission": [
+      "privacy",
+      "regulated data"
+    ],
+    "local-storage": [
+      "data persistence",
+      "privacy"
+    ],
+    "network-boundary": [
+      "external side effect",
+      "security"
+    ],
+    "system-integration": [
+      "runtime behavior",
+      "platform dependency"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["privacy-permission", "local-storage", "system-integration"],
+      "when": [
+        "privacy-permission",
+        "local-storage",
+        "system-integration"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["app-signing", "production-config", "regulated-data", "value-transfer"],
+      "when": [
+        "app-signing",
+        "production-config",
+        "regulated-data",
+        "value-transfer"
+      ],
       "minTaskLevel": "L3"
     }
   ],

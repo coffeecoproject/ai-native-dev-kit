@@ -1,10 +1,16 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "android-app-industrial",
   "type": "primary-platform",
   "displayName": "Android App Industrial Pack",
   "status": "draft",
-  "appliesToProfiles": ["android-app"],
+  "appliesToProfiles": [
+    "android-app"
+  ],
   "compatiblePacks": [
     "backend-api-industrial",
     "auth-permission-industrial",
@@ -29,19 +35,43 @@
     "templates/android-release-record.md"
   ],
   "riskMappings": {
-    "app-signing": ["release", "production config"],
-    "privacy-permission": ["privacy", "regulated data"],
-    "local-storage": ["data persistence", "privacy"],
-    "background-work": ["runtime behavior", "platform dependency"],
-    "network-boundary": ["external side effect", "security"]
+    "app-signing": [
+      "release",
+      "production config"
+    ],
+    "privacy-permission": [
+      "privacy",
+      "regulated data"
+    ],
+    "local-storage": [
+      "data persistence",
+      "privacy"
+    ],
+    "background-work": [
+      "runtime behavior",
+      "platform dependency"
+    ],
+    "network-boundary": [
+      "external side effect",
+      "security"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["privacy-permission", "local-storage", "background-work"],
+      "when": [
+        "privacy-permission",
+        "local-storage",
+        "background-work"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["app-signing", "production-config", "regulated-data", "value-transfer"],
+      "when": [
+        "app-signing",
+        "production-config",
+        "regulated-data",
+        "value-transfer"
+      ],
       "minTaskLevel": "L3"
     }
   ],

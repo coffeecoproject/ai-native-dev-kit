@@ -1,5 +1,9 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "payment-value-transfer-industrial",
   "type": "risk-overlay",
   "displayName": "Payment and Value Transfer Industrial Pack",
@@ -34,20 +38,48 @@
     "templates/value-transfer-change-record.md"
   ],
   "riskMappings": {
-    "payment": ["value transfer", "regulated operation"],
-    "refund": ["value transfer", "irreversible operation"],
-    "balance": ["stored value", "data integrity"],
-    "credit": ["stored value", "entitlement"],
-    "reconciliation": ["audit trail", "operational risk"],
-    "privileged-adjustment": ["regulated operation", "manual override"]
+    "payment": [
+      "value transfer",
+      "regulated operation"
+    ],
+    "refund": [
+      "value transfer",
+      "irreversible operation"
+    ],
+    "balance": [
+      "stored value",
+      "data integrity"
+    ],
+    "credit": [
+      "stored value",
+      "entitlement"
+    ],
+    "reconciliation": [
+      "audit trail",
+      "operational risk"
+    ],
+    "privileged-adjustment": [
+      "regulated operation",
+      "manual override"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["balance", "credit", "reconciliation"],
+      "when": [
+        "balance",
+        "credit",
+        "reconciliation"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["payment", "refund", "value-transfer", "privileged-adjustment", "financial-risk"],
+      "when": [
+        "payment",
+        "refund",
+        "value-transfer",
+        "privileged-adjustment",
+        "financial-risk"
+      ],
       "minTaskLevel": "L3"
     }
   ],

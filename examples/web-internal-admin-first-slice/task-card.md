@@ -77,6 +77,11 @@ This task touches:
 - [ ] privileged operation
 - [ ] app signing / platform release
 - [ ] cloud function / access rule
+- [ ] form interaction
+- [ ] api failure
+- [ ] accessibility
+- [ ] performance
+- [ ] dependency change
 
 If any item is checked, implementation requires explicit human approval before code changes.
 

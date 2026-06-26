@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.16.0`
+Current version: `0.18.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.16.0`
 
 ## Current Release
 
-`0.16.0`
+`0.18.0`
 
 Includes:
 
@@ -61,3 +61,9 @@ Includes:
 - structured BL2 evidence references with strict existence checks
 - workflow artifact implementation checks read platform and industrial baselines
 - WeChat Mini Program profile and machine-readable baseline
+- necessary Web industrial deepening for form interactions, API failures, accessibility, performance, and runtime evidence
+- Risk Gate missed-risk detection for ready and implementation artifact checks
+- industrial pack registry and manifest consistency checks
+- industrial pack version and stability metadata
+- mental model guide for workflow/profile/BL2/industrial pack decisions
+- Web BL2 dogfood example connecting baseline selection, evidence, task gate, release record, and AI log

@@ -4,11 +4,11 @@
   "defaultTaskLevel": "L1",
   "escalationRules": [
     {
-      "when": ["auth", "permission", "data-contract", "routing-architecture", "cross-module-state"],
+      "when": ["auth", "permission", "data-contract", "routing-architecture", "form-submission", "api-failure", "accessibility-critical", "performance-sensitive", "cross-module-state"],
       "minLevel": "L2"
     },
     {
-      "when": ["production-data", "secrets", "irreversible-operation", "value-transfer", "regulated-data"],
+      "when": ["production-config", "production-data", "secrets", "irreversible-operation", "value-transfer", "regulated-data"],
       "minLevel": "L3"
     }
   ],
@@ -22,9 +22,18 @@
     "docs/test-strategy.md",
     "docs/verification-matrix.md"
   ],
+  "recommendedDocs": [
+    "docs/browser-support-policy.md",
+    "docs/web-runtime-quality.md",
+    "docs/release-policy.md"
+  ],
   "riskGateMappings": {
     "auth": ["auth", "permission"],
     "permission": ["permission"],
+    "form-submission": ["form interaction", "external side effect"],
+    "api-failure": ["api failure", "external side effect"],
+    "accessibility-critical": ["accessibility", "external side effect"],
+    "performance-sensitive": ["performance", "external side effect"],
     "production-config": ["production config"],
     "secrets": ["secrets"],
     "regulated-data": ["regulated data"]
@@ -33,33 +42,41 @@
     "desktop and mobile behavior check",
     "loading/empty/error state review",
     "API error handling",
+    "form validation and duplicate-submit review when forms change",
+    "API timeout, failure, unauthorized, forbidden, and validation-error review where relevant",
+    "keyboard, focus, accessible name, and status-message review for critical interactions",
+    "bundle, asset, loading, or responsiveness impact review when performance-sensitive code changes",
     "lint/typecheck/unit/build",
     "E2E or manual behavior check for critical flows"
   ],
-  "verificationKeywords": ["desktop", "mobile", "state", "api", "lint", "typecheck", "build", "e2e"],
+  "verificationKeywords": ["desktop", "mobile", "state", "api", "form", "validation", "keyboard", "focus", "accessibility", "performance", "asset", "lint", "typecheck", "build", "e2e"],
   "verifyScriptKeywords": ["lint", "typecheck", "test", "build"],
-  "highRiskKeywords": ["auth", "permission", "production config", "secrets", "migration", "destructive"],
+  "highRiskKeywords": ["auth", "permission", "production config", "secrets", "migration", "destructive", "form", "api failure", "accessibility", "performance", "dependency"],
   "humanApprovalRequiredFor": [
     "auth",
     "permission",
     "production-config",
     "secrets",
+    "irreversible-operation",
     "destructive-operation",
     "regulated-data"
   ],
   "releaseChecks": [
     "desktop and mobile critical flows verified when UI behavior changes",
     "API contract and permission changes reviewed before release",
-    "client-side secrets and production config exposure reviewed"
+    "form submission, API failure, accessibility, and performance evidence reviewed when touched",
+    "client-side secrets and production config exposure reviewed",
+    "browser support, rollback, and post-release observation reviewed for critical flows"
   ],
   "aiBoundaries": {
     "may": [
       "edit web UI, routing, state, tests, and documentation inside approved task scope",
-      "propose API contract changes with spec and verification evidence"
+      "propose API contract, runtime quality, accessibility, and performance changes with spec and verification evidence"
     ],
     "mustNot": [
       "store secrets or privileged decisions only in client-side code",
-      "change production config, auth, permission, or irreversible behavior without human approval"
+      "change production config, auth, permission, irreversible behavior, or release readiness without human approval",
+      "hide API failures, bypass accessibility-critical behavior, or add heavy dependencies without explicit evidence"
     ]
   },
   "compatibleStarters": ["generic-project", "codex-web-app"]

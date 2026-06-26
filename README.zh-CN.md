@@ -4,7 +4,7 @@
 
 它的目标不是“让 AI 多写代码”，而是把软件开发拆成可沟通、可决策、可执行、可验证、可审查、可复盘的过程。
 
-快速开始见 [docs/quickstart.md](docs/quickstart.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
+快速开始见 [docs/quickstart.md](docs/quickstart.md)，心智模型见 [docs/mental-model.md](docs/mental-model.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
 
 ## Codex 一句话入口
 
@@ -278,6 +278,29 @@ industrial-packs/high-risk-change
 ```
 
 `industrial-pack-candidates/` 保留为旧工业基线迁移候选区。
+
+Web 工业包已经做了必要深化，但仍保持通用层边界。它覆盖：
+
+- UI 状态
+- 表单交互
+- API 失败和恢复
+- 权限和安全
+- 响应式
+- 可访问性
+- 性能和资产影响
+- 发布、回滚和监控证据
+
+它不绑定 React、Vue、Next.js、Vercel、Cloudflare 或任何具体框架/部署平台。框架和部署专项应先进入 `industrial-pack-candidates/`，稳定后再提升为正式 pack。
+
+每个工业包都带有 `packVersion`、`minimumDevKitVersion`、`lastReviewedAt` 和 `stabilityNotes`，用于区分 draft 成熟度和后续兼容要求。
+
+当前还包含一个 Web BL2 dogfood 示例：
+
+```text
+examples/web-industrial-bl2-first-slice
+```
+
+它展示 baseline selection、baseline evidence、request、preflight、spec、eval、task、runtime evidence、release record 和 AI task log 如何串成一条可检查链路。
 
 检查工业包自身：
 

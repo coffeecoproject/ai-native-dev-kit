@@ -7,7 +7,7 @@ Audit an existing Web project against the selected Web industrial pack without r
 ## Audit Rules
 
 - Start read-only.
-- Identify actual project structure, runtime, package manager, routes, API surfaces, auth, permissions, environments, and release path.
+- Identify actual project structure, runtime, package manager, routes, forms, side-effecting actions, API surfaces, auth, permissions, accessibility-sensitive flows, performance-sensitive assets, environments, and release path.
 - Map findings to evidence, not assumptions.
 - Mark unavailable evidence as `missing`, `not_audited`, or `not_applicable`.
 - Do not infer production readiness from passing local checks alone.
@@ -17,9 +17,9 @@ Audit an existing Web project against the selected Web industrial pack without r
 - Scope
 - Selected profiles and packs
 - Evidence inventory
+- Runtime quality inventory
 - Findings
 - Blockers
 - Exceptions
 - Residual risks
 - Recommended next actions
-

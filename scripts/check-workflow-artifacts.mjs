@@ -257,6 +257,143 @@ function normalizeRiskTerm(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function riskScanBlock(content, section, subLabel = null) {
+  const body = sectionBody(content, section);
+  if (!body) return "";
+  if (!subLabel) return removeNegativeRiskLines(body);
+  const start = body.indexOf(subLabel);
+  if (start === -1) return "";
+  const rest = body.slice(start + subLabel.length);
+  const nextLabel = rest.search(/\n[A-Z][A-Za-z /-]{1,40}:\s*\n/);
+  return removeNegativeRiskLines(nextLabel === -1 ? rest : rest.slice(0, nextLabel));
+}
+
+function removeNegativeRiskLines(value) {
+  return String(value || "")
+    .split("\n")
+    .filter((line) => !/\b(?:no|not|do not|does not|without|avoid|must not|should not)\b/i.test(line.trim()))
+    .join("\n");
+}
+
+function taskRiskScanText(content) {
+  return [
+    riskScanBlock(content, "Goal"),
+    riskScanBlock(content, "Scope", "Allowed:"),
+    riskScanBlock(content, "Acceptance Criteria"),
+  ].join("\n");
+}
+
+function specRiskScanText(content) {
+  return [
+    riskScanBlock(content, "Problem"),
+    riskScanBlock(content, "User Story"),
+    riskScanBlock(content, "Scope", "Included:"),
+    riskScanBlock(content, "Data Model Impact"),
+    riskScanBlock(content, "API / Interface Contract"),
+    riskScanBlock(content, "UI States"),
+    riskScanBlock(content, "Permission Rules"),
+    riskScanBlock(content, "Observability"),
+    riskScanBlock(content, "Acceptance Criteria"),
+    riskScanBlock(content, "Test Plan"),
+    riskScanBlock(content, "Rollback Notes"),
+  ].join("\n");
+}
+
+function riskTermAliases(term) {
+  const normalized = normalizeRiskTerm(term);
+  const phrase = normalized.replace(/-/g, " ");
+  const aliases = new Set([normalized, phrase]);
+  const explicit = {
+    auth: ["authentication", "authorization", "session", "cookie"],
+    permission: ["authorization", "access control", "forbidden", "tenant scope", "resource scope"],
+    secrets: ["secret", "credential", "token", "api key"],
+    "production-config": ["production config", "environment variable", "deployment config"],
+    migration: ["schema migration", "data migration"],
+    "destructive-operation": ["delete", "archive", "destructive"],
+    "data-deletion": ["delete", "data deletion"],
+    "value-transfer": ["payment", "billing", "credit", "balance"],
+    "form-submission": ["form submission", "submit"],
+    "api-failure": ["api failure", "timeout", "network failure", "server error"],
+    "accessibility-critical": ["keyboard", "focus", "accessible", "accessibility"],
+    "performance-sensitive": ["performance", "bundle", "asset", "heavy dependency", "responsiveness"],
+    "dependency-addition": ["dependency", "package"],
+  };
+  for (const alias of explicit[normalized] || []) aliases.add(alias);
+  return [...aliases].filter((item) => item.length >= 3);
+}
+
+function containsRiskTerm(text, term) {
+  const normalizedText = ` ${stripCode(text).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, " ")} `;
+  return riskTermAliases(term).some((alias) => {
+    const normalizedAlias = alias.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, " ").trim();
+    if (!normalizedAlias) return false;
+    return normalizedText.includes(` ${normalizedAlias} `);
+  });
+}
+
+function addRiskTerm(map, term, labels = []) {
+  const key = normalizeRiskTerm(term);
+  if (!key || key.length < 3) return;
+  const existing = map.get(key) || new Set();
+  existing.add(term);
+  for (const label of labels) existing.add(label);
+  map.set(key, existing);
+}
+
+function baselineRiskTerms(platformBaseline, industrialBaseline) {
+  const terms = new Map();
+  for (const term of platformBaseline.effectiveHighRiskKeywords || []) addRiskTerm(terms, term);
+  for (const term of platformBaseline.effectiveHumanApprovalRequiredFor || []) addRiskTerm(terms, term);
+  for (const rule of platformBaseline.effectiveEscalationRules || []) {
+    for (const term of rule.when || []) addRiskTerm(terms, term);
+  }
+  for (const [term, labels] of Object.entries(platformBaseline.effectiveRiskGateMappings || {})) {
+    addRiskTerm(terms, term, labels);
+  }
+
+  for (const term of industrialBaseline.effectiveHumanApprovalRequiredFor || []) addRiskTerm(terms, term);
+  for (const rule of industrialBaseline.effectiveTaskLevelEscalation || []) {
+    for (const term of rule.when || []) addRiskTerm(terms, term);
+  }
+  for (const [term, labels] of Object.entries(industrialBaseline.effectiveRiskMappings || {})) {
+    addRiskTerm(terms, term, labels);
+  }
+  return terms;
+}
+
+function riskIsChecked(term, labels, checkedTokens) {
+  const candidates = [term, ...labels].map(normalizeRiskTerm).filter(Boolean);
+  return candidates.some((candidate) => checkedTokens.some((checked) => (
+    checked === candidate || checked.includes(candidate) || candidate.includes(checked)
+  )));
+}
+
+function requireNoMissedRiskGate(file, taskContent) {
+  if (mode === "draft") return;
+  const platformBaseline = resolvePlatformBaseline(projectRoot);
+  const industrialBaseline = resolveIndustrialBaseline(projectRoot);
+  if (platformBaseline.selectedProfiles.length === 0 && !industrialBaseline.baselineLevel) return;
+
+  const specRef = normalizeRef(firstRefFromSection(taskContent, "Related Spec"));
+  const specContent = specRef ? readProjectFile(specRef) : "";
+  const scanText = [
+    taskRiskScanText(taskContent),
+    specContent ? specRiskScanText(specContent) : "",
+  ].join("\n");
+
+  const checkedTokens = checkedRiskLabels(taskContent).map(normalizeRiskTerm);
+  const missed = [];
+  for (const [term, labels] of baselineRiskTerms(platformBaseline, industrialBaseline)) {
+    if (!containsRiskTerm(scanText, term)) continue;
+    if (!riskIsChecked(term, labels, checkedTokens)) missed.push(term);
+  }
+
+  if (missed.length === 0) return;
+  const message = `${file} may mention high-risk areas without matching Risk Gate checks: ${missed.sort().join(", ")}`;
+  if (mode === "implementation") fail(message);
+  else warn(message);
+}
+
 function taskLevel(content) {
   const body = sectionBody(content, "Task Level") || "";
   const match = body.match(/\bL[0-3]\b/);
@@ -546,6 +683,7 @@ function checkTask(file, content) {
 
   requireHumanApproval(file, content);
   requireTaskGraph(file, content);
+  requireNoMissedRiskGate(file, content);
   requireBaselineImplementationGates(file, content);
 }
 

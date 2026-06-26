@@ -116,6 +116,14 @@ function walkFiles(dir) {
   return results.sort();
 }
 
+function sortedArray(value) {
+  return Array.isArray(value) ? [...value].sort() : [];
+}
+
+function sameArray(left, right) {
+  return JSON.stringify(sortedArray(left)) === JSON.stringify(sortedArray(right));
+}
+
 function validateNoProjectFacts(packRoot, packId) {
   const scanned = [
     path.join(packRoot, "pack.md"),
@@ -152,6 +160,10 @@ function validateNoProjectFacts(packRoot, packId) {
 function validatePackJson(pack, context) {
   const requiredKeys = [
     "schemaVersion",
+    "packVersion",
+    "minimumDevKitVersion",
+    "lastReviewedAt",
+    "stabilityNotes",
     "id",
     "type",
     "displayName",
@@ -181,6 +193,18 @@ function validatePackJson(pack, context) {
   }
   if (!["draft", "stable"].includes(pack.status)) {
     fail(`${context} status must be draft or stable`);
+  }
+  if (!/^\d+\.\d+\.\d+$/.test(pack.packVersion || "")) {
+    fail(`${context} packVersion must use semantic version format x.y.z`);
+  }
+  if (!/^\d+\.\d+\.\d+$/.test(pack.minimumDevKitVersion || "")) {
+    fail(`${context} minimumDevKitVersion must use semantic version format x.y.z`);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(pack.lastReviewedAt || "")) {
+    fail(`${context} lastReviewedAt must use YYYY-MM-DD`);
+  }
+  if (!String(pack.stabilityNotes || "").trim()) {
+    fail(`${context} stabilityNotes must not be empty`);
   }
 
   for (const key of [
@@ -258,6 +282,8 @@ if (index) {
     if (!["planned", "draft", "stable"].includes(item.status)) fail(`${item.id} index status must be planned, draft, or stable`);
     if (!["primary-platform", "capability", "risk-overlay"].includes(item.type)) fail(`${item.id} index type invalid`);
     if (!isSafeRelativePath(item.path)) fail(`${item.id} index path must be safe relative path`);
+    if (!item.displayName) fail(`${item.id} index displayName is required`);
+    if (!Array.isArray(item.appliesToProfiles)) fail(`${item.id} index appliesToProfiles must be an array`);
   }
 
   for (const item of packs) {
@@ -282,8 +308,12 @@ if (index) {
     checkedPacks += 1;
     validatePackJson(pack, `${item.id} pack.json`);
     if (pack.id !== item.id) fail(`${item.id} pack.json id must match index id`);
+    if (pack.displayName !== item.displayName) fail(`${item.id} pack.json displayName must match index displayName`);
     if (pack.type !== item.type) fail(`${item.id} pack.json type must match index type`);
     if (pack.status !== item.status) fail(`${item.id} pack.json status must match index status`);
+    if (!sameArray(pack.appliesToProfiles, item.appliesToProfiles)) {
+      fail(`${item.id} pack.json appliesToProfiles must match index appliesToProfiles`);
+    }
 
     for (const profileId of pack.appliesToProfiles || []) {
       if (!fs.existsSync(path.join(profilesRoot, profileId, "profile.md"))) {
@@ -337,4 +367,3 @@ if (!outputJson) {
   console.log(`Industrial packs checked: ${checkedPacks}`);
   console.log("Industrial pack structure is ready.");
 }
-

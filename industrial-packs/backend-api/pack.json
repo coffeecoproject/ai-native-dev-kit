@@ -1,10 +1,16 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "backend-api-industrial",
   "type": "capability",
   "displayName": "Backend API Industrial Pack",
   "status": "draft",
-  "appliesToProfiles": ["backend-api"],
+  "appliesToProfiles": [
+    "backend-api"
+  ],
   "compatiblePacks": [
     "web-app-industrial",
     "ios-app-industrial",
@@ -34,20 +40,48 @@
     "templates/api-change-record.md"
   ],
   "riskMappings": {
-    "api-contract": ["compatibility", "integration boundary"],
-    "auth": ["permission", "security"],
-    "permission": ["permission", "security"],
-    "data-write": ["data persistence", "external side effect"],
-    "production-config": ["production config", "release"],
-    "destructive-operation": ["irreversible operation", "data deletion"]
+    "api-contract": [
+      "compatibility",
+      "integration boundary"
+    ],
+    "auth": [
+      "permission",
+      "security"
+    ],
+    "permission": [
+      "permission",
+      "security"
+    ],
+    "data-write": [
+      "data persistence",
+      "external side effect"
+    ],
+    "production-config": [
+      "production config",
+      "release"
+    ],
+    "destructive-operation": [
+      "irreversible operation",
+      "data deletion"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["api-contract", "auth", "permission", "data-write"],
+      "when": [
+        "api-contract",
+        "auth",
+        "permission",
+        "data-write"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["production-config", "migration", "destructive-operation", "value-transfer"],
+      "when": [
+        "production-config",
+        "migration",
+        "destructive-operation",
+        "value-transfer"
+      ],
       "minTaskLevel": "L3"
     }
   ],

@@ -1,10 +1,16 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "wechat-miniprogram-industrial",
   "type": "primary-platform",
   "displayName": "WeChat Mini Program Industrial Pack",
   "status": "draft",
-  "appliesToProfiles": ["wechat-miniprogram"],
+  "appliesToProfiles": [
+    "wechat-miniprogram"
+  ],
   "compatiblePacks": [
     "backend-api-industrial",
     "cloudbase-industrial",
@@ -30,19 +36,43 @@
     "templates/miniprogram-release-record.md"
   ],
   "riskMappings": {
-    "platform-permission": ["privacy", "platform dependency"],
-    "cloud-function": ["external side effect", "production config"],
-    "mini-program-release": ["release", "production config"],
-    "client-storage": ["data persistence", "privacy"],
-    "value-transfer": ["regulated operation", "irreversible operation"]
+    "platform-permission": [
+      "privacy",
+      "platform dependency"
+    ],
+    "cloud-function": [
+      "external side effect",
+      "production config"
+    ],
+    "mini-program-release": [
+      "release",
+      "production config"
+    ],
+    "client-storage": [
+      "data persistence",
+      "privacy"
+    ],
+    "value-transfer": [
+      "regulated operation",
+      "irreversible operation"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["platform-permission", "client-storage", "cloud-function"],
+      "when": [
+        "platform-permission",
+        "client-storage",
+        "cloud-function"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["mini-program-release", "production-config", "value-transfer", "regulated-data"],
+      "when": [
+        "mini-program-release",
+        "production-config",
+        "value-transfer",
+        "regulated-data"
+      ],
       "minTaskLevel": "L3"
     }
   ],

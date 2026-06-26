@@ -9,7 +9,7 @@
 - 新项目：从第一天开始就把需求、风险、验证和记录放好。
 - 已有项目：不重写代码，先补上下文，再逐步接管新需求，慢慢治理历史问题。
 
-详细说明见 [README.zh-CN.md](README.zh-CN.md)。快速上手见 [docs/quickstart.md](docs/quickstart.md)。Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
+详细说明见 [README.zh-CN.md](README.zh-CN.md)。快速上手见 [docs/quickstart.md](docs/quickstart.md)。心智模型见 [docs/mental-model.md](docs/mental-model.md)。Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
 
 ## 一句话用法
 
@@ -234,7 +234,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.16.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.18.0`。
 
 新增内容：
 
@@ -245,6 +245,12 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - 任务级别不够、基线没准备好、验收证据不足时会被拦住。
 - 新增微信小程序 profile，并绑定微信小程序工业包。
 - 自检里补了缺失证据引用的失败用例，避免以后回退。
+- Web 工业包补齐表单交互、API 失败、可访问性、性能和运行质量证据，但仍不绑定具体框架或部署平台。
+- 实现前会检测 Risk Gate 漏勾：ready 模式提醒，implementation 模式拦截。
+- 工业包 registry 和 pack manifest 会做一致性检查。
+- 工业包新增版本和稳定性元数据，方便后续区分 draft 与 stable。
+- 新增 mental model 文档，说明什么时候只用 workflow、什么时候选 profile、什么时候上 BL2。
+- 新增 Web BL2 dogfood 示例，串起 baseline selection、evidence、task gate、release record 和 AI log。
 
 ## 它会自我迭代吗
 
@@ -269,6 +275,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 - `docs/quickstart.md`
 - `docs/codex-usage.md`
+- `docs/mental-model.md`
 - `prompts/bootstrap-agent.md`
 - `scripts/workflow-next.mjs`
 - `scripts/check-project-onboarding.mjs`
@@ -285,6 +292,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 - `examples/generic-first-change`
 - `examples/web-internal-admin-first-slice`
+- `examples/web-industrial-bl2-first-slice`
 
 Starter：
 

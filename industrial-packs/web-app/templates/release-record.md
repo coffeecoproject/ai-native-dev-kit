@@ -17,6 +17,17 @@
 |---|---|---|
 |  |  |  |
 
+## Runtime Quality Evidence
+
+| Area | Result | Evidence |
+|---|---|---|
+| UI states |  |  |
+| Form / interaction behavior |  |  |
+| API failure behavior |  |  |
+| Responsive behavior |  |  |
+| Accessibility |  |  |
+| Performance / asset impact |  |  |
+
 ## Rollback / Disable Path
 
 - 
@@ -38,4 +49,3 @@
 Status: PENDING / APPROVED / REJECTED
 
 Scope:
-

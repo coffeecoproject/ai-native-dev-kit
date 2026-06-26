@@ -1,10 +1,16 @@
 {
   "schemaVersion": "0.1",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "0.18.0",
+  "lastReviewedAt": "2026-06-26",
+  "stabilityNotes": "Draft pack; requires project dogfood before stable use.",
   "id": "web-app-industrial",
   "type": "primary-platform",
   "displayName": "Web App Industrial Pack",
   "status": "draft",
-  "appliesToProfiles": ["web-app"],
+  "appliesToProfiles": [
+    "web-app"
+  ],
   "compatiblePacks": [
     "backend-api-industrial",
     "internal-admin-industrial",
@@ -17,46 +23,126 @@
   "requiredBaselines": [
     "baselines/web-runtime-baseline.md",
     "baselines/web-security-permission-baseline.md",
-    "baselines/web-release-readiness-baseline.md"
+    "baselines/web-release-readiness-baseline.md",
+    "baselines/web-interaction-api-baseline.md",
+    "baselines/web-performance-accessibility-baseline.md"
   ],
   "requiredExecutionDocs": [
     "executions/codex-web-industrial-execution.md"
   ],
   "requiredAuditDocs": [
     "audit/web-existing-project-audit.md",
-    "audit/web-release-readiness.md"
+    "audit/web-release-readiness.md",
+    "audit/web-runtime-quality-audit.md"
   ],
   "requiredChecklists": [
     "checklists/web-ui-state-checklist.md",
-    "checklists/web-security-checklist.md"
+    "checklists/web-security-checklist.md",
+    "checklists/web-form-interaction-checklist.md",
+    "checklists/web-api-error-handling-checklist.md",
+    "checklists/web-performance-accessibility-checklist.md"
   ],
   "requiredTemplates": [
     "templates/release-record.md",
-    "templates/incident-record.md"
+    "templates/incident-record.md",
+    "templates/web-runtime-evidence.md"
   ],
   "riskMappings": {
-    "auth": ["permission", "security"],
-    "permission": ["permission", "security"],
-    "client-secret": ["secrets", "security"],
-    "production-config": ["production config"],
-    "external-side-effect": ["regulated operation"],
-    "destructive-operation": ["irreversible operation", "data deletion"]
+    "auth": [
+      "permission",
+      "security"
+    ],
+    "permission": [
+      "permission",
+      "security"
+    ],
+    "api-contract": [
+      "api failure",
+      "external side effect"
+    ],
+    "api-failure": [
+      "api failure",
+      "external side effect"
+    ],
+    "form-submission": [
+      "form interaction",
+      "external side effect"
+    ],
+    "accessibility-critical": [
+      "accessibility",
+      "external side effect"
+    ],
+    "performance-sensitive": [
+      "performance",
+      "external side effect"
+    ],
+    "dependency-addition": [
+      "dependency change",
+      "external side effect"
+    ],
+    "client-secret": [
+      "secrets",
+      "security"
+    ],
+    "production-config": [
+      "production config"
+    ],
+    "external-side-effect": [
+      "regulated operation"
+    ],
+    "destructive-operation": [
+      "irreversible operation",
+      "data deletion"
+    ]
   },
   "taskLevelEscalation": [
     {
-      "when": ["auth", "permission", "production-config"],
+      "when": [
+        "auth",
+        "permission",
+        "api-contract",
+        "api-failure",
+        "form-submission",
+        "accessibility-critical",
+        "performance-sensitive",
+        "dependency-addition"
+      ],
       "minTaskLevel": "L2"
     },
     {
-      "when": ["secrets", "value-transfer", "regulated-data", "destructive-operation"],
+      "when": [
+        "production-config",
+        "secrets",
+        "value-transfer",
+        "regulated-data",
+        "destructive-operation",
+        "irreversible-operation"
+      ],
       "minTaskLevel": "L3"
     }
   ],
   "requiredEvidence": {
     "ui-change": [
       "loading-empty-error-forbidden evidence",
+      "success and layout stability evidence",
       "responsive behavior evidence",
       "critical flow behavior evidence"
+    ],
+    "form-interaction": [
+      "form submission validation and duplicate-submit evidence",
+      "destructive action and recovery evidence"
+    ],
+    "api-error-handling": [
+      "API failure and recovery evidence",
+      "auth and validation error behavior evidence"
+    ],
+    "accessibility": [
+      "keyboard focus and accessible name evidence",
+      "status message and contrast evidence"
+    ],
+    "performance": [
+      "bundle asset and loading impact evidence",
+      "interaction responsiveness evidence"
     ],
     "permission-change": [
       "server-side permission test evidence",
@@ -72,6 +158,10 @@
       "environment variable review",
       "secret exposure review",
       "deployment configuration evidence"
+    ],
+    "dependency-change": [
+      "dependency rationale and vulnerability review",
+      "client bundle impact review"
     ]
   },
   "humanApprovalRequiredFor": [
@@ -81,7 +171,8 @@
     "secrets",
     "irreversible-operation",
     "destructive-operation",
-    "value-transfer"
+    "value-transfer",
+    "accessibility-critical-exception",
+    "performance-exception"
   ]
 }
-
