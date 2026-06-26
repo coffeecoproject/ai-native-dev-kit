@@ -57,6 +57,18 @@ function loadCases() {
   return parsed;
 }
 
+function validateCase(testCase, index) {
+  const label = `fixture case #${index + 1}`;
+  if (!testCase || typeof testCase !== "object" || Array.isArray(testCase)) {
+    return `${label} must be an object`;
+  }
+  if (!testCase.name) return `${label} missing name`;
+  if (!testCase.script) return `${testCase.name} missing script`;
+  if (!Array.isArray(testCase.args)) return `${testCase.name} args must be an array`;
+  if (!("expectStatus" in testCase)) return `${testCase.name} missing expectStatus`;
+  return null;
+}
+
 function includesAll(output, expected) {
   return (expected || []).every((needle) => output.includes(needle));
 }
@@ -67,12 +79,15 @@ function runCase(testCase) {
   const caseArgs = Array.isArray(testCase.args) ? testCase.args.map(String) : [];
   const expectedStatus = testCase.expectStatus ?? 0;
   const name = String(testCase.name || script);
+  const command = `node ${[script, ...caseArgs].join(" ")}`;
 
   if (!script || !fs.existsSync(scriptPath)) {
     return {
       name,
       status: "FAIL",
       reason: `missing fixture script: ${script}`,
+      command,
+      howToFix: testCase.howToFix || "Check the script path in test-fixtures/fixture-cases.json.",
     };
   }
 
@@ -94,6 +109,8 @@ function runCase(testCase) {
       name,
       status: "FAIL",
       reason: `expected status ${expectedStatus}, got ${exitCode}`,
+      command,
+      howToFix: testCase.howToFix,
       stdout,
       stderr,
     };
@@ -103,6 +120,8 @@ function runCase(testCase) {
       name,
       status: "FAIL",
       reason: "stdout missing expected text",
+      command,
+      howToFix: testCase.howToFix,
       stdout,
       stderr,
     };
@@ -112,6 +131,8 @@ function runCase(testCase) {
       name,
       status: "FAIL",
       reason: "stderr missing expected text",
+      command,
+      howToFix: testCase.howToFix,
       stdout,
       stderr,
     };
@@ -121,6 +142,8 @@ function runCase(testCase) {
       name,
       status: "FAIL",
       reason: "output missing expected text",
+      command,
+      howToFix: testCase.howToFix,
       stdout,
       stderr,
     };
@@ -129,10 +152,18 @@ function runCase(testCase) {
     name,
     status: "PASS",
     exitCode,
+    command,
   };
 }
 
 let cases = loadCases();
+for (const [index, testCase] of cases.entries()) {
+  const validationError = validateCase(testCase, index);
+  if (validationError) {
+    console.error(`FAIL ${validationError}`);
+    process.exit(1);
+  }
+}
 if (selectedCase) {
   cases = cases.filter((testCase) => String(testCase.name || "") === selectedCase);
   if (cases.length === 0) {
@@ -150,6 +181,8 @@ for (const testCase of cases) {
     failed = true;
     if (!outputJson) {
       console.error(`FAIL ${result.name}: ${result.reason}`);
+      if (result.command) console.error(`Command: ${result.command}`);
+      if (result.howToFix) console.error(`How to fix: ${result.howToFix}`);
       if (result.stdout) console.error(result.stdout.trim());
       if (result.stderr) console.error(result.stderr.trim());
     }
@@ -164,7 +197,23 @@ if (outputJson) {
   }, null, 2));
 }
 
-if (failed) process.exit(1);
+if (failed) {
+  if (outputJson) process.exit(1);
+  console.error("");
+  console.error("Human Summary");
+  console.error("One or more governance fixture checks failed. This means either a golden example no longer follows the protocol, or a bad fixture is no longer rejected for the expected reason.");
+  console.error("");
+  console.error("What failed");
+  for (const result of results.filter((item) => item.status === "FAIL")) {
+    console.error(`- ${result.name}: ${result.reason}`);
+  }
+  console.error("");
+  console.error("How to fix");
+  for (const result of results.filter((item) => item.status === "FAIL")) {
+    console.error(`- ${result.name}: ${result.howToFix || "Run the listed command and update either the fixture or the checker expectation."}`);
+  }
+  process.exit(1);
+}
 
 if (!outputJson) {
   console.log("");

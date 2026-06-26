@@ -267,12 +267,19 @@ function checkRequiredFiles() {
     "test-fixtures/README.md",
     "test-fixtures/fixture-cases.json",
     "test-fixtures/bad-engineering-baseline/docs/engineering-baseline.md",
+    "test-fixtures/bad-engineering-baseline-pending-decision/docs/engineering-baseline.md",
     "test-fixtures/bad-review-loop/tasks/001-risky-dependency.md",
     "test-fixtures/bad-review-loop/specs/001-risky-dependency.md",
     "test-fixtures/bad-review-loop/evals/001-risky-dependency.md",
     "test-fixtures/bad-review-loop/review-packets/001-risky-dependency.md",
     "test-fixtures/bad-review-loop/review-loop-reports/001-risky-dependency.md",
+    "test-fixtures/bad-review-loop-too-many-rounds/tasks/001-auto-fix-rounds.md",
+    "test-fixtures/bad-review-loop-too-many-rounds/specs/001-auto-fix-rounds.md",
+    "test-fixtures/bad-review-loop-too-many-rounds/evals/001-auto-fix-rounds.md",
+    "test-fixtures/bad-review-loop-too-many-rounds/review-packets/001-auto-fix-rounds.md",
+    "test-fixtures/bad-review-loop-too-many-rounds/review-loop-reports/001-auto-fix-rounds.md",
     "test-fixtures/bad-next-step-boundary/final-reports/001-boundary.md",
+    "test-fixtures/bad-next-step-risk-decision/final-reports/001-risk-decision.md",
   ];
 
   for (const file of required) {

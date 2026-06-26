@@ -113,6 +113,29 @@ Required fixture themes:
 - `bad-review-loop`: a Review Loop report must not classify new dependencies or risky scope as `AUTO_FIX`.
 - `bad-next-step-boundary`: a direct follow-up must not be marked as work AI can do immediately.
 
+## 0.30.1 Fixture UX Hardening
+
+Objective:
+
+```text
+Make fixture failures easier to understand and expand negative coverage without adding target-project gates.
+```
+
+Scope:
+
+- fixture runner failure output includes command and repair guidance
+- fixture cases include `howToFix` guidance
+- negative fixtures cover unresolved Engineering Baseline decisions
+- negative fixtures cover AUTO_FIX round limit violations
+- negative fixtures cover `RISK_DECISION` suggestions missing human-decision routing
+
+Non-goals:
+
+- target-project CI changes
+- source-code scanning
+- Goal Mode implementation
+- subagent orchestration implementation
+
 ## 0.31.0 Goal Mode Entry
 
 Goal Mode will classify user intent before selecting artifacts.

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.30.0`
+Current version: `0.30.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `0.30.0`
 
 ## Current Release
 
-`0.30.0`
+`0.30.1`
 
 Includes:
 
+- Fixture runner UX hardening with command and repair guidance in failure output
+- expanded negative fixtures for pending Engineering Baseline decisions, excessive AUTO_FIX rounds, and missing human-decision routing for `RISK_DECISION`
+- fixture cases now include repair guidance for stable checker maintenance
 - Governance Hardening roadmap for 0.30 fixture-driven checks, 0.31 Goal Mode, and 0.32 Subagent Orchestration
 - `docs/governance-hardening-roadmap.md`
 - `scripts/check-fixtures.mjs` for dev-kit-only golden example and negative fixture validation

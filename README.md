@@ -465,7 +465,15 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.30.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.30.1`。
+
+0.30.1 新增内容：
+
+- `check-fixtures` 失败时会输出具体命令和修复建议，方便判断是 golden example 退化，还是 bad fixture 没有按预期被拦住。
+- `fixture-cases.json` 增加 `howToFix` 维护提示，让失败原因和修复方向更稳定。
+- 新增 bad Engineering Baseline fixture：严格模式下未解决的 Open Engineering Decisions 必须失败。
+- 新增 bad Review Loop fixture：`AUTO_FIX` 超过 2 轮必须失败。
+- 新增 bad Next-Step Boundary fixture：`RISK_DECISION` 没有进入 Human Decisions Needed / Human Decision Queue 必须失败。
 
 0.30.0 新增内容：
 

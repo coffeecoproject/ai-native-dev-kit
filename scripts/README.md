@@ -235,6 +235,8 @@ node scripts/check-fixtures.mjs --json
 
 The runner calls the real governance checkers and asserts expected pass/fail output. It must not reimplement checker rules.
 
+When a fixture fails, the runner prints the command, the failed expectation, and fixture-maintainer repair guidance from `test-fixtures/fixture-cases.json`.
+
 ## check-dev-kit.mjs
 
 Check whether the dev kit itself is internally complete and extension-safe.

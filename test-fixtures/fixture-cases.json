@@ -4,41 +4,71 @@
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["examples/engineering-baseline-enum-vs-lookup", "--strict"],
     "expectStatus": 0,
-    "expectStdoutIncludes": ["Engineering baseline is ready."]
+    "expectStdoutIncludes": ["Engineering baseline is ready."],
+    "howToFix": "Keep the enum-vs-lookup example complete and free of pending baseline decisions."
   },
   {
     "name": "good engineering baseline api dto domain",
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["examples/engineering-baseline-api-dto-domain", "--strict"],
     "expectStatus": 0,
-    "expectStdoutIncludes": ["Engineering baseline is ready."]
+    "expectStdoutIncludes": ["Engineering baseline is ready."],
+    "howToFix": "Keep the DTO/domain example complete and free of pending baseline decisions."
   },
   {
     "name": "good next-step boundary suggestions",
     "script": "scripts/check-next-step-boundary.mjs",
     "args": ["examples/next-step-boundary-suggestions"],
     "expectStatus": 0,
-    "expectStdoutIncludes": ["next-step boundary check passed"]
+    "expectStdoutIncludes": ["next-step boundary check passed"],
+    "howToFix": "Keep each suggestion classified with matching Can AI do now and Required entry values."
   },
   {
     "name": "bad engineering baseline missing type source",
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["test-fixtures/bad-engineering-baseline", "--strict"],
     "expectStatus": "nonzero",
-    "expectStderrIncludes": ["missing section: Type Source of Truth"]
+    "expectStderrIncludes": ["missing section: Type Source of Truth"],
+    "howToFix": "The checker must keep rejecting baselines that omit Type Source of Truth."
+  },
+  {
+    "name": "bad engineering baseline pending decision",
+    "script": "scripts/check-engineering-baseline.mjs",
+    "args": ["test-fixtures/bad-engineering-baseline-pending-decision", "--strict"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["has open engineering decisions"],
+    "howToFix": "The checker must keep rejecting strict baselines with unresolved Open Engineering Decisions."
   },
   {
     "name": "bad review loop forbidden auto fix",
     "script": "scripts/check-review-loop.mjs",
     "args": ["test-fixtures/bad-review-loop"],
     "expectStatus": "nonzero",
-    "expectStderrIncludes": ["AUTO_FIX appears to touch forbidden scope"]
+    "expectStderrIncludes": ["AUTO_FIX appears to touch forbidden scope"],
+    "howToFix": "The checker must keep rejecting AUTO_FIX findings that touch dependencies or other forbidden authority."
+  },
+  {
+    "name": "bad review loop too many auto fix rounds",
+    "script": "scripts/check-review-loop.mjs",
+    "args": ["test-fixtures/bad-review-loop-too-many-rounds"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["AUTO_FIX attempts exceed 2 rounds"],
+    "howToFix": "The checker must keep enforcing the maximum of two AUTO_FIX rounds."
   },
   {
     "name": "bad next-step boundary direct follow-up immediate",
     "script": "scripts/check-next-step-boundary.mjs",
     "args": ["test-fixtures/bad-next-step-boundary"],
     "expectStatus": "nonzero",
-    "expectStderrIncludes": ["can only set Can AI do now? = Yes"]
+    "expectStderrIncludes": ["can only set Can AI do now? = Yes"],
+    "howToFix": "The checker must keep rejecting DIRECT_FOLLOW_UP suggestions marked as immediately executable."
+  },
+  {
+    "name": "bad next-step boundary risk decision missing human queue",
+    "script": "scripts/check-next-step-boundary.mjs",
+    "args": ["test-fixtures/bad-next-step-risk-decision"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["RISK_DECISION must appear in Human Decisions Needed"],
+    "howToFix": "The checker must keep routing RISK_DECISION suggestions to Human Decisions Needed or Human Decision Queue."
   }
 ]

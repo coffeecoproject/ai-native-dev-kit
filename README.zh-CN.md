@@ -172,6 +172,8 @@ node scripts/check-fixtures.mjs
 
 `check-fixtures` 只用于 dev-kit 自身，不会注入到目标项目。
 
+`0.30.1` 继续强化这层：fixture 失败时会给出命令和修复建议，并补充更多坏例子，覆盖 pending 工程决策、AUTO_FIX 超过 2 轮、RISK_DECISION 没有进入人工决策队列等问题。
+
 ## 新项目初始化
 
 推荐通过初始化脚本创建项目，不要直接复制 `starters/<name>/`。
