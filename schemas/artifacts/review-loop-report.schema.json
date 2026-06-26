@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0",
+  "artifactType": "review-loop-report",
+  "required": ["schema_version", "artifact_type", "number", "slug", "title", "task", "task_level", "status", "created_at"],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.0$" },
+    "artifact_type": { "type": "string", "enum": ["review-loop-report"] },
+    "number": { "type": "string", "pattern": "^[0-9]{3}$" },
+    "slug": { "type": "string" },
+    "title": { "type": "string" },
+    "task": { "type": "string" },
+    "spec": { "type": "string" },
+    "eval": { "type": "string" },
+    "task_level": { "type": "string", "enum": ["L0", "L1", "L2", "L3"] },
+    "status": { "type": "string", "enum": ["open", "done", "blocked"] },
+    "created_at": { "type": "string" }
+  }
+}

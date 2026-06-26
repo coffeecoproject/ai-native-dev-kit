@@ -363,6 +363,12 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 
 更新模式不会覆盖已有项目文档、specs、tasks、logs 或业务代码。
 
+新生成的 request / preflight / spec / eval / task 会带 frontmatter，方便机器稳定识别类型、状态、引用和任务级别。旧文件默认只给迁移提示，不会直接失败；需要排查迁移缺口时再运行：
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode draft --strict-schema
+```
+
 如果已有项目已经有 `AGENTS.md`，但缺少 workflow governance 标记，默认不会直接修改这个文件。它会生成：
 
 ```text

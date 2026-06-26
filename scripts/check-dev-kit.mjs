@@ -1544,7 +1544,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/cli.mjs", "scripts/lib/manifest.mjs", "scripts/check-manifest.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/cli.mjs", "scripts/lib/frontmatter.mjs", "scripts/lib/manifest.mjs", "scripts/check-manifest.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -2604,7 +2604,54 @@ function checkGeneratedProjectE2E() {
     fail("generated project new workflow item did not create request");
     return;
   }
+  const generatedRequestPath = path.join(target, "requests", "001-generated-check.md");
+  const generatedRequestContent = fs.readFileSync(generatedRequestPath, "utf8");
+  if (!generatedRequestContent.startsWith("---\n") || !generatedRequestContent.includes("artifact_type: request")) {
+    fail("generated project new workflow item did not add request frontmatter");
+    return;
+  }
   pass("generated project new workflow item creates request");
+
+  const legacyRequestContent = generatedRequestContent.replace(/^---\n[\s\S]*?\n---\n/, "");
+  fs.writeFileSync(generatedRequestPath, legacyRequestContent);
+  const legacyFrontmatterCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "draft",
+  ]);
+  if (legacyFrontmatterCheck.status !== 0 || !legacyFrontmatterCheck.stdout.includes("missing artifact frontmatter")) {
+    fail(`generated project workflow artifact check should warn for legacy artifact frontmatter: ${legacyFrontmatterCheck.stderr || legacyFrontmatterCheck.stdout}`);
+    return;
+  }
+  const strictLegacyFrontmatterCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "draft",
+    "--strict-schema",
+  ]);
+  if (strictLegacyFrontmatterCheck.status === 0 || !strictLegacyFrontmatterCheck.stderr.includes("missing artifact frontmatter")) {
+    fail(`generated project strict schema check should reject legacy artifact frontmatter: ${strictLegacyFrontmatterCheck.stderr || strictLegacyFrontmatterCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(generatedRequestPath, generatedRequestContent);
+  pass("generated project workflow artifact check warns for legacy frontmatter and strict mode rejects it");
+
+  const invalidGeneratedRequestContent = generatedRequestContent.replace("artifact_type: request\n", "");
+  fs.writeFileSync(generatedRequestPath, invalidGeneratedRequestContent);
+  const invalidFrontmatterCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "draft",
+  ]);
+  if (invalidFrontmatterCheck.status === 0 || !invalidFrontmatterCheck.stderr.includes("missing required frontmatter field: artifact_type")) {
+    fail(`generated project workflow artifact check should reject invalid frontmatter: ${invalidFrontmatterCheck.stderr || invalidFrontmatterCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(generatedRequestPath, generatedRequestContent);
+  pass("generated project workflow artifact check rejects invalid frontmatter");
 
   const generatedAdoptionAssessment = runNode([
     path.join(target, "scripts", "new-workflow-item.mjs"),

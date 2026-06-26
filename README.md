@@ -543,6 +543,12 @@ node scripts/new-workflow-item.mjs --type request --name first-change
 node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
 
+新生成的 request / preflight / spec / eval / task 会带 frontmatter，方便机器稳定识别类型、状态、引用和任务级别。旧文件默认只给迁移提示，不会直接失败；需要排查迁移缺口时再运行：
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode draft --strict-schema
+```
+
 只检查某张任务卡：
 
 ```bash

@@ -3,8 +3,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { parseFrontmatter, validateFrontmatter } from "./lib/frontmatter.mjs";
 import { resolveIndustrialBaseline } from "./resolve-industrial-baseline.mjs";
 import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -12,8 +17,9 @@ const mode = String(args.mode || "ready").toLowerCase();
 const taskArg = args.task ? String(args.task) : null;
 const changedOnly = Boolean(args["changed-only"]);
 const changedBase = args.base ? String(args.base) : "HEAD";
+const strictSchema = Boolean(args["strict-schema"]);
 const allowedModes = new Set(["draft", "ready", "implementation"]);
-const knownFlags = new Set(["mode", "task", "changed-only", "base"]);
+const knownFlags = new Set(["mode", "task", "changed-only", "base", "strict-schema"]);
 
 if (!allowedModes.has(mode)) {
   console.error(`FAIL invalid --mode: ${mode}`);
@@ -48,10 +54,18 @@ const checksByDir = new Map([
   ["tasks", checkTask],
   ["ai-logs", checkLog],
 ]);
+const frontmatterTypesByDir = new Map([
+  ["requests", "request"],
+  ["preflight", "preflight"],
+  ["specs", "spec"],
+  ["evals", "eval"],
+  ["tasks", "task"],
+]);
 
 let failed = false;
 let checked = 0;
 const checkedFiles = new Set();
+const frontmatterByFile = new Map();
 const taskLevelRank = { L0: 0, L1: 1, L2: 2, L3: 3 };
 
 function parseArgs(argv) {
@@ -535,10 +549,61 @@ function normalizeRef(ref) {
   return ref ? toProjectPath(ref) : null;
 }
 
+function schemaPathForType(artifactType) {
+  const fileName = `${artifactType}.schema.json`;
+  const candidates = [
+    path.join(projectRoot, ".ai-native", "schemas", "artifacts", fileName),
+    path.resolve(__dirname, "..", "schemas", "artifacts", fileName),
+  ];
+  return candidates.find((candidate) => fs.existsSync(candidate)) || null;
+}
+
+function schemaForType(artifactType) {
+  const schemaPath = schemaPathForType(artifactType);
+  if (!schemaPath) return null;
+  try {
+    return JSON.parse(fs.readFileSync(schemaPath, "utf8"));
+  } catch (error) {
+    fail(`artifact schema is not valid JSON: ${schemaPath}: ${error.message}`);
+    return null;
+  }
+}
+
+function checkFrontmatter(file, content) {
+  const topDir = file.split("/")[0];
+  const artifactType = frontmatterTypesByDir.get(topDir);
+  if (!artifactType) return;
+  const parsed = parseFrontmatter(content);
+  frontmatterByFile.set(file, parsed);
+  const schema = schemaForType(artifactType);
+  if (!schema) {
+    warn(`${file} has no artifact schema for ${artifactType}`);
+    return;
+  }
+  if (!parsed.hasFrontmatter) {
+    const message = `${file} missing artifact frontmatter; migration warning for 0.39.x`;
+    if (strictSchema) fail(message);
+    else warn(message);
+    return;
+  }
+  for (const error of parsed.errors) fail(`${file} ${error}`);
+  const errors = validateFrontmatter(parsed.data, schema);
+  for (const error of errors) fail(`${file} ${error}`);
+  if (parsed.data.artifact_type && parsed.data.artifact_type !== artifactType) {
+    fail(`${file} frontmatter artifact_type ${parsed.data.artifact_type} does not match ${artifactType}`);
+  }
+}
+
+function metadataForRef(ref) {
+  const normalized = normalizeRef(ref);
+  return normalized ? frontmatterByFile.get(normalized)?.data || {} : {};
+}
+
 function requireTaskGraph(file, content) {
   if (mode === "draft") return;
-  const taskSpecRef = normalizeRef(firstRefFromSection(content, "Related Spec"));
-  const taskEvalRef = normalizeRef(firstRefFromSection(content, "Related Eval"));
+  const taskMeta = metadataForRef(file);
+  const taskSpecRef = normalizeRef(taskMeta.spec || firstRefFromSection(content, "Related Spec"));
+  const taskEvalRef = normalizeRef(taskMeta.eval || firstRefFromSection(content, "Related Eval"));
   if (!taskSpecRef || !taskEvalRef) {
     fail(`${file} must reference one related spec and one related eval`);
     return;
@@ -548,15 +613,17 @@ function requireTaskGraph(file, content) {
   const specContent = readProjectFile(taskSpecRef);
   if (!evalContent || !specContent) return;
 
-  const evalSpecRef = normalizeRef(firstRefFromSection(evalContent, "Related Spec"));
+  const evalMeta = metadataForRef(taskEvalRef);
+  const specMeta = metadataForRef(taskSpecRef);
+  const evalSpecRef = normalizeRef(evalMeta.spec || firstRefFromSection(evalContent, "Related Spec"));
   if (!evalSpecRef) {
     fail(`${taskEvalRef} must reference its related spec`);
   } else if (evalSpecRef !== taskSpecRef) {
     fail(`${file} references ${taskSpecRef}, but ${taskEvalRef} references ${evalSpecRef}`);
   }
 
-  const requestRef = normalizeRef(labeledRefFromSection(specContent, "Source", "Request"));
-  const preflightRef = normalizeRef(labeledRefFromSection(specContent, "Source", "Preflight"));
+  const requestRef = normalizeRef(specMeta.request || labeledRefFromSection(specContent, "Source", "Request"));
+  const preflightRef = normalizeRef(specMeta.preflight || labeledRefFromSection(specContent, "Source", "Preflight"));
   if (!requestRef) {
     fail(`${taskSpecRef} Source must reference its request`);
     return;
@@ -850,14 +917,27 @@ function filesToCheck() {
   return files;
 }
 
-for (const filePath of filesToCheck()) {
+const selectedFiles = filesToCheck();
+const contentByFile = new Map();
+
+for (const filePath of selectedFiles) {
+  const file = rel(filePath);
+  if (checkedFiles.has(file)) continue;
+  const checker = checkerForFile(filePath);
+  if (!checker) continue;
+  const content = fs.readFileSync(filePath, "utf8");
+  contentByFile.set(file, content);
+  checkFrontmatter(file, content);
+}
+
+for (const filePath of selectedFiles) {
   const file = rel(filePath);
   if (checkedFiles.has(file)) continue;
   checkedFiles.add(file);
   const checker = checkerForFile(filePath);
   if (!checker) continue;
   checked += 1;
-  const content = fs.readFileSync(filePath, "utf8");
+  const content = contentByFile.get(file) || fs.readFileSync(filePath, "utf8");
   requireNoPlaceholders(file, content);
   checker(file, content);
 }

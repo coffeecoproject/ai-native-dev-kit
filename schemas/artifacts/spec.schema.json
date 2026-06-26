@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "artifactType": "spec",
+  "required": ["schema_version", "artifact_type", "number", "slug", "title", "request", "status", "created_at"],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.0$" },
+    "artifact_type": { "type": "string", "enum": ["spec"] },
+    "number": { "type": "string", "pattern": "^[0-9]{3}$" },
+    "slug": { "type": "string" },
+    "title": { "type": "string" },
+    "request": { "type": "string" },
+    "preflight": { "type": "string" },
+    "status": { "type": "string", "enum": ["draft", "ready", "implementing", "done", "superseded"] },
+    "created_at": { "type": "string" }
+  }
+}

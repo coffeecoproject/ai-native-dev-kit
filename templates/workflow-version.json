@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.38.0",
+  "devKitVersion": "0.39.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -10,6 +10,7 @@
     ".ai-native/checklists",
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
+    ".ai-native/schemas/artifacts",
     ".ai-native/dev-kit-manifest.json",
     ".ai-native/docs/artifact-decision-tree.md",
     ".ai-native/docs/goal-subagent-usage.md",
@@ -30,6 +31,7 @@
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
+    "scripts/lib/frontmatter.mjs",
     "scripts/lib/manifest.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",

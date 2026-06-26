@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "artifactType": "goal-card",
+  "required": ["schema_version", "artifact_type", "number", "slug", "title", "goal_mode", "task_level", "status", "created_at"],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.0$" },
+    "artifact_type": { "type": "string", "enum": ["goal-card"] },
+    "number": { "type": "string", "pattern": "^[0-9]{3}$" },
+    "slug": { "type": "string" },
+    "title": { "type": "string" },
+    "goal_mode": { "type": "string", "enum": ["DISCUSS_ONLY", "ADOPT_PROJECT", "DEFINE_WORK", "IMPLEMENT_TASK", "REVIEW_TASK", "REPAIR_TASK", "BASELINE_DECISION", "HANDOFF_OR_REPORT"] },
+    "task_level": { "type": "string", "enum": ["L0", "L1", "L2", "L3"] },
+    "status": { "type": "string", "enum": ["draft", "ready", "done"] },
+    "created_at": { "type": "string" }
+  }
+}

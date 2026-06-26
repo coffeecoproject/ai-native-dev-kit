@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.38.0`
+Current version: `0.39.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,17 @@ Current version: `0.38.0`
 
 ## Current Release
 
-`0.38.0`
+`0.39.0`
 
 Includes:
 
+- Productization Hardcut phase `0.39.0`: artifact frontmatter and schema
+- `schemas/artifacts/` defines initial metadata schemas for request, preflight, spec, eval, task, review loop report, goal card, and subagent run plan
+- `scripts/lib/frontmatter.mjs` provides dependency-free frontmatter parsing, formatting, and validation
+- `scripts/new-workflow-item.mjs` now adds frontmatter to newly generated schema-backed artifacts
+- `scripts/check-workflow-artifacts.mjs` validates frontmatter when present and warns for legacy artifacts without frontmatter
+- `check-workflow-artifacts.mjs --strict-schema` fails legacy artifacts without frontmatter for migration rehearsals
+- generated projects now receive artifact schemas and `scripts/lib/frontmatter.mjs`
 - Productization Hardcut phase `0.38.0`: init/update safety
 - `scripts/init-project.mjs --dry-run` emits a machine-readable init/update plan without writing target files
 - `scripts/init-project.mjs --write-plan <file>` writes a reviewable plan without mutating the target

@@ -6,7 +6,7 @@ Status: Active execution plan
 
 Current baseline: `0.33.0` frozen in `releases/0.33.0/`
 
-Current executed phase: `0.38.0` Init/Update Safety
+Current executed phase: `0.39.0` Artifact Frontmatter + Schema
 
 Target release: `1.0.0`
 

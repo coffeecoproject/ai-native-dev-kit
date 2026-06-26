@@ -177,6 +177,12 @@ Fill the files from conversation and project evidence, then run:
 node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
 
+New artifacts created by `new-workflow-item.mjs` include frontmatter for schema-aware checks. Legacy artifacts without frontmatter warn by default. Use strict mode only for migration rehearsals:
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode draft --strict-schema
+```
+
 Only after the request, spec, eval, and task card are clear should an agent implement code.
 
 For a high-risk implementation task, run the task-scoped implementation gate:

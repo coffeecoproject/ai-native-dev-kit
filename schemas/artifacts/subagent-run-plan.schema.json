@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "artifactType": "subagent-run-plan",
+  "required": ["schema_version", "artifact_type", "number", "slug", "title", "subagent_mode", "status", "created_at"],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.0$" },
+    "artifact_type": { "type": "string", "enum": ["subagent-run-plan"] },
+    "number": { "type": "string", "pattern": "^[0-9]{3}$" },
+    "slug": { "type": "string" },
+    "title": { "type": "string" },
+    "subagent_mode": { "type": "string", "enum": ["READ_ONLY_RESEARCH", "PLAN_THEN_BUILD", "REVIEW_LOOP", "AUTO_FIX_REPAIR", "REPORTING"] },
+    "status": { "type": "string", "enum": ["draft", "ready", "done"] },
+    "created_at": { "type": "string" }
+  }
+}

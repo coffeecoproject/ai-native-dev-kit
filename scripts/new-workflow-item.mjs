@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { addFrontmatter } from "./lib/frontmatter.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -188,6 +189,28 @@ function templatePath(root, templateName) {
 
 function readTemplate(root, templateName) {
   return fs.readFileSync(templatePath(root, templateName), "utf8");
+}
+
+function readCurrentDevKitVersion(root) {
+  const candidates = [
+    path.join(root, ".ai-native", "version.json"),
+    path.resolve(__dirname, "..", "VERSION.md"),
+  ];
+  for (const candidate of candidates) {
+    if (!fs.existsSync(candidate)) continue;
+    const content = fs.readFileSync(candidate, "utf8");
+    if (candidate.endsWith(".json")) {
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.devKitVersion) return parsed.devKitVersion;
+      } catch {
+        continue;
+      }
+    }
+    const match = content.match(/Current version:\s*`([^`]+)`/);
+    if (match) return match[1];
+  }
+  return "0.0.0";
 }
 
 function sectionRange(content, heading) {
@@ -1127,6 +1150,58 @@ function fillSubagentRunPlan(content, context) {
   return output;
 }
 
+function frontmatterFor(type, context) {
+  const common = {
+    schema_version: "1.0",
+    artifact_type: type,
+    number: context.number,
+    slug: context.slug,
+    title: context.title,
+    status: "draft",
+    created_at: context.date,
+    devkit_version: context.devKitVersion,
+  };
+  if (type === "request") {
+    return { ...common, priority: context.priority || "P1", task_level: context.level || "L1" };
+  }
+  if (type === "preflight") {
+    return { ...common, request: context.requestRef, task_level: context.level || "L1" };
+  }
+  if (type === "spec") {
+    return { ...common, request: context.requestRef, preflight: context.preflightRef };
+  }
+  if (type === "eval") {
+    return { ...common, spec: context.specRef };
+  }
+  if (type === "task") {
+    return { ...common, spec: context.specRef, eval: context.evalRef, task_level: context.level || "L1" };
+  }
+  if (type === "review-loop-report") {
+    return {
+      ...common,
+      task: context.taskRef,
+      spec: context.specRef,
+      eval: context.evalRef,
+      task_level: context.level || "L1",
+      status: "open",
+    };
+  }
+  if (type === "goal-card") {
+    return {
+      ...common,
+      goal_mode: normalizedGoalMode(context.goalMode),
+      task_level: context.level || "L1",
+    };
+  }
+  if (type === "subagent-run-plan") {
+    return {
+      ...common,
+      subagent_mode: normalizedSubagentMode(context.subagentMode),
+    };
+  }
+  return null;
+}
+
 const args = parseArgs(process.argv.slice(2));
 const rawType = args.type ? String(args.type) : "";
 const type = aliases[rawType] || rawType;
@@ -1190,6 +1265,7 @@ const finalReportRef = resolveRef(projectRoot, args["final-report"], "final repo
   || siblingArtifactRef(projectRoot, "final-reports", number, slug);
 const baseContext = {
   date,
+  devKitVersion: readCurrentDevKitVersion(projectRoot),
   evalRef,
   level,
   number,
@@ -1231,6 +1307,9 @@ if (type === "follow-up-proposal") content = fillFollowUpProposal(content, baseC
 if (type === "final-report") content = fillFinalReport(content, baseContext);
 if (type === "goal-card") content = fillGoalCard(content, baseContext);
 if (type === "subagent-run-plan") content = fillSubagentRunPlan(content, baseContext);
+
+const frontmatter = frontmatterFor(type, baseContext);
+if (frontmatter) content = addFrontmatter(content, frontmatter);
 
 const created = writeArtifact(projectRoot, config.dir, filename, content);
 
