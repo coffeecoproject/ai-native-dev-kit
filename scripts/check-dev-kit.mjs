@@ -71,6 +71,7 @@ function checkRequiredFiles() {
     "core/engineering-baseline.md",
     "core/review-loop.md",
     "core/goal-mode.md",
+    "core/subagent-orchestration.md",
     "core/next-step-boundary.md",
     "core/output-protocol.md",
     "core/glossary.md",
@@ -90,6 +91,7 @@ function checkRequiredFiles() {
     "templates/gpt-review-prompt.md",
     "templates/review-loop-report.md",
     "templates/goal-card.md",
+    "templates/subagent-run-plan.md",
     "templates/follow-up-proposal.md",
     "templates/final-report.md",
     "templates/human-status-report.md",
@@ -132,10 +134,12 @@ function checkRequiredFiles() {
     "checklists/engineering-baseline-review.md",
     "checklists/review-loop-review.md",
     "checklists/goal-mode-review.md",
+    "checklists/subagent-orchestration-review.md",
     "checklists/next-step-boundary-review.md",
     "prompts/bootstrap-agent.md",
     "prompts/project-onboarding-agent.md",
     "prompts/goal-planner-agent.md",
+    "prompts/engineering-baseline-agent.md",
     "prompts/reviewer-agent.md",
     "prompts/reporter-agent.md",
     "scripts/init-project.mjs",
@@ -155,6 +159,7 @@ function checkRequiredFiles() {
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
+    "scripts/check-subagent-orchestration.mjs",
     "scripts/check-fixtures.mjs",
     "scripts/score-output-quality.mjs",
     "scripts/check-glossary-usage.mjs",
@@ -274,6 +279,8 @@ function checkRequiredFiles() {
     "examples/next-step-boundary-suggestions/final-reports/001-suggestions.md",
     "examples/goal-mode-first-route/README.md",
     "examples/goal-mode-first-route/goal-cards/001-define-work.md",
+    "examples/subagent-orchestration-closed-run/README.md",
+    "examples/subagent-orchestration-closed-run/subagent-run-plans/001-closed-review.md",
     "test-fixtures/README.md",
     "test-fixtures/fixture-cases.json",
     "test-fixtures/bad-engineering-baseline/docs/engineering-baseline.md",
@@ -294,6 +301,8 @@ function checkRequiredFiles() {
     "test-fixtures/bad-glossary-usage/core/glossary.md",
     "test-fixtures/bad-goal-mode-invalid/goal-cards/001-invalid-mode.md",
     "test-fixtures/bad-goal-mode-readonly-write/goal-cards/001-readonly-write.md",
+    "test-fixtures/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
+    "test-fixtures/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
   ];
 
   for (const file of required) {
@@ -355,6 +364,7 @@ function checkVersionMetadata() {
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
+    "scripts/check-subagent-orchestration.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
@@ -369,6 +379,7 @@ function checkVersionMetadata() {
     "gpt-review-prompts",
     "review-loop-reports",
     "goal-cards",
+    "subagent-run-plans",
     "follow-up-proposals",
     "final-reports",
     "status-reports",
@@ -639,6 +650,81 @@ function checkEngineeringBaselineProtocol() {
   }
 }
 
+function checkSubagentOrchestrationProtocol() {
+  const files = {
+    "core/subagent-orchestration.md": read("core/subagent-orchestration.md"),
+    "templates/subagent-run-plan.md": read("templates/subagent-run-plan.md"),
+    "checklists/subagent-orchestration-review.md": read("checklists/subagent-orchestration-review.md"),
+    "prompts/engineering-baseline-agent.md": read("prompts/engineering-baseline-agent.md"),
+    "prompts/spec-agent.md": read("prompts/spec-agent.md"),
+    "prompts/repair-agent.md": read("prompts/repair-agent.md"),
+    "prompts/builder-agent.md": read("prompts/builder-agent.md"),
+    "prompts/reviewer-agent.md": read("prompts/reviewer-agent.md"),
+    "platforms/codex/AGENTS.template.md": read("platforms/codex/AGENTS.template.md"),
+    "starters/generic-project/AGENTS.md": read("starters/generic-project/AGENTS.md"),
+  };
+  const combined = Object.values(files).join("\n");
+  const requiredMarkers = [
+    "Subagent Orchestration defines how Codex may use helper agents",
+    "Many readers, one writer",
+    "READ_ONLY_RESEARCH",
+    "PLAN_THEN_BUILD",
+    "REVIEW_LOOP",
+    "AUTO_FIX_REPAIR",
+    "REPORTING",
+    "READ_ONLY_DRAFT",
+    "WRITER_LIMITED",
+    "PLANNED",
+    "RUNNING",
+    "CLOSED",
+    "SKIPPED",
+    "All subagents must be CLOSED or SKIPPED before the main thread sends the final task response",
+    "Close / Release Requirement",
+    "Do not leave a subagent in `RUNNING` after its output has been consumed",
+    "Do not keep standby subagents open",
+    "Subagent output is input to the main thread",
+    "use external GPT/API reviewer automation from this protocol",
+    "node scripts/check-subagent-orchestration.mjs .",
+    "Subagent Closure",
+    "close after handing findings to the main thread",
+  ];
+
+  for (const marker of requiredMarkers) {
+    if (combined.includes(marker)) {
+      pass(`subagent orchestration protocol includes ${marker}`);
+    } else {
+      fail(`subagent orchestration protocol missing ${marker}`);
+    }
+  }
+
+  const checker = read("scripts/check-subagent-orchestration.mjs");
+  for (const marker of [
+    "allowedModes",
+    "subagent must be closed before final response",
+    "more than one active writer is not allowed",
+    "all subagents must be closed or skipped before final response",
+    "subagents must not be left occupying slots after handoff",
+    "Forbidden Actions missing guard",
+    "external GPT\\/API",
+  ]) {
+    if (checker.includes(marker)) {
+      pass(`subagent orchestration checker includes ${marker}`);
+    } else {
+      fail(`subagent orchestration checker missing ${marker}`);
+    }
+  }
+
+  const goodExample = runNode([
+    path.join(kitRoot, "scripts", "check-subagent-orchestration.mjs"),
+    path.join(kitRoot, "examples", "subagent-orchestration-closed-run"),
+  ]);
+  if (goodExample.status !== 0) {
+    fail(`Subagent Orchestration example check failed: ${goodExample.stderr || goodExample.stdout}`);
+  } else {
+    pass("Subagent Orchestration example check");
+  }
+}
+
 function checkOutputExperienceProtocol() {
   const files = {
     "core/output-protocol.md": read("core/output-protocol.md"),
@@ -863,6 +949,7 @@ function checkStarters() {
     "gpt-review-prompts/.gitkeep",
     "review-loop-reports/.gitkeep",
     "goal-cards/.gitkeep",
+    "subagent-run-plans/.gitkeep",
     "follow-up-proposals/.gitkeep",
     "final-reports/.gitkeep",
     "status-reports/.gitkeep",
@@ -884,7 +971,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -893,7 +980,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Goal Mode", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -902,7 +989,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -932,7 +1019,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -957,6 +1044,7 @@ function checkPlatformAdapters() {
     "check-review-loop.mjs",
     "check-next-step-boundary.mjs",
     "check-goal-mode.mjs",
+    "check-subagent-orchestration.mjs",
     "new-workflow-item.mjs",
     "workflow-next.mjs",
   ]) {
@@ -977,7 +1065,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -1004,6 +1092,7 @@ function checkReadmePointers() {
     "examples/engineering-baseline-api-dto-domain",
     "examples/next-step-boundary-suggestions",
     "examples/goal-mode-first-route",
+    "examples/subagent-orchestration-closed-run",
     "test-fixtures",
     "docs/quickstart",
     "docs/codex-usage",
@@ -1016,6 +1105,7 @@ function checkReadmePointers() {
     "check-review-loop",
     "check-next-step-boundary",
     "check-goal-mode",
+    "check-subagent-orchestration",
     "check-fixtures",
     "score-output-quality",
     "check-glossary-usage",
@@ -1033,6 +1123,13 @@ function checkReadmePointers() {
     "goal-cards",
     "goal-mode",
     "Goal Mode",
+    "subagent-run-plan",
+    "subagent-run-plans",
+    "subagent-orchestration",
+    "Subagent Orchestration",
+    "Many readers, one writer",
+    "CLOSED",
+    "SKIPPED",
     "DISCUSS_ONLY",
     "ADOPT_PROJECT",
     "DEFINE_WORK",
@@ -1392,6 +1489,7 @@ function checkGeneratedProjectE2E() {
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
+    "scripts/check-subagent-orchestration.mjs",
     "scripts/check-engineering-baseline.mjs",
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
@@ -1407,12 +1505,16 @@ function checkGeneratedProjectE2E() {
     ".ai-native/checklists/engineering-baseline-review.md",
     ".ai-native/core/next-step-boundary.md",
     ".ai-native/core/goal-mode.md",
+    ".ai-native/core/subagent-orchestration.md",
     ".ai-native/templates/follow-up-proposal.md",
     ".ai-native/templates/final-report.md",
     ".ai-native/templates/goal-card.md",
+    ".ai-native/templates/subagent-run-plan.md",
     ".ai-native/checklists/next-step-boundary-review.md",
     ".ai-native/checklists/goal-mode-review.md",
+    ".ai-native/checklists/subagent-orchestration-review.md",
     ".ai-native/prompts/goal-planner-agent.md",
+    ".ai-native/prompts/engineering-baseline-agent.md",
     ".ai-native/core/output-protocol.md",
     ".ai-native/core/glossary.md",
     ".ai-native/prompts/reporter-agent.md",
@@ -1422,6 +1524,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/customer-handoff.md",
     "status-reports/.gitkeep",
     "goal-cards/.gitkeep",
+    "subagent-run-plans/.gitkeep",
     "decision-briefs/.gitkeep",
     "review-summaries/.gitkeep",
     "customer-handoffs/.gitkeep",
@@ -1446,6 +1549,16 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project empty Goal Mode check skips");
+
+  const emptySubagentCheck = runNode([
+    path.join(target, "scripts", "check-subagent-orchestration.mjs"),
+    target,
+  ]);
+  if (emptySubagentCheck.status !== 0 || !emptySubagentCheck.stdout.includes("Subagent Orchestration check skipped")) {
+    fail(`generated project empty Subagent Orchestration check should pass by skipping: ${emptySubagentCheck.stderr || emptySubagentCheck.stdout}`);
+    return;
+  }
+  pass("generated project empty Subagent Orchestration check skips");
 
   const engineeringBaselineCheck = runNode([
     path.join(target, "scripts", "check-engineering-baseline.mjs"),
@@ -2264,6 +2377,51 @@ function checkGeneratedProjectE2E() {
   fs.writeFileSync(goalCardPath, originalGoalCardContent);
   pass("generated project Goal Mode semantic check rejects invalid mode");
 
+  const generatedSubagentRunPlan = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "subagent-run-plan",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+    "--subagent-mode",
+    "READ_ONLY_RESEARCH",
+  ]);
+  const subagentRunPlanPath = path.join(target, "subagent-run-plans", "001-admin-work-item-list.md");
+  if (generatedSubagentRunPlan.status !== 0 || !fs.existsSync(subagentRunPlanPath)) {
+    fail(`generated project Subagent Run Plan item failed: ${generatedSubagentRunPlan.stderr || generatedSubagentRunPlan.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates Subagent Run Plan");
+
+  const generatedSubagentCheck = runNode([
+    path.join(target, "scripts", "check-subagent-orchestration.mjs"),
+    target,
+  ]);
+  if (generatedSubagentCheck.status !== 0) {
+    fail(`generated project Subagent Orchestration semantic check failed: ${generatedSubagentCheck.stderr || generatedSubagentCheck.stdout}`);
+    return;
+  }
+  pass("generated project Subagent Orchestration semantic check");
+
+  const originalSubagentRunPlanContent = fs.readFileSync(subagentRunPlanPath, "utf8");
+  const invalidSubagentRunPlanContent = originalSubagentRunPlanContent
+    .replace("| A1 | Goal Planner | READ_ONLY | SKIPPED | none | no helper needed yet | No subagent launched; plan is draft |", "| A1 | Reviewer | READ_ONLY | RUNNING | none | handoff complete | still open |")
+    .replace("All subagents closed: Yes", "All subagents closed: No")
+    .replace("No subagent left occupying a slot after handoff: Yes", "No subagent left occupying a slot after handoff: No");
+  fs.writeFileSync(subagentRunPlanPath, invalidSubagentRunPlanContent);
+  const invalidSubagentCheck = runNode([
+    path.join(target, "scripts", "check-subagent-orchestration.mjs"),
+    target,
+  ]);
+  if (invalidSubagentCheck.status === 0 || !invalidSubagentCheck.stderr.includes("subagent must be closed before final response")) {
+    fail(`generated project Subagent Orchestration check should reject unclosed subagent: ${invalidSubagentCheck.stderr || invalidSubagentCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(subagentRunPlanPath, originalSubagentRunPlanContent);
+  pass("generated project Subagent Orchestration semantic check rejects unclosed subagent");
+
   const generatedHumanStatusReport = runNode([
     path.join(target, "scripts", "new-workflow-item.mjs"),
     "--root",
@@ -2660,7 +2818,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const createdAgentsContent = fs.readFileSync(createdAgents, "utf8");
-  for (const marker of ["Bootstrap Entry", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Bounded Next-Step", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Subagent Orchestration", "Bounded Next-Step", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!createdAgentsContent.includes(marker)) {
       fail(`created AGENTS.md missing ${marker}`);
       return;
@@ -2674,7 +2832,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const legacyPrTemplateContent = fs.readFileSync(legacyPrTemplate, "utf8");
-  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
     if (!legacyPrTemplateContent.includes(marker)) {
       fail(`legacy project workflow update PR template missing ${marker}`);
       return;
@@ -2765,7 +2923,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
-  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
     if (!appliedCustomPrTemplate.includes(marker)) {
       fail(`legacy custom PR template explicit apply missing ${marker}`);
       return;
@@ -2787,6 +2945,7 @@ checkEngineeringBaselineProtocol();
 checkReviewLoopProtocol();
 checkNextStepBoundaryProtocol();
 checkGoalModeProtocol();
+checkSubagentOrchestrationProtocol();
 checkOutputExperienceProtocol();
 checkProfiles();
 checkIndustrialPacks();

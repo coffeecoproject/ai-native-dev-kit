@@ -97,6 +97,28 @@ Expected Codex behavior:
 - Continue only through the artifacts and approvals required by the selected mode.
 - Do not let Goal Mode bypass request, preflight, spec, eval, task, Engineering Baseline, Review Loop, Risk Gate, Human Approval, or Approval scope.
 
+## Subagent Prompt
+
+Use this only when Codex will use helper agents for planning, read-only research, review, repair analysis, or reporting:
+
+```text
+Use Subagent Orchestration for this helper-agent run.
+Keep many readers, one writer.
+Close or skip every subagent after handoff.
+Do not leave helper agents occupying slots after their output is consumed.
+```
+
+Expected Codex behavior:
+
+- Read `.ai-native/core/subagent-orchestration.md`.
+- Generate `node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>` when helper-agent usage is non-trivial or needs a durable record.
+- Record each subagent role, authority, status, write scope, close condition, and closure evidence.
+- Treat subagent output as input, not authority.
+- Keep the main thread responsible for writes, verification, and final reporting.
+- Close or skip every subagent after handoff.
+- Run `node scripts/check-subagent-orchestration.mjs .` before final response, commit, or task closure when Subagent Run Plans exist.
+- Do not use helper agents to resolve `NEEDS_HUMAN_DECISION`, approve risk, approve release, create automations, call external GPT/API reviewers, or bypass Review Loop boundaries.
+
 ## Task Prompt
 
 ```text
@@ -119,9 +141,11 @@ Expected Codex behavior:
 - Generate `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when the change needs independent human, GPT Pro, or second-model review.
 - Generate `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need automatic-fix and re-review tracking.
 - Generate `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet.
+- Generate `node scripts/new-workflow-item.mjs --type subagent-run-plan --task <task-card>` when helper agents are used; close or skip every subagent after handoff.
 - Generate `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a suggested next step is directly related but outside current task scope.
 - Generate `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the task result needs durable reporting beyond chat.
 - Run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists.
+- Run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist.
 - Run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when a Final Report, Review Loop Report, review summary, or Follow-up Proposal includes next-step suggestions.
 - Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.

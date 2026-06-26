@@ -19,6 +19,7 @@ What is happening now?
 | Situation | Use | Do not use it as |
 |---|---|---|
 | User intent needs route selection before artifacts or code | `goal-cards/` | implementation approval |
+| Helper agents are used for planning, research, review, repair analysis, or reporting | `subagent-run-plans/` | permission for background agents or multiple writers |
 | User asks for a change | `requests/` | approval to implement a vague request |
 | Request is unclear, broad, cross-module, or risky | `preflight/` | final spec |
 | Scope and behavior need to be agreed | `specs/` | implementation log |
@@ -52,6 +53,7 @@ request
 -> spec
 -> eval
 -> task
+-> subagent run plan when helper agents are used
 -> implementation
 -> verification
 -> review packet when independent review is needed
@@ -96,6 +98,22 @@ Need a status, final report, or handoff?
 ```
 
 Goal Card is route selection only. It is not approval to implement, approve risk, approve release, or bypass workflow gates.
+
+## Subagent Flow
+
+Use this only when helper agents are used.
+
+```text
+Need helper agents?
+-> create subagent-run-plan
+-> assign role and authority
+-> keep many readers, one writer
+-> collect handoff / findings
+-> close or skip every subagent
+-> run check-subagent-orchestration
+```
+
+Subagent Run Plan is a closure and authority record. It is not permission to keep background agents, leave `RUNNING` agents open, use external GPT/API reviewer automation, or let more than one writer edit the project.
 
 ## Review Flow
 

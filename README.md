@@ -78,6 +78,7 @@ CAN_WRITE_WORKFLOW_ASSETS: no
 ```text
 想法
   -> Goal Mode
+  -> Subagent Orchestration（仅在使用 helper agent 时）
   -> 项目上下文
   -> 需求卡
   -> 预检查
@@ -117,6 +118,7 @@ decision-briefs/       需要人决策时的简报
 review-summaries/      复审结果的人话摘要
 customer-handoffs/     交付或里程碑摘要
 goal-cards/            开始前的目标路线卡
+subagent-run-plans/    helper agent 的角色、权限、交接和关闭记录
 releases/              发布和证据记录
 ```
 
@@ -155,6 +157,33 @@ node scripts/check-goal-mode.mjs .
 Goal Card 会写清楚目标、路线、需要哪些 artifact、AI 可以做什么、AI 不能做什么、哪些决定必须由人确认，以及下一步安全动作。
 
 它不会替代 request、preflight、spec、eval、task、Engineering Baseline、Review Loop 或 Human Approval。
+
+## Subagent Orchestration
+
+从 `0.32.0` 开始，新增 Subagent Orchestration。
+
+它解决的是：
+
+```text
+如果 Codex 使用多个 helper agent，谁能读、谁能写、什么时候交接、什么时候关闭，必须说清楚。
+```
+
+核心规则：
+
+```text
+Many readers, one writer
+```
+
+也就是可以有多个只读 helper agent 帮忙看上下文、做计划、做复审，但同一时间只能有一个写入者。
+
+需要留痕时生成 Subagent Run Plan：
+
+```bash
+node scripts/new-workflow-item.mjs --type subagent-run-plan --name first-slice --subagent-mode READ_ONLY_RESEARCH
+node scripts/check-subagent-orchestration.mjs .
+```
+
+Subagent 用完必须关闭或跳过。不能在最终回复、提交或任务结束时留下 `RUNNING` 的 helper agent，也不能让它继续占位等下次使用。
 
 ## 工程决策基线
 
@@ -507,7 +536,17 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.31.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.32.0`。
+
+0.32.0 新增内容：
+
+- 新增 Subagent Orchestration，控制 helper agent 的角色、权限、交接和关闭。
+- 新增 `core/subagent-orchestration.md`、`templates/subagent-run-plan.md`、`checklists/subagent-orchestration-review.md` 和 `prompts/engineering-baseline-agent.md`。
+- 新增 `scripts/check-subagent-orchestration.mjs`，检查是否只有一个写入者、subagent 是否都已 `CLOSED` 或 `SKIPPED`。
+- `new-workflow-item` 支持 `--type subagent-run-plan`。
+- 新增 `examples/subagent-orchestration-closed-run` 正例，以及未关闭 subagent / 多写入者的坏例子。
+- 新项目和 workflow asset update 会带上 `subagent-run-plans/`、Subagent Orchestration 资产和检查脚本。
+- CI 会检查 Subagent Orchestration 语义；没有 Subagent Run Plan 时会跳过，不强制每个项目默认创建。
 
 0.31.0 新增内容：
 
@@ -648,6 +687,9 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `core/next-step-boundary.md`
 - `checklists/next-step-boundary-review.md`
 - `core/review-loop.md`
+- `core/subagent-orchestration.md`
+- `templates/subagent-run-plan.md`
+- `checklists/subagent-orchestration-review.md`
 - `scripts/check-project-onboarding.mjs`
 - `scripts/check-engineering-baseline.mjs`
 - `scripts/check-platform-baseline.mjs`
@@ -658,6 +700,7 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `scripts/check-workflow-artifacts.mjs`
 - `scripts/check-review-loop.mjs`
 - `scripts/check-next-step-boundary.mjs`
+- `scripts/check-subagent-orchestration.mjs`
 - `scripts/check-fixtures.mjs`
 - `scripts/score-output-quality.mjs`
 - `scripts/check-glossary-usage.mjs`
@@ -674,6 +717,7 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `examples/engineering-baseline-enum-vs-lookup`
 - `examples/engineering-baseline-api-dto-domain`
 - `examples/next-step-boundary-suggestions`
+- `examples/subagent-orchestration-closed-run`
 
 反例 fixture：
 

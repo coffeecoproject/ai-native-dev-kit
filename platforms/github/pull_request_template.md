@@ -20,6 +20,7 @@
 - [ ] Project onboarding is confirmed or not applicable for this change
 - [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state
 - [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step
+- [ ] Subagent Run Plan is linked or marked not applicable when helper agents were used
 - [ ] Request / preflight / spec / eval / task links are included or marked not applicable
 - [ ] Workflow artifact quality check passed or is not applicable
 - [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable

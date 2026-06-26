@@ -200,4 +200,4 @@ Goal Mode does not:
 - create subagents automatically
 - call external GPT/API reviewers
 
-Subagent orchestration is a later layer. Goal Mode only chooses the route.
+Subagent orchestration is a separate execution-organization layer. Goal Mode only chooses the route and does not automatically launch helper agents.

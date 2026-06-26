@@ -157,6 +157,21 @@ node scripts/check-goal-mode.mjs .
 
 A Goal Card is route selection only. It does not approve implementation, risk acceptance, release, Human Approval, Approval scope, or subagent orchestration.
 
+## Subagent Orchestration
+
+Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.
+
+The default rule is: many readers, one writer. Subagent output is input, not authority. The main thread remains responsible for writes, verification, and final reporting.
+
+Create a Subagent Run Plan with:
+
+```bash
+node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>
+node scripts/check-subagent-orchestration.mjs .
+```
+
+Close or skip every subagent after handoff. Do not send a final response, commit, or mark work complete while any subagent is `RUNNING`, standing by, or occupying a slot after its output is consumed.
+
 ## Review Loop
 
 For L2/L3 work or when review findings need closure, run `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>`. Record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and must stay inside approved task scope.

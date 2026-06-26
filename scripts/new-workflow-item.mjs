@@ -26,6 +26,7 @@ const typeMap = {
   "follow-up-proposal": { dir: "follow-up-proposals", template: "follow-up-proposal.md", defaultName: "follow-up-proposal" },
   "final-report": { dir: "final-reports", template: "final-report.md", defaultName: "final-report" },
   "goal-card": { dir: "goal-cards", template: "goal-card.md", defaultName: "goal" },
+  "subagent-run-plan": { dir: "subagent-run-plans", template: "subagent-run-plan.md", defaultName: "subagent-run-plan" },
 };
 
 const aliases = {
@@ -65,6 +66,12 @@ const aliases = {
   goalcard: "goal-card",
   route: "goal-card",
   "goal-mode": "goal-card",
+  subagent: "subagent-run-plan",
+  subagents: "subagent-run-plan",
+  "subagent-run": "subagent-run-plan",
+  "subagent-plan": "subagent-run-plan",
+  "run-plan": "subagent-run-plan",
+  orchestration: "subagent-run-plan",
 };
 
 function parseArgs(argv) {
@@ -108,6 +115,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type follow-up-proposal --task tasks/001-first-slice.md");
   console.error("  node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-slice.md");
   console.error("  node scripts/new-workflow-item.mjs --type goal-card --name first-slice --goal-mode DEFINE_WORK");
+  console.error("  node scripts/new-workflow-item.mjs --type subagent-run-plan --name first-slice --subagent-mode READ_ONLY_RESEARCH");
 }
 
 function fail(message) {
@@ -968,6 +976,157 @@ function fillGoalCard(content, context) {
   return output;
 }
 
+const allowedSubagentModes = new Set([
+  "READ_ONLY_RESEARCH",
+  "PLAN_THEN_BUILD",
+  "REVIEW_LOOP",
+  "AUTO_FIX_REPAIR",
+  "REPORTING",
+]);
+
+function normalizedSubagentMode(value) {
+  const mode = String(value || "READ_ONLY_RESEARCH").trim().toUpperCase().replace(/-/g, "_");
+  if (!allowedSubagentModes.has(mode)) fail(`invalid subagent mode: ${value}`);
+  return mode;
+}
+
+function fillSubagentRunPlan(content, context) {
+  const subagentMode = normalizedSubagentMode(context.subagentMode);
+  let output = setTitle(content, `# Subagent Run Plan: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Summary",
+    [
+      "One-sentence conclusion:",
+      "",
+      `${context.title} helper-agent run is planned. Subagents must be closed or skipped before final response.`,
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Goal",
+    [
+      `Goal: ${context.title}`,
+      "",
+      context.taskRef ? `Related task: \`${context.taskRef}\`` : "Related task: not selected yet",
+      "",
+      context.specRef ? `Related spec: \`${context.specRef}\`` : "Related spec:",
+      "",
+      context.evalRef ? `Related eval: \`${context.evalRef}\`` : "Related eval:",
+      "",
+      "Non-goals: Do not use helper agents as approval, release authority, risk acceptance, or hidden background execution.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Orchestration Mode",
+    [
+      `Selected: ${subagentMode}`,
+      "",
+      "Why: Use the smallest helper-agent pattern needed for the current goal. Main thread remains the owner.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Role Roster",
+    [
+      "| Agent ID | Role | Authority | Status | Write Scope | Close Condition | Closure Evidence |",
+      "|---|---|---|---|---|---|---|",
+      "| A1 | Goal Planner | READ_ONLY | SKIPPED | none | no helper needed yet | No subagent launched; plan is draft |",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Writer Control",
+    [
+      "Many readers, one writer: Yes",
+      "",
+      "Current writer: main thread",
+      "",
+      "Single active writer: Yes",
+      "",
+      "Disjoint write ownership used: No",
+      "",
+      "Human-approved owner / expiry if disjoint ownership is used:",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Lifecycle Closure",
+    [
+      "All subagents closed: Yes",
+      "",
+      "Closure required before final response: Yes",
+      "",
+      "No background or standing agents: Yes",
+      "",
+      "No subagent left occupying a slot after handoff: Yes",
+      "",
+      "Closure notes: No subagent is running. If a subagent is launched, update the roster to CLOSED or SKIPPED with evidence before final response.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Allowed Actions",
+    [
+      "- Use read-only helper agents to inspect files, summarize findings, or review artifacts.",
+      "- Use at most one writer at a time, owned by the main thread unless a human-approved disjoint owner and expiry are recorded.",
+      "- Close each subagent immediately after its handoff is consumed.",
+      "- Run `node scripts/check-subagent-orchestration.mjs .` after the plan is closed.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Forbidden Actions",
+    [
+      "- Do not leave subagents running after handoff.",
+      "- Do not send a final response while RUNNING agents exist.",
+      "- Do not keep standby subagents open.",
+      "- Do not run multiple active writers.",
+      "- Do not let reviewer agents edit files.",
+      "- Do not use subagents to resolve NEEDS_HUMAN_DECISION items.",
+      "- Do not create persistent monitors, automations, hooks, or external GPT/API reviewer calls from this plan.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Handoff / Findings",
+    [
+      "| Agent ID | Handoff Summary | Findings / Output Ref | Main Thread Decision |",
+      "|---|---|---|---|",
+      "| A1 | No helper launched yet | none | no action |",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Human Decisions Needed",
+    [
+      "| Decision | Owner | Needed Before | Current Status |",
+      "|---|---|---|---|",
+      "| Approve any scope, risk, architecture, dependency, migration, production config, release, or automation change | human | execution | Not needed yet |",
+    ].join("\n"),
+  );
+  output = setSection(output, "Next Safe Step", "Next action: Launch only the minimum needed helper agent, then close it after handoff.");
+  output = setSection(
+    output,
+    "Technical Details",
+    [
+      "Related files:",
+      "",
+      context.taskRef ? `- \`${context.taskRef}\`` : "- ",
+      context.specRef ? `- \`${context.specRef}\`` : "- ",
+      context.evalRef ? `- \`${context.evalRef}\`` : "- ",
+      "",
+      "Commands run:",
+      "",
+      "```text",
+      "",
+      "```",
+    ].join("\n"),
+  );
+  return output;
+}
+
 const args = parseArgs(process.argv.slice(2));
 const rawType = args.type ? String(args.type) : "";
 const type = aliases[rawType] || rawType;
@@ -979,7 +1138,7 @@ if (!type || !typeMap[type]) {
 
 const projectRoot = path.resolve(process.cwd(), args.root || ".");
 const config = typeMap[type];
-const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report", "goal-card"]);
+const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report", "goal-card", "subagent-run-plan"]);
 
 let requestRef = resolveRef(projectRoot, args.request || (type === "preflight" ? args.from : null), "request");
 let preflightRef = resolveRef(projectRoot, args.preflight, "preflight");
@@ -1049,6 +1208,7 @@ const baseContext = {
   title,
   agent: args.agent,
   goalMode: args["goal-mode"] || args.mode,
+  subagentMode: args["subagent-mode"] || args.mode,
 };
 
 let content = readTemplate(projectRoot, config.template);
@@ -1070,6 +1230,7 @@ if (type === "customer-handoff") content = fillCustomerHandoff(content, baseCont
 if (type === "follow-up-proposal") content = fillFollowUpProposal(content, baseContext);
 if (type === "final-report") content = fillFinalReport(content, baseContext);
 if (type === "goal-card") content = fillGoalCard(content, baseContext);
+if (type === "subagent-run-plan") content = fillSubagentRunPlan(content, baseContext);
 
 const created = writeArtifact(projectRoot, config.dir, filename, content);
 
@@ -1113,6 +1274,10 @@ if (type === "review-packet") {
   console.log("- Confirm the selected Goal Mode before executing any write or implementation path.");
   console.log("- Run node scripts/check-goal-mode.mjs . after filling the card.");
   console.log("- Do not treat the Goal Card as implementation approval.");
+} else if (type === "subagent-run-plan") {
+  console.log("- Use the smallest needed helper-agent set and keep the main thread as owner.");
+  console.log("- Close or skip every subagent after handoff; do not leave RUNNING agents occupying slots.");
+  console.log("- Run node scripts/check-subagent-orchestration.mjs . before final response or commit.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

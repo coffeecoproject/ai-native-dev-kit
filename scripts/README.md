@@ -173,6 +173,7 @@ node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type subagent-run-plan --task tasks/001-first-slice.md --subagent-mode READ_ONLY_RESEARCH
 node scripts/new-workflow-item.mjs --type follow-up-proposal --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type human-status-report --name workflow-next
@@ -212,6 +213,18 @@ node scripts/check-review-loop.mjs .
 node scripts/check-review-loop.mjs . --task tasks/001-first-slice.md
 node scripts/check-review-loop.mjs . --mode implementation --task tasks/001-first-slice.md
 ```
+
+## check-subagent-orchestration.mjs
+
+Check Subagent Run Plans for helper-agent authority, one-writer control, handoff, and closure.
+
+```bash
+node scripts/check-subagent-orchestration.mjs .
+node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/001-first-slice.md
+node scripts/check-subagent-orchestration.mjs . --json
+```
+
+Empty projects pass without requiring a run plan. When a run plan exists, every subagent must be `CLOSED` or `SKIPPED` before the final response, commit, or task closure.
 
 ## check-next-step-boundary.mjs
 

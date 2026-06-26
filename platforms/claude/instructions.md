@@ -80,6 +80,7 @@ For workflow artifacts:
 - use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report
 - run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists
 - run `node scripts/check-goal-mode.mjs .` when Goal Cards exist
+- run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist
 - run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when next-step suggestions are recorded
 - run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when workflow artifacts exist
 - run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded
@@ -93,6 +94,15 @@ For Goal Mode:
 - read `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when present
 - choose one of `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`
 - never treat a Goal Card as implementation approval, risk acceptance, release approval, Human Approval, Approval scope, or subagent orchestration approval
+
+For subagent orchestration:
+
+- read `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting
+- create a Subagent Run Plan with `node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>`
+- follow many readers, one writer; subagent output is input, not authority
+- close or skip every subagent after handoff
+- do not send a final response, commit, or mark work complete while any subagent is `RUNNING`, standing by, or occupying a slot
+- do not use helper agents to resolve `NEEDS_HUMAN_DECISION`, approve risk, approve release, create automations, call external GPT/API reviewers, or bypass Review Loop boundaries
 
 For bounded next-step suggestions:
 

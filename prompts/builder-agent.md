@@ -32,7 +32,8 @@
 4. 运行 task 指定命令。
 5. 如果同一失败重复两次，停止并报告。
 6. 使用 `core/next-step-boundary.md` 分类 next-step suggestions。
-7. 最后输出 final report。
+7. 如果你是作为 subagent 运行，完成 handoff 后必须关闭，不要保持占位。
+8. 最后输出 final report。
 
 Engineering Baseline 规则：
 
@@ -57,3 +58,4 @@ Final report 必须包含：
 - Next-Step Suggestions
 - Human Decisions Needed
 - Next Safe Action
+- Subagent Closure, when this builder ran as a subagent

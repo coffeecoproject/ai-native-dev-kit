@@ -48,6 +48,14 @@
     "howToFix": "Keep the Goal Mode example routed through a legal mode with clear required artifacts and boundaries."
   },
   {
+    "name": "good subagent orchestration closed run",
+    "script": "scripts/check-subagent-orchestration.mjs",
+    "args": ["examples/subagent-orchestration-closed-run"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Subagent Orchestration check passed"],
+    "howToFix": "Keep the Subagent Orchestration example closed, with no RUNNING subagents and one active writer at most."
+  },
+  {
     "name": "bad engineering baseline missing type source",
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["test-fixtures/bad-engineering-baseline", "--strict"],
@@ -126,5 +134,21 @@
     "expectStatus": "nonzero",
     "expectStderrIncludes": ["READ_ONLY adoption must not allow workflow asset writes"],
     "howToFix": "The Goal Mode checker must keep blocking init-project or workflow asset writes during read-only adoption."
+  },
+  {
+    "name": "bad subagent orchestration unclosed subagent",
+    "script": "scripts/check-subagent-orchestration.mjs",
+    "args": ["test-fixtures/bad-subagent-unclosed"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["subagent must be closed before final response"],
+    "howToFix": "The Subagent Orchestration checker must reject RUNNING subagents before final response."
+  },
+  {
+    "name": "bad subagent orchestration multiple writers",
+    "script": "scripts/check-subagent-orchestration.mjs",
+    "args": ["test-fixtures/bad-subagent-multiple-writers"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["more than one active writer is not allowed"],
+    "howToFix": "The Subagent Orchestration checker must reject more than one active writer."
   }
 ]

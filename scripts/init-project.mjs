@@ -16,6 +16,7 @@ const requiredPullRequestTemplateMarkers = [
   "Workflow Evidence",
   "Workflow artifact quality",
   "Review Packet / Review Loop Report",
+  "Subagent Run Plan",
   "Next-Step Suggestions",
   "Skill / Automation Governance",
   "irreversible operation",
@@ -31,6 +32,7 @@ const requiredAgentGovernanceMarkers = [
   "Workflow Artifact Generation",
   "Review Loop",
   "Goal Mode",
+  "Subagent Orchestration",
   "Bounded Next-Step",
   "Output Experience",
   "Task Execution Rules",
@@ -176,6 +178,7 @@ function pullRequestTemplateGovernanceAppendix() {
     "- [ ] Project onboarding is confirmed or not applicable for this change",
     "- [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state",
     "- [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step",
+    "- [ ] Subagent Run Plan is linked or marked not applicable when helper agents were used",
     "- [ ] Request / preflight / spec / eval / task links are included or marked not applicable",
     "- [ ] Workflow artifact quality check passed or is not applicable",
     "- [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable",
@@ -457,6 +460,23 @@ function agentGovernanceSectionContent() {
       "```",
       "",
       "A Goal Card is route selection only. It does not approve implementation, risk acceptance, release, Human Approval, Approval scope, or subagent orchestration.",
+      "",
+    ].join("\n")],
+    ["Subagent Orchestration", [
+      "## Subagent Orchestration",
+      "",
+      "Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.",
+      "",
+      "The default rule is: many readers, one writer. Subagent output is input, not authority. The main thread remains responsible for writes, verification, and final reporting.",
+      "",
+      "Create a Subagent Run Plan with:",
+      "",
+      "```bash",
+      "node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>",
+      "node scripts/check-subagent-orchestration.mjs .",
+      "```",
+      "",
+      "Close or skip every subagent after handoff. Do not send a final response, commit, or mark work complete while any subagent is `RUNNING`, standing by, or occupying a slot after its output is consumed.",
       "",
     ].join("\n")],
     ["Review Loop", [
@@ -780,6 +800,9 @@ function copySharedAssets(targetPath, options = {}) {
   const goalModeCheckDest = path.join(projectScriptsDir, "check-goal-mode.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-goal-mode.mjs"), goalModeCheckDest, options);
 
+  const subagentOrchestrationCheckDest = path.join(projectScriptsDir, "check-subagent-orchestration.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-subagent-orchestration.mjs"), subagentOrchestrationCheckDest, options);
+
   const newWorkflowItemDest = path.join(projectScriptsDir, "new-workflow-item.mjs");
   copyFile(path.join(kitRoot, "scripts", "new-workflow-item.mjs"), newWorkflowItemDest, options);
 
@@ -814,6 +837,7 @@ function ensureWorkflowDirs(targetPath) {
     "gpt-review-prompts",
     "review-loop-reports",
     "goal-cards",
+    "subagent-run-plans",
     "status-reports",
     "decision-briefs",
     "review-summaries",
@@ -876,6 +900,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-review-loop.mjs",
       "scripts/check-next-step-boundary.mjs",
       "scripts/check-goal-mode.mjs",
+      "scripts/check-subagent-orchestration.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/workflow-next.mjs",
       "docs/project-onboarding.md",
@@ -890,6 +915,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "gpt-review-prompts",
       "review-loop-reports",
       "goal-cards",
+      "subagent-run-plans",
       "status-reports",
       "decision-briefs",
       "review-summaries",
@@ -971,4 +997,6 @@ console.log("12. Run scripts/check-review-loop.mjs . --task <task-card> when a R
 console.log("13. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
 console.log("14. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
 console.log("15. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
-console.log("16. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+console.log("16. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
+console.log("17. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
+console.log("18. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

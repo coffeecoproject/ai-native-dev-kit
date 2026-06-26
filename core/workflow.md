@@ -34,6 +34,27 @@ node scripts/check-goal-mode.mjs .
 
 Goal Card is route selection only. It does not approve implementation, risk, release, Human Approval, Approval scope, or subagent orchestration.
 
+### 0.5 Subagent Orchestration
+
+Subagent Orchestration defines how Codex may use helper agents without losing control of scope, writes, review authority, or cleanup.
+
+It is an execution organization layer, not permission to execute more work.
+
+Default rule:
+
+```text
+Many readers, one writer.
+```
+
+Use a Subagent Run Plan when helper agents are used for planning, read-only research, review, repair analysis, or reporting:
+
+```bash
+node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>
+node scripts/check-subagent-orchestration.mjs .
+```
+
+Every subagent must be `CLOSED` or `SKIPPED` after handoff. Codex must not send a final response, commit, or mark work complete while any subagent is `RUNNING`, standing by, or occupying a slot after its output is consumed.
+
 ### 1. Project Onboarding
 
 项目初始化后先做 onboarding，不直接进入开发。

@@ -26,4 +26,13 @@
 2. 如果 scope 太大，拆成多个 spec。
 3. 每个 spec 必须能被 eval 验证。
 4. 不要把未来版本功能塞进当前 scope。
+5. 如果你是作为 subagent 运行，输出交给主线程后必须关闭，不要保持占位。
 
+Subagent Closure 输出：
+
+```text
+Subagent Closure:
+- Status: CLOSED
+- Handoff: main thread
+- Remaining decisions:
+```

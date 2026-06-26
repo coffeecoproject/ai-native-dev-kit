@@ -11,6 +11,7 @@ Use the smallest layer that can control the risk.
 ```text
 Workflow
   -> Goal Mode
+  -> Subagent Orchestration
   -> Engineering Baseline
   -> Profile
   -> BL Level
@@ -58,6 +59,26 @@ It answers:
 - Is the user asking for review, repair, a baseline decision, or a report?
 
 Goal Mode can create `goal-cards/` for durable route records. It is not approval to implement and does not replace task cards, Engineering Baseline, Review Loop, or Human Approval.
+
+## Subagent Orchestration
+
+Use Subagent Orchestration only when helper agents are actually used.
+
+It answers:
+
+- Which helper agents are involved?
+- Which ones are read-only?
+- Who, if anyone, is allowed to write?
+- Has every helper agent handed off its output?
+- Has every helper agent been closed or skipped?
+
+The rule is:
+
+```text
+Many readers, one writer.
+```
+
+Subagent Orchestration can create `subagent-run-plans/` for durable run records. It is not approval to execute more work and does not replace Goal Mode, task cards, Review Loop, or Human Approval.
 
 ## Engineering Baseline
 

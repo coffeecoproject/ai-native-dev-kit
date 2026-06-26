@@ -18,6 +18,15 @@
 2. 只修改相关最小范围。
 3. 运行相关 verification。
 4. 输出哪些 finding 已修，哪些仍阻塞。
+5. 如果你是作为 subagent 运行，完成 handoff 后必须关闭，不要保持占位。
 
 如果发现 reviewer finding 需要产品或架构决策，停止并请求人工确认。
 
+Subagent Closure 输出：
+
+```text
+Subagent Closure:
+- Status: CLOSED
+- Handoff: main thread
+- Remaining decisions:
+```

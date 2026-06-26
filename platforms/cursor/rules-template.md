@@ -76,6 +76,7 @@ Before non-trivial work, read:
 - Use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report.
 - Run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists.
 - Run `node scripts/check-goal-mode.mjs .` when Goal Cards exist.
+- Run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist.
 - Run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when next-step suggestions are recorded.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when request/spec/eval/task files exist.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded.
@@ -89,6 +90,15 @@ Before non-trivial work, read:
 - Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` before creating artifacts or writing code when the route is unclear.
 - Select one of `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`.
 - A Goal Card is route selection only. It is not permission to implement, approve risk, approve release, change Human Approval, or activate subagent orchestration.
+
+## Subagent Orchestration
+
+- Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.
+- Use `node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>` to record helper-agent roles, authority, handoff, and closure.
+- Follow many readers, one writer. Subagent output is input, not authority.
+- Close or skip every subagent after handoff.
+- Do not send a final response, commit, or mark work complete while any subagent is `RUNNING`, standing by, or occupying a slot.
+- Do not use helper agents to resolve `NEEDS_HUMAN_DECISION`, approve risk, approve release, create automations, call external GPT/API reviewers, or bypass Review Loop boundaries.
 
 ## Bounded Next-Step
 

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.31.0`
+Current version: `0.32.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,17 @@ Current version: `0.31.0`
 
 ## Current Release
 
-`0.31.0`
+`0.32.0`
 
 Includes:
 
+- Subagent Orchestration Protocol for goal-oriented helper-agent planning, read-only research, review, repair analysis, and reporting
+- `core/subagent-orchestration.md`, `templates/subagent-run-plan.md`, `checklists/subagent-orchestration-review.md`, and `prompts/engineering-baseline-agent.md`
+- `scripts/check-subagent-orchestration.mjs` for enforcing many readers / one writer, role authority, handoff, lifecycle closure, and no lingering `RUNNING` subagents
+- `new-workflow-item --type subagent-run-plan`
+- generated projects and workflow asset updates now include `subagent-run-plans/` and Subagent Orchestration assets
+- Codex, Cursor, Claude, GitHub CI, and PR governance now require subagents to be closed or skipped after handoff so helper agents do not occupy slots after use
+- Subagent Orchestration golden example and bad fixtures for unclosed subagents and multiple active writers
 - Goal Mode Entry for classifying user intent before selecting workflow artifacts
 - `core/goal-mode.md`, `templates/goal-card.md`, `checklists/goal-mode-review.md`, and `prompts/goal-planner-agent.md`
 - `scripts/check-goal-mode.mjs` for Goal Card semantic checks

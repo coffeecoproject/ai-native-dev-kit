@@ -217,6 +217,15 @@ node scripts/check-review-loop.mjs . --task tasks/001-first-slice.md
 
 For L2/L3 tasks, `check-workflow-artifacts --mode implementation --task <task>` expects matching `review-packets/` and `review-loop-reports/` files.
 
+If Codex uses helper agents, record and close them with Subagent Orchestration:
+
+```bash
+node scripts/new-workflow-item.mjs --type subagent-run-plan --task tasks/001-first-slice.md
+node scripts/check-subagent-orchestration.mjs .
+```
+
+Do this only when helper agents are used. Every subagent must be `CLOSED` or `SKIPPED` after handoff.
+
 When Codex suggests next work, use the bounded next-step protocol:
 
 ```bash

@@ -14,7 +14,7 @@ The goal is not to add more governance layers. The goal is to make existing gove
   Let Codex classify the user's goal and choose the smallest safe workflow path.
 
 0.32.x Subagent Orchestration Protocol
-  Let read-only agents help planning and review while keeping writes controlled by one writer.
+  Let helper agents support planning, review, repair analysis, and reporting while keeping writes controlled by one writer and closing agents after handoff.
 ```
 
 ## Current Goal
@@ -189,7 +189,7 @@ Do not make Goal Mode bypass request, spec, eval, task, Engineering Baseline, Re
 
 ## 0.32.0 Subagent Orchestration Protocol
 
-Subagent orchestration will define role boundaries.
+Subagent orchestration defines role boundaries, write authority, handoff, and closure.
 
 Core principle:
 
@@ -207,7 +207,7 @@ Default roles:
 - Repair: writer limited to `AUTO_FIX`, maximum two rounds.
 - Reporter: human-readable output, no approval authority.
 
-This phase should add or update:
+This phase adds or updates:
 
 ```text
 core/subagent-orchestration.md
@@ -216,8 +216,21 @@ checklists/subagent-orchestration-review.md
 prompts/engineering-baseline-agent.md
 prompts/spec-agent.md
 prompts/repair-agent.md
+prompts/builder-agent.md
+prompts/reviewer-agent.md
 scripts/check-subagent-orchestration.mjs
+examples/subagent-orchestration-closed-run/
+test-fixtures/bad-subagent-unclosed/
+test-fixtures/bad-subagent-multiple-writers/
 ```
+
+Specific closure requirement:
+
+```text
+All subagents must be CLOSED or SKIPPED before the main thread sends the final task response.
+```
+
+No subagent may remain `RUNNING`, standing by, or occupying a slot after handoff.
 
 ## Acceptance Criteria For This Phase
 
@@ -227,4 +240,7 @@ scripts/check-subagent-orchestration.mjs
 - At least three negative fixture checks fail for the expected reason.
 - `scripts/check-dev-kit.mjs` runs the fixture runner.
 - README and version docs point to the roadmap and fixture runner.
-- No new target-project bootstrap requirement is introduced.
+- No external GPT/API reviewer automation is introduced.
+- No active Skill or automation is created.
+- Subagent Run Plans are optional for projects that do not use helper agents.
+- When Subagent Run Plans exist, `scripts/check-subagent-orchestration.mjs` rejects unclosed subagents and multiple active writers.
