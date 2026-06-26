@@ -146,6 +146,32 @@ Codex 可以沿用已有局部模式。
 Codex 不能自己创造或升级项目级工程规范。
 ```
 
+## Governance Hardening
+
+从 `0.30.0` 开始，这套 dev-kit 进入治理硬化阶段。
+
+这一步不是给真实项目增加更多默认门禁，而是先把 dev-kit 自己打磨稳定：
+
+```text
+好例子证明正确路径
+坏例子证明 checker 能拦问题
+fixture runner 证明失败原因稳定
+```
+
+路线文档：
+
+```text
+docs/governance-hardening-roadmap.md
+```
+
+自检命令：
+
+```bash
+node scripts/check-fixtures.mjs
+```
+
+`check-fixtures` 只用于 dev-kit 自身，不会注入到目标项目。
+
 ## 新项目初始化
 
 推荐通过初始化脚本创建项目，不要直接复制 `starters/<name>/`。
@@ -555,6 +581,25 @@ examples/review-loop-l2-first-slice/
 examples/web-internal-admin-first-slice/
 examples/web-industrial-bl2-first-slice/
 examples/miniprogram-industrial-bl2-first-slice/
+```
+
+工程基线黄金样例：
+
+```text
+examples/engineering-baseline-enum-vs-lookup/
+examples/engineering-baseline-api-dto-domain/
+```
+
+下一步建议边界样例：
+
+```text
+examples/next-step-boundary-suggestions/
+```
+
+反例 fixture：
+
+```text
+test-fixtures/
 ```
 
 已有强治理项目接入模板：

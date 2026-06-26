@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.29.0`
+Current version: `0.30.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `0.29.0`
 
 ## Current Release
 
-`0.29.0`
+`0.30.0`
 
 Includes:
 
+- Governance Hardening roadmap for 0.30 fixture-driven checks, 0.31 Goal Mode, and 0.32 Subagent Orchestration
+- `docs/governance-hardening-roadmap.md`
+- `scripts/check-fixtures.mjs` for dev-kit-only golden example and negative fixture validation
+- `test-fixtures/` with bad Engineering Baseline, Review Loop, and Next-Step Boundary cases
+- golden examples for Engineering Baseline enum-vs-lookup, DTO/domain boundary, and Next-Step Boundary suggestions
+- dev-kit self-check now runs the fixture suite and asserts that bad fixtures fail for expected reasons
 - Engineering Baseline Entry for pre-coding engineering decision governance
 - `core/engineering-baseline.md`, `templates/engineering-baseline.md`, `checklists/engineering-baseline-review.md`, and `scripts/check-engineering-baseline.mjs`
 - generated projects and workflow asset updates now include `docs/engineering-baseline.md`

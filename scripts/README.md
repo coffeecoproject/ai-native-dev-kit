@@ -223,10 +223,22 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-slice.md
 node scripts/check-next-step-boundary.mjs . --mode implementation --task tasks/001-first-slice.md
 ```
 
+## check-fixtures.mjs
+
+Run dev-kit fixture checks. This is for the dev-kit repository itself; it is not injected into target projects.
+
+```bash
+node scripts/check-fixtures.mjs
+node scripts/check-fixtures.mjs --case "bad review loop forbidden auto fix"
+node scripts/check-fixtures.mjs --json
+```
+
+The runner calls the real governance checkers and asserts expected pass/fail output. It must not reimplement checker rules.
+
 ## check-dev-kit.mjs
 
 Check whether the dev kit itself is internally complete and extension-safe.
-This also initializes a temporary project, runs its workflow check, runs AI log summarization, and verifies workflow asset update mode.
+This also runs fixture checks, initializes a temporary project, runs its workflow check, runs AI log summarization, and verifies workflow asset update mode.
 
 ```bash
 node ai-native-dev-kit/scripts/check-dev-kit.mjs

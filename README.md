@@ -216,6 +216,32 @@ Machine-readable Output
 需要人话状态 -> status-report / plain-review-summary / customer-handoff
 ```
 
+## 治理硬化路线
+
+从 `0.30.0` 开始，dev-kit 开始进入 Fixture-driven Governance Hardening。
+
+这一步不是给真实项目增加新负担，而是先把 dev-kit 自己打磨得更稳定：
+
+```text
+好例子证明正确路径
+坏例子证明 checker 能拦问题
+fixture runner 证明失败原因稳定
+```
+
+路线文档：
+
+```text
+docs/governance-hardening-roadmap.md
+```
+
+自检命令：
+
+```bash
+node scripts/check-fixtures.mjs
+```
+
+`check-fixtures` 只用于 dev-kit 自身，不会作为目标项目 workflow asset 注入。
+
 ## 新项目怎么用
 
 推荐让 Codex 自己读取并配置。你也可以手动运行初始化脚本：
@@ -439,9 +465,18 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.29.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.30.0`。
 
-新增内容：
+0.30.0 新增内容：
+
+- 新增 `docs/governance-hardening-roadmap.md`，明确 0.30 Governance Hardening、0.31 Goal Mode、0.32 Subagent Orchestration 的顺序和边界。
+- 新增 `scripts/check-fixtures.mjs`，用真实 checker 验证 golden examples 和 bad fixtures。
+- 新增 `test-fixtures/`，把坏例子从 `check-dev-kit` 内联变异中抽出来，形成可复用的反例资产。
+- 新增 Engineering Baseline golden examples：`examples/engineering-baseline-enum-vs-lookup` 和 `examples/engineering-baseline-api-dto-domain`。
+- 新增 Next-Step Boundary golden example：`examples/next-step-boundary-suggestions`。
+- `check-dev-kit` 现在会运行 fixture suite，保证好例子通过、坏例子因预期原因失败。
+
+历史累计能力：
 
 - 新增 Engineering Baseline Entry，控制 Codex 写代码前能否替项目做工程决策。
 - 新增 `core/engineering-baseline.md`、`templates/engineering-baseline.md`、`checklists/engineering-baseline-review.md` 和 `scripts/check-engineering-baseline.mjs`。
@@ -530,6 +565,7 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `docs/codex-usage.md`
 - `docs/mental-model.md`
 - `docs/artifact-decision-tree.md`
+- `docs/governance-hardening-roadmap.md`
 - `prompts/bootstrap-agent.md`
 - `scripts/workflow-next.mjs`
 - `templates/adoption-assessment.md`
@@ -555,6 +591,7 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `scripts/check-workflow-artifacts.mjs`
 - `scripts/check-review-loop.mjs`
 - `scripts/check-next-step-boundary.mjs`
+- `scripts/check-fixtures.mjs`
 - `scripts/new-workflow-item.mjs`
 - `scripts/workflow-daily-summary.mjs`
 
@@ -565,6 +602,13 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `examples/web-internal-admin-first-slice`
 - `examples/web-industrial-bl2-first-slice`
 - `examples/miniprogram-industrial-bl2-first-slice`
+- `examples/engineering-baseline-enum-vs-lookup`
+- `examples/engineering-baseline-api-dto-domain`
+- `examples/next-step-boundary-suggestions`
+
+反例 fixture：
+
+- `test-fixtures`
 
 Starter：
 

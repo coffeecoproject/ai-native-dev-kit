@@ -58,6 +58,7 @@ function checkRequiredFiles() {
     "docs/codex-usage.md",
     "docs/mental-model.md",
     "docs/artifact-decision-tree.md",
+    "docs/governance-hardening-roadmap.md",
     "core/workflow.md",
     "core/task-levels.md",
     "core/gates.md",
@@ -148,6 +149,7 @@ function checkRequiredFiles() {
     "scripts/check-workflow-artifacts.mjs",
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
+    "scripts/check-fixtures.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "platforms/codex/AGENTS.template.md",
@@ -254,6 +256,23 @@ function checkRequiredFiles() {
     "examples/miniprogram-industrial-bl2-first-slice/evidence/miniprogram-runtime-evidence.md",
     "examples/miniprogram-industrial-bl2-first-slice/releases/001-miniprogram-login-cloud-read-release.md",
     "examples/miniprogram-industrial-bl2-first-slice/ai-logs/2026-06-26-miniprogram-login-cloud-read.md",
+    "examples/engineering-baseline-enum-vs-lookup/README.md",
+    "examples/engineering-baseline-enum-vs-lookup/docs/engineering-baseline.md",
+    "examples/engineering-baseline-enum-vs-lookup/decision-briefs/001-status-model-decision.md",
+    "examples/engineering-baseline-api-dto-domain/README.md",
+    "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
+    "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
+    "examples/next-step-boundary-suggestions/README.md",
+    "examples/next-step-boundary-suggestions/final-reports/001-suggestions.md",
+    "test-fixtures/README.md",
+    "test-fixtures/fixture-cases.json",
+    "test-fixtures/bad-engineering-baseline/docs/engineering-baseline.md",
+    "test-fixtures/bad-review-loop/tasks/001-risky-dependency.md",
+    "test-fixtures/bad-review-loop/specs/001-risky-dependency.md",
+    "test-fixtures/bad-review-loop/evals/001-risky-dependency.md",
+    "test-fixtures/bad-review-loop/review-packets/001-risky-dependency.md",
+    "test-fixtures/bad-review-loop/review-loop-reports/001-risky-dependency.md",
+    "test-fixtures/bad-next-step-boundary/final-reports/001-boundary.md",
   ];
 
   for (const file of required) {
@@ -863,7 +882,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-fixtures.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -886,15 +905,21 @@ function checkReadmePointers() {
     "examples/web-internal-admin-first-slice",
     "examples/web-industrial-bl2-first-slice",
     "examples/miniprogram-industrial-bl2-first-slice",
+    "examples/engineering-baseline-enum-vs-lookup",
+    "examples/engineering-baseline-api-dto-domain",
+    "examples/next-step-boundary-suggestions",
+    "test-fixtures",
     "docs/quickstart",
     "docs/codex-usage",
     "docs/mental-model",
     "docs/artifact-decision-tree",
+    "docs/governance-hardening-roadmap",
     "engineering-baseline",
     "check-engineering-baseline",
     "check-workflow-artifacts",
     "check-review-loop",
     "check-next-step-boundary",
+    "check-fixtures",
     "check-platform-baseline",
     "resolve-platform-baseline",
     "check-industrial-pack",
@@ -975,6 +1000,17 @@ function runNode(args, options = {}) {
     cwd: options.cwd || kitRoot,
     encoding: "utf8",
   });
+}
+
+function checkFixtureSuite() {
+  const result = runNode([
+    path.join(kitRoot, "scripts", "check-fixtures.mjs"),
+  ]);
+  if (result.status !== 0) {
+    fail(`fixture suite failed: ${result.stderr || result.stdout}`);
+    return;
+  }
+  pass("fixture suite");
 }
 
 function checkReviewLoopL2DogfoodExample() {
@@ -2589,6 +2625,7 @@ checkStarters();
 checkPlatformAdapters();
 checkScriptSyntax();
 checkReadmePointers();
+checkFixtureSuite();
 checkReviewLoopL2DogfoodExample();
 checkWebBl2ExampleArtifacts();
 checkMiniProgramBl2ExampleArtifacts();
