@@ -171,6 +171,22 @@ Audit Notes
 Machine-readable Output
 ```
 
+## Artifact 怎么选
+
+不要每个任务都创建所有文件。先看当前缺的是需求、规格、审查、决策、报告还是交付说明。
+
+详细导航见 `docs/artifact-decision-tree.md`。它把常见场景对应到具体 artifact：
+
+```text
+需要独立审查 -> review-packet
+需要 GPT Pro / 第二模型审查 -> gpt-review-prompt
+需要多轮复审闭环 -> review-loop-report
+当前任务外的后续建议 -> follow-up-proposal
+需要持久化任务结果 -> final-report
+需要人拍板 -> decision-brief
+需要人话状态 -> status-report / plain-review-summary / customer-handoff
+```
+
 ## 新项目怎么用
 
 推荐让 Codex 自己读取并配置。你也可以手动运行初始化脚本：
@@ -360,6 +376,12 @@ node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-fir
 
 Review Loop 的规则很简单：reviewer 只读审查；Codex 只自动修确定性、低风险、任务范围内的问题；最多自动修 2 轮；范围、风险、权限、架构、依赖、迁移、生产配置、发布和回滚决策交给人。
 
+可以用语义检查器检查 Review Loop 是否真的闭环：
+
+```bash
+node scripts/check-review-loop.mjs . --task tasks/001-first-change.md
+```
+
 如果 Codex 在最终报告里提出下一步，不再用一句笼统的“建议继续做”。它必须按 Bounded Next-Step 分类：
 
 ```text
@@ -379,12 +401,25 @@ node scripts/new-workflow-item.mjs --type follow-up-proposal --task tasks/001-fi
 node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-change.md
 ```
 
+可以用语义检查器检查 next-step 是否越界：
+
+```bash
+node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
+```
+
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.26.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.27.0`。
 
 新增内容：
 
+- 新增 `scripts/check-review-loop.mjs`，检查 Review Loop Report 的语义边界、AUTO_FIX 轮次、人类决策队列和修复后验证。
+- 新增 `scripts/check-next-step-boundary.mjs`，检查 Next-Step Suggestions 的类型、能否当前执行、所需入口和风险/批准一致性。
+- 新增 `docs/artifact-decision-tree.md`，说明什么时候用哪个 artifact，降低模板数量带来的使用成本。
+- `init-project` 会把 artifact decision tree 安装到 `.ai-native/docs/artifact-decision-tree.md`。
+- `check-workflow-artifacts --mode implementation` 对 L2/L3 task 要求匹配的 Review Packet 和 Review Loop Report。
+- GitHub Actions 模板新增 Review Loop 和 Next-Step 语义检查。
+- 现有 Web / 小程序 BL2 dogfood 示例补齐 Review Packet、Review Loop Report，并纳入语义自检。
 - 新增 `core/next-step-boundary.md`，控制 Codex 如何提出后续建议，避免建议越界变成默认继续执行。
 - 新增 `templates/follow-up-proposal.md`、`templates/final-report.md`、`checklists/next-step-boundary-review.md`。
 - `new-workflow-item` 支持 `--type follow-up-proposal` 和 `--type final-report`。
@@ -457,6 +492,7 @@ node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-ch
 - `docs/quickstart.md`
 - `docs/codex-usage.md`
 - `docs/mental-model.md`
+- `docs/artifact-decision-tree.md`
 - `prompts/bootstrap-agent.md`
 - `scripts/workflow-next.mjs`
 - `templates/adoption-assessment.md`
@@ -476,6 +512,8 @@ node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-ch
 - `scripts/resolve-industrial-baseline.mjs`
 - `scripts/check-industrial-baseline.mjs`
 - `scripts/check-workflow-artifacts.mjs`
+- `scripts/check-review-loop.mjs`
+- `scripts/check-next-step-boundary.mjs`
 - `scripts/new-workflow-item.mjs`
 - `scripts/workflow-daily-summary.mjs`
 

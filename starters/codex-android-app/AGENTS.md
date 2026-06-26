@@ -123,6 +123,8 @@ For L2/L3 work or when review findings need closure, run `node scripts/new-workf
 
 If GPT Pro or a second model is used for review, run `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` and pair it with the Review Packet. The reviewer is read-only and must not approve risk, release, scope, architecture, dependencies, migrations, production config, Human Approval, or Approval scope.
 
+When a Review Loop Report exists, run `node scripts/check-review-loop.mjs . --task <task-card>` before closure.
+
 ## Bounded Next-Step
 
 Use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions.
@@ -138,6 +140,8 @@ Allowed suggestion types:
 - `DO_NOT_PROCEED`: unsafe or unauthorized under current scope.
 
 Only `IN_SCOPE_NEXT_STEP` may be handled inside the current task. Do not implement `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED` unless the human opens a new entry point and approves the needed scope.
+
+When next-step suggestions are recorded, run `node scripts/check-next-step-boundary.mjs . --task <task-card>`.
 
 ## Output Experience
 

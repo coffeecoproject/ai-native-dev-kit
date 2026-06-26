@@ -302,21 +302,23 @@ node scripts/new-workflow-item.mjs --type customer-handoff --name release-001
 2. 人确认项目方向、技术栈、高风险边界、第一条 vertical slice。
 3. 在 `docs/project-profile.md` 里确认 `Selected Profiles`，例如 `web-app`、`backend-api`、`ios-app`、`wechat-miniprogram`。
 4. 运行 `node scripts/check-platform-baseline.mjs .`，需要看合成结果时运行 `node scripts/resolve-platform-baseline.mjs .`。
-5. 创建 `requests/` 下的需求入口。
-6. 大需求先做 preflight。
-7. 写 spec 和 eval。
-8. 拆 task card。
-9. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。如果风险词只是明确的非目标或排除范围，写入 `Risk Gate Exclusions`，说明原因并由人确认；如果同一任务排除项超过 3 个，实现前必须由人明确批准这些排除项。
-10. AI 只执行一个 task card。
-11. 跑 verification。
-12. 人审查 diff、风险和证据。
-13. 如果需要更强复查，生成 `review-packets/`，交给 GPT Pro、第二模型或人类 reviewer。
-14. 如果复查需要闭环，生成 `review-loop-reports/`，记录 findings、自动修复、复审和人工决策。
-15. 如果需要 GPT Pro 或第二模型参与，生成 `gpt-review-prompts/` 作为只读审查提示。
-16. 合并后写 AI task log。
-17. 阶段性复盘进入 workflow retros。
-18. 重复问题进入 workflow improvements。
-19. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
+5. 不确定该创建哪个 artifact 时，先看 `docs/artifact-decision-tree.md`。
+6. 创建 `requests/` 下的需求入口。
+7. 大需求先做 preflight。
+8. 写 spec 和 eval。
+9. 拆 task card。
+10. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。如果风险词只是明确的非目标或排除范围，写入 `Risk Gate Exclusions`，说明原因并由人确认；如果同一任务排除项超过 3 个，实现前必须由人明确批准这些排除项。
+11. AI 只执行一个 task card。
+12. 跑 verification。
+13. 人审查 diff、风险和证据。
+14. 如果需要更强复查，生成 `review-packets/`，交给 GPT Pro、第二模型或人类 reviewer。
+15. 如果复查需要闭环，生成 `review-loop-reports/`，记录 findings、自动修复、复审和人工决策，并运行 `node scripts/check-review-loop.mjs . --task <task-card>`。
+16. 如果需要 GPT Pro 或第二模型参与，生成 `gpt-review-prompts/` 作为只读审查提示。
+17. 如果 Codex 提出后续建议，运行 `node scripts/check-next-step-boundary.mjs . --task <task-card>`，确认建议没有越界。
+18. 合并后写 AI task log。
+19. 阶段性复盘进入 workflow retros。
+20. 重复问题进入 workflow improvements。
+21. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
 
 ## Platform Baseline
 
@@ -589,6 +591,15 @@ node scripts/new-workflow-item.mjs --type customer-handoff --name release-001
 
 ```bash
 node scripts/check-workflow-artifacts.mjs . --mode ready
+```
+
+如果任务是 L2/L3，进入 implementation 检查前需要有匹配的 `review-packets/` 和 `review-loop-reports/`。
+
+复查和后续建议语义检查：
+
+```bash
+node scripts/check-review-loop.mjs . --task tasks/001-first-slice.md
+node scripts/check-next-step-boundary.mjs . --task tasks/001-first-slice.md
 ```
 
 ## License

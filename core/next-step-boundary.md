@@ -33,6 +33,13 @@ Every next-step suggestion must answer:
 4. If not, what entry point is required?
 5. Does it need risk review or human approval?
 
+Use `scripts/check-next-step-boundary.mjs` whenever Final Reports, Review Loop Reports, review summaries, or follow-up proposals include next-step suggestions:
+
+```bash
+node scripts/check-next-step-boundary.mjs . --task tasks/<task>.md
+node scripts/check-next-step-boundary.mjs . --mode implementation --task tasks/<task>.md
+```
+
 ## Suggestion Types
 
 Use only these types.
@@ -203,4 +210,3 @@ The next safe action should be the smallest bounded action, not a broad roadmap.
 - Do not suggest production, release, migration, permission, payment, or data changes as ordinary follow-up.
 - Do not turn reviewer future suggestions into AUTO_FIX findings.
 - Do not implement DIRECT_FOLLOW_UP, RISK_DECISION, OUT_OF_SCOPE_OBSERVATION, or DO_NOT_PROCEED inside the current task.
-

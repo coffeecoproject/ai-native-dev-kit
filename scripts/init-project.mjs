@@ -689,6 +689,11 @@ function copySharedAssets(targetPath, options = {}) {
   for (const dir of sharedDirs) {
     copyDir(path.join(kitRoot, dir), path.join(targetPath, ".ai-native", dir), options);
   }
+  copyFile(
+    path.join(kitRoot, "docs", "artifact-decision-tree.md"),
+    path.join(targetPath, ".ai-native", "docs", "artifact-decision-tree.md"),
+    options,
+  );
   copyIndustrialAssets(targetPath, options);
 
   const projectScriptsDir = path.join(targetPath, "scripts");
@@ -725,6 +730,12 @@ function copySharedAssets(targetPath, options = {}) {
 
   const artifactCheckDest = path.join(projectScriptsDir, "check-workflow-artifacts.mjs");
   copyFile(path.join(kitRoot, "scripts", "check-workflow-artifacts.mjs"), artifactCheckDest, options);
+
+  const reviewLoopCheckDest = path.join(projectScriptsDir, "check-review-loop.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-review-loop.mjs"), reviewLoopCheckDest, options);
+
+  const nextStepBoundaryCheckDest = path.join(projectScriptsDir, "check-next-step-boundary.mjs");
+  copyFile(path.join(kitRoot, "scripts", "check-next-step-boundary.mjs"), nextStepBoundaryCheckDest, options);
 
   const newWorkflowItemDest = path.join(projectScriptsDir, "new-workflow-item.mjs");
   copyFile(path.join(kitRoot, "scripts", "new-workflow-item.mjs"), newWorkflowItemDest, options);
@@ -804,6 +815,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".ai-native/checklists",
       ".ai-native/profiles",
       ".ai-native/industrial-packs",
+      ".ai-native/docs/artifact-decision-tree.md",
       "AGENTS.md",
       "scripts/check-ai-workflow.mjs",
       "scripts/summarize-ai-logs.mjs",
@@ -816,6 +828,8 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-workflow-artifacts.mjs",
+      "scripts/check-review-loop.mjs",
+      "scripts/check-next-step-boundary.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/workflow-next.mjs",
       "docs/project-onboarding.md",
@@ -903,4 +917,6 @@ console.log("6. Create the first request card only after onboarding is ready.");
 console.log("7. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
 console.log("8. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
 console.log("9. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
-console.log("10. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+console.log("10. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
+console.log("11. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
+console.log("12. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

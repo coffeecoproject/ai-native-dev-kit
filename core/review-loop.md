@@ -26,6 +26,13 @@ Do not merge these artifacts into one file. The Review Packet is input. The Revi
 
 Bounded next-step suggestions use `core/next-step-boundary.md`. They are not Review Loop findings.
 
+Use `scripts/check-review-loop.mjs` to validate Review Loop Reports before task closure:
+
+```bash
+node scripts/check-review-loop.mjs . --task tasks/<task>.md
+node scripts/check-review-loop.mjs . --mode implementation --task tasks/<task>.md
+```
+
 ## Task-Level Policy
 
 | Task Level | Review Loop Rule |
@@ -36,6 +43,8 @@ Bounded next-step suggestions use `core/next-step-boundary.md`. They are not Rev
 | L3 | Review Packet is required. Independent reviewer, GPT Pro, or human review is required. Codex may only fix deterministic issues. Risk, release, architecture, permission, migration, and production decisions require human approval. |
 
 If the task level is unclear, use the stricter applicable rule until the human confirms otherwise.
+
+For L2/L3 tasks, `scripts/check-workflow-artifacts.mjs --mode implementation --task <task>` also expects a matching Review Packet and Review Loop Report.
 
 ## Finding Categories
 

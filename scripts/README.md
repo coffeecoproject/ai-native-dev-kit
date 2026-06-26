@@ -199,7 +199,28 @@ Modes:
 - `implementation`: requires `--task` and requires checked risk items to have approved human approval with scope.
 
 This check is intentionally stricter than `check-ai-workflow.mjs`. It should run before implementation once request/spec/eval/task files exist.
+For L2/L3 tasks, implementation mode also expects matching Review Packet and Review Loop Report artifacts.
 In CI, prefer `--mode ready --changed-only --base <base-ref>` so historical draft artifacts do not block unrelated changes.
+
+## check-review-loop.mjs
+
+Check Review Loop Reports for semantic rules such as valid finding categories, AUTO_FIX limits, human-decision routing, and verification after fixes.
+
+```bash
+node scripts/check-review-loop.mjs .
+node scripts/check-review-loop.mjs . --task tasks/001-first-slice.md
+node scripts/check-review-loop.mjs . --mode implementation --task tasks/001-first-slice.md
+```
+
+## check-next-step-boundary.mjs
+
+Check Review Loop Reports, Final Reports, review summaries, and Follow-up Proposals for bounded next-step rules.
+
+```bash
+node scripts/check-next-step-boundary.mjs .
+node scripts/check-next-step-boundary.mjs . --task tasks/001-first-slice.md
+node scripts/check-next-step-boundary.mjs . --mode implementation --task tasks/001-first-slice.md
+```
 
 ## check-dev-kit.mjs
 

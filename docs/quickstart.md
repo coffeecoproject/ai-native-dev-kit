@@ -186,6 +186,14 @@ node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-fir
 
 Codex may auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds. Scope, risk, permission, architecture, dependency, migration, production config, release, rollback, and approval changes require human decision.
 
+Check Review Loop semantics:
+
+```bash
+node scripts/check-review-loop.mjs . --task tasks/001-first-slice.md
+```
+
+For L2/L3 tasks, `check-workflow-artifacts --mode implementation --task <task>` expects matching `review-packets/` and `review-loop-reports/` files.
+
 When Codex suggests next work, use the bounded next-step protocol:
 
 ```bash
@@ -194,6 +202,12 @@ node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-sl
 ```
 
 Only `IN_SCOPE_NEXT_STEP` can be handled inside the current task. `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, and `DO_NOT_PROCEED` require a new entry point, human decision, or stop record.
+
+Check next-step boundaries:
+
+```bash
+node scripts/check-next-step-boundary.mjs . --task tasks/001-first-slice.md
+```
 
 ## Existing Project
 

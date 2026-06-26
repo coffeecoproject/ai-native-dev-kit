@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "0.26.0",
+  "devKitVersion": "0.27.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -10,6 +10,7 @@
     ".ai-native/checklists",
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
+    ".ai-native/docs/artifact-decision-tree.md",
     "AGENTS.md",
     "scripts/check-ai-workflow.mjs",
     "scripts/summarize-ai-logs.mjs",
@@ -22,6 +23,8 @@
     "scripts/resolve-industrial-baseline.mjs",
     "scripts/check-industrial-baseline.mjs",
     "scripts/check-workflow-artifacts.mjs",
+    "scripts/check-review-loop.mjs",
+    "scripts/check-next-step-boundary.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",

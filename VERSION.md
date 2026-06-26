@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.26.0`
+Current version: `0.27.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,18 @@ Current version: `0.26.0`
 
 ## Current Release
 
-`0.26.0`
+`0.27.0`
 
 Includes:
 
+- Review Loop semantic checker with task/spec/eval/review-packet reference checks, finding category validation, AUTO_FIX bounds, human-decision routing, and verification-after-fix requirements
+- Bounded Next-Step semantic checker with suggestion type validation, Can AI do now consistency, required entry checks, human-decision routing, and DO_NOT_PROCEED guardrails
+- Artifact Decision Tree for choosing the right workflow artifact without creating every template by default
+- target-project bootstrap now installs `.ai-native/docs/artifact-decision-tree.md`
+- workflow artifact implementation gate now expects Review Packet and Review Loop Report for L2/L3 tasks
+- GitHub Actions workflow includes Review Loop and Next-Step semantic checks
+- dev-kit self-check covers generated-project Review Loop and Next-Step semantic failures
+- existing Web and Mini Program BL2 dogfood examples now include Review Packet / Review Loop Report assets and semantic self-check coverage
 - Bounded Next-Step Protocol for classifying Codex follow-up suggestions without treating them as execution approval
 - `core/next-step-boundary.md` and `checklists/next-step-boundary-review.md`
 - follow-up proposal and final report templates

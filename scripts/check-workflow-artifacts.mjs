@@ -504,6 +504,27 @@ function requireBaselineImplementationGates(file, taskContent) {
   requireIndustrialEvalEvidence(file, taskContent, industrialBaseline);
 }
 
+function expectedTaskSibling(dir, file) {
+  return path.join(projectRoot, dir, path.basename(file));
+}
+
+function requireReviewLoopForTask(file, content) {
+  if (mode === "draft") return;
+  const level = taskLevel(content);
+  if (!level || taskLevelRank[level] < taskLevelRank.L2) return;
+
+  const reviewPacket = expectedTaskSibling("review-packets", file);
+  const reviewLoopReport = expectedTaskSibling("review-loop-reports", file);
+  const missing = [];
+  if (!fs.existsSync(reviewPacket)) missing.push(`review-packets/${path.basename(file)}`);
+  if (!fs.existsSync(reviewLoopReport)) missing.push(`review-loop-reports/${path.basename(file)}`);
+  if (missing.length === 0) return;
+
+  const message = `${file} is ${level}; missing Review Loop artifact(s): ${missing.join(", ")}`;
+  if (mode === "implementation") fail(message);
+  else warn(message);
+}
+
 function readProjectFile(ref) {
   const full = path.resolve(projectRoot, ref);
   if (!fs.existsSync(full)) return null;
@@ -732,6 +753,7 @@ function checkTask(file, content) {
   requireTaskGraph(file, content);
   requireNoMissedRiskGate(file, content);
   requireBaselineImplementationGates(file, content);
+  requireReviewLoopForTask(file, content);
 }
 
 function checkLog(file, content) {

@@ -253,6 +253,8 @@ Use:
 
 ## Practical Choices
 
+Use `docs/artifact-decision-tree.md` when it is unclear which artifact should be created. The decision should start from the current work state, not from the full template list.
+
 Use this decision path:
 
 ```text

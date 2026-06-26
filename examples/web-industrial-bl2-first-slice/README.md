@@ -18,6 +18,8 @@ baseline selection
   -> task
   -> runtime evidence
   -> release record
+  -> review packet
+  -> review loop report
   -> AI task log
 ```
 
@@ -32,6 +34,8 @@ Files:
 - `tasks/001-web-runtime-quality.md`
 - `evidence/web-runtime-evidence.md`
 - `releases/001-web-runtime-quality-release.md`
+- `review-packets/001-web-runtime-quality.md`
+- `review-loop-reports/001-web-runtime-quality.md`
 - `ai-logs/2026-06-26-web-runtime-quality.md`
 
 In a real project, the evidence refs should point to that project's own tests, screenshots, traces, command output, release records, and review notes.

@@ -63,6 +63,8 @@ For workflow artifacts:
 - use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet
 - use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope
 - use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report
+- run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists
+- run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when next-step suggestions are recorded
 - run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when workflow artifacts exist
 - run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded
 - if any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation

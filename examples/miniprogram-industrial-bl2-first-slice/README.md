@@ -18,6 +18,8 @@ baseline selection
   -> task
   -> runtime evidence
   -> release record
+  -> review packet
+  -> review loop report
   -> AI task log
 ```
 
@@ -32,6 +34,8 @@ Files:
 - `tasks/001-miniprogram-login-cloud-read.md`
 - `evidence/miniprogram-runtime-evidence.md`
 - `releases/001-miniprogram-login-cloud-read-release.md`
+- `review-packets/001-miniprogram-login-cloud-read.md`
+- `review-loop-reports/001-miniprogram-login-cloud-read.md`
 - `ai-logs/2026-06-26-miniprogram-login-cloud-read.md`
 
 If the real project also has an admin backend, select `internal-admin-industrial` and either `backend-api-industrial` or `cloudbase-industrial` separately. Do not treat the mini program pack as covering the backend by itself.

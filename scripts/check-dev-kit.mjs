@@ -57,6 +57,7 @@ function checkRequiredFiles() {
     "docs/quickstart.md",
     "docs/codex-usage.md",
     "docs/mental-model.md",
+    "docs/artifact-decision-tree.md",
     "core/workflow.md",
     "core/task-levels.md",
     "core/gates.md",
@@ -141,6 +142,8 @@ function checkRequiredFiles() {
     "scripts/resolve-industrial-baseline.mjs",
     "scripts/check-industrial-baseline.mjs",
     "scripts/check-workflow-artifacts.mjs",
+    "scripts/check-review-loop.mjs",
+    "scripts/check-next-step-boundary.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "platforms/codex/AGENTS.template.md",
@@ -292,6 +295,8 @@ function checkVersionMetadata() {
     "scripts/resolve-industrial-baseline.mjs",
     "scripts/check-industrial-baseline.mjs",
     "scripts/check-workflow-artifacts.mjs",
+    "scripts/check-review-loop.mjs",
+    "scripts/check-next-step-boundary.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
@@ -312,6 +317,7 @@ function checkVersionMetadata() {
     "customer-handoffs",
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
+    ".ai-native/docs/artifact-decision-tree.md",
     ".github/pull_request_template.md",
     ".github/workflows/ai-workflow-checks.yml",
   ]) {
@@ -702,7 +708,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -771,6 +777,8 @@ function checkPlatformAdapters() {
     "resolve-industrial-baseline.mjs",
     "check-industrial-baseline.mjs",
     "check-workflow-artifacts.mjs",
+    "check-review-loop.mjs",
+    "check-next-step-boundary.mjs",
     "new-workflow-item.mjs",
     "workflow-next.mjs",
   ]) {
@@ -791,7 +799,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -816,7 +824,10 @@ function checkReadmePointers() {
     "docs/quickstart",
     "docs/codex-usage",
     "docs/mental-model",
+    "docs/artifact-decision-tree",
     "check-workflow-artifacts",
+    "check-review-loop",
+    "check-next-step-boundary",
     "check-platform-baseline",
     "resolve-platform-baseline",
     "check-industrial-pack",
@@ -928,6 +939,30 @@ function checkWebBl2ExampleArtifacts() {
     return;
   }
   pass("web BL2 example implementation artifact check");
+
+  const reviewLoopCheck = runNode([
+    path.join(kitRoot, "scripts", "check-review-loop.mjs"),
+    exampleRoot,
+    "--task",
+    "tasks/001-web-runtime-quality.md",
+  ]);
+  if (reviewLoopCheck.status !== 0) {
+    fail(`web BL2 example review loop check failed: ${reviewLoopCheck.stderr || reviewLoopCheck.stdout}`);
+    return;
+  }
+  pass("web BL2 example review loop check");
+
+  const nextStepCheck = runNode([
+    path.join(kitRoot, "scripts", "check-next-step-boundary.mjs"),
+    exampleRoot,
+    "--task",
+    "tasks/001-web-runtime-quality.md",
+  ]);
+  if (nextStepCheck.status !== 0) {
+    fail(`web BL2 example next-step boundary check failed: ${nextStepCheck.stderr || nextStepCheck.stdout}`);
+    return;
+  }
+  pass("web BL2 example next-step boundary check");
 }
 
 function checkMiniProgramBl2ExampleArtifacts() {
@@ -959,6 +994,30 @@ function checkMiniProgramBl2ExampleArtifacts() {
     return;
   }
   pass("Mini Program BL2 example implementation artifact check");
+
+  const reviewLoopCheck = runNode([
+    path.join(kitRoot, "scripts", "check-review-loop.mjs"),
+    exampleRoot,
+    "--task",
+    "tasks/001-miniprogram-login-cloud-read.md",
+  ]);
+  if (reviewLoopCheck.status !== 0) {
+    fail(`Mini Program BL2 example review loop check failed: ${reviewLoopCheck.stderr || reviewLoopCheck.stdout}`);
+    return;
+  }
+  pass("Mini Program BL2 example review loop check");
+
+  const nextStepCheck = runNode([
+    path.join(kitRoot, "scripts", "check-next-step-boundary.mjs"),
+    exampleRoot,
+    "--task",
+    "tasks/001-miniprogram-login-cloud-read.md",
+  ]);
+  if (nextStepCheck.status !== 0) {
+    fail(`Mini Program BL2 example next-step boundary check failed: ${nextStepCheck.stderr || nextStepCheck.stdout}`);
+    return;
+  }
+  pass("Mini Program BL2 example next-step boundary check");
 
   const baselineCheck = runNode([
     path.join(kitRoot, "scripts", "check-industrial-baseline.mjs"),
@@ -1055,6 +1114,8 @@ function checkGeneratedProjectE2E() {
     "scripts/check-industrial-pack.mjs",
     "scripts/resolve-industrial-baseline.mjs",
     "scripts/check-industrial-baseline.mjs",
+    "scripts/check-review-loop.mjs",
+    "scripts/check-next-step-boundary.mjs",
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
@@ -1063,6 +1124,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
     ".ai-native/templates/baseline-selection.md",
     ".ai-native/templates/baseline-evidence.md",
+    ".ai-native/docs/artifact-decision-tree.md",
     ".ai-native/core/next-step-boundary.md",
     ".ai-native/templates/follow-up-proposal.md",
     ".ai-native/templates/final-report.md",
@@ -1789,6 +1851,70 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project new workflow item creates final report");
+
+  const generatedReviewLoopSemanticCheck = runNode([
+    path.join(target, "scripts", "check-review-loop.mjs"),
+    target,
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedReviewLoopSemanticCheck.status !== 0) {
+    fail(`generated project review loop semantic check failed: ${generatedReviewLoopSemanticCheck.stderr || generatedReviewLoopSemanticCheck.stdout}`);
+    return;
+  }
+  pass("generated project review loop semantic check");
+
+  const generatedNextStepSemanticCheck = runNode([
+    path.join(target, "scripts", "check-next-step-boundary.mjs"),
+    target,
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedNextStepSemanticCheck.status !== 0) {
+    fail(`generated project next-step boundary semantic check failed: ${generatedNextStepSemanticCheck.stderr || generatedNextStepSemanticCheck.stdout}`);
+    return;
+  }
+  pass("generated project next-step boundary semantic check");
+
+  const reviewLoopPath = path.join(target, "review-loop-reports", "001-admin-work-item-list.md");
+  const originalReviewLoopContent = fs.readFileSync(reviewLoopPath, "utf8");
+  const invalidReviewLoopContent = originalReviewLoopContent.replace(
+    "|  | P0 / P1 / P2 | AUTO_FIX / NEEDS_HUMAN_DECISION / NEEDS_CLARIFICATION / NO_ACTION |  |  |  |  |  |",
+    "| F1 | P1 | AUTO_FIX | Add a new dependency to fix this task | review-packets/001-admin-work-item-list.md | Install dependency | Codex | OPEN |",
+  );
+  fs.writeFileSync(reviewLoopPath, invalidReviewLoopContent);
+  const invalidReviewLoopSemanticCheck = runNode([
+    path.join(target, "scripts", "check-review-loop.mjs"),
+    target,
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (invalidReviewLoopSemanticCheck.status === 0 || !invalidReviewLoopSemanticCheck.stderr.includes("AUTO_FIX")) {
+    fail(`generated project review loop semantic check should reject forbidden AUTO_FIX: ${invalidReviewLoopSemanticCheck.stderr || invalidReviewLoopSemanticCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(reviewLoopPath, originalReviewLoopContent);
+  pass("generated project review loop semantic check rejects forbidden AUTO_FIX");
+
+  const finalReportPath = path.join(target, "final-reports", "001-admin-work-item-list.md");
+  const originalFinalReportContent = fs.readFileSync(finalReportPath, "utf8");
+  const invalidFinalReportContent = originalFinalReportContent.replace(
+    "| N1 | IN_SCOPE_NEXT_STEP / DIRECT_FOLLOW_UP / RISK_DECISION / OUT_OF_SCOPE_OBSERVATION / DO_NOT_PROCEED |  |  | Yes / No | current task / new request / follow-up proposal / human decision / do not proceed |  |",
+    "| N1 | DIRECT_FOLLOW_UP | Align neighboring state | Same surface | Yes | current task | none |",
+  );
+  fs.writeFileSync(finalReportPath, invalidFinalReportContent);
+  const invalidNextStepSemanticCheck = runNode([
+    path.join(target, "scripts", "check-next-step-boundary.mjs"),
+    target,
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (invalidNextStepSemanticCheck.status === 0 || !invalidNextStepSemanticCheck.stderr.includes("Can AI do now")) {
+    fail(`generated project next-step semantic check should reject out-of-scope immediate work: ${invalidNextStepSemanticCheck.stderr || invalidNextStepSemanticCheck.stdout}`);
+    return;
+  }
+  fs.writeFileSync(finalReportPath, originalFinalReportContent);
+  pass("generated project next-step boundary semantic check rejects out-of-scope immediate work");
 
   const generatedHumanStatusReport = runNode([
     path.join(target, "scripts", "new-workflow-item.mjs"),

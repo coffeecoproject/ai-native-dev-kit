@@ -43,6 +43,10 @@ jobs:
         run: node --check scripts/workflow-next.mjs
       - name: Check workflow artifact quality
         run: node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base origin/${{ github.base_ref }}
+      - name: Check review loop semantics
+        run: node scripts/check-review-loop.mjs .
+      - name: Check next-step boundary semantics
+        run: node scripts/check-next-step-boundary.mjs .
       - name: Summarize AI workflow logs
         run: node scripts/summarize-ai-logs.mjs .
       - name: Run daily workflow signal check
