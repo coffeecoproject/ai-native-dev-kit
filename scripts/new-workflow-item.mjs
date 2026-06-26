@@ -23,6 +23,8 @@ const typeMap = {
   "decision-brief": { dir: "decision-briefs", template: "decision-brief.md", defaultName: "decision-brief" },
   "plain-review-summary": { dir: "review-summaries", template: "plain-review-summary.md", defaultName: "review-summary" },
   "customer-handoff": { dir: "customer-handoffs", template: "customer-handoff.md", defaultName: "customer-handoff" },
+  "follow-up-proposal": { dir: "follow-up-proposals", template: "follow-up-proposal.md", defaultName: "follow-up-proposal" },
+  "final-report": { dir: "final-reports", template: "final-report.md", defaultName: "final-report" },
 };
 
 const aliases = {
@@ -52,6 +54,12 @@ const aliases = {
   reviewsummary: "plain-review-summary",
   handoff: "customer-handoff",
   "customer-summary": "customer-handoff",
+  followup: "follow-up-proposal",
+  "follow-up": "follow-up-proposal",
+  proposal: "follow-up-proposal",
+  final: "final-report",
+  report: "final-report",
+  finalreport: "final-report",
 };
 
 function parseArgs(argv) {
@@ -92,6 +100,8 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection");
   console.error("  node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md");
   console.error("  node scripts/new-workflow-item.mjs --type customer-handoff --name release-001");
+  console.error("  node scripts/new-workflow-item.mjs --type follow-up-proposal --task tasks/001-first-slice.md");
+  console.error("  node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-slice.md");
 }
 
 function fail(message) {
@@ -208,7 +218,7 @@ function refLine(label, ref) {
 function firstMarkdownRef(value) {
   const codeRef = String(value || "").match(/`([^`]+\.md)`/);
   if (codeRef) return codeRef[1];
-  const plainRef = String(value || "").match(/\b(?:requests|preflight|specs|evals|tasks|ai-logs|review-packets|review-loop-reports|gpt-review-prompts)\/[^\s`|)]+\.md\b/);
+  const plainRef = String(value || "").match(/\b(?:requests|preflight|specs|evals|tasks|ai-logs|review-packets|review-loop-reports|gpt-review-prompts|follow-up-proposals|final-reports)\/[^\s`|)]+\.md\b/);
   return plainRef ? plainRef[0] : null;
 }
 
@@ -339,6 +349,25 @@ function fillTask(content, context) {
       "Approved by:",
       "Approved at:",
       "Approval notes:",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Final Report Required",
+    [
+      "- Completed",
+      "- Verified",
+      "- Not Changed",
+      "- Risks Remaining",
+      "- Next-Step Suggestions",
+      "- Human Decisions Needed",
+      "- Next Safe Action",
+      "",
+      "Next-Step Suggestions must use:",
+      "",
+      "| ID | Type | Suggestion | Relation to current task | Can AI do now? | Required entry | Risk / approval |",
+      "|---|---|---|---|---|---|---|",
+      "| N1 | IN_SCOPE_NEXT_STEP / DIRECT_FOLLOW_UP / RISK_DECISION / OUT_OF_SCOPE_OBSERVATION / DO_NOT_PROCEED |  |  | Yes / No | current task / new request / follow-up proposal / human decision / do not proceed |  |",
     ].join("\n"),
   );
   return output;
@@ -490,6 +519,17 @@ function fillReviewLoopReport(content, context) {
       "Commands run:",
       "",
       "Evidence refs:",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Next-Step Suggestions",
+    [
+      "Suggestions are bounded follow-up items after the current task. They are not review findings and are not approval to continue.",
+      "",
+      "| ID | Type | Suggestion | Relation to current task | Can AI do now? | Required entry | Risk / approval |",
+      "|---|---|---|---|---|---|---|",
+      "| N1 | IN_SCOPE_NEXT_STEP / DIRECT_FOLLOW_UP / RISK_DECISION / OUT_OF_SCOPE_OBSERVATION / DO_NOT_PROCEED |  |  | Yes / No | current task / new request / follow-up proposal / human decision / do not proceed |  |",
     ].join("\n"),
   );
   return output;
@@ -696,6 +736,69 @@ function fillCustomerHandoff(content, context) {
   return output;
 }
 
+function fillFollowUpProposal(content, context) {
+  let output = setTitle(content, `# Follow-up Proposal: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Source",
+    [
+      context.taskRef ? `Related task: \`${context.taskRef}\`` : "Related task:",
+      "",
+      context.reviewLoopReportRef ? `Related review loop: \`${context.reviewLoopReportRef}\`` : "Related review loop:",
+      "",
+      context.logRef ? `Related AI task log: \`${context.logRef}\`` : "Related AI task log:",
+      "",
+      context.finalReportRef ? `Related final report: \`${context.finalReportRef}\`` : "Related final report:",
+    ].join("\n"),
+  );
+  output = setSection(output, "Type", "DIRECT_FOLLOW_UP");
+  output = setSection(
+    output,
+    "Can AI Do This Now?",
+    [
+      "No",
+      "",
+      "Reason: This proposal is outside the current task until a human accepts the entry point.",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillFinalReport(content, context) {
+  let output = setTitle(content, `# Final Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", `One-sentence conclusion:\n\nFinal report for ${context.title}.`);
+  output = setSection(
+    output,
+    "Technical Details",
+    [
+      context.taskRef ? `Task: \`${context.taskRef}\`` : "Task:",
+      "",
+      context.specRef ? `Spec: \`${context.specRef}\`` : "Spec:",
+      "",
+      context.evalRef ? `Eval: \`${context.evalRef}\`` : "Eval:",
+      "",
+      context.reviewPacketRef ? `Review Packet: \`${context.reviewPacketRef}\`` : "Review Packet:",
+      "",
+      context.reviewLoopReportRef ? `Review Loop Report: \`${context.reviewLoopReportRef}\`` : "Review Loop Report:",
+      "",
+      "Commands run:",
+      "",
+      "```text",
+      "",
+      "```",
+      "",
+      "Changed files:",
+      "",
+      "- ",
+      "",
+      "Evidence refs:",
+      "",
+      "- ",
+    ].join("\n"),
+  );
+  return output;
+}
+
 const args = parseArgs(process.argv.slice(2));
 const rawType = args.type ? String(args.type) : "";
 const type = aliases[rawType] || rawType;
@@ -707,7 +810,7 @@ if (!type || !typeMap[type]) {
 
 const projectRoot = path.resolve(process.cwd(), args.root || ".");
 const config = typeMap[type];
-const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt"]);
+const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report"]);
 
 let requestRef = resolveRef(projectRoot, args.request || (type === "preflight" ? args.from : null), "request");
 let preflightRef = resolveRef(projectRoot, args.preflight, "preflight");
@@ -737,7 +840,7 @@ if (type === "eval" && !specRef) fail("eval requires --spec or --from");
 if (type === "task" && !specRef) fail("task requires --spec or --from");
 if (type === "task" && !evalRef) fail("task requires --eval");
 if (type === "log" && !taskRef) fail("ai-log requires --task or --from");
-if (["review-packet", "review-loop-report", "gpt-review-prompt"].includes(type) && !taskRef && !args.name) {
+if (["review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report"].includes(type) && !taskRef && !args.name) {
   fail(`${type} requires --task, --from, or --name`);
 }
 
@@ -755,6 +858,8 @@ const gptReviewPromptRef = resolveRef(projectRoot, args["gpt-review-prompt"] || 
   || siblingArtifactRef(projectRoot, "gpt-review-prompts", number, slug);
 const reviewLoopReportRef = resolveRef(projectRoot, args["review-loop-report"] || args["loop-report"], "review loop report")
   || siblingArtifactRef(projectRoot, "review-loop-reports", number, slug);
+const finalReportRef = resolveRef(projectRoot, args["final-report"], "final report")
+  || siblingArtifactRef(projectRoot, "final-reports", number, slug);
 const baseContext = {
   date,
   evalRef,
@@ -771,6 +876,7 @@ const baseContext = {
   reviewPacketRef,
   gptReviewPromptRef,
   reviewLoopReportRef,
+  finalReportRef,
   title,
   agent: args.agent,
 };
@@ -791,6 +897,8 @@ if (type === "human-status-report") content = fillHumanStatusReport(content, bas
 if (type === "decision-brief") content = fillDecisionBrief(content, baseContext);
 if (type === "plain-review-summary") content = fillPlainReviewSummary(content, baseContext);
 if (type === "customer-handoff") content = fillCustomerHandoff(content, baseContext);
+if (type === "follow-up-proposal") content = fillFollowUpProposal(content, baseContext);
+if (type === "final-report") content = fillFinalReport(content, baseContext);
 
 const created = writeArtifact(projectRoot, config.dir, filename, content);
 
@@ -824,6 +932,12 @@ if (type === "review-packet") {
 } else if (type === "customer-handoff") {
   console.log("- Summarize delivered scope, verification, exclusions, risks, and decisions needed.");
   console.log("- Do not treat this handoff summary as release approval by itself.");
+} else if (type === "follow-up-proposal") {
+  console.log("- Classify the suggestion as IN_SCOPE_NEXT_STEP, DIRECT_FOLLOW_UP, RISK_DECISION, OUT_OF_SCOPE_OBSERVATION, or DO_NOT_PROCEED.");
+  console.log("- Do not implement the proposal until it enters a valid request, task, or human-decision path.");
+} else if (type === "final-report") {
+  console.log("- Fill Completed, Verified, Not Changed, Risks Remaining, Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.");
+  console.log("- Keep next-step suggestions bounded, classified, and actionable.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

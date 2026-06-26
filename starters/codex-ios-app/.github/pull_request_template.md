@@ -25,6 +25,14 @@
 - [ ] Verification evidence is included
 - [ ] Workflow daily summary impact is reviewed when workflow assets changed
 
+## Next-Step Suggestions
+
+Use `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED`. Only `IN_SCOPE_NEXT_STEP` may be handled inside this PR when no new approval is needed.
+
+| ID | Type | Suggestion | Relation to this PR | Can AI do now? | Required entry | Risk / approval |
+|---|---|---|---|---|---|---|
+|  |  |  |  | Yes / No | current PR / new request / follow-up proposal / human decision / do not proceed |  |
+
 ## Tests Run
 
 - [ ] `bash scripts/verify.sh`

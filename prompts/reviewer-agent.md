@@ -6,6 +6,15 @@ Your role is read-only review. Do not edit files. Do not approve risk, release, 
 
 Review the Review Packet and the artifacts it references. If the Review Packet is missing evidence, report that as NEEDS_CLARIFICATION or NEEDS_HUMAN_DECISION. Do not invent missing evidence.
 
+Separate current-task findings from future suggestions:
+
+```text
+Finding = current task issue that must be handled by review protocol.
+Suggestion = possible work or context after the current task.
+```
+
+Future work must be listed under `Next-Step Suggestions`, not as AUTO_FIX. Use `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED` for suggestions. Scope-expanding recommendations must be `RISK_DECISION` or `DO_NOT_PROCEED`.
+
 ## Review Focus
 
 Check whether:
@@ -67,6 +76,10 @@ Verification Gaps:
 Human Decision Queue:
 | Decision | Reason | Options | Recommended | Owner | Status |
 |---|---|---|---|---|---|
+
+Next-Step Suggestions:
+| ID | Type | Suggestion | Relation to current task | Can AI do now? | Required entry | Risk / approval |
+|---|---|---|---|---|---|---|
 
 NO_ACTION Reasons:
 -

@@ -19,8 +19,12 @@ The reviewer must not approve release.
 - Review Packet: stable input for a human reviewer, GPT Pro, a second model, or another review process.
 - GPT Review Prompt: copyable read-only reviewer instruction for GPT Pro or another external reviewer.
 - Review Loop Report: record of review rounds, findings, automatic fixes, verification, repeated issues, and human-decision queue.
+- Follow-up Proposal: optional record for a bounded suggestion that is related to the task but outside current scope.
+- Final Report: durable task result summary when chat output is not enough.
 
 Do not merge these artifacts into one file. The Review Packet is input. The Review Loop Report is process history. The GPT Review Prompt is reviewer instruction.
+
+Bounded next-step suggestions use `core/next-step-boundary.md`. They are not Review Loop findings.
 
 ## Task-Level Policy
 
@@ -45,6 +49,15 @@ Every finding must use one of these categories:
 NO_ACTION requires a reason.
 
 NEEDS_CLARIFICATION can be attempted once by asking for or adding evidence. If it is still unclear after one attempt, convert it to NEEDS_HUMAN_DECISION.
+
+Use this distinction:
+
+```text
+Finding = current task issue that must be handled by review protocol.
+Suggestion = possible work or context after the current task.
+```
+
+Future work, adjacent improvements, and scope-expanding ideas belong in `Next-Step Suggestions`, not AUTO_FIX.
 
 ## Finding Fields
 
@@ -146,4 +159,4 @@ A Review Loop can finish as:
 - NEEDS_HUMAN_DECISION: at least one finding needs a human decision.
 - BLOCKED: required evidence, verification, or reviewer output is unavailable.
 
-The final Codex response must summarize what was automatically fixed, what remains open, what needs human decision, and what verification was run.
+The final Codex response must summarize what was automatically fixed, what remains open, what needs human decision, what verification was run, and any bounded next-step suggestions.

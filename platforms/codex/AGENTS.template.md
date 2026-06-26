@@ -16,12 +16,13 @@ Do not implement vague requests directly.
 6. Do not modify auth, permission, migration, production config, secrets, high-risk, or security-sensitive logic without a risk report and explicit approval.
 7. Every implementation must include tests or explain why tests are not applicable.
 8. If the same verification failure repeats twice, stop and report instead of blindly retrying.
-9. After implementation, produce a final report:
+9. After implementation, produce a bounded final report:
    - what changed
    - what did not change
    - tests run
    - risks remaining
-   - next suggested step
+   - next-step suggestions classified by `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED`
+   - next safe action
 
 ## Bootstrap Entry
 
@@ -120,7 +121,7 @@ Before recommending packs, read `.ai-native/industrial-packs/selection-guide.md`
 
 ## Workflow Artifact Generation
 
-Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI task log, review packet, GPT review prompt, and review loop report files.
+Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI task log, review packet, GPT review prompt, review loop report, follow-up proposal, and final report files.
 
 Before implementation, run:
 
@@ -145,6 +146,22 @@ When independent review is needed, run `node scripts/new-workflow-item.mjs --typ
 For L2/L3 work or when review findings need closure, run `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>`. Record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and must stay inside approved task scope.
 
 If GPT Pro or a second model is used for review, run `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` and pair it with the Review Packet. The reviewer is read-only and must not approve risk, release, scope, architecture, dependencies, migrations, production config, Human Approval, or Approval scope.
+
+## Bounded Next-Step
+
+Use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions.
+
+Codex may suggest next steps, but suggestions must be bounded, classified, and actionable.
+
+Allowed suggestion types:
+
+- `IN_SCOPE_NEXT_STEP`: inside current task scope and safe to do now when no new approval is needed.
+- `DIRECT_FOLLOW_UP`: related but outside current scope; create a new request or `follow-up-proposal`.
+- `RISK_DECISION`: requires human decision and preflight before implementation.
+- `OUT_OF_SCOPE_OBSERVATION`: record as context only, not immediate work.
+- `DO_NOT_PROCEED`: unsafe or unauthorized under current scope.
+
+Only `IN_SCOPE_NEXT_STEP` may be handled inside the current task. Do not implement `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED` unless the human opens a new entry point and approves the needed scope.
 
 ## Output Experience
 
@@ -206,8 +223,10 @@ Use `.ai-native/templates/skill-candidate.md` for candidate drafts and `.ai-nati
 
 Every implementation response must include:
 
-- What changed
-- What did not change
-- Tests run
+- Completed
+- Verified
+- Not changed
 - Risks remaining
-- Suggested next step
+- Next-step suggestions with type, relation to current task, whether AI can do it now, required entry, and risk / approval
+- Human decisions needed
+- Next safe action

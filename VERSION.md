@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.25.0`
+Current version: `0.26.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,18 @@ Current version: `0.25.0`
 
 ## Current Release
 
-`0.25.0`
+`0.26.0`
 
 Includes:
 
+- Bounded Next-Step Protocol for classifying Codex follow-up suggestions without treating them as execution approval
+- `core/next-step-boundary.md` and `checklists/next-step-boundary-review.md`
+- follow-up proposal and final report templates
+- `new-workflow-item --type follow-up-proposal`
+- `new-workflow-item --type final-report`
+- generated project and starter directories for `follow-up-proposals/` and `final-reports/`
+- AGENTS, Cursor, Claude, and GitHub PR governance for bounded next-step suggestions
+- Review Loop separation between current-task findings and future suggestions
 - generic workflow starter
 - self-iteration loop
 - workflow asset update mode

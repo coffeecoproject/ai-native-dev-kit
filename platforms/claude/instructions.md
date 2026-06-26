@@ -18,7 +18,7 @@ For implementation:
 - implement one task card only
 - follow scope and stop conditions
 - run verification
-- summarize evidence and risks
+- summarize evidence, risks, classified next-step suggestions, and next safe action
 
 For bootstrap entry:
 
@@ -57,16 +57,29 @@ For industrial baseline:
 
 For workflow artifacts:
 
-- use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI log, review packet, GPT review prompt, and review loop report files
+- use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI log, review packet, GPT review prompt, review loop report, follow-up proposal, and final report files
 - use `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when a change needs independent human, GPT Pro, or second-model review
 - use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure
 - use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet
+- use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope
+- use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report
 - run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when workflow artifacts exist
 - run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded
 - if any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation
 - fix placeholder or missing artifact content before coding
 - AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds
 - route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human
+
+For bounded next-step suggestions:
+
+- use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions
+- suggestions must be bounded, classified, and actionable
+- use only `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED`
+- only `IN_SCOPE_NEXT_STEP` may be handled inside the current task when no new approval is needed
+- `DIRECT_FOLLOW_UP` requires a new request or `follow-up-proposal`
+- `RISK_DECISION` requires human decision and preflight before implementation
+- `OUT_OF_SCOPE_OBSERVATION` is context only
+- `DO_NOT_PROCEED` must not be implemented under current scope
 
 For output experience:
 

@@ -74,9 +74,19 @@ Evidence refs:
 
 ## Findings
 
+Findings are current-task review issues. Future work must be listed under `Next-Step Suggestions`, not as AUTO_FIX.
+
 | ID | Severity | Category | Finding | Evidence | Proposed action | Owner | Status |
 |---|---|---|---|---|---|---|---|
 |  | P0 / P1 / P2 | AUTO_FIX / NEEDS_HUMAN_DECISION / NEEDS_CLARIFICATION / NO_ACTION |  |  |  |  |  |
+
+## Next-Step Suggestions
+
+Suggestions are bounded follow-up items after the current task. They are not review findings and are not approval to continue.
+
+| ID | Type | Suggestion | Relation to current task | Can AI do now? | Required entry | Risk / approval |
+|---|---|---|---|---|---|---|
+| N1 | IN_SCOPE_NEXT_STEP / DIRECT_FOLLOW_UP / RISK_DECISION / OUT_OF_SCOPE_OBSERVATION / DO_NOT_PROCEED |  |  | Yes / No | current task / new request / follow-up proposal / human decision / do not proceed |  |
 
 ## Auto-fix Attempts
 

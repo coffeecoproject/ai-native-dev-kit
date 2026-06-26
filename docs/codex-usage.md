@@ -92,9 +92,11 @@ Expected Codex behavior:
 - Generate `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when the change needs independent human, GPT Pro, or second-model review.
 - Generate `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need automatic-fix and re-review tracking.
 - Generate `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet.
+- Generate `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a suggested next step is directly related but outside current task scope.
+- Generate `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the task result needs durable reporting beyond chat.
 - Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
-- Report changed files, verification, residual risks, and next step.
+- Report changed files, verification, residual risks, classified Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.
 
 ## Output Prompt
 
@@ -110,6 +112,7 @@ Expected Codex behavior:
 
 - Read `.ai-native/core/output-protocol.md`.
 - Use `.ai-native/core/glossary.md` when internal terms need plain-language explanation.
+- Use `.ai-native/core/next-step-boundary.md` when reporting suggested next steps.
 - Use `.ai-native/prompts/reporter-agent.md` when converting technical state into a report.
 - Generate `human-status-report`, `decision-brief`, `plain-review-summary`, or `customer-handoff` only when a file record is useful.
 - Do not treat any report as Human Approval, release approval, risk acceptance, or permission to apply migrations.

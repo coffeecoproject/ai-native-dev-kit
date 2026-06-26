@@ -20,9 +20,10 @@ Use this order when the output asks for a decision, reports a blocked state, rep
 4. Recommended Next Step
 5. What AI Can Do Safely
 6. What AI Must Not Do
-7. Technical Details
-8. Audit Notes
-9. Machine-readable Output, when needed
+7. Next-Step Suggestions
+8. Technical Details
+9. Audit Notes
+10. Machine-readable Output, when needed
 
 Do not hide risk to make output shorter. Explain risk simply and keep the technical basis below it.
 
@@ -92,6 +93,8 @@ Do not ask humans to manually fill routine templates when AI can draft them. Ask
 
 Give the next safe action.
 
+Use `core/next-step-boundary.md` when suggesting follow-up work. The next safe action should be bounded, classified, and explicit about whether AI may do it now.
+
 When a command is useful, include exactly the command and the condition for using it.
 
 When the next action requires approval, say what approval is needed before the command is safe.
@@ -122,6 +125,20 @@ Examples:
 - weaken Risk Gate, Human Approval, or Approval scope
 - change architecture, dependencies, migrations, production config, release, rollback, or active automation without approval
 - paste secrets or sensitive runtime data into external review prompts
+
+## Next-Step Suggestions
+
+Use this section when the output includes more than one possible next action or any follow-up that is outside current task scope.
+
+Allowed types:
+
+- `IN_SCOPE_NEXT_STEP`
+- `DIRECT_FOLLOW_UP`
+- `RISK_DECISION`
+- `OUT_OF_SCOPE_OBSERVATION`
+- `DO_NOT_PROCEED`
+
+Each suggestion must include relation to the current task, whether AI can do it now, the required entry point, and risk or approval needs.
 
 ## Technical Details
 
@@ -168,5 +185,7 @@ Use these templates when the output should become a file:
 - `templates/decision-brief.md`
 - `templates/plain-review-summary.md`
 - `templates/customer-handoff.md`
+- `templates/follow-up-proposal.md`
+- `templates/final-report.md`
 
 Use `prompts/reporter-agent.md` when an agent needs to convert technical workflow state into a human-readable report.

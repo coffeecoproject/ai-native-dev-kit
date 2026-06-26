@@ -67,6 +67,7 @@ function checkRequiredFiles() {
     "core/automation-governance.md",
     "core/project-onboarding.md",
     "core/review-loop.md",
+    "core/next-step-boundary.md",
     "core/output-protocol.md",
     "core/glossary.md",
     "templates/request-card.md",
@@ -84,6 +85,8 @@ function checkRequiredFiles() {
     "templates/review-packet.md",
     "templates/gpt-review-prompt.md",
     "templates/review-loop-report.md",
+    "templates/follow-up-proposal.md",
+    "templates/final-report.md",
     "templates/human-status-report.md",
     "templates/decision-brief.md",
     "templates/plain-review-summary.md",
@@ -120,6 +123,7 @@ function checkRequiredFiles() {
     "checklists/automation-review.md",
     "checklists/project-onboarding-review.md",
     "checklists/review-loop-review.md",
+    "checklists/next-step-boundary-review.md",
     "prompts/bootstrap-agent.md",
     "prompts/project-onboarding-agent.md",
     "prompts/reviewer-agent.md",
@@ -300,6 +304,8 @@ function checkVersionMetadata() {
     "review-packets",
     "gpt-review-prompts",
     "review-loop-reports",
+    "follow-up-proposals",
+    "final-reports",
     "status-reports",
     "decision-briefs",
     "review-summaries",
@@ -402,6 +408,54 @@ function checkReviewLoopProtocol() {
     pass("review loop protocol keeps hook automation future-scoped");
   } else {
     fail("review loop protocol must keep hook automation future-scoped");
+  }
+}
+
+function checkNextStepBoundaryProtocol() {
+  const files = {
+    "core/next-step-boundary.md": read("core/next-step-boundary.md"),
+    "templates/task-card.md": read("templates/task-card.md"),
+    "templates/review-loop-report.md": read("templates/review-loop-report.md"),
+    "templates/follow-up-proposal.md": read("templates/follow-up-proposal.md"),
+    "templates/final-report.md": read("templates/final-report.md"),
+    "checklists/next-step-boundary-review.md": read("checklists/next-step-boundary-review.md"),
+    "prompts/builder-agent.md": read("prompts/builder-agent.md"),
+    "prompts/reviewer-agent.md": read("prompts/reviewer-agent.md"),
+    "prompts/reporter-agent.md": read("prompts/reporter-agent.md"),
+  };
+  const combined = Object.values(files).join("\n");
+  const requiredMarkers = [
+    "Codex may suggest next steps, but suggestions must be bounded, classified, and actionable.",
+    "IN_SCOPE_NEXT_STEP",
+    "DIRECT_FOLLOW_UP",
+    "RISK_DECISION",
+    "OUT_OF_SCOPE_OBSERVATION",
+    "DO_NOT_PROCEED",
+    "Can AI do now?",
+    "Required entry",
+    "Next-Step Suggestions",
+    "Human Decisions Needed",
+    "Next Safe Action",
+    "Finding = current task issue",
+    "Suggestion = possible work or context after the current task",
+    "Future work must be listed under `Next-Step Suggestions`, not as AUTO_FIX",
+    "follow-up proposal",
+    "final report",
+  ];
+
+  for (const marker of requiredMarkers) {
+    if (combined.includes(marker)) {
+      pass(`next-step boundary protocol includes ${marker}`);
+    } else {
+      fail(`next-step boundary protocol missing ${marker}`);
+    }
+  }
+
+  if (files["templates/task-card.md"].includes("Authorized Next Actions")
+    && files["templates/task-card.md"].includes("Codex must not implement next-step suggestions")) {
+    pass("task card constrains authorized next actions");
+  } else {
+    fail("task card must constrain authorized next actions and next-step implementation");
   }
 }
 
@@ -627,6 +681,8 @@ function checkStarters() {
     "review-packets/.gitkeep",
     "gpt-review-prompts/.gitkeep",
     "review-loop-reports/.gitkeep",
+    "follow-up-proposals/.gitkeep",
+    "final-reports/.gitkeep",
     "status-reports/.gitkeep",
     "decision-briefs/.gitkeep",
     "review-summaries/.gitkeep",
@@ -655,7 +711,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -664,7 +720,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -694,7 +750,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -795,6 +851,14 @@ function checkReadmePointers() {
     "gpt-review-prompt",
     "review-loop-report",
     "review-loop",
+    "next-step-boundary",
+    "Bounded Next-Step",
+    "follow-up-proposal",
+    "follow-up-proposals",
+    "final-report",
+    "final-reports",
+    "IN_SCOPE_NEXT_STEP",
+    "RISK_DECISION",
     "output-protocol",
     "glossary",
     "human-status-report",
@@ -999,6 +1063,10 @@ function checkGeneratedProjectE2E() {
     ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
     ".ai-native/templates/baseline-selection.md",
     ".ai-native/templates/baseline-evidence.md",
+    ".ai-native/core/next-step-boundary.md",
+    ".ai-native/templates/follow-up-proposal.md",
+    ".ai-native/templates/final-report.md",
+    ".ai-native/checklists/next-step-boundary-review.md",
     ".ai-native/core/output-protocol.md",
     ".ai-native/core/glossary.md",
     ".ai-native/prompts/reporter-agent.md",
@@ -1010,6 +1078,8 @@ function checkGeneratedProjectE2E() {
     "decision-briefs/.gitkeep",
     "review-summaries/.gitkeep",
     "customer-handoffs/.gitkeep",
+    "follow-up-proposals/.gitkeep",
+    "final-reports/.gitkeep",
     "docs/verification-matrix.md",
   ]) {
     if (!fs.existsSync(path.join(target, rel))) {
@@ -1678,6 +1748,48 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project new workflow item creates review loop report");
 
+  const generatedFollowUpProposal = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "follow-up-proposal",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedFollowUpProposal.status !== 0
+    || !fs.existsSync(path.join(target, "follow-up-proposals", "001-admin-work-item-list.md"))) {
+    fail(`generated project follow-up proposal item failed: ${generatedFollowUpProposal.stderr || generatedFollowUpProposal.stdout}`);
+    return;
+  }
+  const generatedFollowUpContent = fs.readFileSync(path.join(target, "follow-up-proposals", "001-admin-work-item-list.md"), "utf8");
+  if (!generatedFollowUpContent.includes("DIRECT_FOLLOW_UP") || !generatedFollowUpContent.includes("Can AI Do This Now?")) {
+    fail("generated project follow-up proposal missing bounded next-step markers");
+    return;
+  }
+  pass("generated project new workflow item creates follow-up proposal");
+
+  const generatedFinalReport = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "final-report",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedFinalReport.status !== 0
+    || !fs.existsSync(path.join(target, "final-reports", "001-admin-work-item-list.md"))) {
+    fail(`generated project final report item failed: ${generatedFinalReport.stderr || generatedFinalReport.stdout}`);
+    return;
+  }
+  const generatedFinalReportContent = fs.readFileSync(path.join(target, "final-reports", "001-admin-work-item-list.md"), "utf8");
+  if (!generatedFinalReportContent.includes("Next-Step Suggestions") || !generatedFinalReportContent.includes("Next Safe Action")) {
+    fail("generated project final report missing bounded next-step sections");
+    return;
+  }
+  pass("generated project new workflow item creates final report");
+
   const generatedHumanStatusReport = runNode([
     path.join(target, "scripts", "new-workflow-item.mjs"),
     "--root",
@@ -1976,7 +2088,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy project workflow update failed: ${legacyUpdateResult.stderr || legacyUpdateResult.stdout}`);
     return;
   }
-  const legacyExpectedDirs = ["skill-candidates", "automation-proposals", "workflow-retros", "workflow-improvements", "review-packets", "gpt-review-prompts", "review-loop-reports", "status-reports", "decision-briefs", "review-summaries", "customer-handoffs"];
+  const legacyExpectedDirs = ["skill-candidates", "automation-proposals", "workflow-retros", "workflow-improvements", "review-packets", "gpt-review-prompts", "review-loop-reports", "follow-up-proposals", "final-reports", "status-reports", "decision-briefs", "review-summaries", "customer-handoffs"];
   for (const dir of legacyExpectedDirs) {
     if (!fs.existsSync(path.join(legacyTarget, dir))) {
       fail(`legacy project workflow update missing ${dir}`);
@@ -2041,7 +2153,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedLegacyAgents = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
-  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!appliedLegacyAgents.includes(marker)) {
       fail(`legacy project AGENTS.md explicit apply missing ${marker}`);
       return;
@@ -2073,7 +2185,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const createdAgentsContent = fs.readFileSync(createdAgents, "utf8");
-  for (const marker of ["Bootstrap Entry", "Platform Baseline", "Industrial Baseline", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Platform Baseline", "Industrial Baseline", "Bounded Next-Step", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!createdAgentsContent.includes(marker)) {
       fail(`created AGENTS.md missing ${marker}`);
       return;
@@ -2087,7 +2199,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const legacyPrTemplateContent = fs.readFileSync(legacyPrTemplate, "utf8");
-  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
     if (!legacyPrTemplateContent.includes(marker)) {
       fail(`legacy project workflow update PR template missing ${marker}`);
       return;
@@ -2178,7 +2290,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
-  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
     if (!appliedCustomPrTemplate.includes(marker)) {
       fail(`legacy custom PR template explicit apply missing ${marker}`);
       return;
@@ -2197,6 +2309,7 @@ checkDefaultStarter();
 checkVersionMetadata();
 checkCorePurity();
 checkReviewLoopProtocol();
+checkNextStepBoundaryProtocol();
 checkOutputExperienceProtocol();
 checkProfiles();
 checkIndustrialPacks();

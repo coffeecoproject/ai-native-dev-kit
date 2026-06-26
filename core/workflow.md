@@ -227,6 +227,20 @@ Codex 只能自动修确定性、低风险、任务范围内的问题，最多 2
 
 如果同一问题重复出现两次、自动修引入新的 P0/P1、验证重复失败、reviewer 输出不结构化，停止并交给人判断。
 
+### 9.2 Bounded Next-Step Gate
+
+当 Codex 在 final report、Review Loop Report、status report 或 PR 中提出下一步建议时，使用 `core/next-step-boundary.md`。
+
+建议必须被分类：
+
+- `IN_SCOPE_NEXT_STEP`：当前任务范围内、无需新批准的最小安全动作。
+- `DIRECT_FOLLOW_UP`：相关但不在当前任务范围内，需要新 request 或 follow-up proposal。
+- `RISK_DECISION`：需要人判断范围、风险、权限、数据、依赖、架构、迁移、生产配置、发布、回滚、支付或价值转移。
+- `OUT_OF_SCOPE_OBSERVATION`：只作为背景记录，不作为立即要做的事。
+- `DO_NOT_PROCEED`：当前范围下不安全或未授权，不能执行。
+
+Codex 只能在当前任务内处理 `IN_SCOPE_NEXT_STEP`。其它类型必须进入新入口、人工决策或停止记录。
+
 ### 10. Release Gate
 
 发布前检查：
@@ -271,6 +285,7 @@ Request Card
   -> Review Gate
   -> Review Packet when independent review is needed
   -> Review Loop Report when findings need closure
+  -> Bounded Next-Step Suggestions when follow-up is reported
   -> Release Gate
   -> AI Task Log
   -> Workflow Improvement

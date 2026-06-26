@@ -91,6 +91,32 @@ Approved by:
 Approved at:
 Approval notes:
 
+## Authorized Next Actions
+
+Codex may do after implementation:
+
+- run verification required by this task
+- fix current-task lint, typecheck, or test failures
+- fix AUTO_FIX findings inside approved current task scope
+- update review-loop-report when review is required
+- write ai-task-log or final-report evidence for this task
+- create follow-up-proposal for bounded suggestions
+
+Codex must not do without a new request, task, or human decision:
+
+Codex must not implement next-step suggestions unless they are `IN_SCOPE_NEXT_STEP` and inside this task scope.
+
+- implement follow-up suggestions
+- add features
+- add dependencies
+- change architecture
+- change permissions
+- change data model or migration
+- change production config
+- change release or rollback behavior
+- change payment, value-transfer, or regulated behavior
+- implement task non-goals
+
 ## Stop Conditions
 
 Stop and report if:
@@ -103,8 +129,16 @@ Stop and report if:
 
 ## Final Report Required
 
-- What changed
-- What did not change
-- Tests run
-- Risks remaining
-- Suggested next step
+- Completed
+- Verified
+- Not Changed
+- Risks Remaining
+- Next-Step Suggestions
+- Human Decisions Needed
+- Next Safe Action
+
+Next-Step Suggestions must use:
+
+| ID | Type | Suggestion | Relation to current task | Can AI do now? | Required entry | Risk / approval |
+|---|---|---|---|---|---|---|
+| N1 | IN_SCOPE_NEXT_STEP / DIRECT_FOLLOW_UP / RISK_DECISION / OUT_OF_SCOPE_OBSERVATION / DO_NOT_PROCEED |  |  | Yes / No | current task / new request / follow-up proposal / human decision / do not proceed |  |

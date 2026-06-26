@@ -159,12 +159,12 @@ if (summary.triggers.size === 0) {
 }
 console.log("");
 
-console.log("## Suggested Next Step");
+console.log("## Next Safe Action");
 console.log("");
 if (repeatedProblems.length > 0) {
-  console.log("- Create or update `workflow-improvements/` for repeated problems.");
+  console.log("- Create or update `workflow-improvements/` for repeated problems. Treat this as `DIRECT_FOLLOW_UP`, not approval to change core workflow automatically.");
   if (improvements.length > 0 && skillCandidates.length === 0) {
-    console.log("- Evaluate whether repeated workflow improvements need `skill-candidates/` entries.");
+    console.log("- Evaluate whether repeated workflow improvements need `skill-candidates/` entries. Skill creation still requires explicit human approval.");
   }
 } else if (summary.total > 0) {
   console.log("- Continue collecting logs until repeated patterns emerge.");

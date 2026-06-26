@@ -207,6 +207,21 @@ Use a Review Loop when a task needs more than a final report:
 
 Codex can only auto-fix deterministic, low-risk issues inside the approved task scope, and only for 2 rounds. Scope expansion, risk acceptance, permission model, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope decisions stay with humans.
 
+## Bounded Next-Step
+
+Use Bounded Next-Step when Codex reports possible next work after a task, review, baseline check, or status report.
+
+It does not forbid suggestions. It makes suggestions clear:
+
+- Is this still inside the current task?
+- Can AI do it now?
+- Does it need a new request, follow-up proposal, preflight, or human decision?
+- Is it only context that should not become immediate work?
+
+Allowed types are `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, and `DO_NOT_PROCEED`.
+
+Only `IN_SCOPE_NEXT_STEP` may be handled inside the current task. Other types must be recorded, proposed, routed to humans, or stopped.
+
 ## Output Experience
 
 Use Output Experience for every important workflow status, blocked state, review result, baseline result, adoption assessment, release summary, or automation proposal.
@@ -227,11 +242,14 @@ Use:
 
 - `core/output-protocol.md`
 - `core/glossary.md`
+- `core/next-step-boundary.md`
 - `prompts/reporter-agent.md`
 - `templates/human-status-report.md`
 - `templates/decision-brief.md`
 - `templates/plain-review-summary.md`
 - `templates/customer-handoff.md`
+- `templates/follow-up-proposal.md`
+- `templates/final-report.md`
 
 ## Practical Choices
 

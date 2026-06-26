@@ -221,6 +221,8 @@ dev-kit-proposals/
 review-packets/
 gpt-review-prompts/
 review-loop-reports/
+follow-up-proposals/
+final-reports/
 status-reports/
 decision-briefs/
 review-summaries/
@@ -533,6 +535,21 @@ review-loop-reports/
 gpt-review-prompts/
 ```
 
+后续建议边界：
+
+```text
+core/next-step-boundary.md
+templates/follow-up-proposal.md
+templates/final-report.md
+checklists/next-step-boundary-review.md
+follow-up-proposals/
+final-reports/
+```
+
+Codex 可以提出下一步，但每条建议都要说明属于哪一类、和当前任务什么关系、AI 能不能现在做、需要什么入口、有没有风险或批准要求。
+
+只有 `IN_SCOPE_NEXT_STEP` 可以在当前任务里继续处理。`DIRECT_FOLLOW_UP`、`RISK_DECISION`、`OUT_OF_SCOPE_OBSERVATION`、`DO_NOT_PROCEED` 都不能被当成当前任务授权。
+
 输出体验层：
 
 ```text
@@ -560,6 +577,8 @@ node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md -
 node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type follow-up-proposal --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type human-status-report --name workflow-next
 node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection
 node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md

@@ -172,6 +172,8 @@ node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type follow-up-proposal --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type human-status-report --name workflow-next
 node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection
 node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md

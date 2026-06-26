@@ -112,7 +112,7 @@ When execution intent is clear, allowed writes are limited to:
 - `docs/business-spec-index.md`
 - `docs/sample-policy.md`
 - `docs/onboarding-decisions.md`
-- workflow directories such as `requests/`, `preflight/`, `specs/`, `evals/`, `tasks/`, `ai-logs/`, `review-packets/`, `gpt-review-prompts/`, `review-loop-reports/`
+- workflow directories such as `requests/`, `preflight/`, `specs/`, `evals/`, `tasks/`, `ai-logs/`, `review-packets/`, `gpt-review-prompts/`, `review-loop-reports/`, `follow-up-proposals/`, `final-reports/`
 - workflow scripts under `scripts/`
 - `.github/workflows/ai-workflow-checks.yml`
 - `.github/pull_request_template.md` only when absent, or migration reports when an existing template needs governance

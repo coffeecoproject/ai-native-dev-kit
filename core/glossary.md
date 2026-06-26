@@ -67,6 +67,15 @@ Use it when writing human-facing reports, decision briefs, onboarding notes, rev
 | Review Packet | A stable input package for a reviewer. It is not approval. |
 | GPT Review Prompt | A read-only prompt used with GPT Pro, a second model, or another external reviewer. |
 | Review Loop Report | The record of review rounds, findings, AUTO_FIX attempts, re-review, and human decisions. |
+| Bounded Next-Step Protocol | The rule that AI may suggest next steps only when each suggestion is classified, scoped, and clear about whether AI can act now. |
+| Follow-up Proposal | A draft record for a suggestion that is related to the current task but should not be implemented inside it. |
+| Final Report | A durable task result summary with completed work, verification, unchanged scope, remaining risks, next-step suggestions, human decisions, and next safe action. |
+| Next-Step Suggestion | A possible action or context after the current task. It is not approval to continue. |
+| IN_SCOPE_NEXT_STEP | A small safe action still inside the current task scope. |
+| DIRECT_FOLLOW_UP | Related follow-up work that requires a new request or follow-up proposal before implementation. |
+| RISK_DECISION | A suggestion that needs human judgment before implementation because it touches scope, risk, approval, architecture, dependency, migration, production, release, rollback, payment, or similar authority. |
+| OUT_OF_SCOPE_OBSERVATION | Useful context observed during a task, recorded only as background. |
+| DO_NOT_PROCEED | A next action that is unsafe or unauthorized under the current scope. |
 | AUTO_FIX | A deterministic, low-risk fix that AI may apply inside approved scope. |
 | NEEDS_HUMAN_DECISION | A finding that requires a human decision because it touches scope, risk, architecture, dependency, migration, production, release, rollback, approval, or similar authority. |
 | NEEDS_CLARIFICATION | A finding that cannot be resolved from available evidence. |

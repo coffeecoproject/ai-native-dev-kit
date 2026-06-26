@@ -16,9 +16,10 @@ Use this order:
 4. Recommended Next Step
 5. What AI Can Do Safely
 6. What AI Must Not Do
-7. Technical Details
-8. Audit Notes
-9. Machine-readable Output, only when requested
+7. Next-Step Suggestions
+8. Technical Details
+9. Audit Notes
+10. Machine-readable Output, only when requested
 
 ## Writing Rules
 
@@ -32,6 +33,10 @@ Use this order:
 - Do not treat internal terms as self-explanatory; use `core/glossary.md` when needed.
 - Do not convert a technical blocker into approval.
 - Do not invent evidence, approvals, or verification.
+- Do not present future work as current authorization.
+- Use `core/next-step-boundary.md` for next-step suggestions.
+- Render suggestions in plain language first, then keep the technical classification table when useful.
+- If a suggestion is not `IN_SCOPE_NEXT_STEP`, say that AI will not implement it in the current task.
 
 ## Status Values
 
@@ -70,3 +75,15 @@ Report `Must stop` when the next action requires:
 - AGENTS.md or PR template migration application
 - active Skill or automation creation, update, enablement, deletion, or run
 - external review using secrets or sensitive runtime data
+
+## Next-Step Suggestions
+
+Use only:
+
+- `IN_SCOPE_NEXT_STEP`
+- `DIRECT_FOLLOW_UP`
+- `RISK_DECISION`
+- `OUT_OF_SCOPE_OBSERVATION`
+- `DO_NOT_PROCEED`
+
+Each suggestion must state relation to the current task, whether AI can do it now, the required entry point, and risk or approval needs.
