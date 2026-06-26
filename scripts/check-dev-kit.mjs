@@ -60,6 +60,26 @@ function checkRequiredFiles() {
     "docs/artifact-decision-tree.md",
     "docs/goal-subagent-usage.md",
     "docs/governance-hardening-roadmap.md",
+    "docs/productization-hardcut-1.0-plan.md",
+    ".github/workflows/dev-kit-pr-checks.yml",
+    ".github/workflows/dev-kit-release-checks.yml",
+    ".github/pull_request_template.md",
+    ".github/CODEOWNERS",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "requests/034-baseline-freeze-self-ci.md",
+    "preflight/034-baseline-freeze-self-ci.md",
+    "specs/034-baseline-freeze-self-ci.md",
+    "evals/034-baseline-freeze-self-ci.md",
+    "tasks/034-baseline-freeze-self-ci.md",
+    "goal-cards/034-baseline-freeze-self-ci.md",
+    "subagent-run-plans/034-baseline-freeze-self-ci.md",
+    "review-packets/034-baseline-freeze-self-ci.md",
+    "review-loop-reports/034-baseline-freeze-self-ci.md",
+    "final-reports/034-baseline-freeze-self-ci.md",
+    "releases/0.33.0/baseline-freeze.md",
+    "releases/0.33.0/self-check-report.md",
+    "releases/0.34.0/phase-report.md",
     "core/workflow.md",
     "core/task-levels.md",
     "core/gates.md",
@@ -414,6 +434,134 @@ function checkVersionMetadata() {
     } else {
       fail(`templates/workflow-version.json missing workflow asset ${asset}`);
     }
+  }
+}
+
+function checkDevKitFirstPartyCi() {
+  const prCi = read(".github/workflows/dev-kit-pr-checks.yml");
+  const releaseCi = read(".github/workflows/dev-kit-release-checks.yml");
+  const prTemplate = read(".github/pull_request_template.md");
+  const codeowners = read(".github/CODEOWNERS");
+  const contributing = read("CONTRIBUTING.md");
+  const security = read("SECURITY.md");
+  const phaseReport = read("releases/0.34.0/phase-report.md");
+  const baselineFreeze = read("releases/0.33.0/baseline-freeze.md");
+
+  const prMarkers = [
+    "actions/setup-node",
+    "node-version: 22",
+    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-fixtures.mjs",
+    "find scripts -name '*.mjs' -print0",
+    "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
+    "node scripts/check-glossary-usage.mjs .",
+    "node scripts/init-project.mjs --starter generic-project",
+    "check-ai-workflow.mjs",
+    "workflow-next.mjs",
+    "check-project-onboarding.mjs",
+    "check-engineering-baseline.mjs",
+    "check-workflow-version.mjs",
+    "contents: read",
+  ];
+  for (const marker of prMarkers) {
+    if (prCi.includes(marker)) pass(`dev-kit PR CI includes ${marker}`);
+    else fail(`dev-kit PR CI missing ${marker}`);
+  }
+
+  const releaseMarkers = [
+    "workflow_dispatch",
+    "tags:",
+    "actions/setup-node",
+    "node-version: 22",
+    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-fixtures.mjs",
+    "find . -name '*.mjs' -not -path './node_modules/*' -print0",
+    "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
+    "node scripts/check-glossary-usage.mjs .",
+    "node scripts/init-project.mjs --starter generic-project",
+    "check-ai-workflow.mjs",
+    "workflow-next.mjs",
+    "check-project-onboarding.mjs",
+    "check-engineering-baseline.mjs",
+    "check-workflow-version.mjs",
+    "contents: read",
+  ];
+  for (const marker of releaseMarkers) {
+    if (releaseCi.includes(marker)) pass(`dev-kit release CI includes ${marker}`);
+    else fail(`dev-kit release CI missing ${marker}`);
+  }
+
+  for (const marker of [
+    "Human Summary",
+    "Workflow Evidence",
+    "Goal Card",
+    "Subagent Run Plan",
+    "Review Packet",
+    "Review Loop Report",
+    "Final Report",
+    "License / Commercial Boundary",
+    "Risk And Approval",
+    "Next-Step Boundary",
+  ]) {
+    if (prTemplate.includes(marker)) pass(`dev-kit PR template includes ${marker}`);
+    else fail(`dev-kit PR template missing ${marker}`);
+  }
+
+  const activeCodeownerLines = codeowners
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"));
+  if (activeCodeownerLines.length === 0 && codeowners.includes("No active owner rule is declared yet")) {
+    pass("CODEOWNERS records draft ownership boundary without fake owners");
+  } else {
+    fail("CODEOWNERS must avoid fake active ownership until maintainer handles are finalized");
+  }
+
+  for (const marker of [
+    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-fixtures.mjs",
+    "phase artifacts",
+    "Generated-Project Smoke",
+    "AUTO_FIX",
+    "NEEDS_HUMAN_DECISION",
+  ]) {
+    if (contributing.includes(marker)) pass(`CONTRIBUTING includes ${marker}`);
+    else fail(`CONTRIBUTING missing ${marker}`);
+  }
+
+  for (const marker of [
+    "Supported Version",
+    "Reporting",
+    "does not promise a response SLA",
+    "not a hosted service",
+    "not legal advice",
+  ]) {
+    if (security.includes(marker)) pass(`SECURITY includes ${marker}`);
+    else fail(`SECURITY missing ${marker}`);
+  }
+
+  for (const marker of [
+    "1acd7440f4ffc295cba9abd8324e943d06eb8099",
+    "0.33.0",
+    "0.33.0` baseline",
+    "CC BY-NC 4.0",
+    "not legal advice",
+    "not proof",
+  ]) {
+    if (baselineFreeze.includes(marker)) pass(`baseline freeze includes ${marker}`);
+    else fail(`baseline freeze missing ${marker}`);
+  }
+
+  for (const marker of [
+    "0.34.0",
+    "PR CI workflow added",
+    "Release CI workflow added",
+    "check-dev-kit",
+    "No target-project bootstrap semantics were changed",
+    "No license wording was changed",
+  ]) {
+    if (phaseReport.includes(marker)) pass(`0.34 phase report includes ${marker}`);
+    else fail(`0.34 phase report missing ${marker}`);
   }
 }
 
@@ -3037,6 +3185,7 @@ function checkGeneratedProjectE2E() {
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
+checkDevKitFirstPartyCi();
 checkCorePurity();
 checkEngineeringBaselineProtocol();
 checkReviewLoopProtocol();

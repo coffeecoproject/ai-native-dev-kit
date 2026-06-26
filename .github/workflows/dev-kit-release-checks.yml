@@ -1,0 +1,50 @@
+name: Dev Kit Release Checks
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dev-kit-release-checks:
+    name: Dev Kit Release Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Dev-kit self-check
+        run: node scripts/check-dev-kit.mjs
+
+      - name: Fixture suite
+        run: node scripts/check-fixtures.mjs
+
+      - name: Recursive repository script syntax
+        run: find . -name '*.mjs' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
+
+      - name: Output quality example
+        run: node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80
+
+      - name: Glossary usage
+        run: node scripts/check-glossary-usage.mjs .
+
+      - name: Generated-project smoke
+        shell: bash
+        run: |
+          tmp="$(mktemp -d)"
+          node scripts/init-project.mjs --starter generic-project --target "$tmp/project"
+          node "$tmp/project/scripts/check-ai-workflow.mjs" "$tmp/project" --mode core
+          node "$tmp/project/scripts/workflow-next.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-project-onboarding.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-engineering-baseline.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-workflow-version.mjs" "$tmp/project"

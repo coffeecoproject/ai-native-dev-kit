@@ -4,6 +4,8 @@ This document defines the next development path after Engineering Baseline Entry
 
 The goal is not to add more governance layers. The goal is to make existing governance stable enough to reuse, check, explain, and improve.
 
+For the post-0.33 productization path toward `1.0.0`, see `docs/productization-hardcut-1.0-plan.md`.
+
 ## Position
 
 ```text

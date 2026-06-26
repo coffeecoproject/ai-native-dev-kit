@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.33.0`
+Current version: `0.34.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `0.33.0`
 
 ## Current Release
 
-`0.33.0`
+`0.34.0`
 
 Includes:
 
+- Productization Hardcut phase `0.34.0`: Baseline Freeze + Self CI
+- first-party dev-kit PR and release CI under `.github/workflows/`
+- repository PR template, CODEOWNERS draft guidance, CONTRIBUTING, and SECURITY docs
+- `0.33.0` baseline freeze evidence and `0.34.0` phase evidence under `releases/`
+- task-scoped Goal Card, Subagent Run Plan, Review Packet, Review Loop Report, and Final Report for the phase
+- dev-kit self-check coverage for first-party CI and repository governance assets
 - Simulated Goal + Subagent L2 feature dogfood for rehearsing a full task closure without requiring a real project
 - `docs/goal-subagent-usage.md` for plain-language Goal Card and Subagent Run Plan usage
 - `examples/goal-subagent-l2-feature/` with Goal Card, Subagent Run Plan, Engineering Baseline, request, preflight, spec, eval, task, Review Packet, GPT review prompt, Review Loop Report, final report, follow-up proposal, and review summary
