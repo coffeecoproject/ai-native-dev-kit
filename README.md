@@ -411,12 +411,34 @@ node scripts/check-engineering-baseline.mjs .
 最后逐步治理旧问题
 ```
 
-接入命令：
+对普通、低风险、已经清楚边界的项目，可以直接接入：
 
 ```bash
 node ai-native-dev-kit/scripts/init-project.mjs \
   --target ../existing-project \
   --update-workflow-assets
+```
+
+对已经上线、治理较强、工作区不干净，或第一次接入旧项目的场景，先生成计划再应用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --backup-dir .ai-native/backups/first-adoption \
+  --write-plan /tmp/ai-native-update-plan.json
+
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --apply-plan /tmp/ai-native-update-plan.json
+```
+
+只想看会发生什么，用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --dry-run
 ```
 
 它会补齐工作流需要的文件和脚本，但不会覆盖你的业务代码、已有规格、已有任务或已有记录。
@@ -495,7 +517,12 @@ BL2 不只看“有没有写文档”，还要求证据真实存在。`docs/base
 node ai-native-dev-kit/scripts/init-project.mjs \
   --target ../my-project \
   --update-workflow-assets \
+  --backup-dir .ai-native/backups/industrial-pack-update \
+  --write-plan /tmp/ai-native-industrial-pack-plan.json \
   --industrial-packs web-app-industrial,backend-api-industrial
+
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --apply-plan /tmp/ai-native-industrial-pack-plan.json
 ```
 
 证据分三层：`baseline evidence` 是项目级证据索引，`task evidence` 是当前任务触发的证据，`release evidence` 是发布前需要看的证据。单个任务不需要默认背完整工业包证据目录。

@@ -808,14 +808,14 @@ function checkCliFrontDoor() {
     fail(`CLI fixtures failed: ${fixtures.stderr || fixtures.stdout}`);
   }
 
-  const selfCheckDryRun = runNode(["scripts/cli.mjs", "self-check", "--dry-run"]);
+  const selfCheckDryRun = runNode(["scripts/cli.mjs", "--dry-run", "self-check"]);
   if (selfCheckDryRun.status === 0 && selfCheckDryRun.stdout.includes("node scripts/check-dev-kit.mjs")) {
     pass("CLI self-check dry-run delegates to check-dev-kit");
   } else {
     fail(`CLI self-check dry-run missing check-dev-kit mapping: ${selfCheckDryRun.stderr || selfCheckDryRun.stdout}`);
   }
 
-  const updateDryRun = runNode(["scripts/cli.mjs", "update", "--target", "/tmp/ai-native-cli-dry-run", "--dry-run"]);
+  const updateDryRun = runNode(["scripts/cli.mjs", "--dry-run", "update", "--target", "/tmp/ai-native-cli-dry-run"]);
   if (updateDryRun.status === 0
     && updateDryRun.stdout.includes("node scripts/init-project.mjs")
     && updateDryRun.stdout.includes("--update-workflow-assets")) {
@@ -824,7 +824,23 @@ function checkCliFrontDoor() {
     fail(`CLI update dry-run missing underlying update command: ${updateDryRun.stderr || updateDryRun.stdout}`);
   }
 
-  const doctorDryRun = runNode(["scripts/cli.mjs", "doctor", ".", "--dry-run"]);
+  const cliCommandDryRunRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-command-dry-run-"));
+  try {
+    const commandDryRunTarget = path.join(cliCommandDryRunRoot, "project");
+    fs.mkdirSync(commandDryRunTarget, { recursive: true });
+    const updateCommandDryRun = runNode(["scripts/cli.mjs", "update", "--target", commandDryRunTarget, "--dry-run"]);
+    if (updateCommandDryRun.status === 0
+      && updateCommandDryRun.stdout.includes('"operation": "UPDATE_WORKFLOW_ASSETS"')
+      && !fs.existsSync(path.join(commandDryRunTarget, ".ai-native", "version.json"))) {
+      pass("CLI command-level update dry-run delegates to init/update plan preview");
+    } else {
+      fail(`CLI command-level update dry-run failed: ${updateCommandDryRun.stderr || updateCommandDryRun.stdout}`);
+    }
+  } finally {
+    fs.rmSync(cliCommandDryRunRoot, { recursive: true, force: true });
+  }
+
+  const doctorDryRun = runNode(["scripts/cli.mjs", "--dry-run", "doctor", "."]);
   if (doctorDryRun.status === 0
     && doctorDryRun.stdout.includes("node scripts/workflow-next.mjs .")
     && doctorDryRun.stdout.includes("node scripts/check-ai-workflow.mjs . --mode core")) {
@@ -3258,20 +3274,163 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project workflow artifact quality check after update");
 
+  const dryRunTarget = path.join(tempRoot, "dry-run-project");
+  const dryRunResult = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    dryRunTarget,
+    "--dry-run",
+  ]);
+  if (dryRunResult.status !== 0 || !dryRunResult.stdout.includes('"operation": "INIT_PROJECT"')) {
+    fail(`init dry-run did not produce plan preview: ${dryRunResult.stderr || dryRunResult.stdout}`);
+    return;
+  }
+  if (fs.existsSync(dryRunTarget)) {
+    fail("init dry-run wrote target files");
+    return;
+  }
+  pass("init dry-run emits plan without writing target files");
+
+  const planOnlyTarget = path.join(tempRoot, "plan-only-project");
+  const planOnlyPath = path.join(tempRoot, "plan-only-init.json");
+  const writeInitPlan = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    planOnlyTarget,
+    "--write-plan",
+    planOnlyPath,
+  ]);
+  if (writeInitPlan.status !== 0 || !fs.existsSync(planOnlyPath)) {
+    fail(`init write-plan failed: ${writeInitPlan.stderr || writeInitPlan.stdout}`);
+    return;
+  }
+  if (fs.existsSync(planOnlyTarget)) {
+    fail("init write-plan wrote target files");
+    return;
+  }
+  const applyInitPlan = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    planOnlyPath,
+  ]);
+  if (applyInitPlan.status !== 0 || !fs.existsSync(path.join(planOnlyTarget, ".ai-native", "version.json"))) {
+    fail(`init apply-plan failed: ${applyInitPlan.stderr || applyInitPlan.stdout}`);
+    return;
+  }
+  pass("init write-plan/apply-plan initializes target after reviewable plan");
+
+  const stalePlanTarget = path.join(tempRoot, "stale-plan-project");
+  fs.mkdirSync(stalePlanTarget, { recursive: true });
+  fs.writeFileSync(path.join(stalePlanTarget, "AGENTS.md"), "# Stale\n");
+  const stalePlanPath = path.join(tempRoot, "stale-update-plan.json");
+  const staleWritePlan = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    stalePlanTarget,
+    "--update-workflow-assets",
+    "--write-plan",
+    stalePlanPath,
+  ]);
+  if (staleWritePlan.status !== 0) {
+    fail(`stale update write-plan failed: ${staleWritePlan.stderr || staleWritePlan.stdout}`);
+    return;
+  }
+  fs.appendFileSync(path.join(stalePlanTarget, "AGENTS.md"), "\nChanged after plan.\n");
+  const staleApply = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    stalePlanPath,
+  ]);
+  if (staleApply.status !== 2 || !`${staleApply.stdout}\n${staleApply.stderr}`.includes("Plan precondition failed")) {
+    fail(`stale update apply-plan did not fail on fingerprint change: ${staleApply.stderr || staleApply.stdout}`);
+    return;
+  }
+  pass("apply-plan rejects changed target fingerprint");
+
+  const backupTarget = path.join(tempRoot, "backup-project");
+  const backupInit = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    backupTarget,
+  ]);
+  if (backupInit.status !== 0) {
+    fail(`backup target init failed: ${backupInit.stderr || backupInit.stdout}`);
+    return;
+  }
+  fs.appendFileSync(path.join(backupTarget, "scripts", "check-ai-workflow.mjs"), "\n// local backup sentinel\n");
+  const backupPlanPath = path.join(tempRoot, "backup-update-plan.json");
+  const backupDir = ".ai-native/backups/0.38-test";
+  const backupPlan = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    backupTarget,
+    "--update-workflow-assets",
+    "--backup-dir",
+    backupDir,
+    "--write-plan",
+    backupPlanPath,
+  ]);
+  if (backupPlan.status !== 0) {
+    fail(`backup update write-plan failed: ${backupPlan.stderr || backupPlan.stdout}`);
+    return;
+  }
+  const backupApply = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    backupPlanPath,
+  ]);
+  const backedUpScript = path.join(backupTarget, backupDir, "scripts", "check-ai-workflow.mjs");
+  if (backupApply.status !== 0 || !fs.existsSync(backedUpScript)) {
+    fail(`backup update apply-plan did not preserve backup: ${backupApply.stderr || backupApply.stdout}`);
+    return;
+  }
+  if (!fs.readFileSync(backedUpScript, "utf8").includes("local backup sentinel")) {
+    fail("backup file does not contain pre-update content");
+    return;
+  }
+  pass("backup-dir preserves overwritten managed assets during apply-plan");
+
   const legacyTarget = path.join(tempRoot, "legacy-project");
   fs.mkdirSync(legacyTarget, { recursive: true });
   fs.writeFileSync(path.join(legacyTarget, "AGENTS.md"), "# Legacy\n");
   fs.mkdirSync(path.join(legacyTarget, "docs"), { recursive: true });
-  const legacyUpdateResult = runNode([
+  const legacyDirectUpdateResult = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     legacyTarget,
     "--update-workflow-assets",
   ]);
-  if (legacyUpdateResult.status !== 0) {
-    fail(`legacy project workflow update failed: ${legacyUpdateResult.stderr || legacyUpdateResult.stdout}`);
+  if (legacyDirectUpdateResult.status !== 2 || !`${legacyDirectUpdateResult.stdout}\n${legacyDirectUpdateResult.stderr}`.includes("plan-first")) {
+    fail(`legacy project direct workflow update was not blocked: ${legacyDirectUpdateResult.stderr || legacyDirectUpdateResult.stdout}`);
     return;
   }
+  const legacyPlanPath = path.join(tempRoot, "legacy-update-plan.json");
+  const legacyWritePlan = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    legacyTarget,
+    "--update-workflow-assets",
+    "--write-plan",
+    legacyPlanPath,
+  ]);
+  if (legacyWritePlan.status !== 0 || !fs.existsSync(legacyPlanPath)) {
+    fail(`legacy project write-plan failed: ${legacyWritePlan.stderr || legacyWritePlan.stdout}`);
+    return;
+  }
+  if (fs.existsSync(path.join(legacyTarget, ".ai-native", "version.json"))) {
+    fail("legacy project write-plan wrote workflow version before apply-plan");
+    return;
+  }
+  const legacyUpdateResult = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    legacyPlanPath,
+  ]);
+  if (legacyUpdateResult.status !== 0) {
+    fail(`legacy project apply-plan workflow update failed: ${legacyUpdateResult.stderr || legacyUpdateResult.stdout}`);
+    return;
+  }
+  pass("legacy project workflow update requires plan-first apply");
   const legacyExpectedDirs = ["skill-candidates", "automation-proposals", "workflow-retros", "workflow-improvements", "review-packets", "gpt-review-prompts", "review-loop-reports", "follow-up-proposals", "final-reports", "status-reports", "decision-briefs", "review-summaries", "customer-handoffs"];
   for (const dir of legacyExpectedDirs) {
     if (!fs.existsSync(path.join(legacyTarget, dir))) {
@@ -3354,14 +3513,26 @@ function checkGeneratedProjectE2E() {
   const legacyNoAgentsTarget = path.join(tempRoot, "legacy-no-agents");
   fs.mkdirSync(legacyNoAgentsTarget, { recursive: true });
   fs.writeFileSync(path.join(legacyNoAgentsTarget, "README.md"), "# Existing Project\n");
-  const legacyNoAgentsUpdate = runNode([
+  const legacyNoAgentsPlanPath = path.join(tempRoot, "legacy-no-agents-update-plan.json");
+  const legacyNoAgentsWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     legacyNoAgentsTarget,
     "--update-workflow-assets",
+    "--write-plan",
+    legacyNoAgentsPlanPath,
+  ]);
+  if (legacyNoAgentsWritePlan.status !== 0) {
+    fail(`legacy no-AGENTS write-plan failed: ${legacyNoAgentsWritePlan.stderr || legacyNoAgentsWritePlan.stdout}`);
+    return;
+  }
+  const legacyNoAgentsUpdate = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    legacyNoAgentsPlanPath,
   ]);
   if (legacyNoAgentsUpdate.status !== 0) {
-    fail(`legacy no-AGENTS workflow update failed: ${legacyNoAgentsUpdate.stderr || legacyNoAgentsUpdate.stdout}`);
+    fail(`legacy no-AGENTS apply-plan workflow update failed: ${legacyNoAgentsUpdate.stderr || legacyNoAgentsUpdate.stdout}`);
     return;
   }
   const createdAgents = path.join(legacyNoAgentsTarget, "AGENTS.md");
@@ -3397,14 +3568,26 @@ function checkGeneratedProjectE2E() {
   const legacyCustomPrTemplate = path.join(legacyCustomPrTarget, ".github", "pull_request_template.md");
   const originalCustomPrTemplate = "# Existing PR Template\n\n- [ ] Existing project checklist\n";
   fs.writeFileSync(legacyCustomPrTemplate, originalCustomPrTemplate);
-  const legacyCustomPrUpdate = runNode([
+  const legacyCustomPrPlanPath = path.join(tempRoot, "legacy-custom-pr-update-plan.json");
+  const legacyCustomPrWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     legacyCustomPrTarget,
     "--update-workflow-assets",
+    "--write-plan",
+    legacyCustomPrPlanPath,
+  ]);
+  if (legacyCustomPrWritePlan.status !== 0) {
+    fail(`legacy custom PR template write-plan failed: ${legacyCustomPrWritePlan.stderr || legacyCustomPrWritePlan.stdout}`);
+    return;
+  }
+  const legacyCustomPrUpdate = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    legacyCustomPrPlanPath,
   ]);
   if (legacyCustomPrUpdate.status !== 0) {
-    fail(`legacy custom PR template workflow update failed: ${legacyCustomPrUpdate.stderr || legacyCustomPrUpdate.stdout}`);
+    fail(`legacy custom PR template apply-plan workflow update failed: ${legacyCustomPrUpdate.stderr || legacyCustomPrUpdate.stdout}`);
     return;
   }
   const unchangedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
@@ -3428,14 +3611,26 @@ function checkGeneratedProjectE2E() {
   fs.mkdirSync(path.join(legacyManualPrTarget, ".github"), { recursive: true });
   const legacyManualPrTemplate = path.join(legacyManualPrTarget, ".github", "pull_request_template.md");
   fs.writeFileSync(legacyManualPrTemplate, originalCustomPrTemplate);
-  const legacyManualPrUpdate = runNode([
+  const legacyManualPrPlanPath = path.join(tempRoot, "legacy-manual-pr-update-plan.json");
+  const legacyManualPrWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     legacyManualPrTarget,
     "--update-workflow-assets",
+    "--write-plan",
+    legacyManualPrPlanPath,
+  ]);
+  if (legacyManualPrWritePlan.status !== 0) {
+    fail(`legacy manual PR template write-plan failed: ${legacyManualPrWritePlan.stderr || legacyManualPrWritePlan.stdout}`);
+    return;
+  }
+  const legacyManualPrUpdate = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    legacyManualPrPlanPath,
   ]);
   if (legacyManualPrUpdate.status !== 0) {
-    fail(`legacy manual PR template workflow update failed: ${legacyManualPrUpdate.stderr || legacyManualPrUpdate.stdout}`);
+    fail(`legacy manual PR template apply-plan workflow update failed: ${legacyManualPrUpdate.stderr || legacyManualPrUpdate.stdout}`);
     return;
   }
   const manualMigrationReport = path.join(legacyManualPrTarget, ".ai-native", "migration-reports", "pr-template-governance.md");

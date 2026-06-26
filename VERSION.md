@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.37.0`
+Current version: `0.38.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,18 @@ Current version: `0.37.0`
 
 ## Current Release
 
-`0.37.0`
+`0.38.0`
 
 Includes:
 
+- Productization Hardcut phase `0.38.0`: init/update safety
+- `scripts/init-project.mjs --dry-run` emits a machine-readable init/update plan without writing target files
+- `scripts/init-project.mjs --write-plan <file>` writes a reviewable plan without mutating the target
+- `scripts/init-project.mjs --apply-plan <file>` validates target fingerprint and applies the reviewed plan
+- `--backup-dir <dir>` preserves overwritten managed workflow assets during apply/update
+- direct workflow asset update now requires plan-first flow for governed, production, dirty, or unbootstrapped existing projects
+- `scripts/cli.mjs` now separates global dry-run command preview from command-level init/update plan preview
+- dev-kit self-check now covers dry-run, write-plan, apply-plan, stale-plan rejection, backup, and legacy plan-first adoption
 - Productization Hardcut phase `0.37.0`: manifest authoritative asset source
 - `dev-kit-manifest.json` is now the authoritative source for source required files, target required paths, workflow readiness paths, workflow version assets, and safe static copy rules
 - `check-ai-workflow.mjs`, `workflow-next.mjs`, `check-dev-kit.mjs`, and `init-project.mjs` now consume manifest data for their asset lists

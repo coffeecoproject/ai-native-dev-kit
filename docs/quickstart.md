@@ -243,7 +243,7 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-slice.md
 
 ## Existing Project
 
-Inject or refresh workflow assets:
+Inject or refresh workflow assets for a low-risk project that is already understood:
 
 ```bash
 node ai-native-dev-kit/scripts/init-project.mjs \
@@ -253,10 +253,22 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 
 This updates `.ai-native/`, workflow scripts, CI, missing onboarding docs, and missing workflow directories. It does not overwrite existing product docs, specs, tasks, logs, or business code.
 
-For an existing governed or already-online project, do not start with this command. First run:
+For an existing governed, already-online, dirty, or first-adoption project, inspect state first:
 
 ```bash
 node ai-native-dev-kit/scripts/workflow-next.mjs ../existing-project
+```
+
+If the result allows guarded setup, generate and apply a reviewed plan:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --backup-dir .ai-native/backups/first-adoption \
+  --write-plan /tmp/ai-native-update-plan.json
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --apply-plan /tmp/ai-native-update-plan.json
 ```
 
 If the result is `RUN_ADOPTION_ASSESSMENT`, keep the first pass read-only. Map existing agent rules, CI, baselines, evidence, release/rollback controls, and dirty worktree state before asking for adapter approval.

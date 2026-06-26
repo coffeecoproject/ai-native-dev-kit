@@ -6,7 +6,7 @@ Status: Active execution plan
 
 Current baseline: `0.33.0` frozen in `releases/0.33.0/`
 
-Current executed phase: `0.37.0` Manifest Authoritative Asset Source
+Current executed phase: `0.38.0` Init/Update Safety
 
 Target release: `1.0.0`
 

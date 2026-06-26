@@ -2,6 +2,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "./lib/manifest.mjs";
 
@@ -69,6 +71,21 @@ function parseArgs(argv) {
   return args;
 }
 
+function backupFileIfNeeded(filePath, options = {}) {
+  if (!options.backupDir || !options.targetPath || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return;
+  const backupRoot = path.isAbsolute(options.backupDir)
+    ? options.backupDir
+    : path.join(options.targetPath, options.backupDir);
+  const relativePath = path.relative(options.targetPath, filePath);
+  if (relativePath.startsWith("..")) return;
+  const backupPath = path.join(backupRoot, relativePath);
+  fs.mkdirSync(path.dirname(backupPath), { recursive: true });
+  if (!fs.existsSync(backupPath)) {
+    fs.copyFileSync(filePath, backupPath);
+    console.log(`backed up ${path.relative(process.cwd(), filePath)} to ${path.relative(process.cwd(), backupPath)}`);
+  }
+}
+
 function copyDir(src, dest, options = {}) {
   const { overwrite = false } = options;
   if (!fs.existsSync(src)) {
@@ -83,8 +100,7 @@ function copyDir(src, dest, options = {}) {
     } else if (fs.existsSync(destPath) && !overwrite) {
       console.log(`skip existing ${path.relative(process.cwd(), destPath)}`);
     } else {
-      fs.copyFileSync(srcPath, destPath);
-      console.log(`${fs.existsSync(destPath) && overwrite ? "updated" : "created"} ${path.relative(process.cwd(), destPath)}`);
+      copyFile(srcPath, destPath, options);
     }
   }
 }
@@ -97,6 +113,7 @@ function copyFile(src, dest, options = {}) {
     return;
   }
   const existed = fs.existsSync(dest);
+  if (existed && overwrite) backupFileIfNeeded(dest, options);
   fs.copyFileSync(src, dest);
   console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), dest)}`);
 }
@@ -283,6 +300,7 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
     "Do not apply this migration if the project uses a centrally managed pull request template and governance must be added elsewhere.",
     "",
   ].join("\n");
+  backupFileIfNeeded(reportPath, { ...options, targetPath });
   fs.writeFileSync(reportPath, content);
   console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), reportPath)}`);
 }
@@ -305,7 +323,7 @@ function ensurePullRequestTemplate(targetPath, starter, options = {}) {
     if (fs.existsSync(reportPath)) {
       const report = fs.readFileSync(reportPath, "utf8");
       if (report.includes("PENDING_HUMAN_APPROVAL")) {
-        writePullRequestTemplateMigrationReport(targetPath, [], { status: "RESOLVED_MANUALLY" });
+        writePullRequestTemplateMigrationReport(targetPath, [], { ...options, status: "RESOLVED_MANUALLY" });
       }
     }
     console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
@@ -313,13 +331,14 @@ function ensurePullRequestTemplate(targetPath, starter, options = {}) {
   }
 
   if (!applyPrTemplateGovernance) {
-    writePullRequestTemplateMigrationReport(targetPath, missingMarkers);
+    writePullRequestTemplateMigrationReport(targetPath, missingMarkers, options);
     console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .ai-native/migration-reports/pr-template-governance.md`);
     return;
   }
 
+  backupFileIfNeeded(dest, { ...options, targetPath });
   fs.appendFileSync(dest, `${content.endsWith("\n") ? "" : "\n"}${pullRequestTemplateGovernanceAppendix()}`);
-  writePullRequestTemplateMigrationReport(targetPath, missingMarkers, { applied: true });
+  writePullRequestTemplateMigrationReport(targetPath, missingMarkers, { ...options, applied: true });
   console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix after explicit approval`);
 }
 
@@ -640,6 +659,7 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
     "Do not apply this migration if the project uses centrally managed agent instructions and governance must be added elsewhere.",
     "",
   ].join("\n");
+  backupFileIfNeeded(reportPath, { ...options, targetPath });
   fs.writeFileSync(reportPath, content);
   console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), reportPath)}`);
 }
@@ -660,7 +680,7 @@ function ensureAgentsGovernance(targetPath, options = {}) {
     if (fs.existsSync(reportPath)) {
       const report = fs.readFileSync(reportPath, "utf8");
       if (report.includes("PENDING_HUMAN_APPROVAL")) {
-        writeAgentsGovernanceMigrationReport(targetPath, [], { status: "RESOLVED_MANUALLY" });
+        writeAgentsGovernanceMigrationReport(targetPath, [], { ...options, status: "RESOLVED_MANUALLY" });
       }
     }
     console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
@@ -668,13 +688,14 @@ function ensureAgentsGovernance(targetPath, options = {}) {
   }
 
   if (!applyAgentGovernance) {
-    writeAgentsGovernanceMigrationReport(targetPath, missingMarkers);
+    writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, options);
     console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .ai-native/migration-reports/agents-governance.md`);
     return;
   }
 
+  backupFileIfNeeded(dest, { ...options, targetPath });
   fs.appendFileSync(dest, `${content.endsWith("\n") ? "" : "\n"}${agentGovernanceAppendix(missingMarkers)}`);
-  writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, { applied: true });
+  writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, { ...options, applied: true });
   console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix after explicit approval`);
 }
 
@@ -742,6 +763,7 @@ function copyIndustrialAssets(targetPath, options = {}) {
 }
 
 function copySharedAssets(targetPath, options = {}) {
+  options = { ...options, targetPath };
   const { starter = "generic-project", applyPrTemplateGovernance = false, applyAgentGovernance = false } = options;
   const copyRules = manifestCopyRules(kitRoot, { fallback: fallbackCopyRules() });
   for (const rule of copyRules.directories || []) {
@@ -753,8 +775,8 @@ function copySharedAssets(targetPath, options = {}) {
   copyIndustrialAssets(targetPath, options);
 
   ensureProjectOnboardingDocs(targetPath);
-  ensureAgentsGovernance(targetPath, { applyAgentGovernance });
-  ensurePullRequestTemplate(targetPath, starter, { applyPrTemplateGovernance });
+  ensureAgentsGovernance(targetPath, { ...options, applyAgentGovernance });
+  ensurePullRequestTemplate(targetPath, starter, { ...options, applyPrTemplateGovernance });
   ensureWorkflowDirs(targetPath);
 }
 
@@ -833,6 +855,7 @@ function ensureWorkflowDirs(targetPath) {
 }
 
 function writeVersionFile(targetPath, starter, options = {}) {
+  options = { ...options, targetPath };
   const versionDir = path.join(targetPath, ".ai-native");
   fs.mkdirSync(versionDir, { recursive: true });
   const versionPath = path.join(versionDir, "version.json");
@@ -902,8 +925,417 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".github/workflows/ai-workflow-checks.yml",
     ] }),
   };
+  if (existed) backupFileIfNeeded(versionPath, options);
   fs.writeFileSync(versionPath, `${JSON.stringify(version, null, 2)}\n`);
   console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), versionPath)}`);
+}
+
+function sha256File(filePath) {
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return null;
+  return `sha256:${createHash("sha256").update(fs.readFileSync(filePath)).digest("hex")}`;
+}
+
+function walkSourceFiles(sourceRoot) {
+  if (!fs.existsSync(sourceRoot)) return [];
+  const results = [];
+  for (const entry of fs.readdirSync(sourceRoot, { withFileTypes: true })) {
+    const full = path.join(sourceRoot, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...walkSourceFiles(full));
+    } else if (entry.isFile()) {
+      results.push(full);
+    }
+  }
+  return results.sort();
+}
+
+function gitFingerprint(targetPath) {
+  const gitCheck = spawnSync("git", ["-C", targetPath, "rev-parse", "--is-inside-work-tree"], { encoding: "utf8" });
+  if (gitCheck.status !== 0 || gitCheck.stdout.trim() !== "true") {
+    return {
+      isGitRepository: false,
+      gitBranch: null,
+      gitHead: null,
+      isDirty: false,
+      changedFileCount: 0,
+      changedFilesSample: [],
+    };
+  }
+  const branch = spawnSync("git", ["-C", targetPath, "branch", "--show-current"], { encoding: "utf8" });
+  const head = spawnSync("git", ["-C", targetPath, "rev-parse", "HEAD"], { encoding: "utf8" });
+  const status = spawnSync("git", ["-C", targetPath, "status", "--short"], { encoding: "utf8" });
+  const changedFiles = status.stdout.split("\n").map((line) => line.trim()).filter(Boolean);
+  return {
+    isGitRepository: true,
+    gitBranch: branch.status === 0 ? branch.stdout.trim() || null : null,
+    gitHead: head.status === 0 ? head.stdout.trim() || null : null,
+    isDirty: changedFiles.length > 0,
+    changedFileCount: changedFiles.length,
+    changedFilesSample: changedFiles.slice(0, 20),
+  };
+}
+
+function addFilePlanAction(actions, targetPath, sourcePath, targetRel, options = {}) {
+  const destPath = path.join(targetPath, targetRel);
+  const existed = fs.existsSync(destPath);
+  const overwrite = Boolean(options.overwrite);
+  let type;
+  if (!existed) type = "CREATE";
+  else if (!overwrite) type = "SKIP_EXISTING";
+  else type = options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED";
+  actions.push({
+    type,
+    path: targetRel,
+    source: path.relative(kitRoot, sourcePath).replaceAll(path.sep, "/"),
+    reason: options.reason || "managed workflow asset",
+    willWrite: type !== "SKIP_EXISTING",
+    hashBefore: sha256File(destPath),
+  });
+}
+
+function addDirectoryPlanActions(actions, targetPath, sourceDir, targetRel, options = {}) {
+  for (const sourceFile of walkSourceFiles(sourceDir)) {
+    const nestedRel = path.relative(sourceDir, sourceFile).replaceAll(path.sep, "/");
+    const targetFile = targetRel === "." || targetRel === "" ? nestedRel : `${targetRel}/${nestedRel}`;
+    addFilePlanAction(actions, targetPath, sourceFile, targetFile, options);
+  }
+}
+
+function addWorkflowDirPlanActions(actions, targetPath) {
+  const dirs = manifestGroup(kitRoot, "workflowDirs", { fallback: [] });
+  for (const dir of dirs) {
+    const keepRel = `${dir}/.gitkeep`;
+    const keepPath = path.join(targetPath, keepRel);
+    actions.push({
+      type: fs.existsSync(keepPath) ? "SKIP_EXISTING" : "CREATE",
+      path: keepRel,
+      source: null,
+      reason: "workflow directory marker",
+      willWrite: !fs.existsSync(keepPath),
+      hashBefore: sha256File(keepPath),
+    });
+  }
+}
+
+function addOnboardingDocPlanActions(actions, targetPath) {
+  for (const docName of [
+    "project-onboarding.md",
+    "project-profile.md",
+    "tech-stack-strategy.md",
+    "business-spec-index.md",
+    "sample-policy.md",
+    "onboarding-decisions.md",
+    "verification-matrix.md",
+    "engineering-baseline.md",
+  ]) {
+    addFilePlanAction(actions, targetPath, path.join(kitRoot, "templates", docName), `docs/${docName}`, {
+      overwrite: false,
+      reason: "project onboarding document",
+    });
+  }
+}
+
+function addIndustrialPlanActions(actions, targetPath, options = {}) {
+  const sourceRoot = path.join(kitRoot, "industrial-packs");
+  const addRegistry = (source, target) => addFilePlanAction(actions, targetPath, path.join(sourceRoot, source), `.ai-native/industrial-packs/${target}`, {
+    overwrite: options.update,
+    backupDir: options.backupDir,
+    reason: "industrial pack registry asset",
+  });
+  addRegistry("README.md", "README.md");
+  addRegistry("selection-guide.md", "selection-guide.md");
+  addRegistry("index.json", "index.json");
+  addDirectoryPlanActions(actions, targetPath, path.join(sourceRoot, "schema"), ".ai-native/industrial-packs/schema", {
+    overwrite: options.update,
+    backupDir: options.backupDir,
+    reason: "industrial pack schema asset",
+  });
+  if (options.withIndustrialPacks) {
+    addDirectoryPlanActions(actions, targetPath, sourceRoot, ".ai-native/industrial-packs", {
+      overwrite: options.update,
+      backupDir: options.backupDir,
+      reason: "explicit full industrial pack install",
+    });
+    return;
+  }
+  const sourceIndex = readJsonIfExists(path.join(sourceRoot, "index.json"));
+  const explicitPacks = parseIndustrialPackIds(options.industrialPacks);
+  const selectedPacks = options.update ? selectedIndustrialPackIdsFromProject(targetPath) : [];
+  const installedPacks = options.update ? installedIndustrialPackIds(targetPath, sourceIndex) : [];
+  const packIds = [...new Set([...explicitPacks, ...selectedPacks, ...installedPacks])].sort();
+  const entriesById = new Map((sourceIndex?.packs || []).map((entry) => [entry.id, entry]));
+  for (const packId of packIds) {
+    const entry = entriesById.get(packId);
+    if (!entry || entry.status === "planned" || !entry.path) {
+      actions.push({
+        type: "FORBIDDEN",
+        path: `.ai-native/industrial-packs/${packId}`,
+        source: null,
+        reason: `industrial pack is not executable: ${packId}`,
+        willWrite: false,
+        hashBefore: null,
+      });
+      continue;
+    }
+    addDirectoryPlanActions(actions, targetPath, path.join(sourceRoot, entry.path), `.ai-native/industrial-packs/${entry.path}`, {
+      overwrite: options.update,
+      backupDir: options.backupDir,
+      reason: `selected industrial pack: ${packId}`,
+    });
+  }
+}
+
+function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
+  const agentsPath = path.join(targetPath, "AGENTS.md");
+  if (!fs.existsSync(agentsPath)) {
+    addFilePlanAction(actions, targetPath, path.join(kitRoot, "platforms", "codex", "AGENTS.template.md"), "AGENTS.md", {
+      overwrite: false,
+      reason: "missing AGENTS.md governance file",
+    });
+  } else {
+    const content = fs.readFileSync(agentsPath, "utf8");
+    const missingMarkers = requiredAgentGovernanceMarkers.filter((marker) => !content.includes(marker));
+    if (missingMarkers.length === 0) {
+      actions.push({ type: "SKIP_EXISTING", path: "AGENTS.md", source: null, reason: "AGENTS.md already has required governance markers", willWrite: false, hashBefore: sha256File(agentsPath) });
+    } else if (options.applyAgentGovernance) {
+      actions.push({ type: options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED", path: "AGENTS.md", source: null, reason: "explicit AGENTS.md governance apply", willWrite: true, hashBefore: sha256File(agentsPath) });
+    } else {
+      actions.push({ type: "NEEDS_HUMAN_APPROVAL", path: "AGENTS.md", source: null, reason: `missing markers: ${missingMarkers.join(", ")}`, willWrite: false, hashBefore: sha256File(agentsPath) });
+      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".ai-native/migration-reports/agents-governance.md", source: null, reason: "AGENTS.md governance migration report", willWrite: true, hashBefore: sha256File(agentsGovernanceMigrationReportPath(targetPath)) });
+    }
+  }
+
+  const prPath = path.join(targetPath, ".github", "pull_request_template.md");
+  if (!fs.existsSync(prPath)) {
+    addFilePlanAction(actions, targetPath, resolvePullRequestTemplateSource(starter), ".github/pull_request_template.md", {
+      overwrite: false,
+      reason: "missing pull request template",
+    });
+  } else {
+    const content = fs.readFileSync(prPath, "utf8");
+    const missingMarkers = requiredPullRequestTemplateMarkers.filter((marker) => !content.includes(marker));
+    if (missingMarkers.length === 0) {
+      actions.push({ type: "SKIP_EXISTING", path: ".github/pull_request_template.md", source: null, reason: "PR template already has required governance markers", willWrite: false, hashBefore: sha256File(prPath) });
+    } else if (options.applyPrTemplateGovernance) {
+      actions.push({ type: options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED", path: ".github/pull_request_template.md", source: null, reason: "explicit PR template governance apply", willWrite: true, hashBefore: sha256File(prPath) });
+    } else {
+      actions.push({ type: "NEEDS_HUMAN_APPROVAL", path: ".github/pull_request_template.md", source: null, reason: `missing markers: ${missingMarkers.join(", ")}`, willWrite: false, hashBefore: sha256File(prPath) });
+      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".ai-native/migration-reports/pr-template-governance.md", source: null, reason: "PR template governance migration report", willWrite: true, hashBefore: sha256File(pullRequestTemplateMigrationReportPath(targetPath)) });
+    }
+  }
+}
+
+function buildPlan(targetPath, options = {}) {
+  const operation = options.update ? "UPDATE_WORKFLOW_ASSETS" : "INIT_PROJECT";
+  const actions = [];
+  if (!options.update) {
+    addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, "starters", options.starter), ".", {
+      overwrite: false,
+      reason: "starter asset",
+    });
+  }
+  const copyRules = manifestCopyRules(kitRoot, { fallback: fallbackCopyRules() });
+  for (const rule of copyRules.directories || []) {
+    addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, rule.source), rule.target, {
+      overwrite: options.update,
+      backupDir: options.backupDir,
+      reason: "manifest directory copy rule",
+    });
+  }
+  for (const rule of copyRules.files || []) {
+    addFilePlanAction(actions, targetPath, path.join(kitRoot, rule.source), rule.target, {
+      overwrite: options.update,
+      backupDir: options.backupDir,
+      reason: "manifest file copy rule",
+    });
+  }
+  addIndustrialPlanActions(actions, targetPath, options);
+  addOnboardingDocPlanActions(actions, targetPath);
+  addGovernancePlanActions(actions, targetPath, options.starter, options);
+  addWorkflowDirPlanActions(actions, targetPath);
+  actions.push({
+    type: fs.existsSync(path.join(targetPath, ".ai-native", "version.json"))
+      ? (options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED")
+      : "CREATE",
+    path: ".ai-native/version.json",
+    source: null,
+    reason: "workflow version record",
+    willWrite: true,
+    hashBefore: sha256File(path.join(targetPath, ".ai-native", "version.json")),
+  });
+
+  const targetFingerprint = createTargetFingerprint(targetPath, actions);
+  return {
+    planVersion: "1.0",
+    devKitVersion: currentDevKitVersion,
+    manifestVersion: readJsonIfExists(path.join(kitRoot, "dev-kit-manifest.json"))?.devKitVersion || currentDevKitVersion,
+    operation,
+    targetRoot: targetPath,
+    createdAt: new Date().toISOString(),
+    arguments: {
+      starter: options.starter,
+      updateWorkflowAssets: Boolean(options.update),
+      applyPrTemplateGovernance: Boolean(options.applyPrTemplateGovernance),
+      applyAgentGovernance: Boolean(options.applyAgentGovernance),
+      withIndustrialPacks: Boolean(options.withIndustrialPacks),
+      industrialPacks: options.industrialPacks || "",
+      backupDir: options.backupDir || null,
+    },
+    targetFingerprint,
+    expectedPreconditions: {
+      targetExists: fs.existsSync(targetPath),
+      fileHashes: targetFingerprint.fileHashes,
+    },
+    actions,
+  };
+}
+
+function createTargetFingerprint(targetPath, actions) {
+  const fileHashes = {};
+  for (const action of actions) {
+    const rel = action.path;
+    if (!rel || rel.startsWith("../")) continue;
+    const full = path.join(targetPath, rel);
+    if (fs.existsSync(full) && fs.statSync(full).isFile()) {
+      fileHashes[rel] = sha256File(full);
+    }
+  }
+  return {
+    targetExists: fs.existsSync(targetPath),
+    ...gitFingerprint(targetPath),
+    fileHashes,
+  };
+}
+
+function validatePlanForApply(plan, backupDirOverride = null) {
+  if (!plan || plan.planVersion !== "1.0") {
+    throw new Error("Invalid plan: planVersion must be 1.0");
+  }
+  if (!["INIT_PROJECT", "UPDATE_WORKFLOW_ASSETS"].includes(plan.operation)) {
+    throw new Error(`Invalid plan operation: ${plan.operation}`);
+  }
+  if (plan.devKitVersion !== currentDevKitVersion) {
+    throw new Error(`Plan devKitVersion ${plan.devKitVersion} does not match current ${currentDevKitVersion}`);
+  }
+  if (!Array.isArray(plan.actions) || plan.actions.length === 0) {
+    throw new Error("Invalid plan: actions must be a non-empty array");
+  }
+  const forbiddenAction = plan.actions.find((action) => action.type === "FORBIDDEN");
+  if (forbiddenAction) {
+    throw new Error(`Plan contains forbidden action for ${forbiddenAction.path}: ${forbiddenAction.reason}`);
+  }
+  const backupDir = backupDirOverride || plan.arguments?.backupDir || null;
+  const currentFingerprint = createTargetFingerprint(plan.targetRoot, plan.actions);
+  if (currentFingerprint.targetExists !== plan.targetFingerprint?.targetExists) {
+    throw new Error("Plan precondition failed: target existence changed");
+  }
+  for (const key of ["isGitRepository", "gitBranch", "gitHead", "isDirty", "changedFileCount"]) {
+    if (currentFingerprint[key] !== plan.targetFingerprint?.[key]) {
+      throw new Error(`Plan precondition failed: target fingerprint ${key} changed`);
+    }
+  }
+  const expectedHashes = plan.targetFingerprint?.fileHashes || {};
+  for (const [rel, expected] of Object.entries(expectedHashes)) {
+    const actual = currentFingerprint.fileHashes[rel] || null;
+    if (actual !== expected) {
+      throw new Error(`Plan precondition failed: ${rel} changed`);
+    }
+  }
+  return backupDir;
+}
+
+function writePlan(plan, planPath) {
+  const fullPath = path.resolve(process.cwd(), planPath);
+  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+  fs.writeFileSync(fullPath, `${JSON.stringify(plan, null, 2)}\n`);
+  console.log(`Wrote init/update plan: ${fullPath}`);
+}
+
+function printPlan(plan) {
+  console.log(JSON.stringify(plan, null, 2));
+}
+
+function workflowNextGate(targetPath) {
+  if (!fs.existsSync(targetPath)) return { allowed: true };
+  const result = spawnSync(process.execPath, [path.join(kitRoot, "scripts", "workflow-next.mjs"), targetPath, "--json"], {
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    return { allowed: false, reason: result.stderr || result.stdout || "workflow-next failed" };
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch (error) {
+    return { allowed: false, reason: `workflow-next JSON parse failed: ${error.message}` };
+  }
+  const tags = new Set(parsed.projectStateTags || []);
+  const hasVersion = fs.existsSync(path.join(targetPath, ".ai-native", "version.json"));
+  const isBootstrapped = hasVersion || tags.has("AI_NATIVE_BOOTSTRAPPED_PROJECT") || tags.has("BOOTSTRAPPED_PROJECT");
+  const blocked = parsed.nextAction === "REVIEW_DIRTY_WORKTREE"
+    || tags.has("DIRTY_WORKTREE_PROJECT")
+    || !isBootstrapped;
+  return {
+    allowed: !blocked,
+    reason: blocked
+      ? `workflow-next requires guarded update path: NEXT_ACTION=${parsed.nextAction}, PROJECT_STATE_TAGS=${[...tags].join(", ")}`
+      : null,
+  };
+}
+
+function executeUpdate(targetPath, starter, options = {}) {
+  copySharedAssets(targetPath, {
+    overwrite: true,
+    starter,
+    applyPrTemplateGovernance: options.applyPrTemplateGovernance,
+    applyAgentGovernance: options.applyAgentGovernance,
+    update: true,
+    withIndustrialPacks: options.withIndustrialPacks,
+    industrialPacks: options.industrialPacks,
+    backupDir: options.backupDir,
+  });
+  writeVersionFile(targetPath, starter, { update: true, backupDir: options.backupDir });
+  console.log("");
+  console.log(`Updated workflow assets at ${targetPath}`);
+  console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, missing AGENTS.md, and missing workflow directories.");
+  console.log("Industrial pack registry and schemas are updated by default; concrete packs are updated only when already installed, selected, or explicitly requested.");
+  console.log("Existing PR templates and AGENTS.md files are left unchanged unless an explicit apply flag is passed; review .ai-native/migration-reports/ when present.");
+}
+
+function executeInit(targetPath, starter, options = {}) {
+  copyDir(path.join(kitRoot, "starters", starter), targetPath, { targetPath, backupDir: options.backupDir });
+  copySharedAssets(targetPath, {
+    starter,
+    withIndustrialPacks: options.withIndustrialPacks,
+    industrialPacks: options.industrialPacks,
+    backupDir: options.backupDir,
+  });
+  writeVersionFile(targetPath, starter, { backupDir: options.backupDir });
+  console.log("");
+  console.log(`Initialized ${starter} at ${targetPath}`);
+  printNextSteps();
+}
+
+function printNextSteps() {
+  console.log("Next steps:");
+  console.log("1. Run project onboarding by using .ai-native/prompts/project-onboarding-agent.md.");
+  console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
+  console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
+  console.log("4. Draft docs/engineering-baseline.md before structural, schema, contract, permission, migration, dependency, or cross-module state decisions.");
+  console.log("5. Run node scripts/check-engineering-baseline.mjs . and route pending engineering decisions to humans before high-impact code changes.");
+  console.log("6. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
+  console.log("7. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
+  console.log("8. Create the first request card only after onboarding is ready.");
+  console.log("9. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
+  console.log("10. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
+  console.log("11. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
+  console.log("12. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
+  console.log("13. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
+  console.log("14. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
+  console.log("15. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
+  console.log("16. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
+  console.log("17. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
+  console.log("18. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
 }
 
 const args = parseArgs(process.argv.slice(2));
@@ -913,10 +1345,18 @@ const applyPrTemplateGovernance = Boolean(args["apply-pr-template-governance"]);
 const applyAgentGovernance = Boolean(args["apply-agent-governance"]);
 const withIndustrialPacks = Boolean(args["with-industrial-packs"]);
 const industrialPacks = args["industrial-packs"] || "";
+const dryRun = Boolean(args["dry-run"]);
+const writePlanPath = args["write-plan"];
+const applyPlanPath = args["apply-plan"];
+const backupDir = args["backup-dir"] || "";
 
-if (!target) {
+if (!target && !applyPlanPath) {
   console.error("Usage: node scripts/init-project.mjs --starter generic-project --target ../my-project");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
+  console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --dry-run");
+  console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan ./init-update-plan.json");
+  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json");
+  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --backup-dir .ai-native/backups/phase-001");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --industrial-packs web-app-industrial,backend-api-industrial");
   console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
@@ -924,55 +1364,97 @@ if (!target) {
   process.exit(1);
 }
 
+if (applyPlanPath) {
+  const fullPlanPath = path.resolve(process.cwd(), applyPlanPath);
+  if (!fs.existsSync(fullPlanPath)) {
+    console.error(`Plan not found: ${fullPlanPath}`);
+    process.exit(1);
+  }
+  let plan;
+  try {
+    plan = JSON.parse(fs.readFileSync(fullPlanPath, "utf8"));
+  } catch (error) {
+    console.error(`Plan JSON parse failed: ${error.message}`);
+    process.exit(1);
+  }
+  if (target && path.resolve(process.cwd(), target) !== path.resolve(plan.targetRoot)) {
+    console.error(`--target does not match plan targetRoot: ${target} != ${plan.targetRoot}`);
+    process.exit(1);
+  }
+  let planBackupDir;
+  try {
+    planBackupDir = validatePlanForApply(plan, backupDir || null);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(2);
+  }
+  const planArgs = plan.arguments || {};
+  const planStarter = planArgs.starter || readExistingStarter(plan.targetRoot) || "generic-project";
+  if (plan.operation === "UPDATE_WORKFLOW_ASSETS") {
+    executeUpdate(plan.targetRoot, planStarter, {
+      applyPrTemplateGovernance: planArgs.applyPrTemplateGovernance,
+      applyAgentGovernance: planArgs.applyAgentGovernance,
+      withIndustrialPacks: planArgs.withIndustrialPacks,
+      industrialPacks: planArgs.industrialPacks,
+      backupDir: planBackupDir,
+    });
+  } else {
+    executeInit(plan.targetRoot, planStarter, {
+      withIndustrialPacks: planArgs.withIndustrialPacks,
+      industrialPacks: planArgs.industrialPacks,
+      backupDir: planBackupDir,
+    });
+  }
+  console.log("");
+  console.log(`Applied init/update plan: ${fullPlanPath}`);
+  process.exit(0);
+}
+
 const targetPath = path.resolve(process.cwd(), target);
 const starter = args.starter || readExistingStarter(targetPath) || "generic-project";
 const starterPath = path.join(kitRoot, "starters", starter);
 
-if (updateWorkflowAssets) {
-  if (!fs.existsSync(targetPath)) {
-    console.error(`Target does not exist for workflow update: ${targetPath}`);
-    process.exit(1);
-  }
-  copySharedAssets(targetPath, {
-    overwrite: true,
-    starter,
-    applyPrTemplateGovernance,
-    applyAgentGovernance,
-    update: true,
-    withIndustrialPacks,
-    industrialPacks,
+if (!fs.existsSync(starterPath)) {
+  console.error(`Starter not found: ${starterPath}`);
+  process.exit(1);
+}
+
+if (updateWorkflowAssets && !fs.existsSync(targetPath)) {
+  console.error(`Target does not exist for workflow update: ${targetPath}`);
+  process.exit(1);
+}
+
+const commonOptions = {
+  starter,
+  applyPrTemplateGovernance,
+  applyAgentGovernance,
+  withIndustrialPacks,
+  industrialPacks,
+  backupDir,
+};
+
+if (dryRun || writePlanPath) {
+  const plan = buildPlan(targetPath, {
+    ...commonOptions,
+    update: updateWorkflowAssets,
   });
-  writeVersionFile(targetPath, starter, { update: true });
-  console.log("");
-  console.log(`Updated workflow assets at ${targetPath}`);
-  console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, missing AGENTS.md, and missing workflow directories.");
-  console.log("Industrial pack registry and schemas are updated by default; concrete packs are updated only when already installed, selected, or explicitly requested.");
-  console.log("Existing PR templates and AGENTS.md files are left unchanged unless an explicit apply flag is passed; review .ai-native/migration-reports/ when present.");
+  if (dryRun) {
+    printPlan(plan);
+    process.exit(0);
+  }
+  writePlan(plan, writePlanPath);
   process.exit(0);
 }
 
-copyDir(starterPath, targetPath);
-copySharedAssets(targetPath, { starter, withIndustrialPacks, industrialPacks });
-writeVersionFile(targetPath, starter);
+if (updateWorkflowAssets) {
+  const gate = workflowNextGate(targetPath);
+  if (!gate.allowed) {
+    console.error(`Workflow update requires a plan-first path: ${gate.reason}`);
+    console.error("Run --write-plan, review the plan, then run --apply-plan.");
+    process.exit(2);
+  }
+  executeUpdate(targetPath, starter, commonOptions);
+  process.exit(0);
+}
 
-console.log("");
-console.log(`Initialized ${starter} at ${targetPath}`);
-console.log("Next steps:");
-console.log("1. Run project onboarding by using .ai-native/prompts/project-onboarding-agent.md.");
-console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
-console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
-console.log("4. Draft docs/engineering-baseline.md before structural, schema, contract, permission, migration, dependency, or cross-module state decisions.");
-console.log("5. Run node scripts/check-engineering-baseline.mjs . and route pending engineering decisions to humans before high-impact code changes.");
-console.log("6. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
-console.log("7. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
-console.log("8. Create the first request card only after onboarding is ready.");
-console.log("9. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
-console.log("10. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-console.log("11. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
-console.log("12. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
-console.log("13. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
-console.log("14. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
-console.log("15. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
-console.log("16. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
-console.log("17. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
-console.log("18. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+executeInit(targetPath, starter, commonOptions);

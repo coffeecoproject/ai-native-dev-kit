@@ -194,7 +194,8 @@ Expected Codex command:
 
 ```bash
 node ai-native-dev-kit/scripts/workflow-next.mjs .
-node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets
+node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets --backup-dir .ai-native/backups/first-adoption --write-plan /tmp/ai-native-update-plan.json
+node ai-native-dev-kit/scripts/init-project.mjs --apply-plan /tmp/ai-native-update-plan.json
 ```
 
 For governed, production-sensitive, or dirty projects, the first command may return:
@@ -205,6 +206,12 @@ NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
 ```
 
 When that happens, Codex must not run `init-project`. It should use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to explain how AI Native concepts map to existing project governance, then wait for approval before adapter setup.
+
+For an already bootstrapped low-risk project, Codex may run direct update:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets
+```
 
 For a strong governed project that is already bootstrapped, `workflow-next` may instead return:
 

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`0.37.0`
+`0.38.0`
 
 ## Project Version File
 
@@ -18,6 +18,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 
 ## Notes
 
+- For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- Use `--dry-run` to preview init/update actions without writing target files.
+- Use `--backup-dir <dir>` when reviewed updates may overwrite managed workflow assets.
 - Workflow asset updates must not overwrite project docs, specs, tasks, logs, or business code.
 - Workflow asset updates may add missing onboarding docs and missing workflow directories.
 - Existing `.github/pull_request_template.md` files are not modified unless `--apply-pr-template-governance` is explicitly used after reviewing `.ai-native/migration-reports/pr-template-governance.md`.

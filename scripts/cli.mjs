@@ -73,12 +73,12 @@ const commandRegistry = {
 };
 
 const argv = process.argv.slice(2);
-const dryRun = argv.includes("--dry-run");
-const cleanArgv = argv.filter((item) => item !== "--dry-run");
-const commandIndex = cleanArgv.findIndex((item) => !item.startsWith("-"));
-const commandName = commandIndex === -1 ? null : cleanArgv[commandIndex];
-const commandArgs = commandIndex === -1 ? [] : cleanArgv.slice(commandIndex + 1);
-const globalArgs = commandIndex === -1 ? cleanArgv : cleanArgv.slice(0, commandIndex);
+const commandIndex = argv.findIndex((item) => !item.startsWith("-"));
+const commandName = commandIndex === -1 ? null : argv[commandIndex];
+const commandArgs = commandIndex === -1 ? [] : argv.slice(commandIndex + 1);
+const globalArgs = commandIndex === -1 ? argv : argv.slice(0, commandIndex);
+const dryRun = globalArgs.includes("--dry-run");
+const unknownGlobalArgs = globalArgs.filter((item) => item !== "--dry-run" && item !== "--help" && item !== "-h" && item !== "--version" && item !== "-v");
 
 if (globalArgs.includes("--version") || globalArgs.includes("-v")) {
   console.log(version);
@@ -90,8 +90,8 @@ if (globalArgs.includes("--help") || globalArgs.includes("-h") || !commandName) 
   process.exit(0);
 }
 
-if (globalArgs.length > 0) {
-  console.error(`Unknown global option: ${globalArgs.join(" ")}`);
+if (unknownGlobalArgs.length > 0) {
+  console.error(`Unknown global option: ${unknownGlobalArgs.join(" ")}`);
   printShortUsage();
   process.exit(1);
 }

@@ -320,10 +320,34 @@ node ai-native-dev-kit/scripts/init-project.mjs --starter codex-android-app --ta
 
 ## 更新已有项目
 
+普通、低风险、已经接入过 AI Native 的项目，可以直接更新：
+
 ```bash
 node ai-native-dev-kit/scripts/init-project.mjs \
   --target ../existing-project \
   --update-workflow-assets
+```
+
+已经上线、治理较强、工作区不干净，或第一次接入旧项目，建议先生成计划再应用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --backup-dir .ai-native/backups/first-adoption \
+  --write-plan /tmp/ai-native-update-plan.json
+
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --apply-plan /tmp/ai-native-update-plan.json
+```
+
+只想预览，不写项目文件：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --dry-run
 ```
 
 更新模式会：
