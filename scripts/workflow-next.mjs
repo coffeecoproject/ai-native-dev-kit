@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -63,6 +64,8 @@ const workflowRequiredPaths = [
   ".ai-native/templates/business-spec-index.md",
   ".ai-native/templates/sample-policy.md",
   ".ai-native/templates/onboarding-decisions.md",
+  ".ai-native/templates/adoption-assessment.md",
+  ".ai-native/templates/existing-governance-map.md",
   ".ai-native/templates/baseline-selection.md",
   ".ai-native/templates/baseline-evidence.md",
   ".ai-native/checklists/project-onboarding-review.md",
@@ -105,6 +108,64 @@ const projectSignalFiles = [
   "README.md",
 ];
 const projectSignalDirs = ["src", "app", "pages", "components", "ios", "android", "server", "backend", "frontend", "services"];
+const governanceSignalPaths = [
+  "AGENTS.md",
+  "agent.md",
+  ".agent.md",
+  ".codex",
+  ".cursor",
+  ".claude",
+  ".github/pull_request_template.md",
+  ".github/workflows",
+  "scripts/guard",
+  "scripts/check",
+  "scripts/verify",
+  "docs/baseline",
+  "docs/baselines",
+  "docs/evidence",
+  "docs/sessions",
+  "docs/architecture",
+  "docs/adr",
+  "docs/contracts",
+  "docs/governance",
+  "docs/risk",
+];
+const productionSignalPaths = [
+  ".github/workflows/release-promotion.yml",
+  ".github/workflows/release.yml",
+  ".github/workflows/deploy.yml",
+  "docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
+  "docs/WEB_INCIDENT_RESPONSE_SRE_OPERATIONS_BASELINE.md",
+  "docs/WEB_BACKUP_RECOVERY_DR_BASELINE.md",
+  "docs/workcontrol-release-promotion-sop.md",
+  "docs/release",
+  "docs/releases",
+  "docs/runbooks",
+  "docs/incident",
+  "docs/incidents",
+  "docs/monitoring",
+  "docs/observability",
+  "docs/recovery",
+  "docs/backup",
+  "infra/production",
+  "infra/prod",
+  "infra/staging",
+];
+const productionPathPattern = /\b(prod|production|staging|release|deploy|deployment|rollback|recovery|incident|runbook|monitoring|observability|migration|backup|restore)\b/i;
+const ignoredSignalDirs = new Set([
+  ".git",
+  ".DS_Store",
+  "node_modules",
+  ".pnpm-store",
+  "dist",
+  "build",
+  "coverage",
+  ".next",
+  ".nuxt",
+  ".cache",
+  "tmp",
+  "var",
+]);
 
 function parseArgs(argv) {
   const parsed = { _: [] };
@@ -183,6 +244,91 @@ function rootEntries() {
 
 function hasProjectSignals() {
   return projectSignalFiles.some((rel) => exists(rel)) || projectSignalDirs.some((rel) => exists(rel));
+}
+
+function walkRelativePaths(relDir = ".", maxDepth = 4) {
+  const fullDir = path.join(projectRoot, relDir);
+  if (!fs.existsSync(fullDir) || maxDepth < 0) return [];
+  const results = [];
+  for (const entry of fs.readdirSync(fullDir, { withFileTypes: true })) {
+    if (ignoredSignalDirs.has(entry.name)) continue;
+    const relPath = relDir === "." ? entry.name : path.join(relDir, entry.name);
+    results.push(relPath);
+    if (entry.isDirectory()) {
+      results.push(...walkRelativePaths(relPath, maxDepth - 1));
+    }
+  }
+  return results;
+}
+
+function matchedExistingPaths(paths) {
+  return paths.filter((rel) => exists(rel)).sort();
+}
+
+function gitWorktreeState() {
+  const inside = spawnSync("git", ["-C", projectRoot, "rev-parse", "--is-inside-work-tree"], {
+    encoding: "utf8",
+  });
+  if (inside.status !== 0 || inside.stdout.trim() !== "true") {
+    return {
+      isGitRepository: false,
+      isDirty: false,
+      currentBranch: null,
+      changedFileCount: 0,
+      changedFilesSample: [],
+    };
+  }
+
+  const branch = spawnSync("git", ["-C", projectRoot, "branch", "--show-current"], {
+    encoding: "utf8",
+  });
+  const status = spawnSync("git", ["-C", projectRoot, "status", "--porcelain"], {
+    encoding: "utf8",
+  });
+  const changedFiles = status.status === 0
+    ? status.stdout.split("\n").map((line) => line.trim()).filter(Boolean)
+    : [];
+
+  return {
+    isGitRepository: true,
+    isDirty: changedFiles.length > 0,
+    currentBranch: branch.status === 0 ? branch.stdout.trim() || null : null,
+    changedFileCount: changedFiles.length,
+    changedFilesSample: changedFiles.slice(0, 12),
+  };
+}
+
+function governanceSignals() {
+  const basicSignals = matchedExistingPaths(governanceSignalPaths);
+  const directProductionSignals = matchedExistingPaths(productionSignalPaths);
+  const pathSignals = walkRelativePaths(".", 4)
+    .filter((rel) => productionPathPattern.test(rel))
+    .filter((rel) => !rel.startsWith(".ai-native/"))
+    .slice(0, 50)
+    .sort();
+  const productionSignals = unique([...directProductionSignals, ...pathSignals]);
+  const git = gitWorktreeState();
+  const hasAgentRules = ["AGENTS.md", "agent.md", ".agent.md"].some((rel) => basicSignals.includes(rel));
+  const hasCi = basicSignals.includes(".github/workflows");
+  const hasGuard = basicSignals.some((rel) => rel.startsWith("scripts/"));
+  const hasBaselines = basicSignals.some((rel) => rel.includes("baseline"));
+  const hasEvidence = basicSignals.includes("docs/evidence");
+  const hasSessions = basicSignals.includes("docs/sessions");
+  const isGovernedExisting = basicSignals.length >= 4
+    || (hasAgentRules && (hasCi || hasGuard || hasBaselines || hasEvidence || hasSessions))
+    || ((hasCi || hasGuard) && (hasBaselines || hasEvidence || hasSessions));
+  const isProductionGoverned = productionSignals.length >= 2
+    || directProductionSignals.some((rel) => rel.includes("release-promotion") || rel.includes("RELEASE_ROLLBACK"))
+    || (isGovernedExisting && productionSignals.length >= 1);
+
+  return {
+    basicSignals,
+    productionSignals,
+    git,
+    isGovernedExisting,
+    isProductionGoverned,
+    isDirtyWorktree: git.isDirty,
+  };
 }
 
 function listMarkdownFiles(relDir) {
@@ -439,6 +585,15 @@ function commandFor(action, kitRoot) {
   if (action === "RUN_INDUSTRIAL_BASELINE_SETUP") {
     return "For BL2 work, read .ai-native/industrial-packs/selection-guide.md, draft docs/baseline-selection.md and docs/baseline-evidence.md from .ai-native/templates, install selected packs with init-project --industrial-packs <pack-id>, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.";
   }
+  if (action === "RUN_ADOPTION_ASSESSMENT") {
+    return "Produce a read-only adoption assessment from templates/adoption-assessment.md and templates/existing-governance-map.md. Do not run init-project, update workflow assets, create migration reports, or modify project files until a human approves adapter setup.";
+  }
+  if (action === "REVIEW_EXISTING_GOVERNANCE_MAP") {
+    return "Review the existing governance map with the human before choosing any adapter setup.";
+  }
+  if (action === "WAIT_FOR_ADAPTER_CONFIRMATION") {
+    return "Wait for explicit human approval before writing adapter docs or workflow assets.";
+  }
   if (action === "REVIEW_GOVERNANCE_MIGRATION") {
     return "Review .ai-native/migration-reports/ and apply only after explicit human approval.";
   }
@@ -465,6 +620,9 @@ function buildResult() {
       platformBaselineState: "UNAVAILABLE",
       industrialBaselineState: "UNAVAILABLE",
       versionState: "UNAVAILABLE",
+      projectStateTags: ["TARGET_MISSING"],
+      adoptionMode: "UNAVAILABLE",
+      governanceSignals: null,
       nextAction: "SELECT_OR_CREATE_TARGET",
       canWriteWorkflowAssets: "no",
       mustStopForHuman: "yes",
@@ -491,6 +649,9 @@ function buildResult() {
       platformBaselineState: "NOT_APPLICABLE",
       industrialBaselineState: "NOT_APPLICABLE",
       versionState: localVersion ? "CURRENT" : "UNKNOWN_LOCAL_DEV_KIT",
+      projectStateTags: ["DEV_KIT_REPOSITORY"],
+      adoptionMode: "NOT_APPLICABLE",
+      governanceSignals: null,
       nextAction: "RUN_DEV_KIT_SELF_CHECK",
       canWriteWorkflowAssets: "not_applicable",
       mustStopForHuman: "no",
@@ -517,6 +678,7 @@ function buildResult() {
   const platformBaseline = platformBaselineState();
   const industrialBaseline = industrialBaselineState();
   const artifactCount = workflowArtifactCount();
+  const signals = governanceSignals();
 
   let projectState;
   if (version) {
@@ -530,6 +692,12 @@ function buildResult() {
   } else {
     projectState = "NEW_PROJECT";
   }
+
+  const projectStateTags = [projectState];
+  if (version) projectStateTags.push("AI_NATIVE_BOOTSTRAPPED_PROJECT");
+  if (signals.isGovernedExisting) projectStateTags.push("GOVERNED_EXISTING_PROJECT");
+  if (signals.isProductionGoverned) projectStateTags.push("PRODUCTION_GOVERNED_PROJECT");
+  if (signals.isDirtyWorktree) projectStateTags.push("DIRTY_WORKTREE_PROJECT");
 
   let workflowState;
   if (!version && !hasAiNative) {
@@ -584,6 +752,15 @@ function buildResult() {
     nextAction = "READY_FOR_TASK_EXECUTION";
   }
 
+  const governedProtectionApplies = projectState !== "NEW_PROJECT"
+    && projectState !== "DEV_KIT_REPOSITORY"
+    && (signals.isProductionGoverned || signals.isDirtyWorktree || (signals.isGovernedExisting && !version));
+  if (governedProtectionApplies
+    && ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction)) {
+    nextAction = "RUN_ADOPTION_ASSESSMENT";
+  }
+  const adoptionMode = nextAction === "RUN_ADOPTION_ASSESSMENT" ? "READ_ONLY" : "STANDARD";
+
   const notes = [];
   if (version?.devKitVersion) notes.push(`Project dev-kit version: ${version.devKitVersion}`);
   if (localVersion) notes.push(`Local dev-kit version: ${localVersion}`);
@@ -607,13 +784,18 @@ function buildResult() {
   if (industrialBaseline.state === "EVIDENCE_MISSING") notes.push(`${industrialBaseline.missingProjectDocs.length} BL2 project evidence doc(s) are missing.`);
   if (industrialBaseline.state === "NEEDS_HUMAN_APPROVAL") notes.push("BL2 industrial baseline still needs explicit human approval.");
   if (artifactCount > 0) notes.push(`${artifactCount} workflow artifact file(s) exist.`);
+  if (signals.isGovernedExisting) notes.push(`${signals.basicSignals.length} existing governance signal(s) detected.`);
+  if (signals.isProductionGoverned) notes.push(`${signals.productionSignals.length} production governance signal(s) detected.`);
+  if (signals.isDirtyWorktree) notes.push(`Git worktree has ${signals.git.changedFileCount} changed or untracked file(s).`);
+  if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("Governed, production-sensitive, or dirty project protection is active; execution intent does not allow workflow writes yet.");
   if (notes.length === 0) notes.push("No blocking workflow issue detected.");
 
-  const humanStopActions = new Set(["SELECT_OR_CREATE_TARGET", "REVIEW_GOVERNANCE_MIGRATION", "READY_FOR_FIRST_REQUEST"]);
+  const humanStopActions = new Set(["SELECT_OR_CREATE_TARGET", "REVIEW_GOVERNANCE_MIGRATION", "RUN_ADOPTION_ASSESSMENT", "REVIEW_EXISTING_GOVERNANCE_MAP", "WAIT_FOR_ADAPTER_CONFIRMATION", "READY_FOR_FIRST_REQUEST"]);
 
   return {
     projectRoot,
     projectState,
+    projectStateTags: unique(projectStateTags),
     workflowState,
     onboardingState: onboarding.state,
     platformBaselineState: platformBaseline.state,
@@ -621,8 +803,12 @@ function buildResult() {
     baselineLevel: industrialBaseline.baselineLevel,
     selectedIndustrialPacks: industrialBaseline.selectedIndustrialPacks,
     versionState,
+    adoptionMode,
+    governanceSignals: signals,
     nextAction,
-    canWriteWorkflowAssets: ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction) ? "yes_with_execution_intent" : "not_without_more_input",
+    canWriteWorkflowAssets: nextAction === "RUN_ADOPTION_ASSESSMENT"
+      ? "no"
+      : ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction) ? "yes_with_execution_intent" : "not_without_more_input",
     mustStopForHuman: humanStopActions.has(nextAction) || pendingReports.length > 0 || industrialBaseline.state === "NEEDS_HUMAN_APPROVAL" ? "yes" : "no",
     pendingMigrationReports: pendingReports,
     missingWorkflowAssets,
@@ -642,15 +828,20 @@ if (outputJson) {
   console.log("");
   console.log(`PROJECT_ROOT: ${result.projectRoot}`);
   console.log(`PROJECT_STATE: ${result.projectState}`);
+  console.log(`PROJECT_STATE_TAGS: ${(result.projectStateTags || []).join(", ") || "none"}`);
   console.log(`WORKFLOW_STATE: ${result.workflowState}`);
   console.log(`ONBOARDING_STATE: ${result.onboardingState}`);
   console.log(`PLATFORM_BASELINE_STATE: ${result.platformBaselineState}`);
   console.log(`INDUSTRIAL_BASELINE_STATE: ${result.industrialBaselineState}`);
   console.log(`BASELINE_LEVEL: ${result.baselineLevel || "none"}`);
   console.log(`VERSION_STATE: ${result.versionState}`);
+  console.log(`ADOPTION_MODE: ${result.adoptionMode || "unknown"}`);
   console.log(`NEXT_ACTION: ${result.nextAction}`);
   console.log(`CAN_WRITE_WORKFLOW_ASSETS: ${result.canWriteWorkflowAssets}`);
   console.log(`MUST_STOP_FOR_HUMAN: ${result.mustStopForHuman}`);
+  if (result.governanceSignals) {
+    console.log(`GOVERNANCE_SIGNALS: basic=${result.governanceSignals.basicSignals.length}, production=${result.governanceSignals.productionSignals.length}, dirty=${result.governanceSignals.isDirtyWorktree ? "yes" : "no"}`);
+  }
   console.log("");
   console.log("## Notes");
   console.log("");
@@ -694,5 +885,6 @@ function enforceReasons(result) {
   if (result.nextAction === "RUN_PROJECT_ONBOARDING") reasons.push("project onboarding is not ready");
   if (result.nextAction === "RUN_PLATFORM_BASELINE_SETUP") reasons.push("platform baseline is not ready");
   if (result.nextAction === "RUN_INDUSTRIAL_BASELINE_SETUP") reasons.push("industrial baseline is not ready");
+  if (result.nextAction === "RUN_ADOPTION_ASSESSMENT") reasons.push("read-only adoption assessment is required before workflow writes");
   return [...new Set(reasons)];
 }

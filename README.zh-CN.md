@@ -21,6 +21,16 @@ Codex 应先用 `prompts/bootstrap-agent.md` 判断你的意图：
 
 进入执行配置后，Codex 再运行 `scripts/workflow-next.mjs` 判断当前项目是新项目、旧项目还是已接入项目，并按 `NEXT_ACTION` 处理。
 
+如果项目已经上线、已有强治理，或当前工作区有未提交改动，Codex 不应直接配置。`workflow-next` 会自动进入只读接入评估：
+
+```text
+ADOPTION_MODE: READ_ONLY
+NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
+CAN_WRITE_WORKFLOW_ASSETS: no
+```
+
+这时 Codex 只能做 `adoption-assessment` 和 `existing-governance-map`，先把 AI Native 概念映射到现有治理资产，等人确认后再决定是否 adapter 接入。
+
 ## 三条使用路径
 
 先按项目风险选一条路，不要一开始把所有规则都打开：
@@ -435,6 +445,13 @@ examples/generic-first-change/
 examples/web-internal-admin-first-slice/
 examples/web-industrial-bl2-first-slice/
 examples/miniprogram-industrial-bl2-first-slice/
+```
+
+已有强治理项目接入模板：
+
+```text
+templates/adoption-assessment.md
+templates/existing-governance-map.md
 ```
 
 ## 生成 Workflow 文件

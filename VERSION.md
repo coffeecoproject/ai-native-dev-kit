@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.21.2`
+Current version: `0.22.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.21.2`
 
 ## Current Release
 
-`0.21.2`
+`0.22.0`
 
 Includes:
 
@@ -86,3 +86,6 @@ Includes:
 - dogfood observation template for measuring real project workflow cost, evidence effort, missed-risk behavior, and AI collaboration quality
 - README path guidance for O0/BL0, O1/BL1, and O2/BL2 adoption choices
 - README quick index includes the Mini Program BL2 dogfood example
+- Existing Governed Project Adoption mode for governed, production-sensitive, or dirty projects
+- `workflow-next` project state tags, governance signals, and read-only adoption mode
+- adoption assessment and existing governance map templates

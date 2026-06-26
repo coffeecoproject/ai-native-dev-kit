@@ -8,6 +8,7 @@
 
 - 新项目：从第一天开始就把需求、风险、验证和记录放好。
 - 已有项目：不重写代码，先补上下文，再逐步接管新需求，慢慢治理历史问题。
+- 已上线或已有强治理项目：先只读评估和映射现有治理，不直接初始化或覆盖。
 
 详细说明见 [README.zh-CN.md](README.zh-CN.md)。快速上手见 [docs/quickstart.md](docs/quickstart.md)。心智模型见 [docs/mental-model.md](docs/mental-model.md)。Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
 
@@ -37,6 +38,16 @@ Codex 会先判断你的意思：
 - 你说“先看看、先沟通、先评估、不要执行”，它只读取和分析，不改文件。
 
 这个入口由 `prompts/bootstrap-agent.md` 约束。进入执行后，Codex 会通过 `scripts/workflow-next.mjs` 判断下一步；需要强制检查时可以用 `workflow-next --enforce`。
+
+如果项目已经有 `agent.md` / `AGENTS.md`、CI、guard、baseline、evidence、release、rollback、production 或 dirty worktree，`workflow-next` 会自动进入 `READ_ONLY` 接入评估：
+
+```text
+ADOPTION_MODE: READ_ONLY
+NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
+CAN_WRITE_WORKFLOW_ASSETS: no
+```
+
+这时 Codex 不应该运行初始化、更新 workflow assets、创建 migration report 或修改项目文件。它应该先使用 `templates/adoption-assessment.md` 和 `templates/existing-governance-map.md` 做只读评估，等人确认 adapter 接入方式。
 
 ## 它解决什么
 
@@ -264,7 +275,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.21.2`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.22.0`。
 
 新增内容：
 
@@ -277,6 +288,9 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - `check-ai-workflow.mjs` 增加 `--mode core` / `--mode full`，日常 CI 可只检查核心工作流，完整升级时再跑 full。
 - `check-industrial-pack` 和 `check-industrial-baseline` 在 selected pack 缺失时会直接给出安装修复命令。
 - README 顶部补充三条使用路径，帮助项目先选轻量、普通或 BL2 受控试跑路线。
+- 新增 Existing Governed Project Adoption：强治理、已上线或 dirty 项目会自动进入只读接入评估。
+- `workflow-next` 新增 `PROJECT_STATE_TAGS`、`ADOPTION_MODE` 和 governance signal 输出。
+- 新增 `templates/adoption-assessment.md` 和 `templates/existing-governance-map.md`，用于把 AI Native 概念映射到现有治理资产。
 - 微信小程序工业包补齐 runtime、云函数/访问规则、权限隐私、支付、发布审核等 BL2 样板文件。
 - 新增 `examples/miniprogram-industrial-bl2-first-slice`，串起小程序 baseline selection、evidence、task gate、release record 和 AI log。
 - selection guide 补充“小程序 + 可选后台/后端/云开发”的组合方式，后台作为 `internal-admin` 等 companion packs 接入。
@@ -324,6 +338,8 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - `docs/mental-model.md`
 - `prompts/bootstrap-agent.md`
 - `scripts/workflow-next.mjs`
+- `templates/adoption-assessment.md`
+- `templates/existing-governance-map.md`
 - `scripts/check-project-onboarding.mjs`
 - `scripts/check-platform-baseline.mjs`
 - `scripts/resolve-platform-baseline.mjs`

@@ -76,6 +76,8 @@ function checkRequiredFiles() {
     "templates/workflow-improvement.md",
     "templates/workflow-daily-summary.md",
     "templates/dogfood-observation.md",
+    "templates/adoption-assessment.md",
+    "templates/existing-governance-map.md",
     "templates/dev-kit-change-proposal.md",
     "templates/skill-candidate.md",
     "templates/project-automation-proposal.md",
@@ -658,6 +660,11 @@ function checkReadmePointers() {
     "BL1",
     "BL2",
     "workflow-next",
+    "ADOPTION_MODE",
+    "RUN_ADOPTION_ASSESSMENT",
+    "PROJECT_STATE_TAGS",
+    "adoption-assessment",
+    "existing-governance-map",
     "dogfood-observation",
     "--enforce",
     "bootstrap-agent",
@@ -1174,6 +1181,37 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project industrial baseline strict check handles BL2 selection");
+
+  const governedExistingTarget = path.join(tempRoot, "governed-existing-project");
+  fs.mkdirSync(path.join(governedExistingTarget, ".github", "workflows"), { recursive: true });
+  fs.mkdirSync(path.join(governedExistingTarget, "scripts", "guard"), { recursive: true });
+  fs.mkdirSync(path.join(governedExistingTarget, "docs", "baselines"), { recursive: true });
+  fs.mkdirSync(path.join(governedExistingTarget, "docs", "evidence"), { recursive: true });
+  fs.writeFileSync(path.join(governedExistingTarget, "package.json"), JSON.stringify({ name: "governed-existing-project", private: true }, null, 2));
+  fs.writeFileSync(path.join(governedExistingTarget, "agent.md"), "# Existing Agent Rules\n");
+  fs.writeFileSync(path.join(governedExistingTarget, ".github", "workflows", "quality.yml"), "name: quality\n");
+  fs.writeFileSync(path.join(governedExistingTarget, ".github", "workflows", "release-promotion.yml"), "name: release-promotion\n");
+  fs.writeFileSync(path.join(governedExistingTarget, "scripts", "guard", "check-quality.js"), "console.log('ok');\n");
+  fs.writeFileSync(path.join(governedExistingTarget, "docs", "baselines", "web-baseline.md"), "# Existing Web Baseline\n");
+  fs.writeFileSync(path.join(governedExistingTarget, "docs", "WEB_RELEASE_ROLLBACK_BASELINE.md"), "# Existing Release Baseline\n");
+  fs.writeFileSync(path.join(governedExistingTarget, "docs", "evidence", ".gitkeep"), "");
+  spawnSync("git", ["init"], { cwd: governedExistingTarget, encoding: "utf8" });
+
+  const governedNext = runNode([
+    path.join(kitRoot, "scripts", "workflow-next.mjs"),
+    governedExistingTarget,
+  ]);
+  if (governedNext.status !== 0
+    || !governedNext.stdout.includes("NEXT_ACTION: RUN_ADOPTION_ASSESSMENT")
+    || !governedNext.stdout.includes("ADOPTION_MODE: READ_ONLY")
+    || !governedNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
+    || !governedNext.stdout.includes("GOVERNED_EXISTING_PROJECT")
+    || !governedNext.stdout.includes("PRODUCTION_GOVERNED_PROJECT")
+    || !governedNext.stdout.includes("DIRTY_WORKTREE_PROJECT")) {
+    fail(`governed existing project should require read-only adoption assessment: ${governedNext.stderr || governedNext.stdout}`);
+    return;
+  }
+  pass("governed existing project workflow-next requires read-only adoption assessment");
 
   const onboardingO0Check = runNode([
     path.join(target, "scripts", "check-project-onboarding.mjs"),

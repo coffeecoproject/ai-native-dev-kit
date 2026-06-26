@@ -36,6 +36,7 @@ Expected Codex behavior:
 - Classify intent with `prompts/bootstrap-agent.md`.
 - If the user asked only to review, discuss, evaluate, or look first, do not write files.
 - If the user clearly asked to configure, run `scripts/workflow-next.mjs <project-root>` or emulate it from the dev-kit checkout.
+- If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce an adoption assessment and existing governance map first.
 - Follow `NEXT_ACTION`.
 - Use `init-project.mjs` for initialization or workflow asset updates.
 - Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
@@ -103,6 +104,15 @@ Expected Codex command:
 node ai-native-dev-kit/scripts/workflow-next.mjs .
 node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets
 ```
+
+For governed, production-sensitive, or dirty projects, the first command may return:
+
+```text
+ADOPTION_MODE: READ_ONLY
+NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
+```
+
+When that happens, Codex must not run `init-project`. It should use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to explain how AI Native concepts map to existing project governance, then wait for approval before adapter setup.
 
 If `.ai-native/migration-reports/agents-governance.md` is created, Codex should summarize it and wait for human approval before applying the AGENTS.md governance appendix:
 

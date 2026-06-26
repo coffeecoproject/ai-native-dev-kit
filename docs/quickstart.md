@@ -20,6 +20,8 @@ Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to re
 node ai-native-dev-kit/scripts/workflow-next.mjs .
 ```
 
+If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, stop setup. This means the project appears governed, production-sensitive, or dirty. Codex should produce a read-only assessment from `templates/adoption-assessment.md` and `templates/existing-governance-map.md` instead of running `init-project`.
+
 ## New Project
 
 Initialize from a starter:
@@ -171,6 +173,14 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 ```
 
 This updates `.ai-native/`, workflow scripts, CI, missing onboarding docs, and missing workflow directories. It does not overwrite existing product docs, specs, tasks, logs, or business code.
+
+For an existing governed or already-online project, do not start with this command. First run:
+
+```bash
+node ai-native-dev-kit/scripts/workflow-next.mjs ../existing-project
+```
+
+If the result is `RUN_ADOPTION_ASSESSMENT`, keep the first pass read-only. Map existing agent rules, CI, baselines, evidence, release/rollback controls, and dirty worktree state before asking for adapter approval.
 
 It creates `AGENTS.md` when missing. If the project already has `AGENTS.md` and it is missing workflow governance markers, the update command writes a migration report instead of modifying the file:
 

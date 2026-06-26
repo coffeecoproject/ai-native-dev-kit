@@ -17,6 +17,15 @@ Workflow
   -> Task Gate
 ```
 
+For an already governed or already-online project, add one step before setup:
+
+```text
+Read-only adoption assessment
+  -> Existing governance map
+  -> Human approval
+  -> Adapter setup, if still needed
+```
+
 ## Workflow
 
 Use the core workflow for every project.
@@ -94,6 +103,29 @@ The dev kit keeps the industrial pack registry and schemas available by default,
 Use `industrial-packs/selection-guide.md` when deciding pack combinations. Web remains the most dogfooded draft pack, and WeChat Mini Program now has a deeper BL2 draft with its own dogfood example. Backend, Auth/Permission, Data Storage, Internal Admin, iOS, Android, CloudBase, Payment/Value Transfer, and High-risk Change packs are also available as BL2 inputs when relevant.
 
 When dogfooding the workflow on a real project, use `.ai-native/templates/dogfood-observation.md` as a separate observation record. It measures whether the workflow is affordable and accurate in practice: setup time, evidence effort, Risk Gate misses, false positives, false negatives, AI drift, and follow-up improvements. It should inform retros and dev-kit proposals, but it should not become another required task gate.
+
+## Existing Governed Project Adoption
+
+Some projects already have strong governance: agent rules, CI gates, guard scripts, baselines, evidence records, release/rollback controls, production lanes, incident response, backup/recovery, or a dirty worktree.
+
+These projects should not be initialized as if they were ordinary existing projects.
+
+`workflow-next` should classify them with project state tags such as:
+
+```text
+GOVERNED_EXISTING_PROJECT
+PRODUCTION_GOVERNED_PROJECT
+DIRTY_WORKTREE_PROJECT
+```
+
+When protection is active, the adoption mode is:
+
+```text
+ADOPTION_MODE: READ_ONLY
+NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
+```
+
+In this mode, AI Native Dev Kit should map to existing governance instead of replacing it. Use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to decide whether adapter docs, workflow assets, or no project writes are appropriate.
 
 ## Evidence
 
