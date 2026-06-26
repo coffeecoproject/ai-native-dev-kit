@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.18.0`
+Current version: `0.19.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.18.0`
 
 ## Current Release
 
-`0.18.0`
+`0.19.0`
 
 Includes:
 
@@ -67,3 +67,10 @@ Includes:
 - industrial pack version and stability metadata
 - mental model guide for workflow/profile/BL2/industrial pack decisions
 - Web BL2 dogfood example connecting baseline selection, evidence, task gate, release record, and AI log
+- lightweight default industrial pack bootstrap with registry/schema only
+- selected industrial pack installation through `--industrial-packs`
+- selected-only industrial pack checks for target projects
+- BL2-only industrial baseline checks for routine CI
+- `workflow-next` no longer treats the Web industrial pack as a global required asset
+- human-accepted `Risk Gate Exclusions` for auditable missed-risk false positives
+- evidence layering guidance for baseline, task, and release evidence

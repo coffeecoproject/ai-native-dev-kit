@@ -224,7 +224,7 @@ scripts/
 6. 大需求先做 preflight。
 7. 写 spec 和 eval。
 8. 拆 task card。
-9. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。
+9. 运行 `node scripts/check-workflow-artifacts.mjs . --mode ready`。高风险任务在实现前运行 `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>`，并在 `Human Approval` 中记录 `Approval scope`。如果风险词只是明确的非目标或排除范围，写入 `Risk Gate Exclusions`，说明原因并由人确认。
 10. AI 只执行一个 task card。
 11. 跑 verification。
 12. 人审查 diff、风险和证据。
@@ -307,16 +307,22 @@ examples/web-industrial-bl2-first-slice
 ```bash
 node scripts/check-industrial-pack.mjs .
 node scripts/check-industrial-pack.mjs . --json
+node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/resolve-industrial-baseline.mjs .
 node scripts/resolve-industrial-baseline.mjs . --json
 node scripts/check-industrial-baseline.mjs .
 node scripts/check-industrial-baseline.mjs . --strict
 node scripts/check-industrial-baseline.mjs . --json
+node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
 `check-industrial-pack.mjs` 只证明 pack 结构健康，不证明真实项目已经工业达标。真实项目证据应进入 `docs/baseline-selection.md` 和 `docs/baseline-evidence.md`，再由 `resolve-industrial-baseline.mjs` 合成项目选择，由 `check-industrial-baseline.mjs` 检查 BL2 是否可执行。
 
+默认初始化只注入工业包 registry 和 schema，不会把所有具体工业包复制到项目里。需要 BL2 时，用 `--industrial-packs web-app-industrial,backend-api-industrial` 安装项目选中的 pack。业务项目 CI 默认使用 `--selected-only` 和 `--bl2-only`，不会让 BL0/BL1 项目背 BL2 成本。
+
 `docs/baseline-evidence.md` 使用结构化 evidence index。`Status: Done` 的条目必须有真实存在的项目内 `Evidence Ref`；`Status: Not applicable` 的条目必须填写 `Reason if skipped`。默认检查允许 pending，`--strict` 会把缺失引用、未完成状态或缺少跳过理由视为失败。
+
+证据分三层：baseline evidence 是项目级证据索引，task evidence 是当前任务触发的证据，release evidence 是发布前需要看的证据。单个任务不需要默认补完整工业包证据目录。
 
 ## 自检
 
@@ -333,7 +339,8 @@ node scripts/check-ai-workflow.mjs .
 node scripts/check-project-onboarding.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/resolve-platform-baseline.mjs .
-node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --selected-only
+node scripts/check-industrial-baseline.mjs . --bl2-only
 node scripts/check-workflow-version.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready
 node scripts/workflow-next.mjs .

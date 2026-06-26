@@ -107,8 +107,6 @@ const requiredPaths = [
   ".ai-native/industrial-packs/index.json",
   ".ai-native/industrial-packs/schema/pack.schema.json",
   ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
-  ".ai-native/industrial-packs/web-app/pack.md",
-  ".ai-native/industrial-packs/web-app/pack.json",
   ".ai-native/templates/baseline-selection.md",
   ".ai-native/templates/baseline-evidence.md",
   ".ai-native/profiles/web-app/profile.md",

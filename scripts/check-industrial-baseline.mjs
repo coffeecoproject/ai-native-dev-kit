@@ -7,12 +7,13 @@ const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const strict = Boolean(args.strict);
 const outputJson = Boolean(args.json);
+const bl2Only = Boolean(args["bl2-only"]);
 const checks = [];
 let failed = false;
 let pending = false;
 
 for (const key of Object.keys(args)) {
-  if (!["_", "strict", "json"].includes(key)) {
+  if (!["_", "strict", "json", "bl2-only"].includes(key)) {
     console.error(`FAIL unknown option: --${key}`);
     process.exit(1);
   }
@@ -82,6 +83,23 @@ const result = resolveIndustrialBaseline(projectRoot);
 if (!outputJson) {
   console.log(`# Industrial Baseline Check (${strict ? "strict" : "baseline"})`);
   console.log("");
+}
+
+if (bl2Only && result.baselineLevel !== "BL2_INDUSTRIAL") {
+  pass(`BL2 industrial baseline is not active: ${result.baselineLevel || "none"}`);
+  if (outputJson) {
+    console.log(JSON.stringify({
+      ...result,
+      checkMode: strict ? "strict" : "baseline",
+      bl2Only,
+      checkStatus: "PASS",
+      checks,
+    }, null, 2));
+  } else {
+    console.log("");
+    console.log("Industrial BL2 checks are skipped until BL2_INDUSTRIAL is selected.");
+  }
+  process.exit(0);
 }
 
 if (!result.baselineLevel) {
@@ -158,6 +176,7 @@ if (outputJson) {
   console.log(JSON.stringify({
     ...result,
     checkMode: strict ? "strict" : "baseline",
+    bl2Only,
     checkStatus: status,
     checks,
   }, null, 2));

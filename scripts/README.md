@@ -106,8 +106,11 @@ Check AI Native industrial pack structure, metadata, references, required files,
 
 ```bash
 node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/check-industrial-pack.mjs . --json
 ```
+
+Use full mode for the dev-kit repository. Use `--selected-only` in target projects so only packs selected in `docs/baseline-selection.md` are required.
 
 ## resolve-industrial-baseline.mjs
 
@@ -124,15 +127,18 @@ Check project-level BL2 readiness. Default mode reports missing human decisions 
 
 ```bash
 node scripts/check-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs . --bl2-only
 node scripts/check-industrial-baseline.mjs . --strict
 node scripts/check-industrial-baseline.mjs . --json
 ```
 
 Strict mode validates the structured `docs/baseline-evidence.md` evidence index. `Done` rows must point to existing project files through `Evidence Ref`; `Not applicable` rows must include `Reason if skipped`.
 
+Use `--bl2-only` in routine target-project CI so BL0/BL1 projects skip industrial readiness checks until `BL2_INDUSTRIAL` is selected.
+
 For Web BL2 projects, `web-app-industrial` includes additional required evidence for form interactions, API failure behavior, accessibility, performance, and runtime quality when those areas are touched. These rules stay framework-neutral and are resolved through the industrial baseline pack.
 
-`check-workflow-artifacts.mjs` also detects likely missed Risk Gate checks from the task and linked spec/eval. Ready mode reports a warning; implementation mode fails.
+`check-workflow-artifacts.mjs` also detects likely missed Risk Gate checks from the task and linked spec. Ready mode reports a warning; implementation mode fails unless the task has a human-accepted `Risk Gate Exclusions` entry for the text-only risk mention.
 
 ## new-workflow-item.mjs
 

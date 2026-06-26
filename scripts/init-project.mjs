@@ -100,6 +100,54 @@ function readExistingStarter(targetPath) {
   }
 }
 
+function readJsonIfExists(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function parseIndustrialPackIds(value) {
+  if (!value || value === true) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function markdownSectionBody(content, heading) {
+  const match = content.match(new RegExp(`^## ${heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`, "m"));
+  if (!match) return "";
+  const start = match.index;
+  const lineEnd = content.indexOf("\n", start);
+  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
+  const next = content.slice(bodyStart).search(/^## /m);
+  const bodyEnd = next === -1 ? content.length : bodyStart + next;
+  return content.slice(bodyStart, bodyEnd);
+}
+
+function selectedIndustrialPackIdsFromProject(targetPath) {
+  const selectionPath = path.join(targetPath, "docs", "baseline-selection.md");
+  if (!fs.existsSync(selectionPath)) return [];
+  const content = fs.readFileSync(selectionPath, "utf8");
+  const body = markdownSectionBody(content, "Selected Industrial Packs");
+  if (!body) return [];
+  return [...new Set([...body.matchAll(/\b[a-z0-9][a-z0-9-]*-industrial\b/gi)]
+    .map((item) => item[0]))].sort();
+}
+
+function installedIndustrialPackIds(targetPath, sourceIndex) {
+  const destRoot = path.join(targetPath, ".ai-native", "industrial-packs");
+  if (!fs.existsSync(destRoot) || !sourceIndex?.packs) return [];
+  return sourceIndex.packs
+    .filter((entry) => entry?.status !== "planned" && entry.path && fs.existsSync(path.join(destRoot, entry.path, "pack.json")))
+    .map((entry) => entry.id)
+    .filter(Boolean)
+    .sort();
+}
+
 function resolvePullRequestTemplateSource(starter) {
   const starterTemplate = path.join(kitRoot, "starters", starter, ".github", "pull_request_template.md");
   if (fs.existsSync(starterTemplate)) return starterTemplate;
@@ -326,12 +374,12 @@ function agentGovernanceSectionContent() {
       "Run:",
       "",
       "```bash",
-      "node scripts/check-industrial-pack.mjs .",
+      "node scripts/check-industrial-pack.mjs . --selected-only",
       "node scripts/resolve-industrial-baseline.mjs .",
-      "node scripts/check-industrial-baseline.mjs .",
+      "node scripts/check-industrial-baseline.mjs . --bl2-only",
       "```",
       "",
-      "Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is no worse than pending. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.",
+      "Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.",
       "",
     ].join("\n")],
     ["Workflow Artifact Generation", [
@@ -540,12 +588,50 @@ function ensureProjectOnboardingDocs(targetPath) {
   }
 }
 
+function copyIndustrialAssets(targetPath, options = {}) {
+  const sourceRoot = path.join(kitRoot, "industrial-packs");
+  const destRoot = path.join(targetPath, ".ai-native", "industrial-packs");
+  fs.mkdirSync(destRoot, { recursive: true });
+
+  if (options.withIndustrialPacks) {
+    copyDir(sourceRoot, destRoot, options);
+    return;
+  }
+
+  copyFile(path.join(sourceRoot, "README.md"), path.join(destRoot, "README.md"), options);
+  copyFile(path.join(sourceRoot, "index.json"), path.join(destRoot, "index.json"), options);
+  copyDir(path.join(sourceRoot, "schema"), path.join(destRoot, "schema"), options);
+
+  const sourceIndex = readJsonIfExists(path.join(sourceRoot, "index.json"));
+  const explicitPacks = parseIndustrialPackIds(options.industrialPacks);
+  const selectedPacks = options.update ? selectedIndustrialPackIdsFromProject(targetPath) : [];
+  const installedPacks = options.update ? installedIndustrialPackIds(targetPath, sourceIndex) : [];
+  const packIds = [...new Set([...explicitPacks, ...selectedPacks, ...installedPacks])].sort();
+  if (packIds.length === 0) return;
+
+  const entriesById = new Map((sourceIndex?.packs || []).map((entry) => [entry.id, entry]));
+  for (const packId of packIds) {
+    const entry = entriesById.get(packId);
+    if (!entry) {
+      throw new Error(`Unknown industrial pack: ${packId}`);
+    }
+    if (entry.status === "planned") {
+      throw new Error(`Industrial pack is planned and not executable yet: ${packId}`);
+    }
+    if (!entry.path) {
+      throw new Error(`Industrial pack has no source path: ${packId}`);
+    }
+    copyDir(path.join(sourceRoot, entry.path), path.join(destRoot, entry.path), options);
+  }
+}
+
 function copySharedAssets(targetPath, options = {}) {
   const { starter = "generic-project", applyPrTemplateGovernance = false, applyAgentGovernance = false } = options;
-  const sharedDirs = ["core", "templates", "prompts", "checklists", "profiles", "industrial-packs"];
+  const sharedDirs = ["core", "templates", "prompts", "checklists", "profiles"];
   for (const dir of sharedDirs) {
     copyDir(path.join(kitRoot, dir), path.join(targetPath, ".ai-native", dir), options);
   }
+  copyIndustrialAssets(targetPath, options);
 
   const projectScriptsDir = path.join(targetPath, "scripts");
   fs.mkdirSync(projectScriptsDir, { recursive: true });
@@ -685,10 +771,14 @@ const target = args.target;
 const updateWorkflowAssets = Boolean(args["update-workflow-assets"]);
 const applyPrTemplateGovernance = Boolean(args["apply-pr-template-governance"]);
 const applyAgentGovernance = Boolean(args["apply-agent-governance"]);
+const withIndustrialPacks = Boolean(args["with-industrial-packs"]);
+const industrialPacks = args["industrial-packs"] || "";
 
 if (!target) {
   console.error("Usage: node scripts/init-project.mjs --starter generic-project --target ../my-project");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
+  console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --industrial-packs web-app-industrial,backend-api-industrial");
+  console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance");
   process.exit(1);
@@ -703,17 +793,26 @@ if (updateWorkflowAssets) {
     console.error(`Target does not exist for workflow update: ${targetPath}`);
     process.exit(1);
   }
-  copySharedAssets(targetPath, { overwrite: true, starter, applyPrTemplateGovernance, applyAgentGovernance });
+  copySharedAssets(targetPath, {
+    overwrite: true,
+    starter,
+    applyPrTemplateGovernance,
+    applyAgentGovernance,
+    update: true,
+    withIndustrialPacks,
+    industrialPacks,
+  });
   writeVersionFile(targetPath, starter, { update: true });
   console.log("");
   console.log(`Updated workflow assets at ${targetPath}`);
   console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, missing AGENTS.md, and missing workflow directories.");
+  console.log("Industrial pack registry and schemas are updated by default; concrete packs are updated only when already installed, selected, or explicitly requested.");
   console.log("Existing PR templates and AGENTS.md files are left unchanged unless an explicit apply flag is passed; review .ai-native/migration-reports/ when present.");
   process.exit(0);
 }
 
 copyDir(starterPath, targetPath);
-copySharedAssets(targetPath, { starter });
+copySharedAssets(targetPath, { starter, withIndustrialPacks, industrialPacks });
 writeVersionFile(targetPath, starter);
 
 console.log("");
@@ -723,7 +822,7 @@ console.log("1. Run project onboarding by using .ai-native/prompts/project-onboa
 console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
 console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
 console.log("4. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
-console.log("5. For BL2 industrial work, run node scripts/check-industrial-pack.mjs . and node scripts/check-industrial-baseline.mjs . before using selected packs.");
+console.log("5. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
 console.log("6. Create the first request card only after onboarding is ready.");
 console.log("7. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
 console.log("8. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");

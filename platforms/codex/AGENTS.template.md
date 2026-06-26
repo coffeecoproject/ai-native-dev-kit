@@ -109,12 +109,12 @@ Baseline level describes project governance strength: `BL0_LIGHTWEIGHT`, `BL1_ST
 Run:
 
 ```bash
-node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/resolve-industrial-baseline.mjs .
-node scripts/check-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
-Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is no worse than pending. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.
+Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.
 
 ## Workflow Artifact Generation
 

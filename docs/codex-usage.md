@@ -65,7 +65,7 @@ Expected Codex behavior:
 - Draft `docs/project-onboarding.md`, `docs/project-profile.md`, `docs/tech-stack-strategy.md`, `docs/business-spec-index.md`, `docs/sample-policy.md`, and `docs/onboarding-decisions.md`.
 - Draft `Selected Profiles` in `docs/project-profile.md` and run `node scripts/check-platform-baseline.mjs .`.
 - Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
-- For BL2 industrial work, run `node scripts/check-industrial-pack.mjs .`, recommend industrial packs, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-baseline.mjs .`.
+- For BL2 industrial work, recommend selected industrial packs, install them with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-pack.mjs . --selected-only` and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
 - Ask for human decisions only where the workflow requires confirmation.
 
 ## Task Prompt

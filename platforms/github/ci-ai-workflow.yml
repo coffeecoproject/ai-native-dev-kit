@@ -23,10 +23,10 @@ jobs:
         run: node scripts/check-project-onboarding.mjs .
       - name: Check platform baseline
         run: node scripts/check-platform-baseline.mjs .
-      - name: Check industrial packs
-        run: node scripts/check-industrial-pack.mjs .
-      - name: Check industrial baseline
-        run: node scripts/check-industrial-baseline.mjs .
+      - name: Check selected industrial packs
+        run: node scripts/check-industrial-pack.mjs . --selected-only
+      - name: Check BL2 industrial baseline
+        run: node scripts/check-industrial-baseline.mjs . --bl2-only
       - name: Check workflow item generator syntax
         run: node --check scripts/new-workflow-item.mjs
       - name: Check platform baseline resolver syntax

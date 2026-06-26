@@ -564,7 +564,7 @@ function checkPlatformAdapters() {
     }
   }
 
-  for (const marker of ["fetch-depth: 0", "--mode ready", "--changed-only", "--base origin/${{ github.base_ref }}"]) {
+  for (const marker of ["fetch-depth: 0", "--selected-only", "--bl2-only", "--mode ready", "--changed-only", "--base origin/${{ github.base_ref }}"]) {
     if (githubCi.includes(marker)) {
       pass(`platforms/github/ci-ai-workflow.yml includes ${marker}`);
     } else {
@@ -604,6 +604,8 @@ function checkReadmePointers() {
     "check-industrial-pack",
     "resolve-industrial-baseline",
     "check-industrial-baseline",
+    "--selected-only",
+    "--bl2-only",
     "new-workflow-item",
     "--mode ready",
     "--mode implementation",
@@ -611,6 +613,7 @@ function checkReadmePointers() {
     "--changed-only",
     "Human Approval",
     "Approval scope",
+    "Risk Gate Exclusions",
     "O0",
     "O1",
     "O2",
@@ -754,7 +757,8 @@ function checkGeneratedProjectE2E() {
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
-    ".ai-native/industrial-packs/web-app/pack.json",
+    ".ai-native/industrial-packs/schema/pack.schema.json",
+    ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
     ".ai-native/templates/baseline-selection.md",
     ".ai-native/templates/baseline-evidence.md",
     "docs/verification-matrix.md",
@@ -766,25 +770,33 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project platform baseline assets");
 
+  if (fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
+    fail("generated project default bootstrap should not install concrete web-app industrial pack");
+    return;
+  }
+  pass("generated project default bootstrap keeps industrial packs lightweight");
+
   const industrialPackCheck = runNode([
     path.join(target, "scripts", "check-industrial-pack.mjs"),
     target,
+    "--selected-only",
   ]);
-  if (industrialPackCheck.status !== 0 || !industrialPackCheck.stdout.includes("Industrial pack structure is ready")) {
-    fail(`generated project industrial pack check failed: ${industrialPackCheck.stderr || industrialPackCheck.stdout}`);
+  if (industrialPackCheck.status !== 0 || !industrialPackCheck.stdout.includes("Selected-only mode: no selected packs")) {
+    fail(`generated project selected industrial pack check failed: ${industrialPackCheck.stderr || industrialPackCheck.stdout}`);
     return;
   }
-  pass("generated project industrial pack check");
+  pass("generated project selected industrial pack check");
 
   const industrialBaselinePending = runNode([
     path.join(target, "scripts", "check-industrial-baseline.mjs"),
     target,
+    "--bl2-only",
   ]);
-  if (industrialBaselinePending.status !== 0 || !industrialBaselinePending.stdout.includes("PENDING baseline level is not selected")) {
-    fail(`generated project industrial baseline check should be pending before baseline selection: ${industrialBaselinePending.stderr || industrialBaselinePending.stdout}`);
+  if (industrialBaselinePending.status !== 0 || !industrialBaselinePending.stdout.includes("BL2 industrial baseline is not active")) {
+    fail(`generated project industrial baseline check should skip before BL2 selection: ${industrialBaselinePending.stderr || industrialBaselinePending.stdout}`);
     return;
   }
-  pass("generated project industrial baseline check is pending before baseline selection");
+  pass("generated project industrial baseline check skips before BL2 selection");
 
   const platformBaselinePending = runNode([
     path.join(target, "scripts", "check-platform-baseline.mjs"),
@@ -864,6 +876,32 @@ function checkGeneratedProjectE2E() {
     .replace("|  |  |  |  |  | Yes / No |", "| none | none | none | owner | 2026-06-25 | Yes |")
     .replace("|  |  |  |  |  | Yes / No |", "| none | none | none | owner | 2026-06-25 | Yes |");
   fs.writeFileSync(baselineSelectionPath, baselineSelectionContent);
+
+  const selectedPackMissingCheck = runNode([
+    path.join(target, "scripts", "check-industrial-pack.mjs"),
+    target,
+    "--selected-only",
+  ]);
+  if (selectedPackMissingCheck.status === 0 || !selectedPackMissingCheck.stderr.includes("missing pack.md")) {
+    fail(`generated project selected industrial pack check should reject missing selected pack: ${selectedPackMissingCheck.stderr || selectedPackMissingCheck.stdout}`);
+    return;
+  }
+  pass("generated project selected industrial pack check rejects missing selected pack");
+
+  const installSelectedPack = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    target,
+    "--update-workflow-assets",
+    "--industrial-packs",
+    "web-app-industrial",
+  ]);
+  if (installSelectedPack.status !== 0 || !fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
+    fail(`generated project selected industrial pack install failed: ${installSelectedPack.stderr || installSelectedPack.stdout}`);
+    return;
+  }
+  pass("generated project selected industrial pack install");
+
   const baselineEvidencePath = path.join(target, "docs", "baseline-evidence.md");
   const evidenceRecordPath = path.join(target, "releases", "generated-bl2-evidence.md");
   fs.writeFileSync(evidenceRecordPath, [
@@ -1235,8 +1273,31 @@ function checkGeneratedProjectE2E() {
     fail(`generated project implementation mode should reject missed Risk Gate checks: ${missedRiskImplementationCheck.stderr || missedRiskImplementationCheck.stdout}`);
     return;
   }
+  const excludedRiskTaskContent = missedRiskTaskContent.replace("## Human Approval", [
+    "## Risk Gate Exclusions",
+    "",
+    "| Mentioned term | Not checked because | Human accepted |",
+    "|---|---|---|",
+    "| permission | self-check verifies an explicit human-accepted exclusion can override a text-only risk mention | Yes |",
+    "",
+    "## Human Approval",
+  ].join("\n"));
+  fs.writeFileSync(taskPath, excludedRiskTaskContent);
+  const excludedRiskImplementationCheck = runNode([
+    path.join(target, "scripts", "check-workflow-artifacts.mjs"),
+    target,
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (excludedRiskImplementationCheck.status !== 0) {
+    fail(`generated project implementation mode should accept human-approved Risk Gate Exclusions: ${excludedRiskImplementationCheck.stderr || excludedRiskImplementationCheck.stdout}`);
+    return;
+  }
   fs.writeFileSync(taskPath, originalTaskContent);
   pass("generated project workflow artifact check detects missed Risk Gate checks");
+  pass("generated project workflow artifact check accepts human-approved Risk Gate Exclusions");
 
   const pendingImplementationCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),

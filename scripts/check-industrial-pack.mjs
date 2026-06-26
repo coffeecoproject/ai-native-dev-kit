@@ -6,9 +6,10 @@ import path from "node:path";
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const selectedOnly = Boolean(args["selected-only"]);
 
 for (const key of Object.keys(args)) {
-  if (!["_", "json"].includes(key)) {
+  if (!["_", "json", "selected-only"].includes(key)) {
     console.error(`FAIL unknown option: --${key}`);
     process.exit(1);
   }
@@ -61,6 +62,30 @@ function readJson(filePath) {
     fail(`${path.relative(projectRoot, filePath)} invalid JSON: ${error.message}`);
     return null;
   }
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sectionBody(content, heading) {
+  const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
+  if (!match) return null;
+  const start = match.index;
+  const lineEnd = content.indexOf("\n", start);
+  const bodyStart = lineEnd === -1 ? content.length : lineEnd + 1;
+  const next = content.slice(bodyStart).search(/^## /m);
+  const bodyEnd = next === -1 ? content.length : bodyStart + next;
+  return content.slice(bodyStart, bodyEnd).trim();
+}
+
+function selectedPackIds(root) {
+  const selectionPath = path.join(root, "docs", "baseline-selection.md");
+  if (!fs.existsSync(selectionPath)) return [];
+  const body = sectionBody(fs.readFileSync(selectionPath, "utf8"), "Selected Industrial Packs");
+  if (!body) return [];
+  return [...new Set([...body.matchAll(/\b[a-z0-9][a-z0-9-]*-industrial\b/gi)]
+    .map((match) => match[0]))].sort();
 }
 
 function findIndustrialRoot(root) {
@@ -265,6 +290,7 @@ else pass(`${path.relative(projectRoot, selectionSchemaPath)}`);
 const index = fs.existsSync(indexPath) ? readJson(indexPath) : null;
 const knownPackIds = new Set();
 const plannedPackIds = new Set();
+const selectedIds = selectedOnly ? selectedPackIds(projectRoot) : null;
 let checkedPacks = 0;
 
 if (index) {
@@ -288,9 +314,10 @@ if (index) {
 
   for (const item of packs) {
     if (!item || item.status === "planned") {
-      if (item?.id) pass(`${item.id} planned pack registered`);
+      if (!selectedOnly && item?.id) pass(`${item.id} planned pack registered`);
       continue;
     }
+    if (selectedOnly && !selectedIds.includes(item.id)) continue;
 
     const packRoot = path.join(industrialRoot, item.path);
     const packMdPath = path.join(packRoot, "pack.md");
@@ -347,6 +374,14 @@ if (index) {
     }
     validateNoProjectFacts(packRoot, item.id);
   }
+
+  if (selectedOnly) {
+    for (const selectedId of selectedIds) {
+      if (!knownPackIds.has(selectedId)) fail(`selected industrial pack is unknown: ${selectedId}`);
+      if (plannedPackIds.has(selectedId)) fail(`selected industrial pack is planned and not executable yet: ${selectedId}`);
+    }
+    if (selectedIds.length === 0) pass("no selected industrial packs");
+  }
 }
 
 if (outputJson) {
@@ -354,6 +389,8 @@ if (outputJson) {
     projectRoot,
     industrialRoot,
     checkedPacks,
+    selectedOnly,
+    selectedPacks: selectedIds || null,
     plannedPacks: [...plannedPackIds].sort(),
     status: failed ? "FAIL" : "PASS",
     checks,
@@ -365,5 +402,6 @@ if (failed) process.exit(1);
 if (!outputJson) {
   console.log("");
   console.log(`Industrial packs checked: ${checkedPacks}`);
+  if (selectedOnly) console.log(`Selected-only mode: ${selectedIds.length > 0 ? selectedIds.join(", ") : "no selected packs"}`);
   console.log("Industrial pack structure is ready.");
 }

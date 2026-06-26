@@ -73,6 +73,14 @@ This task touches:
 
 If any item is checked, implementation requires explicit human approval before code changes.
 
+## Risk Gate Exclusions
+
+Use only when a high-risk term appears in the task/spec text but is explicitly out of scope.
+
+| Mentioned term | Not checked because | Human accepted |
+|---|---|---|
+|  |  | Yes / No |
+
 ## Human Approval
 
 Required: No

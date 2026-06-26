@@ -195,12 +195,23 @@ node scripts/resolve-platform-baseline.mjs .
 检查命令：
 
 ```bash
-node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/resolve-industrial-baseline.mjs .
-node scripts/check-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
 BL2 不只看“有没有写文档”，还要求证据真实存在。`docs/baseline-evidence.md` 里的 `Done` 必须有项目内文件作为证据引用；`Not applicable` 必须写清楚为什么不适用。
+
+默认初始化只放工业包索引和 schema，不会把所有平台的工业包都塞进项目。需要 BL2 时，再按项目选择安装：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../my-project \
+  --update-workflow-assets \
+  --industrial-packs web-app-industrial,backend-api-industrial
+```
+
+证据分三层：`baseline evidence` 是项目级证据索引，`task evidence` 是当前任务触发的证据，`release evidence` 是发布前需要看的证据。单个任务不需要默认背完整工业包证据目录。
 
 ## 每次需求怎么走
 
@@ -232,12 +243,19 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 
 如果任务卡里勾选了风险项，`Human Approval` 必须写清楚是否批准，并补上 `Approval scope`。进入 implementation 模式时，高风险任务必须已经批准。
 
+如果高风险词只是作为明确的非目标或排除范围出现，可以在任务卡写 `Risk Gate Exclusions`，说明为什么不勾选，并由人确认。这样不用为了过检查把文本写得含糊。
+
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.18.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.19.0`。
 
 新增内容：
 
+- 默认初始化改为轻量工业包入口，只注入 registry/schema，不默认塞入所有具体工业包。
+- CI 模板改为 `--selected-only` 和 `--bl2-only`，BL0/BL1 项目不承担 BL2 检查成本。
+- `workflow-next` 移除 Web pack 全局硬编码，具体 pack 由 BL2 selected packs 决定。
+- 新增 `Risk Gate Exclusions`，让误报或明确非目标可以被人类接受并留下审计理由。
+- 文档补清楚 baseline evidence、task evidence、release evidence 三层关系。
 - BL2 证据改成结构化记录，不再只靠关键词。
 - `Done` 状态必须有真实存在的证据文件。
 - `Not applicable` 必须写清楚原因。

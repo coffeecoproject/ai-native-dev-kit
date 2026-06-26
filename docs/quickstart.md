@@ -93,14 +93,25 @@ BL2_INDUSTRIAL = workflow plus profiles and selected industrial packs
 Industrial packs are optional BL2 assets. They define production-grade evidence standards; they do not prove a real project is ready by themselves.
 
 ```bash
-node scripts/check-industrial-pack.mjs .
+node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/resolve-industrial-baseline.mjs .
-node scripts/check-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
 For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.ai-native/templates/`, then use `check-industrial-baseline.mjs --strict` only after the human has approved baseline level, selected packs, exceptions, and residual risks.
 
 `baseline-evidence.md` must reference real project evidence. Rows with `Status: Done` need an existing `Evidence Ref`; rows marked `Not applicable` need a reason.
+
+Default bootstrap keeps industrial packs lightweight: only the registry and schemas are injected. Install concrete packs only after selection:
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../my-project \
+  --update-workflow-assets \
+  --industrial-packs web-app-industrial
+```
+
+Evidence has three layers: project-level baseline evidence, task-triggered evidence, and release evidence. A task should not carry the entire pack catalog unless it actually touches those areas.
 
 For Web BL2 projects, the Web industrial pack now expects runtime evidence for UI states, form interactions, API failure behavior, accessibility, performance or asset impact, release, rollback, and monitoring when those areas are touched. It remains framework-neutral; framework or hosting-specific rules should live in separate candidate packs until stabilized.
 

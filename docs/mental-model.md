@@ -11,7 +11,8 @@ Use the smallest layer that can control the risk.
 ```text
 Workflow
   -> Profile
-  -> BL2 Industrial Pack
+  -> BL Level
+  -> Selected Industrial Pack
   -> Project Evidence
   -> Task Gate
 ```
@@ -75,7 +76,7 @@ Use BL2 when the project touches production, sensitive data, permissions, paymen
 
 ## Industrial Pack
 
-Use an industrial pack only when BL2 is selected.
+Use an industrial pack only when BL2 is selected and the pack is relevant.
 
 An industrial pack answers:
 
@@ -88,11 +89,21 @@ An industrial pack answers:
 
 Industrial packs should not be selected just because they exist. Select them when the project actually needs that runtime, capability, or risk overlay.
 
+The dev kit keeps the industrial pack registry and schemas available by default, but concrete pack files should be installed only when selected. This keeps BL0 and BL1 projects light while preserving a clear path to BL2.
+
 ## Evidence
 
 BL2 requires evidence, not claims.
 
-`docs/baseline-evidence.md` should point to real project files:
+There are three evidence layers:
+
+```text
+Baseline evidence = project-level evidence index
+Task evidence = evidence required by the current task risk
+Release evidence = evidence needed before a release or rollout
+```
+
+`docs/baseline-evidence.md` is the project-level evidence index. It should point to real project files:
 
 ```text
 Requirement -> Evidence Type -> Evidence Ref -> Status -> Owner -> Review date
@@ -104,6 +115,8 @@ Requirement -> Evidence Type -> Evidence Ref -> Status -> Owner -> Review date
 
 `Pending` means the project is not ready for strict BL2 execution.
 
+A task does not need to satisfy the entire industrial pack catalog every time. The task gate should require evidence only for the areas touched by the task risk, while release evidence is checked when the task or release flow actually reaches release readiness.
+
 ## Task Gate
 
 The task gate controls what AI may implement.
@@ -112,11 +125,14 @@ Before implementation, the task should prove:
 
 - the project baseline is ready
 - the task level matches the risk
-- Risk Gate labels are checked when high-risk areas appear in the task, spec, or eval
+- Risk Gate labels are checked when high-risk areas appear in the task or related spec
+- Risk Gate exclusions are explicit and human accepted when a risk term is mentioned but out of scope
 - Human Approval is present when a checked risk requires it
 - the eval names the evidence required by selected industrial packs
 
 If a high-risk area appears in the task or related spec but Risk Gate is not checked, ready mode should warn and implementation mode should fail.
+
+If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete reason and human acceptance. Do not make the wording vague just to pass the checker.
 
 ## Practical Choices
 
@@ -133,7 +149,7 @@ Production, sensitive, permission, payment, destructive, or release risk?
   Consider BL2.
 
 BL2 selected?
-  Select industrial packs and require evidence.
+  Install selected industrial packs and require evidence.
 
 Single task touches a risky area?
   Raise task level, check Risk Gate, and require Human Approval where needed.

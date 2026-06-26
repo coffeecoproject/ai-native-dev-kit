@@ -368,6 +368,30 @@ function riskIsChecked(term, labels, checkedTokens) {
   )));
 }
 
+function riskGateExclusions(content) {
+  const body = sectionBody(content, "Risk Gate Exclusions");
+  if (!body) return [];
+  return body
+    .split("\n")
+    .filter((line) => line.trim().startsWith("|"))
+    .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()))
+    .filter((cells) => cells.length >= 3)
+    .filter((cells) => !/^mentioned term$/i.test(cells[0]) && !/^-+$/.test(cells[0]))
+    .map(([term, reason, accepted]) => ({
+      term: normalizeRiskTerm(term),
+      reason,
+      accepted: /^yes$/i.test(accepted),
+    }))
+    .filter((item) => item.term && item.reason && !placeholderPattern.test(item.reason) && item.accepted);
+}
+
+function riskIsExcluded(term, labels, exclusions) {
+  const candidates = [term, ...labels].map(normalizeRiskTerm).filter(Boolean);
+  return candidates.some((candidate) => exclusions.some((exclusion) => (
+    exclusion.term === candidate || exclusion.term.includes(candidate) || candidate.includes(exclusion.term)
+  )));
+}
+
 function requireNoMissedRiskGate(file, taskContent) {
   if (mode === "draft") return;
   const platformBaseline = resolvePlatformBaseline(projectRoot);
@@ -382,14 +406,17 @@ function requireNoMissedRiskGate(file, taskContent) {
   ].join("\n");
 
   const checkedTokens = checkedRiskLabels(taskContent).map(normalizeRiskTerm);
+  const exclusions = riskGateExclusions(taskContent);
+  const riskTerms = baselineRiskTerms(platformBaseline, industrialBaseline);
   const missed = [];
-  for (const [term, labels] of baselineRiskTerms(platformBaseline, industrialBaseline)) {
+  for (const [term, labels] of riskTerms) {
     if (!containsRiskTerm(scanText, term)) continue;
     if (!riskIsChecked(term, labels, checkedTokens)) missed.push(term);
   }
 
-  if (missed.length === 0) return;
-  const message = `${file} may mention high-risk areas without matching Risk Gate checks: ${missed.sort().join(", ")}`;
+  const unhandled = missed.filter((term) => !riskIsExcluded(term, riskTerms.get(term) || [], exclusions));
+  if (unhandled.length === 0) return;
+  const message = `${file} may mention high-risk areas without matching Risk Gate checks: ${unhandled.sort().join(", ")}`;
   if (mode === "implementation") fail(message);
   else warn(message);
 }
