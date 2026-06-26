@@ -3,6 +3,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { resolveIndustrialBaseline } from "./resolve-industrial-baseline.mjs";
+import { resolvePlatformBaseline } from "./resolve-platform-baseline.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -50,6 +52,7 @@ const checksByDir = new Map([
 let failed = false;
 let checked = 0;
 const checkedFiles = new Set();
+const taskLevelRank = { L0: 0, L1: 1, L2: 2, L3: 3 };
 
 function parseArgs(argv) {
   const parsed = { _: [] };
@@ -236,6 +239,105 @@ function labeledValue(content, section, label) {
 function checkedRiskCount(content) {
   const body = sectionBody(content, "Risk Gate") || "";
   return [...body.matchAll(/-\s*\[[xX]\]/g)].length;
+}
+
+function checkedRiskLabels(content) {
+  const body = sectionBody(content, "Risk Gate") || "";
+  return [...body.matchAll(/-\s*\[[xX]\]\s*(.+?)\s*$/gm)]
+    .map((match) => match[1].trim())
+    .filter(Boolean);
+}
+
+function normalizeRiskTerm(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[`*_]/g, "")
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function taskLevel(content) {
+  const body = sectionBody(content, "Task Level") || "";
+  const match = body.match(/\bL[0-3]\b/);
+  return match ? match[0] : null;
+}
+
+function maxTaskLevel(levels) {
+  return levels.reduce((max, level) => (
+    taskLevelRank[level] > taskLevelRank[max] ? level : max
+  ), "L0");
+}
+
+function baselineRequiredTaskLevel(taskContent, platformBaseline, industrialBaseline) {
+  const checked = new Set(checkedRiskLabels(taskContent).map(normalizeRiskTerm));
+  const checkedValues = [...checked];
+  const levels = [];
+  for (const rule of platformBaseline.effectiveEscalationRules || []) {
+    const triggers = (rule.when || []).map(normalizeRiskTerm);
+    if (triggers.some((trigger) => checkedValues.some((checkedToken) => checkedToken === trigger || checkedToken.includes(trigger) || trigger.includes(checkedToken)))) {
+      levels.push(rule.minLevel || "L1");
+    }
+  }
+  for (const rule of industrialBaseline.effectiveTaskLevelEscalation || []) {
+    const triggers = (rule.when || []).map(normalizeRiskTerm);
+    if (triggers.some((trigger) => checkedValues.some((checkedToken) => checkedToken === trigger || checkedToken.includes(trigger) || trigger.includes(checkedToken)))) {
+      levels.push(rule.minTaskLevel || "L1");
+    }
+  }
+  return levels.length > 0 ? maxTaskLevel(levels) : null;
+}
+
+function relevantIndustrialEvidenceTerms(industrialBaseline, taskContent) {
+  const checked = checkedRiskLabels(taskContent).map(normalizeRiskTerm);
+  if (checked.length === 0) return [];
+  const terms = [];
+  for (const [category, values] of Object.entries(industrialBaseline.effectiveRequiredEvidence || {})) {
+    const categoryToken = normalizeRiskTerm(category);
+    const categoryMatches = checked.some((token) => categoryToken.includes(token) || token.includes(categoryToken));
+    const valueMatches = (values || []).some((value) => {
+      const valueToken = normalizeRiskTerm(value);
+      return checked.some((token) => valueToken.includes(token) || token.includes(valueToken));
+    });
+    if (categoryMatches || valueMatches) terms.push(...values);
+  }
+  return [...new Set(terms.filter(Boolean))].sort();
+}
+
+function requireIndustrialEvalEvidence(file, taskContent, industrialBaseline) {
+  if (industrialBaseline.baselineLevel !== "BL2_INDUSTRIAL" || industrialBaseline.state !== "BASELINE_READY") return;
+  const evalRef = normalizeRef(firstRefFromSection(taskContent, "Related Eval"));
+  if (!evalRef) return;
+  const evalContent = readProjectFile(evalRef);
+  if (!evalContent) return;
+  const evidenceBody = sectionBody(evalContent, "Required Evidence") || "";
+  const missing = relevantIndustrialEvidenceTerms(industrialBaseline, taskContent)
+    .filter((term) => !evidenceBody.toLowerCase().includes(String(term).toLowerCase()));
+  if (missing.length > 0) {
+    fail(`${file} related eval missing industrial evidence terms: ${missing.join(", ")}`);
+  }
+}
+
+function requireBaselineImplementationGates(file, taskContent) {
+  if (mode !== "implementation") return;
+
+  const platformBaseline = resolvePlatformBaseline(projectRoot);
+  if (platformBaseline.selectedProfiles.length > 0 && platformBaseline.state !== "BASELINE_READY") {
+    fail(`${file} platform baseline is not ready: ${platformBaseline.state}`);
+  }
+
+  const industrialBaseline = resolveIndustrialBaseline(projectRoot);
+  if (industrialBaseline.baselineLevel === "BL2_INDUSTRIAL" && industrialBaseline.state !== "BASELINE_READY") {
+    fail(`${file} industrial baseline is not ready: ${industrialBaseline.state}`);
+  }
+
+  const requiredLevel = baselineRequiredTaskLevel(taskContent, platformBaseline, industrialBaseline);
+  const actualLevel = taskLevel(taskContent);
+  if (requiredLevel && actualLevel && taskLevelRank[actualLevel] < taskLevelRank[requiredLevel]) {
+    fail(`${file} Task Level ${actualLevel} is lower than baseline-required ${requiredLevel}`);
+  }
+
+  requireIndustrialEvalEvidence(file, taskContent, industrialBaseline);
 }
 
 function readProjectFile(ref) {
@@ -444,6 +546,7 @@ function checkTask(file, content) {
 
   requireHumanApproval(file, content);
   requireTaskGraph(file, content);
+  requireBaselineImplementationGates(file, content);
 }
 
 function checkLog(file, content) {

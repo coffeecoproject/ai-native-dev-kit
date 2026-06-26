@@ -128,6 +128,8 @@ node scripts/check-industrial-baseline.mjs . --strict
 node scripts/check-industrial-baseline.mjs . --json
 ```
 
+Strict mode validates the structured `docs/baseline-evidence.md` evidence index. `Done` rows must point to existing project files through `Evidence Ref`; `Not applicable` rows must include `Reason if skipped`.
+
 ## new-workflow-item.mjs
 
 Create numbered workflow files from templates and keep basic cross-references aligned.

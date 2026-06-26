@@ -51,6 +51,7 @@ const workflowRequiredPaths = [
   ".ai-native/profiles/backend-api/baseline.json",
   ".ai-native/profiles/ios-app/baseline.json",
   ".ai-native/profiles/android-app/baseline.json",
+  ".ai-native/profiles/wechat-miniprogram/baseline.json",
   ".ai-native/profiles/internal-admin/baseline.json",
   ".ai-native/profiles/high-risk-change/baseline.json",
   ".ai-native/core/project-onboarding.md",

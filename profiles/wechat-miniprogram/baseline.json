@@ -1,0 +1,78 @@
+{
+  "id": "wechat-miniprogram",
+  "name": "WeChat Mini Program",
+  "defaultTaskLevel": "L1",
+  "escalationRules": [
+    {
+      "when": ["login-state", "platform-permission", "cloud-function", "managed-storage", "api-contract", "page-lifecycle"],
+      "minLevel": "L2"
+    },
+    {
+      "when": ["release-submission", "production-config", "payment", "value-transfer", "regulated-data", "secrets", "destructive-storage-change"],
+      "minLevel": "L3"
+    }
+  ],
+  "requiredDocs": [
+    "docs/product-vision.md",
+    "docs/engineering-principles.md",
+    "docs/risk-policy.md",
+    "docs/architecture.md",
+    "docs/domain-model.md",
+    "docs/permission-model.md",
+    "docs/test-strategy.md",
+    "docs/verification-matrix.md"
+  ],
+  "recommendedDocs": [
+    "docs/miniprogram-release-policy.md",
+    "docs/cloud-function-boundaries.md",
+    "docs/privacy-data-inventory.md"
+  ],
+  "riskGateMappings": {
+    "platform-permission": ["permission", "personal data"],
+    "cloud-function": ["cloud function / access rule", "external side effect"],
+    "managed-storage": ["migration", "personal data"],
+    "release-submission": ["production config"],
+    "payment": ["value transfer"],
+    "value-transfer": ["value transfer"],
+    "secrets": ["secrets"],
+    "regulated-data": ["regulated data"]
+  },
+  "requiredVerification": [
+    "page and component behavior check",
+    "login and denied state review where relevant",
+    "platform permission review when permissions change",
+    "cloud function and access rule verification when touched",
+    "API error handling and degraded network review",
+    "release and rollback evidence when release behavior changes"
+  ],
+  "verificationKeywords": ["page", "component", "login", "permission", "cloud", "api", "release", "rollback"],
+  "verifyScriptKeywords": ["test", "lint", "build"],
+  "highRiskKeywords": ["permission", "cloud function", "access rule", "payment", "value transfer", "release", "production config", "secrets"],
+  "humanApprovalRequiredFor": [
+    "platform-permission",
+    "cloud-function",
+    "managed-storage",
+    "release-submission",
+    "production-config",
+    "payment",
+    "value-transfer",
+    "secrets",
+    "regulated-data"
+  ],
+  "releaseChecks": [
+    "base library, privacy, permissions, cloud functions, and access rules reviewed when touched",
+    "release submission, rollback, and monitoring evidence captured for release-impacting changes",
+    "payment, value transfer, secrets, and production config require human approval"
+  ],
+  "aiBoundaries": {
+    "may": [
+      "edit mini program pages, components, cloud functions, tests, and documentation inside approved task scope",
+      "propose platform permission, cloud function, and release changes with explicit evidence"
+    ],
+    "mustNot": [
+      "approve release submission, production config, payment, value transfer, secrets, or access rule expansion without human approval",
+      "handle production credentials or regulated data without human approval"
+    ]
+  },
+  "compatibleStarters": ["generic-project"]
+}

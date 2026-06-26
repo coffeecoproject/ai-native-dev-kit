@@ -33,7 +33,7 @@
       "status": "draft",
       "path": "wechat-miniprogram",
       "displayName": "WeChat Mini Program Industrial Pack",
-      "appliesToProfiles": []
+      "appliesToProfiles": ["wechat-miniprogram"]
     },
     {
       "id": "backend-api-industrial",

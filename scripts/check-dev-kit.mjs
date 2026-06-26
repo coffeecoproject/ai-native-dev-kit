@@ -132,6 +132,7 @@ function checkRequiredFiles() {
     "profiles/backend-api/baseline.json",
     "profiles/ios-app/baseline.json",
     "profiles/android-app/baseline.json",
+    "profiles/wechat-miniprogram/baseline.json",
     "profiles/internal-admin/baseline.json",
     "profiles/high-risk-change/baseline.json",
     "industrial-packs/README.md",
@@ -699,6 +700,7 @@ function checkGeneratedProjectE2E() {
     "scripts/resolve-industrial-baseline.mjs",
     "scripts/check-industrial-baseline.mjs",
     ".ai-native/profiles/web-app/baseline.json",
+    ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
     ".ai-native/industrial-packs/web-app/pack.json",
     ".ai-native/templates/baseline-selection.md",
@@ -811,23 +813,131 @@ function checkGeneratedProjectE2E() {
     .replace("|  |  |  |  |  | Yes / No |", "| none | none | none | owner | 2026-06-25 | Yes |");
   fs.writeFileSync(baselineSelectionPath, baselineSelectionContent);
   const baselineEvidencePath = path.join(target, "docs", "baseline-evidence.md");
-  const baselineEvidenceContent = fs.readFileSync(baselineEvidencePath, "utf8")
-    .replace("Draft status: DRAFT / CONFIRMED", "Draft status: CONFIRMED")
-    .replace("Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED", "Human decision status: CONFIRMED")
-    .replace("- ", [
-      "- loading-empty-error-forbidden evidence",
-      "- responsive behavior evidence",
-      "- critical flow behavior evidence",
-      "- server-side permission test evidence",
-      "- forbidden state evidence",
-      "- resource scope evidence",
-      "- release record",
-      "- rollback plan",
-      "- monitoring evidence",
-      "- environment variable review",
-      "- secret exposure review",
-      "- deployment configuration evidence",
-    ].join("\n"));
+  const evidenceRecordPath = path.join(target, "releases", "generated-bl2-evidence.md");
+  fs.writeFileSync(evidenceRecordPath, [
+    "# Generated BL2 Evidence",
+    "",
+    "This generated file is used by the dev-kit self-check to prove that structured baseline evidence refs are validated.",
+    "",
+  ].join("\n"));
+  const evidenceRows = [
+    "loading-empty-error-forbidden evidence",
+    "responsive behavior evidence",
+    "critical flow behavior evidence",
+    "server-side permission test evidence",
+    "forbidden state evidence",
+    "resource scope evidence",
+    "release record",
+    "rollback plan",
+    "monitoring evidence",
+    "environment variable review",
+    "secret exposure review",
+    "deployment configuration evidence",
+  ].map((requirement) => `| ${requirement} | doc | releases/generated-bl2-evidence.md | Done |  | self-check | 2026-06-25 |`);
+  const baselineEvidenceContent = [
+    "# Baseline Evidence",
+    "",
+    "## Status",
+    "",
+    "Draft status: CONFIRMED",
+    "",
+    "Human decision status: CONFIRMED",
+    "",
+    "## Evidence Index",
+    "",
+    "| Requirement | Evidence Type | Evidence Ref | Status | Reason if skipped | Owner | Review date |",
+    "|---|---|---|---|---|---|---|",
+    ...evidenceRows,
+    "",
+    "## Production Readiness",
+    "",
+    "Status: PASS",
+    "",
+    "Evidence:",
+    "",
+    "- releases/generated-bl2-evidence.md",
+    "",
+    "## Release Readiness",
+    "",
+    "Status: PASS",
+    "",
+    "Evidence:",
+    "",
+    "- releases/generated-bl2-evidence.md",
+    "",
+    "## Security Readiness",
+    "",
+    "Status: PASS",
+    "",
+    "Evidence:",
+    "",
+    "- releases/generated-bl2-evidence.md",
+    "",
+    "## Privacy Readiness",
+    "",
+    "Status: NOT_APPLICABLE",
+    "",
+    "Evidence:",
+    "",
+    "- Not applicable to generated self-check fixture.",
+    "",
+    "## Recovery Readiness",
+    "",
+    "Status: PASS",
+    "",
+    "Evidence:",
+    "",
+    "- releases/generated-bl2-evidence.md",
+    "",
+    "## Exceptions",
+    "",
+    "| Requirement | Exception | Reason | Owner | Review date |",
+    "|---|---|---|---|---|",
+    "| none | none | none | self-check | 2026-06-25 |",
+    "",
+    "## Residual Risks",
+    "",
+    "| Risk | Impact | Mitigation | Owner | Accepted |",
+    "|---|---|---|---|---|",
+    "| none | none | none | self-check | Yes |",
+    "",
+  ].join("\n");
+  fs.writeFileSync(baselineEvidencePath, baselineEvidenceContent);
+
+  const invalidBaselineEvidenceContent = baselineEvidenceContent.replace(
+    "releases/generated-bl2-evidence.md | Done",
+    "releases/missing-bl2-evidence.md | Done",
+  );
+  fs.writeFileSync(baselineEvidencePath, invalidBaselineEvidenceContent);
+  const invalidIndustrialBaselineCheck = runNode([
+    path.join(target, "scripts", "check-industrial-baseline.mjs"),
+    target,
+    "--strict",
+  ]);
+  if (invalidIndustrialBaselineCheck.status === 0 || !invalidIndustrialBaselineCheck.stderr.includes("missing evidence ref")) {
+    fail(`generated project industrial baseline strict check should reject missing evidence refs: ${invalidIndustrialBaselineCheck.stderr || invalidIndustrialBaselineCheck.stdout}`);
+    return;
+  }
+  const invalidIndustrialBaselineResolved = runNode([
+    path.join(target, "scripts", "resolve-industrial-baseline.mjs"),
+    target,
+    "--json",
+  ]);
+  if (invalidIndustrialBaselineResolved.status !== 0) {
+    fail(`generated project industrial baseline resolver failed for invalid evidence refs: ${invalidIndustrialBaselineResolved.stderr || invalidIndustrialBaselineResolved.stdout}`);
+    return;
+  }
+  try {
+    const parsed = JSON.parse(invalidIndustrialBaselineResolved.stdout);
+    if (parsed.state !== "EVIDENCE_MISSING") {
+      fail(`generated project industrial baseline resolver should mark invalid evidence refs as EVIDENCE_MISSING, got ${parsed.state}`);
+      return;
+    }
+  } catch (error) {
+    fail(`generated project invalid industrial baseline JSON output is not parseable: ${error.message}`);
+    return;
+  }
+  pass("generated project industrial baseline rejects missing evidence refs");
   fs.writeFileSync(baselineEvidencePath, baselineEvidenceContent);
 
   const industrialBaselineResolved = runNode([

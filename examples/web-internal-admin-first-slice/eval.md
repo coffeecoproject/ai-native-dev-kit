@@ -50,4 +50,5 @@ Reject if:
 
 - Command output summary: include lint/typecheck/test/build result or project equivalent.
 - Screenshots / traces if UI: include loading, empty, success, error, and forbidden states when browser UI exists.
+- Industrial permission evidence: include server-side permission test evidence, forbidden state evidence, and resource scope evidence.
 - Review notes: include changed files, risk review, and any deferred follow-up.

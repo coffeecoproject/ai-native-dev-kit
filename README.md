@@ -1,75 +1,91 @@
 # AI Native Dev Kit
 
-中文详细说明见 [README.zh-CN.md](README.zh-CN.md)。
+这是一套给软件项目使用的 AI 协作工作流。
 
-快速开始见 [docs/quickstart.md](docs/quickstart.md)，Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
+它不是“让 AI 多写代码”的提示词集合，而是让 AI 在项目里按同一套规则做事：先理解需求，再整理方案，再拆任务，再执行，再验证，再复盘。
 
-## 定位
+适合两类项目：
 
-`ai-native-dev-kit` 是一套新项目启动时可复用的 AI Native 软件开发工作流底座。
+- 新项目：从第一天开始就把需求、风险、验证和记录放好。
+- 已有项目：不重写代码，先补上下文，再逐步接管新需求，慢慢治理历史问题。
 
-它不是某个业务项目，也不是某个 AI 工具的专用 prompt。它负责把模糊需求转成可执行、可验证、可审查、可回滚、可复盘的软件变更。
+详细说明见 [README.zh-CN.md](README.zh-CN.md)。快速上手见 [docs/quickstart.md](docs/quickstart.md)。Codex 使用路径见 [docs/codex-usage.md](docs/codex-usage.md)。
 
-核心原则：
+## 一句话用法
 
-1. Spec before code.
-2. Eval before implementation.
-3. Vertical slice first.
-4. Human owns judgment, AI owns execution.
-5. Small task, hard boundary.
-6. Cost-aware by default.
-7. Trace everything.
-
-## 完整工作流
-
-```text
-Intent
-  -> Project Onboarding
-  -> Intake / Request Card
-  -> Preflight Gate
-  -> Spec Pack
-  -> Eval Pack
-  -> Task Cards
-  -> Agent Execution
-  -> Verification Gate
-  -> Review Gate
-  -> Release Gate
-  -> AI Task Log
-  -> Workflow Improvement
-  -> Skill Candidate when justified
-```
-
-## 目录结构
-
-```text
-ai-native-dev-kit/
-  core/          通用流程、任务分级、门禁和平台策略
-  templates/     可复制到项目中的标准模板
-  prompts/       不同 AI agent 角色的稳定 prompt
-  checklists/    scope、risk、verification、release 等检查清单
-  scripts/       初始化和工作流完整性检查脚本
-  docs/          quickstart 和 Codex 使用说明
-  platforms/     Codex、Cursor、Claude、GitHub 等 AI 执行平台适配
-  profiles/      Web、Backend、iOS、Android、Internal Admin、高风险变更等目标运行平台基线
-  industrial-packs/ BL0/BL1/BL2 工业级工程基线包
-  industrial-pack-candidates/ 旧工业基线迁移候选区，不作为正式 workflow asset 注入项目
-  starters/      供 init-project 使用的新项目骨架，不建议手动直接复制
-  examples/      纯工作流示例，不作为业务模板
-```
-
-## 新项目推荐用法
-
-如果你在 Codex 中使用，可以直接给 Codex 这个 dev-kit 的地址或文件，并说：
+在 Codex 里，把这个仓库地址或目录给它，然后说：
 
 ```text
 请读取这套 AI Native Dev Kit，并自己判断当前项目状态，然后完成 workflow 配置。
 ```
 
-Codex 应先使用 `prompts/bootstrap-agent.md` 判断这是执行配置还是只沟通。如果是执行配置，它再运行 `scripts/workflow-next.mjs` 判断新项目、旧项目或已接入项目的下一步。
+Codex 会先判断你的意思：
 
-第一阶段先用 `init-project.mjs` 初始化，不急着做 Skill 或复杂 CLI。
+- 你说“配置、接入、初始化、自己处理”，它就可以开始执行。
+- 你说“先看看、先沟通、先评估、不要执行”，它只读取和分析，不改文件。
 
-不要手动直接复制 `starters/<name>/`。starter 只是骨架，完整项目还需要初始化脚本注入 `.ai-native/`、workflow scripts 和 CI workflow。
+这个入口由 `prompts/bootstrap-agent.md` 约束。进入执行后，Codex 会通过 `scripts/workflow-next.mjs` 判断下一步；需要强制检查时可以用 `workflow-next --enforce`。
+
+## 它解决什么
+
+很多项目接入 AI 后，真正的问题不是 AI 不会写代码，而是：
+
+- 需求没说清楚就开始改。
+- 项目边界、权限、发布风险没人记录。
+- AI 不知道哪些地方不能碰。
+- 做完以后没有证据证明它真的可用。
+- 出过的问题没有沉淀，下次还会再发生。
+
+这套 dev kit 做的事，就是给项目加一层可协作、可检查、可持续改进的规则。
+
+## 核心原则
+
+1. 先说清楚要解决什么，再写代码。
+2. 先确定怎么验收，再开始实现。
+3. 先做一条完整小流程，不一上来做大而全。
+4. 人负责判断、选择、确认和风险接受。
+5. AI 负责整理、执行、检查和记录。
+6. 高风险动作必须有人明确批准。
+7. 每次经验都可以沉淀下来，变成下一次项目的资产。
+
+## 基本流程
+
+```text
+想法
+  -> 项目上下文
+  -> 需求卡
+  -> 预检查
+  -> 规格说明
+  -> 验收标准
+  -> 任务卡
+  -> AI 执行
+  -> 验证
+  -> 审查
+  -> 发布
+  -> 记录
+  -> 复盘改进
+```
+
+对应到仓库中，主要会看到这些目录：
+
+```text
+requests/              需求入口
+preflight/             开始前的判断
+specs/                 规格说明
+evals/                 验收标准
+tasks/                 给 AI 执行的小任务
+ai-logs/               执行记录
+workflow-retros/       复盘
+workflow-improvements/ 流程改进
+skill-candidates/      适合沉淀成 Skill 的候选
+automation-proposals/  适合自动化的候选
+dev-kit-proposals/     需要回写到这套 dev kit 的建议
+releases/              发布和证据记录
+```
+
+## 新项目怎么用
+
+推荐让 Codex 自己读取并配置。你也可以手动运行初始化脚本：
 
 ```bash
 node ai-native-dev-kit/scripts/init-project.mjs \
@@ -77,7 +93,7 @@ node ai-native-dev-kit/scripts/init-project.mjs \
   --target ../my-new-project
 ```
 
-可选 starter:
+也可以选择更贴近平台的 starter：
 
 ```bash
 node ai-native-dev-kit/scripts/init-project.mjs --starter codex-web-app --target ../my-web-app
@@ -85,7 +101,34 @@ node ai-native-dev-kit/scripts/init-project.mjs --starter codex-ios-app --target
 node ai-native-dev-kit/scripts/init-project.mjs --starter codex-android-app --target ../my-android-app
 ```
 
-更新已有项目的工作流资产：
+初始化完成后，先不要急着写功能。先做 `project-onboarding`，让 AI 根据沟通补齐项目上下文，再由人确认方向、技术栈、风险边界和第一条完整小流程。
+
+项目上下文分三档：
+
+- `O0`：轻量试验。
+- `O1`：普通项目。
+- `O2`：高风险、生产敏感或长期维护项目。
+
+检查命令：
+
+```bash
+node scripts/check-project-onboarding.mjs .
+```
+
+## 已有项目怎么用
+
+已有项目更适合渐进接入，不建议一上来重构。
+
+推荐顺序是：
+
+```text
+先不改代码
+先补项目上下文
+再约束新需求
+最后逐步治理旧问题
+```
+
+接入命令：
 
 ```bash
 node ai-native-dev-kit/scripts/init-project.mjs \
@@ -93,13 +136,141 @@ node ai-native-dev-kit/scripts/init-project.mjs \
   --update-workflow-assets
 ```
 
-该更新模式会更新或补齐：
+它会补齐工作流需要的文件和脚本，但不会覆盖你的业务代码、已有规格、已有任务或已有记录。
 
-- `.ai-native/`
-- `scripts/check-ai-workflow.mjs`
-- `scripts/summarize-ai-logs.mjs`
-- `scripts/check-workflow-version.mjs`
-- `scripts/workflow-daily-summary.mjs`
+如果已有项目已经有 `AGENTS.md` 或 PR 模板，默认只会生成 `migration-reports`，让人确认后再合并。需要明确应用时再使用：
+
+```bash
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-agent-governance
+
+node ai-native-dev-kit/scripts/init-project.mjs \
+  --target ../existing-project \
+  --update-workflow-assets \
+  --apply-pr-template-governance
+```
+
+## 平台和基线
+
+这套 workflow 是统一的，但不同平台的工程要求不同。
+
+所以它把两层拆开：
+
+- `platforms/`：Codex、Cursor、Claude、GitHub 这些执行环境怎么接入。
+- `profiles/`：Web、Backend、iOS、Android、微信小程序、内部管理后台、高风险变更这些项目类型的 platform baseline。
+
+项目里会在 `docs/project-profile.md` 的 `Selected Profiles` 里选择适用 profile。
+
+可选 profile 包括：
+
+```text
+profiles/web-app
+profiles/backend-api
+profiles/ios-app
+profiles/android-app
+profiles/wechat-miniprogram
+profiles/internal-admin
+profiles/high-risk-change
+```
+
+检查命令：
+
+```bash
+node scripts/check-platform-baseline.mjs .
+node scripts/resolve-platform-baseline.mjs .
+```
+
+## 工业级工程包
+
+如果项目要求更高，可以选择 BL 级别：
+
+- `BL0`：轻量项目。
+- `BL1`：标准项目。
+- `BL2`：更严格的工业级项目。
+
+`industrial-packs/` 里放的是可组合的工业级工程包，比如 Web、iOS、Android、微信小程序、后端接口、权限、数据存储、支付或高风险变更。
+
+检查命令：
+
+```bash
+node scripts/check-industrial-pack.mjs .
+node scripts/resolve-industrial-baseline.mjs .
+node scripts/check-industrial-baseline.mjs .
+```
+
+BL2 不只看“有没有写文档”，还要求证据真实存在。`docs/baseline-evidence.md` 里的 `Done` 必须有项目内文件作为证据引用；`Not applicable` 必须写清楚为什么不适用。
+
+## 每次需求怎么走
+
+先创建需求入口：
+
+```bash
+node scripts/new-workflow-item.mjs --type request --name first-change
+```
+
+然后按顺序补齐 request、preflight、spec、eval、task。
+
+实现前检查：
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode ready
+```
+
+只检查某张任务卡：
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/001-first-change.md
+```
+
+CI 里可以只检查本次变更：
+
+```bash
+node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base origin/main
+```
+
+如果任务卡里勾选了风险项，`Human Approval` 必须写清楚是否批准，并补上 `Approval scope`。进入 implementation 模式时，高风险任务必须已经批准。
+
+## 这次更新了什么
+
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.16.0`。
+
+新增内容：
+
+- BL2 证据改成结构化记录，不再只靠关键词。
+- `Done` 状态必须有真实存在的证据文件。
+- `Not applicable` 必须写清楚原因。
+- 实现前检查会读取平台基线和工业基线，防止任务绕过风险约束。
+- 任务级别不够、基线没准备好、验收证据不足时会被拦住。
+- 新增微信小程序 profile，并绑定微信小程序工业包。
+- 自检里补了缺失证据引用的失败用例，避免以后回退。
+
+## 它会自我迭代吗
+
+会，但不会自动乱改规则。
+
+项目运行中可以把问题写入：
+
+- `ai-logs/`
+- `workflow-retros/`
+- `workflow-improvements/`
+- `skill-candidates/`
+- `automation-proposals/`
+- `dev-kit-proposals/`
+
+是否真的升级成 Skill、自动化或 dev-kit 规则，需要人确认。
+
+相关治理在 `core/self-iteration.md` 和 `core/skill-governance.md`。
+
+## 快速索引
+
+常用入口：
+
+- `docs/quickstart.md`
+- `docs/codex-usage.md`
+- `prompts/bootstrap-agent.md`
+- `scripts/workflow-next.mjs`
 - `scripts/check-project-onboarding.mjs`
 - `scripts/check-platform-baseline.mjs`
 - `scripts/resolve-platform-baseline.mjs`
@@ -108,367 +279,36 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 - `scripts/check-industrial-baseline.mjs`
 - `scripts/check-workflow-artifacts.mjs`
 - `scripts/new-workflow-item.mjs`
-- `scripts/workflow-next.mjs`
-- 缺失的 `docs/project-onboarding.md`
-- 缺失的 `docs/project-profile.md`
-- 缺失的 `docs/tech-stack-strategy.md`
-- 缺失的 `docs/business-spec-index.md`
-- 缺失的 `docs/sample-policy.md`
-- 缺失的 `docs/onboarding-decisions.md`
-- 缺失的 `docs/verification-matrix.md`
-- 缺失的 `AGENTS.md`
-- `.github/workflows/ai-workflow-checks.yml`
+- `scripts/workflow-daily-summary.mjs`
 
-不会修改业务代码，不会覆盖已有项目 docs，不会覆盖既有 requests、specs、tasks、ai-logs 等工作记录；只会补齐缺失的 onboarding docs、缺失的 `AGENTS.md` 和工作流目录。
+示例：
 
-如果已有项目已经有 `AGENTS.md`，但缺少 AI Native workflow governance 标记，更新模式默认不会直接改这个文件。它会生成：
+- `examples/generic-first-change`
+- `examples/web-internal-admin-first-slice`
 
-```text
-.ai-native/migration-reports/agents-governance.md
-```
+Starter：
 
-人工确认后再显式应用：
+- `generic-project`
+- `codex-web-app`
+- `codex-ios-app`
+- `codex-android-app`
 
-```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
-  --target ../existing-project \
-  --update-workflow-assets \
-  --apply-agent-governance
-```
+重要目录：
 
-如果已有项目已经有 `.github/pull_request_template.md`，但缺少 workflow governance 标记，更新模式默认不会直接改这个文件。它会生成：
+- `core/`
+- `templates/`
+- `profiles/`
+- `platforms/`
+- `industrial-packs/`
+- `starters/`
 
-```text
-.ai-native/migration-reports/pr-template-governance.md
-```
+## 自检
 
-人工确认后再显式应用：
+修改 dev kit 后运行：
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
-  --target ../existing-project \
-  --update-workflow-assets \
-  --apply-pr-template-governance
+node scripts/check-dev-kit.mjs
 ```
-
-初始化后，新项目会得到：
-
-```text
-AGENTS.md
-README.md
-.ai-native/
-  core/
-  templates/
-  prompts/
-  checklists/
-  profiles/
-  industrial-packs/
-docs/
-  ai-workflow.md
-  project-onboarding.md
-  project-profile.md
-  tech-stack-strategy.md
-  business-spec-index.md
-  sample-policy.md
-  onboarding-decisions.md
-  product-vision.md
-  engineering-principles.md
-  risk-policy.md
-  architecture.md
-  domain-model.md
-  permission-model.md
-  test-strategy.md
-  verification-matrix.md
-requests/
-preflight/
-specs/
-evals/
-tasks/
-ai-logs/
-workflow-retros/
-workflow-improvements/
-skill-candidates/
-automation-proposals/
-dev-kit-proposals/
-releases/
-scripts/
-  verify.sh
-  check-ai-workflow.mjs
-  summarize-ai-logs.mjs
-  check-workflow-version.mjs
-  workflow-daily-summary.mjs
-  check-project-onboarding.mjs
-  check-platform-baseline.mjs
-  resolve-platform-baseline.mjs
-  check-industrial-pack.mjs
-  resolve-industrial-baseline.mjs
-  check-industrial-baseline.mjs
-  check-workflow-artifacts.mjs
-  new-workflow-item.mjs
-  workflow-next.mjs
-.github/pull_request_template.md
-.github/workflows/ai-workflow-checks.yml
-```
-
-已有项目可以用同一个初始化脚本补齐或更新 workflow 资产：
-
-```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets
-```
-
-更新模式会刷新共享 `.ai-native/` 资产、workflow scripts、workflow CI，补齐缺失的 onboarding docs、缺失的 `AGENTS.md` 和 workflow 目录。已有 `AGENTS.md` 或 PR template 缺少 governance 标记时，默认只生成迁移报告；人工确认后可用 `--apply-agent-governance` 或 `--apply-pr-template-governance` 应用。它不会覆盖已有业务文档、specs、tasks、logs 或业务代码。
-
-之后先看项目状态：
-
-```bash
-node scripts/workflow-next.mjs .
-node scripts/workflow-next.mjs . --enforce
-```
-
-`--enforce` 可作为项目状态门禁；当 workflow 资产缺失、版本不匹配、迁移报告待审批或 onboarding 未就绪时返回非零。
-
-然后按这个节奏工作：
-
-1. 用 `.ai-native/prompts/project-onboarding-agent.md` 做项目 onboarding。
-2. 选择 onboarding level：`O0` 用于轻量试验，`O1` 用于普通项目，`O2` 用于高风险或生产敏感项目。
-3. AI 根据沟通草拟 `docs/project-onboarding.md`、project profile、tech stack strategy、business spec index、sample policy 和 decision log。
-4. 人只做确认、否决、选择、补充和风险接受，不手工填完整套文档。
-5. 运行 `node scripts/check-project-onboarding.mjs .` 检查 baseline；决策确认后可运行 `node scripts/check-project-onboarding.mjs . --strict`。
-6. 在 `docs/project-profile.md` 里确认 `Selected Profiles`，例如 `web-app`、`backend-api`、`ios-app`。
-7. 运行 `node scripts/check-platform-baseline.mjs .` 检查平台基线；需要查看合成结果时运行 `node scripts/resolve-platform-baseline.mjs .`。
-8. 如果项目选择 BL2，用 `.ai-native/templates/baseline-selection.md` 和 `.ai-native/templates/baseline-evidence.md` 草拟项目工业基线，然后运行 `node scripts/check-industrial-pack.mjs .` 和 `node scripts/check-industrial-baseline.mjs .`。
-9. 用 `node scripts/new-workflow-item.mjs --type request --name <name>` 创建第一张需求入口。
-10. 用 Preflight Agent 生成 `preflight/`。
-11. 用 `.ai-native/templates/` 写 `specs/` 和 `evals/`。
-12. 用 `.ai-native/templates/task-card.md` 拆成 `tasks/` 中的小任务卡。
-13. 跑 `node scripts/check-workflow-artifacts.mjs . --mode ready` 检查 artifact 质量。
-   草稿阶段可用 `--mode draft`，实现前用 `--mode ready`，高风险实现门禁用 `--mode implementation --task <task-card>`。
-   CI 中建议用 `--mode ready --changed-only --base <base-ref>`，避免历史草稿阻塞无关 PR。
-   如果 task 的 Risk Gate 有勾选项，`Human Approval` 必须记录审批状态和 `Approval scope`；implementation 模式要求 `Status: Approved`。
-14. 让 AI 只执行一个 task card。
-15. 跑 `scripts/verify.sh`。
-16. 审查 diff 和 risk gate。
-17. 合并后写 `ai-logs/`。
-18. 阶段性写 `workflow-retros/`。
-19. 重复问题写 `workflow-improvements/`。
-20. 重复执行模式适合封装时写 `skill-candidates/`，但不能自动启用 Skill。
-21. 项目需要定时自动化时，先写 `automation-proposals/` 并获得人工确认。
-22. 需要回写共享 dev-kit 时写 `dev-kit-proposals/`。
-
-## Platform Baseline Profiles
-
-`profiles/` 是目标运行平台基线，不是 AI 执行适配。这里的 platform baseline 是项目工程基线层，一个项目可以选择多个 profile：
-
-```md
-## Selected Profiles
-
-- web-app
-- backend-api
-- internal-admin
-```
-
-检查和解析：
-
-```bash
-node scripts/check-platform-baseline.mjs .
-node scripts/check-platform-baseline.mjs . --strict
-node scripts/check-platform-baseline.mjs . --json
-node scripts/resolve-platform-baseline.mjs .
-node scripts/resolve-platform-baseline.mjs . --json
-```
-
-resolver 会合成 selected profiles 的 required docs、task level 升级规则、风险门禁映射、验证证据、发布检查和 AI 边界。profile 不改变统一 workflow，只影响默认 task level、风险门禁、验证证据和发布要求。
-
-## Industrial Baseline Packs
-
-`industrial-packs/` 是 BL2 工业级工程标准层。它不替代 core workflow，也不是 starter。它回答“这个项目怎样才算工业级可交付”。
-
-Baseline level 与其他等级分开：
-
-```text
-O-level  = onboarding 深度：O0 / O1 / O2
-L-level  = 单个 task 风险等级：L0 / L1 / L2 / L3
-BL-level = 项目工程治理强度：BL0 / BL1 / BL2
-```
-
-当前内置：
-
-```text
-industrial-packs/web-app                   draft pack
-industrial-packs/ios-app                   draft pack
-industrial-packs/android-app               draft pack
-industrial-packs/wechat-miniprogram        draft pack
-industrial-packs/backend-api               draft pack
-industrial-packs/internal-admin            draft pack
-industrial-packs/data-storage              draft pack
-industrial-packs/cloudbase                 draft pack
-industrial-packs/auth-permission           draft pack
-industrial-packs/payment-value-transfer    draft pack
-industrial-packs/high-risk-change          draft pack
-industrial-pack-candidates/                legacy pack migration staging area
-```
-
-检查工业包自身：
-
-```bash
-node scripts/check-industrial-pack.mjs .
-node scripts/check-industrial-pack.mjs . --json
-node scripts/resolve-industrial-baseline.mjs .
-node scripts/resolve-industrial-baseline.mjs . --json
-node scripts/check-industrial-baseline.mjs .
-node scripts/check-industrial-baseline.mjs . --strict
-node scripts/check-industrial-baseline.mjs . --json
-```
-
-`check-industrial-pack.mjs` 只检查 pack 结构、元数据、引用、必需文件和基础 purity；不证明某个真实项目已经工业达标。真实项目证据应放入 `docs/baseline-selection.md` 和 `docs/baseline-evidence.md`，再由 `resolve-industrial-baseline.mjs` 合成项目选择，由 `check-industrial-baseline.mjs` 检查 BL2 是否可执行。
-
-可以先参考 [examples/generic-first-change](examples/generic-first-change) 写第一组 request/preflight/spec/eval/task。该示例只表达工作流结构，不绑定任何业务域。
-
-更具体的 first-slice 示例见 [examples/web-internal-admin-first-slice](examples/web-internal-admin-first-slice)。
-
-## Dev Kit 自检
-
-修改 dev-kit 自身时运行：
-
-```bash
-node ai-native-dev-kit/scripts/check-dev-kit.mjs
-```
-
-它会检查：
-
-- 默认 starter 是否仍是 `generic-project`
-- core/templates/prompts/checklists/default starter/default example 是否保持业务中立
-- profile 是否满足必填章节
-- starter 是否包含必备文件
-- Skill governance 是否进入 core、template、checklist 和 generated project baseline
-- Automation governance 是否进入 core、template、checklist 和 generated project baseline
-- Project onboarding 是否进入 core、template、prompt、checklist、generated project baseline 和 CI
-- workflow item generator 和 artifact quality checker 是否进入 generated project baseline 和 CI
-- init-project 是否能生成完整项目并更新 workflow assets
-- workflow-daily-summary 是否能在生成项目中运行
-- 脚本语法是否可解析
-
-## 版本
-
-当前 dev-kit 版本记录在 [VERSION.md](VERSION.md)。生成项目会得到 `.ai-native/version.json`，用于记录初始化版本、starter 和最近一次 workflow assets 更新时间。
-
-## 自我迭代闭环
-
-详见 [core/self-iteration.md](core/self-iteration.md)。
-
-项目运行时用这条链路沉淀工作流经验：
-
-```text
-ai-logs/
-  -> workflow-retros/
-  -> workflow-improvements/
-  -> skill-candidates/
-  -> automation-proposals/
-  -> dev-kit-proposals/
-```
-
-汇总命令：
-
-```bash
-node scripts/summarize-ai-logs.mjs .
-```
-
-每日巡检命令：
-
-```bash
-node scripts/workflow-daily-summary.mjs . --write-state
-```
-
-`workflow-daily-summary.mjs` 只判断是否有新证据或待处理项。没有信号时输出 `NO_ACTION`，有信号时输出 `ACTION_REQUIRED` 和建议动作。它不修改业务代码，也不创建或启用 active Skill。
-
-Codex automation 应该按项目单独创建，`cwd` 指向具体项目根目录。不要默认把 automation 绑到共享 dev-kit 或父目录扫描多个项目；只有明确需要多项目监控时才这么做。
-
-版本检查：
-
-```bash
-node scripts/check-workflow-version.mjs .
-```
-
-原则：
-
-- 项目可以产生改进建议。
-- 项目可以产生 Skill 候选。
-- 项目可以产生 automation proposal。
-- 共享 dev-kit 不能被项目自动无审查修改。
-- Skill 候选不能自动生成、更新、安装或启用 active Skill。
-- 每日 automation 应跟随具体项目，而不是跟随共享 dev-kit。
-- Codex 可以提出项目级 automation，但创建、更新、启用必须人工确认。
-- 回写 dev-kit 必须经过 proposal、review 和 `check-dev-kit.mjs`。
-- 一次性项目偏好不能直接进入 core。
-
-## 平台是否区分
-
-区分，但只在适配层区分。
-
-```text
-workflow = 统一
-templates = 统一
-gates = 统一
-verification = 统一
-platform adapters = 分平台
-```
-
-Codex 使用 `AGENTS.md` 和可选 Skill。
-Cursor 使用 rules / project instructions。
-Claude 使用 project instructions / commands。
-GitHub 使用 PR template 和 Actions。
-
-目标平台通过 profile/starter 区分：
-
-```text
-profiles/web-app
-profiles/backend-api
-profiles/ios-app
-profiles/android-app
-profiles/internal-admin
-profiles/high-risk-change
-```
-
-不要让平台决定工作流。应该让工作流决定平台如何接入。
-
-## 任务分级
-
-不是每个任务都需要完整流程。默认分四级：
-
-| Level | 场景 | 所需流程 |
-|---|---|---|
-| L0 | 文案、样式、小 bug | 直接修改 + verification |
-| L1 | 普通功能 | Spec + Task + Verification |
-| L2 | 涉及权限、数据、架构、跨模块 | Preflight + Spec + Eval + Review |
-| L3 | 涉及不可逆、受监管、敏感数据、生产迁移、删除、价值转移或安全关键变更 | 完整流程 + 人工确认 + 审计 + 回滚 |
-
-详见 [core/task-levels.md](core/task-levels.md)。
-
-## 与 Skill 的关系
-
-Skill 是后期封装，不是第一约束。
-
-防止工作流跑偏的优先级：
-
-1. `AGENTS.md`
-2. `templates/`
-3. `scripts/` 和 CI
-4. PR template / Review gate
-5. Codex Skill / Cursor Rules / Claude instructions
-
-Skill 可以帮助 AI 更稳定地执行流程，但真正的硬约束来自脚本、CI、测试、门禁和人工批准。
-
-## 维护方式
-
-每完成一个项目或阶段，把有效经验回收到 dev-kit：
-
-- 哪个 spec 字段反复缺失？
-- 哪个 eval 漏检？
-- 哪类任务 AI 容易跑偏？
-- 哪个 prompt 最稳定？
-- 哪个 risk gate 需要升级？
-
-这个 kit 应该像产品一样版本化迭代。
 
 ## License
 
@@ -477,5 +317,3 @@ This project is licensed under the Creative Commons Attribution-NonCommercial 4.
 You may view, download, copy, adapt, and share this material for personal, educational, and non-commercial purposes with attribution.
 
 Commercial use, resale, paid redistribution, or use as part of commercial consulting/service delivery is not permitted without prior written permission.
-
-Commercial licensing is available on request.

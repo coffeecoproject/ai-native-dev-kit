@@ -281,6 +281,110 @@ function missingBaselineEvidenceTerms(projectRoot, requiredEvidence) {
     .filter((term) => !content.includes(String(term).toLowerCase())));
 }
 
+function normalizeHeader(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function isFilledValue(value) {
+  return Boolean(String(value || "").trim())
+    && !String(value || "").includes("<")
+    && !/^(pending|tbd|todo|not audited|not_ready|yes \/ no)$/i.test(String(value || "").trim());
+}
+
+function parseMarkdownTable(body) {
+  if (!body) return [];
+  const lines = body
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("|") && line.endsWith("|"));
+  if (lines.length < 3) return [];
+
+  const headers = lines[0].split("|").slice(1, -1).map(normalizeHeader);
+  const separatorIndex = lines.findIndex((line, index) => index > 0 && /^\|\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|$/.test(line));
+  if (separatorIndex === -1) return [];
+
+  return lines.slice(separatorIndex + 1).map((line) => {
+    const cells = line.split("|").slice(1, -1).map((cell) => cell.trim());
+    const row = {};
+    headers.forEach((header, index) => {
+      row[header] = cells[index] || "";
+    });
+    return row;
+  }).filter((row) => Object.values(row).some(isFilledValue));
+}
+
+function normalizeRequirement(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[`*_]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function splitEvidenceRefs(value) {
+  return String(value || "")
+    .split(/[,;]/)
+    .map((item) => item.trim().replace(/^`|`$/g, ""))
+    .filter((item) => item && !item.includes("<"));
+}
+
+function parseBaselineEvidence(projectRoot) {
+  const rel = "docs/baseline-evidence.md";
+  const full = path.join(projectRoot, rel);
+  if (!fs.existsSync(full)) {
+    return { path: rel, exists: false, rows: [] };
+  }
+  const content = fs.readFileSync(full, "utf8");
+  return {
+    path: rel,
+    exists: true,
+    rows: parseMarkdownTable(sectionBody(content, "Evidence Index")),
+  };
+}
+
+function validateEvidenceReferences(projectRoot, requiredEvidence, evidence) {
+  if (!evidence.exists) return [`missing ${evidence.path}`];
+  const requiredTerms = unique(Object.values(requiredEvidence || {}).flat());
+  if (requiredTerms.length === 0) return [];
+
+  const rowsByRequirement = new Map();
+  for (const row of evidence.rows) {
+    const requirement = normalizeRequirement(row.requirement);
+    if (requirement) rowsByRequirement.set(requirement, row);
+  }
+
+  const issues = [];
+  for (const term of requiredTerms) {
+    const row = rowsByRequirement.get(normalizeRequirement(term));
+    if (!row) {
+      issues.push(`missing evidence row: ${term}`);
+      continue;
+    }
+    const status = String(row.status || "").trim().toLowerCase();
+    if (status === "done") {
+      const refs = splitEvidenceRefs(row["evidence ref"]);
+      if (refs.length === 0) {
+        issues.push(`missing evidence ref for done requirement: ${term}`);
+        continue;
+      }
+      for (const ref of refs) {
+        if (path.isAbsolute(ref) || ref.split(/[\\/]/).includes("..")) {
+          issues.push(`unsafe evidence ref for ${term}: ${ref}`);
+        } else if (!fs.existsSync(path.join(projectRoot, ref))) {
+          issues.push(`missing evidence ref for ${term}: ${ref}`);
+        }
+      }
+    } else if (status === "not applicable") {
+      if (!isFilledValue(row["reason if skipped"])) {
+        issues.push(`missing not applicable reason for: ${term}`);
+      }
+    } else {
+      issues.push(`evidence status is not complete for ${term}: ${row.status || "none"}`);
+    }
+  }
+  return unique(issues);
+}
+
 export function resolveIndustrialBaseline(projectRoot) {
   const root = path.resolve(projectRoot);
   const selection = readBaselineSelection(root);
@@ -325,6 +429,10 @@ export function resolveIndustrialBaseline(projectRoot) {
   const missingEvidenceTerms = selection.baselineLevel === "BL2_INDUSTRIAL"
     ? missingBaselineEvidenceTerms(root, requiredEvidence)
     : [];
+  const baselineEvidence = parseBaselineEvidence(root);
+  const evidenceReferenceIssues = selection.baselineLevel === "BL2_INDUSTRIAL"
+    ? validateEvidenceReferences(root, requiredEvidence, baselineEvidence)
+    : [];
 
   let state = "NOT_SELECTED";
   const pendingReasons = [...selection.pendingReasons];
@@ -345,6 +453,15 @@ export function resolveIndustrialBaseline(projectRoot) {
     state = "PACKS_INCOMPATIBLE";
   } else if (missingProjectDocs.length > 0) {
     state = "EVIDENCE_MISSING";
+    pendingReasons.push(`missing BL2 project docs: ${missingProjectDocs.join(", ")}`);
+  } else if (missingEvidenceTerms.length > 0 || evidenceReferenceIssues.length > 0) {
+    state = "EVIDENCE_MISSING";
+    if (missingEvidenceTerms.length > 0) {
+      pendingReasons.push(`missing baseline evidence terms: ${missingEvidenceTerms.join(", ")}`);
+    }
+    if (evidenceReferenceIssues.length > 0) {
+      pendingReasons.push(`baseline evidence reference issues: ${evidenceReferenceIssues.join("; ")}`);
+    }
   } else if (selection.humanApprovalStatus !== "APPROVED") {
     state = "NEEDS_HUMAN_APPROVAL";
     pendingReasons.push("BL2_INDUSTRIAL requires approved Human Approval status");
@@ -390,7 +507,9 @@ export function resolveIndustrialBaseline(projectRoot) {
     effectiveRiskMappings,
     effectiveTaskLevelEscalation,
     effectiveRequiredEvidence: requiredEvidence,
+    baselineEvidence,
     missingEvidenceTerms,
+    evidenceReferenceIssues,
     effectiveHumanApprovalRequiredFor,
     pendingReasons: unique(pendingReasons),
   };

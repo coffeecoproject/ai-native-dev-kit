@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.15.0`
+Current version: `0.16.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.15.0`
 
 ## Current Release
 
-`0.15.0`
+`0.16.0`
 
 Includes:
 
@@ -58,3 +58,6 @@ Includes:
 - project-level industrial baseline resolver and checker
 - `workflow-next` reports BL2 industrial baseline readiness
 - baseline selection and baseline evidence templates
+- structured BL2 evidence references with strict existence checks
+- workflow artifact implementation checks read platform and industrial baselines
+- WeChat Mini Program profile and machine-readable baseline

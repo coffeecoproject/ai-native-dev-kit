@@ -218,7 +218,7 @@ scripts/
 
 1. 运行 project onboarding，让 AI 根据沟通生成项目上下文草案。
 2. 人确认项目方向、技术栈、高风险边界、第一条 vertical slice。
-3. 在 `docs/project-profile.md` 里确认 `Selected Profiles`，例如 `web-app`、`backend-api`、`ios-app`。
+3. 在 `docs/project-profile.md` 里确认 `Selected Profiles`，例如 `web-app`、`backend-api`、`ios-app`、`wechat-miniprogram`。
 4. 运行 `node scripts/check-platform-baseline.mjs .`，需要看合成结果时运行 `node scripts/resolve-platform-baseline.mjs .`。
 5. 创建 `requests/` 下的需求入口。
 6. 大需求先做 preflight。
@@ -236,7 +236,7 @@ scripts/
 ## Platform Baseline
 
 `platforms/` 是 Codex、Cursor、Claude、GitHub 这些 AI 执行平台适配。
-`profiles/` 是 Web、Backend、iOS、Android 等目标运行平台基线。
+`profiles/` 是 Web、Backend、iOS、Android、WeChat Mini Program 等目标运行平台基线。
 
 项目可以选择多个 profile：
 
@@ -292,6 +292,8 @@ node scripts/check-industrial-baseline.mjs . --json
 ```
 
 `check-industrial-pack.mjs` 只证明 pack 结构健康，不证明真实项目已经工业达标。真实项目证据应进入 `docs/baseline-selection.md` 和 `docs/baseline-evidence.md`，再由 `resolve-industrial-baseline.mjs` 合成项目选择，由 `check-industrial-baseline.mjs` 检查 BL2 是否可执行。
+
+`docs/baseline-evidence.md` 使用结构化 evidence index。`Status: Done` 的条目必须有真实存在的项目内 `Evidence Ref`；`Status: Not applicable` 的条目必须填写 `Reason if skipped`。默认检查允许 pending，`--strict` 会把缺失引用、未完成状态或缺少跳过理由视为失败。
 
 ## 自检
 

@@ -98,6 +98,8 @@ node scripts/check-industrial-baseline.mjs .
 
 For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.ai-native/templates/`, then use `check-industrial-baseline.mjs --strict` only after the human has approved baseline level, selected packs, exceptions, and residual risks.
 
+`baseline-evidence.md` must reference real project evidence. Rows with `Status: Done` need an existing `Evidence Ref`; rows marked `Not applicable` need a reason.
+
 ## First Workflow Package
 
 Create a request:

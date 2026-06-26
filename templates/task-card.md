@@ -61,6 +61,10 @@ This task touches:
 - [ ] secrets
 - [ ] personal data
 - [ ] regulated data
+- [ ] external side effect
+- [ ] privileged operation
+- [ ] app signing / platform release
+- [ ] cloud function / access rule
 
 If any item is checked, implementation requires explicit human approval before code changes.
 

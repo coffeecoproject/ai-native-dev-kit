@@ -69,6 +69,14 @@ function recordTermCoverage(kind, missing) {
   }
 }
 
+function recordEvidenceReferenceCoverage(issues) {
+  if (!issues || issues.length === 0) {
+    pass("baseline evidence references");
+    return;
+  }
+  warn(`baseline evidence reference issues: ${issues.join("; ")}`);
+}
+
 const result = resolveIndustrialBaseline(projectRoot);
 
 if (!outputJson) {
@@ -136,6 +144,7 @@ if (result.baselineLevel === "BL2_INDUSTRIAL") {
   }
 
   recordTermCoverage("baseline evidence", result.missingEvidenceTerms);
+  recordEvidenceReferenceCoverage(result.evidenceReferenceIssues);
 }
 
 if (result.baselineLevel === "BL0_LIGHTWEIGHT" || result.baselineLevel === "BL1_STANDARD") {

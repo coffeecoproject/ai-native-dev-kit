@@ -119,6 +119,8 @@ const requiredPaths = [
   ".ai-native/profiles/ios-app/baseline.json",
   ".ai-native/profiles/android-app/profile.md",
   ".ai-native/profiles/android-app/baseline.json",
+  ".ai-native/profiles/wechat-miniprogram/profile.md",
+  ".ai-native/profiles/wechat-miniprogram/baseline.json",
   ".ai-native/profiles/internal-admin/profile.md",
   ".ai-native/profiles/internal-admin/baseline.json",
   ".ai-native/profiles/high-risk-change/profile.md",

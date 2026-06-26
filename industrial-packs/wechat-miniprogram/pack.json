@@ -4,7 +4,7 @@
   "type": "primary-platform",
   "displayName": "WeChat Mini Program Industrial Pack",
   "status": "draft",
-  "appliesToProfiles": [],
+  "appliesToProfiles": ["wechat-miniprogram"],
   "compatiblePacks": [
     "backend-api-industrial",
     "cloudbase-industrial",
