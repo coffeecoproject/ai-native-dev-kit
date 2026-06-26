@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.39.0`
+Current version: `0.40.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `0.39.0`
 
 ## Current Release
 
-`0.39.0`
+`0.40.0`
 
 Includes:
 
+- Productization Hardcut phase `0.40.0`: fixture matrix expansion
+- `test-fixtures/` is organized into golden, bad, migration, CLI, init/update, and output-quality fixture areas
+- `test-fixtures/fixture-cases.json` now records case type, checker coverage, expected output, and repair guidance
+- `scripts/check-fixtures.mjs` supports generated-project setup, migration manifest setup, typed coverage summaries, and clearer failure diagnostics
+- Fixture coverage now includes workflow assets, onboarding, workflow version, platform baseline, industrial baseline, manifest, CLI, init/update, frontmatter migration, and workflow-next smoke cases
 - Productization Hardcut phase `0.39.0`: artifact frontmatter and schema
 - `schemas/artifacts/` defines initial metadata schemas for request, preflight, spec, eval, task, review loop report, goal card, and subagent run plan
 - `scripts/lib/frontmatter.mjs` provides dependency-free frontmatter parsing, formatting, and validation

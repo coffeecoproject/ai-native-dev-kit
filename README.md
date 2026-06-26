@@ -345,6 +345,7 @@ Machine-readable Output
 ```text
 好例子证明正确路径
 坏例子证明 checker 能拦问题
+迁移例子证明兼容边界
 fixture runner 证明失败原因稳定
 ```
 
@@ -364,6 +365,8 @@ node scripts/check-goal-mode.mjs examples/goal-mode-first-route
 ```
 
 这些检查只用于 dev-kit 自身，不会作为目标项目 workflow asset 注入。
+
+`0.40.0` 开始，fixture 变成 typed matrix：`golden`、`bad`、`migration`、`cli`、`init-update`、`output-quality`。这不是给真实项目加负担，而是让 dev-kit 自己的 checker 行为更稳定，方便后续安全重构。
 
 ## 新项目怎么用
 
@@ -666,6 +669,13 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - 新增 Engineering Baseline golden examples：`examples/engineering-baseline-enum-vs-lookup` 和 `examples/engineering-baseline-api-dto-domain`。
 - 新增 Next-Step Boundary golden example：`examples/next-step-boundary-suggestions`。
 - `check-dev-kit` 现在会运行 fixture suite，保证好例子通过、坏例子因预期原因失败。
+
+0.40.0 新增内容：
+
+- `test-fixtures/` 按 `golden`、`bad`、`migrations`、`cli`、`init-update`、`output-quality` 分区。
+- `fixture-cases.json` 记录 case 类型、对应 checker、期望输出和修复建议。
+- `check-fixtures` 支持临时生成项目和 manifest 迁移输入，用来覆盖需要目标项目上下文的 checker。
+- fixture 结果会输出按类型和 checker 的覆盖摘要。
 
 历史累计能力：
 

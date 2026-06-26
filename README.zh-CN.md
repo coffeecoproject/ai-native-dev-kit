@@ -269,6 +269,7 @@ Codex 不能自己创造或升级项目级工程规范。
 ```text
 好例子证明正确路径
 坏例子证明 checker 能拦问题
+迁移例子证明兼容边界
 fixture runner 证明失败原因稳定
 ```
 
@@ -289,6 +290,8 @@ node scripts/check-subagent-orchestration.mjs examples/subagent-orchestration-cl
 ```
 
 这些检查只用于 dev-kit 自身，不会注入到目标项目。
+
+`0.40.0` 开始，fixture 变成 typed matrix：`golden`、`bad`、`migration`、`cli`、`init-update`、`output-quality`。这不是给真实项目加负担，而是让 dev-kit 自己的 checker 行为更稳定，方便后续安全重构。
 
 `0.30.1` 继续强化这层：fixture 失败时会给出命令和修复建议，并补充更多坏例子，覆盖 pending 工程决策、AUTO_FIX 超过 2 轮、RISK_DECISION 没有进入人工决策队列等问题。
 

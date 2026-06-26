@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -23,6 +24,7 @@ const selectedCase = args.case ? String(args.case) : null;
 const outputJson = Boolean(args.json);
 let failed = false;
 const results = [];
+const allowedCaseTypes = new Set(["golden", "bad", "migration", "cli", "init-update", "output-quality"]);
 
 function parseArgs(argv) {
   const parsed = { _: [] };
@@ -63,9 +65,14 @@ function validateCase(testCase, index) {
     return `${label} must be an object`;
   }
   if (!testCase.name) return `${label} missing name`;
+  if (!testCase.type) return `${testCase.name} missing type`;
+  if (!allowedCaseTypes.has(testCase.type)) return `${testCase.name} has invalid type: ${testCase.type}`;
+  if (!testCase.checker) return `${testCase.name} missing checker`;
   if (!testCase.script) return `${testCase.name} missing script`;
   if (!Array.isArray(testCase.args)) return `${testCase.name} args must be an array`;
   if (!("expectStatus" in testCase)) return `${testCase.name} missing expectStatus`;
+  if (!testCase.howToFix) return `${testCase.name} missing howToFix`;
+  if (testCase.setup && typeof testCase.setup !== "object") return `${testCase.name} setup must be an object`;
   return null;
 }
 
@@ -73,87 +80,200 @@ function includesAll(output, expected) {
   return (expected || []).every((needle) => output.includes(needle));
 }
 
+function createRunContext(testCase) {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-fixture-"));
+  const context = {
+    tempRoot,
+    manifest: path.join(tempRoot, "dev-kit-manifest.mismatch.json"),
+    project: path.join(tempRoot, "project"),
+  };
+  const setup = testCase.setup || {};
+  if (setup.manifestVersionMismatch) {
+    const manifestPath = path.join(kitRoot, "dev-kit-manifest.json");
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    manifest.devKitVersion = setup.manifestVersionMismatch.version || "0.0.0";
+    fs.writeFileSync(context.manifest, `${JSON.stringify(manifest, null, 2)}\n`);
+  }
+  if (setup.generatedProject) {
+    const options = typeof setup.generatedProject === "object" ? setup.generatedProject : {};
+    const starter = options.starter || "generic-project";
+    const setupResult = spawnSync(process.execPath, [
+      path.join(kitRoot, "scripts/init-project.mjs"),
+      "--starter",
+      starter,
+      "--target",
+      context.project,
+      ...(Array.isArray(options.args) ? options.args.map(String) : []),
+    ], {
+      cwd: kitRoot,
+      encoding: "utf8",
+    });
+    context.setupCommand = `node scripts/init-project.mjs --starter ${starter} --target {project}`;
+    context.setupStdout = setupResult.stdout || "";
+    context.setupStderr = setupResult.stderr || "";
+    context.setupStatus = setupResult.status ?? 1;
+    if (context.setupStatus !== 0) {
+      context.setupFailed = true;
+    }
+  }
+  return context;
+}
+
+function substitute(value, context) {
+  return String(value)
+    .replaceAll("{project}", context.project)
+    .replaceAll("{manifest}", context.manifest)
+    .replaceAll("{tmp}", context.tempRoot)
+    .replaceAll("{kit}", kitRoot);
+}
+
+function fixtureCommand(script, args) {
+  return `node ${[script, ...args].join(" ")}`;
+}
+
+function expectedOutput(testCase) {
+  const parts = [];
+  if (testCase.expectStatus !== undefined) parts.push(`status=${testCase.expectStatus}`);
+  for (const value of testCase.expectStdoutIncludes || []) parts.push(`stdout includes: ${value}`);
+  for (const value of testCase.expectStderrIncludes || []) parts.push(`stderr includes: ${value}`);
+  for (const value of testCase.expectOutputIncludes || []) parts.push(`output includes: ${value}`);
+  return parts.join("; ");
+}
+
 function runCase(testCase) {
+  const context = createRunContext(testCase);
   const script = String(testCase.script || "");
   const scriptPath = path.join(kitRoot, script);
-  const caseArgs = Array.isArray(testCase.args) ? testCase.args.map(String) : [];
+  const caseArgs = Array.isArray(testCase.args) ? testCase.args.map((item) => substitute(item, context)) : [];
   const expectedStatus = testCase.expectStatus ?? 0;
   const name = String(testCase.name || script);
-  const command = `node ${[script, ...caseArgs].join(" ")}`;
+  const command = fixtureCommand(script, caseArgs);
+  const expectation = expectedOutput(testCase);
 
-  if (!script || !fs.existsSync(scriptPath)) {
-    return {
-      name,
-      status: "FAIL",
-      reason: `missing fixture script: ${script}`,
-      command,
-      howToFix: testCase.howToFix || "Check the script path in test-fixtures/fixture-cases.json.",
-    };
-  }
+  try {
+    if (context.setupFailed) {
+      return {
+        name,
+        type: testCase.type,
+        checker: testCase.checker,
+        status: "FAIL",
+        reason: `setup failed with status ${context.setupStatus}`,
+        command,
+        expected: expectation,
+        actual: `${context.setupStdout}\n${context.setupStderr}`.trim(),
+        howToFix: testCase.howToFix || "Fix fixture setup before checking the case command.",
+      };
+    }
 
-  const result = spawnSync(process.execPath, [scriptPath, ...caseArgs], {
-    cwd: kitRoot,
-    encoding: "utf8",
-  });
-  const stdout = result.stdout || "";
-  const stderr = result.stderr || "";
-  const combined = `${stdout}\n${stderr}`;
-  const exitCode = result.status ?? 1;
-  const statusMatches = expectedStatus === "nonzero" ? exitCode !== 0 : exitCode === Number(expectedStatus);
-  const stdoutMatches = includesAll(stdout, testCase.expectStdoutIncludes);
-  const stderrMatches = includesAll(stderr, testCase.expectStderrIncludes);
-  const outputMatches = includesAll(combined, testCase.expectOutputIncludes);
+    if (!script || !fs.existsSync(scriptPath)) {
+      return {
+        name,
+        type: testCase.type,
+        checker: testCase.checker,
+        status: "FAIL",
+        reason: `missing fixture script: ${script}`,
+        command,
+        expected: expectation,
+        howToFix: testCase.howToFix || "Check the script path in test-fixtures/fixture-cases.json.",
+      };
+    }
 
-  if (!statusMatches) {
+    const result = spawnSync(process.execPath, [scriptPath, ...caseArgs], {
+      cwd: kitRoot,
+      encoding: "utf8",
+    });
+    const stdout = result.stdout || "";
+    const stderr = result.stderr || "";
+    const combined = `${stdout}\n${stderr}`;
+    const exitCode = result.status ?? 1;
+    const statusMatches = expectedStatus === "nonzero" ? exitCode !== 0 : exitCode === Number(expectedStatus);
+    const stdoutMatches = includesAll(stdout, testCase.expectStdoutIncludes);
+    const stderrMatches = includesAll(stderr, testCase.expectStderrIncludes);
+    const outputMatches = includesAll(combined, testCase.expectOutputIncludes);
+
+    if (!statusMatches) {
+      return {
+        name,
+        type: testCase.type,
+        checker: testCase.checker,
+        status: "FAIL",
+        reason: `expected status ${expectedStatus}, got ${exitCode}`,
+        command,
+        expected: expectation,
+        actual: combined.trim(),
+        howToFix: testCase.howToFix,
+        stdout,
+        stderr,
+      };
+    }
+    if (!stdoutMatches) {
+      return {
+        name,
+        type: testCase.type,
+        checker: testCase.checker,
+        status: "FAIL",
+        reason: "stdout missing expected text",
+        command,
+        expected: expectation,
+        actual: combined.trim(),
+        howToFix: testCase.howToFix,
+        stdout,
+        stderr,
+      };
+    }
+    if (!stderrMatches) {
+      return {
+        name,
+        type: testCase.type,
+        checker: testCase.checker,
+        status: "FAIL",
+        reason: "stderr missing expected text",
+        command,
+        expected: expectation,
+        actual: combined.trim(),
+        howToFix: testCase.howToFix,
+        stdout,
+        stderr,
+      };
+    }
+    if (!outputMatches) {
+      return {
+        name,
+        type: testCase.type,
+        checker: testCase.checker,
+        status: "FAIL",
+        reason: "output missing expected text",
+        command,
+        expected: expectation,
+        actual: combined.trim(),
+        howToFix: testCase.howToFix,
+        stdout,
+        stderr,
+      };
+    }
     return {
       name,
-      status: "FAIL",
-      reason: `expected status ${expectedStatus}, got ${exitCode}`,
+      type: testCase.type,
+      checker: testCase.checker,
+      status: "PASS",
+      exitCode,
       command,
-      howToFix: testCase.howToFix,
+      expected: expectation,
       stdout,
       stderr,
     };
+  } finally {
+    fs.rmSync(context.tempRoot, { recursive: true, force: true });
   }
-  if (!stdoutMatches) {
-    return {
-      name,
-      status: "FAIL",
-      reason: "stdout missing expected text",
-      command,
-      howToFix: testCase.howToFix,
-      stdout,
-      stderr,
-    };
+}
+
+function groupedCounts(items, key) {
+  const counts = new Map();
+  for (const item of items) {
+    const label = item[key] || "unknown";
+    counts.set(label, (counts.get(label) || 0) + 1);
   }
-  if (!stderrMatches) {
-    return {
-      name,
-      status: "FAIL",
-      reason: "stderr missing expected text",
-      command,
-      howToFix: testCase.howToFix,
-      stdout,
-      stderr,
-    };
-  }
-  if (!outputMatches) {
-    return {
-      name,
-      status: "FAIL",
-      reason: "output missing expected text",
-      command,
-      howToFix: testCase.howToFix,
-      stdout,
-      stderr,
-    };
-  }
-  return {
-    name,
-    status: "PASS",
-    exitCode,
-    command,
-  };
+  return [...counts.entries()].sort(([left], [right]) => left.localeCompare(right));
 }
 
 let cases = loadCases();
@@ -176,12 +296,14 @@ for (const testCase of cases) {
   const result = runCase(testCase);
   results.push(result);
   if (result.status === "PASS") {
-    if (!outputJson) console.log(`PASS ${result.name}`);
+    if (!outputJson) console.log(`PASS [${result.type}/${result.checker}] ${result.name}`);
   } else {
     failed = true;
     if (!outputJson) {
       console.error(`FAIL ${result.name}: ${result.reason}`);
       if (result.command) console.error(`Command: ${result.command}`);
+      if (result.expected) console.error(`Expected: ${result.expected}`);
+      if (result.actual) console.error(`Actual: ${result.actual}`);
       if (result.howToFix) console.error(`How to fix: ${result.howToFix}`);
       if (result.stdout) console.error(result.stdout.trim());
       if (result.stderr) console.error(result.stderr.trim());
@@ -193,6 +315,10 @@ if (outputJson) {
   console.log(JSON.stringify({
     status: failed ? "FAIL" : "PASS",
     caseCount: cases.length,
+    summary: {
+      byType: Object.fromEntries(groupedCounts(results, "type")),
+      byChecker: Object.fromEntries(groupedCounts(results, "checker")),
+    },
     results,
   }, null, 2));
 }
@@ -216,6 +342,16 @@ if (failed) {
 }
 
 if (!outputJson) {
+  console.log("");
+  console.log("Human Summary");
+  console.log("Fixture matrix passed. Golden, bad, migration, CLI/init-update, and output-quality cases matched their expected behavior.");
+  console.log("");
+  console.log("Coverage by type");
+  for (const [type, count] of groupedCounts(results, "type")) console.log(`- ${type}: ${count}`);
+  console.log("");
+  console.log("Coverage by checker");
+  for (const [checker, count] of groupedCounts(results, "checker")) console.log(`- ${checker}: ${count}`);
+  console.log("");
   console.log("");
   console.log(`Fixture checks passed (${cases.length} case(s)).`);
 }

@@ -1,6 +1,29 @@
 [
   {
+    "name": "good check-ai-workflow generated core",
+    "type": "golden",
+    "checker": "check-ai-workflow",
+    "script": "scripts/check-ai-workflow.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}", "--mode", "core"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["PASS AGENTS.md", "PASS .ai-native/version.json"],
+    "howToFix": "Generated generic projects must keep passing the core workflow asset check."
+  },
+  {
+    "name": "bad check-ai-workflow missing assets",
+    "type": "bad",
+    "checker": "check-ai-workflow",
+    "script": "scripts/check-ai-workflow.mjs",
+    "args": ["test-fixtures/bad/bad-ai-workflow-missing-assets", "--mode", "core"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["missing AGENTS.md"],
+    "howToFix": "The workflow checker must keep rejecting projects that do not have required workflow assets."
+  },
+  {
     "name": "good engineering baseline enum vs lookup",
+    "type": "golden",
+    "checker": "check-engineering-baseline",
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["examples/engineering-baseline-enum-vs-lookup", "--strict"],
     "expectStatus": 0,
@@ -9,6 +32,8 @@
   },
   {
     "name": "good engineering baseline api dto domain",
+    "type": "golden",
+    "checker": "check-engineering-baseline",
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["examples/engineering-baseline-api-dto-domain", "--strict"],
     "expectStatus": 0,
@@ -16,7 +41,89 @@
     "howToFix": "Keep the DTO/domain example complete and free of pending baseline decisions."
   },
   {
+    "name": "bad engineering baseline missing type source",
+    "type": "bad",
+    "checker": "check-engineering-baseline",
+    "script": "scripts/check-engineering-baseline.mjs",
+    "args": ["test-fixtures/bad/bad-engineering-baseline", "--strict"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["missing section: Type Source of Truth"],
+    "howToFix": "The checker must keep rejecting baselines that omit Type Source of Truth."
+  },
+  {
+    "name": "bad engineering baseline pending decision",
+    "type": "bad",
+    "checker": "check-engineering-baseline",
+    "script": "scripts/check-engineering-baseline.mjs",
+    "args": ["test-fixtures/bad/bad-engineering-baseline-pending-decision", "--strict"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["has open engineering decisions"],
+    "howToFix": "The checker must keep rejecting strict baselines with unresolved Open Engineering Decisions."
+  },
+  {
+    "name": "good workflow artifacts task graph",
+    "type": "golden",
+    "checker": "check-workflow-artifacts",
+    "script": "scripts/check-workflow-artifacts.mjs",
+    "args": ["examples/goal-subagent-l2-feature", "--mode", "ready", "--task", "tasks/001-project-status-filter.md"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["workflow artifact quality check passed"],
+    "howToFix": "Keep the Goal + Subagent L2 example graph consistent across request, preflight, spec, eval, and task."
+  },
+  {
+    "name": "migration workflow artifacts legacy frontmatter warning",
+    "type": "migration",
+    "checker": "check-workflow-artifacts",
+    "script": "scripts/check-workflow-artifacts.mjs",
+    "args": ["test-fixtures/migrations/artifact-frontmatter-legacy", "--mode", "ready"],
+    "expectStatus": 0,
+    "expectOutputIncludes": ["missing artifact frontmatter; migration warning for 0.39.x"],
+    "howToFix": "Legacy no-frontmatter artifacts should keep warning by default until strict schema becomes a separate migration decision."
+  },
+  {
+    "name": "bad workflow artifacts invalid frontmatter",
+    "type": "bad",
+    "checker": "check-workflow-artifacts",
+    "script": "scripts/check-workflow-artifacts.mjs",
+    "args": ["test-fixtures/bad/bad-artifact-frontmatter-invalid", "--mode", "draft"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["missing required frontmatter field: artifact_type"],
+    "howToFix": "The artifact checker must keep rejecting malformed frontmatter when frontmatter is present."
+  },
+  {
+    "name": "good review loop l2 slice",
+    "type": "golden",
+    "checker": "check-review-loop",
+    "script": "scripts/check-review-loop.mjs",
+    "args": ["examples/review-loop-l2-first-slice"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["review loop check passed"],
+    "howToFix": "Keep the Review Loop L2 example complete with packet, task/spec/eval refs, findings, verification, and bounded follow-up."
+  },
+  {
+    "name": "bad review loop forbidden auto fix",
+    "type": "bad",
+    "checker": "check-review-loop",
+    "script": "scripts/check-review-loop.mjs",
+    "args": ["test-fixtures/bad/bad-review-loop"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["AUTO_FIX appears to touch forbidden scope"],
+    "howToFix": "The checker must keep rejecting AUTO_FIX findings that touch dependencies or other forbidden authority."
+  },
+  {
+    "name": "bad review loop too many auto fix rounds",
+    "type": "bad",
+    "checker": "check-review-loop",
+    "script": "scripts/check-review-loop.mjs",
+    "args": ["test-fixtures/bad/bad-review-loop-too-many-rounds"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["AUTO_FIX attempts exceed 2 rounds"],
+    "howToFix": "The checker must keep enforcing the maximum of two AUTO_FIX rounds."
+  },
+  {
     "name": "good next-step boundary suggestions",
+    "type": "golden",
+    "checker": "check-next-step-boundary",
     "script": "scripts/check-next-step-boundary.mjs",
     "args": ["examples/next-step-boundary-suggestions"],
     "expectStatus": 0,
@@ -24,23 +131,29 @@
     "howToFix": "Keep each suggestion classified with matching Can AI do now and Required entry values."
   },
   {
-    "name": "good output quality next-step report",
-    "script": "scripts/score-output-quality.mjs",
-    "args": ["examples/next-step-boundary-suggestions", "--min-score", "80"],
-    "expectStatus": 0,
-    "expectStdoutIncludes": ["PASS final-reports/001-suggestions.md"],
-    "howToFix": "Keep the example final report human-readable, evidence-backed, and explicit about next safe action."
+    "name": "bad next-step boundary direct follow-up immediate",
+    "type": "bad",
+    "checker": "check-next-step-boundary",
+    "script": "scripts/check-next-step-boundary.mjs",
+    "args": ["test-fixtures/bad/bad-next-step-boundary"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["can only set Can AI do now? = Yes"],
+    "howToFix": "The checker must keep rejecting DIRECT_FOLLOW_UP suggestions marked as immediately executable."
   },
   {
-    "name": "good glossary usage",
-    "script": "scripts/check-glossary-usage.mjs",
-    "args": ["."],
-    "expectStatus": 0,
-    "expectStdoutIncludes": ["Glossary usage check passed."],
-    "howToFix": "Keep required glossary terms explained in core/glossary.md."
+    "name": "bad next-step boundary risk decision missing human queue",
+    "type": "bad",
+    "checker": "check-next-step-boundary",
+    "script": "scripts/check-next-step-boundary.mjs",
+    "args": ["test-fixtures/bad/bad-next-step-risk-decision"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["RISK_DECISION must appear in Human Decisions Needed"],
+    "howToFix": "The checker must keep routing RISK_DECISION suggestions to Human Decisions Needed or Human Decision Queue."
   },
   {
     "name": "good goal mode first route",
+    "type": "golden",
+    "checker": "check-goal-mode",
     "script": "scripts/check-goal-mode.mjs",
     "args": ["examples/goal-mode-first-route"],
     "expectStatus": 0,
@@ -48,7 +161,29 @@
     "howToFix": "Keep the Goal Mode example routed through a legal mode with clear required artifacts and boundaries."
   },
   {
+    "name": "bad goal mode invalid selected mode",
+    "type": "bad",
+    "checker": "check-goal-mode",
+    "script": "scripts/check-goal-mode.mjs",
+    "args": ["test-fixtures/bad/bad-goal-mode-invalid"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["invalid Goal Mode"],
+    "howToFix": "The Goal Mode checker must keep rejecting unknown modes."
+  },
+  {
+    "name": "bad goal mode readonly adoption allows writes",
+    "type": "bad",
+    "checker": "check-goal-mode",
+    "script": "scripts/check-goal-mode.mjs",
+    "args": ["test-fixtures/bad/bad-goal-mode-readonly-write"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["READ_ONLY adoption must not allow workflow asset writes"],
+    "howToFix": "The Goal Mode checker must keep blocking init-project or workflow asset writes during read-only adoption."
+  },
+  {
     "name": "good subagent orchestration closed run",
+    "type": "golden",
+    "checker": "check-subagent-orchestration",
     "script": "scripts/check-subagent-orchestration.mjs",
     "args": ["examples/subagent-orchestration-closed-run"],
     "expectStatus": 0,
@@ -56,99 +191,251 @@
     "howToFix": "Keep the Subagent Orchestration example closed, with no RUNNING subagents and one active writer at most."
   },
   {
-    "name": "bad engineering baseline missing type source",
-    "script": "scripts/check-engineering-baseline.mjs",
-    "args": ["test-fixtures/bad-engineering-baseline", "--strict"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["missing section: Type Source of Truth"],
-    "howToFix": "The checker must keep rejecting baselines that omit Type Source of Truth."
-  },
-  {
-    "name": "bad engineering baseline pending decision",
-    "script": "scripts/check-engineering-baseline.mjs",
-    "args": ["test-fixtures/bad-engineering-baseline-pending-decision", "--strict"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["has open engineering decisions"],
-    "howToFix": "The checker must keep rejecting strict baselines with unresolved Open Engineering Decisions."
-  },
-  {
-    "name": "bad review loop forbidden auto fix",
-    "script": "scripts/check-review-loop.mjs",
-    "args": ["test-fixtures/bad-review-loop"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["AUTO_FIX appears to touch forbidden scope"],
-    "howToFix": "The checker must keep rejecting AUTO_FIX findings that touch dependencies or other forbidden authority."
-  },
-  {
-    "name": "bad review loop too many auto fix rounds",
-    "script": "scripts/check-review-loop.mjs",
-    "args": ["test-fixtures/bad-review-loop-too-many-rounds"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["AUTO_FIX attempts exceed 2 rounds"],
-    "howToFix": "The checker must keep enforcing the maximum of two AUTO_FIX rounds."
-  },
-  {
-    "name": "bad next-step boundary direct follow-up immediate",
-    "script": "scripts/check-next-step-boundary.mjs",
-    "args": ["test-fixtures/bad-next-step-boundary"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["can only set Can AI do now? = Yes"],
-    "howToFix": "The checker must keep rejecting DIRECT_FOLLOW_UP suggestions marked as immediately executable."
-  },
-  {
-    "name": "bad next-step boundary risk decision missing human queue",
-    "script": "scripts/check-next-step-boundary.mjs",
-    "args": ["test-fixtures/bad-next-step-risk-decision"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["RISK_DECISION must appear in Human Decisions Needed"],
-    "howToFix": "The checker must keep routing RISK_DECISION suggestions to Human Decisions Needed or Human Decision Queue."
-  },
-  {
-    "name": "bad output quality low score",
-    "script": "scripts/score-output-quality.mjs",
-    "args": ["test-fixtures/bad-output-quality", "--min-score", "80"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["below the requested quality score"],
-    "howToFix": "The score checker must keep rejecting reports without human summary, next safe action, technical details, or audit notes."
-  },
-  {
-    "name": "bad glossary usage missing terms",
-    "script": "scripts/check-glossary-usage.mjs",
-    "args": ["test-fixtures/bad-glossary-usage"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["missing glossary term: Engineering Baseline"],
-    "howToFix": "The glossary checker must keep rejecting glossaries that omit required human-facing workflow terms."
-  },
-  {
-    "name": "bad goal mode invalid selected mode",
-    "script": "scripts/check-goal-mode.mjs",
-    "args": ["test-fixtures/bad-goal-mode-invalid"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["invalid Goal Mode"],
-    "howToFix": "The Goal Mode checker must keep rejecting unknown modes."
-  },
-  {
-    "name": "bad goal mode readonly adoption allows writes",
-    "script": "scripts/check-goal-mode.mjs",
-    "args": ["test-fixtures/bad-goal-mode-readonly-write"],
-    "expectStatus": "nonzero",
-    "expectStderrIncludes": ["READ_ONLY adoption must not allow workflow asset writes"],
-    "howToFix": "The Goal Mode checker must keep blocking init-project or workflow asset writes during read-only adoption."
-  },
-  {
     "name": "bad subagent orchestration unclosed subagent",
+    "type": "bad",
+    "checker": "check-subagent-orchestration",
     "script": "scripts/check-subagent-orchestration.mjs",
-    "args": ["test-fixtures/bad-subagent-unclosed"],
+    "args": ["test-fixtures/bad/bad-subagent-unclosed"],
     "expectStatus": "nonzero",
     "expectStderrIncludes": ["subagent must be closed before final response"],
     "howToFix": "The Subagent Orchestration checker must reject RUNNING subagents before final response."
   },
   {
     "name": "bad subagent orchestration multiple writers",
+    "type": "bad",
+    "checker": "check-subagent-orchestration",
     "script": "scripts/check-subagent-orchestration.mjs",
-    "args": ["test-fixtures/bad-subagent-multiple-writers"],
+    "args": ["test-fixtures/bad/bad-subagent-multiple-writers"],
     "expectStatus": "nonzero",
     "expectStderrIncludes": ["more than one active writer is not allowed"],
     "howToFix": "The Subagent Orchestration checker must reject more than one active writer."
+  },
+  {
+    "name": "good output quality next-step report",
+    "type": "output-quality",
+    "checker": "score-output-quality",
+    "script": "scripts/score-output-quality.mjs",
+    "args": ["examples/next-step-boundary-suggestions", "--min-score", "80"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["PASS final-reports/001-suggestions.md"],
+    "howToFix": "Keep the example final report human-readable, evidence-backed, and explicit about next safe action."
+  },
+  {
+    "name": "bad output quality low score",
+    "type": "output-quality",
+    "checker": "score-output-quality",
+    "script": "scripts/score-output-quality.mjs",
+    "args": ["test-fixtures/bad/bad-output-quality", "--min-score", "80"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["below the requested quality score"],
+    "howToFix": "The score checker must keep rejecting reports without human summary, next safe action, technical details, or audit notes."
+  },
+  {
+    "name": "good glossary usage",
+    "type": "golden",
+    "checker": "check-glossary-usage",
+    "script": "scripts/check-glossary-usage.mjs",
+    "args": ["."],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Glossary usage check passed."],
+    "howToFix": "Keep required glossary terms explained in core/glossary.md."
+  },
+  {
+    "name": "bad glossary usage missing terms",
+    "type": "bad",
+    "checker": "check-glossary-usage",
+    "script": "scripts/check-glossary-usage.mjs",
+    "args": ["test-fixtures/bad/bad-glossary-usage"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["missing glossary term: Engineering Baseline"],
+    "howToFix": "The glossary checker must keep rejecting glossaries that omit required human-facing workflow terms."
+  },
+  {
+    "name": "good project onboarding generated project",
+    "type": "golden",
+    "checker": "check-project-onboarding",
+    "script": "scripts/check-project-onboarding.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["# Project Onboarding Check", "Project onboarding O1 baseline is present"],
+    "howToFix": "Generated generic projects must keep installing onboarding support docs and templates."
+  },
+  {
+    "name": "bad project onboarding missing docs",
+    "type": "bad",
+    "checker": "check-project-onboarding",
+    "script": "scripts/check-project-onboarding.mjs",
+    "args": ["test-fixtures/bad/bad-project-onboarding-missing", "--strict"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["missing .ai-native/core/project-onboarding.md"],
+    "howToFix": "The onboarding checker must keep rejecting projects without onboarding support assets."
+  },
+  {
+    "name": "good workflow version generated project",
+    "type": "golden",
+    "checker": "check-workflow-version",
+    "script": "scripts/check-workflow-version.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Workflow version is current."],
+    "howToFix": "Generated projects must keep receiving a current .ai-native/version.json file."
+  },
+  {
+    "name": "migration workflow version mismatch",
+    "type": "migration",
+    "checker": "check-workflow-version",
+    "script": "scripts/check-workflow-version.mjs",
+    "args": ["test-fixtures/migrations/workflow-version-mismatch"],
+    "expectStatus": 2,
+    "expectStdoutIncludes": ["Version mismatch. Run:"],
+    "howToFix": "Version mismatch must keep giving an explicit update command instead of silently passing."
+  },
+  {
+    "name": "good platform baseline generated pending",
+    "type": "golden",
+    "checker": "check-platform-baseline",
+    "script": "scripts/check-platform-baseline.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Platform baseline is present enough to continue"],
+    "howToFix": "Generated projects without selected profiles should remain non-strict pending, not hard-failing."
+  },
+  {
+    "name": "bad platform baseline strict missing profile",
+    "type": "bad",
+    "checker": "check-platform-baseline",
+    "script": "scripts/check-platform-baseline.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}", "--strict"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["placeholder Selected Profiles"],
+    "howToFix": "Strict platform baseline checks must keep failing until profiles are explicitly selected."
+  },
+  {
+    "name": "good industrial baseline web bl2",
+    "type": "golden",
+    "checker": "check-industrial-baseline",
+    "script": "scripts/check-industrial-baseline.mjs",
+    "args": ["examples/web-industrial-bl2-first-slice", "--strict"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Industrial baseline is ready."],
+    "howToFix": "Keep the Web BL2 example evidence complete enough for strict industrial baseline checks."
+  },
+  {
+    "name": "migration industrial baseline bl2 skip",
+    "type": "migration",
+    "checker": "check-industrial-baseline",
+    "script": "scripts/check-industrial-baseline.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}", "--bl2-only"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Industrial BL2 checks are skipped until BL2_INDUSTRIAL is selected."],
+    "howToFix": "BL2-only checks must stay non-blocking before a project selects BL2_INDUSTRIAL."
+  },
+  {
+    "name": "bad industrial baseline strict missing level",
+    "type": "bad",
+    "checker": "check-industrial-baseline",
+    "script": "scripts/check-industrial-baseline.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}", "--strict"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["baseline level is not selected"],
+    "howToFix": "Strict industrial baseline checks must keep failing until baseline level is selected."
+  },
+  {
+    "name": "good industrial pack selected-only no packs",
+    "type": "golden",
+    "checker": "check-industrial-pack",
+    "script": "scripts/check-industrial-pack.mjs",
+    "args": [".", "--selected-only"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Selected-only mode: no selected packs"],
+    "howToFix": "Selected-only industrial pack checks must remain lightweight when no selected packs exist."
+  },
+  {
+    "name": "bad industrial pack unknown option",
+    "type": "bad",
+    "checker": "check-industrial-pack",
+    "script": "scripts/check-industrial-pack.mjs",
+    "args": [".", "--unknown-fixture-option"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["FAIL unknown option"],
+    "howToFix": "Industrial pack checks must keep rejecting unknown options."
+  },
+  {
+    "name": "good manifest current",
+    "type": "golden",
+    "checker": "check-manifest",
+    "script": "scripts/check-manifest.mjs",
+    "args": ["."],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Manifest check passed."],
+    "howToFix": "The authoritative manifest must stay aligned with VERSION.md, copy rules, and workflow version assets."
+  },
+  {
+    "name": "migration manifest version mismatch",
+    "type": "migration",
+    "checker": "check-manifest",
+    "script": "scripts/check-manifest.mjs",
+    "setup": { "manifestVersionMismatch": { "version": "0.0.0" } },
+    "args": [".", "--manifest", "{manifest}"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["does not match VERSION.md"],
+    "howToFix": "Manifest version drift must keep failing so update/migration plans cannot silently use stale metadata."
+  },
+  {
+    "name": "good fixture runner selected case",
+    "type": "golden",
+    "checker": "check-fixtures",
+    "script": "scripts/check-fixtures.mjs",
+    "args": ["--case", "good engineering baseline enum vs lookup"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Fixture checks passed (1 case(s))."],
+    "howToFix": "The fixture runner must keep supporting targeted case execution for debugging."
+  },
+  {
+    "name": "good cli fixtures dry-run",
+    "type": "cli",
+    "checker": "cli",
+    "script": "scripts/cli.mjs",
+    "args": ["--dry-run", "fixtures"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["node scripts/check-fixtures.mjs"],
+    "howToFix": "The CLI fixtures command must keep routing to the fixture runner."
+  },
+  {
+    "name": "bad cli planned migrate",
+    "type": "cli",
+    "checker": "cli",
+    "script": "scripts/cli.mjs",
+    "args": ["migrate"],
+    "expectStatus": 2,
+    "expectStderrIncludes": ["planned but not implemented"],
+    "howToFix": "The planned migrate command must not pretend migration is implemented before its approved phase."
+  },
+  {
+    "name": "good init dry-run plan",
+    "type": "init-update",
+    "checker": "init-project",
+    "script": "scripts/init-project.mjs",
+    "args": ["--starter", "generic-project", "--target", "{tmp}/init-plan-project", "--dry-run"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["\"planVersion\": \"1.0\"", "\"operation\": \"INIT_PROJECT\""],
+    "howToFix": "Init dry-run must keep producing a reviewable plan without writing target files."
+  },
+  {
+    "name": "good workflow-next generated project",
+    "type": "golden",
+    "checker": "workflow-next",
+    "script": "scripts/workflow-next.mjs",
+    "setup": { "generatedProject": { "starter": "generic-project" } },
+    "args": ["{project}"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["NEXT_ACTION: RUN_PROJECT_ONBOARDING"],
+    "howToFix": "workflow-next must keep routing newly generated projects to onboarding before feature implementation."
   }
 ]

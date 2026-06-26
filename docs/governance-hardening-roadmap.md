@@ -225,8 +225,8 @@ prompts/builder-agent.md
 prompts/reviewer-agent.md
 scripts/check-subagent-orchestration.mjs
 examples/subagent-orchestration-closed-run/
-test-fixtures/bad-subagent-unclosed/
-test-fixtures/bad-subagent-multiple-writers/
+test-fixtures/bad/bad-subagent-unclosed/
+test-fixtures/bad/bad-subagent-multiple-writers/
 ```
 
 Specific closure requirement:

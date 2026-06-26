@@ -248,7 +248,9 @@ node scripts/check-fixtures.mjs --json
 
 The runner calls the real governance checkers and asserts expected pass/fail output. It must not reimplement checker rules.
 
-When a fixture fails, the runner prints the command, the failed expectation, and fixture-maintainer repair guidance from `test-fixtures/fixture-cases.json`.
+The case registry records `type`, `checker`, expected output, and fixture-maintainer repair guidance. Generated-project cases may create a temporary target project and clean it up after the case.
+
+When a fixture fails, the runner prints the command, the failed expectation, actual output, and repair guidance from `test-fixtures/fixture-cases.json`.
 
 ## score-output-quality.mjs
 
