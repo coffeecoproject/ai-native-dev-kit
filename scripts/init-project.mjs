@@ -13,6 +13,7 @@ const requiredPullRequestTemplateMarkers = [
   "Project onboarding",
   "Workflow Evidence",
   "Workflow artifact quality",
+  "Review Packet / Review Loop Report",
   "Skill / Automation Governance",
   "irreversible operation",
 ];
@@ -24,6 +25,7 @@ const requiredAgentGovernanceMarkers = [
   "Platform Baseline",
   "Industrial Baseline",
   "Workflow Artifact Generation",
+  "Review Loop",
   "Task Execution Rules",
   "High-risk Boundaries",
   "Skill Governance",
@@ -163,6 +165,7 @@ function pullRequestTemplateGovernanceAppendix() {
     "- [ ] Project onboarding is confirmed or not applicable for this change",
     "- [ ] Request / preflight / spec / eval / task links are included or marked not applicable",
     "- [ ] Workflow artifact quality check passed or is not applicable",
+    "- [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable",
     "- [ ] AI task log is written for L1/L2/L3 work or marked not applicable",
     "- [ ] Verification evidence is included",
     "- [ ] Workflow daily summary impact is reviewed when workflow assets changed",
@@ -385,7 +388,7 @@ function agentGovernanceSectionContent() {
     ["Workflow Artifact Generation", [
       "## Workflow Artifact Generation",
       "",
-      "Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI task log files instead of hand-copying templates.",
+      "Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI task log, review packet, GPT review prompt, and review loop report files instead of hand-copying templates.",
       "",
       "Before implementation, run:",
       "",
@@ -396,6 +399,20 @@ function agentGovernanceSectionContent() {
       "For high-risk implementation, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after `Human Approval` records status and scope.",
       "",
       "If artifact quality fails, fix the workflow artifacts before writing code.",
+      "",
+      "When independent review is needed, create a review packet with `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` and fill evidence, diff summary, risks, and open questions before handing it to a human reviewer or second model.",
+      "",
+      "For L2/L3 work or when review creates findings, create `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` to record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and cannot change scope, risk acceptance, Human Approval, architecture, dependencies, migrations, production config, release, or rollback decisions.",
+      "",
+    ].join("\n")],
+    ["Review Loop", [
+      "## Review Loop",
+      "",
+      "Use `.ai-native/core/review-loop.md` for L2/L3 work or whenever review findings need closure.",
+      "",
+      "Review Packet is the input. GPT Review Prompt is read-only reviewer instruction. Review Loop Report records review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items.",
+      "",
+      "Reviewer agents are read-only. Codex may auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds. Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to humans.",
       "",
     ].join("\n")],
     ["Task Execution Rules", [
@@ -699,6 +716,9 @@ function ensureWorkflowDirs(targetPath) {
     "skill-candidates",
     "automation-proposals",
     "dev-kit-proposals",
+    "review-packets",
+    "gpt-review-prompts",
+    "review-loop-reports",
     "releases",
   ];
   for (const dir of dirs) {
@@ -759,6 +779,9 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "docs/sample-policy.md",
       "docs/onboarding-decisions.md",
       "docs/verification-matrix.md",
+      "review-packets",
+      "gpt-review-prompts",
+      "review-loop-reports",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
     ],
@@ -827,4 +850,5 @@ console.log("5. For BL2 industrial work, install selected packs with --industria
 console.log("6. Create the first request card only after onboarding is ready.");
 console.log("7. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
 console.log("8. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-console.log("9. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+console.log("9. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
+console.log("10. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");

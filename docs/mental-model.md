@@ -127,6 +127,15 @@ NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
 
 In this mode, AI Native Dev Kit should map to existing governance instead of replacing it. Use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to decide whether adapter docs, workflow assets, or no project writes are appropriate.
 
+If the project is already bootstrapped but is both production-governed and dirty, `workflow-next` can return:
+
+```text
+ADOPTION_MODE: GUARDED
+NEXT_ACTION: REVIEW_DIRTY_WORKTREE
+```
+
+That is not a setup problem. It means task execution should wait until the human confirms what the existing changes are and whether to continue, split, stash, commit, or package them for review.
+
 ## Evidence
 
 BL2 requires evidence, not claims.
@@ -169,6 +178,33 @@ Before implementation, the task should prove:
 If a high-risk area appears in the task or related spec but Risk Gate is not checked, ready mode should warn and implementation mode should fail.
 
 If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete reason and human acceptance. Do not make the wording vague just to pass the checker. More than three accepted exclusions is a signal to review scope quality; implementation then needs Human Approval scope to explicitly cover those exclusions.
+
+## Review Packet
+
+Use a Review Packet when a change needs independent review beyond the implementing agent's final report.
+
+It packages:
+
+- request, preflight, spec, eval, and task refs
+- risk gate and human approval state
+- baseline and industrial evidence state
+- commands run and evidence refs
+- files changed and diff summary
+- known risks and open questions
+
+It is a review input, not approval. Approval still belongs in the task card, release gate, PR review, or the project's existing governance process.
+
+## Review Loop
+
+Use a Review Loop when a task needs more than a final report:
+
+- L2 work requires a Review Packet and one read-only reviewer pass.
+- L3 work requires a Review Packet and independent reviewer, GPT Pro, or human review.
+- Review Packet is input.
+- GPT Review Prompt is reviewer instruction.
+- Review Loop Report is the record of findings, automatic fixes, re-review, and human decisions.
+
+Codex can only auto-fix deterministic, low-risk issues inside the approved task scope, and only for 2 rounds. Scope expansion, risk acceptance, permission model, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope decisions stay with humans.
 
 ## Practical Choices
 

@@ -120,7 +120,7 @@ Before recommending packs, read `.ai-native/industrial-packs/selection-guide.md`
 
 ## Workflow Artifact Generation
 
-Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, and AI task log files.
+Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI task log, review packet, GPT review prompt, and review loop report files.
 
 Before implementation, run:
 
@@ -137,6 +137,14 @@ node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-c
 If any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation.
 
 If artifact quality fails, fix the workflow artifacts before writing code.
+
+When independent review is needed, run `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` and fill the packet before handing the change to a human reviewer or second model. A review packet is not approval.
+
+## Review Loop
+
+For L2/L3 work or when review findings need closure, run `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>`. Record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and must stay inside approved task scope.
+
+If GPT Pro or a second model is used for review, run `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` and pair it with the Review Packet. The reviewer is read-only and must not approve risk, release, scope, architecture, dependencies, migrations, production config, Human Approval, or Approval scope.
 
 ## High-risk Boundaries
 
@@ -164,6 +172,8 @@ When reviewing changes, focus on:
 - architecture drift
 - excessive dependencies
 - unclear rollback
+
+For dirty production-governed projects, respect `workflow-next` when it returns `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`. Stop before task execution until the human confirms ownership and handling of existing changes.
 
 ## Self-iteration Rules
 

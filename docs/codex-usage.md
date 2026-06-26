@@ -37,6 +37,7 @@ Expected Codex behavior:
 - If the user asked only to review, discuss, evaluate, or look first, do not write files.
 - If the user clearly asked to configure, run `scripts/workflow-next.mjs <project-root>` or emulate it from the dev-kit checkout.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce an adoption assessment and existing governance map first.
+- If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, do not create workflow artifacts, execute task cards, or edit files until the human confirms how to handle existing changes.
 - Follow `NEXT_ACTION`.
 - Use `init-project.mjs` for initialization or workflow asset updates.
 - Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
@@ -87,6 +88,11 @@ Expected Codex behavior:
 - For checked risk items, `Human Approval` must include the approved `Approval scope`.
 - Refuse to widen scope without approval.
 - Request explicit approval before high-risk code changes.
+- Generate `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when the change needs independent human, GPT Pro, or second-model review.
+- Generate `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need automatic-fix and re-review tracking.
+- Generate `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet.
+- Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
+- Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
 - Report changed files, verification, residual risks, and next step.
 
 ## Existing Project Prompt
@@ -113,6 +119,15 @@ NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
 ```
 
 When that happens, Codex must not run `init-project`. It should use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to explain how AI Native concepts map to existing project governance, then wait for approval before adapter setup.
+
+For a strong governed project that is already bootstrapped, `workflow-next` may instead return:
+
+```text
+ADOPTION_MODE: GUARDED
+NEXT_ACTION: REVIEW_DIRTY_WORKTREE
+```
+
+When that happens, Codex should summarize the dirty worktree state and ask the human whether to continue, split, stash, commit, or generate a Review Packet before task execution.
 
 If `.ai-native/migration-reports/agents-governance.md` is created, Codex should summarize it and wait for human approval before applying the AGENTS.md governance appendix:
 
@@ -150,6 +165,7 @@ Codex should stop and report when:
 - high-risk changes need human approval
 - an `AGENTS.md` or PR template migration report needs approval
 - production secrets, data, or config are required
+- `workflow-next` reports `REVIEW_DIRTY_WORKTREE`
 - the same verification failure repeats
 - a workflow change would create or enable an active Skill or automation
 

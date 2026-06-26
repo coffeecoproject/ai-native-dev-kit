@@ -83,19 +83,22 @@ If `workflow-next` returns `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT` or `ADOPTION_M
 
 For governed existing projects, the goal is not to initialize a parallel workflow. The goal is to map AI Native concepts to existing governance, identify gaps, and wait for human approval.
 
+If `workflow-next` returns `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, Codex must not create workflow artifacts, execute task cards, or edit project files yet. First report the dirty worktree state, changed file count, changed file sample when available, and ask the human to confirm whether the existing changes should be committed, split, ignored, stashed, or reviewed through a Review Packet.
+
 ## Execution Bootstrap Flow
 
 1. Locate the target project root and the dev-kit source.
 2. If the dev-kit is only provided as a URL and network access or authentication is required, explain the needed access before fetching it.
 3. Run or emulate `scripts/workflow-next.mjs <project-root>` to identify project state.
 4. If `workflow-next` reports `RUN_ADOPTION_ASSESSMENT`, stop the bootstrap flow and produce a read-only adoption assessment.
-5. For an empty new project, initialize with the most specific approved starter; use `generic-project` if the platform is not yet confirmed.
-6. For an existing project that is not in governed-project protection, run workflow asset update only; do not overwrite existing project docs, specs, tasks, logs, or business code.
-7. For a bootstrapped project, check version, missing workflow assets, onboarding status, and migration reports.
-8. If migration reports require approval, summarize the report and stop before applying the migration.
-9. If onboarding is missing or pending, use `project-onboarding-agent.md` to draft or update onboarding documents from conversation and project evidence.
-10. Run baseline checks after setup when scripts are available.
-11. End with configured assets, checks run, decisions still needed, and the next safe workflow step.
+5. If `workflow-next` reports `REVIEW_DIRTY_WORKTREE`, stop before file writes and ask the human to decide how to handle existing changes.
+6. For an empty new project, initialize with the most specific approved starter; use `generic-project` if the platform is not yet confirmed.
+7. For an existing project that is not in governed-project protection, run workflow asset update only; do not overwrite existing project docs, specs, tasks, logs, or business code.
+8. For a bootstrapped project, check version, missing workflow assets, onboarding status, and migration reports.
+9. If migration reports require approval, summarize the report and stop before applying the migration.
+10. If onboarding is missing or pending, use `project-onboarding-agent.md` to draft or update onboarding documents from conversation and project evidence.
+11. Run baseline checks after setup when scripts are available.
+12. End with configured assets, checks run, decisions still needed, and the next safe workflow step.
 
 ## Allowed Writes During Bootstrap
 
@@ -109,7 +112,7 @@ When execution intent is clear, allowed writes are limited to:
 - `docs/business-spec-index.md`
 - `docs/sample-policy.md`
 - `docs/onboarding-decisions.md`
-- workflow directories such as `requests/`, `preflight/`, `specs/`, `evals/`, `tasks/`, `ai-logs/`
+- workflow directories such as `requests/`, `preflight/`, `specs/`, `evals/`, `tasks/`, `ai-logs/`, `review-packets/`, `gpt-review-prompts/`, `review-loop-reports/`
 - workflow scripts under `scripts/`
 - `.github/workflows/ai-workflow-checks.yml`
 - `.github/pull_request_template.md` only when absent, or migration reports when an existing template needs governance

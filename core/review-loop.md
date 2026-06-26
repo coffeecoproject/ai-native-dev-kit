@@ -1,0 +1,149 @@
+# Review Loop Protocol
+
+Review Loop Protocol defines what happens after a task implementation is complete: review, deterministic repair, re-review, and human-decision routing.
+
+It is not hook automation. It does not require an external model API. Hook-based reviewer automation can be added later as an adapter, but the core protocol stays file-based and project-local.
+
+## Roles
+
+- Implementing agent: changes files inside the approved task scope.
+- Reviewer agent: performs read-only review and writes structured findings only.
+- Human: decides scope expansion, risk acceptance, architecture changes, production decisions, and final merge or release judgment.
+
+The reviewer must not edit files, approve risk, approve release, expand scope, or change the task goal.
+
+The reviewer must not approve release.
+
+## Artifacts
+
+- Review Packet: stable input for a human reviewer, GPT Pro, a second model, or another review process.
+- GPT Review Prompt: copyable read-only reviewer instruction for GPT Pro or another external reviewer.
+- Review Loop Report: record of review rounds, findings, automatic fixes, verification, repeated issues, and human-decision queue.
+
+Do not merge these artifacts into one file. The Review Packet is input. The Review Loop Report is process history. The GPT Review Prompt is reviewer instruction.
+
+## Task-Level Policy
+
+| Task Level | Review Loop Rule |
+| --- | --- |
+| L0 | Review Packet is not required. Final report is enough unless the human asks for review. |
+| L1 | Codex self-check and verification are required. Review Loop is optional. |
+| L2 | Review Packet is required. One read-only reviewer pass is required. AUTO_FIX is limited to 2 rounds. |
+| L3 | Review Packet is required. Independent reviewer, GPT Pro, or human review is required. Codex may only fix deterministic issues. Risk, release, architecture, permission, migration, and production decisions require human approval. |
+
+If the task level is unclear, use the stricter applicable rule until the human confirms otherwise.
+
+## Finding Categories
+
+Every finding must use one of these categories:
+
+- AUTO_FIX: deterministic, low-risk fix inside approved task scope.
+- NEEDS_HUMAN_DECISION: requires scope, risk, approval, architecture, release, migration, dependency, or production judgment.
+- NEEDS_CLARIFICATION: reviewer cannot decide from available evidence.
+- NO_ACTION: noted issue does not require a change; reason must be recorded.
+
+NO_ACTION requires a reason.
+
+NEEDS_CLARIFICATION can be attempted once by asking for or adding evidence. If it is still unclear after one attempt, convert it to NEEDS_HUMAN_DECISION.
+
+## Finding Fields
+
+Use these fields for every finding:
+
+- ID
+- Severity: P0 / P1 / P2
+- Category: AUTO_FIX / NEEDS_HUMAN_DECISION / NEEDS_CLARIFICATION / NO_ACTION
+- Finding
+- Evidence
+- Proposed action
+- Owner
+- Status
+
+Evidence must point to the Review Packet, changed file, command output, task card, spec, eval, or other concrete artifact. Do not invent missing evidence.
+
+## AUTO_FIX Allowlist
+
+Codex may auto-fix only when all conditions are true:
+
+- The finding is inside the approved task scope.
+- The fix is deterministic and low-risk.
+- The fix does not require new approval.
+- The fix can be verified with existing commands or evidence.
+
+Allowed examples:
+
+- lint, format, typecheck, or test failure
+- missing evidence reference
+- wrong file path
+- missing required template field
+- broken documentation link
+- obvious small bug inside task scope
+- missing agreed test
+- low-risk fix inside the accepted task boundary
+
+## Forbidden Auto-Fix
+
+Convert to NEEDS_HUMAN_DECISION instead of auto-fixing when the finding needs:
+
+- scope expansion
+- new dependency
+- architecture change
+- permission model change
+- payment or value-transfer behavior
+- database migration
+- production configuration
+- release or rollback policy
+- Human Approval scope change
+- risk acceptance
+- Risk Gate bypass or rule weakening
+
+If an auto-fix would modify Risk Gate, Human Approval, Approval scope, or any approval boundary, stop and route it to NEEDS_HUMAN_DECISION.
+
+## Rounds
+
+AUTO_FIX is limited to 2 rounds.
+
+For each round:
+
+1. Review findings.
+2. Split AUTO_FIX from human-decision items.
+3. Apply only allowed AUTO_FIX items.
+4. Run verification.
+5. Re-review resolved and changed areas.
+6. Update the Review Loop Report.
+
+## Stop Conditions
+
+Stop and ask the human when any condition appears:
+
+- Same finding appears twice.
+- Auto-fix introduces a new P0 or P1 finding.
+- Fix requires scope expansion.
+- Fix requires a new dependency.
+- Fix requires changing risk approval, Human Approval, or Approval scope.
+- Verification fails repeatedly for the same reason.
+- Reviewer output is unstructured or missing evidence.
+- Reviewer asks for whole-repo context beyond the Review Packet without a concrete missing artifact reason.
+
+## GPT / External Reviewer Use
+
+When GPT Pro or another external reviewer is used:
+
+- Provide the Review Packet and GPT Review Prompt.
+- Ask for read-only review only.
+- Ask for structured findings only.
+- Do not ask the external reviewer to approve risk, release, or scope.
+- Do not paste secrets or sensitive runtime data into the packet.
+
+The external reviewer output is input to Codex. Codex still applies the Review Loop Protocol before making any fix.
+
+## Completion
+
+A Review Loop can finish as:
+
+- DONE: no remaining findings, or remaining NO_ACTION findings have reasons.
+- AUTO_FIXED: all AUTO_FIX findings were fixed and verified.
+- NEEDS_HUMAN_DECISION: at least one finding needs a human decision.
+- BLOCKED: required evidence, verification, or reviewer output is unavailable.
+
+The final Codex response must summarize what was automatically fixed, what remains open, what needs human decision, and what verification was run.

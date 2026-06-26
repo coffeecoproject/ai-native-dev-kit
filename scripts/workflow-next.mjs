@@ -46,8 +46,12 @@ const workflowRequiredPaths = [
   "scripts/resolve-industrial-baseline.mjs",
   "scripts/check-industrial-baseline.mjs",
   ".github/workflows/ai-workflow-checks.yml",
+  "review-packets",
+  "gpt-review-prompts",
+  "review-loop-reports",
   ".ai-native/version.json",
   ".ai-native/core/workflow.md",
+  ".ai-native/core/review-loop.md",
   ".ai-native/profiles/web-app/baseline.json",
   ".ai-native/profiles/backend-api/baseline.json",
   ".ai-native/profiles/ios-app/baseline.json",
@@ -66,9 +70,13 @@ const workflowRequiredPaths = [
   ".ai-native/templates/onboarding-decisions.md",
   ".ai-native/templates/adoption-assessment.md",
   ".ai-native/templates/existing-governance-map.md",
+  ".ai-native/templates/review-packet.md",
+  ".ai-native/templates/gpt-review-prompt.md",
+  ".ai-native/templates/review-loop-report.md",
   ".ai-native/templates/baseline-selection.md",
   ".ai-native/templates/baseline-evidence.md",
   ".ai-native/checklists/project-onboarding-review.md",
+  ".ai-native/checklists/review-loop-review.md",
   ".ai-native/checklists/industrial-pack-review.md",
   ".ai-native/industrial-packs/selection-guide.md",
   ".ai-native/industrial-packs/index.json",
@@ -588,6 +596,9 @@ function commandFor(action, kitRoot) {
   if (action === "RUN_ADOPTION_ASSESSMENT") {
     return "Produce a read-only adoption assessment from templates/adoption-assessment.md and templates/existing-governance-map.md. Do not run init-project, update workflow assets, create migration reports, or modify project files until a human approves adapter setup.";
   }
+  if (action === "REVIEW_DIRTY_WORKTREE") {
+    return "Stop before task execution. Review git status, identify ownership of existing changes, and ask the human whether to continue, split, stash, commit, or create a review packet first.";
+  }
   if (action === "REVIEW_EXISTING_GOVERNANCE_MAP") {
     return "Review the existing governance map with the human before choosing any adapter setup.";
   }
@@ -759,7 +770,14 @@ function buildResult() {
     && ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction)) {
     nextAction = "RUN_ADOPTION_ASSESSMENT";
   }
-  const adoptionMode = nextAction === "RUN_ADOPTION_ASSESSMENT" ? "READ_ONLY" : "STANDARD";
+  if (signals.isDirtyWorktree
+    && signals.isProductionGoverned
+    && ["READY_FOR_FIRST_REQUEST", "READY_FOR_TASK_EXECUTION"].includes(nextAction)) {
+    nextAction = "REVIEW_DIRTY_WORKTREE";
+  }
+  const adoptionMode = nextAction === "RUN_ADOPTION_ASSESSMENT"
+    ? "READ_ONLY"
+    : nextAction === "REVIEW_DIRTY_WORKTREE" ? "GUARDED" : "STANDARD";
 
   const notes = [];
   if (version?.devKitVersion) notes.push(`Project dev-kit version: ${version.devKitVersion}`);
@@ -788,9 +806,10 @@ function buildResult() {
   if (signals.isProductionGoverned) notes.push(`${signals.productionSignals.length} production governance signal(s) detected.`);
   if (signals.isDirtyWorktree) notes.push(`Git worktree has ${signals.git.changedFileCount} changed or untracked file(s).`);
   if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("Governed, production-sensitive, or dirty project protection is active; execution intent does not allow workflow writes yet.");
+  if (nextAction === "REVIEW_DIRTY_WORKTREE") notes.push("Dirty production-governed project execution guard is active; confirm current changes before creating artifacts or executing a task.");
   if (notes.length === 0) notes.push("No blocking workflow issue detected.");
 
-  const humanStopActions = new Set(["SELECT_OR_CREATE_TARGET", "REVIEW_GOVERNANCE_MIGRATION", "RUN_ADOPTION_ASSESSMENT", "REVIEW_EXISTING_GOVERNANCE_MAP", "WAIT_FOR_ADAPTER_CONFIRMATION", "READY_FOR_FIRST_REQUEST"]);
+  const humanStopActions = new Set(["SELECT_OR_CREATE_TARGET", "REVIEW_GOVERNANCE_MIGRATION", "RUN_ADOPTION_ASSESSMENT", "REVIEW_DIRTY_WORKTREE", "REVIEW_EXISTING_GOVERNANCE_MAP", "WAIT_FOR_ADAPTER_CONFIRMATION", "READY_FOR_FIRST_REQUEST"]);
 
   return {
     projectRoot,
@@ -806,7 +825,7 @@ function buildResult() {
     adoptionMode,
     governanceSignals: signals,
     nextAction,
-    canWriteWorkflowAssets: nextAction === "RUN_ADOPTION_ASSESSMENT"
+    canWriteWorkflowAssets: ["RUN_ADOPTION_ASSESSMENT", "REVIEW_DIRTY_WORKTREE"].includes(nextAction)
       ? "no"
       : ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction) ? "yes_with_execution_intent" : "not_without_more_input",
     mustStopForHuman: humanStopActions.has(nextAction) || pendingReports.length > 0 || industrialBaseline.state === "NEEDS_HUMAN_APPROVAL" ? "yes" : "no",
@@ -886,5 +905,6 @@ function enforceReasons(result) {
   if (result.nextAction === "RUN_PLATFORM_BASELINE_SETUP") reasons.push("platform baseline is not ready");
   if (result.nextAction === "RUN_INDUSTRIAL_BASELINE_SETUP") reasons.push("industrial baseline is not ready");
   if (result.nextAction === "RUN_ADOPTION_ASSESSMENT") reasons.push("read-only adoption assessment is required before workflow writes");
+  if (result.nextAction === "REVIEW_DIRTY_WORKTREE") reasons.push("dirty production-governed worktree needs human confirmation before task execution");
   return [...new Set(reasons)];
 }

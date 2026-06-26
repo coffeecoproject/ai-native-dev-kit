@@ -49,6 +49,8 @@ CAN_WRITE_WORKFLOW_ASSETS: no
 
 这时 Codex 不应该运行初始化、更新 workflow assets、创建 migration report 或修改项目文件。它应该先使用 `templates/adoption-assessment.md` 和 `templates/existing-governance-map.md` 做只读评估，等人确认 adapter 接入方式。
 
+如果项目已经接入 workflow，但同时是生产治理项目并且工作区有未提交变更，`workflow-next` 会进入 `REVIEW_DIRTY_WORKTREE`。这时 Codex 也要先停下来确认现有改动归属，不能直接创建新任务或继续执行。
+
 ## 它解决什么
 
 很多项目接入 AI 后，真正的问题不是 AI 不会写代码，而是：
@@ -103,6 +105,9 @@ workflow-improvements/ 流程改进
 skill-candidates/      适合沉淀成 Skill 的候选
 automation-proposals/  适合自动化的候选
 dev-kit-proposals/     需要回写到这套 dev kit 的建议
+review-packets/        给人或第二模型复查的稳定输入包
+gpt-review-prompts/    给 GPT Pro 或独立 reviewer 的只读审查提示
+review-loop-reports/   审查、多轮自动修复、复审和人工决策记录
 releases/              发布和证据记录
 ```
 
@@ -273,12 +278,43 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 如果高风险词只是作为明确的非目标或排除范围出现，可以在任务卡写 `Risk Gate Exclusions`，说明为什么不勾选，并由人确认。这样不用为了过检查把文本写得含糊。
 如果同一任务接受了超过 3 个 Risk Gate Exclusions，ready 模式会提醒；进入 implementation 模式时，`Human Approval` 的 `Approval scope` 必须明确覆盖这些排除项。
 
+如果需要让 GPT Pro、第二模型或人类复查一次变更，可以生成 Review Packet：
+
+```bash
+node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-change.md
+```
+
+它会把需求、规格、任务、风险、人工批准、证据、diff 摘要、已知风险和开放问题放进一个文件。Review Packet 只是复查输入，不代表批准。
+
+如果任务是 `L2` / `L3`，或者复查发现需要闭环的问题，再生成 Review Loop Report：
+
+```bash
+node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-change.md
+```
+
+如果需要 GPT Pro 或第二模型参与，生成只读提示：
+
+```bash
+node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-change.md
+```
+
+Review Loop 的规则很简单：reviewer 只读审查；Codex 只自动修确定性、低风险、任务范围内的问题；最多自动修 2 轮；范围、风险、权限、架构、依赖、迁移、生产配置、发布和回滚决策交给人。
+
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.22.0`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.24.0`。
 
 新增内容：
 
+- 新增 `core/review-loop.md`，定义任务完成后的审查、自动修复、复审和人工决策分流协议。
+- 新增 `templates/review-loop-report.md`、`templates/gpt-review-prompt.md`、`checklists/review-loop-review.md`。
+- `new-workflow-item` 支持 `--type review-loop-report` 和 `--type gpt-review-prompt`，并会尽量从 task card 自动回填 spec/eval/task level。
+- 生成项目和 starter 都新增 `review-loop-reports/`、`gpt-review-prompts/`。
+- `workflow-daily-summary` 会观察 Review Loop Report，方便真实项目试跑后看审查成本和未闭环事项。
+- 本版仍然是半自动 Review Loop：不接入 hook，不调用外部 API，不让 GPT 自动改代码。
+- 新增 `templates/review-packet.md` 和 `review-packets/`，用于把一次变更打包给 GPT Pro、第二模型或人类复查。
+- `new-workflow-item` 支持 `--type review-packet`、`--type adoption-assessment` 和 `--type governance-map`。
+- `workflow-next` 对 dirty + production governed + ready 执行态增加 `REVIEW_DIRTY_WORKTREE`，避免在已有未确认改动上继续执行任务。
 - 新增 `industrial-packs/selection-guide.md`，说明工业包不是只有 Web，并给出主平台、能力包、风险覆盖包的选择和组合规则。
 - 默认初始化改为轻量工业包入口，只注入 registry/schema，不默认塞入所有具体工业包。
 - CI 模板改为 `--selected-only` 和 `--bl2-only`，BL0/BL1 项目不承担 BL2 检查成本。
@@ -340,6 +376,10 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base o
 - `scripts/workflow-next.mjs`
 - `templates/adoption-assessment.md`
 - `templates/existing-governance-map.md`
+- `templates/review-packet.md`
+- `templates/gpt-review-prompt.md`
+- `templates/review-loop-report.md`
+- `core/review-loop.md`
 - `scripts/check-project-onboarding.mjs`
 - `scripts/check-platform-baseline.mjs`
 - `scripts/resolve-platform-baseline.mjs`

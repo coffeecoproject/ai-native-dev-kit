@@ -31,6 +31,7 @@ Before non-trivial work, read:
 - When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
 - For bootstrap work, use `.ai-native/prompts/bootstrap-agent.md` when present, then run `node scripts/workflow-next.mjs .`.
 - Follow `NEXT_ACTION` and stop for human approval before applying migration reports.
+- If `workflow-next` reports `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing tasks until the human confirms how to handle existing changes.
 
 ## Project Onboarding
 
@@ -59,10 +60,15 @@ Before non-trivial work, read:
 ## Workflow Artifacts
 
 - Use `node scripts/new-workflow-item.mjs` to create numbered workflow files.
+- Use `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when a change needs independent human, GPT Pro, or second-model review.
+- Use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure.
+- Use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when request/spec/eval/task files exist.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded.
 - If any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation.
 - Fix placeholder or missing artifact content before writing code.
+- AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
+- Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
 
 ## Skill Governance
 

@@ -22,6 +22,8 @@ node ai-native-dev-kit/scripts/workflow-next.mjs .
 
 If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, stop setup. This means the project appears governed, production-sensitive, or dirty. Codex should produce a read-only assessment from `templates/adoption-assessment.md` and `templates/existing-governance-map.md` instead of running `init-project`.
 
+If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing a task. Confirm who owns the current git changes and whether they should be committed, split, stashed, ignored, or reviewed first.
+
 ## New Project
 
 Initialize from a starter:
@@ -161,6 +163,28 @@ node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/0
 ```
 
 If any Risk Gate item is checked, the task card must include `## Human Approval` with a concrete `Approval scope` and `Status: Approved` before implementation.
+
+When independent review is needed, generate a Review Packet:
+
+```bash
+node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
+```
+
+Fill it with the diff summary, commands run, evidence refs, known risks, and open questions before handing it to a human reviewer, GPT Pro, or a second model. A Review Packet is not approval.
+
+For L2/L3 work, or whenever review findings need a recorded loop, generate a Review Loop Report:
+
+```bash
+node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
+```
+
+If GPT Pro or a second model will review the packet, generate a read-only reviewer prompt:
+
+```bash
+node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
+```
+
+Codex may auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds. Scope, risk, permission, architecture, dependency, migration, production config, release, rollback, and approval changes require human decision.
 
 ## Existing Project
 

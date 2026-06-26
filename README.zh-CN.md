@@ -31,6 +31,8 @@ CAN_WRITE_WORKFLOW_ASSETS: no
 
 这时 Codex 只能做 `adoption-assessment` 和 `existing-governance-map`，先把 AI Native 概念映射到现有治理资产，等人确认后再决定是否 adapter 接入。
 
+如果项目已经接入 workflow，但它是生产治理项目并且当前工作区有未提交变更，`workflow-next` 会返回 `REVIEW_DIRTY_WORKTREE`。这时 Codex 要先停下来确认这些改动是谁的、是否要继续、是否要先提交或拆分，不能直接继续执行任务。
+
 ## 三条使用路径
 
 先按项目风险选一条路，不要一开始把所有规则都打开：
@@ -216,6 +218,9 @@ workflow-improvements/
 skill-candidates/
 automation-proposals/
 dev-kit-proposals/
+review-packets/
+gpt-review-prompts/
+review-loop-reports/
 releases/
 scripts/
   verify.sh
@@ -250,10 +255,13 @@ scripts/
 10. AI 只执行一个 task card。
 11. 跑 verification。
 12. 人审查 diff、风险和证据。
-13. 合并后写 AI task log。
-14. 阶段性复盘进入 workflow retros。
-15. 重复问题进入 workflow improvements。
-16. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
+13. 如果需要更强复查，生成 `review-packets/`，交给 GPT Pro、第二模型或人类 reviewer。
+14. 如果复查需要闭环，生成 `review-loop-reports/`，记录 findings、自动修复、复审和人工决策。
+15. 如果需要 GPT Pro 或第二模型参与，生成 `gpt-review-prompts/` 作为只读审查提示。
+16. 合并后写 AI task log。
+17. 阶段性复盘进入 workflow retros。
+18. 重复问题进入 workflow improvements。
+19. 重复执行模式进入 skill candidates，但不能自动启用 active Skill。
 
 ## Platform Baseline
 
@@ -454,6 +462,24 @@ templates/adoption-assessment.md
 templates/existing-governance-map.md
 ```
 
+独立复查输入包：
+
+```text
+templates/review-packet.md
+review-packets/
+```
+
+审查闭环：
+
+```text
+core/review-loop.md
+templates/review-loop-report.md
+templates/gpt-review-prompt.md
+checklists/review-loop-review.md
+review-loop-reports/
+gpt-review-prompts/
+```
+
 ## 生成 Workflow 文件
 
 ```bash
@@ -462,6 +488,9 @@ node scripts/new-workflow-item.mjs --type preflight --from requests/001-first-sl
 node scripts/new-workflow-item.mjs --type spec --name first-slice --request requests/001-first-slice.md --preflight preflight/001-first-slice.md
 node scripts/new-workflow-item.mjs --type eval --spec specs/001-first-slice.md
 node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md --eval evals/001-first-slice.md --level L1
+node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
 ```
 
 实现前检查 artifact 质量：

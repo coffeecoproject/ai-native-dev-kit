@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.22.0`
+Current version: `0.24.0`
 
 ## Versioning Policy
 
@@ -10,7 +10,7 @@ Current version: `0.22.0`
 
 ## Current Release
 
-`0.22.0`
+`0.24.0`
 
 Includes:
 
@@ -89,3 +89,12 @@ Includes:
 - Existing Governed Project Adoption mode for governed, production-sensitive, or dirty projects
 - `workflow-next` project state tags, governance signals, and read-only adoption mode
 - adoption assessment and existing governance map templates
+- guarded task execution for dirty production-governed projects
+- review packet template and `new-workflow-item --type review-packet`
+- Review Loop Protocol for task-level review, AUTO_FIX, re-review, and human-decision routing
+- GPT review prompt template for read-only external reviewer use
+- Review Loop Report template and `new-workflow-item --type review-loop-report`
+- `new-workflow-item --type gpt-review-prompt`
+- review loop directories for generated projects and starter projects
+- review loop protocol self-checks in `check-dev-kit.mjs`
+- adoption assessment and governance map generation entries

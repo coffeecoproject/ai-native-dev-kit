@@ -123,6 +123,8 @@ const improvements = listMarkdownFiles("workflow-improvements");
 const skillCandidates = listMarkdownFiles("skill-candidates");
 const automationProposals = listMarkdownFiles("automation-proposals");
 const proposals = listMarkdownFiles("dev-kit-proposals");
+const reviewPackets = listMarkdownFiles("review-packets");
+const reviewLoopReports = listMarkdownFiles("review-loop-reports");
 
 const recentAiLogs = recentFiles(aiLogs);
 const recentRetros = recentFiles(retros);
@@ -130,6 +132,8 @@ const recentImprovements = recentFiles(improvements);
 const recentSkillCandidates = recentFiles(skillCandidates);
 const recentAutomationProposals = recentFiles(automationProposals);
 const recentProposals = recentFiles(proposals);
+const recentReviewPackets = recentFiles(reviewPackets);
+const recentReviewLoopReports = recentFiles(reviewLoopReports);
 
 const allProblems = [];
 const recentProblems = [];
@@ -159,6 +163,16 @@ const pendingProposals = proposals.filter((file) => {
   const status = statusOf(file, "Decision").toLowerCase();
   return !["accepted", "rejected"].some((closed) => status.includes(closed));
 });
+const pendingReviewPackets = reviewPackets.filter((file) => {
+  const status = statusOf(file, "Packet Status").toLowerCase();
+  return !status.includes("reviewed");
+});
+const pendingReviewLoopReports = reviewLoopReports.filter((file) => {
+  const content = fs.readFileSync(file, "utf8").toLowerCase();
+  return !content.includes("final status: done")
+    && !content.includes("final status: auto_fixed")
+    && !content.includes("final status: blocked");
+});
 
 const signals = [];
 if (recentAiLogs.length > 0) signals.push(`${recentAiLogs.length} new AI task log(s) since last summary window`);
@@ -167,11 +181,15 @@ if (recentImprovements.length > 0) signals.push(`${recentImprovements.length} up
 if (recentSkillCandidates.length > 0) signals.push(`${recentSkillCandidates.length} updated Skill candidate(s)`);
 if (recentAutomationProposals.length > 0) signals.push(`${recentAutomationProposals.length} updated automation proposal(s)`);
 if (recentProposals.length > 0) signals.push(`${recentProposals.length} updated dev-kit proposal(s)`);
+if (recentReviewPackets.length > 0) signals.push(`${recentReviewPackets.length} updated review packet(s)`);
+if (recentReviewLoopReports.length > 0) signals.push(`${recentReviewLoopReports.length} updated review loop report(s)`);
 if (repeatedRecentProblems.length > 0) signals.push(`${repeatedRecentProblems.length} repeated problem(s) in recent logs`);
 if (recentTriggers.length > 0) signals.push(`${recentTriggers.length} checked workflow trigger(s) in recent logs`);
 if (pendingSkillCandidates.length > 0) signals.push(`${pendingSkillCandidates.length} Skill candidate(s) need human review or disposition`);
 if (pendingAutomationProposals.length > 0) signals.push(`${pendingAutomationProposals.length} automation proposal(s) need human review or disposition`);
 if (pendingProposals.length > 0) signals.push(`${pendingProposals.length} dev-kit proposal(s) need review or disposition`);
+if (pendingReviewPackets.length > 0) signals.push(`${pendingReviewPackets.length} review packet(s) need independent review or disposition`);
+if (pendingReviewLoopReports.length > 0) signals.push(`${pendingReviewLoopReports.length} review loop report(s) need final disposition`);
 
 const hasAction = signals.length > 0;
 const summaryPath = `workflow-retros/${localDate(now)}-daily-summary.md`;
@@ -195,6 +213,8 @@ console.log(`- Workflow improvements: ${improvements.length}`);
 console.log(`- Skill candidates: ${skillCandidates.length}`);
 console.log(`- Automation proposals: ${automationProposals.length}`);
 console.log(`- Dev-kit proposals: ${proposals.length}`);
+console.log(`- Review packets: ${reviewPackets.length}`);
+console.log(`- Review loop reports: ${reviewLoopReports.length}`);
 console.log("");
 console.log("## Signals");
 console.log("");
@@ -213,6 +233,8 @@ const recentGroups = [
   ["Skill candidates", recentSkillCandidates],
   ["Automation proposals", recentAutomationProposals],
   ["Dev-kit proposals", recentProposals],
+  ["Review packets", recentReviewPackets],
+  ["Review loop reports", recentReviewLoopReports],
 ];
 for (const [label, files] of recentGroups) {
   console.log(`### ${label}`);
@@ -261,6 +283,12 @@ if (!hasAction) {
   }
   if (pendingAutomationProposals.length > 0) {
     console.log("- Review pending automation proposals with `.ai-native/checklists/automation-review.md`.");
+  }
+  if (pendingReviewPackets.length > 0) {
+    console.log("- Review pending `review-packets/` entries or mark their outcome.");
+  }
+  if (pendingReviewLoopReports.length > 0) {
+    console.log("- Review pending `review-loop-reports/` entries and close DONE, AUTO_FIXED, BLOCKED, or NEEDS_HUMAN_DECISION status.");
   }
 }
 console.log("");

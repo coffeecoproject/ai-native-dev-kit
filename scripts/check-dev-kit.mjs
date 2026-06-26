@@ -66,6 +66,7 @@ function checkRequiredFiles() {
     "core/skill-governance.md",
     "core/automation-governance.md",
     "core/project-onboarding.md",
+    "core/review-loop.md",
     "templates/request-card.md",
     "templates/preflight-report.md",
     "templates/spec.md",
@@ -78,6 +79,9 @@ function checkRequiredFiles() {
     "templates/dogfood-observation.md",
     "templates/adoption-assessment.md",
     "templates/existing-governance-map.md",
+    "templates/review-packet.md",
+    "templates/gpt-review-prompt.md",
+    "templates/review-loop-report.md",
     "templates/dev-kit-change-proposal.md",
     "templates/skill-candidate.md",
     "templates/project-automation-proposal.md",
@@ -109,8 +113,10 @@ function checkRequiredFiles() {
     "checklists/skill-review.md",
     "checklists/automation-review.md",
     "checklists/project-onboarding-review.md",
+    "checklists/review-loop-review.md",
     "prompts/bootstrap-agent.md",
     "prompts/project-onboarding-agent.md",
+    "prompts/reviewer-agent.md",
     "scripts/init-project.mjs",
     "scripts/check-ai-workflow.mjs",
     "scripts/check-dev-kit.mjs",
@@ -284,6 +290,9 @@ function checkVersionMetadata() {
     "docs/sample-policy.md",
     "docs/onboarding-decisions.md",
     "docs/verification-matrix.md",
+    "review-packets",
+    "gpt-review-prompts",
+    "review-loop-reports",
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
     ".github/pull_request_template.md",
@@ -337,6 +346,52 @@ function checkCorePurity() {
   }
 
   if (!failed) pass("core/default assets are business-neutral by banned-term scan");
+}
+
+function checkReviewLoopProtocol() {
+  const files = {
+    "core/review-loop.md": read("core/review-loop.md"),
+    "templates/review-loop-report.md": read("templates/review-loop-report.md"),
+    "templates/gpt-review-prompt.md": read("templates/gpt-review-prompt.md"),
+    "checklists/review-loop-review.md": read("checklists/review-loop-review.md"),
+    "prompts/reviewer-agent.md": read("prompts/reviewer-agent.md"),
+  };
+  const combined = Object.values(files).join("\n");
+  const requiredMarkers = [
+    "Max auto-fix rounds: 2",
+    "AUTO_FIX",
+    "NEEDS_HUMAN_DECISION",
+    "NEEDS_CLARIFICATION",
+    "NO_ACTION",
+    "NO_ACTION requires a reason",
+    "NEEDS_CLARIFICATION can be attempted once",
+    "must not edit files",
+    "must not approve release",
+    "scope expansion",
+    "new dependency",
+    "architecture change",
+    "permission model change",
+    "database migration",
+    "production configuration",
+    "Human Approval",
+    "Approval scope",
+    "Risk Gate",
+    "2 rounds",
+  ];
+
+  for (const marker of requiredMarkers) {
+    if (combined.includes(marker)) {
+      pass(`review loop protocol includes ${marker}`);
+    } else {
+      fail(`review loop protocol missing ${marker}`);
+    }
+  }
+
+  if (files["core/review-loop.md"].includes("Hook-based reviewer automation can be added later")) {
+    pass("review loop protocol keeps hook automation future-scoped");
+  } else {
+    fail("review loop protocol must keep hook automation future-scoped");
+  }
 }
 
 function checkProfiles() {
@@ -506,6 +561,9 @@ function checkStarters() {
     "skill-candidates/.gitkeep",
     "automation-proposals/.gitkeep",
     "dev-kit-proposals/.gitkeep",
+    "review-packets/.gitkeep",
+    "gpt-review-prompts/.gitkeep",
+    "review-loop-reports/.gitkeep",
     "releases/.gitkeep",
     "scripts/verify.sh",
     ".github/pull_request_template.md",
@@ -530,7 +588,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -539,7 +597,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -662,9 +720,14 @@ function checkReadmePointers() {
     "workflow-next",
     "ADOPTION_MODE",
     "RUN_ADOPTION_ASSESSMENT",
+    "REVIEW_DIRTY_WORKTREE",
     "PROJECT_STATE_TAGS",
     "adoption-assessment",
     "existing-governance-map",
+    "review-packet",
+    "gpt-review-prompt",
+    "review-loop-report",
+    "review-loop",
     "dogfood-observation",
     "--enforce",
     "bootstrap-agent",
@@ -1213,6 +1276,57 @@ function checkGeneratedProjectE2E() {
   }
   pass("governed existing project workflow-next requires read-only adoption assessment");
 
+  const dirtyReadyTarget = path.join(tempRoot, "dirty-ready-production-project");
+  const dirtyReadyInit = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    dirtyReadyTarget,
+  ]);
+  if (dirtyReadyInit.status !== 0) {
+    fail(`dirty ready production project init failed: ${dirtyReadyInit.stderr || dirtyReadyInit.stdout}`);
+    return;
+  }
+  const onboardingDocsToConfirm = [
+    "docs/project-onboarding.md",
+    "docs/project-profile.md",
+    "docs/tech-stack-strategy.md",
+    "docs/business-spec-index.md",
+    "docs/sample-policy.md",
+    "docs/onboarding-decisions.md",
+  ];
+  for (const relPath of onboardingDocsToConfirm) {
+    const fullPath = path.join(dirtyReadyTarget, relPath);
+    let content = fs.readFileSync(fullPath, "utf8")
+      .replace(/<[^>\n]+>/g, "confirmed")
+      .replace(/PENDING_CONFIRMATION|PENDING|TBD|TODO|NOT_READY/g, "CONFIRMED");
+    if (relPath === "docs/project-profile.md") {
+      content = content.replace(/## Selected Profiles\n\n[\s\S]*?\n## Profile Rationale/, "## Selected Profiles\n\n- web-app\n\n## Profile Rationale");
+    }
+    fs.writeFileSync(fullPath, content);
+  }
+  fs.mkdirSync(path.join(dirtyReadyTarget, ".github", "workflows"), { recursive: true });
+  fs.writeFileSync(path.join(dirtyReadyTarget, ".github", "workflows", "release.yml"), "name: release\n");
+  fs.writeFileSync(path.join(dirtyReadyTarget, "requests", "001-ready-task.md"), "# Request: ready-task\n");
+  fs.writeFileSync(path.join(dirtyReadyTarget, "specs", "001-ready-task.md"), "# Spec 001: ready task\n");
+  fs.writeFileSync(path.join(dirtyReadyTarget, "evals", "001-ready-task.md"), "# Eval: ready task\n");
+  fs.writeFileSync(path.join(dirtyReadyTarget, "tasks", "001-ready-task.md"), "# Task 001: ready task\n");
+  spawnSync("git", ["init"], { cwd: dirtyReadyTarget, encoding: "utf8" });
+  const dirtyReadyNext = runNode([
+    path.join(kitRoot, "scripts", "workflow-next.mjs"),
+    dirtyReadyTarget,
+  ]);
+  if (dirtyReadyNext.status !== 0
+    || !dirtyReadyNext.stdout.includes("NEXT_ACTION: REVIEW_DIRTY_WORKTREE")
+    || !dirtyReadyNext.stdout.includes("ADOPTION_MODE: GUARDED")
+    || !dirtyReadyNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
+    || !dirtyReadyNext.stdout.includes("MUST_STOP_FOR_HUMAN: yes")
+    || !dirtyReadyNext.stdout.includes("PRODUCTION_GOVERNED_PROJECT")
+    || !dirtyReadyNext.stdout.includes("DIRTY_WORKTREE_PROJECT")) {
+    fail(`dirty production-governed ready project should stop before task execution: ${dirtyReadyNext.stderr || dirtyReadyNext.stdout}`);
+    return;
+  }
+  pass("dirty production-governed ready project workflow-next stops before task execution");
+
   const onboardingO0Check = runNode([
     path.join(target, "scripts", "check-project-onboarding.mjs"),
     target,
@@ -1287,6 +1401,38 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project new workflow item creates request");
+
+  const generatedAdoptionAssessment = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "adoption-assessment",
+    "--name",
+    "governed-existing-project",
+  ]);
+  if (generatedAdoptionAssessment.status !== 0
+    || !fs.existsSync(path.join(target, ".ai-native", "adoption", "001-governed-existing-project.md"))) {
+    fail(`generated project adoption assessment item failed: ${generatedAdoptionAssessment.stderr || generatedAdoptionAssessment.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates adoption assessment");
+
+  const generatedGovernanceMap = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "governance-map",
+    "--name",
+    "governed-existing-project",
+  ]);
+  if (generatedGovernanceMap.status !== 0
+    || !fs.existsSync(path.join(target, ".ai-native", "adoption", "002-governed-existing-project.md"))) {
+    fail(`generated project governance map item failed: ${generatedGovernanceMap.stderr || generatedGovernanceMap.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates governance map");
 
   const draftArtifactCheck = runNode([
     path.join(target, "scripts", "check-workflow-artifacts.mjs"),
@@ -1393,6 +1539,59 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project task-scoped workflow artifact check");
+
+  const generatedReviewPacket = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "review-packet",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedReviewPacket.status !== 0
+    || !fs.existsSync(path.join(target, "review-packets", "001-admin-work-item-list.md"))) {
+    fail(`generated project review packet item failed: ${generatedReviewPacket.stderr || generatedReviewPacket.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates review packet");
+
+  const generatedGptReviewPrompt = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "gpt-review-prompt",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedGptReviewPrompt.status !== 0
+    || !fs.existsSync(path.join(target, "gpt-review-prompts", "001-admin-work-item-list.md"))) {
+    fail(`generated project GPT review prompt item failed: ${generatedGptReviewPrompt.stderr || generatedGptReviewPrompt.stdout}`);
+    return;
+  }
+  pass("generated project new workflow item creates GPT review prompt");
+
+  const generatedReviewLoopReport = runNode([
+    path.join(target, "scripts", "new-workflow-item.mjs"),
+    "--root",
+    target,
+    "--type",
+    "review-loop-report",
+    "--task",
+    "tasks/001-admin-work-item-list.md",
+  ]);
+  if (generatedReviewLoopReport.status !== 0
+    || !fs.existsSync(path.join(target, "review-loop-reports", "001-admin-work-item-list.md"))) {
+    fail(`generated project review loop report item failed: ${generatedReviewLoopReport.stderr || generatedReviewLoopReport.stdout}`);
+    return;
+  }
+  const generatedReviewLoopContent = fs.readFileSync(path.join(target, "review-loop-reports", "001-admin-work-item-list.md"), "utf8");
+  if (!generatedReviewLoopContent.includes("Review required: Yes") || !generatedReviewLoopContent.includes("Max auto-fix rounds: 2")) {
+    fail("generated project review loop report missing required review policy");
+    return;
+  }
+  pass("generated project new workflow item creates review loop report");
 
   const missedRiskTaskContent = originalTaskContent
     .replace("- [x] permission", "- [ ] permission")
@@ -1628,7 +1827,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy project workflow update failed: ${legacyUpdateResult.stderr || legacyUpdateResult.stdout}`);
     return;
   }
-  const legacyExpectedDirs = ["skill-candidates", "automation-proposals", "workflow-retros", "workflow-improvements"];
+  const legacyExpectedDirs = ["skill-candidates", "automation-proposals", "workflow-retros", "workflow-improvements", "review-packets", "gpt-review-prompts", "review-loop-reports"];
   for (const dir of legacyExpectedDirs) {
     if (!fs.existsSync(path.join(legacyTarget, dir))) {
       fail(`legacy project workflow update missing ${dir}`);
@@ -1693,7 +1892,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedLegacyAgents = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
-  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Skill Governance", "Automation Governance", "Final Report"]) {
+  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Skill Governance", "Automation Governance", "Final Report"]) {
     if (!appliedLegacyAgents.includes(marker)) {
       fail(`legacy project AGENTS.md explicit apply missing ${marker}`);
       return;
@@ -1739,7 +1938,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const legacyPrTemplateContent = fs.readFileSync(legacyPrTemplate, "utf8");
-  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
     if (!legacyPrTemplateContent.includes(marker)) {
       fail(`legacy project workflow update PR template missing ${marker}`);
       return;
@@ -1830,7 +2029,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
-  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Skill / Automation Governance", "irreversible operation"]) {
+  for (const marker of ["Bootstrap state", "Project onboarding", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Skill / Automation Governance", "irreversible operation"]) {
     if (!appliedCustomPrTemplate.includes(marker)) {
       fail(`legacy custom PR template explicit apply missing ${marker}`);
       return;
@@ -1848,6 +2047,7 @@ checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
 checkCorePurity();
+checkReviewLoopProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

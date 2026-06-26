@@ -14,11 +14,30 @@ const typeMap = {
   eval: { dir: "evals", template: "eval.md" },
   task: { dir: "tasks", template: "task-card.md" },
   log: { dir: "ai-logs", template: "ai-task-log.md" },
+  "review-packet": { dir: "review-packets", template: "review-packet.md", defaultName: "review-packet" },
+  "review-loop-report": { dir: "review-loop-reports", template: "review-loop-report.md", defaultName: "review-loop-report" },
+  "gpt-review-prompt": { dir: "gpt-review-prompts", template: "gpt-review-prompt.md", defaultName: "gpt-review-prompt" },
+  "adoption-assessment": { dir: ".ai-native/adoption", template: "adoption-assessment.md", defaultName: "adoption-assessment" },
+  "governance-map": { dir: ".ai-native/adoption", template: "existing-governance-map.md", defaultName: "existing-governance-map" },
 };
 
 const aliases = {
   "ai-log": "log",
   ailog: "log",
+  review: "review-packet",
+  reviewpacket: "review-packet",
+  "review-packets": "review-packet",
+  "review-loop": "review-loop-report",
+  reviewloop: "review-loop-report",
+  reviewloopreport: "review-loop-report",
+  "review-loop-reports": "review-loop-report",
+  "gpt-review": "gpt-review-prompt",
+  gptreview: "gpt-review-prompt",
+  gptprompt: "gpt-review-prompt",
+  "gpt-review-prompts": "gpt-review-prompt",
+  adoption: "adoption-assessment",
+  assessment: "adoption-assessment",
+  "existing-governance-map": "governance-map",
 };
 
 function parseArgs(argv) {
@@ -50,6 +69,11 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type eval --spec specs/001-first-slice.md");
   console.error("  node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md --eval evals/001-first-slice.md --level L1");
   console.error("  node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md");
+  console.error("  node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md");
+  console.error("  node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md");
+  console.error("  node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md");
+  console.error("  node scripts/new-workflow-item.mjs --type adoption-assessment --name existing-project");
+  console.error("  node scripts/new-workflow-item.mjs --type governance-map --name existing-project");
 }
 
 function fail(message) {
@@ -142,6 +166,12 @@ function setSection(content, heading, body) {
   return `${content.slice(0, range.bodyStart)}${replacement}${content.slice(range.bodyEnd).replace(/^\n+/, "")}`;
 }
 
+function sectionBody(content, heading) {
+  const range = sectionRange(content, heading);
+  if (!range) return "";
+  return content.slice(range.bodyStart, range.bodyEnd).trim();
+}
+
 function insertSectionBefore(content, heading, newHeading, body) {
   const match = content.match(new RegExp(`^## ${escapeRegExp(heading)}\\s*$`, "m"));
   const index = match ? match.index : -1;
@@ -155,6 +185,69 @@ function setTitle(content, title) {
 
 function refLine(label, ref) {
   return ref ? `- ${label}: \`${ref}\`` : `- ${label}: not used`;
+}
+
+function firstMarkdownRef(value) {
+  const codeRef = String(value || "").match(/`([^`]+\.md)`/);
+  if (codeRef) return codeRef[1];
+  const plainRef = String(value || "").match(/\b(?:requests|preflight|specs|evals|tasks|ai-logs|review-packets|review-loop-reports|gpt-review-prompts)\/[^\s`|)]+\.md\b/);
+  return plainRef ? plainRef[0] : null;
+}
+
+function firstMarkdownRefFromSections(content, headings) {
+  for (const heading of headings) {
+    const ref = firstMarkdownRef(sectionBody(content, heading));
+    if (ref) return ref;
+  }
+  return null;
+}
+
+function normalizeInferredRef(root, ref, baseDir) {
+  if (!ref) return null;
+  if (fs.existsSync(path.join(root, ref))) return ref.replaceAll(path.sep, "/");
+  const bases = [baseDir, path.dirname(baseDir || ".")].filter(Boolean);
+  for (const base of bases) {
+    const candidate = path.relative(root, path.resolve(root, base, ref)).replaceAll(path.sep, "/");
+    if (fs.existsSync(path.join(root, candidate))) return candidate;
+  }
+  return ref.replaceAll(path.sep, "/");
+}
+
+function firstNonEmptyLine(value) {
+  return String(value || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .find(Boolean) || "";
+}
+
+function inferRefsFromTask(root, current) {
+  const inferred = { ...current };
+  if (inferred.taskRef) {
+    const taskPath = path.join(root, inferred.taskRef);
+    if (fs.existsSync(taskPath)) {
+      const taskContent = fs.readFileSync(taskPath, "utf8");
+      const taskBaseDir = path.dirname(inferred.taskRef);
+      inferred.specRef ||= normalizeInferredRef(root, firstMarkdownRefFromSections(taskContent, ["Related Spec", "Spec"]), taskBaseDir);
+      inferred.evalRef ||= normalizeInferredRef(root, firstMarkdownRefFromSections(taskContent, ["Related Eval", "Eval"]), taskBaseDir);
+      inferred.level ||= firstNonEmptyLine(sectionBody(taskContent, "Task Level")).replace(/^Task Level:\s*/i, "");
+    }
+  }
+  if (inferred.specRef) {
+    const specPath = path.join(root, inferred.specRef);
+    if (fs.existsSync(specPath)) {
+      const specContent = fs.readFileSync(specPath, "utf8");
+      const sourceBody = sectionBody(specContent, "Source");
+      const specBaseDir = path.dirname(inferred.specRef);
+      inferred.requestRef ||= normalizeInferredRef(root, firstMarkdownRef(sourceBody.match(/Request[^\n]*/i)?.[0] || sourceBody), specBaseDir);
+      inferred.preflightRef ||= normalizeInferredRef(root, firstMarkdownRef(sourceBody.match(/Preflight[^\n]*/i)?.[0] || sourceBody), specBaseDir);
+    }
+  }
+  return inferred;
+}
+
+function siblingArtifactRef(root, dir, number, slug) {
+  const rel = `${dir}/${number}-${slug}.md`;
+  return fs.existsSync(path.join(root, rel)) ? rel : null;
 }
 
 function writeArtifact(root, dir, filename, content) {
@@ -250,6 +343,166 @@ function fillLog(content, context) {
   return output;
 }
 
+function fillReviewPacket(content, context) {
+  let output = setTitle(content, `# Review Packet: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Packet Status",
+    [
+      "Status: DRAFT",
+      "",
+      `Prepared by: ${context.agent || "Codex"}`,
+      "",
+      `Prepared at: ${context.date}`,
+      "",
+      "Reviewer:",
+      "",
+      context.taskRef ? `Review target: \`${context.taskRef}\`` : "Review target:",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Source Artifacts",
+    [
+      "| Artifact | Path | Status | Notes |",
+      "|---|---|---|---|",
+      `| Request | ${context.requestRef ? `\`${context.requestRef}\`` : ""} |  |  |`,
+      `| Preflight | ${context.preflightRef ? `\`${context.preflightRef}\`` : ""} |  |  |`,
+      `| Spec | ${context.specRef ? `\`${context.specRef}\`` : ""} |  |  |`,
+      `| Eval | ${context.evalRef ? `\`${context.evalRef}\`` : ""} |  |  |`,
+      `| Task | ${context.taskRef ? `\`${context.taskRef}\`` : ""} |  |  |`,
+      `| AI task log | ${context.logRef ? `\`${context.logRef}\`` : ""} |  |  |`,
+      "| Release evidence |  |  |  |",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function reviewRequiredForLevel(level) {
+  const normalized = String(level || "L1").trim().toUpperCase();
+  return normalized === "L2" || normalized === "L3";
+}
+
+function fillReviewLoopReport(content, context) {
+  const level = context.level || "L1";
+  const reviewRequired = reviewRequiredForLevel(level) ? "Yes" : "No";
+  const reason = reviewRequired === "Yes"
+    ? `${level} work requires a Review Packet and at least one read-only reviewer pass.`
+    : `${level} work does not require Review Loop unless the human or task risk asks for it.`;
+  let output = setTitle(content, `# Review Loop Report: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Status",
+    [
+      context.taskRef ? `Task: \`${context.taskRef}\`` : "Task:",
+      "",
+      context.specRef ? `Related Spec: \`${context.specRef}\`` : "Related Spec:",
+      "",
+      context.evalRef ? `Related Eval: \`${context.evalRef}\`` : "Related Eval:",
+      "",
+      `Task Level: ${level}`,
+      "",
+      `Review required: ${reviewRequired}`,
+      "",
+      `Reason: ${reason}`,
+      "",
+      "Current round: 0",
+      "",
+      "Max auto-fix rounds: 2",
+      "",
+      "Final status: OPEN",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Review Packet",
+    [
+      context.reviewPacketRef ? `Review Packet ref: \`${context.reviewPacketRef}\`` : "Review Packet ref:",
+      "",
+      context.gptReviewPromptRef ? `GPT Review Prompt ref: \`${context.gptReviewPromptRef}\`` : "GPT Review Prompt ref:",
+      "",
+      context.taskRef ? `Task: \`${context.taskRef}\`` : "Task:",
+      "",
+      context.specRef ? `Spec: \`${context.specRef}\`` : "Spec:",
+      "",
+      context.evalRef ? `Eval: \`${context.evalRef}\`` : "Eval:",
+      "",
+      "Risk Gate:",
+      "",
+      "Risk Gate Exclusions:",
+      "",
+      "Human Approval:",
+      "",
+      "Baseline state:",
+      "",
+      "Industrial baseline state:",
+      "",
+      "Changed files:",
+      "",
+      "Commands run:",
+      "",
+      "Evidence refs:",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillGptReviewPrompt(content, context) {
+  let output = setTitle(content, `# GPT Review Prompt: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Review Packet Ref",
+    [
+      context.reviewPacketRef ? `Review Packet: \`${context.reviewPacketRef}\`` : "Review Packet:",
+      "",
+      context.taskRef ? `Task: \`${context.taskRef}\`` : "Task:",
+      "",
+      context.specRef ? `Spec: \`${context.specRef}\`` : "Spec:",
+      "",
+      context.evalRef ? `Eval: \`${context.evalRef}\`` : "Eval:",
+      "",
+      `Task Level: ${context.level || "L1"}`,
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillAdoptionAssessment(content, context) {
+  let output = setTitle(content, `# Existing Governed Project Adoption Assessment: ${context.slug}`);
+  output = setSection(
+    output,
+    "Assessment Status",
+    [
+      "Mode: READ_ONLY",
+      "",
+      `Prepared by: ${context.agent || "Codex"}`,
+      "",
+      `Prepared at: ${context.date}`,
+      "",
+      `Target project: ${context.projectRoot}`,
+      "",
+      "Dev-kit version:",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillGovernanceMap(content, context) {
+  let output = setTitle(content, `# Existing Governance Map: ${context.slug}`);
+  output = setSection(
+    output,
+    "Mapping Status",
+    [
+      "Status: DRAFT",
+      "",
+      "Owner:",
+      "",
+      `Reviewed at: ${context.date}`,
+    ].join("\n"),
+  );
+  return output;
+}
+
 const args = parseArgs(process.argv.slice(2));
 const rawType = args.type ? String(args.type) : "";
 const type = aliases[rawType] || rawType;
@@ -261,12 +514,29 @@ if (!type || !typeMap[type]) {
 
 const projectRoot = path.resolve(process.cwd(), args.root || ".");
 const config = typeMap[type];
+const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt"]);
 
-const requestRef = resolveRef(projectRoot, args.request || (type === "preflight" ? args.from : null), "request");
-const preflightRef = resolveRef(projectRoot, args.preflight, "preflight");
-const specRef = resolveRef(projectRoot, args.spec || (type === "eval" || type === "task" ? args.from : null), "spec");
-const evalRef = resolveRef(projectRoot, args.eval, "eval");
-const taskRef = resolveRef(projectRoot, args.task || (type === "log" ? args.from : null), "task");
+let requestRef = resolveRef(projectRoot, args.request || (type === "preflight" ? args.from : null), "request");
+let preflightRef = resolveRef(projectRoot, args.preflight, "preflight");
+let specRef = resolveRef(projectRoot, args.spec || (type === "eval" || type === "task" ? args.from : null), "spec");
+let evalRef = resolveRef(projectRoot, args.eval, "eval");
+let taskRef = resolveRef(projectRoot, args.task || (taskBasedTypes.has(type) ? args.from : null), "task");
+const logRef = resolveRef(projectRoot, args.log, "log");
+let level = args.level;
+
+const inferredRefs = inferRefsFromTask(projectRoot, {
+  evalRef,
+  level,
+  preflightRef,
+  requestRef,
+  specRef,
+  taskRef,
+});
+requestRef = inferredRefs.requestRef;
+preflightRef = inferredRefs.preflightRef;
+specRef = inferredRefs.specRef;
+evalRef = inferredRefs.evalRef;
+level = inferredRefs.level;
 
 if (type === "preflight" && !requestRef) fail("preflight requires --from or --request");
 if (type === "spec" && !requestRef) fail("spec requires --request");
@@ -274,26 +544,37 @@ if (type === "eval" && !specRef) fail("eval requires --spec or --from");
 if (type === "task" && !specRef) fail("task requires --spec or --from");
 if (type === "task" && !evalRef) fail("task requires --eval");
 if (type === "log" && !taskRef) fail("ai-log requires --task or --from");
+if (["review-packet", "review-loop-report", "gpt-review-prompt"].includes(type) && !taskRef && !args.name) {
+  fail(`${type} requires --task, --from, or --name`);
+}
 
-const sourceForName = requestRef || specRef || taskRef;
-const slug = slugify(args.name || (sourceForName ? parseNameFromPath(sourceForName) : "workflow-item"));
+const sourceForName = requestRef || specRef || taskRef || logRef;
+const slug = slugify(args.name || (sourceForName ? parseNameFromPath(sourceForName) : config.defaultName || "workflow-item"));
 const title = titleFromSlug(slug);
 const number = args.number
   ? String(args.number).padStart(3, "0")
   : numberFromPath(sourceForName || "") || nextNumber(projectRoot, config.dir);
 const date = localDate();
 const filename = type === "log" ? `${date}-${slug}.md` : `${number}-${slug}.md`;
+const reviewPacketRef = resolveRef(projectRoot, args["review-packet"] || args.packet, "review packet")
+  || siblingArtifactRef(projectRoot, "review-packets", number, slug);
+const gptReviewPromptRef = resolveRef(projectRoot, args["gpt-review-prompt"] || args.prompt, "GPT review prompt")
+  || siblingArtifactRef(projectRoot, "gpt-review-prompts", number, slug);
 const baseContext = {
   date,
   evalRef,
-  level: args.level,
+  level,
   number,
   preflightRef,
   priority: args.priority,
+  projectRoot,
   requestRef,
   slug,
   specRef,
   taskRef,
+  logRef,
+  reviewPacketRef,
+  gptReviewPromptRef,
   title,
   agent: args.agent,
 };
@@ -305,13 +586,35 @@ if (type === "spec") content = fillSpec(content, baseContext);
 if (type === "eval") content = fillEval(content, baseContext);
 if (type === "task") content = fillTask(content, baseContext);
 if (type === "log") content = fillLog(content, baseContext);
+if (type === "review-packet") content = fillReviewPacket(content, baseContext);
+if (type === "review-loop-report") content = fillReviewLoopReport(content, baseContext);
+if (type === "gpt-review-prompt") content = fillGptReviewPrompt(content, baseContext);
+if (type === "adoption-assessment") content = fillAdoptionAssessment(content, baseContext);
+if (type === "governance-map") content = fillGovernanceMap(content, baseContext);
 
 const created = writeArtifact(projectRoot, config.dir, filename, content);
 
 console.log(`created ${created}`);
 console.log("");
 console.log("Next steps:");
-console.log("- Fill all placeholder sections from project conversation and evidence.");
-console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");
-console.log("- Run node scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-console.log("- If any Risk Gate item is checked, run node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card> after approval.");
+if (type === "review-packet") {
+  console.log("- Fill diff summary, commands run, evidence refs, known risks, and open questions.");
+  console.log("- Send this packet to a human reviewer, GPT Pro, or a second model when independent review is needed.");
+  console.log("- Do not treat the packet itself as approval.");
+} else if (type === "gpt-review-prompt") {
+  console.log("- Pair this prompt with the matching Review Packet for GPT Pro, a second model, or another read-only reviewer.");
+  console.log("- Do not paste secrets, credentials, production tokens, or sensitive runtime data.");
+  console.log("- Feed findings back into a Review Loop Report before Codex fixes anything.");
+} else if (type === "review-loop-report") {
+  console.log("- Record review findings, AUTO_FIX attempts, verification, repeated issues, and human-decision items.");
+  console.log("- AUTO_FIX is limited to 2 rounds and must stay inside approved task scope.");
+  console.log("- Route scope, risk, approval, architecture, migration, dependency, production, release, and rollback decisions to humans.");
+} else if (type === "adoption-assessment" || type === "governance-map") {
+  console.log("- Keep this read-only until the human approves adapter setup or the target write location.");
+  console.log("- Do not use this file as permission to run init-project or update workflow assets.");
+} else {
+  console.log("- Fill all placeholder sections from project conversation and evidence.");
+  console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");
+  console.log("- Run node scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
+  console.log("- If any Risk Gate item is checked, run node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card> after approval.");
+}

@@ -164,6 +164,9 @@ node scripts/new-workflow-item.mjs --type spec --name first-slice --request requ
 node scripts/new-workflow-item.mjs --type eval --spec specs/001-first-slice.md
 node scripts/new-workflow-item.mjs --type task --spec specs/001-first-slice.md --eval evals/001-first-slice.md --level L1
 node scripts/new-workflow-item.mjs --type ai-log --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
+node scripts/new-workflow-item.mjs --type review-loop-report --task tasks/001-first-slice.md
 ```
 
 ## check-workflow-artifacts.mjs
