@@ -168,11 +168,15 @@ docs/governance-hardening-roadmap.md
 
 ```bash
 node scripts/check-fixtures.mjs
+node scripts/score-output-quality.mjs examples/next-step-boundary-suggestions --min-score 80
+node scripts/check-glossary-usage.mjs .
 ```
 
-`check-fixtures` 只用于 dev-kit 自身，不会注入到目标项目。
+这些检查只用于 dev-kit 自身，不会注入到目标项目。
 
 `0.30.1` 继续强化这层：fixture 失败时会给出命令和修复建议，并补充更多坏例子，覆盖 pending 工程决策、AUTO_FIX 超过 2 轮、RISK_DECISION 没有进入人工决策队列等问题。
+
+`0.30.2` 继续补输出质量和术语一致性：检查报告是否有人话摘要、下一步边界、证据和审计记录，也检查关键术语是否有普通人能理解的解释。
 
 ## 新项目初始化
 

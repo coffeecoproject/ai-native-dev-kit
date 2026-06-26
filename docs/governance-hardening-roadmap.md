@@ -136,6 +136,28 @@ Non-goals:
 - Goal Mode implementation
 - subagent orchestration implementation
 
+## 0.30.2 Output Quality And Glossary
+
+Objective:
+
+```text
+Make human-facing reports easier to understand before Goal Mode starts routing work automatically.
+```
+
+Scope:
+
+- output quality scoring for durable human-facing reports
+- glossary usage checks for important workflow terms
+- output quality report template
+- negative fixtures for low-quality reports and missing glossary terms
+
+Non-goals:
+
+- target-project CI changes
+- automatic report rewriting
+- external reviewer automation
+- Goal Mode implementation
+
 ## 0.31.0 Goal Mode Entry
 
 Goal Mode will classify user intent before selecting artifacts.

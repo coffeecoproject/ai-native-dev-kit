@@ -237,6 +237,24 @@ The runner calls the real governance checkers and asserts expected pass/fail out
 
 When a fixture fails, the runner prints the command, the failed expectation, and fixture-maintainer repair guidance from `test-fixtures/fixture-cases.json`.
 
+## score-output-quality.mjs
+
+Score durable human-facing reports for output quality. This is a dev-kit hardening checker and is not injected into target projects by default.
+
+```bash
+node scripts/score-output-quality.mjs examples/next-step-boundary-suggestions --min-score 80
+node scripts/score-output-quality.mjs examples/next-step-boundary-suggestions --json
+```
+
+## check-glossary-usage.mjs
+
+Check that important workflow terms have plain-language explanations in `core/glossary.md`.
+
+```bash
+node scripts/check-glossary-usage.mjs .
+node scripts/check-glossary-usage.mjs . --json
+```
+
 ## check-dev-kit.mjs
 
 Check whether the dev kit itself is internally complete and extension-safe.

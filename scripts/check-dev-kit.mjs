@@ -94,6 +94,7 @@ function checkRequiredFiles() {
     "templates/decision-brief.md",
     "templates/plain-review-summary.md",
     "templates/customer-handoff.md",
+    "templates/output-quality-report.md",
     "templates/dev-kit-change-proposal.md",
     "templates/skill-candidate.md",
     "templates/project-automation-proposal.md",
@@ -150,6 +151,8 @@ function checkRequiredFiles() {
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-fixtures.mjs",
+    "scripts/score-output-quality.mjs",
+    "scripts/check-glossary-usage.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/workflow-next.mjs",
     "platforms/codex/AGENTS.template.md",
@@ -280,6 +283,8 @@ function checkRequiredFiles() {
     "test-fixtures/bad-review-loop-too-many-rounds/review-loop-reports/001-auto-fix-rounds.md",
     "test-fixtures/bad-next-step-boundary/final-reports/001-boundary.md",
     "test-fixtures/bad-next-step-risk-decision/final-reports/001-risk-decision.md",
+    "test-fixtures/bad-output-quality/final-reports/001-low-quality.md",
+    "test-fixtures/bad-glossary-usage/core/glossary.md",
   ];
 
   for (const file of required) {
@@ -889,7 +894,7 @@ function checkPlatformAdapters() {
 }
 
 function checkScriptSyntax() {
-  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-fixtures.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+  for (const script of ["scripts/init-project.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-dev-kit.mjs", "scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-fixtures.mjs", "scripts/score-output-quality.mjs", "scripts/check-glossary-usage.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", path.join(kitRoot, script)], {
       encoding: "utf8",
     });
@@ -927,6 +932,8 @@ function checkReadmePointers() {
     "check-review-loop",
     "check-next-step-boundary",
     "check-fixtures",
+    "score-output-quality",
+    "check-glossary-usage",
     "check-platform-baseline",
     "resolve-platform-baseline",
     "check-industrial-pack",

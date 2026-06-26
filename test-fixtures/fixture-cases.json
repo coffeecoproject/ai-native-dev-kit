@@ -24,6 +24,22 @@
     "howToFix": "Keep each suggestion classified with matching Can AI do now and Required entry values."
   },
   {
+    "name": "good output quality next-step report",
+    "script": "scripts/score-output-quality.mjs",
+    "args": ["examples/next-step-boundary-suggestions", "--min-score", "80"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["PASS final-reports/001-suggestions.md"],
+    "howToFix": "Keep the example final report human-readable, evidence-backed, and explicit about next safe action."
+  },
+  {
+    "name": "good glossary usage",
+    "script": "scripts/check-glossary-usage.mjs",
+    "args": ["."],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Glossary usage check passed."],
+    "howToFix": "Keep required glossary terms explained in core/glossary.md."
+  },
+  {
     "name": "bad engineering baseline missing type source",
     "script": "scripts/check-engineering-baseline.mjs",
     "args": ["test-fixtures/bad-engineering-baseline", "--strict"],
@@ -70,5 +86,21 @@
     "expectStatus": "nonzero",
     "expectStderrIncludes": ["RISK_DECISION must appear in Human Decisions Needed"],
     "howToFix": "The checker must keep routing RISK_DECISION suggestions to Human Decisions Needed or Human Decision Queue."
+  },
+  {
+    "name": "bad output quality low score",
+    "script": "scripts/score-output-quality.mjs",
+    "args": ["test-fixtures/bad-output-quality", "--min-score", "80"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["below the requested quality score"],
+    "howToFix": "The score checker must keep rejecting reports without human summary, next safe action, technical details, or audit notes."
+  },
+  {
+    "name": "bad glossary usage missing terms",
+    "script": "scripts/check-glossary-usage.mjs",
+    "args": ["test-fixtures/bad-glossary-usage"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["missing glossary term: Engineering Baseline"],
+    "howToFix": "The glossary checker must keep rejecting glossaries that omit required human-facing workflow terms."
   }
 ]

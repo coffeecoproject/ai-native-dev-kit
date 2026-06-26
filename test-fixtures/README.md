@@ -19,3 +19,4 @@ Rules:
 - Failure assertions check output text, not only exit code.
 - Fixtures must not scan real project source code.
 - Each case should include repair guidance so checker failures are understandable without reading the whole repository.
+- Output quality and glossary fixtures are dev-kit hardening assets; they are not target-project gates.

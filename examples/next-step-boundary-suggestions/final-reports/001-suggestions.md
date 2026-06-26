@@ -42,3 +42,32 @@ node scripts/check-next-step-boundary.mjs examples/next-step-boundary-suggestion
 ## Next Safe Action
 
 Keep this as an example and do not execute the follow-up suggestions.
+
+## Technical Details
+
+Task: documentation-only next-step boundary example
+
+Commands run:
+
+```text
+node scripts/check-next-step-boundary.mjs examples/next-step-boundary-suggestions
+node scripts/score-output-quality.mjs examples/next-step-boundary-suggestions --min-score 80
+```
+
+Evidence refs:
+
+- `examples/next-step-boundary-suggestions/final-reports/001-suggestions.md`
+
+## Audit Notes
+
+Approvals:
+
+- Not required; this is a dev-kit example.
+
+Exceptions:
+
+- None.
+
+Residual risks:
+
+- This example does not authorize any follow-up work.

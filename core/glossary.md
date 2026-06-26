@@ -44,11 +44,14 @@ Use it when writing human-facing reports, decision briefs, onboarding notes, rev
 | Platform Baseline | The minimum docs, risks, verification, and AI boundaries for the selected project profiles. |
 | Existing Governed Project Adoption | Read-only assessment mode for projects that already have strong rules, CI, release controls, or active worktree changes. |
 | Existing Governance Map | A mapping from AI Native concepts to the project's existing rules and records. |
+| NEXT_ACTION | The workflow-next field that names the next safe workflow step. Human-facing output should explain it in plain language before showing the field. |
+| EVIDENCE_MISSING | A technical state that means required proof is not present yet. Human-facing output should say which evidence is missing and why it matters. |
 
 ## Baseline and Evidence Terms
 
 | Term | Plain meaning |
 |---|---|
+| Engineering Baseline | The project rule source for structural engineering decisions before AI writes code. It prevents AI from inventing project-wide engineering conventions. |
 | BL0 | Lightweight project governance. |
 | BL1 | Standard project governance. |
 | BL2 | Strict project governance that requires stronger evidence and approval. |
@@ -90,3 +93,5 @@ Use it when writing human-facing reports, decision briefs, onboarding notes, rev
 | Dev Kit Proposal | A proposal to improve the shared AI Native Dev Kit. |
 | Migration Report | A report that shows how to update AGENTS.md or PR template governance without applying it automatically. |
 | Output Experience Layer | The rule that workflow results should first explain status, decision, risk, and next step in human-readable language, then show technical details. |
+| Output Quality Score | A dev-kit self-check score for whether a report has human summary, decisions, next safe action, evidence, and audit notes. |
+| Glossary Usage Check | A dev-kit self-check that verifies important workflow terms have plain-language explanations before they are used in human-facing outputs. |

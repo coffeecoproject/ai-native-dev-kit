@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.30.1`
+Current version: `0.30.2`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `0.30.1`
 
 ## Current Release
 
-`0.30.1`
+`0.30.2`
 
 Includes:
 
+- Output Quality and Glossary checks for dev-kit human-facing report quality
+- `scripts/score-output-quality.mjs` for scoring final reports, status reports, decision briefs, review summaries, and customer handoffs
+- `scripts/check-glossary-usage.mjs` for required plain-language explanations of important workflow terms
+- `templates/output-quality-report.md`
+- negative fixtures for low-quality output and missing glossary terms
 - Fixture runner UX hardening with command and repair guidance in failure output
 - expanded negative fixtures for pending Engineering Baseline decisions, excessive AUTO_FIX rounds, and missing human-decision routing for `RISK_DECISION`
 - fixture cases now include repair guidance for stable checker maintenance

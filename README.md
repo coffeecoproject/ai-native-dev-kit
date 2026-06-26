@@ -238,9 +238,11 @@ docs/governance-hardening-roadmap.md
 
 ```bash
 node scripts/check-fixtures.mjs
+node scripts/score-output-quality.mjs examples/next-step-boundary-suggestions --min-score 80
+node scripts/check-glossary-usage.mjs .
 ```
 
-`check-fixtures` 只用于 dev-kit 自身，不会作为目标项目 workflow asset 注入。
+这些检查只用于 dev-kit 自身，不会作为目标项目 workflow asset 注入。
 
 ## 新项目怎么用
 
@@ -465,7 +467,14 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 
 ## 这次更新了什么
 
-当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.30.1`。
+当前版本见 [VERSION.md](VERSION.md)，本轮更新到 `0.30.2`。
+
+0.30.2 新增内容：
+
+- 新增 `scripts/score-output-quality.mjs`，给 final report、status report、decision brief、review summary、customer handoff 做输出质量评分。
+- 新增 `scripts/check-glossary-usage.mjs`，检查关键 workflow 术语是否有普通人能理解的解释。
+- 新增 `templates/output-quality-report.md`。
+- 新增低质量输出和缺失 glossary 术语的 bad fixtures，并纳入 `check-fixtures`。
 
 0.30.1 新增内容：
 
@@ -600,6 +609,8 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-change.md
 - `scripts/check-review-loop.mjs`
 - `scripts/check-next-step-boundary.mjs`
 - `scripts/check-fixtures.mjs`
+- `scripts/score-output-quality.mjs`
+- `scripts/check-glossary-usage.mjs`
 - `scripts/new-workflow-item.mjs`
 - `scripts/workflow-daily-summary.mjs`
 
