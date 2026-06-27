@@ -85,6 +85,7 @@ node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --d
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
 - [Troubleshooting](docs/troubleshooting.md)：常见问题处理
 - [FAQ](docs/faq.md)：问答
+- [1.0 Release Record](releases/1.0.0/release-record.md)：1.0 发布边界
 
 ## License
 

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`0.42.0`
+`1.0.0`
 
 ## Project Version File
 
@@ -27,6 +27,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Checker scripts use shared helper libraries under `scripts/lib/`; generated projects must keep those helper files with copied checker scripts.
 - Industrial pack maturity metadata and license boundary docs are part of the dev-kit update surface.
 - `ai-native migrate` is plan-only in 0.42.0: use `--dry-run` or `--write-plan <file>`; it does not apply changes to target projects.
+- `1.0.0` is a minimum productization release; 10/10 real-project evidence is not yet claimed.
 - Workflow asset updates must not overwrite project docs, specs, tasks, logs, or business code.
 - Workflow asset updates may add missing onboarding docs and missing workflow directories.
 - Existing `.github/pull_request_template.md` files are not modified unless `--apply-pr-template-governance` is explicitly used after reviewing `.ai-native/migration-reports/pr-template-governance.md`.

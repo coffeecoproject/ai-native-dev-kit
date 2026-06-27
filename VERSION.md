@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.42.0`
+Current version: `1.0.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `0.42.0`
 
 ## Current Release
 
-`0.42.0`
+`1.0.0`
 
 Includes:
 
+- Productization Hardcut phase `1.0.0`: release evidence and adoption entry criteria
+- Added `releases/1.0.0/` release record, self-check report, generated-project smoke, update smoke, migration matrix, known limitations, and adoption evidence
+- Added `templates/adoption-evidence-report.md` and `templates/productization-trial-report.md`
+- `1.0.0` is a minimum productization release: productized CLI, manifest, checks, migration plan, docs, and release evidence are complete
+- `1.0.0` does not claim 10/10 real-project evidence; real adoption reports, governed-project adoption, production-sensitive adapter trial, and industrial pack candidate promotion remain future evidence work
+- No package publishing, migration apply, external reviewer automation, license term change, or industrial pack promotion is included
 - Productization Hardcut phase `0.42.0`: docs information architecture and migration command
 - README and README.zh-CN are now short entry pages that link to complete operator, reference, playbook, migration, FAQ, and troubleshooting docs
 - Added `docs/operator-manual.md`, `docs/reference/`, `docs/adoption-playbooks/`, `docs/migrations/`, `docs/troubleshooting.md`, and `docs/faq.md`

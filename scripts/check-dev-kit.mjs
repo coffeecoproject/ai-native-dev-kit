@@ -590,6 +590,134 @@ function checkDevKitFirstPartyCi() {
   }
 }
 
+function checkOneDotZeroReleaseEvidence() {
+  if (currentVersion() !== "1.0.0") return;
+
+  const releaseFiles = [
+    "releases/1.0.0/release-record.md",
+    "releases/1.0.0/self-check-report.md",
+    "releases/1.0.0/generated-project-smoke.md",
+    "releases/1.0.0/update-smoke.md",
+    "releases/1.0.0/migration-matrix.md",
+    "releases/1.0.0/known-limitations.md",
+    "releases/1.0.0/adoption-evidence.md",
+    "templates/adoption-evidence-report.md",
+    "templates/productization-trial-report.md",
+  ];
+  for (const file of releaseFiles) {
+    if (exists(file)) pass(`1.0 release evidence file exists ${file}`);
+    else fail(`1.0 release evidence file missing ${file}`);
+  }
+  if (releaseFiles.some((file) => !exists(file))) return;
+
+  const releaseRecord = read("releases/1.0.0/release-record.md");
+  for (const marker of [
+    "1.0 minimum productization release",
+    "not a 10/10 real-project evidence release",
+    "No package publishing",
+    "No migration apply",
+    "All concrete packs remain draft",
+  ]) {
+    if (releaseRecord.includes(marker)) pass(`1.0 release record includes ${marker}`);
+    else fail(`1.0 release record missing ${marker}`);
+  }
+
+  const selfCheck = read("releases/1.0.0/self-check-report.md");
+  for (const marker of [
+    "Status: PASS",
+    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-fixtures.mjs",
+    "git diff --check",
+  ]) {
+    if (selfCheck.includes(marker)) pass(`1.0 self-check report includes ${marker}`);
+    else fail(`1.0 self-check report missing ${marker}`);
+  }
+
+  const generatedSmoke = read("releases/1.0.0/generated-project-smoke.md");
+  for (const marker of [
+    "Status: PASS",
+    "node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test",
+    "node /tmp/ai-native-1-test/scripts/check-ai-workflow.mjs /tmp/ai-native-1-test --mode core",
+  ]) {
+    if (generatedSmoke.includes(marker)) pass(`1.0 generated smoke includes ${marker}`);
+    else fail(`1.0 generated smoke missing ${marker}`);
+  }
+
+  const updateSmoke = read("releases/1.0.0/update-smoke.md");
+  for (const marker of [
+    "Status: PASS",
+    "node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run",
+    "\"operation\": \"UPDATE_WORKFLOW_ASSETS\"",
+  ]) {
+    if (updateSmoke.includes(marker)) pass(`1.0 update smoke includes ${marker}`);
+    else fail(`1.0 update smoke missing ${marker}`);
+  }
+
+  const migrationMatrix = read("releases/1.0.0/migration-matrix.md");
+  for (const marker of [
+    "0.33.0",
+    "1.0.0",
+    "Plan-only",
+    "Added Assets",
+    "Removed Assets",
+    "Renamed Assets",
+    "CI Impact",
+    "AGENTS Impact",
+    "PR Template Impact",
+    "Human Approval Requirements",
+    "Rollback",
+  ]) {
+    if (migrationMatrix.includes(marker)) pass(`1.0 migration matrix includes ${marker}`);
+    else fail(`1.0 migration matrix missing ${marker}`);
+  }
+
+  const limitations = read("releases/1.0.0/known-limitations.md");
+  for (const marker of [
+    "10/10 real-project evidence has not been achieved",
+    "`ai-native migrate` is dry-run/write-plan only",
+    "Industrial packs remain `draft`",
+    "License explanation docs are not legal advice",
+  ]) {
+    if (limitations.includes(marker)) pass(`1.0 limitations include ${marker}`);
+    else fail(`1.0 limitations missing ${marker}`);
+  }
+
+  const adoptionEvidence = read("releases/1.0.0/adoption-evidence.md");
+  for (const marker of [
+    "Minimum productization evidence complete",
+    "10/10 real-project evidence not achieved",
+    "templates/adoption-evidence-report.md",
+    "Forbidden claim",
+  ]) {
+    if (adoptionEvidence.includes(marker)) pass(`1.0 adoption evidence includes ${marker}`);
+    else fail(`1.0 adoption evidence missing ${marker}`);
+  }
+
+  const adoptionTemplate = read("templates/adoption-evidence-report.md");
+  for (const marker of [
+    "False Positives",
+    "False Negatives",
+    "AI Failure Modes",
+    "Human Decisions Required",
+    "Would keep using",
+  ]) {
+    if (adoptionTemplate.includes(marker)) pass(`adoption evidence template includes ${marker}`);
+    else fail(`adoption evidence template missing ${marker}`);
+  }
+
+  const trialTemplate = read("templates/productization-trial-report.md");
+  for (const marker of [
+    "Trial type",
+    "generated-project smoke",
+    "update smoke",
+    "migration dry-run",
+    "Do not claim",
+  ]) {
+    if (trialTemplate.includes(marker)) pass(`productization trial template includes ${marker}`);
+    else fail(`productization trial template missing ${marker}`);
+  }
+}
+
 function checkManifestProtocol() {
   const manifest = JSON.parse(read("dev-kit-manifest.json"));
   if (manifest.schemaVersion === "1.0") pass("manifest schemaVersion is 1.0");
@@ -3835,6 +3963,7 @@ checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
 checkDevKitFirstPartyCi();
+checkOneDotZeroReleaseEvidence();
 checkManifestProtocol();
 checkCliFrontDoor();
 checkCorePurity();

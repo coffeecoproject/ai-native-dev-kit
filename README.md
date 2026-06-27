@@ -97,6 +97,7 @@ node scripts/cli.mjs doctor ../my-project
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [FAQ](docs/faq.md)
+- [1.0 Release Record](releases/1.0.0/release-record.md)
 - [Productization Hardcut Plan](docs/productization-hardcut-1.0-plan.md)
 
 ## License
