@@ -38,6 +38,12 @@ jobs:
       - name: Context governance check
         run: node scripts/check-context-governance.mjs .
 
+      - name: Launch readiness check
+        run: node scripts/check-launch-readiness.mjs .
+
+      - name: Conversation drift check
+        run: node scripts/check-conversation-drift.mjs .
+
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs
 
@@ -64,4 +70,6 @@ jobs:
           node "$tmp/project/scripts/check-product-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-claim-control.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-context-governance.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-launch-readiness.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-conversation-drift.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-workflow-version.mjs" "$tmp/project"

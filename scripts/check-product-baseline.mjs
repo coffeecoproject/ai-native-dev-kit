@@ -106,7 +106,7 @@ if (isSourceRepo) {
   checkReleaseRecord();
   checkWorkflowArtifacts();
 } else {
-  pass("source-only 1.3 release and workflow artifact checks skipped for target project");
+  pass("source-only guided delivery release and workflow artifact checks skipped for target project");
 }
 runClaimControl();
 

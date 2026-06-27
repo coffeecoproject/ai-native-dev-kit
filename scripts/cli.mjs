@@ -43,6 +43,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "launch-readiness": {
+    description: "Check Safe Launch / Delivery Readiness reports.",
+    script: "scripts/check-launch-readiness.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "conversation-drift": {
+    description: "Check conversation turn routing and scope-change governance.",
+    script: "scripts/check-conversation-drift.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   init: {
     description: "Initialize workflow assets in a target project.",
     script: "scripts/init-project.mjs",
@@ -187,6 +199,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs product-baseline .");
   console.log("  node scripts/cli.mjs claim-control .");
   console.log("  node scripts/cli.mjs context-governance .");
+  console.log("  node scripts/cli.mjs launch-readiness .");
+  console.log("  node scripts/cli.mjs conversation-drift .");
   console.log("  node scripts/cli.mjs init --starter generic-project --target ../my-project");
   console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.4.0`
+Current version: `1.6.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,22 @@ Current version: `1.4.0`
 
 ## Current Release
 
-`1.4.0`
+`1.6.0`
 
 Includes:
 
+- Conversation Drift Control phase `1.6.0`: turn classification, scope change reports, conversation router prompt, and `scripts/check-conversation-drift.mjs`
+- Added `core/conversation-drift-control.md`, `templates/conversation-turn-classification.md`, `templates/scope-change-report.md`, `checklists/conversation-drift-review.md`, `prompts/conversation-router-agent.md`, and `docs/conversation-drift-control.md`
+- Added `conversation-turns/` and `scope-change-reports/` as optional routing evidence directories; empty target projects are not forced to create reports
+- `DISCUSS_ONLY`, `REVIEW_ONLY`, `PAUSE_OR_STOP`, `DIRECT_FOLLOW_UP`, `SCOPE_CHANGE`, `NEW_TASK`, and `RISK_DECISION` turns cannot silently authorize current-task execution
+- Safe Launch / Delivery Readiness phase `1.5.0`: readiness states, launch readiness report, launch readiness agent, and `scripts/check-launch-readiness.mjs`
+- Added `core/safe-launch.md`, `templates/launch-readiness-report.md`, `checklists/launch-readiness-review.md`, `prompts/launch-readiness-agent.md`, and `docs/safe-launch.md`
+- Added `launch-readiness/` as an optional delivery readiness evidence directory; ready states require verification and no pending human decisions
+- `READY_FOR_DEMO`, `READY_FOR_INTERNAL_HANDOFF`, and `READY_FOR_RELEASE_REVIEW` are recommendations only and do not approve production launch
+- Context polish phase `1.4.1`: added `docs/context-governance-usage.md`, `docs/minimal-commit-set.md`, and cleaned old guided delivery wording
+- Added `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`, `releases/1.4.1/`, `releases/1.5.0/`, and `releases/1.6.0/`
+- CLI now includes `launch-readiness` and `conversation-drift`
+- `1.6.0` does not implement external GPT/API hook automation, production deployment automation, legal/compliance approval, or automatic scope approval
 - Project Memory & Context Governance phase `1.4.0`: Git Boundary, Context Governance, Learning Candidate, Context Correction Report, and Git Boundary Report
 - Added `core/context-governance.md`, `core/git-boundary.md`, context templates, context/Git boundary checklists, `prompts/context-governance-agent.md`, and `scripts/check-context-governance.mjs`
 - Added `learning-candidates/`, `context-corrections/`, and `git-boundary-reports/` as candidate and audit directories; candidates are not project facts until approved

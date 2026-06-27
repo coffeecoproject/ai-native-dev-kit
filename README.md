@@ -24,7 +24,7 @@
 
 Web 和微信小程序已经有 BL2 演练示例，但工业包仍按 maturity 管理；`draft` 不等于生产稳定标准。
 
-当前版本还增加了一层交付口径约束：报告不能当成批准，模拟验证不能说成生产验证，AI 的推断必须标出来。它帮助 Codex 给出更可靠的交付总结，但不替代人的上线或风险确认。
+当前版本还增加了两层保护：任务完成后先判断能不能演示、交接或进入发布审查；对话过程中如果用户只是讨论、改范围、提出新想法或问上线风险，Codex 要先识别边界，不能直接把聊天内容当成执行许可。
 
 ## 最小用法
 
@@ -81,6 +81,8 @@ node scripts/cli.mjs doctor ../my-project
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 ```
 
 保存过的接入建议可以检查：
@@ -110,6 +112,8 @@ node scripts/check-guided-adoption.mjs ../my-project
 - 不要把模拟 dogfood 或生成项目 smoke 写成真实生产验证。
 - 不要把 AI 推断出来的环境、发布、回滚、监控信息当成事实。
 - 不要把 Codex 观察到的内容直接当成项目记忆；必须先做人确认。
+- 不要把 `READY_FOR_DEMO`、`READY_FOR_INTERNAL_HANDOFF` 或 `READY_FOR_RELEASE_REVIEW` 当成生产上线批准。
+- 不要把讨论、旁路问题、范围变化或风险问题直接当成继续当前任务的许可。
 - 不要让 helper subagent 一直保持 `RUNNING`。
 
 ## 完整文档
@@ -128,6 +132,10 @@ node scripts/check-guided-adoption.mjs ../my-project
 - [Claim Control](docs/claim-control.md)
 - [Project Memory](docs/project-memory.md)
 - [Git Boundary](docs/git-boundary.md)
+- [Context Governance Usage](docs/context-governance-usage.md)
+- [Minimal Commit Set](docs/minimal-commit-set.md)
+- [Safe Launch](docs/safe-launch.md)
+- [Conversation Drift Control](docs/conversation-drift-control.md)
 - [Scripts Reference](docs/reference/scripts.md)
 - [Artifacts Reference](docs/reference/artifacts.md)
 - [Checkers Reference](docs/reference/checkers.md)
@@ -140,6 +148,9 @@ node scripts/check-guided-adoption.mjs ../my-project
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [FAQ](docs/faq.md)
+- [1.6 Release Record](releases/1.6.0/release-record.md)
+- [1.5 Release Record](releases/1.5.0/release-record.md)
+- [1.4.1 Release Record](releases/1.4.1/release-record.md)
 - [1.4 Release Record](releases/1.4.0/release-record.md)
 - [1.3 Release Record](releases/1.3.0/release-record.md)
 - [1.2 Release Record](releases/1.2.0/release-record.md)

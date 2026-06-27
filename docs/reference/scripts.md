@@ -13,6 +13,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs product-baseline <project>` | Check guided delivery product boundary and approval limits | No |
 | `node scripts/cli.mjs claim-control <project>` | Check release/report wording against evidence boundaries | No |
 | `node scripts/cli.mjs context-governance <project>` | Check project memory, context correction, and Git boundary governance | No |
+| `node scripts/cli.mjs launch-readiness <project>` | Check Safe Launch / Delivery Readiness reports | No |
+| `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
 | `node scripts/cli.mjs update --target <project>` | Update workflow assets | Yes |
 | `node scripts/cli.mjs next <project>` | Read project state and report next safe action | No |
@@ -56,6 +58,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-context-governance.mjs` checks Learning Candidates, Context Correction Reports, Git Boundary Reports, and source-of-truth boundaries.
 
+`scripts/check-launch-readiness.mjs` checks Launch Readiness Reports, readiness states, verification evidence, pending human decisions, and launch overclaims.
+
+`scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
+
 `scripts/workflow-next.mjs` reads project state and reports:
 
 - `ADOPTION_MODE`
@@ -86,6 +92,9 @@ Common types:
 - `final-report`
 - `goal-card`
 - `subagent-run-plan`
+- `launch-readiness-report`
+- `conversation-turn-classification`
+- `scope-change-report`
 
 ## Checks
 
@@ -106,6 +115,8 @@ node scripts/check-baseline-enforcement.mjs . --mode ready
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 node scripts/check-guided-adoption.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/check-industrial-baseline.mjs .
@@ -122,6 +133,8 @@ These are primarily for maintaining this repository:
 - `scripts/check-product-baseline.mjs`
 - `scripts/check-claim-control.mjs`
 - `scripts/check-context-governance.mjs`
+- `scripts/check-launch-readiness.mjs`
+- `scripts/check-conversation-drift.mjs`
 - `scripts/check-glossary-usage.mjs`
 - `scripts/score-output-quality.mjs`
 

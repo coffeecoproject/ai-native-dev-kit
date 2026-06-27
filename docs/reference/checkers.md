@@ -18,6 +18,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-product-baseline.mjs` | Guided delivery product boundary, approval limits, and installed 1.3 assets |
 | `check-claim-control.mjs` | Release/report wording, evidence claims, and assumption register boundaries |
 | `check-context-governance.mjs` | Learning candidates, context corrections, Git boundary reports, and source-of-truth boundaries |
+| `check-launch-readiness.mjs` | Launch readiness reports, evidence, human decisions, and overclaims |
+| `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
 | `check-industrial-baseline.mjs` | BL0/BL1/BL2 and selected industrial baseline readiness |
@@ -75,6 +77,8 @@ Product and claim checks:
 - `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.
 - Assumption Register is required only when reports rely on inferred or unconfirmed facts.
 - `check-context-governance.mjs` is candidate/audit focused; it does not approve project facts or require learning candidates for every task.
+- `check-launch-readiness.mjs` allows empty projects, but rejects ready states without verification, reports with pending human decisions, and production-safety overclaims.
+- `check-conversation-drift.mjs` allows empty projects, but rejects discussion-only writes, scope changes without human decision, and risk decisions that auto-continue.
 
 ## Suggested Sequences
 
@@ -92,6 +96,8 @@ node scripts/check-baseline-enforcement.mjs . --mode ready
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 ```
 
 For L2/L3 task completion:
@@ -101,6 +107,8 @@ node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/<
 node scripts/check-baseline-enforcement.mjs . --mode implementation --task tasks/<task>.md
 node scripts/check-review-loop.mjs . --task tasks/<task>.md
 node scripts/check-next-step-boundary.mjs . --task tasks/<task>.md
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 ```
 
 For dev-kit changes:
@@ -110,6 +118,8 @@ node scripts/check-manifest.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-dev-kit.mjs
 git diff --check

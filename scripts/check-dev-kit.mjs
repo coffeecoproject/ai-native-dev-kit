@@ -194,6 +194,8 @@ function checkRequiredFiles() {
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
     "scripts/check-context-governance.mjs",
+    "scripts/check-launch-readiness.mjs",
+    "scripts/check-conversation-drift.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -468,21 +470,50 @@ function checkVersionMetadata() {
     ".ai-native/docs/claim-control.md",
     ".ai-native/docs/project-memory.md",
     ".ai-native/docs/git-boundary.md",
+    ".ai-native/docs/context-governance-usage.md",
+    ".ai-native/docs/minimal-commit-set.md",
+    ".ai-native/docs/safe-launch.md",
+    ".ai-native/docs/conversation-drift-control.md",
+    ".ai-native/docs/context-governance-usage.md",
+    ".ai-native/docs/minimal-commit-set.md",
+    ".ai-native/docs/safe-launch.md",
+    ".ai-native/docs/conversation-drift-control.md",
     ".ai-native/core/outcome-baseline.md",
     ".ai-native/core/product-baseline.md",
     ".ai-native/core/claim-control.md",
     ".ai-native/core/assumption-register.md",
     ".ai-native/core/context-governance.md",
     ".ai-native/core/git-boundary.md",
+    ".ai-native/core/safe-launch.md",
+    ".ai-native/core/conversation-drift-control.md",
+    ".ai-native/core/safe-launch.md",
+    ".ai-native/core/conversation-drift-control.md",
     ".ai-native/templates/learning-candidate.md",
     ".ai-native/templates/context-correction-report.md",
     ".ai-native/templates/git-boundary-report.md",
+    ".ai-native/templates/launch-readiness-report.md",
+    ".ai-native/templates/conversation-turn-classification.md",
+    ".ai-native/templates/scope-change-report.md",
+    ".ai-native/templates/launch-readiness-report.md",
+    ".ai-native/templates/conversation-turn-classification.md",
+    ".ai-native/templates/scope-change-report.md",
     ".ai-native/prompts/context-governance-agent.md",
+    ".ai-native/prompts/launch-readiness-agent.md",
+    ".ai-native/prompts/conversation-router-agent.md",
+    ".ai-native/prompts/launch-readiness-agent.md",
+    ".ai-native/prompts/conversation-router-agent.md",
     ".ai-native/checklists/context-governance-review.md",
     ".ai-native/checklists/git-boundary-review.md",
+    ".ai-native/checklists/launch-readiness-review.md",
+    ".ai-native/checklists/conversation-drift-review.md",
+    ".ai-native/checklists/launch-readiness-review.md",
+    ".ai-native/checklists/conversation-drift-review.md",
     "learning-candidates",
     "context-corrections",
     "git-boundary-reports",
+    "launch-readiness",
+    "conversation-turns",
+    "scope-change-reports",
     "adoption-recommendations",
     "baseline-recommendations",
     "baseline-gap-reports",
@@ -515,6 +546,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-product-baseline.mjs .",
     "node scripts/check-claim-control.mjs .",
     "node scripts/check-context-governance.mjs .",
+    "node scripts/check-launch-readiness.mjs .",
+    "node scripts/check-conversation-drift.mjs .",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -529,6 +562,8 @@ function checkDevKitFirstPartyCi() {
     "check-product-baseline.mjs",
     "check-claim-control.mjs",
     "check-context-governance.mjs",
+    "check-launch-readiness.mjs",
+    "check-conversation-drift.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -547,6 +582,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-product-baseline.mjs .",
     "node scripts/check-claim-control.mjs .",
     "node scripts/check-context-governance.mjs .",
+    "node scripts/check-launch-readiness.mjs .",
+    "node scripts/check-conversation-drift.mjs .",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -559,6 +596,8 @@ function checkDevKitFirstPartyCi() {
     "check-product-baseline.mjs",
     "check-claim-control.mjs",
     "check-context-governance.mjs",
+    "check-launch-readiness.mjs",
+    "check-conversation-drift.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -959,6 +998,8 @@ function checkCliFrontDoor() {
     "product-baseline",
     "claim-control",
     "context-governance",
+    "launch-readiness",
+    "conversation-drift",
     "init",
     "update",
     "next",
@@ -1008,6 +1049,20 @@ function checkCliFrontDoor() {
     pass("CLI context-governance delegates to context governance checker");
   } else {
     fail(`CLI context-governance failed: ${contextGovernance.stderr || contextGovernance.stdout}`);
+  }
+
+  const launchReadiness = runNode(["scripts/cli.mjs", "launch-readiness", "."]);
+  if (launchReadiness.status === 0 && launchReadiness.stdout.includes("Launch readiness check passed")) {
+    pass("CLI launch-readiness delegates to launch readiness checker");
+  } else {
+    fail(`CLI launch-readiness failed: ${launchReadiness.stderr || launchReadiness.stdout}`);
+  }
+
+  const conversationDrift = runNode(["scripts/cli.mjs", "conversation-drift", "."]);
+  if (conversationDrift.status === 0 && conversationDrift.stdout.includes("Conversation drift check passed")) {
+    pass("CLI conversation-drift delegates to conversation drift checker");
+  } else {
+    fail(`CLI conversation-drift failed: ${conversationDrift.stderr || conversationDrift.stdout}`);
   }
 
   const start = runNode(["scripts/cli.mjs", "start", "."]);
@@ -1746,6 +1801,9 @@ function checkProjectMemoryContextGovernanceProtocol() {
     "learning-candidates/.gitkeep",
     "context-corrections/.gitkeep",
     "git-boundary-reports/.gitkeep",
+    "launch-readiness/.gitkeep",
+    "conversation-turns/.gitkeep",
+    "scope-change-reports/.gitkeep",
     "scripts/check-context-governance.mjs",
     "examples/1.4-project-memory-context/README.md",
     "examples/1.4-project-memory-context/learning-candidates/001-status-source.md",
@@ -1798,6 +1856,154 @@ function checkProjectMemoryContextGovernanceProtocol() {
       pass(`context governance rejects ${name}`);
     } else {
       fail(`context governance must reject ${name}: ${output}`);
+    }
+  }
+}
+
+function checkSafeLaunchProtocol() {
+  const required = [
+    "docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md",
+    "docs/context-governance-usage.md",
+    "docs/minimal-commit-set.md",
+    "core/safe-launch.md",
+    "templates/launch-readiness-report.md",
+    "checklists/launch-readiness-review.md",
+    "prompts/launch-readiness-agent.md",
+    "docs/safe-launch.md",
+    "launch-readiness/.gitkeep",
+    "scripts/check-launch-readiness.mjs",
+    "examples/1.5-safe-launch-readiness/README.md",
+    "examples/1.5-safe-launch-readiness/launch-readiness/001-internal-handoff.md",
+    "releases/1.4.1/release-record.md",
+    "releases/1.4.1/known-limitations.md",
+    "releases/1.4.1/self-check-report.md",
+    "releases/1.5.0/release-record.md",
+    "releases/1.5.0/known-limitations.md",
+    "releases/1.5.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`safe launch asset exists ${file}`);
+    else fail(`safe launch asset missing ${file}`);
+  }
+
+  const safeLaunch = read("core/safe-launch.md");
+  for (const marker of [
+    "Codex may recommend readiness",
+    "Humans approve release",
+    "READY_FOR_DEMO",
+    "READY_FOR_INTERNAL_HANDOFF",
+    "READY_FOR_RELEASE_REVIEW",
+    "BL0 must not be described as production-ready",
+  ]) {
+    if (safeLaunch.includes(marker)) pass(`safe launch core includes ${marker}`);
+    else fail(`safe launch core missing ${marker}`);
+  }
+
+  const usage = read("docs/context-governance-usage.md");
+  for (const marker of ["Learning Candidate", "Context Correction Report", "Git Boundary Report", "Finding something is not the same"]) {
+    if (usage.includes(marker)) pass(`context governance usage includes ${marker}`);
+    else fail(`context governance usage missing ${marker}`);
+  }
+
+  const minimalCommit = read("docs/minimal-commit-set.md");
+  for (const marker of ["Commit only the durable work", ".DS_Store", "Do not commit", "Dirty Worktree Rule"]) {
+    if (minimalCommit.includes(marker)) pass(`minimal commit set includes ${marker}`);
+    else fail(`minimal commit set missing ${marker}`);
+  }
+
+  const launchCheck = runNode(["scripts/check-launch-readiness.mjs", "."]);
+  if (launchCheck.status === 0 && launchCheck.stdout.includes("Launch readiness check passed")) {
+    pass("launch readiness checker passes source repo");
+  } else {
+    fail(`launch readiness checker failed: ${launchCheck.stderr || launchCheck.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-launch-readiness.mjs", "examples/1.5-safe-launch-readiness"]);
+  if (example.status === 0 && example.stdout.includes("Launch readiness check passed")) {
+    pass("safe launch example passes checker");
+  } else {
+    fail(`safe launch example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["missing verification", ["scripts/check-launch-readiness.mjs", "test-fixtures/bad/bad-launch-readiness-missing-verification"], "ready state must include verification evidence"],
+    ["pending human decision", ["scripts/check-launch-readiness.mjs", "test-fixtures/bad/bad-launch-readiness-unclosed-decision"], "has pending human decision"],
+    ["overclaim", ["scripts/check-launch-readiness.mjs", "test-fixtures/bad/bad-launch-readiness-overclaim"], "forbidden launch overclaim"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`safe launch rejects ${name}`);
+    } else {
+      fail(`safe launch must reject ${name}: ${output}`);
+    }
+  }
+}
+
+function checkConversationDriftProtocol() {
+  const required = [
+    "core/conversation-drift-control.md",
+    "templates/conversation-turn-classification.md",
+    "templates/scope-change-report.md",
+    "checklists/conversation-drift-review.md",
+    "prompts/conversation-router-agent.md",
+    "docs/conversation-drift-control.md",
+    "conversation-turns/.gitkeep",
+    "scope-change-reports/.gitkeep",
+    "scripts/check-conversation-drift.mjs",
+    "examples/1.6-conversation-drift-control/README.md",
+    "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
+    "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
+    "releases/1.6.0/release-record.md",
+    "releases/1.6.0/known-limitations.md",
+    "releases/1.6.0/self-check-report.md",
+    "goal-cards/141-160-delivery-readiness-drift.md",
+    "subagent-run-plans/141-160-delivery-readiness-drift.md",
+    "review-loop-reports/141-160-delivery-readiness-drift.md",
+    "final-reports/141-160-delivery-readiness-drift.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`conversation drift asset exists ${file}`);
+    else fail(`conversation drift asset missing ${file}`);
+  }
+
+  const drift = read("core/conversation-drift-control.md");
+  for (const marker of [
+    "Classify before acting",
+    "DISCUSS_ONLY",
+    "SCOPE_CHANGE",
+    "RISK_DECISION",
+    "Codex must not continue",
+  ]) {
+    if (drift.includes(marker)) pass(`conversation drift core includes ${marker}`);
+    else fail(`conversation drift core missing ${marker}`);
+  }
+
+  const driftCheck = runNode(["scripts/check-conversation-drift.mjs", "."]);
+  if (driftCheck.status === 0 && driftCheck.stdout.includes("Conversation drift check passed")) {
+    pass("conversation drift checker passes source repo");
+  } else {
+    fail(`conversation drift checker failed: ${driftCheck.stderr || driftCheck.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-conversation-drift.mjs", "examples/1.6-conversation-drift-control"]);
+  if (example.status === 0 && example.stdout.includes("Conversation drift check passed")) {
+    pass("conversation drift example passes checker");
+  } else {
+    fail(`conversation drift example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["discussion-only writes", ["scripts/check-conversation-drift.mjs", "test-fixtures/bad/bad-conversation-discuss-only-writes"], "DISCUSS_ONLY must not continue current task"],
+    ["scope creep", ["scripts/check-conversation-drift.mjs", "test-fixtures/bad/bad-conversation-scope-creep"], "SCOPE_CHANGE must require human decision"],
+    ["risk auto continue", ["scripts/check-conversation-drift.mjs", "test-fixtures/bad/bad-conversation-risk-auto-continue"], "RISK_DECISION must require human decision"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`conversation drift rejects ${name}`);
+    } else {
+      fail(`conversation drift must reject ${name}: ${output}`);
     }
   }
 }
@@ -2044,7 +2250,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -2066,6 +2272,8 @@ function checkPlatformAdapters() {
     "check-product-baseline.mjs",
     "check-claim-control.mjs",
     "check-context-governance.mjs",
+    "check-launch-readiness.mjs",
+    "check-conversation-drift.mjs",
     "check-platform-baseline.mjs",
     "resolve-platform-baseline.mjs",
     "check-industrial-pack.mjs",
@@ -2112,6 +2320,8 @@ function checkScriptSyntax() {
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
     "scripts/check-context-governance.mjs",
+    "scripts/check-launch-readiness.mjs",
+    "scripts/check-conversation-drift.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -2169,6 +2379,8 @@ function checkReadmePointers() {
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-claim-control.mjs",
     "node scripts/check-context-governance.mjs",
+    "node scripts/check-launch-readiness.mjs",
+    "node scripts/check-conversation-drift.mjs",
     "node scripts/cli.mjs next",
     "node scripts/cli.mjs init",
     "node scripts/cli.mjs update",
@@ -2186,6 +2398,10 @@ function checkReadmePointers() {
     "docs/claim-control.md",
     "docs/project-memory.md",
     "docs/git-boundary.md",
+    "docs/context-governance-usage.md",
+    "docs/minimal-commit-set.md",
+    "docs/safe-launch.md",
+    "docs/conversation-drift-control.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -2195,6 +2411,9 @@ function checkReadmePointers() {
     "docs/troubleshooting.md",
     "docs/faq.md",
     "releases/1.4.0/release-record.md",
+    "releases/1.4.1/release-record.md",
+    "releases/1.5.0/release-record.md",
+    "releases/1.6.0/release-record.md",
     "releases/1.3.0/release-record.md",
     "releases/1.2.0/release-record.md",
     "releases/1.1.0/release-record.md",
@@ -2211,6 +2430,8 @@ function checkReadmePointers() {
     "node scripts/cli.mjs baseline",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-context-governance.mjs",
+    "node scripts/check-launch-readiness.mjs",
+    "node scripts/check-conversation-drift.mjs",
     "重要边界",
     "docs/operator-manual.md",
     "docs/first-hour.md",
@@ -2219,6 +2440,10 @@ function checkReadmePointers() {
     "docs/claim-control.md",
     "docs/project-memory.md",
     "docs/git-boundary.md",
+    "docs/context-governance-usage.md",
+    "docs/minimal-commit-set.md",
+    "docs/safe-launch.md",
+    "docs/conversation-drift-control.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -2237,6 +2462,10 @@ function checkReadmePointers() {
     "docs/claim-control.md",
     "docs/project-memory.md",
     "docs/git-boundary.md",
+    "docs/context-governance-usage.md",
+    "docs/minimal-commit-set.md",
+    "docs/safe-launch.md",
+    "docs/conversation-drift-control.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -2300,6 +2529,14 @@ function checkReadmePointers() {
     "review-packet",
     "gpt-review-prompt",
     "review-loop-report",
+    "Safe Launch",
+    "Launch Readiness Report",
+    "Conversation Drift Control",
+    "Conversation Turn Classification",
+    "Scope Change Report",
+    "launch-readiness",
+    "conversation-turns",
+    "scope-change-reports",
     "follow-up-proposal",
     "final-report",
     "human-status-report",
@@ -2858,6 +3095,26 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project context governance check");
+
+  const launchReadinessCheck = runNode([
+    path.join(target, "scripts", "check-launch-readiness.mjs"),
+    target,
+  ]);
+  if (launchReadinessCheck.status !== 0 || !launchReadinessCheck.stdout.includes("Launch readiness check passed")) {
+    fail(`generated project launch readiness check failed: ${launchReadinessCheck.stderr || launchReadinessCheck.stdout}`);
+    return;
+  }
+  pass("generated project launch readiness check");
+
+  const conversationDriftCheck = runNode([
+    path.join(target, "scripts", "check-conversation-drift.mjs"),
+    target,
+  ]);
+  if (conversationDriftCheck.status !== 0 || !conversationDriftCheck.stdout.includes("Conversation drift check passed")) {
+    fail(`generated project conversation drift check failed: ${conversationDriftCheck.stderr || conversationDriftCheck.stdout}`);
+    return;
+  }
+  pass("generated project conversation drift check");
 
   if (fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
     fail("generated project default bootstrap should not install concrete web-app industrial pack");
@@ -4469,6 +4726,8 @@ checkSubagentOrchestrationProtocol();
 checkOutputExperienceProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
+checkSafeLaunchProtocol();
+checkConversationDriftProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

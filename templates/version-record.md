@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.4.0`
+`1.6.0`
 
 ## Project Version File
 
@@ -27,6 +27,11 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Checker scripts use shared helper libraries under `scripts/lib/`; generated projects must keep those helper files with copied checker scripts.
 - Industrial pack maturity metadata and license boundary docs are part of the dev-kit update surface.
 - `ai-native migrate` is plan-only in 0.42.0: use `--dry-run` or `--write-plan <file>`; it does not apply changes to target projects.
+- `1.6.0` adds Conversation Drift Control assets: Conversation Drift Control, Conversation Turn Classification, Scope Change Report, conversation router prompt, and conversation drift checks.
+- `1.6.0` keeps discussion-only, review-only, direct follow-up, scope-change, new-task, and risk-decision turns from becoming automatic current-task execution.
+- `1.5.0` adds Safe Launch / Delivery Readiness assets: Safe Launch, Launch Readiness Report, launch readiness prompt, and launch readiness checks.
+- `1.5.0` classifies readiness as not ready, demo-ready, internal-handoff ready, release-review ready, or blocked; it does not approve production launch.
+- `1.4.1` adds context governance usage and minimal commit set guidance without adding a new workflow gate.
 - `1.3.0` adds Guided Delivery Baseline assets: Outcome Baseline, Product Baseline, Claim Control, Assumption Register, product baseline checks, and claim control checks.
 - `1.3.0` keeps reports, review packets, goal cards, and subagent outputs from becoming approvals; simulated dogfood is not production evidence.
 - `1.4.0` adds Project Memory & Context Governance assets: Context Governance, Git Boundary, Learning Candidate, Context Correction Report, Git Boundary Report, and context governance checks.

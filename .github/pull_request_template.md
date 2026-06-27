@@ -18,6 +18,8 @@ Explain what changed in plain language and why the change is safe to review.
 - Assumption Register:
 - Project memory / Context governance:
 - Git Boundary:
+- Safe Launch / Delivery Readiness:
+- Conversation Drift:
 - Goal Card:
 - Subagent Run Plan:
 - Review Packet:
@@ -31,6 +33,8 @@ List commands run and results.
 ```bash
 node scripts/check-dev-kit.mjs
 node scripts/check-fixtures.mjs
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 ```
 
 ## Risk And Approval

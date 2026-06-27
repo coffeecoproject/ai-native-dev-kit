@@ -84,6 +84,8 @@ node scripts/check-baseline-enforcement.mjs . --mode ready
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 
@@ -153,6 +155,8 @@ Use them when a change touches workflow behavior, release wording, README/public
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 ```
 
 These checks do not make claim reports mandatory for every task. Use Assumption Register sections only when the result depends on inferred or unconfirmed facts.
@@ -166,6 +170,22 @@ node scripts/check-context-governance.mjs .
 ```
 
 Codex may draft learning candidates and context corrections. Humans confirm before source-of-truth changes.
+
+## Safe Launch And Conversation Drift
+
+Use Safe Launch when completed work needs a readiness answer:
+
+```bash
+node scripts/check-launch-readiness.mjs .
+```
+
+Use Conversation Drift Control when a user message may be discussion-only, review-only, a scope change, a new task, a direct follow-up, a risk decision, or a stop request:
+
+```bash
+node scripts/check-conversation-drift.mjs .
+```
+
+Readiness labels are not production approvals. Conversation classifications are routing decisions, not permission to widen scope.
 
 ## Platform Baseline
 

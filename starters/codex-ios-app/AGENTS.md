@@ -195,6 +195,30 @@ If GPT Pro or a second model is used for review, run `node scripts/new-workflow-
 
 When a Review Loop Report exists, run `node scripts/check-review-loop.mjs . --task <task-card>` before closure.
 
+## Safe Launch
+
+Use `.ai-native/core/safe-launch.md` when a task is complete and the user needs to know whether it can be demonstrated, handed off internally, sent to release review, or must stop.
+
+Run:
+
+```bash
+node scripts/check-launch-readiness.mjs .
+```
+
+Safe Launch is a readiness recommendation. It is not production approval, legal approval, compliance approval, payment approval, privacy approval, security approval, migration approval, or release approval.
+
+## Conversation Drift
+
+Use `.ai-native/core/conversation-drift-control.md` when a user message during active work may be discussion-only, a scope change, a new task, a direct follow-up, a risk decision, review-only, or a pause/stop request.
+
+Run:
+
+```bash
+node scripts/check-conversation-drift.mjs .
+```
+
+Classify before acting. Do not treat discussion, direct follow-up, scope change, new task, or risk decision as permission to continue the current task.
+
 ## Bounded Next-Step
 
 Use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions.

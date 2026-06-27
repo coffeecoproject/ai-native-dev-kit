@@ -28,6 +28,9 @@ const typeMap = {
   "final-report": { dir: "final-reports", template: "final-report.md", defaultName: "final-report" },
   "goal-card": { dir: "goal-cards", template: "goal-card.md", defaultName: "goal" },
   "subagent-run-plan": { dir: "subagent-run-plans", template: "subagent-run-plan.md", defaultName: "subagent-run-plan" },
+  "launch-readiness-report": { dir: "launch-readiness", template: "launch-readiness-report.md", defaultName: "launch-readiness" },
+  "conversation-turn-classification": { dir: "conversation-turns", template: "conversation-turn-classification.md", defaultName: "conversation-turn" },
+  "scope-change-report": { dir: "scope-change-reports", template: "scope-change-report.md", defaultName: "scope-change" },
 };
 
 const aliases = {
@@ -73,6 +76,15 @@ const aliases = {
   "subagent-plan": "subagent-run-plan",
   "run-plan": "subagent-run-plan",
   orchestration: "subagent-run-plan",
+  launch: "launch-readiness-report",
+  "launch-readiness": "launch-readiness-report",
+  readiness: "launch-readiness-report",
+  "readiness-report": "launch-readiness-report",
+  "conversation-turn": "conversation-turn-classification",
+  "conversation-drift": "conversation-turn-classification",
+  "turn-classification": "conversation-turn-classification",
+  "scope-change": "scope-change-report",
+  scopechange: "scope-change-report",
 };
 
 function parseArgs(argv) {
@@ -117,6 +129,9 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type final-report --task tasks/001-first-slice.md");
   console.error("  node scripts/new-workflow-item.mjs --type goal-card --name first-slice --goal-mode DEFINE_WORK");
   console.error("  node scripts/new-workflow-item.mjs --type subagent-run-plan --name first-slice --subagent-mode READ_ONLY_RESEARCH");
+  console.error("  node scripts/new-workflow-item.mjs --type launch-readiness-report --name first-slice");
+  console.error("  node scripts/new-workflow-item.mjs --type conversation-turn-classification --name user-scope-change");
+  console.error("  node scripts/new-workflow-item.mjs --type scope-change-report --name add-payments");
 }
 
 function fail(message) {
@@ -1150,6 +1165,32 @@ function fillSubagentRunPlan(content, context) {
   return output;
 }
 
+function fillLaunchReadinessReport(content, context) {
+  let output = setTitle(content, `# Launch Readiness Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", "Plain-language summary of what can safely happen now.");
+  output = setSection(output, "Baseline Level", context.level === "L2" || context.level === "L3" ? "`BL2`" : "`BL1`");
+  output = setSection(output, "Final Readiness", "`NOT_READY`");
+  return output;
+}
+
+function fillConversationTurnClassification(content, context) {
+  let output = setTitle(content, `# Conversation Turn Classification: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", "Plain-language summary of what the user message means for the current work.");
+  output = setSection(output, "Intent Classification", "`DISCUSS_ONLY`");
+  output = setSection(output, "Can Continue Current Task?", "`No`");
+  output = setSection(output, "Required Human Decision", "`None`");
+  return output;
+}
+
+function fillScopeChangeReport(content, context) {
+  let output = setTitle(content, `# Scope Change Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", "Plain-language explanation of the proposed scope change.");
+  output = setSection(output, "Recommendation", "`STOP_FOR_DECISION`");
+  output = setSection(output, "Human Decision", "`Pending`");
+  output = setSection(output, "Applied Changes", "None");
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1307,6 +1348,9 @@ if (type === "follow-up-proposal") content = fillFollowUpProposal(content, baseC
 if (type === "final-report") content = fillFinalReport(content, baseContext);
 if (type === "goal-card") content = fillGoalCard(content, baseContext);
 if (type === "subagent-run-plan") content = fillSubagentRunPlan(content, baseContext);
+if (type === "launch-readiness-report") content = fillLaunchReadinessReport(content, baseContext);
+if (type === "conversation-turn-classification") content = fillConversationTurnClassification(content, baseContext);
+if (type === "scope-change-report") content = fillScopeChangeReport(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -1357,6 +1401,12 @@ if (type === "review-packet") {
   console.log("- Use the smallest needed helper-agent set and keep the main thread as owner.");
   console.log("- Close or skip every subagent after handoff; do not leave RUNNING agents occupying slots.");
   console.log("- Run node scripts/check-subagent-orchestration.mjs . before final response or commit.");
+} else if (type === "launch-readiness-report") {
+  console.log("- Fill verification, human decisions, release boundary, rollback, and known limitations before claiming readiness.");
+  console.log("- Run node scripts/check-launch-readiness.mjs . after filling the report.");
+} else if (type === "conversation-turn-classification" || type === "scope-change-report") {
+  console.log("- Fill routing, scope impact, risk impact, and human decision fields before acting on the turn.");
+  console.log("- Run node scripts/check-conversation-drift.mjs . after filling the report.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

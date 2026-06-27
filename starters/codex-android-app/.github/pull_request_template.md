@@ -24,6 +24,8 @@
 - [ ] Claim control was checked when this change touched README, release records, final reports, handoffs, or public-facing summaries
 - [ ] Context governance was checked when this change touched project memory, baselines, AGENTS, context corrections, or source-of-truth docs
 - [ ] Git Boundary was reviewed when this change added AI Native artifacts, learning candidates, context corrections, or local/generated evidence
+- [ ] Safe Launch / Delivery Readiness was checked when this change claimed demo, internal handoff, release-review, blocked, or not-ready status
+- [ ] Conversation Drift was checked when user messages changed scope, added a new task, asked for discussion-only handling, raised a risk decision, or paused work
 - [ ] Assumptions are recorded when the change relies on inferred or unconfirmed facts
 - [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step
 - [ ] Subagent Run Plan is linked or marked not applicable when helper agents were used

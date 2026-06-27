@@ -38,6 +38,9 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `learning-candidates/` | Proposed project memory that is not confirmed yet |
 | `context-corrections/` | Evidence-backed correction records for stale or wrong context |
 | `git-boundary-reports/` | Commit/PR boundary evidence for AI Native and context artifacts |
+| `launch-readiness/` | Safe Launch / Delivery Readiness reports |
+| `conversation-turns/` | Conversation Turn Classification reports |
+| `scope-change-reports/` | Scope Change Reports for proposed scope changes |
 
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
 
@@ -88,6 +91,10 @@ Product Baseline and Claim Control live under `.ai-native/core/` in generated pr
 
 Context Governance and Git Boundary live under `.ai-native/core/` in generated projects. They constrain how Codex proposes project memory, corrects stale context, and decides what belongs in Git. Learning candidates and context corrections are not project facts until approved.
 
+Safe Launch lives under `.ai-native/core/` in generated projects. It constrains readiness wording and keeps demo, internal handoff, release review, blocked, and not-ready states separate from production approval.
+
+Conversation Drift Control lives under `.ai-native/core/` in generated projects. It constrains how Codex handles discussion-only turns, scope changes, new tasks, direct follow-ups, and risk decisions during active work.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -109,4 +116,7 @@ Short rule:
 - need to remember a possible project fact: learning candidate
 - need to fix stale context: context correction report
 - need to decide what enters Git: git boundary report
+- need to classify delivery readiness: launch readiness report
+- need to route a new user message: conversation turn classification
+- need to change approved scope: scope change report
 - need to close work: final report

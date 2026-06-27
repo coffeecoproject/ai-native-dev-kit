@@ -145,6 +145,8 @@ Use this layer when changing workflow behavior, release wording, public summarie
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
+node scripts/check-launch-readiness.mjs .
+node scripts/check-conversation-drift.mjs .
 ```
 
 Rules:
@@ -169,6 +171,24 @@ Rules:
 - Humans confirm before project source of truth changes.
 - Git-backed source of truth overrides model memory.
 - Secrets, raw conversations, local caches, and unconfirmed assumptions must not become project facts.
+
+## Safe Launch And Conversation Drift
+
+Use Safe Launch when completed work needs a readiness answer:
+
+```bash
+node scripts/check-launch-readiness.mjs .
+```
+
+It separates `NOT_READY`, `READY_FOR_DEMO`, `READY_FOR_INTERNAL_HANDOFF`, `READY_FOR_RELEASE_REVIEW`, and `BLOCKED`. It does not approve production launch.
+
+Use Conversation Drift Control when a user message may change the route of active work:
+
+```bash
+node scripts/check-conversation-drift.mjs .
+```
+
+Discussion-only, review-only, pause/stop, direct follow-up, scope change, new task, and risk decision turns must be routed before Codex continues.
 
 ## Migration
 

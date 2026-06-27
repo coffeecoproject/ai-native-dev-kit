@@ -119,6 +119,20 @@ For subagent orchestration:
 - do not send a final response, commit, or mark work complete while any subagent is `RUNNING`, standing by, or occupying a slot
 - do not use helper agents to resolve `NEEDS_HUMAN_DECISION`, approve risk, approve release, create automations, call external GPT/API reviewers, or bypass Review Loop boundaries
 
+For safe launch:
+
+- use `.ai-native/core/safe-launch.md` when completed work needs a demo, internal handoff, release-review, blocked, or not-ready classification
+- run `node scripts/check-launch-readiness.mjs .` when Launch Readiness Reports exist or delivery readiness is claimed
+- treat readiness states as recommendations, not production, legal, compliance, payment, privacy, security, migration, or release approval
+
+For conversation drift:
+
+- use `.ai-native/core/conversation-drift-control.md` when a user message may be discussion-only, review-only, a pause/stop request, a scope change, a new task, a direct follow-up, or a risk decision
+- run `node scripts/check-conversation-drift.mjs .` when conversation turn classifications or scope change reports exist
+- classify before acting
+- do not write files for `DISCUSS_ONLY`, `REVIEW_ONLY`, or `PAUSE_OR_STOP`
+- do not continue current task for `SCOPE_CHANGE`, `NEW_TASK`, `DIRECT_FOLLOW_UP`, or `RISK_DECISION` without human decision
+
 For bounded next-step suggestions:
 
 - use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions

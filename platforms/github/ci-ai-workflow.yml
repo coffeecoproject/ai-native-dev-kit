@@ -37,6 +37,10 @@ jobs:
         run: node scripts/check-claim-control.mjs .
       - name: Check context governance
         run: node scripts/check-context-governance.mjs .
+      - name: Check launch readiness
+        run: node scripts/check-launch-readiness.mjs .
+      - name: Check conversation drift
+        run: node scripts/check-conversation-drift.mjs .
       - name: Check platform baseline
         run: node scripts/check-platform-baseline.mjs .
       - name: Check selected industrial packs
@@ -73,6 +77,10 @@ jobs:
         run: node --check scripts/check-claim-control.mjs
       - name: Check context governance checker syntax
         run: node --check scripts/check-context-governance.mjs
+      - name: Check launch readiness checker syntax
+        run: node --check scripts/check-launch-readiness.mjs
+      - name: Check conversation drift checker syntax
+        run: node --check scripts/check-conversation-drift.mjs
       - name: Check baseline recommendation syntax
         run: node --check scripts/baseline-project.mjs
       - name: Check workflow artifact quality
