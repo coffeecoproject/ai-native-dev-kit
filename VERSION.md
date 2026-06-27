@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `0.41.0`
+Current version: `0.42.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,18 @@ Current version: `0.41.0`
 
 ## Current Release
 
-`0.41.0`
+`0.42.0`
 
 Includes:
 
+- Productization Hardcut phase `0.42.0`: docs information architecture and migration command
+- README and README.zh-CN are now short entry pages that link to complete operator, reference, playbook, migration, FAQ, and troubleshooting docs
+- Added `docs/operator-manual.md`, `docs/reference/`, `docs/adoption-playbooks/`, `docs/migrations/`, `docs/troubleshooting.md`, and `docs/faq.md`
+- `scripts/migrate-project.mjs` powers `ai-native migrate` as a plan-only command for `0.33.0 -> 1.0.0`
+- `ai-native migrate --dry-run` prints a migration plan without writing target project files
+- `ai-native migrate --write-plan <file>` writes only the requested JSON plan
+- `ai-native migrate` without `--dry-run` or `--write-plan` fails instead of applying changes
+- Dev-kit self-check now covers migrate safety and docs IA pointers
 - Productization Hardcut phase `0.41.0`: industrial pack maturity and license boundary
 - Industrial packs now expose maturity metadata with stage, evidence docs, dogfood, false-positive log, owner, changelog, promotion criteria, demotion triggers, and known limitations
 - All concrete industrial packs remain `draft`; no pack is promoted by file completeness alone

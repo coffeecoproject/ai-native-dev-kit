@@ -408,14 +408,14 @@
     "howToFix": "The CLI fixtures command must keep routing to the fixture runner."
   },
   {
-    "name": "bad cli planned migrate",
+    "name": "bad cli migrate requires safe output mode",
     "type": "cli",
     "checker": "cli",
     "script": "scripts/cli.mjs",
-    "args": ["migrate"],
+    "args": ["migrate", "--target", ".", "--from", "0.33.0", "--to", "1.0.0"],
     "expectStatus": 2,
-    "expectStderrIncludes": ["planned but not implemented"],
-    "howToFix": "The planned migrate command must not pretend migration is implemented before its approved phase."
+    "expectStderrIncludes": ["plan-only"],
+    "howToFix": "The migrate command must require --dry-run or --write-plan before producing a migration output."
   },
   {
     "name": "good init dry-run plan",

@@ -6,7 +6,7 @@ Status: Active execution plan
 
 Current baseline: `0.33.0` frozen in `releases/0.33.0/`
 
-Current executed phase: `0.41.0` Industrial Pack Maturity + License Boundary
+Current executed phase: `0.42.0` Docs Information Architecture + Migration Command
 
 Target release: `1.0.0`
 
@@ -773,6 +773,9 @@ Stop conditions:
 Goal Mode: `IMPLEMENT_TASK`
 
 Subagent mode: `PLAN_THEN_BUILD`
+
+Execution status: implemented in `0.42.0`; migration remains plan-only and cannot apply changes to
+target projects.
 
 Objective:
 

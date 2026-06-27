@@ -772,7 +772,7 @@ function checkCliFrontDoor() {
     "check",
     "doctor",
     "new",
-    "migrate (planned)",
+    "migrate",
     "fixtures",
     "self-check",
     "--dry-run",
@@ -844,11 +844,73 @@ function checkCliFrontDoor() {
     fail(`CLI doctor dry-run missing sequence: ${doctorDryRun.stderr || doctorDryRun.stdout}`);
   }
 
-  const migrate = runNode(["scripts/cli.mjs", "migrate"]);
-  if (migrate.status === 2 && `${migrate.stdout}\n${migrate.stderr}`.includes("planned but not implemented")) {
-    pass("CLI migrate is explicitly planned, not falsely implemented");
-  } else {
-    fail(`CLI migrate must be planned-only in 0.36.0: ${migrate.stderr || migrate.stdout}`);
+  const migrateRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-migrate-"));
+  try {
+    const migrateTarget = path.join(migrateRoot, "project");
+    fs.mkdirSync(migrateTarget, { recursive: true });
+
+    const migrateUnsafe = runNode([
+      "scripts/cli.mjs",
+      "migrate",
+      "--target",
+      migrateTarget,
+      "--from",
+      "0.33.0",
+      "--to",
+      "1.0.0",
+    ]);
+    const unsafeOutput = `${migrateUnsafe.stdout}\n${migrateUnsafe.stderr}`;
+    if (migrateUnsafe.status === 2 && unsafeOutput.includes("plan-only")) {
+      pass("CLI migrate refuses direct apply without dry-run or write-plan");
+    } else {
+      fail(`CLI migrate must fail without a safe output mode: ${unsafeOutput}`);
+    }
+
+    const migrateDryRun = runNode([
+      "scripts/cli.mjs",
+      "migrate",
+      "--target",
+      migrateTarget,
+      "--from",
+      "0.33.0",
+      "--to",
+      "1.0.0",
+      "--dry-run",
+    ]);
+    if (migrateDryRun.status === 0
+      && migrateDryRun.stdout.includes("AI Native Migration Plan")
+      && migrateDryRun.stdout.includes("No target project files were modified.")
+      && !fs.existsSync(path.join(migrateTarget, ".ai-native"))) {
+      pass("CLI migrate dry-run prints plan and does not mutate target");
+    } else {
+      fail(`CLI migrate dry-run failed or mutated target: ${migrateDryRun.stderr || migrateDryRun.stdout}`);
+    }
+
+    const planPath = path.join(migrateRoot, "migration-plan.json");
+    const migrateWritePlan = runNode([
+      "scripts/cli.mjs",
+      "migrate",
+      "--target",
+      migrateTarget,
+      "--from",
+      "0.33.0",
+      "--to",
+      "1.0.0",
+      "--write-plan",
+      planPath,
+    ]);
+    const wrotePlan = fs.existsSync(planPath) ? JSON.parse(fs.readFileSync(planPath, "utf8")) : null;
+    if (migrateWritePlan.status === 0
+      && wrotePlan?.blockedApply === true
+      && Array.isArray(wrotePlan.actions)
+      && wrotePlan.actions.length > 0
+      && !fs.existsSync(path.join(migrateTarget, ".ai-native"))) {
+      pass("CLI migrate write-plan writes reviewable plan only");
+    } else {
+      fail(`CLI migrate write-plan failed safety check: ${migrateWritePlan.stderr || migrateWritePlan.stdout}`);
+    }
+  } finally {
+    fs.rmSync(migrateRoot, { recursive: true, force: true });
   }
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-"));
@@ -1559,6 +1621,7 @@ function checkScriptSyntax() {
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
     "scripts/cli.mjs",
+    "scripts/migrate-project.mjs",
     "scripts/lib/args.mjs",
     "scripts/lib/check-result.mjs",
     "scripts/lib/frontmatter.mjs",
@@ -1586,69 +1649,91 @@ function checkScriptSyntax() {
 }
 
 function checkReadmePointers() {
-  const content = read("README.md");
-  const requiredPointers = [
+  const readme = read("README.md");
+  const zhReadme = read("README.zh-CN.md");
+  const requiredReadmePointers = [
+    "AI Native Dev Kit",
+    "3 分钟理解",
+    "新项目",
+    "已有项目",
+    "已上线",
+    "O0 + BL0",
+    "O1 + selected profiles + BL1",
+    "O2 + selected profiles + BL2",
+    "node scripts/cli.mjs next",
+    "node scripts/cli.mjs init",
+    "node scripts/cli.mjs update",
+    "node scripts/cli.mjs migrate",
+    "node scripts/cli.mjs check",
+    "不要",
+    "docs/operator-manual.md",
+    "docs/reference/scripts.md",
+    "docs/reference/artifacts.md",
+    "docs/reference/checkers.md",
+    "docs/reference/industrial-packs.md",
+    "docs/adoption-playbooks/new-project.md",
+    "docs/adoption-playbooks/existing-light-project.md",
+    "docs/adoption-playbooks/governed-project-read-only.md",
+    "docs/adoption-playbooks/production-project-adapter.md",
+    "docs/migrations/index.md",
+    "docs/migrations/0.33-to-1.0.md",
+    "docs/troubleshooting.md",
+    "docs/faq.md",
+  ];
+  for (const pointer of requiredReadmePointers) {
+    if (readme.includes(pointer)) pass(`README entry mentions ${pointer}`);
+    else fail(`README entry missing ${pointer}`);
+  }
+
+  for (const pointer of [
+    "最小开始方式",
+    "Codex 一句话入口",
+    "重要边界",
+    "docs/operator-manual.md",
+    "docs/migrations/0.33-to-1.0.md",
+  ]) {
+    if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
+    else fail(`README.zh-CN missing ${pointer}`);
+  }
+
+  const requiredDocs = [
+    "docs/operator-manual.md",
+    "docs/reference/scripts.md",
+    "docs/reference/artifacts.md",
+    "docs/reference/checkers.md",
+    "docs/reference/industrial-packs.md",
+    "docs/adoption-playbooks/new-project.md",
+    "docs/adoption-playbooks/existing-light-project.md",
+    "docs/adoption-playbooks/governed-project-read-only.md",
+    "docs/adoption-playbooks/production-project-adapter.md",
+    "docs/migrations/index.md",
+    "docs/migrations/0.33-to-1.0.md",
+    "docs/troubleshooting.md",
+    "docs/faq.md",
+  ];
+  for (const doc of requiredDocs) {
+    if (exists(doc)) pass(`docs IA file exists ${doc}`);
+    else fail(`docs IA file missing ${doc}`);
+  }
+
+  const referenceContent = [
+    readme,
+    zhReadme,
+    ...requiredDocs.filter(exists).map(read),
+    read("docs/quickstart.md"),
+    read("docs/codex-usage.md"),
+    read("docs/mental-model.md"),
+    read("docs/artifact-decision-tree.md"),
+    read("docs/goal-subagent-usage.md"),
+    read("docs/governance-hardening-roadmap.md"),
+  ].join("\n");
+  const requiredReferencePointers = [
     "generic-project",
     "codex-ios-app",
     "codex-android-app",
-    "examples/generic-first-change",
-    "examples/review-loop-l2-first-slice",
-    "examples/web-internal-admin-first-slice",
-    "examples/web-industrial-bl2-first-slice",
-    "examples/miniprogram-industrial-bl2-first-slice",
-    "examples/engineering-baseline-enum-vs-lookup",
-    "examples/engineering-baseline-api-dto-domain",
-    "examples/next-step-boundary-suggestions",
-    "examples/goal-mode-first-route",
-    "examples/subagent-orchestration-closed-run",
-    "examples/goal-subagent-l2-feature",
-    "test-fixtures",
-    "docs/quickstart",
-    "docs/codex-usage",
-    "docs/mental-model",
-    "docs/artifact-decision-tree",
-    "docs/goal-subagent-usage",
-    "docs/governance-hardening-roadmap",
-    "scripts/cli.mjs",
-    "ai-native init",
-    "ai-native update",
-    "ai-native next",
-    "ai-native check",
-    "ai-native doctor",
-    "ai-native fixtures",
-    "ai-native self-check",
-    "Lower-level scripts",
-    "engineering-baseline",
-    "check-engineering-baseline",
-    "check-workflow-artifacts",
-    "check-review-loop",
-    "check-next-step-boundary",
-    "check-goal-mode",
-    "check-subagent-orchestration",
-    "check-fixtures",
-    "score-output-quality",
-    "check-glossary-usage",
-    "check-platform-baseline",
-    "resolve-platform-baseline",
-    "check-industrial-pack",
-    "resolve-industrial-baseline",
-    "check-industrial-baseline",
-    "--selected-only",
-    "--bl2-only",
-    "--mode core",
-    "--mode full",
-    "new-workflow-item",
-    "goal-card",
-    "goal-cards",
-    "goal-mode",
     "Goal Mode",
-    "subagent-run-plan",
-    "subagent-run-plans",
-    "subagent-orchestration",
     "Subagent Orchestration",
     "Many readers, one writer",
-    "Goal + Subagent",
-    "simulated dogfood",
     "CLOSED",
     "SKIPPED",
     "DISCUSS_ONLY",
@@ -1659,12 +1744,7 @@ function checkReadmePointers() {
     "REPAIR_TASK",
     "BASELINE_DECISION",
     "HANDOFF_OR_REPORT",
-    "--mode ready",
-    "--mode implementation",
-    "--task",
-    "--changed-only",
     "Human Approval",
-    "Approval scope",
     "Risk Gate Exclusions",
     "O0",
     "O1",
@@ -1682,45 +1762,36 @@ function checkReadmePointers() {
     "review-packet",
     "gpt-review-prompt",
     "review-loop-report",
-    "review-loop",
-    "next-step-boundary",
-    "Bounded Next-Step",
     "follow-up-proposal",
-    "follow-up-proposals",
     "final-report",
-    "final-reports",
-    "IN_SCOPE_NEXT_STEP",
-    "RISK_DECISION",
-    "output-protocol",
-    "glossary",
     "human-status-report",
     "decision-brief",
     "plain-review-summary",
     "customer-handoff",
-    "reporter-agent",
-    "dogfood-observation",
-    "--enforce",
-    "bootstrap-agent",
-    "--apply-pr-template-governance",
-    "--apply-agent-governance",
-    "migration-reports",
-    "self-iteration",
     "skill-candidates",
     "automation-proposals",
-    "project-onboarding",
-    "Selected Profiles",
     "platform baseline",
     "industrial-packs",
     "selection-guide",
-    "check-project-onboarding",
+    "--selected-only",
+    "--bl2-only",
+    "--mode core",
+    "--mode full",
+    "--mode ready",
+    "--mode implementation",
+    "--task",
+    "--changed-only",
+    "--enforce",
+    "--apply-pr-template-governance",
+    "--apply-agent-governance",
+    "migration-reports",
     "workflow-daily-summary",
-    "VERSION",
     "profiles/",
     "platforms/",
   ];
-  for (const pointer of requiredPointers) {
-    if (content.includes(pointer)) pass(`README mentions ${pointer}`);
-    else fail(`README missing ${pointer}`);
+  for (const pointer of requiredReferencePointers) {
+    if (referenceContent.includes(pointer)) pass(`docs references mention ${pointer}`);
+    else fail(`docs references missing ${pointer}`);
   }
 }
 

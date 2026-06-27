@@ -55,8 +55,10 @@ const commandRegistry = {
     buildArgs: (args) => args,
   },
   migrate: {
-    description: "Planned migration facade for a later productization phase.",
-    planned: true,
+    description: "Inspect a project and produce a non-mutating migration plan.",
+    script: "scripts/migrate-project.mjs",
+    writes: false,
+    buildArgs: (args) => args,
   },
   fixtures: {
     description: "Run dev-kit fixture checks.",
@@ -108,12 +110,6 @@ if (commandArgs.includes("--help") || commandArgs.includes("-h")) {
   process.exit(0);
 }
 
-if (command.planned) {
-  console.error(`Command '${commandName}' is planned but not implemented in ${version}.`);
-  console.error("Use the underlying migration guidance in a later productization phase when it is available.");
-  process.exit(2);
-}
-
 const result = runCommand(commandName, command, commandArgs, { dryRun });
 process.exit(result.status);
 
@@ -152,8 +148,7 @@ function printHelp() {
   console.log("");
   console.log("Commands:");
   for (const [name, command] of Object.entries(commandRegistry)) {
-    const label = command.planned ? `${name} (planned)` : name;
-    console.log(`  ${label.padEnd(18)} ${command.description}`);
+    console.log(`  ${name.padEnd(18)} ${command.description}`);
   }
   console.log("");
   console.log("Examples:");
@@ -161,6 +156,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs check ../my-project --mode core");
+  console.log("  node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --dry-run");
   console.log("  node scripts/cli.mjs self-check");
   console.log("");
   console.log("Lower-level scripts remain supported for debugging and exact CI references.");
@@ -171,10 +167,6 @@ function printCommandHelp(name, command) {
   console.log("");
   console.log(command.description);
   console.log("");
-  if (command.planned) {
-    console.log("Status: planned for a later productization phase.");
-    return;
-  }
   if (command.sequence) {
     for (const entry of command.sequence([])) printDisplayCommand(entry.script, entry.args);
     return;
