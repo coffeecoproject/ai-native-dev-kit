@@ -44,7 +44,7 @@ Expected Codex behavior:
 - Use `scripts/baseline-project.mjs <project-root> --write-plan <file>` and reviewed `--apply-plan <file>` before writing baseline docs.
 - Use `scripts/workflow-next.mjs <project-root>` as the lower-level technical state detector when needed.
 - Report `workflow-next` results with a human summary first, then technical state fields. Use `--format technical` only when the user or automation asks for raw technical output.
-- If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce an adoption assessment and existing governance map first.
+- If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce a real adoption report, existing governance map, and patch classification first.
 - If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, do not create workflow artifacts, execute task cards, or edit files until the human confirms how to handle existing changes.
 - Follow `NEXT_ACTION`.
 - Use `init-project.mjs` for initialization or workflow asset updates.
@@ -55,6 +55,8 @@ Expected Codex behavior:
 - Run `node scripts/check-launch-readiness.mjs .` when a task claims demo, internal handoff, release-review, blocked, or not-ready status.
 - Run `node scripts/check-conversation-drift.mjs .` when a user message may be discussion-only, review-only, a scope change, a new task, a direct follow-up, a risk decision, or a pause/stop request.
 - Run `node scripts/check-first-delivery-walkthrough.mjs .` when a broad idea is recorded as a first delivery walkthrough or adoption trial.
+- Run `node scripts/check-real-adoption-trial.mjs .` when a real governed or production-sensitive project is recorded as a read-only adoption trial.
+- Run `node scripts/check-patch-classification.mjs .` before proposing or applying a non-trivial fix in a governed project.
 - Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
 - Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
 
@@ -202,6 +204,8 @@ Expected Codex behavior:
 - Use `.ai-native/core/context-governance.md` and `.ai-native/core/git-boundary.md` when deciding whether an observation should become project memory or enter Git.
 - Use `.ai-native/core/safe-launch.md` before claiming delivery readiness.
 - Use `.ai-native/core/conversation-drift-control.md` before acting on a user message that might change scope or risk.
+- Use `.ai-native/core/real-project-adoption-trial.md` before writing to a real governed or production-sensitive project.
+- Use `.ai-native/core/patch-classification.md` before treating a non-trivial failure as a local patch.
 - Use `.ai-native/prompts/reporter-agent.md` when converting technical state into a report.
 - Generate `human-status-report`, `decision-brief`, `plain-review-summary`, or `customer-handoff` only when a file record is useful.
 - Do not treat any report as Human Approval, release approval, risk acceptance, or permission to apply migrations.

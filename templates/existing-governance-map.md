@@ -76,12 +76,12 @@ Rationale:
 
 ## Adapter Setup Proposal
 
-Recommended adapter mode:
+Recommended bridge layer mode:
 
-- Read-only only
-- Adapter docs only
-- Workflow asset update after approval
-- Full bootstrap after exceptional approval
+- `NO_WRITE_MAP`
+- `DOCS_ONLY_BRIDGE`
+- `THIN_OPERATIONAL_BRIDGE`
+- `NOT_PROPOSED`
 
 Allowed writes after approval:
 
@@ -90,6 +90,13 @@ Allowed writes after approval:
 Forbidden writes without separate approval:
 
 - 
+
+Notes:
+
+- `NO_WRITE_MAP` means no target writes.
+- `DOCS_ONLY_BRIDGE` may write only approved adoption or governance-map docs.
+- `THIN_OPERATIONAL_BRIDGE` may write only an approved adapter that points to existing authority.
+- Full bootstrap is exceptional for strong governed projects and requires separate human approval.
 
 ## Open Decisions
 

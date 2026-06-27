@@ -47,6 +47,12 @@ jobs:
       - name: First delivery walkthrough check
         run: node scripts/check-first-delivery-walkthrough.mjs .
 
+      - name: Real adoption trial check
+        run: node scripts/check-real-adoption-trial.mjs .
+
+      - name: Patch classification check
+        run: node scripts/check-patch-classification.mjs .
+
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs
 
@@ -76,4 +82,6 @@ jobs:
           node "$tmp/project/scripts/check-launch-readiness.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-conversation-drift.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-first-delivery-walkthrough.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-real-adoption-trial.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-patch-classification.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-workflow-version.mjs" "$tmp/project"

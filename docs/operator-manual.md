@@ -40,6 +40,17 @@ node scripts/cli.mjs baseline <project>
 
 If `workflow-next` returns `ADOPTION_MODE: READ_ONLY`, `RUN_ADOPTION_ASSESSMENT`, or `REVIEW_DIRTY_WORKTREE`, stop write actions and follow the matching playbook.
 
+For governed or production-sensitive projects, record the first pass as a real adoption trial and classify future repair scale before implementation:
+
+```bash
+node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-project-readonly
+node scripts/new-workflow-item.mjs --type patch-classification --name governed-project-repair-scale
+node scripts/check-real-adoption-trial.mjs .
+node scripts/check-patch-classification.mjs .
+```
+
+These reports do not authorize target-project writes. They document the read-only boundary, bridge mode, public evidence status, and repair classification.
+
 ## Adoption Paths
 
 | Path | Use when | Start here |
@@ -118,6 +129,8 @@ The usual artifacts are:
 
 AUTO_FIX is bounded. Repeated findings, risk decisions, architecture scope changes, production configuration, and external side effects need human decision.
 
+Patch Classification Governance runs before non-trivial repair proposals in governed projects. It decides whether the work is `SAFE_LOCAL_FIX`, `BASELINE_ALIGNED_HARDCUT`, `STRUCTURAL_REMEDIATION`, `NEEDS_HUMAN_DECISION`, or `DO_NOT_PATCH`. It is routing, not implementation approval.
+
 ## Baseline Setup
 
 Use baseline setup after `start` and before non-trivial work.
@@ -148,6 +161,8 @@ node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
+node scripts/check-real-adoption-trial.mjs .
+node scripts/check-patch-classification.mjs .
 ```
 
 Rules:

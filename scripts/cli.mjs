@@ -61,6 +61,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "real-adoption": {
+    description: "Check real-project read-only adoption trial evidence.",
+    script: "scripts/check-real-adoption-trial.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "patch-classification": {
+    description: "Check repair-scale classification before non-trivial fixes.",
+    script: "scripts/check-patch-classification.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   init: {
     description: "Initialize workflow assets in a target project.",
     script: "scripts/init-project.mjs",
@@ -208,6 +220,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs launch-readiness .");
   console.log("  node scripts/cli.mjs conversation-drift .");
   console.log("  node scripts/cli.mjs first-delivery .");
+  console.log("  node scripts/cli.mjs real-adoption .");
+  console.log("  node scripts/cli.mjs patch-classification .");
   console.log("  node scripts/cli.mjs init --starter generic-project --target ../my-project");
   console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");

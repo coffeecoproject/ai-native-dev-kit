@@ -975,5 +975,117 @@
       "forbidden walkthrough overclaim"
     ],
     "howToFix": "Simulated first delivery walkthroughs must not claim production readiness or production validation."
+  },
+  {
+    "name": "good real adoption governed web readonly",
+    "type": "golden",
+    "checker": "check-real-adoption-trial",
+    "script": "scripts/check-real-adoption-trial.mjs",
+    "args": [
+      "examples/1.8-real-project-readonly"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Real adoption trial check passed"
+    ],
+    "howToFix": "Keep the real adoption example read-only, sanitized, bridge-mode bounded, and closed for subagents."
+  },
+  {
+    "name": "bad real adoption overclaim",
+    "type": "bad",
+    "checker": "check-real-adoption-trial",
+    "script": "scripts/check-real-adoption-trial.mjs",
+    "args": [
+      "test-fixtures/bad/bad-real-adoption-overclaim"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "forbidden real-adoption overclaim"
+    ],
+    "howToFix": "Read-only real adoption reports must not claim production validation, release approval, or safety approval."
+  },
+  {
+    "name": "bad real adoption target write",
+    "type": "bad",
+    "checker": "check-real-adoption-trial",
+    "script": "scripts/check-real-adoption-trial.mjs",
+    "args": [
+      "test-fixtures/bad/bad-real-adoption-target-write"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "No target writes performed"
+    ],
+    "howToFix": "Read-only real adoption reports must record that no target writes were performed."
+  },
+  {
+    "name": "bad real adoption public name local only",
+    "type": "bad",
+    "checker": "check-real-adoption-trial",
+    "script": "scripts/check-real-adoption-trial.mjs",
+    "args": [
+      "test-fixtures/bad/bad-real-adoption-public-name"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "Public Evidence Status is LOCAL_ONLY"
+    ],
+    "howToFix": "Public repo evidence must not include concrete private target names unless explicitly approved."
+  },
+  {
+    "name": "good patch classification structural remediation",
+    "type": "golden",
+    "checker": "check-patch-classification",
+    "script": "scripts/check-patch-classification.mjs",
+    "args": [
+      "examples/1.8-real-project-readonly"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Patch classification check passed"
+    ],
+    "howToFix": "Keep patch classification examples explicit about repair scale, risk, evidence, and non-authorization."
+  },
+  {
+    "name": "bad patch safe local high risk",
+    "type": "bad",
+    "checker": "check-patch-classification",
+    "script": "scripts/check-patch-classification.mjs",
+    "args": [
+      "test-fixtures/bad/bad-patch-safe-local-high-risk"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "SAFE_LOCAL_FIX"
+    ],
+    "howToFix": "High-risk API, DB, migration, gate, release, permission, or schema surfaces must not be classified as SAFE_LOCAL_FIX."
+  },
+  {
+    "name": "bad patch authorizes implementation",
+    "type": "bad",
+    "checker": "check-patch-classification",
+    "script": "scripts/check-patch-classification.mjs",
+    "args": [
+      "test-fixtures/bad/bad-patch-authorizes-implementation"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "authorize implementation"
+    ],
+    "howToFix": "Patch classification reports route repair scale only; they must not approve implementation."
+  },
+  {
+    "name": "bad patch do not patch completed",
+    "type": "bad",
+    "checker": "check-patch-classification",
+    "script": "scripts/check-patch-classification.mjs",
+    "args": [
+      "test-fixtures/bad/bad-patch-do-not-patch-done"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "DO_NOT_PATCH"
+    ],
+    "howToFix": "DO_NOT_PATCH is a stop signal, not completed work."
   }
 ]

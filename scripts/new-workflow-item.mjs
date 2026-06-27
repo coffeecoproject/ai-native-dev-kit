@@ -32,6 +32,8 @@ const typeMap = {
   "conversation-turn-classification": { dir: "conversation-turns", template: "conversation-turn-classification.md", defaultName: "conversation-turn" },
   "scope-change-report": { dir: "scope-change-reports", template: "scope-change-report.md", defaultName: "scope-change" },
   "adoption-trial-report": { dir: "adoption-trial-reports", template: "adoption-trial-report.md", defaultName: "adoption-trial" },
+  "real-adoption-trial-report": { dir: "real-adoption-trials", template: "real-adoption-trial-report.md", defaultName: "real-adoption-trial" },
+  "patch-classification": { dir: "patch-classifications", template: "patch-classification-report.md", defaultName: "patch-classification" },
 };
 
 const aliases = {
@@ -91,6 +93,13 @@ const aliases = {
   "adoption-trial": "adoption-trial-report",
   "adoption-evidence": "adoption-trial-report",
   trial: "adoption-trial-report",
+  "real-adoption": "real-adoption-trial-report",
+  "real-adoption-trial": "real-adoption-trial-report",
+  "real-trial": "real-adoption-trial-report",
+  "patch-classification-report": "patch-classification",
+  "patch-classifier": "patch-classification",
+  "repair-classification": "patch-classification",
+  "repair-scale": "patch-classification",
 };
 
 function parseArgs(argv) {
@@ -139,6 +148,8 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type conversation-turn-classification --name user-scope-change");
   console.error("  node scripts/new-workflow-item.mjs --type scope-change-report --name add-payments");
   console.error("  node scripts/new-workflow-item.mjs --type adoption-trial-report --name first-slice");
+  console.error("  node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-web-readonly");
+  console.error("  node scripts/new-workflow-item.mjs --type patch-classification --name governed-web-repair-scale");
 }
 
 function fail(message) {
@@ -1213,6 +1224,60 @@ function fillAdoptionTrialReport(content, context) {
   return output;
 }
 
+function fillRealAdoptionTrialReport(content, context) {
+  let output = setTitle(content, `# Real Adoption Trial Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", "One-sentence read-only conclusion.");
+  output = setSection(
+    output,
+    "Trial Boundary",
+    [
+      "| Field | Value |",
+      "|---|---|",
+      "| Trial mode | READ_ONLY |",
+      "| No target writes performed | Yes |",
+      "| Target git status checked before | Yes / No |",
+      "| Target git status checked after | Yes / No |",
+      "| External service commands run | No |",
+      "| Runtime / DB / migration / seed commands run | No |",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Target Project State",
+    [
+      "| Field | Value |",
+      "|---|---|",
+      "| Target project label | one governed production-sensitive Web project / <sanitized label> |",
+      "| Concrete target name included | No |",
+      "| Primary adoption mode | NEW_PROJECT / EXISTING_LIGHT_PROJECT / EXISTING_GOVERNED_PROJECT / EXISTING_PRODUCTION_PROJECT / BLOCKED_UNKNOWN_RISK |",
+      "| Secondary risk tags |  |",
+      "| Confidence | low / medium / high |",
+      "| Evidence |  |",
+    ].join("\n"),
+  );
+  output = setSection(output, "Outcome", "`NEEDS_HUMAN_DECISION`");
+  return output;
+}
+
+function fillPatchClassification(content, context) {
+  let output = setTitle(content, `# Patch Classification Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", "One-sentence repair-scale conclusion.");
+  output = setSection(
+    output,
+    "Classification Status",
+    [
+      "| Field | Value |",
+      "|---|---|",
+      "| Status | DRAFT |",
+      "| Target project label | <sanitized label> |",
+      "| Patch classification authorizes implementation | No |",
+      "| Checker boundary | heuristic and structure-based; does not prove code or root-cause correctness |",
+    ].join("\n"),
+  );
+  output = setSection(output, "Outcome", "`CLASSIFIED_ONLY`");
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1374,6 +1439,8 @@ if (type === "launch-readiness-report") content = fillLaunchReadinessReport(cont
 if (type === "conversation-turn-classification") content = fillConversationTurnClassification(content, baseContext);
 if (type === "scope-change-report") content = fillScopeChangeReport(content, baseContext);
 if (type === "adoption-trial-report") content = fillAdoptionTrialReport(content, baseContext);
+if (type === "real-adoption-trial-report") content = fillRealAdoptionTrialReport(content, baseContext);
+if (type === "patch-classification") content = fillPatchClassification(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -1434,6 +1501,14 @@ if (type === "review-packet") {
   console.log("- Fill the starting idea, Codex routing, baseline path, artifact path, human decisions, drift events, verification, and delivery boundary.");
   console.log("- Label simulated evidence as simulated; do not claim real-project or production validation without evidence.");
   console.log("- Run node scripts/check-first-delivery-walkthrough.mjs . after filling the report.");
+} else if (type === "real-adoption-trial-report") {
+  console.log("- Keep the target project read-only; record git status before and after if a real target was inspected.");
+  console.log("- Do not include private target names in public evidence unless explicitly approved.");
+  console.log("- Run node scripts/check-real-adoption-trial.mjs . after filling the report.");
+} else if (type === "patch-classification") {
+  console.log("- Classify repair scale before proposing or applying a non-trivial fix.");
+  console.log("- Do not treat patch classification as implementation authorization.");
+  console.log("- Run node scripts/check-patch-classification.mjs . after filling the report.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

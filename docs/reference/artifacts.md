@@ -42,6 +42,9 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `conversation-turns/` | Conversation Turn Classification reports |
 | `scope-change-reports/` | Scope Change Reports for proposed scope changes |
 | `adoption-trial-reports/` | First Delivery Walkthrough and real/simulated adoption trial evidence |
+| `real-adoption-trials/` | Real-project read-only adoption trial reports |
+| `governance-maps/` | Maps AI Native concepts to existing project authority |
+| `patch-classifications/` | Repair-scale classification before non-trivial fixes |
 
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
 
@@ -96,6 +99,8 @@ Safe Launch lives under `.ai-native/core/` in generated projects. It constrains 
 
 Conversation Drift Control lives under `.ai-native/core/` in generated projects. It constrains how Codex handles discussion-only turns, scope changes, new tasks, direct follow-ups, and risk decisions during active work.
 
+Real Project Read-only Adoption Trial and Patch Classification Governance live under `.ai-native/core/` in generated projects. They constrain how Codex enters governed or production-sensitive projects and prevent unsafe symptom patches from being treated as safe local fixes.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -120,4 +125,7 @@ Short rule:
 - need to classify delivery readiness: launch readiness report
 - need to route a new user message: conversation turn classification
 - need to change approved scope: scope change report
+- need to inspect a real governed project without writing: real adoption trial report
+- need to map existing governance instead of copying templates: governance map
+- need to decide whether a fix can be local or must be structural/human-owned: patch classification
 - need to close work: final report

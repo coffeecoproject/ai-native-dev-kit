@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.7.0`
+`1.8.0`
 
 ## Project Version File
 
@@ -49,3 +49,5 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Version mismatch means the project may not have the latest workflow assets.
 - `1.7.0` adds First Delivery Walkthrough assets: First Delivery Walkthrough, Adoption Trial Report, walkthrough agent prompt, and first delivery checks.
 - `1.7.0` records first-slice walkthrough and adoption trial evidence, but it does not claim production validation or approve release, payment, privacy, security, legal, compliance, migration, or customer promises.
+- `1.8.0` adds Real Project Read-only Adoption Trial assets, Patch Classification Governance assets, real adoption checks, and patch classification checks.
+- `1.8.0` keeps real-project evidence sanitized by default and does not treat read-only reports or patch classification as target-project write approval.

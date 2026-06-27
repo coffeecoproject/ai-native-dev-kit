@@ -426,6 +426,8 @@ function checkVersionMetadata() {
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
     "scripts/check-context-governance.mjs",
+    "scripts/check-real-adoption-trial.mjs",
+    "scripts/check-patch-classification.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -437,6 +439,7 @@ function checkVersionMetadata() {
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
     "scripts/lib/manifest.mjs",
+    "scripts/lib/risk-surfaces.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/start-project.mjs",
     "scripts/workflow-next.mjs",
@@ -489,6 +492,8 @@ function checkVersionMetadata() {
     ".ai-native/core/safe-launch.md",
     ".ai-native/core/conversation-drift-control.md",
     ".ai-native/core/first-delivery-walkthrough.md",
+    ".ai-native/core/real-project-adoption-trial.md",
+    ".ai-native/core/patch-classification.md",
     ".ai-native/core/safe-launch.md",
     ".ai-native/core/conversation-drift-control.md",
     ".ai-native/templates/learning-candidate.md",
@@ -498,6 +503,8 @@ function checkVersionMetadata() {
     ".ai-native/templates/conversation-turn-classification.md",
     ".ai-native/templates/scope-change-report.md",
     ".ai-native/templates/adoption-trial-report.md",
+    ".ai-native/templates/real-adoption-trial-report.md",
+    ".ai-native/templates/patch-classification-report.md",
     ".ai-native/templates/launch-readiness-report.md",
     ".ai-native/templates/conversation-turn-classification.md",
     ".ai-native/templates/scope-change-report.md",
@@ -505,6 +512,8 @@ function checkVersionMetadata() {
     ".ai-native/prompts/launch-readiness-agent.md",
     ".ai-native/prompts/conversation-router-agent.md",
     ".ai-native/prompts/walkthrough-agent.md",
+    ".ai-native/prompts/real-adoption-agent.md",
+    ".ai-native/prompts/patch-classifier-agent.md",
     ".ai-native/prompts/launch-readiness-agent.md",
     ".ai-native/prompts/conversation-router-agent.md",
     ".ai-native/checklists/context-governance-review.md",
@@ -512,6 +521,8 @@ function checkVersionMetadata() {
     ".ai-native/checklists/launch-readiness-review.md",
     ".ai-native/checklists/conversation-drift-review.md",
     ".ai-native/checklists/first-delivery-walkthrough-review.md",
+    ".ai-native/checklists/real-adoption-trial-review.md",
+    ".ai-native/checklists/patch-classification-review.md",
     ".ai-native/checklists/launch-readiness-review.md",
     ".ai-native/checklists/conversation-drift-review.md",
     "learning-candidates",
@@ -521,6 +532,9 @@ function checkVersionMetadata() {
     "conversation-turns",
     "scope-change-reports",
     "adoption-trial-reports",
+    "real-adoption-trials",
+    "governance-maps",
+    "patch-classifications",
     "adoption-recommendations",
     "baseline-recommendations",
     "baseline-gap-reports",
@@ -556,6 +570,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-launch-readiness.mjs .",
     "node scripts/check-conversation-drift.mjs .",
     "node scripts/check-first-delivery-walkthrough.mjs .",
+    "node scripts/check-real-adoption-trial.mjs .",
+    "node scripts/check-patch-classification.mjs .",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -573,6 +589,8 @@ function checkDevKitFirstPartyCi() {
     "check-launch-readiness.mjs",
     "check-conversation-drift.mjs",
     "check-first-delivery-walkthrough.mjs",
+    "check-real-adoption-trial.mjs",
+    "check-patch-classification.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -594,6 +612,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-launch-readiness.mjs .",
     "node scripts/check-conversation-drift.mjs .",
     "node scripts/check-first-delivery-walkthrough.mjs .",
+    "node scripts/check-real-adoption-trial.mjs .",
+    "node scripts/check-patch-classification.mjs .",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -609,6 +629,8 @@ function checkDevKitFirstPartyCi() {
     "check-launch-readiness.mjs",
     "check-conversation-drift.mjs",
     "check-first-delivery-walkthrough.mjs",
+    "check-real-adoption-trial.mjs",
+    "check-patch-classification.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -1011,6 +1033,8 @@ function checkCliFrontDoor() {
     "context-governance",
     "launch-readiness",
     "conversation-drift",
+    "real-adoption",
+    "patch-classification",
     "init",
     "update",
     "next",
@@ -1081,6 +1105,20 @@ function checkCliFrontDoor() {
     pass("CLI first-delivery delegates to first delivery checker");
   } else {
     fail(`CLI first-delivery failed: ${firstDelivery.stderr || firstDelivery.stdout}`);
+  }
+
+  const realAdoption = runNode(["scripts/cli.mjs", "real-adoption", "."]);
+  if (realAdoption.status === 0 && realAdoption.stdout.includes("Real adoption trial check passed")) {
+    pass("CLI real-adoption delegates to real adoption checker");
+  } else {
+    fail(`CLI real-adoption failed: ${realAdoption.stderr || realAdoption.stdout}`);
+  }
+
+  const patchClassification = runNode(["scripts/cli.mjs", "patch-classification", "."]);
+  if (patchClassification.status === 0 && patchClassification.stdout.includes("Patch classification check passed")) {
+    pass("CLI patch-classification delegates to patch classification checker");
+  } else {
+    fail(`CLI patch-classification failed: ${patchClassification.stderr || patchClassification.stdout}`);
   }
 
   const start = runNode(["scripts/cli.mjs", "start", "."]);
@@ -2142,6 +2180,141 @@ function checkFirstDeliveryWalkthroughProtocol() {
     } else {
       fail(`first delivery must reject ${name}: ${output}`);
     }
+  }
+}
+
+function checkRealAdoptionAndPatchClassificationProtocol() {
+  const required = [
+    "docs/real-project-adoption-trial-1.8-plan.md",
+    "core/real-project-adoption-trial.md",
+    "core/patch-classification.md",
+    "templates/real-adoption-trial-report.md",
+    "templates/patch-classification-report.md",
+    "templates/existing-governance-map.md",
+    "checklists/real-adoption-trial-review.md",
+    "checklists/patch-classification-review.md",
+    "prompts/real-adoption-agent.md",
+    "prompts/patch-classifier-agent.md",
+    "scripts/check-real-adoption-trial.mjs",
+    "scripts/check-patch-classification.mjs",
+    "scripts/lib/risk-surfaces.mjs",
+    "real-adoption-trials/.gitkeep",
+    "governance-maps/.gitkeep",
+    "patch-classifications/.gitkeep",
+    "real-adoption-trials/180-governed-web-readonly.md",
+    "governance-maps/180-governed-web-readonly.md",
+    "patch-classifications/180-governed-web-repair-scale.md",
+    "examples/1.8-real-project-readonly/README.md",
+    "examples/1.8-real-project-readonly/real-adoption-trials/001-governed-web-readonly.md",
+    "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
+    "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
+    "releases/1.8.0/release-record.md",
+    "releases/1.8.0/known-limitations.md",
+    "releases/1.8.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`real adoption / patch classification asset exists ${file}`);
+    else fail(`real adoption / patch classification asset missing ${file}`);
+  }
+
+  const realAdoptionCore = read("core/real-project-adoption-trial.md");
+  for (const marker of [
+    "Real project adoption is read-only by default",
+    "primary mode plus secondary tags",
+    "NO_WRITE_MAP",
+    "DOCS_ONLY_BRIDGE",
+    "THIN_OPERATIONAL_BRIDGE",
+    "Public Evidence Status",
+    "Patch classification authorizes code changes",
+  ]) {
+    if (realAdoptionCore.includes(marker)) pass(`real adoption core includes ${marker}`);
+    else fail(`real adoption core missing ${marker}`);
+  }
+
+  const patchCore = read("core/patch-classification.md");
+  for (const marker of [
+    "Patch Classification Governance",
+    "SAFE_LOCAL_FIX",
+    "BASELINE_ALIGNED_HARDCUT",
+    "STRUCTURAL_REMEDIATION",
+    "NEEDS_HUMAN_DECISION",
+    "DO_NOT_PATCH",
+    "Patch classification does not authorize implementation",
+    "heuristic and structure-based",
+  ]) {
+    if (patchCore.includes(marker)) pass(`patch classification core includes ${marker}`);
+    else fail(`patch classification core missing ${marker}`);
+  }
+
+  const realAdoptionCheck = runNode(["scripts/check-real-adoption-trial.mjs", "."]);
+  if (realAdoptionCheck.status === 0 && realAdoptionCheck.stdout.includes("Real adoption trial check passed")) {
+    pass("real adoption checker passes source repo");
+  } else {
+    fail(`real adoption checker failed: ${realAdoptionCheck.stderr || realAdoptionCheck.stdout}`);
+  }
+
+  const patchCheck = runNode(["scripts/check-patch-classification.mjs", "."]);
+  if (patchCheck.status === 0 && patchCheck.stdout.includes("Patch classification check passed")) {
+    pass("patch classification checker passes source repo");
+  } else {
+    fail(`patch classification checker failed: ${patchCheck.stderr || patchCheck.stdout}`);
+  }
+
+  const realExample = runNode(["scripts/check-real-adoption-trial.mjs", "examples/1.8-real-project-readonly"]);
+  if (realExample.status === 0 && realExample.stdout.includes("Real adoption trial check passed")) {
+    pass("real adoption example passes checker");
+  } else {
+    fail(`real adoption example failed: ${realExample.stderr || realExample.stdout}`);
+  }
+
+  const patchExample = runNode(["scripts/check-patch-classification.mjs", "examples/1.8-real-project-readonly"]);
+  if (patchExample.status === 0 && patchExample.stdout.includes("Patch classification check passed")) {
+    pass("patch classification example passes checker");
+  } else {
+    fail(`patch classification example failed: ${patchExample.stderr || patchExample.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["real adoption overclaim", ["scripts/check-real-adoption-trial.mjs", "test-fixtures/bad/bad-real-adoption-overclaim"], "forbidden real-adoption overclaim"],
+    ["real adoption target write", ["scripts/check-real-adoption-trial.mjs", "test-fixtures/bad/bad-real-adoption-target-write"], "No target writes performed"],
+    ["real adoption public name", ["scripts/check-real-adoption-trial.mjs", "test-fixtures/bad/bad-real-adoption-public-name"], "Public Evidence Status is LOCAL_ONLY"],
+    ["safe local high risk", ["scripts/check-patch-classification.mjs", "test-fixtures/bad/bad-patch-safe-local-high-risk"], "SAFE_LOCAL_FIX"],
+    ["patch authorizes implementation", ["scripts/check-patch-classification.mjs", "test-fixtures/bad/bad-patch-authorizes-implementation"], "authorize implementation"],
+    ["do not patch completed", ["scripts/check-patch-classification.mjs", "test-fixtures/bad/bad-patch-do-not-patch-done"], "DO_NOT_PATCH"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.8 rejects ${name}`);
+    } else {
+      fail(`1.8 must reject ${name}: ${output}`);
+    }
+  }
+
+  const workflowArtifacts = runNode([
+    "scripts/check-workflow-artifacts.mjs",
+    ".",
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/180-real-project-adoption-trial.md",
+  ]);
+  if (workflowArtifacts.status === 0) {
+    pass("1.8 execution passes workflow artifact gate");
+  } else {
+    fail(`1.8 workflow artifact gate failed: ${workflowArtifacts.stderr || workflowArtifacts.stdout}`);
+  }
+
+  const reviewLoop = runNode([
+    "scripts/check-review-loop.mjs",
+    ".",
+    "--task",
+    "tasks/180-real-project-adoption-trial.md",
+  ]);
+  if (reviewLoop.status === 0) {
+    pass("1.8 execution passes review loop gate");
+  } else {
+    fail(`1.8 review loop gate failed: ${reviewLoop.stderr || reviewLoop.stdout}`);
   }
 }
 
@@ -4886,6 +5059,7 @@ checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();
 checkConversationDriftProtocol();
 checkFirstDeliveryWalkthroughProtocol();
+checkRealAdoptionAndPatchClassificationProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

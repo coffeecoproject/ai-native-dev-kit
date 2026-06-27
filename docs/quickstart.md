@@ -49,7 +49,16 @@ Use `workflow-next` directly only when you need the lower-level technical state:
 node ai-native-dev-kit/scripts/workflow-next.mjs .
 ```
 
-If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, stop setup. This means the project appears governed, production-sensitive, or dirty. Codex should produce a read-only assessment from `templates/adoption-assessment.md` and `templates/existing-governance-map.md` instead of running `init-project`.
+If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, stop setup. This means the project appears governed, production-sensitive, or dirty. Codex should produce a read-only real adoption report, an existing governance map, and a patch classification report instead of running `init-project`.
+
+```bash
+node ai-native-dev-kit/scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-project-readonly
+node ai-native-dev-kit/scripts/new-workflow-item.mjs --type patch-classification --name governed-project-repair-scale
+node ai-native-dev-kit/scripts/check-real-adoption-trial.mjs .
+node ai-native-dev-kit/scripts/check-patch-classification.mjs .
+```
+
+Real project evidence is local-only by default. Public evidence should be sanitized unless the human explicitly approves naming the target project.
 
 If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing a task. Confirm who owns the current git changes and whether they should be committed, split, stashed, ignored, or reviewed first.
 
@@ -87,6 +96,8 @@ node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
+node scripts/check-real-adoption-trial.mjs .
+node scripts/check-patch-classification.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 

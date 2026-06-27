@@ -43,6 +43,10 @@ jobs:
         run: node scripts/check-conversation-drift.mjs .
       - name: Check first delivery walkthrough
         run: node scripts/check-first-delivery-walkthrough.mjs .
+      - name: Check real adoption trial
+        run: node scripts/check-real-adoption-trial.mjs .
+      - name: Check patch classification
+        run: node scripts/check-patch-classification.mjs .
       - name: Check platform baseline
         run: node scripts/check-platform-baseline.mjs .
       - name: Check selected industrial packs
@@ -85,6 +89,10 @@ jobs:
         run: node --check scripts/check-conversation-drift.mjs
       - name: Check first delivery walkthrough checker syntax
         run: node --check scripts/check-first-delivery-walkthrough.mjs
+      - name: Check real adoption trial checker syntax
+        run: node --check scripts/check-real-adoption-trial.mjs
+      - name: Check patch classification checker syntax
+        run: node --check scripts/check-patch-classification.mjs
       - name: Check baseline recommendation syntax
         run: node --check scripts/baseline-project.mjs
       - name: Check workflow artifact quality

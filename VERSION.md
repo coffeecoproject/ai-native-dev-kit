@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.7.0`
+Current version: `1.8.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `1.7.0`
 
 ## Current Release
 
-`1.7.0`
+`1.8.0`
 
 Includes:
 
+- Real Project Read-only Adoption Trial phase `1.8.0`: sanitized real-project adoption reports, governance maps, patch classification reports, and `scripts/check-real-adoption-trial.mjs`
+- Patch Classification Governance phase `1.8.0`: repair scale classification before non-trivial fixes, with `SAFE_LOCAL_FIX`, `BASELINE_ALIGNED_HARDCUT`, `STRUCTURAL_REMEDIATION`, `NEEDS_HUMAN_DECISION`, and `DO_NOT_PATCH`
+- Added `core/real-project-adoption-trial.md`, `core/patch-classification.md`, `templates/real-adoption-trial-report.md`, `templates/patch-classification-report.md`, `checklists/real-adoption-trial-review.md`, `checklists/patch-classification-review.md`, `prompts/real-adoption-agent.md`, `prompts/patch-classifier-agent.md`, and `scripts/check-patch-classification.mjs`
+- Added `real-adoption-trials/`, `governance-maps/`, and `patch-classifications/` as optional evidence directories; real-project entry remains read-only by default
+- Added sanitized read-only evidence for one governed production-sensitive Web project under `real-adoption-trials/`, `governance-maps/`, `patch-classifications/`, and `examples/1.8-real-project-readonly/`
+- `1.8.0` does not claim production validation, release approval, security/privacy/compliance approval, target-project write approval, or implementation authorization from patch classification
 - First Delivery Walkthrough phase `1.7.0`: complete first-slice walkthrough, Adoption Trial Report, walkthrough agent prompt, and `scripts/check-first-delivery-walkthrough.mjs`
 - Added `core/first-delivery-walkthrough.md`, `templates/adoption-trial-report.md`, `checklists/first-delivery-walkthrough-review.md`, `prompts/walkthrough-agent.md`, and `docs/first-delivery-walkthrough.md`
 - Added `adoption-trial-reports/` as an optional evidence directory; empty target projects are not forced to create reports

@@ -40,6 +40,15 @@ node scripts/start-project.mjs .
 
 Use `workflow-next` as the lower-level state detector when needed. Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
 
+If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not write target files. Create or update real adoption evidence first:
+
+```bash
+node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-project-readonly
+node scripts/check-real-adoption-trial.mjs .
+```
+
+Real adoption reports are not permission to run `init-project`, update workflow assets, edit `AGENTS.md`, or add `.ai-native/`.
+
 After adoption classification, use baseline setup when project-specific engineering or environment rules are not clear:
 
 ```bash
@@ -254,6 +263,21 @@ node scripts/check-first-delivery-walkthrough.mjs .
 ```
 
 First Delivery Walkthrough records the route, baseline path, artifacts, human decisions, drift handling, verification, and launch readiness. It does not approve production launch, release, payment, privacy, security, legal, compliance, migration, or customer promises.
+
+## Real Project Adoption And Patch Classification
+
+Use `.ai-native/core/real-project-adoption-trial.md` before writing to an existing governed or production-sensitive project. Map existing authority first; do not overwrite local agent rules, CI, release flows, baseline docs, or evidence records.
+
+Use `.ai-native/core/patch-classification.md` before proposing or applying a non-trivial fix in a governed project.
+
+Run:
+
+```bash
+node scripts/check-real-adoption-trial.mjs .
+node scripts/check-patch-classification.mjs .
+```
+
+Patch classification routes repair scale. It does not authorize implementation.
 
 ## Review Loop
 

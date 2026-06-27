@@ -39,6 +39,7 @@ For bootstrap entry:
 - use `node scripts/workflow-next.mjs .` as the lower-level state detector and follow `NEXT_ACTION`
 - stop for human approval before applying migration reports
 - if `workflow-next` reports `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing tasks until the human confirms how to handle existing changes
+- if `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not write target files; create a real adoption trial report and run `node scripts/check-real-adoption-trial.mjs .` first
 
 For project onboarding:
 
@@ -103,6 +104,8 @@ For workflow artifacts:
 - AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds
 - route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human
 - route missing engineering or environment baseline decisions to a Decision Brief or Human Decisions Needed instead of silently choosing
+- create `node scripts/new-workflow-item.mjs --type patch-classification --name <slug>` and run `node scripts/check-patch-classification.mjs .` before proposing or applying a non-trivial fix in a governed project
+- patch classification is repair routing only; it is not implementation authorization
 
 For Goal Mode:
 

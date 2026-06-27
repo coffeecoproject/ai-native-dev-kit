@@ -170,23 +170,54 @@ function profile(id, reason) {
 }
 
 function inspectBaselineDoc(targetRoot, rel) {
-  const full = path.join(targetRoot, rel);
+  const resolvedRel = fs.existsSync(path.join(targetRoot, rel))
+    ? rel
+    : findEquivalentBaselineDoc(targetRoot, rel);
+  const full = path.join(targetRoot, resolvedRel || rel);
   if (!fs.existsSync(full)) {
     return {
       ref: rel,
       state: "MISSING",
-      summary: `${rel} does not exist yet.`,
+      summary: `${rel} or an equivalent baseline doc does not exist yet.`,
       canUseForTaskReferences: "No",
     };
   }
   const content = fs.readFileSync(full, "utf8");
   const pending = /\b(PENDING|PENDING_CONFIRMATION|DRAFT|TODO|TBD|NEEDS_HUMAN|待确认|待定)\b/i.test(content);
   return {
-    ref: rel,
+    ref: resolvedRel || rel,
     state: pending ? "PENDING" : "PRESENT",
-    summary: pending ? `${rel} exists with pending decisions.` : `${rel} exists.`,
+    summary: pending ? `${resolvedRel || rel} exists with pending decisions.` : `${resolvedRel || rel} exists.`,
     canUseForTaskReferences: "Yes",
   };
+}
+
+function findEquivalentBaselineDoc(targetRoot, canonicalRel) {
+  const rels = walkRelativePaths(targetRoot, ".", { maxDepth: 4 })
+    .map((item) => item.replace(/\\/g, "/"))
+    .filter((item) => item.toLowerCase().endsWith(".md"));
+  const lowerCanonical = canonicalRel.toLowerCase();
+  const kind = lowerCanonical.includes("environment") ? "environment" : "engineering";
+  const docs = rels.filter((item) => item.startsWith("docs/") || item.includes("/docs/"));
+  const candidates = docs.filter((item) => {
+    const lower = item.toLowerCase();
+    if (!lower.includes("baseline")) return false;
+    if (kind === "engineering") return /engineering|code|quality|frontend|backend|web|ios|android|miniprogram/.test(lower);
+    return /environment|env|runtime|release|rollback|deploy|ci/.test(lower);
+  });
+  return candidates.sort((left, right) => scoreBaselineCandidate(right, kind) - scoreBaselineCandidate(left, kind))[0] || null;
+}
+
+function scoreBaselineCandidate(rel, kind) {
+  const lower = rel.toLowerCase();
+  let score = 0;
+  if (lower.startsWith("docs/")) score += 2;
+  if (lower.includes("baseline")) score += 2;
+  if (kind === "engineering" && lower.includes("engineering")) score += 4;
+  if (kind === "environment" && lower.includes("environment")) score += 4;
+  if (kind === "environment" && lower.includes("env")) score += 2;
+  if (lower.includes("web")) score += 1;
+  return score;
 }
 
 function recommendBaselineLevel(classification, profiles) {

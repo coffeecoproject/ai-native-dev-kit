@@ -414,8 +414,10 @@ function governedPath(classification, workflow, reason) {
     ],
     safeNextActions: [
       action("Read-only assessment", `node scripts/cli.mjs next ${shellQuote(workflow.projectRoot)}`, "No", "No"),
+      action("Check real adoption report", `node scripts/cli.mjs real-adoption ${shellQuote(workflow.projectRoot)}`, "No", "No"),
       action("Read baseline recommendation", `node scripts/cli.mjs baseline ${shellQuote(workflow.projectRoot)}`, "No", "No"),
-      action("Prepare adoption assessment", "Use .ai-native/templates/adoption-assessment.md after assets are available, or draft the same structure manually.", "Report only", "Yes"),
+      action("Prepare real adoption report", "Use templates/real-adoption-trial-report.md or new-workflow-item --type real-adoption-trial-report after assets are available.", "Report only", "Yes"),
+      action("Prepare patch classification", "Use templates/patch-classification-report.md or new-workflow-item --type patch-classification before proposing non-trivial fixes.", "Report only", "Yes"),
       action("Write adoption plan later", `node scripts/init-project.mjs --target ${shellQuote(workflow.projectRoot)} --update-workflow-assets --write-plan adoption-plan.json`, "Plan file only", "Yes"),
     ],
     actionsAiMustNotTakeYet: [
@@ -429,9 +431,11 @@ function governedPath(classification, workflow, reason) {
       "adoption-recommendations/<date>-guided-start.md",
       ".ai-native/templates/adoption-assessment.md",
       ".ai-native/templates/existing-governance-map.md",
+      ".ai-native/templates/real-adoption-trial-report.md",
+      ".ai-native/templates/patch-classification-report.md",
       "docs/first-hour.md",
     ],
-    finalRecommendation: "Stay read-only. Produce an adoption assessment and ask for human confirmation before any write plan.",
+    finalRecommendation: "Stay read-only. Produce a real adoption report, governance map, and patch classification before any write plan.",
   };
 }
 
