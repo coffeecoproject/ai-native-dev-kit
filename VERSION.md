@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.3.0`
+Current version: `1.4.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `1.3.0`
 
 ## Current Release
 
-`1.3.0`
+`1.4.0`
 
 Includes:
 
+- Project Memory & Context Governance phase `1.4.0`: Git Boundary, Context Governance, Learning Candidate, Context Correction Report, and Git Boundary Report
+- Added `core/context-governance.md`, `core/git-boundary.md`, context templates, context/Git boundary checklists, `prompts/context-governance-agent.md`, and `scripts/check-context-governance.mjs`
+- Added `learning-candidates/`, `context-corrections/`, and `git-boundary-reports/` as candidate and audit directories; candidates are not project facts until approved
+- Git-backed source of truth now explicitly overrides model memory, historical AI logs, and unconfirmed Codex inference
+- Added 1.4 examples, bad fixtures, generated-project asset installation, and `releases/1.4.0/`
+- `1.4.0` does not implement AI self-learning, external memory storage, raw conversation persistence, full secret scanning, or Safe Launch / Delivery Readiness
 - Guided Delivery Baseline phase `1.3.0`: product outcome, product boundary, claim control, and assumption visibility
 - Added `core/outcome-baseline.md`, `core/product-baseline.md`, `core/claim-control.md`, and `core/assumption-register.md`
 - Added `scripts/check-product-baseline.mjs` and `scripts/check-claim-control.mjs`

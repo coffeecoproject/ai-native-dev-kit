@@ -16,6 +16,8 @@ Explain what changed in plain language and why the change is safe to review.
 - Product baseline:
 - Claim control:
 - Assumption Register:
+- Project memory / Context governance:
+- Git Boundary:
 - Goal Card:
 - Subagent Run Plan:
 - Review Packet:

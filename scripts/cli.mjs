@@ -37,6 +37,12 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "context-governance": {
+    description: "Check project memory, context correction, and Git boundary governance.",
+    script: "scripts/check-context-governance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   init: {
     description: "Initialize workflow assets in a target project.",
     script: "scripts/init-project.mjs",
@@ -180,6 +186,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs product-baseline .");
   console.log("  node scripts/cli.mjs claim-control .");
+  console.log("  node scripts/cli.mjs context-governance .");
   console.log("  node scripts/cli.mjs init --starter generic-project --target ../my-project");
   console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");

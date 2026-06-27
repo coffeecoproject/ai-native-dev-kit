@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.3.0",
+  "devKitVersion": "1.4.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.3.0"
+    "phase": "1.4.0"
   },
   "groups": {
     "sourceRequired": [
@@ -659,7 +659,77 @@
       "ai-logs/2026-06-27-guided-delivery-baseline.md",
       "releases/1.3.0/release-record.md",
       "releases/1.3.0/known-limitations.md",
-      "releases/1.3.0/self-check-report.md"
+      "releases/1.3.0/self-check-report.md",
+      "docs/project-memory-context-governance-1.4-plan.md",
+      "core/context-governance.md",
+      "core/git-boundary.md",
+      "templates/learning-candidate.md",
+      "templates/context-correction-report.md",
+      "templates/git-boundary-report.md",
+      "checklists/context-governance-review.md",
+      "checklists/git-boundary-review.md",
+      "prompts/context-governance-agent.md",
+      "docs/project-memory.md",
+      "docs/git-boundary.md",
+      "learning-candidates/.gitkeep",
+      "context-corrections/.gitkeep",
+      "git-boundary-reports/.gitkeep",
+      "scripts/check-context-governance.mjs",
+      "examples/1.4-project-memory-context/README.md",
+      "examples/1.4-project-memory-context/learning-candidates/001-status-source.md",
+      "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
+      "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/core/context-governance.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/core/git-boundary.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/templates/learning-candidate.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/templates/context-correction-report.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/templates/git-boundary-report.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/checklists/context-governance-review.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/checklists/git-boundary-review.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/prompts/context-governance-agent.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/docs/project-memory.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/docs/git-boundary.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/scripts/check-context-governance.mjs",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/learning-candidates/001-approved-without-evidence.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/core/context-governance.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/core/git-boundary.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/templates/learning-candidate.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/templates/context-correction-report.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/templates/git-boundary-report.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/prompts/context-governance-agent.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/docs/project-memory.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/docs/git-boundary.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/scripts/check-context-governance.mjs",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
+      "test-fixtures/bad/bad-git-boundary-secret/core/context-governance.md",
+      "test-fixtures/bad/bad-git-boundary-secret/core/git-boundary.md",
+      "test-fixtures/bad/bad-git-boundary-secret/templates/learning-candidate.md",
+      "test-fixtures/bad/bad-git-boundary-secret/templates/context-correction-report.md",
+      "test-fixtures/bad/bad-git-boundary-secret/templates/git-boundary-report.md",
+      "test-fixtures/bad/bad-git-boundary-secret/checklists/context-governance-review.md",
+      "test-fixtures/bad/bad-git-boundary-secret/checklists/git-boundary-review.md",
+      "test-fixtures/bad/bad-git-boundary-secret/prompts/context-governance-agent.md",
+      "test-fixtures/bad/bad-git-boundary-secret/docs/project-memory.md",
+      "test-fixtures/bad/bad-git-boundary-secret/docs/git-boundary.md",
+      "test-fixtures/bad/bad-git-boundary-secret/scripts/check-context-governance.mjs",
+      "test-fixtures/bad/bad-git-boundary-secret/git-boundary-reports/001-secret.md",
+      "requests/140-project-memory-context-governance.md",
+      "preflight/140-project-memory-context-governance.md",
+      "specs/140-project-memory-context-governance.md",
+      "evals/140-project-memory-context-governance.md",
+      "tasks/140-project-memory-context-governance.md",
+      "decision-briefs/140-context-source-of-truth-boundary.md",
+      "goal-cards/140-project-memory-context-governance.md",
+      "subagent-run-plans/140-project-memory-context-governance.md",
+      "review-packets/140-project-memory-context-governance.md",
+      "review-loop-reports/140-project-memory-context-governance.md",
+      "final-reports/140-project-memory-context-governance.md",
+      "ai-logs/2026-06-27-project-memory-context-governance.md",
+      "releases/1.4.0/release-record.md",
+      "releases/1.4.0/known-limitations.md",
+      "releases/1.4.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -843,7 +913,21 @@
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/claim-control.md",
       "scripts/check-product-baseline.mjs",
-      "scripts/check-claim-control.mjs"
+      "scripts/check-claim-control.mjs",
+      ".ai-native/core/context-governance.md",
+      ".ai-native/core/git-boundary.md",
+      ".ai-native/templates/learning-candidate.md",
+      ".ai-native/templates/context-correction-report.md",
+      ".ai-native/templates/git-boundary-report.md",
+      ".ai-native/prompts/context-governance-agent.md",
+      ".ai-native/checklists/context-governance-review.md",
+      ".ai-native/checklists/git-boundary-review.md",
+      ".ai-native/docs/project-memory.md",
+      ".ai-native/docs/git-boundary.md",
+      "scripts/check-context-governance.mjs",
+      "learning-candidates",
+      "context-corrections",
+      "git-boundary-reports"
     ],
     "targetFull": [
       ".ai-native/checklists/automation-review.md",
@@ -1067,7 +1151,21 @@
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/claim-control.md",
       "scripts/check-product-baseline.mjs",
-      "scripts/check-claim-control.mjs"
+      "scripts/check-claim-control.mjs",
+      ".ai-native/core/context-governance.md",
+      ".ai-native/core/git-boundary.md",
+      ".ai-native/templates/learning-candidate.md",
+      ".ai-native/templates/context-correction-report.md",
+      ".ai-native/templates/git-boundary-report.md",
+      ".ai-native/prompts/context-governance-agent.md",
+      ".ai-native/checklists/context-governance-review.md",
+      ".ai-native/checklists/git-boundary-review.md",
+      ".ai-native/docs/project-memory.md",
+      ".ai-native/docs/git-boundary.md",
+      "scripts/check-context-governance.mjs",
+      "learning-candidates",
+      "context-corrections",
+      "git-boundary-reports"
     ],
     "aiNativeCore": [
       ".ai-native/core/automation-governance.md",
@@ -1090,7 +1188,9 @@
       ".ai-native/core/outcome-baseline.md",
       ".ai-native/core/product-baseline.md",
       ".ai-native/core/claim-control.md",
-      ".ai-native/core/assumption-register.md"
+      ".ai-native/core/assumption-register.md",
+      ".ai-native/core/context-governance.md",
+      ".ai-native/core/git-boundary.md"
     ],
     "templates": [
       "templates/adoption-assessment.md",
@@ -1144,7 +1244,10 @@
       "templates/baseline-gap-report.md",
       "templates/product-baseline-review.md",
       "templates/claim-control-report.md",
-      "templates/assumption-register.md"
+      "templates/assumption-register.md",
+      "templates/learning-candidate.md",
+      "templates/context-correction-report.md",
+      "templates/git-boundary-report.md"
     ],
     "prompts": [
       "prompts/bootstrap-agent.md",
@@ -1156,7 +1259,8 @@
       "prompts/environment-baseline-agent.md",
       "prompts/baseline-setup-agent.md",
       "prompts/product-baseline-agent.md",
-      "prompts/claim-control-agent.md"
+      "prompts/claim-control-agent.md",
+      "prompts/context-governance-agent.md"
     ],
     "checklists": [
       "checklists/automation-review.md",
@@ -1180,7 +1284,9 @@
       "checklists/environment-baseline-review.md",
       "checklists/baseline-enforcement-review.md",
       "checklists/product-baseline-review.md",
-      "checklists/claim-control-review.md"
+      "checklists/claim-control-review.md",
+      "checklists/context-governance-review.md",
+      "checklists/git-boundary-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -1233,7 +1339,10 @@
       "workflow-improvements",
       "workflow-retros",
       "baseline-recommendations",
-      "baseline-gap-reports"
+      "baseline-gap-reports",
+      "learning-candidates",
+      "context-corrections",
+      "git-boundary-reports"
     ],
     "scripts": [
       "scripts/check-ai-workflow.mjs",
@@ -1275,7 +1384,8 @@
       "scripts/check-environment-baseline.mjs",
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-product-baseline.mjs",
-      "scripts/check-claim-control.mjs"
+      "scripts/check-claim-control.mjs",
+      "scripts/check-context-governance.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -1371,7 +1481,11 @@
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/releases/example-release.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
-      "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md"
+      "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
+      "examples/1.4-project-memory-context/README.md",
+      "examples/1.4-project-memory-context/learning-candidates/001-status-source.md",
+      "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
+      "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -1414,7 +1528,43 @@
       "test-fixtures/bad/bad-overclaimed-release/VERSION.md",
       "test-fixtures/bad/bad-overclaimed-release/releases/1.3.0/release-record.md",
       "test-fixtures/bad/bad-report-as-approval/final-reports/001-release.md",
-      "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md"
+      "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/core/context-governance.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/core/git-boundary.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/templates/learning-candidate.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/templates/context-correction-report.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/templates/git-boundary-report.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/checklists/context-governance-review.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/checklists/git-boundary-review.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/prompts/context-governance-agent.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/docs/project-memory.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/docs/git-boundary.md",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/scripts/check-context-governance.mjs",
+      "test-fixtures/bad/bad-learning-approved-without-evidence/learning-candidates/001-approved-without-evidence.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/core/context-governance.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/core/git-boundary.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/templates/learning-candidate.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/templates/context-correction-report.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/templates/git-boundary-report.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/prompts/context-governance-agent.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/docs/project-memory.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/docs/git-boundary.md",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/scripts/check-context-governance.mjs",
+      "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
+      "test-fixtures/bad/bad-git-boundary-secret/core/context-governance.md",
+      "test-fixtures/bad/bad-git-boundary-secret/core/git-boundary.md",
+      "test-fixtures/bad/bad-git-boundary-secret/templates/learning-candidate.md",
+      "test-fixtures/bad/bad-git-boundary-secret/templates/context-correction-report.md",
+      "test-fixtures/bad/bad-git-boundary-secret/templates/git-boundary-report.md",
+      "test-fixtures/bad/bad-git-boundary-secret/checklists/context-governance-review.md",
+      "test-fixtures/bad/bad-git-boundary-secret/checklists/git-boundary-review.md",
+      "test-fixtures/bad/bad-git-boundary-secret/prompts/context-governance-agent.md",
+      "test-fixtures/bad/bad-git-boundary-secret/docs/project-memory.md",
+      "test-fixtures/bad/bad-git-boundary-secret/docs/git-boundary.md",
+      "test-fixtures/bad/bad-git-boundary-secret/scripts/check-context-governance.mjs",
+      "test-fixtures/bad/bad-git-boundary-secret/git-boundary-reports/001-secret.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -1500,7 +1650,21 @@
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/claim-control.md",
       "scripts/check-product-baseline.mjs",
-      "scripts/check-claim-control.mjs"
+      "scripts/check-claim-control.mjs",
+      ".ai-native/core/context-governance.md",
+      ".ai-native/core/git-boundary.md",
+      ".ai-native/templates/learning-candidate.md",
+      ".ai-native/templates/context-correction-report.md",
+      ".ai-native/templates/git-boundary-report.md",
+      ".ai-native/prompts/context-governance-agent.md",
+      ".ai-native/checklists/context-governance-review.md",
+      ".ai-native/checklists/git-boundary-review.md",
+      ".ai-native/docs/project-memory.md",
+      ".ai-native/docs/git-boundary.md",
+      "scripts/check-context-governance.mjs",
+      "learning-candidates",
+      "context-corrections",
+      "git-boundary-reports"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/engineering-baseline-review.md",
@@ -1641,7 +1805,15 @@
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/claim-control.md",
       "scripts/check-product-baseline.mjs",
-      "scripts/check-claim-control.mjs"
+      "scripts/check-claim-control.mjs",
+      ".ai-native/core/context-governance.md",
+      ".ai-native/core/git-boundary.md",
+      ".ai-native/checklists/context-governance-review.md",
+      ".ai-native/checklists/git-boundary-review.md",
+      "scripts/check-context-governance.mjs",
+      "learning-candidates",
+      "context-corrections",
+      "git-boundary-reports"
     ]
   },
   "copyRules": {
@@ -1835,6 +2007,18 @@
       {
         "source": "scripts/check-claim-control.mjs",
         "target": "scripts/check-claim-control.mjs"
+      },
+      {
+        "source": "docs/project-memory.md",
+        "target": ".ai-native/docs/project-memory.md"
+      },
+      {
+        "source": "docs/git-boundary.md",
+        "target": ".ai-native/docs/git-boundary.md"
+      },
+      {
+        "source": "scripts/check-context-governance.mjs",
+        "target": "scripts/check-context-governance.mjs"
       }
     ]
   }

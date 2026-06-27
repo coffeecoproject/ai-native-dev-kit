@@ -35,6 +35,9 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `subagent-run-plans/` | Helper agent roles, authority, handoff, and closure |
 | `decision-briefs/` | Human decision input |
 | `follow-up-proposals/` | Suggestions outside the current task |
+| `learning-candidates/` | Proposed project memory that is not confirmed yet |
+| `context-corrections/` | Evidence-backed correction records for stale or wrong context |
+| `git-boundary-reports/` | Commit/PR boundary evidence for AI Native and context artifacts |
 
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
 
@@ -83,6 +86,8 @@ Environment Baseline covers local runtime, package manager, environment variable
 
 Product Baseline and Claim Control live under `.ai-native/core/` in generated projects. They constrain workflow changes, release wording, public summaries, final reports, and handoffs; they do not add approval authority to AI.
 
+Context Governance and Git Boundary live under `.ai-native/core/` in generated projects. They constrain how Codex proposes project memory, corrects stale context, and decides what belongs in Git. Learning candidates and context corrections are not project facts until approved.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -101,4 +106,7 @@ Short rule:
 - need to review work: review packet and review loop report
 - need a human decision: decision brief
 - need to suggest future work: follow-up proposal
+- need to remember a possible project fact: learning candidate
+- need to fix stale context: context correction report
+- need to decide what enters Git: git boundary report
 - need to close work: final report

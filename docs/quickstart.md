@@ -83,6 +83,7 @@ node scripts/check-environment-baseline.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode ready
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 
@@ -151,9 +152,20 @@ Use them when a change touches workflow behavior, release wording, README/public
 ```bash
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 ```
 
 These checks do not make claim reports mandatory for every task. Use Assumption Register sections only when the result depends on inferred or unconfirmed facts.
+
+## Project Memory And Context Governance
+
+Use this when Codex observes reusable context, finds stale project docs, or needs to decide whether workflow artifacts should enter Git.
+
+```bash
+node scripts/check-context-governance.mjs .
+```
+
+Codex may draft learning candidates and context corrections. Humans confirm before source-of-truth changes.
 
 ## Platform Baseline
 

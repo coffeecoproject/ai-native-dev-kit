@@ -22,6 +22,8 @@
 - [ ] Environment baseline was checked when this change touched build, CI, environment variables, deployment, production config, release, rollback, secrets, logs, monitoring, or alerts
 - [ ] Product baseline was checked when this change touched workflow behavior, release wording, public summaries, or generated-project behavior
 - [ ] Claim control was checked when this change touched README, release records, final reports, handoffs, or public-facing summaries
+- [ ] Context governance was checked when this change touched project memory, baselines, AGENTS, context corrections, or source-of-truth docs
+- [ ] Git Boundary was reviewed when this change added AI Native artifacts, learning candidates, context corrections, or local/generated evidence
 - [ ] Assumptions are recorded when the change relies on inferred or unconfirmed facts
 - [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step
 - [ ] Subagent Run Plan is linked or marked not applicable when helper agents were used

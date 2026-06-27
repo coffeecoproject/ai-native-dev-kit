@@ -75,6 +75,7 @@ node scripts/check-guided-adoption.mjs ../my-project
 ```bash
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 ```
 
 ## Codex 一句话入口
@@ -98,6 +99,7 @@ node scripts/check-claim-control.mjs .
 - 人负责风险接受、业务取舍和发布确认；AI 负责整理、执行、检查和记录。
 - 不要把模拟 dogfood 或生成项目 smoke 说成真实生产验证。
 - 不要把 AI 推断出的环境、发布、回滚、监控信息当成已确认事实。
+- 不要把 Codex 观察到的内容直接当成项目记忆；必须先做人确认。
 
 ## 完整说明
 
@@ -112,6 +114,8 @@ node scripts/check-claim-control.mjs .
 - [Guided Delivery Baseline](docs/guided-delivery-baseline.md)：引导式交付基准
 - [Product Baseline](docs/product-baseline.md)：产品边界
 - [Claim Control](docs/claim-control.md)：声明口径控制
+- [Project Memory](docs/project-memory.md)：项目记忆与上下文治理
+- [Git Boundary](docs/git-boundary.md)：哪些内容应该进 Git
 - [Scripts Reference](docs/reference/scripts.md)：命令说明
 - [Artifacts Reference](docs/reference/artifacts.md)：文件说明
 - [Checkers Reference](docs/reference/checkers.md)：检查器说明
@@ -124,6 +128,7 @@ node scripts/check-claim-control.mjs .
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
 - [Troubleshooting](docs/troubleshooting.md)：常见问题处理
 - [FAQ](docs/faq.md)：问答
+- [1.4 Release Record](releases/1.4.0/release-record.md)：1.4 项目记忆与上下文治理
 - [1.3 Release Record](releases/1.3.0/release-record.md)：1.3 引导式交付基准
 - [1.2 Release Record](releases/1.2.0/release-record.md)：1.2 基线引导设置
 - [1.1 Release Record](releases/1.1.0/release-record.md)：1.1 引导式接入入口

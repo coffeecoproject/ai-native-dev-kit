@@ -51,6 +51,7 @@ Expected Codex behavior:
 - Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
 - Run baseline checks after setup when scripts are available.
 - Run `node scripts/check-product-baseline.mjs .` and `node scripts/check-claim-control.mjs .` when workflow behavior, release wording, README/public summaries, final reports, or handoffs change.
+- Run `node scripts/check-context-governance.mjs .` when learning candidates, context corrections, Git boundary reports, baselines, AGENTS, or project source-of-truth docs change.
 - Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
 - Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
 
@@ -195,6 +196,7 @@ Expected Codex behavior:
 - Use `.ai-native/core/glossary.md` when internal terms need plain-language explanation.
 - Use `.ai-native/core/next-step-boundary.md` when reporting suggested next steps.
 - Use `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when reporting release wording, public claims, final reports, or handoffs.
+- Use `.ai-native/core/context-governance.md` and `.ai-native/core/git-boundary.md` when deciding whether an observation should become project memory or enter Git.
 - Use `.ai-native/prompts/reporter-agent.md` when converting technical state into a report.
 - Generate `human-status-report`, `decision-brief`, `plain-review-summary`, or `customer-handoff` only when a file record is useful.
 - Do not treat any report as Human Approval, release approval, risk acceptance, or permission to apply migrations.

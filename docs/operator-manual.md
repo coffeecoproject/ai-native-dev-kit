@@ -144,6 +144,7 @@ Use this layer when changing workflow behavior, release wording, public summarie
 ```bash
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 ```
 
 Rules:
@@ -153,6 +154,21 @@ Rules:
 - Draft packs are not stable packs.
 - AI assumptions must be visible when they affect decisions or claims.
 - Humans still approve risk, release, scope expansion, and future work.
+
+## Project Memory And Context Governance
+
+Use this layer when Codex observes context that may need to become project memory, when existing context appears stale, or when deciding which AI Native artifacts should enter Git.
+
+```bash
+node scripts/check-context-governance.mjs .
+```
+
+Rules:
+
+- Codex may draft learning candidates and context corrections.
+- Humans confirm before project source of truth changes.
+- Git-backed source of truth overrides model memory.
+- Secrets, raw conversations, local caches, and unconfirmed assumptions must not become project facts.
 
 ## Migration
 

@@ -477,5 +477,45 @@
     "expectStatus": 0,
     "expectStdoutIncludes": ["NEXT_ACTION: RUN_PROJECT_ONBOARDING"],
     "howToFix": "workflow-next must keep routing newly generated projects to onboarding before feature implementation."
+  },
+  {
+    "name": "good context governance source",
+    "type": "golden",
+    "checker": "check-context-governance",
+    "script": "scripts/check-context-governance.mjs",
+    "args": ["."],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Context governance check passed."],
+    "howToFix": "The source repo context governance assets, examples, and bad-fixture checks must stay complete."
+  },
+  {
+    "name": "bad learning approved without evidence",
+    "type": "bad",
+    "checker": "check-context-governance",
+    "script": "scripts/check-context-governance.mjs",
+    "args": ["test-fixtures/bad/bad-learning-approved-without-evidence"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["approved learning candidate must include evidence"],
+    "howToFix": "Approved learning candidates must keep requiring evidence before they can become project context."
+  },
+  {
+    "name": "bad context correction missing evidence",
+    "type": "bad",
+    "checker": "check-context-governance",
+    "script": "scripts/check-context-governance.mjs",
+    "args": ["test-fixtures/bad/bad-context-correction-missing-evidence"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["New Evidence"],
+    "howToFix": "Approved context corrections must keep requiring new evidence."
+  },
+  {
+    "name": "bad git boundary secret",
+    "type": "bad",
+    "checker": "check-context-governance",
+    "script": "scripts/check-context-governance.mjs",
+    "args": ["test-fixtures/bad/bad-git-boundary-secret"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["secret-like content"],
+    "howToFix": "Git Boundary reports must keep rejecting obvious secret-like content."
   }
 ]

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.3.0`
+`1.4.0`
 
 ## Project Version File
 
@@ -29,6 +29,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - `ai-native migrate` is plan-only in 0.42.0: use `--dry-run` or `--write-plan <file>`; it does not apply changes to target projects.
 - `1.3.0` adds Guided Delivery Baseline assets: Outcome Baseline, Product Baseline, Claim Control, Assumption Register, product baseline checks, and claim control checks.
 - `1.3.0` keeps reports, review packets, goal cards, and subagent outputs from becoming approvals; simulated dogfood is not production evidence.
+- `1.4.0` adds Project Memory & Context Governance assets: Context Governance, Git Boundary, Learning Candidate, Context Correction Report, Git Boundary Report, and context governance checks.
+- `1.4.0` keeps project memory candidate-first: Codex may propose context updates, but humans confirm before source-of-truth changes.
 - `1.2.0` adds `ai-native baseline` / `node scripts/cli.mjs baseline <project>` as a read-only baseline recommendation entry after `start`.
 - `baseline` keeps `Can AI write now: No`; writes require `baseline-project --write-plan` and reviewed `--apply-plan`.
 - Generated projects include Environment Baseline assets, baseline recommendation folders, and artifact-level baseline enforcement checks.

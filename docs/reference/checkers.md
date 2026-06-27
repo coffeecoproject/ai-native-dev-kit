@@ -17,6 +17,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-baseline-enforcement.mjs` | Artifact-level baseline references in tasks, review packets, and review loops |
 | `check-product-baseline.mjs` | Guided delivery product boundary, approval limits, and installed 1.3 assets |
 | `check-claim-control.mjs` | Release/report wording, evidence claims, and assumption register boundaries |
+| `check-context-governance.mjs` | Learning candidates, context corrections, Git boundary reports, and source-of-truth boundaries |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
 | `check-industrial-baseline.mjs` | BL0/BL1/BL2 and selected industrial baseline readiness |
@@ -73,6 +74,7 @@ Product and claim checks:
 - `check-product-baseline.mjs` is source-strict for Dev Kit maintenance and target-safe for generated projects.
 - `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.
 - Assumption Register is required only when reports rely on inferred or unconfirmed facts.
+- `check-context-governance.mjs` is candidate/audit focused; it does not approve project facts or require learning candidates for every task.
 
 ## Suggested Sequences
 
@@ -89,6 +91,7 @@ node scripts/check-environment-baseline.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode ready
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 ```
 
 For L2/L3 task completion:
@@ -106,6 +109,7 @@ For dev-kit changes:
 node scripts/check-manifest.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-dev-kit.mjs
 git diff --check

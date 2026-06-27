@@ -135,10 +135,17 @@ Before non-trivial work, read:
 ## Product Baseline And Claim Control
 
 - Use `.ai-native/core/outcome-baseline.md`, `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when workflow behavior, release wording, public summaries, reports, or handoffs change.
-- Run `node scripts/check-product-baseline.mjs .` and `node scripts/check-claim-control.mjs .` when available.
+- Run `node scripts/check-product-baseline.mjs .`, `node scripts/check-claim-control.mjs .`, and `node scripts/check-context-governance.mjs .` when available.
 - Do not treat reports, Review Packets, Goal Cards, or subagent output as approval.
 - Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence.
 - Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
+
+## Project Memory And Context Governance
+
+- Use `.ai-native/core/context-governance.md` and `.ai-native/core/git-boundary.md` when observations may become project memory, context appears stale, or artifact Git boundary is unclear.
+- Codex may draft Learning Candidates, Context Correction Reports, and Git Boundary Reports.
+- Humans confirm before source-of-truth changes.
+- Model memory must not override Git-backed source of truth.
 
 ## Skill Governance
 

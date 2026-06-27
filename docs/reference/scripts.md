@@ -12,6 +12,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs product-baseline <project>` | Check guided delivery product boundary and approval limits | No |
 | `node scripts/cli.mjs claim-control <project>` | Check release/report wording against evidence boundaries | No |
+| `node scripts/cli.mjs context-governance <project>` | Check project memory, context correction, and Git boundary governance | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
 | `node scripts/cli.mjs update --target <project>` | Update workflow assets | Yes |
 | `node scripts/cli.mjs next <project>` | Read project state and report next safe action | No |
@@ -52,6 +53,8 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/check-product-baseline.mjs` checks the guided delivery product boundary: humans keep judgment and approval, reports are not approvals, simulated evidence is not production evidence, and industrial packs remain selected-only.
 
 `scripts/check-claim-control.mjs` checks README, release records, final reports, and handoffs for overclaims and missing assumption boundaries.
+
+`scripts/check-context-governance.mjs` checks Learning Candidates, Context Correction Reports, Git Boundary Reports, and source-of-truth boundaries.
 
 `scripts/workflow-next.mjs` reads project state and reports:
 
@@ -102,6 +105,7 @@ node scripts/check-environment-baseline.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode ready
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 node scripts/check-guided-adoption.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/check-industrial-baseline.mjs .
@@ -117,6 +121,7 @@ These are primarily for maintaining this repository:
 - `scripts/check-manifest.mjs`
 - `scripts/check-product-baseline.mjs`
 - `scripts/check-claim-control.mjs`
+- `scripts/check-context-governance.mjs`
 - `scripts/check-glossary-usage.mjs`
 - `scripts/score-output-quality.mjs`
 

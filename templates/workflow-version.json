@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.3.0",
+  "devKitVersion": "1.4.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -87,6 +87,20 @@
     ".ai-native/docs/product-baseline.md",
     ".ai-native/docs/claim-control.md",
     "scripts/check-product-baseline.mjs",
-    "scripts/check-claim-control.mjs"
+    "scripts/check-claim-control.mjs",
+    ".ai-native/core/context-governance.md",
+    ".ai-native/core/git-boundary.md",
+    ".ai-native/templates/learning-candidate.md",
+    ".ai-native/templates/context-correction-report.md",
+    ".ai-native/templates/git-boundary-report.md",
+    ".ai-native/prompts/context-governance-agent.md",
+    ".ai-native/checklists/context-governance-review.md",
+    ".ai-native/checklists/git-boundary-review.md",
+    ".ai-native/docs/project-memory.md",
+    ".ai-native/docs/git-boundary.md",
+    "scripts/check-context-governance.mjs",
+    "learning-candidates",
+    "context-corrections",
+    "git-boundary-reports"
   ]
 }

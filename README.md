@@ -80,6 +80,7 @@ node scripts/cli.mjs doctor ../my-project
 ```bash
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 ```
 
 保存过的接入建议可以检查：
@@ -108,6 +109,7 @@ node scripts/check-guided-adoption.mjs ../my-project
 - 不要把 Goal Card、Review Loop 或 subagent 输出当成人的风险批准。
 - 不要把模拟 dogfood 或生成项目 smoke 写成真实生产验证。
 - 不要把 AI 推断出来的环境、发布、回滚、监控信息当成事实。
+- 不要把 Codex 观察到的内容直接当成项目记忆；必须先做人确认。
 - 不要让 helper subagent 一直保持 `RUNNING`。
 
 ## 完整文档
@@ -124,6 +126,8 @@ node scripts/check-guided-adoption.mjs ../my-project
 - [Guided Delivery Baseline](docs/guided-delivery-baseline.md)
 - [Product Baseline](docs/product-baseline.md)
 - [Claim Control](docs/claim-control.md)
+- [Project Memory](docs/project-memory.md)
+- [Git Boundary](docs/git-boundary.md)
 - [Scripts Reference](docs/reference/scripts.md)
 - [Artifacts Reference](docs/reference/artifacts.md)
 - [Checkers Reference](docs/reference/checkers.md)
@@ -136,6 +140,7 @@ node scripts/check-guided-adoption.mjs ../my-project
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [FAQ](docs/faq.md)
+- [1.4 Release Record](releases/1.4.0/release-record.md)
 - [1.3 Release Record](releases/1.3.0/release-record.md)
 - [1.2 Release Record](releases/1.2.0/release-record.md)
 - [1.1 Release Record](releases/1.1.0/release-record.md)

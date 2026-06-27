@@ -262,9 +262,16 @@ Run these checks when available:
 ```bash
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
+node scripts/check-context-governance.mjs .
 ```
 
 Do not treat reports, Review Packets, Goal Cards, or subagent output as approval. Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence. Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
+
+## Project Memory And Context Governance
+
+Use `.ai-native/core/context-governance.md` and `.ai-native/core/git-boundary.md` when Codex observes reusable project context, finds stale context, or decides whether AI Native artifacts should enter Git.
+
+Codex may draft Learning Candidates, Context Correction Reports, and Git Boundary Reports. Humans confirm before project source of truth changes. Model memory must not override Git-backed source of truth.
 
 ## High-risk Boundaries
 

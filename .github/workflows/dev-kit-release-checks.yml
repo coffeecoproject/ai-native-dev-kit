@@ -35,6 +35,9 @@ jobs:
       - name: Claim control check
         run: node scripts/check-claim-control.mjs .
 
+      - name: Context governance check
+        run: node scripts/check-context-governance.mjs .
+
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs
 
@@ -60,4 +63,5 @@ jobs:
           node "$tmp/project/scripts/check-engineering-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-product-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-claim-control.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-context-governance.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-workflow-version.mjs" "$tmp/project"

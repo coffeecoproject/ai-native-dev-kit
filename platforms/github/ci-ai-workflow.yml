@@ -35,6 +35,8 @@ jobs:
         run: node scripts/check-product-baseline.mjs .
       - name: Check claim control
         run: node scripts/check-claim-control.mjs .
+      - name: Check context governance
+        run: node scripts/check-context-governance.mjs .
       - name: Check platform baseline
         run: node scripts/check-platform-baseline.mjs .
       - name: Check selected industrial packs
@@ -69,6 +71,8 @@ jobs:
         run: node --check scripts/check-product-baseline.mjs
       - name: Check claim control checker syntax
         run: node --check scripts/check-claim-control.mjs
+      - name: Check context governance checker syntax
+        run: node --check scripts/check-context-governance.mjs
       - name: Check baseline recommendation syntax
         run: node --check scripts/baseline-project.mjs
       - name: Check workflow artifact quality

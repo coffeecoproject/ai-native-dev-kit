@@ -193,6 +193,7 @@ function checkRequiredFiles() {
     "scripts/check-baseline-enforcement.mjs",
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
+    "scripts/check-context-governance.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -421,6 +422,7 @@ function checkVersionMetadata() {
     "scripts/check-baseline-enforcement.mjs",
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
+    "scripts/check-context-governance.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -464,10 +466,23 @@ function checkVersionMetadata() {
     ".ai-native/docs/guided-delivery-baseline.md",
     ".ai-native/docs/product-baseline.md",
     ".ai-native/docs/claim-control.md",
+    ".ai-native/docs/project-memory.md",
+    ".ai-native/docs/git-boundary.md",
     ".ai-native/core/outcome-baseline.md",
     ".ai-native/core/product-baseline.md",
     ".ai-native/core/claim-control.md",
     ".ai-native/core/assumption-register.md",
+    ".ai-native/core/context-governance.md",
+    ".ai-native/core/git-boundary.md",
+    ".ai-native/templates/learning-candidate.md",
+    ".ai-native/templates/context-correction-report.md",
+    ".ai-native/templates/git-boundary-report.md",
+    ".ai-native/prompts/context-governance-agent.md",
+    ".ai-native/checklists/context-governance-review.md",
+    ".ai-native/checklists/git-boundary-review.md",
+    "learning-candidates",
+    "context-corrections",
+    "git-boundary-reports",
     "adoption-recommendations",
     "baseline-recommendations",
     "baseline-gap-reports",
@@ -499,6 +514,7 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-manifest.mjs",
     "node scripts/check-product-baseline.mjs .",
     "node scripts/check-claim-control.mjs .",
+    "node scripts/check-context-governance.mjs .",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -512,6 +528,7 @@ function checkDevKitFirstPartyCi() {
     "check-engineering-baseline.mjs",
     "check-product-baseline.mjs",
     "check-claim-control.mjs",
+    "check-context-governance.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -529,6 +546,7 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-manifest.mjs",
     "node scripts/check-product-baseline.mjs .",
     "node scripts/check-claim-control.mjs .",
+    "node scripts/check-context-governance.mjs .",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -540,6 +558,7 @@ function checkDevKitFirstPartyCi() {
     "check-engineering-baseline.mjs",
     "check-product-baseline.mjs",
     "check-claim-control.mjs",
+    "check-context-governance.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -562,6 +581,8 @@ function checkDevKitFirstPartyCi() {
     "Product baseline",
     "Claim control",
     "Assumption Register",
+    "Project memory",
+    "Git Boundary",
   ]) {
     if (prTemplate.includes(marker)) pass(`dev-kit PR template includes ${marker}`);
     else fail(`dev-kit PR template missing ${marker}`);
@@ -937,6 +958,7 @@ function checkCliFrontDoor() {
     "baseline",
     "product-baseline",
     "claim-control",
+    "context-governance",
     "init",
     "update",
     "next",
@@ -979,6 +1001,13 @@ function checkCliFrontDoor() {
     pass("CLI claim-control delegates to claim control checker");
   } else {
     fail(`CLI claim-control failed: ${claimControl.stderr || claimControl.stdout}`);
+  }
+
+  const contextGovernance = runNode(["scripts/cli.mjs", "context-governance", "."]);
+  if (contextGovernance.status === 0 && contextGovernance.stdout.includes("Context governance check passed")) {
+    pass("CLI context-governance delegates to context governance checker");
+  } else {
+    fail(`CLI context-governance failed: ${contextGovernance.stderr || contextGovernance.stdout}`);
   }
 
   const start = runNode(["scripts/cli.mjs", "start", "."]);
@@ -1701,6 +1730,78 @@ function checkGuidedDeliveryBaselineProtocol() {
   }
 }
 
+function checkProjectMemoryContextGovernanceProtocol() {
+  const required = [
+    "docs/project-memory-context-governance-1.4-plan.md",
+    "core/context-governance.md",
+    "core/git-boundary.md",
+    "templates/learning-candidate.md",
+    "templates/context-correction-report.md",
+    "templates/git-boundary-report.md",
+    "checklists/context-governance-review.md",
+    "checklists/git-boundary-review.md",
+    "prompts/context-governance-agent.md",
+    "docs/project-memory.md",
+    "docs/git-boundary.md",
+    "learning-candidates/.gitkeep",
+    "context-corrections/.gitkeep",
+    "git-boundary-reports/.gitkeep",
+    "scripts/check-context-governance.mjs",
+    "examples/1.4-project-memory-context/README.md",
+    "examples/1.4-project-memory-context/learning-candidates/001-status-source.md",
+    "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
+    "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
+    "releases/1.4.0/release-record.md",
+    "releases/1.4.0/known-limitations.md",
+    "releases/1.4.0/self-check-report.md",
+    "tasks/140-project-memory-context-governance.md",
+    "review-loop-reports/140-project-memory-context-governance.md",
+    "final-reports/140-project-memory-context-governance.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`project memory context governance asset exists ${file}`);
+    else fail(`project memory context governance asset missing ${file}`);
+  }
+
+  const contextGovernance = read("core/context-governance.md");
+  for (const marker of [
+    "Codex drafts. Humans confirm.",
+    "Context Authority Order",
+    "Only `CONFIRMED` context can become a project rule",
+    "Model memory must not override Git-backed context",
+  ]) {
+    if (contextGovernance.includes(marker)) pass(`context governance includes ${marker}`);
+    else fail(`context governance missing ${marker}`);
+  }
+
+  const gitBoundary = read("core/git-boundary.md");
+  for (const marker of ["Should Enter Git", "Conditional Git Artifacts", "Default Local Only", "Never Commit", "Git Boundary Report"]) {
+    if (gitBoundary.includes(marker)) pass(`git boundary includes ${marker}`);
+    else fail(`git boundary missing ${marker}`);
+  }
+
+  const contextCheck = runNode(["scripts/check-context-governance.mjs", "."]);
+  if (contextCheck.status === 0 && contextCheck.stdout.includes("Context governance check passed")) {
+    pass("context governance checker passes source repo");
+  } else {
+    fail(`context governance checker failed: ${contextCheck.stderr || contextCheck.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["bad approved learning without evidence", ["scripts/check-context-governance.mjs", "test-fixtures/bad/bad-learning-approved-without-evidence"], "approved learning candidate must include evidence"],
+    ["bad context correction missing evidence", ["scripts/check-context-governance.mjs", "test-fixtures/bad/bad-context-correction-missing-evidence"], "New Evidence"],
+    ["bad git boundary secret", ["scripts/check-context-governance.mjs", "test-fixtures/bad/bad-git-boundary-secret"], "secret-like content"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`context governance rejects ${name}`);
+    } else {
+      fail(`context governance must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -1913,7 +2014,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Assumptions", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -1943,7 +2044,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -1964,6 +2065,7 @@ function checkPlatformAdapters() {
     "check-baseline-enforcement.mjs",
     "check-product-baseline.mjs",
     "check-claim-control.mjs",
+    "check-context-governance.mjs",
     "check-platform-baseline.mjs",
     "resolve-platform-baseline.mjs",
     "check-industrial-pack.mjs",
@@ -2009,6 +2111,7 @@ function checkScriptSyntax() {
     "scripts/check-baseline-enforcement.mjs",
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
+    "scripts/check-context-governance.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -2065,6 +2168,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs baseline",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-claim-control.mjs",
+    "node scripts/check-context-governance.mjs",
     "node scripts/cli.mjs next",
     "node scripts/cli.mjs init",
     "node scripts/cli.mjs update",
@@ -2080,6 +2184,8 @@ function checkReadmePointers() {
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
     "docs/claim-control.md",
+    "docs/project-memory.md",
+    "docs/git-boundary.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -2088,6 +2194,7 @@ function checkReadmePointers() {
     "docs/migrations/0.33-to-1.0.md",
     "docs/troubleshooting.md",
     "docs/faq.md",
+    "releases/1.4.0/release-record.md",
     "releases/1.3.0/release-record.md",
     "releases/1.2.0/release-record.md",
     "releases/1.1.0/release-record.md",
@@ -2103,12 +2210,15 @@ function checkReadmePointers() {
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/check-product-baseline.mjs",
+    "node scripts/check-context-governance.mjs",
     "重要边界",
     "docs/operator-manual.md",
     "docs/first-hour.md",
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
     "docs/claim-control.md",
+    "docs/project-memory.md",
+    "docs/git-boundary.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -2125,6 +2235,8 @@ function checkReadmePointers() {
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
     "docs/claim-control.md",
+    "docs/project-memory.md",
+    "docs/git-boundary.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -2609,6 +2721,7 @@ function checkGeneratedProjectE2E() {
     "scripts/check-engineering-baseline.mjs",
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
+    "scripts/check-context-governance.mjs",
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
@@ -2622,18 +2735,27 @@ function checkGeneratedProjectE2E() {
     ".ai-native/docs/guided-delivery-baseline.md",
     ".ai-native/docs/product-baseline.md",
     ".ai-native/docs/claim-control.md",
+    ".ai-native/docs/project-memory.md",
+    ".ai-native/docs/git-boundary.md",
     ".ai-native/core/engineering-baseline.md",
     ".ai-native/core/outcome-baseline.md",
     ".ai-native/core/product-baseline.md",
     ".ai-native/core/claim-control.md",
     ".ai-native/core/assumption-register.md",
+    ".ai-native/core/context-governance.md",
+    ".ai-native/core/git-boundary.md",
     ".ai-native/templates/engineering-baseline.md",
     ".ai-native/templates/product-baseline-review.md",
     ".ai-native/templates/claim-control-report.md",
     ".ai-native/templates/assumption-register.md",
+    ".ai-native/templates/learning-candidate.md",
+    ".ai-native/templates/context-correction-report.md",
+    ".ai-native/templates/git-boundary-report.md",
     ".ai-native/checklists/engineering-baseline-review.md",
     ".ai-native/checklists/product-baseline-review.md",
     ".ai-native/checklists/claim-control-review.md",
+    ".ai-native/checklists/context-governance-review.md",
+    ".ai-native/checklists/git-boundary-review.md",
     ".ai-native/core/next-step-boundary.md",
     ".ai-native/core/goal-mode.md",
     ".ai-native/core/subagent-orchestration.md",
@@ -2648,6 +2770,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/prompts/engineering-baseline-agent.md",
     ".ai-native/prompts/product-baseline-agent.md",
     ".ai-native/prompts/claim-control-agent.md",
+    ".ai-native/prompts/context-governance-agent.md",
     ".ai-native/core/output-protocol.md",
     ".ai-native/core/glossary.md",
     ".ai-native/prompts/reporter-agent.md",
@@ -2663,6 +2786,9 @@ function checkGeneratedProjectE2E() {
     "customer-handoffs/.gitkeep",
     "follow-up-proposals/.gitkeep",
     "final-reports/.gitkeep",
+    "learning-candidates/.gitkeep",
+    "context-corrections/.gitkeep",
+    "git-boundary-reports/.gitkeep",
     "docs/verification-matrix.md",
     "docs/engineering-baseline.md",
   ]) {
@@ -2722,6 +2848,16 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project claim control check");
+
+  const contextGovernanceCheck = runNode([
+    path.join(target, "scripts", "check-context-governance.mjs"),
+    target,
+  ]);
+  if (contextGovernanceCheck.status !== 0 || !contextGovernanceCheck.stdout.includes("Context governance check passed")) {
+    fail(`generated project context governance check failed: ${contextGovernanceCheck.stderr || contextGovernanceCheck.stdout}`);
+    return;
+  }
+  pass("generated project context governance check");
 
   if (fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
     fail("generated project default bootstrap should not install concrete web-app industrial pack");
@@ -4332,6 +4468,7 @@ checkGoalModeProtocol();
 checkSubagentOrchestrationProtocol();
 checkOutputExperienceProtocol();
 checkGuidedDeliveryBaselineProtocol();
+checkProjectMemoryContextGovernanceProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();
