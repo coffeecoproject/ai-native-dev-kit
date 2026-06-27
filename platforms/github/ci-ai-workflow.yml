@@ -17,12 +17,24 @@ jobs:
         run: node scripts/check-ai-workflow.mjs . --mode core
       - name: Check AI workflow next action
         run: node scripts/workflow-next.mjs .
+      - name: Check guided adoption entry
+        run: node scripts/start-project.mjs .
+      - name: Check saved guided adoption reports
+        run: node scripts/check-guided-adoption.mjs .
       - name: Check AI workflow version file
         run: node scripts/check-workflow-version.mjs .
       - name: Check project onboarding baseline
         run: node scripts/check-project-onboarding.mjs .
       - name: Check engineering baseline
         run: node scripts/check-engineering-baseline.mjs .
+      - name: Check environment baseline
+        run: node scripts/check-environment-baseline.mjs .
+      - name: Check baseline enforcement
+        run: node scripts/check-baseline-enforcement.mjs . --mode ready
+      - name: Check product baseline
+        run: node scripts/check-product-baseline.mjs .
+      - name: Check claim control
+        run: node scripts/check-claim-control.mjs .
       - name: Check platform baseline
         run: node scripts/check-platform-baseline.mjs .
       - name: Check selected industrial packs
@@ -43,8 +55,22 @@ jobs:
         run: node --check scripts/check-industrial-baseline.mjs
       - name: Check workflow next syntax
         run: node --check scripts/workflow-next.mjs
+      - name: Check guided adoption entry syntax
+        run: node --check scripts/start-project.mjs
+      - name: Check guided adoption report checker syntax
+        run: node --check scripts/check-guided-adoption.mjs
       - name: Check engineering baseline checker syntax
         run: node --check scripts/check-engineering-baseline.mjs
+      - name: Check environment baseline checker syntax
+        run: node --check scripts/check-environment-baseline.mjs
+      - name: Check baseline enforcement checker syntax
+        run: node --check scripts/check-baseline-enforcement.mjs
+      - name: Check product baseline checker syntax
+        run: node --check scripts/check-product-baseline.mjs
+      - name: Check claim control checker syntax
+        run: node --check scripts/check-claim-control.mjs
+      - name: Check baseline recommendation syntax
+        run: node --check scripts/baseline-project.mjs
       - name: Check workflow artifact quality
         run: node scripts/check-workflow-artifacts.mjs . --mode ready --changed-only --base origin/${{ github.base_ref }}
       - name: Check review loop semantics

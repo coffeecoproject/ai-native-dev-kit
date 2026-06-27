@@ -32,7 +32,11 @@ For bootstrap entry:
 - execution bootstrap intent may write workflow and governance assets only; do not modify business code during bootstrap
 - if the user asks to look, review, evaluate, discuss, or not execute yet, treat it as discussion-only intent and do not write files
 - use `.ai-native/prompts/bootstrap-agent.md` when present
-- run `node scripts/workflow-next.mjs .` and follow `NEXT_ACTION`
+- run `node scripts/start-project.mjs .` first for a read-only adoption recommendation
+- after adoption classification, run `node scripts/cli.mjs baseline .` when engineering or environment rules are unclear
+- treat `baseline` as read-only by default; it must report `Can AI write now: No`
+- write baseline docs only through reviewed `baseline-project --write-plan` and `--apply-plan`
+- use `node scripts/workflow-next.mjs .` as the lower-level state detector and follow `NEXT_ACTION`
 - stop for human approval before applying migration reports
 - if `workflow-next` reports `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing tasks until the human confirms how to handle existing changes
 
@@ -53,6 +57,14 @@ For engineering baseline:
 - Claude may follow existing local patterns for low-risk local changes
 - Claude must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval
 - if the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns
+
+For environment baseline:
+
+- before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.ai-native/core/environment-baseline.md` when present
+- run `node scripts/check-environment-baseline.mjs .` for advisory environment baseline status
+- run `node scripts/check-baseline-enforcement.mjs . --mode ready` when task cards exist
+- Claude may draft missing facts as `PENDING_CONFIRMATION` and irrelevant items as `NOT_APPLICABLE`
+- Claude must not create or edit `.env`, record secret values, invent production/release/rollback/monitoring facts, or change CI/CD, deployment, or production config without explicit approval
 
 For platform baseline:
 
@@ -83,11 +95,14 @@ For workflow artifacts:
 - run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist
 - run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when next-step suggestions are recorded
 - run `node scripts/check-workflow-artifacts.mjs . --mode ready` before implementation when workflow artifacts exist
+- run `node scripts/check-baseline-enforcement.mjs . --mode ready --task <task-card>` before implementation when baselines are touched
+- run `node scripts/check-baseline-enforcement.mjs . --mode implementation --task <task-card>` before closure for BL1 implementation work, BL2 work, or L3 tasks
 - run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` for high-risk implementation after human approval is recorded
 - if any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation
 - fix placeholder or missing artifact content before coding
 - AUTO_FIX is limited to deterministic, low-risk findings inside approved task scope, for at most 2 rounds
 - route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human
+- route missing engineering or environment baseline decisions to a Decision Brief or Human Decisions Needed instead of silently choosing
 
 For Goal Mode:
 
@@ -121,6 +136,14 @@ For output experience:
 - start human-facing output with a human summary, current status, decision needed, next safe step, what AI can do, and what AI must not do
 - keep technical fields, paths, commands, and audit notes after the plain-language status
 - use `.ai-native/core/glossary.md` when internal workflow terms need translation
+
+For product baseline and claim control:
+
+- use `.ai-native/core/outcome-baseline.md`, `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when workflow behavior, release wording, public summaries, reports, or handoffs change
+- run `node scripts/check-product-baseline.mjs .` and `node scripts/check-claim-control.mjs .` when available
+- do not treat reports, Review Packets, Goal Cards, or subagent output as approval
+- do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence
+- record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk
 
 For review:
 

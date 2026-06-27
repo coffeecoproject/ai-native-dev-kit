@@ -7,9 +7,16 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | Checker | Purpose |
 |---|---|
 | `check-ai-workflow.mjs` | Core or full workflow asset check |
+| `start-project.mjs` | Read-only guided adoption recommendation |
+| `baseline-project.mjs` | Read-only engineering/environment baseline recommendation and plan-first baseline apply |
+| `check-guided-adoption.mjs` | Saved adoption recommendation report check |
 | `workflow-next.mjs` | Project-state and next-action detector |
 | `check-project-onboarding.mjs` | O0/O1/O2 onboarding readiness |
 | `check-engineering-baseline.mjs` | Engineering Baseline completeness and pending decisions |
+| `check-environment-baseline.mjs` | Environment Baseline structure, pending decisions, and obvious secret misuse |
+| `check-baseline-enforcement.mjs` | Artifact-level baseline references in tasks, review packets, and review loops |
+| `check-product-baseline.mjs` | Guided delivery product boundary, approval limits, and installed 1.3 assets |
+| `check-claim-control.mjs` | Release/report wording, evidence claims, and assumption register boundaries |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
 | `check-industrial-baseline.mjs` | BL0/BL1/BL2 and selected industrial baseline readiness |
@@ -55,21 +62,40 @@ Industrial pack checks:
 - `--selected-only`: only check selected packs for a project
 - `--bl2-only`: focus on BL2 industrial baseline readiness
 
+Baseline enforcement checks:
+
+- `check-environment-baseline.mjs` defaults to advisory mode; use `--strict` only when pending environment decisions should block work.
+- `check-baseline-enforcement.mjs --mode ready` checks declarations before implementation.
+- `check-baseline-enforcement.mjs --mode implementation` is stricter for BL1/BL2 or L3 task closure.
+
+Product and claim checks:
+
+- `check-product-baseline.mjs` is source-strict for Dev Kit maintenance and target-safe for generated projects.
+- `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.
+- Assumption Register is required only when reports rely on inferred or unconfirmed facts.
+
 ## Suggested Sequences
 
 For a normal target project:
 
 ```bash
 node scripts/workflow-next.mjs .
+node scripts/start-project.mjs .
+node scripts/check-guided-adoption.mjs .
 node scripts/check-ai-workflow.mjs . --mode core
 node scripts/check-project-onboarding.mjs .
 node scripts/check-engineering-baseline.mjs .
+node scripts/check-environment-baseline.mjs .
+node scripts/check-baseline-enforcement.mjs . --mode ready
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
 ```
 
 For L2/L3 task completion:
 
 ```bash
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/<task>.md
+node scripts/check-baseline-enforcement.mjs . --mode implementation --task tasks/<task>.md
 node scripts/check-review-loop.mjs . --task tasks/<task>.md
 node scripts/check-next-step-boundary.mjs . --task tasks/<task>.md
 ```
@@ -78,6 +104,8 @@ For dev-kit changes:
 
 ```bash
 node scripts/check-manifest.mjs .
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-dev-kit.mjs
 git diff --check

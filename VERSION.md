@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.0.0`
+Current version: `1.3.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,32 @@ Current version: `1.0.0`
 
 ## Current Release
 
-`1.0.0`
+`1.3.0`
 
 Includes:
 
+- Guided Delivery Baseline phase `1.3.0`: product outcome, product boundary, claim control, and assumption visibility
+- Added `core/outcome-baseline.md`, `core/product-baseline.md`, `core/claim-control.md`, and `core/assumption-register.md`
+- Added `scripts/check-product-baseline.mjs` and `scripts/check-claim-control.mjs`
+- Added product/claim templates, checklists, prompts, examples, bad fixtures, and `releases/1.3.0/`
+- Final Report, Review Packet, Review Loop Report, Human Status Report, and Customer Handoff templates now include Assumption Register sections for inferred or unconfirmed facts
+- Release evidence must distinguish allowed claims, forbidden claims, evidence status, known limitations, and verification
+- `1.3.0` does not implement Safe Launch / Delivery Readiness and does not claim production validation
+- Engineering and Environment Baseline Guided Setup phase `1.2.0`: `node scripts/cli.mjs baseline <project>` as the second entry after `start`
+- `baseline` produces a read-only baseline recommendation with `Can AI write now: No`
+- Added `scripts/baseline-project.mjs`, `scripts/check-environment-baseline.mjs`, `scripts/check-baseline-enforcement.mjs`, `core/environment-baseline.md`, `core/baseline-enforcement.md`, `templates/environment-baseline.md`, baseline recommendation/gap templates, and baseline setup docs
+- Baseline writes now use `write-plan -> human review -> apply-plan`; apply scope is limited to `docs/engineering-baseline.md`, `docs/environment-baseline.md`, `baseline-recommendations/`, and `baseline-gap-reports/`
+- Environment Baseline uses `CONFIRMED`, `PENDING_CONFIRMATION`, and `NOT_APPLICABLE`; secret values, `.env` writes, CI/CD/deploy/production config edits, AGENTS/PR template edits, and industrial-pack writes are forbidden through baseline apply
+- Task Card, Review Packet, and Review Loop templates now include engineering/environment baseline reference fields
+- Added platform-specific environment topic lists under profiles without duplicating full environment templates per platform
+- Added 1.2 examples, bad fixtures for secret misuse and missing baseline refs, and `releases/1.2.0/` simulated baseline guided setup evidence
+- BL0/BL1/BL2 behavior stays proportional; BL2 and industrial packs remain opt-in only
+- Guided Adoption Entry phase `1.1.0`: `node scripts/cli.mjs start <project>` as the first-hour project adoption entry
+- `start` runs read-only project inspection, classifies the target, recommends the adoption path, lists human decisions, and records that no target files were written
+- Added `scripts/start-project.mjs`, `scripts/check-guided-adoption.mjs`, `templates/adoption-recommendation-report.md`, `adoption-recommendations/`, `docs/first-hour.md`, `examples/1.1-guided-adoption/`, and `releases/1.1.0/`
+- Generated projects now receive the guided adoption entry scripts, saved recommendation directory, local first-hour doc, and recommendation template
+- BL2 and industrial packs remain opt-in only and require explicit human confirmation; no platform baseline or industrial pack was deepened in `1.1.0`
+- No target project writes are performed by `start`; writes still go through dry-run, write-plan, and apply-plan after human review
 - Productization Hardcut phase `1.0.0`: release evidence and adoption entry criteria
 - Added `releases/1.0.0/` release record, self-check report, generated-project smoke, update smoke, migration matrix, known limitations, and adoption evidence
 - Added `templates/adoption-evidence-report.md` and `templates/productization-trial-report.md`

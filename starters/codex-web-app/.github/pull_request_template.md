@@ -19,6 +19,10 @@
 - [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed
 - [ ] Project onboarding is confirmed or not applicable for this change
 - [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state
+- [ ] Environment baseline was checked when this change touched build, CI, environment variables, deployment, production config, release, rollback, secrets, logs, monitoring, or alerts
+- [ ] Product baseline was checked when this change touched workflow behavior, release wording, public summaries, or generated-project behavior
+- [ ] Claim control was checked when this change touched README, release records, final reports, handoffs, or public-facing summaries
+- [ ] Assumptions are recorded when the change relies on inferred or unconfirmed facts
 - [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step
 - [ ] Subagent Run Plan is linked or marked not applicable when helper agents were used
 - [ ] Request / preflight / spec / eval / task links are included or marked not applicable

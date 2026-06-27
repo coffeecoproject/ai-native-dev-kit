@@ -189,6 +189,10 @@ function checkRequiredFiles() {
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
     "scripts/check-engineering-baseline.mjs",
+    "scripts/check-environment-baseline.mjs",
+    "scripts/check-baseline-enforcement.mjs",
+    "scripts/check-product-baseline.mjs",
+    "scripts/check-claim-control.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -198,6 +202,7 @@ function checkRequiredFiles() {
     "scripts/check-review-loop.mjs",
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
+    "scripts/check-guided-adoption.mjs",
     "scripts/check-subagent-orchestration.mjs",
     "scripts/cli.mjs",
     "scripts/lib/manifest.mjs",
@@ -412,6 +417,10 @@ function checkVersionMetadata() {
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
     "scripts/check-engineering-baseline.mjs",
+    "scripts/check-environment-baseline.mjs",
+    "scripts/check-baseline-enforcement.mjs",
+    "scripts/check-product-baseline.mjs",
+    "scripts/check-claim-control.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -424,6 +433,7 @@ function checkVersionMetadata() {
     "scripts/check-subagent-orchestration.mjs",
     "scripts/lib/manifest.mjs",
     "scripts/new-workflow-item.mjs",
+    "scripts/start-project.mjs",
     "scripts/workflow-next.mjs",
     "docs/project-onboarding.md",
     "docs/project-profile.md",
@@ -448,7 +458,19 @@ function checkVersionMetadata() {
     ".ai-native/industrial-packs",
     ".ai-native/dev-kit-manifest.json",
     ".ai-native/docs/artifact-decision-tree.md",
+    ".ai-native/docs/first-hour.md",
     ".ai-native/docs/goal-subagent-usage.md",
+    ".ai-native/docs/baseline-setup.md",
+    ".ai-native/docs/guided-delivery-baseline.md",
+    ".ai-native/docs/product-baseline.md",
+    ".ai-native/docs/claim-control.md",
+    ".ai-native/core/outcome-baseline.md",
+    ".ai-native/core/product-baseline.md",
+    ".ai-native/core/claim-control.md",
+    ".ai-native/core/assumption-register.md",
+    "adoption-recommendations",
+    "baseline-recommendations",
+    "baseline-gap-reports",
     ".github/pull_request_template.md",
     ".github/workflows/ai-workflow-checks.yml",
   ]) {
@@ -475,6 +497,8 @@ function checkDevKitFirstPartyCi() {
     "node-version: 22",
     "node scripts/check-dev-kit.mjs",
     "node scripts/check-manifest.mjs",
+    "node scripts/check-product-baseline.mjs .",
+    "node scripts/check-claim-control.mjs .",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -482,8 +506,12 @@ function checkDevKitFirstPartyCi() {
     "node scripts/init-project.mjs --starter generic-project",
     "check-ai-workflow.mjs",
     "workflow-next.mjs",
+    "start-project.mjs",
+    "check-guided-adoption.mjs",
     "check-project-onboarding.mjs",
     "check-engineering-baseline.mjs",
+    "check-product-baseline.mjs",
+    "check-claim-control.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -499,6 +527,8 @@ function checkDevKitFirstPartyCi() {
     "node-version: 22",
     "node scripts/check-dev-kit.mjs",
     "node scripts/check-manifest.mjs",
+    "node scripts/check-product-baseline.mjs .",
+    "node scripts/check-claim-control.mjs .",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -508,6 +538,8 @@ function checkDevKitFirstPartyCi() {
     "workflow-next.mjs",
     "check-project-onboarding.mjs",
     "check-engineering-baseline.mjs",
+    "check-product-baseline.mjs",
+    "check-claim-control.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -527,6 +559,9 @@ function checkDevKitFirstPartyCi() {
     "License / Commercial Boundary",
     "Risk And Approval",
     "Next-Step Boundary",
+    "Product baseline",
+    "Claim control",
+    "Assumption Register",
   ]) {
     if (prTemplate.includes(marker)) pass(`dev-kit PR template includes ${marker}`);
     else fail(`dev-kit PR template missing ${marker}`);
@@ -766,6 +801,10 @@ function checkManifestProtocol() {
     "scripts/lib/markdown.mjs",
     "scripts/lib/project-signals.mjs",
     "scripts/lib/manifest.mjs",
+    "scripts/start-project.mjs",
+    "scripts/check-guided-adoption.mjs",
+    ".ai-native/docs/first-hour.md",
+    "adoption-recommendations",
   ]) {
     if (manifest.groups.targetCore.includes(marker) && manifest.groups.targetFull.includes(marker)) {
       pass(`manifest target required paths include ${marker}`);
@@ -894,6 +933,10 @@ function checkCliFrontDoor() {
     "AI Native Dev Kit CLI",
     currentVersion(),
     "Manifest: dev-kit-manifest.json",
+    "start",
+    "baseline",
+    "product-baseline",
+    "claim-control",
     "init",
     "update",
     "next",
@@ -922,6 +965,64 @@ function checkCliFrontDoor() {
     pass("CLI next delegates to workflow-next");
   } else {
     fail(`CLI next failed or hid workflow-next output: ${next.stderr || next.stdout}`);
+  }
+
+  const productBaseline = runNode(["scripts/cli.mjs", "product-baseline", "."]);
+  if (productBaseline.status === 0 && productBaseline.stdout.includes("Product baseline check passed")) {
+    pass("CLI product-baseline delegates to product baseline checker");
+  } else {
+    fail(`CLI product-baseline failed: ${productBaseline.stderr || productBaseline.stdout}`);
+  }
+
+  const claimControl = runNode(["scripts/cli.mjs", "claim-control", "."]);
+  if (claimControl.status === 0 && claimControl.stdout.includes("Claim control check passed")) {
+    pass("CLI claim-control delegates to claim control checker");
+  } else {
+    fail(`CLI claim-control failed: ${claimControl.stderr || claimControl.stdout}`);
+  }
+
+  const start = runNode(["scripts/cli.mjs", "start", "."]);
+  if (start.status === 0
+    && start.stdout.includes("# Guided Adoption Recommendation")
+    && start.stdout.includes("Can AI write now | No")
+    && start.stdout.includes("start is read-only by default")
+    && start.stdout.includes("target files written by start | No")) {
+    pass("CLI start prints read-only guided adoption recommendation");
+  } else {
+    fail(`CLI start failed or hid guided adoption recommendation: ${start.stderr || start.stdout}`);
+  }
+
+  const startJson = runNode(["scripts/cli.mjs", "start", ".", "--json"]);
+  try {
+    const parsedStart = JSON.parse(startJson.stdout);
+    if (startJson.status === 0
+      && parsedStart.startIsReadOnlyByDefault === true
+      && parsedStart.classification?.canAiWriteNow === "No"
+      && parsedStart.reportType === "ADOPTION_RECOMMENDATION") {
+      pass("CLI start --json returns structured read-only recommendation");
+    } else {
+      fail(`CLI start --json missing read-only structure: ${startJson.stderr || startJson.stdout}`);
+    }
+  } catch (error) {
+    fail(`CLI start --json returned invalid JSON: ${error.message}`);
+  }
+
+  const startTempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-start-"));
+  try {
+    const newTarget = path.join(startTempRoot, "new-project");
+    fs.mkdirSync(newTarget, { recursive: true });
+    const startNew = runNode(["scripts/cli.mjs", "start", newTarget]);
+    const targetEntries = fs.readdirSync(newTarget);
+    if (startNew.status === 0
+      && startNew.stdout.includes("Project type | NEW_PROJECT")
+      && startNew.stdout.includes("Can AI write now | No")
+      && targetEntries.length === 0) {
+      pass("CLI start classifies empty target without mutating it");
+    } else {
+      fail(`CLI start new-project smoke failed or mutated target: ${startNew.stderr || startNew.stdout}`);
+    }
+  } finally {
+    fs.rmSync(startTempRoot, { recursive: true, force: true });
   }
 
   const fixtures = runNode(["scripts/cli.mjs", "fixtures"]);
@@ -1104,6 +1205,63 @@ function checkCorePurity() {
   }
 
   if (!failed) pass("core/default assets are business-neutral by banned-term scan");
+}
+
+function checkGuidedAdoptionEntry() {
+  const requiredFiles = [
+    "scripts/start-project.mjs",
+    "scripts/check-guided-adoption.mjs",
+    "templates/adoption-recommendation-report.md",
+    "docs/first-hour.md",
+    "adoption-recommendations/.gitkeep",
+    "examples/1.1-guided-adoption/README.md",
+    "examples/1.1-guided-adoption/new-project/adoption-recommendations/001-guided-start.md",
+    "examples/1.1-guided-adoption/existing-light-project/adoption-recommendations/001-guided-start.md",
+    "examples/1.1-guided-adoption/governed-readonly/adoption-recommendations/001-guided-start.md",
+    "releases/1.1.0/release-record.md",
+    "releases/1.1.0/start-smoke.md",
+    "releases/1.1.0/guided-adoption-example.md",
+    "releases/1.1.0/known-limitations.md",
+    "releases/1.1.0/self-check-report.md",
+  ];
+
+  for (const file of requiredFiles) {
+    if (exists(file)) pass(`guided adoption asset exists ${file}`);
+    else fail(`guided adoption asset missing ${file}`);
+  }
+
+  const template = read("templates/adoption-recommendation-report.md");
+  for (const marker of [
+    "# Guided Adoption Recommendation",
+    "Can AI write now | No",
+    "start is read-only by default",
+    "target files written by start | No",
+    "explicit human confirmation",
+    "Do not install all industrial packs by default",
+  ]) {
+    if (template.includes(marker)) pass(`guided adoption template includes ${marker}`);
+    else fail(`guided adoption template missing ${marker}`);
+  }
+
+  for (const example of [
+    "examples/1.1-guided-adoption/new-project",
+    "examples/1.1-guided-adoption/existing-light-project",
+    "examples/1.1-guided-adoption/governed-readonly",
+  ]) {
+    const result = runNode(["scripts/check-guided-adoption.mjs", example]);
+    if (result.status === 0) {
+      pass(`guided adoption example passes ${example}`);
+    } else {
+      fail(`guided adoption example failed ${example}: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  const guidedHelp = runNode(["scripts/cli.mjs", "--dry-run", "start", "."]);
+  if (guidedHelp.status === 0 && guidedHelp.stdout.includes("node scripts/start-project.mjs .")) {
+    pass("CLI start dry-run maps to start-project");
+  } else {
+    fail(`CLI start dry-run mapping failed: ${guidedHelp.stderr || guidedHelp.stdout}`);
+  }
 }
 
 function checkReviewLoopProtocol() {
@@ -1441,6 +1599,108 @@ function checkOutputExperienceProtocol() {
   }
 }
 
+function checkGuidedDeliveryBaselineProtocol() {
+  const required = [
+    "docs/guided-delivery-baseline-1.3-plan.md",
+    "core/outcome-baseline.md",
+    "core/product-baseline.md",
+    "core/claim-control.md",
+    "core/assumption-register.md",
+    "templates/product-baseline-review.md",
+    "templates/claim-control-report.md",
+    "templates/assumption-register.md",
+    "checklists/product-baseline-review.md",
+    "checklists/claim-control-review.md",
+    "prompts/product-baseline-agent.md",
+    "prompts/claim-control-agent.md",
+    "docs/guided-delivery-baseline.md",
+    "docs/product-baseline.md",
+    "docs/claim-control.md",
+    "scripts/check-product-baseline.mjs",
+    "scripts/check-claim-control.mjs",
+    "examples/1.3-guided-delivery-baseline/README.md",
+    "releases/1.3.0/release-record.md",
+    "releases/1.3.0/known-limitations.md",
+    "releases/1.3.0/self-check-report.md",
+    "tasks/130-guided-delivery-baseline.md",
+    "review-loop-reports/130-guided-delivery-baseline.md",
+    "final-reports/130-guided-delivery-baseline.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`guided delivery baseline asset exists ${file}`);
+    else fail(`guided delivery baseline asset missing ${file}`);
+  }
+
+  const productBaseline = read("core/product-baseline.md");
+  for (const marker of [
+    "Human decides",
+    "Reports are not approvals",
+    "Simulated evidence is not production evidence",
+    "Industrial packs are selected-only",
+    "Allowed Claims",
+    "Forbidden Claims",
+    "Evidence Status",
+    "Known Limitations",
+  ]) {
+    if (productBaseline.includes(marker)) pass(`product baseline includes ${marker}`);
+    else fail(`product baseline missing ${marker}`);
+  }
+
+  const claimControl = read("core/claim-control.md");
+  for (const marker of ["Claims must match evidence", "Forbidden Claims", "Required Release Sections", "Required Report Boundary"]) {
+    if (claimControl.includes(marker)) pass(`claim control includes ${marker}`);
+    else fail(`claim control missing ${marker}`);
+  }
+
+  const assumptionRegister = read("core/assumption-register.md");
+  for (const marker of ["must not become", "PENDING_CONFIRMATION", "Needs human confirmation"]) {
+    if (assumptionRegister.includes(marker)) pass(`assumption register includes ${marker}`);
+    else fail(`assumption register missing ${marker}`);
+  }
+
+  const productCheck = runNode(["scripts/check-product-baseline.mjs", "."]);
+  if (productCheck.status === 0 && productCheck.stdout.includes("Product baseline check passed")) {
+    pass("product baseline checker passes source repo");
+  } else {
+    fail(`product baseline checker failed: ${productCheck.stderr || productCheck.stdout}`);
+  }
+
+  const claimCheck = runNode(["scripts/check-claim-control.mjs", "."]);
+  if (claimCheck.status === 0 && claimCheck.stdout.includes("Claim control check passed")) {
+    pass("claim control checker passes source repo");
+  } else {
+    fail(`claim control checker failed: ${claimCheck.stderr || claimCheck.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["bad overclaimed release", ["scripts/check-claim-control.mjs", "test-fixtures/bad/bad-overclaimed-release"], "forbidden claim"],
+    ["bad report as approval", ["scripts/check-claim-control.mjs", "test-fixtures/bad/bad-report-as-approval", "--file", "test-fixtures/bad/bad-report-as-approval/final-reports/001-release.md"], "forbidden claim"],
+    ["bad unmarked assumption", ["scripts/check-claim-control.mjs", "test-fixtures/bad/bad-unmarked-assumption", "--file", "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md"], "without Assumption Register"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`claim control rejects ${name}`);
+    } else {
+      fail(`claim control must reject ${name}: ${output}`);
+    }
+  }
+
+  const baselineEnforcement = runNode([
+    "scripts/check-baseline-enforcement.mjs",
+    ".",
+    "--mode",
+    "implementation",
+    "--task",
+    "tasks/130-guided-delivery-baseline.md",
+  ]);
+  if (baselineEnforcement.status === 0) {
+    pass("1.3 task baseline enforcement check");
+  } else {
+    fail(`1.3 task baseline enforcement failed: ${baselineEnforcement.stderr || baselineEnforcement.stdout}`);
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -1635,7 +1895,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/new-workflow-item.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -1644,7 +1904,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -1653,7 +1913,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Assumptions", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -1683,7 +1943,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -1694,11 +1954,16 @@ function checkPlatformAdapters() {
 
   for (const command of [
     "check-ai-workflow.mjs",
+    "check-guided-adoption.mjs",
     "check-workflow-version.mjs",
     "summarize-ai-logs.mjs",
     "workflow-daily-summary.mjs",
     "check-project-onboarding.mjs",
     "check-engineering-baseline.mjs",
+    "check-environment-baseline.mjs",
+    "check-baseline-enforcement.mjs",
+    "check-product-baseline.mjs",
+    "check-claim-control.mjs",
     "check-platform-baseline.mjs",
     "resolve-platform-baseline.mjs",
     "check-industrial-pack.mjs",
@@ -1710,6 +1975,7 @@ function checkPlatformAdapters() {
     "check-goal-mode.mjs",
     "check-subagent-orchestration.mjs",
     "new-workflow-item.mjs",
+    "start-project.mjs",
     "workflow-next.mjs",
   ]) {
     if (githubCi.includes(command)) {
@@ -1732,12 +1998,17 @@ function checkScriptSyntax() {
   const scripts = [
     "scripts/init-project.mjs",
     "scripts/check-ai-workflow.mjs",
+    "scripts/check-guided-adoption.mjs",
     "scripts/check-dev-kit.mjs",
     "scripts/summarize-ai-logs.mjs",
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
     "scripts/check-project-onboarding.mjs",
     "scripts/check-engineering-baseline.mjs",
+    "scripts/check-environment-baseline.mjs",
+    "scripts/check-baseline-enforcement.mjs",
+    "scripts/check-product-baseline.mjs",
+    "scripts/check-claim-control.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -1749,6 +2020,8 @@ function checkScriptSyntax() {
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
     "scripts/cli.mjs",
+    "scripts/start-project.mjs",
+    "scripts/baseline-project.mjs",
     "scripts/migrate-project.mjs",
     "scripts/lib/args.mjs",
     "scripts/lib/check-result.mjs",
@@ -1788,6 +2061,10 @@ function checkReadmePointers() {
     "O0 + BL0",
     "O1 + selected profiles + BL1",
     "O2 + selected profiles + BL2",
+    "node scripts/cli.mjs start",
+    "node scripts/cli.mjs baseline",
+    "node scripts/check-product-baseline.mjs",
+    "node scripts/check-claim-control.mjs",
     "node scripts/cli.mjs next",
     "node scripts/cli.mjs init",
     "node scripts/cli.mjs update",
@@ -1795,10 +2072,14 @@ function checkReadmePointers() {
     "node scripts/cli.mjs check",
     "不要",
     "docs/operator-manual.md",
+    "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
     "docs/reference/checkers.md",
     "docs/reference/industrial-packs.md",
+    "docs/guided-delivery-baseline.md",
+    "docs/product-baseline.md",
+    "docs/claim-control.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -1807,6 +2088,9 @@ function checkReadmePointers() {
     "docs/migrations/0.33-to-1.0.md",
     "docs/troubleshooting.md",
     "docs/faq.md",
+    "releases/1.3.0/release-record.md",
+    "releases/1.2.0/release-record.md",
+    "releases/1.1.0/release-record.md",
   ];
   for (const pointer of requiredReadmePointers) {
     if (readme.includes(pointer)) pass(`README entry mentions ${pointer}`);
@@ -1816,8 +2100,15 @@ function checkReadmePointers() {
   for (const pointer of [
     "最小开始方式",
     "Codex 一句话入口",
+    "node scripts/cli.mjs start",
+    "node scripts/cli.mjs baseline",
+    "node scripts/check-product-baseline.mjs",
     "重要边界",
     "docs/operator-manual.md",
+    "docs/first-hour.md",
+    "docs/guided-delivery-baseline.md",
+    "docs/product-baseline.md",
+    "docs/claim-control.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -1826,10 +2117,14 @@ function checkReadmePointers() {
 
   const requiredDocs = [
     "docs/operator-manual.md",
+    "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
     "docs/reference/checkers.md",
     "docs/reference/industrial-packs.md",
+    "docs/guided-delivery-baseline.md",
+    "docs/product-baseline.md",
+    "docs/claim-control.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -1881,6 +2176,9 @@ function checkReadmePointers() {
     "BL1",
     "BL2",
     "workflow-next",
+    "start-project",
+    "Guided Adoption Recommendation",
+    "adoption-recommendations",
     "ADOPTION_MODE",
     "RUN_ADOPTION_ASSESSMENT",
     "REVIEW_DIRTY_WORKTREE",
@@ -2245,6 +2543,29 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project workflow next check");
 
+  const startCheck = runNode([
+    path.join(target, "scripts", "start-project.mjs"),
+    target,
+  ]);
+  if (startCheck.status !== 0
+    || !startCheck.stdout.includes("# Guided Adoption Recommendation")
+    || !startCheck.stdout.includes("Can AI write now | No")
+    || !startCheck.stdout.includes("target files written by start | No")) {
+    fail(`generated project guided adoption start check failed: ${startCheck.stderr || startCheck.stdout}`);
+    return;
+  }
+  pass("generated project guided adoption start check");
+
+  const guidedReportCheck = runNode([
+    path.join(target, "scripts", "check-guided-adoption.mjs"),
+    target,
+  ]);
+  if (guidedReportCheck.status !== 0) {
+    fail(`generated project guided adoption report check failed: ${guidedReportCheck.stderr || guidedReportCheck.stdout}`);
+    return;
+  }
+  pass("generated project guided adoption report check");
+
   const summaryCheck = runNode([
     path.join(target, "scripts", "summarize-ai-logs.mjs"),
     target,
@@ -2286,6 +2607,8 @@ function checkGeneratedProjectE2E() {
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
     "scripts/check-engineering-baseline.mjs",
+    "scripts/check-product-baseline.mjs",
+    "scripts/check-claim-control.mjs",
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
@@ -2296,9 +2619,21 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/baseline-evidence.md",
     ".ai-native/docs/artifact-decision-tree.md",
     ".ai-native/docs/goal-subagent-usage.md",
+    ".ai-native/docs/guided-delivery-baseline.md",
+    ".ai-native/docs/product-baseline.md",
+    ".ai-native/docs/claim-control.md",
     ".ai-native/core/engineering-baseline.md",
+    ".ai-native/core/outcome-baseline.md",
+    ".ai-native/core/product-baseline.md",
+    ".ai-native/core/claim-control.md",
+    ".ai-native/core/assumption-register.md",
     ".ai-native/templates/engineering-baseline.md",
+    ".ai-native/templates/product-baseline-review.md",
+    ".ai-native/templates/claim-control-report.md",
+    ".ai-native/templates/assumption-register.md",
     ".ai-native/checklists/engineering-baseline-review.md",
+    ".ai-native/checklists/product-baseline-review.md",
+    ".ai-native/checklists/claim-control-review.md",
     ".ai-native/core/next-step-boundary.md",
     ".ai-native/core/goal-mode.md",
     ".ai-native/core/subagent-orchestration.md",
@@ -2311,6 +2646,8 @@ function checkGeneratedProjectE2E() {
     ".ai-native/checklists/subagent-orchestration-review.md",
     ".ai-native/prompts/goal-planner-agent.md",
     ".ai-native/prompts/engineering-baseline-agent.md",
+    ".ai-native/prompts/product-baseline-agent.md",
+    ".ai-native/prompts/claim-control-agent.md",
     ".ai-native/core/output-protocol.md",
     ".ai-native/core/glossary.md",
     ".ai-native/prompts/reporter-agent.md",
@@ -2365,6 +2702,26 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project engineering baseline check is advisory pending");
+
+  const productBaselineCheck = runNode([
+    path.join(target, "scripts", "check-product-baseline.mjs"),
+    target,
+  ]);
+  if (productBaselineCheck.status !== 0 || !productBaselineCheck.stdout.includes("Product baseline check passed")) {
+    fail(`generated project product baseline check failed: ${productBaselineCheck.stderr || productBaselineCheck.stdout}`);
+    return;
+  }
+  pass("generated project product baseline check");
+
+  const claimControlCheck = runNode([
+    path.join(target, "scripts", "check-claim-control.mjs"),
+    target,
+  ]);
+  if (claimControlCheck.status !== 0 || !claimControlCheck.stdout.includes("Claim control check passed")) {
+    fail(`generated project claim control check failed: ${claimControlCheck.stderr || claimControlCheck.stdout}`);
+    return;
+  }
+  pass("generated project claim control check");
 
   if (fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
     fail("generated project default bootstrap should not install concrete web-app industrial pack");
@@ -3967,12 +4324,14 @@ checkOneDotZeroReleaseEvidence();
 checkManifestProtocol();
 checkCliFrontDoor();
 checkCorePurity();
+checkGuidedAdoptionEntry();
 checkEngineeringBaselineProtocol();
 checkReviewLoopProtocol();
 checkNextStepBoundaryProtocol();
 checkGoalModeProtocol();
 checkSubagentOrchestrationProtocol();
 checkOutputExperienceProtocol();
+checkGuidedDeliveryBaselineProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

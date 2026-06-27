@@ -82,6 +82,27 @@ If more than three exclusions are accepted, implementation requires Human Approv
 |---|---|---|
 |  |  | Yes / No |
 
+## Baseline References
+
+Engineering Baseline touched: Yes / No
+
+Environment Baseline touched: Yes / No
+
+Baseline refs:
+
+- `docs/engineering-baseline.md` / Not applicable
+- `docs/environment-baseline.md` / Not applicable
+
+Baseline decisions introduced:
+
+- No / <decision brief ref or human approval ref>
+
+Baseline rules:
+
+- If this task touches structure, API contracts, DTO/schema/domain boundaries, database schema, migrations, permissions, dependencies, generated types, enum/lookup/state-machine choices, or cross-module state, set Engineering Baseline touched to Yes and cite `docs/engineering-baseline.md`.
+- If this task touches build commands, CI/CD, environment variables, deployment, production config, release process, rollback, secrets, logs, monitoring, or alerts, set Environment Baseline touched to Yes and cite `docs/environment-baseline.md`.
+- If the relevant baseline is missing or pending, route the decision to humans before implementation.
+
 ## Human Approval
 
 Required: No

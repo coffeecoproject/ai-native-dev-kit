@@ -11,6 +11,11 @@ Explain what changed in plain language and why the change is safe to review.
 - Spec:
 - Eval:
 - Task:
+- Engineering baseline:
+- Environment baseline:
+- Product baseline:
+- Claim control:
+- Assumption Register:
 - Goal Card:
 - Subagent Run Plan:
 - Review Packet:
@@ -32,6 +37,13 @@ node scripts/check-fixtures.mjs
 - Risk Gate items:
 - Human Approval status:
 - Release evidence:
+
+## Claim Boundary
+
+- Allowed claims:
+- Forbidden claims:
+- Evidence status:
+- Known limitations:
 
 ## License / Commercial Boundary
 

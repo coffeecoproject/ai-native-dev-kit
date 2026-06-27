@@ -13,8 +13,18 @@ Read this AI Native Dev Kit and configure the current project yourself.
 Codex should use `.ai-native/prompts/bootstrap-agent.md` or `prompts/bootstrap-agent.md` to classify intent, then run:
 
 ```bash
-node ai-native-dev-kit/scripts/workflow-next.mjs .
+node ai-native-dev-kit/scripts/start-project.mjs .
 ```
+
+`start-project.mjs` is read-only by default. It recommends the adoption path before any init, update, or write-plan action.
+
+Then ask for baseline recommendation:
+
+```bash
+node ai-native-dev-kit/scripts/cli.mjs baseline .
+```
+
+`baseline` is also read-only. It tells you which engineering and environment decisions need confirmation before tasks.
 
 If you ask Codex to review or discuss first, it should not write files.
 
@@ -46,6 +56,19 @@ Do not implement code yet.
 ```
 
 The expected result is a set of onboarding document drafts and a short list of human decisions.
+
+Before the first non-trivial implementation, Codex should also draft or confirm:
+
+- `docs/engineering-baseline.md`
+- `docs/environment-baseline.md`
+
+Then run:
+
+```bash
+node scripts/check-engineering-baseline.mjs .
+node scripts/check-environment-baseline.mjs .
+node scripts/check-baseline-enforcement.mjs . --mode ready
+```
 
 ## First Implementation Conversation
 

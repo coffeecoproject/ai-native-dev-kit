@@ -20,9 +20,27 @@
 
 平台 profile 负责区分 Web、iOS、Android、微信小程序、后端等工程差异。工业包只按需启用，不默认全开。
 
+当前版本还补了一层“交付口径”：报告不是批准，模拟验证不是生产验证，AI 推断必须标出来。这样 Codex 可以更清楚地总结项目状态，但不能替代人的上线、风险或范围确认。
+
 ## 最小开始方式
 
-先让 Codex 判断项目状态：
+第一步先让 Codex 判断这个项目怎么接：
+
+```bash
+node scripts/cli.mjs start ../my-project
+```
+
+这一步只读，不会写项目文件。它会告诉你当前项目更像新项目、已有项目、强治理项目、已上线风险项目、dirty worktree，还是已经接入过的项目。你只需要确认方向。
+
+第二步让 Codex 判断这个项目需要什么工程基线和环境基线：
+
+```bash
+node scripts/cli.mjs baseline ../my-project
+```
+
+这一步也只读，不会写项目文件。它会把代码结构、数据库/API/权限规则、运行环境、构建测试、发布回滚、密钥边界里需要确认的内容列出来。真正写入基线文件时，必须先生成计划，再由人确认后应用。
+
+如果要看更底层的状态：
 
 ```bash
 node scripts/cli.mjs next ../my-project
@@ -46,6 +64,19 @@ node scripts/cli.mjs update --target ../my-project --dry-run
 node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --dry-run
 ```
 
+保存过的接入建议可以检查：
+
+```bash
+node scripts/check-guided-adoption.mjs ../my-project
+```
+
+维护 Dev Kit 自身时，可以检查产品边界和声明口径：
+
+```bash
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
+```
+
 ## Codex 一句话入口
 
 把仓库地址、目录或文件给 Codex，然后说：
@@ -63,16 +94,24 @@ node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --d
 - 不是所有工业包都装进项目；只启用项目需要的部分。
 - 已上线或强治理项目不要直接初始化；先走只读接入评估。
 - `migrate` 当前只生成计划，不直接改目标项目。
+- `baseline` 默认只生成建议，不直接改目标项目。
 - 人负责风险接受、业务取舍和发布确认；AI 负责整理、执行、检查和记录。
+- 不要把模拟 dogfood 或生成项目 smoke 说成真实生产验证。
+- 不要把 AI 推断出的环境、发布、回滚、监控信息当成已确认事实。
 
 ## 完整说明
 
 - [Operator Manual](docs/operator-manual.md)：完整操作手册
 - [Quickstart](docs/quickstart.md)：快速开始
+- [First Hour](docs/first-hour.md)：第一次接入项目时怎么走
 - [Codex Usage](docs/codex-usage.md)：Codex 使用路径
 - [Mental Model](docs/mental-model.md)：整体心智模型
 - [Artifact Decision Tree](docs/artifact-decision-tree.md)：什么时候用哪个文件
 - [Goal + Subagent Usage](docs/goal-subagent-usage.md)：目标和 subagent 编排
+- [Baseline Setup](docs/baseline-setup.md)：工程基线与环境基线设置
+- [Guided Delivery Baseline](docs/guided-delivery-baseline.md)：引导式交付基准
+- [Product Baseline](docs/product-baseline.md)：产品边界
+- [Claim Control](docs/claim-control.md)：声明口径控制
 - [Scripts Reference](docs/reference/scripts.md)：命令说明
 - [Artifacts Reference](docs/reference/artifacts.md)：文件说明
 - [Checkers Reference](docs/reference/checkers.md)：检查器说明
@@ -85,6 +124,9 @@ node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --d
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
 - [Troubleshooting](docs/troubleshooting.md)：常见问题处理
 - [FAQ](docs/faq.md)：问答
+- [1.3 Release Record](releases/1.3.0/release-record.md)：1.3 引导式交付基准
+- [1.2 Release Record](releases/1.2.0/release-record.md)：1.2 基线引导设置
+- [1.1 Release Record](releases/1.1.0/release-record.md)：1.1 引导式接入入口
 - [1.0 Release Record](releases/1.0.0/release-record.md)：1.0 发布边界
 
 ## License

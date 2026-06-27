@@ -26,6 +26,14 @@ One-sentence conclusion:
 
 - 
 
+## Assumption Register
+
+Use this section only when the result depends on inferred or unconfirmed facts.
+
+| Assumption | Evidence | Confidence | Can proceed? | Needs human confirmation? | Owner | Status |
+|---|---|---|---|---|---|---|
+|  |  | high / medium / low | Yes / No | Yes / No | AI / human | CONFIRMED / INFERRED / PENDING_CONFIRMATION / NOT_APPLICABLE |
+
 ## Next-Step Suggestions
 
 | ID | Type | Suggestion | Relation to current task | Can AI do now? | Required entry | Risk / approval |
@@ -79,4 +87,3 @@ Exceptions:
 Residual risks:
 
 - 
-

@@ -367,6 +367,46 @@
     "howToFix": "Industrial pack checks must keep rejecting unknown options."
   },
   {
+    "name": "good claim control example",
+    "type": "golden",
+    "checker": "check-claim-control",
+    "script": "scripts/check-claim-control.mjs",
+    "args": ["examples/1.3-guided-delivery-baseline", "--file", "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md"],
+    "expectStatus": 0,
+    "expectStdoutIncludes": ["Claim control check passed."],
+    "howToFix": "The 1.3 claim control example must keep bounded wording and assumption register evidence."
+  },
+  {
+    "name": "bad overclaimed release",
+    "type": "bad",
+    "checker": "check-claim-control",
+    "script": "scripts/check-claim-control.mjs",
+    "args": ["test-fixtures/bad/bad-overclaimed-release"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["forbidden claim"],
+    "howToFix": "Claim control must reject production, guarantee, and simulation-to-production overclaims."
+  },
+  {
+    "name": "bad report as approval",
+    "type": "bad",
+    "checker": "check-claim-control",
+    "script": "scripts/check-claim-control.mjs",
+    "args": ["test-fixtures/bad/bad-report-as-approval", "--file", "test-fixtures/bad/bad-report-as-approval/final-reports/001-release.md"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["forbidden claim"],
+    "howToFix": "Claim control must reject reports that claim to approve release, risk, scope, or future work."
+  },
+  {
+    "name": "bad unmarked assumption",
+    "type": "bad",
+    "checker": "check-claim-control",
+    "script": "scripts/check-claim-control.mjs",
+    "args": ["test-fixtures/bad/bad-unmarked-assumption", "--file", "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md"],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": ["without Assumption Register"],
+    "howToFix": "Claim control must reject reports that rely on inferred environment or rollback facts without Assumption Register."
+  },
+  {
     "name": "good manifest current",
     "type": "golden",
     "checker": "check-manifest",

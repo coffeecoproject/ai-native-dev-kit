@@ -60,11 +60,23 @@ Baseline state:
 
 Industrial baseline state:
 
+Engineering Baseline Follow-check:
+
+Environment Baseline Follow-check:
+
 Changed files:
 
 Commands run:
 
 Evidence refs:
+
+## Assumption Register
+
+Use this section when review or repair decisions depend on inferred or unconfirmed facts.
+
+| Assumption | Evidence | Confidence | Can proceed? | Needs human confirmation? | Owner | Status |
+|---|---|---|---|---|---|---|
+|  |  | high / medium / low | Yes / No | Yes / No | AI / human | CONFIRMED / INFERRED / PENDING_CONFIRMATION / NOT_APPLICABLE |
 
 ## Review Rounds
 
@@ -125,6 +137,26 @@ Remaining issues:
 Stop condition triggered: Yes / No
 
 Stop condition reason:
+
+## Baseline Enforcement
+
+Did implementation follow Engineering Baseline: Yes / No / Not applicable
+
+Engineering baseline ref:
+
+Did implementation follow Environment Baseline: Yes / No / Not applicable
+
+Environment baseline ref:
+
+Did implementation introduce a baseline decision without updating baseline or decision brief: Yes / No
+
+Did implementation touch environment, release, secret, or production config without approval: Yes / No
+
+Baseline enforcement command:
+
+```text
+node scripts/check-baseline-enforcement.mjs . --mode implementation
+```
 
 ## Human Decision Queue
 

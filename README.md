@@ -24,9 +24,27 @@
 
 Web 和微信小程序已经有 BL2 演练示例，但工业包仍按 maturity 管理；`draft` 不等于生产稳定标准。
 
+当前版本还增加了一层交付口径约束：报告不能当成批准，模拟验证不能说成生产验证，AI 的推断必须标出来。它帮助 Codex 给出更可靠的交付总结，但不替代人的上线或风险确认。
+
 ## 最小用法
 
-先看当前项目应该怎么接：
+第一步先让 Codex 判断这个项目怎么接：
+
+```bash
+node scripts/cli.mjs start ../my-project
+```
+
+它只读检查，不写项目文件。输出会告诉你：这是新项目、已有项目、强治理项目、已上线风险项目、dirty worktree，还是已经接入过的项目。你只需要确认方向。
+
+第二步让 Codex 判断这个项目需要什么工程基线和环境基线：
+
+```bash
+node scripts/cli.mjs baseline ../my-project
+```
+
+这一步也只读，不写项目文件。它会告诉你应该先确认哪些代码规则、运行环境、构建测试、发布回滚、密钥边界。真正写入基线文件时，必须先生成计划，再确认后应用。
+
+如果需要看更底层的状态，再运行：
 
 ```bash
 node scripts/cli.mjs next ../my-project
@@ -57,6 +75,19 @@ node scripts/cli.mjs check ../my-project --mode core
 node scripts/cli.mjs doctor ../my-project
 ```
 
+维护 Dev Kit 自身时，可以检查产品边界和声明口径：
+
+```bash
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
+```
+
+保存过的接入建议可以检查：
+
+```bash
+node scripts/check-guided-adoption.mjs ../my-project
+```
+
 ## 给 Codex 的一句话
 
 在 Codex 里，把这个仓库地址或目录给它，然后说：
@@ -73,7 +104,10 @@ node scripts/cli.mjs doctor ../my-project
 - 不要在已上线项目里跳过只读评估。
 - 不要默认启用所有工业包。
 - 不要让 migration 命令直接改项目；当前迁移只产出计划。
+- 不要让 baseline 命令直接改项目；默认只给建议，写入必须走计划和确认。
 - 不要把 Goal Card、Review Loop 或 subagent 输出当成人的风险批准。
+- 不要把模拟 dogfood 或生成项目 smoke 写成真实生产验证。
+- 不要把 AI 推断出来的环境、发布、回滚、监控信息当成事实。
 - 不要让 helper subagent 一直保持 `RUNNING`。
 
 ## 完整文档
@@ -81,10 +115,15 @@ node scripts/cli.mjs doctor ../my-project
 - [中文说明](README.zh-CN.md)
 - [Operator Manual](docs/operator-manual.md)
 - [Quickstart](docs/quickstart.md)
+- [First Hour](docs/first-hour.md)
 - [Codex Usage](docs/codex-usage.md)
 - [Mental Model](docs/mental-model.md)
 - [Artifact Decision Tree](docs/artifact-decision-tree.md)
 - [Goal + Subagent Usage](docs/goal-subagent-usage.md)
+- [Baseline Setup](docs/baseline-setup.md)
+- [Guided Delivery Baseline](docs/guided-delivery-baseline.md)
+- [Product Baseline](docs/product-baseline.md)
+- [Claim Control](docs/claim-control.md)
 - [Scripts Reference](docs/reference/scripts.md)
 - [Artifacts Reference](docs/reference/artifacts.md)
 - [Checkers Reference](docs/reference/checkers.md)
@@ -97,6 +136,9 @@ node scripts/cli.mjs doctor ../my-project
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [FAQ](docs/faq.md)
+- [1.3 Release Record](releases/1.3.0/release-record.md)
+- [1.2 Release Record](releases/1.2.0/release-record.md)
+- [1.1 Release Record](releases/1.1.0/release-record.md)
 - [1.0 Release Record](releases/1.0.0/release-record.md)
 - [Productization Hardcut Plan](docs/productization-hardcut-1.0-plan.md)
 

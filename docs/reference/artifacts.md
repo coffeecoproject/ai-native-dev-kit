@@ -28,12 +28,17 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 
 | Directory | Purpose |
 |---|---|
+| `adoption-recommendations/` | Saved first-hour adoption recommendation reports |
+| `baseline-recommendations/` | Saved engineering/environment baseline recommendation reports |
+| `baseline-gap-reports/` | Durable baseline gap follow-up reports when needed |
 | `goal-cards/` | Goal Mode route and task level |
 | `subagent-run-plans/` | Helper agent roles, authority, handoff, and closure |
 | `decision-briefs/` | Human decision input |
 | `follow-up-proposals/` | Suggestions outside the current task |
 
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
+
+Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
 ## Reporting Artifacts
 
@@ -43,6 +48,8 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 | `status-reports/` | Human-readable status |
 | `customer-handoffs/` | Delivery or milestone handoff |
 | `releases/` | Release and evidence records |
+
+Release records for meaningful Dev Kit phases should include allowed claims, forbidden claims, evidence status, known limitations, and verification.
 
 ## Self-Iteration Artifacts
 
@@ -68,8 +75,13 @@ Common target-project docs:
 - `docs/onboarding-decisions.md`
 - `docs/verification-matrix.md`
 - `docs/engineering-baseline.md`
+- `docs/environment-baseline.md`
 
 Engineering Baseline covers decisions such as enum vs string vs lookup, DTO/domain/API boundaries, generated types, folder structure, permission model, migration rules, and cross-module state.
+
+Environment Baseline covers local runtime, package manager, environment variable inventory, secret boundary, external services, test environment, CI/CD, preview/staging/production status, release, rollback, logs, monitoring, and alerts. It records facts and pending decisions; secret values must never be written into it.
+
+Product Baseline and Claim Control live under `.ai-native/core/` in generated projects. They constrain workflow changes, release wording, public summaries, final reports, and handoffs; they do not add approval authority to AI.
 
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 

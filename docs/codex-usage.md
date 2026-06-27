@@ -37,7 +37,12 @@ Expected Codex behavior:
 
 - Classify intent with `prompts/bootstrap-agent.md`.
 - If the user asked only to review, discuss, evaluate, or look first, do not write files.
-- If the user clearly asked to configure, run `scripts/workflow-next.mjs <project-root>` or emulate it from the dev-kit checkout.
+- If the user clearly asked to configure, run `scripts/start-project.mjs <project-root>` or `scripts/cli.mjs start <project-root>` first.
+- Treat `start` as read-only by default: it recommends adoption path and decisions, but does not write target project files.
+- After `start`, use `scripts/cli.mjs baseline <project-root>` when the project needs Engineering and Environment Baseline recommendations.
+- Treat `baseline` as read-only by default: it must include `Can AI write now: No`.
+- Use `scripts/baseline-project.mjs <project-root> --write-plan <file>` and reviewed `--apply-plan <file>` before writing baseline docs.
+- Use `scripts/workflow-next.mjs <project-root>` as the lower-level technical state detector when needed.
 - Report `workflow-next` results with a human summary first, then technical state fields. Use `--format technical` only when the user or automation asks for raw technical output.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce an adoption assessment and existing governance map first.
 - If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, do not create workflow artifacts, execute task cards, or edit files until the human confirms how to handle existing changes.
@@ -45,11 +50,14 @@ Expected Codex behavior:
 - Use `init-project.mjs` for initialization or workflow asset updates.
 - Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
 - Run baseline checks after setup when scripts are available.
+- Run `node scripts/check-product-baseline.mjs .` and `node scripts/check-claim-control.mjs .` when workflow behavior, release wording, README/public summaries, final reports, or handoffs change.
+- Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
 - Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
 
 Optional project-state gate:
 
 ```bash
+node scripts/start-project.mjs .
 node scripts/workflow-next.mjs . --enforce
 ```
 
@@ -72,6 +80,9 @@ Expected Codex behavior:
 - Draft `docs/project-onboarding.md`, `docs/project-profile.md`, `docs/tech-stack-strategy.md`, `docs/business-spec-index.md`, `docs/sample-policy.md`, and `docs/onboarding-decisions.md`.
 - Draft `docs/engineering-baseline.md` before structural, contract, schema, permission, migration, dependency, generated type, or cross-module state decisions.
 - Run `node scripts/check-engineering-baseline.mjs .`; default mode is advisory and reports pending decisions without blocking low-risk local work.
+- Draft `docs/environment-baseline.md` before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert decisions.
+- Run `node scripts/check-environment-baseline.mjs .`; default mode is advisory and fails obvious secret misuse.
+- Run `node scripts/check-baseline-enforcement.mjs . --mode ready` before implementation when task cards exist.
 - Draft `Selected Profiles` in `docs/project-profile.md` and run `node scripts/check-platform-baseline.mjs .`.
 - Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
 - For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial packs, install them with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-industrial-pack.mjs . --selected-only` and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
@@ -133,6 +144,8 @@ Expected Codex behavior:
 - Read the linked request, preflight, spec, eval, and task card.
 - Run `node scripts/check-workflow-artifacts.mjs . --mode ready --task <task-card>` before implementation.
 - Run `node scripts/check-engineering-baseline.mjs .` before implementation when the task touches structure, API contracts, DTO / schema / domain boundaries, enum / string / lookup / state-machine choices, schema or migrations, permission model, generated type source, dependencies, or cross-module state.
+- Run `node scripts/check-environment-baseline.mjs .` before implementation when the task touches build, CI, environment variables, deployment, production config, release, rollback, secrets, logs, monitoring, or alerts.
+- Run `node scripts/check-baseline-enforcement.mjs . --mode ready --task <task-card>` before implementation when the task declares or appears to touch baselines.
 - For high-risk work, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after human approval is recorded.
 - For checked risk items, `Human Approval` must include the approved `Approval scope`.
 - Refuse to widen scope without approval.
@@ -145,11 +158,15 @@ Expected Codex behavior:
 - Generate `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a suggested next step is directly related but outside current task scope.
 - Generate `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the task result needs durable reporting beyond chat.
 - Run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists.
+- Run `node scripts/check-baseline-enforcement.mjs . --mode implementation --task <task-card>` before closure for BL1 implementation work, BL2 work, or L3 tasks.
 - Run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist.
 - Run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when a Final Report, Review Loop Report, review summary, or Follow-up Proposal includes next-step suggestions.
 - Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
 - Route missing engineering baseline decisions to a Decision Brief or Human Decisions Needed instead of silently choosing.
+- Route missing environment baseline decisions to a Decision Brief or Human Decisions Needed instead of inventing environment facts.
+- Do not treat reports, Review Packets, Goal Cards, or subagent output as release, risk, scope, or future-work approval.
+- Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence.
 - Report changed files, verification, residual risks, classified Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.
 
 GPT Pro or second-model review should stay semi-automatic unless an approved automation adapter exists:
@@ -177,9 +194,11 @@ Expected Codex behavior:
 - Read `.ai-native/core/output-protocol.md`.
 - Use `.ai-native/core/glossary.md` when internal terms need plain-language explanation.
 - Use `.ai-native/core/next-step-boundary.md` when reporting suggested next steps.
+- Use `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when reporting release wording, public claims, final reports, or handoffs.
 - Use `.ai-native/prompts/reporter-agent.md` when converting technical state into a report.
 - Generate `human-status-report`, `decision-brief`, `plain-review-summary`, or `customer-handoff` only when a file record is useful.
 - Do not treat any report as Human Approval, release approval, risk acceptance, or permission to apply migrations.
+- Include Assumption Register when the report relies on inferred or unconfirmed facts.
 
 ## Existing Project Prompt
 

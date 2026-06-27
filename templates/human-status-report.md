@@ -40,6 +40,14 @@ Command, if applicable:
 
 -
 
+## Assumption Register
+
+Use this section when status depends on inferred or unconfirmed facts.
+
+| Assumption | Evidence | Confidence | Can proceed? | Needs human confirmation? | Owner | Status |
+|---|---|---|---|---|---|---|
+|  |  | high / medium / low | Yes / No | Yes / No | AI / human | CONFIRMED / INFERRED / PENDING_CONFIRMATION / NOT_APPLICABLE |
+
 ## Technical Details
 
 State fields:

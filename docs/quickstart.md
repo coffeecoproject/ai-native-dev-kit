@@ -14,7 +14,36 @@ When using Codex, you can provide the dev-kit path, repo URL, archive, or copied
 Read this AI Native Dev Kit and configure the current project yourself.
 ```
 
-Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to review or discuss first, it should not write files. If you ask it to configure, it should run `workflow-next` to decide the next step:
+Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to review or discuss first, it should not write files. If you ask it to configure, it should run `start` first so the human sees a guided adoption recommendation:
+
+```bash
+node ai-native-dev-kit/scripts/start-project.mjs .
+```
+
+`start` is read-only by default. It calls `workflow-next`, classifies the project, lists the decisions needed from the human, and recommends safe next actions.
+
+After `start`, use `baseline` to recommend the project's engineering and environment rules:
+
+```bash
+node ai-native-dev-kit/scripts/cli.mjs baseline .
+```
+
+`baseline` is also read-only by default. It reports profile candidates, recommended BL level, Engineering Baseline state, Environment Baseline state, missing decisions, and safe next actions. It must include:
+
+```text
+Can AI write now: No
+```
+
+Writing baseline docs requires plan-first flow:
+
+```bash
+node ai-native-dev-kit/scripts/baseline-project.mjs . --write-plan baseline-plan.json
+node ai-native-dev-kit/scripts/baseline-project.mjs --apply-plan baseline-plan.json
+```
+
+Apply scope is limited to baseline docs and baseline reports.
+
+Use `workflow-next` directly only when you need the lower-level technical state:
 
 ```bash
 node ai-native-dev-kit/scripts/workflow-next.mjs .
@@ -50,6 +79,10 @@ node scripts/check-ai-workflow.mjs . --mode core
 node scripts/workflow-next.mjs .
 node scripts/check-project-onboarding.mjs .
 node scripts/check-engineering-baseline.mjs .
+node scripts/check-environment-baseline.mjs .
+node scripts/check-baseline-enforcement.mjs . --mode ready
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 
@@ -88,6 +121,39 @@ node scripts/check-engineering-baseline.mjs .
 The default mode is advisory. It may report `PENDING` while still allowing low-risk local work. Use `--strict` only after the project wants the baseline to block missing or pending engineering decisions.
 
 Codex must not invent or upgrade project-wide engineering conventions when this baseline is missing.
+
+## Environment Baseline
+
+Before Codex changes build, CI, environment variables, deployment, production config, release, rollback, secrets, logs, monitoring, or alerts, use `docs/environment-baseline.md`.
+
+This file records real project facts and pending decisions. It uses:
+
+- `CONFIRMED`
+- `PENDING_CONFIRMATION`
+- `NOT_APPLICABLE`
+
+Secret values must never be written into this file.
+
+Default check:
+
+```bash
+node scripts/check-environment-baseline.mjs .
+```
+
+Use `--strict` only after the project expects pending environment decisions to block work.
+
+## Product Baseline And Claim Control
+
+Product Baseline and Claim Control keep reports, release records, public summaries, and handoffs from becoming approval or overclaiming evidence.
+
+Use them when a change touches workflow behavior, release wording, README/public summaries, final reports, customer handoffs, or Dev Kit maintenance:
+
+```bash
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
+```
+
+These checks do not make claim reports mandatory for every task. Use Assumption Register sections only when the result depends on inferred or unconfirmed facts.
 
 ## Platform Baseline
 

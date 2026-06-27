@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.0.0`
+`1.3.0`
 
 ## Project Version File
 
@@ -27,6 +27,13 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Checker scripts use shared helper libraries under `scripts/lib/`; generated projects must keep those helper files with copied checker scripts.
 - Industrial pack maturity metadata and license boundary docs are part of the dev-kit update surface.
 - `ai-native migrate` is plan-only in 0.42.0: use `--dry-run` or `--write-plan <file>`; it does not apply changes to target projects.
+- `1.3.0` adds Guided Delivery Baseline assets: Outcome Baseline, Product Baseline, Claim Control, Assumption Register, product baseline checks, and claim control checks.
+- `1.3.0` keeps reports, review packets, goal cards, and subagent outputs from becoming approvals; simulated dogfood is not production evidence.
+- `1.2.0` adds `ai-native baseline` / `node scripts/cli.mjs baseline <project>` as a read-only baseline recommendation entry after `start`.
+- `baseline` keeps `Can AI write now: No`; writes require `baseline-project --write-plan` and reviewed `--apply-plan`.
+- Generated projects include Environment Baseline assets, baseline recommendation folders, and artifact-level baseline enforcement checks.
+- `1.1.0` adds `ai-native start` / `node scripts/cli.mjs start <project>` as a read-only guided adoption entry.
+- `start` classifies the project, recommends a safe adoption path, and keeps target project writes behind dry-run, write-plan, and human confirmation.
 - `1.0.0` is a minimum productization release; 10/10 real-project evidence is not yet claimed.
 - Workflow asset updates must not overwrite project docs, specs, tasks, logs, or business code.
 - Workflow asset updates may add missing onboarding docs and missing workflow directories.

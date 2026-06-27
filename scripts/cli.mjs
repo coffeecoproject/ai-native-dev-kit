@@ -13,6 +13,30 @@ const packageJson = readJsonIfExists(path.join(kitRoot, "package.json"));
 const version = manifest?.devKitVersion || packageJson?.version || readVersionFile();
 
 const commandRegistry = {
+  start: {
+    description: "Guide project adoption with a read-only recommendation.",
+    script: "scripts/start-project.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  baseline: {
+    description: "Recommend engineering and environment baseline setup without writing by default.",
+    script: "scripts/baseline-project.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "product-baseline": {
+    description: "Check guided delivery product boundaries and approval limits.",
+    script: "scripts/check-product-baseline.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "claim-control": {
+    description: "Check release and report wording against evidence boundaries.",
+    script: "scripts/check-claim-control.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   init: {
     description: "Initialize workflow assets in a target project.",
     script: "scripts/init-project.mjs",
@@ -152,6 +176,10 @@ function printHelp() {
   }
   console.log("");
   console.log("Examples:");
+  console.log("  node scripts/cli.mjs start ../my-project");
+  console.log("  node scripts/cli.mjs baseline ../my-project");
+  console.log("  node scripts/cli.mjs product-baseline .");
+  console.log("  node scripts/cli.mjs claim-control .");
   console.log("  node scripts/cli.mjs init --starter generic-project --target ../my-project");
   console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");

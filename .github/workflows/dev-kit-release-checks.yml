@@ -29,6 +29,12 @@ jobs:
       - name: Manifest check
         run: node scripts/check-manifest.mjs
 
+      - name: Product baseline check
+        run: node scripts/check-product-baseline.mjs .
+
+      - name: Claim control check
+        run: node scripts/check-claim-control.mjs .
+
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs
 
@@ -48,6 +54,10 @@ jobs:
           node scripts/init-project.mjs --starter generic-project --target "$tmp/project"
           node "$tmp/project/scripts/check-ai-workflow.mjs" "$tmp/project" --mode core
           node "$tmp/project/scripts/workflow-next.mjs" "$tmp/project"
+          node "$tmp/project/scripts/start-project.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-guided-adoption.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-project-onboarding.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-engineering-baseline.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-product-baseline.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-claim-control.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-workflow-version.mjs" "$tmp/project"

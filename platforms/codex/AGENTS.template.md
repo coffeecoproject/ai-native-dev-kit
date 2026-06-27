@@ -35,10 +35,18 @@ When the user asks to look, review, evaluate, discuss, or not execute yet, treat
 For bootstrap work, first use `.ai-native/prompts/bootstrap-agent.md` when present, then run:
 
 ```bash
-node scripts/workflow-next.mjs .
+node scripts/start-project.mjs .
 ```
 
-Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
+Use `workflow-next` as the lower-level state detector when needed. Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
+
+After adoption classification, use baseline setup when project-specific engineering or environment rules are not clear:
+
+```bash
+node scripts/cli.mjs baseline .
+```
+
+`baseline` is read-only by default and must report `Can AI write now: No`. Do not write baseline docs until a reviewed `baseline-project --write-plan` is applied.
 
 ## Required Preflight Output
 
@@ -106,6 +114,21 @@ Codex may follow existing local patterns for low-risk local changes.
 Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval.
 
 If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.
+
+## Environment Baseline
+
+Before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.ai-native/core/environment-baseline.md` when present.
+
+Run:
+
+```bash
+node scripts/check-environment-baseline.mjs .
+node scripts/check-baseline-enforcement.mjs . --mode ready
+```
+
+Codex may draft missing environment facts as `PENDING_CONFIRMATION` and mark irrelevant items as `NOT_APPLICABLE`.
+
+Codex must not create or edit `.env`, record secret values, invent production/release/rollback/monitoring facts, or change CI/CD, deployment, or production config without explicit approval.
 
 ## Platform Baseline
 
@@ -230,6 +253,19 @@ Human-facing output must lead with a human summary, current status, decision nee
 
 Use `.ai-native/core/glossary.md` to translate internal workflow terms when the user may not know them.
 
+## Product Baseline And Claim Control
+
+Use `.ai-native/core/outcome-baseline.md`, `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when changing workflow behavior, release wording, public summaries, final reports, or handoffs.
+
+Run these checks when available:
+
+```bash
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
+```
+
+Do not treat reports, Review Packets, Goal Cards, or subagent output as approval. Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence. Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
+
 ## High-risk Boundaries
 
 Stop and ask before:
@@ -286,6 +322,7 @@ Every implementation response must include:
 - Verified
 - Not changed
 - Risks remaining
+- Assumption Register when the result depends on inferred or unconfirmed facts
 - Next-step suggestions with type, relation to current task, whether AI can do it now, required entry, and risk / approval
 - Human decisions needed
 - Next safe action

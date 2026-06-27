@@ -12,8 +12,10 @@ The kit separates five concerns:
 |---|---|
 | Workflow | Request, preflight, spec, eval, task, verification, review, report |
 | Project onboarding | Project profile, technology strategy, business spec index, risk and verification docs |
+| Engineering/environment baseline | Project-specific coding rules, runtime facts, command ownership, secret boundary, release and rollback decisions |
 | Platform profile | Web, iOS, Android, WeChat Mini Program, backend, internal admin, or high-risk change |
 | Industrial baseline | BL0, BL1, BL2, and selected industrial packs |
+| Product/claim baseline | Product boundary, evidence wording, and assumption visibility |
 | Product surface | CLI, manifest, migration plans, fixtures, checks, release evidence |
 
 Codex may draft and execute. Humans keep responsibility for decisions, risk acceptance, release approval, and business tradeoffs.
@@ -23,8 +25,18 @@ Codex may draft and execute. Humans keep responsibility for decisions, risk acce
 Always start by reading project state before writing files:
 
 ```bash
-node scripts/cli.mjs next <project>
+node scripts/cli.mjs start <project>
 ```
+
+`start` is read-only by default. It classifies the project, recommends the adoption path, and lists human decisions. Use `node scripts/cli.mjs next <project>` only when you need the lower-level `workflow-next` state.
+
+After adoption classification, use baseline setup:
+
+```bash
+node scripts/cli.mjs baseline <project>
+```
+
+`baseline` is read-only by default. It recommends Engineering and Environment Baseline setup and must report `Can AI write now: No`. Writes require `baseline-project --write-plan` and reviewed `--apply-plan`.
 
 If `workflow-next` returns `ADOPTION_MODE: READ_ONLY`, `RUN_ADOPTION_ASSESSMENT`, or `REVIEW_DIRTY_WORKTREE`, stop write actions and follow the matching playbook.
 
@@ -42,7 +54,7 @@ If `workflow-next` returns `ADOPTION_MODE: READ_ONLY`, `RUN_ADOPTION_ASSESSMENT`
 Use the smallest loop that fits the risk:
 
 ```text
-Request -> Preflight -> Engineering Baseline -> Spec -> Eval -> Task -> Verify -> Review -> Final Report
+Request -> Preflight -> Engineering/Environment Baseline -> Spec -> Eval -> Task -> Verify -> Review -> Final Report
 ```
 
 L0/L1 tasks may use a lighter set of artifacts when the project policy allows it. L2/L3 tasks require Review Packet and Review Loop Report.
@@ -106,6 +118,42 @@ The usual artifacts are:
 
 AUTO_FIX is bounded. Repeated findings, risk decisions, architecture scope changes, production configuration, and external side effects need human decision.
 
+## Baseline Setup
+
+Use baseline setup after `start` and before non-trivial work.
+
+```bash
+node scripts/cli.mjs baseline <project>
+node scripts/baseline-project.mjs <project> --write-plan baseline-plan.json
+node scripts/baseline-project.mjs --apply-plan baseline-plan.json
+```
+
+Apply scope is limited to:
+
+- `docs/engineering-baseline.md`
+- `docs/environment-baseline.md`
+- `baseline-recommendations/`
+- `baseline-gap-reports/`
+
+Do not use baseline setup to edit `.env`, CI/CD, deploy files, production config, AGENTS.md, PR templates, migrations, permissions, or industrial packs.
+
+## Product Baseline And Claim Control
+
+Use this layer when changing workflow behavior, release wording, public summaries, final reports, handoffs, or Dev Kit release evidence.
+
+```bash
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
+```
+
+Rules:
+
+- Reports are not approvals.
+- Simulated dogfood is not production evidence.
+- Draft packs are not stable packs.
+- AI assumptions must be visible when they affect decisions or claims.
+- Humans still approve risk, release, scope expansion, and future work.
+
 ## Migration
 
 `ai-native migrate` is plan-only in 0.42.0.
@@ -141,6 +189,8 @@ For dev-kit development:
 
 ```bash
 node scripts/check-manifest.mjs .
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-dev-kit.mjs
 git diff --check
@@ -152,6 +202,10 @@ For target projects:
 node scripts/check-ai-workflow.mjs . --mode core
 node scripts/workflow-next.mjs .
 node scripts/check-workflow-version.mjs .
+node scripts/check-environment-baseline.mjs .
+node scripts/check-baseline-enforcement.mjs . --mode ready
+node scripts/check-product-baseline.mjs .
+node scripts/check-claim-control.mjs .
 ```
 
 Use full checks only when the project has the matching assets and risk level.

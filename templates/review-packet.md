@@ -110,6 +110,12 @@ Engineering baseline ref:
 
 Engineering baseline gaps:
 
+Environment baseline checked: Yes / No / Not applicable
+
+Environment baseline ref:
+
+Environment baseline gaps:
+
 Platform baseline state:
 
 Selected profiles:
@@ -158,6 +164,14 @@ Skipped evidence and reason:
 
 - 
 
+## Assumption Register
+
+Use this section when review conclusions depend on inferred or unconfirmed facts.
+
+| Assumption | Evidence | Confidence | Can proceed? | Needs human confirmation? | Owner | Status |
+|---|---|---|---|---|---|---|
+|  |  | high / medium / low | Yes / No | Yes / No | AI / human | CONFIRMED / INFERRED / PENDING_CONFIRMATION / NOT_APPLICABLE |
+
 ## Reviewer Checklist
 
 - [ ] The implementation matches the request and spec.
@@ -167,7 +181,9 @@ Skipped evidence and reason:
 - [ ] Human Approval is present when required.
 - [ ] Verification evidence is enough for the stated risk.
 - [ ] Engineering baseline is checked when structure, contracts, schema, permissions, migrations, dependencies, or cross-module state changed.
+- [ ] Environment baseline is checked when build, CI, environment variables, deployment, production config, release, rollback, secrets, logs, monitoring, or alerts changed.
 - [ ] Baseline or industrial evidence gaps are called out.
+- [ ] Inferred facts are recorded in Assumption Register and are not treated as approved baseline rules.
 - [ ] Dirty worktree or pre-existing changes are separated from this task.
 - [ ] No secrets, production config, migrations, or release paths changed without approval.
 - [ ] Known risks and open questions are explicit.
