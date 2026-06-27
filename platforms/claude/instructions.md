@@ -133,6 +133,14 @@ For conversation drift:
 - do not write files for `DISCUSS_ONLY`, `REVIEW_ONLY`, or `PAUSE_OR_STOP`
 - do not continue current task for `SCOPE_CHANGE`, `NEW_TASK`, `DIRECT_FOLLOW_UP`, or `RISK_DECISION` without human decision
 
+For first delivery walkthrough:
+
+- use `.ai-native/core/first-delivery-walkthrough.md` when a broad new idea needs a complete first-slice walkthrough from human idea to demo, handoff, or not-ready recommendation
+- run `node scripts/check-first-delivery-walkthrough.mjs .` when Adoption Trial Reports exist or first-delivery evidence is being claimed
+- start with the smallest safe path: start, baseline, request, spec, eval, task, verify, final report, launch readiness
+- add heavier artifacts only when risk, ambiguity, helper agents, independent review, or scope drift appears
+- do not treat walkthroughs or adoption trial reports as production, release, payment, privacy, security, legal, compliance, migration, or customer approval
+
 For bounded next-step suggestions:
 
 - use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.6.0`
+Current version: `1.7.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `1.6.0`
 
 ## Current Release
 
-`1.6.0`
+`1.7.0`
 
 Includes:
 
+- First Delivery Walkthrough phase `1.7.0`: complete first-slice walkthrough, Adoption Trial Report, walkthrough agent prompt, and `scripts/check-first-delivery-walkthrough.mjs`
+- Added `core/first-delivery-walkthrough.md`, `templates/adoption-trial-report.md`, `checklists/first-delivery-walkthrough-review.md`, `prompts/walkthrough-agent.md`, and `docs/first-delivery-walkthrough.md`
+- Added `adoption-trial-reports/` as an optional evidence directory; empty target projects are not forced to create reports
+- Added simulated booking mini app walkthrough under `examples/1.7-first-delivery-walkthrough/`
+- `1.7.0` does not claim production validation, real-project adoption evidence, automatic release approval, or automatic scope/risk approval
 - Conversation Drift Control phase `1.6.0`: turn classification, scope change reports, conversation router prompt, and `scripts/check-conversation-drift.mjs`
 - Added `core/conversation-drift-control.md`, `templates/conversation-turn-classification.md`, `templates/scope-change-report.md`, `checklists/conversation-drift-review.md`, `prompts/conversation-router-agent.md`, and `docs/conversation-drift-control.md`
 - Added `conversation-turns/` and `scope-change-reports/` as optional routing evidence directories; empty target projects are not forced to create reports

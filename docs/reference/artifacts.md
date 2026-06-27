@@ -41,6 +41,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `launch-readiness/` | Safe Launch / Delivery Readiness reports |
 | `conversation-turns/` | Conversation Turn Classification reports |
 | `scope-change-reports/` | Scope Change Reports for proposed scope changes |
+| `adoption-trial-reports/` | First Delivery Walkthrough and real/simulated adoption trial evidence |
 
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
 

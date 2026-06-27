@@ -31,6 +31,7 @@ const typeMap = {
   "launch-readiness-report": { dir: "launch-readiness", template: "launch-readiness-report.md", defaultName: "launch-readiness" },
   "conversation-turn-classification": { dir: "conversation-turns", template: "conversation-turn-classification.md", defaultName: "conversation-turn" },
   "scope-change-report": { dir: "scope-change-reports", template: "scope-change-report.md", defaultName: "scope-change" },
+  "adoption-trial-report": { dir: "adoption-trial-reports", template: "adoption-trial-report.md", defaultName: "adoption-trial" },
 };
 
 const aliases = {
@@ -85,6 +86,11 @@ const aliases = {
   "turn-classification": "conversation-turn-classification",
   "scope-change": "scope-change-report",
   scopechange: "scope-change-report",
+  "first-delivery": "adoption-trial-report",
+  walkthrough: "adoption-trial-report",
+  "adoption-trial": "adoption-trial-report",
+  "adoption-evidence": "adoption-trial-report",
+  trial: "adoption-trial-report",
 };
 
 function parseArgs(argv) {
@@ -132,6 +138,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type launch-readiness-report --name first-slice");
   console.error("  node scripts/new-workflow-item.mjs --type conversation-turn-classification --name user-scope-change");
   console.error("  node scripts/new-workflow-item.mjs --type scope-change-report --name add-payments");
+  console.error("  node scripts/new-workflow-item.mjs --type adoption-trial-report --name first-slice");
 }
 
 function fail(message) {
@@ -1191,6 +1198,21 @@ function fillScopeChangeReport(content, context) {
   return output;
 }
 
+function fillAdoptionTrialReport(content, context) {
+  let output = setTitle(content, `# Adoption Trial Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", "Plain-language summary of what was tried and what the trial proves.");
+  output = setSection(output, "Scenario", [
+    "- Project type:",
+    "- New or existing project:",
+    "- User skill level:",
+    "- User starting sentence:",
+    "- Platform:",
+    "- Baseline target:",
+  ].join("\n"));
+  output = setSection(output, "Outcome", "`NEEDS_HUMAN_DECISION`");
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1351,6 +1373,7 @@ if (type === "subagent-run-plan") content = fillSubagentRunPlan(content, baseCon
 if (type === "launch-readiness-report") content = fillLaunchReadinessReport(content, baseContext);
 if (type === "conversation-turn-classification") content = fillConversationTurnClassification(content, baseContext);
 if (type === "scope-change-report") content = fillScopeChangeReport(content, baseContext);
+if (type === "adoption-trial-report") content = fillAdoptionTrialReport(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -1407,6 +1430,10 @@ if (type === "review-packet") {
 } else if (type === "conversation-turn-classification" || type === "scope-change-report") {
   console.log("- Fill routing, scope impact, risk impact, and human decision fields before acting on the turn.");
   console.log("- Run node scripts/check-conversation-drift.mjs . after filling the report.");
+} else if (type === "adoption-trial-report") {
+  console.log("- Fill the starting idea, Codex routing, baseline path, artifact path, human decisions, drift events, verification, and delivery boundary.");
+  console.log("- Label simulated evidence as simulated; do not claim real-project or production validation without evidence.");
+  console.log("- Run node scripts/check-first-delivery-walkthrough.mjs . after filling the report.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

@@ -919,5 +919,61 @@
       "RISK_DECISION must require human decision"
     ],
     "howToFix": "Risk decisions must stop for human decision and must not auto-approve release or production behavior."
+  },
+  {
+    "name": "good first delivery walkthrough booking app",
+    "type": "golden",
+    "checker": "check-first-delivery-walkthrough",
+    "script": "scripts/check-first-delivery-walkthrough.mjs",
+    "args": [
+      "examples/1.7-first-delivery-walkthrough"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "First delivery walkthrough check passed"
+    ],
+    "howToFix": "Keep the first delivery walkthrough example complete with request, task, launch readiness, final report, human decisions, subagent closure, and simulated evidence labeling."
+  },
+  {
+    "name": "bad first delivery missing final report",
+    "type": "bad",
+    "checker": "check-first-delivery-walkthrough",
+    "script": "scripts/check-first-delivery-walkthrough.mjs",
+    "args": [
+      "test-fixtures/bad/bad-first-delivery-missing-final"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "must reference Final Report"
+    ],
+    "howToFix": "Adoption Trial Reports must reference the final report when recording a first delivery path."
+  },
+  {
+    "name": "bad first delivery missing launch readiness",
+    "type": "bad",
+    "checker": "check-first-delivery-walkthrough",
+    "script": "scripts/check-first-delivery-walkthrough.mjs",
+    "args": [
+      "test-fixtures/bad/bad-first-delivery-missing-launch"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "must reference Launch Readiness"
+    ],
+    "howToFix": "Adoption Trial Reports must reference launch readiness when recording a first delivery path."
+  },
+  {
+    "name": "bad first delivery overclaim",
+    "type": "bad",
+    "checker": "check-first-delivery-walkthrough",
+    "script": "scripts/check-first-delivery-walkthrough.mjs",
+    "args": [
+      "test-fixtures/bad/bad-first-delivery-overclaim"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "forbidden walkthrough overclaim"
+    ],
+    "howToFix": "Simulated first delivery walkthroughs must not claim production readiness or production validation."
   }
 ]

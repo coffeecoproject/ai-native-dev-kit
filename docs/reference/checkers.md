@@ -20,6 +20,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-context-governance.mjs` | Learning candidates, context corrections, Git boundary reports, and source-of-truth boundaries |
 | `check-launch-readiness.mjs` | Launch readiness reports, evidence, human decisions, and overclaims |
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
+| `check-first-delivery-walkthrough.mjs` | First Delivery Walkthrough and Adoption Trial evidence |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
 | `check-industrial-baseline.mjs` | BL0/BL1/BL2 and selected industrial baseline readiness |
@@ -79,6 +80,7 @@ Product and claim checks:
 - `check-context-governance.mjs` is candidate/audit focused; it does not approve project facts or require learning candidates for every task.
 - `check-launch-readiness.mjs` allows empty projects, but rejects ready states without verification, reports with pending human decisions, and production-safety overclaims.
 - `check-conversation-drift.mjs` allows empty projects, but rejects discussion-only writes, scope changes without human decision, and risk decisions that auto-continue.
+- `check-first-delivery-walkthrough.mjs` allows empty projects, but rejects walkthrough reports missing final report or launch readiness references, simulated evidence overclaims, and unclosed subagents.
 
 ## Suggested Sequences
 
@@ -98,6 +100,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-first-delivery-walkthrough.mjs .
 ```
 
 For L2/L3 task completion:
@@ -109,6 +112,7 @@ node scripts/check-review-loop.mjs . --task tasks/<task>.md
 node scripts/check-next-step-boundary.mjs . --task tasks/<task>.md
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-first-delivery-walkthrough.mjs .
 ```
 
 For dev-kit changes:
@@ -120,6 +124,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-dev-kit.mjs
 git diff --check

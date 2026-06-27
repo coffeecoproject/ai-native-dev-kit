@@ -196,6 +196,7 @@ function checkRequiredFiles() {
     "scripts/check-context-governance.mjs",
     "scripts/check-launch-readiness.mjs",
     "scripts/check-conversation-drift.mjs",
+    "scripts/check-first-delivery-walkthrough.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -474,6 +475,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
     ".ai-native/docs/conversation-drift-control.md",
+    ".ai-native/docs/first-delivery-walkthrough.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -486,6 +488,7 @@ function checkVersionMetadata() {
     ".ai-native/core/git-boundary.md",
     ".ai-native/core/safe-launch.md",
     ".ai-native/core/conversation-drift-control.md",
+    ".ai-native/core/first-delivery-walkthrough.md",
     ".ai-native/core/safe-launch.md",
     ".ai-native/core/conversation-drift-control.md",
     ".ai-native/templates/learning-candidate.md",
@@ -494,18 +497,21 @@ function checkVersionMetadata() {
     ".ai-native/templates/launch-readiness-report.md",
     ".ai-native/templates/conversation-turn-classification.md",
     ".ai-native/templates/scope-change-report.md",
+    ".ai-native/templates/adoption-trial-report.md",
     ".ai-native/templates/launch-readiness-report.md",
     ".ai-native/templates/conversation-turn-classification.md",
     ".ai-native/templates/scope-change-report.md",
     ".ai-native/prompts/context-governance-agent.md",
     ".ai-native/prompts/launch-readiness-agent.md",
     ".ai-native/prompts/conversation-router-agent.md",
+    ".ai-native/prompts/walkthrough-agent.md",
     ".ai-native/prompts/launch-readiness-agent.md",
     ".ai-native/prompts/conversation-router-agent.md",
     ".ai-native/checklists/context-governance-review.md",
     ".ai-native/checklists/git-boundary-review.md",
     ".ai-native/checklists/launch-readiness-review.md",
     ".ai-native/checklists/conversation-drift-review.md",
+    ".ai-native/checklists/first-delivery-walkthrough-review.md",
     ".ai-native/checklists/launch-readiness-review.md",
     ".ai-native/checklists/conversation-drift-review.md",
     "learning-candidates",
@@ -514,6 +520,7 @@ function checkVersionMetadata() {
     "launch-readiness",
     "conversation-turns",
     "scope-change-reports",
+    "adoption-trial-reports",
     "adoption-recommendations",
     "baseline-recommendations",
     "baseline-gap-reports",
@@ -548,6 +555,7 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-context-governance.mjs .",
     "node scripts/check-launch-readiness.mjs .",
     "node scripts/check-conversation-drift.mjs .",
+    "node scripts/check-first-delivery-walkthrough.mjs .",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -564,6 +572,7 @@ function checkDevKitFirstPartyCi() {
     "check-context-governance.mjs",
     "check-launch-readiness.mjs",
     "check-conversation-drift.mjs",
+    "check-first-delivery-walkthrough.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -584,6 +593,7 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-context-governance.mjs .",
     "node scripts/check-launch-readiness.mjs .",
     "node scripts/check-conversation-drift.mjs .",
+    "node scripts/check-first-delivery-walkthrough.mjs .",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -598,6 +608,7 @@ function checkDevKitFirstPartyCi() {
     "check-context-governance.mjs",
     "check-launch-readiness.mjs",
     "check-conversation-drift.mjs",
+    "check-first-delivery-walkthrough.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -1063,6 +1074,13 @@ function checkCliFrontDoor() {
     pass("CLI conversation-drift delegates to conversation drift checker");
   } else {
     fail(`CLI conversation-drift failed: ${conversationDrift.stderr || conversationDrift.stdout}`);
+  }
+
+  const firstDelivery = runNode(["scripts/cli.mjs", "first-delivery", "."]);
+  if (firstDelivery.status === 0 && firstDelivery.stdout.includes("First delivery walkthrough check passed")) {
+    pass("CLI first-delivery delegates to first delivery checker");
+  } else {
+    fail(`CLI first-delivery failed: ${firstDelivery.stderr || firstDelivery.stdout}`);
   }
 
   const start = runNode(["scripts/cli.mjs", "start", "."]);
@@ -2008,6 +2026,125 @@ function checkConversationDriftProtocol() {
   }
 }
 
+function checkFirstDeliveryWalkthroughProtocol() {
+  const required = [
+    "core/first-delivery-walkthrough.md",
+    "templates/adoption-trial-report.md",
+    "checklists/first-delivery-walkthrough-review.md",
+    "prompts/walkthrough-agent.md",
+    "docs/first-delivery-walkthrough.md",
+    "adoption-trial-reports/.gitkeep",
+    "adoption-trial-reports/170-first-delivery-walkthrough.md",
+    "scripts/check-first-delivery-walkthrough.mjs",
+    "examples/1.7-first-delivery-walkthrough/README.md",
+    "examples/1.7-first-delivery-walkthrough/adoption-trial-reports/001-booking-app-simulation.md",
+    "examples/1.7-first-delivery-walkthrough/launch-readiness/001-booking-app-demo.md",
+    "examples/1.7-first-delivery-walkthrough/final-reports/001-booking-app.md",
+    "examples/1.7-first-delivery-walkthrough/conversation-turns/001-add-payment.md",
+    "examples/1.7-first-delivery-walkthrough/scope-change-reports/001-add-payment.md",
+    "releases/1.7.0/release-record.md",
+    "releases/1.7.0/known-limitations.md",
+    "releases/1.7.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`first delivery asset exists ${file}`);
+    else fail(`first delivery asset missing ${file}`);
+  }
+
+  const core = read("core/first-delivery-walkthrough.md");
+  for (const marker of [
+    "Human idea",
+    "Lightweight Path",
+    "Adoption Trial Report",
+    "Forbidden Claims",
+  ]) {
+    if (core.includes(marker)) pass(`first delivery core includes ${marker}`);
+    else fail(`first delivery core missing ${marker}`);
+  }
+
+  const firstDeliveryCheck = runNode(["scripts/check-first-delivery-walkthrough.mjs", "."]);
+  if (firstDeliveryCheck.status === 0 && firstDeliveryCheck.stdout.includes("First delivery walkthrough check passed")) {
+    pass("first delivery checker passes source repo");
+  } else {
+    fail(`first delivery checker failed: ${firstDeliveryCheck.stderr || firstDeliveryCheck.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-first-delivery-walkthrough.mjs", "examples/1.7-first-delivery-walkthrough"]);
+  if (example.status === 0 && example.stdout.includes("First delivery walkthrough check passed")) {
+    pass("first delivery example passes checker");
+  } else {
+    fail(`first delivery example failed: ${example.stderr || example.stdout}`);
+  }
+
+  const workflowArtifacts = runNode([
+    "scripts/check-workflow-artifacts.mjs",
+    ".",
+    "--mode",
+    "ready",
+    "--task",
+    "tasks/170-first-delivery-walkthrough.md",
+  ]);
+  if (workflowArtifacts.status === 0) {
+    pass("first delivery execution passes workflow artifact gate");
+  } else {
+    fail(`first delivery workflow artifact gate failed: ${workflowArtifacts.stderr || workflowArtifacts.stdout}`);
+  }
+
+  const reviewLoop = runNode([
+    "scripts/check-review-loop.mjs",
+    ".",
+    "--task",
+    "tasks/170-first-delivery-walkthrough.md",
+  ]);
+  if (reviewLoop.status === 0) {
+    pass("first delivery execution passes review loop gate");
+  } else {
+    fail(`first delivery review loop gate failed: ${reviewLoop.stderr || reviewLoop.stdout}`);
+  }
+
+  const nextStepBoundary = runNode([
+    "scripts/check-next-step-boundary.mjs",
+    ".",
+    "--task",
+    "tasks/170-first-delivery-walkthrough.md",
+  ]);
+  if (nextStepBoundary.status === 0) {
+    pass("first delivery execution passes next-step boundary gate");
+  } else {
+    fail(`first delivery next-step boundary gate failed: ${nextStepBoundary.stderr || nextStepBoundary.stdout}`);
+  }
+
+  const subagentRunPlan = read("subagent-run-plans/170-first-delivery-walkthrough.md");
+  const subagentMarkers = [
+    "Many readers, one writer: Yes",
+    "All subagents closed: Yes",
+    "No subagent left occupying a slot after handoff: Yes",
+  ];
+  for (const marker of subagentMarkers) {
+    if (subagentRunPlan.includes(marker)) pass(`first delivery subagent evidence includes ${marker}`);
+    else fail(`first delivery subagent evidence missing ${marker}`);
+  }
+  if (/\|\s*[^|\n]+\s*\|\s*[^|\n]+\s*\|\s*[^|\n]+\s*\|\s*(RUNNING|PENDING)\s*\|/i.test(subagentRunPlan)) {
+    fail("first delivery subagent role roster must not leave RUNNING or PENDING agents");
+  } else {
+    pass("first delivery subagent role roster leaves no running or pending agents");
+  }
+
+  for (const [name, args, expected] of [
+    ["missing final", ["scripts/check-first-delivery-walkthrough.mjs", "test-fixtures/bad/bad-first-delivery-missing-final"], "must reference Final Report"],
+    ["missing launch", ["scripts/check-first-delivery-walkthrough.mjs", "test-fixtures/bad/bad-first-delivery-missing-launch"], "must reference Launch Readiness"],
+    ["overclaim", ["scripts/check-first-delivery-walkthrough.mjs", "test-fixtures/bad/bad-first-delivery-overclaim"], "forbidden walkthrough overclaim"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`first delivery rejects ${name}`);
+    } else {
+      fail(`first delivery must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -2250,7 +2387,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -2274,6 +2411,7 @@ function checkPlatformAdapters() {
     "check-context-governance.mjs",
     "check-launch-readiness.mjs",
     "check-conversation-drift.mjs",
+    "check-first-delivery-walkthrough.mjs",
     "check-platform-baseline.mjs",
     "resolve-platform-baseline.mjs",
     "check-industrial-pack.mjs",
@@ -2381,6 +2519,7 @@ function checkReadmePointers() {
     "node scripts/check-context-governance.mjs",
     "node scripts/check-launch-readiness.mjs",
     "node scripts/check-conversation-drift.mjs",
+    "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/cli.mjs next",
     "node scripts/cli.mjs init",
     "node scripts/cli.mjs update",
@@ -2402,6 +2541,7 @@ function checkReadmePointers() {
     "docs/minimal-commit-set.md",
     "docs/safe-launch.md",
     "docs/conversation-drift-control.md",
+    "docs/first-delivery-walkthrough.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -2410,6 +2550,7 @@ function checkReadmePointers() {
     "docs/migrations/0.33-to-1.0.md",
     "docs/troubleshooting.md",
     "docs/faq.md",
+    "releases/1.7.0/release-record.md",
     "releases/1.4.0/release-record.md",
     "releases/1.4.1/release-record.md",
     "releases/1.5.0/release-record.md",
@@ -2432,6 +2573,7 @@ function checkReadmePointers() {
     "node scripts/check-context-governance.mjs",
     "node scripts/check-launch-readiness.mjs",
     "node scripts/check-conversation-drift.mjs",
+    "node scripts/check-first-delivery-walkthrough.mjs",
     "重要边界",
     "docs/operator-manual.md",
     "docs/first-hour.md",
@@ -2444,6 +2586,7 @@ function checkReadmePointers() {
     "docs/minimal-commit-set.md",
     "docs/safe-launch.md",
     "docs/conversation-drift-control.md",
+    "docs/first-delivery-walkthrough.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -2466,6 +2609,7 @@ function checkReadmePointers() {
     "docs/minimal-commit-set.md",
     "docs/safe-launch.md",
     "docs/conversation-drift-control.md",
+    "docs/first-delivery-walkthrough.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -2534,9 +2678,12 @@ function checkReadmePointers() {
     "Conversation Drift Control",
     "Conversation Turn Classification",
     "Scope Change Report",
+    "First Delivery Walkthrough",
+    "Adoption Trial Report",
     "launch-readiness",
     "conversation-turns",
     "scope-change-reports",
+    "adoption-trial-reports",
     "follow-up-proposal",
     "final-report",
     "human-status-report",
@@ -3115,6 +3262,16 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project conversation drift check");
+
+  const firstDeliveryCheck = runNode([
+    path.join(target, "scripts", "check-first-delivery-walkthrough.mjs"),
+    target,
+  ]);
+  if (firstDeliveryCheck.status !== 0 || !firstDeliveryCheck.stdout.includes("First delivery walkthrough check passed")) {
+    fail(`generated project first delivery walkthrough check failed: ${firstDeliveryCheck.stderr || firstDeliveryCheck.stdout}`);
+    return;
+  }
+  pass("generated project first delivery walkthrough check");
 
   if (fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
     fail("generated project default bootstrap should not install concrete web-app industrial pack");
@@ -4728,6 +4885,7 @@ checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();
 checkConversationDriftProtocol();
+checkFirstDeliveryWalkthroughProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

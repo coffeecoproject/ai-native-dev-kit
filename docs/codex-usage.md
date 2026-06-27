@@ -54,6 +54,7 @@ Expected Codex behavior:
 - Run `node scripts/check-context-governance.mjs .` when learning candidates, context corrections, Git boundary reports, baselines, AGENTS, or project source-of-truth docs change.
 - Run `node scripts/check-launch-readiness.mjs .` when a task claims demo, internal handoff, release-review, blocked, or not-ready status.
 - Run `node scripts/check-conversation-drift.mjs .` when a user message may be discussion-only, review-only, a scope change, a new task, a direct follow-up, a risk decision, or a pause/stop request.
+- Run `node scripts/check-first-delivery-walkthrough.mjs .` when a broad idea is recorded as a first delivery walkthrough or adoption trial.
 - Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
 - Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
 

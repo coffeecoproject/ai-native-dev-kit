@@ -86,6 +86,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 

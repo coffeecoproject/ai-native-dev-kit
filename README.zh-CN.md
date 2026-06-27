@@ -20,7 +20,7 @@
 
 平台 profile 负责区分 Web、iOS、Android、微信小程序、后端等工程差异。工业包只按需启用，不默认全开。
 
-当前版本还补了两层保护：任务完成后先判断能不能演示、交接或进入发布审查；对话过程中如果用户只是讨论、改范围、提出新想法或问上线风险，Codex 要先识别边界，不能直接把聊天内容当成执行许可。
+当前版本还补了三层保护：任务完成后先判断能不能演示、交接或进入发布审查；对话过程中如果用户只是讨论、改范围、提出新想法或问上线风险，Codex 要先识别边界，不能直接把聊天内容当成执行许可；如果用户只有一个想法，可以走一次完整的首次交付演练，看它怎么从一句话推进到 demo 边界。
 
 ## 最小开始方式
 
@@ -78,6 +78,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-first-delivery-walkthrough.mjs .
 ```
 
 ## Codex 一句话入口
@@ -104,6 +105,7 @@ node scripts/check-conversation-drift.mjs .
 - 不要把 Codex 观察到的内容直接当成项目记忆；必须先做人确认。
 - 不要把 `READY_FOR_DEMO`、`READY_FOR_INTERNAL_HANDOFF` 或 `READY_FOR_RELEASE_REVIEW` 当成生产上线批准。
 - 不要把讨论、旁路问题、范围变化或风险问题直接当成继续当前任务的许可。
+- 不要把首次交付演练或试跑报告当成真实生产验证。
 
 ## 完整说明
 
@@ -124,6 +126,7 @@ node scripts/check-conversation-drift.mjs .
 - [Minimal Commit Set](docs/minimal-commit-set.md)：提交时只提交什么
 - [Safe Launch](docs/safe-launch.md)：交付前判断能不能演示、交接或进入发布审查
 - [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
+- [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
 - [Scripts Reference](docs/reference/scripts.md)：命令说明
 - [Artifacts Reference](docs/reference/artifacts.md)：文件说明
 - [Checkers Reference](docs/reference/checkers.md)：检查器说明
@@ -136,6 +139,7 @@ node scripts/check-conversation-drift.mjs .
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
 - [Troubleshooting](docs/troubleshooting.md)：常见问题处理
 - [FAQ](docs/faq.md)：问答
+- [1.7 Release Record](releases/1.7.0/release-record.md)：1.7 首次交付演练
 - [1.6 Release Record](releases/1.6.0/release-record.md)：1.6 对话偏移控制
 - [1.5 Release Record](releases/1.5.0/release-record.md)：1.5 安全交付就绪
 - [1.4.1 Release Record](releases/1.4.1/release-record.md)：1.4.1 上下文治理使用修整

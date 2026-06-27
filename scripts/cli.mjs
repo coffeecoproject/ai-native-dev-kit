@@ -55,6 +55,12 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "first-delivery": {
+    description: "Check First Delivery Walkthrough and adoption trial evidence.",
+    script: "scripts/check-first-delivery-walkthrough.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   init: {
     description: "Initialize workflow assets in a target project.",
     script: "scripts/init-project.mjs",
@@ -201,6 +207,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs context-governance .");
   console.log("  node scripts/cli.mjs launch-readiness .");
   console.log("  node scripts/cli.mjs conversation-drift .");
+  console.log("  node scripts/cli.mjs first-delivery .");
   console.log("  node scripts/cli.mjs init --starter generic-project --target ../my-project");
   console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");

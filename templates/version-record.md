@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.6.0`
+`1.7.0`
 
 ## Project Version File
 
@@ -47,3 +47,5 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Existing `.github/pull_request_template.md` files are not modified unless `--apply-pr-template-governance` is explicitly used after reviewing `.ai-native/migration-reports/pr-template-governance.md`.
 - Existing `AGENTS.md` files are not modified unless `--apply-agent-governance` is explicitly used after reviewing `.ai-native/migration-reports/agents-governance.md`.
 - Version mismatch means the project may not have the latest workflow assets.
+- `1.7.0` adds First Delivery Walkthrough assets: First Delivery Walkthrough, Adoption Trial Report, walkthrough agent prompt, and first delivery checks.
+- `1.7.0` records first-slice walkthrough and adoption trial evidence, but it does not claim production validation or approve release, payment, privacy, security, legal, compliance, migration, or customer promises.

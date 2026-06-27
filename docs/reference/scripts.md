@@ -15,6 +15,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs context-governance <project>` | Check project memory, context correction, and Git boundary governance | No |
 | `node scripts/cli.mjs launch-readiness <project>` | Check Safe Launch / Delivery Readiness reports | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
+| `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
 | `node scripts/cli.mjs update --target <project>` | Update workflow assets | Yes |
 | `node scripts/cli.mjs next <project>` | Read project state and report next safe action | No |
@@ -62,6 +63,8 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
 
+`scripts/check-first-delivery-walkthrough.mjs` checks Adoption Trial Reports so first-slice walkthroughs include the starting idea, route, baseline path, artifacts, human decisions, drift handling, verification, launch readiness, final report, and claim boundary.
+
 `scripts/workflow-next.mjs` reads project state and reports:
 
 - `ADOPTION_MODE`
@@ -95,6 +98,7 @@ Common types:
 - `launch-readiness-report`
 - `conversation-turn-classification`
 - `scope-change-report`
+- `adoption-trial-report`
 
 ## Checks
 
@@ -117,6 +121,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-guided-adoption.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/check-industrial-baseline.mjs .
