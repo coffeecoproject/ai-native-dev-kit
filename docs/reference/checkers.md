@@ -22,7 +22,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
 | `check-first-delivery-walkthrough.mjs` | First Delivery Walkthrough and Adoption Trial evidence |
 | `check-real-adoption-trial.mjs` | Real-project read-only adoption trial reports, bridge boundaries, and public evidence status |
-| `check-patch-classification.mjs` | Repair-scale classification before non-trivial fixes |
+| `check-patch-classification.mjs` | Repair-scale classification and false-positive calibration before non-trivial fixes |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
 | `check-industrial-baseline.mjs` | BL0/BL1/BL2 and selected industrial baseline readiness |
@@ -84,7 +84,7 @@ Product and claim checks:
 - `check-conversation-drift.mjs` allows empty projects, but rejects discussion-only writes, scope changes without human decision, and risk decisions that auto-continue.
 - `check-first-delivery-walkthrough.mjs` allows empty projects, but rejects walkthrough reports missing final report or launch readiness references, simulated evidence overclaims, and unclosed subagents.
 - `check-real-adoption-trial.mjs` allows empty projects, but rejects real adoption reports with target writes, missing read-only evidence, unsafe bridge claims, local-only public naming, overclaims, secret-like content, or unclosed subagents.
-- `check-patch-classification.mjs` allows empty projects, but rejects unsafe `SAFE_LOCAL_FIX` classification on high-risk surfaces, patch reports that authorize implementation, missing evidence, and completed `DO_NOT_PATCH` reports.
+- `check-patch-classification.mjs` allows empty projects, but rejects unsafe `SAFE_LOCAL_FIX` classification on high-risk surfaces, patch reports that authorize implementation, missing evidence, completed `DO_NOT_PATCH` reports, and false-positive records that accept real high-risk impact as safe.
 
 ## Suggested Sequences
 

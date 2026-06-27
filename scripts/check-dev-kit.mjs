@@ -2186,10 +2186,12 @@ function checkFirstDeliveryWalkthroughProtocol() {
 function checkRealAdoptionAndPatchClassificationProtocol() {
   const required = [
     "docs/real-project-adoption-trial-1.8-plan.md",
+    "docs/real-adoption-usage.md",
     "core/real-project-adoption-trial.md",
     "core/patch-classification.md",
     "templates/real-adoption-trial-report.md",
     "templates/patch-classification-report.md",
+    "templates/patch-classification-false-positive.md",
     "templates/existing-governance-map.md",
     "checklists/real-adoption-trial-review.md",
     "checklists/patch-classification-review.md",
@@ -2201,9 +2203,11 @@ function checkRealAdoptionAndPatchClassificationProtocol() {
     "real-adoption-trials/.gitkeep",
     "governance-maps/.gitkeep",
     "patch-classifications/.gitkeep",
+    "patch-classification-false-positives/.gitkeep",
     "real-adoption-trials/180-governed-web-readonly.md",
     "governance-maps/180-governed-web-readonly.md",
     "patch-classifications/180-governed-web-repair-scale.md",
+    "patch-classification-false-positives/181-risk-surface-calibration.md",
     "examples/1.8-real-project-readonly/README.md",
     "examples/1.8-real-project-readonly/real-adoption-trials/001-governed-web-readonly.md",
     "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
@@ -2211,6 +2215,9 @@ function checkRealAdoptionAndPatchClassificationProtocol() {
     "releases/1.8.0/release-record.md",
     "releases/1.8.0/known-limitations.md",
     "releases/1.8.0/self-check-report.md",
+    "releases/1.8.1/release-record.md",
+    "releases/1.8.1/known-limitations.md",
+    "releases/1.8.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`real adoption / patch classification asset exists ${file}`);
@@ -2281,6 +2288,7 @@ function checkRealAdoptionAndPatchClassificationProtocol() {
     ["safe local high risk", ["scripts/check-patch-classification.mjs", "test-fixtures/bad/bad-patch-safe-local-high-risk"], "SAFE_LOCAL_FIX"],
     ["patch authorizes implementation", ["scripts/check-patch-classification.mjs", "test-fixtures/bad/bad-patch-authorizes-implementation"], "authorize implementation"],
     ["do not patch completed", ["scripts/check-patch-classification.mjs", "test-fixtures/bad/bad-patch-do-not-patch-done"], "DO_NOT_PATCH"],
+    ["patch false positive unsafe", ["scripts/check-patch-classification.mjs", "test-fixtures/bad/bad-patch-false-positive-unsafe"], "false-positive cannot be accepted"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;

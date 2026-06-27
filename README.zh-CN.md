@@ -83,6 +83,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 ```
 
+`real-adoption` 和 `patch-classification` 检查的是已经记录好的证据，不会自动扫描真实项目、写入桥接文件或批准实现。
+
 ## Codex 一句话入口
 
 把仓库地址、目录或文件给 Codex，然后说：
@@ -132,6 +134,7 @@ node scripts/check-patch-classification.mjs .
 - [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
 - [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
 - [Real Project Read-only Adoption Trial Plan](docs/real-project-adoption-trial-1.8-plan.md)：真实项目只读接入与补丁分类治理
+- [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
 - [Scripts Reference](docs/reference/scripts.md)：命令说明
 - [Artifacts Reference](docs/reference/artifacts.md)：文件说明
 - [Checkers Reference](docs/reference/checkers.md)：检查器说明
@@ -144,6 +147,7 @@ node scripts/check-patch-classification.mjs .
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
 - [Troubleshooting](docs/troubleshooting.md)：常见问题处理
 - [FAQ](docs/faq.md)：问答
+- [1.8.1 Release Record](releases/1.8.1/release-record.md)：1.8.1 真实项目接入校准
 - [1.8 Release Record](releases/1.8.0/release-record.md)：1.8 真实项目只读接入与补丁分类治理
 - [1.7 Release Record](releases/1.7.0/release-record.md)：1.7 首次交付演练
 - [1.6 Release Record](releases/1.6.0/release-record.md)：1.6 对话偏移控制

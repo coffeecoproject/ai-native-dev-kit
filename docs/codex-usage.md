@@ -57,6 +57,7 @@ Expected Codex behavior:
 - Run `node scripts/check-first-delivery-walkthrough.mjs .` when a broad idea is recorded as a first delivery walkthrough or adoption trial.
 - Run `node scripts/check-real-adoption-trial.mjs .` when a real governed or production-sensitive project is recorded as a read-only adoption trial.
 - Run `node scripts/check-patch-classification.mjs .` before proposing or applying a non-trivial fix in a governed project.
+- Remember that `real-adoption` and `patch-classification` check recorded artifacts. They do not automatically generate target-project reports or approve implementation.
 - Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
 - Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
 

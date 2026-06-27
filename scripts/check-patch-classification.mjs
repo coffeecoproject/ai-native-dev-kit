@@ -25,6 +25,7 @@ if (unknown.length > 0) {
 const requiredAssets = [
   "core/patch-classification.md",
   "templates/patch-classification-report.md",
+  "templates/patch-classification-false-positive.md",
   "checklists/patch-classification-review.md",
   "prompts/patch-classifier-agent.md",
   "scripts/check-patch-classification.mjs",
@@ -33,6 +34,7 @@ const requiredAssets = [
 
 const requiredDirectories = [
   "patch-classifications",
+  "patch-classification-false-positives",
 ];
 
 const reportSections = [
@@ -65,6 +67,32 @@ const allowedOutcomes = new Set([
   "DO_NOT_PATCH",
 ]);
 
+const falsePositiveSections = [
+  "Human Summary",
+  "Classification Status",
+  "Trigger",
+  "Why It Was Flagged",
+  "Why It May Be A False Positive",
+  "Safety Check",
+  "Calibration Decision",
+  "Required Human Decisions",
+  "Outcome",
+];
+
+const allowedFalsePositiveStatuses = new Set([
+  "DRAFT",
+  "REVIEWED",
+  "ACCEPTED",
+  "REJECTED",
+]);
+
+const allowedCalibrationDecisions = new Set([
+  "KEEP_CONSERVATIVE",
+  "ADJUST_KEYWORD",
+  "DOCUMENT_EXCEPTION",
+  "REJECT_FALSE_POSITIVE",
+]);
+
 let failed = false;
 const checks = [];
 
@@ -91,6 +119,7 @@ if (shouldRequireAssets) {
 
 checkCoreContent();
 checkPatchReports();
+checkFalsePositiveReports();
 
 if (isSourceRepo) checkSourceEvidence();
 else pass("source-only 1.8 patch classification evidence checks skipped for target project");
@@ -184,13 +213,53 @@ function checkPatchReports() {
   }
 }
 
+function checkFalsePositiveReports() {
+  const files = markdownFiles("patch-classification-false-positives");
+  if (files.length === 0) {
+    pass("patch classification false-positive check skipped: no false-positive reports");
+    return;
+  }
+
+  for (const file of files) {
+    const content = fs.readFileSync(file, "utf8");
+    const label = rel(file);
+    for (const section of falsePositiveSections) requireSection(content, section, label);
+
+    if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
+    if (/authorizes implementation:\s*Yes/i.test(content) || /approve[s]? implementation/i.test(content)) {
+      fail(`${label} false-positive records must not approve implementation`);
+    }
+
+    const status = labeledValue(content, "Status").toUpperCase();
+    if (allowedFalsePositiveStatuses.has(status)) pass(`${label} has valid false-positive status`);
+    else fail(`${label} has invalid false-positive status: ${status || "<empty>"}`);
+
+    const decision = labeledValue(content, "Decision").toUpperCase();
+    if (allowedCalibrationDecisions.has(decision)) pass(`${label} has valid calibration decision`);
+    else fail(`${label} has invalid calibration decision: ${decision || "<empty>"}`);
+
+    const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
+    if (outcome === "RECORD_ONLY") pass(`${label} false-positive outcome is RECORD_ONLY`);
+    else fail(`${label} false-positive outcome must be RECORD_ONLY, got ${outcome || "<empty>"}`);
+
+    requireNonEmptySection(content, label, "Why It Was Flagged");
+    requireNonEmptySection(content, label, "Why It May Be A False Positive");
+    requireHumanDecisionBoundary(content, label);
+    requireFalsePositiveSafety(content, label, decision);
+  }
+}
+
 function checkSourceEvidence() {
   for (const file of [
     "patch-classifications/180-governed-web-repair-scale.md",
+    "patch-classification-false-positives/181-risk-surface-calibration.md",
     "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
     "releases/1.8.0/release-record.md",
     "releases/1.8.0/known-limitations.md",
     "releases/1.8.0/self-check-report.md",
+    "releases/1.8.1/release-record.md",
+    "releases/1.8.1/known-limitations.md",
+    "releases/1.8.1/self-check-report.md",
   ]) {
     if (exists(file)) pass(`patch classification source evidence exists ${file}`);
     else fail(`patch classification source evidence missing ${file}`);
@@ -200,6 +269,7 @@ function checkSourceEvidence() {
     ["safe local high risk", "test-fixtures/bad/bad-patch-safe-local-high-risk", "SAFE_LOCAL_FIX"],
     ["authorizes implementation", "test-fixtures/bad/bad-patch-authorizes-implementation", "authorize implementation"],
     ["do not patch completed", "test-fixtures/bad/bad-patch-do-not-patch-done", "DO_NOT_PATCH"],
+    ["unsafe false positive", "test-fixtures/bad/bad-patch-false-positive-unsafe", "false-positive cannot be accepted"],
   ]) {
     const result = runSelf([target]);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -265,6 +335,30 @@ function requireHumanDecisionBoundary(content, label) {
     return;
   }
   pass(`${label} records human decision queue`);
+}
+
+function requireFalsePositiveSafety(content, label, decision) {
+  const rows = parseMarkdownTable(sectionBody(content, "Safety Check"));
+  if (rows.length === 0) {
+    fail(`${label} must include concrete Safety Check rows`);
+    return;
+  }
+  let unsafeYes = false;
+  let invalidResult = false;
+  for (const row of rows) {
+    const result = String(row.result || "").trim();
+    if (!/^(Yes|No)$/i.test(result)) invalidResult = true;
+    if (/^Yes$/i.test(result)) unsafeYes = true;
+  }
+  if (invalidResult) {
+    fail(`${label} Safety Check results must be Yes or No`);
+    return;
+  }
+  if (unsafeYes && decision !== "REJECT_FALSE_POSITIVE") {
+    fail(`${label} false-positive cannot be accepted when Safety Check records real high-risk impact`);
+    return;
+  }
+  pass(`${label} false-positive safety check is bounded`);
 }
 
 function markdownFiles(dir) {
@@ -334,6 +428,30 @@ function tableValue(content, field) {
   const pattern = new RegExp(`^\\|\\s*${escapeRegExp(field)}\\s*\\|\\s*([^|]+?)\\s*\\|\\s*$`, "mi");
   const match = content.match(pattern);
   return match ? match[1].trim().replace(/^`|`$/g, "") : "";
+}
+
+function labeledValue(content, field) {
+  const pattern = new RegExp(`^${escapeRegExp(field)}:\\s*(.+?)\\s*$`, "mi");
+  const match = content.match(pattern);
+  return match ? match[1].trim().replace(/^`|`$/g, "") : "";
+}
+
+function parseMarkdownTable(body) {
+  const lines = String(body || "").split(/\r?\n/).map((line) => line.trim()).filter((line) => line.startsWith("|"));
+  if (lines.length < 2) return [];
+  const header = splitRow(lines[0]).map((cell) => cell.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""));
+  return lines.slice(2).map((line) => {
+    const cells = splitRow(line);
+    const row = {};
+    header.forEach((key, index) => {
+      row[key] = (cells[index] || "").replace(/`/g, "").trim();
+    });
+    return row;
+  }).filter((row) => Object.values(row).some(Boolean));
+}
+
+function splitRow(line) {
+  return line.split("|").slice(1, -1).map((cell) => cell.trim());
 }
 
 function codeOrTextValue(body) {

@@ -1087,5 +1087,19 @@
       "DO_NOT_PATCH"
     ],
     "howToFix": "DO_NOT_PATCH is a stop signal, not completed work."
+  },
+  {
+    "name": "bad patch false positive unsafe",
+    "type": "bad",
+    "checker": "check-patch-classification",
+    "script": "scripts/check-patch-classification.mjs",
+    "args": [
+      "test-fixtures/bad/bad-patch-false-positive-unsafe"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "false-positive cannot be accepted"
+    ],
+    "howToFix": "False-positive records must not accept real high-risk API, gate, DB, permission, release, or environment impact."
   }
 ]

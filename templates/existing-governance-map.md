@@ -62,6 +62,12 @@ Existing governance summary:
 
 - 
 
+## Recommended Risk / Capability Packs
+
+| Pack | Type | Reason | Required Now | Notes |
+|---|---|---|---|---|
+|  | risk overlay / industrial pack / capability pack |  | Yes / No |  |
+
 ## Recommended BL Level
 
 BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL:

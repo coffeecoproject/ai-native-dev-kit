@@ -45,6 +45,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `real-adoption-trials/` | Real-project read-only adoption trial reports |
 | `governance-maps/` | Maps AI Native concepts to existing project authority |
 | `patch-classifications/` | Repair-scale classification before non-trivial fixes |
+| `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
 
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
 

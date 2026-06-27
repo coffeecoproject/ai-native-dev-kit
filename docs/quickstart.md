@@ -58,6 +58,8 @@ node ai-native-dev-kit/scripts/check-real-adoption-trial.mjs .
 node ai-native-dev-kit/scripts/check-patch-classification.mjs .
 ```
 
+These commands check recorded reports. They do not automatically inspect a real target project, write a bridge, or approve a fix. See `docs/real-adoption-usage.md`.
+
 Real project evidence is local-only by default. Public evidence should be sanitized unless the human explicitly approves naming the target project.
 
 If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing a task. Confirm who owns the current git changes and whether they should be committed, split, stashed, ignored, or reviewed first.

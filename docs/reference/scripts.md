@@ -16,8 +16,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs launch-readiness <project>` | Check Safe Launch / Delivery Readiness reports | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
 | `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
-| `node scripts/cli.mjs real-adoption <project>` | Check real-project read-only adoption trial evidence | No |
-| `node scripts/cli.mjs patch-classification <project>` | Check repair-scale classification before non-trivial fixes | No |
+| `node scripts/cli.mjs real-adoption <project>` | Check recorded real-project read-only adoption trial evidence; does not auto-generate a report | No |
+| `node scripts/cli.mjs patch-classification <project>` | Check recorded repair-scale classification and false-positive calibration reports before non-trivial fixes | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
 | `node scripts/cli.mjs update --target <project>` | Update workflow assets | Yes |
 | `node scripts/cli.mjs next <project>` | Read project state and report next safe action | No |
@@ -69,7 +69,7 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-real-adoption-trial.mjs` checks real-project read-only adoption reports so existing governed or production-sensitive projects are mapped before writes, public evidence stays sanitized, and bridge proposals do not overwrite existing authority.
 
-`scripts/check-patch-classification.mjs` checks patch classification reports so non-trivial fixes are routed as safe local fixes, baseline-aligned hardcuts, structural remediation, human decisions, or do-not-patch stops before implementation.
+`scripts/check-patch-classification.mjs` checks patch classification reports so non-trivial fixes are routed as safe local fixes, baseline-aligned hardcuts, structural remediation, human decisions, or do-not-patch stops before implementation. It also checks `patch-classification-false-positives/` when present. False-positive records are calibration evidence only; they do not approve implementation.
 
 `scripts/workflow-next.mjs` reads project state and reports:
 
@@ -107,6 +107,7 @@ Common types:
 - `adoption-trial-report`
 - `real-adoption-trial-report`
 - `patch-classification`
+- `patch-classification-false-positive`
 
 ## Checks
 

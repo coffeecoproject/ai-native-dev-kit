@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.8.0`
+Current version: `1.8.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.8.0`
 
 ## Current Release
 
-`1.8.0`
+`1.8.1`
 
 Includes:
 
+- Real adoption calibration phase `1.8.1`: separates recommended profiles from risk/capability packs, adds patch classification false-positive records, and clarifies that `real-adoption` checks recorded reports rather than auto-generating target-project reports
+- Added `docs/real-adoption-usage.md`, `templates/patch-classification-false-positive.md`, `patch-classification-false-positives/`, and false-positive validation in `scripts/check-patch-classification.mjs`
+- `1.8.1` does not add an automatic real-project scanning runner, target-project write approval, implementation approval, or weaker patch classification defaults
 - Real Project Read-only Adoption Trial phase `1.8.0`: sanitized real-project adoption reports, governance maps, patch classification reports, and `scripts/check-real-adoption-trial.mjs`
 - Patch Classification Governance phase `1.8.0`: repair scale classification before non-trivial fixes, with `SAFE_LOCAL_FIX`, `BASELINE_ALIGNED_HARDCUT`, `STRUCTURAL_REMEDIATION`, `NEEDS_HUMAN_DECISION`, and `DO_NOT_PATCH`
 - Added `core/real-project-adoption-trial.md`, `core/patch-classification.md`, `templates/real-adoption-trial-report.md`, `templates/patch-classification-report.md`, `checklists/real-adoption-trial-review.md`, `checklists/patch-classification-review.md`, `prompts/real-adoption-agent.md`, `prompts/patch-classifier-agent.md`, and `scripts/check-patch-classification.mjs`

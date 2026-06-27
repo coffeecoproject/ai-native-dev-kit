@@ -34,6 +34,7 @@ const typeMap = {
   "adoption-trial-report": { dir: "adoption-trial-reports", template: "adoption-trial-report.md", defaultName: "adoption-trial" },
   "real-adoption-trial-report": { dir: "real-adoption-trials", template: "real-adoption-trial-report.md", defaultName: "real-adoption-trial" },
   "patch-classification": { dir: "patch-classifications", template: "patch-classification-report.md", defaultName: "patch-classification" },
+  "patch-classification-false-positive": { dir: "patch-classification-false-positives", template: "patch-classification-false-positive.md", defaultName: "patch-classification-false-positive" },
 };
 
 const aliases = {
@@ -100,6 +101,9 @@ const aliases = {
   "patch-classifier": "patch-classification",
   "repair-classification": "patch-classification",
   "repair-scale": "patch-classification",
+  "patch-false-positive": "patch-classification-false-positive",
+  "false-positive": "patch-classification-false-positive",
+  "risk-surface-calibration": "patch-classification-false-positive",
 };
 
 function parseArgs(argv) {
@@ -1508,6 +1512,10 @@ if (type === "review-packet") {
 } else if (type === "patch-classification") {
   console.log("- Classify repair scale before proposing or applying a non-trivial fix.");
   console.log("- Do not treat patch classification as implementation authorization.");
+  console.log("- Run node scripts/check-patch-classification.mjs . after filling the report.");
+} else if (type === "patch-classification-false-positive") {
+  console.log("- Use this only when a high-risk keyword appears to be background context after review.");
+  console.log("- Do not use false-positive records to approve implementation or weaken gates.");
   console.log("- Run node scripts/check-patch-classification.mjs . after filling the report.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");

@@ -63,7 +63,12 @@ Existing governance summary: The target already has project-specific agent instr
 - `web-app`
 - `backend-api`
 - `internal-admin`
-- `high-risk-change`
+
+## Recommended Risk / Capability Packs
+
+| Pack | Type | Reason | Required Now | Notes |
+|---|---|---|---|---|
+| high-risk-change | risk overlay / industrial pack | production/release/data boundaries exist | No | use only for approved high-risk change |
 
 ## Recommended BL Level
 

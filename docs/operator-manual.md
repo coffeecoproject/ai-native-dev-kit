@@ -49,6 +49,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 ```
 
+`real-adoption` and `patch-classification` check recorded reports. They do not automatically scan a target project, create reports, write bridge files, or approve implementation. Use `docs/real-adoption-usage.md` to decide whether the project needs only a read-only report, a governance map, or patch classification.
+
 These reports do not authorize target-project writes. They document the read-only boundary, bridge mode, public evidence status, and repair classification.
 
 ## Adoption Paths

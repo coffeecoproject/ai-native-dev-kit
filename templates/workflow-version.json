@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.8.0",
+  "devKitVersion": "1.8.1",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -140,6 +140,9 @@
     "scripts/workflow-daily-summary.mjs",
     "scripts/workflow-next.mjs",
     "status-reports",
-    "subagent-run-plans"
+    "subagent-run-plans",
+    ".ai-native/docs/real-adoption-usage.md",
+    ".ai-native/templates/patch-classification-false-positive.md",
+    "patch-classification-false-positives"
   ]
 }

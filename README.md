@@ -88,6 +88,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 ```
 
+`real-adoption` 和 `patch-classification` 检查的是已经记录好的证据，不会自动扫描真实项目、写入桥接文件或批准实现。
+
 保存过的接入建议可以检查：
 
 ```bash
@@ -144,6 +146,7 @@ node scripts/check-guided-adoption.mjs ../my-project
 - [Conversation Drift Control](docs/conversation-drift-control.md)
 - [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)
 - [Real Project Read-only Adoption Trial Plan](docs/real-project-adoption-trial-1.8-plan.md)
+- [Real Adoption Usage](docs/real-adoption-usage.md)
 - [Scripts Reference](docs/reference/scripts.md)
 - [Artifacts Reference](docs/reference/artifacts.md)
 - [Checkers Reference](docs/reference/checkers.md)
@@ -156,6 +159,7 @@ node scripts/check-guided-adoption.mjs ../my-project
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [FAQ](docs/faq.md)
+- [1.8.1 Release Record](releases/1.8.1/release-record.md)
 - [1.8 Release Record](releases/1.8.0/release-record.md)
 - [1.7 Release Record](releases/1.7.0/release-record.md)
 - [1.6 Release Record](releases/1.6.0/release-record.md)

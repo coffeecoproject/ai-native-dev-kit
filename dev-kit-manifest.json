@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.8.0",
+  "devKitVersion": "1.8.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
@@ -852,7 +852,21 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md"
+      "test-fixtures/output-quality/README.md",
+      "docs/real-adoption-usage.md",
+      "templates/patch-classification-false-positive.md",
+      "patch-classification-false-positives/.gitkeep",
+      "patch-classification-false-positives/181-risk-surface-calibration.md",
+      "requests/181-real-adoption-calibration.md",
+      "preflight/181-real-adoption-calibration.md",
+      "specs/181-real-adoption-calibration.md",
+      "evals/181-real-adoption-calibration.md",
+      "tasks/181-real-adoption-calibration.md",
+      "final-reports/181-real-adoption-calibration.md",
+      "releases/1.8.1/release-record.md",
+      "releases/1.8.1/known-limitations.md",
+      "releases/1.8.1/self-check-report.md",
+      "test-fixtures/bad/bad-patch-false-positive-unsafe/patch-classification-false-positives/001-unsafe.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -1089,7 +1103,10 @@
       "subagent-run-plans",
       "tasks",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/templates/patch-classification-false-positive.md",
+      "patch-classification-false-positives"
     ],
     "targetFull": [
       ".ai-native/checklists/automation-review.md",
@@ -1366,7 +1383,10 @@
       "subagent-run-plans",
       "tasks",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/templates/patch-classification-false-positive.md",
+      "patch-classification-false-positives"
     ],
     "aiNativeCore": [
       ".ai-native/core/assumption-register.md",
@@ -1461,7 +1481,8 @@
       "templates/workflow-daily-summary.md",
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
-      "templates/workflow-version.json"
+      "templates/workflow-version.json",
+      "templates/patch-classification-false-positive.md"
     ],
     "prompts": [
       "prompts/baseline-setup-agent.md",
@@ -1573,7 +1594,8 @@
       "subagent-run-plans",
       "tasks",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "patch-classification-false-positives"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -1840,7 +1862,8 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md"
+      "test-fixtures/output-quality/README.md",
+      "test-fixtures/bad/bad-patch-false-positive-unsafe/patch-classification-false-positives/001-unsafe.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -1979,7 +2002,10 @@
       "scripts/workflow-daily-summary.mjs",
       "scripts/workflow-next.mjs",
       "status-reports",
-      "subagent-run-plans"
+      "subagent-run-plans",
+      ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/templates/patch-classification-false-positive.md",
+      "patch-classification-false-positives"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-enforcement-review.md",
@@ -2167,7 +2193,10 @@
       "scripts/workflow-daily-summary.mjs",
       "scripts/workflow-next.mjs",
       "status-reports",
-      "subagent-run-plans"
+      "subagent-run-plans",
+      ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/templates/patch-classification-false-positive.md",
+      "patch-classification-false-positives"
     ]
   },
   "copyRules": {
@@ -2461,6 +2490,14 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "docs/real-adoption-usage.md",
+        "target": ".ai-native/docs/real-adoption-usage.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".ai-native/templates/patch-classification-false-positive.md"
       }
     ]
   }
