@@ -50,6 +50,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `guided-decision-summaries/` | Optional decision summaries that translate technical choices into user-owned decisions |
 | `change-boundary-reports/` | Intended scope versus actual changed files evidence |
 | `baseline-state-reports/` | Proposed, pending, evidence-required, or confirmed baseline state evidence |
+| `baseline-calibration-reports/` | Read-only real-project evidence used to calibrate baseline selection behavior |
 | `baseline-decision-cards/` | Plain-language BL0/BL1/BL2, standard pack, industrial candidate, and human-decision cards |
 | `standard-baseline-selections/` | Standard baseline pack recommendations, optional industrial overlays, evidence, and human-decision reports |
 | `baseline-pack-selections/` | BL level, profile, pack candidate, not-selected, evidence, and human-decision reports |
