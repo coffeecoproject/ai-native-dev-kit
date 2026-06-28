@@ -103,6 +103,40 @@ Baseline rules:
 - If this task touches build commands, CI/CD, environment variables, deployment, production config, release process, rollback, secrets, logs, monitoring, or alerts, set Environment Baseline touched to Yes and cite `docs/environment-baseline.md`.
 - If the relevant baseline is missing or pending, route the decision to humans before implementation.
 
+## Change Boundary
+
+Boundary level: CB0_ADVISORY / CB1_RECORDED / CB2_CHECKED / CB3_HUMAN_APPROVED
+
+Allowed paths:
+
+- <path or N/A>
+
+Forbidden paths:
+
+- <path or N/A>
+
+Allowed change types:
+
+- <type or N/A>
+
+Forbidden change types:
+
+- <type or N/A>
+
+Expected diff scale: tiny / small / medium / large
+
+Change-boundary report: Not required / `change-boundary-reports/<file>.md`
+
+## Baseline State
+
+Baseline-state report: Not required / `baseline-state-reports/<file>.md`
+
+Baseline states used for this task:
+
+- PROPOSED / PENDING_CONFIRMATION / EVIDENCE_REQUIRED / CONFIRMED / NOT_APPLICABLE / SUPERSEDED
+
+No-code or evidence-required baseline items must not be treated as confirmed implementation authority.
+
 ## Human Approval
 
 Required: No

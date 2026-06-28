@@ -428,6 +428,9 @@ function checkVersionMetadata() {
     "scripts/check-context-governance.mjs",
     "scripts/check-real-adoption-trial.mjs",
     "scripts/check-patch-classification.mjs",
+    "scripts/check-guided-delivery-loop.mjs",
+    "scripts/check-change-boundary.mjs",
+    "scripts/check-baseline-state.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -479,6 +482,9 @@ function checkVersionMetadata() {
     ".ai-native/docs/safe-launch.md",
     ".ai-native/docs/conversation-drift-control.md",
     ".ai-native/docs/first-delivery-walkthrough.md",
+    ".ai-native/docs/change-boundary.md",
+    ".ai-native/docs/baseline-state.md",
+    ".ai-native/docs/guided-delivery-check.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -494,6 +500,8 @@ function checkVersionMetadata() {
     ".ai-native/core/first-delivery-walkthrough.md",
     ".ai-native/core/real-project-adoption-trial.md",
     ".ai-native/core/patch-classification.md",
+    ".ai-native/core/change-boundary.md",
+    ".ai-native/core/baseline-state.md",
     ".ai-native/core/safe-launch.md",
     ".ai-native/core/conversation-drift-control.md",
     ".ai-native/templates/learning-candidate.md",
@@ -505,6 +513,8 @@ function checkVersionMetadata() {
     ".ai-native/templates/adoption-trial-report.md",
     ".ai-native/templates/real-adoption-trial-report.md",
     ".ai-native/templates/patch-classification-report.md",
+    ".ai-native/templates/change-boundary-report.md",
+    ".ai-native/templates/baseline-state-report.md",
     ".ai-native/templates/launch-readiness-report.md",
     ".ai-native/templates/conversation-turn-classification.md",
     ".ai-native/templates/scope-change-report.md",
@@ -514,6 +524,9 @@ function checkVersionMetadata() {
     ".ai-native/prompts/walkthrough-agent.md",
     ".ai-native/prompts/real-adoption-agent.md",
     ".ai-native/prompts/patch-classifier-agent.md",
+    ".ai-native/prompts/guided-delivery-check-agent.md",
+    ".ai-native/prompts/change-boundary-agent.md",
+    ".ai-native/prompts/baseline-state-agent.md",
     ".ai-native/prompts/launch-readiness-agent.md",
     ".ai-native/prompts/conversation-router-agent.md",
     ".ai-native/checklists/context-governance-review.md",
@@ -523,6 +536,9 @@ function checkVersionMetadata() {
     ".ai-native/checklists/first-delivery-walkthrough-review.md",
     ".ai-native/checklists/real-adoption-trial-review.md",
     ".ai-native/checklists/patch-classification-review.md",
+    ".ai-native/checklists/guided-delivery-loop-review.md",
+    ".ai-native/checklists/change-boundary-review.md",
+    ".ai-native/checklists/baseline-state-review.md",
     ".ai-native/checklists/launch-readiness-review.md",
     ".ai-native/checklists/conversation-drift-review.md",
     "learning-candidates",
@@ -535,6 +551,8 @@ function checkVersionMetadata() {
     "real-adoption-trials",
     "governance-maps",
     "patch-classifications",
+    "change-boundary-reports",
+    "baseline-state-reports",
     "adoption-recommendations",
     "baseline-recommendations",
     "baseline-gap-reports",
@@ -562,7 +580,10 @@ function checkDevKitFirstPartyCi() {
   const prMarkers = [
     "actions/setup-node",
     "node-version: 22",
+    "branches:",
+    "- main",
     "node scripts/check-dev-kit.mjs",
+    "npm run verify",
     "node scripts/check-manifest.mjs",
     "node scripts/check-product-baseline.mjs .",
     "node scripts/check-claim-control.mjs .",
@@ -572,6 +593,9 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-first-delivery-walkthrough.mjs .",
     "node scripts/check-real-adoption-trial.mjs .",
     "node scripts/check-patch-classification.mjs .",
+    "node scripts/check-guided-delivery-loop.mjs .",
+    "node scripts/check-change-boundary.mjs .",
+    "node scripts/check-baseline-state.mjs .",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -591,6 +615,9 @@ function checkDevKitFirstPartyCi() {
     "check-first-delivery-walkthrough.mjs",
     "check-real-adoption-trial.mjs",
     "check-patch-classification.mjs",
+    "check-guided-delivery-loop.mjs",
+    "check-change-boundary.mjs",
+    "check-baseline-state.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -605,6 +632,7 @@ function checkDevKitFirstPartyCi() {
     "actions/setup-node",
     "node-version: 22",
     "node scripts/check-dev-kit.mjs",
+    "npm run verify",
     "node scripts/check-manifest.mjs",
     "node scripts/check-product-baseline.mjs .",
     "node scripts/check-claim-control.mjs .",
@@ -614,6 +642,9 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-first-delivery-walkthrough.mjs .",
     "node scripts/check-real-adoption-trial.mjs .",
     "node scripts/check-patch-classification.mjs .",
+    "node scripts/check-guided-delivery-loop.mjs .",
+    "node scripts/check-change-boundary.mjs .",
+    "node scripts/check-baseline-state.mjs .",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -631,6 +662,9 @@ function checkDevKitFirstPartyCi() {
     "check-first-delivery-walkthrough.mjs",
     "check-real-adoption-trial.mjs",
     "check-patch-classification.mjs",
+    "check-guided-delivery-loop.mjs",
+    "check-change-boundary.mjs",
+    "check-baseline-state.mjs",
     "check-workflow-version.mjs",
     "contents: read",
   ];
@@ -655,6 +689,9 @@ function checkDevKitFirstPartyCi() {
     "Assumption Register",
     "Project memory",
     "Git Boundary",
+    "Guided Delivery Loop",
+    "Change Boundary Report",
+    "Baseline State Report",
   ]) {
     if (prTemplate.includes(marker)) pass(`dev-kit PR template includes ${marker}`);
     else fail(`dev-kit PR template missing ${marker}`);
@@ -1035,6 +1072,9 @@ function checkCliFrontDoor() {
   for (const marker of [
     "node scripts/check-manifest.mjs",
     "node scripts/check-dev-kit.mjs",
+    "node --check scripts/check-guided-delivery-loop.mjs",
+    "node --check scripts/check-change-boundary.mjs",
+    "node --check scripts/check-baseline-state.mjs",
     "git diff --check",
   ]) {
     if (pkg.scripts?.verify?.includes(marker)) pass(`package.json verify includes ${marker}`);
@@ -1058,8 +1098,11 @@ function checkCliFrontDoor() {
     "context-governance",
     "launch-readiness",
     "conversation-drift",
+    "guided-delivery",
     "real-adoption",
     "patch-classification",
+    "change-boundary",
+    "baseline-state",
     "init",
     "update",
     "next",
@@ -1125,6 +1168,13 @@ function checkCliFrontDoor() {
     fail(`CLI conversation-drift failed: ${conversationDrift.stderr || conversationDrift.stdout}`);
   }
 
+  const guidedDelivery = runNode(["scripts/cli.mjs", "guided-delivery", "."]);
+  if (guidedDelivery.status === 0 && guidedDelivery.stdout.includes("Guided delivery loop check passed")) {
+    pass("CLI guided-delivery delegates to guided delivery loop checker");
+  } else {
+    fail(`CLI guided-delivery failed: ${guidedDelivery.stderr || guidedDelivery.stdout}`);
+  }
+
   const firstDelivery = runNode(["scripts/cli.mjs", "first-delivery", "."]);
   if (firstDelivery.status === 0 && firstDelivery.stdout.includes("First delivery walkthrough check passed")) {
     pass("CLI first-delivery delegates to first delivery checker");
@@ -1144,6 +1194,20 @@ function checkCliFrontDoor() {
     pass("CLI patch-classification delegates to patch classification checker");
   } else {
     fail(`CLI patch-classification failed: ${patchClassification.stderr || patchClassification.stdout}`);
+  }
+
+  const changeBoundary = runNode(["scripts/cli.mjs", "change-boundary", "."]);
+  if (changeBoundary.status === 0 && changeBoundary.stdout.includes("Change boundary check passed")) {
+    pass("CLI change-boundary delegates to change boundary checker");
+  } else {
+    fail(`CLI change-boundary failed: ${changeBoundary.stderr || changeBoundary.stdout}`);
+  }
+
+  const baselineState = runNode(["scripts/cli.mjs", "baseline-state", "."]);
+  if (baselineState.status === 0 && baselineState.stdout.includes("Baseline state check passed")) {
+    pass("CLI baseline-state delegates to baseline state checker");
+  } else {
+    fail(`CLI baseline-state failed: ${baselineState.stderr || baselineState.stdout}`);
   }
 
   const start = runNode(["scripts/cli.mjs", "start", "."]);
@@ -1901,6 +1965,174 @@ function checkGovernanceHardeningDriftGuardProtocol() {
   ]) {
     if (manifestCheck.includes(marker)) pass(`check-manifest includes drift marker ${marker}`);
     else fail(`check-manifest missing drift marker ${marker}`);
+  }
+}
+
+function checkChangeBoundaryBaselineStateProtocol() {
+  const required = [
+    "docs/change-boundary-baseline-state-1.12-plan.md",
+    "core/change-boundary.md",
+    "core/baseline-state.md",
+    "docs/change-boundary.md",
+    "docs/baseline-state.md",
+    "docs/guided-delivery-check.md",
+    "checklists/change-boundary-review.md",
+    "checklists/baseline-state-review.md",
+    "checklists/guided-delivery-loop-review.md",
+    "prompts/change-boundary-agent.md",
+    "prompts/baseline-state-agent.md",
+    "prompts/guided-delivery-check-agent.md",
+    "templates/change-boundary-report.md",
+    "templates/baseline-state-report.md",
+    "scripts/check-guided-delivery-loop.mjs",
+    "scripts/check-change-boundary.mjs",
+    "scripts/check-baseline-state.mjs",
+    "change-boundary-reports/.gitkeep",
+    "baseline-state-reports/.gitkeep",
+    "requests/220-change-boundary-baseline-state.md",
+    "preflight/220-change-boundary-baseline-state.md",
+    "specs/220-change-boundary-baseline-state.md",
+    "evals/220-change-boundary-baseline-state.md",
+    "tasks/220-change-boundary-baseline-state.md",
+    "final-reports/220-change-boundary-baseline-state.md",
+    "releases/1.12.0/release-record.md",
+    "releases/1.12.0/known-limitations.md",
+    "releases/1.12.0/self-check-report.md",
+    "examples/1.12-change-boundary-baseline-state/README.md",
+    "examples/1.12-change-boundary-baseline-state/active-work-threads/001-appointment-first-slice.md",
+    "examples/1.12-change-boundary-baseline-state/guided-decision-summaries/001-first-slice-boundary.md",
+    "examples/1.12-change-boundary-baseline-state/change-boundary-reports/001-appointment-first-slice.md",
+    "examples/1.12-change-boundary-baseline-state/baseline-state-reports/001-no-code-baseline.md",
+    "examples/1.12-change-boundary-baseline-state/final-reports/001-appointment-first-slice.md",
+    "test-fixtures/bad/bad-guided-delivery-d3-executed/guided-decision-summaries/001-d3-executed.md",
+    "test-fixtures/bad/bad-guided-delivery-parking-approved/active-work-threads/001-parking-approved.md",
+    "test-fixtures/bad/bad-change-boundary-forbidden/change-boundary-reports/001-forbidden.md",
+    "test-fixtures/bad/bad-baseline-state-confirmed-no-evidence/baseline-state-reports/001-confirmed.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`change boundary/baseline state asset exists ${file}`);
+    else fail(`change boundary/baseline state asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/change-boundary-baseline-state-1.12-plan.md"),
+    read("core/change-boundary.md"),
+    read("core/baseline-state.md"),
+    read("docs/change-boundary.md"),
+    read("docs/baseline-state.md"),
+    read("docs/guided-delivery-check.md"),
+    read("templates/change-boundary-report.md"),
+    read("templates/baseline-state-report.md"),
+    read("checklists/guided-delivery-loop-review.md"),
+    read("releases/1.12.0/release-record.md"),
+    read("releases/1.12.0/known-limitations.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Change Boundary",
+    "Baseline State",
+    "Guided Delivery Check",
+    "Intended Scope",
+    "Actual Changed Files",
+    "Allowed paths",
+    "Forbidden paths",
+    "PROPOSED",
+    "PENDING_CONFIRMATION",
+    "EVIDENCE_REQUIRED",
+    "CONFIRMED",
+    "D0",
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "does not approve target-project writes",
+    "does not approve production",
+    "does not make no-code baselines implemented",
+  ]) {
+    if (combined.includes(marker)) pass(`1.12 protocol includes ${marker}`);
+    else fail(`1.12 protocol missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "guided-delivery",
+    "change-boundary",
+    "baseline-state",
+    "scripts/check-guided-delivery-loop.mjs",
+    "scripts/check-change-boundary.mjs",
+    "scripts/check-baseline-state.mjs",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports 1.12 marker ${marker}`);
+    else fail(`CLI missing 1.12 marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "change-boundary-report",
+    "baseline-state-report",
+    "fillChangeBoundaryReport",
+    "fillBaselineStateReport",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports 1.12 marker ${marker}`);
+    else fail(`new-workflow-item missing 1.12 marker ${marker}`);
+  }
+
+  const initProject = read("scripts/init-project.mjs");
+  for (const marker of [
+    "scripts/check-guided-delivery-loop.mjs",
+    "scripts/check-change-boundary.mjs",
+    "scripts/check-baseline-state.mjs",
+    "change-boundary-reports",
+    "baseline-state-reports",
+    ".ai-native/core/change-boundary.md",
+    ".ai-native/core/baseline-state.md",
+  ]) {
+    if (initProject.includes(marker)) pass(`init-project includes 1.12 marker ${marker}`);
+    else fail(`init-project missing 1.12 marker ${marker}`);
+  }
+
+  const positiveChecks = [
+    ["guided delivery example", ["scripts/check-guided-delivery-loop.mjs", "examples/1.12-change-boundary-baseline-state"], "Guided delivery loop check passed"],
+    ["change boundary example", ["scripts/check-change-boundary.mjs", "examples/1.12-change-boundary-baseline-state", "--report", "change-boundary-reports/001-appointment-first-slice.md"], "Change boundary check passed"],
+    ["baseline state example", ["scripts/check-baseline-state.mjs", "examples/1.12-change-boundary-baseline-state", "--report", "baseline-state-reports/001-no-code-baseline.md"], "Baseline state check passed"],
+  ];
+  for (const [label, args, marker] of positiveChecks) {
+    const result = runNode(args);
+    if (result.status === 0 && result.stdout.includes(marker)) {
+      pass(`1.12 ${label}`);
+    } else {
+      fail(`1.12 ${label} failed: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  const negativeChecks = [
+    ["bad guided delivery D3 execution", ["scripts/check-guided-delivery-loop.mjs", "test-fixtures/bad/bad-guided-delivery-d3-executed"], "D3 must not claim implementation approval"],
+    ["bad guided delivery parking approval", ["scripts/check-guided-delivery-loop.mjs", "test-fixtures/bad/bad-guided-delivery-parking-approved"], "parking-lot items must not be approved"],
+    ["bad change boundary forbidden path", ["scripts/check-change-boundary.mjs", "test-fixtures/bad/bad-change-boundary-forbidden", "--report", "change-boundary-reports/001-forbidden.md"], "changed forbidden path"],
+    ["bad baseline state confirmed no evidence", ["scripts/check-baseline-state.mjs", "test-fixtures/bad/bad-baseline-state-confirmed-no-evidence", "--report", "baseline-state-reports/001-confirmed.md"], "CONFIRMED without evidence"],
+  ];
+  for (const [label, args, marker] of negativeChecks) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(marker)) {
+      pass(`1.12 rejects ${label}`);
+    } else {
+      fail(`1.12 must reject ${label}: ${output}`);
+    }
+  }
+
+  const prCi = read(".github/workflows/dev-kit-pr-checks.yml");
+  const releaseCi = read(".github/workflows/dev-kit-release-checks.yml");
+  for (const [label, content] of [["PR CI", prCi], ["release CI", releaseCi]]) {
+    for (const marker of [
+      "npm run verify",
+      "node scripts/check-guided-delivery-loop.mjs .",
+      "node scripts/check-change-boundary.mjs .",
+      "node scripts/check-baseline-state.mjs .",
+    ]) {
+      if (content.includes(marker)) pass(`1.12 ${label} includes ${marker}`);
+      else fail(`1.12 ${label} missing ${marker}`);
+    }
   }
 }
 
@@ -2719,7 +2951,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -2728,7 +2960,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -2758,7 +2990,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -2782,7 +3014,12 @@ function checkPlatformAdapters() {
     "check-context-governance.mjs",
     "check-launch-readiness.mjs",
     "check-conversation-drift.mjs",
+    "check-guided-delivery-loop.mjs",
     "check-first-delivery-walkthrough.mjs",
+    "check-real-adoption-trial.mjs",
+    "check-patch-classification.mjs",
+    "check-change-boundary.mjs",
+    "check-baseline-state.mjs",
     "check-platform-baseline.mjs",
     "resolve-platform-baseline.mjs",
     "check-industrial-pack.mjs",
@@ -2831,6 +3068,12 @@ function checkScriptSyntax() {
     "scripts/check-context-governance.mjs",
     "scripts/check-launch-readiness.mjs",
     "scripts/check-conversation-drift.mjs",
+    "scripts/check-first-delivery-walkthrough.mjs",
+    "scripts/check-real-adoption-trial.mjs",
+    "scripts/check-patch-classification.mjs",
+    "scripts/check-guided-delivery-loop.mjs",
+    "scripts/check-change-boundary.mjs",
+    "scripts/check-baseline-state.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -2915,6 +3158,9 @@ function checkReadmePointers() {
     "docs/safe-launch.md",
     "docs/conversation-drift-control.md",
     "docs/first-delivery-walkthrough.md",
+    "docs/change-boundary.md",
+    "docs/baseline-state.md",
+    "docs/guided-delivery-check.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -2966,6 +3212,9 @@ function checkReadmePointers() {
     "docs/safe-launch.md",
     "docs/conversation-drift-control.md",
     "docs/first-delivery-walkthrough.md",
+    "docs/change-boundary.md",
+    "docs/baseline-state.md",
+    "docs/guided-delivery-check.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -2989,6 +3238,9 @@ function checkReadmePointers() {
     "docs/safe-launch.md",
     "docs/conversation-drift-control.md",
     "docs/first-delivery-walkthrough.md",
+    "docs/change-boundary.md",
+    "docs/baseline-state.md",
+    "docs/guided-delivery-check.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -3059,6 +3311,11 @@ function checkReadmePointers() {
     "Scope Change Report",
     "First Delivery Walkthrough",
     "Adoption Trial Report",
+    "Guided Delivery Check",
+    "Change Boundary",
+    "Baseline State",
+    "change-boundary-reports",
+    "baseline-state-reports",
     "launch-readiness",
     "conversation-turns",
     "scope-change-reports",
@@ -3485,6 +3742,9 @@ function checkGeneratedProjectE2E() {
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
     "scripts/check-context-governance.mjs",
+    "scripts/check-guided-delivery-loop.mjs",
+    "scripts/check-change-boundary.mjs",
+    "scripts/check-baseline-state.mjs",
     ".ai-native/profiles/web-app/baseline.json",
     ".ai-native/profiles/wechat-miniprogram/baseline.json",
     ".ai-native/industrial-packs/index.json",
@@ -3500,6 +3760,9 @@ function checkGeneratedProjectE2E() {
     ".ai-native/docs/claim-control.md",
     ".ai-native/docs/project-memory.md",
     ".ai-native/docs/git-boundary.md",
+    ".ai-native/docs/change-boundary.md",
+    ".ai-native/docs/baseline-state.md",
+    ".ai-native/docs/guided-delivery-check.md",
     ".ai-native/core/engineering-baseline.md",
     ".ai-native/core/outcome-baseline.md",
     ".ai-native/core/product-baseline.md",
@@ -3507,6 +3770,8 @@ function checkGeneratedProjectE2E() {
     ".ai-native/core/assumption-register.md",
     ".ai-native/core/context-governance.md",
     ".ai-native/core/git-boundary.md",
+    ".ai-native/core/change-boundary.md",
+    ".ai-native/core/baseline-state.md",
     ".ai-native/templates/engineering-baseline.md",
     ".ai-native/templates/product-baseline-review.md",
     ".ai-native/templates/claim-control-report.md",
@@ -3514,11 +3779,16 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/learning-candidate.md",
     ".ai-native/templates/context-correction-report.md",
     ".ai-native/templates/git-boundary-report.md",
+    ".ai-native/templates/change-boundary-report.md",
+    ".ai-native/templates/baseline-state-report.md",
     ".ai-native/checklists/engineering-baseline-review.md",
     ".ai-native/checklists/product-baseline-review.md",
     ".ai-native/checklists/claim-control-review.md",
     ".ai-native/checklists/context-governance-review.md",
     ".ai-native/checklists/git-boundary-review.md",
+    ".ai-native/checklists/guided-delivery-loop-review.md",
+    ".ai-native/checklists/change-boundary-review.md",
+    ".ai-native/checklists/baseline-state-review.md",
     ".ai-native/core/next-step-boundary.md",
     ".ai-native/core/goal-mode.md",
     ".ai-native/core/subagent-orchestration.md",
@@ -3534,6 +3804,9 @@ function checkGeneratedProjectE2E() {
     ".ai-native/prompts/product-baseline-agent.md",
     ".ai-native/prompts/claim-control-agent.md",
     ".ai-native/prompts/context-governance-agent.md",
+    ".ai-native/prompts/guided-delivery-check-agent.md",
+    ".ai-native/prompts/change-boundary-agent.md",
+    ".ai-native/prompts/baseline-state-agent.md",
     ".ai-native/core/output-protocol.md",
     ".ai-native/core/glossary.md",
     ".ai-native/prompts/reporter-agent.md",
@@ -3552,6 +3825,8 @@ function checkGeneratedProjectE2E() {
     "learning-candidates/.gitkeep",
     "context-corrections/.gitkeep",
     "git-boundary-reports/.gitkeep",
+    "change-boundary-reports/.gitkeep",
+    "baseline-state-reports/.gitkeep",
     "docs/verification-matrix.md",
     "docs/engineering-baseline.md",
   ]) {
@@ -3641,6 +3916,36 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project conversation drift check");
+
+  const guidedDeliveryCheck = runNode([
+    path.join(target, "scripts", "check-guided-delivery-loop.mjs"),
+    target,
+  ]);
+  if (guidedDeliveryCheck.status !== 0 || !guidedDeliveryCheck.stdout.includes("Guided delivery loop check passed")) {
+    fail(`generated project guided delivery loop check failed: ${guidedDeliveryCheck.stderr || guidedDeliveryCheck.stdout}`);
+    return;
+  }
+  pass("generated project guided delivery loop check");
+
+  const changeBoundaryCheck = runNode([
+    path.join(target, "scripts", "check-change-boundary.mjs"),
+    target,
+  ]);
+  if (changeBoundaryCheck.status !== 0 || !changeBoundaryCheck.stdout.includes("Change boundary check passed")) {
+    fail(`generated project change boundary check failed: ${changeBoundaryCheck.stderr || changeBoundaryCheck.stdout}`);
+    return;
+  }
+  pass("generated project change boundary check");
+
+  const baselineStateCheck = runNode([
+    path.join(target, "scripts", "check-baseline-state.mjs"),
+    target,
+  ]);
+  if (baselineStateCheck.status !== 0 || !baselineStateCheck.stdout.includes("Baseline state check passed")) {
+    fail(`generated project baseline state check failed: ${baselineStateCheck.stderr || baselineStateCheck.stdout}`);
+    return;
+  }
+  pass("generated project baseline state check");
 
   const firstDeliveryCheck = runNode([
     path.join(target, "scripts", "check-first-delivery-walkthrough.mjs"),
@@ -5290,6 +5595,7 @@ checkSubagentOrchestrationProtocol();
 checkOutputExperienceProtocol();
 checkGuidedDecisionDeliveryLoopProtocol();
 checkGovernanceHardeningDriftGuardProtocol();
+checkChangeBoundaryBaselineStateProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();

@@ -204,6 +204,23 @@ node scripts/new-workflow-item.mjs --type guided-decision-summary --name <decisi
 
 These artifacts do not approve implementation, release, production, payment, privacy, security, compliance, migration, or target-project writes.
 
+Run `node scripts/check-guided-delivery-loop.mjs .` when Active Work Thread or Guided Decision Summary artifacts exist.
+
+## Change Boundary And Baseline State
+
+Use `.ai-native/core/change-boundary.md` when a task needs proof that actual changed files stayed inside the approved task scope. Create `change-boundary-report` for non-trivial edits, governed-project edits, dirty-worktree work, or any task where changed files are not obviously local.
+
+Use `.ai-native/core/baseline-state.md` when Codex drafts or reviews baselines before implementation evidence exists. Keep `PROPOSED`, `PENDING_CONFIRMATION`, `EVIDENCE_REQUIRED`, and `CONFIRMED` separate.
+
+```bash
+node scripts/new-workflow-item.mjs --type change-boundary-report --name <task-scope>
+node scripts/new-workflow-item.mjs --type baseline-state-report --name <baseline-state>
+node scripts/check-change-boundary.mjs . --report <change-boundary-report>
+node scripts/check-baseline-state.mjs . --report <baseline-state-report>
+```
+
+Do not claim a no-code or new-project baseline is implemented, verified, production-ready, or confirmed without evidence or a human-confirmed source.
+
 ## Goal Mode
 
 Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.

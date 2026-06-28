@@ -126,6 +126,22 @@ Baseline level:
 
 Selected industrial packs:
 
+## Change Boundary Review
+
+Change-boundary report: Not required / `change-boundary-reports/<file>.md`
+
+Actual changed files checked against approved boundary: Yes / No / Not applicable
+
+Forbidden paths changed: No / Yes
+
+Out-of-scope changes require: None / Review / Revert / Human decision
+
+## Baseline State Review
+
+Baseline-state report: Not required / `baseline-state-reports/<file>.md`
+
+Proposed or evidence-required baselines treated as confirmed: No / Yes / Not applicable
+
 ## Evidence
 
 Commands run:

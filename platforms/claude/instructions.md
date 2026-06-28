@@ -107,13 +107,20 @@ For workflow artifacts:
 - create `node scripts/new-workflow-item.mjs --type patch-classification --name <slug>` and run `node scripts/check-patch-classification.mjs .` before proposing or applying a non-trivial fix in a governed project
 - patch classification is repair routing only; it is not implementation authorization
 
-For guided decision and delivery:
+For change boundary and baseline state:
+
+- create `node scripts/new-workflow-item.mjs --type change-boundary-report --name <slug>` and run `node scripts/check-change-boundary.mjs . --report <report>` when actual changed files need to be proven against approved scope
+- create `node scripts/new-workflow-item.mjs --type baseline-state-report --name <slug>` and run `node scripts/check-baseline-state.mjs . --report <report>` when baselines are drafted or reviewed before implementation evidence exists
+- never claim a no-code or new-project baseline is implemented, verified, production-ready, or confirmed without evidence or a human-confirmed source
+
+For guided decision and guided delivery:
 
 - use `.ai-native/core/decision-delegation-boundary.md`, `.ai-native/core/guided-delivery-loop.md`, and `.ai-native/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices
 - recommend the smallest safe path first, explain what is out of scope, ask for one user-owned confirmation, and park side ideas instead of executing them
 - use `node scripts/new-workflow-item.mjs --type active-work-thread --name <current-mainline>` only when broad conversation or drift makes the mainline unclear
 - use `node scripts/new-workflow-item.mjs --type guided-decision-summary --name <decision-name>` when a technical choice needs to become a human-owned product or risk decision
 - these artifacts do not approve implementation, release, production, payment, privacy, security, compliance, migration, or target-project writes
+- run `node scripts/check-guided-delivery-loop.mjs .` when these artifacts exist
 
 For Goal Mode:
 

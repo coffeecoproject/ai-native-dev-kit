@@ -173,6 +173,9 @@ node scripts/check-guided-adoption.mjs .
 - [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
 - [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
 - [Guided Decision & Delivery Loop](docs/guided-decision-delivery-loop.md)：让 Codex 推荐最小安全路径，用户只确认目标、取舍和风险
+- [Change Boundary](docs/change-boundary.md)：检查实际改动是否仍在本次任务边界内
+- [Baseline State](docs/baseline-state.md)：区分基线是建议、待确认、需证据，还是已确认
+- [Guided Delivery Check](docs/guided-delivery-check.md)：检查当前主线、停车场和 D0-D4 决策边界
 - [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
 
 接入项目：
@@ -196,6 +199,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.12 Release Record](releases/1.12.0/release-record.md)：1.12 变更边界、引导式交付检查与基线状态保护
 - [1.11 Release Record](releases/1.11.0/release-record.md)：1.11 治理硬化与漂移防护
 - [1.10 Release Record](releases/1.10.0/release-record.md)：1.10 引导式决策与交付闭环
 - [1.9 Release Record](releases/1.9.0/release-record.md)：1.9 人类决策摘要

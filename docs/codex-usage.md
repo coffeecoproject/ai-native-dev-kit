@@ -55,9 +55,12 @@ Expected Codex behavior:
 - Run `node scripts/check-context-governance.mjs .` when learning candidates, context corrections, Git boundary reports, baselines, AGENTS, or project source-of-truth docs change.
 - Run `node scripts/check-launch-readiness.mjs .` when a task claims demo, internal handoff, release-review, blocked, or not-ready status.
 - Run `node scripts/check-conversation-drift.mjs .` when a user message may be discussion-only, review-only, a scope change, a new task, a direct follow-up, a risk decision, or a pause/stop request.
+- Run `node scripts/check-guided-delivery-loop.mjs .` when Active Work Thread or Guided Decision Summary artifacts exist.
 - Run `node scripts/check-first-delivery-walkthrough.mjs .` when a broad idea is recorded as a first delivery walkthrough or adoption trial.
 - Run `node scripts/check-real-adoption-trial.mjs .` when a real governed or production-sensitive project is recorded as a read-only adoption trial.
 - Run `node scripts/check-patch-classification.mjs .` before proposing or applying a non-trivial fix in a governed project.
+- Run `node scripts/check-change-boundary.mjs . --report <report>` after non-trivial edits, governed-project edits, dirty-worktree work, or any task where changed files need to be proven against intended scope.
+- Run `node scripts/check-baseline-state.mjs . --report <report>` when baseline docs are drafted or reviewed before implementation/evidence exists.
 - Remember that `real-adoption` and `patch-classification` check recorded artifacts. They do not automatically generate target-project reports or approve implementation.
 - Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
 - Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
@@ -169,6 +172,10 @@ Expected Codex behavior:
 - Run `node scripts/check-baseline-enforcement.mjs . --mode implementation --task <task-card>` before closure for BL1 implementation work, BL2 work, or L3 tasks.
 - Run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist.
 - Run `node scripts/check-next-step-boundary.mjs . --task <task-card>` when a Final Report, Review Loop Report, review summary, or Follow-up Proposal includes next-step suggestions.
+- Generate `node scripts/new-workflow-item.mjs --type change-boundary-report --task <task-card>` when the final result needs proof that actual changed files stayed inside approved scope.
+- Generate `node scripts/new-workflow-item.mjs --type baseline-state-report --task <task-card>` when the task drafts or changes baseline recommendations without implementation evidence.
+- Run `node scripts/check-change-boundary.mjs . --report <change-boundary-report>` when a Change Boundary Report exists.
+- Run `node scripts/check-baseline-state.mjs . --report <baseline-state-report>` when a Baseline State Report exists.
 - Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
 - Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
 - Route missing engineering baseline decisions to a Decision Brief or Human Decisions Needed instead of silently choosing.
@@ -176,6 +183,7 @@ Expected Codex behavior:
 - Do not treat reports, Review Packets, Goal Cards, or subagent output as release, risk, scope, or future-work approval.
 - Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence.
 - Report changed files, verification, residual risks, classified Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.
+- Do not claim a no-code/new-project baseline is confirmed, implemented, verified, or production-ready without evidence or a human-confirmed source.
 
 GPT Pro or second-model review should stay semi-automatic unless an approved automation adapter exists:
 

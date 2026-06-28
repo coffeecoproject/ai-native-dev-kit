@@ -37,6 +37,8 @@ const typeMap = {
   "patch-classification-false-positive": { dir: "patch-classification-false-positives", template: "patch-classification-false-positive.md", defaultName: "patch-classification-false-positive" },
   "active-work-thread": { dir: "active-work-threads", template: "active-work-thread.md", defaultName: "active-work-thread" },
   "guided-decision-summary": { dir: "guided-decision-summaries", template: "guided-decision-summary.md", defaultName: "guided-decision" },
+  "change-boundary-report": { dir: "change-boundary-reports", template: "change-boundary-report.md", defaultName: "change-boundary" },
+  "baseline-state-report": { dir: "baseline-state-reports", template: "baseline-state-report.md", defaultName: "baseline-state" },
 };
 
 const aliases = {
@@ -114,6 +116,12 @@ const aliases = {
   "decision-summary": "guided-decision-summary",
   "delivery-decision": "guided-decision-summary",
   "decision-delegation": "guided-decision-summary",
+  "change-boundary": "change-boundary-report",
+  "diff-boundary": "change-boundary-report",
+  "boundary-report": "change-boundary-report",
+  "baseline-state": "baseline-state-report",
+  "baseline-state-review": "baseline-state-report",
+  "no-code-baseline": "baseline-state-report",
 };
 
 function parseArgs(argv) {
@@ -166,6 +174,8 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type patch-classification --name governed-web-repair-scale");
   console.error("  node scripts/new-workflow-item.mjs --type active-work-thread --name first-slice");
   console.error("  node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-model");
+  console.error("  node scripts/new-workflow-item.mjs --type change-boundary-report --name task-scope");
+  console.error("  node scripts/new-workflow-item.mjs --type baseline-state-report --name no-code-baseline");
 }
 
 function fail(message) {
@@ -1372,6 +1382,72 @@ function fillGuidedDecisionSummary(content, context) {
   return output;
 }
 
+function fillChangeBoundaryReport(content, context) {
+  let output = setTitle(content, `# Change Boundary Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", `Boundary review for ${context.title}.`);
+  output = setSection(output, "Task Ref", context.taskRef ? `\`${context.taskRef}\`` : "`tasks/<file>.md`");
+  output = setSection(output, "Boundary Level", "```text\nCB1_RECORDED\n```");
+  output = setSection(
+    output,
+    "Intended Scope",
+    [
+      "Allowed paths:",
+      "",
+      "- docs/",
+      "",
+      "Forbidden paths:",
+      "",
+      "- .env",
+      "- .github/workflows/",
+      "",
+      "Allowed change types:",
+      "",
+      "- docs-only",
+      "",
+      "Forbidden change types:",
+      "",
+      "- production-config",
+      "- migration",
+      "- unrelated-refactor",
+      "",
+      "Expected diff scale:",
+      "",
+      "small",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Actual Changed Files",
+    [
+      "| File | Change type | Inside boundary? | Evidence / note |",
+      "|---|---|---|---|",
+      "| docs/<file>.md | docs-only | Yes | update after implementation |",
+    ].join("\n"),
+  );
+  output = setSection(output, "Boundary Result", "Disposition: `NEEDS_REVIEW`\n\nReason: Fill after diff review.");
+  return output;
+}
+
+function fillBaselineStateReport(content, context) {
+  let output = setTitle(content, `# Baseline State Report: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", `Baseline state review for ${context.title}.`);
+  output = setSection(output, "Project Mode", "```text\nNEW_PROJECT\n```");
+  output = setSection(
+    output,
+    "Baseline Recommendation",
+    [
+      "| Area | Recommendation | State | Evidence ref | Human decision needed |",
+      "|---|---|---|---|---|",
+      "| Engineering | Start with conservative project structure | PROPOSED |  | Confirm direction |",
+      "| Environment | Define commands after project scaffold exists | EVIDENCE_REQUIRED |  | Confirm runtime once selected |",
+      "| Platform | Select platform profile based on user goal | PENDING_CONFIRMATION |  | Confirm platform |",
+      "| Industrial | Do not claim industrial readiness yet | EVIDENCE_REQUIRED |  | Decide later if BL2 is needed |",
+    ].join("\n"),
+  );
+  output = setSection(output, "Implementation Permission", "Can AI implement against this baseline now: Limited\n\nReason: Proposed baseline can guide low-risk setup only; high-impact work needs confirmation/evidence.");
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1428,6 +1504,13 @@ function frontmatterFor(type, context) {
       decision_level: type === "guided-decision-summary" ? "D1" : undefined,
     };
   }
+  if (type === "change-boundary-report" || type === "baseline-state-report") {
+    return {
+      ...common,
+      task: context.taskRef,
+      status: "draft",
+    };
+  }
   return null;
 }
 
@@ -1442,7 +1525,7 @@ if (!type || !typeMap[type]) {
 
 const projectRoot = path.resolve(process.cwd(), args.root || ".");
 const config = typeMap[type];
-const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report", "goal-card", "subagent-run-plan"]);
+const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report", "goal-card", "subagent-run-plan", "change-boundary-report", "baseline-state-report"]);
 
 let requestRef = resolveRef(projectRoot, args.request || (type === "preflight" ? args.from : null), "request");
 let preflightRef = resolveRef(projectRoot, args.preflight, "preflight");
@@ -1544,6 +1627,8 @@ if (type === "real-adoption-trial-report") content = fillRealAdoptionTrialReport
 if (type === "patch-classification") content = fillPatchClassification(content, baseContext);
 if (type === "active-work-thread") content = fillActiveWorkThread(content, baseContext);
 if (type === "guided-decision-summary") content = fillGuidedDecisionSummary(content, baseContext);
+if (type === "change-boundary-report") content = fillChangeBoundaryReport(content, baseContext);
+if (type === "baseline-state-report") content = fillBaselineStateReport(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -1624,6 +1709,14 @@ if (type === "review-packet") {
   console.log("- Translate raw technical choices into product, effort, or risk choices the human can own.");
   console.log("- Recommend one smallest safe path and record what Codex must not do without further approval.");
   console.log("- Do not treat this summary as approval for release, production, migration, payment, privacy, or high-risk work.");
+} else if (type === "change-boundary-report") {
+  console.log("- Compare actual changed files with the approved task boundary.");
+  console.log("- Do not mark PASS when forbidden or out-of-scope files changed.");
+  console.log("- Run node scripts/check-change-boundary.mjs . --report <this-file> after filling the report.");
+} else if (type === "baseline-state-report") {
+  console.log("- Keep no-code and evidence-required baselines separate from confirmed project facts.");
+  console.log("- Do not claim production-ready or industrial-grade status without evidence.");
+  console.log("- Run node scripts/check-baseline-state.mjs . --report <this-file> after filling the report.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

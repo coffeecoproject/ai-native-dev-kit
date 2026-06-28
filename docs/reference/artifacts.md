@@ -48,6 +48,8 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
 | `active-work-threads/` | Optional current-mainline and parking-lot tracking for broad or drifting work |
 | `guided-decision-summaries/` | Optional decision summaries that translate technical choices into user-owned decisions |
+| `change-boundary-reports/` | Intended scope versus actual changed files evidence |
+| `baseline-state-reports/` | Proposed, pending, evidence-required, or confirmed baseline state evidence |
 
 False-positive records are not overrides. They document reviewed calibration only; the original patch classification remains authoritative until a new classification report or explicit human decision changes it.
 
@@ -108,6 +110,8 @@ Real Project Read-only Adoption Trial and Patch Classification Governance live u
 
 Decision Delegation Boundary and Guided Delivery Loop live under `.ai-native/core/` in generated projects. They constrain how Codex recommends the next safe path, keeps one current mainline, parks side ideas, and avoids pushing raw technical decisions onto non-expert users.
 
+Change Boundary and Baseline State Guard live under `.ai-native/core/` in generated projects. They constrain how Codex proves edits stayed inside scope and how no-code baselines are described before evidence exists.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -137,4 +141,6 @@ Short rule:
 - need to decide whether a fix can be local or must be structural/human-owned: patch classification
 - need to keep one current work thread visible: active work thread
 - need to translate a technical choice into a user-owned decision: guided decision summary
+- need to prove edits stayed inside current task scope: change boundary report
+- need to state whether a baseline is proposed, pending, evidence-required, or confirmed: baseline state report
 - need to close work: final report

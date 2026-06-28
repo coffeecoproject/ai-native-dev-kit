@@ -73,6 +73,24 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "guided-delivery": {
+    description: "Check Guided Decision & Delivery Loop evidence.",
+    script: "scripts/check-guided-delivery-loop.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "change-boundary": {
+    description: "Check actual changed files against recorded task boundary.",
+    script: "scripts/check-change-boundary.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "baseline-state": {
+    description: "Check proposed, evidence-required, and confirmed baseline states.",
+    script: "scripts/check-baseline-state.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   init: {
     description: "Initialize workflow assets in a target project.",
     script: "scripts/init-project.mjs",
@@ -222,6 +240,9 @@ function printHelp() {
   console.log("  node scripts/cli.mjs first-delivery .");
   console.log("  node scripts/cli.mjs real-adoption .");
   console.log("  node scripts/cli.mjs patch-classification .");
+  console.log("  node scripts/cli.mjs guided-delivery .");
+  console.log("  node scripts/cli.mjs change-boundary . --report change-boundary-reports/001-task.md");
+  console.log("  node scripts/cli.mjs baseline-state . --report baseline-state-reports/001-baseline.md");
   console.log("  node scripts/cli.mjs init --starter generic-project --target ../my-project");
   console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");

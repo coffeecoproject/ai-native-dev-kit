@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.11.0`
+Current version: `1.12.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,14 @@ Current version: `1.11.0`
 
 ## Current Release
 
-`1.11.0`
+`1.12.0`
 
 Includes:
 
+- Change Boundary, Guided Delivery Check & Baseline State Guard phase `1.12.0`: recorded change scope proof, standalone guided delivery checks, no-code baseline state protection, and CI/verify integration
+- Added `core/change-boundary.md`, `core/baseline-state.md`, `docs/change-boundary.md`, `docs/baseline-state.md`, `docs/guided-delivery-check.md`, Change Boundary and Baseline State report templates, prompts, checklists, examples, bad fixtures, and dedicated checkers
+- CLI now includes `guided-delivery`, `change-boundary`, and `baseline-state`; `new-workflow-item` can create Change Boundary and Baseline State reports
+- `1.12.0` does not automatically inspect real projects, approve target-project writes, approve production/release/risk decisions, confirm no-code baselines as implemented, add automatic GPT/API review, or promote industrial packs
 - Governance Hardening & Drift Guard phase `1.11.0`: README release sync, direct init non-empty protection, manifest reverse drift guard, structured release section checks, and `npm run verify`
 - Added `docs/governance-hardening-drift-guard-1.11-plan.md` and `releases/1.11.0/` evidence for this hardening phase
 - Direct new-project init now refuses non-empty target directories unless `--force-new-project` is explicitly passed; existing-project update remains plan-first

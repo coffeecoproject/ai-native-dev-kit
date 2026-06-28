@@ -43,6 +43,22 @@ One-sentence conclusion:
 
 - 
 
+## Change Boundary
+
+Change-boundary report: Not required / `change-boundary-reports/<file>.md`
+
+Unexpected files changed: No / Yes
+
+Boundary disposition: PASS / NEEDS_REVIEW / NEEDS_REVERT / NEEDS_HUMAN_DECISION / NOT_APPLICABLE
+
+## Baseline State
+
+Baseline-state report: Not required / `baseline-state-reports/<file>.md`
+
+Baseline overclaim found: No / Yes
+
+No-code or evidence-required baselines were treated as confirmed: No / Yes / Not applicable
+
 ## Risks Remaining
 
 - 

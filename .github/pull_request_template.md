@@ -21,6 +21,9 @@ Explain what changed in plain language and why the change is safe to review.
 - Safe Launch / Delivery Readiness:
 - Conversation Drift:
 - Guided Decision / Active Work Thread:
+- Guided Delivery Loop:
+- Change Boundary Report:
+- Baseline State Report:
 - Goal Card:
 - Subagent Run Plan:
 - Review Packet:
@@ -36,6 +39,9 @@ node scripts/check-dev-kit.mjs
 node scripts/check-fixtures.mjs
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 ```
 
 ## Risk And Approval
@@ -44,6 +50,8 @@ node scripts/check-conversation-drift.mjs .
 - Risk Gate items:
 - Human Approval status:
 - Release evidence:
+- Change boundary:
+- Baseline state:
 
 ## Claim Boundary
 

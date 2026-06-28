@@ -34,6 +34,12 @@ Decision-heavy output must start with `Human Decision Summary`. The user should 
 
 For broad or non-expert requests, add Guided Decision & Delivery Loop behavior: recommend the smallest safe path, explain what is out of scope, ask for one user-owned confirmation, and park side ideas instead of executing them.
 
+When Active Work Thread or Guided Decision Summary artifacts exist, check that they did not turn side ideas or D3/D4 choices into implementation approval:
+
+```bash
+node scripts/check-guided-delivery-loop.mjs <project>
+```
+
 After adoption classification, use baseline setup:
 
 ```bash
@@ -137,6 +143,22 @@ AUTO_FIX is bounded. Repeated findings, risk decisions, architecture scope chang
 
 Patch Classification Governance runs before non-trivial repair proposals in governed projects. It decides whether the work is `SAFE_LOCAL_FIX`, `BASELINE_ALIGNED_HARDCUT`, `STRUCTURAL_REMEDIATION`, `NEEDS_HUMAN_DECISION`, or `DO_NOT_PATCH`. It is routing, not implementation approval.
 
+Use Change Boundary after non-trivial edits, governed-project edits, dirty-worktree work, or any change where the human needs to judge whether Codex stayed inside scope:
+
+```bash
+node scripts/new-workflow-item.mjs --type change-boundary-report --name <task-scope>
+node scripts/check-change-boundary.mjs <project> --report change-boundary-reports/<report>.md
+```
+
+Use Baseline State when baselines are drafted before code or evidence exists:
+
+```bash
+node scripts/new-workflow-item.mjs --type baseline-state-report --name <baseline-state>
+node scripts/check-baseline-state.mjs <project> --report baseline-state-reports/<report>.md
+```
+
+Baseline State keeps proposed, pending-confirmation, evidence-required, and confirmed baselines separate. It does not make a drafted baseline implemented or production-ready.
+
 ## Baseline Setup
 
 Use baseline setup after `start` and before non-trivial work.
@@ -166,9 +188,12 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 ```
 
 Rules:

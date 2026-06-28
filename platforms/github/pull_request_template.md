@@ -27,6 +27,9 @@
 - [ ] Safe Launch / Delivery Readiness was checked when this change claimed demo, internal handoff, release-review, blocked, or not-ready status
 - [ ] Conversation Drift was checked when user messages changed scope, added a new task, asked for discussion-only handling, raised a risk decision, or paused work
 - [ ] Guided Decision / Active Work Thread is linked or marked not applicable when the user request was broad, non-expert, or mixed side ideas into current work
+- [ ] Guided Delivery Loop check passed when Active Work Thread or Guided Decision Summary artifacts exist
+- [ ] Change Boundary Report is linked or marked not applicable when changed files need to be proven against task scope
+- [ ] Baseline State Report is linked or marked not applicable when baselines are proposed or reviewed before implementation evidence exists
 - [ ] First Delivery Walkthrough / Adoption Trial evidence was checked when this PR claims an end-to-end first-slice path or real adoption trial
 - [ ] Assumptions are recorded when the change relies on inferred or unconfirmed facts
 - [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step
@@ -37,6 +40,19 @@
 - [ ] AI task log is written for L1/L2/L3 work or marked not applicable
 - [ ] Verification evidence is included
 - [ ] Workflow daily summary impact is reviewed when workflow assets changed
+
+## Change Boundary
+
+- Intended scope:
+- Actual changed files:
+- Outside-boundary files:
+- Result:
+
+## Baseline State
+
+- Proposed baseline:
+- Confirmed baseline evidence:
+- Pending human decisions:
 
 ## Next-Step Suggestions
 

@@ -101,9 +101,12 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 
@@ -227,6 +230,36 @@ node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-
 ```
 
 These artifacts keep the current mainline visible and translate technical choices into user-owned decisions. They do not approve implementation, release, production, payment, privacy, security, compliance, migration, or target-project writes.
+
+When these artifacts exist, run:
+
+```bash
+node scripts/check-guided-delivery-loop.mjs .
+```
+
+## Change Boundary And Baseline State
+
+Use Change Boundary when Codex has completed a task and the human needs a simple answer to:
+
+```text
+Was this task only changed inside the expected scope?
+```
+
+Create a report when the change is larger than a tiny local fix, when the worktree was dirty, when the project is governed, or when files outside the obvious feature area changed:
+
+```bash
+node scripts/new-workflow-item.mjs --type change-boundary-report --name first-slice
+node scripts/check-change-boundary.mjs . --report change-boundary-reports/first-slice.md
+```
+
+Use Baseline State when a new or no-code project is still designing engineering, environment, platform, or industrial baselines:
+
+```bash
+node scripts/new-workflow-item.mjs --type baseline-state-report --name no-code-baseline
+node scripts/check-baseline-state.mjs . --report baseline-state-reports/no-code-baseline.md
+```
+
+Baseline State keeps proposed, pending-confirmation, evidence-required, and confirmed baselines separate. Codex must not describe a drafted baseline as implemented, production-ready, or verified unless there is evidence or human-confirmed source.
 
 ## Platform Baseline
 

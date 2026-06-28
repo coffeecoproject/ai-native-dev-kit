@@ -18,6 +18,7 @@ Workflow
   -> Selected Industrial Pack
   -> Project Evidence
   -> Task Gate
+  -> Change Boundary
   -> Output Experience
 ```
 
@@ -238,6 +239,37 @@ Before implementation, the task should prove:
 If a high-risk area appears in the task or related spec but Risk Gate is not checked, ready mode should warn and implementation mode should fail.
 
 If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete reason and human acceptance. Do not make the wording vague just to pass the checker. More than three accepted exclusions is a signal to review scope quality; implementation then needs Human Approval scope to explicitly cover those exclusions.
+
+## Change Boundary
+
+Use Change Boundary when the human needs to know whether Codex stayed inside the task it was supposed to do.
+
+It answers:
+
+- What was the intended scope?
+- Which paths were allowed?
+- Which paths were forbidden?
+- What files actually changed?
+- Are any changed files outside boundary?
+- What claims may Codex make about this change?
+
+Change Boundary is not needed for every tiny edit. Use it for non-trivial tasks, governed projects, dirty worktrees, broad repairs, or whenever changed files are not obviously local.
+
+## Baseline State
+
+Baseline State keeps baseline wording honest before the project has code or evidence.
+
+Allowed states are:
+
+```text
+PROPOSED
+PENDING_CONFIRMATION
+EVIDENCE_REQUIRED
+CONFIRMED
+NOT_APPLICABLE
+```
+
+Codex may propose or draft baselines. It must not claim that a no-code/new-project baseline is implemented, verified, production-ready, or confirmed unless a human-confirmed source or real evidence exists.
 
 ## Review Packet
 

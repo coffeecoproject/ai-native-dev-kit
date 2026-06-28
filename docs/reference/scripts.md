@@ -15,9 +15,12 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs context-governance <project>` | Check project memory, context correction, and Git boundary governance | No |
 | `node scripts/cli.mjs launch-readiness <project>` | Check Safe Launch / Delivery Readiness reports | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
+| `node scripts/cli.mjs guided-delivery <project>` | Check active work thread, parking lot, and guided decision boundaries | No |
 | `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
 | `node scripts/cli.mjs real-adoption <project>` | Check recorded real-project read-only adoption trial evidence; does not auto-generate a report | No |
 | `node scripts/cli.mjs patch-classification <project>` | Check recorded repair-scale classification and false-positive calibration reports before non-trivial fixes | No |
+| `node scripts/cli.mjs change-boundary <project> --report <file>` | Check that actual changed files stay inside recorded task scope | No |
+| `node scripts/cli.mjs baseline-state <project> --report <file>` | Check proposed/pending/evidence-required/confirmed baseline state claims | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
 | `node scripts/cli.mjs update --target <project>` | Update workflow assets | Yes |
 | `node scripts/cli.mjs next <project>` | Read project state and report next safe action | No |
@@ -65,11 +68,17 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
 
+`scripts/check-guided-delivery-loop.mjs` checks Active Work Thread and Guided Decision Summary reports so current mainline, parking lot, and D0-D4 decision boundaries stay visible and non-executable decisions do not become implementation approval.
+
 `scripts/check-first-delivery-walkthrough.mjs` checks Adoption Trial Reports so first-slice walkthroughs include the starting idea, route, baseline path, artifacts, human decisions, drift handling, verification, launch readiness, final report, and claim boundary.
 
 `scripts/check-real-adoption-trial.mjs` checks real-project read-only adoption reports so existing governed or production-sensitive projects are mapped before writes, public evidence stays sanitized, and bridge proposals do not overwrite existing authority.
 
 `scripts/check-patch-classification.mjs` checks patch classification reports so non-trivial fixes are routed as safe local fixes, baseline-aligned hardcuts, structural remediation, human decisions, or do-not-patch stops before implementation. It also checks `patch-classification-false-positives/` when present. False-positive records are calibration evidence only; they do not approve implementation.
+
+`scripts/check-change-boundary.mjs` checks Change Boundary Reports so intended scope, allowed paths, forbidden paths, actual changed files, boundary result, and claim boundary are explicit. Use `--report <file>` for a specific report and `--cached` or `--base <ref>` when git diff comparison should be included.
+
+`scripts/check-baseline-state.mjs` checks Baseline State Reports so no-code/new-project baselines are not marked confirmed without evidence or human-confirmed source. Use `--report <file>` for a specific report.
 
 `scripts/workflow-next.mjs` reads project state and reports:
 
@@ -110,8 +119,12 @@ Common types:
 - `patch-classification-false-positive`
 - `active-work-thread`
 - `guided-decision-summary`
+- `change-boundary-report`
+- `baseline-state-report`
 
 Use `active-work-thread` only when broad conversation, side ideas, or repeated drift make the current mainline unclear. Use `guided-decision-summary` when Codex needs to recommend one safe path and translate technical choices into a human-owned decision.
+
+Use `change-boundary-report` when actual changed files need to be checked against intended scope. Use `baseline-state-report` when Codex drafts or reviews baselines before real project evidence exists.
 
 ## Checks
 
@@ -134,9 +147,12 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 node scripts/check-guided-adoption.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/check-industrial-baseline.mjs .
@@ -155,8 +171,11 @@ These are primarily for maintaining this repository:
 - `scripts/check-context-governance.mjs`
 - `scripts/check-launch-readiness.mjs`
 - `scripts/check-conversation-drift.mjs`
+- `scripts/check-guided-delivery-loop.mjs`
 - `scripts/check-real-adoption-trial.mjs`
 - `scripts/check-patch-classification.mjs`
+- `scripts/check-change-boundary.mjs`
+- `scripts/check-baseline-state.mjs`
 - `scripts/check-glossary-usage.mjs`
 - `scripts/score-output-quality.mjs`
 

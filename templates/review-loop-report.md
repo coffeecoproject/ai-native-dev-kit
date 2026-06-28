@@ -113,6 +113,24 @@ Findings are current-task review issues. Future work must be listed under `Next-
 |---|---|---|---|---|---|---|---|
 |  | P0 / P1 / P2 | AUTO_FIX / NEEDS_HUMAN_DECISION / NEEDS_CLARIFICATION / NO_ACTION |  |  |  |  |  |
 
+## Change Boundary Follow-check
+
+Change-boundary report checked: Yes / No / Not applicable
+
+Forbidden paths changed: No / Yes
+
+Out-of-scope changes were auto-fixed: No
+
+Required disposition: PASS / NEEDS_REVIEW / NEEDS_REVERT / NEEDS_HUMAN_DECISION / NOT_APPLICABLE
+
+## Baseline State Follow-check
+
+Baseline-state report checked: Yes / No / Not applicable
+
+No-code baseline overclaimed as confirmed: No / Yes
+
+Draft industrial pack claimed stable: No / Yes
+
 ## Next-Step Suggestions
 
 Suggestions are bounded follow-up items after the current task. They are not review findings and are not approval to continue.

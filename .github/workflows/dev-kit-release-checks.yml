@@ -26,6 +26,9 @@ jobs:
       - name: Dev-kit self-check
         run: node scripts/check-dev-kit.mjs
 
+      - name: Release verify
+        run: npm run verify
+
       - name: Manifest check
         run: node scripts/check-manifest.mjs
 
@@ -52,6 +55,15 @@ jobs:
 
       - name: Patch classification check
         run: node scripts/check-patch-classification.mjs .
+
+      - name: Guided delivery check
+        run: node scripts/check-guided-delivery-loop.mjs .
+
+      - name: Change boundary check
+        run: node scripts/check-change-boundary.mjs .
+
+      - name: Baseline state check
+        run: node scripts/check-baseline-state.mjs .
 
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs

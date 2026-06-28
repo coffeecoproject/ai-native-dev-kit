@@ -26,6 +26,10 @@ What is happening now?
 | Acceptance needs to be testable | `evals/` | test output |
 | AI needs a narrow implementation unit | `tasks/` | broad roadmap |
 | Code structure, type source, contract, schema, permission, migration, dependency, or state-model rules are missing | `docs/engineering-baseline.md` or `decision-briefs/` | universal coding style guide |
+| Current mainline or side ideas are drifting | `active-work-threads/` | approval to implement parked items |
+| Technical choice needs to become a human-owned decision | `guided-decision-summaries/` | implementation approval |
+| Actual changed files need to be proven against intended scope | `change-boundary-reports/` | permission to widen scope |
+| Baselines are drafted before implementation/evidence exists | `baseline-state-reports/` | proof that the baseline is implemented |
 | AI completed L1/L2/L3 work | `ai-logs/` | final product documentation |
 | A change needs independent review | `review-packets/` | approval |
 | GPT Pro, a second model, or a reviewer needs a prompt | `gpt-review-prompts/` | whole-repo context dump |
@@ -56,6 +60,7 @@ request
 -> subagent run plan when helper agents are used
 -> implementation
 -> verification
+-> change boundary report when actual changed files need scope proof
 -> review packet when independent review is needed
 -> review loop report when findings need closure
 -> final report when durable result record is needed
@@ -114,6 +119,59 @@ Need helper agents?
 ```
 
 Subagent Run Plan is a closure and authority record. It is not permission to keep background agents, leave `RUNNING` agents open, use external GPT/API reviewer automation, or let more than one writer edit the project.
+
+## Guided Delivery Flow
+
+Use this when a broad request, side idea, or non-expert decision needs a clear current mainline.
+
+```text
+Broad or drifting conversation?
+-> active-work-thread
+-> one current mainline
+-> parking lot for side ideas
+
+Technical or risk choice needs human ownership?
+-> guided-decision-summary
+-> recommend smallest safe path
+-> D3/D4 stops until human decision
+```
+
+Active Work Thread and Guided Decision Summary are routing records. They are not approval to implement, release, migrate, change payment/privacy/security/compliance, or write target-project files.
+
+## Change Boundary Flow
+
+Use this after implementation when changed files need scope proof.
+
+```text
+Actual changed files are non-trivial or not obviously local?
+-> change-boundary-report
+-> list allowed paths
+-> list forbidden paths
+-> list actual changed files
+-> run check-change-boundary
+```
+
+If a changed file is outside boundary, do not hide it. Classify it as human decision, follow-up, revert candidate, or intentional approved scope change.
+
+## Baseline State Flow
+
+Use this when Codex drafts or reviews baselines before implementation/evidence exists.
+
+```text
+Baseline is only a recommendation?
+-> PROPOSED
+
+Human has not confirmed it?
+-> PENDING_CONFIRMATION
+
+Evidence is needed before confidence?
+-> EVIDENCE_REQUIRED
+
+Human source or real evidence exists?
+-> CONFIRMED
+```
+
+Baseline State is wording control. It is not proof that the baseline has been implemented across a project.
 
 ## Review Flow
 

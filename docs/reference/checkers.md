@@ -20,9 +20,12 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-context-governance.mjs` | Learning candidates, context corrections, Git boundary reports, and source-of-truth boundaries |
 | `check-launch-readiness.mjs` | Launch readiness reports, evidence, human decisions, and overclaims |
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
+| `check-guided-delivery-loop.mjs` | Active work thread, parking lot, and guided decision boundaries |
 | `check-first-delivery-walkthrough.mjs` | First Delivery Walkthrough and Adoption Trial evidence |
 | `check-real-adoption-trial.mjs` | Real-project read-only adoption trial reports, bridge boundaries, and public evidence status |
 | `check-patch-classification.mjs` | Repair-scale classification and false-positive calibration before non-trivial fixes |
+| `check-change-boundary.mjs` | Intended scope, allowed paths, forbidden paths, actual changed files, and claim boundary |
+| `check-baseline-state.mjs` | Baseline state claims for proposed, pending, evidence-required, and confirmed baselines |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
 | `check-industrial-baseline.mjs` | BL0/BL1/BL2 and selected industrial baseline readiness |
@@ -86,7 +89,9 @@ Product and claim checks:
 - `check-real-adoption-trial.mjs` allows empty projects, but rejects real adoption reports with target writes, missing read-only evidence, unsafe bridge claims, local-only public naming, overclaims, secret-like content, or unclosed subagents.
 - `check-patch-classification.mjs` allows empty projects, but rejects unsafe `SAFE_LOCAL_FIX` classification on high-risk surfaces, patch reports that authorize implementation, missing evidence, completed `DO_NOT_PATCH` reports, and false-positive records that accept real high-risk impact as safe.
 - False-positive records are calibration evidence only. They do not modify the original patch classification report; changing repair scale still needs a new patch classification report or an explicit human decision.
-- Guided Decision & Delivery Loop currently has no standalone blocking checker. Its assets are optional experience/routing aids and are covered by manifest, artifact creation, output-quality, conversation-drift, first-delivery, and next-step checks.
+- `check-guided-delivery-loop.mjs` allows empty projects, but rejects parking-lot items that are approved/executable now, D3/D4 summaries that claim implementation approval, and summaries missing human choice or next safe action.
+- `check-change-boundary.mjs` allows empty projects, but rejects reports where forbidden paths changed, actual files sit outside allowed paths, forbidden change types appear, or a report claims PASS while any changed file is outside boundary.
+- `check-baseline-state.mjs` allows empty projects, but rejects no-code/new-project baselines marked `CONFIRMED` without evidence or human-confirmed source, and rejects implementation permission that claims approved writes without evidence.
 
 ## Suggested Sequences
 
@@ -106,9 +111,12 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 ```
 
 For L2/L3 task completion:
@@ -120,9 +128,12 @@ node scripts/check-review-loop.mjs . --task tasks/<task>.md
 node scripts/check-next-step-boundary.mjs . --task tasks/<task>.md
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 ```
 
 For dev-kit changes:
@@ -134,9 +145,12 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-dev-kit.mjs
 git diff --check

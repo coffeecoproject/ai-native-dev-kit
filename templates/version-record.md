@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.11.0`
+`1.12.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.12.0` adds Change Boundary, Guided Delivery Check, and Baseline State Guard assets so Codex can show intended scope, actual changes, current-mainline decisions, and whether a baseline is proposed, pending, evidence-required, or confirmed.
+- `1.12.0` adds `guided-delivery`, `change-boundary`, and `baseline-state` checks. These checks do not approve target-project writes, production/release/risk decisions, no-code baseline confirmation, automatic GPT/API review, or industrial-pack promotion.
 - `1.11.0` adds governance hardening: README release sync, direct init non-empty protection, manifest reverse drift guard, structured release section checks, and `npm run verify`.
 - Direct new-project init refuses non-empty target directories unless `--force-new-project` is explicitly passed. Existing projects should use dry-run / write-plan / apply-plan.
 - `1.10.0` adds Guided Decision & Delivery Loop assets: Decision Delegation Boundary, Guided Delivery Loop, Active Work Thread, Guided Decision Summary, Delivery Coach prompt, and user-facing docs.
