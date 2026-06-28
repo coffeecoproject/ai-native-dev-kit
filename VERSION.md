@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.10.0`
+Current version: `1.11.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `1.10.0`
 
 ## Current Release
 
-`1.10.0`
+`1.11.0`
 
 Includes:
 
+- Governance Hardening & Drift Guard phase `1.11.0`: README release sync, direct init non-empty protection, manifest reverse drift guard, structured release section checks, and `npm run verify`
+- Added `docs/governance-hardening-drift-guard-1.11-plan.md` and `releases/1.11.0/` evidence for this hardening phase
+- Direct new-project init now refuses non-empty target directories unless `--force-new-project` is explicitly passed; existing-project update remains plan-first
+- `check-manifest` now fails important source assets that are not covered by manifest source or copy-rule inventory
+- `check-claim-control` and `check-product-baseline` now require meaningful release section bodies, not only section headings
+- `1.11.0` does not promote industrial packs, add production validation, add automatic GPT/API review, add automatic real-project scanning, change license terms, add fake CODEOWNERS, or grant target-project write approval
 - Guided Decision & Delivery Loop phase `1.10.0`: Codex recommends the smallest safe path, keeps one current mainline, parks side ideas, and translates raw technical choices into user-owned product/risk decisions
 - Added `core/decision-delegation-boundary.md`, `core/guided-delivery-loop.md`, `templates/active-work-thread.md`, `templates/guided-decision-summary.md`, `prompts/delivery-coach-agent.md`, and `docs/guided-decision-delivery-loop.md`
 - Added `active-work-threads/` and `guided-decision-summaries/` as optional evidence directories; empty target projects are not forced to create these reports

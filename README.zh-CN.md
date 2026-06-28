@@ -196,6 +196,9 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.11 Release Record](releases/1.11.0/release-record.md)：1.11 治理硬化与漂移防护
+- [1.10 Release Record](releases/1.10.0/release-record.md)：1.10 引导式决策与交付闭环
+- [1.9 Release Record](releases/1.9.0/release-record.md)：1.9 人类决策摘要
 - [1.8.1 Release Record](releases/1.8.1/release-record.md)：1.8.1 真实项目接入校准
 - [1.8 Release Record](releases/1.8.0/release-record.md)：1.8 真实项目只读接入与补丁分类治理
 - [1.7 Release Record](releases/1.7.0/release-record.md)：1.7 首次交付演练

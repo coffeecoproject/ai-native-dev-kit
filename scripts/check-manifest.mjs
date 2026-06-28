@@ -258,6 +258,88 @@ function checkWorkflowVersionAssets(manifest) {
   }
 }
 
+function walkFiles(relativeDir) {
+  const absoluteDir = path.join(projectRoot, relativeDir);
+  if (!fs.existsSync(absoluteDir)) return [];
+  const output = [];
+  for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
+    const relativePath = normalizePath(path.join(relativeDir, entry.name));
+    if (entry.isDirectory()) {
+      output.push(...walkFiles(relativePath));
+    } else {
+      output.push(relativePath);
+    }
+  }
+  return output;
+}
+
+function isImportantSourceAsset(file) {
+  if (/^(core|templates|prompts|checklists|docs|profiles|platforms)\//.test(file)) {
+    return /\.(md|json|yml)$/.test(file);
+  }
+  if (/^scripts\//.test(file)) {
+    return /\.(mjs|md)$/.test(file);
+  }
+  if (/^\.github\/workflows\//.test(file)) {
+    return /\.yml$/.test(file);
+  }
+  return [
+    "README.md",
+    "README.zh-CN.md",
+    "VERSION.md",
+    "package.json",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "LICENSE.md",
+    "LICENSE-FAQ.md",
+    "LICENSE-COMMERCIAL.md",
+    ".github/CODEOWNERS",
+    ".github/pull_request_template.md",
+  ].includes(file);
+}
+
+function checkManifestReverseDrift(manifest) {
+  const exactCoverage = new Set([
+    ...(manifest.groups.sourceRequired || []),
+    ...(manifest.copyRules.files || []).map((rule) => rule.source),
+  ].map(normalizePath));
+  const directoryCoverage = sortedUnique((manifest.copyRules.directories || []).map((rule) => rule.source));
+  const candidates = sortedUnique([
+    ...[
+      "README.md",
+      "README.zh-CN.md",
+      "VERSION.md",
+      "package.json",
+      "SECURITY.md",
+      "CONTRIBUTING.md",
+      "LICENSE.md",
+      "LICENSE-FAQ.md",
+      "LICENSE-COMMERCIAL.md",
+      ".github/CODEOWNERS",
+      ".github/pull_request_template.md",
+    ].filter((file) => fs.existsSync(path.join(projectRoot, file))),
+    ...walkFiles(".github/workflows"),
+    ...walkFiles("core"),
+    ...walkFiles("templates"),
+    ...walkFiles("prompts"),
+    ...walkFiles("checklists"),
+    ...walkFiles("docs"),
+    ...walkFiles("profiles"),
+    ...walkFiles("platforms"),
+    ...walkFiles("scripts"),
+  ]).filter(isImportantSourceAsset);
+
+  const missing = candidates.filter((file) => {
+    if (exactCoverage.has(file)) return false;
+    return !directoryCoverage.some((dir) => file.startsWith(`${dir.replace(/\/$/, "")}/`));
+  });
+  if (missing.length === 0) {
+    pass("manifest reverse drift guard covers important source assets");
+  } else {
+    fail(`manifest reverse drift guard missing important source asset(s): ${missing.join(", ")}`);
+  }
+}
+
 function checkScriptConsumption() {
   const consumers = [
     ["scripts/check-ai-workflow.mjs", "targetRequiredPaths(projectRoot, workflowMode"],
@@ -295,6 +377,7 @@ checkSourceRequiredAssets(manifest);
 checkCopyRules(manifest);
 checkTargetGroups(manifest);
 checkWorkflowVersionAssets(manifest);
+checkManifestReverseDrift(manifest);
 checkScriptConsumption();
 
 emitJsonIfNeeded();

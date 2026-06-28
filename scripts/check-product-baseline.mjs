@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { sectionBody } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json"]);
@@ -121,9 +122,18 @@ function checkReleaseRecord() {
   }
   const content = read(releaseRecord);
   for (const section of ["Allowed Claims", "Forbidden Claims", "Evidence Status", "Known Limitations", "Verification"]) {
-    if (content.includes(`## ${section}`)) pass(`${releaseRecord} includes ${section}`);
-    else fail(`${releaseRecord} missing ${section}`);
+    const body = sectionBody(content, section);
+    if (body && meaningfulSectionBody(body)) pass(`${releaseRecord} includes meaningful ${section}`);
+    else fail(`${releaseRecord} missing meaningful ${section}`);
   }
+}
+
+function meaningfulSectionBody(body) {
+  const normalized = String(body || "")
+    .replace(/```[a-zA-Z0-9_-]*\n?/g, "")
+    .replace(/\[[^\]]+\]\([^)]+\)/g, "")
+    .replace(/[#>*_`|:\-\s]/g, "");
+  return normalized.length >= 20;
 }
 
 function checkWorkflowArtifacts() {

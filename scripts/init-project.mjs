@@ -1502,6 +1502,28 @@ function printNextSteps() {
   console.log("18. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
 }
 
+function isIgnorableNewProjectEntry(name) {
+  return name === ".DS_Store" || name === ".localized";
+}
+
+function assertDirectInitTargetIsSafe(targetPath, options = {}) {
+  if (options.forceNewProject) return;
+  if (!fs.existsSync(targetPath)) return;
+  const stat = fs.statSync(targetPath);
+  if (!stat.isDirectory()) {
+    console.error(`Target exists and is not a directory: ${targetPath}`);
+    console.error("Direct init is only allowed for a missing or empty directory.");
+    process.exit(2);
+  }
+  const meaningfulEntries = fs.readdirSync(targetPath).filter((entry) => !isIgnorableNewProjectEntry(entry));
+  if (meaningfulEntries.length === 0) return;
+  console.error(`Direct init refused because target is not empty: ${targetPath}`);
+  console.error(`Existing entries: ${meaningfulEntries.slice(0, 8).join(", ")}${meaningfulEntries.length > 8 ? ", ..." : ""}`);
+  console.error("Use --dry-run or --write-plan first for existing projects, then review and apply the plan.");
+  console.error("If this is intentionally a new project directory, rerun with --force-new-project.");
+  process.exit(2);
+}
+
 const args = parseArgs(process.argv.slice(2));
 const target = args.target;
 const updateWorkflowAssets = Boolean(args["update-workflow-assets"]);
@@ -1513,9 +1535,11 @@ const dryRun = Boolean(args["dry-run"]);
 const writePlanPath = args["write-plan"];
 const applyPlanPath = args["apply-plan"];
 const backupDir = args["backup-dir"] || "";
+const forceNewProject = Boolean(args["force-new-project"]);
 
 if (!target && !applyPlanPath) {
   console.error("Usage: node scripts/init-project.mjs --starter generic-project --target ../my-project");
+  console.error("       node scripts/init-project.mjs --starter generic-project --target ../my-project --force-new-project");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --dry-run");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan ./init-update-plan.json");
@@ -1621,4 +1645,5 @@ if (updateWorkflowAssets) {
   process.exit(0);
 }
 
+assertDirectInitTargetIsSafe(targetPath, { forceNewProject });
 executeInit(targetPath, starter, commonOptions);

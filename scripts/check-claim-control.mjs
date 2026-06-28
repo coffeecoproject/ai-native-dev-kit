@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { sectionBody } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["file", "json"]);
@@ -99,12 +100,21 @@ function checkReleaseRecord(file) {
   const content = fs.readFileSync(file, "utf8");
   const label = rel(file);
   for (const section of requiredReleaseSections) {
-    if (content.includes(`## ${section}`)) {
-      record("PASS", `${label} includes ${section}`);
+    const body = sectionBody(content, section);
+    if (body && meaningfulSectionBody(body)) {
+      record("PASS", `${label} includes meaningful ${section}`);
     } else {
-      record("FAIL", `${label} missing required claim-control section: ${section}`);
+      record("FAIL", `${label} missing required meaningful claim-control section: ${section}`);
     }
   }
+}
+
+function meaningfulSectionBody(body) {
+  const normalized = String(body || "")
+    .replace(/```[a-zA-Z0-9_-]*\n?/g, "")
+    .replace(/\[[^\]]+\]\([^)]+\)/g, "")
+    .replace(/[#>*_`|:\-\s]/g, "");
+  return normalized.length >= 20;
 }
 
 function readCurrentVersion(root) {

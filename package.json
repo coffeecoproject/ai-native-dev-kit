@@ -1,13 +1,17 @@
 {
   "name": "ai-native-dev-kit",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "bin": {
     "ai-native": "./scripts/cli.mjs"
   },
   "scripts": {
     "check": "node scripts/check-ai-workflow.mjs . --mode core",
+    "verify": "node --check scripts/init-project.mjs && node --check scripts/new-workflow-item.mjs && node --check scripts/check-dev-kit.mjs && node scripts/check-manifest.mjs && node scripts/check-dev-kit.mjs && git diff --check",
     "self-check": "node scripts/check-dev-kit.mjs",
     "fixtures": "node scripts/check-fixtures.mjs",
     "smoke:init": "node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-cli-smoke"

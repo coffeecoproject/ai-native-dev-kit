@@ -957,6 +957,20 @@ function checkManifestProtocol() {
       fail(`manifest check must report missing sourceRequired asset: ${sourceRequiredOutput}`);
     }
 
+    const reverseDriftManifest = path.join(tempRoot, "reverse-drift-manifest.json");
+    const reverseDrift = JSON.parse(JSON.stringify(manifest));
+    reverseDrift.groups.sourceRequired = reverseDrift.groups.sourceRequired.filter((item) => item !== "scripts/README.md");
+    fs.writeFileSync(reverseDriftManifest, JSON.stringify(reverseDrift, null, 2));
+    const reverseDriftResult = runNode(["scripts/check-manifest.mjs", kitRoot, "--manifest", reverseDriftManifest]);
+    const reverseDriftOutput = `${reverseDriftResult.stdout}\n${reverseDriftResult.stderr}`;
+    if (reverseDriftResult.status !== 0
+      && reverseDriftOutput.includes("manifest reverse drift guard")
+      && reverseDriftOutput.includes("scripts/README.md")) {
+      pass("manifest reverse drift guard rejects unmanifested important source asset");
+    } else {
+      fail(`manifest reverse drift guard must reject unmanifested important source asset: ${reverseDriftOutput}`);
+    }
+
     const target = path.join(tempRoot, "target-project");
     const init = runNode(["scripts/init-project.mjs", "--starter", "generic-project", "--target", target]);
     if (init.status !== 0) {
@@ -1008,12 +1022,23 @@ function checkCliFrontDoor() {
   if (pkg.bin?.["ai-native"] === "./scripts/cli.mjs") pass("package.json exposes ai-native bin");
   else fail("package.json must expose ai-native bin at ./scripts/cli.mjs");
 
-  for (const scriptName of ["check", "self-check", "fixtures", "smoke:init"]) {
+  if (pkg.engines?.node === ">=22") pass("package.json declares Node >=22 engine");
+  else fail("package.json must declare Node >=22 engine");
+
+  for (const scriptName of ["check", "verify", "self-check", "fixtures", "smoke:init"]) {
     if (typeof pkg.scripts?.[scriptName] === "string" && pkg.scripts[scriptName].length > 0) {
       pass(`package.json script ${scriptName}`);
     } else {
       fail(`package.json missing script ${scriptName}`);
     }
+  }
+  for (const marker of [
+    "node scripts/check-manifest.mjs",
+    "node scripts/check-dev-kit.mjs",
+    "git diff --check",
+  ]) {
+    if (pkg.scripts?.verify?.includes(marker)) pass(`package.json verify includes ${marker}`);
+    else fail(`package.json verify missing ${marker}`);
   }
 
   const help = runNode(["scripts/cli.mjs", "--help"]);
@@ -1819,6 +1844,66 @@ function checkGuidedDecisionDeliveryLoopProtocol() {
   }
 }
 
+function checkGovernanceHardeningDriftGuardProtocol() {
+  const required = [
+    "docs/governance-hardening-drift-guard-1.11-plan.md",
+    "requests/210-governance-hardening-drift-guard.md",
+    "preflight/210-governance-hardening-drift-guard.md",
+    "specs/210-governance-hardening-drift-guard.md",
+    "evals/210-governance-hardening-drift-guard.md",
+    "tasks/210-governance-hardening-drift-guard.md",
+    "final-reports/210-governance-hardening-drift-guard.md",
+    "releases/1.11.0/release-record.md",
+    "releases/1.11.0/known-limitations.md",
+    "releases/1.11.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`governance hardening asset exists ${file}`);
+    else fail(`governance hardening asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/governance-hardening-drift-guard-1.11-plan.md"),
+    read("releases/1.11.0/release-record.md"),
+    read("releases/1.11.0/known-limitations.md"),
+  ].join("\n");
+  for (const marker of [
+    "Governance Hardening & Drift Guard",
+    "Direct Init Non-Empty Guard",
+    "Manifest Reverse Drift Guard",
+    "Structured Release Section Checks",
+    "npm run verify",
+    "does not promote industrial packs",
+    "does not add automatic GPT/API review",
+  ]) {
+    if (combined.includes(marker)) {
+      pass(`governance hardening protocol includes ${marker}`);
+    } else {
+      fail(`governance hardening protocol missing ${marker}`);
+    }
+  }
+
+  const initProject = read("scripts/init-project.mjs");
+  for (const marker of [
+    "assertDirectInitTargetIsSafe",
+    "--force-new-project",
+    "Direct init refused",
+  ]) {
+    if (initProject.includes(marker)) pass(`init-project includes hardening marker ${marker}`);
+    else fail(`init-project missing hardening marker ${marker}`);
+  }
+
+  const manifestCheck = read("scripts/check-manifest.mjs");
+  for (const marker of [
+    "checkManifestReverseDrift",
+    "manifest reverse drift guard",
+    "isImportantSourceAsset",
+  ]) {
+    if (manifestCheck.includes(marker)) pass(`check-manifest includes drift marker ${marker}`);
+    else fail(`check-manifest missing drift marker ${marker}`);
+  }
+}
+
 function checkGuidedDeliveryBaselineProtocol() {
   const required = [
     "docs/guided-delivery-baseline-1.3-plan.md",
@@ -1904,6 +1989,31 @@ function checkGuidedDeliveryBaselineProtocol() {
     } else {
       fail(`claim control must reject ${name}: ${output}`);
     }
+  }
+
+  const emptyReleaseRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-empty-release-"));
+  fs.mkdirSync(path.join(emptyReleaseRoot, "releases", "9.9.9"), { recursive: true });
+  fs.writeFileSync(path.join(emptyReleaseRoot, "VERSION.md"), "Current version: `9.9.9`\n");
+  fs.writeFileSync(path.join(emptyReleaseRoot, "releases", "9.9.9", "release-record.md"), [
+    "# Release Record: 9.9.9",
+    "",
+    "## Allowed Claims",
+    "",
+    "## Forbidden Claims",
+    "",
+    "## Evidence Status",
+    "",
+    "## Known Limitations",
+    "",
+    "## Verification",
+    "",
+  ].join("\n"));
+  const emptyReleaseCheck = runNode(["scripts/check-claim-control.mjs", emptyReleaseRoot]);
+  const emptyReleaseOutput = `${emptyReleaseCheck.stdout}\n${emptyReleaseCheck.stderr}`;
+  if (emptyReleaseCheck.status !== 0 && emptyReleaseOutput.includes("meaningful claim-control section")) {
+    pass("claim control rejects empty release sections");
+  } else {
+    fail(`claim control must reject empty release sections: ${emptyReleaseOutput}`);
   }
 
   const baselineEnforcement = runNode([
@@ -2786,6 +2896,8 @@ function checkReadmePointers() {
     "node scripts/cli.mjs update",
     "node scripts/cli.mjs migrate",
     "node scripts/cli.mjs check",
+    "releases/1.10.0/release-record.md",
+    "releases/1.9.0/release-record.md",
     "不要",
     "docs/operator-manual.md",
     "docs/first-hour.md",
@@ -2823,6 +2935,12 @@ function checkReadmePointers() {
   for (const pointer of requiredReadmePointers) {
     if (readme.includes(pointer)) pass(`README entry mentions ${pointer}`);
     else fail(`README entry missing ${pointer}`);
+  }
+  const currentReleasePointer = `releases/${currentVersion()}/release-record.md`;
+  if (readme.includes(currentReleasePointer) && zhReadme.includes(currentReleasePointer)) {
+    pass("README files mention current release record");
+  } else {
+    fail(`README files must mention current release record: ${currentReleasePointer}`);
   }
 
   for (const pointer of [
@@ -4718,6 +4836,34 @@ function checkGeneratedProjectE2E() {
   pass("generated project workflow artifact quality check after update");
 
   const dryRunTarget = path.join(tempRoot, "dry-run-project");
+  const nonEmptyInitTarget = path.join(tempRoot, "non-empty-init-project");
+  fs.mkdirSync(nonEmptyInitTarget, { recursive: true });
+  fs.writeFileSync(path.join(nonEmptyInitTarget, "existing.txt"), "existing project file\n");
+  const directNonEmptyInit = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    nonEmptyInitTarget,
+  ]);
+  if (directNonEmptyInit.status !== 2
+    || !`${directNonEmptyInit.stdout}\n${directNonEmptyInit.stderr}`.includes("Direct init refused")
+    || fs.existsSync(path.join(nonEmptyInitTarget, ".ai-native", "version.json"))) {
+    fail(`direct init must reject non-empty targets: ${directNonEmptyInit.stderr || directNonEmptyInit.stdout}`);
+    return;
+  }
+  pass("direct init rejects non-empty target without force");
+
+  const forceInit = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    nonEmptyInitTarget,
+    "--force-new-project",
+  ]);
+  if (forceInit.status !== 0 || !fs.existsSync(path.join(nonEmptyInitTarget, ".ai-native", "version.json"))) {
+    fail(`direct init force flag should initialize intentionally non-empty new target: ${forceInit.stderr || forceInit.stdout}`);
+    return;
+  }
+  pass("direct init allows non-empty target only with explicit force flag");
+
   const dryRunResult = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
@@ -5143,6 +5289,7 @@ checkGoalModeProtocol();
 checkSubagentOrchestrationProtocol();
 checkOutputExperienceProtocol();
 checkGuidedDecisionDeliveryLoopProtocol();
+checkGovernanceHardeningDriftGuardProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();
