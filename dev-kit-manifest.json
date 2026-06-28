@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.12.0",
+  "devKitVersion": "1.12.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.11.0"
+    "phase": "1.12.1"
   },
   "groups": {
     "sourceRequired": [
@@ -175,6 +175,7 @@
       "evals/200-guided-decision-delivery-loop.md",
       "evals/210-governance-hardening-drift-guard.md",
       "evals/220-change-boundary-baseline-state.md",
+      "evals/221-manifest-readme-fallback-sync.md",
       "examples/1.1-guided-adoption/existing-light-project/adoption-recommendations/001-guided-start.md",
       "examples/1.1-guided-adoption/governed-readonly/adoption-recommendations/001-guided-start.md",
       "examples/1.1-guided-adoption/new-project/adoption-recommendations/001-guided-start.md",
@@ -322,6 +323,7 @@
       "final-reports/200-guided-decision-delivery-loop.md",
       "final-reports/210-governance-hardening-drift-guard.md",
       "final-reports/220-change-boundary-baseline-state.md",
+      "final-reports/221-manifest-readme-fallback-sync.md",
       "git-boundary-reports/.gitkeep",
       "goal-cards/034-baseline-freeze-self-ci.md",
       "goal-cards/035-readonly-manifest.md",
@@ -498,6 +500,7 @@
       "preflight/200-guided-decision-delivery-loop.md",
       "preflight/210-governance-hardening-drift-guard.md",
       "preflight/220-change-boundary-baseline-state.md",
+      "preflight/221-manifest-readme-fallback-sync.md",
       "profiles/android-app/baseline.json",
       "profiles/android-app/environment-topics.md",
       "profiles/backend-api/baseline.json",
@@ -569,6 +572,9 @@
       "releases/1.12.0/known-limitations.md",
       "releases/1.12.0/release-record.md",
       "releases/1.12.0/self-check-report.md",
+      "releases/1.12.1/known-limitations.md",
+      "releases/1.12.1/release-record.md",
+      "releases/1.12.1/self-check-report.md",
       "releases/1.2.0/baseline-smoke.md",
       "releases/1.2.0/generated-project-smoke.md",
       "releases/1.2.0/known-limitations.md",
@@ -623,6 +629,7 @@
       "requests/200-guided-decision-delivery-loop.md",
       "requests/210-governance-hardening-drift-guard.md",
       "requests/220-change-boundary-baseline-state.md",
+      "requests/221-manifest-readme-fallback-sync.md",
       "review-loop-reports/034-baseline-freeze-self-ci.md",
       "review-loop-reports/035-readonly-manifest.md",
       "review-loop-reports/036-cli-front-door.md",
@@ -742,6 +749,7 @@
       "specs/200-guided-decision-delivery-loop.md",
       "specs/210-governance-hardening-drift-guard.md",
       "specs/220-change-boundary-baseline-state.md",
+      "specs/221-manifest-readme-fallback-sync.md",
       "starters/generic-project/AGENTS.md",
       "subagent-run-plans/034-baseline-freeze-self-ci.md",
       "subagent-run-plans/035-readonly-manifest.md",
@@ -783,6 +791,7 @@
       "tasks/200-guided-decision-delivery-loop.md",
       "tasks/210-governance-hardening-drift-guard.md",
       "tasks/220-change-boundary-baseline-state.md",
+      "tasks/221-manifest-readme-fallback-sync.md",
       "templates/active-work-thread.md",
       "templates/adoption-assessment.md",
       "templates/adoption-evidence-report.md",

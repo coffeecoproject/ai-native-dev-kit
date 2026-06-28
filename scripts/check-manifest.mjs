@@ -109,6 +109,9 @@ function validateManifestShape(manifest) {
   if (manifest.compatibilityPolicy?.changesRuntimeBehavior !== true) {
     fail("manifest schema validation: compatibilityPolicy.changesRuntimeBehavior must be true");
   }
+  if (manifest.compatibilityPolicy?.phase !== manifest.devKitVersion) {
+    fail(`manifest schema validation: compatibilityPolicy.phase ${manifest.compatibilityPolicy?.phase || "<missing>"} must match devKitVersion ${manifest.devKitVersion}`);
+  }
   if (!manifest.groups || typeof manifest.groups !== "object" || Array.isArray(manifest.groups)) {
     fail("manifest schema validation: groups must be an object");
     return;

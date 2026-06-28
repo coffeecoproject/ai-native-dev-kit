@@ -120,14 +120,18 @@ node scripts/cli.mjs doctor ../my-project
 维护 Dev Kit 自身时，可以检查产品边界和声明口径：
 
 ```bash
+npm run verify
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
+node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-change-boundary.mjs .
+node scripts/check-baseline-state.mjs .
 node scripts/check-guided-adoption.mjs .
 ```
 
@@ -200,6 +204,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.12.1 Release Record](releases/1.12.1/release-record.md)：1.12.1 manifest、README 自检入口和 fallback 同步
 - [1.12 Release Record](releases/1.12.0/release-record.md)：1.12 变更边界、引导式交付检查与基线状态保护
 - [1.11 Release Record](releases/1.11.0/release-record.md)：1.11 治理硬化与漂移防护
 - [1.10 Release Record](releases/1.10.0/release-record.md)：1.10 引导式决策与交付闭环

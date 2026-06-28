@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.12.0`
+Current version: `1.12.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.12.0`
 
 ## Current Release
 
-`1.12.0`
+`1.12.1`
 
 Includes:
 
+- Manifest, README & Fallback Sync patch `1.12.1`: manifest `compatibilityPolicy.phase` now matches `devKitVersion`, phase drift is checked, README self-check guidance includes 1.12 checks and `npm run verify`, and `check-ai-workflow` fallback paths include 1.12 assets
+- `1.12.1` does not add standard baseline packs, assign real CODEOWNERS, add automatic GPT/API review, automatically scan real projects, approve target-project writes, or prove production/commercial readiness
 - Change Boundary, Guided Delivery Check & Baseline State Guard phase `1.12.0`: recorded change scope proof, standalone guided delivery checks, no-code baseline state protection, and CI/verify integration
 - Added `core/change-boundary.md`, `core/baseline-state.md`, `docs/change-boundary.md`, `docs/baseline-state.md`, `docs/guided-delivery-check.md`, Change Boundary and Baseline State report templates, prompts, checklists, examples, bad fixtures, and dedicated checkers
 - CLI now includes `guided-delivery`, `change-boundary`, and `baseline-state`; `new-workflow-item` can create Change Boundary and Baseline State reports

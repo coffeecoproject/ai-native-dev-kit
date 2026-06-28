@@ -73,6 +73,9 @@ function createRunContext(testCase) {
     const manifestPath = path.join(kitRoot, "dev-kit-manifest.json");
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
     manifest.devKitVersion = setup.manifestVersionMismatch.version || "0.0.0";
+    if (manifest.compatibilityPolicy) {
+      manifest.compatibilityPolicy.phase = manifest.devKitVersion;
+    }
     fs.writeFileSync(context.manifest, `${JSON.stringify(manifest, null, 2)}\n`);
   }
   if (setup.generatedProject) {

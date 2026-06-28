@@ -896,6 +896,11 @@ function checkManifestProtocol() {
   } else {
     fail("manifest compatibility policy must be authoritative for phase 0.37.0");
   }
+  if (manifest.compatibilityPolicy?.phase === manifest.devKitVersion) {
+    pass("manifest compatibilityPolicy.phase matches devKitVersion");
+  } else {
+    fail(`manifest compatibilityPolicy.phase ${manifest.compatibilityPolicy?.phase || "<missing>"} must match devKitVersion ${manifest.devKitVersion}`);
+  }
 
   for (const group of [
     "sourceRequired",
@@ -978,6 +983,20 @@ function checkManifestProtocol() {
       pass("manifest check rejects invalid manifest before drift checking");
     } else {
       fail(`manifest check must reject invalid manifest before drift checking: ${invalidOutput}`);
+    }
+
+    const phaseDriftManifest = path.join(tempRoot, "phase-drift-manifest.json");
+    const phaseDrift = JSON.parse(JSON.stringify(manifest));
+    phaseDrift.compatibilityPolicy.phase = "0.0.0";
+    fs.writeFileSync(phaseDriftManifest, JSON.stringify(phaseDrift, null, 2));
+    const phaseDriftResult = runNode(["scripts/check-manifest.mjs", kitRoot, "--manifest", phaseDriftManifest]);
+    const phaseDriftOutput = `${phaseDriftResult.stdout}\n${phaseDriftResult.stderr}`;
+    if (phaseDriftResult.status !== 0
+      && phaseDriftOutput.includes("compatibilityPolicy.phase")
+      && phaseDriftOutput.includes("must match devKitVersion")) {
+      pass("manifest check rejects compatibilityPolicy phase drift");
+    } else {
+      fail(`manifest check must reject compatibilityPolicy phase drift: ${phaseDriftOutput}`);
     }
 
     const sourceManifest = path.join(tempRoot, "source-required-manifest.json");
@@ -3128,12 +3147,16 @@ function checkReadmePointers() {
     "O2 + selected profiles + BL2",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
+    "npm run verify",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-claim-control.mjs",
     "node scripts/check-context-governance.mjs",
     "node scripts/check-launch-readiness.mjs",
     "node scripts/check-conversation-drift.mjs",
+    "node scripts/check-guided-delivery-loop.mjs",
     "node scripts/check-first-delivery-walkthrough.mjs",
+    "node scripts/check-change-boundary.mjs",
+    "node scripts/check-baseline-state.mjs",
     "node scripts/cli.mjs next",
     "node scripts/cli.mjs init",
     "node scripts/cli.mjs update",
@@ -3194,11 +3217,15 @@ function checkReadmePointers() {
     "Codex 一句话入口",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
+    "npm run verify",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-context-governance.mjs",
     "node scripts/check-launch-readiness.mjs",
     "node scripts/check-conversation-drift.mjs",
+    "node scripts/check-guided-delivery-loop.mjs",
     "node scripts/check-first-delivery-walkthrough.mjs",
+    "node scripts/check-change-boundary.mjs",
+    "node scripts/check-baseline-state.mjs",
     "重要边界",
     "docs/operator-manual.md",
     "docs/first-hour.md",
