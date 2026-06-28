@@ -23,6 +23,7 @@ The 2026-06-28 batch used three project shapes:
 | `local-miniprogram-payment-project` | WeChat Mini Program with payment and cloud functions | Check Mini Program, payment, and backend-scope detection |
 | `local-production-governed-web-project` | Production governed Web/admin/backend project | Check adapter-only, BL2 candidate, and no-write boundaries |
 | `local-ios-backend-project` | iOS app with backend signals and dirty worktree | Check mobile/backend detection and dirty-worktree protection |
+| `local-ios-industrial-monorepo-project` | iOS-led governed monorepo with Web/admin/backend and inactive-or-deferred mobile shells | Check large-monorepo platform clarity, BL1 safe action vs BL2 candidate language, and adapter-only protection |
 
 ## Commands Used
 
@@ -37,4 +38,3 @@ node scripts/cli.mjs baseline-packs <target>
 ```
 
 All commands are intended to be read-only for this calibration batch.
-
