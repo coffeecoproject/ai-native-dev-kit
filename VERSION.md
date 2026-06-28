@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.16.0`
+Current version: `1.17.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.16.0`
 
 ## Current Release
 
-`1.16.0`
+`1.17.0`
 
 Includes:
 
+- Guided Baseline Selection Entry phase `1.17.0`: adds a plain-language Baseline Decision Card, `baseline-decision` CLI entry, decision-card checker, examples, bad fixtures, and generated-project assets for user-readable baseline selection
+- `1.17.0` does not make BL2 default, select all packs, approve target-project writes, approve implementation, approve release/production, approve high-risk domain decisions, or replace existing governed project assets
 - BL2 Industrial Baseline Deepening phase `1.16.0`: adds a shared depth contract across industrial packs, pack-specific scope/evidence boundaries, risk overlay evidence checks, 1.16 examples, and bad fixtures for missing depth, all-pack BL2 selection, and risk overlay misuse
 - `1.16.0` keeps every industrial pack draft, selected-only, evidence-required, human-confirmed, and non-authorizing; it does not make BL2 default, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Standard Baseline Pack Registry hardening patch `1.15.1`: adds index-level schema, index/pack.json consistency checks, local verify resolver execution, environment-standard overclaim fixtures, and explicit CODEOWNERS owner-decision backlog

@@ -169,9 +169,13 @@ Concrete industrial packs are installed only when selected or explicitly request
 
 Use `.ai-native/core/standard-baseline-pack-registry.md` and `.ai-native/docs/standard-baseline-pack-registry.md` when normal engineering baseline packs need to be selected before considering BL2 industrial overlays.
 
+Use `.ai-native/core/guided-baseline-selection.md` and `.ai-native/docs/guided-baseline-selection-entry.md` first when the user needs a plain-language BL0/BL1/BL2 decision card instead of internal pack details.
+
 Run:
 
 ```bash
+node scripts/cli.mjs baseline-decision .
+node scripts/check-guided-baseline-selection.mjs .
 node scripts/resolve-standard-baseline.mjs .
 node scripts/check-standard-baseline-selection.mjs .
 ```

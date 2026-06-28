@@ -47,6 +47,14 @@ Apply scope is limited to baseline docs and baseline reports.
 
 Baseline output follows the same decision format. Codex may recommend a baseline plan, but applying baseline docs still requires a reviewed plan.
 
+For a plain-language baseline decision:
+
+```bash
+node ai-native-dev-kit/scripts/cli.mjs baseline-decision .
+```
+
+`baseline-decision` turns the project state into a Baseline Decision Card. It explains the recommended BL0/BL1/BL2 level, standard packs, industrial candidates, missing human decisions, and safe next actions. It does not authorize project writes, implementation, release, production, BL2 activation, or high-risk domain decisions.
+
 For platform standard baseline packs:
 
 ```bash
@@ -115,6 +123,7 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/check-guided-baseline-selection.mjs .
 node scripts/check-workflow-version.mjs .
 ```
 

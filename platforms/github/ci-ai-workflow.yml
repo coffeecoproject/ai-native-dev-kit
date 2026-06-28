@@ -55,6 +55,10 @@ jobs:
         run: node scripts/check-baseline-state.mjs .
       - name: Resolve standard baseline
         run: node scripts/resolve-standard-baseline.mjs .
+      - name: Resolve guided baseline decision
+        run: node scripts/cli.mjs baseline-decision .
+      - name: Check guided baseline decision cards
+        run: node scripts/check-guided-baseline-selection.mjs .
       - name: Check standard baseline packs
         run: node scripts/check-standard-baseline-pack.mjs .
       - name: Check standard baseline selection
@@ -121,6 +125,10 @@ jobs:
         run: node --check scripts/check-standard-baseline-pack.mjs
       - name: Check standard baseline selection checker syntax
         run: node --check scripts/check-standard-baseline-selection.mjs
+      - name: Check guided baseline resolver syntax
+        run: node --check scripts/resolve-guided-baseline-selection.mjs
+      - name: Check guided baseline checker syntax
+        run: node --check scripts/check-guided-baseline-selection.mjs
       - name: Check baseline pack resolver syntax
         run: node --check scripts/resolve-baseline-packs.mjs
       - name: Check baseline pack selection checker syntax

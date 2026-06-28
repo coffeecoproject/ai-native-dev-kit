@@ -1116,6 +1116,10 @@ function checkCliFrontDoor() {
     "node --check scripts/resolve-standard-baseline.mjs",
     "node --check scripts/check-standard-baseline-pack.mjs",
     "node --check scripts/check-standard-baseline-selection.mjs",
+    "node --check scripts/resolve-guided-baseline-selection.mjs",
+    "node --check scripts/check-guided-baseline-selection.mjs",
+    "node scripts/cli.mjs baseline-decision .",
+    "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
     "node scripts/check-standard-baseline-selection.mjs .",
     "node --check scripts/resolve-baseline-packs.mjs",
@@ -1149,6 +1153,8 @@ function checkCliFrontDoor() {
     "patch-classification",
     "change-boundary",
     "baseline-state",
+    "baseline-decision",
+    "baseline-decision-check",
     "standard-baseline",
     "standard-baseline-selection",
     "baseline-packs",
@@ -1181,6 +1187,20 @@ function checkCliFrontDoor() {
     pass("CLI next delegates to workflow-next");
   } else {
     fail(`CLI next failed or hid workflow-next output: ${next.stderr || next.stdout}`);
+  }
+
+  const baselineDecision = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
+  if (baselineDecision.status === 0 && baselineDecision.stdout.includes("Baseline Decision Card") && baselineDecision.stdout.includes("This card authorizes target-project writes: No")) {
+    pass("CLI baseline-decision delegates to guided baseline resolver");
+  } else {
+    fail(`CLI baseline-decision failed: ${baselineDecision.stderr || baselineDecision.stdout}`);
+  }
+
+  const baselineDecisionCheck = runNode(["scripts/cli.mjs", "baseline-decision-check", "."]);
+  if (baselineDecisionCheck.status === 0 && baselineDecisionCheck.stdout.includes("Guided Baseline Selection Check")) {
+    pass("CLI baseline-decision-check delegates to guided baseline checker");
+  } else {
+    fail(`CLI baseline-decision-check failed: ${baselineDecisionCheck.stderr || baselineDecisionCheck.stdout}`);
   }
 
   const baselinePacks = runNode(["scripts/cli.mjs", "baseline-packs", "."]);
@@ -2725,6 +2745,159 @@ function checkStandardBaselinePackRegistryProtocol() {
   }
 }
 
+function checkGuidedBaselineSelectionEntryProtocol() {
+  const required = [
+    "core/guided-baseline-selection.md",
+    "docs/guided-baseline-selection-entry.md",
+    "templates/baseline-decision-card.md",
+    "checklists/baseline-decision-review.md",
+    "prompts/baseline-decision-agent.md",
+    "baseline-decision-cards/.gitkeep",
+    "scripts/resolve-guided-baseline-selection.mjs",
+    "scripts/check-guided-baseline-selection.mjs",
+    "examples/1.17-guided-baseline-selection/README.md",
+    "examples/1.17-guided-baseline-selection/new-miniprogram/baseline-decision-cards/001-baseline-decision.md",
+    "examples/1.17-guided-baseline-selection/new-web-admin/baseline-decision-cards/001-baseline-decision.md",
+    "examples/1.17-guided-baseline-selection/existing-light-web/baseline-decision-cards/001-baseline-decision.md",
+    "examples/1.17-guided-baseline-selection/existing-governed-readonly/baseline-decision-cards/001-baseline-decision.md",
+    "examples/1.17-guided-baseline-selection/production-sensitive/baseline-decision-cards/001-baseline-decision.md",
+    "examples/1.17-guided-baseline-selection/dirty-worktree/baseline-decision-cards/001-baseline-decision.md",
+    "examples/1.17-guided-baseline-selection/bl2-candidate/baseline-decision-cards/001-baseline-decision.md",
+    "test-fixtures/bad/bad-guided-baseline-selects-all-packs/baseline-decision-cards/001-bad.md",
+    "test-fixtures/bad/bad-guided-baseline-bl2-default/baseline-decision-cards/001-bad.md",
+    "test-fixtures/bad/bad-guided-baseline-forces-backend/baseline-decision-cards/001-bad.md",
+    "test-fixtures/bad/bad-guided-baseline-production-direct-init/baseline-decision-cards/001-bad.md",
+    "test-fixtures/bad/bad-guided-baseline-dirty-continues/baseline-decision-cards/001-bad.md",
+    "releases/1.17.0/release-record.md",
+    "releases/1.17.0/known-limitations.md",
+    "releases/1.17.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.17 guided baseline asset exists ${file}`);
+    else fail(`1.17 guided baseline asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/guided-baseline-selection-entry-1.17-plan.md"),
+    read("core/guided-baseline-selection.md"),
+    read("docs/guided-baseline-selection-entry.md"),
+    read("templates/baseline-decision-card.md"),
+    read("checklists/baseline-decision-review.md"),
+    read("prompts/baseline-decision-agent.md"),
+    read("scripts/resolve-guided-baseline-selection.mjs"),
+    read("scripts/check-guided-baseline-selection.mjs"),
+    read("releases/1.17.0/release-record.md"),
+    read("releases/1.17.0/known-limitations.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Guided Baseline Selection",
+    "Baseline Decision Card",
+    "baseline-decision",
+    "baseline-decision-check",
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL",
+    "Candidate only, not selected",
+    "authorizes target-project writes: No",
+    "approves implementation: No",
+    "approves release or production: No",
+    "does not approve target-project writes",
+    "does not make BL2 default",
+    "does not select all packs",
+    "production-sensitive direct init/update",
+    "dirty worktree",
+  ]) {
+    if (combined.includes(marker)) pass(`1.17 guided baseline protocol includes ${marker}`);
+    else fail(`1.17 guided baseline protocol missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "baseline-decision",
+    "baseline-decision-check",
+    "scripts/resolve-guided-baseline-selection.mjs",
+    "scripts/check-guided-baseline-selection.mjs",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports guided baseline marker ${marker}`);
+    else fail(`CLI missing guided baseline marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "baseline-decision-card",
+    "baseline-decision-cards",
+    "fillBaselineDecisionCard",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports guided baseline marker ${marker}`);
+    else fail(`new-workflow-item missing guided baseline marker ${marker}`);
+  }
+
+  const initProject = read("scripts/init-project.mjs");
+  for (const marker of [
+    "guided-baseline-selection",
+    "baseline-decision-card",
+    "node scripts/cli.mjs baseline-decision .",
+  ]) {
+    if (initProject.includes(marker)) pass(`init-project includes guided baseline marker ${marker}`);
+    else fail(`init-project missing guided baseline marker ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
+  if (resolver.status === 0 && resolver.stdout.includes("Baseline Decision Card") && resolver.stdout.includes("This card authorizes target-project writes: No")) {
+    pass("guided baseline resolver CLI output");
+  } else {
+    fail(`guided baseline resolver CLI output failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const emptyCheck = runNode(["scripts/check-guided-baseline-selection.mjs", "."]);
+  if (emptyCheck.status === 0 && emptyCheck.stdout.includes("guided baseline selection check skipped")) {
+    pass("guided baseline checker allows no cards");
+  } else {
+    fail(`guided baseline checker should allow no cards: ${emptyCheck.stderr || emptyCheck.stdout}`);
+  }
+
+  for (const exampleDir of [
+    "new-miniprogram",
+    "new-web-admin",
+    "existing-light-web",
+    "existing-governed-readonly",
+    "production-sensitive",
+    "dirty-worktree",
+    "bl2-candidate",
+  ]) {
+    const example = runNode(["scripts/check-guided-baseline-selection.mjs", `examples/1.17-guided-baseline-selection/${exampleDir}`, "--strict"]);
+    if (example.status === 0 && example.stdout.includes("Guided baseline selection check passed")) {
+      pass(`1.17 guided baseline example passes ${exampleDir}`);
+    } else {
+      fail(`1.17 guided baseline example failed ${exampleDir}: ${example.stderr || example.stdout}`);
+    }
+  }
+
+  for (const [name, fixture, expected] of [
+    ["selects all packs", "bad-guided-baseline-selects-all-packs", "selects all known standard packs"],
+    ["BL2 default", "bad-guided-baseline-bl2-default", "BL2 is default"],
+    ["forces backend", "bad-guided-baseline-forces-backend", "forces backend-api-standard"],
+    ["approves writes", "bad-guided-baseline-approves-writes", "write approval"],
+    ["approves implementation", "bad-guided-baseline-approves-implementation", "implementation approval"],
+    ["approves release", "bad-guided-baseline-approves-release", "release approval"],
+    ["production ready", "bad-guided-baseline-production-ready", "production-ready claim"],
+    ["too many questions", "bad-guided-baseline-too-many-questions", "too many human decision questions"],
+    ["governed overwrite", "bad-guided-baseline-governed-overwrite", "existing governed project recommends overwrite"],
+    ["production direct init", "bad-guided-baseline-production-direct-init", "production-sensitive project recommends direct init/update"],
+    ["BL2 no evidence gap", "bad-guided-baseline-bl2-no-evidence-gap", "BL2 candidate has no evidence gap"],
+    ["dirty continues", "bad-guided-baseline-dirty-continues", "dirty worktree continues without decision"],
+  ]) {
+    const bad = runNode(["scripts/check-guided-baseline-selection.mjs", `test-fixtures/bad/${fixture}`]);
+    const output = `${bad.stdout}\n${bad.stderr}`;
+    if (bad.status !== 0 && output.includes(expected)) {
+      pass(`1.17 guided baseline checker rejects ${name}`);
+    } else {
+      fail(`1.17 guided baseline checker must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkGuidedDeliveryBaselineProtocol() {
   const required = [
     "docs/guided-delivery-baseline-1.3-plan.md",
@@ -3749,6 +3922,8 @@ function checkScriptSyntax() {
     "scripts/resolve-standard-baseline.mjs",
     "scripts/check-standard-baseline-pack.mjs",
     "scripts/check-standard-baseline-selection.mjs",
+    "scripts/resolve-guided-baseline-selection.mjs",
+    "scripts/check-guided-baseline-selection.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -3803,6 +3978,7 @@ function checkReadmePointers() {
     "O2 + selected profiles + BL2",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
+    "node scripts/cli.mjs baseline-decision",
     "node scripts/cli.mjs standard-baseline",
     "node scripts/cli.mjs baseline-packs",
     "npm run verify",
@@ -3815,6 +3991,8 @@ function checkReadmePointers() {
     "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/check-change-boundary.mjs",
     "node scripts/check-baseline-state.mjs",
+    "node scripts/resolve-guided-baseline-selection.mjs",
+    "node scripts/check-guided-baseline-selection.mjs",
     "node scripts/resolve-standard-baseline.mjs",
     "node scripts/check-standard-baseline-pack.mjs",
     "node scripts/check-standard-baseline-selection.mjs",
@@ -6303,6 +6481,7 @@ checkGovernanceHardeningDriftGuardProtocol();
 checkChangeBoundaryBaselineStateProtocol();
 checkBaselinePackSystemProtocol();
 checkStandardBaselinePackRegistryProtocol();
+checkGuidedBaselineSelectionEntryProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();

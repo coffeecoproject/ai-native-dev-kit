@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.16.0",
+  "devKitVersion": "1.17.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.16.0"
+    "phase": "1.17.0"
   },
   "groups": {
     "sourceRequired": [
@@ -34,10 +34,12 @@
       "ai-logs/2026-06-27-industrial-maturity-license-boundary.md",
       "ai-logs/2026-06-27-project-memory-context-governance.md",
       "ai-logs/2026-06-27-release-evidence-adoption-entry.md",
+      "baseline-decision-cards/.gitkeep",
       "baseline-gap-reports/.gitkeep",
       "baseline-pack-selections/.gitkeep",
       "baseline-recommendations/.gitkeep",
       "checklists/automation-review.md",
+      "checklists/baseline-decision-review.md",
       "checklists/baseline-enforcement-review.md",
       "checklists/baseline-pack-selection-review.md",
       "checklists/baseline-state-review.md",
@@ -91,6 +93,7 @@
       "core/git-boundary.md",
       "core/glossary.md",
       "core/goal-mode.md",
+      "core/guided-baseline-selection.md",
       "core/guided-delivery-loop.md",
       "core/next-step-boundary.md",
       "core/outcome-baseline.md",
@@ -147,6 +150,7 @@
       "docs/governance-hardening-drift-guard-1.11-plan.md",
       "docs/governance-hardening-roadmap.md",
       "docs/guided-baseline-selection-entry-1.17-plan.md",
+      "docs/guided-baseline-selection-entry.md",
       "docs/guided-decision-delivery-loop-1.10-plan.md",
       "docs/guided-decision-delivery-loop.md",
       "docs/guided-delivery-baseline-1.3-plan.md",
@@ -257,6 +261,14 @@
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/docs/baseline-selection.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/docs/project-profile.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/evidence/web-admin-data-auth-verification.md",
+      "examples/1.17-guided-baseline-selection/README.md",
+      "examples/1.17-guided-baseline-selection/bl2-candidate/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/dirty-worktree/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/existing-governed-readonly/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/existing-light-web/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/new-miniprogram/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/new-web-admin/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/production-sensitive/baseline-decision-cards/001-baseline-decision.md",
       "examples/1.2-baseline-guided-setup/README.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-gap-reports/001-baseline-gaps.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-recommendations/001-baseline-recommendation.md",
@@ -582,6 +594,7 @@
       "profiles/web-app/environment-topics.md",
       "profiles/wechat-miniprogram/baseline.json",
       "profiles/wechat-miniprogram/environment-topics.md",
+      "prompts/baseline-decision-agent.md",
       "prompts/baseline-pack-router-agent.md",
       "prompts/baseline-setup-agent.md",
       "prompts/baseline-state-agent.md",
@@ -660,6 +673,9 @@
       "releases/1.16.0/known-limitations.md",
       "releases/1.16.0/release-record.md",
       "releases/1.16.0/self-check-report.md",
+      "releases/1.17.0/known-limitations.md",
+      "releases/1.17.0/release-record.md",
+      "releases/1.17.0/self-check-report.md",
       "releases/1.2.0/baseline-smoke.md",
       "releases/1.2.0/generated-project-smoke.md",
       "releases/1.2.0/known-limitations.md",
@@ -780,6 +796,7 @@
       "scripts/check-glossary-usage.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
+      "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
@@ -810,6 +827,7 @@
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -981,6 +999,7 @@
       "templates/adoption-trial-report.md",
       "templates/ai-task-log.md",
       "templates/assumption-register.md",
+      "templates/baseline-decision-card.md",
       "templates/baseline-evidence.md",
       "templates/baseline-gap-report.md",
       "templates/baseline-pack-selection-report.md",
@@ -1087,6 +1106,18 @@
       "test-fixtures/bad/bad-glossary-usage/core/glossary.md",
       "test-fixtures/bad/bad-goal-mode-invalid/goal-cards/001-invalid-mode.md",
       "test-fixtures/bad/bad-goal-mode-readonly-write/goal-cards/001-readonly-write.md",
+      "test-fixtures/bad/bad-guided-baseline-approves-implementation/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-approves-release/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-approves-writes/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-bl2-default/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-bl2-no-evidence-gap/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-dirty-continues/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-forces-backend/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-governed-overwrite/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-production-direct-init/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-production-ready/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-selects-all-packs/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-too-many-questions/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-delivery-d3-executed/guided-decision-summaries/001-d3-executed.md",
       "test-fixtures/bad/bad-guided-delivery-parking-approved/active-work-threads/001-parking-approved.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/audit/bad-audit.md",
@@ -1240,6 +1271,7 @@
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
+      ".ai-native/checklists/baseline-decision-review.md",
       ".ai-native/checklists/baseline-enforcement-review.md",
       ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
@@ -1288,6 +1320,7 @@
       ".ai-native/core/git-boundary.md",
       ".ai-native/core/glossary.md",
       ".ai-native/core/goal-mode.md",
+      ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/next-step-boundary.md",
       ".ai-native/core/outcome-baseline.md",
@@ -1317,6 +1350,7 @@
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/git-boundary.md",
       ".ai-native/docs/goal-subagent-usage.md",
+      ".ai-native/docs/guided-baseline-selection-entry.md",
       ".ai-native/docs/guided-decision-delivery-loop.md",
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
@@ -1328,6 +1362,7 @@
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/prompts/architect-agent.md",
+      ".ai-native/prompts/baseline-decision-agent.md",
       ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
@@ -1363,6 +1398,7 @@
       ".ai-native/templates/adoption-trial-report.md",
       ".ai-native/templates/ai-task-log.md",
       ".ai-native/templates/assumption-register.md",
+      ".ai-native/templates/baseline-decision-card.md",
       ".ai-native/templates/baseline-gap-report.md",
       ".ai-native/templates/baseline-pack-selection-report.md",
       ".ai-native/templates/baseline-recommendation-report.md",
@@ -1424,6 +1460,7 @@
       "adoption-trial-reports",
       "ai-logs",
       "automation-proposals",
+      "baseline-decision-cards",
       "baseline-gap-reports",
       "baseline-pack-selections",
       "baseline-recommendations",
@@ -1485,6 +1522,7 @@
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
+      "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-launch-readiness.mjs",
       "scripts/check-next-step-boundary.mjs",
@@ -1508,6 +1546,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/start-project.mjs",
       "scripts/summarize-ai-logs.mjs",
@@ -1525,6 +1564,7 @@
     ],
     "targetFull": [
       ".ai-native/checklists/automation-review.md",
+      ".ai-native/checklists/baseline-decision-review.md",
       ".ai-native/checklists/baseline-enforcement-review.md",
       ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
@@ -1576,6 +1616,7 @@
       ".ai-native/core/git-boundary.md",
       ".ai-native/core/glossary.md",
       ".ai-native/core/goal-mode.md",
+      ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/next-step-boundary.md",
       ".ai-native/core/outcome-baseline.md",
@@ -1605,6 +1646,7 @@
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/git-boundary.md",
       ".ai-native/docs/goal-subagent-usage.md",
+      ".ai-native/docs/guided-baseline-selection-entry.md",
       ".ai-native/docs/guided-decision-delivery-loop.md",
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
@@ -1642,6 +1684,7 @@
       ".ai-native/profiles/wechat-miniprogram/environment-topics.md",
       ".ai-native/profiles/wechat-miniprogram/profile.md",
       ".ai-native/prompts/architect-agent.md",
+      ".ai-native/prompts/baseline-decision-agent.md",
       ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
@@ -1677,6 +1720,7 @@
       ".ai-native/templates/adoption-trial-report.md",
       ".ai-native/templates/ai-task-log.md",
       ".ai-native/templates/assumption-register.md",
+      ".ai-native/templates/baseline-decision-card.md",
       ".ai-native/templates/baseline-evidence.md",
       ".ai-native/templates/baseline-gap-report.md",
       ".ai-native/templates/baseline-pack-selection-report.md",
@@ -1744,6 +1788,7 @@
       "adoption-trial-reports",
       "ai-logs",
       "automation-proposals",
+      "baseline-decision-cards",
       "baseline-gap-reports",
       "baseline-pack-selections",
       "baseline-recommendations",
@@ -1805,6 +1850,7 @@
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
+      "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
@@ -1831,6 +1877,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -1883,6 +1930,7 @@
       "core/change-boundary.md",
       "core/conversation-drift-control.md",
       "core/first-delivery-walkthrough.md",
+      "core/guided-baseline-selection.md",
       "core/patch-classification.md",
       "core/real-project-adoption-trial.md",
       "core/safe-launch.md",
@@ -1896,6 +1944,7 @@
       "templates/adoption-trial-report.md",
       "templates/ai-task-log.md",
       "templates/assumption-register.md",
+      "templates/baseline-decision-card.md",
       "templates/baseline-evidence.md",
       "templates/baseline-gap-report.md",
       "templates/baseline-pack-selection-report.md",
@@ -1959,6 +2008,7 @@
       "templates/workflow-version.json"
     ],
     "prompts": [
+      "prompts/baseline-decision-agent.md",
       "prompts/baseline-pack-router-agent.md",
       "prompts/baseline-setup-agent.md",
       "prompts/baseline-state-agent.md",
@@ -1984,6 +2034,7 @@
     ],
     "checklists": [
       "checklists/automation-review.md",
+      "checklists/baseline-decision-review.md",
       "checklists/baseline-enforcement-review.md",
       "checklists/baseline-pack-selection-review.md",
       "checklists/baseline-state-review.md",
@@ -2049,6 +2100,7 @@
       "adoption-trial-reports",
       "ai-logs",
       "automation-proposals",
+      "baseline-decision-cards",
       "baseline-gap-reports",
       "baseline-pack-selections",
       "baseline-recommendations",
@@ -2106,6 +2158,7 @@
       "scripts/check-glossary-usage.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
+      "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
@@ -2136,6 +2189,7 @@
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -2208,6 +2262,14 @@
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/docs/baseline-selection.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/docs/project-profile.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/evidence/web-admin-data-auth-verification.md",
+      "examples/1.17-guided-baseline-selection/README.md",
+      "examples/1.17-guided-baseline-selection/bl2-candidate/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/dirty-worktree/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/existing-governed-readonly/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/existing-light-web/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/new-miniprogram/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/new-web-admin/baseline-decision-cards/001-baseline-decision.md",
+      "examples/1.17-guided-baseline-selection/production-sensitive/baseline-decision-cards/001-baseline-decision.md",
       "examples/1.2-baseline-guided-setup/README.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-gap-reports/001-baseline-gaps.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-recommendations/001-baseline-recommendation.md",
@@ -2365,6 +2427,18 @@
       "test-fixtures/bad/bad-glossary-usage/core/glossary.md",
       "test-fixtures/bad/bad-goal-mode-invalid/goal-cards/001-invalid-mode.md",
       "test-fixtures/bad/bad-goal-mode-readonly-write/goal-cards/001-readonly-write.md",
+      "test-fixtures/bad/bad-guided-baseline-approves-implementation/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-approves-release/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-approves-writes/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-bl2-default/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-bl2-no-evidence-gap/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-dirty-continues/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-forces-backend/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-governed-overwrite/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-production-direct-init/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-production-ready/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-selects-all-packs/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-too-many-questions/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-delivery-d3-executed/guided-decision-summaries/001-d3-executed.md",
       "test-fixtures/bad/bad-guided-delivery-parking-approved/active-work-threads/001-parking-approved.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/audit/bad-audit.md",
@@ -2518,6 +2592,7 @@
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
+      ".ai-native/checklists/baseline-decision-review.md",
       ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
       ".ai-native/checklists/change-boundary-review.md",
@@ -2543,6 +2618,7 @@
       ".ai-native/core/decision-delegation-boundary.md",
       ".ai-native/core/first-delivery-walkthrough.md",
       ".ai-native/core/git-boundary.md",
+      ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/outcome-baseline.md",
       ".ai-native/core/patch-classification.md",
@@ -2563,6 +2639,7 @@
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/git-boundary.md",
       ".ai-native/docs/goal-subagent-usage.md",
+      ".ai-native/docs/guided-baseline-selection-entry.md",
       ".ai-native/docs/guided-decision-delivery-loop.md",
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
@@ -2576,6 +2653,7 @@
       ".ai-native/industrial-packs",
       ".ai-native/profiles",
       ".ai-native/prompts",
+      ".ai-native/prompts/baseline-decision-agent.md",
       ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
       ".ai-native/prompts/change-boundary-agent.md",
@@ -2596,6 +2674,7 @@
       ".ai-native/templates/active-work-thread.md",
       ".ai-native/templates/adoption-trial-report.md",
       ".ai-native/templates/assumption-register.md",
+      ".ai-native/templates/baseline-decision-card.md",
       ".ai-native/templates/baseline-pack-selection-report.md",
       ".ai-native/templates/baseline-state-report.md",
       ".ai-native/templates/change-boundary-report.md",
@@ -2618,6 +2697,7 @@
       "active-work-threads",
       "adoption-recommendations",
       "adoption-trial-reports",
+      "baseline-decision-cards",
       "baseline-gap-reports",
       "baseline-pack-selections",
       "baseline-recommendations",
@@ -2666,6 +2746,7 @@
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
+      "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
@@ -2692,6 +2773,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -2704,6 +2786,7 @@
       "subagent-run-plans"
     ],
     "workflowReadiness": [
+      ".ai-native/checklists/baseline-decision-review.md",
       ".ai-native/checklists/baseline-enforcement-review.md",
       ".ai-native/checklists/baseline-state-review.md",
       ".ai-native/checklists/change-boundary-review.md",
@@ -2740,6 +2823,7 @@
       ".ai-native/core/git-boundary.md",
       ".ai-native/core/glossary.md",
       ".ai-native/core/goal-mode.md",
+      ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/next-step-boundary.md",
       ".ai-native/core/outcome-baseline.md",
@@ -2763,6 +2847,7 @@
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/goal-subagent-usage.md",
+      ".ai-native/docs/guided-baseline-selection-entry.md",
       ".ai-native/docs/guided-decision-delivery-loop.md",
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
@@ -2789,6 +2874,7 @@
       ".ai-native/profiles/web-app/environment-topics.md",
       ".ai-native/profiles/wechat-miniprogram/baseline.json",
       ".ai-native/profiles/wechat-miniprogram/environment-topics.md",
+      ".ai-native/prompts/baseline-decision-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
       ".ai-native/prompts/bootstrap-agent.md",
@@ -2814,6 +2900,7 @@
       ".ai-native/templates/adoption-recommendation-report.md",
       ".ai-native/templates/adoption-trial-report.md",
       ".ai-native/templates/assumption-register.md",
+      ".ai-native/templates/baseline-decision-card.md",
       ".ai-native/templates/baseline-evidence.md",
       ".ai-native/templates/baseline-gap-report.md",
       ".ai-native/templates/baseline-recommendation-report.md",
@@ -2856,6 +2943,7 @@
       "active-work-threads",
       "adoption-recommendations",
       "adoption-trial-reports",
+      "baseline-decision-cards",
       "baseline-gap-reports",
       "baseline-pack-selections",
       "baseline-recommendations",
@@ -2903,6 +2991,7 @@
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
+      "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
@@ -2922,6 +3011,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -2936,6 +3026,10 @@
   },
   "copyRules": {
     "directories": [
+      {
+        "source": "baseline-decision-cards",
+        "target": "baseline-decision-cards"
+      },
       {
         "source": "baseline-pack-selections",
         "target": "baseline-pack-selections"
@@ -2995,6 +3089,10 @@
     ],
     "files": [
       {
+        "source": "checklists/baseline-decision-review.md",
+        "target": ".ai-native/checklists/baseline-decision-review.md"
+      },
+      {
         "source": "checklists/baseline-pack-selection-review.md",
         "target": ".ai-native/checklists/baseline-pack-selection-review.md"
       },
@@ -3037,6 +3135,10 @@
       {
         "source": "core/decision-delegation-boundary.md",
         "target": ".ai-native/core/decision-delegation-boundary.md"
+      },
+      {
+        "source": "core/guided-baseline-selection.md",
+        "target": ".ai-native/core/guided-baseline-selection.md"
       },
       {
         "source": "core/guided-delivery-loop.md",
@@ -3107,6 +3209,10 @@
         "target": ".ai-native/docs/goal-subagent-usage.md"
       },
       {
+        "source": "docs/guided-baseline-selection-entry.md",
+        "target": ".ai-native/docs/guided-baseline-selection-entry.md"
+      },
+      {
         "source": "docs/guided-decision-delivery-loop.md",
         "target": ".ai-native/docs/guided-decision-delivery-loop.md"
       },
@@ -3149,6 +3255,10 @@
       {
         "source": "platforms/github/ci-ai-workflow.yml",
         "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
+        "source": "prompts/baseline-decision-agent.md",
+        "target": ".ai-native/prompts/baseline-decision-agent.md"
       },
       {
         "source": "prompts/baseline-pack-router-agent.md",
@@ -3237,6 +3347,10 @@
       {
         "source": "scripts/check-guided-adoption.mjs",
         "target": "scripts/check-guided-adoption.mjs"
+      },
+      {
+        "source": "scripts/check-guided-baseline-selection.mjs",
+        "target": "scripts/check-guided-baseline-selection.mjs"
       },
       {
         "source": "scripts/check-guided-delivery-loop.mjs",
@@ -3343,6 +3457,10 @@
         "target": "scripts/resolve-baseline-packs.mjs"
       },
       {
+        "source": "scripts/resolve-guided-baseline-selection.mjs",
+        "target": "scripts/resolve-guided-baseline-selection.mjs"
+      },
+      {
         "source": "scripts/resolve-industrial-baseline.mjs",
         "target": "scripts/resolve-industrial-baseline.mjs"
       },
@@ -3373,6 +3491,10 @@
       {
         "source": "templates/active-work-thread.md",
         "target": ".ai-native/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/baseline-decision-card.md",
+        "target": ".ai-native/templates/baseline-decision-card.md"
       },
       {
         "source": "templates/baseline-pack-selection-report.md",

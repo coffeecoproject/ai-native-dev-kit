@@ -31,6 +31,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => ["--umbrella", ...withDefaultTarget(args)],
   },
+  "baseline-decision": {
+    description: "Produce a plain-language baseline decision card without writing target files.",
+    script: "scripts/resolve-guided-baseline-selection.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "baseline-decision-check": {
+    description: "Check recorded baseline decision cards.",
+    script: "scripts/check-guided-baseline-selection.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "standard-baseline": {
     description: "Recommend standard baseline packs without enabling packs.",
     script: "scripts/resolve-standard-baseline.mjs",
@@ -256,6 +268,7 @@ function printHelp() {
   console.log("Examples:");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
+  console.log("  node scripts/cli.mjs baseline-decision ../my-project");
   console.log("  node scripts/cli.mjs standard-baseline ../my-project");
   console.log("  node scripts/cli.mjs standard-baseline-selection .");
   console.log("  node scripts/cli.mjs baseline-packs ../my-project");

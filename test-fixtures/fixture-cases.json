@@ -1435,5 +1435,173 @@
       "recommended standard packs differ from resolver"
     ],
     "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad guided baseline selects all packs",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-selects-all-packs"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "selects all known standard packs"
+    ],
+    "howToFix": "Baseline Decision Cards must recommend the smallest standard pack set by platform and scope."
+  },
+  {
+    "name": "bad guided baseline bl2 default",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-bl2-default"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "BL2 is default"
+    ],
+    "howToFix": "Baseline Decision Cards must keep BL2 selected-only and evidence-required."
+  },
+  {
+    "name": "bad guided baseline forces backend",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-forces-backend"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "forces backend-api-standard"
+    ],
+    "howToFix": "Baseline Decision Cards must keep backend/API optional until scope evidence exists."
+  },
+  {
+    "name": "bad guided baseline approves writes",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-approves-writes"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "write approval"
+    ],
+    "howToFix": "Baseline Decision Cards are recommendations only and must not authorize target-project writes."
+  },
+  {
+    "name": "bad guided baseline approves implementation",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-approves-implementation"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "implementation approval"
+    ],
+    "howToFix": "Baseline Decision Cards must not approve implementation."
+  },
+  {
+    "name": "bad guided baseline approves release",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-approves-release"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "release approval"
+    ],
+    "howToFix": "Baseline Decision Cards must not approve release or production."
+  },
+  {
+    "name": "bad guided baseline production ready",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-production-ready"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "production-ready claim"
+    ],
+    "howToFix": "Baseline Decision Cards must not claim production readiness."
+  },
+  {
+    "name": "bad guided baseline too many questions",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-too-many-questions"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "too many human decision questions"
+    ],
+    "howToFix": "Baseline Decision Cards should ask no more than 3 to 5 human questions in normal cases."
+  },
+  {
+    "name": "bad guided baseline governed overwrite",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-governed-overwrite"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "existing governed project recommends overwrite"
+    ],
+    "howToFix": "Existing governed projects must default to read-only mapping or controlled apply, not governance replacement."
+  },
+  {
+    "name": "bad guided baseline production direct init",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-production-direct-init"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "production-sensitive project recommends direct init/update"
+    ],
+    "howToFix": "Production-sensitive projects must stay adapter/read-only first unless controlled apply is explicitly approved."
+  },
+  {
+    "name": "bad guided baseline bl2 no evidence gap",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-bl2-no-evidence-gap"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "BL2 candidate has no evidence gap"
+    ],
+    "howToFix": "BL2 candidate cards must record an evidence gap before industrial packs are enabled."
+  },
+  {
+    "name": "bad guided baseline dirty continues",
+    "type": "bad",
+    "checker": "check-guided-baseline-selection",
+    "script": "scripts/check-guided-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-guided-baseline-dirty-continues"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "dirty worktree continues without decision"
+    ],
+    "howToFix": "Dirty worktree cards must stop before writes and ask whether to continue read-only, plan only, or wait."
   }
 ]

@@ -32,6 +32,7 @@ node scripts/cli.mjs start ../my-project
 4. Codex lists the human decisions needed.
 5. Codex lists safe next actions.
 6. Codex states what AI must not do yet.
+7. Codex runs `baseline-decision` when BL level, platform baseline, industrial candidates, or write permission need a user-readable decision card.
 
 ## Project Types
 
@@ -62,6 +63,15 @@ Direct setup is not the default for existing, governed, production-sensitive, di
 Industrial packs are not installed by default.
 
 BL2 or any industrial pack requires explicit human confirmation. If the project needs a Web, mini program, mobile, backend, or internal admin baseline, Codex may recommend candidate profiles, but it must not enable the industrial layer without confirmation.
+
+When baseline choice affects the first task, Codex should produce a Baseline Decision Card:
+
+```bash
+node scripts/cli.mjs baseline-decision ../my-project
+node scripts/check-guided-baseline-selection.mjs .
+```
+
+The card is a recommendation record. It does not approve writes, implementation, release, production, or high-risk business decisions.
 
 ## What To Save
 

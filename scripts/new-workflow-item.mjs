@@ -41,6 +41,7 @@ const typeMap = {
   "baseline-state-report": { dir: "baseline-state-reports", template: "baseline-state-report.md", defaultName: "baseline-state" },
   "baseline-pack-selection-report": { dir: "baseline-pack-selections", template: "baseline-pack-selection-report.md", defaultName: "baseline-pack-selection" },
   "standard-baseline-selection-report": { dir: "standard-baseline-selections", template: "standard-baseline-selection-report.md", defaultName: "standard-baseline-selection" },
+  "baseline-decision-card": { dir: "baseline-decision-cards", template: "baseline-decision-card.md", defaultName: "baseline-decision" },
 };
 
 const aliases = {
@@ -132,6 +133,10 @@ const aliases = {
   "standard-baseline": "standard-baseline-selection-report",
   "standard-pack-selection": "standard-baseline-selection-report",
   "standard-packs": "standard-baseline-selection-report",
+  "baseline-decision": "baseline-decision-card",
+  "decision-card": "baseline-decision-card",
+  "guided-baseline": "baseline-decision-card",
+  "guided-baseline-selection": "baseline-decision-card",
 };
 
 function parseArgs(argv) {
@@ -188,6 +193,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type baseline-state-report --name no-code-baseline");
   console.error("  node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name project-baseline-packs");
   console.error("  node scripts/new-workflow-item.mjs --type standard-baseline-selection-report --name project-standard-baseline");
+  console.error("  node scripts/new-workflow-item.mjs --type baseline-decision-card --name project-baseline-decision");
 }
 
 function fail(message) {
@@ -1601,6 +1607,64 @@ function fillStandardBaselineSelectionReport(content, context) {
   return output;
 }
 
+function fillBaselineDecisionCard(content, context) {
+  let output = setTitle(content, `# Baseline Decision Card: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Summary",
+    [
+      `I think this project needs a baseline decision for ${context.title}.`,
+      "",
+      "I recommend PENDING until Codex reads project signals.",
+      "",
+      "Codex can recommend next steps, but this card does not approve writes or implementation.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Project State",
+    [
+      "- Project state: unknown",
+      "- Why: Fill from `node scripts/cli.mjs baseline-decision <project>`.",
+      "- Default adoption mode: read-only",
+      "- Can Codex write now: No",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Platform And Scope",
+    [
+      "- Detected platform: unknown",
+      "- Backend/API scope: pending confirmation",
+      "- Production sensitivity: pending confirmation",
+      "- High-risk scope: pending confirmation",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Recommended Baseline Level",
+    [
+      "- Recommended level: PENDING",
+      "- Why: Fill after project state, platform, and risk review.",
+      "- Current selected level: none",
+      "- BL2 status: not selected",
+    ].join("\n"),
+  );
+  output = setSection(output, "Recommended Standard Packs", "- none");
+  output = setSection(output, "Candidate Industrial Packs", "Candidate only, not selected:\n\n- none");
+  output = setSection(
+    output,
+    "Human Decisions Needed",
+    [
+      "1. What platform and project type should Codex assume?",
+      "2. Does this phase include backend/API/database changes?",
+      "3. May Codex write baseline files after a reviewed plan, or should it stay read-only?",
+    ].join("\n"),
+  );
+  output = setSection(output, "Safe Next Actions", "- Run `node scripts/cli.mjs baseline-decision <project>` read-only.");
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1791,6 +1855,7 @@ if (type === "change-boundary-report") content = fillChangeBoundaryReport(conten
 if (type === "baseline-state-report") content = fillBaselineStateReport(content, baseContext);
 if (type === "baseline-pack-selection-report") content = fillBaselinePackSelectionReport(content, baseContext);
 if (type === "standard-baseline-selection-report") content = fillStandardBaselineSelectionReport(content, baseContext);
+if (type === "baseline-decision-card") content = fillBaselineDecisionCard(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);

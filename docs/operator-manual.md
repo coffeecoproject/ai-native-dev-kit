@@ -52,6 +52,14 @@ node scripts/cli.mjs baseline <project>
 For platform standard baseline recommendations:
 
 ```bash
+node scripts/cli.mjs baseline-decision <project>
+```
+
+Use `baseline-decision` when the human needs the decision in plain language. It should summarize the recommended BL level, ordinary standard packs, optional industrial candidates, missing human confirmations, and safe next actions. It does not approve target-project writes, implementation, release, production, BL2 activation, or high-risk domain decisions.
+
+For lower-level platform standard baseline recommendations:
+
+```bash
 node scripts/cli.mjs standard-baseline <project>
 ```
 

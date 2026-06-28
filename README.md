@@ -59,7 +59,13 @@ node scripts/cli.mjs start ../my-project
 node scripts/cli.mjs baseline ../my-project
 ```
 
-第三步，如果项目可能涉及平台、后台、权限、数据、支付或发布风险，让 Codex 只读推荐基线包：
+第三步，让 Codex 用白话给出“基线决策卡”，用户只确认项目状态、风险和是否允许继续：
+
+```bash
+node scripts/cli.mjs baseline-decision ../my-project
+```
+
+第四步，如果项目可能涉及平台、后台、权限、数据、支付或发布风险，让 Codex 只读推荐基线包：
 
 ```bash
 node scripts/cli.mjs standard-baseline ../my-project
@@ -112,6 +118,7 @@ node scripts/cli.mjs doctor ../my-project
 | 能力 | 作用 |
 |---|---|
 | 引导式接入 | 先判断项目是新项目、已有项目、强治理项目、生产敏感项目、dirty worktree，还是已接入项目 |
+| 基线决策卡 | 把 BL0/BL1/BL2、标准包、工业包候选、风险和下一步翻译成用户可确认的短卡片 |
 | 工程/环境基线 | 明确代码结构、数据库、API、权限、运行环境、构建测试、发布回滚和密钥边界 |
 | 标准基线包 | 先按平台、后台、发布回滚等普通工程需要推荐最小标准基线 |
 | 工业增强包 | 只在 BL2、高风险、生产敏感、客户数据、支付或发布风险存在时作为可选叠加 |
@@ -143,6 +150,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-guided-baseline-selection.mjs .
+node scripts/check-guided-baseline-selection.mjs .
 node scripts/resolve-standard-baseline.mjs .
 node scripts/check-standard-baseline-pack.mjs .
 node scripts/check-standard-baseline-selection.mjs .
@@ -167,6 +176,7 @@ node scripts/check-guided-adoption.mjs .
 - 不要把讨论、范围变化、旁路问题或风险问题直接当成继续当前任务的许可。
 - 不要把真实项目只读接入报告当成允许写入项目。
 - 不要把补丁分类报告当成允许实现；它只判断修复尺度。
+- 不要把基线决策卡当成写入、实现、发布或 BL2 启用授权；它只帮助用户确认路径。
 - 不要把标准基线包推荐当成已经选择、写入授权或具体实现任务批准。
 - 不要把工业包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
 
@@ -196,6 +206,7 @@ node scripts/check-guided-adoption.mjs .
 - [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
 - [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
 - [Guided Decision & Delivery Loop](docs/guided-decision-delivery-loop.md)：让 Codex 推荐最小安全路径，用户只确认目标、取舍和风险
+- [Guided Baseline Selection Entry](docs/guided-baseline-selection-entry.md)：把基线选择变成用户看得懂的决策卡
 - [Standard Baseline Pack Registry](docs/standard-baseline-pack-registry.md)：先选普通工程标准基线，再看是否需要工业增强
 - [Platform Standard Baseline Packs](docs/platform-standard-baseline-packs.md)：按 Web、小程序、iOS、Android、中台等平台推荐普通标准基线
 - [Change Boundary](docs/change-boundary.md)：检查实际改动是否仍在本次任务边界内
@@ -227,6 +238,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.17 Release Record](releases/1.17.0/release-record.md)：1.17 引导式基线决策卡入口
 - [1.16 Release Record](releases/1.16.0/release-record.md)：1.16 BL2 工业基线深化
 - [1.15.1 Release Record](releases/1.15.1/release-record.md)：1.15.1 标准包注册表硬化
 - [1.15 Release Record](releases/1.15.0/release-record.md)：1.15 平台标准基线包

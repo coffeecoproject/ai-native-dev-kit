@@ -50,6 +50,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `guided-decision-summaries/` | Optional decision summaries that translate technical choices into user-owned decisions |
 | `change-boundary-reports/` | Intended scope versus actual changed files evidence |
 | `baseline-state-reports/` | Proposed, pending, evidence-required, or confirmed baseline state evidence |
+| `baseline-decision-cards/` | Plain-language BL0/BL1/BL2, standard pack, industrial candidate, and human-decision cards |
 | `standard-baseline-selections/` | Standard baseline pack recommendations, optional industrial overlays, evidence, and human-decision reports |
 | `baseline-pack-selections/` | BL level, profile, pack candidate, not-selected, evidence, and human-decision reports |
 
@@ -118,6 +119,8 @@ Baseline Pack System lives under `.ai-native/core/` in generated projects. It co
 
 Standard Baseline Pack Registry lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends ordinary engineering baseline packs before optional BL2 industrial overlays, and keeps standard selection separate from implementation approval. Platform standard baseline packs add Web, Mini Program, iOS, Android, internal admin, and environment guidance without making backend, release, or industrial overlays default.
 
+Guided Baseline Selection lives under `.ai-native/core/` in generated projects. It turns baseline choice into a Baseline Decision Card so the user confirms project state, risk, BL level, and write permission without needing to understand internal resolver names.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -149,5 +152,6 @@ Short rule:
 - need to translate a technical choice into a user-owned decision: guided decision summary
 - need to prove edits stayed inside current task scope: change boundary report
 - need to state whether a baseline is proposed, pending, evidence-required, or confirmed: baseline state report
+- need to translate baseline choice into user-readable decisions: baseline decision card
 - need to recommend platform/capability/risk baseline packs: baseline pack selection report
 - need to close work: final report

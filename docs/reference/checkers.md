@@ -9,6 +9,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-ai-workflow.mjs` | Core or full workflow asset check |
 | `start-project.mjs` | Read-only guided adoption recommendation |
 | `baseline-project.mjs` | Read-only engineering/environment baseline recommendation and plan-first baseline apply |
+| `resolve-guided-baseline-selection.mjs` | Plain-language Baseline Decision Card recommendation |
+| `check-guided-baseline-selection.mjs` | Baseline Decision Card boundary and safety checks |
 | `check-guided-adoption.mjs` | Saved adoption recommendation report check |
 | `workflow-next.mjs` | Project-state and next-action detector |
 | `check-project-onboarding.mjs` | O0/O1/O2 onboarding readiness |
@@ -102,6 +104,7 @@ Product and claim checks:
 - `check-standard-baseline-pack.mjs` rejects standard packs that use `defaultForBL`, include unknown metadata fields, drift between `index.json` and `pack.json`, are active by default, miss required baseline/checklist/template content, claim production readiness, authorize writes, implementation, release, compliance, security, or privacy, or turn environment guidance into `.env` writes, secret values, invented deployment facts, or CI/CD approval claims.
 - `check-standard-baseline-selection.mjs` allows empty projects, but rejects reports that mix industrial overlays into standard packs, use unknown profile or pack IDs, select every known standard pack, force backend without evidence, recommend release/rollback without evidence, use overwrite language for governed existing projects, claim write or implementation approval, claim release/production approval, or treat selection as evidence. `--compare-resolver` checks recorded recommendations against resolver output.
 - `check-baseline-pack-selection.mjs` allows empty projects, but rejects reports that select all packs by default, treat BL2 as universal default, treat draft packs as stable, claim pack files prove real project evidence, or authorize writes, implementation, release, or production.
+- `check-guided-baseline-selection.mjs` allows empty projects, but rejects Baseline Decision Cards that default to BL2, select all packs, force backend without evidence, claim write/implementation/release/production/high-risk approval, recommend overwrite for governed projects, recommend direct init/update for production-sensitive projects, continue dirty worktrees without a decision, or omit concrete next actions.
 
 ## Suggested Sequences
 
@@ -127,6 +130,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-guided-baseline-selection.mjs .
+node scripts/check-guided-baseline-selection.mjs .
 node scripts/resolve-standard-baseline.mjs .
 node scripts/check-standard-baseline-pack.mjs .
 node scripts/check-standard-baseline-selection.mjs .
@@ -149,6 +154,7 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/check-guided-baseline-selection.mjs .
 node scripts/resolve-baseline-packs.mjs .
 node scripts/check-baseline-pack-selection.mjs .
 ```
@@ -168,6 +174,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-guided-baseline-selection.mjs .
+node scripts/check-guided-baseline-selection.mjs .
 node scripts/resolve-baseline-packs.mjs .
 node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-fixtures.mjs

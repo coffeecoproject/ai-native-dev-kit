@@ -10,6 +10,8 @@ Use `scripts/cli.mjs` for daily operation.
 |---|---|---|
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
+| `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
+| `node scripts/cli.mjs baseline-decision-check <project>` | Check recorded Baseline Decision Cards | No |
 | `node scripts/cli.mjs standard-baseline <project>` | Read-only standard baseline pack recommendation | No |
 | `node scripts/cli.mjs standard-baseline-selection <project>` | Check recorded standard baseline selection reports | No |
 | `node scripts/cli.mjs baseline-packs <project>` | Read-only umbrella recommendation: standard packs first, optional industrial overlays second | No |
@@ -61,6 +63,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/start-project.mjs` is the first-hour adoption entry. It calls `workflow-next`, classifies the target project, lists decisions needed from the human, and recommends safe next actions. It is read-only by default and must not write target project files.
 
 `scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. Use `--write-plan <file>` to write a reviewable plan and `--apply-plan <file>` to apply only approved baseline docs and baseline reports.
+
+`scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
+
+`scripts/check-guided-baseline-selection.mjs` checks recorded Baseline Decision Cards. It rejects default BL2, selecting all packs, forcing backend without evidence, target-project write approval, implementation approval, release/production approval, high-risk decision approval, existing-governed overwrite language, production-sensitive direct init/update, BL2 candidates without evidence gaps, dirty-worktree continuation, and vague next actions.
 
 `scripts/resolve-standard-baseline.mjs` is the standard baseline pack entry. It is read-only and recommends platform standard packs first, keeps backend/release packs conditional, then shows optional industrial overlays when used through the umbrella CLI. It does not enable packs, install packs, approve implementation, or approve target-project writes.
 
@@ -140,6 +146,7 @@ Common types:
 - `change-boundary-report`
 - `baseline-state-report`
 - `baseline-pack-selection-report`
+- `baseline-decision-card`
 
 Use `active-work-thread` only when broad conversation, side ideas, or repeated drift make the current mainline unclear. Use `guided-decision-summary` when Codex needs to recommend one safe path and translate technical choices into a human-owned decision.
 
@@ -174,6 +181,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-guided-baseline-selection.mjs .
+node scripts/check-guided-baseline-selection.mjs .
 node scripts/resolve-baseline-packs.mjs .
 node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-guided-adoption.mjs .

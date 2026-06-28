@@ -72,6 +72,8 @@ Before non-trivial work, read:
 ## Industrial Baseline
 
 - Baseline level is `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`; it is not task level.
+- Run `node scripts/cli.mjs baseline-decision .` first when the user needs a plain-language baseline decision card.
+- Run `node scripts/check-guided-baseline-selection.mjs .` when Baseline Decision Cards exist.
 - Run `node scripts/resolve-standard-baseline.mjs .` for a read-only standard baseline pack recommendation when platform, capability, or release baseline choice is unclear.
 - Recommend platform standard packs first; keep backend and release packs conditional; do not treat standard baseline selection as target-project write approval.
 - Run `node scripts/cli.mjs baseline-packs .` for the umbrella read-only recommendation when optional industrial overlays also matter.

@@ -692,16 +692,19 @@ function agentGovernanceSectionContent() {
       "",
       "Use `.ai-native/core/baseline-pack-system.md` and `.ai-native/docs/baseline-pack-system.md` when project profile, BL level, standard packs, industrial packs, or risk overlays need to be selected.",
       "",
+      "Use `.ai-native/core/guided-baseline-selection.md` and `.ai-native/docs/guided-baseline-selection-entry.md` first when the user needs a plain-language baseline decision instead of internal pack details.",
+      "",
       "Codex may recommend candidate packs, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without explicit human decision. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays.",
       "",
       "Optional artifacts:",
       "",
       "```bash",
+      "node scripts/new-workflow-item.mjs --type baseline-decision-card --name <project-baseline-decision>",
       "node scripts/new-workflow-item.mjs --type standard-baseline-selection-report --name <project-standard-baseline>",
       "node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name <project-baseline-packs>",
       "```",
       "",
-      "Run `node scripts/resolve-standard-baseline.mjs .` for a standard baseline recommendation, `node scripts/cli.mjs baseline-packs .` for the umbrella recommendation, and selection checkers when reports exist.",
+      "Run `node scripts/cli.mjs baseline-decision .` for a plain-language decision card, `node scripts/resolve-standard-baseline.mjs .` for a standard baseline recommendation, `node scripts/cli.mjs baseline-packs .` for the umbrella recommendation, and selection checkers when reports exist.",
       "",
     ].join("\n")],
     ["Task Execution Rules", [
@@ -1591,19 +1594,20 @@ function printNextSteps() {
   console.log("4. Draft docs/engineering-baseline.md before structural, schema, contract, permission, migration, dependency, or cross-module state decisions.");
   console.log("5. Run node scripts/check-engineering-baseline.mjs . and route pending engineering decisions to humans before high-impact code changes.");
   console.log("6. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
-  console.log("7. Run node scripts/resolve-standard-baseline.mjs . to review standard packs before considering BL2 industrial overlays.");
-  console.log("8. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
-  console.log("9. Create the first request card only after onboarding is ready.");
-  console.log("10. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
-  console.log("11. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-  console.log("12. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
-  console.log("13. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
-  console.log("14. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
-  console.log("15. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
-  console.log("16. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
-  console.log("17. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
-  console.log("18. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
-  console.log("19. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+  console.log("7. Run node scripts/cli.mjs baseline-decision . so Codex explains BL level, standard packs, industrial candidates, and human decisions in plain language.");
+  console.log("8. Run node scripts/resolve-standard-baseline.mjs . to review standard packs before considering BL2 industrial overlays.");
+  console.log("9. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
+  console.log("10. Create the first request card only after onboarding is ready.");
+  console.log("11. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
+  console.log("12. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
+  console.log("13. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
+  console.log("14. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
+  console.log("15. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
+  console.log("16. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
+  console.log("17. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
+  console.log("18. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
+  console.log("19. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
+  console.log("20. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
 }
 
 function isIgnorableNewProjectEntry(name) {

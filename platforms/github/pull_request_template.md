@@ -30,7 +30,8 @@
 - [ ] Guided Delivery Loop check passed when Active Work Thread or Guided Decision Summary artifacts exist
 - [ ] Change Boundary Report is linked or marked not applicable when changed files need to be proven against task scope
 - [ ] Baseline State Report is linked or marked not applicable when baselines are proposed or reviewed before implementation evidence exists
-- [ ] Baseline Pack Selection Report is linked or marked not applicable when BL level, platform packs, capability packs, or risk overlays are recommended
+- [ ] Baseline Decision Card is linked or marked not applicable when BL level, platform packs, capability packs, or risk overlays are recommended
+- [ ] Baseline Pack Selection Report is linked or marked not applicable when lower-level pack selection is needed
 - [ ] First Delivery Walkthrough / Adoption Trial evidence was checked when this PR claims an end-to-end first-slice path or real adoption trial
 - [ ] Assumptions are recorded when the change relies on inferred or unconfirmed facts
 - [ ] Goal Card is linked or marked not applicable when route selection was ambiguous, high-risk, or multi-step
@@ -57,6 +58,7 @@
 
 ## Baseline Pack Selection
 
+- Baseline Decision Card:
 - Recommended BL level:
 - Selected profiles:
 - Recommended packs:
