@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.17.0",
+  "devKitVersion": "1.17.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.17.0"
+    "phase": "1.17.1"
   },
   "groups": {
     "sourceRequired": [
@@ -676,6 +676,9 @@
       "releases/1.17.0/known-limitations.md",
       "releases/1.17.0/release-record.md",
       "releases/1.17.0/self-check-report.md",
+      "releases/1.17.1/known-limitations.md",
+      "releases/1.17.1/release-record.md",
+      "releases/1.17.1/self-check-report.md",
       "releases/1.2.0/baseline-smoke.md",
       "releases/1.2.0/generated-project-smoke.md",
       "releases/1.2.0/known-limitations.md",

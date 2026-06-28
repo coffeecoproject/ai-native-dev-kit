@@ -1,14 +1,12 @@
 # CODEOWNERS
 #
-# No active owner rule is declared yet because maintainer GitHub handles are a human release-governance decision.
-# Add concrete owner rules before enabling required code-owner review.
-#
-# Example after maintainers are finalized:
-# * @owner-handle
-#
-# Owner decision backlog before required code-owner review:
-# standard-baseline-packs/** @confirmed-standard-baseline-owner
-# industrial-packs/** @confirmed-industrial-baseline-owner
-# scripts/** @confirmed-tooling-owner
-# core/** @confirmed-workflow-owner
-# .github/** @confirmed-release-governance-owner
+# 1.17.1 declares an active maintainer owner for governance-sensitive areas.
+# Required code-owner review still depends on repository branch-protection settings.
+
+* @coffeecoproject
+
+standard-baseline-packs/** @coffeecoproject
+industrial-packs/** @coffeecoproject
+scripts/** @coffeecoproject
+core/** @coffeecoproject
+.github/** @coffeecoproject

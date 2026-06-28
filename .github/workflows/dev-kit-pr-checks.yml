@@ -68,6 +68,15 @@ jobs:
       - name: Baseline state check
         run: node scripts/check-baseline-state.mjs .
 
+      - name: Baseline decision smoke
+        run: node scripts/cli.mjs baseline-decision .
+
+      - name: Baseline decision check
+        run: node scripts/cli.mjs baseline-decision-check .
+
+      - name: Baseline decision example strict check
+        run: node scripts/check-guided-baseline-selection.mjs examples/1.17-guided-baseline-selection/new-miniprogram --strict
+
       - name: Standard baseline recommendation smoke
         run: node scripts/cli.mjs standard-baseline .
 
@@ -114,6 +123,8 @@ jobs:
           node "$tmp/project/scripts/check-first-delivery-walkthrough.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-real-adoption-trial.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-patch-classification.mjs" "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" baseline-decision "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" baseline-decision-check "$tmp/project"
           node "$tmp/project/scripts/resolve-standard-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-pack.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-selection.mjs" "$tmp/project"

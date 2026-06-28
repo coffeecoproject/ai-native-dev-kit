@@ -57,6 +57,15 @@ node scripts/cli.mjs baseline-decision <project>
 
 Use `baseline-decision` when the human needs the decision in plain language. It should summarize the recommended BL level, ordinary standard packs, optional industrial candidates, missing human confirmations, and safe next actions. It does not approve target-project writes, implementation, release, production, BL2 activation, or high-risk domain decisions.
 
+`baseline-decision` prints only. Persist a record only after the human wants to keep the decision:
+
+```bash
+node scripts/new-workflow-item.mjs --type baseline-decision-card --name project-baseline-decision
+node scripts/cli.mjs baseline-decision-check <project>
+```
+
+If the recommendation mentions BL2, phrase it as a candidate path for human review, not as an active selection.
+
 For lower-level platform standard baseline recommendations:
 
 ```bash

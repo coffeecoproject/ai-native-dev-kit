@@ -9,7 +9,7 @@ status: draft
 
 I think this project is <project state>.
 
-I recommend <BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL> for this phase.
+I recommend <BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL candidate path for human review> for this phase.
 
 Codex can recommend next steps, but this card does not approve writes or implementation.
 

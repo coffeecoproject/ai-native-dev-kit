@@ -436,9 +436,12 @@ function notSelectedIndustrialReason(id, risk, baselineLevel) {
 function humanSummary(projectState, baselineLevel, profiles, risk) {
   const platform = platformLabel(profiles);
   const riskText = risk.hasHighRisk ? "High-risk or production-sensitive signals need confirmation." : "No high-risk scope is confirmed yet.";
+  const recommendation = baselineLevel.level === "BL2_INDUSTRIAL"
+    ? "I recommend treating BL2_INDUSTRIAL as a candidate path for human review."
+    : `I recommend ${baselineLevel.level} for this phase.`;
   return [
     `I think this is a ${projectState.label.toLowerCase()} with ${platform}.`,
-    `I recommend ${baselineLevel.level} for this phase.`,
+    recommendation,
     `${riskText} This card does not approve writes or implementation.`,
   ];
 }

@@ -55,6 +55,8 @@ node ai-native-dev-kit/scripts/cli.mjs baseline-decision .
 
 `baseline-decision` turns the project state into a Baseline Decision Card. It explains the recommended BL0/BL1/BL2 level, standard packs, industrial candidates, missing human decisions, and safe next actions. It does not authorize project writes, implementation, release, production, BL2 activation, or high-risk domain decisions.
 
+This command prints the card only. To save a reviewed record, ask Codex to create `new-workflow-item --type baseline-decision-card` after you confirm the card should be retained.
+
 For platform standard baseline packs:
 
 ```bash

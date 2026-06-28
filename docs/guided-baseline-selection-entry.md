@@ -31,6 +31,16 @@ node scripts/cli.mjs baseline-decision <project>
 
 This command is read-only. It prints a decision card and does not write target-project files.
 
+It does not save the card automatically.
+
+If the human wants to keep a record after reading the output, create a draft card explicitly:
+
+```bash
+node scripts/new-workflow-item.mjs --type baseline-decision-card --name project-baseline-decision
+```
+
+Then copy the reviewed recommendation into the draft and run the checker. Creating the record is still not approval to write target-project files.
+
 To check recorded cards:
 
 ```bash
@@ -97,6 +107,8 @@ It does not approve release or production.
 It does not approve security, privacy, compliance, payment, finance, tax, HR, migration, or irreversible data decisions.
 
 It does not prove real-project evidence exists.
+
+When BL2 appears, it must be described as a candidate path for human review. It is not selected or active until BL2 evidence, selected packs, residual risk, and human approval are recorded.
 
 ## Relationship To Lower-Level Tools
 

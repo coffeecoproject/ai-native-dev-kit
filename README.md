@@ -238,6 +238,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.17.1 Release Record](releases/1.17.1/release-record.md)：1.17.1 基线决策卡校准
 - [1.17 Release Record](releases/1.17.0/release-record.md)：1.17 引导式基线决策卡入口
 - [1.16 Release Record](releases/1.16.0/release-record.md)：1.16 BL2 工业基线深化
 - [1.15.1 Release Record](releases/1.15.1/release-record.md)：1.15.1 标准包注册表硬化

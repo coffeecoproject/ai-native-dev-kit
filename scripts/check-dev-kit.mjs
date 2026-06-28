@@ -607,6 +607,9 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
+    "node scripts/cli.mjs baseline-decision .",
+    "node scripts/cli.mjs baseline-decision-check .",
+    "node scripts/check-guided-baseline-selection.mjs examples/1.17-guided-baseline-selection/new-miniprogram --strict",
     "node scripts/cli.mjs standard-baseline .",
     "node scripts/check-standard-baseline-pack.mjs .",
     "node scripts/check-standard-baseline-selection.mjs .",
@@ -630,6 +633,8 @@ function checkDevKitFirstPartyCi() {
     "check-first-delivery-walkthrough.mjs",
     "check-real-adoption-trial.mjs",
     "check-patch-classification.mjs",
+    "baseline-decision",
+    "baseline-decision-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -660,6 +665,9 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
+    "node scripts/cli.mjs baseline-decision .",
+    "node scripts/cli.mjs baseline-decision-check .",
+    "node scripts/check-guided-baseline-selection.mjs examples/1.17-guided-baseline-selection/new-miniprogram --strict",
     "node scripts/cli.mjs standard-baseline .",
     "node scripts/check-standard-baseline-pack.mjs .",
     "node scripts/check-standard-baseline-selection.mjs .",
@@ -681,6 +689,8 @@ function checkDevKitFirstPartyCi() {
     "check-first-delivery-walkthrough.mjs",
     "check-real-adoption-trial.mjs",
     "check-patch-classification.mjs",
+    "baseline-decision",
+    "baseline-decision-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -720,10 +730,16 @@ function checkDevKitFirstPartyCi() {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith("#"));
-  if (activeCodeownerLines.length === 0 && codeowners.includes("No active owner rule is declared yet")) {
-    pass("CODEOWNERS records draft ownership boundary without fake owners");
+  if (activeCodeownerLines.length > 0
+    && activeCodeownerLines.every((line) => line.includes("@coffeecoproject"))
+    && codeowners.includes("standard-baseline-packs/** @coffeecoproject")
+    && codeowners.includes("industrial-packs/** @coffeecoproject")
+    && codeowners.includes("scripts/** @coffeecoproject")
+    && codeowners.includes("core/** @coffeecoproject")
+    && codeowners.includes(".github/** @coffeecoproject")) {
+    pass("CODEOWNERS declares active maintainer ownership for governance-sensitive areas");
   } else {
-    fail("CODEOWNERS must avoid fake active ownership until maintainer handles are finalized");
+    fail("CODEOWNERS must declare active @coffeecoproject ownership for governance-sensitive areas");
   }
 
   for (const marker of [
@@ -2798,6 +2814,7 @@ function checkGuidedBaselineSelectionEntryProtocol() {
     "BL0_LIGHTWEIGHT",
     "BL1_STANDARD",
     "BL2_INDUSTRIAL",
+    "candidate path for human review",
     "Candidate only, not selected",
     "authorizes target-project writes: No",
     "approves implementation: No",
