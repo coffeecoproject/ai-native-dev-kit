@@ -1,0 +1,9 @@
+{
+  "baselineLayer": "standard",
+  "packs": [
+    {
+      "id": "bad-runtime-standard",
+      "path": "bad-runtime"
+    }
+  ]
+}

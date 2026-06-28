@@ -2450,6 +2450,12 @@ function checkStandardBaselinePackRegistryProtocol() {
     "releases/1.14.0/release-record.md",
     "releases/1.14.0/known-limitations.md",
     "releases/1.14.0/self-check-report.md",
+    "releases/1.14.1/release-record.md",
+    "releases/1.14.1/known-limitations.md",
+    "releases/1.14.1/self-check-report.md",
+    "test-fixtures/bad/bad-standard-pack-unknown-field/standard-baseline-packs/index.json",
+    "test-fixtures/bad/bad-standard-pack-unknown-field/standard-baseline-packs/bad-runtime/pack.json",
+    "test-fixtures/bad/bad-standard-selection-unknown-profile/standard-baseline-selections/001-bad.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`standard baseline registry asset exists ${file}`);
@@ -2465,6 +2471,12 @@ function checkStandardBaselinePackRegistryProtocol() {
     read("prompts/standard-baseline-router-agent.md"),
     read("releases/1.14.0/release-record.md"),
     read("releases/1.14.0/known-limitations.md"),
+    read("releases/1.14.1/release-record.md"),
+    read("releases/1.14.1/known-limitations.md"),
+    read("standard-baseline-packs/schema/standard-pack.schema.json"),
+    read("scripts/resolve-baseline-packs.mjs"),
+    read("scripts/check-standard-baseline-pack.mjs"),
+    read("scripts/check-standard-baseline-selection.mjs"),
   ].join("\n");
 
   for (const marker of [
@@ -2479,6 +2491,12 @@ function checkStandardBaselinePackRegistryProtocol() {
     "approves release or production: No",
     "approves compliance/security/privacy: No",
     "draft",
+    "Deprecated lower-level resolver",
+    "\"additionalProperties\": false",
+    "extensions",
+    "unknown pack metadata field",
+    "unknown selected profile",
+    "allowedPublicUrlHosts",
   ]) {
     if (combined.includes(marker)) pass(`standard baseline protocol includes ${marker}`);
     else fail(`standard baseline protocol missing ${marker}`);
@@ -2572,6 +2590,20 @@ function checkStandardBaselinePackRegistryProtocol() {
     pass("standard baseline pack checker rejects activeByDefault");
   } else {
     fail(`standard baseline pack checker must reject activeByDefault: ${badDefault.stderr || badDefault.stdout}`);
+  }
+
+  const badUnknownField = runNode(["scripts/check-standard-baseline-pack.mjs", "test-fixtures/bad/bad-standard-pack-unknown-field"]);
+  if (badUnknownField.status !== 0 && `${badUnknownField.stdout}\n${badUnknownField.stderr}`.includes("unknown pack metadata field")) {
+    pass("standard baseline pack checker rejects unknown metadata fields");
+  } else {
+    fail(`standard baseline pack checker must reject unknown metadata fields: ${badUnknownField.stderr || badUnknownField.stdout}`);
+  }
+
+  const badUnknownProfile = runNode(["scripts/check-standard-baseline-selection.mjs", "test-fixtures/bad/bad-standard-selection-unknown-profile"]);
+  if (badUnknownProfile.status !== 0 && `${badUnknownProfile.stdout}\n${badUnknownProfile.stderr}`.includes("unknown selected profile")) {
+    pass("standard baseline selection checker rejects unknown selected profiles");
+  } else {
+    fail(`standard baseline selection checker must reject unknown selected profiles: ${badUnknownProfile.stderr || badUnknownProfile.stdout}`);
   }
 }
 

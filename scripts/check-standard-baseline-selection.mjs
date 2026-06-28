@@ -70,6 +70,29 @@ function loadPackIds(root, registryName) {
   return new Set((Array.isArray(index?.packs) ? index.packs : []).map((entry) => entry.id).filter(Boolean));
 }
 
+function profileRoots(root) {
+  return [
+    path.join(root, ".ai-native", "profiles"),
+    path.join(root, "profiles"),
+    path.join(process.cwd(), "profiles"),
+  ];
+}
+
+function loadProfileIds(root) {
+  const ids = new Set();
+  for (const profilesRoot of profileRoots(root)) {
+    if (!fs.existsSync(profilesRoot)) continue;
+    for (const entry of fs.readdirSync(profilesRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const profileDir = path.join(profilesRoot, entry.name);
+      if (fs.existsSync(path.join(profileDir, "profile.md")) || fs.existsSync(path.join(profileDir, "baseline.json"))) {
+        ids.add(entry.name);
+      }
+    }
+  }
+  return ids;
+}
+
 function reportFiles() {
   if (reportArg) return [path.resolve(projectRoot, reportArg)];
   const dir = path.join(projectRoot, "standard-baseline-selections");
@@ -102,6 +125,29 @@ function extractPackIds(body, suffix) {
   return unique(body.match(pattern) || []);
 }
 
+function extractSelectedProfiles(body) {
+  const profiles = [];
+  for (const line of body.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.includes("---")) continue;
+    if (trimmed.startsWith("|")) {
+      const cells = trimmed.split("|").map((cell) => cell.trim()).filter(Boolean);
+      for (const cell of cells) {
+        const match = cell.match(/`?([a-z0-9][a-z0-9-]*[a-z0-9])`?/);
+        if (match && !/^(profile|profiles|selected|none|pending|not-applicable|not_applicable)$/i.test(match[1])) {
+          profiles.push(match[1]);
+        }
+      }
+      continue;
+    }
+    const bullet = trimmed.match(/^[-*]\s+`?([a-z0-9][a-z0-9-]*[a-z0-9])`?/);
+    if (bullet && !/^(none|pending|not-applicable|not_applicable)$/i.test(bullet[1])) {
+      profiles.push(bullet[1]);
+    }
+  }
+  return unique(profiles);
+}
+
 function extractEvidenceRows(body) {
   return body
     .split("\n")
@@ -109,6 +155,25 @@ function extractEvidenceRows(body) {
     .map((line) => line.split("|").map((cell) => cell.trim()).filter(Boolean))
     .filter((cells) => cells.length >= 3)
     .filter((cells) => !(cells[0] === "Requirement" && cells[1] === "Evidence ref" && cells[2] === "Status"));
+}
+
+function validateSelectedProfiles(content, rel) {
+  const body = sectionBody(content, "Selected Profiles");
+  const selectedProfiles = extractSelectedProfiles(body);
+  if (selectedProfiles.length === 0) {
+    if (/\b(none|pending|not applicable|not_applicable|not-applicable)\b/i.test(body)) {
+      pass(`${rel} selected profiles explicitly pending or not applicable`);
+    } else {
+      warn(`${rel} should list selected profile ids or state pending/not applicable`);
+    }
+    return;
+  }
+
+  const knownProfiles = loadProfileIds(projectRoot);
+  for (const profileId of selectedProfiles) {
+    if (knownProfiles.has(profileId)) pass(`${rel} selected profile exists ${profileId}`);
+    else fail(`${rel} unknown selected profile ${profileId}`);
+  }
 }
 
 function validateRequiredSections(content, rel) {
@@ -257,6 +322,7 @@ function validateReport(file) {
   const rel = path.relative(projectRoot, file).replaceAll(path.sep, "/");
   const content = fs.readFileSync(file, "utf8");
   validateRequiredSections(content, rel);
+  validateSelectedProfiles(content, rel);
   validateBoundary(content, rel);
   validateOverclaims(content, rel);
   validatePackIds(content, rel);

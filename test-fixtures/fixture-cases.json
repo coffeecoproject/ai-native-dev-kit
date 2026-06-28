@@ -1133,6 +1133,20 @@
     "howToFix": "Standard packs may be recommended, but must not be active by default."
   },
   {
+    "name": "bad standard pack unknown field",
+    "type": "bad",
+    "checker": "check-standard-baseline-pack",
+    "script": "scripts/check-standard-baseline-pack.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-pack-unknown-field"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "unknown pack metadata field"
+    ],
+    "howToFix": "Standard pack metadata fields must be explicit; experimental metadata belongs under extensions."
+  },
+  {
     "name": "bad standard selection write approved",
     "type": "bad",
     "checker": "check-standard-baseline-selection",
@@ -1173,6 +1187,20 @@
       "unknown standard pack"
     ],
     "howToFix": "Standard baseline reports must reference pack IDs from standard-baseline-packs/index.json."
+  },
+  {
+    "name": "bad standard selection unknown profile",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-selection-unknown-profile"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "unknown selected profile"
+    ],
+    "howToFix": "Selected Profiles must use profile ids that exist in profiles/ or .ai-native/profiles/."
   },
   {
     "name": "bad standard selection resolver mismatch",

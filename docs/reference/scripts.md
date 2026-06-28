@@ -68,7 +68,7 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-standard-baseline-selection.mjs` checks Standard Baseline Selection Reports so standard pack recommendations stay separated from human selection, target-project writes, implementation approval, release approval, production approval, compliance/security/privacy approval, and evidence claims.
 
-`scripts/resolve-baseline-packs.mjs` remains the lower-level 1.13 industrial-oriented baseline pack resolver. The CLI `baseline-packs` entry now presents the standard baseline umbrella view while keeping this lower-level script available for exact evidence.
+`scripts/resolve-baseline-packs.mjs` is now a deprecated lower-level industrial-oriented resolver for exact evidence and debugging. For human usage, use `node scripts/cli.mjs baseline-packs <project>` so standard packs appear first and optional industrial overlays stay second.
 
 `scripts/check-baseline-pack-selection.mjs` checks Baseline Pack Selection Reports so pack recommendations stay separated from human approval, target-project writes, implementation approval, release approval, production approval, and draft-pack stability claims.
 

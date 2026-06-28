@@ -224,6 +224,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.14.1 Release Record](releases/1.14.1/release-record.md)：1.14.1 标准基线包校验硬化
 - [1.14 Release Record](releases/1.14.0/release-record.md)：1.14 标准基线包注册表
 - [1.13 Release Record](releases/1.13.0/release-record.md)：1.13 基线包选择系统
 - [1.12.1 Release Record](releases/1.12.1/release-record.md)：1.12.1 manifest、README 自检入口和 fallback 同步
@@ -242,6 +243,10 @@ node scripts/check-guided-adoption.mjs .
 - [1.2 Release Record](releases/1.2.0/release-record.md)：1.2 基线引导设置
 - [1.1 Release Record](releases/1.1.0/release-record.md)：1.1 引导式接入入口
 - [1.0 Release Record](releases/1.0.0/release-record.md)：1.0 发布边界
+
+治理说明：
+
+- `.github/CODEOWNERS` 当前只记录 owner 规则待确认，不声明假 owner；代码所有权强制审查需要维护者账号确认后再启用。
 
 ## License
 

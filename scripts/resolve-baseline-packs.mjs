@@ -172,6 +172,9 @@ function buildRecommendation(root) {
     reportType: "BASELINE_PACK_RECOMMENDATION",
     generatedBy: "scripts/resolve-baseline-packs.mjs",
     generatedAt: new Date().toISOString(),
+    deprecated: true,
+    replacementCommand: "node scripts/cli.mjs baseline-packs <project>",
+    deprecationNote: "This lower-level resolver reports industrial pack candidates only. Use the CLI baseline-packs command for the standard-first umbrella recommendation.",
     readOnly: true,
     canAiEnablePacksNow: "No",
     projectRoot: root,
@@ -213,6 +216,8 @@ function printPackList(title, packs) {
 function printHuman(result) {
   console.log("# Baseline Pack Recommendation");
   console.log("");
+  console.log("> Deprecated lower-level resolver: this command reports industrial pack candidates only. Use `node scripts/cli.mjs baseline-packs <project>` for the standard-first umbrella recommendation.");
+  console.log("");
   console.log(`PROJECT_ROOT: ${result.projectRoot}`);
   console.log(`STATE: ${result.state}`);
   console.log(`BASELINE_LEVEL: ${result.baselineLevel || "none"}`);
@@ -247,4 +252,3 @@ if (outputJson) {
 } else {
   printHuman(result);
 }
-

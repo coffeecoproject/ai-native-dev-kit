@@ -63,8 +63,12 @@
 Expected release checks:
 
 ```bash
-npm run verify
+node scripts/cli.mjs standard-baseline .
+node scripts/check-standard-baseline-pack.mjs .
+node scripts/check-standard-baseline-selection.mjs .
+node scripts/cli.mjs baseline-packs .
 node scripts/check-manifest.mjs
 node scripts/check-dev-kit.mjs
+npm run verify
 git diff --check
 ```

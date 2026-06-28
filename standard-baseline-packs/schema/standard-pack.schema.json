@@ -115,9 +115,13 @@
         "deprecated",
         "retired"
       ]
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true
     }
   },
-  "additionalProperties": true,
+  "additionalProperties": false,
   "not": {
     "required": [
       "defaultForBL"

@@ -12,6 +12,42 @@ const validTypes = new Set(["primary-platform", "capability", "quality", "enviro
 const validStatuses = new Set(["draft", "candidate", "stable", "deprecated", "retired"]);
 const requiredPackFiles = ["pack.json", "pack.md", "evidence.md", "maturity.md", "owner.md", "changelog.md"];
 const requiredPackDirs = ["baselines", "checklists", "templates"];
+const allowedPackMetadataKeys = new Set([
+  "id",
+  "type",
+  "status",
+  "displayName",
+  "baselineLayer",
+  "recommendedForBL",
+  "allowedForBL",
+  "activeByDefault",
+  "appliesToProfiles",
+  "recommendedWhen",
+  "canBeRecommendedByAI",
+  "selectionRequiresHumanDecision",
+  "canAuthorizeWrites",
+  "canApproveImplementation",
+  "canApproveRelease",
+  "canApproveComplianceSecurityPrivacy",
+  "requiresEvidenceForConfirmed",
+  "maturityStage",
+  "extensions",
+]);
+const allowedPublicUrlHosts = new Set([
+  "127.0.0.1",
+  "localhost",
+  "example.com",
+  "example.invalid",
+  "w3.org",
+  "www.w3.org",
+  "owasp.org",
+  "www.owasp.org",
+  "developer.mozilla.org",
+  "docs.github.com",
+  "developer.apple.com",
+  "developer.android.com",
+  "source.android.com",
+]);
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -103,13 +139,33 @@ function hasForbiddenClaim(content) {
 }
 
 function hasProjectSpecificSecret(content) {
-  const forbidden = [
-    { label: "token-like secret", pattern: /\b(?:github_pat|ghp|sk-[A-Za-z0-9]|xox[baprs]-)[A-Za-z0-9_-]{8,}/ },
-    { label: "email address", pattern: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i },
-    { label: "private URL", pattern: /\bhttps?:\/\/(?!localhost|127\.0\.0\.1)[^\s)]+/i },
-    { label: "bundle id", pattern: /\b[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*){2,}\b/ },
-  ];
-  return forbidden.filter((item) => item.pattern.test(content));
+  const findings = [];
+  if (/\b(?:github_pat|ghp|sk-[A-Za-z0-9]|xox[baprs]-)[A-Za-z0-9_-]{8,}/.test(content)) {
+    findings.push({ label: "token-like secret" });
+  }
+
+  const urlPattern = /\bhttps?:\/\/[^\s)]+/gi;
+  const urls = content.match(urlPattern) || [];
+  for (const rawUrl of urls) {
+    const cleaned = rawUrl.replace(/[.,;:!?]+$/, "");
+    try {
+      const parsed = new URL(cleaned);
+      if (!allowedPublicUrlHosts.has(parsed.hostname.toLowerCase())) {
+        findings.push({ label: `private URL ${cleaned}` });
+      }
+    } catch {
+      findings.push({ label: `private URL ${cleaned}` });
+    }
+  }
+
+  const withoutUrls = content.replace(urlPattern, "");
+  if (/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(withoutUrls)) {
+    findings.push({ label: "email address" });
+  }
+  if (/\b[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*){2,}\b/.test(withoutUrls)) {
+    findings.push({ label: "bundle id" });
+  }
+  return findings;
 }
 
 function validateBooleanFalse(pack, key, packId) {
@@ -123,6 +179,10 @@ function validateBooleanTrue(pack, key, packId) {
 }
 
 function validatePackMetadata(pack, source, packId) {
+  for (const key of Object.keys(pack)) {
+    if (allowedPackMetadataKeys.has(key)) pass(`${packId} metadata field allowed ${key}`);
+    else fail(`${packId} unknown pack metadata field ${key}`);
+  }
   if (pack.id === packId) pass(`${packId} id matches index`);
   else fail(`${source} id ${pack.id || "<missing>"} must match index id ${packId}`);
   if (/^[a-z0-9][a-z0-9-]*-standard$/.test(pack.id || "")) pass(`${packId} id ends with -standard`);

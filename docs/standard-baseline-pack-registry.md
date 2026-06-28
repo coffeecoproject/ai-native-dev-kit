@@ -63,3 +63,10 @@ Standard baseline selection does not mean:
 - industrial overlays are active
 
 It only records the intended engineering baseline path.
+
+## 1.14.1 Hardening
+
+- Standard pack metadata fields are explicit. Experimental pack metadata must go under `extensions`.
+- Selected profile ids in Standard Baseline Selection Reports must resolve to `profiles/` or `.ai-native/profiles/`.
+- Public documentation URLs such as `https://developer.mozilla.org/` or `https://owasp.org/` are allowed in standard pack docs without being treated as private project URLs.
+- `scripts/resolve-baseline-packs.mjs` remains available only as a lower-level industrial resolver; humans should use `node scripts/cli.mjs baseline-packs <project>`.
