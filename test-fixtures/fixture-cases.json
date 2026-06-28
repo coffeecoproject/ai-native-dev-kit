@@ -1101,5 +1101,93 @@
       "false-positive cannot be accepted"
     ],
     "howToFix": "False-positive records must not accept real high-risk API, gate, DB, permission, release, or environment impact."
+  },
+  {
+    "name": "good standard baseline web runtime",
+    "type": "golden",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "examples/1.14-standard-baseline-registry",
+      "--strict",
+      "--compare-resolver"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Standard baseline selection check passed"
+    ],
+    "howToFix": "Keep the 1.14 standard baseline example aligned with resolver output and human-decision boundaries."
+  },
+  {
+    "name": "bad standard pack default enabled",
+    "type": "bad",
+    "checker": "check-standard-baseline-pack",
+    "script": "scripts/check-standard-baseline-pack.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-pack-default-enabled"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "activeByDefault must be false"
+    ],
+    "howToFix": "Standard packs may be recommended, but must not be active by default."
+  },
+  {
+    "name": "bad standard selection write approved",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-selection-write-approved"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "write authorization"
+    ],
+    "howToFix": "Standard baseline selection must not authorize target-project writes."
+  },
+  {
+    "name": "bad standard selection industrial as standard",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-selection-industrial-as-standard"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "industrial overlay(s) as standard packs"
+    ],
+    "howToFix": "Industrial overlays must stay separate from standard baseline packs."
+  },
+  {
+    "name": "bad standard selection unknown pack",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-selection-unknown-pack"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "unknown standard pack"
+    ],
+    "howToFix": "Standard baseline reports must reference pack IDs from standard-baseline-packs/index.json."
+  },
+  {
+    "name": "bad standard selection resolver mismatch",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-selection-compare-resolver-mismatch",
+      "--strict",
+      "--compare-resolver"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "recommended standard packs differ from resolver"
+    ],
+    "howToFix": "Strict standard baseline reports must match resolver output or record an explicit resolver override reason."
   }
 ]

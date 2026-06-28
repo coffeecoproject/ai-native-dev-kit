@@ -1,0 +1,28 @@
+{
+  "id": "bad-runtime-standard",
+  "type": "primary-platform",
+  "status": "draft",
+  "displayName": "Bad Runtime Standard Pack",
+  "baselineLayer": "standard",
+  "recommendedForBL": [
+    "BL1_STANDARD"
+  ],
+  "allowedForBL": [
+    "BL1_STANDARD"
+  ],
+  "activeByDefault": true,
+  "appliesToProfiles": [
+    "web-app"
+  ],
+  "recommendedWhen": [
+    "bad fixture"
+  ],
+  "canBeRecommendedByAI": true,
+  "selectionRequiresHumanDecision": true,
+  "canAuthorizeWrites": false,
+  "canApproveImplementation": false,
+  "canApproveRelease": false,
+  "canApproveComplianceSecurityPrivacy": false,
+  "requiresEvidenceForConfirmed": true,
+  "maturityStage": "draft"
+}

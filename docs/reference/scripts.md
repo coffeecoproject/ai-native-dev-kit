@@ -10,7 +10,9 @@ Use `scripts/cli.mjs` for daily operation.
 |---|---|---|
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
-| `node scripts/cli.mjs baseline-packs <project>` | Read-only baseline pack recommendation by profile, BL level, capability, and risk | No |
+| `node scripts/cli.mjs standard-baseline <project>` | Read-only standard baseline pack recommendation | No |
+| `node scripts/cli.mjs standard-baseline-selection <project>` | Check recorded standard baseline selection reports | No |
+| `node scripts/cli.mjs baseline-packs <project>` | Read-only umbrella recommendation: standard packs first, optional industrial overlays second | No |
 | `node scripts/cli.mjs baseline-pack-selection <project>` | Check recorded baseline pack selection reports | No |
 | `node scripts/cli.mjs product-baseline <project>` | Check guided delivery product boundary and approval limits | No |
 | `node scripts/cli.mjs claim-control <project>` | Check release/report wording against evidence boundaries | No |
@@ -60,7 +62,13 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. Use `--write-plan <file>` to write a reviewable plan and `--apply-plan <file>` to apply only approved baseline docs and baseline reports.
 
-`scripts/resolve-baseline-packs.mjs` is the baseline pack entry. It is read-only and recommends candidate platform, capability, and risk packs after profiles and BL level are known. It does not enable BL2, install packs, or approve writes.
+`scripts/resolve-standard-baseline.mjs` is the standard baseline pack entry. It is read-only and recommends standard packs first, then optional industrial overlays when used through the umbrella CLI. It does not enable packs, install packs, approve implementation, or approve target-project writes.
+
+`scripts/check-standard-baseline-pack.mjs` validates the standard baseline pack registry, required pack files, `recommendedForBL` metadata, `activeByDefault: false`, no write/release approval, and draft overclaim boundaries.
+
+`scripts/check-standard-baseline-selection.mjs` checks Standard Baseline Selection Reports so standard pack recommendations stay separated from human selection, target-project writes, implementation approval, release approval, production approval, compliance/security/privacy approval, and evidence claims.
+
+`scripts/resolve-baseline-packs.mjs` remains the lower-level 1.13 industrial-oriented baseline pack resolver. The CLI `baseline-packs` entry now presents the standard baseline umbrella view while keeping this lower-level script available for exact evidence.
 
 `scripts/check-baseline-pack-selection.mjs` checks Baseline Pack Selection Reports so pack recommendations stay separated from human approval, target-project writes, implementation approval, release approval, production approval, and draft-pack stability claims.
 

@@ -431,6 +431,9 @@ function checkVersionMetadata() {
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
+    "scripts/resolve-standard-baseline.mjs",
+    "scripts/check-standard-baseline-pack.mjs",
+    "scripts/check-standard-baseline-selection.mjs",
     "scripts/resolve-baseline-packs.mjs",
     "scripts/check-baseline-pack-selection.mjs",
     "scripts/check-platform-baseline.mjs",
@@ -469,6 +472,7 @@ function checkVersionMetadata() {
     "customer-handoffs",
     ".ai-native/profiles",
     ".ai-native/industrial-packs",
+    ".ai-native/standard-baseline-packs",
     ".ai-native/dev-kit-manifest.json",
     ".ai-native/docs/artifact-decision-tree.md",
     ".ai-native/docs/first-hour.md",
@@ -487,6 +491,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/change-boundary.md",
     ".ai-native/docs/baseline-state.md",
     ".ai-native/docs/guided-delivery-check.md",
+    ".ai-native/docs/standard-baseline-pack-registry.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -504,6 +509,7 @@ function checkVersionMetadata() {
     ".ai-native/core/patch-classification.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
+    ".ai-native/core/standard-baseline-pack-registry.md",
     ".ai-native/core/safe-launch.md",
     ".ai-native/core/conversation-drift-control.md",
     ".ai-native/templates/learning-candidate.md",
@@ -517,6 +523,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/patch-classification-report.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
+    ".ai-native/templates/standard-baseline-selection-report.md",
     ".ai-native/templates/launch-readiness-report.md",
     ".ai-native/templates/conversation-turn-classification.md",
     ".ai-native/templates/scope-change-report.md",
@@ -529,6 +536,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
+    ".ai-native/prompts/standard-baseline-router-agent.md",
     ".ai-native/prompts/launch-readiness-agent.md",
     ".ai-native/prompts/conversation-router-agent.md",
     ".ai-native/checklists/context-governance-review.md",
@@ -538,6 +546,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/first-delivery-walkthrough-review.md",
     ".ai-native/checklists/real-adoption-trial-review.md",
     ".ai-native/checklists/patch-classification-review.md",
+    ".ai-native/checklists/standard-baseline-selection-review.md",
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
     ".ai-native/checklists/baseline-state-review.md",
@@ -598,6 +607,10 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
+    "node scripts/cli.mjs standard-baseline .",
+    "node scripts/check-standard-baseline-pack.mjs .",
+    "node scripts/check-standard-baseline-selection.mjs .",
+    "node scripts/cli.mjs baseline-packs .",
     "node scripts/check-fixtures.mjs",
     "find scripts -name '*.mjs' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -647,6 +660,10 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
+    "node scripts/cli.mjs standard-baseline .",
+    "node scripts/check-standard-baseline-pack.mjs .",
+    "node scripts/check-standard-baseline-selection.mjs .",
+    "node scripts/cli.mjs baseline-packs .",
     "node scripts/check-fixtures.mjs",
     "find . -name '*.mjs' -not -path './node_modules/*' -print0",
     "node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80",
@@ -1096,6 +1113,11 @@ function checkCliFrontDoor() {
     "node --check scripts/check-guided-delivery-loop.mjs",
     "node --check scripts/check-change-boundary.mjs",
     "node --check scripts/check-baseline-state.mjs",
+    "node --check scripts/resolve-standard-baseline.mjs",
+    "node --check scripts/check-standard-baseline-pack.mjs",
+    "node --check scripts/check-standard-baseline-selection.mjs",
+    "node scripts/check-standard-baseline-pack.mjs .",
+    "node scripts/check-standard-baseline-selection.mjs .",
     "node --check scripts/resolve-baseline-packs.mjs",
     "node --check scripts/check-baseline-pack-selection.mjs",
     "node scripts/check-baseline-pack-selection.mjs .",
@@ -1127,6 +1149,8 @@ function checkCliFrontDoor() {
     "patch-classification",
     "change-boundary",
     "baseline-state",
+    "standard-baseline",
+    "standard-baseline-selection",
     "baseline-packs",
     "baseline-pack-selection",
     "init",
@@ -1160,10 +1184,24 @@ function checkCliFrontDoor() {
   }
 
   const baselinePacks = runNode(["scripts/cli.mjs", "baseline-packs", "."]);
-  if (baselinePacks.status === 0 && baselinePacks.stdout.includes("Baseline Pack Recommendation")) {
-    pass("CLI baseline-packs delegates to baseline pack resolver");
+  if (baselinePacks.status === 0 && baselinePacks.stdout.includes("Baseline Pack Recommendation") && baselinePacks.stdout.includes("umbrella read-only recommendation")) {
+    pass("CLI baseline-packs delegates to umbrella baseline pack resolver");
   } else {
     fail(`CLI baseline-packs failed: ${baselinePacks.stderr || baselinePacks.stdout}`);
+  }
+
+  const standardBaseline = runNode(["scripts/cli.mjs", "standard-baseline", "."]);
+  if (standardBaseline.status === 0 && standardBaseline.stdout.includes("Standard Baseline Recommendation")) {
+    pass("CLI standard-baseline delegates to standard baseline resolver");
+  } else {
+    fail(`CLI standard-baseline failed: ${standardBaseline.stderr || standardBaseline.stdout}`);
+  }
+
+  const standardBaselineSelection = runNode(["scripts/cli.mjs", "standard-baseline-selection", "."]);
+  if (standardBaselineSelection.status === 0 && standardBaselineSelection.stdout.includes("Standard Baseline Selection Check")) {
+    pass("CLI standard-baseline-selection delegates to standard baseline checker");
+  } else {
+    fail(`CLI standard-baseline-selection failed: ${standardBaselineSelection.stderr || standardBaselineSelection.stdout}`);
   }
 
   const baselinePackSelection = runNode(["scripts/cli.mjs", "baseline-pack-selection", "."]);
@@ -2235,7 +2273,7 @@ function checkBaselinePackSystemProtocol() {
   for (const marker of [
     "baseline-packs",
     "baseline-pack-selection",
-    "scripts/resolve-baseline-packs.mjs",
+    "scripts/resolve-standard-baseline.mjs",
     "scripts/check-baseline-pack-selection.mjs",
   ]) {
     if (cli.includes(marker)) pass(`CLI supports baseline pack marker ${marker}`);
@@ -2370,6 +2408,170 @@ function checkBaselinePackSystemProtocol() {
     }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function checkStandardBaselinePackRegistryProtocol() {
+  const required = [
+    "docs/standard-baseline-pack-registry-1.14-plan.md",
+    "core/standard-baseline-pack-registry.md",
+    "docs/standard-baseline-pack-registry.md",
+    "docs/reference/standard-baseline-packs.md",
+    "standard-baseline-packs/README.md",
+    "standard-baseline-packs/selection-guide.md",
+    "standard-baseline-packs/index.json",
+    "standard-baseline-packs/schema/standard-pack.schema.json",
+    "standard-baseline-packs/web-runtime/pack.json",
+    "standard-baseline-packs/web-runtime/baselines/web-runtime-baseline.md",
+    "standard-baseline-packs/web-runtime/checklists/web-runtime-review.md",
+    "standard-baseline-packs/web-runtime/templates/web-runtime-evidence.md",
+    "standard-baseline-packs/backend-api/pack.json",
+    "standard-baseline-packs/backend-api/baselines/backend-api-contract-baseline.md",
+    "standard-baseline-packs/backend-api/checklists/backend-api-review.md",
+    "standard-baseline-packs/backend-api/templates/backend-api-evidence.md",
+    "standard-baseline-packs/release-rollback/pack.json",
+    "standard-baseline-packs/release-rollback/baselines/release-readiness-baseline.md",
+    "standard-baseline-packs/release-rollback/checklists/release-rollback-review.md",
+    "standard-baseline-packs/release-rollback/templates/release-rollback-evidence.md",
+    "templates/standard-baseline-selection-report.md",
+    "checklists/standard-baseline-selection-review.md",
+    "prompts/standard-baseline-router-agent.md",
+    "standard-baseline-selections/.gitkeep",
+    "scripts/resolve-standard-baseline.mjs",
+    "scripts/check-standard-baseline-pack.mjs",
+    "scripts/check-standard-baseline-selection.mjs",
+    "examples/1.14-standard-baseline-registry/README.md",
+    "requests/240-standard-baseline-pack-registry.md",
+    "preflight/240-standard-baseline-pack-registry.md",
+    "specs/240-standard-baseline-pack-registry.md",
+    "evals/240-standard-baseline-pack-registry.md",
+    "tasks/240-standard-baseline-pack-registry.md",
+    "final-reports/240-standard-baseline-pack-registry.md",
+    "releases/1.14.0/release-record.md",
+    "releases/1.14.0/known-limitations.md",
+    "releases/1.14.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`standard baseline registry asset exists ${file}`);
+    else fail(`standard baseline registry asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/standard-baseline-pack-registry-1.14-plan.md"),
+    read("core/standard-baseline-pack-registry.md"),
+    read("docs/standard-baseline-pack-registry.md"),
+    read("templates/standard-baseline-selection-report.md"),
+    read("checklists/standard-baseline-selection-review.md"),
+    read("prompts/standard-baseline-router-agent.md"),
+    read("releases/1.14.0/release-record.md"),
+    read("releases/1.14.0/known-limitations.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Standard Baseline Pack Registry",
+    "standard baseline packs first",
+    "industrial overlays",
+    "recommendedForBL",
+    "activeByDefault",
+    "does not approve a specific implementation task",
+    "authorizes target-project writes: No",
+    "approves implementation: No",
+    "approves release or production: No",
+    "approves compliance/security/privacy: No",
+    "draft",
+  ]) {
+    if (combined.includes(marker)) pass(`standard baseline protocol includes ${marker}`);
+    else fail(`standard baseline protocol missing ${marker}`);
+  }
+
+  const index = JSON.parse(read("standard-baseline-packs/index.json"));
+  const packIds = (index.packs || []).map((pack) => pack.id).sort();
+  for (const packId of ["backend-api-standard", "release-rollback-standard", "web-runtime-standard"]) {
+    if (packIds.includes(packId)) pass(`standard pack index includes ${packId}`);
+    else fail(`standard pack index missing ${packId}`);
+  }
+  for (const pack of index.packs || []) {
+    if (pack.activeByDefault === false && pack.canAuthorizeWrites === false && pack.canApproveImplementation === false && pack.canApproveRelease === false) {
+      pass(`standard pack metadata is bounded ${pack.id}`);
+    } else {
+      fail(`standard pack metadata must be bounded ${pack.id}`);
+    }
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "standard-baseline",
+    "standard-baseline-selection",
+    "scripts/resolve-standard-baseline.mjs",
+    "scripts/check-standard-baseline-selection.mjs",
+    "--umbrella",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports standard baseline marker ${marker}`);
+    else fail(`CLI missing standard baseline marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "standard-baseline-selection-report",
+    "standard-baseline-selections",
+    "fillStandardBaselineSelectionReport",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports standard baseline marker ${marker}`);
+    else fail(`new-workflow-item missing standard baseline marker ${marker}`);
+  }
+
+  const initProject = read("scripts/init-project.mjs");
+  for (const marker of [
+    "Standard Baseline Packs",
+    ".ai-native/standard-baseline-packs",
+    "scripts/resolve-standard-baseline.mjs",
+    "scripts/check-standard-baseline-selection.mjs",
+    "standard-baseline-selections",
+  ]) {
+    if (initProject.includes(marker)) pass(`init-project includes standard baseline marker ${marker}`);
+    else fail(`init-project missing standard baseline marker ${marker}`);
+  }
+
+  const packCheck = runNode(["scripts/check-standard-baseline-pack.mjs", "."]);
+  if (packCheck.status === 0 && packCheck.stdout.includes("Standard baseline pack check passed")) {
+    pass("standard baseline pack checker passes registry");
+  } else {
+    fail(`standard baseline pack checker failed: ${packCheck.stderr || packCheck.stdout}`);
+  }
+
+  const emptySelectionCheck = runNode(["scripts/check-standard-baseline-selection.mjs", "."]);
+  if (emptySelectionCheck.status === 0 && emptySelectionCheck.stdout.includes("standard baseline selection check skipped")) {
+    pass("standard baseline selection checker allows no reports");
+  } else {
+    fail(`standard baseline selection checker should allow no reports: ${emptySelectionCheck.stderr || emptySelectionCheck.stdout}`);
+  }
+
+  const recommendation = runNode(["scripts/cli.mjs", "standard-baseline", "."]);
+  if (recommendation.status === 0 && recommendation.stdout.includes("Standard Baseline Recommendation") && recommendation.stdout.includes("CAN_AI_WRITE_TARGET_FILES_NOW: No")) {
+    pass("standard-baseline CLI recommendation");
+  } else {
+    fail(`standard-baseline CLI recommendation failed: ${recommendation.stderr || recommendation.stdout}`);
+  }
+
+  const umbrella = runNode(["scripts/cli.mjs", "baseline-packs", "."]);
+  if (umbrella.status === 0 && umbrella.stdout.includes("Baseline Pack Recommendation") && umbrella.stdout.includes("Standard packs are shown first")) {
+    pass("baseline-packs CLI umbrella recommendation");
+  } else {
+    fail(`baseline-packs CLI umbrella recommendation failed: ${umbrella.stderr || umbrella.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-standard-baseline-selection.mjs", "examples/1.14-standard-baseline-registry", "--strict", "--compare-resolver"]);
+  if (example.status === 0 && example.stdout.includes("Standard baseline selection check passed")) {
+    pass("standard baseline selection example passes strict resolver comparison");
+  } else {
+    fail(`standard baseline selection example failed: ${example.stderr || example.stdout}`);
+  }
+
+  const badDefault = runNode(["scripts/check-standard-baseline-pack.mjs", "test-fixtures/bad/bad-standard-pack-default-enabled"]);
+  if (badDefault.status !== 0 && `${badDefault.stdout}\n${badDefault.stderr}`.includes("activeByDefault must be false")) {
+    pass("standard baseline pack checker rejects activeByDefault");
+  } else {
+    fail(`standard baseline pack checker must reject activeByDefault: ${badDefault.stderr || badDefault.stdout}`);
   }
 }
 
@@ -3257,6 +3459,9 @@ function checkPlatformAdapters() {
     "check-patch-classification.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
+    "resolve-standard-baseline.mjs",
+    "check-standard-baseline-pack.mjs",
+    "check-standard-baseline-selection.mjs",
     "resolve-baseline-packs.mjs",
     "check-baseline-pack-selection.mjs",
     "check-platform-baseline.mjs",
@@ -3313,6 +3518,9 @@ function checkScriptSyntax() {
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
+    "scripts/resolve-standard-baseline.mjs",
+    "scripts/check-standard-baseline-pack.mjs",
+    "scripts/check-standard-baseline-selection.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -3367,6 +3575,7 @@ function checkReadmePointers() {
     "O2 + selected profiles + BL2",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
+    "node scripts/cli.mjs standard-baseline",
     "node scripts/cli.mjs baseline-packs",
     "npm run verify",
     "node scripts/check-product-baseline.mjs",
@@ -3378,6 +3587,9 @@ function checkReadmePointers() {
     "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/check-change-boundary.mjs",
     "node scripts/check-baseline-state.mjs",
+    "node scripts/resolve-standard-baseline.mjs",
+    "node scripts/check-standard-baseline-pack.mjs",
+    "node scripts/check-standard-baseline-selection.mjs",
     "node scripts/resolve-baseline-packs.mjs",
     "node scripts/check-baseline-pack-selection.mjs",
     "node scripts/cli.mjs next",
@@ -3393,6 +3605,7 @@ function checkReadmePointers() {
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
     "docs/reference/checkers.md",
+    "docs/reference/standard-baseline-packs.md",
     "docs/reference/industrial-packs.md",
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
@@ -3407,6 +3620,7 @@ function checkReadmePointers() {
     "docs/change-boundary.md",
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
+    "docs/standard-baseline-pack-registry.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -3441,6 +3655,7 @@ function checkReadmePointers() {
     "Codex 一句话入口",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
+    "node scripts/cli.mjs standard-baseline",
     "node scripts/cli.mjs baseline-packs",
     "npm run verify",
     "node scripts/check-product-baseline.mjs",
@@ -3451,6 +3666,9 @@ function checkReadmePointers() {
     "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/check-change-boundary.mjs",
     "node scripts/check-baseline-state.mjs",
+    "node scripts/resolve-standard-baseline.mjs",
+    "node scripts/check-standard-baseline-pack.mjs",
+    "node scripts/check-standard-baseline-selection.mjs",
     "node scripts/resolve-baseline-packs.mjs",
     "node scripts/check-baseline-pack-selection.mjs",
     "重要边界",
@@ -3469,6 +3687,7 @@ function checkReadmePointers() {
     "docs/change-boundary.md",
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
+    "docs/standard-baseline-pack-registry.md",
     "docs/baseline-pack-system.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
@@ -3482,6 +3701,7 @@ function checkReadmePointers() {
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
     "docs/reference/checkers.md",
+    "docs/reference/standard-baseline-packs.md",
     "docs/reference/industrial-packs.md",
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
@@ -3496,6 +3716,7 @@ function checkReadmePointers() {
     "docs/change-boundary.md",
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
+    "docs/standard-baseline-pack-registry.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -5853,6 +6074,7 @@ checkGuidedDecisionDeliveryLoopProtocol();
 checkGovernanceHardeningDriftGuardProtocol();
 checkChangeBoundaryBaselineStateProtocol();
 checkBaselinePackSystemProtocol();
+checkStandardBaselinePackRegistryProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();

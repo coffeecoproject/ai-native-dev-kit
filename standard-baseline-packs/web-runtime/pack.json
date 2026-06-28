@@ -1,0 +1,32 @@
+{
+  "id": "web-runtime-standard",
+  "type": "primary-platform",
+  "status": "draft",
+  "displayName": "Web Runtime Standard Pack",
+  "baselineLayer": "standard",
+  "recommendedForBL": [
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "allowedForBL": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "activeByDefault": false,
+  "appliesToProfiles": [
+    "web-app",
+    "internal-admin"
+  ],
+  "recommendedWhen": [
+    "web UI, routing, state, API client, forms, or runtime behavior is in scope"
+  ],
+  "canBeRecommendedByAI": true,
+  "selectionRequiresHumanDecision": true,
+  "canAuthorizeWrites": false,
+  "canApproveImplementation": false,
+  "canApproveRelease": false,
+  "canApproveComplianceSecurityPrivacy": false,
+  "requiresEvidenceForConfirmed": true,
+  "maturityStage": "draft"
+}

@@ -4,7 +4,7 @@ This guide is for starting or upgrading a project with the AI Native Dev Kit.
 
 The workflow goal is simple: let AI draft and execute, while humans keep decisions, risk acceptance, and final review.
 
-For the decision model behind workflow, profiles, BL levels, and industrial packs, see `docs/mental-model.md`.
+For the decision model behind workflow, profiles, BL levels, standard baseline packs, and industrial packs, see `docs/mental-model.md`.
 
 ## Codex Bootstrap
 
@@ -288,7 +288,7 @@ Use baseline levels for project governance strength:
 ```text
 BL0_LIGHTWEIGHT = AI Native workflow only
 BL1_STANDARD = workflow plus platform profiles
-BL2_INDUSTRIAL = workflow plus profiles and selected industrial packs
+BL2_INDUSTRIAL = workflow plus profiles, selected standard packs, and selected industrial overlays
 ```
 
 Industrial packs are optional BL2 assets. They define production-grade evidence standards; they do not prove a real project is ready by themselves.
@@ -305,7 +305,7 @@ For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-e
 
 `baseline-evidence.md` must reference real project evidence. Rows with `Status: Done` need an existing `Evidence Ref`; rows marked `Not applicable` need a reason.
 
-Default bootstrap keeps industrial packs lightweight: only the registry and schemas are injected. Install concrete packs only after selection:
+Default bootstrap keeps standard packs available for read-only recommendation and industrial packs lightweight. Install concrete industrial packs only after selection:
 
 ```bash
 node ai-native-dev-kit/scripts/init-project.mjs \

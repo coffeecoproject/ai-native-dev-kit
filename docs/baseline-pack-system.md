@@ -28,7 +28,17 @@ BL2 is not automatically better. It is heavier and should be used when the risk 
 
 ## Packs
 
-There are three pack types:
+There are now two pack layers.
+
+Standard baseline packs are normal engineering guardrails:
+
+- platform/runtime standards
+- backend/API standards
+- release/rollback standards
+
+Industrial packs are optional BL2 overlays for high-risk or production-sensitive work.
+
+There are three industrial pack types:
 
 - platform packs: Web, Mini Program, iOS, Android
 - capability packs: backend, admin, auth, data, CloudBase
@@ -68,12 +78,16 @@ Codex can recommend and prepare a report. Codex cannot silently approve.
 Read-only recommendation:
 
 ```bash
+node scripts/cli.mjs standard-baseline <project>
 node scripts/cli.mjs baseline-packs <project>
 ```
+
+`standard-baseline` shows standard packs only. `baseline-packs` is an umbrella read-only view that shows standard packs first, then optional industrial overlays.
 
 Check recorded pack selection reports:
 
 ```bash
+node scripts/cli.mjs standard-baseline-selection <project>
 node scripts/cli.mjs baseline-pack-selection <project>
 ```
 
@@ -96,4 +110,3 @@ Baseline pack selection does not mean:
 - the project already has evidence
 
 It only records the intended governance path.
-

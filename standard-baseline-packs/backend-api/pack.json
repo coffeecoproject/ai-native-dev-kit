@@ -1,0 +1,31 @@
+{
+  "id": "backend-api-standard",
+  "type": "capability",
+  "status": "draft",
+  "displayName": "Backend API Standard Pack",
+  "baselineLayer": "standard",
+  "recommendedForBL": [
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "allowedForBL": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "activeByDefault": false,
+  "appliesToProfiles": [
+    "backend-api"
+  ],
+  "recommendedWhen": [
+    "server API, domain DTOs, database schema, migrations, or API integration is in scope"
+  ],
+  "canBeRecommendedByAI": true,
+  "selectionRequiresHumanDecision": true,
+  "canAuthorizeWrites": false,
+  "canApproveImplementation": false,
+  "canApproveRelease": false,
+  "canApproveComplianceSecurityPrivacy": false,
+  "requiresEvidenceForConfirmed": true,
+  "maturityStage": "draft"
+}

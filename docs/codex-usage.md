@@ -96,8 +96,9 @@ Expected Codex behavior:
 - Run `node scripts/check-baseline-enforcement.mjs . --mode ready` before implementation when task cards exist.
 - Draft `Selected Profiles` in `docs/project-profile.md` and run `node scripts/check-platform-baseline.mjs .`.
 - Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
-- For baseline pack decisions, run `node scripts/cli.mjs baseline-packs .` first and create a Baseline Pack Selection Report when the recommendation affects the task.
-- For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial packs, wait for human confirmation of BL2 and draft pack acceptance, install only selected packs with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-baseline-pack-selection.mjs .`, `node scripts/check-industrial-pack.mjs . --selected-only`, and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
+- For standard baseline decisions, run `node scripts/cli.mjs standard-baseline .` first and create a Standard Baseline Selection Report when the recommendation affects the task.
+- Use `node scripts/cli.mjs baseline-packs .` for the umbrella read-only view: standard packs first, optional industrial overlays second.
+- For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial overlays, wait for human confirmation of BL2 and draft pack acceptance, install only selected packs with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-standard-baseline-selection.mjs .`, `node scripts/check-baseline-pack-selection.mjs .`, `node scripts/check-industrial-pack.mjs . --selected-only`, and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
 - Ask for human decisions only where the workflow requires confirmation.
 
 ## Goal Mode Prompt
@@ -307,4 +308,4 @@ Codex should stop and report when:
 
 For web, iOS, Android, backend, internal admin, or high-risk projects, choose the matching project profile and starter. The core workflow stays the same; platform-specific rules live in profiles, starter docs, and `AGENTS.md`.
 
-Industrial packs are BL2 governance assets. They should be recommended for production, customer delivery, long-lived, regulated, or high-risk projects, but they must not be silently treated as accepted without human confirmation. Use `resolve-baseline-packs.mjs` for the read-only recommendation, `resolve-industrial-baseline.mjs` to inspect selected packs, and `check-industrial-baseline.mjs --strict` only after baseline level, exceptions, and residual risks are approved.
+Standard baseline packs are ordinary engineering guardrails. Use `resolve-standard-baseline.mjs` first. Industrial packs are BL2 governance overlays. They should be recommended for production, customer delivery, long-lived, regulated, or high-risk projects, but they must not be silently treated as accepted without human confirmation. Use `resolve-baseline-packs.mjs` only when lower-level industrial pack evidence is needed, `resolve-industrial-baseline.mjs` to inspect selected packs, and `check-industrial-baseline.mjs --strict` only after baseline level, exceptions, and residual risks are approved.

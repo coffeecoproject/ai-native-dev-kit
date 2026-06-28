@@ -53,8 +53,14 @@ jobs:
         run: node scripts/check-change-boundary.mjs .
       - name: Check baseline state
         run: node scripts/check-baseline-state.mjs .
-      - name: Resolve baseline packs
-        run: node scripts/resolve-baseline-packs.mjs .
+      - name: Resolve standard baseline
+        run: node scripts/resolve-standard-baseline.mjs .
+      - name: Check standard baseline packs
+        run: node scripts/check-standard-baseline-pack.mjs .
+      - name: Check standard baseline selection
+        run: node scripts/check-standard-baseline-selection.mjs .
+      - name: Resolve baseline packs umbrella
+        run: node scripts/cli.mjs baseline-packs .
       - name: Check baseline pack selection
         run: node scripts/check-baseline-pack-selection.mjs .
       - name: Check platform baseline
@@ -109,6 +115,12 @@ jobs:
         run: node --check scripts/check-change-boundary.mjs
       - name: Check baseline state checker syntax
         run: node --check scripts/check-baseline-state.mjs
+      - name: Check standard baseline resolver syntax
+        run: node --check scripts/resolve-standard-baseline.mjs
+      - name: Check standard baseline pack checker syntax
+        run: node --check scripts/check-standard-baseline-pack.mjs
+      - name: Check standard baseline selection checker syntax
+        run: node --check scripts/check-standard-baseline-selection.mjs
       - name: Check baseline pack resolver syntax
         run: node --check scripts/resolve-baseline-packs.mjs
       - name: Check baseline pack selection checker syntax

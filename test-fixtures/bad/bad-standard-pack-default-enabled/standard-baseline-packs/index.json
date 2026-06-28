@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "0.1",
+  "baselineLayer": "standard",
+  "packs": [
+    {
+      "id": "bad-runtime-standard",
+      "type": "primary-platform",
+      "status": "draft",
+      "path": "bad-runtime",
+      "displayName": "Bad Runtime Standard Pack",
+      "baselineLayer": "standard",
+      "recommendedForBL": [
+        "BL1_STANDARD"
+      ],
+      "allowedForBL": [
+        "BL1_STANDARD"
+      ],
+      "activeByDefault": true,
+      "appliesToProfiles": [
+        "web-app"
+      ],
+      "recommendedWhen": [
+        "bad fixture"
+      ],
+      "canBeRecommendedByAI": true,
+      "selectionRequiresHumanDecision": true,
+      "canAuthorizeWrites": false,
+      "canApproveImplementation": false,
+      "canApproveRelease": false,
+      "canApproveComplianceSecurityPrivacy": false,
+      "requiresEvidenceForConfirmed": true,
+      "maturityStage": "draft"
+    }
+  ]
+}

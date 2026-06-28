@@ -65,6 +65,21 @@ jobs:
       - name: Baseline state check
         run: node scripts/check-baseline-state.mjs .
 
+      - name: Standard baseline recommendation smoke
+        run: node scripts/cli.mjs standard-baseline .
+
+      - name: Standard baseline pack check
+        run: node scripts/check-standard-baseline-pack.mjs .
+
+      - name: Standard baseline selection check
+        run: node scripts/check-standard-baseline-selection.mjs .
+
+      - name: Baseline pack umbrella smoke
+        run: node scripts/cli.mjs baseline-packs .
+
+      - name: Baseline pack selection check
+        run: node scripts/check-baseline-pack-selection.mjs .
+
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs
 
@@ -96,4 +111,7 @@ jobs:
           node "$tmp/project/scripts/check-first-delivery-walkthrough.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-real-adoption-trial.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-patch-classification.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-standard-baseline.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-standard-baseline-pack.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-standard-baseline-selection.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-workflow-version.mjs" "$tmp/project"

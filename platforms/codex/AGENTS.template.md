@@ -165,7 +165,20 @@ node scripts/check-industrial-baseline.mjs . --bl2-only
 
 Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.
 
-Before recommending packs, read `.ai-native/industrial-packs/selection-guide.md` when present. Select the smallest relevant pack set; do not select Web or all packs by default.
+## Standard Baseline Packs
+
+Use `.ai-native/core/standard-baseline-pack-registry.md` and `.ai-native/docs/standard-baseline-pack-registry.md` when normal engineering baseline packs need to be selected before considering BL2 industrial overlays.
+
+Run:
+
+```bash
+node scripts/resolve-standard-baseline.mjs .
+node scripts/check-standard-baseline-selection.mjs .
+```
+
+Codex may recommend standard packs, but it must not treat recommendations as pack activation, target-project write approval, implementation approval, release approval, or compliance/security/privacy approval.
+
+Before recommending standard packs, read `.ai-native/standard-baseline-packs/selection-guide.md` when present. Select the smallest relevant pack set; do not select Web, backend, release, or all packs by default.
 
 ## Workflow Artifact Generation
 

@@ -14,7 +14,8 @@ The kit separates five concerns:
 | Project onboarding | Project profile, technology strategy, business spec index, risk and verification docs |
 | Engineering/environment baseline | Project-specific coding rules, runtime facts, command ownership, secret boundary, release and rollback decisions |
 | Platform profile | Web, iOS, Android, WeChat Mini Program, backend, internal admin, or high-risk change |
-| Industrial baseline | BL0, BL1, BL2, and selected industrial packs |
+| Standard baseline packs | Ordinary engineering guardrails by platform, capability, and release need |
+| Industrial baseline | BL0, BL1, BL2, and selected industrial overlays |
 | Product/claim baseline | Product boundary, evidence wording, and assumption visibility |
 | Product surface | CLI, manifest, migration plans, fixtures, checks, release evidence |
 
@@ -176,7 +177,7 @@ Apply scope is limited to:
 - `baseline-recommendations/`
 - `baseline-gap-reports/`
 
-Do not use baseline setup to edit `.env`, CI/CD, deploy files, production config, AGENTS.md, PR templates, migrations, permissions, or industrial packs.
+Do not use baseline setup to edit `.env`, CI/CD, deploy files, production config, AGENTS.md, PR templates, migrations, permissions, standard pack selections, or industrial packs.
 
 ## Product Baseline And Claim Control
 

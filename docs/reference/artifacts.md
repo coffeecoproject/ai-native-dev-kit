@@ -50,6 +50,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `guided-decision-summaries/` | Optional decision summaries that translate technical choices into user-owned decisions |
 | `change-boundary-reports/` | Intended scope versus actual changed files evidence |
 | `baseline-state-reports/` | Proposed, pending, evidence-required, or confirmed baseline state evidence |
+| `standard-baseline-selections/` | Standard baseline pack recommendations, optional industrial overlays, evidence, and human-decision reports |
 | `baseline-pack-selections/` | BL level, profile, pack candidate, not-selected, evidence, and human-decision reports |
 
 False-positive records are not overrides. They document reviewed calibration only; the original patch classification remains authoritative until a new classification report or explicit human decision changes it.
@@ -114,6 +115,8 @@ Decision Delegation Boundary and Guided Delivery Loop live under `.ai-native/cor
 Change Boundary and Baseline State Guard live under `.ai-native/core/` in generated projects. They constrain how Codex proves edits stayed inside scope and how no-code baselines are described before evidence exists.
 
 Baseline Pack System lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends BL0/BL1/BL2, platform packs, capability packs, and risk overlays without silently approving BL2, draft packs, target-project writes, release, or production readiness.
+
+Standard Baseline Pack Registry lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends ordinary engineering baseline packs before optional BL2 industrial overlays, and keeps standard selection separate from implementation approval.
 
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 

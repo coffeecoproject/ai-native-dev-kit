@@ -126,6 +126,36 @@ node scripts/check-industrial-baseline.mjs .
 
 Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is no worse than pending. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.
 
+## Standard Baseline Packs
+
+Use `.ai-native/core/standard-baseline-pack-registry.md` and `.ai-native/docs/standard-baseline-pack-registry.md` when normal engineering baseline packs need to be selected before considering BL2 industrial overlays.
+
+Run:
+
+```bash
+node scripts/resolve-standard-baseline.mjs .
+node scripts/check-standard-baseline-selection.mjs .
+```
+
+Codex may recommend standard packs, but it must not treat recommendations as pack activation, target-project write approval, implementation approval, release approval, or compliance/security/privacy approval.
+
+Before recommending standard packs, read `.ai-native/standard-baseline-packs/selection-guide.md` when present. Select the smallest relevant pack set; do not select Web, backend, release, or all packs by default.
+
+## Baseline Pack System
+
+Use `.ai-native/core/baseline-pack-system.md` and `.ai-native/docs/baseline-pack-system.md` when project profile, BL level, standard packs, industrial packs, or risk overlays need to be selected.
+
+Codex may recommend candidate packs, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without explicit human decision. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays.
+
+Optional artifacts:
+
+```bash
+node scripts/new-workflow-item.mjs --type standard-baseline-selection-report --name <project-standard-baseline>
+node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name <project-baseline-packs>
+```
+
+Run `node scripts/resolve-standard-baseline.mjs .` for a standard baseline recommendation, `node scripts/cli.mjs baseline-packs .` for the umbrella recommendation, and selection checkers when reports exist.
+
 ## Workflow Artifact Generation
 
 Use `scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI task log, review packet, GPT review prompt, review loop report, goal card, follow-up proposal, and final report files instead of hand-copying templates.

@@ -77,12 +77,14 @@ For platform baseline:
 For industrial baseline:
 
 - baseline level is `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`; it is not task level
-- run `node scripts/resolve-baseline-packs.mjs .` for a read-only baseline pack recommendation when platform, capability, or risk pack choice is unclear
+- run `node scripts/resolve-standard-baseline.mjs .` for read-only standard baseline pack recommendation when platform, capability, or release baseline choice is unclear
+- run `node scripts/cli.mjs baseline-packs .` for the umbrella read-only recommendation when optional industrial overlays also matter
 - run `node scripts/check-baseline-pack-selection.mjs .` when Baseline Pack Selection Reports exist
+- run `node scripts/check-standard-baseline-selection.mjs .` when Standard Baseline Selection Reports exist
 - run `node scripts/check-industrial-pack.mjs . --selected-only` to validate selected industrial pack assets
 - run `node scripts/resolve-industrial-baseline.mjs .` and `node scripts/check-industrial-baseline.mjs . --bl2-only` to inspect project-level BL2 readiness when BL2 is selected
 - read `.ai-native/industrial-packs/selection-guide.md` before recommending pack combinations
-- do not select all baseline packs by default; separate primary platform, capability, and risk overlay packs
+- do not select all baseline packs by default; separate standard packs from industrial overlays
 - do not treat BL2 or selected industrial packs as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and project-level industrial baseline status
 
 For workflow artifacts:
@@ -118,9 +120,11 @@ For change boundary and baseline state:
 
 For baseline pack selection:
 
-- create `node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name <slug>` when Codex recommends BL level, platform packs, capability packs, or risk overlays
+- create `node scripts/new-workflow-item.mjs --type standard-baseline-selection-report --name <slug>` when Codex recommends standard baseline packs
+- create `node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name <slug>` when Codex recommends BL2 industrial packs or risk overlays
+- run `node scripts/check-standard-baseline-selection.mjs . --report <report>` before treating standard baseline selection as ready for human decision
 - run `node scripts/check-baseline-pack-selection.mjs . --report <report>` before treating the recommendation as ready for human decision
-- never treat baseline pack selection as implementation, target-project write, release, production, or draft-pack stability approval
+- never treat baseline pack selection as implementation, target-project write, release, production, compliance/security/privacy, or draft-pack stability approval
 
 For guided decision and guided delivery:
 

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.13.0`
+Current version: `1.14.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.13.0`
 
 ## Current Release
 
-`1.13.0`
+`1.14.0`
 
 Includes:
 
+- Standard Baseline Pack Registry phase `1.14.0`: separates ordinary standard baseline packs from BL2 industrial overlays, adds `standard-baseline-packs/`, three draft standard packs, standard baseline resolver/checkers, CLI commands, CI visibility, and release evidence
+- `1.14.0` does not make standard packs active by default, promote draft packs to stable, make BL2 default, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Baseline Pack System phase `1.13.0`: read-only baseline pack recommendation, Baseline Pack Selection Report, pack selection checker, CLI commands, generated-project asset coverage, and release evidence
 - `1.13.0` does not promote industrial packs to stable, make BL2 default, select all packs by default, approve target-project writes, or prove real-project production readiness
 - Manifest, README & Fallback Sync patch `1.12.1`: manifest `compatibilityPolicy.phase` now matches `devKitVersion`, phase drift is checked, README self-check guidance includes 1.12 checks and `npm run verify`, and `check-ai-workflow` fallback paths include 1.12 assets

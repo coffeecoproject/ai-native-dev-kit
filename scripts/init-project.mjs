@@ -35,6 +35,8 @@ const requiredAgentGovernanceMarkers = [
   "Environment Baseline",
   "Platform Baseline",
   "Industrial Baseline",
+  "Standard Baseline Packs",
+  "Baseline Pack System",
   "Workflow Artifact Generation",
   "Review Loop",
   "Goal Mode",
@@ -504,6 +506,21 @@ function agentGovernanceSectionContent() {
       "Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.",
       "",
     ].join("\n")],
+    ["Standard Baseline Packs", [
+      "## Standard Baseline Packs",
+      "",
+      "Use `.ai-native/core/standard-baseline-pack-registry.md` and `.ai-native/docs/standard-baseline-pack-registry.md` when normal engineering baseline packs need to be selected before considering BL2 industrial overlays.",
+      "",
+      "Run:",
+      "",
+      "```bash",
+      "node scripts/resolve-standard-baseline.mjs .",
+      "node scripts/check-standard-baseline-selection.mjs .",
+      "```",
+      "",
+      "Codex may recommend standard packs, but it must not treat recommendations as pack activation, target-project write approval, implementation approval, release approval, or compliance/security/privacy approval.",
+      "",
+    ].join("\n")],
     ["Workflow Artifact Generation", [
       "## Workflow Artifact Generation",
       "",
@@ -673,17 +690,18 @@ function agentGovernanceSectionContent() {
     ["Baseline Pack System", [
       "## Baseline Pack System",
       "",
-      "Use `.ai-native/core/baseline-pack-system.md` and `.ai-native/docs/baseline-pack-system.md` when project profile, BL level, industrial packs, or risk overlays need to be selected.",
+      "Use `.ai-native/core/baseline-pack-system.md` and `.ai-native/docs/baseline-pack-system.md` when project profile, BL level, standard packs, industrial packs, or risk overlays need to be selected.",
       "",
-      "Codex may recommend candidate packs, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without explicit human decision.",
+      "Codex may recommend candidate packs, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without explicit human decision. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays.",
       "",
-      "Optional artifact:",
+      "Optional artifacts:",
       "",
       "```bash",
+      "node scripts/new-workflow-item.mjs --type standard-baseline-selection-report --name <project-standard-baseline>",
       "node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name <project-baseline-packs>",
       "```",
       "",
-      "Run `node scripts/resolve-baseline-packs.mjs .` for a read-only recommendation and `node scripts/check-baseline-pack-selection.mjs .` when selection reports exist.",
+      "Run `node scripts/resolve-standard-baseline.mjs .` for a standard baseline recommendation, `node scripts/cli.mjs baseline-packs .` for the umbrella recommendation, and selection checkers when reports exist.",
       "",
     ].join("\n")],
     ["Task Execution Rules", [
@@ -951,6 +969,7 @@ function fallbackCopyRules() {
       { source: "prompts", target: ".ai-native/prompts" },
       { source: "checklists", target: ".ai-native/checklists" },
       { source: "profiles", target: ".ai-native/profiles" },
+      { source: "standard-baseline-packs", target: ".ai-native/standard-baseline-packs" },
       { source: "schemas/artifacts", target: ".ai-native/schemas/artifacts" },
     ],
     files: [
@@ -964,6 +983,7 @@ function fallbackCopyRules() {
       { source: "docs/baseline-state.md", target: ".ai-native/docs/baseline-state.md" },
       { source: "docs/guided-delivery-check.md", target: ".ai-native/docs/guided-delivery-check.md" },
       { source: "docs/baseline-pack-system.md", target: ".ai-native/docs/baseline-pack-system.md" },
+      { source: "docs/standard-baseline-pack-registry.md", target: ".ai-native/docs/standard-baseline-pack-registry.md" },
       { source: "docs/product-baseline.md", target: ".ai-native/docs/product-baseline.md" },
       { source: "docs/claim-control.md", target: ".ai-native/docs/claim-control.md" },
       { source: "core/decision-delegation-boundary.md", target: ".ai-native/core/decision-delegation-boundary.md" },
@@ -971,16 +991,19 @@ function fallbackCopyRules() {
       { source: "core/change-boundary.md", target: ".ai-native/core/change-boundary.md" },
       { source: "core/baseline-state.md", target: ".ai-native/core/baseline-state.md" },
       { source: "core/baseline-pack-system.md", target: ".ai-native/core/baseline-pack-system.md" },
+      { source: "core/standard-baseline-pack-registry.md", target: ".ai-native/core/standard-baseline-pack-registry.md" },
       { source: "prompts/delivery-coach-agent.md", target: ".ai-native/prompts/delivery-coach-agent.md" },
       { source: "prompts/guided-delivery-check-agent.md", target: ".ai-native/prompts/guided-delivery-check-agent.md" },
       { source: "prompts/change-boundary-agent.md", target: ".ai-native/prompts/change-boundary-agent.md" },
       { source: "prompts/baseline-state-agent.md", target: ".ai-native/prompts/baseline-state-agent.md" },
       { source: "prompts/baseline-pack-router-agent.md", target: ".ai-native/prompts/baseline-pack-router-agent.md" },
+      { source: "prompts/standard-baseline-router-agent.md", target: ".ai-native/prompts/standard-baseline-router-agent.md" },
       { source: "templates/active-work-thread.md", target: ".ai-native/templates/active-work-thread.md" },
       { source: "templates/guided-decision-summary.md", target: ".ai-native/templates/guided-decision-summary.md" },
       { source: "templates/change-boundary-report.md", target: ".ai-native/templates/change-boundary-report.md" },
       { source: "templates/baseline-state-report.md", target: ".ai-native/templates/baseline-state-report.md" },
       { source: "templates/baseline-pack-selection-report.md", target: ".ai-native/templates/baseline-pack-selection-report.md" },
+      { source: "templates/standard-baseline-selection-report.md", target: ".ai-native/templates/standard-baseline-selection-report.md" },
       { source: "scripts/check-ai-workflow.mjs", target: "scripts/check-ai-workflow.mjs" },
       { source: "scripts/baseline-project.mjs", target: "scripts/baseline-project.mjs" },
       { source: "scripts/check-product-baseline.mjs", target: "scripts/check-product-baseline.mjs" },
@@ -1005,6 +1028,9 @@ function fallbackCopyRules() {
       { source: "scripts/check-guided-delivery-loop.mjs", target: "scripts/check-guided-delivery-loop.mjs" },
       { source: "scripts/check-change-boundary.mjs", target: "scripts/check-change-boundary.mjs" },
       { source: "scripts/check-baseline-state.mjs", target: "scripts/check-baseline-state.mjs" },
+      { source: "scripts/resolve-standard-baseline.mjs", target: "scripts/resolve-standard-baseline.mjs" },
+      { source: "scripts/check-standard-baseline-pack.mjs", target: "scripts/check-standard-baseline-pack.mjs" },
+      { source: "scripts/check-standard-baseline-selection.mjs", target: "scripts/check-standard-baseline-selection.mjs" },
       { source: "scripts/resolve-baseline-packs.mjs", target: "scripts/resolve-baseline-packs.mjs" },
       { source: "scripts/check-baseline-pack-selection.mjs", target: "scripts/check-baseline-pack-selection.mjs" },
       { source: "scripts/lib/frontmatter.mjs", target: "scripts/lib/frontmatter.mjs" },
@@ -1046,6 +1072,7 @@ function ensureWorkflowDirs(targetPath) {
     "guided-decision-summaries",
     "change-boundary-reports",
     "baseline-state-reports",
+    "standard-baseline-selections",
     "baseline-pack-selections",
     "releases",
   ] });
@@ -1087,12 +1114,14 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".ai-native/checklists",
       ".ai-native/profiles",
       ".ai-native/industrial-packs",
+      ".ai-native/standard-baseline-packs",
       ".ai-native/schemas/artifacts",
       ".ai-native/docs/artifact-decision-tree.md",
       ".ai-native/docs/goal-subagent-usage.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/baseline-pack-system.md",
+      ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/claim-control.md",
       "AGENTS.md",
@@ -1120,6 +1149,9 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-baseline-state.mjs",
+      "scripts/resolve-standard-baseline.mjs",
+      "scripts/check-standard-baseline-pack.mjs",
+      "scripts/check-standard-baseline-selection.mjs",
       "scripts/resolve-baseline-packs.mjs",
       "scripts/check-baseline-pack-selection.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -1152,6 +1184,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "guided-decision-summaries",
       "change-boundary-reports",
       "baseline-state-reports",
+      "standard-baseline-selections",
       "baseline-pack-selections",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
@@ -1556,18 +1589,19 @@ function printNextSteps() {
   console.log("4. Draft docs/engineering-baseline.md before structural, schema, contract, permission, migration, dependency, or cross-module state decisions.");
   console.log("5. Run node scripts/check-engineering-baseline.mjs . and route pending engineering decisions to humans before high-impact code changes.");
   console.log("6. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
-  console.log("7. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
-  console.log("8. Create the first request card only after onboarding is ready.");
-  console.log("9. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
-  console.log("10. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-  console.log("11. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
-  console.log("12. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
-  console.log("13. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
-  console.log("14. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
-  console.log("15. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
-  console.log("16. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
-  console.log("17. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
-  console.log("18. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+  console.log("7. Run node scripts/resolve-standard-baseline.mjs . to review standard packs before considering BL2 industrial overlays.");
+  console.log("8. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
+  console.log("9. Create the first request card only after onboarding is ready.");
+  console.log("10. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
+  console.log("11. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
+  console.log("12. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
+  console.log("13. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
+  console.log("14. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
+  console.log("15. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
+  console.log("16. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
+  console.log("17. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
+  console.log("18. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
+  console.log("19. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
 }
 
 function isIgnorableNewProjectEntry(name) {

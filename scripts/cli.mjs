@@ -26,8 +26,20 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultTarget(args),
   },
   "baseline-packs": {
-    description: "Recommend baseline pack candidates without enabling packs.",
-    script: "scripts/resolve-baseline-packs.mjs",
+    description: "Show standard baseline packs first, then optional industrial overlays.",
+    script: "scripts/resolve-standard-baseline.mjs",
+    writes: false,
+    buildArgs: (args) => ["--umbrella", ...withDefaultTarget(args)],
+  },
+  "standard-baseline": {
+    description: "Recommend standard baseline packs without enabling packs.",
+    script: "scripts/resolve-standard-baseline.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "standard-baseline-selection": {
+    description: "Check recorded standard baseline selection reports.",
+    script: "scripts/check-standard-baseline-selection.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
@@ -244,6 +256,8 @@ function printHelp() {
   console.log("Examples:");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
+  console.log("  node scripts/cli.mjs standard-baseline ../my-project");
+  console.log("  node scripts/cli.mjs standard-baseline-selection .");
   console.log("  node scripts/cli.mjs baseline-packs ../my-project");
   console.log("  node scripts/cli.mjs baseline-pack-selection .");
   console.log("  node scripts/cli.mjs product-baseline .");

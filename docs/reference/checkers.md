@@ -26,7 +26,10 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-patch-classification.mjs` | Repair-scale classification and false-positive calibration before non-trivial fixes |
 | `check-change-boundary.mjs` | Intended scope, allowed paths, forbidden paths, actual changed files, and claim boundary |
 | `check-baseline-state.mjs` | Baseline state claims for proposed, pending, evidence-required, and confirmed baselines |
-| `resolve-baseline-packs.mjs` | Read-only baseline pack recommendation by profile, BL level, capability, and risk |
+| `resolve-standard-baseline.mjs` | Read-only standard baseline recommendation with optional industrial overlays |
+| `check-standard-baseline-pack.mjs` | Standard baseline pack registry and draft overclaim checks |
+| `check-standard-baseline-selection.mjs` | Standard baseline selection report boundaries and consistency checks |
+| `resolve-baseline-packs.mjs` | Lower-level read-only industrial-oriented baseline pack recommendation by profile, BL level, capability, and risk |
 | `check-baseline-pack-selection.mjs` | Baseline pack selection report boundaries and overclaim checks |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
@@ -94,6 +97,8 @@ Product and claim checks:
 - `check-guided-delivery-loop.mjs` allows empty projects, but rejects parking-lot items that are approved/executable now, D3/D4 summaries that claim implementation approval, and summaries missing human choice or next safe action.
 - `check-change-boundary.mjs` allows empty projects, but rejects reports where forbidden paths changed, actual files sit outside allowed paths, forbidden change types appear, or a report claims PASS while any changed file is outside boundary.
 - `check-baseline-state.mjs` allows empty projects, but rejects no-code/new-project baselines marked `CONFIRMED` without evidence or human-confirmed source, and rejects implementation permission that claims approved writes without evidence.
+- `check-standard-baseline-pack.mjs` rejects standard packs that use `defaultForBL`, are active by default, miss required baseline/checklist/template content, claim production readiness, or authorize writes, implementation, release, compliance, security, or privacy.
+- `check-standard-baseline-selection.mjs` allows empty projects, but rejects reports that mix industrial overlays into standard packs, use unknown pack IDs, claim write or implementation approval, claim release/production approval, or treat selection as evidence. `--compare-resolver` checks recorded recommendations against resolver output.
 - `check-baseline-pack-selection.mjs` allows empty projects, but rejects reports that select all packs by default, treat BL2 as universal default, treat draft packs as stable, claim pack files prove real project evidence, or authorize writes, implementation, release, or production.
 
 ## Suggested Sequences
@@ -120,6 +125,9 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-standard-baseline.mjs .
+node scripts/check-standard-baseline-pack.mjs .
+node scripts/check-standard-baseline-selection.mjs .
 node scripts/resolve-baseline-packs.mjs .
 node scripts/check-baseline-pack-selection.mjs .
 ```

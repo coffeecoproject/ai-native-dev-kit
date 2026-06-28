@@ -38,10 +38,12 @@
 | 项目状态 | 推荐方式 |
 |---|---|
 | 试验、小工具、低风险功能 | `O0 + BL0 + core workflow` |
-| 普通 Web、中台、小程序、App、后台服务 | `O1 + selected profiles + BL1` |
-| 有客户、生产数据、权限、支付、发布风险 | `O2 + selected profiles + BL2 + selected industrial packs` |
+| 普通 Web、中台、小程序、App、后台服务 | `O1 + selected profiles + BL1 + selected standard packs` |
+| 有客户、生产数据、权限、支付、发布风险 | `O2 + selected profiles + BL2 + selected standard packs + selected industrial overlays` |
 
-平台 profile 负责区分 Web、iOS、Android、微信小程序、后端、内部管理系统、高风险变更等工程差异。工业包只按需启用，`draft` 不等于生产稳定。
+平台 profile 负责区分 Web、iOS、Android、微信小程序、后端、内部管理系统、高风险变更等工程差异。
+
+标准基线包是普通项目的工程护栏。工业包是生产敏感、高风险、客户数据、支付、发布等增强护栏。默认先推荐最小标准基线；工业包只作为可选增强，不默认启用，`draft` 不等于生产稳定。
 
 ## 最小开始方式
 
@@ -60,6 +62,7 @@ node scripts/cli.mjs baseline ../my-project
 第三步，如果项目可能涉及平台、后台、权限、数据、支付或发布风险，让 Codex 只读推荐基线包：
 
 ```bash
+node scripts/cli.mjs standard-baseline ../my-project
 node scripts/cli.mjs baseline-packs ../my-project
 ```
 
@@ -110,7 +113,8 @@ node scripts/cli.mjs doctor ../my-project
 |---|---|
 | 引导式接入 | 先判断项目是新项目、已有项目、强治理项目、生产敏感项目、dirty worktree，还是已接入项目 |
 | 工程/环境基线 | 明确代码结构、数据库、API、权限、运行环境、构建测试、发布回滚和密钥边界 |
-| 基线包选择 | 按项目级别、平台、能力和风险推荐最小基线包组合，不默认开启 BL2 或所有工业包 |
+| 标准基线包 | 先按平台、后台、发布回滚等普通工程需要推荐最小标准基线 |
+| 工业增强包 | 只在 BL2、高风险、生产敏感、客户数据、支付或发布风险存在时作为可选叠加 |
 | Goal + Subagent | 只有需要时才使用目标卡和 helper agent，并要求用完关闭 |
 | Review Loop | 任务完成后复查，限制自动修复，把风险问题交给人判断 |
 | 项目记忆治理 | Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
@@ -139,6 +143,9 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-standard-baseline.mjs .
+node scripts/check-standard-baseline-pack.mjs .
+node scripts/check-standard-baseline-selection.mjs .
 node scripts/resolve-baseline-packs.mjs .
 node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-guided-adoption.mjs .
@@ -148,7 +155,7 @@ node scripts/check-guided-adoption.mjs .
 
 - 不是每次都要开 Goal Card 或 subagent；按任务风险决定。
 - 不是每次改动都走最重流程；任务完成后再进入 Review Loop。
-- 不是所有工业包都装进项目；只启用项目需要的部分。
+- 不是所有标准包或工业包都装进项目；只启用项目需要且被人确认的部分。
 - 已上线或强治理项目不要直接初始化；先走只读接入评估。
 - `baseline` 默认只生成建议，不直接改目标项目。
 - `migrate` 当前只生成计划，不直接改目标项目。
@@ -160,7 +167,8 @@ node scripts/check-guided-adoption.mjs .
 - 不要把讨论、范围变化、旁路问题或风险问题直接当成继续当前任务的许可。
 - 不要把真实项目只读接入报告当成允许写入项目。
 - 不要把补丁分类报告当成允许实现；它只判断修复尺度。
-- 不要把基线包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
+- 不要把标准基线包推荐当成已经选择、写入授权或具体实现任务批准。
+- 不要把工业包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
 
 ## 完整说明
 
@@ -187,6 +195,7 @@ node scripts/check-guided-adoption.mjs .
 - [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
 - [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
 - [Guided Decision & Delivery Loop](docs/guided-decision-delivery-loop.md)：让 Codex 推荐最小安全路径，用户只确认目标、取舍和风险
+- [Standard Baseline Pack Registry](docs/standard-baseline-pack-registry.md)：先选普通工程标准基线，再看是否需要工业增强
 - [Change Boundary](docs/change-boundary.md)：检查实际改动是否仍在本次任务边界内
 - [Baseline State](docs/baseline-state.md)：区分基线是建议、待确认、需证据，还是已确认
 - [Guided Delivery Check](docs/guided-delivery-check.md)：检查当前主线、停车场和 D0-D4 决策边界
@@ -206,6 +215,7 @@ node scripts/check-guided-adoption.mjs .
 - [Scripts Reference](docs/reference/scripts.md)：命令说明
 - [Artifacts Reference](docs/reference/artifacts.md)：文件说明
 - [Checkers Reference](docs/reference/checkers.md)：检查器说明
+- [Standard Baseline Packs Reference](docs/reference/standard-baseline-packs.md)：标准基线包说明
 - [Industrial Packs Reference](docs/reference/industrial-packs.md)：工业包说明
 - [Migration Index](docs/migrations/index.md)：迁移入口
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
@@ -214,6 +224,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.14 Release Record](releases/1.14.0/release-record.md)：1.14 标准基线包注册表
 - [1.13 Release Record](releases/1.13.0/release-record.md)：1.13 基线包选择系统
 - [1.12.1 Release Record](releases/1.12.1/release-record.md)：1.12.1 manifest、README 自检入口和 fallback 同步
 - [1.12 Release Record](releases/1.12.0/release-record.md)：1.12 变更边界、引导式交付检查与基线状态保护

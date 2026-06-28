@@ -40,6 +40,7 @@ const typeMap = {
   "change-boundary-report": { dir: "change-boundary-reports", template: "change-boundary-report.md", defaultName: "change-boundary" },
   "baseline-state-report": { dir: "baseline-state-reports", template: "baseline-state-report.md", defaultName: "baseline-state" },
   "baseline-pack-selection-report": { dir: "baseline-pack-selections", template: "baseline-pack-selection-report.md", defaultName: "baseline-pack-selection" },
+  "standard-baseline-selection-report": { dir: "standard-baseline-selections", template: "standard-baseline-selection-report.md", defaultName: "standard-baseline-selection" },
 };
 
 const aliases = {
@@ -127,6 +128,10 @@ const aliases = {
   "baseline-packs": "baseline-pack-selection-report",
   "pack-selection": "baseline-pack-selection-report",
   "baseline-pack": "baseline-pack-selection-report",
+  "standard-baseline-selection": "standard-baseline-selection-report",
+  "standard-baseline": "standard-baseline-selection-report",
+  "standard-pack-selection": "standard-baseline-selection-report",
+  "standard-packs": "standard-baseline-selection-report",
 };
 
 function parseArgs(argv) {
@@ -182,6 +187,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type change-boundary-report --name task-scope");
   console.error("  node scripts/new-workflow-item.mjs --type baseline-state-report --name no-code-baseline");
   console.error("  node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name project-baseline-packs");
+  console.error("  node scripts/new-workflow-item.mjs --type standard-baseline-selection-report --name project-standard-baseline");
 }
 
 function fail(message) {
@@ -1516,6 +1522,85 @@ function fillBaselinePackSelectionReport(content, context) {
   return output;
 }
 
+function fillStandardBaselineSelectionReport(content, context) {
+  let output = setTitle(content, `# Standard Baseline Selection Report: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Summary",
+    [
+      `Recommended path: Standard baseline selection for ${context.title} is pending human decision.`,
+      "",
+      "Can AI enable packs now: No.",
+      "",
+      "Can AI write target project files now: No.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Project Classification",
+    [
+      "- Project state: unknown",
+      "- Project shape: unknown",
+      "- Risk level: medium",
+      "- Evidence source: fill from `node scripts/cli.mjs standard-baseline <project>`",
+    ].join("\n"),
+  );
+  output = setSection(output, "Selected Profiles", "- PENDING");
+  output = setSection(
+    output,
+    "BL Level",
+    [
+      "- Recommended level: PENDING",
+      "- Current selected level: none",
+      "- Why: Fill after profile and risk review.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Recommended Standard Packs",
+    [
+      "Primary platform packs:",
+      "",
+      "- none",
+      "",
+      "Capability packs:",
+      "",
+      "- none",
+      "",
+      "Quality, environment, or release packs:",
+      "",
+      "- none",
+    ].join("\n"),
+  );
+  output = setSection(output, "Optional Industrial Overlays", "Risk overlay packs:\n\n- none");
+  output = setSection(
+    output,
+    "Human Decision",
+    [
+      "- Decision status: PENDING",
+      "- Decision owner: human",
+      "- Approved standard packs: none until approved",
+      "- Approved industrial overlays: none until approved",
+      "- Explicitly rejected packs: none",
+      "- Draft pack acceptance: PENDING",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Boundary",
+    [
+      "- This report authorizes target-project writes: No",
+      "- This report approves implementation: No",
+      "- This report approves release or production: No",
+      "- This report approves compliance/security/privacy: No",
+      "- This report proves real project evidence exists: No",
+      "",
+      "Human approval of this standard baseline selection does not approve a specific implementation task.",
+    ].join("\n"),
+  );
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1705,6 +1790,7 @@ if (type === "guided-decision-summary") content = fillGuidedDecisionSummary(cont
 if (type === "change-boundary-report") content = fillChangeBoundaryReport(content, baseContext);
 if (type === "baseline-state-report") content = fillBaselineStateReport(content, baseContext);
 if (type === "baseline-pack-selection-report") content = fillBaselinePackSelectionReport(content, baseContext);
+if (type === "standard-baseline-selection-report") content = fillStandardBaselineSelectionReport(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -1733,6 +1819,10 @@ if (type === "review-packet") {
   console.log("- Fill project classification, BL level, selected profiles, recommended packs, not-selected packs, evidence, and Human Decision.");
   console.log("- Run node scripts/check-baseline-pack-selection.mjs . --report <report> before treating it as ready for human decision.");
   console.log("- Do not treat this report as target-project write, implementation, release, production, or draft-pack stability approval.");
+} else if (type === "standard-baseline-selection-report") {
+  console.log("- Fill project classification, selected profiles, BL level, standard packs, optional industrial overlays, evidence, and Human Decision.");
+  console.log("- Run node scripts/check-standard-baseline-selection.mjs . --report <report> before treating it as ready for human decision.");
+  console.log("- Do not treat this report as target-project write, implementation, release, production, or compliance/security/privacy approval.");
 } else if (type === "human-status-report") {
   console.log("- Start with status, risk, whether AI can continue, and the next safe step.");
   console.log("- Keep technical fields and command output under Technical Details.");

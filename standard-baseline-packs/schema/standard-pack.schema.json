@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI Native Standard Baseline Pack",
+  "type": "object",
+  "required": [
+    "id",
+    "type",
+    "status",
+    "displayName",
+    "baselineLayer",
+    "recommendedForBL",
+    "allowedForBL",
+    "activeByDefault",
+    "appliesToProfiles",
+    "recommendedWhen",
+    "canBeRecommendedByAI",
+    "selectionRequiresHumanDecision",
+    "canAuthorizeWrites",
+    "canApproveImplementation",
+    "canApproveRelease",
+    "canApproveComplianceSecurityPrivacy",
+    "requiresEvidenceForConfirmed",
+    "maturityStage"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*-standard$"
+    },
+    "type": {
+      "enum": [
+        "primary-platform",
+        "capability",
+        "quality",
+        "environment",
+        "release"
+      ]
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "candidate",
+        "stable",
+        "deprecated",
+        "retired"
+      ]
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "baselineLayer": {
+      "const": "standard"
+    },
+    "recommendedForBL": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "BL0_LIGHTWEIGHT",
+          "BL1_STANDARD",
+          "BL2_INDUSTRIAL"
+        ]
+      }
+    },
+    "allowedForBL": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "BL0_LIGHTWEIGHT",
+          "BL1_STANDARD",
+          "BL2_INDUSTRIAL"
+        ]
+      }
+    },
+    "activeByDefault": {
+      "const": false
+    },
+    "appliesToProfiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommendedWhen": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "canBeRecommendedByAI": {
+      "const": true
+    },
+    "selectionRequiresHumanDecision": {
+      "const": true
+    },
+    "canAuthorizeWrites": {
+      "const": false
+    },
+    "canApproveImplementation": {
+      "const": false
+    },
+    "canApproveRelease": {
+      "const": false
+    },
+    "canApproveComplianceSecurityPrivacy": {
+      "const": false
+    },
+    "requiresEvidenceForConfirmed": {
+      "const": true
+    },
+    "maturityStage": {
+      "enum": [
+        "draft",
+        "candidate",
+        "stable",
+        "deprecated",
+        "retired"
+      ]
+    }
+  },
+  "additionalProperties": true,
+  "not": {
+    "required": [
+      "defaultForBL"
+    ]
+  }
+}
