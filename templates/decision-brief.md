@@ -32,6 +32,12 @@ Owner:
 
 Decision deadline, if any:
 
+Decision level:
+
+```text
+D1 / D2 / D3 / D4
+```
+
 ## Background
 
 What led to this decision:

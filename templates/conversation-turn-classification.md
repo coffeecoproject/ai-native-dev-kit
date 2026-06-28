@@ -35,6 +35,15 @@ Quote or summarize the relevant user message. Do not store private raw conversat
 - Current task:
 - Current approved scope:
 
+## Mainline Placement
+
+| Bucket | Value |
+|---|---|
+| Current Mainline |  |
+| Parking Lot |  |
+| Decision Needed |  |
+| Stop Item |  |
+
 ## Intent Classification
 
 `DISCUSS_ONLY` / `ANSWER_TO_PENDING_QUESTION` / `CONTINUE_CURRENT_TASK` / `SCOPE_CHANGE` / `NEW_TASK` / `DIRECT_FOLLOW_UP` / `RISK_DECISION` / `PAUSE_OR_STOP` / `REVIEW_ONLY` / `MEMORY_CANDIDATE` / `OUT_OF_SCOPE_OBSERVATION`

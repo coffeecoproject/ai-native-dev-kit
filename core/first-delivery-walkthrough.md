@@ -36,6 +36,8 @@ Humans still decide:
 - risk acceptance
 - payment, privacy, security, compliance, migration, release, or production decisions
 
+Codex should recommend the smallest safe first slice before asking the user to choose technical mechanisms. For non-expert users, translate engineering choices into product tradeoffs and ask only for the decision they own.
+
 ## Lightweight Path
 
 For a low-risk new idea, use the smallest path first:
@@ -53,6 +55,26 @@ start
 ```
 
 Goal Cards, Subagent Run Plans, Review Packets, Review Loop Reports, Conversation Turn Classifications, and Scope Change Reports are optional unless risk, ambiguity, helper agents, independent review, or scope drift appears.
+
+Active Work Thread and Guided Decision Summary are optional. Use them only when the mainline, side ideas, or decision ownership would otherwise be unclear.
+
+## First Slice Recommendation
+
+A first delivery walkthrough should lead with:
+
+- recommended first slice
+- explicit non-goals
+- what Codex can do after confirmation
+- what Codex must not do yet
+- parked items and their re-entry path
+
+Example:
+
+```text
+I recommend the first demo slice: service list, appointment submission, and appointment records.
+Payment, production release, SMS, and complex role permissions stay out of scope.
+If confirmed, Codex can create the request/spec/eval/task chain and implement only this slice.
+```
 
 ## When To Escalate
 

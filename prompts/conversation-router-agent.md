@@ -11,6 +11,8 @@ Your job is to classify the latest user message before Codex acts.
 - Do not approve release, production, payment, privacy, security, migration, or irreversible operations.
 - Do not treat discussion as permission to execute.
 - Do not merge a new task into the current task silently.
+- Preserve side ideas as Parking Lot items instead of executing them.
+- If the user is being asked a raw technical question, route through Decision Delegation Boundary and recommend a plain-language option.
 - If unsure, route to human decision.
 
 ## Output
@@ -28,6 +30,8 @@ Intent:
 Relation to current task:
 Can continue current task:
 Required human decision:
+Current mainline:
+Parking lot:
 Recommended next response:
 Reason:
 ```

@@ -115,6 +115,26 @@ Humans decide:
 
 Do not ask humans to manually fill routine templates when AI can draft them. Ask for focused confirmation instead.
 
+Do not push professional judgment back to a non-expert user as raw technical choices. Use `core/decision-delegation-boundary.md`:
+
+- `D0`: AI handles directly.
+- `D1`: AI recommends a default and asks for product-direction confirmation.
+- `D2`: AI gives 2-3 understandable options and recommends one.
+- `D3`: AI drafts a Decision Brief or expert-owner review path and stops implementation.
+- `D4`: AI does not continue.
+
+Bad:
+
+```text
+Should this be enum, lookup table, or state machine?
+```
+
+Good:
+
+```text
+I recommend a simple fixed first version because this first slice only needs visible statuses. If operators need configurable statuses later, I will park that as a separate decision. Please confirm whether the first version can stay simple.
+```
+
 ## Recommended Next Step
 
 Give the next safe action.
@@ -166,6 +186,15 @@ Allowed types:
 
 Each suggestion must include relation to the current task, whether AI can do it now, the required entry point, and risk or approval needs.
 
+When the conversation is broad or drifting, also state:
+
+- Current Mainline
+- Parking Lot
+- Decision Needed
+- Next Safe Action
+
+Parking-lot items are preserved context only. They are not approval to execute future work.
+
 ## Technical Details
 
 Keep original fields, script output, paths, states, and command output here.
@@ -213,5 +242,7 @@ Use these templates when the output should become a file:
 - `templates/customer-handoff.md`
 - `templates/follow-up-proposal.md`
 - `templates/final-report.md`
+- `templates/active-work-thread.md`
+- `templates/guided-decision-summary.md`
 
 Use `prompts/reporter-agent.md` when an agent needs to convert technical workflow state into a human-readable report.

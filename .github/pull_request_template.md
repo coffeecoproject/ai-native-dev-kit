@@ -20,6 +20,7 @@ Explain what changed in plain language and why the change is safe to review.
 - Git Boundary:
 - Safe Launch / Delivery Readiness:
 - Conversation Drift:
+- Guided Decision / Active Work Thread:
 - Goal Card:
 - Subagent Run Plan:
 - Review Packet:

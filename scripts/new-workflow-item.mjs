@@ -35,6 +35,8 @@ const typeMap = {
   "real-adoption-trial-report": { dir: "real-adoption-trials", template: "real-adoption-trial-report.md", defaultName: "real-adoption-trial" },
   "patch-classification": { dir: "patch-classifications", template: "patch-classification-report.md", defaultName: "patch-classification" },
   "patch-classification-false-positive": { dir: "patch-classification-false-positives", template: "patch-classification-false-positive.md", defaultName: "patch-classification-false-positive" },
+  "active-work-thread": { dir: "active-work-threads", template: "active-work-thread.md", defaultName: "active-work-thread" },
+  "guided-decision-summary": { dir: "guided-decision-summaries", template: "guided-decision-summary.md", defaultName: "guided-decision" },
 };
 
 const aliases = {
@@ -104,6 +106,14 @@ const aliases = {
   "patch-false-positive": "patch-classification-false-positive",
   "false-positive": "patch-classification-false-positive",
   "risk-surface-calibration": "patch-classification-false-positive",
+  "work-thread": "active-work-thread",
+  "active-thread": "active-work-thread",
+  "mainline": "active-work-thread",
+  parking: "active-work-thread",
+  "guided-decision": "guided-decision-summary",
+  "decision-summary": "guided-decision-summary",
+  "delivery-decision": "guided-decision-summary",
+  "decision-delegation": "guided-decision-summary",
 };
 
 function parseArgs(argv) {
@@ -154,6 +164,8 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type adoption-trial-report --name first-slice");
   console.error("  node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-web-readonly");
   console.error("  node scripts/new-workflow-item.mjs --type patch-classification --name governed-web-repair-scale");
+  console.error("  node scripts/new-workflow-item.mjs --type active-work-thread --name first-slice");
+  console.error("  node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-model");
 }
 
 function fail(message) {
@@ -1282,6 +1294,84 @@ function fillPatchClassification(content, context) {
   return output;
 }
 
+function fillActiveWorkThread(content, context) {
+  let output = setTitle(content, `# Active Work Thread: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", `Plain-language status of the current work thread for ${context.title}.`);
+  output = setSection(
+    output,
+    "Current Mainline",
+    [
+      "| Field | Value |",
+      "|---|---|",
+      `| Goal | ${context.title} |`,
+      context.taskRef ? `| Current task / artifact | \`${context.taskRef}\` |` : "| Current task / artifact |  |",
+      "| Delivery target | demo / internal handoff / release review / not ready |",
+      "| Current status | active / paused / blocked / complete |",
+      "| Can AI continue now? | Yes / Limited / No |",
+      "| Why |  |",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Decisions Needed",
+    [
+      "| Decision | Level | Owner | Needed before | Recommended path |",
+      "|---|---|---|---|---|",
+      "| Confirm the current mainline if scope is unclear | D1 / D2 | human | next execution step | keep one current mainline and park side ideas |",
+    ].join("\n"),
+  );
+  return output;
+}
+
+function fillGuidedDecisionSummary(content, context) {
+  let output = setTitle(content, `# Guided Decision Summary: ${context.number}-${context.slug}`);
+  output = setSection(output, "Human Summary", `Plain-language explanation of the decision for ${context.title}.`);
+  output = setSection(output, "Decision Level", "```text\nD1\n```");
+  output = setSection(
+    output,
+    "Recommendation",
+    [
+      "I recommend:",
+      "",
+      "Use the smallest safe path for the current slice.",
+      "",
+      "Why:",
+      "",
+      "It keeps the current work bounded while preserving future options.",
+      "",
+      "What this does now:",
+      "",
+      "- confirms one direction",
+      "- lets Codex create or update only the needed artifacts",
+      "",
+      "What this avoids now:",
+      "",
+      "- raw technical guessing",
+      "- hidden scope expansion",
+      "- accidental risk approval",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Technical Translation",
+    [
+      "If the human confirms the recommendation, Codex will translate it into:",
+      "",
+      "- request / spec / eval / task",
+      "- engineering baseline note",
+      "- decision brief",
+      "- follow-up proposal",
+      "- active work thread update",
+      "- no artifact needed",
+      "",
+      "Technical consequence:",
+      "",
+      context.taskRef ? `- Related task: \`${context.taskRef}\`` : "- ",
+    ].join("\n"),
+  );
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1329,6 +1419,13 @@ function frontmatterFor(type, context) {
     return {
       ...common,
       subagent_mode: normalizedSubagentMode(context.subagentMode),
+    };
+  }
+  if (type === "active-work-thread" || type === "guided-decision-summary") {
+    return {
+      ...common,
+      task: context.taskRef,
+      decision_level: type === "guided-decision-summary" ? "D1" : undefined,
     };
   }
   return null;
@@ -1445,6 +1542,8 @@ if (type === "scope-change-report") content = fillScopeChangeReport(content, bas
 if (type === "adoption-trial-report") content = fillAdoptionTrialReport(content, baseContext);
 if (type === "real-adoption-trial-report") content = fillRealAdoptionTrialReport(content, baseContext);
 if (type === "patch-classification") content = fillPatchClassification(content, baseContext);
+if (type === "active-work-thread") content = fillActiveWorkThread(content, baseContext);
+if (type === "guided-decision-summary") content = fillGuidedDecisionSummary(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -1517,6 +1616,14 @@ if (type === "review-packet") {
   console.log("- Use this only when a high-risk keyword appears to be background context after review.");
   console.log("- Do not use false-positive records to approve implementation or weaken gates.");
   console.log("- Run node scripts/check-patch-classification.mjs . after filling the report.");
+} else if (type === "active-work-thread") {
+  console.log("- Keep exactly one Current Mainline visible and move side ideas into Parking Lot.");
+  console.log("- Do not treat parking-lot items as approved backlog or implementation scope.");
+  console.log("- Use this artifact only when broad conversation or drift makes the mainline unclear.");
+} else if (type === "guided-decision-summary") {
+  console.log("- Translate raw technical choices into product, effort, or risk choices the human can own.");
+  console.log("- Recommend one smallest safe path and record what Codex must not do without further approval.");
+  console.log("- Do not treat this summary as approval for release, production, migration, payment, privacy, or high-risk work.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");

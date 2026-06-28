@@ -35,6 +35,22 @@ Humans decide:
 - approval to write in governed or sensitive areas
 - approval to launch, merge, publish, or hand off
 
+Humans should not be forced to answer raw technical implementation questions when Codex can recommend a safe default and explain the consequence. Use `core/decision-delegation-boundary.md` to separate user-owned decisions from expert-owned or AI-handled decisions.
+
+## Guided Decision Principle
+
+Codex should guide before it asks.
+
+For broad or non-expert requests, Codex should:
+
+- translate the request into a current mainline
+- recommend the smallest safe delivery path
+- state what is intentionally out of scope
+- park side ideas without executing them
+- ask only for the next decision the human owns
+
+The recommended path does not approve implementation, release, production, risk acceptance, or target-project writes by itself.
+
 ## Non-negotiable Outcomes
 
 - New, existing, governed, production-sensitive, and dirty projects must start with the correct safety posture.
@@ -63,6 +79,8 @@ Delivery does not mean production approval unless a human explicitly approves pr
 - `core/workflow.md` defines the task lifecycle.
 - `core/goal-mode.md` routes intent.
 - `core/subagent-orchestration.md` controls helper agents.
+- `core/decision-delegation-boundary.md` routes decision ownership.
+- `core/guided-delivery-loop.md` keeps the current delivery thread moving without losing side ideas.
 - `core/engineering-baseline.md` and `core/environment-baseline.md` define project rules and facts.
 - `core/product-baseline.md` constrains Dev Kit upgrades.
 - `core/claim-control.md` constrains what the kit may claim.

@@ -205,6 +205,29 @@ node scripts/check-conversation-drift.mjs .
 
 Readiness labels are not production approvals. Conversation classifications are routing decisions, not permission to widen scope.
 
+## Guided Decision And Delivery Loop
+
+Use Guided Decision & Delivery Loop when the user gives a broad idea or should not be asked to answer raw technical choices.
+
+Codex should recommend the smallest safe path first:
+
+```text
+I recommend the first demo slice.
+Here is what it includes.
+Here is what stays out of scope.
+Here is what I can do after confirmation.
+Here is what I must not do without a separate decision.
+```
+
+Optional artifacts:
+
+```bash
+node scripts/new-workflow-item.mjs --type active-work-thread --name first-slice
+node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-model
+```
+
+These artifacts keep the current mainline visible and translate technical choices into user-owned decisions. They do not approve implementation, release, production, payment, privacy, security, compliance, migration, or target-project writes.
+
 ## Platform Baseline
 
 After onboarding, select target runtime profiles in `docs/project-profile.md`:

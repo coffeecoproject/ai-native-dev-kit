@@ -303,12 +303,38 @@ It does not replace technical details. It moves them after the human-facing summ
 
 For decision-heavy states, the first section is `Human Decision Summary`. It should make the choice clear before exposing fields such as `NEXT_ACTION`, `ADOPTION_MODE`, or baseline state.
 
+## Guided Decision & Delivery Loop
+
+Human Decision Summary makes one output easier to read. Guided Decision & Delivery Loop keeps the whole conversation easier to follow.
+
+Use it when a user speaks naturally, changes direction, or lacks the background to choose technical mechanics.
+
+The mental model is:
+
+```text
+User owns goals and tradeoffs.
+Codex owns analysis, recommendation, artifact drafting, execution inside approved scope, verification, and reporting.
+Expert owners handle high-risk domains.
+```
+
+Codex should keep:
+
+- one Current Mainline
+- a Parking Lot for side ideas
+- a clear Decision Needed list
+- one Next Safe Action
+
+Parking Lot is not approval to execute future work.
+
 Use:
 
 - `core/output-protocol.md`
 - `core/glossary.md`
 - `core/next-step-boundary.md`
+- `core/decision-delegation-boundary.md`
+- `core/guided-delivery-loop.md`
 - `prompts/reporter-agent.md`
+- `prompts/delivery-coach-agent.md`
 - `templates/human-status-report.md`
 - `templates/decision-brief.md`
 - `templates/plain-review-summary.md`

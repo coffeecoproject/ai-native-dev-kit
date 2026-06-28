@@ -94,6 +94,20 @@ Engineering baseline status:
 
 Decision Brief needed: Yes / No
 
+## Guided Decision Boundary
+
+Decision level:
+
+```text
+D0 / D1 / D2 / D3 / D4
+```
+
+Current Mainline:
+
+Parking Lot:
+
+User-owned confirmation needed:
+
 ## Required Artifacts
 
 | Artifact | Required | Path / Status | Reason |

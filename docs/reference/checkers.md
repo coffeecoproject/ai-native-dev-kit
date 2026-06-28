@@ -86,6 +86,7 @@ Product and claim checks:
 - `check-real-adoption-trial.mjs` allows empty projects, but rejects real adoption reports with target writes, missing read-only evidence, unsafe bridge claims, local-only public naming, overclaims, secret-like content, or unclosed subagents.
 - `check-patch-classification.mjs` allows empty projects, but rejects unsafe `SAFE_LOCAL_FIX` classification on high-risk surfaces, patch reports that authorize implementation, missing evidence, completed `DO_NOT_PATCH` reports, and false-positive records that accept real high-risk impact as safe.
 - False-positive records are calibration evidence only. They do not modify the original patch classification report; changing repair scale still needs a new patch classification report or an explicit human decision.
+- Guided Decision & Delivery Loop currently has no standalone blocking checker. Its assets are optional experience/routing aids and are covered by manifest, artifact creation, output-quality, conversation-drift, first-delivery, and next-step checks.
 
 ## Suggested Sequences
 

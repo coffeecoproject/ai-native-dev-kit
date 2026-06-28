@@ -189,6 +189,21 @@ If artifact quality fails, fix the workflow artifacts before writing code.
 
 When independent review is needed, run `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` and fill the packet before handing the change to a human reviewer or second model. A review packet is not approval.
 
+## Guided Decision & Delivery Loop
+
+Use `.ai-native/core/decision-delegation-boundary.md`, `.ai-native/core/guided-delivery-loop.md`, and `.ai-native/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices.
+
+Recommend the smallest safe path first, explain what is out of scope, ask for one user-owned confirmation, and park side ideas instead of executing them.
+
+Optional artifacts:
+
+```bash
+node scripts/new-workflow-item.mjs --type active-work-thread --name <current-mainline>
+node scripts/new-workflow-item.mjs --type guided-decision-summary --name <decision-name>
+```
+
+These artifacts do not approve implementation, release, production, payment, privacy, security, compliance, migration, or target-project writes.
+
 ## Goal Mode
 
 Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.

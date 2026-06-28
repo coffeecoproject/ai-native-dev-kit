@@ -41,6 +41,10 @@ Then fill the Goal Card with:
 
 ## Classification Rules
 
+Before asking for a route, recommend the smallest safe route. Use `core/decision-delegation-boundary.md` when the human request contains raw technical choices or the user may not be able to judge implementation mechanics.
+
+Keep one current mainline. Park side ideas instead of merging them into the current task.
+
 Use `DISCUSS_ONLY` when the human asks to look, explain, compare, evaluate, review, or discuss without execution.
 
 Use `ADOPT_PROJECT` when the human asks to apply the workflow to an existing project and project signals show existing governance, production sensitivity, dirty worktree risk, or `ADOPTION_MODE: READ_ONLY`.

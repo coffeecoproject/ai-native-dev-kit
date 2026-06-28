@@ -31,6 +31,12 @@ Plain-language summary of what can safely happen now.
 - Included:
 - Excluded:
 
+## Current Mainline Boundary
+
+- Current Mainline:
+- Parking Lot:
+- Decisions still needed:
+
 ## Baseline Level
 
 `BL0` / `BL1` / `BL2`

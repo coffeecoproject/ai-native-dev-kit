@@ -173,6 +173,7 @@ node scripts/check-guided-adoption.mjs .
 - [Safe Launch](docs/safe-launch.md)：交付前判断能不能演示、交接或进入发布审查
 - [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
 - [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
+- [Guided Decision & Delivery Loop](docs/guided-decision-delivery-loop.md)：让 Codex 推荐最小安全路径，用户只确认目标、取舍和风险
 - [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
 
 接入项目：

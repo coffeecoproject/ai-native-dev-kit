@@ -33,6 +33,8 @@ Use this order:
 - Keep technical fields, paths, and command output in Technical Details.
 - Do not hide risk to sound simple.
 - Do not ask the human to do routine template work that AI can draft.
+- Do not push professional judgment to non-expert users as raw technical choices; recommend a safe default or give understandable options.
+- Keep Current Mainline and Parking Lot visible when reporting broad or drifting work.
 - Do not treat internal terms as self-explanatory; use `core/glossary.md` when needed.
 - Do not convert a technical blocker into approval.
 - Do not invent evidence, approvals, or verification.
@@ -116,3 +118,14 @@ Use only:
 - `DO_NOT_PROCEED`
 
 Each suggestion must state relation to the current task, whether AI can do it now, the required entry point, and risk or approval needs.
+
+## Guided Decision Reporting
+
+When the output is part of Guided Decision & Delivery Loop, include:
+
+- Current Mainline
+- Parking Lot
+- Decision level: `D0` / `D1` / `D2` / `D3` / `D4`
+- one recommended path
+- the exact user-owned confirmation needed
+- what Codex must not do without further approval

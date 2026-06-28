@@ -47,6 +47,13 @@ One-sentence conclusion:
 
 - 
 
+## Current Mainline And Parking Lot
+
+| Item | Placement | Status | Re-entry path |
+|---|---|---|---|
+| Current task | Current Mainline | Closed / Continuing / Blocked |  |
+|  | Parking Lot / Decision Needed / Stop Item |  | new request / follow-up proposal / decision brief / do not proceed |
+
 ## Assumption Register
 
 Use this section only when the result depends on inferred or unconfirmed facts.

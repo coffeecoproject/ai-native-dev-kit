@@ -45,6 +45,12 @@ IN_SCOPE_NEXT_STEP / DIRECT_FOLLOW_UP / RISK_DECISION / OUT_OF_SCOPE_OBSERVATION
 
 ## Relation to Current Task
 
+## Mainline Placement
+
+`Parking Lot` / `New Request` / `Risk Decision` / `Do Not Proceed`
+
+Re-entry path:
+
 ## Can AI Do This Now?
 
 Yes / No

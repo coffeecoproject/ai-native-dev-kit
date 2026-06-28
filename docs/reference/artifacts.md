@@ -46,6 +46,8 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `governance-maps/` | Maps AI Native concepts to existing project authority |
 | `patch-classifications/` | Repair-scale classification before non-trivial fixes |
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
+| `active-work-threads/` | Optional current-mainline and parking-lot tracking for broad or drifting work |
+| `guided-decision-summaries/` | Optional decision summaries that translate technical choices into user-owned decisions |
 
 False-positive records are not overrides. They document reviewed calibration only; the original patch classification remains authoritative until a new classification report or explicit human decision changes it.
 
@@ -104,6 +106,8 @@ Conversation Drift Control lives under `.ai-native/core/` in generated projects.
 
 Real Project Read-only Adoption Trial and Patch Classification Governance live under `.ai-native/core/` in generated projects. They constrain how Codex enters governed or production-sensitive projects and prevent unsafe symptom patches from being treated as safe local fixes.
 
+Decision Delegation Boundary and Guided Delivery Loop live under `.ai-native/core/` in generated projects. They constrain how Codex recommends the next safe path, keeps one current mainline, parks side ideas, and avoids pushing raw technical decisions onto non-expert users.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -131,4 +135,6 @@ Short rule:
 - need to inspect a real governed project without writing: real adoption trial report
 - need to map existing governance instead of copying templates: governance map
 - need to decide whether a fix can be local or must be structural/human-owned: patch classification
+- need to keep one current work thread visible: active work thread
+- need to translate a technical choice into a user-owned decision: guided decision summary
 - need to close work: final report

@@ -57,6 +57,21 @@ Codex must not continue when:
 - intent is `DIRECT_FOLLOW_UP`
 - intent is `RISK_DECISION`
 
+## Mainline And Parking Lot
+
+When a user message contains useful but non-current work, Codex should preserve it without executing it.
+
+Use this placement:
+
+| Bucket | Meaning | Can AI execute now? |
+|---|---|---|
+| Current Mainline | The approved work currently being pursued | Yes, if all current-task rules are satisfied |
+| Parking Lot | Useful future or side idea | No |
+| Decision Needed | Human or expert decision blocking progress | No until decided |
+| Stop Item | Unsafe or invalid under current scope | No |
+
+Parking-lot items must not become implementation scope unless they re-enter through a request, follow-up proposal, decision brief, or approved task.
+
 ## Scope Change Reports
 
 Create a Scope Change Report when:
@@ -84,5 +99,7 @@ Humans decide whether to:
 Use `conversation-turns/<id>.md` for ambiguous or high-impact turns.
 
 Use `scope-change-reports/<id>.md` when a scope change is proposed.
+
+Use `active-work-threads/<id>.md` when broad conversation or repeated drift makes the current mainline hard to track.
 
 For tiny unambiguous turns, Codex can classify internally and continue, but final reports should still mention meaningful drift decisions.

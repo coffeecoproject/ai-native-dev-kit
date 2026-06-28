@@ -33,6 +33,13 @@ What was already approved.
 
 What the user is now asking for.
 
+## Mainline / Parking Lot
+
+| Item | Placement | Reason | Re-entry path |
+|---|---|---|---|
+| Current work | Current Mainline / Parking Lot / Stop Item |  | current task / new request / decision brief / do not proceed |
+| New request | Current Mainline / Parking Lot / Stop Item |  | current task / new request / decision brief / do not proceed |
+
 ## Scope Impact
 
 What changes in deliverables, task level, platform, baseline, files, or timeline.

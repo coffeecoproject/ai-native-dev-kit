@@ -46,6 +46,7 @@ Expected Codex behavior:
 - Report `workflow-next` results with `Human Decision Summary` first, then human summary, then technical state fields. The decision summary must include the recommended option, alternatives, whether each option writes files, risk, and what happens if the human does nothing. Use `--format technical` only when the user or automation asks for raw technical output.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce a real adoption report, existing governance map, and patch classification first.
 - If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, do not create workflow artifacts, execute task cards, or edit files until the human confirms how to handle existing changes.
+- When the user is non-expert or the request is broad, use Guided Decision & Delivery Loop. Recommend the smallest safe path before asking for confirmation, keep one current mainline, park side ideas, and avoid raw technical questions such as enum-vs-lookup unless they are translated into product choices.
 - Follow `NEXT_ACTION`.
 - Use `init-project.mjs` for initialization or workflow asset updates.
 - Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.

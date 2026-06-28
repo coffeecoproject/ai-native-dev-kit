@@ -48,6 +48,14 @@ Record the original user message or project entry context.
 | Risk / drift |  | choice / confirmation / decision |  |
 | Delivery |  | choice / confirmation / decision |  |
 
+## Guided Decision Path
+
+| Step | Recommendation | What human decided | What Codex did | What was parked |
+|---|---|---|---|---|
+| First slice |  |  |  |  |
+| Technical choice translated |  |  |  |  |
+| Risk / expert decision |  |  |  |  |
+
 ## Baseline Path
 
 - Adoption mode:

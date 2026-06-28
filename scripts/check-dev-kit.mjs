@@ -1743,6 +1743,82 @@ function checkOutputExperienceProtocol() {
   }
 }
 
+function checkGuidedDecisionDeliveryLoopProtocol() {
+  const required = [
+    "docs/guided-decision-delivery-loop-1.10-plan.md",
+    "docs/guided-decision-delivery-loop.md",
+    "core/decision-delegation-boundary.md",
+    "core/guided-delivery-loop.md",
+    "templates/active-work-thread.md",
+    "templates/guided-decision-summary.md",
+    "prompts/delivery-coach-agent.md",
+    "active-work-threads/.gitkeep",
+    "guided-decision-summaries/.gitkeep",
+    "requests/200-guided-decision-delivery-loop.md",
+    "preflight/200-guided-decision-delivery-loop.md",
+    "specs/200-guided-decision-delivery-loop.md",
+    "evals/200-guided-decision-delivery-loop.md",
+    "tasks/200-guided-decision-delivery-loop.md",
+    "final-reports/200-guided-decision-delivery-loop.md",
+    "releases/1.10.0/release-record.md",
+    "releases/1.10.0/known-limitations.md",
+    "releases/1.10.0/self-check-report.md",
+    "examples/1.10-guided-decision-delivery-loop/README.md",
+    "examples/1.10-guided-decision-delivery-loop/active-work-threads/001-appointment-first-slice.md",
+    "examples/1.10-guided-decision-delivery-loop/guided-decision-summaries/001-status-model.md",
+    "examples/1.10-guided-decision-delivery-loop/conversation-turns/001-payment-mention.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`guided decision delivery asset exists ${file}`);
+    else fail(`guided decision delivery asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/decision-delegation-boundary.md"),
+    read("core/guided-delivery-loop.md"),
+    read("docs/guided-decision-delivery-loop.md"),
+    read("templates/active-work-thread.md"),
+    read("templates/guided-decision-summary.md"),
+    read("prompts/delivery-coach-agent.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Decision Delegation Boundary",
+    "Guided Delivery Loop",
+    "D0",
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "Current Mainline",
+    "Parking Lot",
+    "smallest safe path",
+    "raw technical choices",
+    "does not approve implementation",
+    "release, production, payment, privacy, security, compliance, migration",
+  ]) {
+    if (combined.includes(marker)) {
+      pass(`guided decision delivery protocol includes ${marker}`);
+    } else {
+      fail(`guided decision delivery protocol missing ${marker}`);
+    }
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "active-work-thread",
+    "guided-decision-summary",
+    "fillActiveWorkThread",
+    "fillGuidedDecisionSummary",
+  ]) {
+    if (newWorkflowItem.includes(marker)) {
+      pass(`new-workflow-item supports guided decision marker ${marker}`);
+    } else {
+      fail(`new-workflow-item missing guided decision marker ${marker}`);
+    }
+  }
+}
+
 function checkGuidedDeliveryBaselineProtocol() {
   const required = [
     "docs/guided-delivery-baseline-1.3-plan.md",
@@ -5066,6 +5142,7 @@ checkNextStepBoundaryProtocol();
 checkGoalModeProtocol();
 checkSubagentOrchestrationProtocol();
 checkOutputExperienceProtocol();
+checkGuidedDecisionDeliveryLoopProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();

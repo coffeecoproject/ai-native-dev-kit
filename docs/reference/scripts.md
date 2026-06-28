@@ -108,6 +108,10 @@ Common types:
 - `real-adoption-trial-report`
 - `patch-classification`
 - `patch-classification-false-positive`
+- `active-work-thread`
+- `guided-decision-summary`
+
+Use `active-work-thread` only when broad conversation, side ideas, or repeated drift make the current mainline unclear. Use `guided-decision-summary` when Codex needs to recommend one safe path and translate technical choices into a human-owned decision.
 
 ## Checks
 

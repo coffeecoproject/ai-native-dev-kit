@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.9.0`
+Current version: `1.10.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `1.9.0`
 
 ## Current Release
 
-`1.9.0`
+`1.10.0`
 
 Includes:
 
+- Guided Decision & Delivery Loop phase `1.10.0`: Codex recommends the smallest safe path, keeps one current mainline, parks side ideas, and translates raw technical choices into user-owned product/risk decisions
+- Added `core/decision-delegation-boundary.md`, `core/guided-delivery-loop.md`, `templates/active-work-thread.md`, `templates/guided-decision-summary.md`, `prompts/delivery-coach-agent.md`, and `docs/guided-decision-delivery-loop.md`
+- Added `active-work-threads/` and `guided-decision-summaries/` as optional evidence directories; empty target projects are not forced to create these reports
+- `new-workflow-item` can now create `active-work-thread` and `guided-decision-summary` artifacts
+- `1.10.0` does not add a new blocking checker, automatic GPT/API review, automatic real-project scanning, target-project write approval, implementation approval, release approval, risk approval, production approval, or weaker patch classification defaults
 - Human Decision Summary phase `1.9.0`: decision-heavy output now starts with a clear recommendation, alternatives, file-write impact, risk, and no-decision outcome before technical details
 - Added `docs/human-decision-summary-1.9-plan.md` and `releases/1.9.0/` evidence for the output clarity upgrade
 - Updated `core/output-protocol.md`, reporter/workflow prompts, human-facing templates, `workflow-next`, `start`, `baseline`, and governance migration reports to use the decision-summary format

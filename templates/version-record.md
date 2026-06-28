@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.9.0`
+`1.10.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.10.0` adds Guided Decision & Delivery Loop assets: Decision Delegation Boundary, Guided Delivery Loop, Active Work Thread, Guided Decision Summary, Delivery Coach prompt, and user-facing docs.
+- `1.10.0` helps Codex recommend the smallest safe path, keep one current mainline, park side ideas, and translate raw technical choices into user-owned decisions. It does not approve implementation, release, production, payment, privacy, security, compliance, migration, or target-project writes.
 - `1.9.0` adds Human Decision Summary output: recommended choice, alternatives, file-write impact, risk, and no-decision outcome should appear before technical details.
 - Use `--dry-run` to preview init/update actions without writing target files.
 - Use `--backup-dir <dir>` when reviewed updates may overwrite managed workflow assets.

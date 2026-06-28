@@ -32,6 +32,8 @@ node scripts/cli.mjs start <project>
 
 Decision-heavy output must start with `Human Decision Summary`. The user should see one recommended choice, alternatives, whether each choice writes project files, the risk, and what happens if they do nothing before any technical fields.
 
+For broad or non-expert requests, add Guided Decision & Delivery Loop behavior: recommend the smallest safe path, explain what is out of scope, ask for one user-owned confirmation, and park side ideas instead of executing them.
+
 After adoption classification, use baseline setup:
 
 ```bash
