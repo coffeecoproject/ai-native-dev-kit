@@ -19,6 +19,20 @@ const requiredMaturityDocs = [
   "owner.md",
   "changelog.md",
 ];
+const requiredDepthSections = [
+  "Does Not Cover By Itself",
+  "Scope Boundary",
+  "Architecture Baseline",
+  "Environment Baseline",
+  "Data Boundary",
+  "Permission Boundary",
+  "Verification Baseline",
+  "Release And Rollback",
+  "Evidence Template",
+  "Bad Cases",
+  "Codex Forbidden Actions",
+  "Maturity Limits",
+];
 
 for (const key of Object.keys(args)) {
   if (!["_", "json", "selected-only"].includes(key)) {
@@ -198,6 +212,58 @@ function validateDraftClaims(packRoot, packId, stage) {
     });
   }
   pass(`${packId} draft maturity claim scan`);
+}
+
+function validateDepthContract(packRoot, pack, item) {
+  const packId = item.id;
+  const packMdPath = path.join(packRoot, "pack.md");
+  if (!fs.existsSync(packMdPath)) return;
+
+  const content = fs.readFileSync(packMdPath, "utf8");
+  for (const section of requiredDepthSections) {
+    const body = sectionBody(content, section);
+    if (!body || !body.trim()) {
+      fail(`${packId} missing BL2 depth section: ${section}`);
+    } else {
+      pass(`${packId} BL2 depth section ${section}`);
+    }
+  }
+
+  const evidenceBody = sectionBody(content, "Evidence Template");
+  if (!/docs\/baseline-evidence\.md/.test(evidenceBody) || !/evidence ref/i.test(evidenceBody)) {
+    fail(`${packId} Evidence Template must reference docs/baseline-evidence.md and evidence ref`);
+  }
+
+  const forbiddenBody = sectionBody(content, "Codex Forbidden Actions");
+  if (!/\bmust not\b/i.test(forbiddenBody) && !/\bAI must not\b/i.test(forbiddenBody)) {
+    fail(`${packId} Codex Forbidden Actions must contain explicit must-not boundaries`);
+  }
+
+  const maturityBody = sectionBody(content, "Maturity Limits");
+  if (!/\bdraft\b/i.test(maturityBody) || !/not stable|not production|does not prove/i.test(maturityBody)) {
+    fail(`${packId} Maturity Limits must state draft and not-stable/not-production boundary`);
+  }
+
+  const companionBody = sectionBody(content, "Requires Additional Packs When Relevant");
+  if (!companionBody || !/-\s+`?[a-z0-9-]+-industrial`?/i.test(companionBody)) {
+    fail(`${packId} must list companion industrial packs when relevant`);
+  }
+
+  if (item.type === "primary-platform") {
+    const nonScope = sectionBody(content, "Does Not Cover By Itself");
+    for (const marker of ["backend", "admin", "data", "auth", "payment"]) {
+      if (!nonScope.toLowerCase().includes(marker)) {
+        fail(`${packId} platform non-scope must keep ${marker} responsibility outside the platform pack`);
+      }
+    }
+  }
+
+  if (item.type === "risk-overlay") {
+    const verificationBody = `${sectionBody(content, "Verification Baseline")}\n${sectionBody(content, "Evidence Template")}`;
+    if (!/risk-specific evidence/i.test(verificationBody) && !/risk classification/i.test(verificationBody)) {
+      fail(`${packId} risk overlay must require risk-specific evidence`);
+    }
+  }
 }
 
 function validateMaturity(pack, packRoot, context) {
@@ -463,6 +529,7 @@ if (index) {
       if (fs.existsSync(full) && fs.statSync(full).isDirectory()) pass(`${item.id} ${dir}/`);
       else fail(`${item.id} missing ${dir}/`);
     }
+    validateDepthContract(packRoot, pack, item);
     validateNoProjectFacts(packRoot, item.id);
     validateDraftClaims(packRoot, item.id, pack.maturity?.stage || pack.status);
   }

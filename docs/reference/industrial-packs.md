@@ -42,6 +42,23 @@ The repository includes draft pack coverage for areas such as:
 
 Web and WeChat Mini Program have BL2 simulated dogfood examples. These examples prove workflow coverage, not production stability.
 
+## 1.16 Depth Contract
+
+Each concrete industrial pack now has the same BL2 depth structure:
+
+- applicability and non-applicability
+- scope boundary and companion-pack boundary
+- architecture, environment, data, and permission baselines
+- verification, release, and rollback expectations
+- evidence template
+- bad cases
+- Codex forbidden actions
+- maturity limits
+
+See [BL2 Industrial Pack Depth Matrix](bl2-industrial-pack-depth-matrix.md).
+
+This structure makes pack selection more concrete, but it still does not make draft packs stable or production-proven.
+
 ## Selection Rule
 
 Use `industrial-packs/selection-guide.md` before enabling a pack.
@@ -56,6 +73,8 @@ Do not enable all packs by default. Select only what the project needs:
 - data storage and migration
 - value transfer
 - high-risk rollout
+
+Risk overlays require risk-specific evidence. Payment/value-transfer needs payment, refund, value movement, reconciliation, idempotency, duplicate-submit, or billing evidence. High-risk change needs risk classification, blast radius, approval scope, rollback, migration, production, destructive, or incident evidence.
 
 ## Evidence Rule
 

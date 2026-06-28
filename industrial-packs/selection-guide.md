@@ -80,6 +80,13 @@ Add risk overlays only when the risk exists.
 
 Risk overlays do not replace primary or capability packs. They add stricter evidence and approval expectations.
 
+Risk overlays must be backed by risk-specific evidence:
+
+- `payment-value-transfer-industrial`: payment, refund, balance, billing, value movement, reconciliation, idempotency, duplicate-submit, or operator review evidence.
+- `high-risk-change-industrial`: risk classification, blast radius, approval scope, rollback, mitigation, migration, production, destructive, or incident evidence.
+
+If those terms cannot be backed by `docs/baseline-evidence.md`, do not select the risk overlay yet.
+
 ## Recommended Combinations
 
 These are starting points, not fixed recipes.

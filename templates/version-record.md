@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.15.1`
+`1.16.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.16.0` deepens BL2 industrial packs with a shared depth contract, pack-specific evidence boundaries, risk overlay evidence checks, 1.16 examples, and bad fixtures for depth, all-pack selection, and risk overlay misuse.
+- `1.16.0` does not promote industrial packs, make BL2 default, select all packs, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation.
 - `1.15.1` hardens Standard Baseline Pack Registry checks with an index-level schema, index/pack.json consistency checks, resolver execution in `npm run verify`, environment overclaim fixtures, and an explicit CODEOWNERS owner-decision backlog.
 - `1.15.1` does not add new standard packs, promote draft packs, enable BL2 by default, approve target-project writes, or claim production validation.
 - `1.15.0` adds platform standard baseline packs for Mini Program, iOS, Android, internal admin, and environment setup. It keeps backend and release packs conditional and keeps industrial overlays separate.

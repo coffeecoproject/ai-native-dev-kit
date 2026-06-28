@@ -538,6 +538,36 @@
     "howToFix": "Strict industrial baseline checks must keep failing until baseline level is selected."
   },
   {
+    "name": "bad industrial baseline selects all packs",
+    "type": "bad",
+    "checker": "check-industrial-baseline",
+    "script": "scripts/check-industrial-baseline.mjs",
+    "args": [
+      "test-fixtures/bad/bad-industrial-selects-all",
+      "--strict"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "BL2 selects all industrial packs by default"
+    ],
+    "howToFix": "BL2 selection must reject all-pack defaults."
+  },
+  {
+    "name": "bad industrial baseline risk overlay no evidence",
+    "type": "bad",
+    "checker": "check-industrial-baseline",
+    "script": "scripts/check-industrial-baseline.mjs",
+    "args": [
+      "test-fixtures/bad/bad-industrial-risk-overlay-no-evidence",
+      "--strict"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "selected without risk-specific evidence"
+    ],
+    "howToFix": "Risk overlays must require risk-specific baseline evidence."
+  },
+  {
     "name": "good industrial pack selected-only no packs",
     "type": "golden",
     "checker": "check-industrial-pack",
@@ -551,6 +581,20 @@
       "Selected-only mode: no selected packs"
     ],
     "howToFix": "Selected-only industrial pack checks must remain lightweight when no selected packs exist."
+  },
+  {
+    "name": "bad industrial pack missing depth contract",
+    "type": "bad",
+    "checker": "check-industrial-pack",
+    "script": "scripts/check-industrial-pack.mjs",
+    "args": [
+      "test-fixtures/bad/bad-industrial-pack-missing-depth"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "missing BL2 depth section"
+    ],
+    "howToFix": "Industrial packs must keep the 1.16 BL2 depth contract sections."
   },
   {
     "name": "bad industrial pack unknown option",

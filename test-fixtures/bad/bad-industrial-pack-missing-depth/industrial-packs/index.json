@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.2",
+  "baselineLevels": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "packTypes": [
+    "primary-platform",
+    "capability",
+    "risk-overlay"
+  ],
+  "packs": [
+    {
+      "id": "bad-runtime-industrial",
+      "type": "primary-platform",
+      "status": "draft",
+      "path": "bad-runtime",
+      "displayName": "Bad Runtime Industrial Pack",
+      "appliesToProfiles": [
+        "web-app"
+      ],
+      "maturityStage": "draft"
+    }
+  ],
+  "maturityStages": [
+    "draft",
+    "candidate",
+    "stable",
+    "deprecated",
+    "retired"
+  ]
+}

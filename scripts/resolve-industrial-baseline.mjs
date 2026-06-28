@@ -352,6 +352,47 @@ function validateEvidenceReferences(projectRoot, requiredEvidence, evidence) {
   return unique(issues);
 }
 
+function riskOverlayEvidenceIssues(projectRoot, packs, baselineEvidence) {
+  const content = readIfExists(path.join(projectRoot, "docs", "baseline-evidence.md")).toLowerCase();
+  const issues = [];
+  const riskKeywordsByPack = {
+    "payment-value-transfer-industrial": [
+      "payment",
+      "refund",
+      "value movement",
+      "balance",
+      "credit",
+      "billing",
+      "reconciliation",
+      "idempotency",
+      "duplicate-submit",
+    ],
+    "high-risk-change-industrial": [
+      "risk classification",
+      "blast radius",
+      "approval scope",
+      "rollback",
+      "mitigation",
+      "migration",
+      "production",
+      "destructive",
+      "incident",
+    ],
+  };
+
+  for (const pack of packs.filter((item) => item.type === "risk-overlay")) {
+    const keywords = riskKeywordsByPack[pack.id] || ["risk classification", "approval scope", "rollback"];
+    if (!keywords.some((keyword) => content.includes(keyword))) {
+      issues.push(`${pack.id} selected without risk-specific evidence`);
+      continue;
+    }
+    if (!baselineEvidence.exists || baselineEvidence.rows.length === 0) {
+      issues.push(`${pack.id} selected without docs/baseline-evidence.md risk rows`);
+    }
+  }
+  return unique(issues);
+}
+
 export function resolveIndustrialBaseline(projectRoot) {
   const root = path.resolve(projectRoot);
   const selection = readBaselineSelection(root);
@@ -362,6 +403,9 @@ export function resolveIndustrialBaseline(projectRoot) {
   const packIndex = loadPackIndex(root);
   const entriesById = new Map(packIndex.entries.map((entry) => [entry.id, entry]));
   const unknownPacks = selection.selectedIndustrialPacks.filter((packId) => !entriesById.has(packId));
+  const knownExecutablePackIds = unique(packIndex.entries
+    .filter((entry) => entry && entry.status !== "planned" && entry.id)
+    .map((entry) => entry.id));
   const selectedPacks = selection.selectedIndustrialPacks
     .filter((packId) => entriesById.has(packId))
     .map((packId) => loadPack(root, packIndex.root, entriesById.get(packId)));
@@ -400,6 +444,9 @@ export function resolveIndustrialBaseline(projectRoot) {
   const evidenceReferenceIssues = selection.baselineLevel === "BL2_INDUSTRIAL"
     ? validateEvidenceReferences(root, requiredEvidence, baselineEvidence)
     : [];
+  const riskOverlayIssues = selection.baselineLevel === "BL2_INDUSTRIAL"
+    ? riskOverlayEvidenceIssues(root, executablePacks, baselineEvidence)
+    : [];
 
   let state = "NOT_SELECTED";
   const pendingReasons = [...selection.pendingReasons];
@@ -421,13 +468,16 @@ export function resolveIndustrialBaseline(projectRoot) {
   } else if (missingProjectDocs.length > 0) {
     state = "EVIDENCE_MISSING";
     pendingReasons.push(`missing BL2 project docs: ${missingProjectDocs.join(", ")}`);
-  } else if (missingEvidenceTerms.length > 0 || evidenceReferenceIssues.length > 0) {
+  } else if (missingEvidenceTerms.length > 0 || evidenceReferenceIssues.length > 0 || riskOverlayIssues.length > 0) {
     state = "EVIDENCE_MISSING";
     if (missingEvidenceTerms.length > 0) {
       pendingReasons.push(`missing baseline evidence terms: ${missingEvidenceTerms.join(", ")}`);
     }
     if (evidenceReferenceIssues.length > 0) {
       pendingReasons.push(`baseline evidence reference issues: ${evidenceReferenceIssues.join("; ")}`);
+    }
+    if (riskOverlayIssues.length > 0) {
+      pendingReasons.push(`risk overlay evidence issues: ${riskOverlayIssues.join("; ")}`);
     }
   } else if (selection.humanApprovalStatus !== "APPROVED") {
     state = "NEEDS_HUMAN_APPROVAL";
@@ -447,6 +497,7 @@ export function resolveIndustrialBaseline(projectRoot) {
     selection,
     packIndexPath: packIndex.path ? path.relative(root, packIndex.path).replaceAll(path.sep, "/") : null,
     packIndexError: packIndex.error,
+    knownIndustrialPacks: knownExecutablePackIds,
     unknownPacks,
     plannedPacks,
     invalidPacks,
@@ -477,6 +528,7 @@ export function resolveIndustrialBaseline(projectRoot) {
     baselineEvidence,
     missingEvidenceTerms,
     evidenceReferenceIssues,
+    riskOverlayEvidenceIssues: riskOverlayIssues,
     effectiveHumanApprovalRequiredFor,
     pendingReasons: unique(pendingReasons),
   };

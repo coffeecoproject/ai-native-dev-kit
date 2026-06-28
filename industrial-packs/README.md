@@ -81,6 +81,20 @@ templates/
 `pack.md` is for humans and AI agents. `pack.json` is for scripts. The maturity files explain the
 pack stage, evidence, dogfood record, false-positive history, owner, and change history.
 
+## 1.16 BL2 Depth Contract
+
+Every concrete pack must explain:
+
+- what the pack covers
+- what it does not cover by itself
+- which companion packs are needed for backend, admin, data, auth, payment, or high-risk work
+- what architecture, environment, data, permission, verification, release, and rollback evidence is required
+- which bad cases must fail
+- what Codex must not do
+- why the pack remains draft until real project evidence exists
+
+`scripts/check-industrial-pack.mjs` validates these depth sections. Pack files define standards; they do not prove a real project satisfies them.
+
 ## Pack Status And Maturity
 
 Use pack status and maturity to prevent premature use:
@@ -95,7 +109,7 @@ Use pack status and maturity to prevent premature use:
 | `retired` | Pack is no longer an active baseline input. Use a replacement or a project-specific decision. |
 
 `check-industrial-pack.mjs` validates concrete pack structure and maturity evidence docs.
-`check-industrial-baseline.mjs` rejects selected `planned` packs in real projects.
+`check-industrial-baseline.mjs` rejects selected `planned` packs, all-pack BL2 defaults, and risk overlays without risk-specific evidence in real projects.
 
 Every concrete pack currently remains `draft` until real project dogfood and review evidence justify
 promotion.

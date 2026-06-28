@@ -3433,6 +3433,45 @@ function checkProfiles() {
 }
 
 function checkIndustrialPacks() {
+  const requiredDocs = [
+    "docs/bl2-industrial-baseline-deepening.md",
+    "docs/reference/bl2-industrial-pack-depth-matrix.md",
+    "examples/1.16-bl2-industrial-deepening/README.md",
+    "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/index.json",
+    "test-fixtures/bad/bad-industrial-selects-all/docs/baseline-selection.md",
+    "test-fixtures/bad/bad-industrial-risk-overlay-no-evidence/docs/baseline-selection.md",
+  ];
+  for (const file of requiredDocs) {
+    if (exists(file)) pass(`1.16 industrial depth asset exists ${file}`);
+    else fail(`1.16 industrial depth asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/bl2-industrial-baseline-deepening-1.16-plan.md"),
+    read("docs/bl2-industrial-baseline-deepening.md"),
+    read("docs/reference/bl2-industrial-pack-depth-matrix.md"),
+    read("docs/reference/industrial-packs.md"),
+    read("industrial-packs/README.md"),
+    read("industrial-packs/selection-guide.md"),
+    read("scripts/check-industrial-pack.mjs"),
+    read("scripts/check-industrial-baseline.mjs"),
+    read("scripts/resolve-industrial-baseline.mjs"),
+  ].join("\n");
+  for (const marker of [
+    "Does Not Cover By Itself",
+    "Scope Boundary",
+    "Evidence Template",
+    "Codex Forbidden Actions",
+    "Maturity Limits",
+    "risk-specific evidence",
+    "BL2 selects all industrial packs by default",
+    "selected without risk-specific evidence",
+    "Pack files define standards",
+  ]) {
+    if (combined.includes(marker)) pass(`1.16 industrial depth protocol includes ${marker}`);
+    else fail(`1.16 industrial depth protocol missing ${marker}`);
+  }
+
   const result = runNode(["scripts/check-industrial-pack.mjs", kitRoot, "--json"]);
   if (result.status !== 0) {
     fail(`industrial pack check failed: ${result.stderr || result.stdout}`);
@@ -3458,6 +3497,45 @@ function checkIndustrialPacks() {
     return;
   }
   pass("industrial pack structure checked");
+
+  for (const example of [
+    "web-admin-data-auth",
+    "miniprogram-cloud-auth",
+    "mobile-api",
+    "payment-risk-overlay",
+  ]) {
+    const exampleResult = runNode([
+      "scripts/check-industrial-baseline.mjs",
+      `examples/1.16-bl2-industrial-deepening/${example}`,
+      "--strict",
+    ]);
+    if (exampleResult.status === 0 && exampleResult.stdout.includes("Industrial baseline is ready")) {
+      pass(`1.16 industrial example passes ${example}`);
+    } else {
+      fail(`1.16 industrial example failed ${example}: ${exampleResult.stderr || exampleResult.stdout}`);
+    }
+  }
+
+  const badDepth = runNode(["scripts/check-industrial-pack.mjs", "test-fixtures/bad/bad-industrial-pack-missing-depth"]);
+  if (badDepth.status !== 0 && `${badDepth.stdout}\n${badDepth.stderr}`.includes("missing BL2 depth section")) {
+    pass("industrial pack checker rejects missing BL2 depth contract");
+  } else {
+    fail(`industrial pack checker must reject missing BL2 depth contract: ${badDepth.stderr || badDepth.stdout}`);
+  }
+
+  const badAll = runNode(["scripts/check-industrial-baseline.mjs", "test-fixtures/bad/bad-industrial-selects-all", "--strict"]);
+  if (badAll.status !== 0 && `${badAll.stdout}\n${badAll.stderr}`.includes("BL2 selects all industrial packs by default")) {
+    pass("industrial baseline checker rejects all-pack BL2 default");
+  } else {
+    fail(`industrial baseline checker must reject all-pack BL2 default: ${badAll.stderr || badAll.stdout}`);
+  }
+
+  const badRisk = runNode(["scripts/check-industrial-baseline.mjs", "test-fixtures/bad/bad-industrial-risk-overlay-no-evidence", "--strict"]);
+  if (badRisk.status !== 0 && `${badRisk.stdout}\n${badRisk.stderr}`.includes("selected without risk-specific evidence")) {
+    pass("industrial baseline checker rejects risk overlay without risk evidence");
+  } else {
+    fail(`industrial baseline checker must reject risk overlay without risk evidence: ${badRisk.stderr || badRisk.stdout}`);
+  }
 }
 
 function checkIndustrialBaselineResolver() {

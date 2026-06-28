@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.15.1`
+Current version: `1.16.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.15.1`
 
 ## Current Release
 
-`1.15.1`
+`1.16.0`
 
 Includes:
 
+- BL2 Industrial Baseline Deepening phase `1.16.0`: adds a shared depth contract across industrial packs, pack-specific scope/evidence boundaries, risk overlay evidence checks, 1.16 examples, and bad fixtures for missing depth, all-pack BL2 selection, and risk overlay misuse
+- `1.16.0` keeps every industrial pack draft, selected-only, evidence-required, human-confirmed, and non-authorizing; it does not make BL2 default, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Standard Baseline Pack Registry hardening patch `1.15.1`: adds index-level schema, index/pack.json consistency checks, local verify resolver execution, environment-standard overclaim fixtures, and explicit CODEOWNERS owner-decision backlog
 - `1.15.1` does not add new standard packs, promote draft packs, make BL2 default, enable industrial overlays, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Platform Standard Baseline Packs phase `1.15.0`: adds draft Mini Program, iOS, Android, internal admin, and environment standard packs, platform matrix docs, platform examples, bad fixtures, resolver/checker hardening, and release evidence

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "0.2",
+  "packVersion": "0.1.0",
+  "minimumDevKitVersion": "1.16.0",
+  "lastReviewedAt": "2026-06-28",
+  "stabilityNotes": "Bad fixture only.",
+  "id": "bad-runtime-industrial",
+  "type": "primary-platform",
+  "displayName": "Bad Runtime Industrial Pack",
+  "status": "draft",
+  "appliesToProfiles": [
+    "web-app"
+  ],
+  "compatiblePacks": [],
+  "conflictsWith": [],
+  "requiredBaselines": [
+    "baselines/bad-baseline.md"
+  ],
+  "requiredExecutionDocs": [
+    "executions/bad-execution.md"
+  ],
+  "requiredAuditDocs": [
+    "audit/bad-audit.md"
+  ],
+  "requiredChecklists": [
+    "checklists/bad-checklist.md"
+  ],
+  "requiredTemplates": [
+    "templates/bad-template.md"
+  ],
+  "riskMappings": {
+    "runtime-change": [
+      "runtime evidence"
+    ]
+  },
+  "taskLevelEscalation": [
+    {
+      "when": [
+        "runtime behavior changes"
+      ],
+      "minTaskLevel": "L2"
+    }
+  ],
+  "requiredEvidence": {
+    "runtime-change": [
+      "runtime evidence"
+    ]
+  },
+  "humanApprovalRequiredFor": [
+    "BL2 selection"
+  ],
+  "maturity": {
+    "stage": "draft",
+    "stageReason": "Bad fixture.",
+    "lastMaturityReviewAt": "2026-06-28",
+    "reviewedBy": "fixture",
+    "evidenceDocs": [
+      "maturity.md",
+      "evidence.md",
+      "dogfood.md",
+      "false-positive-log.md",
+      "owner.md",
+      "changelog.md"
+    ],
+    "evidenceSummary": [
+      "Fixture only."
+    ],
+    "missingEvidenceBeforeCandidate": [
+      "Depth sections."
+    ],
+    "missingEvidenceBeforeStable": [
+      "Real project evidence."
+    ],
+    "promotionCriteria": [
+      "Complete depth contract."
+    ],
+    "demotionTriggers": [
+      "Overclaim."
+    ],
+    "knownLimitations": [
+      "Bad fixture."
+    ]
+  }
+}

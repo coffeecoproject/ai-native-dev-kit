@@ -75,6 +75,8 @@ Industrial pack checks:
 
 - `--selected-only`: only check selected packs for a project
 - `--bl2-only`: focus on BL2 industrial baseline readiness
+- `check-industrial-pack.mjs` rejects concrete industrial packs that miss the 1.16 BL2 depth contract sections, contain project facts/secrets, overclaim draft maturity, or fail required pack structure.
+- `check-industrial-baseline.mjs` rejects all-pack BL2 defaults, selected risk overlays without risk-specific evidence, selected packs that do not match selected profiles, and missing evidence refs in `docs/baseline-evidence.md`.
 
 Baseline enforcement checks:
 

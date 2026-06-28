@@ -80,6 +80,14 @@ function recordEvidenceReferenceCoverage(issues) {
   warn(`baseline evidence reference issues: ${issues.join("; ")}`);
 }
 
+function recordRiskOverlayEvidence(issues) {
+  if (!issues || issues.length === 0) {
+    pass("risk overlay evidence");
+    return;
+  }
+  for (const issue of issues) fail(issue);
+}
+
 const result = resolveIndustrialBaseline(projectRoot);
 
 if (!outputJson) {
@@ -151,6 +159,14 @@ if (result.baselineLevel === "BL2_INDUSTRIAL") {
     pass(`selected industrial packs: ${result.selectedIndustrialPacks.join(", ")}`);
   }
 
+  if (
+    Array.isArray(result.knownIndustrialPacks)
+    && result.knownIndustrialPacks.length > 0
+    && result.selectedIndustrialPacks.length >= result.knownIndustrialPacks.length
+  ) {
+    fail("BL2 selects all industrial packs by default");
+  }
+
   for (const pack of result.selectedPacks) {
     if (pack.available) pass(`industrial pack available: ${pack.id}`);
   }
@@ -171,6 +187,7 @@ if (result.baselineLevel === "BL2_INDUSTRIAL") {
 
   recordTermCoverage("baseline evidence", result.missingEvidenceTerms);
   recordEvidenceReferenceCoverage(result.evidenceReferenceIssues);
+  recordRiskOverlayEvidence(result.riskOverlayEvidenceIssues);
 }
 
 if (result.baselineLevel === "BL0_LIGHTWEIGHT" || result.baselineLevel === "BL1_STANDARD") {
