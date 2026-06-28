@@ -431,6 +431,8 @@ function checkVersionMetadata() {
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
+    "scripts/resolve-baseline-packs.mjs",
+    "scripts/check-baseline-pack-selection.mjs",
     "scripts/check-platform-baseline.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/check-industrial-pack.mjs",
@@ -1094,6 +1096,9 @@ function checkCliFrontDoor() {
     "node --check scripts/check-guided-delivery-loop.mjs",
     "node --check scripts/check-change-boundary.mjs",
     "node --check scripts/check-baseline-state.mjs",
+    "node --check scripts/resolve-baseline-packs.mjs",
+    "node --check scripts/check-baseline-pack-selection.mjs",
+    "node scripts/check-baseline-pack-selection.mjs .",
     "git diff --check",
   ]) {
     if (pkg.scripts?.verify?.includes(marker)) pass(`package.json verify includes ${marker}`);
@@ -1122,6 +1127,8 @@ function checkCliFrontDoor() {
     "patch-classification",
     "change-boundary",
     "baseline-state",
+    "baseline-packs",
+    "baseline-pack-selection",
     "init",
     "update",
     "next",
@@ -1150,6 +1157,20 @@ function checkCliFrontDoor() {
     pass("CLI next delegates to workflow-next");
   } else {
     fail(`CLI next failed or hid workflow-next output: ${next.stderr || next.stdout}`);
+  }
+
+  const baselinePacks = runNode(["scripts/cli.mjs", "baseline-packs", "."]);
+  if (baselinePacks.status === 0 && baselinePacks.stdout.includes("Baseline Pack Recommendation")) {
+    pass("CLI baseline-packs delegates to baseline pack resolver");
+  } else {
+    fail(`CLI baseline-packs failed: ${baselinePacks.stderr || baselinePacks.stdout}`);
+  }
+
+  const baselinePackSelection = runNode(["scripts/cli.mjs", "baseline-pack-selection", "."]);
+  if (baselinePackSelection.status === 0 && baselinePackSelection.stdout.includes("Baseline Pack Selection Check")) {
+    pass("CLI baseline-pack-selection delegates to baseline pack checker");
+  } else {
+    fail(`CLI baseline-pack-selection failed: ${baselinePackSelection.stderr || baselinePackSelection.stdout}`);
   }
 
   const productBaseline = runNode(["scripts/cli.mjs", "product-baseline", "."]);
@@ -2155,6 +2176,203 @@ function checkChangeBoundaryBaselineStateProtocol() {
   }
 }
 
+function checkBaselinePackSystemProtocol() {
+  const required = [
+    "docs/baseline-pack-system-1.13-plan.md",
+    "core/baseline-pack-system.md",
+    "docs/baseline-pack-system.md",
+    "templates/baseline-pack-selection-report.md",
+    "checklists/baseline-pack-selection-review.md",
+    "prompts/baseline-pack-router-agent.md",
+    "baseline-pack-selections/.gitkeep",
+    "scripts/resolve-baseline-packs.mjs",
+    "scripts/check-baseline-pack-selection.mjs",
+    "requests/230-baseline-pack-system.md",
+    "preflight/230-baseline-pack-system.md",
+    "specs/230-baseline-pack-system.md",
+    "evals/230-baseline-pack-system.md",
+    "tasks/230-baseline-pack-system.md",
+    "final-reports/230-baseline-pack-system.md",
+    "releases/1.13.0/release-record.md",
+    "releases/1.13.0/known-limitations.md",
+    "releases/1.13.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`baseline pack system asset exists ${file}`);
+    else fail(`baseline pack system asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/baseline-pack-system-1.13-plan.md"),
+    read("core/baseline-pack-system.md"),
+    read("docs/baseline-pack-system.md"),
+    read("templates/baseline-pack-selection-report.md"),
+    read("checklists/baseline-pack-selection-review.md"),
+    read("prompts/baseline-pack-router-agent.md"),
+    read("releases/1.13.0/release-record.md"),
+    read("releases/1.13.0/known-limitations.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Baseline Pack System",
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL",
+    "Primary platform",
+    "Capability",
+    "Risk overlay",
+    "Do not select a pack because it exists",
+    "Can AI enable packs now: No",
+    "does not approve target-project writes",
+    "does not make BL2 default",
+    "does not promote industrial packs to stable",
+  ]) {
+    if (combined.includes(marker)) pass(`baseline pack system protocol includes ${marker}`);
+    else fail(`baseline pack system protocol missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "baseline-packs",
+    "baseline-pack-selection",
+    "scripts/resolve-baseline-packs.mjs",
+    "scripts/check-baseline-pack-selection.mjs",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports baseline pack marker ${marker}`);
+    else fail(`CLI missing baseline pack marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "baseline-pack-selection-report",
+    "baseline-pack-selections",
+    "fillBaselinePackSelectionReport",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports baseline pack marker ${marker}`);
+    else fail(`new-workflow-item missing baseline pack marker ${marker}`);
+  }
+
+  const initProject = read("scripts/init-project.mjs");
+  for (const marker of [
+    "Baseline Pack System",
+    "scripts/resolve-baseline-packs.mjs",
+    "scripts/check-baseline-pack-selection.mjs",
+    "baseline-pack-selections",
+    ".ai-native/core/baseline-pack-system.md",
+  ]) {
+    if (initProject.includes(marker)) pass(`init-project includes baseline pack marker ${marker}`);
+    else fail(`init-project missing baseline pack marker ${marker}`);
+  }
+
+  const recommendation = runNode(["scripts/cli.mjs", "baseline-packs", "."]);
+  if (recommendation.status === 0 && recommendation.stdout.includes("Baseline Pack Recommendation") && recommendation.stdout.includes("CAN_AI_ENABLE_PACKS_NOW: No")) {
+    pass("baseline-packs CLI recommendation");
+  } else {
+    fail(`baseline-packs CLI recommendation failed: ${recommendation.stderr || recommendation.stdout}`);
+  }
+
+  const emptyCheck = runNode(["scripts/check-baseline-pack-selection.mjs", "."]);
+  if (emptyCheck.status === 0 && emptyCheck.stdout.includes("baseline pack selection check skipped")) {
+    pass("baseline pack selection checker allows no reports");
+  } else {
+    fail(`baseline pack selection checker should allow no reports: ${emptyCheck.stderr || emptyCheck.stdout}`);
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-baseline-pack-"));
+  try {
+    fs.mkdirSync(path.join(tempRoot, "baseline-pack-selections"), { recursive: true });
+    const goodReport = path.join(tempRoot, "baseline-pack-selections", "001-good.md");
+    fs.writeFileSync(goodReport, [
+      "# Baseline Pack Selection Report: good",
+      "",
+      "## Human Summary",
+      "",
+      "Recommended path: BL1 with candidate packs only.",
+      "",
+      "Can AI enable packs now: No.",
+      "",
+      "## Project Classification",
+      "",
+      "- Project state: existing-light",
+      "- Project shape: web",
+      "- Risk level: medium",
+      "- Evidence source: docs/project-profile.md",
+      "",
+      "## Baseline Level",
+      "",
+      "- Recommended level: BL1_STANDARD",
+      "- Current selected level: none",
+      "- Why: no production evidence yet",
+      "",
+      "## Selected Profiles",
+      "",
+      "- web-app",
+      "",
+      "## Recommended Pack Set",
+      "",
+      "Primary platform packs:",
+      "",
+      "- web-app-industrial",
+      "",
+      "Capability packs:",
+      "",
+      "- none",
+      "",
+      "Risk overlay packs:",
+      "",
+      "- none",
+      "",
+      "## Not Selected",
+      "",
+      "| Pack | Reason |",
+      "|---|---|",
+      "| payment-value-transfer-industrial | no value movement |",
+      "",
+      "## Evidence Required",
+      "",
+      "| Requirement | Evidence ref | Status |",
+      "|---|---|---|",
+      "| baseline decision | docs/baseline-selection.md | PENDING |",
+      "",
+      "## Human Decision",
+      "",
+      "- Decision status: PENDING",
+      "- Decision owner: human",
+      "- Approved packs: none until approved",
+      "- Explicitly rejected packs: none",
+      "- Draft pack acceptance: PENDING",
+      "",
+      "## Boundary",
+      "",
+      "- This report authorizes target-project writes: No",
+      "- This report approves implementation: No",
+      "- This report approves release or production: No",
+      "- This report proves real project evidence exists: No",
+      "",
+    ].join("\n"));
+    const good = runNode(["scripts/check-baseline-pack-selection.mjs", tempRoot, "--report", "baseline-pack-selections/001-good.md"]);
+    if (good.status === 0 && good.stdout.includes("Baseline pack selection check passed")) {
+      pass("baseline pack selection checker accepts bounded report");
+    } else {
+      fail(`baseline pack selection checker should accept bounded report: ${good.stderr || good.stdout}`);
+    }
+
+    const badReport = path.join(tempRoot, "baseline-pack-selections", "002-bad.md");
+    fs.writeFileSync(badReport, fs.readFileSync(goodReport, "utf8")
+      .replace("Recommended path: BL1 with candidate packs only.", "Recommended path: select all packs by default.")
+      .replace("This report authorizes target-project writes: No", "This report authorizes target-project writes: Yes"));
+    const bad = runNode(["scripts/check-baseline-pack-selection.mjs", tempRoot, "--report", "baseline-pack-selections/002-bad.md"]);
+    const badOutput = `${bad.stdout}\n${bad.stderr}`;
+    if (bad.status !== 0 && badOutput.includes("selects all packs by default") && badOutput.includes("write authorization")) {
+      pass("baseline pack selection checker rejects overclaim report");
+    } else {
+      fail(`baseline pack selection checker must reject overclaim report: ${badOutput}`);
+    }
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
 function checkGuidedDeliveryBaselineProtocol() {
   const required = [
     "docs/guided-delivery-baseline-1.3-plan.md",
@@ -3009,7 +3227,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state", "baseline pack"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -3039,6 +3257,8 @@ function checkPlatformAdapters() {
     "check-patch-classification.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
+    "resolve-baseline-packs.mjs",
+    "check-baseline-pack-selection.mjs",
     "check-platform-baseline.mjs",
     "resolve-platform-baseline.mjs",
     "check-industrial-pack.mjs",
@@ -3147,6 +3367,7 @@ function checkReadmePointers() {
     "O2 + selected profiles + BL2",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
+    "node scripts/cli.mjs baseline-packs",
     "npm run verify",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-claim-control.mjs",
@@ -3157,6 +3378,8 @@ function checkReadmePointers() {
     "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/check-change-boundary.mjs",
     "node scripts/check-baseline-state.mjs",
+    "node scripts/resolve-baseline-packs.mjs",
+    "node scripts/check-baseline-pack-selection.mjs",
     "node scripts/cli.mjs next",
     "node scripts/cli.mjs init",
     "node scripts/cli.mjs update",
@@ -3184,6 +3407,7 @@ function checkReadmePointers() {
     "docs/change-boundary.md",
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
+    "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -3217,6 +3441,7 @@ function checkReadmePointers() {
     "Codex 一句话入口",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
+    "node scripts/cli.mjs baseline-packs",
     "npm run verify",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-context-governance.mjs",
@@ -3226,6 +3451,8 @@ function checkReadmePointers() {
     "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/check-change-boundary.mjs",
     "node scripts/check-baseline-state.mjs",
+    "node scripts/resolve-baseline-packs.mjs",
+    "node scripts/check-baseline-pack-selection.mjs",
     "重要边界",
     "docs/operator-manual.md",
     "docs/first-hour.md",
@@ -3242,6 +3469,7 @@ function checkReadmePointers() {
     "docs/change-boundary.md",
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
+    "docs/baseline-pack-system.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -3268,6 +3496,7 @@ function checkReadmePointers() {
     "docs/change-boundary.md",
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
+    "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -5623,6 +5852,7 @@ checkOutputExperienceProtocol();
 checkGuidedDecisionDeliveryLoopProtocol();
 checkGovernanceHardeningDriftGuardProtocol();
 checkChangeBoundaryBaselineStateProtocol();
+checkBaselinePackSystemProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();

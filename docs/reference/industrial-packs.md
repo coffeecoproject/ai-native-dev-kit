@@ -46,6 +46,8 @@ Web and WeChat Mini Program have BL2 simulated dogfood examples. These examples 
 
 Use `industrial-packs/selection-guide.md` before enabling a pack.
 
+Use `docs/baseline-pack-system.md` and `node scripts/cli.mjs baseline-packs <project>` when the human needs a plain recommendation before deciding BL level or packs.
+
 Do not enable all packs by default. Select only what the project needs:
 
 - Web UI and API behavior

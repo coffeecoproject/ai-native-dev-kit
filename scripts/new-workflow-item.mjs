@@ -39,6 +39,7 @@ const typeMap = {
   "guided-decision-summary": { dir: "guided-decision-summaries", template: "guided-decision-summary.md", defaultName: "guided-decision" },
   "change-boundary-report": { dir: "change-boundary-reports", template: "change-boundary-report.md", defaultName: "change-boundary" },
   "baseline-state-report": { dir: "baseline-state-reports", template: "baseline-state-report.md", defaultName: "baseline-state" },
+  "baseline-pack-selection-report": { dir: "baseline-pack-selections", template: "baseline-pack-selection-report.md", defaultName: "baseline-pack-selection" },
 };
 
 const aliases = {
@@ -122,6 +123,10 @@ const aliases = {
   "baseline-state": "baseline-state-report",
   "baseline-state-review": "baseline-state-report",
   "no-code-baseline": "baseline-state-report",
+  "baseline-pack-selection": "baseline-pack-selection-report",
+  "baseline-packs": "baseline-pack-selection-report",
+  "pack-selection": "baseline-pack-selection-report",
+  "baseline-pack": "baseline-pack-selection-report",
 };
 
 function parseArgs(argv) {
@@ -176,6 +181,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-model");
   console.error("  node scripts/new-workflow-item.mjs --type change-boundary-report --name task-scope");
   console.error("  node scripts/new-workflow-item.mjs --type baseline-state-report --name no-code-baseline");
+  console.error("  node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name project-baseline-packs");
 }
 
 function fail(message) {
@@ -1448,6 +1454,68 @@ function fillBaselineStateReport(content, context) {
   return output;
 }
 
+function fillBaselinePackSelectionReport(content, context) {
+  let output = setTitle(content, `# Baseline Pack Selection Report: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Summary",
+    [
+      `Recommended path: Baseline pack selection for ${context.title} is pending human decision.`,
+      "",
+      "Can AI enable packs now: No.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Project Classification",
+    [
+      "- Project state: unknown",
+      "- Project shape: unknown",
+      "- Risk level: medium",
+      "- Evidence source: fill from `node scripts/cli.mjs baseline-packs <project>`",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Baseline Level",
+    [
+      "- Recommended level: PENDING",
+      "- Current selected level: none",
+      "- Why: Fill after profile and risk review.",
+    ].join("\n"),
+  );
+  output = setSection(output, "Selected Profiles", "- PENDING");
+  output = setSection(
+    output,
+    "Recommended Pack Set",
+    [
+      "Primary platform packs:",
+      "",
+      "- none",
+      "",
+      "Capability packs:",
+      "",
+      "- none",
+      "",
+      "Risk overlay packs:",
+      "",
+      "- none",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Human Decision",
+    [
+      "- Decision status: PENDING",
+      "- Decision owner: human",
+      "- Approved packs: none until approved",
+      "- Explicitly rejected packs: none",
+      "- Draft pack acceptance: PENDING",
+    ].join("\n"),
+  );
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1508,6 +1576,13 @@ function frontmatterFor(type, context) {
     return {
       ...common,
       task: context.taskRef,
+      status: "draft",
+    };
+  }
+  if (type === "baseline-pack-selection-report") {
+    return {
+      ...common,
+      baseline_decision: "PENDING",
       status: "draft",
     };
   }
@@ -1629,6 +1704,7 @@ if (type === "active-work-thread") content = fillActiveWorkThread(content, baseC
 if (type === "guided-decision-summary") content = fillGuidedDecisionSummary(content, baseContext);
 if (type === "change-boundary-report") content = fillChangeBoundaryReport(content, baseContext);
 if (type === "baseline-state-report") content = fillBaselineStateReport(content, baseContext);
+if (type === "baseline-pack-selection-report") content = fillBaselinePackSelectionReport(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -1653,6 +1729,10 @@ if (type === "review-packet") {
 } else if (type === "adoption-assessment" || type === "governance-map") {
   console.log("- Keep this read-only until the human approves adapter setup or the target write location.");
   console.log("- Do not use this file as permission to run init-project or update workflow assets.");
+} else if (type === "baseline-pack-selection-report") {
+  console.log("- Fill project classification, BL level, selected profiles, recommended packs, not-selected packs, evidence, and Human Decision.");
+  console.log("- Run node scripts/check-baseline-pack-selection.mjs . --report <report> before treating it as ready for human decision.");
+  console.log("- Do not treat this report as target-project write, implementation, release, production, or draft-pack stability approval.");
 } else if (type === "human-status-report") {
   console.log("- Start with status, risk, whether AI can continue, and the next safe step.");
   console.log("- Keep technical fields and command output under Technical Details.");

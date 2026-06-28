@@ -77,9 +77,12 @@ For platform baseline:
 For industrial baseline:
 
 - baseline level is `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`; it is not task level
+- run `node scripts/resolve-baseline-packs.mjs .` for a read-only baseline pack recommendation when platform, capability, or risk pack choice is unclear
+- run `node scripts/check-baseline-pack-selection.mjs .` when Baseline Pack Selection Reports exist
 - run `node scripts/check-industrial-pack.mjs . --selected-only` to validate selected industrial pack assets
 - run `node scripts/resolve-industrial-baseline.mjs .` and `node scripts/check-industrial-baseline.mjs . --bl2-only` to inspect project-level BL2 readiness when BL2 is selected
 - read `.ai-native/industrial-packs/selection-guide.md` before recommending pack combinations
+- do not select all baseline packs by default; separate primary platform, capability, and risk overlay packs
 - do not treat BL2 or selected industrial packs as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and project-level industrial baseline status
 
 For workflow artifacts:
@@ -112,6 +115,12 @@ For change boundary and baseline state:
 - create `node scripts/new-workflow-item.mjs --type change-boundary-report --name <slug>` and run `node scripts/check-change-boundary.mjs . --report <report>` when actual changed files need to be proven against approved scope
 - create `node scripts/new-workflow-item.mjs --type baseline-state-report --name <slug>` and run `node scripts/check-baseline-state.mjs . --report <report>` when baselines are drafted or reviewed before implementation evidence exists
 - never claim a no-code or new-project baseline is implemented, verified, production-ready, or confirmed without evidence or a human-confirmed source
+
+For baseline pack selection:
+
+- create `node scripts/new-workflow-item.mjs --type baseline-pack-selection-report --name <slug>` when Codex recommends BL level, platform packs, capability packs, or risk overlays
+- run `node scripts/check-baseline-pack-selection.mjs . --report <report>` before treating the recommendation as ready for human decision
+- never treat baseline pack selection as implementation, target-project write, release, production, or draft-pack stability approval
 
 For guided decision and guided delivery:
 

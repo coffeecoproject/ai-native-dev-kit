@@ -25,6 +25,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "baseline-packs": {
+    description: "Recommend baseline pack candidates without enabling packs.",
+    script: "scripts/resolve-baseline-packs.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "baseline-pack-selection": {
+    description: "Check recorded baseline pack selection reports.",
+    script: "scripts/check-baseline-pack-selection.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "product-baseline": {
     description: "Check guided delivery product boundaries and approval limits.",
     script: "scripts/check-product-baseline.mjs",
@@ -232,6 +244,8 @@ function printHelp() {
   console.log("Examples:");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
+  console.log("  node scripts/cli.mjs baseline-packs ../my-project");
+  console.log("  node scripts/cli.mjs baseline-pack-selection .");
   console.log("  node scripts/cli.mjs product-baseline .");
   console.log("  node scripts/cli.mjs claim-control .");
   console.log("  node scripts/cli.mjs context-governance .");

@@ -10,6 +10,8 @@ Use `scripts/cli.mjs` for daily operation.
 |---|---|---|
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
+| `node scripts/cli.mjs baseline-packs <project>` | Read-only baseline pack recommendation by profile, BL level, capability, and risk | No |
+| `node scripts/cli.mjs baseline-pack-selection <project>` | Check recorded baseline pack selection reports | No |
 | `node scripts/cli.mjs product-baseline <project>` | Check guided delivery product boundary and approval limits | No |
 | `node scripts/cli.mjs claim-control <project>` | Check release/report wording against evidence boundaries | No |
 | `node scripts/cli.mjs context-governance <project>` | Check project memory, context correction, and Git boundary governance | No |
@@ -57,6 +59,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/start-project.mjs` is the first-hour adoption entry. It calls `workflow-next`, classifies the target project, lists decisions needed from the human, and recommends safe next actions. It is read-only by default and must not write target project files.
 
 `scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. Use `--write-plan <file>` to write a reviewable plan and `--apply-plan <file>` to apply only approved baseline docs and baseline reports.
+
+`scripts/resolve-baseline-packs.mjs` is the baseline pack entry. It is read-only and recommends candidate platform, capability, and risk packs after profiles and BL level are known. It does not enable BL2, install packs, or approve writes.
+
+`scripts/check-baseline-pack-selection.mjs` checks Baseline Pack Selection Reports so pack recommendations stay separated from human approval, target-project writes, implementation approval, release approval, production approval, and draft-pack stability claims.
 
 `scripts/check-product-baseline.mjs` checks the guided delivery product boundary: humans keep judgment and approval, reports are not approvals, simulated evidence is not production evidence, and industrial packs remain selected-only.
 
@@ -121,10 +127,13 @@ Common types:
 - `guided-decision-summary`
 - `change-boundary-report`
 - `baseline-state-report`
+- `baseline-pack-selection-report`
 
 Use `active-work-thread` only when broad conversation, side ideas, or repeated drift make the current mainline unclear. Use `guided-decision-summary` when Codex needs to recommend one safe path and translate technical choices into a human-owned decision.
 
 Use `change-boundary-report` when actual changed files need to be checked against intended scope. Use `baseline-state-report` when Codex drafts or reviews baselines before real project evidence exists.
+
+Use `baseline-pack-selection-report` when Codex recommends BL level and industrial pack candidates before a human confirms the pack set.
 
 ## Checks
 
@@ -153,6 +162,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-baseline-packs.mjs .
+node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-guided-adoption.mjs .
 node scripts/check-platform-baseline.mjs .
 node scripts/check-industrial-baseline.mjs .
@@ -176,6 +187,8 @@ These are primarily for maintaining this repository:
 - `scripts/check-patch-classification.mjs`
 - `scripts/check-change-boundary.mjs`
 - `scripts/check-baseline-state.mjs`
+- `scripts/resolve-baseline-packs.mjs`
+- `scripts/check-baseline-pack-selection.mjs`
 - `scripts/check-glossary-usage.mjs`
 - `scripts/score-output-quality.mjs`
 

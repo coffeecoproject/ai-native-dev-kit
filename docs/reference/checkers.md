@@ -26,6 +26,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-patch-classification.mjs` | Repair-scale classification and false-positive calibration before non-trivial fixes |
 | `check-change-boundary.mjs` | Intended scope, allowed paths, forbidden paths, actual changed files, and claim boundary |
 | `check-baseline-state.mjs` | Baseline state claims for proposed, pending, evidence-required, and confirmed baselines |
+| `resolve-baseline-packs.mjs` | Read-only baseline pack recommendation by profile, BL level, capability, and risk |
+| `check-baseline-pack-selection.mjs` | Baseline pack selection report boundaries and overclaim checks |
 | `check-platform-baseline.mjs` | Platform profile and platform baseline readiness |
 | `resolve-platform-baseline.mjs` | Resolve selected platform profiles |
 | `check-industrial-baseline.mjs` | BL0/BL1/BL2 and selected industrial baseline readiness |
@@ -92,6 +94,7 @@ Product and claim checks:
 - `check-guided-delivery-loop.mjs` allows empty projects, but rejects parking-lot items that are approved/executable now, D3/D4 summaries that claim implementation approval, and summaries missing human choice or next safe action.
 - `check-change-boundary.mjs` allows empty projects, but rejects reports where forbidden paths changed, actual files sit outside allowed paths, forbidden change types appear, or a report claims PASS while any changed file is outside boundary.
 - `check-baseline-state.mjs` allows empty projects, but rejects no-code/new-project baselines marked `CONFIRMED` without evidence or human-confirmed source, and rejects implementation permission that claims approved writes without evidence.
+- `check-baseline-pack-selection.mjs` allows empty projects, but rejects reports that select all packs by default, treat BL2 as universal default, treat draft packs as stable, claim pack files prove real project evidence, or authorize writes, implementation, release, or production.
 
 ## Suggested Sequences
 
@@ -117,6 +120,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-baseline-packs.mjs .
+node scripts/check-baseline-pack-selection.mjs .
 ```
 
 For L2/L3 task completion:
@@ -134,6 +139,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-baseline-packs.mjs .
+node scripts/check-baseline-pack-selection.mjs .
 ```
 
 For dev-kit changes:
@@ -151,6 +158,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-baseline-packs.mjs .
+node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-dev-kit.mjs
 git diff --check

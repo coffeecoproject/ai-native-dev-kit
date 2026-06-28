@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.12.1",
+  "devKitVersion": "1.13.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.12.1"
+    "phase": "1.13.0"
   },
   "groups": {
     "sourceRequired": [
@@ -14,6 +14,15 @@
       ".github/pull_request_template.md",
       ".github/workflows/dev-kit-pr-checks.yml",
       ".github/workflows/dev-kit-release-checks.yml",
+      "CONTRIBUTING.md",
+      "LICENSE-COMMERCIAL.md",
+      "LICENSE-FAQ.md",
+      "LICENSE.md",
+      "NOTICE.md",
+      "README.md",
+      "README.zh-CN.md",
+      "SECURITY.md",
+      "VERSION.md",
       "active-work-threads/.gitkeep",
       "adoption-recommendations/.gitkeep",
       "adoption-trial-reports/.gitkeep",
@@ -26,9 +35,11 @@
       "ai-logs/2026-06-27-project-memory-context-governance.md",
       "ai-logs/2026-06-27-release-evidence-adoption-entry.md",
       "baseline-gap-reports/.gitkeep",
+      "baseline-pack-selections/.gitkeep",
       "baseline-recommendations/.gitkeep",
       "checklists/automation-review.md",
       "checklists/baseline-enforcement-review.md",
+      "checklists/baseline-pack-selection-review.md",
       "checklists/baseline-state-review.md",
       "checklists/change-boundary-review.md",
       "checklists/claim-control-review.md",
@@ -60,11 +71,11 @@
       "checklists/subagent-orchestration-review.md",
       "checklists/verification-gate.md",
       "context-corrections/.gitkeep",
-      "CONTRIBUTING.md",
       "conversation-turns/.gitkeep",
       "core/assumption-register.md",
       "core/automation-governance.md",
       "core/baseline-enforcement.md",
+      "core/baseline-pack-system.md",
       "core/baseline-state.md",
       "core/change-boundary.md",
       "core/claim-control.md",
@@ -112,6 +123,8 @@
       "docs/adoption-playbooks/new-project.md",
       "docs/adoption-playbooks/production-project-adapter.md",
       "docs/artifact-decision-tree.md",
+      "docs/baseline-pack-system-1.13-plan.md",
+      "docs/baseline-pack-system.md",
       "docs/baseline-setup.md",
       "docs/baseline-state.md",
       "docs/change-boundary-baseline-state-1.12-plan.md",
@@ -176,20 +189,22 @@
       "evals/210-governance-hardening-drift-guard.md",
       "evals/220-change-boundary-baseline-state.md",
       "evals/221-manifest-readme-fallback-sync.md",
+      "evals/230-baseline-pack-system.md",
+      "examples/1.1-guided-adoption/README.md",
       "examples/1.1-guided-adoption/existing-light-project/adoption-recommendations/001-guided-start.md",
       "examples/1.1-guided-adoption/governed-readonly/adoption-recommendations/001-guided-start.md",
       "examples/1.1-guided-adoption/new-project/adoption-recommendations/001-guided-start.md",
-      "examples/1.1-guided-adoption/README.md",
+      "examples/1.10-guided-decision-delivery-loop/README.md",
       "examples/1.10-guided-decision-delivery-loop/active-work-threads/001-appointment-first-slice.md",
       "examples/1.10-guided-decision-delivery-loop/conversation-turns/001-payment-mention.md",
       "examples/1.10-guided-decision-delivery-loop/guided-decision-summaries/001-status-model.md",
-      "examples/1.10-guided-decision-delivery-loop/README.md",
+      "examples/1.12-change-boundary-baseline-state/README.md",
       "examples/1.12-change-boundary-baseline-state/active-work-threads/001-appointment-first-slice.md",
       "examples/1.12-change-boundary-baseline-state/baseline-state-reports/001-no-code-baseline.md",
       "examples/1.12-change-boundary-baseline-state/change-boundary-reports/001-appointment-first-slice.md",
       "examples/1.12-change-boundary-baseline-state/final-reports/001-appointment-first-slice.md",
       "examples/1.12-change-boundary-baseline-state/guided-decision-summaries/001-first-slice-boundary.md",
-      "examples/1.12-change-boundary-baseline-state/README.md",
+      "examples/1.2-baseline-guided-setup/README.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-gap-reports/001-baseline-gaps.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-recommendations/001-baseline-recommendation.md",
       "examples/1.2-baseline-guided-setup/governed-readonly-project/baseline-recommendations/001-baseline-recommendation.md",
@@ -198,20 +213,20 @@
       "examples/1.2-baseline-guided-setup/new-web-project/docs/environment-baseline.md",
       "examples/1.2-baseline-guided-setup/new-web-project/tasks/001-first-web-task.md",
       "examples/1.2-baseline-guided-setup/production-sensitive-project/baseline-recommendations/001-baseline-recommendation.md",
-      "examples/1.2-baseline-guided-setup/README.md",
+      "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
-      "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/releases/example-release.md",
+      "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
       "examples/1.4-project-memory-context/learning-candidates/001-status-source.md",
-      "examples/1.4-project-memory-context/README.md",
-      "examples/1.5-safe-launch-readiness/launch-readiness/001-internal-handoff.md",
       "examples/1.5-safe-launch-readiness/README.md",
-      "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
+      "examples/1.5-safe-launch-readiness/launch-readiness/001-internal-handoff.md",
       "examples/1.6-conversation-drift-control/README.md",
+      "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
+      "examples/1.7-first-delivery-walkthrough/README.md",
       "examples/1.7-first-delivery-walkthrough/adoption-trial-reports/001-booking-app-simulation.md",
       "examples/1.7-first-delivery-walkthrough/baseline-recommendations/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/conversation-turns/001-add-payment.md",
@@ -220,26 +235,26 @@
       "examples/1.7-first-delivery-walkthrough/goal-cards/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/launch-readiness/001-booking-app-demo.md",
       "examples/1.7-first-delivery-walkthrough/preflight/001-booking-app.md",
-      "examples/1.7-first-delivery-walkthrough/README.md",
       "examples/1.7-first-delivery-walkthrough/requests/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/review-loop-reports/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/scope-change-reports/001-add-payment.md",
       "examples/1.7-first-delivery-walkthrough/specs/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/subagent-run-plans/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/tasks/001-booking-app.md",
+      "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
       "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
-      "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/real-adoption-trials/001-governed-web-readonly.md",
+      "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
-      "examples/engineering-baseline-api-dto-domain/README.md",
+      "examples/engineering-baseline-enum-vs-lookup/README.md",
       "examples/engineering-baseline-enum-vs-lookup/decision-briefs/001-status-model-decision.md",
       "examples/engineering-baseline-enum-vs-lookup/docs/engineering-baseline.md",
-      "examples/engineering-baseline-enum-vs-lookup/README.md",
       "examples/generic-first-change/README.md",
-      "examples/goal-mode-first-route/goal-cards/001-define-work.md",
       "examples/goal-mode-first-route/README.md",
+      "examples/goal-mode-first-route/goal-cards/001-define-work.md",
+      "examples/goal-subagent-l2-feature/README.md",
       "examples/goal-subagent-l2-feature/docs/engineering-baseline.md",
       "examples/goal-subagent-l2-feature/evals/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/final-reports/001-project-status-filter.md",
@@ -247,7 +262,6 @@
       "examples/goal-subagent-l2-feature/goal-cards/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/gpt-review-prompts/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/preflight/001-project-status-filter.md",
-      "examples/goal-subagent-l2-feature/README.md",
       "examples/goal-subagent-l2-feature/requests/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/review-loop-reports/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/review-packets/001-project-status-filter.md",
@@ -255,25 +269,25 @@
       "examples/goal-subagent-l2-feature/specs/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/subagent-run-plans/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/tasks/001-project-status-filter.md",
+      "examples/miniprogram-industrial-bl2-first-slice/README.md",
       "examples/miniprogram-industrial-bl2-first-slice/ai-logs/2026-06-26-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/docs/baseline-evidence.md",
       "examples/miniprogram-industrial-bl2-first-slice/docs/baseline-selection.md",
       "examples/miniprogram-industrial-bl2-first-slice/evals/001-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/evidence/miniprogram-runtime-evidence.md",
       "examples/miniprogram-industrial-bl2-first-slice/preflight/001-miniprogram-login-cloud-read.md",
-      "examples/miniprogram-industrial-bl2-first-slice/README.md",
       "examples/miniprogram-industrial-bl2-first-slice/releases/001-miniprogram-login-cloud-read-release.md",
       "examples/miniprogram-industrial-bl2-first-slice/requests/001-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/specs/001-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/tasks/001-miniprogram-login-cloud-read.md",
-      "examples/next-step-boundary-suggestions/final-reports/001-suggestions.md",
       "examples/next-step-boundary-suggestions/README.md",
+      "examples/next-step-boundary-suggestions/final-reports/001-suggestions.md",
+      "examples/review-loop-l2-first-slice/README.md",
       "examples/review-loop-l2-first-slice/evals/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/final-reports/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/follow-up-proposals/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/gpt-review-prompts/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/preflight/001-review-loop-l2-slice.md",
-      "examples/review-loop-l2-first-slice/README.md",
       "examples/review-loop-l2-first-slice/requests/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/review-loop-reports/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/review-packets/001-review-loop-l2-slice.md",
@@ -282,21 +296,21 @@
       "examples/review-loop-l2-first-slice/tasks/001-review-loop-l2-slice.md",
       "examples/subagent-orchestration-closed-run/README.md",
       "examples/subagent-orchestration-closed-run/subagent-run-plans/001-closed-review.md",
+      "examples/web-industrial-bl2-first-slice/README.md",
       "examples/web-industrial-bl2-first-slice/ai-logs/2026-06-26-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/docs/baseline-evidence.md",
       "examples/web-industrial-bl2-first-slice/docs/baseline-selection.md",
       "examples/web-industrial-bl2-first-slice/evals/001-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/evidence/web-runtime-evidence.md",
       "examples/web-industrial-bl2-first-slice/preflight/001-web-runtime-quality.md",
-      "examples/web-industrial-bl2-first-slice/README.md",
       "examples/web-industrial-bl2-first-slice/releases/001-web-runtime-quality-release.md",
       "examples/web-industrial-bl2-first-slice/requests/001-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/specs/001-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/tasks/001-web-runtime-quality.md",
+      "examples/web-internal-admin-first-slice/README.md",
       "examples/web-internal-admin-first-slice/ai-task-log.example.md",
       "examples/web-internal-admin-first-slice/eval.md",
       "examples/web-internal-admin-first-slice/preflight-report.md",
-      "examples/web-internal-admin-first-slice/README.md",
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
       "examples/web-internal-admin-first-slice/task-card.md",
@@ -324,6 +338,7 @@
       "final-reports/210-governance-hardening-drift-guard.md",
       "final-reports/220-change-boundary-baseline-state.md",
       "final-reports/221-manifest-readme-fallback-sync.md",
+      "final-reports/230-baseline-pack-system.md",
       "git-boundary-reports/.gitkeep",
       "goal-cards/034-baseline-freeze-self-ci.md",
       "goal-cards/035-readonly-manifest.md",
@@ -348,6 +363,7 @@
       "guided-decision-summaries/.gitkeep",
       "industrial-pack-candidates/README.md",
       "industrial-pack-candidates/web-app/README.md",
+      "industrial-packs/README.md",
       "industrial-packs/android-app/changelog.md",
       "industrial-packs/android-app/dogfood.md",
       "industrial-packs/android-app/evidence.md",
@@ -403,7 +419,6 @@
       "industrial-packs/payment-value-transfer/false-positive-log.md",
       "industrial-packs/payment-value-transfer/maturity.md",
       "industrial-packs/payment-value-transfer/owner.md",
-      "industrial-packs/README.md",
       "industrial-packs/schema/baseline-selection.schema.json",
       "industrial-packs/schema/pack.schema.json",
       "industrial-packs/selection-guide.md",
@@ -462,10 +477,6 @@
       "industrial-packs/wechat-miniprogram/templates/miniprogram-runtime-evidence.md",
       "launch-readiness/.gitkeep",
       "learning-candidates/.gitkeep",
-      "LICENSE-COMMERCIAL.md",
-      "LICENSE-FAQ.md",
-      "LICENSE.md",
-      "NOTICE.md",
       "package.json",
       "patch-classification-false-positives/.gitkeep",
       "patch-classification-false-positives/181-risk-surface-calibration.md",
@@ -501,6 +512,7 @@
       "preflight/210-governance-hardening-drift-guard.md",
       "preflight/220-change-boundary-baseline-state.md",
       "preflight/221-manifest-readme-fallback-sync.md",
+      "preflight/230-baseline-pack-system.md",
       "profiles/android-app/baseline.json",
       "profiles/android-app/environment-topics.md",
       "profiles/backend-api/baseline.json",
@@ -515,6 +527,7 @@
       "profiles/web-app/environment-topics.md",
       "profiles/wechat-miniprogram/baseline.json",
       "profiles/wechat-miniprogram/environment-topics.md",
+      "prompts/baseline-pack-router-agent.md",
       "prompts/baseline-setup-agent.md",
       "prompts/baseline-state-agent.md",
       "prompts/bootstrap-agent.md",
@@ -535,8 +548,6 @@
       "prompts/reporter-agent.md",
       "prompts/reviewer-agent.md",
       "prompts/walkthrough-agent.md",
-      "README.md",
-      "README.zh-CN.md",
       "real-adoption-trials/.gitkeep",
       "real-adoption-trials/180-governed-web-readonly.md",
       "releases/0.33.0/baseline-freeze.md",
@@ -575,6 +586,9 @@
       "releases/1.12.1/known-limitations.md",
       "releases/1.12.1/release-record.md",
       "releases/1.12.1/self-check-report.md",
+      "releases/1.13.0/known-limitations.md",
+      "releases/1.13.0/release-record.md",
+      "releases/1.13.0/self-check-report.md",
       "releases/1.2.0/baseline-smoke.md",
       "releases/1.2.0/generated-project-smoke.md",
       "releases/1.2.0/known-limitations.md",
@@ -630,6 +644,7 @@
       "requests/210-governance-hardening-drift-guard.md",
       "requests/220-change-boundary-baseline-state.md",
       "requests/221-manifest-readme-fallback-sync.md",
+      "requests/230-baseline-pack-system.md",
       "review-loop-reports/034-baseline-freeze-self-ci.md",
       "review-loop-reports/035-readonly-manifest.md",
       "review-loop-reports/036-cli-front-door.md",
@@ -675,9 +690,11 @@
       "schemas/artifacts/task.schema.json",
       "schemas/dev-kit-manifest.schema.json",
       "scope-change-reports/.gitkeep",
+      "scripts/README.md",
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
       "scripts/check-baseline-enforcement.mjs",
+      "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
@@ -718,7 +735,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
-      "scripts/README.md",
+      "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/score-output-quality.mjs",
@@ -726,7 +743,6 @@
       "scripts/summarize-ai-logs.mjs",
       "scripts/workflow-daily-summary.mjs",
       "scripts/workflow-next.mjs",
-      "SECURITY.md",
       "specs/034-baseline-freeze-self-ci.md",
       "specs/035-readonly-manifest.md",
       "specs/036-cli-front-door.md",
@@ -750,6 +766,7 @@
       "specs/210-governance-hardening-drift-guard.md",
       "specs/220-change-boundary-baseline-state.md",
       "specs/221-manifest-readme-fallback-sync.md",
+      "specs/230-baseline-pack-system.md",
       "starters/generic-project/AGENTS.md",
       "subagent-run-plans/034-baseline-freeze-self-ci.md",
       "subagent-run-plans/035-readonly-manifest.md",
@@ -792,6 +809,7 @@
       "tasks/210-governance-hardening-drift-guard.md",
       "tasks/220-change-boundary-baseline-state.md",
       "tasks/221-manifest-readme-fallback-sync.md",
+      "tasks/230-baseline-pack-system.md",
       "templates/active-work-thread.md",
       "templates/adoption-assessment.md",
       "templates/adoption-evidence-report.md",
@@ -801,6 +819,7 @@
       "templates/assumption-register.md",
       "templates/baseline-evidence.md",
       "templates/baseline-gap-report.md",
+      "templates/baseline-pack-selection-report.md",
       "templates/baseline-recommendation-report.md",
       "templates/baseline-selection.md",
       "templates/baseline-state-report.md",
@@ -858,6 +877,8 @@
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
       "templates/workflow-version.json",
+      "test-fixtures/README.md",
+      "test-fixtures/bad/README.md",
       "test-fixtures/bad/bad-ai-workflow-missing-assets/README.md",
       "test-fixtures/bad/bad-artifact-frontmatter-invalid/requests/001-invalid.md",
       "test-fixtures/bad/bad-baseline-state-confirmed-no-evidence/baseline-state-reports/001-confirmed.md",
@@ -921,8 +942,8 @@
       "test-fixtures/bad/bad-next-step-boundary/final-reports/001-boundary.md",
       "test-fixtures/bad/bad-next-step-risk-decision/final-reports/001-risk-decision.md",
       "test-fixtures/bad/bad-output-quality/final-reports/001-low-quality.md",
-      "test-fixtures/bad/bad-overclaimed-release/releases/1.3.0/release-record.md",
       "test-fixtures/bad/bad-overclaimed-release/VERSION.md",
+      "test-fixtures/bad/bad-overclaimed-release/releases/1.3.0/release-record.md",
       "test-fixtures/bad/bad-patch-authorizes-implementation/patch-classifications/001-authorizes.md",
       "test-fixtures/bad/bad-patch-do-not-patch-done/patch-classifications/001-done.md",
       "test-fixtures/bad/bad-patch-false-positive-unsafe/patch-classification-false-positives/001-unsafe.md",
@@ -945,21 +966,19 @@
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
       "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
-      "test-fixtures/bad/README.md",
       "test-fixtures/cli/README.md",
       "test-fixtures/fixture-cases.json",
       "test-fixtures/golden/README.md",
       "test-fixtures/init-update/README.md",
-      "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/README.md",
+      "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md",
-      "test-fixtures/README.md",
-      "VERSION.md"
+      "test-fixtures/output-quality/README.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
       ".ai-native/checklists/baseline-enforcement-review.md",
+      ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/claim-control-review.md",
@@ -990,6 +1009,7 @@
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/automation-governance.md",
       ".ai-native/core/baseline-enforcement.md",
+      ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
@@ -1021,6 +1041,7 @@
       ".ai-native/core/workflow.md",
       ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/artifact-decision-tree.md",
+      ".ai-native/docs/baseline-pack-system.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/baseline-state.md",
       ".ai-native/docs/change-boundary.md",
@@ -1040,6 +1061,7 @@
       ".ai-native/docs/real-adoption-usage.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/prompts/architect-agent.md",
+      ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
       ".ai-native/prompts/bootstrap-agent.md",
@@ -1073,6 +1095,7 @@
       ".ai-native/templates/ai-task-log.md",
       ".ai-native/templates/assumption-register.md",
       ".ai-native/templates/baseline-gap-report.md",
+      ".ai-native/templates/baseline-pack-selection-report.md",
       ".ai-native/templates/baseline-recommendation-report.md",
       ".ai-native/templates/baseline-state-report.md",
       ".ai-native/templates/business-spec-index.md",
@@ -1125,13 +1148,14 @@
       ".ai-native/version.json",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
+      "AGENTS.md",
       "active-work-threads",
       "adoption-recommendations",
       "adoption-trial-reports",
-      "AGENTS.md",
       "ai-logs",
       "automation-proposals",
       "baseline-gap-reports",
+      "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
       "change-boundary-reports",
@@ -1180,6 +1204,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
       "scripts/check-baseline-enforcement.mjs",
+      "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
@@ -1210,6 +1235,7 @@
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/resolve-baseline-packs.mjs",
       "scripts/start-project.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/verify.sh",
@@ -1226,6 +1252,7 @@
     "targetFull": [
       ".ai-native/checklists/automation-review.md",
       ".ai-native/checklists/baseline-enforcement-review.md",
+      ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/claim-control-review.md",
@@ -1259,6 +1286,7 @@
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/automation-governance.md",
       ".ai-native/core/baseline-enforcement.md",
+      ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
@@ -1290,6 +1318,7 @@
       ".ai-native/core/workflow.md",
       ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/artifact-decision-tree.md",
+      ".ai-native/docs/baseline-pack-system.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/baseline-state.md",
       ".ai-native/docs/change-boundary.md",
@@ -1308,8 +1337,8 @@
       ".ai-native/docs/project-memory.md",
       ".ai-native/docs/real-adoption-usage.md",
       ".ai-native/docs/safe-launch.md",
-      ".ai-native/industrial-packs/index.json",
       ".ai-native/industrial-packs/README.md",
+      ".ai-native/industrial-packs/index.json",
       ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
       ".ai-native/industrial-packs/schema/pack.schema.json",
       ".ai-native/industrial-packs/selection-guide.md",
@@ -1335,6 +1364,7 @@
       ".ai-native/profiles/wechat-miniprogram/environment-topics.md",
       ".ai-native/profiles/wechat-miniprogram/profile.md",
       ".ai-native/prompts/architect-agent.md",
+      ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
       ".ai-native/prompts/bootstrap-agent.md",
@@ -1369,6 +1399,7 @@
       ".ai-native/templates/assumption-register.md",
       ".ai-native/templates/baseline-evidence.md",
       ".ai-native/templates/baseline-gap-report.md",
+      ".ai-native/templates/baseline-pack-selection-report.md",
       ".ai-native/templates/baseline-recommendation-report.md",
       ".ai-native/templates/baseline-selection.md",
       ".ai-native/templates/baseline-state-report.md",
@@ -1426,13 +1457,14 @@
       ".ai-native/version.json",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
+      "AGENTS.md",
       "active-work-threads",
       "adoption-recommendations",
       "adoption-trial-reports",
-      "AGENTS.md",
       "ai-logs",
       "automation-proposals",
       "baseline-gap-reports",
+      "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
       "change-boundary-reports",
@@ -1481,6 +1513,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
       "scripts/check-baseline-enforcement.mjs",
+      "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
@@ -1514,6 +1547,7 @@
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/start-project.mjs",
@@ -1533,6 +1567,7 @@
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/automation-governance.md",
       ".ai-native/core/baseline-enforcement.md",
+      ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
@@ -1577,6 +1612,7 @@
       "templates/assumption-register.md",
       "templates/baseline-evidence.md",
       "templates/baseline-gap-report.md",
+      "templates/baseline-pack-selection-report.md",
       "templates/baseline-recommendation-report.md",
       "templates/baseline-selection.md",
       "templates/baseline-state-report.md",
@@ -1636,6 +1672,7 @@
       "templates/workflow-version.json"
     ],
     "prompts": [
+      "prompts/baseline-pack-router-agent.md",
       "prompts/baseline-setup-agent.md",
       "prompts/baseline-state-agent.md",
       "prompts/bootstrap-agent.md",
@@ -1660,6 +1697,7 @@
     "checklists": [
       "checklists/automation-review.md",
       "checklists/baseline-enforcement-review.md",
+      "checklists/baseline-pack-selection-review.md",
       "checklists/baseline-state-review.md",
       "checklists/change-boundary-review.md",
       "checklists/claim-control-review.md",
@@ -1723,6 +1761,7 @@
       "ai-logs",
       "automation-proposals",
       "baseline-gap-reports",
+      "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
       "change-boundary-reports",
@@ -1763,6 +1802,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
       "scripts/check-baseline-enforcement.mjs",
+      "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
@@ -1803,6 +1843,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/score-output-quality.mjs",
@@ -2046,6 +2087,7 @@
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
+      ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/claim-control-review.md",
@@ -2060,6 +2102,7 @@
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/core",
       ".ai-native/core/assumption-register.md",
+      ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
@@ -2076,6 +2119,7 @@
       ".ai-native/core/safe-launch.md",
       ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/artifact-decision-tree.md",
+      ".ai-native/docs/baseline-pack-system.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/baseline-state.md",
       ".ai-native/docs/change-boundary.md",
@@ -2097,6 +2141,7 @@
       ".ai-native/industrial-packs",
       ".ai-native/profiles",
       ".ai-native/prompts",
+      ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
@@ -2114,6 +2159,7 @@
       ".ai-native/templates/active-work-thread.md",
       ".ai-native/templates/adoption-trial-report.md",
       ".ai-native/templates/assumption-register.md",
+      ".ai-native/templates/baseline-pack-selection-report.md",
       ".ai-native/templates/baseline-state-report.md",
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
@@ -2130,11 +2176,12 @@
       ".ai-native/templates/scope-change-report.md",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
+      "AGENTS.md",
       "active-work-threads",
       "adoption-recommendations",
       "adoption-trial-reports",
-      "AGENTS.md",
       "baseline-gap-reports",
+      "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
       "change-boundary-reports",
@@ -2170,6 +2217,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
       "scripts/check-baseline-enforcement.mjs",
+      "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
@@ -2203,6 +2251,7 @@
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/start-project.mjs",
@@ -2355,11 +2404,12 @@
       ".ai-native/templates/tech-stack-strategy.md",
       ".ai-native/version.json",
       ".github/workflows/ai-workflow-checks.yml",
+      "AGENTS.md",
       "active-work-threads",
       "adoption-recommendations",
       "adoption-trial-reports",
-      "AGENTS.md",
       "baseline-gap-reports",
+      "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
       "change-boundary-reports",
@@ -2394,6 +2444,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
       "scripts/check-baseline-enforcement.mjs",
+      "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
@@ -2420,6 +2471,7 @@
       "scripts/check-workflow-version.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
+      "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/start-project.mjs",
@@ -2433,28 +2485,8 @@
   "copyRules": {
     "directories": [
       {
-        "source": "checklists",
-        "target": ".ai-native/checklists"
-      },
-      {
-        "source": "core",
-        "target": ".ai-native/core"
-      },
-      {
-        "source": "profiles",
-        "target": ".ai-native/profiles"
-      },
-      {
-        "source": "prompts",
-        "target": ".ai-native/prompts"
-      },
-      {
-        "source": "schemas/artifacts",
-        "target": ".ai-native/schemas/artifacts"
-      },
-      {
-        "source": "templates",
-        "target": ".ai-native/templates"
+        "source": "baseline-pack-selections",
+        "target": "baseline-pack-selections"
       },
       {
         "source": "baseline-state-reports",
@@ -2465,6 +2497,14 @@
         "target": "change-boundary-reports"
       },
       {
+        "source": "checklists",
+        "target": ".ai-native/checklists"
+      },
+      {
+        "source": "core",
+        "target": ".ai-native/core"
+      },
+      {
         "source": "governance-maps",
         "target": "governance-maps"
       },
@@ -2473,11 +2513,31 @@
         "target": "patch-classifications"
       },
       {
+        "source": "profiles",
+        "target": ".ai-native/profiles"
+      },
+      {
+        "source": "prompts",
+        "target": ".ai-native/prompts"
+      },
+      {
         "source": "real-adoption-trials",
         "target": "real-adoption-trials"
+      },
+      {
+        "source": "schemas/artifacts",
+        "target": ".ai-native/schemas/artifacts"
+      },
+      {
+        "source": "templates",
+        "target": ".ai-native/templates"
       }
     ],
     "files": [
+      {
+        "source": "checklists/baseline-pack-selection-review.md",
+        "target": ".ai-native/checklists/baseline-pack-selection-review.md"
+      },
       {
         "source": "checklists/baseline-state-review.md",
         "target": ".ai-native/checklists/baseline-state-review.md"
@@ -2497,6 +2557,10 @@
       {
         "source": "checklists/real-adoption-trial-review.md",
         "target": ".ai-native/checklists/real-adoption-trial-review.md"
+      },
+      {
+        "source": "core/baseline-pack-system.md",
+        "target": ".ai-native/core/baseline-pack-system.md"
       },
       {
         "source": "core/baseline-state.md",
@@ -2529,6 +2593,10 @@
       {
         "source": "docs/artifact-decision-tree.md",
         "target": ".ai-native/docs/artifact-decision-tree.md"
+      },
+      {
+        "source": "docs/baseline-pack-system.md",
+        "target": ".ai-native/docs/baseline-pack-system.md"
       },
       {
         "source": "docs/baseline-setup.md",
@@ -2603,6 +2671,14 @@
         "target": ".ai-native/docs/safe-launch.md"
       },
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
+        "source": "prompts/baseline-pack-router-agent.md",
+        "target": ".ai-native/prompts/baseline-pack-router-agent.md"
+      },
+      {
         "source": "prompts/baseline-state-agent.md",
         "target": ".ai-native/prompts/baseline-state-agent.md"
       },
@@ -2627,38 +2703,6 @@
         "target": ".ai-native/prompts/real-adoption-agent.md"
       },
       {
-        "source": "templates/active-work-thread.md",
-        "target": ".ai-native/templates/active-work-thread.md"
-      },
-      {
-        "source": "templates/baseline-state-report.md",
-        "target": ".ai-native/templates/baseline-state-report.md"
-      },
-      {
-        "source": "templates/change-boundary-report.md",
-        "target": ".ai-native/templates/change-boundary-report.md"
-      },
-      {
-        "source": "templates/guided-decision-summary.md",
-        "target": ".ai-native/templates/guided-decision-summary.md"
-      },
-      {
-        "source": "templates/patch-classification-false-positive.md",
-        "target": ".ai-native/templates/patch-classification-false-positive.md"
-      },
-      {
-        "source": "templates/patch-classification-report.md",
-        "target": ".ai-native/templates/patch-classification-report.md"
-      },
-      {
-        "source": "templates/real-adoption-trial-report.md",
-        "target": ".ai-native/templates/real-adoption-trial-report.md"
-      },
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
-      },
-      {
         "source": "scripts/baseline-project.mjs",
         "target": "scripts/baseline-project.mjs"
       },
@@ -2669,6 +2713,10 @@
       {
         "source": "scripts/check-baseline-enforcement.mjs",
         "target": "scripts/check-baseline-enforcement.mjs"
+      },
+      {
+        "source": "scripts/check-baseline-pack-selection.mjs",
+        "target": "scripts/check-baseline-pack-selection.mjs"
       },
       {
         "source": "scripts/check-baseline-state.mjs",
@@ -2803,6 +2851,10 @@
         "target": "scripts/new-workflow-item.mjs"
       },
       {
+        "source": "scripts/resolve-baseline-packs.mjs",
+        "target": "scripts/resolve-baseline-packs.mjs"
+      },
+      {
         "source": "scripts/resolve-industrial-baseline.mjs",
         "target": "scripts/resolve-industrial-baseline.mjs"
       },
@@ -2825,6 +2877,38 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "templates/active-work-thread.md",
+        "target": ".ai-native/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/baseline-pack-selection-report.md",
+        "target": ".ai-native/templates/baseline-pack-selection-report.md"
+      },
+      {
+        "source": "templates/baseline-state-report.md",
+        "target": ".ai-native/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/change-boundary-report.md",
+        "target": ".ai-native/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/guided-decision-summary.md",
+        "target": ".ai-native/templates/guided-decision-summary.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".ai-native/templates/patch-classification-false-positive.md"
+      },
+      {
+        "source": "templates/patch-classification-report.md",
+        "target": ".ai-native/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/real-adoption-trial-report.md",
+        "target": ".ai-native/templates/real-adoption-trial-report.md"
       }
     ]
   }

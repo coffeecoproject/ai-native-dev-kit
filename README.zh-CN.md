@@ -57,6 +57,12 @@ node scripts/cli.mjs start ../my-project
 node scripts/cli.mjs baseline ../my-project
 ```
 
+第三步，如果项目可能涉及平台、后台、权限、数据、支付或发布风险，让 Codex 只读推荐基线包：
+
+```bash
+node scripts/cli.mjs baseline-packs ../my-project
+```
+
 如果要看更底层的工作流状态：
 
 ```bash
@@ -104,6 +110,7 @@ node scripts/cli.mjs doctor ../my-project
 |---|---|
 | 引导式接入 | 先判断项目是新项目、已有项目、强治理项目、生产敏感项目、dirty worktree，还是已接入项目 |
 | 工程/环境基线 | 明确代码结构、数据库、API、权限、运行环境、构建测试、发布回滚和密钥边界 |
+| 基线包选择 | 按项目级别、平台、能力和风险推荐最小基线包组合，不默认开启 BL2 或所有工业包 |
 | Goal + Subagent | 只有需要时才使用目标卡和 helper agent，并要求用完关闭 |
 | Review Loop | 任务完成后复查，限制自动修复，把风险问题交给人判断 |
 | 项目记忆治理 | Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
@@ -132,6 +139,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/resolve-baseline-packs.mjs .
+node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-guided-adoption.mjs .
 ```
 
@@ -151,6 +160,7 @@ node scripts/check-guided-adoption.mjs .
 - 不要把讨论、范围变化、旁路问题或风险问题直接当成继续当前任务的许可。
 - 不要把真实项目只读接入报告当成允许写入项目。
 - 不要把补丁分类报告当成允许实现；它只判断修复尺度。
+- 不要把基线包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
 
 ## 完整说明
 
@@ -181,6 +191,7 @@ node scripts/check-guided-adoption.mjs .
 - [Baseline State](docs/baseline-state.md)：区分基线是建议、待确认、需证据，还是已确认
 - [Guided Delivery Check](docs/guided-delivery-check.md)：检查当前主线、停车场和 D0-D4 决策边界
 - [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
+- [Baseline Pack System](docs/baseline-pack-system.md)：按项目级别、平台、能力和风险选择基线包
 
 接入项目：
 
@@ -203,6 +214,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.13 Release Record](releases/1.13.0/release-record.md)：1.13 基线包选择系统
 - [1.12.1 Release Record](releases/1.12.1/release-record.md)：1.12.1 manifest、README 自检入口和 fallback 同步
 - [1.12 Release Record](releases/1.12.0/release-record.md)：1.12 变更边界、引导式交付检查与基线状态保护
 - [1.11 Release Record](releases/1.11.0/release-record.md)：1.11 治理硬化与漂移防护

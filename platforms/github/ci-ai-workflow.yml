@@ -53,6 +53,10 @@ jobs:
         run: node scripts/check-change-boundary.mjs .
       - name: Check baseline state
         run: node scripts/check-baseline-state.mjs .
+      - name: Resolve baseline packs
+        run: node scripts/resolve-baseline-packs.mjs .
+      - name: Check baseline pack selection
+        run: node scripts/check-baseline-pack-selection.mjs .
       - name: Check platform baseline
         run: node scripts/check-platform-baseline.mjs .
       - name: Check selected industrial packs
@@ -105,6 +109,10 @@ jobs:
         run: node --check scripts/check-change-boundary.mjs
       - name: Check baseline state checker syntax
         run: node --check scripts/check-baseline-state.mjs
+      - name: Check baseline pack resolver syntax
+        run: node --check scripts/resolve-baseline-packs.mjs
+      - name: Check baseline pack selection checker syntax
+        run: node --check scripts/check-baseline-pack-selection.mjs
       - name: Check baseline recommendation syntax
         run: node --check scripts/baseline-project.mjs
       - name: Check workflow artifact quality
