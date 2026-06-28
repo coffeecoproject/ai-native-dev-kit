@@ -4,6 +4,27 @@ Use this file to map AI Native Dev Kit concepts to governance assets that alread
 
 This map prevents duplicate workflow systems. It should preserve existing authority unless the human explicitly approves an adapter change.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Keep existing governance | Map AI Native concepts to current rules only | No, unless this report is being saved | low | Choose when the project already has strong governance |
+| B | Docs-only bridge | Add adapter docs without changing gates or code | Docs only | low/medium | Choose when the team needs a shared bridge layer |
+| C | Thin operational bridge | Add selected scripts or references after review | Yes, approved workflow assets only | medium/high | Choose after confirming no conflict with existing gates |
+| D | Pause | Stop mapping and wait | No | low | Choose when authority or ownership is unclear |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Mapping Status
 
 Status: DRAFT / REVIEWED / APPROVED

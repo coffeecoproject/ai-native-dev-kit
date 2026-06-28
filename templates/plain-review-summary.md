@@ -2,6 +2,27 @@
 
 Use this template to explain Review Loop results to a project owner before technical review details.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Accept and close | Keep the reviewed result | Report only | low | Choose when no blocking issue remains |
+| B | Let AI fix allowed issues | Fix only AUTO_FIX findings inside approved scope | Yes, approved task files only | low/medium | Choose when findings are deterministic and bounded |
+| C | Human decision first | Stop before risky or unclear changes | Decision/report only | medium/high | Choose when findings affect scope, risk, release, or architecture |
+| D | Pause review | Stop and wait | No | low | Choose when review evidence is incomplete |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

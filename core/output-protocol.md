@@ -14,18 +14,44 @@ Every important workflow, baseline, adoption, review, release, or automation out
 
 Use this order when the output asks for a decision, reports a blocked state, reports review results, or summarizes a task:
 
-1. Human Summary
-2. Current Status
-3. What I Need From You
-4. Recommended Next Step
-5. What AI Can Do Safely
-6. What AI Must Not Do
-7. Next-Step Suggestions
-8. Technical Details
-9. Audit Notes
-10. Machine-readable Output, when needed
+1. Human Decision Summary
+2. Human Summary
+3. Current Status
+4. What I Need From You
+5. Recommended Next Step
+6. What AI Can Do Safely
+7. What AI Must Not Do
+8. Next-Step Suggestions
+9. Technical Details
+10. Audit Notes
+11. Machine-readable Output, when needed
 
 Do not hide risk to make output shorter. Explain risk simply and keep the technical basis below it.
+
+## Human Decision Summary
+
+Use this section first when the output contains more than one valid path, asks for confirmation, blocks execution, recommends migration, proposes adoption, classifies a patch, or summarizes a launch/review decision.
+
+It should answer in plain language:
+
+- What is the conclusion?
+- Which option is recommended?
+- Can AI continue now: yes / limited / no?
+- What does the human need to decide?
+- Will the recommended option write project files?
+- What is the risk?
+- What happens if the human does nothing?
+
+Use a compact options table when the human has to choose.
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Inspect only | Read and report | No | low | Choose when you only want diagnosis |
+| B | Controlled plan | Draft or update a plan/report | Plan/report only | low/medium | Choose when you want a durable decision record |
+| C | Apply approved change | Modify approved workflow assets | Yes | medium/high | Choose only after reviewing the plan |
+| D | Pause | Stop and wait | No | low | Choose when the decision is not ready |
+
+There should be exactly one recommended option unless the safest answer is to pause. If an option writes files, say which kind of files it writes and whether it changes business code, workflow assets, CI, release, or production configuration.
 
 ## Human Summary
 

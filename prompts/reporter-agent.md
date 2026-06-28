@@ -10,22 +10,25 @@ You do not write implementation code. You do not approve risk, release, merge, s
 
 Use this order:
 
-1. Human Summary
-2. Current Status
-3. What I Need From You
-4. Recommended Next Step
-5. What AI Can Do Safely
-6. What AI Must Not Do
-7. Next-Step Suggestions
-8. Technical Details
-9. Audit Notes
-10. Machine-readable Output, only when requested
+1. Human Decision Summary
+2. Human Summary
+3. Current Status
+4. What I Need From You
+5. Recommended Next Step
+6. What AI Can Do Safely
+7. What AI Must Not Do
+8. Next-Step Suggestions
+9. Technical Details
+10. Audit Notes
+11. Machine-readable Output, only when requested
 
 ## Writing Rules
 
 - Start with a plain-language conclusion.
+- When a human has to choose, start with one recommended option and an options table.
 - Say whether AI may continue: yes, limited, or no.
 - Name the actual decision needed from the human.
+- Say whether the recommended option writes files, changes workflow assets, changes CI/release, or changes business code.
 - Explain what happens if the decision is not made.
 - Keep technical fields, paths, and command output in Technical Details.
 - Do not hide risk to sound simple.
@@ -37,6 +40,32 @@ Use this order:
 - Use `core/next-step-boundary.md` for next-step suggestions.
 - Render suggestions in plain language first, then keep the technical classification table when useful.
 - If a suggestion is not `IN_SCOPE_NEXT_STEP`, say that AI will not implement it in the current task.
+
+## Human Decision Summary Shape
+
+Use this shape when a decision, blocker, migration, adoption path, patch classification, review loop, or launch readiness result is being reported:
+
+```text
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice:
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A |  |  | Yes / No / Plan only | low / medium / high |  |
+
+Recommended reason:
+
+What happens if you do nothing:
+```
+
+Recommend exactly one option unless the safest answer is to pause. Do not use technical status codes as the option names.
 
 ## Status Values
 

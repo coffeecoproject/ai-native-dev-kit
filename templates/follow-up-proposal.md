@@ -4,6 +4,27 @@ Use this file to capture a bounded next-step suggestion that should not be imple
 
 This file is not approval and not a task card. It is an entry point for a future request, preflight, human decision, or explicit do-not-proceed record.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Keep as suggestion | Record the follow-up only | Proposal only | low | Choose when the current task should stay closed |
+| B | Open a new request | Start a separate workflow entry | New request/preflight only | low/medium | Choose when the follow-up is worth pursuing |
+| C | Require human decision first | Stop until the owner confirms risk or scope | Decision/proposal only | medium/high | Choose for risk, release, architecture, migration, or production |
+| D | Do not proceed | Mark the suggestion as out of bounds | Proposal only | low | Choose when the follow-up should not be implemented |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Source
 
 Related task:

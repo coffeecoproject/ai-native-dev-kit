@@ -867,6 +867,27 @@ if (enforce && enforceFailures.length > 0) {
 
 function printHumanOutput(result) {
   const human = buildHumanOutput(result);
+  const decision = buildHumanDecisionSummary(result, human);
+  console.log("## Human Decision Summary");
+  console.log("");
+  console.log(`Conclusion: ${decision.conclusion}`);
+  console.log("");
+  console.log(`Recommended choice: ${decision.recommendedChoice}`);
+  console.log("");
+  console.log(`Can AI continue now: ${decision.canAiContinue}`);
+  console.log("");
+  console.log(`What I need from you: ${decision.needFromHuman}`);
+  console.log("");
+  console.log("| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |");
+  console.log("|---|---|---|---|---|---|");
+  for (const option of decision.options) {
+    console.log(`| ${cell(option.option)} | ${cell(option.meaning)} | ${cell(option.aiWillDo)} | ${cell(option.writes)} | ${cell(option.risk)} | ${cell(option.when)} |`);
+  }
+  console.log("");
+  console.log(`Recommended reason: ${decision.reason}`);
+  console.log("");
+  console.log(`What happens if you do nothing: ${decision.ifNothing}`);
+  console.log("");
   console.log("## Human Summary");
   console.log("");
   console.log(human.summary);
@@ -899,6 +920,213 @@ function printHumanOutput(result) {
   console.log("## What AI Must Not Do");
   console.log("");
   for (const item of human.aiMustNotDo) console.log(`- ${item}`);
+}
+
+function cell(value) {
+  return String(value || "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+}
+
+function option(optionName, meaning, aiWillDo, writes, risk, when) {
+  return { option: optionName, meaning, aiWillDo, writes, risk, when };
+}
+
+function buildHumanDecisionSummary(result, human) {
+  const action = result.nextAction;
+  const needFromHuman = human.decisions?.join(" ") || "No decision needed.";
+  const defaultSummary = {
+    conclusion: human.summary,
+    recommendedChoice: "A - Follow the next safe action",
+    canAiContinue: human.canAiContinue,
+    needFromHuman,
+    options: [
+      option("A", "Follow the suggested workflow action", result.suggestedCommand || human.nextStep, "Depends on the suggested action", human.riskLevel, "Choose when the technical details match your intent"),
+      option("B", "Discuss first", "Explain the state and wait", "No", "low", "Choose when you are unsure"),
+      option("C", "Pause", "Stop and wait", "No", "low", "Choose when ownership or risk is unclear"),
+    ],
+    reason: human.reason,
+    ifNothing: "Codex should stop at the current workflow state and not infer approval.",
+  };
+
+  if (result.projectState === "TARGET_MISSING") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "A - Confirm the correct path",
+      options: [
+        option("A", "Confirm the target path", "Re-run workflow-next against the correct directory", "No", "low", "Choose when the path was mistyped"),
+        option("B", "Create a new project directory", "Wait until the directory exists, then inspect it", "No workflow writes yet", "medium", "Choose when this is meant to be a new project"),
+        option("C", "Pause", "Stop and wait", "No", "low", "Choose when the target project is not ready"),
+      ],
+      reason: "A missing path can easily write files into the wrong location if guessed.",
+      ifNothing: "No workflow setup or project inspection should happen.",
+    };
+  }
+
+  if (result.projectState === "DEV_KIT_REPOSITORY") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "A - Run dev-kit self-check",
+      needFromHuman: "Confirm whether the current work is changing the dev kit itself.",
+      options: [
+        option("A", "Self-check this dev kit", "Run local dev-kit checks and report results", "No target project files", "low", "Choose when editing shared workflow assets"),
+        option("B", "Discuss changes first", "Explain the intended dev-kit change", "No", "low", "Choose when direction is unclear"),
+        option("C", "Pause", "Stop and wait", "No", "low", "Choose when this is not the intended repository"),
+      ],
+      reason: "The directory is the kit source, so target-project bootstrap is not appropriate.",
+      ifNothing: "Codex should not treat this repository as a generated target project.",
+    };
+  }
+
+  if (action === "RUN_ADOPTION_ASSESSMENT") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "B - Docs-only adapter assessment",
+      options: [
+        option("A", "Inspect only in chat", "Read and summarize adoption risk", "No", "low", "Choose when you only want a diagnosis"),
+        option("B", "Docs-only adapter assessment", "Draft adoption assessment and governance map without replacing existing governance", "Report/docs only, if approved", "low/medium", "Choose for existing governed or production-sensitive projects"),
+        option("C", "Controlled setup after review", "Prepare workflow setup only after adapter assessment is approved", "Yes, approved workflow assets only", "medium/high", "Choose only after reviewing the assessment"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when project ownership or risk is unclear"),
+      ],
+      reason: "Governed, production-sensitive, or dirty projects should not receive a full workflow install before mapping existing rules.",
+      ifNothing: "Codex should remain read-only and avoid workflow writes.",
+    };
+  }
+
+  if (action === "REVIEW_DIRTY_WORKTREE") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "B - Review existing changes first",
+      options: [
+        option("A", "Inspect git status only", "List changed files and risk signals", "No", "low", "Choose when you only need visibility"),
+        option("B", "Review existing changes first", "Prepare a review packet or ownership summary", "Report only", "medium", "Choose when the changes may affect the next task"),
+        option("C", "Human cleans worktree", "Wait until owner commits, stashes, splits, or discards changes", "No", "low", "Choose for production-governed projects"),
+        option("D", "Proceed after explicit approval", "Continue only inside approved scope", "Approved task files only", "high", "Choose only when the owner accepts the risk"),
+      ],
+      reason: "Starting new work on top of unknown changes can mix ownership and hide regressions.",
+      ifNothing: "Codex should not create task artifacts or edit project files.",
+    };
+  }
+
+  if (action === "REVIEW_GOVERNANCE_MIGRATION") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "B - Review and merge deliberately",
+      options: [
+        option("A", "Keep migration pending", "Summarize pending reports only", "No", "low", "Choose when you are not ready to change governance"),
+        option("B", "Review and merge deliberately", "Explain report changes and wait for approval", "No direct write until approved", "medium", "Choose for existing AGENTS or PR templates"),
+        option("C", "Apply approved migration", "Run the explicit migration apply flag", "Yes, AGENTS/PR template only", "medium/high", "Choose only after reviewing the report"),
+        option("D", "Reject migration", "Keep current governance and record rejection", "Report only", "low/medium", "Choose when the current rules should stay unchanged"),
+      ],
+      reason: "Agent rules and PR templates change project governance, so they need explicit approval.",
+      ifNothing: "Migration reports stay pending and full workflow checks should continue to block.",
+    };
+  }
+
+  if (action === "INIT_WITH_STARTER") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "B - Initialize starter after confirming intent",
+      options: [
+        option("A", "Discuss project first", "Clarify platform and starter", "No", "low", "Choose when project direction is not settled"),
+        option("B", "Initialize starter", "Create workflow starter and onboarding assets", "Yes, starter/workflow assets", "low/medium", "Choose for a new project location"),
+        option("C", "Use platform-specific starter", "Select a platform starter before initializing", "Yes, starter/workflow assets", "medium", "Choose when platform is known"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when this path may not be the target project"),
+      ],
+      reason: "New projects can be bootstrapped, but the starter choice should match the user intent.",
+      ifNothing: "No starter should be created.",
+    };
+  }
+
+  if (action === "RUN_WORKFLOW_ASSET_UPDATE") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "B - Update workflow assets after confirming setup intent",
+      options: [
+        option("A", "Inspect missing assets", "Report gaps only", "No", "low", "Choose when you only need a status check"),
+        option("B", "Update workflow assets", "Refresh .ai-native assets and scripts", "Yes, workflow assets only", "medium", "Choose when this project is meant to use the kit directly"),
+        option("C", "Adapter-only path", "Map concepts without refreshing assets", "Docs/report only", "low/medium", "Choose for existing governed projects"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when asset ownership is unclear"),
+      ],
+      reason: "Workflow updates are safe only when the project is allowed to adopt or update the kit assets.",
+      ifNothing: "The project remains on its current workflow asset state.",
+    };
+  }
+
+  if (action === "RUN_PROJECT_ONBOARDING") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "A - Let AI draft onboarding for review",
+      options: [
+        option("A", "Draft onboarding docs", "Create or update project onboarding docs from evidence", "Docs only", "low/medium", "Choose when context is missing but can be drafted"),
+        option("B", "Answer focused questions first", "Ask up to three decision questions", "No", "low", "Choose when key facts are unknown"),
+        option("C", "Start only a narrow exception", "Proceed with a clearly bounded low-risk task", "Approved task files only", "medium", "Choose only with explicit approval"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when project direction is not settled"),
+      ],
+      reason: "Onboarding lets Codex draft routine context while humans only confirm decisions.",
+      ifNothing: "Codex should avoid broad implementation until onboarding is ready.",
+    };
+  }
+
+  if (action === "RUN_PLATFORM_BASELINE_SETUP") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "A - Recommend platform profile",
+      options: [
+        option("A", "Recommend platform profile", "Infer candidate profiles and ask for confirmation", "No or docs only if approved", "low/medium", "Choose when the platform can be detected"),
+        option("B", "Draft missing platform baseline", "Create required baseline docs for selected profiles", "Docs only", "medium", "Choose after profile confirmation"),
+        option("C", "Keep pending", "Leave baseline blocked", "No", "low", "Choose when platform is unclear"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when no one can confirm the platform"),
+      ],
+      reason: "Platform baselines affect engineering rules and verification, so selection should be explicit.",
+      ifNothing: "Platform-dependent work should remain blocked or limited.",
+    };
+  }
+
+  if (action === "RUN_INDUSTRIAL_BASELINE_SETUP") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "B - Draft selected BL2 evidence for review",
+      options: [
+        option("A", "Stay BL0/BL1", "Avoid strict industrial packs for now", "No", "low/medium", "Choose when industrial governance is not needed"),
+        option("B", "Draft selected BL2 evidence", "Prepare baseline selection and evidence gaps", "Docs/report only", "medium", "Choose when strict governance may be needed"),
+        option("C", "Install selected packs after approval", "Apply only approved industrial pack assets", "Yes, selected workflow assets only", "high", "Choose after explicit BL2 approval"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when risk ownership is unclear"),
+      ],
+      reason: "BL2 and industrial packs are selected-only and require evidence plus human approval.",
+      ifNothing: "Codex should not assume BL2 or install industrial packs.",
+    };
+  }
+
+  if (action === "READY_FOR_FIRST_REQUEST") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "A - Create the first request card",
+      options: [
+        option("A", "Create first request", "Draft the first request card from the user's goal", "Workflow record only", "low", "Choose when the first slice is clear"),
+        option("B", "Discuss first slice", "Ask focused questions before creating artifacts", "No", "low", "Choose when the first slice is unclear"),
+        option("C", "Baseline check first", "Re-check onboarding or baseline state", "No", "low", "Choose when setup may be stale"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when no implementation goal exists"),
+      ],
+      reason: "A request card starts work without jumping directly into code.",
+      ifNothing: "No implementation task should begin.",
+    };
+  }
+
+  if (action === "READY_FOR_TASK_EXECUTION") {
+    return {
+      ...defaultSummary,
+      recommendedChoice: "B - Select one approved task",
+      options: [
+        option("A", "Execute current selected task", "Implement only the approved task card", "Approved task files only", "medium", "Choose when exactly one task is selected"),
+        option("B", "Select one approved task", "Ask which task to run next, then verify artifacts", "No until selected", "low/medium", "Choose when multiple tasks or ambiguity exists"),
+        option("C", "Review before execution", "Run artifact or review checks first", "Evidence/report only", "low", "Choose when confidence is not high"),
+        option("D", "Pause", "Stop and wait", "No", "low", "Choose when task approval is unclear"),
+      ],
+      reason: "Task execution should be tied to one explicit task card and verification path.",
+      ifNothing: "Codex should not choose a task silently when selection is ambiguous.",
+    };
+  }
+
+  return defaultSummary;
 }
 
 function printTechnicalOutput(result, enforceFailures) {

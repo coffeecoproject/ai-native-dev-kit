@@ -1,5 +1,26 @@
 # Patch Classification Report
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Safe local fix | Fix only the approved small issue | Yes, approved task files only | low/medium | Choose when evidence shows the root cause is local |
+| B | Baseline-aligned hardcut | Replace the weak path with the expected baseline behavior | Yes, approved task files only | medium | Choose when a small patch would preserve the wrong structure |
+| C | Structural remediation | Stop implementation and prepare a broader remediation plan | Plan/report only | medium/high | Choose when the issue is architectural or cross-cutting |
+| D | Do not patch | Stop because the change would hide risk or need human decision | No | high if bypassed | Choose when root cause, approval, or rollback is unclear |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence repair-scale conclusion.

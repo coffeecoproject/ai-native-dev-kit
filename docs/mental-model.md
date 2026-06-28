@@ -287,15 +287,21 @@ Use Output Experience for every important workflow status, blocked state, review
 
 It answers:
 
+- What is the recommended option?
+- What alternatives exist?
+- Which option writes project files?
 - What happened?
 - Can AI continue?
 - Why?
 - What does the human need to decide?
+- What happens if the human does nothing?
 - What is the next safe step?
 - What may AI do now?
 - What must AI avoid?
 
 It does not replace technical details. It moves them after the human-facing summary.
+
+For decision-heavy states, the first section is `Human Decision Summary`. It should make the choice clear before exposing fields such as `NEXT_ACTION`, `ADOPTION_MODE`, or baseline state.
 
 Use:
 

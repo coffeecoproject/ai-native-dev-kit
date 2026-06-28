@@ -18,6 +18,13 @@ Your job is to classify what the completed work can safely be used for right now
 Return:
 
 ```text
+Human Decision Summary:
+- Conclusion:
+- Recommended choice:
+- Can AI continue now:
+- Options:
+- What happens if you do nothing:
+
 Readiness:
 Evidence gaps:
 Human decisions:

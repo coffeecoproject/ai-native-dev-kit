@@ -12,6 +12,7 @@ Classify the proposed fix as:
 
 Return:
 
+- a `Human Decision Summary` first
 - why this type
 - why not `SAFE_LOCAL_FIX`
 - why not another type
@@ -24,6 +25,8 @@ Return:
 - required evidence
 - required human decisions
 - verification plan
+
+The `Human Decision Summary` must state the recommended repair path, the alternative paths, whether each path writes files, whether it could hide root cause, and whether Codex may continue. Do not make the human infer the recommendation from the classification enum.
 
 Rules:
 

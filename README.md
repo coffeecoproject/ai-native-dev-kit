@@ -1,68 +1,81 @@
 # AI Native Dev Kit
 
-这是一套给软件项目使用的 AI 协作工作流。
+`ai-native-dev-kit` 是一套让 Codex 或其他 AI 安全接入软件项目的工作流底座。
 
-它不是提示词合集，也不是让 AI 直接重写项目。它做的事更简单：让 Codex 或其他 AI 在项目里先判断、再记录、再执行、再验证，避免一上来乱改代码。
+它不是提示词合集，也不是代码模板。它解决的是一个更现实的问题：AI 进入项目后，应该先理解项目、确认边界、写下计划，再执行、验证和复查，而不是一上来改代码。
 
 ## 3 分钟理解
 
-你可以把它当成一层项目治理：
+可以把它理解成一层“AI 协作治理”。
 
-- 新项目：从第一天开始把需求、风险、验证和记录放好。
-- 已有项目：先补上下文，再接管新增需求，慢慢治理旧问题。
-- 已上线或已有强治理项目：先只读评估，不直接初始化、不覆盖原有规则。
-
-## 选择哪条路
-
-先按项目风险选，不要一开始把所有能力都打开。
-
-| 场景 | 建议路径 |
+| 项目类型 | 默认做法 |
 |---|---|
-| 轻量试验、本地工具、小功能 | `O0 + BL0 + core workflow` |
-| 普通真实项目、内部系统、中台功能 | `O1 + selected profiles + BL1` |
-| 生产、客户、权限、数据、支付、发布风险项目 | `O2 + selected profiles + BL2 + selected industrial packs` |
+| 新项目 | 从第一天开始沉淀需求、风险、工程规则、验证和记录 |
+| 已有项目 | 先读现有代码和规则，再让新增需求走统一流程 |
+| 已上线项目 | 先只读评估现有治理，不直接初始化、不覆盖原规则 |
 
-Web 和微信小程序已经有 BL2 演练示例，但工业包仍按 maturity 管理；`draft` 不等于生产稳定标准。
+核心顺序是：
 
-当前版本还增加了五层保护：任务完成后先判断能不能演示、交接或进入发布审查；对话过程中如果用户只是讨论、改范围、提出新想法或问上线风险，Codex 要先识别边界，不能直接把聊天内容当成执行许可；如果用户只有一个想法，可以走一次完整的首次交付演练；如果是真实已上线/强治理项目，先只读接入，不覆盖原规则；如果要修复杂问题，先判断是安全小修、按基线 hardcut、结构治理、需要人决策，还是不能补丁化处理。
+```text
+读项目 -> 判断状态 -> 推荐路径 -> 人确认关键决策 -> AI 按计划执行
+```
 
-## 最小用法
+所有需要判断的输出，会先给“推荐选项、备选方案、是否写文件、风险、不处理会怎样”，再给技术细节。用户只需要做选择和确认，不需要先看懂内部状态码。
 
-第一步先让 Codex 判断这个项目怎么接：
+## 它解决什么
+
+- 避免 AI 没读懂项目就直接改代码。
+- 把工程规范、运行环境、发布边界先说清楚。
+- 把“人做判断”和“AI 做执行”分开。
+- 避免聊天、讨论、临时想法被误当成执行许可。
+- 修复杂问题前先判断修复尺度，避免小补丁掩盖结构问题。
+- 对真实强治理项目，先映射已有规则，而不是复制一套新规则进去。
+
+## 怎么选
+
+不要一开始把所有能力都打开，先按项目风险选。
+
+| 项目状态 | 推荐方式 |
+|---|---|
+| 试验、小工具、低风险功能 | `O0 + BL0 + core workflow` |
+| 普通 Web、中台、小程序、App、后台服务 | `O1 + selected profiles + BL1` |
+| 有客户、生产数据、权限、支付、发布风险 | `O2 + selected profiles + BL2 + selected industrial packs` |
+
+平台 profile 负责区分 Web、iOS、Android、微信小程序、后端、内部管理系统、高风险变更等工程差异。工业包只按需启用，`draft` 不等于生产稳定。
+
+## 最小开始方式
+
+第一步，让 Codex 只读判断项目状态：
 
 ```bash
 node scripts/cli.mjs start ../my-project
 ```
 
-它只读检查，不写项目文件。输出会告诉你：这是新项目、已有项目、强治理项目、已上线风险项目、dirty worktree，还是已经接入过的项目。你只需要确认方向。
-
-第二步让 Codex 判断这个项目需要什么工程基线和环境基线：
+第二步，让 Codex 判断需要哪些工程基线和环境基线：
 
 ```bash
 node scripts/cli.mjs baseline ../my-project
 ```
 
-这一步也只读，不写项目文件。它会告诉你应该先确认哪些代码规则、运行环境、构建测试、发布回滚、密钥边界。真正写入基线文件时，必须先生成计划，再确认后应用。
-
-如果需要看更底层的状态，再运行：
+如果要看更底层的工作流状态：
 
 ```bash
 node scripts/cli.mjs next ../my-project
 ```
 
-新项目可以初始化：
+新项目初始化：
 
 ```bash
 node scripts/cli.mjs init --starter generic-project --target ../my-project
 ```
 
-已有项目先生成计划：
+已有项目先预览，不直接写入：
 
 ```bash
 node scripts/cli.mjs update --target ../my-project --dry-run
 ```
 
-迁移旧版本时只生成计划，不直接改项目：
+旧版本升级先生成迁移计划：
 
 ```bash
 node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --dry-run
@@ -75,6 +88,35 @@ node scripts/cli.mjs check ../my-project --mode core
 node scripts/cli.mjs doctor ../my-project
 ```
 
+## Codex 一句话入口
+
+把仓库地址、目录或文件给 Codex，然后说：
+
+```text
+请读取这套 AI Native Dev Kit，并自己判断当前项目状态，然后完成 workflow 配置。
+```
+
+如果你说“先看下、先沟通、先评估、不要执行”，Codex 只能分析，不能改文件。
+
+## 核心能力
+
+| 能力 | 作用 |
+|---|---|
+| 引导式接入 | 先判断项目是新项目、已有项目、强治理项目、生产敏感项目、dirty worktree，还是已接入项目 |
+| 工程/环境基线 | 明确代码结构、数据库、API、权限、运行环境、构建测试、发布回滚和密钥边界 |
+| Goal + Subagent | 只有需要时才使用目标卡和 helper agent，并要求用完关闭 |
+| Review Loop | 任务完成后复查，限制自动修复，把风险问题交给人判断 |
+| 项目记忆治理 | Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
+| 安全交付判断 | 区分可以演示、可以交接、可以进入发布审查，还是还不 ready |
+| 对话偏移控制 | 识别讨论、范围变化、新想法和风险问题，避免误执行 |
+| 首次交付演练 | 从一句想法走完一次需求、规格、任务、验证、复查和交付边界 |
+| 真实项目只读接入 | 对已上线或强治理项目，先映射现有治理，不覆盖原流程 |
+| 补丁分类 | 修复杂问题前先判断是安全小修、结构治理、需要人决策，还是不能补丁化处理 |
+
+`real-adoption` 和 `patch-classification` 检查的是已经记录好的证据，不会自动扫描真实项目、写入桥接文件或批准实现。
+
+## Dev Kit 自检
+
 维护 Dev Kit 自身时，可以检查产品边界和声明口径：
 
 ```bash
@@ -86,90 +128,85 @@ node scripts/check-conversation-drift.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/check-guided-adoption.mjs .
 ```
 
-`real-adoption` 和 `patch-classification` 检查的是已经记录好的证据，不会自动扫描真实项目、写入桥接文件或批准实现。
+## 重要边界
 
-保存过的接入建议可以检查：
-
-```bash
-node scripts/check-guided-adoption.mjs ../my-project
-```
-
-## 给 Codex 的一句话
-
-在 Codex 里，把这个仓库地址或目录给它，然后说：
-
-```text
-请读取这套 AI Native Dev Kit，并自己判断当前项目状态，然后完成 workflow 配置。
-```
-
-如果你说“先看看、先沟通、先评估、不要执行”，Codex 只能读取和分析，不能改文件。
-
-## 不要怎么用
-
-- 不要把它当成万能模板直接全量复制。
-- 不要在已上线项目里跳过只读评估。
-- 不要默认启用所有工业包。
-- 不要让 migration 命令直接改项目；当前迁移只产出计划。
-- 不要让 baseline 命令直接改项目；默认只给建议，写入必须走计划和确认。
-- 不要把 Goal Card、Review Loop 或 subagent 输出当成人的风险批准。
-- 不要把模拟 dogfood 或生成项目 smoke 写成真实生产验证。
-- 不要把 AI 推断出来的环境、发布、回滚、监控信息当成事实。
+- 不是每次都要开 Goal Card 或 subagent；按任务风险决定。
+- 不是每次改动都走最重流程；任务完成后再进入 Review Loop。
+- 不是所有工业包都装进项目；只启用项目需要的部分。
+- 已上线或强治理项目不要直接初始化；先走只读接入评估。
+- `baseline` 默认只生成建议，不直接改目标项目。
+- `migrate` 当前只生成计划，不直接改目标项目。
+- 人负责风险接受、业务取舍和发布确认；AI 负责整理、执行、检查和记录。
+- 不要把模拟 dogfood、生成项目 smoke、首次交付演练说成真实生产验证。
+- 不要把 AI 推断出的环境、发布、回滚、监控信息当成已确认事实。
 - 不要把 Codex 观察到的内容直接当成项目记忆；必须先做人确认。
 - 不要把 `READY_FOR_DEMO`、`READY_FOR_INTERNAL_HANDOFF` 或 `READY_FOR_RELEASE_REVIEW` 当成生产上线批准。
-- 不要把讨论、旁路问题、范围变化或风险问题直接当成继续当前任务的许可。
-- 不要把 First Delivery Walkthrough 或 Adoption Trial Report 当成真实生产验证。
+- 不要把讨论、范围变化、旁路问题或风险问题直接当成继续当前任务的许可。
 - 不要把真实项目只读接入报告当成允许写入项目。
-- 不要把 Patch Classification Report 当成允许实现；它只判断修复尺度。
-- 不要让 helper subagent 一直保持 `RUNNING`。
+- 不要把补丁分类报告当成允许实现；它只判断修复尺度。
 
-## 完整文档
+## 完整说明
+
+先读这些：
 
 - [中文说明](README.zh-CN.md)
-- [Operator Manual](docs/operator-manual.md)
-- [Quickstart](docs/quickstart.md)
-- [First Hour](docs/first-hour.md)
-- [Codex Usage](docs/codex-usage.md)
-- [Mental Model](docs/mental-model.md)
-- [Artifact Decision Tree](docs/artifact-decision-tree.md)
-- [Goal + Subagent Usage](docs/goal-subagent-usage.md)
-- [Baseline Setup](docs/baseline-setup.md)
-- [Guided Delivery Baseline](docs/guided-delivery-baseline.md)
-- [Product Baseline](docs/product-baseline.md)
-- [Claim Control](docs/claim-control.md)
-- [Project Memory](docs/project-memory.md)
-- [Git Boundary](docs/git-boundary.md)
-- [Context Governance Usage](docs/context-governance-usage.md)
-- [Minimal Commit Set](docs/minimal-commit-set.md)
-- [Safe Launch](docs/safe-launch.md)
-- [Conversation Drift Control](docs/conversation-drift-control.md)
-- [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)
-- [Real Project Read-only Adoption Trial Plan](docs/real-project-adoption-trial-1.8-plan.md)
-- [Real Adoption Usage](docs/real-adoption-usage.md)
-- [Scripts Reference](docs/reference/scripts.md)
-- [Artifacts Reference](docs/reference/artifacts.md)
-- [Checkers Reference](docs/reference/checkers.md)
-- [Industrial Packs Reference](docs/reference/industrial-packs.md)
-- [New Project Playbook](docs/adoption-playbooks/new-project.md)
-- [Existing Light Project Playbook](docs/adoption-playbooks/existing-light-project.md)
-- [Governed Read-Only Playbook](docs/adoption-playbooks/governed-project-read-only.md)
-- [Production Project Adapter Playbook](docs/adoption-playbooks/production-project-adapter.md)
-- [Migration Index](docs/migrations/index.md)
-- [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [FAQ](docs/faq.md)
-- [1.8.1 Release Record](releases/1.8.1/release-record.md)
-- [1.8 Release Record](releases/1.8.0/release-record.md)
-- [1.7 Release Record](releases/1.7.0/release-record.md)
-- [1.6 Release Record](releases/1.6.0/release-record.md)
-- [1.5 Release Record](releases/1.5.0/release-record.md)
-- [1.4.1 Release Record](releases/1.4.1/release-record.md)
-- [1.4 Release Record](releases/1.4.0/release-record.md)
-- [1.3 Release Record](releases/1.3.0/release-record.md)
-- [1.2 Release Record](releases/1.2.0/release-record.md)
-- [1.1 Release Record](releases/1.1.0/release-record.md)
-- [1.0 Release Record](releases/1.0.0/release-record.md)
+- [Operator Manual](docs/operator-manual.md)：完整操作手册
+- [Quickstart](docs/quickstart.md)：快速开始
+- [First Hour](docs/first-hour.md)：第一次接入项目时怎么走
+- [Codex Usage](docs/codex-usage.md)：Codex 使用路径
+- [Mental Model](docs/mental-model.md)：整体心智模型
+
+使用工作流：
+
+- [Artifact Decision Tree](docs/artifact-decision-tree.md)：什么时候用哪个文件
+- [Goal + Subagent Usage](docs/goal-subagent-usage.md)：目标和 subagent 编排
+- [Guided Delivery Baseline](docs/guided-delivery-baseline.md)：引导式交付基准
+- [Product Baseline](docs/product-baseline.md)：产品边界
+- [Claim Control](docs/claim-control.md)：声明口径控制
+- [Project Memory](docs/project-memory.md)：项目记忆与上下文治理
+- [Git Boundary](docs/git-boundary.md)：哪些内容应该进 Git
+- [Context Governance Usage](docs/context-governance-usage.md)：上下文治理怎么用
+- [Minimal Commit Set](docs/minimal-commit-set.md)：提交时只提交什么
+- [Safe Launch](docs/safe-launch.md)：交付前判断能不能演示、交接或进入发布审查
+- [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
+- [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
+- [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
+
+接入项目：
+
+- [Baseline Setup](docs/baseline-setup.md)：工程基线与环境基线设置
+- [New Project Playbook](docs/adoption-playbooks/new-project.md)：新项目接入
+- [Existing Light Project Playbook](docs/adoption-playbooks/existing-light-project.md)：已有轻治理项目接入
+- [Governed Read-Only Playbook](docs/adoption-playbooks/governed-project-read-only.md)：强治理项目只读接入
+- [Production Project Adapter Playbook](docs/adoption-playbooks/production-project-adapter.md)：已上线项目 adapter 接入
+
+查规范：
+
+- [Scripts Reference](docs/reference/scripts.md)：命令说明
+- [Artifacts Reference](docs/reference/artifacts.md)：文件说明
+- [Checkers Reference](docs/reference/checkers.md)：检查器说明
+- [Industrial Packs Reference](docs/reference/industrial-packs.md)：工业包说明
+- [Migration Index](docs/migrations/index.md)：迁移入口
+- [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
+- [Troubleshooting](docs/troubleshooting.md)：常见问题处理
+- [FAQ](docs/faq.md)：问答
+
+版本记录：
+
+- [1.8.1 Release Record](releases/1.8.1/release-record.md)：1.8.1 真实项目接入校准
+- [1.8 Release Record](releases/1.8.0/release-record.md)：1.8 真实项目只读接入与补丁分类治理
+- [1.7 Release Record](releases/1.7.0/release-record.md)：1.7 首次交付演练
+- [1.6 Release Record](releases/1.6.0/release-record.md)：1.6 对话偏移控制
+- [1.5 Release Record](releases/1.5.0/release-record.md)：1.5 安全交付就绪
+- [1.4.1 Release Record](releases/1.4.1/release-record.md)：1.4.1 上下文治理使用修整
+- [1.4 Release Record](releases/1.4.0/release-record.md)：1.4 项目记忆与上下文治理
+- [1.3 Release Record](releases/1.3.0/release-record.md)：1.3 引导式交付基准
+- [1.2 Release Record](releases/1.2.0/release-record.md)：1.2 基线引导设置
+- [1.1 Release Record](releases/1.1.0/release-record.md)：1.1 引导式接入入口
+- [1.0 Release Record](releases/1.0.0/release-record.md)：1.0 发布边界
 - [Productization Hardcut Plan](docs/productization-hardcut-1.0-plan.md)
 
 ## License

@@ -25,6 +25,8 @@ Ask the human to confirm:
 - engineering decisions that Codex must follow
 - environment, release, rollback, secret, and production assumptions
 
+When reporting these decisions, start with `Human Decision Summary`. Include the recommended option, alternatives, whether each option writes project files, risk, and what happens if the human does nothing. Do not ask the human to fill blank baseline templates when Codex can draft them from evidence.
+
 ## Write Flow
 
 Do not write baseline docs directly from recommendation.

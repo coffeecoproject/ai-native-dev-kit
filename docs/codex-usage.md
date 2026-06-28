@@ -43,7 +43,7 @@ Expected Codex behavior:
 - Treat `baseline` as read-only by default: it must include `Can AI write now: No`.
 - Use `scripts/baseline-project.mjs <project-root> --write-plan <file>` and reviewed `--apply-plan <file>` before writing baseline docs.
 - Use `scripts/workflow-next.mjs <project-root>` as the lower-level technical state detector when needed.
-- Report `workflow-next` results with a human summary first, then technical state fields. Use `--format technical` only when the user or automation asks for raw technical output.
+- Report `workflow-next` results with `Human Decision Summary` first, then human summary, then technical state fields. The decision summary must include the recommended option, alternatives, whether each option writes files, risk, and what happens if the human does nothing. Use `--format technical` only when the user or automation asks for raw technical output.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce a real adoption report, existing governance map, and patch classification first.
 - If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, do not create workflow artifacts, execute task cards, or edit files until the human confirms how to handle existing changes.
 - Follow `NEXT_ACTION`.
@@ -192,7 +192,7 @@ Use this when Codex needs to explain workflow state, baseline readiness, adoptio
 
 ```text
 Summarize this using the AI Native Output Experience Protocol.
-Start with whether AI can continue, what I need to decide, and the next safe step.
+Start with Human Decision Summary: recommended option, alternatives, whether each option writes files, risk, whether AI can continue, what I need to decide, and what happens if I do nothing.
 Keep technical fields and audit notes after the human summary.
 ```
 

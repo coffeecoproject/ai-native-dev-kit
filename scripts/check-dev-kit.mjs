@@ -1700,6 +1700,10 @@ function checkOutputExperienceProtocol() {
   const combined = Object.values(files).join("\n");
   const requiredMarkers = [
     "Human first. Technical second. Machine last.",
+    "Human Decision Summary",
+    "Recommended choice",
+    "Writes project files?",
+    "What happens if you do nothing",
     "Human Summary",
     "Current Status",
     "What I Need From You",
@@ -1730,7 +1734,7 @@ function checkOutputExperienceProtocol() {
   }
 
   const workflowNext = read("scripts/workflow-next.mjs");
-  for (const marker of ["--format human", "--format technical", "## Human Summary", "## Technical Details"]) {
+  for (const marker of ["--format human", "--format technical", "## Human Decision Summary", "## Human Summary", "## Technical Details"]) {
     if (workflowNext.includes(marker)) {
       pass(`workflow-next supports output marker ${marker}`);
     } else {

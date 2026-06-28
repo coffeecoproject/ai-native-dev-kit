@@ -1,5 +1,26 @@
 # Baseline Recommendation Report: <project-name>
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Inspect only | Read current project signals and report baseline gaps | No | low | Choose when you only want diagnosis |
+| B | Plan first | Draft a baseline plan for review | Plan/report only | low/medium | Choose when the project baseline should be confirmed before files change |
+| C | Apply reviewed baseline | Apply approved engineering/environment/profile docs | Yes, approved baseline docs only | medium | Choose only after the baseline plan is approved |
+| D | Pause | Stop baseline setup and wait | No | low | Choose when the project direction is not ready |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 Can AI write now: No
@@ -58,5 +79,4 @@ Recommendation:
 - Do not enable BL2 or install industrial packs without explicit human confirmation.
 
 ## Final Recommendation
-
 

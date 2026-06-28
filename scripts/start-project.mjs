@@ -449,7 +449,28 @@ function action(label, command, writes, requiresHumanConfirmation) {
 }
 
 function printRecommendation(report) {
+  const decision = buildStartDecisionSummary(report);
   console.log("# Guided Adoption Recommendation");
+  console.log("");
+  console.log("## Human Decision Summary");
+  console.log("");
+  console.log(`Conclusion: ${decision.conclusion}`);
+  console.log("");
+  console.log(`Recommended choice: ${decision.recommendedChoice}`);
+  console.log("");
+  console.log(`Can AI continue now: ${decision.canAiContinue}`);
+  console.log("");
+  console.log(`What I need from you: ${decision.needFromHuman}`);
+  console.log("");
+  console.log("| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |");
+  console.log("| --- | --- | --- | --- | --- | --- |");
+  for (const option of decision.options) {
+    console.log(`| ${mdCell(option.option)} | ${mdCell(option.meaning)} | ${mdCell(option.aiWillDo)} | ${mdCell(option.writes)} | ${mdCell(option.risk)} | ${mdCell(option.when)} |`);
+  }
+  console.log("");
+  console.log(`Recommended reason: ${decision.reason}`);
+  console.log("");
+  console.log(`What happens if you do nothing: ${decision.ifNothing}`);
   console.log("");
   console.log("## Human Summary");
   console.log("");
@@ -512,6 +533,81 @@ function printRecommendation(report) {
   console.log("## Final Recommendation");
   console.log("");
   console.log(report.finalRecommendation);
+}
+
+function buildStartDecisionSummary(report) {
+  const actions = report.safeNextActions || [];
+  const recommended = chooseRecommendedStartAction(report, actions);
+  const options = actions.slice(0, 4).map((item, index) => ({
+    option: String.fromCharCode(65 + index),
+    meaning: item.label,
+    aiWillDo: item.command,
+    writes: item.writes,
+    risk: startActionRisk(report, item),
+    when: startActionWhen(report, item),
+  }));
+
+  if (!options.some((item) => item.meaning === "Pause")) {
+    options.push({
+      option: String.fromCharCode(65 + options.length),
+      meaning: "Pause",
+      aiWillDo: "Stop and wait for a clearer decision.",
+      writes: "No",
+      risk: "low",
+      when: "Choose when ownership, risk, or adoption intent is unclear.",
+    });
+  }
+
+  return {
+    conclusion: `This project is classified as ${report.classification.projectType}; the recommended adoption mode is ${report.classification.adoptionMode}.`,
+    recommendedChoice: recommended ? `${optionLetterFor(options, recommended)} - ${recommended.label}` : "A - Review the recommendation",
+    canAiContinue: report.classification.canAiWriteNow === "Yes" ? "yes" : "limited",
+    needFromHuman: report.decisionsNeededFromHuman?.[0] || "Confirm the recommended adoption path.",
+    options,
+    reason: report.finalRecommendation,
+    ifNothing: report.classification.canAiWriteNow === "Yes"
+      ? "Codex should wait for setup intent before writing workflow assets."
+      : "Codex should remain read-only and avoid project writes.",
+  };
+}
+
+function chooseRecommendedStartAction(report, actions) {
+  if (report.classification.projectType === "PRODUCTION_SENSITIVE_PROJECT" || report.classification.projectType === "GOVERNED_EXISTING_PROJECT") {
+    return actions.find((item) => item.label.includes("Prepare real adoption")) || actions.find((item) => item.label.includes("Read-only")) || actions[0];
+  }
+  if (report.classification.projectType === "DIRTY_WORKTREE_PROJECT") {
+    return actions.find((item) => item.label.includes("Read-only")) || actions[0];
+  }
+  if (report.classification.projectType === "DEV_KIT_REPOSITORY") {
+    return actions.find((item) => item.label.includes("self-check")) || actions[0];
+  }
+  if (report.classification.canAiWriteNow === "Yes") {
+    return actions.find((item) => item.writes !== "No") || actions[0];
+  }
+  return actions.find((item) => item.writes === "Report only" || item.writes === "Plan file only") || actions[0];
+}
+
+function optionLetterFor(options, actionItem) {
+  const optionItem = options.find((item) => item.meaning === actionItem.label);
+  return optionItem?.option || "A";
+}
+
+function startActionRisk(report, item) {
+  if (item.writes === "No") return "low";
+  if (report.classification.riskLevel === "high" || report.classification.riskLevel === "medium-high") return "medium/high";
+  if (item.requiresHumanConfirmation === "Yes") return "medium";
+  return "low/medium";
+}
+
+function startActionWhen(report, item) {
+  if (item.writes === "No") return "Choose when you want diagnosis before setup.";
+  if (item.writes === "Report only" || item.writes === "Plan file only") return "Choose when you want a durable record before applying changes.";
+  if (report.classification.canAiWriteNow === "Yes") return "Choose when setup intent is clear and the project is not protected by read-only adoption.";
+  return "Choose only after reviewing and approving the plan.";
+}
+
+function mdCell(value) {
+  return String(value || "").replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
 function humanizeKey(key) {

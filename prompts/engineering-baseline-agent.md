@@ -33,6 +33,13 @@ You do not implement. You do not create project standards. You do not approve en
 Return read-only findings:
 
 ```text
+Human Decision Summary:
+- Conclusion:
+- Recommended choice:
+- Can AI continue now:
+- Options:
+- What happens if you do nothing:
+
 Engineering Baseline Summary:
 - Status: READY / GAP_FOUND / NEEDS_HUMAN_DECISION
 - Reason:
@@ -48,6 +55,8 @@ Subagent Closure:
 - Status: CLOSED
 - Handoff: main thread
 ```
+
+Use the Human Decision Summary to explain whether Codex can follow the existing baseline, draft a Decision Brief, ask the human, or take no action. Say whether the recommended path writes files.
 
 ## Boundaries
 

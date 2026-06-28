@@ -1,5 +1,26 @@
 # Learning Candidate: <name>
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Approve learning | Move this candidate into the chosen source of truth | Context/baseline only | low/medium | Choose when the observation is confirmed |
+| B | Keep as candidate | Record it without treating it as truth | Candidate only | low | Choose when evidence is useful but not confirmed |
+| C | Reject learning | Do not persist this as project context | Candidate/report only | low | Choose when the observation is wrong or too specific |
+| D | Ask for more evidence | Pause before updating context | Candidate/evidence only | low/medium | Choose when confidence is low |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 Codex observed something that may need to become project context, but it is not confirmed yet.
@@ -57,4 +78,3 @@ Required when Human Decision is Rejected.
 - Do not update source-of-truth until approved.
 - Do not treat this candidate as `CONFIRMED` context.
 - Do not cite this candidate as a baseline rule.
-

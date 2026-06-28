@@ -32,6 +32,7 @@ const reportDirs = [
   "customer-handoffs",
 ];
 const requiredQualitySections = [
+  "Human Decision Summary",
   "Human Summary",
   "Technical Details",
   "Audit Notes",
@@ -87,13 +88,16 @@ function scoreFile(filePath) {
   for (const section of requiredQualitySections) {
     add(10, hasSection(content, section), `${section} section exists`);
   }
+  add(10, /Recommended choice:/i.test(sectionBody(content, "Human Decision Summary")), "decision summary has recommended choice");
+  add(8, /Writes project files\?/i.test(content), "decision summary explains writes");
+  add(8, /What happens if you do nothing:/i.test(content), "decision summary explains no-decision outcome");
   add(12, bodyHasConcreteText(content, "Human Summary"), "Human Summary is concrete");
   add(10, hasSection(content, "Next Safe Action") || hasSection(content, "Recommended Next Step"), "next safe action is present");
   add(10, hasSection(content, "Human Decisions Needed") || hasSection(content, "What I Need From You"), "human decision section is present");
   add(10, hasSection(content, "Next-Step Suggestions") || /No follow-up|No next step|Not applicable/i.test(content), "next-step boundary is present");
   add(8, /evidence refs?:|evidence ref|commands run|verified|verification/i.test(content), "evidence or verification is present");
   add(8, /risk|approval|approved|exception|residual/i.test(content), "risk or approval context is present");
-  add(6, countMatches(content, /\b(NEXT_ACTION|ADOPTION_MODE|EVIDENCE_MISSING|BASELINE_STATE|PROJECT_STATE)\b/g) === 0 || hasSection(content, "Human Summary"), "machine terms are paired with human summary");
+  add(6, countMatches(content, /\b(NEXT_ACTION|ADOPTION_MODE|EVIDENCE_MISSING|BASELINE_STATE|PROJECT_STATE)\b/g) === 0 || hasSection(content, "Human Decision Summary"), "machine terms are paired with human decision summary");
   add(6, !/\b(done|safe|approved)\b/i.test(sectionBody(content, "Next-Step Suggestions")) || /Can AI do now\?/i.test(sectionBody(content, "Next-Step Suggestions")), "next-step suggestions include execution boundary");
 
   const normalizedScore = Math.min(100, score);

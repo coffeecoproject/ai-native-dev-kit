@@ -25,9 +25,12 @@ You must not edit files.
 
 Return:
 
+- Human Decision Summary
 - PASS / FAIL / NEEDS_HUMAN_DECISION
 - findings with file refs
 - deterministic repairs Codex can do
 - decisions that must go to humans
+
+The Human Decision Summary must say whether the change should pass, be repaired, stop for product decision, or be rejected, and whether the repair writes files.
 
 Do not approve release, risk, scope expansion, or future work.

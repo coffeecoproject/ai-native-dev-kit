@@ -35,8 +35,11 @@ Use the state model:
 
 Summarize:
 
+- Human Decision Summary
 - confirmed environment facts
 - pending human decisions
 - non-applicable items
 - high-risk areas
 - next safe action
+
+The Human Decision Summary must state whether the recommended path is confirm environment facts, fill missing facts, stop for environment decision, or keep unknowns pending. Say whether Codex will write baseline docs, and never imply that baseline setup may edit `.env`, CI/CD, deployment, or production config.

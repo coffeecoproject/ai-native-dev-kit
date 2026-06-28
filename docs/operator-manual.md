@@ -30,6 +30,8 @@ node scripts/cli.mjs start <project>
 
 `start` is read-only by default. It classifies the project, recommends the adoption path, and lists human decisions. Use `node scripts/cli.mjs next <project>` only when you need the lower-level `workflow-next` state.
 
+Decision-heavy output must start with `Human Decision Summary`. The user should see one recommended choice, alternatives, whether each choice writes project files, the risk, and what happens if they do nothing before any technical fields.
+
 After adoption classification, use baseline setup:
 
 ```bash

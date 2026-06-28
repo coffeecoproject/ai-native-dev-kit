@@ -6,6 +6,8 @@ This page explains how to use real-project adoption without turning it into a ta
 
 For an existing real project, Codex should first inspect read-only, decide whether the project is light, governed, production-sensitive, or blocked, then record what it found. The user should only decide whether a later bridge write is allowed.
 
+Every real-adoption result should start with `Human Decision Summary`: the recommended path, alternatives, whether each path writes target files, risk, and what happens if the user does nothing.
+
 ## What The Commands Do
 
 `real-adoption` checks recorded reports. It does not inspect a target project by itself and does not generate a report automatically.
@@ -43,6 +45,8 @@ read-only inspect
 | The project already has strong rules, docs, CI, release, or evidence | `governance-maps/` | maps AI Native concepts to existing authority instead of copying templates |
 | A future fix may touch API, data, permissions, CI, release, environment, baseline, gate, or architecture | `patch-classifications/` | classifies repair scale before a patch-style change |
 | A high-risk keyword appears but review says it is only background context | `patch-classification-false-positives/` | records the calibration decision without weakening default checks |
+
+False-positive records do not change the original patch classification report. If the repair scale should change, create a new patch classification report or record an explicit human decision.
 
 ## Bridge Modes
 

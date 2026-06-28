@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.8.1`
+Current version: `1.9.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,14 @@ Current version: `1.8.1`
 
 ## Current Release
 
-`1.8.1`
+`1.9.0`
 
 Includes:
 
+- Human Decision Summary phase `1.9.0`: decision-heavy output now starts with a clear recommendation, alternatives, file-write impact, risk, and no-decision outcome before technical details
+- Added `docs/human-decision-summary-1.9-plan.md` and `releases/1.9.0/` evidence for the output clarity upgrade
+- Updated `core/output-protocol.md`, reporter/workflow prompts, human-facing templates, `workflow-next`, `start`, `baseline`, and governance migration reports to use the decision-summary format
+- `1.9.0` does not add automatic GPT/API review, automatic real-project scanning, new target-project write authority, release approval, risk approval, or baseline direct apply
 - Real adoption calibration phase `1.8.1`: separates recommended profiles from risk/capability packs, adds patch classification false-positive records, and clarifies that `real-adoption` checks recorded reports rather than auto-generating target-project reports
 - Added `docs/real-adoption-usage.md`, `templates/patch-classification-false-positive.md`, `patch-classification-false-positives/`, and false-positive validation in `scripts/check-patch-classification.mjs`
 - `1.8.1` does not add an automatic real-project scanning runner, target-project write approval, implementation approval, or weaker patch classification defaults

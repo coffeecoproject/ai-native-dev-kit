@@ -29,3 +29,4 @@ NOT_RECOMMENDED
 
 如果需求过大，必须拆成 specs 和第一条 vertical slice。不要直接建议进入实现。
 
+如果输出给人类，先给 Human Decision Summary：说明推荐进入 spec、补信息、拆分需求、还是不建议继续；同时说明是否写文件、风险和用户不处理时 Codex 会停在哪里。

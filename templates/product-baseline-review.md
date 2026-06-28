@@ -1,5 +1,26 @@
 # Product Baseline Review: <change-name>
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Pass review | Keep the change as aligned with product baseline | Report only | low | Choose when the change reduces user burden and preserves authority |
+| B | Repair wording or routing | Adjust outputs, docs, or templates | Docs/templates only | low/medium | Choose when behavior is right but hard to judge |
+| C | Stop for product decision | Pause before expanding scope or claims | Decision/report only | medium/high | Choose when the change shifts product direction |
+| D | Reject change | Do not include this product behavior | Report only | low | Choose when it adds burden or overclaims capability |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence judgment:

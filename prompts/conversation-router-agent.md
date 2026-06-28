@@ -18,6 +18,12 @@ Your job is to classify the latest user message before Codex acts.
 Return:
 
 ```text
+Human Decision Summary:
+- Conclusion:
+- Recommended choice:
+- Can AI continue now:
+- What happens if you do nothing:
+
 Intent:
 Relation to current task:
 Can continue current task:

@@ -2,6 +2,24 @@
 
 Use this template to explain workflow, baseline, adoption, review, release, or automation status to a human before showing technical details.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A |  |  | Yes / No / Plan only | low / medium / high |  |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

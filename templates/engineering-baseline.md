@@ -4,6 +4,27 @@ This file defines engineering decision rules Codex must read before making struc
 
 It does not define business requirements.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Confirm baseline | Use these engineering rules for implementation | Baseline/report only | low | Choose when the rules match the project |
+| B | Fill missing rules | Draft unclear sections for review | Baseline draft only | low/medium | Choose when Codex can infer structure but needs confirmation |
+| C | Stop for engineering decision | Pause before structural, schema, API, permission, migration, or dependency changes | Decision/baseline only | medium/high | Choose when project-wide rules are unclear |
+| D | Keep lightweight | Record only the minimum rules needed now | Baseline/report only | low/medium | Choose for small or early projects |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 Plain-language summary of the engineering decisions that matter most before AI writes code:

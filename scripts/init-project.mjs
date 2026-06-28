@@ -242,6 +242,39 @@ function agentsGovernanceMigrationReportPath(targetPath) {
   return path.join(targetPath, ".ai-native", "migration-reports", "agents-governance.md");
 }
 
+function migrationHumanDecisionSummary({ status, targetLabel, applyCommand }) {
+  const recommended = status === "PENDING_HUMAN_APPROVAL"
+    ? "B - Review and merge deliberately"
+    : "A - Keep current resolved state";
+  const canContinue = status === "PENDING_HUMAN_APPROVAL" ? "limited" : "yes";
+  const need = status === "PENDING_HUMAN_APPROVAL"
+    ? `Approve, reject, or manually merge the proposed ${targetLabel} governance appendix.`
+    : `No decision is needed for ${targetLabel} at this status.`;
+  return [
+    "## Human Decision Summary",
+    "",
+    `Conclusion: ${targetLabel} governance migration status is ${status}.`,
+    "",
+    `Recommended choice: ${recommended}`,
+    "",
+    `Can AI continue now: ${canContinue}`,
+    "",
+    `What I need from you: ${need}`,
+    "",
+    "| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |",
+    "|---|---|---|---|---|---|",
+    `| A | Keep migration pending | Leave ${targetLabel} unchanged and keep this report as the decision record | Report only | low | Choose when you are not ready to change governance |`,
+    `| B | Review and merge deliberately | Explain the appendix and wait for explicit approval or manual merge | No direct write until approved | medium | Choose when existing governance should be preserved while adopting selected rules |`,
+    `| C | Apply approved migration | Run \`${applyCommand}\` | Yes, ${targetLabel} only | medium/high | Choose only after reviewing the proposed appendix |`,
+    `| D | Reject migration | Keep current ${targetLabel} and document that the appendix is not accepted | Report only | low/medium | Choose when governance belongs elsewhere |`,
+    "",
+    "Recommended reason: Governance files define how Codex and reviewers operate, so changes need explicit human approval or manual merge.",
+    "",
+    "What happens if you do nothing: The migration remains pending and full workflow checks may continue to block until it is resolved.",
+    "",
+  ];
+}
+
 function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, options = {}) {
   const status = options.status || (options.applied ? "APPLIED" : "PENDING_HUMAN_APPROVAL");
   const reportPath = pullRequestTemplateMigrationReportPath(targetPath);
@@ -279,6 +312,11 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
     `Status: ${status}`,
     `Dev kit version: ${currentDevKitVersion}`,
     "",
+    ...migrationHumanDecisionSummary({
+      status,
+      targetLabel: "PR template",
+      applyCommand: "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
+    }),
     "## Status Notes",
     "",
     statusNotes[status] || statusNotes.PENDING_HUMAN_APPROVAL,
@@ -695,6 +733,11 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
     `Status: ${status}`,
     `Dev kit version: ${currentDevKitVersion}`,
     "",
+    ...migrationHumanDecisionSummary({
+      status,
+      targetLabel: "AGENTS.md",
+      applyCommand: "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
+    }),
     "## Status Notes",
     "",
     statusNotes[status] || statusNotes.PENDING_HUMAN_APPROVAL,

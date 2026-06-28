@@ -4,6 +4,27 @@ Use this file to record task-level review, automatic fixes, re-review, and human
 
 This report does not approve risk, scope, merge, or release. It records what was reviewed and what remains.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Accept review result | Keep current result and close the task report | Report only | low | Choose when findings are resolved or not applicable |
+| B | Auto-fix allowed findings | Fix deterministic AUTO_FIX items in task scope | Yes, approved task files only | low/medium | Choose when issues are narrow and already classified |
+| C | Human decision required | Stop and route decision before more changes | No, unless decision record is saved | medium/high | Choose for risk, scope, architecture, migration, release, or repeated findings |
+| D | Pause | Stop review loop and wait | No | low | Choose when the review source or evidence is incomplete |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

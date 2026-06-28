@@ -4,6 +4,27 @@ Use this template when a delivery, milestone, release, or governed handoff needs
 
 This file does not approve release, risk, scope expansion, or future work by itself. It summarizes what was delivered, verified, excluded, and still needs confirmation.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Accept handoff | Record delivery state and stop | Handoff report only | low | Choose when delivery is clear and no release decision is needed |
+| B | Request evidence update | Add missing proof or limitations | Evidence/report only | low/medium | Choose when the result is useful but evidence is incomplete |
+| C | Route release decision | Stop until owner approves release or rollout | Release/decision record only | medium/high | Choose before external launch or production change |
+| D | Pause | Stop and wait | No | low | Choose when the recipient cannot decide yet |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

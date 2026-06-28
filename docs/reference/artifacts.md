@@ -47,6 +47,8 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `patch-classifications/` | Repair-scale classification before non-trivial fixes |
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
 
+False-positive records are not overrides. They document reviewed calibration only; the original patch classification remains authoritative until a new classification report or explicit human decision changes it.
+
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.

@@ -51,6 +51,7 @@ Next-step 规则：
 
 Final report 必须包含：
 
+- Human Decision Summary（如果有剩余决策、风险、复查或下一步建议）
 - Completed
 - Verified
 - Not changed

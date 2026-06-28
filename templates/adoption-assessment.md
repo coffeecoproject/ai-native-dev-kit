@@ -4,6 +4,27 @@ Use this file when a project already has governance, CI gates, evidence, release
 
 This assessment is read-only by default. It does not authorize workflow asset installation, AGENTS.md changes, PR template changes, project doc edits, production changes, or business code changes.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Keep read-only | Only map current governance and risks | No | low | Choose for production, dirty, or strongly governed projects |
+| B | Adapter docs | Draft mapping documents that preserve existing governance | Docs/report only | low/medium | Choose when you want durable adoption records without replacing current rules |
+| C | Reviewed workflow setup | Prepare or apply approved workflow assets after review | Yes, approved assets only | medium/high | Choose for projects that are ready to adopt the kit directly |
+| D | Pause | Stop adoption assessment and wait | No | low | Choose when ownership or risk is unclear |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

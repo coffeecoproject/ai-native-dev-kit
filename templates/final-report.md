@@ -4,6 +4,27 @@ Use this file when a task result needs a durable final report beyond the chat re
 
 This report does not approve release, risk, scope expansion, or future work. Next-step suggestions must follow `core/next-step-boundary.md`.
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Close current task | Record result and stop | Report only | low | Choose when the task is complete |
+| B | Run bounded verification | Run the listed checks and update evidence | Evidence/report only, unless fixes are separately approved | low/medium | Choose when proof is missing but scope is stable |
+| C | Route human decision | Stop before risk, release, or scope changes | Decision/report only | medium/high | Choose when the remaining item needs ownership |
+| D | Open a new request | Treat follow-up as separate work | New request/report only | low/medium | Choose when the next step is outside current scope |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

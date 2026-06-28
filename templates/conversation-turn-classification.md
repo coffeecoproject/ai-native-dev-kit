@@ -1,5 +1,26 @@
 # Conversation Turn Classification
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Continue current task | Treat the message as inside approved scope | Current approved task files only | low/medium | Choose when the message clarifies the active task |
+| B | Start a new entry | Create a new request, preflight, or decision record | New workflow record only | low/medium | Choose when the message changes scope |
+| C | Stop for human decision | Pause until the owner chooses direction | No, unless decision record is saved | medium/high | Choose for risk, release, migration, production, or unclear scope |
+| D | Discuss only | Answer or clarify without executing | No | low | Choose when the user is only exploring |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 Plain-language summary of what the user message means for the current work.

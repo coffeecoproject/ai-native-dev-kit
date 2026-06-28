@@ -22,6 +22,8 @@ node ai-native-dev-kit/scripts/start-project.mjs .
 
 `start` is read-only by default. It calls `workflow-next`, classifies the project, lists the decisions needed from the human, and recommends safe next actions.
 
+The first section should be `Human Decision Summary`: it gives the recommended option, alternatives, whether each option writes files, the risk, and what happens if you do nothing. You should not need to interpret `NEXT_ACTION` fields to decide.
+
 After `start`, use `baseline` to recommend the project's engineering and environment rules:
 
 ```bash
@@ -42,6 +44,8 @@ node ai-native-dev-kit/scripts/baseline-project.mjs --apply-plan baseline-plan.j
 ```
 
 Apply scope is limited to baseline docs and baseline reports.
+
+Baseline output follows the same decision format. Codex may recommend a baseline plan, but applying baseline docs still requires a reviewed plan.
 
 Use `workflow-next` directly only when you need the lower-level technical state:
 

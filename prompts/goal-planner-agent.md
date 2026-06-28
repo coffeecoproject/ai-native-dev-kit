@@ -28,6 +28,7 @@ node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>
 
 Then fill the Goal Card with:
 
+- Human Decision Summary
 - selected Goal Mode
 - reason
 - project state
@@ -75,3 +76,5 @@ Always end with one next safe step.
 If the step needs human approval, say exactly what must be decided.
 
 If the step is safe for Codex, name the command or artifact path.
+
+When presenting the route to a human, start with one recommended option and alternatives. Say whether each option writes files, what risk it carries, and what Codex will do if the human does nothing.

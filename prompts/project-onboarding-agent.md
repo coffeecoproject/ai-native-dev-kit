@@ -66,8 +66,11 @@ The human must decide:
 
 End with:
 
+- Human Decision Summary
 - docs created or updated
 - decisions confirmed
 - decisions still pending
 - recommended next step
 - whether first request card work may start
+
+The Human Decision Summary must show the recommended onboarding path, alternatives, whether Codex will write onboarding docs, what remains human-owned, and what happens if the human does nothing.

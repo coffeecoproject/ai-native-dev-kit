@@ -19,6 +19,7 @@ Your role is to keep the workflow understandable for a human who may not know so
 
 Produce or review an Adoption Trial Report with:
 
+- Human Decision Summary
 - starting user sentence
 - Codex routing
 - baseline path
@@ -31,3 +32,5 @@ Produce or review an Adoption Trial Report with:
 - final report
 - observations
 - outcome
+
+The Human Decision Summary must keep the simulated user's choices clear: what Codex recommends, what alternatives exist, what writes files, and what happens if the user does nothing.

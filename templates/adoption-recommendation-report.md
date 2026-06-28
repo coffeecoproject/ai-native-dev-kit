@@ -1,5 +1,26 @@
 # Guided Adoption Recommendation
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+| --- | --- | --- | --- | --- | --- |
+| A | Inspect only | Read and report current adoption path | No | low | Choose when you only want diagnosis |
+| B | Plan first | Draft an adoption plan or adapter report | Plan/report only | low/medium | Choose when the project should keep a durable decision record |
+| C | Apply reviewed setup | Apply approved workflow assets or migration reports | Yes, approved assets only | medium/high | Choose only after reviewing the plan |
+| D | Pause | Stop adoption and wait | No | low | Choose when the decision is not ready |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 Project type: <NEW_PROJECT | EXISTING_LIGHT_PROJECT | GOVERNED_EXISTING_PROJECT | PRODUCTION_SENSITIVE_PROJECT | DIRTY_WORKTREE_PROJECT | ALREADY_BOOTSTRAPPED_PROJECT | UNKNOWN_NEEDS_DISCUSSION>. Recommended mode: <mode>. start is read-only by default; no target project files were written.

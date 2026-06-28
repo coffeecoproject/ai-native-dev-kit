@@ -1,5 +1,26 @@
 # Goal Card: <goal-name>
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Discuss only | Clarify goal without executing | No | low | Choose when direction is not settled |
+| B | Define work | Create request, preflight, spec, eval, or task artifacts | Workflow records only | low/medium | Choose when the idea needs structure before code |
+| C | Implement approved task | Execute within the approved task boundary | Approved task files only | medium | Choose when scope, baseline, and evidence are ready |
+| D | Stop for decision | Pause because goal mode or authority is unclear | No, unless decision record is saved | medium/high | Choose when the message changes risk or scope |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

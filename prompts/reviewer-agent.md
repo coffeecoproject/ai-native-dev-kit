@@ -66,6 +66,14 @@ Never classify these as AUTO_FIX:
 ## Output Format
 
 ```text
+Human Decision Summary:
+- Conclusion:
+- Recommended choice:
+- Can AI continue now:
+- What I need from you:
+- Options:
+- What happens if you do nothing:
+
 Review Summary:
 - Decision: APPROVE / REQUEST_CHANGES / BLOCK / NEEDS_HUMAN_DECISION
 - Reason:
@@ -97,3 +105,5 @@ Subagent Closure:
 ```
 
 If there are no findings, state `no findings`, list residual risk, and mention the verification evidence reviewed.
+
+The Human Decision Summary must come first when reporting to a human. It must say whether the next path is accept, auto-fix allowed findings, human decision first, or pause, and whether the recommended path writes files.

@@ -22,6 +22,8 @@
 
 如果发现 reviewer finding 需要产品或架构决策，停止并请求人工确认。
 
+如果输出给人类，先给 Human Decision Summary：说明推荐是继续修 AUTO_FIX、停止等待人工决策、还是暂停；同时说明是否会写文件、风险和不处理的后果。
+
 Subagent Closure 输出：
 
 ```text

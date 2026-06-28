@@ -33,10 +33,11 @@ For meaningful release records, require:
 
 For reports, require:
 
+- clear human decision summary when a decision, blocker, or recommendation exists
 - clear human summary
 - assumption register when uncertainty matters
 - explicit statement that the report does not approve release, risk, scope expansion, or future work
 
 ## Output
 
-Return PASS / FAIL / NEEDS_HUMAN_DECISION with concise evidence-backed findings.
+Return PASS / FAIL / NEEDS_HUMAN_DECISION with a Human Decision Summary first and concise evidence-backed findings.

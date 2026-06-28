@@ -449,8 +449,27 @@ function printRecommendation(report) {
 }
 
 function renderRecommendationMarkdown(report) {
+  const decision = buildBaselineDecisionSummary(report);
   const lines = [
     "# Baseline Recommendation",
+    "",
+    "## Human Decision Summary",
+    "",
+    `Conclusion: ${decision.conclusion}`,
+    "",
+    `Recommended choice: ${decision.recommendedChoice}`,
+    "",
+    `Can AI continue now: ${decision.canAiContinue}`,
+    "",
+    `What I need from you: ${decision.needFromHuman}`,
+    "",
+    "| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |",
+    "|---|---|---|---|---|---|",
+    ...decision.options.map((item) => `| ${mdCell(item.option)} | ${mdCell(item.meaning)} | ${mdCell(item.aiWillDo)} | ${mdCell(item.writes)} | ${mdCell(item.risk)} | ${mdCell(item.when)} |`),
+    "",
+    `Recommended reason: ${decision.reason}`,
+    "",
+    `What happens if you do nothing: ${decision.ifNothing}`,
     "",
     "## Human Summary",
     "",
@@ -504,6 +523,72 @@ function renderRecommendationMarkdown(report) {
     `\`${report.suggestedWritePlanCommand}\``,
   ];
   return `${lines.join("\n")}\n`;
+}
+
+function buildBaselineDecisionSummary(report) {
+  const actions = report.safeNextActions || [];
+  const options = actions.slice(0, 4).map((item, index) => ({
+    option: String.fromCharCode(65 + index),
+    meaning: item.label,
+    aiWillDo: item.command,
+    writes: item.writes,
+    risk: baselineActionRisk(report, item),
+    when: baselineActionWhen(report, item),
+  }));
+  if (!options.some((item) => item.meaning === "Pause")) {
+    options.push({
+      option: String.fromCharCode(65 + options.length),
+      meaning: "Pause",
+      aiWillDo: "Stop baseline setup and wait for a clearer project decision.",
+      writes: "No",
+      risk: "low",
+      when: "Choose when the platform, risk level, or baseline owner is unclear.",
+    });
+  }
+  const recommendedAction = chooseRecommendedBaselineAction(report, actions);
+  return {
+    conclusion: `This project is classified as ${report.projectClassification}; recommended level is ${report.recommendedBaselineLevel.level}.`,
+    recommendedChoice: recommendedAction ? `${optionLetterFor(options, recommendedAction)} - ${recommendedAction.label}` : "A - Read baseline recommendation",
+    canAiContinue: report.canAiWriteNow === "Yes" ? "yes" : "limited",
+    needFromHuman: report.pendingHumanDecisions?.[0] || "Confirm the baseline path.",
+    options,
+    reason: report.recommendedBaselineLevel.reason,
+    ifNothing: "Codex should keep baseline setup read-only and avoid project-wide engineering, environment, release, or production assumptions.",
+  };
+}
+
+function chooseRecommendedBaselineAction(report, actions) {
+  if (report.gapSummary.some((item) => /missing|pending/i.test(item))) {
+    return actions.find((item) => item.label === "Write baseline plan only") || actions[0];
+  }
+  if (report.projectClassification === "PRODUCTION_SENSITIVE_PROJECT") {
+    return actions.find((item) => item.label === "Read baseline recommendation") || actions[0];
+  }
+  return actions.find((item) => item.label === "Check task baseline references") || actions[0];
+}
+
+function baselineActionRisk(report, item) {
+  if (item.writes === "No") return "low";
+  if (report.projectClassification === "PRODUCTION_SENSITIVE_PROJECT" || /BL2/.test(report.recommendedBaselineLevel.level)) return "medium/high";
+  if (item.writes === "Plan file only") return "low/medium";
+  return "medium";
+}
+
+function baselineActionWhen(report, item) {
+  if (item.label === "Read baseline recommendation") return "Choose when you only want diagnosis.";
+  if (item.label === "Write baseline plan only") return "Choose when gaps exist and you want a reviewable plan before files change.";
+  if (item.label === "Apply reviewed baseline plan") return "Choose only after reviewing the baseline plan.";
+  if (item.label === "Check environment baseline") return "Choose when environment facts may already be recorded.";
+  return "Choose when the project baseline is already ready enough for task work.";
+}
+
+function optionLetterFor(options, actionItem) {
+  const optionItem = options.find((item) => item.meaning === actionItem.label);
+  return optionItem?.option || "A";
+}
+
+function mdCell(value) {
+  return String(value || "").replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
 function readJson(filePath) {

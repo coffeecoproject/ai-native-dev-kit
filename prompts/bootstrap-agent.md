@@ -159,6 +159,7 @@ The human must confirm:
 
 End with:
 
+- `Human Decision Summary` first
 - detected intent
 - detected project state
 - adoption mode
@@ -168,3 +169,5 @@ End with:
 - migration reports that require approval
 - onboarding decisions still pending
 - next recommended action
+
+The `Human Decision Summary` must include one recommended option, alternatives, whether each option writes files, the risk of each option, what Codex may do safely, what Codex must not do, and what happens if the human does nothing. Do not present technical status fields as the decision itself.

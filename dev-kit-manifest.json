@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.8.1",
+  "devKitVersion": "1.9.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.8.0"
+    "phase": "1.9.0"
   },
   "groups": {
     "sourceRequired": [
@@ -125,8 +125,10 @@
       "docs/git-boundary.md",
       "docs/goal-subagent-usage.md",
       "docs/governance-hardening-roadmap.md",
+      "docs/guided-decision-delivery-loop-1.10-plan.md",
       "docs/guided-delivery-baseline-1.3-plan.md",
       "docs/guided-delivery-baseline.md",
+      "docs/human-decision-summary-1.9-plan.md",
       "docs/mental-model.md",
       "docs/migrations/0.33-to-1.0.md",
       "docs/migrations/index.md",
@@ -161,6 +163,7 @@
       "evals/140-project-memory-context-governance.md",
       "evals/170-first-delivery-walkthrough.md",
       "evals/180-real-project-adoption-trial.md",
+      "evals/190-human-decision-summary.md",
       "examples/1.1-guided-adoption/README.md",
       "examples/1.1-guided-adoption/existing-light-project/adoption-recommendations/001-guided-start.md",
       "examples/1.1-guided-adoption/governed-readonly/adoption-recommendations/001-guided-start.md",
@@ -293,6 +296,7 @@
       "final-reports/141-160-delivery-readiness-drift.md",
       "final-reports/170-first-delivery-walkthrough.md",
       "final-reports/180-real-project-adoption-trial.md",
+      "final-reports/190-human-decision-summary.md",
       "git-boundary-reports/.gitkeep",
       "goal-cards/034-baseline-freeze-self-ci.md",
       "goal-cards/035-readonly-manifest.md",
@@ -456,6 +460,7 @@
       "preflight/140-project-memory-context-governance.md",
       "preflight/170-first-delivery-walkthrough.md",
       "preflight/180-real-project-adoption-trial.md",
+      "preflight/190-human-decision-summary.md",
       "profiles/android-app/baseline.json",
       "profiles/android-app/environment-topics.md",
       "profiles/backend-api/baseline.json",
@@ -555,6 +560,7 @@
       "requests/140-project-memory-context-governance.md",
       "requests/170-first-delivery-walkthrough.md",
       "requests/180-real-project-adoption-trial.md",
+      "requests/190-human-decision-summary.md",
       "review-loop-reports/034-baseline-freeze-self-ci.md",
       "review-loop-reports/035-readonly-manifest.md",
       "review-loop-reports/036-cli-front-door.md",
@@ -664,6 +670,7 @@
       "specs/140-project-memory-context-governance.md",
       "specs/170-first-delivery-walkthrough.md",
       "specs/180-real-project-adoption-trial.md",
+      "specs/190-human-decision-summary.md",
       "starters/generic-project/AGENTS.md",
       "subagent-run-plans/034-baseline-freeze-self-ci.md",
       "subagent-run-plans/035-readonly-manifest.md",
@@ -700,6 +707,7 @@
       "tasks/140-project-memory-context-governance.md",
       "tasks/170-first-delivery-walkthrough.md",
       "tasks/180-real-project-adoption-trial.md",
+      "tasks/190-human-decision-summary.md",
       "templates/adoption-assessment.md",
       "templates/adoption-evidence-report.md",
       "templates/adoption-recommendation-report.md",
@@ -866,6 +874,9 @@
       "releases/1.8.1/release-record.md",
       "releases/1.8.1/known-limitations.md",
       "releases/1.8.1/self-check-report.md",
+      "releases/1.9.0/known-limitations.md",
+      "releases/1.9.0/release-record.md",
+      "releases/1.9.0/self-check-report.md",
       "test-fixtures/bad/bad-patch-false-positive-unsafe/patch-classification-false-positives/001-unsafe.md"
     ],
     "targetCore": [

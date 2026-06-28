@@ -1,5 +1,26 @@
 # Environment Baseline
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Confirm environment | Use the recorded local/test/release environment facts | Baseline/report only | low | Choose when commands and environment boundaries are known |
+| B | Fill missing facts | Draft unknowns from project files for review | Baseline draft only | low/medium | Choose when facts can be inferred but need confirmation |
+| C | Stop for environment decision | Pause before env, secret, CI, release, or production changes | Decision/baseline only | medium/high | Choose when runtime or deployment ownership is unclear |
+| D | Keep unknowns pending | Leave unknowns as pending and avoid dependent work | Baseline/report only | low if respected | Choose when environment cannot be confirmed yet |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 <baseline-generated-summary>

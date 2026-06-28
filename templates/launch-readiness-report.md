@@ -1,5 +1,26 @@
 # Launch Readiness Report
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Not ready | Stop and record missing evidence or decisions | Report only | low if respected | Choose when readiness evidence is incomplete |
+| B | Ready for internal handoff | Prepare internal delivery notes and evidence | Report/evidence only | low/medium | Choose when checks pass but public release is not approved |
+| C | Ready for release review | Route to release owner with evidence | Release report only | medium/high | Choose when release owner must decide |
+| D | Pause | Stop launch path and wait | No | low | Choose when ownership, rollback, or risk is unclear |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 Plain-language summary of what can safely happen now.

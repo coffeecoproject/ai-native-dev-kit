@@ -1,5 +1,26 @@
 # Subagent Run Plan: <goal-name>
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Use read-only subagents | Let helpers research or review without writing | No, unless reports are saved | low | Choose when independent review is useful |
+| B | Use controlled writer plan | Assign one bounded writer and close helpers after handoff | Approved scope only | medium | Choose for larger tasks with clear ownership |
+| C | Stop for orchestration decision | Pause until roles, write scope, or closure are approved | Plan only | medium/high | Choose when multiple writers or sensitive files are involved |
+| D | Do not use subagents | Keep work in the main thread | No | low | Choose when the task is small or slots should be preserved |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence conclusion:

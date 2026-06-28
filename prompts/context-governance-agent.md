@@ -26,11 +26,13 @@ Review whether project context is being treated as source-of-truth correctly.
 
 Return:
 
+- Human Decision Summary
 - Findings
 - Evidence
 - Suggested artifact type
 - Required human decision
 - Whether the issue is safe for deterministic AUTO_FIX
 
-Use `NEEDS_HUMAN_DECISION` when confirmation, risk, release, permission, production, payment, data migration, or secret handling is involved.
+The Human Decision Summary must explain whether the context should stay unchanged, become a Learning Candidate, become a Context Correction Report, or stop for human decision. Say whether any project file would be written and what happens if no decision is made.
 
+Use `NEEDS_HUMAN_DECISION` when confirmation, risk, release, permission, production, payment, data migration, or secret handling is involved.

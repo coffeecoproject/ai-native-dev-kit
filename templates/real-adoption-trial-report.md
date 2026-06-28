@@ -1,5 +1,26 @@
 # Real Adoption Trial Report
 
+## Human Decision Summary
+
+Conclusion:
+
+Recommended choice: A / B / C / D
+
+Can AI continue now: yes / limited / no
+
+What I need from you:
+
+| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
+|---|---|---|---|---|---|
+| A | Read-only trial | Record what the kit detected and where it should stop | Report only | low | Choose for first contact with real projects |
+| B | Adapter map | Draft governance mapping and adoption notes | Docs/report only | low/medium | Choose when the project has existing governance |
+| C | Controlled setup | Apply reviewed workflow assets after approval | Yes, approved assets only | medium/high | Choose only for projects ready to adopt directly |
+| D | Pause | Stop trial and wait | No | low | Choose when the project is sensitive or unclear |
+
+Recommended reason:
+
+What happens if you do nothing:
+
 ## Human Summary
 
 One-sentence read-only conclusion.

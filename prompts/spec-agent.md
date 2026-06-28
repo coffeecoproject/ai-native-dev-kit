@@ -28,6 +28,8 @@
 4. 不要把未来版本功能塞进当前 scope。
 5. 如果你是作为 subagent 运行，输出交给主线程后必须关闭，不要保持占位。
 
+如果输出涉及人类确认，先给 Human Decision Summary：说明推荐进入 spec、拆分、补信息、还是暂停；同时说明是否会写 workflow 文件、风险和不处理的后果。
+
 Subagent Closure 输出：
 
 ```text
