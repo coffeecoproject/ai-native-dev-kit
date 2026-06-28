@@ -4,7 +4,12 @@
 
 - Source: `standard-baseline-packs/index.json`
 - Schema: `standard-baseline-packs/schema/standard-pack.schema.json`
+- Index schema: `standard-baseline-packs/schema/index.schema.json`
 - Selection guide: `standard-baseline-packs/selection-guide.md`
+
+`standard-baseline-packs/index.json` is a first-class registry artifact. Each index entry must stay aligned with the matching pack's `pack.json`.
+
+`environment-standard` is guidance-only. It may define environment topics and evidence expectations, but it must not write `.env`, include secret values, invent deployment facts, or claim CI/CD or production approval.
 
 ## Packs
 

@@ -64,7 +64,7 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/resolve-standard-baseline.mjs` is the standard baseline pack entry. It is read-only and recommends platform standard packs first, keeps backend/release packs conditional, then shows optional industrial overlays when used through the umbrella CLI. It does not enable packs, install packs, approve implementation, or approve target-project writes.
 
-`scripts/check-standard-baseline-pack.mjs` validates the standard baseline pack registry, required pack files, `recommendedForBL` metadata, `activeByDefault: false`, no write/release approval, and draft overclaim boundaries.
+`scripts/check-standard-baseline-pack.mjs` validates the standard baseline pack registry, index schema, index/pack.json consistency, required pack files, `recommendedForBL` metadata, `activeByDefault: false`, no write/release approval, draft overclaim boundaries, and environment-pack overclaims such as `.env` writes, secret values, invented deployment facts, or CI/CD approval claims.
 
 `scripts/check-standard-baseline-selection.mjs` checks Standard Baseline Selection Reports so standard pack recommendations stay separated from human selection, target-project writes, implementation approval, release approval, production approval, compliance/security/privacy approval, and evidence claims. It also rejects selecting every standard pack, forcing backend for frontend/Mini Program projects without evidence, recommending release/rollback without evidence, and overwrite language for governed existing projects.
 

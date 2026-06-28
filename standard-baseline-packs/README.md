@@ -6,6 +6,8 @@ They are not industrial packs, production certification, security approval, priv
 
 Use them before considering BL2 industrial overlays.
 
+`index.json` is a first-class registry file. Keep each entry aligned with the matching `pack.json`; `scripts/check-standard-baseline-pack.mjs` rejects drift.
+
 ```text
 standard baseline pack -> normal project guardrail
 industrial pack -> optional high-risk / production-sensitive overlay

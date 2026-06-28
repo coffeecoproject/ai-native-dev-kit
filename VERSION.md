@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.15.0`
+Current version: `1.15.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.15.0`
 
 ## Current Release
 
-`1.15.0`
+`1.15.1`
 
 Includes:
 
+- Standard Baseline Pack Registry hardening patch `1.15.1`: adds index-level schema, index/pack.json consistency checks, local verify resolver execution, environment-standard overclaim fixtures, and explicit CODEOWNERS owner-decision backlog
+- `1.15.1` does not add new standard packs, promote draft packs, make BL2 default, enable industrial overlays, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Platform Standard Baseline Packs phase `1.15.0`: adds draft Mini Program, iOS, Android, internal admin, and environment standard packs, platform matrix docs, platform examples, bad fixtures, resolver/checker hardening, and release evidence
 - `1.15.0` keeps standard packs draft and inactive by default; it does not make BL2 default, enable industrial overlays, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Standard Baseline Pack Registry hardening patch `1.14.1`: deprecates the lower-level industrial-only resolver for human use, tightens standard pack schema and metadata fields, validates selected profile ids, calibrates public URL handling, and records explicit standard baseline verification evidence

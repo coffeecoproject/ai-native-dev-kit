@@ -5,3 +5,10 @@
 #
 # Example after maintainers are finalized:
 # * @owner-handle
+#
+# Owner decision backlog before required code-owner review:
+# standard-baseline-packs/** @confirmed-standard-baseline-owner
+# industrial-packs/** @confirmed-industrial-baseline-owner
+# scripts/** @confirmed-tooling-owner
+# core/** @confirmed-workflow-owner
+# .github/** @confirmed-release-governance-owner

@@ -90,3 +90,13 @@ It only records the intended engineering baseline path.
 - `backend-api-standard` remains conditional for Web, Mini Program, iOS, and Android unless backend/API/database scope exists.
 - `release-rollback-standard` remains conditional unless release, staging, handoff, deployment, rollback, or launch readiness is in scope.
 - Existing governed projects use read-only mapping and gap-review language, not overwrite language.
+
+## 1.15.1 Registry Hardening
+
+1.15.1 does not add new packs. It tightens the registry so pack recommendations are easier to trust:
+
+- `standard-baseline-packs/index.json` is checked against `standard-baseline-packs/schema/index.schema.json`.
+- Each registry entry must match the corresponding `pack.json` for identity, level, profile, capability, status, maturity, and approval-boundary fields.
+- `environment-standard` remains guidance-only; it must not write `.env`, invent deployment facts, include secret values, or claim CI/CD or production approval.
+- `npm run verify` runs the standard baseline resolver and umbrella baseline-pack resolver before pack checks.
+- CODEOWNERS remains inactive, but records an explicit owner-decision backlog before future required ownership.

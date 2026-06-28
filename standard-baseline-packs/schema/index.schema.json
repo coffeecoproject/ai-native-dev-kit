@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-native-dev-kit/standard-baseline-pack-index.schema.json",
+  "title": "Standard Baseline Pack Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "baselineLayer",
+    "baselineLevels",
+    "packTypes",
+    "packs",
+    "maturityStages"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "0.1"
+    },
+    "baselineLayer": {
+      "type": "string",
+      "const": "standard"
+    },
+    "baselineLevels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "BL0_LIGHTWEIGHT",
+          "BL1_STANDARD",
+          "BL2_INDUSTRIAL"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "packTypes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "primary-platform",
+          "capability",
+          "quality",
+          "environment",
+          "release"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "packs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/packIndexEntry"
+      }
+    },
+    "maturityStages": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "candidate",
+          "stable",
+          "deprecated",
+          "retired"
+        ]
+      },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "packIndexEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "id",
+        "type",
+        "status",
+        "displayName",
+        "baselineLayer",
+        "recommendedForBL",
+        "allowedForBL",
+        "activeByDefault",
+        "appliesToProfiles",
+        "recommendedWhen",
+        "canBeRecommendedByAI",
+        "selectionRequiresHumanDecision",
+        "canAuthorizeWrites",
+        "canApproveImplementation",
+        "canApproveRelease",
+        "canApproveComplianceSecurityPrivacy",
+        "requiresEvidenceForConfirmed",
+        "maturityStage"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*-standard$"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "primary-platform",
+            "capability",
+            "quality",
+            "environment",
+            "release"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "candidate",
+            "stable",
+            "deprecated",
+            "retired"
+          ]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineLayer": {
+          "type": "string",
+          "const": "standard"
+        },
+        "recommendedForBL": {
+          "$ref": "#/$defs/baselineLevelList"
+        },
+        "allowedForBL": {
+          "$ref": "#/$defs/baselineLevelList"
+        },
+        "activeByDefault": {
+          "type": "boolean",
+          "const": false
+        },
+        "appliesToProfiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "recommendedWhen": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "canBeRecommendedByAI": {
+          "type": "boolean",
+          "const": true
+        },
+        "selectionRequiresHumanDecision": {
+          "type": "boolean",
+          "const": true
+        },
+        "canAuthorizeWrites": {
+          "type": "boolean",
+          "const": false
+        },
+        "canApproveImplementation": {
+          "type": "boolean",
+          "const": false
+        },
+        "canApproveRelease": {
+          "type": "boolean",
+          "const": false
+        },
+        "canApproveComplianceSecurityPrivacy": {
+          "type": "boolean",
+          "const": false
+        },
+        "requiresEvidenceForConfirmed": {
+          "type": "boolean",
+          "const": true
+        },
+        "maturityStage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "candidate",
+            "stable",
+            "deprecated",
+            "retired"
+          ]
+        }
+      }
+    },
+    "baselineLevelList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "BL0_LIGHTWEIGHT",
+          "BL1_STANDARD",
+          "BL2_INDUSTRIAL"
+        ]
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    }
+  }
+}

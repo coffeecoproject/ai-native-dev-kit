@@ -226,6 +226,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.15.1 Release Record](releases/1.15.1/release-record.md)：1.15.1 标准包注册表硬化
 - [1.15 Release Record](releases/1.15.0/release-record.md)：1.15 平台标准基线包
 - [1.14.1 Release Record](releases/1.14.1/release-record.md)：1.14.1 标准基线包校验硬化
 - [1.14 Release Record](releases/1.14.0/release-record.md)：1.14 标准基线包注册表

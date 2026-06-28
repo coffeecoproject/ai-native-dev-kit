@@ -2415,6 +2415,8 @@ function checkStandardBaselinePackRegistryProtocol() {
   const required = [
     "docs/standard-baseline-pack-registry-1.14-plan.md",
     "docs/platform-standard-baseline-packs-1.15-plan.md",
+    "docs/bl2-industrial-baseline-deepening-1.16-plan.md",
+    "docs/guided-baseline-selection-entry-1.17-plan.md",
     "core/standard-baseline-pack-registry.md",
     "docs/standard-baseline-pack-registry.md",
     "docs/platform-standard-baseline-packs.md",
@@ -2423,6 +2425,7 @@ function checkStandardBaselinePackRegistryProtocol() {
     "standard-baseline-packs/README.md",
     "standard-baseline-packs/selection-guide.md",
     "standard-baseline-packs/index.json",
+    "standard-baseline-packs/schema/index.schema.json",
     "standard-baseline-packs/schema/standard-pack.schema.json",
     "standard-baseline-packs/web-runtime/pack.json",
     "standard-baseline-packs/web-runtime/baselines/web-runtime-baseline.md",
@@ -2471,8 +2474,15 @@ function checkStandardBaselinePackRegistryProtocol() {
     "releases/1.15.0/release-record.md",
     "releases/1.15.0/known-limitations.md",
     "releases/1.15.0/self-check-report.md",
+    "releases/1.15.1/release-record.md",
+    "releases/1.15.1/known-limitations.md",
+    "releases/1.15.1/self-check-report.md",
     "test-fixtures/bad/bad-standard-pack-unknown-field/standard-baseline-packs/index.json",
     "test-fixtures/bad/bad-standard-pack-unknown-field/standard-baseline-packs/bad-runtime/pack.json",
+    "test-fixtures/bad/bad-standard-pack-index-entry-mismatch/standard-baseline-packs/index.json",
+    "test-fixtures/bad/bad-standard-pack-index-entry-mismatch/standard-baseline-packs/bad-runtime/pack.json",
+    "test-fixtures/bad/bad-standard-pack-environment-overclaims/standard-baseline-packs/index.json",
+    "test-fixtures/bad/bad-standard-pack-environment-overclaims/standard-baseline-packs/environment/pack.json",
     "test-fixtures/bad/bad-standard-selection-unknown-profile/standard-baseline-selections/001-bad.md",
   ];
   for (const file of required) {
@@ -2483,6 +2493,8 @@ function checkStandardBaselinePackRegistryProtocol() {
   const combined = [
     read("docs/standard-baseline-pack-registry-1.14-plan.md"),
     read("docs/platform-standard-baseline-packs-1.15-plan.md"),
+    read("docs/bl2-industrial-baseline-deepening-1.16-plan.md"),
+    read("docs/guided-baseline-selection-entry-1.17-plan.md"),
     read("core/standard-baseline-pack-registry.md"),
     read("docs/standard-baseline-pack-registry.md"),
     read("docs/platform-standard-baseline-packs.md"),
@@ -2496,6 +2508,9 @@ function checkStandardBaselinePackRegistryProtocol() {
     read("releases/1.14.1/known-limitations.md"),
     read("releases/1.15.0/release-record.md"),
     read("releases/1.15.0/known-limitations.md"),
+    read("releases/1.15.1/release-record.md"),
+    read("releases/1.15.1/known-limitations.md"),
+    read("standard-baseline-packs/schema/index.schema.json"),
     read("standard-baseline-packs/schema/standard-pack.schema.json"),
     read("scripts/resolve-baseline-packs.mjs"),
     read("scripts/check-standard-baseline-pack.mjs"),
@@ -2517,6 +2532,10 @@ function checkStandardBaselinePackRegistryProtocol() {
     "Deprecated lower-level resolver",
     "\"additionalProperties\": false",
     "extensions",
+    "index-level schema",
+    "index/pack.json consistency",
+    "environment-standard overclaim",
+    "owner-decision backlog",
     "unknown pack metadata field",
     "unknown selected profile",
     "allowedPublicUrlHosts",
@@ -2654,6 +2673,27 @@ function checkStandardBaselinePackRegistryProtocol() {
     pass("standard baseline pack checker rejects unknown metadata fields");
   } else {
     fail(`standard baseline pack checker must reject unknown metadata fields: ${badUnknownField.stderr || badUnknownField.stdout}`);
+  }
+
+  const badIndexMismatch = runNode(["scripts/check-standard-baseline-pack.mjs", "test-fixtures/bad/bad-standard-pack-index-entry-mismatch"]);
+  if (badIndexMismatch.status !== 0 && `${badIndexMismatch.stdout}\n${badIndexMismatch.stderr}`.includes("index displayName must match pack.json")) {
+    pass("standard baseline pack checker rejects index/pack drift");
+  } else {
+    fail(`standard baseline pack checker must reject index/pack drift: ${badIndexMismatch.stderr || badIndexMismatch.stdout}`);
+  }
+
+  const badEnvironmentOverclaim = runNode(["scripts/check-standard-baseline-pack.mjs", "test-fixtures/bad/bad-standard-pack-environment-overclaims"]);
+  const badEnvironmentOutput = `${badEnvironmentOverclaim.stdout}\n${badEnvironmentOverclaim.stderr}`;
+  if (
+    badEnvironmentOverclaim.status !== 0 &&
+    badEnvironmentOutput.includes(".env write") &&
+    badEnvironmentOutput.includes("secret assignment") &&
+    badEnvironmentOutput.includes("CI/CD approval") &&
+    badEnvironmentOutput.includes("invented deployment fact")
+  ) {
+    pass("standard baseline pack checker rejects environment overclaims");
+  } else {
+    fail(`standard baseline pack checker must reject environment overclaims: ${badEnvironmentOutput}`);
   }
 
   const badUnknownProfile = runNode(["scripts/check-standard-baseline-selection.mjs", "test-fixtures/bad/bad-standard-selection-unknown-profile"]);

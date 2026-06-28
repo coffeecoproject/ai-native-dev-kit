@@ -1147,6 +1147,38 @@
     "howToFix": "Standard pack metadata fields must be explicit; experimental metadata belongs under extensions."
   },
   {
+    "name": "bad standard pack index entry mismatch",
+    "type": "bad",
+    "checker": "check-standard-baseline-pack",
+    "script": "scripts/check-standard-baseline-pack.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-pack-index-entry-mismatch"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "index displayName must match pack.json"
+    ],
+    "howToFix": "standard-baseline-packs/index.json entries must stay aligned with each pack.json."
+  },
+  {
+    "name": "bad standard pack environment overclaims",
+    "type": "bad",
+    "checker": "check-standard-baseline-pack",
+    "script": "scripts/check-standard-baseline-pack.mjs",
+    "args": [
+      "test-fixtures/bad/bad-standard-pack-environment-overclaims"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      ".env write",
+      "secret assignment",
+      "deployment verification overclaim",
+      "CI/CD approval",
+      "invented deployment fact"
+    ],
+    "howToFix": "Environment standard packs must record facts only; they must not create .env, store secrets, invent deployment facts, or approve CI/CD."
+  },
+  {
     "name": "bad standard selection write approved",
     "type": "bad",
     "checker": "check-standard-baseline-selection",
