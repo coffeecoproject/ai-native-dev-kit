@@ -1,0 +1,32 @@
+{
+  "id": "ios-app-standard",
+  "type": "primary-platform",
+  "status": "draft",
+  "displayName": "iOS App Standard Pack",
+  "baselineLayer": "standard",
+  "recommendedForBL": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "allowedForBL": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "activeByDefault": false,
+  "appliesToProfiles": [
+    "ios-app"
+  ],
+  "recommendedWhen": [
+    "iOS app structure, navigation, state ownership, build, simulator, or device behavior is in scope"
+  ],
+  "canBeRecommendedByAI": true,
+  "selectionRequiresHumanDecision": true,
+  "canAuthorizeWrites": false,
+  "canApproveImplementation": false,
+  "canApproveRelease": false,
+  "canApproveComplianceSecurityPrivacy": false,
+  "requiresEvidenceForConfirmed": true,
+  "maturityStage": "draft"
+}

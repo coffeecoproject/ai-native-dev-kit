@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Recommended path: BL1 Web project selects `web-runtime-standard`; no industrial overlay is selected.
+Recommended path: BL1 Web project selects `web-runtime-standard` and `environment-standard`; no industrial overlay is selected.
 
 Can AI enable packs now: No.
 
@@ -37,7 +37,7 @@ Capability packs:
 
 Quality, environment, or release packs:
 
-- none
+- environment-standard
 
 ## Optional Industrial Overlays
 
@@ -60,6 +60,7 @@ Risk overlay packs:
 | project profile | docs/project-profile.md | DONE |
 | BL level | docs/baseline-selection.md | DONE |
 | Web runtime evidence | PENDING | PENDING |
+| Environment evidence | PENDING | PENDING |
 
 ## Human Decision
 

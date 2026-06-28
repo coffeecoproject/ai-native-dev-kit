@@ -1,0 +1,32 @@
+{
+  "id": "android-app-standard",
+  "type": "primary-platform",
+  "status": "draft",
+  "displayName": "Android App Standard Pack",
+  "baselineLayer": "standard",
+  "recommendedForBL": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "allowedForBL": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "activeByDefault": false,
+  "appliesToProfiles": [
+    "android-app"
+  ],
+  "recommendedWhen": [
+    "Android app module structure, navigation, state ownership, Gradle build, emulator, or device behavior is in scope"
+  ],
+  "canBeRecommendedByAI": true,
+  "selectionRequiresHumanDecision": true,
+  "canAuthorizeWrites": false,
+  "canApproveImplementation": false,
+  "canApproveRelease": false,
+  "canApproveComplianceSecurityPrivacy": false,
+  "requiresEvidenceForConfirmed": true,
+  "maturityStage": "draft"
+}

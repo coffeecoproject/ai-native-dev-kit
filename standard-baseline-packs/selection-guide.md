@@ -18,7 +18,9 @@ project state
 
 - Select a primary platform pack only when the platform is in scope.
 - Select a capability pack only when that capability is in scope.
+- Select `environment-standard` for BL1/BL2 non-trivial projects; keep it minimal or pending for BL0.
 - Select a release pack only when release, staging, handoff, launch readiness, or rollback is in scope.
+- Do not force `backend-api-standard` for frontend or Mini Program projects unless backend/API/database scope is confirmed.
 - Do not select every pack because it exists.
 - Do not treat `recommendedForBL` as default activation.
 - Do not treat draft packs as stable.

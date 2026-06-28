@@ -11,8 +11,17 @@
 | Pack | Type | Status | Path |
 |---|---|---|---|
 | `web-runtime-standard` | `primary-platform` | `draft` | `standard-baseline-packs/web-runtime` |
+| `miniprogram-runtime-standard` | `primary-platform` | `draft` | `standard-baseline-packs/miniprogram-runtime` |
+| `ios-app-standard` | `primary-platform` | `draft` | `standard-baseline-packs/ios-app` |
+| `android-app-standard` | `primary-platform` | `draft` | `standard-baseline-packs/android-app` |
 | `backend-api-standard` | `capability` | `draft` | `standard-baseline-packs/backend-api` |
+| `internal-admin-standard` | `capability` | `draft` | `standard-baseline-packs/internal-admin` |
+| `environment-standard` | `environment` | `draft` | `standard-baseline-packs/environment` |
 | `release-rollback-standard` | `release` | `draft` | `standard-baseline-packs/release-rollback` |
+
+## Platform Matrix
+
+See [Platform Standard Baseline Matrix](platform-standard-baseline-matrix.md).
 
 ## Scripts
 

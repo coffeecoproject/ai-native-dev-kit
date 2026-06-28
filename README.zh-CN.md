@@ -196,6 +196,7 @@ node scripts/check-guided-adoption.mjs .
 - [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
 - [Guided Decision & Delivery Loop](docs/guided-decision-delivery-loop.md)：让 Codex 推荐最小安全路径，用户只确认目标、取舍和风险
 - [Standard Baseline Pack Registry](docs/standard-baseline-pack-registry.md)：先选普通工程标准基线，再看是否需要工业增强
+- [Platform Standard Baseline Packs](docs/platform-standard-baseline-packs.md)：按 Web、小程序、iOS、Android、中台等平台推荐普通标准基线
 - [Change Boundary](docs/change-boundary.md)：检查实际改动是否仍在本次任务边界内
 - [Baseline State](docs/baseline-state.md)：区分基线是建议、待确认、需证据，还是已确认
 - [Guided Delivery Check](docs/guided-delivery-check.md)：检查当前主线、停车场和 D0-D4 决策边界
@@ -216,6 +217,7 @@ node scripts/check-guided-adoption.mjs .
 - [Artifacts Reference](docs/reference/artifacts.md)：文件说明
 - [Checkers Reference](docs/reference/checkers.md)：检查器说明
 - [Standard Baseline Packs Reference](docs/reference/standard-baseline-packs.md)：标准基线包说明
+- [Platform Standard Baseline Matrix](docs/reference/platform-standard-baseline-matrix.md)：平台标准基线矩阵
 - [Industrial Packs Reference](docs/reference/industrial-packs.md)：工业包说明
 - [Migration Index](docs/migrations/index.md)：迁移入口
 - [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
@@ -224,6 +226,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.15 Release Record](releases/1.15.0/release-record.md)：1.15 平台标准基线包
 - [1.14.1 Release Record](releases/1.14.1/release-record.md)：1.14.1 标准基线包校验硬化
 - [1.14 Release Record](releases/1.14.0/release-record.md)：1.14 标准基线包注册表
 - [1.13 Release Record](releases/1.13.0/release-record.md)：1.13 基线包选择系统

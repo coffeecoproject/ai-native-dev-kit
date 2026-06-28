@@ -139,7 +139,7 @@ node scripts/check-standard-baseline-selection.mjs .
 
 Codex may recommend standard packs, but it must not treat recommendations as pack activation, target-project write approval, implementation approval, release approval, or compliance/security/privacy approval.
 
-Before recommending standard packs, read `.ai-native/standard-baseline-packs/selection-guide.md` when present. Select the smallest relevant pack set; do not select Web, backend, release, or all packs by default.
+Before recommending standard packs, read `.ai-native/standard-baseline-packs/selection-guide.md` when present. Select the smallest relevant pack set by platform and BL level; do not select backend, release, industrial overlays, or all packs by default. Recommend platform packs first and keep backend/release conditional.
 
 ## Baseline Pack System
 

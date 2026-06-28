@@ -97,6 +97,7 @@ Expected Codex behavior:
 - Draft `Selected Profiles` in `docs/project-profile.md` and run `node scripts/check-platform-baseline.mjs .`.
 - Use `node scripts/resolve-platform-baseline.mjs .` when the effective platform baseline needs to be reviewed.
 - For standard baseline decisions, run `node scripts/cli.mjs standard-baseline .` first and create a Standard Baseline Selection Report when the recommendation affects the task.
+- For platform baseline decisions, use the platform matrix: recommend platform runtime packs first, keep backend and release conditional, keep `environment-standard` proportional to BL level, and keep industrial overlays separate.
 - Use `node scripts/cli.mjs baseline-packs .` for the umbrella read-only view: standard packs first, optional industrial overlays second.
 - For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial overlays, wait for human confirmation of BL2 and draft pack acceptance, install only selected packs with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-standard-baseline-selection.mjs .`, `node scripts/check-baseline-pack-selection.mjs .`, `node scripts/check-industrial-pack.mjs . --selected-only`, and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
 - Ask for human decisions only where the workflow requires confirmation.

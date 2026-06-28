@@ -2414,8 +2414,11 @@ function checkBaselinePackSystemProtocol() {
 function checkStandardBaselinePackRegistryProtocol() {
   const required = [
     "docs/standard-baseline-pack-registry-1.14-plan.md",
+    "docs/platform-standard-baseline-packs-1.15-plan.md",
     "core/standard-baseline-pack-registry.md",
     "docs/standard-baseline-pack-registry.md",
+    "docs/platform-standard-baseline-packs.md",
+    "docs/reference/platform-standard-baseline-matrix.md",
     "docs/reference/standard-baseline-packs.md",
     "standard-baseline-packs/README.md",
     "standard-baseline-packs/selection-guide.md",
@@ -2433,6 +2436,11 @@ function checkStandardBaselinePackRegistryProtocol() {
     "standard-baseline-packs/release-rollback/baselines/release-readiness-baseline.md",
     "standard-baseline-packs/release-rollback/checklists/release-rollback-review.md",
     "standard-baseline-packs/release-rollback/templates/release-rollback-evidence.md",
+    "standard-baseline-packs/miniprogram-runtime/pack.json",
+    "standard-baseline-packs/ios-app/pack.json",
+    "standard-baseline-packs/android-app/pack.json",
+    "standard-baseline-packs/internal-admin/pack.json",
+    "standard-baseline-packs/environment/pack.json",
     "templates/standard-baseline-selection-report.md",
     "checklists/standard-baseline-selection-review.md",
     "prompts/standard-baseline-router-agent.md",
@@ -2441,6 +2449,13 @@ function checkStandardBaselinePackRegistryProtocol() {
     "scripts/check-standard-baseline-pack.mjs",
     "scripts/check-standard-baseline-selection.mjs",
     "examples/1.14-standard-baseline-registry/README.md",
+    "examples/1.15-platform-standard-baselines/README.md",
+    "examples/1.15-platform-standard-baselines/new-miniprogram-basic/standard-baseline-selections/001-platform-standard.md",
+    "examples/1.15-platform-standard-baselines/new-miniprogram-with-backend/standard-baseline-selections/001-platform-standard.md",
+    "examples/1.15-platform-standard-baselines/new-internal-admin-web/standard-baseline-selections/001-platform-standard.md",
+    "examples/1.15-platform-standard-baselines/new-ios-app/standard-baseline-selections/001-platform-standard.md",
+    "examples/1.15-platform-standard-baselines/new-android-app/standard-baseline-selections/001-platform-standard.md",
+    "examples/1.15-platform-standard-baselines/existing-governed-project-gap-review/standard-baseline-selections/001-platform-standard.md",
     "requests/240-standard-baseline-pack-registry.md",
     "preflight/240-standard-baseline-pack-registry.md",
     "specs/240-standard-baseline-pack-registry.md",
@@ -2453,6 +2468,9 @@ function checkStandardBaselinePackRegistryProtocol() {
     "releases/1.14.1/release-record.md",
     "releases/1.14.1/known-limitations.md",
     "releases/1.14.1/self-check-report.md",
+    "releases/1.15.0/release-record.md",
+    "releases/1.15.0/known-limitations.md",
+    "releases/1.15.0/self-check-report.md",
     "test-fixtures/bad/bad-standard-pack-unknown-field/standard-baseline-packs/index.json",
     "test-fixtures/bad/bad-standard-pack-unknown-field/standard-baseline-packs/bad-runtime/pack.json",
     "test-fixtures/bad/bad-standard-selection-unknown-profile/standard-baseline-selections/001-bad.md",
@@ -2464,8 +2482,11 @@ function checkStandardBaselinePackRegistryProtocol() {
 
   const combined = [
     read("docs/standard-baseline-pack-registry-1.14-plan.md"),
+    read("docs/platform-standard-baseline-packs-1.15-plan.md"),
     read("core/standard-baseline-pack-registry.md"),
     read("docs/standard-baseline-pack-registry.md"),
+    read("docs/platform-standard-baseline-packs.md"),
+    read("docs/reference/platform-standard-baseline-matrix.md"),
     read("templates/standard-baseline-selection-report.md"),
     read("checklists/standard-baseline-selection-review.md"),
     read("prompts/standard-baseline-router-agent.md"),
@@ -2473,6 +2494,8 @@ function checkStandardBaselinePackRegistryProtocol() {
     read("releases/1.14.0/known-limitations.md"),
     read("releases/1.14.1/release-record.md"),
     read("releases/1.14.1/known-limitations.md"),
+    read("releases/1.15.0/release-record.md"),
+    read("releases/1.15.0/known-limitations.md"),
     read("standard-baseline-packs/schema/standard-pack.schema.json"),
     read("scripts/resolve-baseline-packs.mjs"),
     read("scripts/check-standard-baseline-pack.mjs"),
@@ -2497,6 +2520,15 @@ function checkStandardBaselinePackRegistryProtocol() {
     "unknown pack metadata field",
     "unknown selected profile",
     "allowedPublicUrlHosts",
+    "miniprogram-runtime-standard",
+    "ios-app-standard",
+    "android-app-standard",
+    "internal-admin-standard",
+    "environment-standard",
+    "Mini Program backend is common, but optional",
+    "environment is proportional",
+    "forces backend-api-standard without backend scope evidence",
+    "governed or sensitive existing project uses overwrite language",
   ]) {
     if (combined.includes(marker)) pass(`standard baseline protocol includes ${marker}`);
     else fail(`standard baseline protocol missing ${marker}`);
@@ -2504,7 +2536,16 @@ function checkStandardBaselinePackRegistryProtocol() {
 
   const index = JSON.parse(read("standard-baseline-packs/index.json"));
   const packIds = (index.packs || []).map((pack) => pack.id).sort();
-  for (const packId of ["backend-api-standard", "release-rollback-standard", "web-runtime-standard"]) {
+  for (const packId of [
+    "android-app-standard",
+    "backend-api-standard",
+    "environment-standard",
+    "internal-admin-standard",
+    "ios-app-standard",
+    "miniprogram-runtime-standard",
+    "release-rollback-standard",
+    "web-runtime-standard",
+  ]) {
     if (packIds.includes(packId)) pass(`standard pack index includes ${packId}`);
     else fail(`standard pack index missing ${packId}`);
   }
@@ -2585,6 +2626,22 @@ function checkStandardBaselinePackRegistryProtocol() {
     fail(`standard baseline selection example failed: ${example.stderr || example.stdout}`);
   }
 
+  for (const exampleDir of [
+    "new-miniprogram-basic",
+    "new-miniprogram-with-backend",
+    "new-internal-admin-web",
+    "new-ios-app",
+    "new-android-app",
+    "existing-governed-project-gap-review",
+  ]) {
+    const platformExample = runNode(["scripts/check-standard-baseline-selection.mjs", `examples/1.15-platform-standard-baselines/${exampleDir}`, "--strict", "--compare-resolver"]);
+    if (platformExample.status === 0 && platformExample.stdout.includes("Standard baseline selection check passed")) {
+      pass(`1.15 platform standard example passes ${exampleDir}`);
+    } else {
+      fail(`1.15 platform standard example failed ${exampleDir}: ${platformExample.stderr || platformExample.stdout}`);
+    }
+  }
+
   const badDefault = runNode(["scripts/check-standard-baseline-pack.mjs", "test-fixtures/bad/bad-standard-pack-default-enabled"]);
   if (badDefault.status !== 0 && `${badDefault.stdout}\n${badDefault.stderr}`.includes("activeByDefault must be false")) {
     pass("standard baseline pack checker rejects activeByDefault");
@@ -2604,6 +2661,27 @@ function checkStandardBaselinePackRegistryProtocol() {
     pass("standard baseline selection checker rejects unknown selected profiles");
   } else {
     fail(`standard baseline selection checker must reject unknown selected profiles: ${badUnknownProfile.stderr || badUnknownProfile.stdout}`);
+  }
+
+  const badSelectsAll = runNode(["scripts/check-standard-baseline-selection.mjs", "test-fixtures/bad/bad-platform-standard-selects-all"]);
+  if (badSelectsAll.status !== 0 && `${badSelectsAll.stdout}\n${badSelectsAll.stderr}`.includes("selects all known standard packs")) {
+    pass("standard baseline selection checker rejects all-pack selection");
+  } else {
+    fail(`standard baseline selection checker must reject all-pack selection: ${badSelectsAll.stderr || badSelectsAll.stdout}`);
+  }
+
+  const badForcedBackend = runNode(["scripts/check-standard-baseline-selection.mjs", "test-fixtures/bad/bad-platform-standard-backend-forced"]);
+  if (badForcedBackend.status !== 0 && `${badForcedBackend.stdout}\n${badForcedBackend.stderr}`.includes("forces backend-api-standard")) {
+    pass("standard baseline selection checker rejects forced backend");
+  } else {
+    fail(`standard baseline selection checker must reject forced backend: ${badForcedBackend.stderr || badForcedBackend.stdout}`);
+  }
+
+  const badOverwrite = runNode(["scripts/check-standard-baseline-selection.mjs", "test-fixtures/bad/bad-platform-standard-existing-project-overwrite"]);
+  if (badOverwrite.status !== 0 && `${badOverwrite.stdout}\n${badOverwrite.stderr}`.includes("overwrite language")) {
+    pass("standard baseline selection checker rejects governed overwrite language");
+  } else {
+    fail(`standard baseline selection checker must reject governed overwrite language: ${badOverwrite.stderr || badOverwrite.stdout}`);
   }
 }
 

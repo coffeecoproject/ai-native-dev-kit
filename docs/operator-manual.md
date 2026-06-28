@@ -49,6 +49,14 @@ node scripts/cli.mjs baseline <project>
 
 `baseline` is read-only by default. It recommends Engineering and Environment Baseline setup and must report `Can AI write now: No`. Writes require `baseline-project --write-plan` and reviewed `--apply-plan`.
 
+For platform standard baseline recommendations:
+
+```bash
+node scripts/cli.mjs standard-baseline <project>
+```
+
+Recommend ordinary platform packs first. Keep backend and release packs conditional. Keep industrial overlays separate until risk and human confirmation require them. A standard baseline recommendation does not approve target-project writes or implementation.
+
 If `workflow-next` returns `ADOPTION_MODE: READ_ONLY`, `RUN_ADOPTION_ASSESSMENT`, or `REVIEW_DIRTY_WORKTREE`, stop write actions and follow the matching playbook.
 
 For governed or production-sensitive projects, record the first pass as a real adoption trial and classify future repair scale before implementation:

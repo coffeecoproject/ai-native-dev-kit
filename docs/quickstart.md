@@ -47,6 +47,14 @@ Apply scope is limited to baseline docs and baseline reports.
 
 Baseline output follows the same decision format. Codex may recommend a baseline plan, but applying baseline docs still requires a reviewed plan.
 
+For platform standard baseline packs:
+
+```bash
+node ai-native-dev-kit/scripts/cli.mjs standard-baseline .
+```
+
+Use the recommendation as a decision summary. It can recommend Web, Mini Program, iOS, Android, internal admin, backend, environment, or release standard packs, but backend and release remain conditional and the output does not approve project writes.
+
 Use `workflow-next` directly only when you need the lower-level technical state:
 
 ```bash

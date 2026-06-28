@@ -15,13 +15,14 @@
   ],
   "packs": [
     {
-      "id": "web-runtime-standard",
+      "path": "android-app",
+      "id": "android-app-standard",
       "type": "primary-platform",
       "status": "draft",
-      "path": "web-runtime",
-      "displayName": "Web Runtime Standard Pack",
+      "displayName": "Android App Standard Pack",
       "baselineLayer": "standard",
       "recommendedForBL": [
+        "BL0_LIGHTWEIGHT",
         "BL1_STANDARD",
         "BL2_INDUSTRIAL"
       ],
@@ -32,11 +33,10 @@
       ],
       "activeByDefault": false,
       "appliesToProfiles": [
-        "web-app",
-        "internal-admin"
+        "android-app"
       ],
       "recommendedWhen": [
-        "web UI, routing, state, API client, forms, or runtime behavior is in scope"
+        "Android app module structure, navigation, state ownership, Gradle build, emulator, or device behavior is in scope"
       ],
       "canBeRecommendedByAI": true,
       "selectionRequiresHumanDecision": true,
@@ -55,6 +55,7 @@
       "displayName": "Backend API Standard Pack",
       "baselineLayer": "standard",
       "recommendedForBL": [
+        "BL0_LIGHTWEIGHT",
         "BL1_STANDARD",
         "BL2_INDUSTRIAL"
       ],
@@ -69,6 +70,141 @@
       ],
       "recommendedWhen": [
         "server API, domain DTOs, database schema, migrations, or API integration is in scope"
+      ],
+      "canBeRecommendedByAI": true,
+      "selectionRequiresHumanDecision": true,
+      "canAuthorizeWrites": false,
+      "canApproveImplementation": false,
+      "canApproveRelease": false,
+      "canApproveComplianceSecurityPrivacy": false,
+      "requiresEvidenceForConfirmed": true,
+      "maturityStage": "draft"
+    },
+    {
+      "path": "environment",
+      "id": "environment-standard",
+      "type": "environment",
+      "status": "draft",
+      "displayName": "Environment Standard Pack",
+      "baselineLayer": "standard",
+      "recommendedForBL": [
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "allowedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "activeByDefault": false,
+      "appliesToProfiles": [
+        "web-app",
+        "wechat-miniprogram",
+        "ios-app",
+        "android-app",
+        "backend-api",
+        "internal-admin"
+      ],
+      "recommendedWhen": [
+        "runtime, package manager, build, test, CI, deployment environment, or environment variable inventory is in scope"
+      ],
+      "canBeRecommendedByAI": true,
+      "selectionRequiresHumanDecision": true,
+      "canAuthorizeWrites": false,
+      "canApproveImplementation": false,
+      "canApproveRelease": false,
+      "canApproveComplianceSecurityPrivacy": false,
+      "requiresEvidenceForConfirmed": true,
+      "maturityStage": "draft"
+    },
+    {
+      "path": "internal-admin",
+      "id": "internal-admin-standard",
+      "type": "capability",
+      "status": "draft",
+      "displayName": "Internal Admin Standard Pack",
+      "baselineLayer": "standard",
+      "recommendedForBL": [
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "allowedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "activeByDefault": false,
+      "appliesToProfiles": [
+        "internal-admin"
+      ],
+      "recommendedWhen": [
+        "admin console, CRM, ERP, management dashboard, approval workflow, finance console, HR console, or internal operations system is in scope"
+      ],
+      "canBeRecommendedByAI": true,
+      "selectionRequiresHumanDecision": true,
+      "canAuthorizeWrites": false,
+      "canApproveImplementation": false,
+      "canApproveRelease": false,
+      "canApproveComplianceSecurityPrivacy": false,
+      "requiresEvidenceForConfirmed": true,
+      "maturityStage": "draft"
+    },
+    {
+      "path": "ios-app",
+      "id": "ios-app-standard",
+      "type": "primary-platform",
+      "status": "draft",
+      "displayName": "iOS App Standard Pack",
+      "baselineLayer": "standard",
+      "recommendedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "allowedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "activeByDefault": false,
+      "appliesToProfiles": [
+        "ios-app"
+      ],
+      "recommendedWhen": [
+        "iOS app structure, navigation, state ownership, build, simulator, or device behavior is in scope"
+      ],
+      "canBeRecommendedByAI": true,
+      "selectionRequiresHumanDecision": true,
+      "canAuthorizeWrites": false,
+      "canApproveImplementation": false,
+      "canApproveRelease": false,
+      "canApproveComplianceSecurityPrivacy": false,
+      "requiresEvidenceForConfirmed": true,
+      "maturityStage": "draft"
+    },
+    {
+      "path": "miniprogram-runtime",
+      "id": "miniprogram-runtime-standard",
+      "type": "primary-platform",
+      "status": "draft",
+      "displayName": "Mini Program Runtime Standard Pack",
+      "baselineLayer": "standard",
+      "recommendedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "allowedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "activeByDefault": false,
+      "appliesToProfiles": [
+        "wechat-miniprogram"
+      ],
+      "recommendedWhen": [
+        "WeChat Mini Program pages, components, lifecycle, platform API, or runtime behavior is in scope"
       ],
       "canBeRecommendedByAI": true,
       "selectionRequiresHumanDecision": true,
@@ -102,6 +238,40 @@
         "project has production deployment",
         "release or rollback is in scope",
         "handoff or launch readiness is claimed"
+      ],
+      "canBeRecommendedByAI": true,
+      "selectionRequiresHumanDecision": true,
+      "canAuthorizeWrites": false,
+      "canApproveImplementation": false,
+      "canApproveRelease": false,
+      "canApproveComplianceSecurityPrivacy": false,
+      "requiresEvidenceForConfirmed": true,
+      "maturityStage": "draft"
+    },
+    {
+      "id": "web-runtime-standard",
+      "type": "primary-platform",
+      "status": "draft",
+      "path": "web-runtime",
+      "displayName": "Web Runtime Standard Pack",
+      "baselineLayer": "standard",
+      "recommendedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "allowedForBL": [
+        "BL0_LIGHTWEIGHT",
+        "BL1_STANDARD",
+        "BL2_INDUSTRIAL"
+      ],
+      "activeByDefault": false,
+      "appliesToProfiles": [
+        "web-app",
+        "internal-admin"
+      ],
+      "recommendedWhen": [
+        "web UI, routing, state, API client, forms, or runtime behavior is in scope"
       ],
       "canBeRecommendedByAI": true,
       "selectionRequiresHumanDecision": true,

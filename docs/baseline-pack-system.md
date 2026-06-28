@@ -84,6 +84,8 @@ node scripts/cli.mjs baseline-packs <project>
 
 `standard-baseline` shows standard packs only. `baseline-packs` is an umbrella read-only view that shows standard packs first, then optional industrial overlays.
 
+1.15.0 extends standard baseline recommendations with platform packs for Mini Program, iOS, Android, internal admin, and environment setup. Backend and release packs remain conditional; industrial overlays remain optional and inactive unless human-approved.
+
 Check recorded pack selection reports:
 
 ```bash

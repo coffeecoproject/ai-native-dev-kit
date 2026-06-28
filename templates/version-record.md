@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.14.1`
+`1.15.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.15.0` adds platform standard baseline packs for Mini Program, iOS, Android, internal admin, and environment setup. It keeps backend and release packs conditional and keeps industrial overlays separate.
+- `1.15.0` does not approve target-project writes, implementation, release, production, compliance, security, privacy, payment, tax, finance, HR, migration, or BL2 activation.
 - `1.14.1` hardens Standard Baseline Pack Registry checks: selected profile ids must resolve, standard pack metadata fields are explicit, public documentation URLs do not trigger private URL or bundle-id false positives, and the lower-level industrial resolver is marked deprecated for human entry.
 - `1.14.1` is a patch release only; it does not add new packs, promote draft packs, change BL defaults, approve target-project writes, or claim production validation.
 - `1.14.0` adds Standard Baseline Pack Registry assets and commands so Codex can recommend ordinary engineering guardrails before considering optional BL2 industrial overlays.

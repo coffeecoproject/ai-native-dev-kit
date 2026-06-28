@@ -28,6 +28,18 @@ profile -> standard baseline packs -> optional industrial overlays
 | `backend-api-standard` | Backend API, DTO/domain boundary, database schema, migrations, or API integration is in scope |
 | `release-rollback-standard` | Release, rollback, staging, production, handoff, or launch readiness is in scope |
 
+## Platform Packs
+
+1.15.0 adds draft platform standard packs:
+
+| Pack | Use When |
+|---|---|
+| `miniprogram-runtime-standard` | WeChat Mini Program pages, components, lifecycle, platform APIs, or runtime behavior is in scope |
+| `ios-app-standard` | iOS app structure, navigation, state ownership, build, simulator, or device behavior is in scope |
+| `android-app-standard` | Android module structure, navigation, state ownership, Gradle build, emulator, or device behavior is in scope |
+| `internal-admin-standard` | Internal admin, management dashboard, approval workflow, CRM, ERP, finance, HR, or operations UI is in scope |
+| `environment-standard` | Runtime, package manager, command, CI, deployment environment, or environment variable inventory is in scope |
+
 ## Commands
 
 Read-only standard recommendation:
@@ -70,3 +82,11 @@ It only records the intended engineering baseline path.
 - Selected profile ids in Standard Baseline Selection Reports must resolve to `profiles/` or `.ai-native/profiles/`.
 - Public documentation URLs such as `https://developer.mozilla.org/` or `https://owasp.org/` are allowed in standard pack docs without being treated as private project URLs.
 - `scripts/resolve-baseline-packs.mjs` remains available only as a lower-level industrial resolver; humans should use `node scripts/cli.mjs baseline-packs <project>`.
+
+## 1.15.0 Platform Matrix
+
+- Platform runtime packs can be recommended for BL0/BL1/BL2 when the platform is selected.
+- `environment-standard` is recommended for BL1/BL2 non-trivial projects and kept minimal or pending for BL0.
+- `backend-api-standard` remains conditional for Web, Mini Program, iOS, and Android unless backend/API/database scope exists.
+- `release-rollback-standard` remains conditional unless release, staging, handoff, deployment, rollback, or launch readiness is in scope.
+- Existing governed projects use read-only mapping and gap-review language, not overwrite language.

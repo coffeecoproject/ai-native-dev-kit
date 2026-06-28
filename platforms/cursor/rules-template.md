@@ -73,6 +73,7 @@ Before non-trivial work, read:
 
 - Baseline level is `BL0_LIGHTWEIGHT`, `BL1_STANDARD`, or `BL2_INDUSTRIAL`; it is not task level.
 - Run `node scripts/resolve-standard-baseline.mjs .` for a read-only standard baseline pack recommendation when platform, capability, or release baseline choice is unclear.
+- Recommend platform standard packs first; keep backend and release packs conditional; do not treat standard baseline selection as target-project write approval.
 - Run `node scripts/cli.mjs baseline-packs .` for the umbrella read-only recommendation when optional industrial overlays also matter.
 - Run `node scripts/check-baseline-pack-selection.mjs .` when Baseline Pack Selection Reports exist.
 - Run `node scripts/check-standard-baseline-selection.mjs .` when Standard Baseline Selection Reports exist.

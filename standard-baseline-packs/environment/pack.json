@@ -1,0 +1,36 @@
+{
+  "id": "environment-standard",
+  "type": "environment",
+  "status": "draft",
+  "displayName": "Environment Standard Pack",
+  "baselineLayer": "standard",
+  "recommendedForBL": [
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "allowedForBL": [
+    "BL0_LIGHTWEIGHT",
+    "BL1_STANDARD",
+    "BL2_INDUSTRIAL"
+  ],
+  "activeByDefault": false,
+  "appliesToProfiles": [
+    "web-app",
+    "wechat-miniprogram",
+    "ios-app",
+    "android-app",
+    "backend-api",
+    "internal-admin"
+  ],
+  "recommendedWhen": [
+    "runtime, package manager, build, test, CI, deployment environment, or environment variable inventory is in scope"
+  ],
+  "canBeRecommendedByAI": true,
+  "selectionRequiresHumanDecision": true,
+  "canAuthorizeWrites": false,
+  "canApproveImplementation": false,
+  "canApproveRelease": false,
+  "canApproveComplianceSecurityPrivacy": false,
+  "requiresEvidenceForConfirmed": true,
+  "maturityStage": "draft"
+}

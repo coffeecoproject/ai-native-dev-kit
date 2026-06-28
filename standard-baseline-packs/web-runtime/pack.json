@@ -5,6 +5,7 @@
   "displayName": "Web Runtime Standard Pack",
   "baselineLayer": "standard",
   "recommendedForBL": [
+    "BL0_LIGHTWEIGHT",
     "BL1_STANDARD",
     "BL2_INDUSTRIAL"
   ],

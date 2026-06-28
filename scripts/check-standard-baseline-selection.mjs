@@ -225,7 +225,7 @@ function validateOverclaims(content, rel) {
     { label: "pack files prove real evidence", pattern: /\b(pack files|standard pack files|industrial pack files)\b.{0,80}\b(prove|confirm|validate)\b.{0,80}\b(real project|production|evidence)\b/i },
     { label: "write authorization", pattern: /\b(authorizes target-project writes|can ai write now|target-project write approved)\s*:\s*yes\b/i },
     { label: "implementation approval", pattern: /\b(approves implementation|implementation approved)\s*:\s*yes\b/i },
-    { label: "release approval", pattern: /\b(approves release|production approved|release approved)\s*:\s*yes\b/i },
+    { label: "release approval", pattern: /\b(approves release(?: or production)?|production approved|release approved)\s*:\s*yes\b/i },
     { label: "compliance/security/privacy approval", pattern: /\b(approves compliance\/security\/privacy|security approved|privacy approved|compliance approved)\s*:\s*yes\b/i },
   ];
   for (const item of forbidden) {
@@ -256,6 +256,69 @@ function validatePackIds(content, rel) {
   for (const packId of overlayIndustrialIds) {
     if (industrialIds.has(packId)) pass(`${rel} industrial overlay exists ${packId}`);
     else fail(`${rel} unknown industrial overlay ${packId}`);
+  }
+  if (standardIds.size > 0 && standardPackIds.length === standardIds.size) {
+    fail(`${rel} selects all known standard packs; standard packs must be selected by platform and scope`);
+  } else {
+    pass(`${rel} does not select all known standard packs`);
+  }
+}
+
+function hasConfirmedScopeEvidence(content, label) {
+  const pattern = new RegExp(`${label}\\\\s*:\\\\s*(.+)`, "i");
+  const match = content.match(pattern);
+  if (!match) return false;
+  const value = match[1].trim();
+  return Boolean(value)
+    && !/^(PENDING|NONE|N\/A|NOT_APPLICABLE|NOT APPLICABLE|NO|UNKNOWN)$/i.test(value)
+    && !value.includes("<");
+}
+
+function validateConditionalScope(content, rel) {
+  const selectedProfiles = extractSelectedProfiles(sectionBody(content, "Selected Profiles"));
+  const selectedProfileSet = new Set(selectedProfiles);
+  const recommendedStandardPacks = extractPackIds(sectionBody(content, "Recommended Standard Packs"), "standard");
+  const hasBackend = recommendedStandardPacks.includes("backend-api-standard");
+  const frontendWithoutBackendProfile = (selectedProfileSet.has("web-app") || selectedProfileSet.has("wechat-miniprogram"))
+    && !selectedProfileSet.has("backend-api");
+  if (hasBackend && frontendWithoutBackendProfile && !hasConfirmedScopeEvidence(content, "Backend scope evidence")) {
+    fail(`${rel} forces backend-api-standard without backend scope evidence`);
+  } else {
+    pass(`${rel} does not force backend without evidence`);
+  }
+
+  const hasRelease = recommendedStandardPacks.includes("release-rollback-standard");
+  if (hasRelease && !hasConfirmedScopeEvidence(content, "Release scope evidence")) {
+    fail(`${rel} recommends release-rollback-standard without release scope evidence`);
+  } else {
+    pass(`${rel} keeps release and rollback conditional`);
+  }
+}
+
+function validateExistingProjectBoundary(content, rel) {
+  const classification = sectionBody(content, "Project Classification");
+  const isGovernedOrSensitive = /\b(governed|production-sensitive|dirty)\b/i.test(classification);
+  if (!isGovernedOrSensitive) {
+    pass(`${rel} existing-project overwrite boundary not applicable`);
+    return;
+  }
+  const forbiddenOverwrite = [
+    /\bwill overwrite\b/i,
+    /\bcan overwrite\b/i,
+    /\bshould overwrite\b/i,
+    /\boverwrite AGENTS\b/i,
+    /\boverwrite CI\b/i,
+    /\boverwrite PR template\b/i,
+    /\breplace existing governance\b/i,
+    /\bfull \.ai-native copy\b/i,
+    /\bcopy full \.ai-native\b/i,
+    /全量覆盖/,
+    /直接覆盖/,
+  ];
+  if (bodyHasAny(content, forbiddenOverwrite)) {
+    fail(`${rel} governed or sensitive existing project uses overwrite language`);
+  } else {
+    pass(`${rel} governed or sensitive existing project avoids overwrite language`);
   }
 }
 
@@ -326,6 +389,8 @@ function validateReport(file) {
   validateBoundary(content, rel);
   validateOverclaims(content, rel);
   validatePackIds(content, rel);
+  validateConditionalScope(content, rel);
+  validateExistingProjectBoundary(content, rel);
   validateDecision(content, rel);
   validateEvidence(content, rel);
   validateTypeSeparation(content, rel);

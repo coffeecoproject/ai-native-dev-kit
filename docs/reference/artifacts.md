@@ -116,7 +116,7 @@ Change Boundary and Baseline State Guard live under `.ai-native/core/` in genera
 
 Baseline Pack System lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends BL0/BL1/BL2, platform packs, capability packs, and risk overlays without silently approving BL2, draft packs, target-project writes, release, or production readiness.
 
-Standard Baseline Pack Registry lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends ordinary engineering baseline packs before optional BL2 industrial overlays, and keeps standard selection separate from implementation approval.
+Standard Baseline Pack Registry lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends ordinary engineering baseline packs before optional BL2 industrial overlays, and keeps standard selection separate from implementation approval. Platform standard baseline packs add Web, Mini Program, iOS, Android, internal admin, and environment guidance without making backend, release, or industrial overlays default.
 
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 

@@ -44,6 +44,21 @@ Quality, environment, or release packs:
 
 - <standard-pack-id or none>
 
+## Conditional Standard Packs
+
+Backend / API packs:
+
+- <standard-pack-id or none>
+
+Release / rollback packs:
+
+- <standard-pack-id or none>
+
+Conditional scope evidence:
+
+- Backend scope evidence: PENDING
+- Release scope evidence: PENDING
+
 ## Optional Industrial Overlays
 
 Risk overlay packs:

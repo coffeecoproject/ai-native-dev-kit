@@ -16,7 +16,12 @@ industrial pack -> optional high-risk / production-sensitive overlay
 | Pack | Type | Status | Purpose |
 |---|---|---|---|
 | `web-runtime-standard` | `primary-platform` | `draft` | Web runtime, UI state, API client, forms, responsive behavior |
+| `miniprogram-runtime-standard` | `primary-platform` | `draft` | Mini Program pages, components, lifecycle, platform APIs, runtime behavior |
+| `ios-app-standard` | `primary-platform` | `draft` | iOS app structure, navigation, state ownership, build and simulator checks |
+| `android-app-standard` | `primary-platform` | `draft` | Android app structure, navigation, state ownership, Gradle and emulator checks |
 | `backend-api-standard` | `capability` | `draft` | API contract, domain/data boundary, migrations, local API verification |
+| `internal-admin-standard` | `capability` | `draft` | Admin console, management dashboard, approval flow, table/form/permission-aware UI |
+| `environment-standard` | `environment` | `draft` | Runtime, package manager, command, CI, and environment variable facts without secrets |
 | `release-rollback-standard` | `release` | `draft` | Release plan, rollback plan, smoke evidence, deployment decision boundary |
 
 ## Boundary

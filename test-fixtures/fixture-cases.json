@@ -1217,5 +1217,147 @@
       "recommended standard packs differ from resolver"
     ],
     "howToFix": "Strict standard baseline reports must match resolver output or record an explicit resolver override reason."
+  },
+  {
+    "name": "bad platform standard selects all",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-selects-all"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "selects all known standard packs"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard backend forced",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-backend-forced"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "forces backend-api-standard"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard bl2 default",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-bl2-default"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "BL2 is default"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard industrial as standard",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-industrial-as-standard"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "industrial overlay(s) as standard packs"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard write approved",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-write-approved"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "write authorization"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard release approved",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-release-approved"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "release approval"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard draft stable",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-draft-stable"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "draft pack stable claim"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard existing project overwrite",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-existing-project-overwrite"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "overwrite language"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard unknown pack",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-unknown-pack"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "unknown standard pack"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
+  },
+  {
+    "name": "bad platform standard resolver mismatch",
+    "type": "bad",
+    "checker": "check-standard-baseline-selection",
+    "script": "scripts/check-standard-baseline-selection.mjs",
+    "args": [
+      "test-fixtures/bad/bad-platform-standard-resolver-mismatch",
+      "--strict",
+      "--compare-resolver"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "recommended standard packs differ from resolver"
+    ],
+    "howToFix": "Platform standard baseline reports must stay platform-scoped, conditional, and non-authorizing."
   }
 ]

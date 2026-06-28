@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.14.1",
+  "devKitVersion": "1.15.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -54,6 +54,7 @@
     ".ai-native/docs/guided-delivery-baseline.md",
     ".ai-native/docs/guided-delivery-check.md",
     ".ai-native/docs/minimal-commit-set.md",
+    ".ai-native/docs/platform-standard-baseline-packs.md",
     ".ai-native/docs/product-baseline.md",
     ".ai-native/docs/project-memory.md",
     ".ai-native/docs/real-adoption-usage.md",
