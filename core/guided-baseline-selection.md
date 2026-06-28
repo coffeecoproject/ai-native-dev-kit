@@ -24,6 +24,8 @@ The card answers:
 
 - what Codex thinks the project is
 - which baseline level is recommended
+- the current safe action versus any target candidate level
+- which platform profiles are selected, present but unconfirmed, deferred, or not detected
 - which standard packs are recommended
 - which industrial packs are candidate-only
 - which packs are deliberately not selected
@@ -72,6 +74,31 @@ Codex must not:
 
 BL2 is never a quality badge. It is a heavier governance mode that requires evidence and human confirmation.
 
+For production-sensitive, governed, dirty, or high-risk projects, the card must separate:
+
+```text
+current safe action: usually BL1/read-only mapping or read-only until worktree decision
+target candidate level: BL2_INDUSTRIAL only after evidence and human confirmation
+```
+
+This avoids presenting BL2 as already selected.
+
+## Platform States
+
+Large monorepos may contain more platforms than the current phase should use.
+
+Use these states:
+
+| State | Meaning |
+|---|---|
+| `selected-confirmed` | Human/project docs already selected the profile. |
+| `selected-inferred` | Codex inferred the profile from strong project evidence. |
+| `present-needs-confirmation` | The platform appears in the repo, but this phase does not confirm it should be active. |
+| `present-inactive-or-deferred` | The platform appears in the repo and local evidence suggests it is not active in this phase. |
+| `not-detected` | No meaningful signal was found. |
+
+Do not treat every platform directory in a monorepo as active for the current task.
+
 ## Project States
 
 | User label | Default Codex behavior |
@@ -89,6 +116,7 @@ Every Baseline Decision Card must include:
 - `Human Summary`
 - `Project State`
 - `Platform And Scope`
+- `Platform States`
 - `Recommended Baseline Level`
 - `Recommended Standard Packs`
 - `Candidate Industrial Packs`

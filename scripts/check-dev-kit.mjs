@@ -2915,6 +2915,127 @@ function checkGuidedBaselineSelectionEntryProtocol() {
   }
 }
 
+function checkGuidedBaselineSelectionCalibrationProtocol() {
+  const required = [
+    "docs/guided-baseline-selection-calibration-1.18-plan.md",
+    "baseline-calibration-reports/2026-06-28-summary.md",
+    "baseline-calibration-reports/2026-06-28-local-ios-industrial-monorepo-project.md",
+    "releases/1.18.0/release-record.md",
+    "releases/1.18.0/known-limitations.md",
+    "releases/1.18.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.18 guided baseline calibration asset exists ${file}`);
+    else fail(`1.18 guided baseline calibration asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/guided-baseline-selection-calibration-1.18-plan.md"),
+    read("core/guided-baseline-selection.md"),
+    read("docs/guided-baseline-selection-entry.md"),
+    read("templates/baseline-decision-card.md"),
+    read("checklists/baseline-decision-review.md"),
+    read("scripts/resolve-guided-baseline-selection.mjs"),
+    read("scripts/baseline-project.mjs"),
+    read("releases/1.18.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "current safe action",
+    "target candidate level",
+    "Platform States",
+    "selected-inferred",
+    "present-needs-confirmation",
+    "present-inactive-or-deferred",
+    "Mini Program cloud functions",
+    "permission/RBAC vocabulary alone",
+    "does not add new packs",
+    "does not approve target-project writes",
+  ]) {
+    if (combined.includes(marker)) pass(`1.18 guided baseline calibration includes ${marker}`);
+    else fail(`1.18 guided baseline calibration missing ${marker}`);
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-baseline-calibration-"));
+  try {
+    const miniprogram = path.join(tempRoot, "miniprogram-cloud");
+    fs.mkdirSync(path.join(miniprogram, "cloudfunctions", "login"), { recursive: true });
+    fs.writeFileSync(path.join(miniprogram, "project.config.json"), "{\"miniprogramRoot\":\"miniprogram\",\"cloudfunctionRoot\":\"cloudfunctions\"}\n");
+
+    const permissionOnly = path.join(tempRoot, "permission-docs");
+    fs.mkdirSync(path.join(permissionOnly, "docs", "architecture"), { recursive: true });
+    fs.writeFileSync(path.join(permissionOnly, "package.json"), "{\"name\":\"permission-docs\"}\n");
+    fs.writeFileSync(path.join(permissionOnly, "docs", "architecture", "permission-boundary.md"), "# Permission boundary\n");
+
+    const monorepo = path.join(tempRoot, "ios-monorepo");
+    fs.mkdirSync(path.join(monorepo, "apps", "ios", "App.xcodeproj"), { recursive: true });
+    fs.mkdirSync(path.join(monorepo, "apps", "android", "app"), { recursive: true });
+    fs.mkdirSync(path.join(monorepo, "apps", "miniapp", "src"), { recursive: true });
+    fs.mkdirSync(path.join(monorepo, "apps", "web-platform-admin", "src"), { recursive: true });
+    fs.mkdirSync(path.join(monorepo, "backend", "internal"), { recursive: true });
+    fs.mkdirSync(path.join(monorepo, "docs", "entity", "sql"), { recursive: true });
+    fs.writeFileSync(path.join(monorepo, "package.json"), JSON.stringify({
+      name: "calibration-monorepo",
+      scripts: {
+        "ci:matrix:strict:active-no-android-miniapp": "echo ok",
+        "web-admin:check": "echo ok",
+      },
+      dependencies: {
+        react: "latest",
+      },
+    }, null, 2));
+
+    const miniDecision = runNode(["scripts/resolve-guided-baseline-selection.mjs", miniprogram, "--json"]);
+    const mini = JSON.parse(miniDecision.stdout);
+    if (mini.platformAndScope.backendApiScope.includes("Mini Program cloud functions need confirmation")) {
+      pass("1.18 Mini Program cloud functions mark backend scope possible");
+    } else {
+      fail(`1.18 Mini Program backend scope calibration failed: ${miniDecision.stdout}`);
+    }
+    if (!mini.recommendedStandardPacks.includes("backend-api-standard")) {
+      pass("1.18 Mini Program cloud functions do not force backend standard pack");
+    } else {
+      fail("1.18 Mini Program cloud functions forced backend-api-standard");
+    }
+
+    const permissionDecision = runNode(["scripts/resolve-guided-baseline-selection.mjs", permissionOnly, "--json"]);
+    const permission = JSON.parse(permissionDecision.stdout);
+    if (!permission.platformAndScope.detectedPlatform.includes("internal-admin")) {
+      pass("1.18 permission-only project does not infer internal-admin");
+    } else {
+      fail(`1.18 internal-admin false positive remains: ${permissionDecision.stdout}`);
+    }
+
+    const monoDecision = runNode(["scripts/resolve-guided-baseline-selection.mjs", monorepo, "--json"]);
+    const mono = JSON.parse(monoDecision.stdout);
+    const monoStates = Object.fromEntries(mono.platformStates.map((item) => [item.profile, item.state]));
+    if (monoStates["android-app"] === "present-inactive-or-deferred"
+      && monoStates["wechat-miniprogram"] === "present-needs-confirmation"
+      && monoStates["ios-app"] === "selected-inferred") {
+      pass("1.18 monorepo platform states distinguish selected and present profiles");
+    } else {
+      fail(`1.18 monorepo platform states are wrong: ${JSON.stringify(monoStates)}`);
+    }
+    if (mono.recommendedBaselineLevel.currentSafeAction === "BL1_STANDARD_READ_ONLY_MAPPING"
+      && mono.recommendedBaselineLevel.targetCandidateLevel === "BL2_INDUSTRIAL") {
+      pass("1.18 guided decision separates current safe action from target candidate level");
+    } else {
+      fail(`1.18 guided safe action calibration failed: ${JSON.stringify(mono.recommendedBaselineLevel)}`);
+    }
+
+    const legacyBaseline = runNode(["scripts/cli.mjs", "baseline", monorepo]);
+    if (legacyBaseline.status === 0
+      && legacyBaseline.stdout.includes("Current safe action")
+      && legacyBaseline.stdout.includes("Target candidate level")) {
+      pass("1.18 legacy baseline output explains safe action and candidate target");
+    } else {
+      fail(`1.18 legacy baseline output missing calibration language: ${legacyBaseline.stderr || legacyBaseline.stdout}`);
+    }
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
 function checkGuidedDeliveryBaselineProtocol() {
   const required = [
     "docs/guided-delivery-baseline-1.3-plan.md",
@@ -6499,6 +6620,7 @@ checkChangeBoundaryBaselineStateProtocol();
 checkBaselinePackSystemProtocol();
 checkStandardBaselinePackRegistryProtocol();
 checkGuidedBaselineSelectionEntryProtocol();
+checkGuidedBaselineSelectionCalibrationProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();

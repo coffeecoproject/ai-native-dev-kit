@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.17.1`
+Current version: `1.18.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.17.1`
 
 ## Current Release
 
-`1.17.1`
+`1.18.0`
 
 Includes:
 
+- Guided Baseline Selection Calibration phase `1.18.0`: separates current safe action from target candidate level, adds Platform States for monorepos, makes Mini Program cloud functions mark backend/API scope as possible, and tightens internal-admin detection so permission/RBAC vocabulary alone does not infer an admin console
+- `1.18.0` does not add new packs, promote draft packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Guided Baseline Selection calibration patch `1.17.1`: makes BL2 wording explicitly candidate-only, adds explicit baseline-decision PR/release CI steps, clarifies print-vs-save behavior for Baseline Decision Cards, and declares active maintainer CODEOWNERS for governance-sensitive areas
 - `1.17.1` does not add new packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Guided Baseline Selection Entry phase `1.17.0`: adds a plain-language Baseline Decision Card, `baseline-decision` CLI entry, decision-card checker, examples, bad fixtures, and generated-project assets for user-readable baseline selection

@@ -155,8 +155,8 @@ function detectProfileCandidates(targetRoot) {
   if (rels.has("server") || rels.has("backend") || rels.has("services") || rels.has("go.mod") || rels.has("pyproject.toml") || /express|fastify|nestjs|prisma|typeorm|drizzle/i.test(packageText)) {
     candidates.push(profile("backend-api", "Backend runtime, server directory, service directory, or API dependency signals found."));
   }
-  if (/admin|antd|data-table|rbac|permission/i.test(packageText) || [...rels].some((item) => /admin|dashboard|permission|rbac/i.test(item))) {
-    candidates.push(profile("internal-admin", "Admin, dashboard, permission, or RBAC signals found."));
+  if (hasInternalAdminSignals(rels, packageText)) {
+    candidates.push(profile("internal-admin", "Admin, dashboard, approval, or operations console signals found."));
   }
 
   if (candidates.length === 0) {
@@ -167,6 +167,11 @@ function detectProfileCandidates(targetRoot) {
 
 function profile(id, reason) {
   return { id, reason, status: id === "unknown" ? "PENDING_CONFIRMATION" : "CANDIDATE" };
+}
+
+function hasInternalAdminSignals(rels, packageText) {
+  return /\b(admin|dashboard|management-console|ops-console|operations-console|approval|merchant-admin|platform-admin|web-admin)\b/i.test(packageText)
+    || [...rels].some((item) => /(^|\/)(admin|dashboard|console|approval)(\/|$)|(^|\/)apps\/[^/]*(admin|dashboard)[^/]*(\/|$)|[-_](admin|dashboard)([-_/]|$)/i.test(item));
 }
 
 function inspectBaselineDoc(targetRoot, rel) {
@@ -231,13 +236,17 @@ function recommendBaselineLevel(classification, profiles) {
   if (classification === "PRODUCTION_SENSITIVE_PROJECT" || classification === "GOVERNED_EXISTING_PROJECT" || classification === "DIRTY_WORKTREE_PROJECT") {
     return {
       level: "BL1",
-      reason: "Existing governance, production, or dirty-worktree signals require visible baseline decisions before implementation. BL2 remains explicit opt-in.",
+      safeActionLevel: classification === "DIRTY_WORKTREE_PROJECT" ? "READ_ONLY_UNTIL_WORKTREE_DECISION" : "BL1 read-only mapping",
+      targetCandidateLevel: "BL2 candidate after human confirmation and evidence",
+      reason: "Existing governance, production, or dirty-worktree signals require visible baseline decisions before implementation. Current safe action stays BL1/read-only; BL2 remains a candidate only after explicit evidence and human confirmation.",
       industrialPacks: "None by default",
     };
   }
   if (classification === "NEW_PROJECT") {
     return {
       level: "BL0 first, then BL1 after platform and project goal confirmation",
+      safeActionLevel: "BL0 discovery",
+      targetCandidateLevel: "none",
       reason: "New projects should start light, then confirm engineering and environment rules before non-trivial work.",
       industrialPacks: "None by default",
     };
@@ -245,12 +254,16 @@ function recommendBaselineLevel(classification, profiles) {
   if (profiles.some((item) => item.id === "backend-api" || item.id === "internal-admin")) {
     return {
       level: "BL1",
+      safeActionLevel: "BL1 plan-first",
+      targetCandidateLevel: "none unless high-risk scope is confirmed",
       reason: "Backend/admin signals usually need data, permission, environment, and release decisions before implementation.",
       industrialPacks: "None by default",
     };
   }
   return {
     level: "BL0/BL1 depending on first task risk",
+    safeActionLevel: "BL0/BL1 depending on first task risk",
+    targetCandidateLevel: "none unless high-risk scope is confirmed",
     reason: "No high-risk baseline signal found. Keep BL0 advisory unless the first task touches structure, API, data, environment, release, or permissions.",
     industrialPacks: "None by default",
   };
@@ -473,7 +486,7 @@ function renderRecommendationMarkdown(report) {
     "",
     "## Human Summary",
     "",
-    `Project classification: ${report.projectClassification}. Recommended baseline level: ${report.recommendedBaselineLevel.level}. Baseline is read-only by default; no target project files are written unless a reviewed plan is applied.`,
+    `Project classification: ${report.projectClassification}. Current safe action: ${report.recommendedBaselineLevel.safeActionLevel || report.recommendedBaselineLevel.level}. Target candidate level: ${report.recommendedBaselineLevel.targetCandidateLevel || "none"}. Baseline is read-only by default; no target project files are written unless a reviewed plan is applied.`,
     "",
     "## Baseline Write Status",
     "",
@@ -547,7 +560,7 @@ function buildBaselineDecisionSummary(report) {
   }
   const recommendedAction = chooseRecommendedBaselineAction(report, actions);
   return {
-    conclusion: `This project is classified as ${report.projectClassification}; recommended level is ${report.recommendedBaselineLevel.level}.`,
+    conclusion: `This project is classified as ${report.projectClassification}; current safe action is ${report.recommendedBaselineLevel.safeActionLevel || report.recommendedBaselineLevel.level}; target candidate level is ${report.recommendedBaselineLevel.targetCandidateLevel || "none"}.`,
     recommendedChoice: recommendedAction ? `${optionLetterFor(options, recommendedAction)} - ${recommendedAction.label}` : "A - Read baseline recommendation",
     canAiContinue: report.canAiWriteNow === "Yes" ? "yes" : "limited",
     needFromHuman: report.pendingHumanDecisions?.[0] || "Confirm the baseline path.",
@@ -569,7 +582,9 @@ function chooseRecommendedBaselineAction(report, actions) {
 
 function baselineActionRisk(report, item) {
   if (item.writes === "No") return "low";
-  if (report.projectClassification === "PRODUCTION_SENSITIVE_PROJECT" || /BL2/.test(report.recommendedBaselineLevel.level)) return "medium/high";
+  if (report.projectClassification === "PRODUCTION_SENSITIVE_PROJECT"
+    || /BL2/.test(report.recommendedBaselineLevel.level)
+    || /BL2/.test(report.recommendedBaselineLevel.targetCandidateLevel || "")) return "medium/high";
   if (item.writes === "Plan file only") return "low/medium";
   return "medium";
 }

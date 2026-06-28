@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.17.1",
+  "devKitVersion": "1.18.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.17.1"
+    "phase": "1.18.0"
   },
   "groups": {
     "sourceRequired": [
@@ -155,6 +155,7 @@
       "docs/goal-subagent-usage.md",
       "docs/governance-hardening-drift-guard-1.11-plan.md",
       "docs/governance-hardening-roadmap.md",
+      "docs/guided-baseline-selection-calibration-1.18-plan.md",
       "docs/guided-baseline-selection-entry-1.17-plan.md",
       "docs/guided-baseline-selection-entry.md",
       "docs/guided-decision-delivery-loop-1.10-plan.md",
@@ -685,6 +686,9 @@
       "releases/1.17.1/known-limitations.md",
       "releases/1.17.1/release-record.md",
       "releases/1.17.1/self-check-report.md",
+      "releases/1.18.0/known-limitations.md",
+      "releases/1.18.0/release-record.md",
+      "releases/1.18.0/self-check-report.md",
       "releases/1.2.0/baseline-smoke.md",
       "releases/1.2.0/generated-project-smoke.md",
       "releases/1.2.0/known-limitations.md",

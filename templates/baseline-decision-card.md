@@ -23,6 +23,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 ## Platform And Scope
 
 - Detected platform: <web / mini program / iOS / Android / backend / internal admin / mixed / unknown>
+- Platform state summary: <selected / present-needs-confirmation / present-inactive-or-deferred / not-detected>
 - Backend/API scope: <confirmed / not detected / pending confirmation>
 - Production sensitivity: <confirmed / possible / not detected / pending confirmation>
 - High-risk scope: <permission / data / payment / finance / HR / tax / migration / none detected / pending confirmation>
@@ -31,8 +32,16 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 
 - Recommended level: <BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL>
 - Why: <plain-language reason>
+- Current safe action: <BL0 discovery / BL1 read-only mapping / read-only until worktree decision>
+- Target candidate level: <none / BL2_INDUSTRIAL>
 - Current selected level: <none / pending / confirmed level>
 - BL2 status: <not selected / candidate only / selected with evidence pending>
+
+## Platform States
+
+| Profile | State | Reason |
+|---|---|---|
+| <profile-id> | <selected-confirmed / selected-inferred / present-needs-confirmation / present-inactive-or-deferred / not-detected> | <evidence or reason> |
 
 ## Recommended Standard Packs
 

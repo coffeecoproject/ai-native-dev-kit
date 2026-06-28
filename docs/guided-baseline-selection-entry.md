@@ -16,6 +16,8 @@ The card explains:
 
 - what kind of project Codex thinks this is
 - whether the project should start with BL0, BL1, or BL2
+- what the current safe action is versus any BL2 candidate target
+- which platforms are selected, present but unconfirmed, deferred, or not detected
 - which standard baseline packs are recommended
 - which industrial packs are only candidates
 - which packs are deliberately not selected
@@ -109,6 +111,22 @@ It does not approve security, privacy, compliance, payment, finance, tax, HR, mi
 It does not prove real-project evidence exists.
 
 When BL2 appears, it must be described as a candidate path for human review. It is not selected or active until BL2 evidence, selected packs, residual risk, and human approval are recorded.
+
+For high-risk or production-sensitive projects, use this wording:
+
+```text
+Current safe action: BL1/read-only mapping
+Target candidate level: BL2_INDUSTRIAL after evidence and human confirmation
+```
+
+For dirty worktrees:
+
+```text
+Current safe action: read-only until the worktree decision is resolved
+Target candidate level: BL2_INDUSTRIAL only if high-risk evidence remains relevant
+```
+
+For monorepos, distinguish active profiles from present-but-unconfirmed or deferred profiles. A directory such as `apps/android` or `apps/miniapp` should not automatically mean that Android or Mini Program packs are active for the current phase.
 
 ## Relationship To Lower-Level Tools
 

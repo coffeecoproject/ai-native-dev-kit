@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.17.1`
+`1.18.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.18.0` calibrates Guided Baseline Selection after read-only project trials: current safe action is separated from target candidate level, Platform States explain monorepo profile status, Mini Program cloud functions make backend/API scope possible, and internal-admin detection is stricter.
+- `1.18.0` does not add new packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation.
 - `1.17.1` calibrates Guided Baseline Selection after review: BL2 is phrased as a candidate path for human review, PR/release CI runs explicit baseline-decision checks, Baseline Decision Card print-vs-save behavior is documented, and CODEOWNERS has active maintainer ownership.
 - `1.17.1` does not add new packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation.
 - `1.17.0` adds Guided Baseline Selection Entry and Baseline Decision Cards so Codex can explain BL0/BL1/BL2, standard packs, industrial candidates, human decisions, and safe next actions in plain language.

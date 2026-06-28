@@ -47,10 +47,11 @@ export function buildGuidedBaselineDecision(root) {
   const profiles = chooseProfiles(workflow, signals);
   const risk = classifyRisk(projectState, signals);
   const baselineLevel = recommendBaselineLevel(projectState, profiles, risk, workflow);
+  const platformStates = classifyPlatformStates(workflow, signals, profiles);
   const standardRecommendation = safeStandardRecommendation(projectRoot);
   const standardPacks = recommendStandardPacks(profiles, baselineLevel, standardRecommendation);
   const industrialCandidates = recommendIndustrialCandidates(profiles, baselineLevel, risk);
-  const notSelected = buildNotSelected(projectRoot, standardPacks, industrialCandidates, profiles, risk, baselineLevel);
+  const notSelected = buildNotSelected(projectRoot, standardPacks, industrialCandidates, profiles, risk, baselineLevel, platformStates);
 
   return {
     reportType: "BASELINE_DECISION_CARD",
@@ -63,10 +64,12 @@ export function buildGuidedBaselineDecision(root) {
     projectState,
     platformAndScope: {
       detectedPlatform: platformLabel(profiles),
+      platformStateSummary: platformStateSummary(platformStates),
       backendApiScope: backendScope(profiles, signals),
       productionSensitivity: risk.productionSensitivity,
       highRiskScope: risk.highRiskScope,
     },
+    platformStates,
     recommendedBaselineLevel: baselineLevel,
     recommendedStandardPacks: standardPacks,
     candidateIndustrialPacks: industrialCandidates,
@@ -148,6 +151,7 @@ function detectSignals(targetRoot) {
     hasDataSignals: /\b(database|db|schema|migration|prisma|drizzle|typeorm|sequelize|sql|storage)\b/i.test(`${joinedPaths}\n${packageText}`),
     hasPaymentSignals: /\b(payment|pay|stripe|wechatpay|alipay|invoice|billing|finance|tax)\b/i.test(`${joinedPaths}\n${packageText}`),
     hasIrreversibleSignals: /\b(migration|delete|destructive|irreversible|backfill|rollback)\b/i.test(joinedPaths),
+    hasMiniProgramCloudFunctionSignals: hasMiniProgramCloudFunctionSignals(rels),
     profiles: detectProfiles(rels, packageText),
   };
 }
@@ -185,10 +189,19 @@ function detectProfiles(rels, packageText) {
   if (rels.has("server") || rels.has("backend") || rels.has("services") || rels.has("go.mod") || rels.has("pyproject.toml") || /express|fastify|nestjs|prisma|typeorm|drizzle/i.test(packageText)) {
     profiles.push(profile("backend-api", "Backend/API signals found."));
   }
-  if (/admin|dashboard|antd|data-table|rbac|permission/i.test(packageText) || [...rels].some((item) => /admin|dashboard|permission|rbac/i.test(item))) {
-    profiles.push(profile("internal-admin", "Internal admin or permission signals found."));
+  if (hasInternalAdminSignals(rels, packageText)) {
+    profiles.push(profile("internal-admin", "Internal admin, dashboard, approval, or operations console signals found."));
   }
   return profiles;
+}
+
+function hasMiniProgramCloudFunctionSignals(rels) {
+  return [...rels].some((item) => /(^|\/)(cloudfunctions|cloud-functions|functions)(\/|$)/i.test(item));
+}
+
+function hasInternalAdminSignals(rels, packageText) {
+  return /\b(admin|dashboard|management-console|ops-console|operations-console|approval|merchant-admin|platform-admin|web-admin)\b/i.test(packageText)
+    || [...rels].some((item) => /(^|\/)(admin|dashboard|console|approval)(\/|$)|(^|\/)apps\/[^/]*(admin|dashboard)[^/]*(\/|$)|[-_](admin|dashboard)([-_/]|$)/i.test(item));
 }
 
 function profile(id, reason) {
@@ -316,8 +329,21 @@ function recommendBaselineLevel(projectState, profiles, risk, workflow) {
       level: "BL2_INDUSTRIAL",
       userLabel: "Industrial",
       why: "High-risk or production-sensitive signals exist. BL2 is a candidate recommendation and still needs human confirmation plus evidence.",
+      currentSafeAction: "BL1_STANDARD_READ_ONLY_MAPPING",
+      targetCandidateLevel: "BL2_INDUSTRIAL",
       currentSelectedLevel: current || "none",
       bl2Status: "candidate only",
+    };
+  }
+  if (risk.hasHighRisk && projectState.internal === "DIRTY_WORKTREE_PROJECT") {
+    return {
+      level: "BL1_STANDARD",
+      userLabel: "Standard",
+      why: "Dirty worktree protection blocks writes now. High-risk signals may still make BL2 a candidate after the worktree decision is resolved.",
+      currentSafeAction: "READ_ONLY_UNTIL_WORKTREE_DECISION",
+      targetCandidateLevel: "BL2_INDUSTRIAL",
+      currentSelectedLevel: current || "none",
+      bl2Status: "candidate after worktree resolution",
     };
   }
   if (projectState.internal === "NEW_EMPTY_PROJECT" && profiles.some((item) => item.id === "unknown")) {
@@ -325,6 +351,8 @@ function recommendBaselineLevel(projectState, profiles, risk, workflow) {
       level: "BL0_LIGHTWEIGHT",
       userLabel: "Lightweight",
       why: "The platform is not confirmed yet, so start lightweight and ask the human to confirm scope.",
+      currentSafeAction: "BL0_LIGHTWEIGHT_DISCOVERY",
+      targetCandidateLevel: null,
       currentSelectedLevel: current || "none",
       bl2Status: "not selected",
     };
@@ -333,9 +361,77 @@ function recommendBaselineLevel(projectState, profiles, risk, workflow) {
     level: "BL1_STANDARD",
     userLabel: "Standard",
     why: "This is enough for normal Web, app, Mini Program, backend, or admin work before high-risk scope is confirmed.",
+    currentSafeAction: "BL1_STANDARD_PLAN_FIRST",
+    targetCandidateLevel: null,
     currentSelectedLevel: current || "none",
     bl2Status: "not selected",
   };
+}
+
+function classifyPlatformStates(workflow, signals, profiles) {
+  const selected = new Set(profiles.map((item) => item.id).filter((id) => id !== "unknown"));
+  const confirmed = new Set(Array.isArray(workflow.selectedProfiles) ? workflow.selectedProfiles : []);
+  return [
+    "web-app",
+    "wechat-miniprogram",
+    "ios-app",
+    "android-app",
+    "backend-api",
+    "internal-admin",
+  ].map((id) => {
+    if (selected.has(id)) {
+      return {
+        profile: id,
+        state: confirmed.has(id) ? "selected-confirmed" : "selected-inferred",
+        reason: profileReason(id, signals),
+      };
+    }
+    const presence = profilePresence(id, signals);
+    if (presence.present) {
+      return {
+        profile: id,
+        state: presence.deferred ? "present-inactive-or-deferred" : "present-needs-confirmation",
+        reason: presence.reason,
+      };
+    }
+    return {
+      profile: id,
+      state: "not-detected",
+      reason: "No matching project signal was detected.",
+    };
+  });
+}
+
+function profilePresence(id, signals) {
+  const rels = signals.rels || [];
+  const packageText = signals.packageText || "";
+  const hasPath = (pattern) => rels.some((item) => pattern.test(item));
+  const hasNoScript = (name) => new RegExp(`\\b(no|without|skip)[-_]${name}\\b|\\bactive-no-${name}\\b`, "i").test(packageText);
+  if (id === "web-app" && (hasPath(/(^|\/)apps\/[^/]*(web|frontend)[^/]*(\/|$)/i) || /web[:\w-]*check|web[:\w-]*build/i.test(packageText))) {
+    return { present: true, reason: "Web app directory or script is present." };
+  }
+  if (id === "wechat-miniprogram" && (hasPath(/(^|\/)(miniapp|miniprogram|cloudfunctions|cloud-functions)(\/|$)/i) || /miniapp|miniprogram/i.test(packageText))) {
+    return { present: true, deferred: hasNoScript("miniapp") || hasNoScript("miniprogram"), reason: "Mini Program or cloud-function structure is present." };
+  }
+  if (id === "ios-app" && hasPath(/(^|\/)(ios|[^/]+\.xcodeproj|[^/]+\.xcworkspace)(\/|$)/i)) {
+    return { present: true, reason: "iOS app structure is present." };
+  }
+  if (id === "android-app" && (hasPath(/(^|\/)(android|build\.gradle|settings\.gradle)(\/|$)/i) || /android/i.test(packageText))) {
+    return { present: true, deferred: hasNoScript("android"), reason: "Android structure or script is present." };
+  }
+  if (id === "backend-api" && (hasPath(/(^|\/)(backend|server|services|api-contracts|contracts|db|database)(\/|$)/i) || /backend|api-contract|server/i.test(packageText))) {
+    return { present: true, reason: "Backend, API contract, service, or database structure is present." };
+  }
+  if (id === "internal-admin" && hasInternalAdminSignals(new Set(rels), packageText)) {
+    return { present: true, reason: "Admin or operations console structure is present." };
+  }
+  return { present: false, reason: "" };
+}
+
+function platformStateSummary(states) {
+  const visible = states.filter((item) => item.state !== "not-detected");
+  if (visible.length === 0) return "none detected";
+  return visible.map((item) => `${item.profile}: ${item.state}`).join("; ");
 }
 
 function safeStandardRecommendation(projectRoot) {
@@ -395,12 +491,12 @@ function industrialPackForProfile(profileId) {
   return map[profileId] || null;
 }
 
-function buildNotSelected(projectRoot, standardPacks, industrialCandidates, profiles, risk, baselineLevel) {
+function buildNotSelected(projectRoot, standardPacks, industrialCandidates, profiles, risk, baselineLevel, platformStates = []) {
   const rows = [];
   const selectedStandard = new Set(standardPacks);
   const candidateIndustrial = new Set(industrialCandidates);
   for (const id of loadPackIds(projectRoot, "standard-baseline-packs")) {
-    if (!selectedStandard.has(id)) rows.push({ pack: id, reason: notSelectedStandardReason(id, profiles) });
+    if (!selectedStandard.has(id)) rows.push({ pack: id, reason: notSelectedStandardReason(id, profiles, platformStates) });
   }
   for (const id of loadPackIds(projectRoot, "industrial-packs")) {
     if (!candidateIndustrial.has(id)) rows.push({ pack: id, reason: notSelectedIndustrialReason(id, risk, baselineLevel) });
@@ -420,10 +516,27 @@ function loadPackIds(projectRoot, registryName) {
   return Array.isArray(parsed?.packs) ? parsed.packs.map((entry) => entry.id).filter(Boolean).sort() : [];
 }
 
-function notSelectedStandardReason(id, profiles) {
+function notSelectedStandardReason(id, profiles, platformStates = []) {
+  const profileId = profileForStandardPack(id);
+  const state = platformStates.find((item) => item.profile === profileId);
+  if (state && state.state !== "selected-confirmed" && state.state !== "selected-inferred" && state.state !== "not-detected") {
+    return `${state.state}; confirm this profile before selecting the pack.`;
+  }
   if (id === "backend-api-standard" && !profiles.some((item) => item.id === "backend-api")) return "not selected until backend/API scope is confirmed.";
   if (id === "release-rollback-standard") return "not selected until release or rollback scope is confirmed.";
   return "not selected because current platform and scope do not require it.";
+}
+
+function profileForStandardPack(id) {
+  const map = {
+    "web-runtime-standard": "web-app",
+    "miniprogram-runtime-standard": "wechat-miniprogram",
+    "ios-app-standard": "ios-app",
+    "android-app-standard": "android-app",
+    "backend-api-standard": "backend-api",
+    "internal-admin-standard": "internal-admin",
+  };
+  return map[id] || null;
 }
 
 function notSelectedIndustrialReason(id, risk, baselineLevel) {
@@ -436,8 +549,8 @@ function notSelectedIndustrialReason(id, risk, baselineLevel) {
 function humanSummary(projectState, baselineLevel, profiles, risk) {
   const platform = platformLabel(profiles);
   const riskText = risk.hasHighRisk ? "High-risk or production-sensitive signals need confirmation." : "No high-risk scope is confirmed yet.";
-  const recommendation = baselineLevel.level === "BL2_INDUSTRIAL"
-    ? "I recommend treating BL2_INDUSTRIAL as a candidate path for human review."
+  const recommendation = baselineLevel.targetCandidateLevel
+    ? `Current safe action is ${baselineLevel.currentSafeAction}; ${baselineLevel.targetCandidateLevel} is ${baselineLevel.bl2Status}.`
     : `I recommend ${baselineLevel.level} for this phase.`;
   return [
     `I think this is a ${projectState.label.toLowerCase()} with ${platform}.`,
@@ -453,6 +566,7 @@ function platformLabel(profiles) {
 
 function backendScope(profiles, signals) {
   if (profiles.some((item) => item.id === "backend-api")) return "confirmed by project signals";
+  if (signals.hasMiniProgramCloudFunctionSignals) return "possible; Mini Program cloud functions need confirmation";
   if (signals.hasDataSignals) return "possible; needs confirmation";
   return "not detected";
 }
@@ -493,10 +607,12 @@ function safeNextActions(projectState, baselineLevel, standardPacks, industrialC
     ];
   }
   if (projectState.internal === "DIRTY_WORKTREE_PROJECT") {
-    return [
+    const actions = [
       "Codex should stay read-only until the human decides how to handle uncommitted changes.",
       "After that decision, Codex can prepare a write plan instead of applying changes directly.",
     ];
+    if (baselineLevel.targetCandidateLevel) actions.push(`${baselineLevel.targetCandidateLevel} remains a candidate only after the dirty-worktree decision is resolved.`);
+    return actions;
   }
   if (projectState.internal === "PRODUCTION_SENSITIVE_PROJECT") {
     return [
@@ -562,6 +678,7 @@ export function renderDecisionCard(decision) {
     "## Platform And Scope",
     "",
     `- Detected platform: ${decision.platformAndScope.detectedPlatform}`,
+    `- Platform state summary: ${decision.platformAndScope.platformStateSummary}`,
     `- Backend/API scope: ${decision.platformAndScope.backendApiScope}`,
     `- Production sensitivity: ${decision.platformAndScope.productionSensitivity}`,
     `- High-risk scope: ${decision.platformAndScope.highRiskScope}`,
@@ -570,8 +687,16 @@ export function renderDecisionCard(decision) {
     "",
     `- Recommended level: ${decision.recommendedBaselineLevel.level}`,
     `- Why: ${decision.recommendedBaselineLevel.why}`,
+    `- Current safe action: ${decision.recommendedBaselineLevel.currentSafeAction || decision.recommendedBaselineLevel.level}`,
+    `- Target candidate level: ${decision.recommendedBaselineLevel.targetCandidateLevel || "none"}`,
     `- Current selected level: ${decision.recommendedBaselineLevel.currentSelectedLevel}`,
     `- BL2 status: ${decision.recommendedBaselineLevel.bl2Status}`,
+    "",
+    "## Platform States",
+    "",
+    "| Profile | State | Reason |",
+    "|---|---|---|",
+    ...decision.platformStates.map((row) => `| ${row.profile} | ${row.state} | ${row.reason} |`),
     "",
     "## Recommended Standard Packs",
     "",
