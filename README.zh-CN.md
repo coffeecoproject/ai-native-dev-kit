@@ -59,6 +59,7 @@
 | 任务做到一半被打断 | `node scripts/cli.mjs work-queue ../my-project` | 识别当前任务、暂停任务、停车场和恢复前检查 |
 | 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
 | 不确定任务完成后应该审什么 | `node scripts/cli.mjs review-surface ../my-project` | 执行前自动选择功能、代码、数据、权限、体验、发布、债务等审查面 |
+| 不确定项目离“能给人用”还有多远 | `node scripts/cli.mjs delivery-path ../my-project` | 用白话说明当前状态、下一阶段、缺口和阻塞点 |
 | 要检查当前配置 | `node scripts/cli.mjs check ../my-project --mode core` | 跑核心治理检查 |
 
 第一步，让 Codex 用白话判断下一步，不要求你先懂内部命令：
@@ -145,6 +146,7 @@ node scripts/cli.mjs doctor ../my-project
 | 工业增强包 | 只在 BL2、高风险、生产敏感、客户数据、支付或发布风险存在时作为可选叠加 |
 | Goal + Subagent | 只有需要时才使用目标卡和 helper agent，并要求用完关闭 |
 | 审查面治理 | 执行前由 Codex 判断任务完成后必须审哪些面，执行后按面汇报结果和未验证项 |
+| 交付路径治理 | 判断项目现在是想法、计划、本地构建、自测、内测、发布审查还是被风险阻塞 |
 | Review Loop | 任务完成后复查，限制自动修复，把风险问题交给人判断 |
 | 项目记忆治理 | Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
 | 安全交付判断 | 区分可以演示、可以交接、可以进入发布审查，还是还不 ready |
@@ -170,6 +172,8 @@ node scripts/cli.mjs guide .
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs review-surface .
 node scripts/check-review-surface.mjs .
+node scripts/cli.mjs delivery-path .
+node scripts/check-delivery-path.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
@@ -219,6 +223,7 @@ node scripts/check-guided-adoption.mjs .
 - 不要把 Work Queue 当成实现授权；它只管理当前任务、暂停任务、停车场和恢复前检查。
 - 不要把 Hook Plan 当成安装授权；它只做只读识别、风险分级和确认前方案。
 - 不要把 Review Surface Card 当成实现授权；它只说明任务完成后必须审哪些面，以及哪些面没有验证。
+- 不要把 Delivery Path Report 当成上线或可用授权；它只说明当前离可使用、内测或发布审查还有多远。
 - 不要把基线决策卡当成写入、实现、发布或 BL2 启用授权；它只帮助用户确认路径。
 - 不要把标准基线包推荐当成已经选择、写入授权或具体实现任务批准。
 - 不要把工业包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
@@ -262,6 +267,7 @@ node scripts/check-guided-adoption.mjs .
 - [Work Queue](docs/work-queue.md)：任务做到一半被打断、暂停恢复和只保留一个当前任务怎么治理
 - [Hook Orchestration](docs/hook-orchestration.md)：自动触发器怎么分级、规划、确认和回滚
 - [Review Surface Governance](docs/review-surface-governance.md)：执行前决定要审哪些面，执行后按面汇报结果
+- [Delivery Path Governance](docs/delivery-path-governance.md)：判断项目离“能给人使用”还有多远
 - [Baseline Pack System](docs/baseline-pack-system.md)：按项目级别、平台、能力和风险选择基线包
 
 接入项目：
@@ -287,6 +293,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.26 Release Record](releases/1.26.0/release-record.md)：1.26 交付路径治理
 - [1.25 Release Record](releases/1.25.0/release-record.md)：1.25 审查面治理
 - [1.24 Release Record](releases/1.24.0/release-record.md)：1.24 自然语言工作流总入口
 - [1.23.1 Release Record](releases/1.23.1/release-record.md)：1.23.1 治理验证和 README 入口修整

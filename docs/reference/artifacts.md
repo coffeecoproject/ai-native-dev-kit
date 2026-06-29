@@ -18,6 +18,7 @@ Artifacts make AI work auditable without forcing every task into the heaviest pr
 | Directory | Purpose |
 |---|---|
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
+| `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
 | `review-loop-reports/` | Findings, AUTO_FIX rounds, verification, and remaining decisions |
@@ -130,6 +131,8 @@ Guided Baseline Selection lives under `.ai-native/core/` in generated projects. 
 Natural Language Workflow Orchestrator lives under `.ai-native/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
 
 Review Surface Governance lives under `.ai-native/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
+
+Delivery Path Governance lives under `.ai-native/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
 
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 

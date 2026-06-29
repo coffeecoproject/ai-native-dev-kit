@@ -37,6 +37,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "delivery-path": {
+    description: "Report how far a project is from useful use without approving release.",
+    script: "scripts/resolve-delivery-path.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "delivery-path-check": {
+    description: "Check recorded delivery path reports.",
+    script: "scripts/check-delivery-path.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",
@@ -340,6 +352,8 @@ function printHelp() {
   console.log("Examples:");
   console.log("  node scripts/cli.mjs guide ../my-project");
   console.log("  node scripts/cli.mjs guide-check .");
+  console.log("  node scripts/cli.mjs delivery-path ../my-project");
+  console.log("  node scripts/cli.mjs delivery-path-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs baseline-decision ../my-project");

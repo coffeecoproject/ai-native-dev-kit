@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.25.0`
+Current version: `1.26.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.25.0`
 
 ## Current Release
 
-`1.25.0`
+`1.26.0`
 
 Includes:
 
+- Delivery Path Governance phase `1.26.0`: adds `delivery-path` and `delivery-path-check` so Codex can report whether a project is an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked
+- Added `core/delivery-path-governance.md`, `docs/delivery-path-governance.md`, `templates/delivery-path-report.md`, `checklists/delivery-path-review.md`, `prompts/delivery-path-agent.md`, `delivery-path-reports/`, `scripts/resolve-delivery-path.mjs`, and `scripts/check-delivery-path.mjs`
+- `1.26.0` does not write target files, change CI/hooks, change task state, approve implementation, approve release/production, replace Safe Launch, or prove real users can use the product
 - Review Surface Governance phase `1.25.0`: adds `review-surface` and `review-surface-check` so Codex can decide what must be reviewed before and after execution without asking users to choose technical review types
 - Added `core/review-surface-governance.md`, `docs/review-surface-governance.md`, `templates/review-surface-card.md`, `checklists/review-surface-review.md`, `prompts/review-surface-agent.md`, `review-surface-cards/`, `scripts/resolve-review-surface.mjs`, and `scripts/check-review-surface.mjs`
 - `1.25.0` always requires `FUNCTIONAL_REVIEW`, `CODE_REVIEW`, `VERIFICATION_REVIEW`, and `DEBT_REVIEW`, then adds data, permission, UX, documentation, release, existing-governance, and security/privacy review surfaces from project signals

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.25.0`
+`1.26.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.26.0` adds Delivery Path Governance through `delivery-path`, `delivery-path-check`, and Delivery Path Reports.
+- `1.26.0` lets Codex explain whether a project is an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked.
+- `1.26.0` keeps Delivery Path Reports read-only: they do not write target files, change CI/hooks, change task state, approve implementation, approve release/production, replace Safe Launch, or prove real users can use the product.
 - `1.25.0` adds Review Surface Governance through `review-surface`, `review-surface-check`, and Review Surface Cards.
 - `1.25.0` lets Codex select what must be reviewed before and after execution, while always requiring functional, code, verification, and debt review.
 - `1.25.0` keeps review-surface cards read-only: they do not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.

@@ -1396,6 +1396,22 @@ function checkCliFrontDoor() {
     fail(`CLI review-surface-check failed: ${reviewSurfaceCheck.stderr || reviewSurfaceCheck.stdout}`);
   }
 
+  const deliveryPath = runNode(["scripts/cli.mjs", "delivery-path", "."]);
+  if (deliveryPath.status === 0
+    && deliveryPath.stdout.includes("Delivery Path Report")
+    && deliveryPath.stdout.includes("This report writes target files: No")) {
+    pass("CLI delivery-path delegates to delivery path resolver");
+  } else {
+    fail(`CLI delivery-path failed: ${deliveryPath.stderr || deliveryPath.stdout}`);
+  }
+
+  const deliveryPathCheck = runNode(["scripts/cli.mjs", "delivery-path-check", "."]);
+  if (deliveryPathCheck.status === 0 && deliveryPathCheck.stdout.includes("Delivery path check passed")) {
+    pass("CLI delivery-path-check delegates to delivery path checker");
+  } else {
+    fail(`CLI delivery-path-check failed: ${deliveryPathCheck.stderr || deliveryPathCheck.stdout}`);
+  }
+
   const baselineDecision = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
   if (baselineDecision.status === 0 && baselineDecision.stdout.includes("Baseline Decision Card") && baselineDecision.stdout.includes("This card authorizes target-project writes: No")) {
     pass("CLI baseline-decision delegates to guided baseline resolver");
@@ -4611,6 +4627,109 @@ function checkReviewSurfaceGovernanceProtocol() {
   }
 }
 
+function checkDeliveryPathGovernanceProtocol() {
+  const required = [
+    "docs/delivery-governance-roadmap-1.26-1.29.md",
+    "core/delivery-path-governance.md",
+    "docs/delivery-path-governance.md",
+    "templates/delivery-path-report.md",
+    "checklists/delivery-path-review.md",
+    "prompts/delivery-path-agent.md",
+    "delivery-path-reports/.gitkeep",
+    "scripts/resolve-delivery-path.mjs",
+    "scripts/check-delivery-path.mjs",
+    "examples/1.26-delivery-path-governance/README.md",
+    "examples/1.26-delivery-path-governance/delivery-path-reports/001-booking-delivery-path.md",
+    "test-fixtures/bad/bad-delivery-path-release-overclaim/delivery-path-reports/001-bad.md",
+    "test-fixtures/bad/bad-delivery-path-missing-state/delivery-path-reports/001-bad.md",
+    "releases/1.26.0/release-record.md",
+    "releases/1.26.0/known-limitations.md",
+    "releases/1.26.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.26 delivery path asset exists ${file}`);
+    else fail(`1.26 delivery path asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/delivery-path-governance.md"),
+    read("docs/delivery-path-governance.md"),
+    read("templates/delivery-path-report.md"),
+    read("scripts/resolve-delivery-path.mjs"),
+    read("scripts/check-delivery-path.mjs"),
+    read("releases/1.26.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Delivery Path Governance",
+    "Delivery Path Report",
+    "READY_FOR_SELF_TEST",
+    "BLOCKED_BY_DIRTY_WORK",
+    "This report writes target files: No",
+    "This report approves release or production: No",
+    "This report replaces Safe Launch: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.26 delivery path includes ${marker}`);
+    else fail(`1.26 delivery path missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-delivery-path.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Delivery Path Report")
+    && resolver.stdout.includes("Delivery Path State")
+    && resolver.stdout.includes("This report writes target files: No")) {
+    pass("1.26 delivery path resolver prints safe report");
+  } else {
+    fail(`1.26 delivery path resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-delivery-path.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "DELIVERY_PATH_REPORT"
+        && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.deliveryPathState?.currentState
+        && Array.isArray(parsed.distanceToUsefulUse)) {
+        pass("1.26 delivery path resolver JSON includes state, distance, and boundaries");
+      } else {
+        fail(`1.26 delivery path resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.26 delivery path resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.26 delivery path resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-delivery-path.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Delivery path check passed")) {
+    pass("1.26 delivery path checker passes source repo");
+  } else {
+    fail(`1.26 delivery path checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-delivery-path.mjs", "examples/1.26-delivery-path-governance"]);
+  if (example.status === 0 && example.stdout.includes("Delivery path check passed")) {
+    pass("1.26 delivery path example passes checker");
+  } else {
+    fail(`1.26 delivery path example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["release overclaim", ["scripts/check-delivery-path.mjs", "test-fixtures/bad/bad-delivery-path-release-overclaim"], "forbidden delivery path claim"],
+    ["missing state", ["scripts/check-delivery-path.mjs", "test-fixtures/bad/bad-delivery-path-missing-state"], "invalid current state"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.26 delivery path rejects ${name}`);
+    } else {
+      fail(`1.26 delivery path must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -4884,7 +5003,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -4893,7 +5012,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -4902,7 +5021,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -4932,7 +5051,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "delivery path", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -4972,6 +5091,8 @@ function checkPlatformAdapters() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-delivery-path.mjs",
+    "resolve-delivery-path.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
     "resolve-standard-baseline.mjs",
@@ -5043,6 +5164,8 @@ function checkScriptSyntax() {
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
+    "scripts/resolve-delivery-path.mjs",
+    "scripts/check-delivery-path.mjs",
     "scripts/resolve-standard-baseline.mjs",
     "scripts/check-standard-baseline-pack.mjs",
     "scripts/check-standard-baseline-selection.mjs",
@@ -5104,6 +5227,8 @@ function checkReadmePointers() {
     "node scripts/check-workflow-guidance.mjs",
     "node scripts/cli.mjs review-surface",
     "node scripts/check-review-surface.mjs",
+    "node scripts/cli.mjs delivery-path",
+    "node scripts/check-delivery-path.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs baseline-decision",
@@ -5148,6 +5273,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
+    "docs/delivery-path-governance.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -5173,6 +5299,7 @@ function checkReadmePointers() {
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
+    "releases/1.26.0/release-record.md",
     "releases/1.25.0/release-record.md",
     "releases/1.24.0/release-record.md",
     "docs/adoption-playbooks/new-project.md",
@@ -5210,6 +5337,8 @@ function checkReadmePointers() {
     "node scripts/check-workflow-guidance.mjs",
     "node scripts/cli.mjs review-surface",
     "node scripts/check-review-surface.mjs",
+    "node scripts/cli.mjs delivery-path",
+    "node scripts/check-delivery-path.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs standard-baseline",
@@ -5241,6 +5370,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
+    "docs/delivery-path-governance.md",
     "docs/first-hour.md",
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
@@ -5261,6 +5391,7 @@ function checkReadmePointers() {
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
+    "releases/1.26.0/release-record.md",
     "releases/1.25.0/release-record.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
@@ -5272,6 +5403,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
+    "docs/delivery-path-governance.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -7673,6 +7805,7 @@ checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
 checkNaturalLanguageOrchestratorProtocol();
 checkReviewSurfaceGovernanceProtocol();
+checkDeliveryPathGovernanceProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

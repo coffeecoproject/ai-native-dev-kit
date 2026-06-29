@@ -92,6 +92,12 @@ jobs:
       - name: Review surface smoke
         run: node scripts/cli.mjs review-surface .
 
+      - name: Delivery path check
+        run: node scripts/check-delivery-path.mjs .
+
+      - name: Delivery path smoke
+        run: node scripts/cli.mjs delivery-path .
+
       - name: Guided delivery check
         run: node scripts/check-guided-delivery-loop.mjs .
 
@@ -171,10 +177,14 @@ jobs:
           node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-review-surface.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-review-surface.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-delivery-path.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" delivery-path "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" delivery-path-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" workflow-map "$tmp/project"

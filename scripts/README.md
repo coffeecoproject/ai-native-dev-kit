@@ -128,6 +128,19 @@ node scripts/cli.mjs review-surface-check .
 
 `resolve-review-surface.mjs` is read-only. It selects review surfaces from project signals and user intent, always including functional, code, verification, and debt review. `check-review-surface.mjs` rejects cards that miss required surfaces, omit post-execution close-out fields, or claim implementation, release, target-write, CI, hook, document, task-state, or high-risk approval.
 
+## resolve-delivery-path.mjs / check-delivery-path.mjs
+
+Report how far a project is from useful use without approving release.
+
+```bash
+node scripts/resolve-delivery-path.mjs .
+node scripts/check-delivery-path.mjs .
+node scripts/cli.mjs delivery-path .
+node scripts/cli.mjs delivery-path-check .
+```
+
+`resolve-delivery-path.mjs` is read-only. It reports the current delivery state, next target state, distance to useful use, evidence, blockers, next safe action, and human decisions. `check-delivery-path.mjs` rejects invalid states, missing evidence, release overclaims, Safe Launch replacement, and implementation/release approval claims.
+
 ## resolve-work-queue.mjs / check-work-queue.mjs
 
 Review task state without changing it.

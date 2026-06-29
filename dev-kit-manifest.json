@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.25.0",
+  "devKitVersion": "1.26.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.25.0"
+    "phase": "1.26.0"
   },
   "groups": {
     "sourceRequired": [
@@ -58,6 +58,7 @@
       "checklists/conversation-drift-review.md",
       "checklists/core-purity-review.md",
       "checklists/daily-summary-review.md",
+      "checklists/delivery-path-review.md",
       "checklists/document-lifecycle-review.md",
       "checklists/engineering-baseline-review.md",
       "checklists/environment-baseline-review.md",
@@ -98,6 +99,7 @@
       "core/context-governance.md",
       "core/conversation-drift-control.md",
       "core/decision-delegation-boundary.md",
+      "core/delivery-path-governance.md",
       "core/document-lifecycle.md",
       "core/engineering-baseline.md",
       "core/environment-baseline.md",
@@ -139,6 +141,7 @@
       "decision-briefs/120-baseline-guided-setup-boundary.md",
       "decision-briefs/130-guided-delivery-baseline-boundary.md",
       "decision-briefs/140-context-source-of-truth-boundary.md",
+      "delivery-path-reports/.gitkeep",
       "dev-kit-manifest.json",
       "doc-lifecycle-reports/.gitkeep",
       "docs/adoption-playbooks/existing-light-project.md",
@@ -159,6 +162,8 @@
       "docs/codex-usage.md",
       "docs/context-governance-usage.md",
       "docs/conversation-drift-control.md",
+      "docs/delivery-governance-roadmap-1.26-1.29.md",
+      "docs/delivery-path-governance.md",
       "docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md",
       "docs/document-lifecycle.md",
       "docs/engineering-environment-baseline-1.2-plan.md",
@@ -311,6 +316,8 @@
       "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
       "examples/1.25-review-surface-governance/README.md",
       "examples/1.25-review-surface-governance/review-surface-cards/001-booking-review-surface.md",
+      "examples/1.26-delivery-path-governance/README.md",
+      "examples/1.26-delivery-path-governance/delivery-path-reports/001-booking-delivery-path.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -637,6 +644,7 @@
       "prompts/context-governance-agent.md",
       "prompts/conversation-router-agent.md",
       "prompts/delivery-coach-agent.md",
+      "prompts/delivery-path-agent.md",
       "prompts/document-lifecycle-agent.md",
       "prompts/engineering-baseline-agent.md",
       "prompts/environment-baseline-agent.md",
@@ -748,6 +756,9 @@
       "releases/1.25.0/known-limitations.md",
       "releases/1.25.0/release-record.md",
       "releases/1.25.0/self-check-report.md",
+      "releases/1.26.0/known-limitations.md",
+      "releases/1.26.0/release-record.md",
+      "releases/1.26.0/self-check-report.md",
       "releases/1.3.0/known-limitations.md",
       "releases/1.3.0/release-record.md",
       "releases/1.3.0/self-check-report.md",
@@ -857,6 +868,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-delivery-path.mjs",
       "scripts/check-dev-kit.mjs",
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
@@ -900,6 +912,7 @@
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
@@ -1025,10 +1038,14 @@
       "standard-baseline-packs/web-runtime/pack.md",
       "standard-baseline-packs/web-runtime/templates/web-runtime-evidence.md",
       "standard-baseline-selections/.gitkeep",
+      "starters/codex-android-app/delivery-path-reports/.gitkeep",
       "starters/codex-android-app/review-surface-cards/.gitkeep",
+      "starters/codex-ios-app/delivery-path-reports/.gitkeep",
       "starters/codex-ios-app/review-surface-cards/.gitkeep",
+      "starters/codex-web-app/delivery-path-reports/.gitkeep",
       "starters/codex-web-app/review-surface-cards/.gitkeep",
       "starters/generic-project/AGENTS.md",
+      "starters/generic-project/delivery-path-reports/.gitkeep",
       "starters/generic-project/review-surface-cards/.gitkeep",
       "subagent-run-plans/034-baseline-freeze-self-ci.md",
       "subagent-run-plans/035-readonly-manifest.md",
@@ -1095,6 +1112,7 @@
       "templates/customer-handoff.md",
       "templates/daily-automation-prompt.md",
       "templates/decision-brief.md",
+      "templates/delivery-path-report.md",
       "templates/dev-kit-change-proposal.md",
       "templates/document-lifecycle-report.md",
       "templates/dogfood-observation.md",
@@ -1172,6 +1190,8 @@
       "test-fixtures/bad/bad-conversation-discuss-only-writes/conversation-turns/001-discuss-writes.md",
       "test-fixtures/bad/bad-conversation-risk-auto-continue/conversation-turns/001-risk-auto.md",
       "test-fixtures/bad/bad-conversation-scope-creep/conversation-turns/001-scope-creep.md",
+      "test-fixtures/bad/bad-delivery-path-missing-state/delivery-path-reports/001-bad.md",
+      "test-fixtures/bad/bad-delivery-path-release-overclaim/delivery-path-reports/001-bad.md",
       "test-fixtures/bad/bad-document-lifecycle-authorizes-delete/doc-lifecycle-reports/001-bad.md",
       "test-fixtures/bad/bad-document-lifecycle-missing-source-of-truth/doc-lifecycle-reports/001-bad.md",
       "test-fixtures/bad/bad-engineering-baseline-pending-decision/docs/engineering-baseline.md",
@@ -1380,6 +1400,7 @@
       ".ai-native/checklists/conversation-drift-review.md",
       ".ai-native/checklists/core-purity-review.md",
       ".ai-native/checklists/daily-summary-review.md",
+      ".ai-native/checklists/delivery-path-review.md",
       ".ai-native/checklists/document-lifecycle-review.md",
       ".ai-native/checklists/engineering-baseline-review.md",
       ".ai-native/checklists/environment-baseline-review.md",
@@ -1417,6 +1438,7 @@
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
       ".ai-native/core/decision-delegation-boundary.md",
+      ".ai-native/core/delivery-path-governance.md",
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
@@ -1457,6 +1479,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-lifecycle.md",
       ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
@@ -1490,6 +1513,7 @@
       ".ai-native/prompts/context-governance-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/delivery-coach-agent.md",
+      ".ai-native/prompts/delivery-path-agent.md",
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/engineering-baseline-agent.md",
       ".ai-native/prompts/environment-baseline-agent.md",
@@ -1534,6 +1558,7 @@
       ".ai-native/templates/customer-handoff.md",
       ".ai-native/templates/daily-automation-prompt.md",
       ".ai-native/templates/decision-brief.md",
+      ".ai-native/templates/delivery-path-report.md",
       ".ai-native/templates/dev-kit-change-proposal.md",
       ".ai-native/templates/document-lifecycle-report.md",
       ".ai-native/templates/dogfood-observation.md",
@@ -1600,6 +1625,7 @@
       "conversation-turns",
       "customer-handoffs",
       "decision-briefs",
+      "delivery-path-reports",
       "dev-kit-proposals",
       "doc-lifecycle-reports",
       "docs/ai-workflow.md",
@@ -1650,6 +1676,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-delivery-path.mjs",
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
@@ -1686,6 +1713,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
@@ -1723,6 +1751,7 @@
       ".ai-native/checklists/conversation-drift-review.md",
       ".ai-native/checklists/core-purity-review.md",
       ".ai-native/checklists/daily-summary-review.md",
+      ".ai-native/checklists/delivery-path-review.md",
       ".ai-native/checklists/document-lifecycle-review.md",
       ".ai-native/checklists/engineering-baseline-review.md",
       ".ai-native/checklists/environment-baseline-review.md",
@@ -1763,6 +1792,7 @@
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
       ".ai-native/core/decision-delegation-boundary.md",
+      ".ai-native/core/delivery-path-governance.md",
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
@@ -1803,6 +1833,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-lifecycle.md",
       ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
@@ -1862,6 +1893,7 @@
       ".ai-native/prompts/context-governance-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/delivery-coach-agent.md",
+      ".ai-native/prompts/delivery-path-agent.md",
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/engineering-baseline-agent.md",
       ".ai-native/prompts/environment-baseline-agent.md",
@@ -1908,6 +1940,7 @@
       ".ai-native/templates/customer-handoff.md",
       ".ai-native/templates/daily-automation-prompt.md",
       ".ai-native/templates/decision-brief.md",
+      ".ai-native/templates/delivery-path-report.md",
       ".ai-native/templates/dev-kit-change-proposal.md",
       ".ai-native/templates/document-lifecycle-report.md",
       ".ai-native/templates/dogfood-observation.md",
@@ -1978,6 +2011,7 @@
       "conversation-turns",
       "customer-handoffs",
       "decision-briefs",
+      "delivery-path-reports",
       "dev-kit-proposals",
       "doc-lifecycle-reports",
       "docs/ai-workflow.md",
@@ -2028,6 +2062,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-delivery-path.mjs",
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
@@ -2067,6 +2102,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
@@ -2131,6 +2167,7 @@
       "core/baseline-state.md",
       "core/change-boundary.md",
       "core/conversation-drift-control.md",
+      "core/delivery-path-governance.md",
       "core/document-lifecycle.md",
       "core/existing-project-workflow-adapter.md",
       "core/first-delivery-walkthrough.md",
@@ -2166,6 +2203,7 @@
       "templates/customer-handoff.md",
       "templates/daily-automation-prompt.md",
       "templates/decision-brief.md",
+      "templates/delivery-path-report.md",
       "templates/dev-kit-change-proposal.md",
       "templates/document-lifecycle-report.md",
       "templates/dogfood-observation.md",
@@ -2233,6 +2271,7 @@
       "prompts/context-governance-agent.md",
       "prompts/conversation-router-agent.md",
       "prompts/delivery-coach-agent.md",
+      "prompts/delivery-path-agent.md",
       "prompts/document-lifecycle-agent.md",
       "prompts/engineering-baseline-agent.md",
       "prompts/environment-baseline-agent.md",
@@ -2266,6 +2305,7 @@
       "checklists/conversation-drift-review.md",
       "checklists/core-purity-review.md",
       "checklists/daily-summary-review.md",
+      "checklists/delivery-path-review.md",
       "checklists/document-lifecycle-review.md",
       "checklists/engineering-baseline-review.md",
       "checklists/environment-baseline-review.md",
@@ -2338,6 +2378,7 @@
       "conversation-turns",
       "customer-handoffs",
       "decision-briefs",
+      "delivery-path-reports",
       "dev-kit-proposals",
       "doc-lifecycle-reports",
       "evals",
@@ -2384,6 +2425,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-delivery-path.mjs",
       "scripts/check-dev-kit.mjs",
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
@@ -2429,6 +2471,7 @@
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
@@ -2537,6 +2580,8 @@
       "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
       "examples/1.25-review-surface-governance/README.md",
       "examples/1.25-review-surface-governance/review-surface-cards/001-booking-review-surface.md",
+      "examples/1.26-delivery-path-governance/README.md",
+      "examples/1.26-delivery-path-governance/delivery-path-reports/001-booking-delivery-path.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -2664,6 +2709,8 @@
       "test-fixtures/bad/bad-conversation-discuss-only-writes/conversation-turns/001-discuss-writes.md",
       "test-fixtures/bad/bad-conversation-risk-auto-continue/conversation-turns/001-risk-auto.md",
       "test-fixtures/bad/bad-conversation-scope-creep/conversation-turns/001-scope-creep.md",
+      "test-fixtures/bad/bad-delivery-path-missing-state/delivery-path-reports/001-bad.md",
+      "test-fixtures/bad/bad-delivery-path-release-overclaim/delivery-path-reports/001-bad.md",
       "test-fixtures/bad/bad-document-lifecycle-authorizes-delete/doc-lifecycle-reports/001-bad.md",
       "test-fixtures/bad/bad-document-lifecycle-missing-source-of-truth/doc-lifecycle-reports/001-bad.md",
       "test-fixtures/bad/bad-engineering-baseline-pending-decision/docs/engineering-baseline.md",
@@ -2869,6 +2916,7 @@
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
+      ".ai-native/checklists/delivery-path-review.md",
       ".ai-native/checklists/document-lifecycle-review.md",
       ".ai-native/checklists/first-delivery-walkthrough-review.md",
       ".ai-native/checklists/git-boundary-review.md",
@@ -2892,6 +2940,7 @@
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
       ".ai-native/core/decision-delegation-boundary.md",
+      ".ai-native/core/delivery-path-governance.md",
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/first-delivery-walkthrough.md",
@@ -2917,6 +2966,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-lifecycle.md",
       ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
@@ -2949,6 +2999,7 @@
       ".ai-native/prompts/context-governance-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/delivery-coach-agent.md",
+      ".ai-native/prompts/delivery-path-agent.md",
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
@@ -2975,6 +3026,7 @@
       ".ai-native/templates/claim-control-report.md",
       ".ai-native/templates/context-correction-report.md",
       ".ai-native/templates/conversation-turn-classification.md",
+      ".ai-native/templates/delivery-path-report.md",
       ".ai-native/templates/document-lifecycle-report.md",
       ".ai-native/templates/git-boundary-report.md",
       ".ai-native/templates/guided-decision-summary.md",
@@ -3008,6 +3060,7 @@
       "conversation-turns",
       "customer-handoffs",
       "decision-briefs",
+      "delivery-path-reports",
       "doc-lifecycle-reports",
       "docs/business-spec-index.md",
       "docs/engineering-baseline.md",
@@ -3045,6 +3098,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-delivery-path.mjs",
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
@@ -3084,6 +3138,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
@@ -3113,6 +3168,7 @@
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
+      ".ai-native/checklists/delivery-path-review.md",
       ".ai-native/checklists/document-lifecycle-review.md",
       ".ai-native/checklists/engineering-baseline-review.md",
       ".ai-native/checklists/environment-baseline-review.md",
@@ -3143,6 +3199,7 @@
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
       ".ai-native/core/decision-delegation-boundary.md",
+      ".ai-native/core/delivery-path-governance.md",
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
@@ -3176,6 +3233,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-lifecycle.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
@@ -3219,6 +3277,7 @@
       ".ai-native/prompts/claim-control-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/delivery-coach-agent.md",
+      ".ai-native/prompts/delivery-path-agent.md",
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/engineering-baseline-agent.md",
       ".ai-native/prompts/environment-baseline-agent.md",
@@ -3254,6 +3313,7 @@
       ".ai-native/templates/conversation-turn-classification.md",
       ".ai-native/templates/customer-handoff.md",
       ".ai-native/templates/decision-brief.md",
+      ".ai-native/templates/delivery-path-report.md",
       ".ai-native/templates/document-lifecycle-report.md",
       ".ai-native/templates/engineering-baseline.md",
       ".ai-native/templates/environment-baseline.md",
@@ -3302,6 +3362,7 @@
       "conversation-turns",
       "customer-handoffs",
       "decision-briefs",
+      "delivery-path-reports",
       "doc-lifecycle-reports",
       "docs/business-spec-index.md",
       "docs/environment-baseline.md",
@@ -3338,6 +3399,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-delivery-path.mjs",
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
@@ -3370,6 +3432,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
@@ -3439,6 +3502,10 @@
         "target": "change-boundary-reports"
       },
       {
+        "source": "delivery-path-reports",
+        "target": "delivery-path-reports"
+      },
+      {
         "source": "doc-lifecycle-reports",
         "target": "doc-lifecycle-reports"
       },
@@ -3497,6 +3564,10 @@
         "target": ".ai-native/checklists/change-boundary-review.md"
       },
       {
+        "source": "checklists/delivery-path-review.md",
+        "target": ".ai-native/checklists/delivery-path-review.md"
+      },
+      {
         "source": "checklists/guided-delivery-loop-review.md",
         "target": ".ai-native/checklists/guided-delivery-loop-review.md"
       },
@@ -3535,6 +3606,10 @@
       {
         "source": "core/decision-delegation-boundary.md",
         "target": ".ai-native/core/decision-delegation-boundary.md"
+      },
+      {
+        "source": "core/delivery-path-governance.md",
+        "target": ".ai-native/core/delivery-path-governance.md"
       },
       {
         "source": "core/guided-baseline-selection.md",
@@ -3607,6 +3682,10 @@
       {
         "source": "docs/conversation-drift-control.md",
         "target": ".ai-native/docs/conversation-drift-control.md"
+      },
+      {
+        "source": "docs/delivery-path-governance.md",
+        "target": ".ai-native/docs/delivery-path-governance.md"
       },
       {
         "source": "docs/document-lifecycle.md",
@@ -3713,6 +3792,10 @@
         "target": ".ai-native/prompts/delivery-coach-agent.md"
       },
       {
+        "source": "prompts/delivery-path-agent.md",
+        "target": ".ai-native/prompts/delivery-path-agent.md"
+      },
+      {
         "source": "prompts/guided-delivery-check-agent.md",
         "target": ".ai-native/prompts/guided-delivery-check-agent.md"
       },
@@ -3763,6 +3846,10 @@
       {
         "source": "templates/change-boundary-report.md",
         "target": ".ai-native/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/delivery-path-report.md",
+        "target": ".ai-native/templates/delivery-path-report.md"
       },
       {
         "source": "templates/guided-decision-summary.md",
@@ -3843,6 +3930,10 @@
       {
         "source": "scripts/check-conversation-drift.mjs",
         "target": "scripts/check-conversation-drift.mjs"
+      },
+      {
+        "source": "scripts/check-delivery-path.mjs",
+        "target": "scripts/check-delivery-path.mjs"
       },
       {
         "source": "scripts/check-document-lifecycle.mjs",
@@ -3999,6 +4090,10 @@
       {
         "source": "scripts/resolve-baseline-packs.mjs",
         "target": "scripts/resolve-baseline-packs.mjs"
+      },
+      {
+        "source": "scripts/resolve-delivery-path.mjs",
+        "target": "scripts/resolve-delivery-path.mjs"
       },
       {
         "source": "scripts/resolve-document-lifecycle.mjs",

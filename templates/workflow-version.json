@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.25.0",
+  "devKitVersion": "1.26.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -246,6 +246,14 @@
     "subagent-run-plans",
     "work-queue",
     "workflow-adoption-maps",
-    "workflow-guidance-cards"
+    "workflow-guidance-cards",
+    ".ai-native/docs/delivery-path-governance.md",
+    ".ai-native/core/delivery-path-governance.md",
+    ".ai-native/templates/delivery-path-report.md",
+    ".ai-native/prompts/delivery-path-agent.md",
+    ".ai-native/checklists/delivery-path-review.md",
+    "scripts/resolve-delivery-path.mjs",
+    "scripts/check-delivery-path.mjs",
+    "delivery-path-reports"
   ]
 }

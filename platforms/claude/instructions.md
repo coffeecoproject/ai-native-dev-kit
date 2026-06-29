@@ -47,6 +47,12 @@ For workflow guidance:
 - use the Workflow Guidance Card to choose the next safe path
 - do not treat guidance as permission to write files, change CI, install hooks, archive documents, change task state, implement, release, or approve high-risk domain decisions
 
+For delivery path:
+
+- run `node scripts/cli.mjs delivery-path .` when claiming local-use, self-test, internal-trial, release-review, blocked, or not-ready status
+- run `node scripts/cli.mjs delivery-path-check .` when Delivery Path Reports exist
+- do not treat Delivery Path as permission to write files, approve implementation, approve release or production, replace Safe Launch, or prove real users can use the product
+
 For project onboarding:
 
 - before first non-trivial implementation, use `.ai-native/prompts/project-onboarding-agent.md`
@@ -102,11 +108,13 @@ For workflow artifacts:
 - use `node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows
 - use `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when a change needs independent human, GPT Pro, or second-model review
 - use `node scripts/new-workflow-item.mjs --type review-surface-card --name <slug>` before non-trivial implementation, repair, or review work when selected review surfaces need to be recorded
+- use `node scripts/new-workflow-item.mjs --type delivery-path-report --name <slug>` when delivery state needs to be recorded
 - use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure
 - use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet
 - use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope
 - use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report
 - run `node scripts/check-review-surface.mjs .` when Review Surface Cards exist
+- run `node scripts/check-delivery-path.mjs .` when Delivery Path Reports exist
 - run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists
 - run `node scripts/check-goal-mode.mjs .` when Goal Cards exist
 - run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist

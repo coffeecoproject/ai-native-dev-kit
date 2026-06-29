@@ -53,6 +53,19 @@ node scripts/resolve-workflow-guidance.mjs .
 
 Use the result to decide the next safe workflow path. Do not treat guidance as permission to write files, change CI, install hooks, archive documents, change task state, implement, release, or approve high-risk domain decisions.
 
+## Delivery Path Governance
+
+Use `.ai-native/core/delivery-path-governance.md` when Codex needs to say whether the project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked.
+
+Run:
+
+```bash
+node scripts/cli.mjs delivery-path .
+node scripts/cli.mjs delivery-path-check .
+```
+
+A Delivery Path Report is read-only. It does not write files, approve implementation, approve release or production, change CI/hooks, change task state, replace Safe Launch, or prove real users can use the product.
+
 ## Project Onboarding
 
 Before the first non-trivial implementation, run project onboarding.

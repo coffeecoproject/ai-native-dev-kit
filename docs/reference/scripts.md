@@ -12,6 +12,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs guide-check <project>` | Check recorded Workflow Guidance Cards | No |
 | `node scripts/cli.mjs review-surface <project>` | Select review surfaces before execution without writing target files | No |
 | `node scripts/cli.mjs review-surface-check <project>` | Check recorded Review Surface Cards | No |
+| `node scripts/cli.mjs delivery-path <project>` | Report current path toward useful use, self-test, internal trial, release review, or blocked status | No |
+| `node scripts/cli.mjs delivery-path-check <project>` | Check recorded Delivery Path Reports | No |
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
@@ -83,6 +85,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-review-surface.mjs` is the 1.25 review-surface entry. It reads project state and task intent signals, then prints one Review Surface Card with selected review surfaces, before/after expectations, human-decision flags, post-execution contract, and explicit no-write/no-approval boundaries. It does not write target-project files.
 
 `scripts/check-review-surface.mjs` checks recorded Review Surface Cards. It requires `FUNCTIONAL_REVIEW`, `CODE_REVIEW`, `VERIFICATION_REVIEW`, and `DEBT_REVIEW`, validates allowed surfaces and outcomes, requires post-execution close-out fields, and rejects implementation approval, release/production approval, CI/hook/document/task-state approval, and high-risk decision approval.
+
+`scripts/resolve-delivery-path.mjs` is the 1.26 delivery path entry. It reads project state and prints one Delivery Path Report with current state, next target state, distance to useful use, evidence, blockers, next safe action, human decisions, and explicit no-write/no-release boundaries. It does not write target-project files.
+
+`scripts/check-delivery-path.mjs` checks recorded Delivery Path Reports. It validates allowed delivery states, evidence, blockers, next action, user-decision limits, and rejects implementation approval, release/production approval, CI/hook/task-state approval, Safe Launch replacement, and real-user-use overclaims.
 
 `scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
 
