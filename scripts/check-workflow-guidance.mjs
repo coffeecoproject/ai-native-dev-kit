@@ -240,11 +240,53 @@ function checkSourceEvidence() {
     fail(`1.24 workflow guidance resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
   }
 
+  const deepResolver = runNode(["scripts/resolve-workflow-guidance.mjs", ".", "--deep"]);
+  if (deepResolver.status === 0
+    && deepResolver.stdout.includes("Workflow Guidance Card")
+    && (deepResolver.stdout.includes("What I Checked") || deepResolver.stdout.includes("Deep Orchestration"))
+    && deepResolver.stdout.includes("This guidance writes target files: No")) {
+    pass("1.30 deep workflow guidance resolver prints safe card");
+  } else {
+    fail(`1.30 deep workflow guidance resolver failed: ${deepResolver.stderr || deepResolver.stdout}`);
+  }
+
+  const deepResolverJson = runNode(["scripts/resolve-workflow-guidance.mjs", ".", "--deep", "--json"]);
+  if (deepResolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(deepResolverJson.stdout);
+      const selected = parsed.deepOrchestration?.selectedCapabilities || [];
+      const summaries = parsed.deepOrchestration?.summaries || [];
+      const allReadOnly = summaries.every((item) => item.readOnly === true);
+      if (parsed.deepOrchestration?.enabled === true
+        && selected.includes("review-surface")
+        && selected.includes("delivery-path")
+        && parsed.deepOrchestration?.boundaries?.writesTargetFiles === "No"
+        && allReadOnly) {
+        pass("1.30 deep workflow guidance resolver JSON includes selective read-only orchestration");
+      } else {
+        fail(`1.30 deep workflow guidance resolver JSON missing expected orchestration fields: ${deepResolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.30 deep workflow guidance resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.30 deep workflow guidance resolver JSON failed: ${deepResolverJson.stderr || deepResolverJson.stdout}`);
+  }
+
   const example = runNode(["scripts/check-workflow-guidance.mjs", "examples/1.24-natural-language-orchestrator"]);
   if (example.status === 0 && example.stdout.includes("Workflow guidance check passed")) {
     pass("1.24 workflow guidance example passes checker");
   } else {
     fail(`1.24 workflow guidance example failed: ${example.stderr || example.stdout}`);
+  }
+
+  const deepExample = runNode(["scripts/check-workflow-guidance.mjs", "examples/1.30-deep-guide-orchestration"]);
+  if (deepExample.status === 0 && deepExample.stdout.includes("Workflow guidance check passed")) {
+    pass("1.30 deep workflow guidance example passes checker");
+  } else if (exists("examples/1.30-deep-guide-orchestration/README.md")) {
+    fail(`1.30 deep workflow guidance example failed: ${deepExample.stderr || deepExample.stdout}`);
+  } else {
+    pass("1.30 deep workflow guidance example not present yet");
   }
 
   for (const [name, target, expected] of [

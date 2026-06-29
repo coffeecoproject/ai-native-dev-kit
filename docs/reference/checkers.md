@@ -7,7 +7,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | Checker | Purpose |
 |---|---|
 | `check-ai-workflow.mjs` | Core or full workflow asset check |
-| `resolve-workflow-guidance.mjs` | Read-only natural-language front door that returns a Workflow Guidance Card |
+| `resolve-workflow-guidance.mjs` | Read-only natural-language front door that returns a Workflow Guidance Card; `--deep` selectively summarizes downstream read-only checks |
 | `check-workflow-guidance.mjs` | Workflow Guidance Card boundary, plain-language, question-count, and overclaim checks |
 | `resolve-review-surface.mjs` | Read-only review surface selector that returns a Review Surface Card before execution |
 | `check-review-surface.mjs` | Review Surface Card required-surface, post-execution contract, and overclaim checks |
@@ -145,6 +145,7 @@ For a normal target project:
 ```bash
 node scripts/workflow-next.mjs .
 node scripts/resolve-workflow-guidance.mjs .
+node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/check-workflow-guidance.mjs .
 node scripts/resolve-review-surface.mjs .
 node scripts/check-review-surface.mjs .

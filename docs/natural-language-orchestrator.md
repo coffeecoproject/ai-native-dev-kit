@@ -36,6 +36,32 @@ Codex can route to existing Dev Kit capabilities:
 
 The user should not need to choose those commands.
 
+## Deep Guide
+
+For normal use, start with:
+
+```bash
+node scripts/cli.mjs guide ../my-project
+```
+
+When the project is unclear, old, interrupted, or close to delivery, Codex can use:
+
+```bash
+node scripts/cli.mjs guide ../my-project --deep
+```
+
+Deep guide still returns one card. It only reads the project, then selectively checks the relevant areas:
+
+- project baseline direction for new projects
+- existing workflow mapping for existing projects
+- review surfaces
+- delivery path
+- work queue when task-switching or unfinished work exists
+- document lifecycle when docs need review
+- hook policy when CI or automatic triggers exist
+
+It should not run every resolver just because it can. The goal is a smaller, clearer next step, not more output.
+
 ## What The User Sees
 
 The user sees a Workflow Guidance Card:
@@ -46,6 +72,7 @@ The user sees a Workflow Guidance Card:
 - what Codex will not do
 - what is missing before the project can be used
 - up to 3 questions, or up to 5 for high-risk work
+- what Codex checked in deep mode, written without forcing the user to choose workflow commands
 
 ## Delivery Path State
 

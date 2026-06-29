@@ -387,6 +387,7 @@ function printHelp() {
   console.log("");
   console.log("Examples:");
   console.log("  node scripts/cli.mjs guide ../my-project");
+  console.log("  node scripts/cli.mjs guide ../my-project --deep");
   console.log("  node scripts/cli.mjs guide-check .");
   console.log("  node scripts/cli.mjs delivery-path ../my-project");
   console.log("  node scripts/cli.mjs delivery-path-check .");

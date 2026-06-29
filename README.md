@@ -52,6 +52,7 @@
 | 当前情况 | 先跑什么 | 目的 |
 |---|---|---|
 | 不确定该用哪条流程 | `node scripts/cli.mjs guide ../my-project` | 先用白话给出项目状态、下一步、风险和需要你确认的少数问题 |
+| 想让 Codex 自己多看几层 | `node scripts/cli.mjs guide ../my-project --deep` | 内部选择性检查审查面、交付路径、任务、文档和自动化风险，最后仍只给一张卡 |
 | 刚拿到一个项目，不确定状态 | `node scripts/cli.mjs start ../my-project` | 先判断是新项目、老项目、强治理项目还是生产敏感项目 |
 | 要给项目选择基线 | `node scripts/cli.mjs baseline-decision ../my-project` | 用白话确认 BL0/BL1/BL2、平台和风险 |
 | 老项目怕被覆盖 | `node scripts/cli.mjs workflow-map ../my-project` | 先映射现有治理，说明该复用什么、不能动什么 |
@@ -69,6 +70,7 @@
 
 ```bash
 node scripts/cli.mjs guide ../my-project
+node scripts/cli.mjs guide ../my-project --deep
 ```
 
 第二步，如果你想看更具体的接入判断，让 Codex 只读判断项目状态：
@@ -175,6 +177,7 @@ node scripts/cli.mjs doctor ../my-project
 npm run verify
 npm run verify:governance
 node scripts/cli.mjs guide .
+node scripts/cli.mjs guide . --deep
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs review-surface .
 node scripts/check-review-surface.mjs .
@@ -311,6 +314,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.30 Release Record](releases/1.30.0/release-record.md)：1.30 深度 guide 编排
 - [1.29 Release Record](releases/1.29.0/release-record.md)：1.29 项目 Hook Policy
 - [1.28 Release Record](releases/1.28.0/release-record.md)：1.28 文档归档执行计划
 - [1.27 Release Record](releases/1.27.0/release-record.md)：1.27 债务与知识交接

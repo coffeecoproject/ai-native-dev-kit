@@ -728,6 +728,7 @@ function checkDevKitFirstPartyCi() {
     "check-debt-handoff.mjs",
     "resolve-debt-handoff.mjs",
     "guide",
+    "guide . --deep",
     "guide-check",
     "review-surface",
     "review-surface-check",
@@ -4759,11 +4760,16 @@ function checkNaturalLanguageOrchestratorProtocol() {
     "scripts/check-workflow-guidance.mjs",
     "examples/1.24-natural-language-orchestrator/README.md",
     "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
+    "examples/1.30-deep-guide-orchestration/README.md",
+    "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
     "test-fixtures/bad/bad-workflow-guidance-too-many-questions/workflow-guidance-cards/001-bad.md",
     "test-fixtures/bad/bad-workflow-guidance-overclaim/workflow-guidance-cards/001-bad.md",
     "releases/1.24.0/release-record.md",
     "releases/1.24.0/known-limitations.md",
     "releases/1.24.0/self-check-report.md",
+    "releases/1.30.0/release-record.md",
+    "releases/1.30.0/known-limitations.md",
+    "releases/1.30.0/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.24 workflow guidance asset exists ${file}`);
@@ -4777,6 +4783,7 @@ function checkNaturalLanguageOrchestratorProtocol() {
     read("scripts/resolve-workflow-guidance.mjs"),
     read("scripts/check-workflow-guidance.mjs"),
     read("releases/1.24.0/release-record.md"),
+    exists("releases/1.30.0/release-record.md") ? read("releases/1.30.0/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -4788,6 +4795,9 @@ function checkNaturalLanguageOrchestratorProtocol() {
     "This guidance writes target files: No",
     "This guidance modifies CI: No",
     "This guidance installs hooks: No",
+    "--deep",
+    "Deep Guide Orchestration",
+    "selective-read-only",
   ]) {
     if (combined.includes(marker)) pass(`1.24 workflow guidance includes ${marker}`);
     else fail(`1.24 workflow guidance missing ${marker}`);
@@ -4822,6 +4832,39 @@ function checkNaturalLanguageOrchestratorProtocol() {
     fail(`1.24 workflow guidance resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
   }
 
+  const deepResolver = runNode(["scripts/resolve-workflow-guidance.mjs", ".", "--deep"]);
+  if (deepResolver.status === 0
+    && deepResolver.stdout.includes("Workflow Guidance Card")
+    && (deepResolver.stdout.includes("What I Checked") || deepResolver.stdout.includes("Deep Orchestration"))
+    && deepResolver.stdout.includes("This guidance writes target files: No")) {
+    pass("1.30 deep workflow guidance resolver prints safe card");
+  } else {
+    fail(`1.30 deep workflow guidance resolver failed: ${deepResolver.stderr || deepResolver.stdout}`);
+  }
+
+  const deepResolverJson = runNode(["scripts/resolve-workflow-guidance.mjs", ".", "--deep", "--json"]);
+  if (deepResolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(deepResolverJson.stdout);
+      const selected = parsed.deepOrchestration?.selectedCapabilities || [];
+      const summaries = parsed.deepOrchestration?.summaries || [];
+      if (parsed.deepOrchestration?.enabled === true
+        && parsed.deepOrchestration?.mode === "selective-read-only"
+        && selected.includes("review-surface")
+        && selected.includes("delivery-path")
+        && summaries.every((item) => item.readOnly === true)
+        && parsed.deepOrchestration?.boundaries?.writesTargetFiles === "No") {
+        pass("1.30 deep workflow guidance resolver JSON includes selective read-only orchestration");
+      } else {
+        fail(`1.30 deep workflow guidance resolver JSON missing expected fields: ${deepResolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.30 deep workflow guidance resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.30 deep workflow guidance resolver JSON failed: ${deepResolverJson.stderr || deepResolverJson.stdout}`);
+  }
+
   const check = runNode(["scripts/check-workflow-guidance.mjs", "."]);
   if (check.status === 0 && check.stdout.includes("Workflow guidance check passed")) {
     pass("1.24 workflow guidance checker passes source repo");
@@ -4834,6 +4877,13 @@ function checkNaturalLanguageOrchestratorProtocol() {
     pass("1.24 workflow guidance example passes checker");
   } else {
     fail(`1.24 workflow guidance example failed: ${example.stderr || example.stdout}`);
+  }
+
+  const deepExample = runNode(["scripts/check-workflow-guidance.mjs", "examples/1.30-deep-guide-orchestration"]);
+  if (deepExample.status === 0 && deepExample.stdout.includes("Workflow guidance check passed")) {
+    pass("1.30 deep workflow guidance example passes checker");
+  } else {
+    fail(`1.30 deep workflow guidance example failed: ${deepExample.stderr || deepExample.stdout}`);
   }
 
   for (const [name, args, expected] of [

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.29.0",
+  "devKitVersion": "1.30.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.29.0"
+    "phase": "1.30.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1433,7 +1433,12 @@
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
       "test-fixtures/output-quality/README.md",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "examples/1.30-deep-guide-orchestration/README.md",
+      "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
+      "releases/1.30.0/known-limitations.md",
+      "releases/1.30.0/release-record.md",
+      "releases/1.30.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -4428,21 +4433,16 @@
   },
   "assets": {
     "sourceRequired": [
-      "core/hook-policy.md",
-      "docs/hook-policy.md",
-      "templates/project-hook-policy.md",
-      "checklists/hook-policy-review.md",
-      "prompts/hook-policy-agent.md",
-      "hook-policies/.gitkeep",
-      "scripts/resolve-hook-policy.mjs",
-      "scripts/check-hook-policy.mjs",
-      "examples/1.29-hook-policy-hardening/README.md",
-      "examples/1.29-hook-policy-hardening/hook-policies/001-project-hook-policy.md",
-      "test-fixtures/bad/bad-hook-policy-installs-hook/hook-policies/001-bad.md",
-      "test-fixtures/bad/bad-hook-policy-missing-rollback/hook-policies/001-bad.md",
-      "releases/1.29.0/release-record.md",
-      "releases/1.29.0/known-limitations.md",
-      "releases/1.29.0/self-check-report.md"
+      "core/natural-language-orchestrator.md",
+      "docs/natural-language-orchestrator.md",
+      "templates/workflow-guidance-card.md",
+      "scripts/resolve-workflow-guidance.mjs",
+      "scripts/check-workflow-guidance.mjs",
+      "examples/1.30-deep-guide-orchestration/README.md",
+      "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
+      "releases/1.30.0/release-record.md",
+      "releases/1.30.0/known-limitations.md",
+      "releases/1.30.0/self-check-report.md"
     ]
   }
 }

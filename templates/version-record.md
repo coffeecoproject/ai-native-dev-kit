@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.29.0`
+`1.30.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.30.0` adds Deep Guide Orchestration through `guide --deep`, selective read-only downstream checks, and a compressed `What I Checked` section.
+- `1.30.0` keeps deep guide non-authorizing: it does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation/release/production, approve high-risk decisions, or replace detailed downstream evidence.
 - `1.29.0` adds Project Hook Policy through `hook-policy`, `hook-policy-check`, and Project Hook Policy documents.
 - `1.29.0` lets Codex define which hook classes a project allows, who approves H2/H3 hooks, and how hooks are disabled or rolled back before any future approved implementation task.
 - `1.29.0` keeps hook policy non-authorizing: it does not install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration.

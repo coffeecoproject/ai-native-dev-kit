@@ -9,6 +9,7 @@ Use `scripts/cli.mjs` for daily operation.
 | Command | Purpose | Writes |
 |---|---|---|
 | `node scripts/cli.mjs guide <project>` | Read a project and return one plain-language Workflow Guidance Card | No |
+| `node scripts/cli.mjs guide <project> --deep` | Selectively run read-only downstream resolvers and return one compressed guidance card | No |
 | `node scripts/cli.mjs guide-check <project>` | Check recorded Workflow Guidance Cards | No |
 | `node scripts/cli.mjs review-surface <project>` | Select review surfaces before execution without writing target files | No |
 | `node scripts/cli.mjs review-surface-check <project>` | Check recorded Review Surface Cards | No |
@@ -84,7 +85,7 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. Use `--write-plan <file>` to write a reviewable plan and `--apply-plan <file>` to apply only approved baseline docs and baseline reports.
 
-`scripts/resolve-workflow-guidance.mjs` is the 1.24 natural-language front door. It reads project state and prints one Workflow Guidance Card with a delivery path state, next step, distance to useful use, limited questions, internal routing, and explicit no-write/no-CI/no-hook/no-release boundaries. It does not write target-project files.
+`scripts/resolve-workflow-guidance.mjs` is the natural-language front door. It reads project state and prints one Workflow Guidance Card with a delivery path state, next step, distance to useful use, limited questions, internal routing, and explicit no-write/no-CI/no-hook/no-release boundaries. With `--deep`, it selectively runs read-only downstream resolvers such as review surface, delivery path, work queue, document lifecycle, workflow mapping, baseline decision, and hook policy, then compresses them back into one card. It does not write target-project files.
 
 `scripts/check-workflow-guidance.mjs` checks recorded Workflow Guidance Cards. It rejects too many questions, internal jargon leaking into plain mode, target-project write approval, CI/hook/document/task-state approval, implementation approval, release/production approval, and high-risk decision approval.
 

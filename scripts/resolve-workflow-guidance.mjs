@@ -2,6 +2,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import {
@@ -11,11 +13,15 @@ import {
 } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "mode"]);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const knownFlags = new Set(["json", "format", "mode", "deep"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const userMode = String(args.mode || "plain").toLowerCase();
+const deepMode = Boolean(args.deep);
 const allowedFormats = new Set(["human", "json"]);
 const allowedModes = new Set(["plain", "developer", "maintainer"]);
 
@@ -36,7 +42,7 @@ if (!allowedModes.has(userMode)) {
   process.exit(1);
 }
 
-const guidance = buildWorkflowGuidance(projectRoot, userMode);
+const guidance = buildWorkflowGuidance(projectRoot, userMode, { deep: deepMode });
 
 if (outputFormat === "json") {
   console.log(JSON.stringify(guidance, null, 2));
@@ -44,7 +50,7 @@ if (outputFormat === "json") {
   printHuman(guidance);
 }
 
-function buildWorkflowGuidance(root, mode) {
+function buildWorkflowGuidance(root, mode, options = {}) {
   const exists = fs.existsSync(root);
   const git = exists ? gitWorktreeState(root) : null;
   const paths = exists ? walkRelativePaths(root, ".", {
@@ -57,6 +63,11 @@ function buildWorkflowGuidance(root, mode) {
   const delivery = deliveryStateFor(project, signals);
   const questions = questionsFor(project, signals, delivery);
   const routing = routingFor(project, signals, delivery);
+  const deepOrchestration = options.deep ? buildDeepOrchestration(root, project, signals, delivery) : null;
+  const effectiveDelivery = effectiveDeliveryFromDeep(delivery, deepOrchestration);
+  const nextStep = deepOrchestration
+    ? recommendedNextStepFromDeep(project, effectiveDelivery, deepOrchestration)
+    : recommendedNextStep(project, effectiveDelivery);
 
   return {
     reportType: "WORKFLOW_GUIDANCE_CARD",
@@ -66,13 +77,13 @@ function buildWorkflowGuidance(root, mode) {
     readOnly: true,
     userMode: mode,
     humanDecisionSummary: {
-      conclusion: conclusionFor(project, delivery),
-      recommendedNextStep: recommendedNextStep(project, delivery),
-      canAiContinueNow: canContinue(project, delivery),
+      conclusion: conclusionFor(project, effectiveDelivery, deepOrchestration),
+      recommendedNextStep: nextStep,
+      canAiContinueNow: canContinue(project, effectiveDelivery),
       needFromHuman: questions.length > 0 ? questions.join(" / ") : "No decision needed for read-only guidance.",
       ifNothing: "No files are changed. No CI, hook, document, task state, release, or production behavior is changed.",
     },
-    plainSummary: plainSummary(project, delivery),
+    plainSummary: plainSummary(project, effectiveDelivery),
     projectReading: {
       userMode: mode,
       projectState: project.state,
@@ -82,13 +93,14 @@ function buildWorkflowGuidance(root, mode) {
       reason: project.reason,
     },
     deliveryPathState: {
-      current: delivery.current,
-      next: delivery.next,
+      current: effectiveDelivery.current,
+      next: effectiveDelivery.next,
     },
-    recommendedNextStep: recommendedNextStep(project, delivery),
-    distanceToUsefulUse: distanceToUsefulUse(project, signals, delivery),
+    recommendedNextStep: nextStep,
+    distanceToUsefulUse: distanceToUsefulUse(project, signals, effectiveDelivery),
     questionsForHuman: questions,
     internalRouting: routing,
+    deepOrchestration,
     boundaries: {
       writesTargetFiles: "No",
       modifiesCi: "No",
@@ -99,7 +111,7 @@ function buildWorkflowGuidance(root, mode) {
       approvesReleaseOrProduction: "No",
       approvesHighRiskDecisions: "No",
     },
-    outcome: outcomeFor(project, delivery),
+    outcome: outcomeFor(project, effectiveDelivery),
   };
 }
 
@@ -262,12 +274,256 @@ function routingFor(project, signals, delivery) {
   return rows;
 }
 
+function buildDeepOrchestration(root, project, signals, delivery) {
+  const selected = selectDeepCapabilities(project, signals, delivery);
+  const skipped = deepCapabilities()
+    .filter((capability) => !selected.some((item) => item.id === capability.id))
+    .map((capability) => ({
+      id: capability.id,
+      userMeaning: capability.userMeaning,
+      reason: capability.skipReason(project, signals, delivery),
+    }));
+  const results = selected.map((capability) => runDeepCapability(root, capability));
+  const summaries = results.map((result) => summarizeDeepCapability(result));
+  const failures = results
+    .filter((result) => result.status !== "PASS")
+    .map((result) => ({
+      id: result.id,
+      userMeaning: result.userMeaning,
+      status: result.status,
+      reason: result.error || "No result returned.",
+    }));
+
+  return {
+    enabled: true,
+    mode: "selective-read-only",
+    selectedCapabilities: selected.map((capability) => capability.id),
+    skippedCapabilities: skipped,
+    summaries,
+    failures,
+    boundaries: {
+      writesTargetFiles: "No",
+      modifiesCi: "No",
+      installsHooks: "No",
+      deletesOrArchivesDocuments: "No",
+      changesTaskState: "No",
+      approvesImplementation: "No",
+      approvesReleaseOrProduction: "No",
+      approvesHighRiskDecisions: "No",
+    },
+  };
+}
+
+function effectiveDeliveryFromDeep(delivery, orchestration) {
+  const deliverySummary = orchestration?.summaries?.find((item) => item.id === "delivery-path");
+  const match = deliverySummary?.signal?.match(/\b([A-Z_]+)\s*->\s*([A-Z_]+)\b/);
+  if (!match) return delivery;
+  return { current: match[1], next: match[2] };
+}
+
+function deepCapabilities() {
+  return [
+    {
+      id: "baseline-decision",
+      script: "resolve-guided-baseline-selection.mjs",
+      userMeaning: "选择新项目需要的基础规则",
+      shouldRun: (project) => project.state === "NEW_PROJECT" || project.state === "UNKNOWN_PROJECT",
+      skipReason: () => "不是新项目入口，暂不需要先做基线选择。",
+    },
+    {
+      id: "workflow-map",
+      script: "resolve-existing-workflow.mjs",
+      userMeaning: "先读清楚已有项目规则",
+      shouldRun: (project) => [
+        "EXISTING_LIGHT_PROJECT",
+        "EXISTING_GOVERNED_PROJECT",
+        "PRODUCTION_SENSITIVE_PROJECT",
+        "DIRTY_WORKTREE_PROJECT",
+      ].includes(project.state),
+      skipReason: () => "当前不是需要接入已有项目规则的场景。",
+    },
+    {
+      id: "review-surface",
+      script: "resolve-review-surface.mjs",
+      userMeaning: "判断这次工作完成后要检查哪些方面",
+      shouldRun: () => true,
+      skipReason: () => "始终应选择审查面。",
+    },
+    {
+      id: "delivery-path",
+      script: "resolve-delivery-path.mjs",
+      userMeaning: "判断离可用还差多远",
+      shouldRun: () => true,
+      skipReason: () => "始终应判断交付路径。",
+    },
+    {
+      id: "work-queue",
+      script: "resolve-work-queue.mjs",
+      userMeaning: "确认当前任务、暂停任务和待办",
+      shouldRun: (project, signals) => project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasWorkQueueSignals,
+      skipReason: () => "未发现明显的暂停任务、任务队列或未完成工作信号。",
+    },
+    {
+      id: "doc-lifecycle",
+      script: "resolve-document-lifecycle.mjs",
+      userMeaning: "判断文档是否可能过期、重复或需要归档建议",
+      shouldRun: (project, signals) => project.state !== "NEW_PROJECT" && signals.hasDocs,
+      skipReason: () => "当前没有足够文档信号，或新项目阶段暂不优先处理文档生命周期。",
+    },
+    {
+      id: "hook-policy",
+      script: "resolve-hook-policy.mjs",
+      userMeaning: "判断自动触发和 CI 相关规则是否需要先定边界",
+      shouldRun: (project, signals) => project.state === "PRODUCTION_SENSITIVE_PROJECT" || signals.hasHookOrCiSignals,
+      skipReason: () => "未发现明显的 CI、hook 或自动触发风险信号。",
+    },
+  ];
+}
+
+function selectDeepCapabilities(project, signals, delivery) {
+  return deepCapabilities().filter((capability) => capability.shouldRun(project, signals, delivery));
+}
+
+function runDeepCapability(root, capability) {
+  const scriptPath = path.join(__dirname, capability.script);
+  if (!fs.existsSync(scriptPath)) {
+    return {
+      id: capability.id,
+      userMeaning: capability.userMeaning,
+      status: "SKIPPED",
+      error: `Missing script ${capability.script}`,
+    };
+  }
+
+  const result = spawnSync(process.execPath, [scriptPath, root, "--json"], {
+    cwd: path.resolve(__dirname, ".."),
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 12,
+  });
+
+  if (result.status !== 0) {
+    return {
+      id: capability.id,
+      userMeaning: capability.userMeaning,
+      status: "FAIL",
+      error: (result.stderr || result.stdout || "Resolver failed.").trim(),
+    };
+  }
+
+  try {
+    return {
+      id: capability.id,
+      userMeaning: capability.userMeaning,
+      status: "PASS",
+      report: JSON.parse(result.stdout),
+    };
+  } catch (error) {
+    return {
+      id: capability.id,
+      userMeaning: capability.userMeaning,
+      status: "FAIL",
+      error: `Resolver JSON invalid: ${error.message}`,
+    };
+  }
+}
+
+function summarizeDeepCapability(result) {
+  if (result.status !== "PASS") {
+    return {
+      id: result.id,
+      userMeaning: result.userMeaning,
+      status: result.status,
+      plainFinding: "读取失败，需要先修复这个只读检查。",
+      nextAction: result.error || "Review resolver output.",
+      readOnly: true,
+    };
+  }
+
+  const report = result.report;
+  const summary = {
+    id: result.id,
+    userMeaning: result.userMeaning,
+    status: "PASS",
+    reportType: report.reportType || "UNKNOWN",
+    plainFinding: report.humanDecisionSummary?.conclusion || "已完成只读判断。",
+    nextAction: report.humanDecisionSummary?.recommendedChoice
+      || report.humanDecisionSummary?.recommendedNextStep
+      || report.nextSafeAction
+      || "按只读建议进入下一步。",
+    readOnly: report.readOnly !== false,
+  };
+
+  if (result.id === "baseline-decision") {
+    summary.signal = report.recommendedBaselineLevel?.level || report.recommendedBaselineLevel?.userLabel || "unknown";
+    summary.plainFinding = `建议的基础规则档位是 ${summary.signal}。`;
+    summary.nextAction = "先确认项目类型、平台和第一阶段目标，再决定是否配置基线。";
+  }
+  if (result.id === "workflow-map") {
+    summary.signal = report.adapterMode || report.classification?.projectState || "unknown";
+    summary.plainFinding = "已先读已有项目规则，避免直接覆盖现有治理。";
+    summary.nextAction = "先按已有规则做映射，再决定是否接入新流程。";
+  }
+  if (result.id === "review-surface") {
+    summary.signal = `${Array.isArray(report.selectedReviewSurfaces) ? report.selectedReviewSurfaces.length : 0} review surfaces`;
+    summary.plainFinding = `已选出 ${Array.isArray(report.selectedReviewSurfaces) ? report.selectedReviewSurfaces.length : 0} 个需要复查的方面。`;
+    summary.nextAction = "执行前确认审查面，执行后逐项关闭。";
+  }
+  if (result.id === "delivery-path") {
+    summary.signal = `${report.deliveryPathState?.currentState || "unknown"} -> ${report.deliveryPathState?.nextTargetState || "unknown"}`;
+    summary.plainFinding = `当前交付状态是 ${report.deliveryPathState?.currentState || "unknown"}，下一步目标是 ${report.deliveryPathState?.nextTargetState || "unknown"}。`;
+    summary.nextAction = "先补齐下一阶段所需证据。";
+  }
+  if (result.id === "work-queue") {
+    summary.signal = `${report.currentTaskCount || 0} current / ${Array.isArray(report.pausedTasks) ? report.pausedTasks.length : 0} paused`;
+    summary.plainFinding = `发现 ${report.currentTaskCount || 0} 个当前任务、${Array.isArray(report.pausedTasks) ? report.pausedTasks.length : 0} 个暂停任务、${Array.isArray(report.backlogItems) ? report.backlogItems.length : 0} 个待办。`;
+    summary.nextAction = "先确认当前主线任务，再切换或推进。";
+  }
+  if (result.id === "doc-lifecycle") {
+    summary.signal = `${Array.isArray(report.documentInventory) ? report.documentInventory.length : 0} docs scanned`;
+    summary.plainFinding = `扫描到 ${Array.isArray(report.documentInventory) ? report.documentInventory.length : 0} 份文档，可能有过期、重复或归档候选。`;
+    summary.nextAction = "只提出归档建议，不删除、不移动文档。";
+  }
+  if (result.id === "hook-policy") {
+    summary.signal = report.policyState?.policyState || "unknown";
+    summary.plainFinding = "已检查自动触发和 CI 相关规则，当前不能安装 hook 或改 CI。";
+    summary.nextAction = "如需新增自动化，先确认允许范围、审批人和回滚方式。";
+  }
+
+  return summary;
+}
+
+function recommendedNextStepFromDeep(project, delivery, orchestration) {
+  if (orchestration.failures.length > 0) {
+    return "先修复只读编排里失败的检查，再决定是否进入计划或实现。";
+  }
+
+  const workQueue = orchestration.summaries.find((item) => item.id === "work-queue");
+  if (workQueue?.signal && !workQueue.signal.startsWith("0 current")) {
+    return "先确认当前主线任务和暂停任务，再决定继续、暂停还是切换。";
+  }
+
+  const deliverySummary = orchestration.summaries.find((item) => item.id === "delivery-path");
+  if (deliverySummary?.signal?.includes("BLOCKED")) {
+    return "先处理交付路径里的阻塞项，不直接进入实现或发布。";
+  }
+
+  const reviewSurface = orchestration.summaries.find((item) => item.id === "review-surface");
+  if (reviewSurface) {
+    return "先按这张卡确认目标、风险和审查面，再进入最小可验证的一步。";
+  }
+
+  return recommendedNextStep(project, delivery);
+}
+
 function route(situation, internalCapability, userMeaning, runNow) {
   return { situation, internalCapability, userMeaning, runNow };
 }
 
-function conclusionFor(project, delivery) {
+function conclusionFor(project, delivery, orchestration = null) {
   const state = plainProjectState(project.state);
+  if (orchestration?.enabled) {
+    return `I read the project as ${state}. Deep guide checked ${orchestration.summaries.length} read-only area(s). Current delivery state is ${delivery.current}.`;
+  }
   return `I read the project as ${state}. Current delivery state is ${delivery.current}.`;
 }
 
@@ -422,6 +678,29 @@ function printHuman(report) {
     }
     console.log("");
   }
+  if (report.deepOrchestration?.enabled) {
+    console.log(report.userMode === "plain" ? "## What I Checked" : "## Deep Orchestration");
+    console.log("");
+    console.log("| Area | Status | Finding | Next action |");
+    console.log("|---|---|---|---|");
+    for (const item of report.deepOrchestration.summaries) {
+      const area = report.userMode === "plain" ? item.userMeaning : item.id;
+      const finding = report.userMode === "plain" ? item.plainFinding : `${item.signal || ""} ${item.plainFinding}`.trim();
+      console.log(`| ${area} | ${item.status} | ${sanitizeTableCell(finding)} | ${sanitizeTableCell(item.nextAction)} |`);
+    }
+    if (report.deepOrchestration.summaries.length === 0) {
+      console.log("| No extra area selected | PASS | Nothing else was needed for this read-only guidance. | Keep the plan small. |");
+    }
+    console.log("");
+    if (report.userMode !== "plain") {
+      console.log("Selected capabilities:");
+      console.log("");
+      for (const capability of report.deepOrchestration.selectedCapabilities) {
+        console.log(`- \`${capability}\``);
+      }
+      console.log("");
+    }
+  }
   console.log("## Boundaries");
   console.log("");
   console.log("- This guidance writes target files: No");
@@ -436,6 +715,10 @@ function printHuman(report) {
   console.log("## Outcome");
   console.log("");
   console.log(`\`${report.outcome}\``);
+}
+
+function sanitizeTableCell(value) {
+  return String(value || "").replace(/\r?\n/g, " ").replace(/\|/g, "\\|").trim();
 }
 
 function readJsonIfExists(filePath) {

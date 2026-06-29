@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.29.0`
+Current version: `1.30.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.29.0`
 
 ## Current Release
 
-`1.29.0`
+`1.30.0`
 
 Includes:
 
+- Deep Guide Orchestration phase `1.30.0`: adds `guide --deep` so Codex can selectively run relevant read-only workflow resolvers and compress the result back into one user-facing Workflow Guidance Card
+- Added deep orchestration JSON output, a plain `What I Checked` section, docs/template updates, a 1.30 example, and release evidence
+- `1.30.0` does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation/release/production, approve high-risk decisions, or replace detailed downstream evidence
 - Hook Policy Hardening phase `1.29.0`: adds `hook-policy` and `hook-policy-check` so Codex can define project-level hook rules, approval owners, and rollback / disable requirements before any hook work is proposed
 - Added `core/hook-policy.md`, `docs/hook-policy.md`, `templates/project-hook-policy.md`, `checklists/hook-policy-review.md`, `prompts/hook-policy-agent.md`, `hook-policies/`, `scripts/resolve-hook-policy.mjs`, and `scripts/check-hook-policy.mjs`
 - `1.29.0` does not install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration

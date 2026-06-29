@@ -59,6 +59,14 @@ Next state: `<next delivery path state>`
 |---|---|---|---|
 | <situation> | `<internal capability>` | <plain meaning> | `<Yes / No / Later>` |
 
+## What I Checked
+
+Use this section only for `guide --deep`.
+
+| Area | Status | Finding | Next action |
+|---|---|---|---|
+| <plain checked area> | `<PASS / FAIL / SKIPPED>` | <plain finding> | <one safe next action> |
+
 ## Boundaries
 
 - This guidance writes target files: No

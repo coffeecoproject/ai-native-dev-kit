@@ -84,6 +84,34 @@ Codex should choose existing capabilities internally:
 | Interrupted work | work queue | Pause, park, or resume work with review |
 | Near delivery | launch readiness | Check if it can be self-tested, trialed, or reviewed for launch |
 
+## Deep Guide Orchestration
+
+`guide` stays lightweight by default.
+
+Use `guide --deep` when the user asks Codex to read a project and decide the safest path without making them choose workflow commands.
+
+Deep Guide Orchestration is selective, not exhaustive:
+
+- New or unclear projects may route to baseline decision.
+- Existing projects may route to workflow adoption mapping.
+- Every deep run must include review surface and delivery path.
+- Work queue runs only when task, interruption, or unfinished-work signals exist.
+- Document lifecycle runs only when meaningful document signals exist.
+- Hook policy runs only when CI, hook, scheduled automation, or production-sensitive signals exist.
+
+The result is still one Workflow Guidance Card. Plain mode should show what Codex checked, not internal command names.
+
+Deep Guide Orchestration must remain read-only and must not:
+
+- write target files
+- modify CI
+- install hooks
+- delete or archive documents
+- change task state
+- approve implementation
+- approve release or production
+- approve high-risk domain decisions
+
 ## Question Limit
 
 Codex may ask at most 3 questions by default.

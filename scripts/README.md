@@ -114,12 +114,14 @@ Return one plain-language next-step card from a natural-language project entry.
 
 ```bash
 node scripts/resolve-workflow-guidance.mjs .
+node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs guide .
+node scripts/cli.mjs guide . --deep
 node scripts/cli.mjs guide-check .
 ```
 
-`resolve-workflow-guidance.mjs` is read-only. It reports project state, delivery path state, recommended next step, distance to useful use, limited questions for the human, internal routing, and no-write/no-CI/no-hook/no-release boundaries. `check-workflow-guidance.mjs` rejects overclaims, too many questions, and internal workflow jargon in plain mode.
+`resolve-workflow-guidance.mjs` is read-only. It reports project state, delivery path state, recommended next step, distance to useful use, limited questions for the human, internal routing, and no-write/no-CI/no-hook/no-release boundaries. With `--deep`, it selectively summarizes relevant read-only downstream checks into one card. `check-workflow-guidance.mjs` rejects overclaims, too many questions, and internal workflow jargon in plain mode.
 
 ## resolve-review-surface.mjs / check-review-surface.mjs
 
