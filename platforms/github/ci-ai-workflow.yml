@@ -49,6 +49,10 @@ jobs:
         run: node scripts/check-real-adoption-trial.mjs .
       - name: Check patch classification
         run: node scripts/check-patch-classification.mjs .
+      - name: Resolve existing workflow adapter
+        run: node scripts/resolve-existing-workflow.mjs .
+      - name: Check workflow adoption map
+        run: node scripts/check-workflow-adoption-map.mjs .
       - name: Check change boundary
         run: node scripts/check-change-boundary.mjs .
       - name: Check baseline state
@@ -113,6 +117,10 @@ jobs:
         run: node --check scripts/check-real-adoption-trial.mjs
       - name: Check patch classification checker syntax
         run: node --check scripts/check-patch-classification.mjs
+      - name: Check existing workflow resolver syntax
+        run: node --check scripts/resolve-existing-workflow.mjs
+      - name: Check workflow adoption map checker syntax
+        run: node --check scripts/check-workflow-adoption-map.mjs
       - name: Check guided delivery loop checker syntax
         run: node --check scripts/check-guided-delivery-loop.mjs
       - name: Check change boundary checker syntax

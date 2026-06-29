@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.19.1",
+  "devKitVersion": "1.20.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.19.1"
+    "phase": "1.20.0"
   },
   "groups": {
     "sourceRequired": [
@@ -82,6 +82,7 @@
       "checklists/starter-review.md",
       "checklists/subagent-orchestration-review.md",
       "checklists/verification-gate.md",
+      "checklists/workflow-adoption-map-review.md",
       "context-corrections/.gitkeep",
       "conversation-turns/.gitkeep",
       "core/assumption-register.md",
@@ -96,6 +97,7 @@
       "core/decision-delegation-boundary.md",
       "core/engineering-baseline.md",
       "core/environment-baseline.md",
+      "core/existing-project-workflow-adapter.md",
       "core/extension-policy.md",
       "core/first-delivery-walkthrough.md",
       "core/gates.md",
@@ -152,6 +154,7 @@
       "docs/conversation-drift-control.md",
       "docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md",
       "docs/engineering-environment-baseline-1.2-plan.md",
+      "docs/existing-project-workflow-adapter.md",
       "docs/faq.md",
       "docs/first-delivery-walkthrough.md",
       "docs/first-hour.md",
@@ -290,6 +293,8 @@
       "examples/1.2-baseline-guided-setup/new-web-project/docs/environment-baseline.md",
       "examples/1.2-baseline-guided-setup/new-web-project/tasks/001-first-web-task.md",
       "examples/1.2-baseline-guided-setup/production-sensitive-project/baseline-recommendations/001-baseline-recommendation.md",
+      "examples/1.20-existing-project-workflow-adapter/README.md",
+      "examples/1.20-existing-project-workflow-adapter/workflow-adoption-maps/001-governed-web-workflow-map.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -629,6 +634,7 @@
       "prompts/reviewer-agent.md",
       "prompts/standard-baseline-router-agent.md",
       "prompts/walkthrough-agent.md",
+      "prompts/workflow-adapter-agent.md",
       "real-adoption-trials/.gitkeep",
       "real-adoption-trials/180-governed-web-readonly.md",
       "releases/0.33.0/baseline-freeze.md",
@@ -708,6 +714,9 @@
       "releases/1.2.0/known-limitations.md",
       "releases/1.2.0/release-record.md",
       "releases/1.2.0/self-check-report.md",
+      "releases/1.20.0/known-limitations.md",
+      "releases/1.20.0/release-record.md",
+      "releases/1.20.0/self-check-report.md",
       "releases/1.3.0/known-limitations.md",
       "releases/1.3.0/release-record.md",
       "releases/1.3.0/self-check-report.md",
@@ -840,6 +849,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
@@ -855,6 +865,7 @@
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -1085,6 +1096,7 @@
       "templates/tech-stack-strategy.md",
       "templates/verification-matrix.md",
       "templates/version-record.md",
+      "templates/workflow-adoption-map.md",
       "templates/workflow-daily-summary.md",
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
@@ -1291,6 +1303,8 @@
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
       "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
+      "test-fixtures/bad/bad-workflow-adoption-authorizes-write/workflow-adoption-maps/001-bad.md",
+      "test-fixtures/bad/bad-workflow-adoption-missing-use/workflow-adoption-maps/001-bad.md",
       "test-fixtures/cli/README.md",
       "test-fixtures/fixture-cases.json",
       "test-fixtures/golden/README.md",
@@ -1298,7 +1312,8 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md"
+      "test-fixtures/output-quality/README.md",
+      "workflow-adoption-maps/.gitkeep"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -1333,6 +1348,7 @@
       ".ai-native/checklists/standard-baseline-selection-review.md",
       ".ai-native/checklists/subagent-orchestration-review.md",
       ".ai-native/checklists/verification-gate.md",
+      ".ai-native/checklists/workflow-adoption-map-review.md",
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/automation-governance.md",
       ".ai-native/core/baseline-enforcement.md",
@@ -1345,6 +1361,7 @@
       ".ai-native/core/decision-delegation-boundary.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
+      ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/extension-policy.md",
       ".ai-native/core/first-delivery-walkthrough.md",
       ".ai-native/core/gates.md",
@@ -1377,6 +1394,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/git-boundary.md",
@@ -1420,6 +1438,7 @@
       ".ai-native/prompts/spec-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
       ".ai-native/prompts/walkthrough-agent.md",
+      ".ai-native/prompts/workflow-adapter-agent.md",
       ".ai-native/schemas/artifacts",
       ".ai-native/standard-baseline-packs",
       ".ai-native/templates/active-work-thread.md",
@@ -1479,6 +1498,7 @@
       ".ai-native/templates/task-card.md",
       ".ai-native/templates/tech-stack-strategy.md",
       ".ai-native/templates/verification-matrix.md",
+      ".ai-native/templates/workflow-adoption-map.md",
       ".ai-native/templates/workflow-daily-summary.md",
       ".ai-native/templates/workflow-improvement.md",
       ".ai-native/templates/workflow-retro.md",
@@ -1565,6 +1585,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/lib/args.mjs",
@@ -1577,6 +1598,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/start-project.mjs",
@@ -1590,6 +1612,7 @@
       "status-reports",
       "subagent-run-plans",
       "tasks",
+      "workflow-adoption-maps",
       "workflow-improvements",
       "workflow-retros"
     ],
@@ -1629,6 +1652,7 @@
       ".ai-native/checklists/starter-review.md",
       ".ai-native/checklists/subagent-orchestration-review.md",
       ".ai-native/checklists/verification-gate.md",
+      ".ai-native/checklists/workflow-adoption-map-review.md",
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/automation-governance.md",
       ".ai-native/core/baseline-enforcement.md",
@@ -1641,6 +1665,7 @@
       ".ai-native/core/decision-delegation-boundary.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
+      ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/extension-policy.md",
       ".ai-native/core/first-delivery-walkthrough.md",
       ".ai-native/core/gates.md",
@@ -1673,6 +1698,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/git-boundary.md",
@@ -1742,6 +1768,7 @@
       ".ai-native/prompts/spec-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
       ".ai-native/prompts/walkthrough-agent.md",
+      ".ai-native/prompts/workflow-adapter-agent.md",
       ".ai-native/schemas/artifacts",
       ".ai-native/standard-baseline-packs",
       ".ai-native/templates/active-work-thread.md",
@@ -1807,6 +1834,7 @@
       ".ai-native/templates/task-card.md",
       ".ai-native/templates/tech-stack-strategy.md",
       ".ai-native/templates/verification-matrix.md",
+      ".ai-native/templates/workflow-adoption-map.md",
       ".ai-native/templates/workflow-daily-summary.md",
       ".ai-native/templates/workflow-improvement.md",
       ".ai-native/templates/workflow-retro.md",
@@ -1896,6 +1924,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/lib/args.mjs",
@@ -1908,6 +1937,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -1923,6 +1953,7 @@
       "status-reports",
       "subagent-run-plans",
       "tasks",
+      "workflow-adoption-maps",
       "workflow-improvements",
       "workflow-retros"
     ],
@@ -1960,6 +1991,7 @@
       "core/baseline-state.md",
       "core/change-boundary.md",
       "core/conversation-drift-control.md",
+      "core/existing-project-workflow-adapter.md",
       "core/first-delivery-walkthrough.md",
       "core/guided-baseline-selection.md",
       "core/patch-classification.md",
@@ -2033,6 +2065,7 @@
       "templates/tech-stack-strategy.md",
       "templates/verification-matrix.md",
       "templates/version-record.md",
+      "templates/workflow-adoption-map.md",
       "templates/workflow-daily-summary.md",
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
@@ -2061,7 +2094,8 @@
       "prompts/reporter-agent.md",
       "prompts/reviewer-agent.md",
       "prompts/standard-baseline-router-agent.md",
-      "prompts/walkthrough-agent.md"
+      "prompts/walkthrough-agent.md",
+      "prompts/workflow-adapter-agent.md"
     ],
     "checklists": [
       "checklists/automation-review.md",
@@ -2098,7 +2132,8 @@
       "checklists/standard-baseline-selection-review.md",
       "checklists/starter-review.md",
       "checklists/subagent-orchestration-review.md",
-      "checklists/verification-gate.md"
+      "checklists/verification-gate.md",
+      "checklists/workflow-adoption-map-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -2168,6 +2203,7 @@
       "status-reports",
       "subagent-run-plans",
       "tasks",
+      "workflow-adoption-maps",
       "workflow-improvements",
       "workflow-retros"
     ],
@@ -2205,6 +2241,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
@@ -2220,6 +2257,7 @@
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -2310,6 +2348,8 @@
       "examples/1.2-baseline-guided-setup/new-web-project/docs/environment-baseline.md",
       "examples/1.2-baseline-guided-setup/new-web-project/tasks/001-first-web-task.md",
       "examples/1.2-baseline-guided-setup/production-sensitive-project/baseline-recommendations/001-baseline-recommendation.md",
+      "examples/1.20-existing-project-workflow-adapter/README.md",
+      "examples/1.20-existing-project-workflow-adapter/workflow-adoption-maps/001-governed-web-workflow-map.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -2612,6 +2652,8 @@
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
       "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
+      "test-fixtures/bad/bad-workflow-adoption-authorizes-write/workflow-adoption-maps/001-bad.md",
+      "test-fixtures/bad/bad-workflow-adoption-missing-use/workflow-adoption-maps/001-bad.md",
       "test-fixtures/cli/README.md",
       "test-fixtures/fixture-cases.json",
       "test-fixtures/golden/README.md",
@@ -2638,6 +2680,7 @@
       ".ai-native/checklists/product-baseline-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/standard-baseline-selection-review.md",
+      ".ai-native/checklists/workflow-adoption-map-review.md",
       ".ai-native/core",
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/baseline-pack-system.md",
@@ -2647,6 +2690,7 @@
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
       ".ai-native/core/decision-delegation-boundary.md",
+      ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/first-delivery-walkthrough.md",
       ".ai-native/core/git-boundary.md",
       ".ai-native/core/guided-baseline-selection.md",
@@ -2666,6 +2710,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/git-boundary.md",
@@ -2699,6 +2744,7 @@
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
       ".ai-native/prompts/walkthrough-agent.md",
+      ".ai-native/prompts/workflow-adapter-agent.md",
       ".ai-native/schemas/artifacts",
       ".ai-native/standard-baseline-packs",
       ".ai-native/templates",
@@ -2722,6 +2768,7 @@
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/scope-change-report.md",
       ".ai-native/templates/standard-baseline-selection-report.md",
+      ".ai-native/templates/workflow-adoption-map.md",
       ".github/pull_request_template.md",
       ".github/workflows/ai-workflow-checks.yml",
       "AGENTS.md",
@@ -2792,6 +2839,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/lib/args.mjs",
@@ -2804,6 +2852,7 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -2814,7 +2863,8 @@
       "scripts/workflow-next.mjs",
       "standard-baseline-selections",
       "status-reports",
-      "subagent-run-plans"
+      "subagent-run-plans",
+      "workflow-adoption-maps"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -2840,6 +2890,7 @@
       ".ai-native/checklists/review-loop-review.md",
       ".ai-native/checklists/standard-baseline-selection-review.md",
       ".ai-native/checklists/subagent-orchestration-review.md",
+      ".ai-native/checklists/workflow-adoption-map-review.md",
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/baseline-enforcement.md",
       ".ai-native/core/baseline-state.md",
@@ -2850,6 +2901,7 @@
       ".ai-native/core/decision-delegation-boundary.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
+      ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/first-delivery-walkthrough.md",
       ".ai-native/core/git-boundary.md",
       ".ai-native/core/glossary.md",
@@ -2968,6 +3020,7 @@
       ".ai-native/templates/standard-baseline-selection-report.md",
       ".ai-native/templates/subagent-run-plan.md",
       ".ai-native/templates/tech-stack-strategy.md",
+      ".ai-native/templates/workflow-adoption-map.md",
       ".ai-native/version.json",
       ".github/workflows/ai-workflow-checks.yml",
       "AGENTS.md",
@@ -3037,11 +3090,13 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
@@ -3052,7 +3107,8 @@
       "scripts/workflow-next.mjs",
       "standard-baseline-selections",
       "status-reports",
-      "subagent-run-plans"
+      "subagent-run-plans",
+      "workflow-adoption-maps"
     ]
   },
   "copyRules": {
@@ -3116,6 +3172,10 @@
       {
         "source": "templates",
         "target": ".ai-native/templates"
+      },
+      {
+        "source": "workflow-adoption-maps",
+        "target": "workflow-adoption-maps"
       }
     ],
     "files": [
@@ -3222,6 +3282,10 @@
       {
         "source": "docs/conversation-drift-control.md",
         "target": ".ai-native/docs/conversation-drift-control.md"
+      },
+      {
+        "source": "docs/existing-project-workflow-adapter.md",
+        "target": ".ai-native/docs/existing-project-workflow-adapter.md"
       },
       {
         "source": "docs/first-delivery-walkthrough.md",
@@ -3440,6 +3504,10 @@
         "target": "scripts/check-subagent-orchestration.mjs"
       },
       {
+        "source": "scripts/check-workflow-adoption-map.mjs",
+        "target": "scripts/check-workflow-adoption-map.mjs"
+      },
+      {
         "source": "scripts/check-workflow-artifacts.mjs",
         "target": "scripts/check-workflow-artifacts.mjs"
       },
@@ -3486,6 +3554,10 @@
       {
         "source": "scripts/resolve-baseline-packs.mjs",
         "target": "scripts/resolve-baseline-packs.mjs"
+      },
+      {
+        "source": "scripts/resolve-existing-workflow.mjs",
+        "target": "scripts/resolve-existing-workflow.mjs"
       },
       {
         "source": "scripts/resolve-guided-baseline-selection.mjs",

@@ -362,4 +362,32 @@ From the dev-kit checkout, this also compares against the local dev-kit version:
 node ai-native-dev-kit/scripts/check-workflow-version.mjs ../my-project
 ```
 
+## resolve-existing-workflow.mjs
+
+Recommend how AI Native workflow should map to an existing project before
+target-project writes.
+
+```bash
+node scripts/resolve-existing-workflow.mjs .
+node scripts/resolve-existing-workflow.mjs . --json
+node scripts/cli.mjs workflow-map .
+```
+
+This command is read-only. It inventories existing workflow signals and
+recommends which AI Native workflows to use, reuse, add later, or avoid.
+
+## check-workflow-adoption-map.mjs
+
+Check recorded Workflow Adoption Maps.
+
+```bash
+node scripts/check-workflow-adoption-map.mjs .
+node scripts/check-workflow-adoption-map.mjs examples/1.20-existing-project-workflow-adapter
+node scripts/cli.mjs workflow-map-check .
+```
+
+This checker rejects reports that turn a workflow recommendation into permission
+to write target files, change CI/hooks, overwrite governance, approve
+implementation, or approve release/production/high-risk decisions.
+
 These scripts intentionally avoid external dependencies.

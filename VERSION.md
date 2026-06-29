@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.19.1`
+Current version: `1.20.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.19.1`
 
 ## Current Release
 
-`1.19.1`
+`1.20.0`
 
 Includes:
 
+- Existing Project Workflow Adapter phase `1.20.0`: adds read-only `workflow-map` and `workflow-map-check` so Codex can map AI Native workflow onto existing governed projects before recommending writes
+- Added `core/existing-project-workflow-adapter.md`, `docs/existing-project-workflow-adapter.md`, `templates/workflow-adoption-map.md`, `checklists/workflow-adoption-map-review.md`, `prompts/workflow-adapter-agent.md`, `workflow-adoption-maps/`, `scripts/resolve-existing-workflow.mjs`, and `scripts/check-workflow-adoption-map.mjs`
+- `1.20.0` does not install target-project workflow assets, change hooks or CI, approve implementation, approve production/release, or solve doc lifecycle, work queue, or hook orchestration phases
 - Baseline Selection Precision Metrics patch `1.19.1`: adds scoreboard summary metrics with checker validation, externalizes synthetic fixture case ids to `precision-fixtures.json`, emits precision checker JSON summaries, and exposes the precision check as an explicit PR/release CI step
 - `1.19.1` does not add new packs, promote draft packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Baseline Selection Precision Calibration phase `1.19.0`: adds a machine-checkable precision scoreboard, synthetic calibration fixtures, and `scripts/check-baseline-selection-precision.mjs` so Guided Baseline Selection can track false positives, false negatives, safe actions, Platform States, and BL2 candidate wording

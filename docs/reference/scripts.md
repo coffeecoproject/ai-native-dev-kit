@@ -25,6 +25,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
 | `node scripts/cli.mjs real-adoption <project>` | Check recorded real-project read-only adoption trial evidence; does not auto-generate a report | No |
 | `node scripts/cli.mjs patch-classification <project>` | Check recorded repair-scale classification and false-positive calibration reports before non-trivial fixes | No |
+| `node scripts/cli.mjs workflow-map <project>` | Recommend how AI Native workflow should map to an existing project before writes | No |
+| `node scripts/cli.mjs workflow-map-check <project>` | Check recorded Workflow Adoption Maps | No |
 | `node scripts/cli.mjs change-boundary <project> --report <file>` | Check that actual changed files stay inside recorded task scope | No |
 | `node scripts/cli.mjs baseline-state <project> --report <file>` | Check proposed/pending/evidence-required/confirmed baseline state claims | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
@@ -96,6 +98,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-patch-classification.mjs` checks patch classification reports so non-trivial fixes are routed as safe local fixes, baseline-aligned hardcuts, structural remediation, human decisions, or do-not-patch stops before implementation. It also checks `patch-classification-false-positives/` when present. False-positive records are calibration evidence only; they do not approve implementation.
 
+`scripts/resolve-existing-workflow.mjs` prints a read-only Workflow Adoption Map recommendation for existing projects. It inventories agent rules, docs, work intake, review/evidence, CI/gates, release/rollback, hooks/automation, and existing AI Native assets, then recommends which AI Native workflow pieces to use before any target-project writes.
+
+`scripts/check-workflow-adoption-map.mjs` checks recorded Workflow Adoption Maps so old-project workflow recommendations do not become authorization to write files, change CI/hooks, overwrite existing governance, approve implementation, or approve release/production/high-risk decisions.
+
 `scripts/check-industrial-pack.mjs` validates industrial pack structure, maturity evidence, project-fact purity, draft overclaims, and the 1.16 BL2 depth contract sections. It rejects packs that do not state non-scope, scope, architecture, environment, data, permission, verification, release, evidence, bad-case, forbidden-action, and maturity boundaries.
 
 `scripts/check-industrial-baseline.mjs` checks project BL2 selection and evidence. It rejects all-pack BL2 defaults, selected risk overlays without risk-specific evidence, incompatible selected packs, missing project evidence refs, and selected draft packs without the required human/evidence path.
@@ -141,6 +147,7 @@ Common types:
 - `real-adoption-trial-report`
 - `patch-classification`
 - `patch-classification-false-positive`
+- `workflow-adoption-map`
 - `active-work-thread`
 - `guided-decision-summary`
 - `change-boundary-report`
@@ -179,6 +186,8 @@ node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/resolve-existing-workflow.mjs .
+node scripts/check-workflow-adoption-map.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
 node scripts/resolve-guided-baseline-selection.mjs .
@@ -206,6 +215,8 @@ These are primarily for maintaining this repository:
 - `scripts/check-guided-delivery-loop.mjs`
 - `scripts/check-real-adoption-trial.mjs`
 - `scripts/check-patch-classification.mjs`
+- `scripts/resolve-existing-workflow.mjs`
+- `scripts/check-workflow-adoption-map.mjs`
 - `scripts/check-change-boundary.mjs`
 - `scripts/check-baseline-state.mjs`
 - `scripts/resolve-baseline-packs.mjs`

@@ -428,6 +428,8 @@ function checkVersionMetadata() {
     "scripts/check-context-governance.mjs",
     "scripts/check-real-adoption-trial.mjs",
     "scripts/check-patch-classification.mjs",
+    "scripts/resolve-existing-workflow.mjs",
+    "scripts/check-workflow-adoption-map.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -492,6 +494,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/baseline-state.md",
     ".ai-native/docs/guided-delivery-check.md",
     ".ai-native/docs/standard-baseline-pack-registry.md",
+    ".ai-native/docs/existing-project-workflow-adapter.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -507,6 +510,7 @@ function checkVersionMetadata() {
     ".ai-native/core/first-delivery-walkthrough.md",
     ".ai-native/core/real-project-adoption-trial.md",
     ".ai-native/core/patch-classification.md",
+    ".ai-native/core/existing-project-workflow-adapter.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
     ".ai-native/core/standard-baseline-pack-registry.md",
@@ -521,6 +525,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/adoption-trial-report.md",
     ".ai-native/templates/real-adoption-trial-report.md",
     ".ai-native/templates/patch-classification-report.md",
+    ".ai-native/templates/workflow-adoption-map.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
     ".ai-native/templates/standard-baseline-selection-report.md",
@@ -533,6 +538,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/walkthrough-agent.md",
     ".ai-native/prompts/real-adoption-agent.md",
     ".ai-native/prompts/patch-classifier-agent.md",
+    ".ai-native/prompts/workflow-adapter-agent.md",
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
@@ -546,6 +552,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/first-delivery-walkthrough-review.md",
     ".ai-native/checklists/real-adoption-trial-review.md",
     ".ai-native/checklists/patch-classification-review.md",
+    ".ai-native/checklists/workflow-adoption-map-review.md",
     ".ai-native/checklists/standard-baseline-selection-review.md",
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
@@ -562,6 +569,7 @@ function checkVersionMetadata() {
     "real-adoption-trials",
     "governance-maps",
     "patch-classifications",
+    "workflow-adoption-maps",
     "change-boundary-reports",
     "baseline-state-reports",
     "adoption-recommendations",
@@ -604,6 +612,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-first-delivery-walkthrough.mjs .",
     "node scripts/check-real-adoption-trial.mjs .",
     "node scripts/check-patch-classification.mjs .",
+    "node scripts/check-workflow-adoption-map.mjs .",
+    "node scripts/cli.mjs workflow-map .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -633,8 +643,12 @@ function checkDevKitFirstPartyCi() {
     "check-first-delivery-walkthrough.mjs",
     "check-real-adoption-trial.mjs",
     "check-patch-classification.mjs",
+    "check-workflow-adoption-map.mjs",
+    "resolve-existing-workflow.mjs",
     "baseline-decision",
     "baseline-decision-check",
+    "workflow-map",
+    "workflow-map-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -662,6 +676,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-first-delivery-walkthrough.mjs .",
     "node scripts/check-real-adoption-trial.mjs .",
     "node scripts/check-patch-classification.mjs .",
+    "node scripts/check-workflow-adoption-map.mjs .",
+    "node scripts/cli.mjs workflow-map .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -689,8 +705,12 @@ function checkDevKitFirstPartyCi() {
     "check-first-delivery-walkthrough.mjs",
     "check-real-adoption-trial.mjs",
     "check-patch-classification.mjs",
+    "check-workflow-adoption-map.mjs",
+    "resolve-existing-workflow.mjs",
     "baseline-decision",
     "baseline-decision-check",
+    "workflow-map",
+    "workflow-map-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -1147,6 +1167,8 @@ function checkCliFrontDoor() {
     "node --check scripts/resolve-guided-baseline-selection.mjs",
     "node --check scripts/check-guided-baseline-selection.mjs",
     "node --check scripts/check-baseline-selection-precision.mjs",
+    "node --check scripts/resolve-existing-workflow.mjs",
+    "node --check scripts/check-workflow-adoption-map.mjs",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1181,6 +1203,8 @@ function checkCliFrontDoor() {
     "guided-delivery",
     "real-adoption",
     "patch-classification",
+    "workflow-map",
+    "workflow-map-check",
     "change-boundary",
     "baseline-state",
     "baseline-decision",
@@ -1322,6 +1346,20 @@ function checkCliFrontDoor() {
     pass("CLI patch-classification delegates to patch classification checker");
   } else {
     fail(`CLI patch-classification failed: ${patchClassification.stderr || patchClassification.stdout}`);
+  }
+
+  const workflowMap = runNode(["scripts/cli.mjs", "workflow-map", "."]);
+  if (workflowMap.status === 0 && workflowMap.stdout.includes("Workflow Adoption Map Recommendation")) {
+    pass("CLI workflow-map delegates to workflow adapter resolver");
+  } else {
+    fail(`CLI workflow-map failed: ${workflowMap.stderr || workflowMap.stdout}`);
+  }
+
+  const workflowMapCheck = runNode(["scripts/cli.mjs", "workflow-map-check", "."]);
+  if (workflowMapCheck.status === 0 && workflowMapCheck.stdout.includes("Workflow adoption map check passed")) {
+    pass("CLI workflow-map-check delegates to workflow adoption map checker");
+  } else {
+    fail(`CLI workflow-map-check failed: ${workflowMapCheck.stderr || workflowMapCheck.stdout}`);
   }
 
   const changeBoundary = runNode(["scripts/cli.mjs", "change-boundary", "."]);
@@ -3782,6 +3820,111 @@ function checkRealAdoptionAndPatchClassificationProtocol() {
   }
 }
 
+function checkExistingProjectWorkflowAdapterProtocol() {
+  const required = [
+    "core/existing-project-workflow-adapter.md",
+    "docs/existing-project-workflow-adapter.md",
+    "templates/workflow-adoption-map.md",
+    "checklists/workflow-adoption-map-review.md",
+    "prompts/workflow-adapter-agent.md",
+    "workflow-adoption-maps/.gitkeep",
+    "scripts/resolve-existing-workflow.mjs",
+    "scripts/check-workflow-adoption-map.mjs",
+    "examples/1.20-existing-project-workflow-adapter/README.md",
+    "examples/1.20-existing-project-workflow-adapter/workflow-adoption-maps/001-governed-web-workflow-map.md",
+    "test-fixtures/bad/bad-workflow-adoption-authorizes-write/workflow-adoption-maps/001-bad.md",
+    "test-fixtures/bad/bad-workflow-adoption-missing-use/workflow-adoption-maps/001-bad.md",
+    "releases/1.20.0/release-record.md",
+    "releases/1.20.0/known-limitations.md",
+    "releases/1.20.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.20 workflow adapter asset exists ${file}`);
+    else fail(`1.20 workflow adapter asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/existing-project-workflow-adapter.md"),
+    read("docs/existing-project-workflow-adapter.md"),
+    read("templates/workflow-adoption-map.md"),
+    read("scripts/resolve-existing-workflow.mjs"),
+    read("scripts/check-workflow-adoption-map.mjs"),
+    read("releases/1.20.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Existing Project Workflow Adapter",
+    "Workflow Adoption Map",
+    "READ_ONLY_MAP",
+    "DOCS_ONLY_BRIDGE",
+    "THIN_OPERATIONAL_BRIDGE",
+    "BLOCKED_NEEDS_OWNER",
+    "For existing projects, Codex must recommend a workflow adapter path before recommending file writes",
+    "Recommended AI Native Workflow Use",
+    "What Not To Touch",
+    "does not install target-project workflow assets",
+    "does not change hooks or CI",
+    "does not approve implementation",
+  ]) {
+    if (combined.includes(marker)) pass(`1.20 workflow adapter includes ${marker}`);
+    else fail(`1.20 workflow adapter missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-existing-workflow.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Workflow Adoption Map Recommendation")
+    && resolver.stdout.includes("This report authorizes target-project writes: No")) {
+    pass("1.20 workflow adapter resolver passes source repo");
+  } else {
+    fail(`1.20 workflow adapter resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-existing-workflow.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "WORKFLOW_ADOPTION_MAP_RECOMMENDATION"
+        && parsed.boundary?.authorizesTargetProjectWrites === "No"
+        && Array.isArray(parsed.recommendedAiNativeWorkflowUse)) {
+        pass("1.20 workflow adapter resolver JSON includes map and boundary");
+      } else {
+        fail(`1.20 workflow adapter resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.20 workflow adapter resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.20 workflow adapter resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-workflow-adoption-map.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Workflow adoption map check passed")) {
+    pass("1.20 workflow adoption map checker passes source repo");
+  } else {
+    fail(`1.20 workflow adoption map checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-workflow-adoption-map.mjs", "examples/1.20-existing-project-workflow-adapter"]);
+  if (example.status === 0 && example.stdout.includes("Workflow adoption map check passed")) {
+    pass("1.20 workflow adoption map example passes checker");
+  } else {
+    fail(`1.20 workflow adoption map example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["authorizes write", ["scripts/check-workflow-adoption-map.mjs", "test-fixtures/bad/bad-workflow-adoption-authorizes-write"], "authorizes target-project writes"],
+    ["missing workflow use", ["scripts/check-workflow-adoption-map.mjs", "test-fixtures/bad/bad-workflow-adoption-missing-use"], "Request / Spec / Task Card"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.20 workflow adapter rejects ${name}`);
+    } else {
+      fail(`1.20 workflow adapter must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -4130,6 +4273,8 @@ function checkPlatformAdapters() {
     "check-first-delivery-walkthrough.mjs",
     "check-real-adoption-trial.mjs",
     "check-patch-classification.mjs",
+    "check-workflow-adoption-map.mjs",
+    "resolve-existing-workflow.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
     "resolve-standard-baseline.mjs",
@@ -4188,6 +4333,8 @@ function checkScriptSyntax() {
     "scripts/check-first-delivery-walkthrough.mjs",
     "scripts/check-real-adoption-trial.mjs",
     "scripts/check-patch-classification.mjs",
+    "scripts/resolve-existing-workflow.mjs",
+    "scripts/check-workflow-adoption-map.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -4263,6 +4410,8 @@ function checkReadmePointers() {
     "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/check-change-boundary.mjs",
     "node scripts/check-baseline-state.mjs",
+    "node scripts/resolve-existing-workflow.mjs",
+    "node scripts/check-workflow-adoption-map.mjs",
     "node scripts/resolve-guided-baseline-selection.mjs",
     "node scripts/check-guided-baseline-selection.mjs",
     "node scripts/resolve-standard-baseline.mjs",
@@ -4299,6 +4448,7 @@ function checkReadmePointers() {
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
+    "docs/existing-project-workflow-adapter.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -4344,6 +4494,8 @@ function checkReadmePointers() {
     "node scripts/check-first-delivery-walkthrough.mjs",
     "node scripts/check-change-boundary.mjs",
     "node scripts/check-baseline-state.mjs",
+    "node scripts/resolve-existing-workflow.mjs",
+    "node scripts/check-workflow-adoption-map.mjs",
     "node scripts/resolve-standard-baseline.mjs",
     "node scripts/check-standard-baseline-pack.mjs",
     "node scripts/check-standard-baseline-selection.mjs",
@@ -4366,6 +4518,7 @@ function checkReadmePointers() {
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
+    "docs/existing-project-workflow-adapter.md",
     "docs/baseline-pack-system.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
@@ -4395,6 +4548,7 @@ function checkReadmePointers() {
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
+    "docs/existing-project-workflow-adapter.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -4466,6 +4620,7 @@ function checkReadmePointers() {
     "Scope Change Report",
     "First Delivery Walkthrough",
     "Adoption Trial Report",
+    "Workflow Adoption Map",
     "Guided Delivery Check",
     "Change Boundary",
     "Baseline State",
@@ -4475,6 +4630,7 @@ function checkReadmePointers() {
     "conversation-turns",
     "scope-change-reports",
     "adoption-trial-reports",
+    "workflow-adoption-maps",
     "follow-up-proposal",
     "final-report",
     "human-status-report",
@@ -6762,6 +6918,7 @@ checkSafeLaunchProtocol();
 checkConversationDriftProtocol();
 checkFirstDeliveryWalkthroughProtocol();
 checkRealAdoptionAndPatchClassificationProtocol();
+checkExistingProjectWorkflowAdapterProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

@@ -35,6 +35,7 @@ const typeMap = {
   "real-adoption-trial-report": { dir: "real-adoption-trials", template: "real-adoption-trial-report.md", defaultName: "real-adoption-trial" },
   "patch-classification": { dir: "patch-classifications", template: "patch-classification-report.md", defaultName: "patch-classification" },
   "patch-classification-false-positive": { dir: "patch-classification-false-positives", template: "patch-classification-false-positive.md", defaultName: "patch-classification-false-positive" },
+  "workflow-adoption-map": { dir: "workflow-adoption-maps", template: "workflow-adoption-map.md", defaultName: "workflow-adoption-map" },
   "active-work-thread": { dir: "active-work-threads", template: "active-work-thread.md", defaultName: "active-work-thread" },
   "guided-decision-summary": { dir: "guided-decision-summaries", template: "guided-decision-summary.md", defaultName: "guided-decision" },
   "change-boundary-report": { dir: "change-boundary-reports", template: "change-boundary-report.md", defaultName: "change-boundary" },
@@ -111,6 +112,11 @@ const aliases = {
   "patch-false-positive": "patch-classification-false-positive",
   "false-positive": "patch-classification-false-positive",
   "risk-surface-calibration": "patch-classification-false-positive",
+  "workflow-map": "workflow-adoption-map",
+  "workflow-adapter": "workflow-adoption-map",
+  "workflow-adoption": "workflow-adoption-map",
+  "adoption-map": "workflow-adoption-map",
+  "existing-workflow": "workflow-adoption-map",
   "work-thread": "active-work-thread",
   "active-thread": "active-work-thread",
   "mainline": "active-work-thread",
@@ -187,6 +193,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type adoption-trial-report --name first-slice");
   console.error("  node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-web-readonly");
   console.error("  node scripts/new-workflow-item.mjs --type patch-classification --name governed-web-repair-scale");
+  console.error("  node scripts/new-workflow-item.mjs --type workflow-adoption-map --name governed-project");
   console.error("  node scripts/new-workflow-item.mjs --type active-work-thread --name first-slice");
   console.error("  node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-model");
   console.error("  node scripts/new-workflow-item.mjs --type change-boundary-report --name task-scope");

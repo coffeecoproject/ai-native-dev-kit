@@ -59,6 +59,12 @@ jobs:
       - name: Patch classification check
         run: node scripts/check-patch-classification.mjs .
 
+      - name: Workflow adoption map check
+        run: node scripts/check-workflow-adoption-map.mjs .
+
+      - name: Workflow map smoke
+        run: node scripts/cli.mjs workflow-map .
+
       - name: Guided delivery check
         run: node scripts/check-guided-delivery-loop.mjs .
 
@@ -126,8 +132,12 @@ jobs:
           node "$tmp/project/scripts/check-first-delivery-walkthrough.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-real-adoption-trial.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-patch-classification.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-workflow-adoption-map.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-existing-workflow.mjs" "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" workflow-map "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" workflow-map-check "$tmp/project"
           node "$tmp/project/scripts/resolve-standard-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-pack.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-selection.mjs" "$tmp/project"

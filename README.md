@@ -130,8 +130,9 @@ node scripts/cli.mjs doctor ../my-project
 | 首次交付演练 | 从一句想法走完一次需求、规格、任务、验证、复查和交付边界 |
 | 真实项目只读接入 | 对已上线或强治理项目，先映射现有治理，不覆盖原流程 |
 | 补丁分类 | 修复杂问题前先判断是安全小修、结构治理、需要人决策，还是不能补丁化处理 |
+| 老项目工作流映射 | 读取已有项目后，先说明哪些 AI Native 工作流该用、哪些现有流程要保留、哪些不能动 |
 
-`real-adoption` 和 `patch-classification` 检查的是已经记录好的证据，不会自动扫描真实项目、写入桥接文件或批准实现。
+`real-adoption`、`patch-classification` 和 `workflow-map-check` 检查的是已经记录好的证据，不会自动写入桥接文件或批准实现。`workflow-map` 会只读扫描项目结构，输出工作流接入建议，不会改目标项目。
 
 ## Dev Kit 自检
 
@@ -148,6 +149,8 @@ node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/resolve-existing-workflow.mjs .
+node scripts/check-workflow-adoption-map.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
 node scripts/resolve-guided-baseline-selection.mjs .
@@ -213,6 +216,7 @@ node scripts/check-guided-adoption.mjs .
 - [Baseline State](docs/baseline-state.md)：区分基线是建议、待确认、需证据，还是已确认
 - [Guided Delivery Check](docs/guided-delivery-check.md)：检查当前主线、停车场和 D0-D4 决策边界
 - [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
+- [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)：已有项目如何先映射工作流，再决定是否接入
 - [Baseline Pack System](docs/baseline-pack-system.md)：按项目级别、平台、能力和风险选择基线包
 
 接入项目：
@@ -238,6 +242,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.20 Release Record](releases/1.20.0/release-record.md)：1.20 老项目工作流接入映射
 - [1.19.1 Release Record](releases/1.19.1/release-record.md)：1.19.1 基线选择指标校验
 - [1.19 Release Record](releases/1.19.0/release-record.md)：1.19 基线选择准确性校准
 - [1.18.1 Release Record](releases/1.18.1/release-record.md)：1.18.1 基线选择检查收口

@@ -109,6 +109,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "workflow-map": {
+    description: "Recommend how AI Native workflow should map to an existing project before writes.",
+    script: "scripts/resolve-existing-workflow.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "workflow-map-check": {
+    description: "Check recorded workflow adoption maps.",
+    script: "scripts/check-workflow-adoption-map.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "guided-delivery": {
     description: "Check Guided Decision & Delivery Loop evidence.",
     script: "scripts/check-guided-delivery-loop.mjs",
@@ -281,6 +293,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs first-delivery .");
   console.log("  node scripts/cli.mjs real-adoption .");
   console.log("  node scripts/cli.mjs patch-classification .");
+  console.log("  node scripts/cli.mjs workflow-map ../existing-project");
+  console.log("  node scripts/cli.mjs workflow-map-check .");
   console.log("  node scripts/cli.mjs guided-delivery .");
   console.log("  node scripts/cli.mjs change-boundary . --report change-boundary-reports/001-task.md");
   console.log("  node scripts/cli.mjs baseline-state . --report baseline-state-reports/001-baseline.md");
