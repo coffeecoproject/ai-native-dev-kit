@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.28.0`
+`1.29.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.29.0` adds Project Hook Policy through `hook-policy`, `hook-policy-check`, and Project Hook Policy documents.
+- `1.29.0` lets Codex define which hook classes a project allows, who approves H2/H3 hooks, and how hooks are disabled or rolled back before any future approved implementation task.
+- `1.29.0` keeps hook policy non-authorizing: it does not install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration.
 - `1.28.0` adds Document Archive Apply through `archive-apply`, `archive-apply-check`, Archive Apply Plans, and Archive Index previews.
 - `1.28.0` lets Codex turn document lifecycle archive suggestions into a controlled apply plan while keeping actual archive/move/delete/link rewrite actions blocked until explicit approval.
 - `1.28.0` keeps archive apply plans non-authorizing: they do not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, or approve cleanup completion.

@@ -92,6 +92,19 @@ node scripts/cli.mjs archive-apply-check .
 
 An Archive Apply Plan records the planned archive actions, link-check plan, archive index preview, rollback plan, and human decisions. It does not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, approve cleanup completion, or authorize archive apply by itself.
 
+## Project Hook Policy
+
+Use `.ai-native/core/hook-policy.md` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks.
+
+Run:
+
+```bash
+node scripts/cli.mjs hook-policy .
+node scripts/cli.mjs hook-policy-check .
+```
+
+A Project Hook Policy records allowed H0/H1/H2/H3 hook classes, approval owners, and rollback / disable rules. It does not install hooks, modify CI, add blocking gates, call external APIs, store tokens or secrets, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration.
+
 ## Project Onboarding
 
 Before the first non-trivial implementation, run project onboarding.

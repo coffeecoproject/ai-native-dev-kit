@@ -10,6 +10,7 @@ Explain what changed in plain language and why the change is safe to review.
 - Delivery Path:
 - Debt / Knowledge Handoff:
 - Document Archive Apply:
+- Project Hook Policy:
 - Request:
 - Preflight:
 - Spec:

@@ -64,6 +64,8 @@ Injected workflow scripts:
 - `scripts/check-work-queue.mjs`
 - `scripts/resolve-hook-orchestration.mjs`
 - `scripts/check-hook-orchestration.mjs`
+- `scripts/resolve-hook-policy.mjs`
+- `scripts/check-hook-policy.mjs`
 - `scripts/resolve-workflow-guidance.mjs`
 - `scripts/check-workflow-guidance.mjs`
 - `scripts/resolve-review-surface.mjs`
@@ -194,6 +196,19 @@ node scripts/cli.mjs hook-plan-check .
 ```
 
 `resolve-hook-orchestration.mjs` is read-only. It classifies candidate triggers as H0/H1/H2/H3. `check-hook-orchestration.mjs` rejects plans that install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, or treat hook output as human approval.
+
+## resolve-hook-policy.mjs / check-hook-policy.mjs
+
+Define project hook policy without installing hooks.
+
+```bash
+node scripts/resolve-hook-policy.mjs .
+node scripts/check-hook-policy.mjs .
+node scripts/cli.mjs hook-policy .
+node scripts/cli.mjs hook-policy-check .
+```
+
+`resolve-hook-policy.mjs` is read-only. It recommends project-level H0/H1/H2/H3 rules, approval owners, and rollback / disable requirements. `check-hook-policy.mjs` rejects hook-installation authority, CI mutation, blocking gates, external APIs, secret storage, auto-fix, missing approval owners, missing rollback policy, and release/production overclaims.
 
 ## check-baseline-selection-precision.mjs
 

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.28.0`
+Current version: `1.29.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.28.0`
 
 ## Current Release
 
-`1.28.0`
+`1.29.0`
 
 Includes:
 
+- Hook Policy Hardening phase `1.29.0`: adds `hook-policy` and `hook-policy-check` so Codex can define project-level hook rules, approval owners, and rollback / disable requirements before any hook work is proposed
+- Added `core/hook-policy.md`, `docs/hook-policy.md`, `templates/project-hook-policy.md`, `checklists/hook-policy-review.md`, `prompts/hook-policy-agent.md`, `hook-policies/`, `scripts/resolve-hook-policy.mjs`, and `scripts/check-hook-policy.mjs`
+- `1.29.0` does not install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration
 - Document Archive Apply phase `1.28.0`: adds `archive-apply` and `archive-apply-check` so Codex can convert archive suggestions into an explicit apply plan without moving, deleting, or rewriting files
 - Added `core/document-archive-apply.md`, `docs/document-archive-apply.md`, `templates/document-archive-apply-plan.md`, `templates/archive-index.md`, `checklists/document-archive-apply-review.md`, `prompts/document-archive-agent.md`, `archive-apply-plans/`, `scripts/resolve-document-archive-apply.mjs`, and `scripts/check-document-archive-apply.mjs`
 - `1.28.0` does not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, approve cleanup completion, or authorize archive apply without explicit human approval

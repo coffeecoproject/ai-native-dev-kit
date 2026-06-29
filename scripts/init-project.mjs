@@ -18,6 +18,7 @@ const requiredPullRequestTemplateMarkers = [
   "Delivery Path",
   "Debt / Knowledge Handoff",
   "Document Archive Apply",
+  "Hook Policy",
   "Project onboarding",
   "Engineering baseline",
   "Workflow Evidence",
@@ -39,6 +40,7 @@ const requiredAgentGovernanceMarkers = [
   "Delivery Path Governance",
   "Debt & Knowledge Handoff",
   "Document Archive Apply",
+  "Project Hook Policy",
   "Project Onboarding",
   "Engineering Baseline",
   "Environment Baseline",
@@ -213,6 +215,7 @@ function pullRequestTemplateGovernanceAppendix() {
     "- [ ] Delivery Path was recorded or marked not applicable when claiming local-use, self-test, internal-trial, release-review, or blocked status",
     "- [ ] Debt / Knowledge Handoff is recorded or marked not applicable when work is interrupted, paused, leaves known debt, or needs a reliable next-run handoff",
     "- [ ] Document Archive Apply Plan is linked or marked not applicable when archive suggestions are ready to become an execution plan",
+    "- [ ] Project Hook Policy is linked or marked not applicable before any hook installation, CI hook change, blocking gate, scheduled job, external reviewer hook, token use, or auto-fix hook is proposed",
     "- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed",
     "- [ ] Project onboarding is confirmed or not applicable for this change",
     "- [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state",
@@ -852,6 +855,22 @@ function agentGovernanceSectionContent() {
       "Run `node scripts/cli.mjs hook-plan .` for a read-only recommendation and `node scripts/check-hook-orchestration.mjs .` when plans exist.",
       "",
     ].join("\n")],
+    ["Project Hook Policy", [
+      "## Project Hook Policy",
+      "",
+      "Use `.ai-native/core/hook-policy.md` and `.ai-native/docs/hook-policy.md` before turning hook ideas into project policy or implementation.",
+      "",
+      "Project Hook Policy defines which H0/H1/H2/H3 hooks this project allows, who approves them, and how they are disabled or rolled back. It does not install hooks, modify CI, add blocking gates, call external APIs, store tokens, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration.",
+      "",
+      "Optional artifacts:",
+      "",
+      "```bash",
+      "node scripts/new-workflow-item.mjs --type project-hook-policy --name <project-hooks>",
+      "```",
+      "",
+      "Run `node scripts/cli.mjs hook-policy .` for a read-only policy recommendation and `node scripts/check-hook-policy.mjs .` when policies exist.",
+      "",
+    ].join("\n")],
     ["Task Execution Rules", [
       "## Task Execution Rules",
       "",
@@ -1138,6 +1157,7 @@ function fallbackCopyRules() {
       { source: "docs/document-archive-apply.md", target: ".ai-native/docs/document-archive-apply.md" },
       { source: "docs/work-queue.md", target: ".ai-native/docs/work-queue.md" },
       { source: "docs/hook-orchestration.md", target: ".ai-native/docs/hook-orchestration.md" },
+      { source: "docs/hook-policy.md", target: ".ai-native/docs/hook-policy.md" },
       { source: "docs/review-surface-governance.md", target: ".ai-native/docs/review-surface-governance.md" },
       { source: "docs/delivery-path-governance.md", target: ".ai-native/docs/delivery-path-governance.md" },
       { source: "docs/debt-knowledge-handoff.md", target: ".ai-native/docs/debt-knowledge-handoff.md" },
@@ -1154,6 +1174,7 @@ function fallbackCopyRules() {
       { source: "core/document-archive-apply.md", target: ".ai-native/core/document-archive-apply.md" },
       { source: "core/work-queue.md", target: ".ai-native/core/work-queue.md" },
       { source: "core/hook-orchestration.md", target: ".ai-native/core/hook-orchestration.md" },
+      { source: "core/hook-policy.md", target: ".ai-native/core/hook-policy.md" },
       { source: "core/review-surface-governance.md", target: ".ai-native/core/review-surface-governance.md" },
       { source: "core/delivery-path-governance.md", target: ".ai-native/core/delivery-path-governance.md" },
       { source: "core/debt-knowledge-handoff.md", target: ".ai-native/core/debt-knowledge-handoff.md" },
@@ -1168,6 +1189,7 @@ function fallbackCopyRules() {
       { source: "prompts/document-archive-agent.md", target: ".ai-native/prompts/document-archive-agent.md" },
       { source: "prompts/work-queue-agent.md", target: ".ai-native/prompts/work-queue-agent.md" },
       { source: "prompts/hook-orchestration-agent.md", target: ".ai-native/prompts/hook-orchestration-agent.md" },
+      { source: "prompts/hook-policy-agent.md", target: ".ai-native/prompts/hook-policy-agent.md" },
       { source: "prompts/review-surface-agent.md", target: ".ai-native/prompts/review-surface-agent.md" },
       { source: "prompts/delivery-path-agent.md", target: ".ai-native/prompts/delivery-path-agent.md" },
       { source: "prompts/debt-handoff-agent.md", target: ".ai-native/prompts/debt-handoff-agent.md" },
@@ -1183,6 +1205,7 @@ function fallbackCopyRules() {
       { source: "templates/archive-index.md", target: ".ai-native/templates/archive-index.md" },
       { source: "templates/work-queue-report.md", target: ".ai-native/templates/work-queue-report.md" },
       { source: "templates/hook-orchestration-plan.md", target: ".ai-native/templates/hook-orchestration-plan.md" },
+      { source: "templates/project-hook-policy.md", target: ".ai-native/templates/project-hook-policy.md" },
       { source: "templates/review-surface-card.md", target: ".ai-native/templates/review-surface-card.md" },
       { source: "templates/delivery-path-report.md", target: ".ai-native/templates/delivery-path-report.md" },
       { source: "templates/debt-knowledge-handoff-report.md", target: ".ai-native/templates/debt-knowledge-handoff-report.md" },
@@ -1190,6 +1213,7 @@ function fallbackCopyRules() {
       { source: "checklists/delivery-path-review.md", target: ".ai-native/checklists/delivery-path-review.md" },
       { source: "checklists/debt-knowledge-handoff-review.md", target: ".ai-native/checklists/debt-knowledge-handoff-review.md" },
       { source: "checklists/document-archive-apply-review.md", target: ".ai-native/checklists/document-archive-apply-review.md" },
+      { source: "checklists/hook-policy-review.md", target: ".ai-native/checklists/hook-policy-review.md" },
       { source: "scripts/check-ai-workflow.mjs", target: "scripts/check-ai-workflow.mjs" },
       { source: "scripts/baseline-project.mjs", target: "scripts/baseline-project.mjs" },
       { source: "scripts/check-product-baseline.mjs", target: "scripts/check-product-baseline.mjs" },
@@ -1224,6 +1248,8 @@ function fallbackCopyRules() {
       { source: "scripts/check-work-queue.mjs", target: "scripts/check-work-queue.mjs" },
       { source: "scripts/resolve-hook-orchestration.mjs", target: "scripts/resolve-hook-orchestration.mjs" },
       { source: "scripts/check-hook-orchestration.mjs", target: "scripts/check-hook-orchestration.mjs" },
+      { source: "scripts/resolve-hook-policy.mjs", target: "scripts/resolve-hook-policy.mjs" },
+      { source: "scripts/check-hook-policy.mjs", target: "scripts/check-hook-policy.mjs" },
       { source: "scripts/resolve-review-surface.mjs", target: "scripts/resolve-review-surface.mjs" },
       { source: "scripts/check-review-surface.mjs", target: "scripts/check-review-surface.mjs" },
       { source: "scripts/resolve-delivery-path.mjs", target: "scripts/resolve-delivery-path.mjs" },
@@ -1279,6 +1305,7 @@ function ensureWorkflowDirs(targetPath) {
     "archive-apply-plans",
     "work-queue",
     "hook-orchestration-plans",
+    "hook-policies",
     "review-surface-cards",
     "delivery-path-reports",
     "debt-handoff-reports",
@@ -1338,6 +1365,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".ai-native/docs/document-archive-apply.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/docs/hook-orchestration.md",
+      ".ai-native/docs/hook-policy.md",
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/debt-knowledge-handoff.md",
@@ -1378,6 +1406,8 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-work-queue.mjs",
       "scripts/resolve-hook-orchestration.mjs",
       "scripts/check-hook-orchestration.mjs",
+      "scripts/resolve-hook-policy.mjs",
+      "scripts/check-hook-policy.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/check-review-surface.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -1424,6 +1454,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "archive-apply-plans",
       "work-queue",
       "hook-orchestration-plans",
+      "hook-policies",
       "review-surface-cards",
       "delivery-path-reports",
       "debt-handoff-reports",
@@ -1842,12 +1873,13 @@ function printNextSteps() {
   console.log("14. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
   console.log("15. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
   console.log("16. Before turning document archive suggestions into action, run node scripts/cli.mjs archive-apply . and review the plan.");
-  console.log("17. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
-  console.log("18. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
-  console.log("19. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
-  console.log("20. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
-  console.log("21. When a task is paused, interrupted, or leaves known debt, run node scripts/cli.mjs debt-handoff . and record the handoff.");
-  console.log("22. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+  console.log("17. Before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks, run node scripts/cli.mjs hook-policy . and review the policy.");
+  console.log("18. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
+  console.log("19. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
+  console.log("20. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
+  console.log("21. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
+  console.log("22. When a task is paused, interrupted, or leaves known debt, run node scripts/cli.mjs debt-handoff . and record the handoff.");
+  console.log("23. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
 }
 
 function isIgnorableNewProjectEntry(name) {

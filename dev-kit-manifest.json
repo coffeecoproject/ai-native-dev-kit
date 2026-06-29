@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.28.0",
+  "devKitVersion": "1.29.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.28.0"
+    "phase": "1.29.0"
   },
   "groups": {
     "sourceRequired": [
@@ -69,6 +69,7 @@
       "checklists/git-boundary-review.md",
       "checklists/goal-mode-review.md",
       "checklists/guided-delivery-loop-review.md",
+      "checklists/hook-policy-review.md",
       "checklists/industrial-pack-review.md",
       "checklists/launch-readiness-review.md",
       "checklists/next-step-boundary-review.md",
@@ -117,6 +118,7 @@
       "core/goal-mode.md",
       "core/guided-baseline-selection.md",
       "core/guided-delivery-loop.md",
+      "core/hook-policy.md",
       "core/natural-language-orchestrator.md",
       "core/next-step-boundary.md",
       "core/outcome-baseline.md",
@@ -192,6 +194,7 @@
       "docs/guided-delivery-baseline-1.3-plan.md",
       "docs/guided-delivery-baseline.md",
       "docs/guided-delivery-check.md",
+      "docs/hook-policy.md",
       "docs/human-decision-summary-1.9-plan.md",
       "docs/mental-model.md",
       "docs/migrations/0.33-to-1.0.md",
@@ -330,6 +333,8 @@
       "examples/1.27-debt-knowledge-handoff/debt-handoff-reports/001-booking-handoff.md",
       "examples/1.28-document-archive-apply/README.md",
       "examples/1.28-document-archive-apply/archive-apply-plans/001-archive-plan.md",
+      "examples/1.29-hook-policy-hardening/README.md",
+      "examples/1.29-hook-policy-hardening/hook-policies/001-project-hook-policy.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -479,6 +484,7 @@
       "governance-maps/.gitkeep",
       "governance-maps/180-governed-web-readonly.md",
       "guided-decision-summaries/.gitkeep",
+      "hook-policies/.gitkeep",
       "industrial-pack-candidates/README.md",
       "industrial-pack-candidates/web-app/README.md",
       "industrial-packs/README.md",
@@ -664,6 +670,7 @@
       "prompts/environment-baseline-agent.md",
       "prompts/goal-planner-agent.md",
       "prompts/guided-delivery-check-agent.md",
+      "prompts/hook-policy-agent.md",
       "prompts/launch-readiness-agent.md",
       "prompts/patch-classifier-agent.md",
       "prompts/product-baseline-agent.md",
@@ -779,6 +786,9 @@
       "releases/1.28.0/known-limitations.md",
       "releases/1.28.0/release-record.md",
       "releases/1.28.0/self-check-report.md",
+      "releases/1.29.0/known-limitations.md",
+      "releases/1.29.0/release-record.md",
+      "releases/1.29.0/self-check-report.md",
       "releases/1.3.0/known-limitations.md",
       "releases/1.3.0/release-record.md",
       "releases/1.3.0/self-check-report.md",
@@ -902,6 +912,7 @@
       "scripts/check-guided-adoption.mjs",
       "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
+      "scripts/check-hook-policy.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
       "scripts/check-launch-readiness.mjs",
@@ -940,6 +951,7 @@
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
+      "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-review-surface.mjs",
@@ -1168,6 +1180,7 @@
       "templates/productization-trial-report.md",
       "templates/profile.md",
       "templates/project-automation-proposal.md",
+      "templates/project-hook-policy.md",
       "templates/project-onboarding.md",
       "templates/project-profile.md",
       "templates/real-adoption-trial-report.md",
@@ -1263,6 +1276,8 @@
       "test-fixtures/bad/bad-guided-baseline-too-many-questions/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-delivery-d3-executed/guided-decision-summaries/001-d3-executed.md",
       "test-fixtures/bad/bad-guided-delivery-parking-approved/active-work-threads/001-parking-approved.md",
+      "test-fixtures/bad/bad-hook-policy-installs-hook/hook-policies/001-bad.md",
+      "test-fixtures/bad/bad-hook-policy-missing-rollback/hook-policies/001-bad.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/audit/bad-audit.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/baselines/bad-baseline.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/bootstrap-kit/README.md",
@@ -1443,6 +1458,7 @@
       ".ai-native/checklists/goal-mode-review.md",
       ".ai-native/checklists/guided-delivery-loop-review.md",
       ".ai-native/checklists/hook-orchestration-review.md",
+      ".ai-native/checklists/hook-policy-review.md",
       ".ai-native/checklists/launch-readiness-review.md",
       ".ai-native/checklists/next-step-boundary-review.md",
       ".ai-native/checklists/patch-classification-review.md",
@@ -1488,6 +1504,7 @@
       ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/hook-orchestration.md",
+      ".ai-native/core/hook-policy.md",
       ".ai-native/core/natural-language-orchestrator.md",
       ".ai-native/core/next-step-boundary.md",
       ".ai-native/core/outcome-baseline.md",
@@ -1529,6 +1546,7 @@
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
       ".ai-native/docs/hook-orchestration.md",
+      ".ai-native/docs/hook-policy.md",
       ".ai-native/docs/minimal-commit-set.md",
       ".ai-native/docs/natural-language-orchestrator.md",
       ".ai-native/docs/platform-standard-baseline-packs.md",
@@ -1560,6 +1578,7 @@
       ".ai-native/prompts/goal-planner-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
+      ".ai-native/prompts/hook-policy-agent.md",
       ".ai-native/prompts/launch-readiness-agent.md",
       ".ai-native/prompts/patch-classifier-agent.md",
       ".ai-native/prompts/preflight-agent.md",
@@ -1626,6 +1645,7 @@
       ".ai-native/templates/preflight-report.md",
       ".ai-native/templates/product-baseline-review.md",
       ".ai-native/templates/project-automation-proposal.md",
+      ".ai-native/templates/project-hook-policy.md",
       ".ai-native/templates/project-onboarding.md",
       ".ai-native/templates/project-profile.md",
       ".ai-native/templates/real-adoption-trial-report.md",
@@ -1699,6 +1719,7 @@
       "gpt-review-prompts",
       "guided-decision-summaries",
       "hook-orchestration-plans",
+      "hook-policies",
       "launch-readiness",
       "learning-candidates",
       "patch-classification-false-positives",
@@ -1733,6 +1754,7 @@
       "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-hook-orchestration.mjs",
+      "scripts/check-hook-policy.mjs",
       "scripts/check-launch-readiness.mjs",
       "scripts/check-next-step-boundary.mjs",
       "scripts/check-patch-classification.mjs",
@@ -1767,6 +1789,7 @@
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
+      "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
@@ -1811,6 +1834,7 @@
       ".ai-native/checklists/goal-mode-review.md",
       ".ai-native/checklists/guided-delivery-loop-review.md",
       ".ai-native/checklists/hook-orchestration-review.md",
+      ".ai-native/checklists/hook-policy-review.md",
       ".ai-native/checklists/industrial-pack-review.md",
       ".ai-native/checklists/launch-readiness-review.md",
       ".ai-native/checklists/next-step-boundary-review.md",
@@ -1859,6 +1883,7 @@
       ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/hook-orchestration.md",
+      ".ai-native/core/hook-policy.md",
       ".ai-native/core/natural-language-orchestrator.md",
       ".ai-native/core/next-step-boundary.md",
       ".ai-native/core/outcome-baseline.md",
@@ -1900,6 +1925,7 @@
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
       ".ai-native/docs/hook-orchestration.md",
+      ".ai-native/docs/hook-policy.md",
       ".ai-native/docs/minimal-commit-set.md",
       ".ai-native/docs/natural-language-orchestrator.md",
       ".ai-native/docs/platform-standard-baseline-packs.md",
@@ -1957,6 +1983,7 @@
       ".ai-native/prompts/goal-planner-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
+      ".ai-native/prompts/hook-policy-agent.md",
       ".ai-native/prompts/launch-readiness-agent.md",
       ".ai-native/prompts/patch-classifier-agent.md",
       ".ai-native/prompts/preflight-agent.md",
@@ -2028,6 +2055,7 @@
       ".ai-native/templates/productization-trial-report.md",
       ".ai-native/templates/profile.md",
       ".ai-native/templates/project-automation-proposal.md",
+      ".ai-native/templates/project-hook-policy.md",
       ".ai-native/templates/project-onboarding.md",
       ".ai-native/templates/project-profile.md",
       ".ai-native/templates/real-adoption-trial-report.md",
@@ -2102,6 +2130,7 @@
       "gpt-review-prompts",
       "guided-decision-summaries",
       "hook-orchestration-plans",
+      "hook-policies",
       "launch-readiness",
       "learning-candidates",
       "patch-classification-false-positives",
@@ -2136,6 +2165,7 @@
       "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-hook-orchestration.mjs",
+      "scripts/check-hook-policy.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
       "scripts/check-launch-readiness.mjs",
@@ -2173,6 +2203,7 @@
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
+      "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-review-surface.mjs",
@@ -2240,6 +2271,7 @@
       "core/existing-project-workflow-adapter.md",
       "core/first-delivery-walkthrough.md",
       "core/guided-baseline-selection.md",
+      "core/hook-policy.md",
       "core/natural-language-orchestrator.md",
       "core/patch-classification.md",
       "core/real-project-adoption-trial.md",
@@ -2303,6 +2335,7 @@
       "templates/productization-trial-report.md",
       "templates/profile.md",
       "templates/project-automation-proposal.md",
+      "templates/project-hook-policy.md",
       "templates/project-onboarding.md",
       "templates/project-profile.md",
       "templates/real-adoption-trial-report.md",
@@ -2351,6 +2384,7 @@
       "prompts/goal-planner-agent.md",
       "prompts/guided-delivery-check-agent.md",
       "prompts/hook-orchestration-agent.md",
+      "prompts/hook-policy-agent.md",
       "prompts/launch-readiness-agent.md",
       "prompts/patch-classifier-agent.md",
       "prompts/product-baseline-agent.md",
@@ -2389,6 +2423,7 @@
       "checklists/goal-mode-review.md",
       "checklists/guided-delivery-loop-review.md",
       "checklists/hook-orchestration-review.md",
+      "checklists/hook-policy-review.md",
       "checklists/industrial-pack-review.md",
       "checklists/launch-readiness-review.md",
       "checklists/next-step-boundary-review.md",
@@ -2467,6 +2502,7 @@
       "gpt-review-prompts",
       "guided-decision-summaries",
       "hook-orchestration-plans",
+      "hook-policies",
       "launch-readiness",
       "learning-candidates",
       "patch-classification-false-positives",
@@ -2517,6 +2553,7 @@
       "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-hook-orchestration.mjs",
+      "scripts/check-hook-policy.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
       "scripts/check-launch-readiness.mjs",
@@ -2557,6 +2594,7 @@
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
+      "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-review-surface.mjs",
@@ -2667,6 +2705,8 @@
       "examples/1.27-debt-knowledge-handoff/debt-handoff-reports/001-booking-handoff.md",
       "examples/1.28-document-archive-apply/README.md",
       "examples/1.28-document-archive-apply/archive-apply-plans/001-archive-plan.md",
+      "examples/1.29-hook-policy-hardening/README.md",
+      "examples/1.29-hook-policy-hardening/hook-policies/001-project-hook-policy.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -2839,6 +2879,8 @@
       "test-fixtures/bad/bad-guided-delivery-parking-approved/active-work-threads/001-parking-approved.md",
       "test-fixtures/bad/bad-hook-orchestration-blocking-gate/hook-orchestration-plans/001-bad.md",
       "test-fixtures/bad/bad-hook-orchestration-installs-hook/hook-orchestration-plans/001-bad.md",
+      "test-fixtures/bad/bad-hook-policy-installs-hook/hook-policies/001-bad.md",
+      "test-fixtures/bad/bad-hook-policy-missing-rollback/hook-policies/001-bad.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/audit/bad-audit.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/baselines/bad-baseline.md",
       "test-fixtures/bad/bad-industrial-pack-missing-depth/industrial-packs/bad-runtime/bootstrap-kit/README.md",
@@ -3013,6 +3055,7 @@
       ".ai-native/checklists/git-boundary-review.md",
       ".ai-native/checklists/guided-delivery-loop-review.md",
       ".ai-native/checklists/hook-orchestration-review.md",
+      ".ai-native/checklists/hook-policy-review.md",
       ".ai-native/checklists/launch-readiness-review.md",
       ".ai-native/checklists/patch-classification-review.md",
       ".ai-native/checklists/product-baseline-review.md",
@@ -3041,6 +3084,7 @@
       ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/hook-orchestration.md",
+      ".ai-native/core/hook-policy.md",
       ".ai-native/core/natural-language-orchestrator.md",
       ".ai-native/core/outcome-baseline.md",
       ".ai-native/core/patch-classification.md",
@@ -3073,6 +3117,7 @@
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
       ".ai-native/docs/hook-orchestration.md",
+      ".ai-native/docs/hook-policy.md",
       ".ai-native/docs/minimal-commit-set.md",
       ".ai-native/docs/natural-language-orchestrator.md",
       ".ai-native/docs/platform-standard-baseline-packs.md",
@@ -3100,6 +3145,7 @@
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
+      ".ai-native/prompts/hook-policy-agent.md",
       ".ai-native/prompts/launch-readiness-agent.md",
       ".ai-native/prompts/patch-classifier-agent.md",
       ".ai-native/prompts/product-baseline-agent.md",
@@ -3136,6 +3182,7 @@
       ".ai-native/templates/patch-classification-false-positive.md",
       ".ai-native/templates/patch-classification-report.md",
       ".ai-native/templates/product-baseline-review.md",
+      ".ai-native/templates/project-hook-policy.md",
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/review-surface-card.md",
       ".ai-native/templates/scope-change-report.md",
@@ -3181,6 +3228,7 @@
       "gpt-review-prompts",
       "guided-decision-summaries",
       "hook-orchestration-plans",
+      "hook-policies",
       "launch-readiness",
       "learning-candidates",
       "patch-classification-false-positives",
@@ -3212,6 +3260,7 @@
       "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-hook-orchestration.mjs",
+      "scripts/check-hook-policy.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
       "scripts/check-launch-readiness.mjs",
@@ -3249,6 +3298,7 @@
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
+      "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-review-surface.mjs",
@@ -3285,6 +3335,7 @@
       ".ai-native/checklists/goal-mode-review.md",
       ".ai-native/checklists/guided-delivery-loop-review.md",
       ".ai-native/checklists/hook-orchestration-review.md",
+      ".ai-native/checklists/hook-policy-review.md",
       ".ai-native/checklists/industrial-pack-review.md",
       ".ai-native/checklists/launch-readiness-review.md",
       ".ai-native/checklists/next-step-boundary-review.md",
@@ -3321,6 +3372,7 @@
       ".ai-native/core/guided-baseline-selection.md",
       ".ai-native/core/guided-delivery-loop.md",
       ".ai-native/core/hook-orchestration.md",
+      ".ai-native/core/hook-policy.md",
       ".ai-native/core/natural-language-orchestrator.md",
       ".ai-native/core/next-step-boundary.md",
       ".ai-native/core/outcome-baseline.md",
@@ -3355,6 +3407,7 @@
       ".ai-native/docs/guided-delivery-baseline.md",
       ".ai-native/docs/guided-delivery-check.md",
       ".ai-native/docs/hook-orchestration.md",
+      ".ai-native/docs/hook-policy.md",
       ".ai-native/docs/minimal-commit-set.md",
       ".ai-native/docs/natural-language-orchestrator.md",
       ".ai-native/docs/product-baseline.md",
@@ -3398,6 +3451,7 @@
       ".ai-native/prompts/goal-planner-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
+      ".ai-native/prompts/hook-policy-agent.md",
       ".ai-native/prompts/launch-readiness-agent.md",
       ".ai-native/prompts/patch-classifier-agent.md",
       ".ai-native/prompts/product-baseline-agent.md",
@@ -3448,6 +3502,7 @@
       ".ai-native/templates/patch-classification-report.md",
       ".ai-native/templates/plain-review-summary.md",
       ".ai-native/templates/product-baseline-review.md",
+      ".ai-native/templates/project-hook-policy.md",
       ".ai-native/templates/project-onboarding.md",
       ".ai-native/templates/project-profile.md",
       ".ai-native/templates/real-adoption-trial-report.md",
@@ -3499,6 +3554,7 @@
       "gpt-review-prompts",
       "guided-decision-summaries",
       "hook-orchestration-plans",
+      "hook-policies",
       "launch-readiness",
       "learning-candidates",
       "patch-classification-false-positives",
@@ -3530,6 +3586,7 @@
       "scripts/check-guided-baseline-selection.mjs",
       "scripts/check-guided-delivery-loop.mjs",
       "scripts/check-hook-orchestration.mjs",
+      "scripts/check-hook-policy.mjs",
       "scripts/check-industrial-baseline.mjs",
       "scripts/check-industrial-pack.mjs",
       "scripts/check-launch-readiness.mjs",
@@ -3560,6 +3617,7 @@
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
+      "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-review-surface.mjs",
@@ -3641,6 +3699,10 @@
         "target": "hook-orchestration-plans"
       },
       {
+        "source": "hook-policies",
+        "target": "hook-policies"
+      },
+      {
         "source": "patch-classifications",
         "target": "patch-classifications"
       },
@@ -3703,6 +3765,10 @@
         "target": ".ai-native/checklists/guided-delivery-loop-review.md"
       },
       {
+        "source": "checklists/hook-policy-review.md",
+        "target": ".ai-native/checklists/hook-policy-review.md"
+      },
+      {
         "source": "checklists/patch-classification-review.md",
         "target": ".ai-native/checklists/patch-classification-review.md"
       },
@@ -3761,6 +3827,10 @@
       {
         "source": "core/hook-orchestration.md",
         "target": ".ai-native/core/hook-orchestration.md"
+      },
+      {
+        "source": "core/hook-policy.md",
+        "target": ".ai-native/core/hook-policy.md"
       },
       {
         "source": "core/natural-language-orchestrator.md",
@@ -3879,6 +3949,10 @@
         "target": ".ai-native/docs/hook-orchestration.md"
       },
       {
+        "source": "docs/hook-policy.md",
+        "target": ".ai-native/docs/hook-policy.md"
+      },
+      {
         "source": "docs/minimal-commit-set.md",
         "target": ".ai-native/docs/minimal-commit-set.md"
       },
@@ -3959,6 +4033,10 @@
         "target": ".ai-native/prompts/hook-orchestration-agent.md"
       },
       {
+        "source": "prompts/hook-policy-agent.md",
+        "target": ".ai-native/prompts/hook-policy-agent.md"
+      },
+      {
         "source": "prompts/patch-classifier-agent.md",
         "target": ".ai-native/prompts/patch-classifier-agent.md"
       },
@@ -4033,6 +4111,10 @@
       {
         "source": "templates/patch-classification-report.md",
         "target": ".ai-native/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/project-hook-policy.md",
+        "target": ".ai-native/templates/project-hook-policy.md"
       },
       {
         "source": "templates/real-adoption-trial-report.md",
@@ -4145,6 +4227,10 @@
       {
         "source": "scripts/check-hook-orchestration.mjs",
         "target": "scripts/check-hook-orchestration.mjs"
+      },
+      {
+        "source": "scripts/check-hook-policy.mjs",
+        "target": "scripts/check-hook-policy.mjs"
       },
       {
         "source": "scripts/check-industrial-baseline.mjs",
@@ -4295,6 +4381,10 @@
         "target": "scripts/resolve-hook-orchestration.mjs"
       },
       {
+        "source": "scripts/resolve-hook-policy.mjs",
+        "target": "scripts/resolve-hook-policy.mjs"
+      },
+      {
         "source": "scripts/resolve-industrial-baseline.mjs",
         "target": "scripts/resolve-industrial-baseline.mjs"
       },
@@ -4338,21 +4428,21 @@
   },
   "assets": {
     "sourceRequired": [
-      "core/hook-orchestration.md",
-      "docs/hook-orchestration.md",
-      "templates/hook-orchestration-plan.md",
-      "checklists/hook-orchestration-review.md",
-      "prompts/hook-orchestration-agent.md",
-      "hook-orchestration-plans/.gitkeep",
-      "scripts/resolve-hook-orchestration.mjs",
-      "scripts/check-hook-orchestration.mjs",
-      "examples/1.23-hook-orchestration/README.md",
-      "examples/1.23-hook-orchestration/hook-orchestration-plans/001-hook-plan.md",
-      "test-fixtures/bad/bad-hook-orchestration-installs-hook/hook-orchestration-plans/001-bad.md",
-      "test-fixtures/bad/bad-hook-orchestration-blocking-gate/hook-orchestration-plans/001-bad.md",
-      "releases/1.23.0/release-record.md",
-      "releases/1.23.0/known-limitations.md",
-      "releases/1.23.0/self-check-report.md"
+      "core/hook-policy.md",
+      "docs/hook-policy.md",
+      "templates/project-hook-policy.md",
+      "checklists/hook-policy-review.md",
+      "prompts/hook-policy-agent.md",
+      "hook-policies/.gitkeep",
+      "scripts/resolve-hook-policy.mjs",
+      "scripts/check-hook-policy.mjs",
+      "examples/1.29-hook-policy-hardening/README.md",
+      "examples/1.29-hook-policy-hardening/hook-policies/001-project-hook-policy.md",
+      "test-fixtures/bad/bad-hook-policy-installs-hook/hook-policies/001-bad.md",
+      "test-fixtures/bad/bad-hook-policy-missing-rollback/hook-policies/001-bad.md",
+      "releases/1.29.0/release-record.md",
+      "releases/1.29.0/known-limitations.md",
+      "releases/1.29.0/self-check-report.md"
     ]
   }
 }

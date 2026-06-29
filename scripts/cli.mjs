@@ -217,6 +217,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "hook-policy": {
+    description: "Recommend project hook policy without installing hooks, changing CI, or adding gates.",
+    script: "scripts/resolve-hook-policy.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "hook-policy-check": {
+    description: "Check recorded Project Hook Policies.",
+    script: "scripts/check-hook-policy.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "guided-delivery": {
     description: "Check Guided Decision & Delivery Loop evidence.",
     script: "scripts/check-guided-delivery-loop.mjs",
@@ -405,6 +417,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs work-queue-check .");
   console.log("  node scripts/cli.mjs hook-plan .");
   console.log("  node scripts/cli.mjs hook-plan-check .");
+  console.log("  node scripts/cli.mjs hook-policy .");
+  console.log("  node scripts/cli.mjs hook-policy-check .");
   console.log("  node scripts/cli.mjs guided-delivery .");
   console.log("  node scripts/cli.mjs change-boundary . --report change-boundary-reports/001-task.md");
   console.log("  node scripts/cli.mjs baseline-state . --report baseline-state-reports/001-baseline.md");

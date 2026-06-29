@@ -43,6 +43,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs work-queue-check <project>` | Check recorded Work Queue Reports and single-current-task rules | No |
 | `node scripts/cli.mjs hook-plan <project>` | Recommend hook candidates without installing hooks, changing CI, or adding gates | No |
 | `node scripts/cli.mjs hook-plan-check <project>` | Check recorded Hook Orchestration Plans | No |
+| `node scripts/cli.mjs hook-policy <project>` | Recommend project hook policy without installing hooks, changing CI, or adding gates | No |
+| `node scripts/cli.mjs hook-policy-check <project>` | Check recorded Project Hook Policies | No |
 | `node scripts/cli.mjs change-boundary <project> --report <file>` | Check that actual changed files stay inside recorded task scope | No |
 | `node scripts/cli.mjs baseline-state <project> --report <file>` | Check proposed/pending/evidence-required/confirmed baseline state claims | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
@@ -149,6 +151,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-hook-orchestration.mjs` prints a read-only Hook Orchestration recommendation. It inventories local Git hooks, CI workflows, package scripts, hook tooling, and schedule signals, then classifies candidates as H0/H1/H2/H3. It does not install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, or change target-project files.
 
 `scripts/check-hook-orchestration.mjs` checks recorded Hook Orchestration Plans so automatic hooks stay plan-first. It rejects plans that claim hooks were installed, CI was modified, blocking gates were added, external APIs were called, auto-fix was enabled, hook output became human approval, or release/production was approved.
+
+`scripts/resolve-hook-policy.mjs` prints a read-only Project Hook Policy recommendation. It inventories existing hook policies, local Git hooks, CI workflows, package scripts, hook tooling, schedules, and external automation signals, then recommends project-level H0/H1/H2/H3 rules, approval owners, and rollback requirements. It does not install hooks, modify CI, add gates, call APIs, store secrets, or enable auto-fix.
+
+`scripts/check-hook-policy.mjs` checks recorded Project Hook Policies so policy does not become implementation authority. It rejects policies that install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, treat hook output as approval, omit H0-H3 classes, omit approval owners, omit rollback/disable policy, or approve release/production.
 
 `scripts/check-industrial-pack.mjs` validates industrial pack structure, maturity evidence, project-fact purity, draft overclaims, and the 1.16 BL2 depth contract sections. It rejects packs that do not state non-scope, scope, architecture, environment, data, permission, verification, release, evidence, bad-case, forbidden-action, and maturity boundaries.
 

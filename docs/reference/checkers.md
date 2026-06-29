@@ -45,6 +45,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-work-queue.mjs` | Work Queue Report boundary, single-current-task, paused resume review, and backlog parking checks |
 | `resolve-hook-orchestration.mjs` | Read-only hook candidate inventory and H0-H3 risk recommendation |
 | `check-hook-orchestration.mjs` | Hook Orchestration Plan boundary, approval, rollback, and plan-first checks |
+| `resolve-hook-policy.mjs` | Read-only Project Hook Policy recommendation with allowed hook classes, approval owners, and rollback requirements |
+| `check-hook-policy.mjs` | Project Hook Policy boundary, H0-H3, approval owner, rollback, and non-installation checks |
 | `check-change-boundary.mjs` | Intended scope, allowed paths, forbidden paths, actual changed files, and claim boundary |
 | `check-baseline-state.mjs` | Baseline state claims for proposed, pending, evidence-required, and confirmed baselines |
 | `resolve-standard-baseline.mjs` | Read-only standard baseline recommendation with optional industrial overlays |
@@ -126,6 +128,7 @@ Product and claim checks:
 - `check-document-archive-apply.mjs` allows empty projects, but rejects Archive Apply Plans that authorize archive apply, claim files were moved/deleted/archived, claim links were fixed, omit link-check planning, omit archive-index planning, omit rollback planning, replace Document Lifecycle, change source of truth, or approve cleanup completion.
 - `check-work-queue.mjs` allows empty projects, but rejects Work Queue Reports with multiple `CURRENT` tasks, paused tasks without resume review, backlog execution approval, target-project write approval, implementation approval, scope expansion approval, release/production approval, or stale-work resume without review.
 - `check-hook-orchestration.mjs` allows empty projects, but rejects Hook Orchestration Plans that install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, change target-project files, treat hook output as human approval, skip H2/H3 approval, omit rollback/disable planning, or approve implementation/release/production.
+- `check-hook-policy.mjs` allows empty projects, but rejects Project Hook Policies that install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, treat hook output as human approval, omit H0-H3 classes, omit approval owners, omit rollback/disable policy, replace Hook Orchestration, or approve implementation/release/production.
 - `check-guided-delivery-loop.mjs` allows empty projects, but rejects parking-lot items that are approved/executable now, D3/D4 summaries that claim implementation approval, and summaries missing human choice or next safe action.
 - `check-change-boundary.mjs` allows empty projects, but rejects reports where forbidden paths changed, actual files sit outside allowed paths, forbidden change types appear, or a report claims PASS while any changed file is outside boundary.
 - `check-baseline-state.mjs` allows empty projects, but rejects no-code/new-project baselines marked `CONFIRMED` without evidence or human-confirmed source, and rejects implementation permission that claims approved writes without evidence.

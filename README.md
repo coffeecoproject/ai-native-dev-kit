@@ -59,6 +59,7 @@
 | 文档归档建议准备执行 | `node scripts/cli.mjs archive-apply ../my-project` | 先生成执行计划、链接检查、归档索引和回滚计划，不直接移动或删除文件 |
 | 任务做到一半被打断 | `node scripts/cli.mjs work-queue ../my-project` | 识别当前任务、暂停任务、停车场和恢复前检查 |
 | 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
+| 想明确项目允许哪些 hook | `node scripts/cli.mjs hook-policy ../my-project` | 定义允许范围、审批人和回滚方式，不安装 hook |
 | 不确定任务完成后应该审什么 | `node scripts/cli.mjs review-surface ../my-project` | 执行前自动选择功能、代码、数据、权限、体验、发布、债务等审查面 |
 | 不确定项目离“能给人用”还有多远 | `node scripts/cli.mjs delivery-path ../my-project` | 用白话说明当前状态、下一阶段、缺口和阻塞点 |
 | 任务暂停、被打断或留下债务 | `node scripts/cli.mjs debt-handoff ../my-project` | 记录欠什么、怎么验证、下次从哪里接，不把记录当批准 |
@@ -162,8 +163,9 @@ node scripts/cli.mjs doctor ../my-project
 | 文档归档执行计划 | 把归档建议变成可审查的执行计划、链接检查、归档索引和回滚计划；不自动执行 |
 | Work Queue / Todo | 处理任务做到一半被打断、长期任务、暂停恢复和一次只能有一个当前任务 |
 | Hook 编排 | 区分可自动只读检查和必须人工确认的 hook，不自动安装、不改 CI、不加阻断 gate |
+| Hook Policy | 定义项目允许哪些 hook、谁批准、怎么禁用和回滚，不把建议变成安装 |
 
-`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`work-queue-check` 和 `hook-plan-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`archive-apply`、`work-queue` 和 `hook-plan` 会只读扫描项目结构，输出建议，不会改目标项目。
+`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`work-queue-check`、`hook-plan-check` 和 `hook-policy-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`archive-apply`、`work-queue`、`hook-plan` 和 `hook-policy` 会只读扫描项目结构，输出建议，不会改目标项目。
 
 ## Dev Kit 自检
 
@@ -200,6 +202,8 @@ node scripts/resolve-work-queue.mjs .
 node scripts/check-work-queue.mjs .
 node scripts/resolve-hook-orchestration.mjs .
 node scripts/check-hook-orchestration.mjs .
+node scripts/resolve-hook-policy.mjs .
+node scripts/check-hook-policy.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
 node scripts/resolve-guided-baseline-selection.mjs .
@@ -278,6 +282,7 @@ node scripts/check-guided-adoption.mjs .
 - [Document Archive Apply](docs/document-archive-apply.md)：把文档归档建议变成可审查计划，默认不执行归档
 - [Work Queue](docs/work-queue.md)：任务做到一半被打断、暂停恢复和只保留一个当前任务怎么治理
 - [Hook Orchestration](docs/hook-orchestration.md)：自动触发器怎么分级、规划、确认和回滚
+- [Project Hook Policy](docs/hook-policy.md)：项目允许哪些 hook、谁审批、怎么禁用和回滚
 - [Review Surface Governance](docs/review-surface-governance.md)：执行前决定要审哪些面，执行后按面汇报结果
 - [Delivery Path Governance](docs/delivery-path-governance.md)：判断项目离“能给人使用”还有多远
 - [Debt & Knowledge Handoff](docs/debt-knowledge-handoff.md)：任务暂停、中断或留下债务时如何交接
@@ -306,6 +311,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.29 Release Record](releases/1.29.0/release-record.md)：1.29 项目 Hook Policy
 - [1.28 Release Record](releases/1.28.0/release-record.md)：1.28 文档归档执行计划
 - [1.27 Release Record](releases/1.27.0/release-record.md)：1.27 债务与知识交接
 - [1.26 Release Record](releases/1.26.0/release-record.md)：1.26 交付路径治理

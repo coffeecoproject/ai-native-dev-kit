@@ -89,6 +89,12 @@ jobs:
       - name: Hook orchestration smoke
         run: node scripts/cli.mjs hook-plan .
 
+      - name: Project hook policy check
+        run: node scripts/check-hook-policy.mjs .
+
+      - name: Project hook policy smoke
+        run: node scripts/cli.mjs hook-policy .
+
       - name: Workflow guidance check
         run: node scripts/check-workflow-guidance.mjs .
 
@@ -190,6 +196,8 @@ jobs:
           node "$tmp/project/scripts/resolve-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-hook-orchestration.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-hook-orchestration.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-hook-policy.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-hook-policy.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-workflow-guidance.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-review-surface.mjs" "$tmp/project"
@@ -218,6 +226,8 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" work-queue-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" hook-plan "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" hook-plan-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" hook-policy "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" hook-policy-check "$tmp/project"
           node "$tmp/project/scripts/resolve-standard-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-pack.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-selection.mjs" "$tmp/project"

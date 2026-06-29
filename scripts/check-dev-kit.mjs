@@ -438,6 +438,8 @@ function checkVersionMetadata() {
     "scripts/check-work-queue.mjs",
     "scripts/resolve-hook-orchestration.mjs",
     "scripts/check-hook-orchestration.mjs",
+    "scripts/resolve-hook-policy.mjs",
+    "scripts/check-hook-policy.mjs",
     "scripts/resolve-workflow-guidance.mjs",
     "scripts/check-workflow-guidance.mjs",
     "scripts/resolve-review-surface.mjs",
@@ -510,6 +512,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/document-lifecycle.md",
     ".ai-native/docs/work-queue.md",
     ".ai-native/docs/hook-orchestration.md",
+    ".ai-native/docs/hook-policy.md",
     ".ai-native/docs/natural-language-orchestrator.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
@@ -610,6 +613,7 @@ function checkVersionMetadata() {
     "doc-lifecycle-reports",
     "work-queue",
     "hook-orchestration-plans",
+    "hook-policies",
     "workflow-guidance-cards",
     "review-surface-cards",
     "change-boundary-reports",
@@ -664,6 +668,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
     "node scripts/cli.mjs hook-plan .",
+    "node scripts/check-hook-policy.mjs .",
+    "node scripts/cli.mjs hook-policy .",
     "node scripts/check-workflow-guidance.mjs .",
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
@@ -711,6 +717,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
     "resolve-hook-orchestration.mjs",
+    "check-hook-policy.mjs",
+    "resolve-hook-policy.mjs",
     "check-workflow-guidance.mjs",
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
@@ -739,6 +747,8 @@ function checkDevKitFirstPartyCi() {
     "work-queue-check",
     "hook-plan",
     "hook-plan-check",
+    "hook-policy",
+    "hook-policy-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -776,6 +786,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
     "node scripts/cli.mjs hook-plan .",
+    "node scripts/check-hook-policy.mjs .",
+    "node scripts/cli.mjs hook-policy .",
     "node scripts/check-workflow-guidance.mjs .",
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
@@ -821,6 +833,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
     "resolve-hook-orchestration.mjs",
+    "check-hook-policy.mjs",
+    "resolve-hook-policy.mjs",
     "check-workflow-guidance.mjs",
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
@@ -849,6 +863,8 @@ function checkDevKitFirstPartyCi() {
     "work-queue-check",
     "hook-plan",
     "hook-plan-check",
+    "hook-policy",
+    "hook-policy-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -1324,6 +1340,10 @@ function checkCliFrontDoor() {
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs hook-plan .",
     "node scripts/check-hook-orchestration.mjs .",
+    "node --check scripts/resolve-hook-policy.mjs",
+    "node --check scripts/check-hook-policy.mjs",
+    "node scripts/cli.mjs hook-policy .",
+    "node scripts/check-hook-policy.mjs .",
     "node --check scripts/resolve-workflow-guidance.mjs",
     "node --check scripts/check-workflow-guidance.mjs",
     "node scripts/cli.mjs guide .",
@@ -4614,6 +4634,118 @@ function checkHookOrchestrationProtocol() {
   }
 }
 
+function checkHookPolicyProtocol() {
+  const required = [
+    "core/hook-policy.md",
+    "docs/hook-policy.md",
+    "templates/project-hook-policy.md",
+    "checklists/hook-policy-review.md",
+    "prompts/hook-policy-agent.md",
+    "hook-policies/.gitkeep",
+    "scripts/resolve-hook-policy.mjs",
+    "scripts/check-hook-policy.mjs",
+    "examples/1.29-hook-policy-hardening/README.md",
+    "examples/1.29-hook-policy-hardening/hook-policies/001-project-hook-policy.md",
+    "test-fixtures/bad/bad-hook-policy-installs-hook/hook-policies/001-bad.md",
+    "test-fixtures/bad/bad-hook-policy-missing-rollback/hook-policies/001-bad.md",
+    "releases/1.29.0/release-record.md",
+    "releases/1.29.0/known-limitations.md",
+    "releases/1.29.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.29 hook policy asset exists ${file}`);
+    else fail(`1.29 hook policy asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/hook-policy.md"),
+    read("docs/hook-policy.md"),
+    read("templates/project-hook-policy.md"),
+    read("scripts/resolve-hook-policy.mjs"),
+    read("scripts/check-hook-policy.mjs"),
+    read("releases/1.29.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Project Hook Policy Governance",
+    "Project Hook Policy",
+    "Hook policy is authorization planning only",
+    "POLICY_REVIEW_REQUIRED",
+    "H0_AUTO_READ_ONLY",
+    "H1_AUTO_SUGGESTION",
+    "H2_REQUIRES_CONFIRMATION",
+    "H3_EXPLICIT_APPROVAL_REQUIRED",
+    "Approval Matrix",
+    "Rollback / Disable Policy",
+    "This policy installs hooks: No",
+    "This policy modifies CI: No",
+    "This policy adds blocking gates: No",
+    "This policy calls external APIs: No",
+    "This policy stores tokens or secrets: No",
+    "This policy enables auto-fix: No",
+    "This policy replaces Hook Orchestration: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.29 hook policy includes ${marker}`);
+    else fail(`1.29 hook policy missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-hook-policy.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Project Hook Policy")
+    && resolver.stdout.includes("Allowed Hook Classes")
+    && resolver.stdout.includes("This policy installs hooks: No")) {
+    pass("1.29 hook policy resolver passes source repo");
+  } else {
+    fail(`1.29 hook policy resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-hook-policy.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "PROJECT_HOOK_POLICY"
+        && parsed.boundaries?.installsHooks === "No"
+        && Array.isArray(parsed.allowedHookClasses)
+        && parsed.allowedHookClasses.some((item) => item.class === "H3_EXPLICIT_APPROVAL_REQUIRED")) {
+        pass("1.29 hook policy resolver JSON includes classes and boundary");
+      } else {
+        fail(`1.29 hook policy resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.29 hook policy resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.29 hook policy resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-hook-policy.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Project Hook Policy check passed")) {
+    pass("1.29 hook policy checker passes source repo");
+  } else {
+    fail(`1.29 hook policy checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-hook-policy.mjs", "examples/1.29-hook-policy-hardening"]);
+  if (example.status === 0 && example.stdout.includes("Project Hook Policy check passed")) {
+    pass("1.29 hook policy example passes checker");
+  } else {
+    fail(`1.29 hook policy example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["installs hook", ["scripts/check-hook-policy.mjs", "test-fixtures/bad/bad-hook-policy-installs-hook"], "This policy installs hooks"],
+    ["missing rollback", ["scripts/check-hook-policy.mjs", "test-fixtures/bad/bad-hook-policy-missing-rollback"], "rollback policy"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.29 hook policy rejects ${name}`);
+    } else {
+      fail(`1.29 hook policy must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkNaturalLanguageOrchestratorProtocol() {
   const required = [
     "core/natural-language-orchestrator.md",
@@ -5299,7 +5431,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -5308,7 +5440,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -5317,7 +5449,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -5608,7 +5740,9 @@ function checkReadmePointers() {
     "docs/document-archive-apply.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
+    "docs/hook-policy.md",
     "docs/baseline-pack-system.md",
+    "releases/1.29.0/release-record.md",
     "releases/1.28.0/release-record.md",
     "releases/1.26.0/release-record.md",
     "releases/1.27.0/release-record.md",
@@ -5710,7 +5844,9 @@ function checkReadmePointers() {
     "docs/document-archive-apply.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
+    "docs/hook-policy.md",
     "docs/baseline-pack-system.md",
+    "releases/1.29.0/release-record.md",
     "releases/1.28.0/release-record.md",
     "releases/1.26.0/release-record.md",
     "releases/1.25.0/release-record.md",
@@ -5749,6 +5885,7 @@ function checkReadmePointers() {
     "docs/document-lifecycle.md",
     "docs/document-archive-apply.md",
     "docs/work-queue.md",
+    "docs/hook-policy.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -8126,6 +8263,7 @@ checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
+checkHookPolicyProtocol();
 checkNaturalLanguageOrchestratorProtocol();
 checkReviewSurfaceGovernanceProtocol();
 checkDeliveryPathGovernanceProtocol();

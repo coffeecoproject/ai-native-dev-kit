@@ -61,6 +61,12 @@ Before non-trivial work, read:
 - Run `node scripts/cli.mjs archive-apply-check .` when Archive Apply Plans exist.
 - Do not treat archive apply plans as permission to delete, move/archive, rewrite links, change source of truth, replace Document Lifecycle, or approve cleanup completion.
 
+## Project Hook Policy
+
+- Run `node scripts/cli.mjs hook-policy .` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks.
+- Run `node scripts/cli.mjs hook-policy-check .` when Project Hook Policies exist.
+- Do not treat hook policy as permission to install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration.
+
 ## Project Onboarding
 
 - Before the first non-trivial implementation, run project onboarding.
@@ -118,6 +124,7 @@ Before non-trivial work, read:
 - use `node scripts/new-workflow-item.mjs --type delivery-path-report --name <slug>` when delivery state needs to be recorded
 - use `node scripts/new-workflow-item.mjs --type debt-knowledge-handoff-report --name <slug>` when paused or unfinished work needs handoff context
 - use `node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name <slug>` when archive suggestions need a controlled apply plan
+- use `node scripts/new-workflow-item.mjs --type project-hook-policy --name <slug>` when hook policy needs to be recorded
 - Use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure.
 - Use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet.
 - Use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope.
@@ -126,6 +133,7 @@ Before non-trivial work, read:
 - run `node scripts/check-delivery-path.mjs .` when Delivery Path Reports exist
 - run `node scripts/check-debt-handoff.mjs .` when Debt & Knowledge Handoff Reports exist
 - run `node scripts/check-document-archive-apply.mjs .` when Archive Apply Plans exist
+- run `node scripts/check-hook-policy.mjs .` when Project Hook Policies exist
 - Run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists.
 - Run `node scripts/check-goal-mode.mjs .` when Goal Cards exist.
 - Run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist.
