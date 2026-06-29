@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.23.0`
+`1.23.1`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.23.1` adds `npm run verify:governance` so local verification explicitly runs workflow-map, doc-lifecycle, work-queue, hook-plan, and their checkers.
+- `1.23.1` adds a plain README decision table for choosing the first command without changing project asset requirements.
 - `1.23.0` adds Hook Orchestration Governance through `hook-plan`, `hook-plan-check`, and Hook Orchestration Plans.
 - `1.23.0` keeps hooks plan-first: H0/H1 can be read-only or suggestion-only, while H2/H3 require human confirmation or explicit approval before installation, CI changes, blocking gates, API calls, auto-fix, release, or production behavior.
 - `1.22.0` adds Work Queue Governance through `work-queue`, `work-queue-check`, and Work Queue Reports.

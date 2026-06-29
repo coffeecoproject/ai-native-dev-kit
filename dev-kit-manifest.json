@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.23.0",
+  "devKitVersion": "1.23.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.23.0"
+    "phase": "1.23.1"
   },
   "groups": {
     "sourceRequired": [
@@ -1328,7 +1328,10 @@
       "test-fixtures/output-quality/README.md",
       "test-fixtures/README.md",
       "VERSION.md",
-      "workflow-adoption-maps/.gitkeep"
+      "workflow-adoption-maps/.gitkeep",
+      "releases/1.23.1/release-record.md",
+      "releases/1.23.1/known-limitations.md",
+      "releases/1.23.1/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",

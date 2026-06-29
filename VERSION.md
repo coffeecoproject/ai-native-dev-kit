@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.23.0`
+Current version: `1.23.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.23.0`
 
 ## Current Release
 
-`1.23.0`
+`1.23.1`
 
 Includes:
 
+- Governance verification and README entry patch `1.23.1`: adds `npm run verify:governance` for local workflow-map, doc-lifecycle, work-queue, and hook-plan checks, and adds a plain decision table for which command to run first
+- `1.23.1` does not add new workflow assets, execute document archive actions, update task queues, install hooks, modify CI, add blocking gates, call external APIs, or approve implementation/release/production
 - Hook Orchestration Governance phase `1.23.0`: adds plan-first hook classification for automatic read-only checks, suggestion-only plans, confirmation-required hooks, and explicit-approval high-risk hooks
 - Added `core/hook-orchestration.md`, `docs/hook-orchestration.md`, `templates/hook-orchestration-plan.md`, `checklists/hook-orchestration-review.md`, `prompts/hook-orchestration-agent.md`, `hook-orchestration-plans/`, `scripts/resolve-hook-orchestration.mjs`, and `scripts/check-hook-orchestration.mjs`
 - `1.23.0` does not install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, change target-project files, or approve implementation/release/production

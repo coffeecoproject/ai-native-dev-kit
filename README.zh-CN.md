@@ -47,6 +47,18 @@
 
 ## 最小开始方式
 
+如果只是想判断第一步该做什么，先按这个表选：
+
+| 当前情况 | 先跑什么 | 目的 |
+|---|---|---|
+| 刚拿到一个项目，不确定状态 | `node scripts/cli.mjs start ../my-project` | 先判断是新项目、老项目、强治理项目还是生产敏感项目 |
+| 要给项目选择基线 | `node scripts/cli.mjs baseline-decision ../my-project` | 用白话确认 BL0/BL1/BL2、平台和风险 |
+| 老项目怕被覆盖 | `node scripts/cli.mjs workflow-map ../my-project` | 先映射现有治理，说明该复用什么、不能动什么 |
+| 文档过期、重复或不知道谁是准的 | `node scripts/cli.mjs doc-lifecycle ../my-project` | 只读识别 source of truth、归档建议和废弃建议 |
+| 任务做到一半被打断 | `node scripts/cli.mjs work-queue ../my-project` | 识别当前任务、暂停任务、停车场和恢复前检查 |
+| 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
+| 要检查当前配置 | `node scripts/cli.mjs check ../my-project --mode core` | 跑核心治理检查 |
+
 第一步，让 Codex 只读判断项目状态：
 
 ```bash
@@ -143,6 +155,7 @@ node scripts/cli.mjs doctor ../my-project
 
 ```bash
 npm run verify
+npm run verify:governance
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
@@ -256,6 +269,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.23.1 Release Record](releases/1.23.1/release-record.md)：1.23.1 治理验证和 README 入口修整
 - [1.23 Release Record](releases/1.23.0/release-record.md)：1.23 Hook 编排治理
 - [1.22 Release Record](releases/1.22.0/release-record.md)：1.22 Work Queue / Todo 治理
 - [1.21 Release Record](releases/1.21.0/release-record.md)：1.21 文档生命周期治理

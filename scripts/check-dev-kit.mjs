@@ -1203,7 +1203,7 @@ function checkCliFrontDoor() {
       fail(`package.json missing script ${scriptName}`);
     }
   }
-  for (const scriptName of ["verify:syntax", "verify:baseline", "verify:industrial", "verify:examples", "verify:release"]) {
+  for (const scriptName of ["verify:syntax", "verify:baseline", "verify:governance", "verify:industrial", "verify:examples", "verify:release"]) {
     if (typeof pkg.scripts?.[scriptName] === "string" && pkg.scripts[scriptName].length > 0) {
       pass(`package.json script ${scriptName}`);
     } else {
@@ -1231,6 +1231,14 @@ function checkCliFrontDoor() {
     "node --check scripts/check-workflow-adoption-map.mjs",
     "node --check scripts/resolve-document-lifecycle.mjs",
     "node --check scripts/check-document-lifecycle.mjs",
+    "node scripts/cli.mjs workflow-map .",
+    "node scripts/check-workflow-adoption-map.mjs .",
+    "node scripts/cli.mjs doc-lifecycle .",
+    "node scripts/check-document-lifecycle.mjs .",
+    "node scripts/cli.mjs work-queue .",
+    "node scripts/check-work-queue.mjs .",
+    "node scripts/cli.mjs hook-plan .",
+    "node scripts/check-hook-orchestration.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -4801,6 +4809,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs standard-baseline",
     "node scripts/cli.mjs baseline-packs",
     "npm run verify",
+    "npm run verify:governance",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-claim-control.mjs",
     "node scripts/check-context-governance.mjs",
@@ -4897,6 +4906,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs standard-baseline",
     "node scripts/cli.mjs baseline-packs",
     "npm run verify",
+    "npm run verify:governance",
     "node scripts/check-product-baseline.mjs",
     "node scripts/check-context-governance.mjs",
     "node scripts/check-launch-readiness.mjs",
