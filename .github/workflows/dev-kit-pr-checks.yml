@@ -71,6 +71,12 @@ jobs:
       - name: Document lifecycle smoke
         run: node scripts/cli.mjs doc-lifecycle .
 
+      - name: Work queue check
+        run: node scripts/check-work-queue.mjs .
+
+      - name: Work queue smoke
+        run: node scripts/cli.mjs work-queue .
+
       - name: Guided delivery check
         run: node scripts/check-guided-delivery-loop.mjs .
 
@@ -142,12 +148,16 @@ jobs:
           node "$tmp/project/scripts/resolve-existing-workflow.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-document-lifecycle.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-document-lifecycle.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-work-queue.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" workflow-map "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" workflow-map-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" work-queue "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" work-queue-check "$tmp/project"
           node "$tmp/project/scripts/resolve-standard-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-pack.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-standard-baseline-selection.mjs" "$tmp/project"

@@ -29,6 +29,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs workflow-map-check <project>` | Check recorded Workflow Adoption Maps | No |
 | `node scripts/cli.mjs doc-lifecycle <project>` | Recommend document lifecycle state, source-of-truth candidates, and archive suggestions without file changes | No |
 | `node scripts/cli.mjs doc-lifecycle-check <project>` | Check recorded Document Lifecycle Reports | No |
+| `node scripts/cli.mjs work-queue <project>` | Recommend current, paused, backlog, and resume state without changing task state | No |
+| `node scripts/cli.mjs work-queue-check <project>` | Check recorded Work Queue Reports and single-current-task rules | No |
 | `node scripts/cli.mjs change-boundary <project> --report <file>` | Check that actual changed files stay inside recorded task scope | No |
 | `node scripts/cli.mjs baseline-state <project> --report <file>` | Check proposed/pending/evidence-required/confirmed baseline state claims | No |
 | `node scripts/cli.mjs init --starter <starter> --target <project>` | Initialize workflow assets | Yes |
@@ -107,6 +109,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-document-lifecycle.mjs` prints a read-only Document Lifecycle recommendation. It inventories likely source-of-truth docs, active references, stale candidates, duplicate candidates, archive suggestions, and deprecation suggestions. It does not delete, move, archive, rewrite, deprecate, or change source-of-truth files.
 
 `scripts/check-document-lifecycle.mjs` checks recorded Document Lifecycle Reports so stale/duplicate documentation cleanup does not become authorization to delete files, move files, archive files, change source of truth, change AGENTS/CI/hooks/release/legal/security/production docs, or approve cleanup work.
+
+`scripts/resolve-work-queue.mjs` prints a read-only Work Queue recommendation. It inventories Work Queue reports, task cards, active work threads, paused tasks, backlog items, resume candidates, and dirty-worktree state. It does not change task state, approve implementation, approve target-project writes, promote backlog items, or resume stale work.
+
+`scripts/check-work-queue.mjs` checks recorded Work Queue Reports so there is at most one `CURRENT` task, paused work requires resume review, backlog items are not treated as execution permission, and the report does not approve implementation, scope expansion, target-project writes, release, or production.
 
 `scripts/check-industrial-pack.mjs` validates industrial pack structure, maturity evidence, project-fact purity, draft overclaims, and the 1.16 BL2 depth contract sections. It rejects packs that do not state non-scope, scope, architecture, environment, data, permission, verification, release, evidence, bad-case, forbidden-action, and maturity boundaries.
 

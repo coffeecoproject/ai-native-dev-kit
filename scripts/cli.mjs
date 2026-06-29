@@ -133,6 +133,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "work-queue": {
+    description: "Recommend current, paused, backlog, and resume state without changing task state.",
+    script: "scripts/resolve-work-queue.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "work-queue-check": {
+    description: "Check recorded Work Queue reports and single-current-task rules.",
+    script: "scripts/check-work-queue.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "guided-delivery": {
     description: "Check Guided Decision & Delivery Loop evidence.",
     script: "scripts/check-guided-delivery-loop.mjs",
@@ -309,6 +321,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs workflow-map-check .");
   console.log("  node scripts/cli.mjs doc-lifecycle .");
   console.log("  node scripts/cli.mjs doc-lifecycle-check .");
+  console.log("  node scripts/cli.mjs work-queue .");
+  console.log("  node scripts/cli.mjs work-queue-check .");
   console.log("  node scripts/cli.mjs guided-delivery .");
   console.log("  node scripts/cli.mjs change-boundary . --report change-boundary-reports/001-task.md");
   console.log("  node scripts/cli.mjs baseline-state . --report baseline-state-reports/001-baseline.md");

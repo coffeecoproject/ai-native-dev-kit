@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.21.0",
+  "devKitVersion": "1.22.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -131,6 +131,7 @@
     "customer-handoffs",
     "decision-briefs",
     "doc-lifecycle-reports",
+    "work-queue",
     "docs/business-spec-index.md",
     "docs/engineering-baseline.md",
     "docs/environment-baseline.md",
@@ -212,6 +213,13 @@
     "standard-baseline-selections",
     "status-reports",
     "subagent-run-plans",
-    "workflow-adoption-maps"
+    "workflow-adoption-maps",
+    ".ai-native/checklists/work-queue-review.md",
+    ".ai-native/core/work-queue.md",
+    ".ai-native/docs/work-queue.md",
+    ".ai-native/prompts/work-queue-agent.md",
+    ".ai-native/templates/work-queue-report.md",
+    "scripts/resolve-work-queue.mjs",
+    "scripts/check-work-queue.mjs"
   ]
 }

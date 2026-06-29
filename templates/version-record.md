@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.21.0`
+`1.22.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.22.0` adds Work Queue Governance through `work-queue`, `work-queue-check`, and Work Queue Reports.
+- `1.22.0` enforces at most one `CURRENT` task, requires resume review for paused work, and keeps backlog items as parked work rather than execution permission.
 - `1.21.0` adds Document Lifecycle Governance through `doc-lifecycle`, `doc-lifecycle-check`, and Document Lifecycle Reports.
 - `1.21.0` defaults stale and duplicate docs to archive suggestions, not deletion, and does not move files or change source of truth.
 - `1.20.0` adds a read-only workflow adapter path for existing projects through `workflow-map`, `workflow-map-check`, and Workflow Adoption Map reports.

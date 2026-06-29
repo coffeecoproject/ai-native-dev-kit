@@ -37,6 +37,7 @@ const typeMap = {
   "patch-classification-false-positive": { dir: "patch-classification-false-positives", template: "patch-classification-false-positive.md", defaultName: "patch-classification-false-positive" },
   "workflow-adoption-map": { dir: "workflow-adoption-maps", template: "workflow-adoption-map.md", defaultName: "workflow-adoption-map" },
   "document-lifecycle-report": { dir: "doc-lifecycle-reports", template: "document-lifecycle-report.md", defaultName: "document-lifecycle" },
+  "work-queue-report": { dir: "work-queue", template: "work-queue-report.md", defaultName: "work-queue" },
   "active-work-thread": { dir: "active-work-threads", template: "active-work-thread.md", defaultName: "active-work-thread" },
   "guided-decision-summary": { dir: "guided-decision-summaries", template: "guided-decision-summary.md", defaultName: "guided-decision" },
   "change-boundary-report": { dir: "change-boundary-reports", template: "change-boundary-report.md", defaultName: "change-boundary" },
@@ -124,6 +125,12 @@ const aliases = {
   "docs-lifecycle": "document-lifecycle-report",
   "doc-cleanup": "document-lifecycle-report",
   "archive-suggestion": "document-lifecycle-report",
+  "work-queue": "work-queue-report",
+  "todo": "work-queue-report",
+  "todo-list": "work-queue-report",
+  "task-queue": "work-queue-report",
+  "pause-report": "work-queue-report",
+  "resume-plan": "work-queue-report",
   "work-thread": "active-work-thread",
   "active-thread": "active-work-thread",
   "mainline": "active-work-thread",
@@ -202,6 +209,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type patch-classification --name governed-web-repair-scale");
   console.error("  node scripts/new-workflow-item.mjs --type workflow-adoption-map --name governed-project");
   console.error("  node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs");
+  console.error("  node scripts/new-workflow-item.mjs --type work-queue-report --name current-work");
   console.error("  node scripts/new-workflow-item.mjs --type active-work-thread --name first-slice");
   console.error("  node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-model");
   console.error("  node scripts/new-workflow-item.mjs --type change-boundary-report --name task-scope");

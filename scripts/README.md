@@ -58,6 +58,8 @@ Injected workflow scripts:
 - `scripts/workflow-next.mjs`
 - `scripts/resolve-document-lifecycle.mjs`
 - `scripts/check-document-lifecycle.mjs`
+- `scripts/resolve-work-queue.mjs`
+- `scripts/check-work-queue.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -93,6 +95,19 @@ This script does not interpret natural language and does not write files. Codex 
 Default output is `--format human`: a human summary first, followed by technical state fields. Use `--format technical` for raw field-first output and `--format json` or `--json` for machine-readable output.
 
 `--enforce` exits non-zero when workflow assets are missing, versions mismatch, migration reports need approval, or onboarding is not ready.
+
+## resolve-work-queue.mjs / check-work-queue.mjs
+
+Review task state without changing it.
+
+```bash
+node scripts/resolve-work-queue.mjs .
+node scripts/check-work-queue.mjs .
+node scripts/cli.mjs work-queue .
+node scripts/cli.mjs work-queue-check .
+```
+
+`resolve-work-queue.mjs` is read-only. It reports current, paused, blocked, backlog, and resume candidates. `check-work-queue.mjs` enforces at most one `CURRENT` task and requires resume review before paused work continues.
 
 ## check-baseline-selection-precision.mjs
 

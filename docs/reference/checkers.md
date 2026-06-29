@@ -31,6 +31,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-workflow-adoption-map.mjs` | Workflow Adoption Map boundary, routing, and overclaim checks |
 | `resolve-document-lifecycle.mjs` | Read-only document lifecycle recommendation with source-of-truth and archive-suggestion mapping |
 | `check-document-lifecycle.mjs` | Document Lifecycle Report boundary, source-of-truth, archive, deprecation, and deletion-authorization checks |
+| `resolve-work-queue.mjs` | Read-only Work Queue recommendation for current, paused, backlog, and resume state |
+| `check-work-queue.mjs` | Work Queue Report boundary, single-current-task, paused resume review, and backlog parking checks |
 | `check-change-boundary.mjs` | Intended scope, allowed paths, forbidden paths, actual changed files, and claim boundary |
 | `check-baseline-state.mjs` | Baseline state claims for proposed, pending, evidence-required, and confirmed baselines |
 | `resolve-standard-baseline.mjs` | Read-only standard baseline recommendation with optional industrial overlays |
@@ -105,6 +107,7 @@ Product and claim checks:
 - False-positive records are calibration evidence only. They do not modify the original patch classification report; changing repair scale still needs a new patch classification report or an explicit human decision.
 - `check-workflow-adoption-map.mjs` allows empty projects, but rejects Workflow Adoption Maps that authorize target-project writes, omit required workflow routing, claim workflow assets were applied, change CI/hooks, overwrite existing governance, approve implementation, approve release/production, or miss high-risk no-touch boundaries.
 - `check-document-lifecycle.mjs` allows empty projects, but rejects Document Lifecycle Reports that authorize deletion, omit source-of-truth mapping, skip archive suggestions, claim files were deleted/moved/archived, change source of truth, approve cleanup work, or miss no-delete protection for source-of-truth, AGENTS, CI/hooks, release, legal, security, production, evidence, customer, or secret-bearing docs.
+- `check-work-queue.mjs` allows empty projects, but rejects Work Queue Reports with multiple `CURRENT` tasks, paused tasks without resume review, backlog execution approval, target-project write approval, implementation approval, scope expansion approval, release/production approval, or stale-work resume without review.
 - `check-guided-delivery-loop.mjs` allows empty projects, but rejects parking-lot items that are approved/executable now, D3/D4 summaries that claim implementation approval, and summaries missing human choice or next safe action.
 - `check-change-boundary.mjs` allows empty projects, but rejects reports where forbidden paths changed, actual files sit outside allowed paths, forbidden change types appear, or a report claims PASS while any changed file is outside boundary.
 - `check-baseline-state.mjs` allows empty projects, but rejects no-code/new-project baselines marked `CONFIRMED` without evidence or human-confirmed source, and rejects implementation permission that claims approved writes without evidence.

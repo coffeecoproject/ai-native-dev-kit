@@ -432,6 +432,8 @@ function checkVersionMetadata() {
     "scripts/check-workflow-adoption-map.mjs",
     "scripts/resolve-document-lifecycle.mjs",
     "scripts/check-document-lifecycle.mjs",
+    "scripts/resolve-work-queue.mjs",
+    "scripts/check-work-queue.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -498,6 +500,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/standard-baseline-pack-registry.md",
     ".ai-native/docs/existing-project-workflow-adapter.md",
     ".ai-native/docs/document-lifecycle.md",
+    ".ai-native/docs/work-queue.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -515,6 +518,7 @@ function checkVersionMetadata() {
     ".ai-native/core/patch-classification.md",
     ".ai-native/core/existing-project-workflow-adapter.md",
     ".ai-native/core/document-lifecycle.md",
+    ".ai-native/core/work-queue.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
     ".ai-native/core/standard-baseline-pack-registry.md",
@@ -531,6 +535,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/patch-classification-report.md",
     ".ai-native/templates/workflow-adoption-map.md",
     ".ai-native/templates/document-lifecycle-report.md",
+    ".ai-native/templates/work-queue-report.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
     ".ai-native/templates/standard-baseline-selection-report.md",
@@ -545,6 +550,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/patch-classifier-agent.md",
     ".ai-native/prompts/workflow-adapter-agent.md",
     ".ai-native/prompts/document-lifecycle-agent.md",
+    ".ai-native/prompts/work-queue-agent.md",
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
@@ -560,6 +566,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/patch-classification-review.md",
     ".ai-native/checklists/workflow-adoption-map-review.md",
     ".ai-native/checklists/document-lifecycle-review.md",
+    ".ai-native/checklists/work-queue-review.md",
     ".ai-native/checklists/standard-baseline-selection-review.md",
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
@@ -578,6 +585,7 @@ function checkVersionMetadata() {
     "patch-classifications",
     "workflow-adoption-maps",
     "doc-lifecycle-reports",
+    "work-queue",
     "change-boundary-reports",
     "baseline-state-reports",
     "adoption-recommendations",
@@ -624,6 +632,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs workflow-map .",
     "node scripts/check-document-lifecycle.mjs .",
     "node scripts/cli.mjs doc-lifecycle .",
+    "node scripts/check-work-queue.mjs .",
+    "node scripts/cli.mjs work-queue .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -657,12 +667,16 @@ function checkDevKitFirstPartyCi() {
     "resolve-existing-workflow.mjs",
     "check-document-lifecycle.mjs",
     "resolve-document-lifecycle.mjs",
+    "check-work-queue.mjs",
+    "resolve-work-queue.mjs",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
     "workflow-map-check",
     "doc-lifecycle",
     "doc-lifecycle-check",
+    "work-queue",
+    "work-queue-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -694,6 +708,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs workflow-map .",
     "node scripts/check-document-lifecycle.mjs .",
     "node scripts/cli.mjs doc-lifecycle .",
+    "node scripts/check-work-queue.mjs .",
+    "node scripts/cli.mjs work-queue .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -725,12 +741,16 @@ function checkDevKitFirstPartyCi() {
     "resolve-existing-workflow.mjs",
     "check-document-lifecycle.mjs",
     "resolve-document-lifecycle.mjs",
+    "check-work-queue.mjs",
+    "resolve-work-queue.mjs",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
     "workflow-map-check",
     "doc-lifecycle",
     "doc-lifecycle-check",
+    "work-queue",
+    "work-queue-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -2037,6 +2057,7 @@ function checkGuidedDecisionDeliveryLoopProtocol() {
     "evals/200-guided-decision-delivery-loop.md",
     "tasks/200-guided-decision-delivery-loop.md",
     "final-reports/200-guided-decision-delivery-loop.md",
+    "releases/1.22.0/release-record.md",
     "releases/1.10.0/release-record.md",
     "releases/1.10.0/known-limitations.md",
     "releases/1.10.0/self-check-report.md",
@@ -3951,12 +3972,15 @@ function checkDocumentLifecycleProtocol() {
   const required = [
     "core/document-lifecycle.md",
     "docs/document-lifecycle.md",
+    "docs/work-queue.md",
     "templates/document-lifecycle-report.md",
     "checklists/document-lifecycle-review.md",
     "prompts/document-lifecycle-agent.md",
     "doc-lifecycle-reports/.gitkeep",
     "scripts/resolve-document-lifecycle.mjs",
     "scripts/check-document-lifecycle.mjs",
+    "scripts/resolve-work-queue.mjs",
+    "scripts/check-work-queue.mjs",
     "examples/1.21-document-lifecycle/README.md",
     "examples/1.21-document-lifecycle/doc-lifecycle-reports/001-doc-lifecycle.md",
     "test-fixtures/bad/bad-document-lifecycle-authorizes-delete/doc-lifecycle-reports/001-bad.md",
@@ -4051,6 +4075,113 @@ function checkDocumentLifecycleProtocol() {
       pass(`1.21 document lifecycle rejects ${name}`);
     } else {
       fail(`1.21 document lifecycle must reject ${name}: ${output}`);
+    }
+  }
+}
+
+function checkWorkQueueProtocol() {
+  const required = [
+    "core/work-queue.md",
+    "docs/work-queue.md",
+    "templates/work-queue-report.md",
+    "checklists/work-queue-review.md",
+    "prompts/work-queue-agent.md",
+    "work-queue/.gitkeep",
+    "scripts/resolve-work-queue.mjs",
+    "scripts/check-work-queue.mjs",
+    "examples/1.22-work-queue/README.md",
+    "examples/1.22-work-queue/work-queue/001-work-queue.md",
+    "test-fixtures/bad/bad-work-queue-multiple-current/work-queue/001-bad.md",
+    "test-fixtures/bad/bad-work-queue-resume-without-review/work-queue/001-bad.md",
+    "releases/1.22.0/release-record.md",
+    "releases/1.22.0/known-limitations.md",
+    "releases/1.22.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.22 work queue asset exists ${file}`);
+    else fail(`1.22 work queue asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/work-queue.md"),
+    read("docs/work-queue.md"),
+    read("templates/work-queue-report.md"),
+    read("scripts/resolve-work-queue.mjs"),
+    read("scripts/check-work-queue.mjs"),
+    read("releases/1.22.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Work Queue Governance",
+    "Work Queue Report",
+    "There must be at most one `CURRENT` task",
+    "PAUSED",
+    "BACKLOG",
+    "Resume Review",
+    "Interruption Rules",
+    "This report approves implementation: No",
+    "This report approves target-project writes: No",
+    "This report approves scope expansion: No",
+    "This report approves release or production: No",
+    "This report resumes stale work without review: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.22 work queue includes ${marker}`);
+    else fail(`1.22 work queue missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-work-queue.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Work Queue Recommendation")
+    && resolver.stdout.includes("CURRENT task count")
+    && resolver.stdout.includes("This report approves implementation: No")) {
+    pass("1.22 work queue resolver passes source repo");
+  } else {
+    fail(`1.22 work queue resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-work-queue.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "WORK_QUEUE_RECOMMENDATION"
+        && parsed.boundary?.approvesImplementation === "No"
+        && Number.isFinite(parsed.currentTaskCount)
+        && Array.isArray(parsed.recommendedQueueActions)) {
+        pass("1.22 work queue resolver JSON includes task count, actions, and boundary");
+      } else {
+        fail(`1.22 work queue resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.22 work queue resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.22 work queue resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-work-queue.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Work queue check passed")) {
+    pass("1.22 work queue checker passes source repo");
+  } else {
+    fail(`1.22 work queue checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-work-queue.mjs", "examples/1.22-work-queue"]);
+  if (example.status === 0 && example.stdout.includes("Work queue check passed")) {
+    pass("1.22 work queue example passes checker");
+  } else {
+    fail(`1.22 work queue example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["multiple current", ["scripts/check-work-queue.mjs", "test-fixtures/bad/bad-work-queue-multiple-current"], "multiple CURRENT"],
+    ["resume without review", ["scripts/check-work-queue.mjs", "test-fixtures/bad/bad-work-queue-resume-without-review"], "Resume without review"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.22 work queue rejects ${name}`);
+    } else {
+      fail(`1.22 work queue must reject ${name}: ${output}`);
     }
   }
 }
@@ -4327,7 +4458,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -4407,6 +4538,8 @@ function checkPlatformAdapters() {
     "resolve-existing-workflow.mjs",
     "check-document-lifecycle.mjs",
     "resolve-document-lifecycle.mjs",
+    "check-work-queue.mjs",
+    "resolve-work-queue.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
     "resolve-standard-baseline.mjs",
@@ -4469,6 +4602,8 @@ function checkScriptSyntax() {
     "scripts/check-workflow-adoption-map.mjs",
     "scripts/resolve-document-lifecycle.mjs",
     "scripts/check-document-lifecycle.mjs",
+    "scripts/resolve-work-queue.mjs",
+    "scripts/check-work-queue.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -4548,6 +4683,8 @@ function checkReadmePointers() {
     "node scripts/check-workflow-adoption-map.mjs",
     "node scripts/resolve-document-lifecycle.mjs",
     "node scripts/check-document-lifecycle.mjs",
+    "node scripts/resolve-work-queue.mjs",
+    "node scripts/check-work-queue.mjs",
     "node scripts/resolve-guided-baseline-selection.mjs",
     "node scripts/check-guided-baseline-selection.mjs",
     "node scripts/resolve-standard-baseline.mjs",
@@ -4560,6 +4697,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs update",
     "node scripts/cli.mjs migrate",
     "node scripts/cli.mjs check",
+    "releases/1.22.0/release-record.md",
     "releases/1.10.0/release-record.md",
     "releases/1.9.0/release-record.md",
     "不要",
@@ -4586,6 +4724,7 @@ function checkReadmePointers() {
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
+    "docs/work-queue.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -4635,6 +4774,8 @@ function checkReadmePointers() {
     "node scripts/check-workflow-adoption-map.mjs",
     "node scripts/resolve-document-lifecycle.mjs",
     "node scripts/check-document-lifecycle.mjs",
+    "node scripts/resolve-work-queue.mjs",
+    "node scripts/check-work-queue.mjs",
     "node scripts/resolve-standard-baseline.mjs",
     "node scripts/check-standard-baseline-pack.mjs",
     "node scripts/check-standard-baseline-selection.mjs",
@@ -4659,6 +4800,7 @@ function checkReadmePointers() {
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
+    "docs/work-queue.md",
     "docs/baseline-pack-system.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
@@ -4690,6 +4832,7 @@ function checkReadmePointers() {
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
+    "docs/work-queue.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -4774,6 +4917,7 @@ function checkReadmePointers() {
     "adoption-trial-reports",
     "workflow-adoption-maps",
     "doc-lifecycle-reports",
+    "work-queue",
     "follow-up-proposal",
     "final-report",
     "human-status-report",
@@ -7063,6 +7207,7 @@ checkFirstDeliveryWalkthroughProtocol();
 checkRealAdoptionAndPatchClassificationProtocol();
 checkExistingProjectWorkflowAdapterProtocol();
 checkDocumentLifecycleProtocol();
+checkWorkQueueProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

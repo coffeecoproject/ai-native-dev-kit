@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.21.0`
+Current version: `1.22.0`
 
 ## Versioning Policy
 
@@ -10,13 +10,14 @@ Current version: `1.21.0`
 
 ## Current Release
 
-`1.21.0`
+`1.22.0`
 
 Includes:
 
+- Work Queue / Todo Governance phase `1.22.0`: adds a dedicated task-state layer for interrupted work, long-running work, pause/resume, backlog parking, and single-current-task enforcement
+- Added `core/work-queue.md`, `docs/work-queue.md`, `templates/work-queue-report.md`, `checklists/work-queue-review.md`, `prompts/work-queue-agent.md`, `work-queue/`, `scripts/resolve-work-queue.mjs`, and `scripts/check-work-queue.mjs`
+- `1.22.0` does not approve implementation, target-project writes, scope expansion, release/production, hook execution, document cleanup, or stale-work resume without review
 - Document Lifecycle Governance phase `1.21.0`: adds read-only `doc-lifecycle` and `doc-lifecycle-check` so Codex can identify source-of-truth docs, stale docs, duplicate docs, archive suggestions, and deprecation suggestions before cleanup
-- Added `core/document-lifecycle.md`, `docs/document-lifecycle.md`, `templates/document-lifecycle-report.md`, `checklists/document-lifecycle-review.md`, `prompts/document-lifecycle-agent.md`, `doc-lifecycle-reports/`, `scripts/resolve-document-lifecycle.mjs`, and `scripts/check-document-lifecycle.mjs`
-- `1.21.0` does not delete files, authorize deletion, move files, archive files, change source of truth, approve cleanup, approve production/release, or solve work queue or hook orchestration phases
 - Existing Project Workflow Adapter phase `1.20.0`: adds read-only `workflow-map` and `workflow-map-check` so Codex can map AI Native workflow onto existing governed projects before recommending writes
 - Added `core/existing-project-workflow-adapter.md`, `docs/existing-project-workflow-adapter.md`, `templates/workflow-adoption-map.md`, `checklists/workflow-adoption-map-review.md`, `prompts/workflow-adapter-agent.md`, `workflow-adoption-maps/`, `scripts/resolve-existing-workflow.mjs`, and `scripts/check-workflow-adoption-map.mjs`
 - `1.20.0` does not install target-project workflow assets, change hooks or CI, approve implementation, approve production/release, or solve doc lifecycle, work queue, or hook orchestration phases
