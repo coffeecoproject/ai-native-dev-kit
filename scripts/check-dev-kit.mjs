@@ -1123,6 +1123,18 @@ function checkCliFrontDoor() {
       fail(`package.json missing script ${scriptName}`);
     }
   }
+  for (const scriptName of ["verify:syntax", "verify:baseline", "verify:industrial", "verify:examples", "verify:release"]) {
+    if (typeof pkg.scripts?.[scriptName] === "string" && pkg.scripts[scriptName].length > 0) {
+      pass(`package.json script ${scriptName}`);
+    } else {
+      fail(`package.json missing script ${scriptName}`);
+    }
+  }
+
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
   for (const marker of [
     "node scripts/check-manifest.mjs",
     "node scripts/check-dev-kit.mjs",
@@ -1143,8 +1155,8 @@ function checkCliFrontDoor() {
     "node scripts/check-baseline-pack-selection.mjs .",
     "git diff --check",
   ]) {
-    if (pkg.scripts?.verify?.includes(marker)) pass(`package.json verify includes ${marker}`);
-    else fail(`package.json verify missing ${marker}`);
+    if (verifySurface.includes(marker)) pass(`package.json verify surface includes ${marker}`);
+    else fail(`package.json verify surface missing ${marker}`);
   }
 
   const help = runNode(["scripts/cli.mjs", "--help"]);
@@ -2904,6 +2916,8 @@ function checkGuidedBaselineSelectionEntryProtocol() {
     ["production direct init", "bad-guided-baseline-production-direct-init", "production-sensitive project recommends direct init/update"],
     ["BL2 no evidence gap", "bad-guided-baseline-bl2-no-evidence-gap", "BL2 candidate has no evidence gap"],
     ["dirty continues", "bad-guided-baseline-dirty-continues", "dirty worktree continues without decision"],
+    ["missing platform states", "bad-guided-baseline-missing-platform-states", "missing or empty section Platform States"],
+    ["invalid platform state", "bad-guided-baseline-invalid-platform-state", "invalid Platform States state"],
   ]) {
     const bad = runNode(["scripts/check-guided-baseline-selection.mjs", `test-fixtures/bad/${fixture}`]);
     const output = `${bad.stdout}\n${bad.stderr}`;
@@ -2923,6 +2937,11 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
     "releases/1.18.0/release-record.md",
     "releases/1.18.0/known-limitations.md",
     "releases/1.18.0/self-check-report.md",
+    "docs/guided-baseline-selection-calibration-1.18.1-plan.md",
+    "baseline-calibration-reports/scoreboard.md",
+    "releases/1.18.1/release-record.md",
+    "releases/1.18.1/known-limitations.md",
+    "releases/1.18.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.18 guided baseline calibration asset exists ${file}`);
@@ -2938,6 +2957,9 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
     read("scripts/resolve-guided-baseline-selection.mjs"),
     read("scripts/baseline-project.mjs"),
     read("releases/1.18.0/release-record.md"),
+    read("docs/guided-baseline-selection-calibration-1.18.1-plan.md"),
+    read("baseline-calibration-reports/scoreboard.md"),
+    read("releases/1.18.1/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -2949,6 +2971,9 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
     "present-inactive-or-deferred",
     "Mini Program cloud functions",
     "permission/RBAC vocabulary alone",
+    "Platform States required section",
+    "precision scoreboard",
+    "verify:baseline",
     "does not add new packs",
     "does not approve target-project writes",
   ]) {

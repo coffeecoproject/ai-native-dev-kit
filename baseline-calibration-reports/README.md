@@ -38,3 +38,9 @@ node scripts/cli.mjs baseline-packs <target>
 ```
 
 All commands are intended to be read-only for this calibration batch.
+
+## Precision Scoreboard
+
+`scoreboard.md` summarizes expected versus actual selector output for each
+sanitized read-only calibration case. It tracks false positives, false
+negatives, and fix status without claiming production validation.

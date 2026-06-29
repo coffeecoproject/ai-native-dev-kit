@@ -18,6 +18,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 ## Platform And Scope
 
 - Detected platform: web-app + internal-admin
+- Platform state summary: web-app: selected-confirmed; internal-admin: selected-confirmed; backend-api: present-needs-confirmation
 - Backend/API scope: possible; needs confirmation
 - Production sensitivity: possible
 - High-risk scope: permission, data pending confirmation
@@ -28,6 +29,17 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 - Why: Existing governance should be mapped before BL2 or any workflow asset change is considered.
 - Current selected level: none
 - BL2 status: not selected
+
+## Platform States
+
+| Profile | State | Reason |
+|---|---|---|
+| web-app | selected-confirmed | Existing governed project is a Web project. |
+| wechat-miniprogram | not-detected | Mini Program scope is not part of this card. |
+| ios-app | not-detected | iOS scope is not part of this card. |
+| android-app | not-detected | Android scope is not part of this card. |
+| backend-api | present-needs-confirmation | Backend/API scope is possible and needs mapping against existing governance. |
+| internal-admin | selected-confirmed | Internal admin scope is present in the governed project shape. |
 
 ## Recommended Standard Packs
 

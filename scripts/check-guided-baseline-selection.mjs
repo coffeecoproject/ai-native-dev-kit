@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { sectionBody } from "./lib/markdown.mjs";
+import { sectionBody, splitMarkdownRow } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["report", "json", "strict"]);
@@ -15,6 +15,41 @@ const strict = Boolean(args.strict);
 const results = [];
 let failed = false;
 let pending = false;
+
+const platformProfiles = [
+  "web-app",
+  "wechat-miniprogram",
+  "ios-app",
+  "android-app",
+  "backend-api",
+  "internal-admin",
+];
+
+const platformStateValues = new Set([
+  "selected-confirmed",
+  "selected-inferred",
+  "present-needs-confirmation",
+  "present-inactive-or-deferred",
+  "not-detected",
+]);
+
+const platformProfileAliases = {
+  "web-app": ["web-app", "web app", "web"],
+  "wechat-miniprogram": ["wechat-miniprogram", "wechat miniprogram", "mini program", "miniprogram", "小程序"],
+  "ios-app": ["ios-app", "ios app", "ios"],
+  "android-app": ["android-app", "android app", "android"],
+  "backend-api": ["backend-api", "backend api"],
+  "internal-admin": ["internal-admin", "internal admin", "web-admin", "web admin"],
+};
+
+const standardPackProfileMap = {
+  "web-runtime-standard": "web-app",
+  "miniprogram-runtime-standard": "wechat-miniprogram",
+  "ios-app-standard": "ios-app",
+  "android-app-standard": "android-app",
+  "backend-api-standard": "backend-api",
+  "internal-admin-standard": "internal-admin",
+};
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -100,6 +135,7 @@ function validateRequiredSections(content, rel) {
     "Project State",
     "Platform And Scope",
     "Recommended Baseline Level",
+    "Platform States",
     "Recommended Standard Packs",
     "Candidate Industrial Packs",
     "Not Selected",
@@ -108,8 +144,95 @@ function validateRequiredSections(content, rel) {
     "Boundary",
     "Evidence",
   ]) {
-    if (sectionBody(content, section).trim()) pass(`${rel} section ${section}`);
+    if (sectionBody(content, section, { fallback: "" }).trim()) pass(`${rel} section ${section}`);
     else fail(`${rel} missing or empty section ${section}`);
+  }
+}
+
+function parsePlatformStateRows(content) {
+  const body = sectionBody(content, "Platform States", { fallback: "" });
+  return body
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("|"))
+    .map((line) => splitMarkdownRow(line))
+    .filter((cells) => cells.length >= 3)
+    .map(([profile, state, reason]) => ({
+      profile: profile.replaceAll("`", "").trim(),
+      state: state.replaceAll("`", "").trim(),
+      reason: reason.replaceAll("`", "").trim(),
+    }))
+    .filter((row) => row.profile.toLowerCase() !== "profile" && !/^-+$/.test(row.profile));
+}
+
+function detectedProfilesFromPlatformScope(content) {
+  const body = sectionBody(content, "Platform And Scope", { fallback: "" });
+  const detectedLine = body
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => /^-\s*Detected platform:/i.test(line));
+  if (!detectedLine) return [];
+  const value = detectedLine.replace(/^-\s*Detected platform:\s*/i, "").toLowerCase();
+  if (!value || /\bunknown\b/.test(value)) return [];
+  const detected = [];
+  for (const [profile, aliases] of Object.entries(platformProfileAliases)) {
+    if (aliases.some((alias) => value.includes(alias))) detected.push(profile);
+  }
+  return unique(detected);
+}
+
+function selectedProfilesFromStandardPacks(content) {
+  const standardPacks = extractPackIds(sectionBody(content, "Recommended Standard Packs", { fallback: "" }), "standard");
+  return unique(standardPacks.map((id) => standardPackProfileMap[id]).filter(Boolean));
+}
+
+function validatePlatformStates(content, rel) {
+  const rows = parsePlatformStateRows(content);
+  const rowByProfile = new Map(rows.map((row) => [row.profile, row]));
+  const missingProfiles = platformProfiles.filter((profile) => !rowByProfile.has(profile));
+  if (missingProfiles.length === 0) {
+    pass(`${rel} Platform States lists required profiles`);
+  } else {
+    fail(`${rel} Platform States missing profile row(s): ${missingProfiles.join(", ")}`);
+  }
+
+  const unknownProfiles = rows.map((row) => row.profile).filter((profile) => !platformProfiles.includes(profile));
+  if (unknownProfiles.length === 0) {
+    pass(`${rel} Platform States has no unknown profile ids`);
+  } else {
+    fail(`${rel} Platform States unknown profile row(s): ${unique(unknownProfiles).join(", ")}`);
+  }
+
+  const invalidStates = rows
+    .filter((row) => !platformStateValues.has(row.state))
+    .map((row) => `${row.profile}:${row.state || "<empty>"}`);
+  if (invalidStates.length === 0) {
+    pass(`${rel} Platform States use allowed state values`);
+  } else {
+    fail(`${rel} invalid Platform States state value(s): ${invalidStates.join(", ")}`);
+  }
+
+  const missingReasons = rows
+    .filter((row) => !row.reason || /\b(TBD|TODO|unknown|later)\b/i.test(row.reason))
+    .map((row) => row.profile);
+  if (missingReasons.length === 0) {
+    pass(`${rel} Platform States include concrete reasons`);
+  } else {
+    fail(`${rel} Platform States missing concrete reason(s): ${missingReasons.join(", ")}`);
+  }
+
+  const expectedSelectedProfiles = unique([
+    ...detectedProfilesFromPlatformScope(content),
+    ...selectedProfilesFromStandardPacks(content),
+  ]);
+  const inactiveExpectedProfiles = expectedSelectedProfiles.filter((profile) => {
+    const row = rowByProfile.get(profile);
+    return !row || !["selected-confirmed", "selected-inferred"].includes(row.state);
+  });
+  if (inactiveExpectedProfiles.length === 0) {
+    pass(`${rel} Platform States match detected and selected profiles`);
+  } else {
+    fail(`${rel} Platform States do not mark detected/selected profile(s) active: ${inactiveExpectedProfiles.join(", ")}`);
   }
 }
 
@@ -279,6 +402,7 @@ function validateReport(file) {
   const rel = path.relative(projectRoot, file).replaceAll(path.sep, "/");
   const content = fs.readFileSync(file, "utf8");
   validateRequiredSections(content, rel);
+  validatePlatformStates(content, rel);
   validateQuestionCount(content, rel);
   validateBoundary(content, rel);
   validateOverclaims(content, rel);

@@ -18,6 +18,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 ## Platform And Scope
 
 - Detected platform: wechat-miniprogram
+- Platform state summary: wechat-miniprogram: selected-confirmed; backend-api: present-needs-confirmation
 - Backend/API scope: pending confirmation
 - Production sensitivity: not detected
 - High-risk scope: none detected
@@ -28,6 +29,17 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 - Why: A normal Mini Program should have platform and environment rules before implementation.
 - Current selected level: none
 - BL2 status: not selected
+
+## Platform States
+
+| Profile | State | Reason |
+|---|---|---|
+| web-app | not-detected | Web app scope is not part of this card. |
+| wechat-miniprogram | selected-confirmed | User intent selects WeChat Mini Program scope. |
+| ios-app | not-detected | iOS scope is not part of this card. |
+| android-app | not-detected | Android scope is not part of this card. |
+| backend-api | present-needs-confirmation | Cloud functions, backend/API, and database scope still need confirmation. |
+| internal-admin | not-detected | Internal admin scope is not confirmed. |
 
 ## Recommended Standard Packs
 

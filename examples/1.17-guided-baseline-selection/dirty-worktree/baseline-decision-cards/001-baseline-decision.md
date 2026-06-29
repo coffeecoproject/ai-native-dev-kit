@@ -18,6 +18,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 ## Platform And Scope
 
 - Detected platform: web-app
+- Platform state summary: web-app: selected-confirmed
 - Backend/API scope: not detected
 - Production sensitivity: possible
 - High-risk scope: none detected
@@ -28,6 +29,17 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 - Why: A standard baseline may be appropriate later, but current worktree state blocks write actions.
 - Current selected level: none
 - BL2 status: not selected
+
+## Platform States
+
+| Profile | State | Reason |
+|---|---|---|
+| web-app | selected-confirmed | Web project scope is explicit, but writes are blocked by dirty worktree state. |
+| wechat-miniprogram | not-detected | Mini Program scope is not part of this card. |
+| ios-app | not-detected | iOS scope is not part of this card. |
+| android-app | not-detected | Android scope is not part of this card. |
+| backend-api | not-detected | Backend/API scope is not confirmed. |
+| internal-admin | not-detected | Internal admin scope is not confirmed. |
 
 ## Recommended Standard Packs
 

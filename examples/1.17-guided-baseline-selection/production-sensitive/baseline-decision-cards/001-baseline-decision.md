@@ -18,6 +18,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 ## Platform And Scope
 
 - Detected platform: web-app + backend-api
+- Platform state summary: web-app: selected-confirmed; backend-api: selected-confirmed
 - Backend/API scope: confirmed by project signals
 - Production sensitivity: confirmed
 - High-risk scope: data, migration/irreversible data
@@ -28,6 +29,17 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 - Why: Production and data-risk signals mean BL2 may be needed, but it is not active until evidence and human decisions are recorded.
 - Current selected level: none
 - BL2 status: candidate only
+
+## Platform States
+
+| Profile | State | Reason |
+|---|---|---|
+| web-app | selected-confirmed | Production-sensitive project includes Web app scope. |
+| wechat-miniprogram | not-detected | Mini Program scope is not part of this card. |
+| ios-app | not-detected | iOS scope is not part of this card. |
+| android-app | not-detected | Android scope is not part of this card. |
+| backend-api | selected-confirmed | Backend/API scope is confirmed by project signals. |
+| internal-admin | not-detected | Internal admin scope is not confirmed. |
 
 ## Recommended Standard Packs
 

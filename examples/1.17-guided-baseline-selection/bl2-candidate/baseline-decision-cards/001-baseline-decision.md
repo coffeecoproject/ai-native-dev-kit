@@ -18,6 +18,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 ## Platform And Scope
 
 - Detected platform: web-app + internal-admin
+- Platform state summary: web-app: selected-confirmed; internal-admin: selected-confirmed; backend-api: present-needs-confirmation
 - Backend/API scope: possible; needs confirmation
 - Production sensitivity: possible
 - High-risk scope: permission, data
@@ -28,6 +29,17 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 - Why: Permission and data risk may require BL2, but this is only a candidate until evidence exists.
 - Current selected level: none
 - BL2 status: candidate only
+
+## Platform States
+
+| Profile | State | Reason |
+|---|---|---|
+| web-app | selected-confirmed | Web admin project scope is explicit. |
+| wechat-miniprogram | not-detected | Mini Program scope is not part of this card. |
+| ios-app | not-detected | iOS scope is not part of this card. |
+| android-app | not-detected | Android scope is not part of this card. |
+| backend-api | present-needs-confirmation | Backend/API scope is possible and needs human confirmation. |
+| internal-admin | selected-confirmed | Internal admin scope is explicit. |
 
 ## Recommended Standard Packs
 

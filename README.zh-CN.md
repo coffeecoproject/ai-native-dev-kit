@@ -237,6 +237,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.18.1 Release Record](releases/1.18.1/release-record.md)：1.18.1 基线选择检查收口
 - [1.18 Release Record](releases/1.18.0/release-record.md)：1.18 基线选择校准
 - [1.17.1 Release Record](releases/1.17.1/release-record.md)：1.17.1 基线决策卡校准
 - [1.17 Release Record](releases/1.17.0/release-record.md)：1.17 引导式基线决策卡入口

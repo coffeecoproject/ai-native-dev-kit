@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.18.0",
+  "devKitVersion": "1.18.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.18.0"
+    "phase": "1.18.1"
   },
   "groups": {
     "sourceRequired": [
@@ -40,6 +40,7 @@
       "baseline-calibration-reports/2026-06-28-local-production-governed-web-project.md",
       "baseline-calibration-reports/2026-06-28-summary.md",
       "baseline-calibration-reports/README.md",
+      "baseline-calibration-reports/scoreboard.md",
       "baseline-decision-cards/.gitkeep",
       "baseline-gap-reports/.gitkeep",
       "baseline-pack-selections/.gitkeep",
@@ -156,6 +157,7 @@
       "docs/governance-hardening-drift-guard-1.11-plan.md",
       "docs/governance-hardening-roadmap.md",
       "docs/guided-baseline-selection-calibration-1.18-plan.md",
+      "docs/guided-baseline-selection-calibration-1.18.1-plan.md",
       "docs/guided-baseline-selection-entry-1.17-plan.md",
       "docs/guided-baseline-selection-entry.md",
       "docs/guided-decision-delivery-loop-1.10-plan.md",
@@ -689,6 +691,9 @@
       "releases/1.18.0/known-limitations.md",
       "releases/1.18.0/release-record.md",
       "releases/1.18.0/self-check-report.md",
+      "releases/1.18.1/known-limitations.md",
+      "releases/1.18.1/release-record.md",
+      "releases/1.18.1/self-check-report.md",
       "releases/1.2.0/baseline-smoke.md",
       "releases/1.2.0/generated-project-smoke.md",
       "releases/1.2.0/known-limitations.md",
@@ -1127,6 +1132,8 @@
       "test-fixtures/bad/bad-guided-baseline-dirty-continues/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-baseline-forces-backend/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-baseline-governed-overwrite/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-invalid-platform-state/baseline-decision-cards/001-bad.md",
+      "test-fixtures/bad/bad-guided-baseline-missing-platform-states/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-baseline-production-direct-init/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-baseline-production-ready/baseline-decision-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-baseline-selects-all-packs/baseline-decision-cards/001-bad.md",

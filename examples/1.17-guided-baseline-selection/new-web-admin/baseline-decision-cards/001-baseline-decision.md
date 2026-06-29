@@ -18,6 +18,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 ## Platform And Scope
 
 - Detected platform: web-app + internal-admin
+- Platform state summary: web-app: selected-confirmed; internal-admin: selected-confirmed; backend-api: present-needs-confirmation
 - Backend/API scope: pending confirmation
 - Production sensitivity: not detected
 - High-risk scope: permission pending confirmation
@@ -28,6 +29,17 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 - Why: Web admin work needs structure, UI state, permission boundary, and environment commands before implementation.
 - Current selected level: none
 - BL2 status: not selected
+
+## Platform States
+
+| Profile | State | Reason |
+|---|---|---|
+| web-app | selected-confirmed | User intent selects Web project scope. |
+| wechat-miniprogram | not-detected | Mini Program scope is not part of this card. |
+| ios-app | not-detected | iOS scope is not part of this card. |
+| android-app | not-detected | Android scope is not part of this card. |
+| backend-api | present-needs-confirmation | Backend/API connection still needs confirmation. |
+| internal-admin | selected-confirmed | User intent selects internal admin scope. |
 
 ## Recommended Standard Packs
 
