@@ -57,6 +57,16 @@ node scripts/cli.mjs baseline .
 
 `baseline` is read-only by default and must report `Can AI write now: No`. Do not write baseline docs until a reviewed `baseline-project --write-plan` is applied.
 
+## Natural Language Workflow Guidance
+
+When the user gives a broad goal, asks what to do next, or provides a project path/repository without naming a workflow command, start with the plain guidance entry:
+
+```bash
+node scripts/resolve-workflow-guidance.mjs .
+```
+
+Use the result to decide the next safe workflow path. Do not treat guidance as permission to write files, change CI, install hooks, archive documents, change task state, implement, release, or approve high-risk domain decisions.
+
 ## Required Preflight Output
 
 Before coding, output:

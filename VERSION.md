@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.23.1`
+Current version: `1.24.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.23.1`
 
 ## Current Release
 
-`1.23.1`
+`1.24.0`
 
 Includes:
 
+- Natural Language Workflow Orchestrator phase `1.24.0`: adds `guide` and `guide-check` so Codex can read a project and return one plain Workflow Guidance Card before users need to understand internal workflow commands
+- Added `core/natural-language-orchestrator.md`, `docs/natural-language-orchestrator.md`, `templates/workflow-guidance-card.md`, `templates/user-decision-card.md`, `checklists/workflow-guidance-review.md`, `prompts/workflow-concierge-agent.md`, `workflow-guidance-cards/`, `scripts/resolve-workflow-guidance.mjs`, and `scripts/check-workflow-guidance.mjs`
+- `1.24.0` does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve security/privacy/compliance/payment/migration/data decisions
 - Governance verification and README entry patch `1.23.1`: adds `npm run verify:governance` for local workflow-map, doc-lifecycle, work-queue, and hook-plan checks, and adds a plain decision table for which command to run first
 - `1.23.1` does not add new workflow assets, execute document archive actions, update task queues, install hooks, modify CI, add blocking gates, call external APIs, or approve implementation/release/production
 - Hook Orchestration Governance phase `1.23.0`: adds plan-first hook classification for automatic read-only checks, suggestion-only plans, confirmation-required hooks, and explicit-approval high-risk hooks

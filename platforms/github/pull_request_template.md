@@ -16,6 +16,7 @@
 
 ## Workflow Evidence
 
+- [ ] Workflow Guidance was used or marked not applicable when the request started from a broad goal, project path/repository, or next-step question
 - [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed
 - [ ] Project onboarding is confirmed or not applicable for this change
 - [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state

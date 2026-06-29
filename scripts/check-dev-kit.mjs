@@ -436,6 +436,8 @@ function checkVersionMetadata() {
     "scripts/check-work-queue.mjs",
     "scripts/resolve-hook-orchestration.mjs",
     "scripts/check-hook-orchestration.mjs",
+    "scripts/resolve-workflow-guidance.mjs",
+    "scripts/check-workflow-guidance.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -504,6 +506,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/document-lifecycle.md",
     ".ai-native/docs/work-queue.md",
     ".ai-native/docs/hook-orchestration.md",
+    ".ai-native/docs/natural-language-orchestrator.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -523,6 +526,7 @@ function checkVersionMetadata() {
     ".ai-native/core/document-lifecycle.md",
     ".ai-native/core/work-queue.md",
     ".ai-native/core/hook-orchestration.md",
+    ".ai-native/core/natural-language-orchestrator.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
     ".ai-native/core/standard-baseline-pack-registry.md",
@@ -541,6 +545,8 @@ function checkVersionMetadata() {
     ".ai-native/templates/document-lifecycle-report.md",
     ".ai-native/templates/work-queue-report.md",
     ".ai-native/templates/hook-orchestration-plan.md",
+    ".ai-native/templates/workflow-guidance-card.md",
+    ".ai-native/templates/user-decision-card.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
     ".ai-native/templates/standard-baseline-selection-report.md",
@@ -557,6 +563,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/document-lifecycle-agent.md",
     ".ai-native/prompts/work-queue-agent.md",
     ".ai-native/prompts/hook-orchestration-agent.md",
+    ".ai-native/prompts/workflow-concierge-agent.md",
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
@@ -574,6 +581,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/document-lifecycle-review.md",
     ".ai-native/checklists/work-queue-review.md",
     ".ai-native/checklists/hook-orchestration-review.md",
+    ".ai-native/checklists/workflow-guidance-review.md",
     ".ai-native/checklists/standard-baseline-selection-review.md",
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
@@ -594,6 +602,7 @@ function checkVersionMetadata() {
     "doc-lifecycle-reports",
     "work-queue",
     "hook-orchestration-plans",
+    "workflow-guidance-cards",
     "change-boundary-reports",
     "baseline-state-reports",
     "adoption-recommendations",
@@ -644,6 +653,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
     "node scripts/cli.mjs hook-plan .",
+    "node scripts/check-workflow-guidance.mjs .",
+    "node scripts/cli.mjs guide .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -681,6 +692,10 @@ function checkDevKitFirstPartyCi() {
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
     "resolve-hook-orchestration.mjs",
+    "check-workflow-guidance.mjs",
+    "resolve-workflow-guidance.mjs",
+    "guide",
+    "guide-check",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -726,6 +741,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
     "node scripts/cli.mjs hook-plan .",
+    "node scripts/check-workflow-guidance.mjs .",
+    "node scripts/cli.mjs guide .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -761,6 +778,10 @@ function checkDevKitFirstPartyCi() {
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
     "resolve-hook-orchestration.mjs",
+    "check-workflow-guidance.mjs",
+    "resolve-workflow-guidance.mjs",
+    "guide",
+    "guide-check",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -784,6 +805,7 @@ function checkDevKitFirstPartyCi() {
 
   for (const marker of [
     "Human Summary",
+    "Workflow Guidance",
     "Workflow Evidence",
     "Goal Card",
     "Subagent Run Plan",
@@ -1239,6 +1261,10 @@ function checkCliFrontDoor() {
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs hook-plan .",
     "node scripts/check-hook-orchestration.mjs .",
+    "node --check scripts/resolve-workflow-guidance.mjs",
+    "node --check scripts/check-workflow-guidance.mjs",
+    "node scripts/cli.mjs guide .",
+    "node scripts/check-workflow-guidance.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1263,6 +1289,8 @@ function checkCliFrontDoor() {
     "AI Native Dev Kit CLI",
     currentVersion(),
     "Manifest: dev-kit-manifest.json",
+    "guide",
+    "guide-check",
     "start",
     "baseline",
     "product-baseline",
@@ -1311,6 +1339,22 @@ function checkCliFrontDoor() {
     pass("CLI next delegates to workflow-next");
   } else {
     fail(`CLI next failed or hid workflow-next output: ${next.stderr || next.stdout}`);
+  }
+
+  const guide = runNode(["scripts/cli.mjs", "guide", "."]);
+  if (guide.status === 0
+    && guide.stdout.includes("Workflow Guidance Card")
+    && guide.stdout.includes("This guidance writes target files: No")) {
+    pass("CLI guide delegates to workflow guidance resolver");
+  } else {
+    fail(`CLI guide failed: ${guide.stderr || guide.stdout}`);
+  }
+
+  const guideCheck = runNode(["scripts/cli.mjs", "guide-check", "."]);
+  if (guideCheck.status === 0 && guideCheck.stdout.includes("Workflow guidance check passed")) {
+    pass("CLI guide-check delegates to workflow guidance checker");
+  } else {
+    fail(`CLI guide-check failed: ${guideCheck.stderr || guideCheck.stdout}`);
   }
 
   const baselineDecision = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
@@ -4321,6 +4365,110 @@ function checkHookOrchestrationProtocol() {
   }
 }
 
+function checkNaturalLanguageOrchestratorProtocol() {
+  const required = [
+    "core/natural-language-orchestrator.md",
+    "docs/natural-language-orchestrator.md",
+    "templates/workflow-guidance-card.md",
+    "templates/user-decision-card.md",
+    "checklists/workflow-guidance-review.md",
+    "prompts/workflow-concierge-agent.md",
+    "workflow-guidance-cards/.gitkeep",
+    "scripts/resolve-workflow-guidance.mjs",
+    "scripts/check-workflow-guidance.mjs",
+    "examples/1.24-natural-language-orchestrator/README.md",
+    "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
+    "test-fixtures/bad/bad-workflow-guidance-too-many-questions/workflow-guidance-cards/001-bad.md",
+    "test-fixtures/bad/bad-workflow-guidance-overclaim/workflow-guidance-cards/001-bad.md",
+    "releases/1.24.0/release-record.md",
+    "releases/1.24.0/known-limitations.md",
+    "releases/1.24.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.24 workflow guidance asset exists ${file}`);
+    else fail(`1.24 workflow guidance asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/natural-language-orchestrator.md"),
+    read("docs/natural-language-orchestrator.md"),
+    read("templates/workflow-guidance-card.md"),
+    read("scripts/resolve-workflow-guidance.mjs"),
+    read("scripts/check-workflow-guidance.mjs"),
+    read("releases/1.24.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Natural Language Workflow Orchestrator",
+    "Workflow Guidance Card",
+    "Default output mode is `plain`",
+    "Delivery Path State",
+    "Codex may ask at most 3 questions by default",
+    "This guidance writes target files: No",
+    "This guidance modifies CI: No",
+    "This guidance installs hooks: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.24 workflow guidance includes ${marker}`);
+    else fail(`1.24 workflow guidance missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-workflow-guidance.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Workflow Guidance Card")
+    && resolver.stdout.includes("Delivery Path State")
+    && resolver.stdout.includes("This guidance writes target files: No")) {
+    pass("1.24 workflow guidance resolver prints safe card");
+  } else {
+    fail(`1.24 workflow guidance resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-workflow-guidance.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "WORKFLOW_GUIDANCE_CARD"
+        && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.deliveryPathState?.current
+        && Array.isArray(parsed.questionsForHuman)) {
+        pass("1.24 workflow guidance resolver JSON includes boundaries, state, and questions");
+      } else {
+        fail(`1.24 workflow guidance resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.24 workflow guidance resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.24 workflow guidance resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-workflow-guidance.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Workflow guidance check passed")) {
+    pass("1.24 workflow guidance checker passes source repo");
+  } else {
+    fail(`1.24 workflow guidance checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-workflow-guidance.mjs", "examples/1.24-natural-language-orchestrator"]);
+  if (example.status === 0 && example.stdout.includes("Workflow guidance check passed")) {
+    pass("1.24 workflow guidance example passes checker");
+  } else {
+    fail(`1.24 workflow guidance example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["too many questions", ["scripts/check-workflow-guidance.mjs", "test-fixtures/bad/bad-workflow-guidance-too-many-questions"], "too many questions"],
+    ["overclaim", ["scripts/check-workflow-guidance.mjs", "test-fixtures/bad/bad-workflow-guidance-overclaim"], "forbidden workflow guidance claim"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.24 workflow guidance rejects ${name}`);
+    } else {
+      fail(`1.24 workflow guidance must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -4602,7 +4750,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -4611,7 +4759,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -4641,7 +4789,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state", "baseline pack"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state", "baseline pack", "workflow guidance"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -4677,6 +4825,8 @@ function checkPlatformAdapters() {
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
     "resolve-hook-orchestration.mjs",
+    "check-workflow-guidance.mjs",
+    "resolve-workflow-guidance.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
     "resolve-standard-baseline.mjs",
@@ -4743,6 +4893,8 @@ function checkScriptSyntax() {
     "scripts/check-work-queue.mjs",
     "scripts/resolve-hook-orchestration.mjs",
     "scripts/check-hook-orchestration.mjs",
+    "scripts/resolve-workflow-guidance.mjs",
+    "scripts/check-workflow-guidance.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -4803,6 +4955,8 @@ function checkReadmePointers() {
     "O0 + BL0",
     "O1 + selected profiles + BL1",
     "O2 + selected profiles + BL2",
+    "node scripts/cli.mjs guide",
+    "node scripts/check-workflow-guidance.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs baseline-decision",
@@ -4845,6 +4999,7 @@ function checkReadmePointers() {
     "releases/1.9.0/release-record.md",
     "不要",
     "docs/operator-manual.md",
+    "docs/natural-language-orchestrator.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -4870,6 +5025,7 @@ function checkReadmePointers() {
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
+    "releases/1.24.0/release-record.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
@@ -4901,6 +5057,8 @@ function checkReadmePointers() {
   for (const pointer of [
     "最小开始方式",
     "Codex 一句话入口",
+    "node scripts/cli.mjs guide",
+    "node scripts/check-workflow-guidance.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs standard-baseline",
@@ -4930,6 +5088,7 @@ function checkReadmePointers() {
     "node scripts/check-baseline-pack-selection.mjs",
     "重要边界",
     "docs/operator-manual.md",
+    "docs/natural-language-orchestrator.md",
     "docs/first-hour.md",
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
@@ -4958,6 +5117,7 @@ function checkReadmePointers() {
 
   const requiredDocs = [
     "docs/operator-manual.md",
+    "docs/natural-language-orchestrator.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -7357,6 +7517,7 @@ checkExistingProjectWorkflowAdapterProtocol();
 checkDocumentLifecycleProtocol();
 checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
+checkNaturalLanguageOrchestratorProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

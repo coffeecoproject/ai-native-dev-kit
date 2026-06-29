@@ -6,6 +6,7 @@ Explain what changed in plain language and why the change is safe to review.
 
 ## Workflow Evidence
 
+- Workflow Guidance:
 - Request:
 - Preflight:
 - Spec:

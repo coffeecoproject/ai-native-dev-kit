@@ -62,6 +62,8 @@ Injected workflow scripts:
 - `scripts/check-work-queue.mjs`
 - `scripts/resolve-hook-orchestration.mjs`
 - `scripts/check-hook-orchestration.mjs`
+- `scripts/resolve-workflow-guidance.mjs`
+- `scripts/check-workflow-guidance.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -97,6 +99,19 @@ This script does not interpret natural language and does not write files. Codex 
 Default output is `--format human`: a human summary first, followed by technical state fields. Use `--format technical` for raw field-first output and `--format json` or `--json` for machine-readable output.
 
 `--enforce` exits non-zero when workflow assets are missing, versions mismatch, migration reports need approval, or onboarding is not ready.
+
+## resolve-workflow-guidance.mjs / check-workflow-guidance.mjs
+
+Return one plain-language next-step card from a natural-language project entry.
+
+```bash
+node scripts/resolve-workflow-guidance.mjs .
+node scripts/check-workflow-guidance.mjs .
+node scripts/cli.mjs guide .
+node scripts/cli.mjs guide-check .
+```
+
+`resolve-workflow-guidance.mjs` is read-only. It reports project state, delivery path state, recommended next step, distance to useful use, limited questions for the human, internal routing, and no-write/no-CI/no-hook/no-release boundaries. `check-workflow-guidance.mjs` rejects overclaims, too many questions, and internal workflow jargon in plain mode.
 
 ## resolve-work-queue.mjs / check-work-queue.mjs
 

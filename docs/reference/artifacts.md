@@ -28,6 +28,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 
 | Directory | Purpose |
 |---|---|
+| `workflow-guidance-cards/` | Plain next-step guidance cards from the natural-language front door |
 | `adoption-recommendations/` | Saved first-hour adoption recommendation reports |
 | `baseline-recommendations/` | Saved engineering/environment baseline recommendation reports |
 | `baseline-gap-reports/` | Durable baseline gap follow-up reports when needed |
@@ -125,6 +126,8 @@ Standard Baseline Pack Registry lives under `.ai-native/core/` in generated proj
 
 Guided Baseline Selection lives under `.ai-native/core/` in generated projects. It turns baseline choice into a Baseline Decision Card so the user confirms project state, risk, BL level, and write permission without needing to understand internal resolver names.
 
+Natural Language Workflow Orchestrator lives under `.ai-native/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -140,6 +143,7 @@ Use `docs/artifact-decision-tree.md` when unsure.
 Short rule:
 
 - need to define work: request, preflight, spec, eval, task
+- need to decide which workflow path to use: workflow guidance card
 - need to review work: review packet and review loop report
 - need a human decision: decision brief
 - need to suggest future work: follow-up proposal

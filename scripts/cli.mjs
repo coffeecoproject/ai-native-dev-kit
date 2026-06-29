@@ -13,6 +13,18 @@ const packageJson = readJsonIfExists(path.join(kitRoot, "package.json"));
 const version = manifest?.devKitVersion || packageJson?.version || readVersionFile();
 
 const commandRegistry = {
+  guide: {
+    description: "Read a project and return one plain-language workflow guidance card.",
+    script: "scripts/resolve-workflow-guidance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "guide-check": {
+    description: "Check recorded workflow guidance cards.",
+    script: "scripts/check-workflow-guidance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",
@@ -314,6 +326,8 @@ function printHelp() {
   }
   console.log("");
   console.log("Examples:");
+  console.log("  node scripts/cli.mjs guide ../my-project");
+  console.log("  node scripts/cli.mjs guide-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs baseline-decision ../my-project");

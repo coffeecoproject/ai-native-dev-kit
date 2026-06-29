@@ -51,6 +51,7 @@
 
 | 当前情况 | 先跑什么 | 目的 |
 |---|---|---|
+| 不确定该用哪条流程 | `node scripts/cli.mjs guide ../my-project` | 先用白话给出项目状态、下一步、风险和需要你确认的少数问题 |
 | 刚拿到一个项目，不确定状态 | `node scripts/cli.mjs start ../my-project` | 先判断是新项目、老项目、强治理项目还是生产敏感项目 |
 | 要给项目选择基线 | `node scripts/cli.mjs baseline-decision ../my-project` | 用白话确认 BL0/BL1/BL2、平台和风险 |
 | 老项目怕被覆盖 | `node scripts/cli.mjs workflow-map ../my-project` | 先映射现有治理，说明该复用什么、不能动什么 |
@@ -59,25 +60,31 @@
 | 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
 | 要检查当前配置 | `node scripts/cli.mjs check ../my-project --mode core` | 跑核心治理检查 |
 
-第一步，让 Codex 只读判断项目状态：
+第一步，让 Codex 用白话判断下一步，不要求你先懂内部命令：
+
+```bash
+node scripts/cli.mjs guide ../my-project
+```
+
+第二步，如果你想看更具体的接入判断，让 Codex 只读判断项目状态：
 
 ```bash
 node scripts/cli.mjs start ../my-project
 ```
 
-第二步，让 Codex 判断需要哪些工程基线和环境基线：
+第三步，让 Codex 判断需要哪些工程基线和环境基线：
 
 ```bash
 node scripts/cli.mjs baseline ../my-project
 ```
 
-第三步，让 Codex 用白话给出“基线决策卡”，用户只确认项目状态、风险和是否允许继续：
+第四步，让 Codex 用白话给出“基线决策卡”，用户只确认项目状态、风险和是否允许继续：
 
 ```bash
 node scripts/cli.mjs baseline-decision ../my-project
 ```
 
-第四步，如果项目可能涉及平台、后台、权限、数据、支付或发布风险，让 Codex 只读推荐基线包：
+第五步，如果项目可能涉及平台、后台、权限、数据、支付或发布风险，让 Codex 只读推荐基线包：
 
 ```bash
 node scripts/cli.mjs standard-baseline ../my-project
@@ -129,6 +136,7 @@ node scripts/cli.mjs doctor ../my-project
 
 | 能力 | 作用 |
 |---|---|
+| 自然语言总入口 | 用户只说目标或给项目路径，Codex 先给一张白话指导卡，不要求用户选择内部流程 |
 | 引导式接入 | 先判断项目是新项目、已有项目、强治理项目、生产敏感项目、dirty worktree，还是已接入项目 |
 | 基线决策卡 | 把 BL0/BL1/BL2、标准包、工业包候选、风险和下一步翻译成用户可确认的短卡片 |
 | 工程/环境基线 | 明确代码结构、数据库、API、权限、运行环境、构建测试、发布回滚和密钥边界 |
@@ -156,6 +164,8 @@ node scripts/cli.mjs doctor ../my-project
 ```bash
 npm run verify
 npm run verify:governance
+node scripts/cli.mjs guide .
+node scripts/check-workflow-guidance.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
@@ -207,6 +217,7 @@ node scripts/check-guided-adoption.mjs .
 - 不要把基线决策卡当成写入、实现、发布或 BL2 启用授权；它只帮助用户确认路径。
 - 不要把标准基线包推荐当成已经选择、写入授权或具体实现任务批准。
 - 不要把工业包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
+- 不要把 Workflow Guidance Card 当成写入、实现、发布、安装 hook、修改 CI、归档文档或切换任务状态的授权；它只说明下一步建议。
 
 ## 完整说明
 
@@ -218,6 +229,7 @@ node scripts/check-guided-adoption.mjs .
 - [First Hour](docs/first-hour.md)：第一次接入项目时怎么走
 - [Codex Usage](docs/codex-usage.md)：Codex 使用路径
 - [Mental Model](docs/mental-model.md)：整体心智模型
+- [Natural Language Orchestrator](docs/natural-language-orchestrator.md)：用户只说目标时，Codex 怎么给出下一步指导卡
 
 使用工作流：
 
@@ -270,6 +282,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.24 Release Record](releases/1.24.0/release-record.md)：1.24 自然语言工作流总入口
 - [1.23.1 Release Record](releases/1.23.1/release-record.md)：1.23.1 治理验证和 README 入口修整
 - [1.23 Release Record](releases/1.23.0/release-record.md)：1.23 Hook 编排治理
 - [1.22 Release Record](releases/1.22.0/release-record.md)：1.22 Work Queue / Todo 治理

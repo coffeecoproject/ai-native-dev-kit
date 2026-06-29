@@ -43,6 +43,16 @@ node scripts/workflow-next.mjs .
 
 Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
 
+## Natural Language Workflow Guidance
+
+When the user gives a broad goal, asks what to do next, or provides a project path/repository without naming a workflow command, start with the plain guidance entry:
+
+```bash
+node scripts/resolve-workflow-guidance.mjs .
+```
+
+Use the result to decide the next safe workflow path. Do not treat guidance as permission to write files, change CI, install hooks, archive documents, change task state, implement, release, or approve high-risk domain decisions.
+
 ## Project Onboarding
 
 Before the first non-trivial implementation, run project onboarding.

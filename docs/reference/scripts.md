@@ -8,6 +8,8 @@ Use `scripts/cli.mjs` for daily operation.
 
 | Command | Purpose | Writes |
 |---|---|---|
+| `node scripts/cli.mjs guide <project>` | Read a project and return one plain-language Workflow Guidance Card | No |
+| `node scripts/cli.mjs guide-check <project>` | Check recorded Workflow Guidance Cards | No |
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
@@ -71,6 +73,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/start-project.mjs` is the first-hour adoption entry. It calls `workflow-next`, classifies the target project, lists decisions needed from the human, and recommends safe next actions. It is read-only by default and must not write target project files.
 
 `scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. Use `--write-plan <file>` to write a reviewable plan and `--apply-plan <file>` to apply only approved baseline docs and baseline reports.
+
+`scripts/resolve-workflow-guidance.mjs` is the 1.24 natural-language front door. It reads project state and prints one Workflow Guidance Card with a delivery path state, next step, distance to useful use, limited questions, internal routing, and explicit no-write/no-CI/no-hook/no-release boundaries. It does not write target-project files.
+
+`scripts/check-workflow-guidance.mjs` checks recorded Workflow Guidance Cards. It rejects too many questions, internal jargon leaking into plain mode, target-project write approval, CI/hook/document/task-state approval, implementation approval, release/production approval, and high-risk decision approval.
 
 `scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
 
@@ -173,6 +179,8 @@ Common types:
 - `baseline-state-report`
 - `baseline-pack-selection-report`
 - `baseline-decision-card`
+- `workflow-guidance-card`
+- `user-decision-card`
 
 Use `active-work-thread` only when broad conversation, side ideas, or repeated drift make the current mainline unclear. Use `guided-decision-summary` when Codex needs to recommend one safe path and translate technical choices into a human-owned decision.
 
@@ -188,6 +196,8 @@ Common commands:
 
 ```bash
 node scripts/check-ai-workflow.mjs . --mode core
+node scripts/resolve-workflow-guidance.mjs .
+node scripts/check-workflow-guidance.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready
 node scripts/check-review-loop.mjs .
 node scripts/check-next-step-boundary.mjs .

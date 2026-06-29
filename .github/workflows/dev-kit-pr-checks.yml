@@ -83,6 +83,12 @@ jobs:
       - name: Hook orchestration smoke
         run: node scripts/cli.mjs hook-plan .
 
+      - name: Workflow guidance check
+        run: node scripts/check-workflow-guidance.mjs .
+
+      - name: Workflow guidance smoke
+        run: node scripts/cli.mjs guide .
+
       - name: Guided delivery check
         run: node scripts/check-guided-delivery-loop.mjs .
 
@@ -158,6 +164,10 @@ jobs:
           node "$tmp/project/scripts/resolve-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-hook-orchestration.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-hook-orchestration.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-workflow-guidance.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" guide "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" guide-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" workflow-map "$tmp/project"

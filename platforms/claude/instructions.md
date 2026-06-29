@@ -41,6 +41,12 @@ For bootstrap entry:
 - if `workflow-next` reports `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing tasks until the human confirms how to handle existing changes
 - if `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not write target files; create a real adoption trial report and run `node scripts/check-real-adoption-trial.mjs .` first
 
+For workflow guidance:
+
+- when the user gives a broad goal, asks what to do next, or provides a project path/repository without naming a workflow command, run `node scripts/resolve-workflow-guidance.mjs .`
+- use the Workflow Guidance Card to choose the next safe path
+- do not treat guidance as permission to write files, change CI, install hooks, archive documents, change task state, implement, release, or approve high-risk domain decisions
+
 For project onboarding:
 
 - before first non-trivial implementation, use `.ai-native/prompts/project-onboarding-agent.md`

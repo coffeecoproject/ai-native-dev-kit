@@ -7,6 +7,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | Checker | Purpose |
 |---|---|
 | `check-ai-workflow.mjs` | Core or full workflow asset check |
+| `resolve-workflow-guidance.mjs` | Read-only natural-language front door that returns a Workflow Guidance Card |
+| `check-workflow-guidance.mjs` | Workflow Guidance Card boundary, plain-language, question-count, and overclaim checks |
 | `start-project.mjs` | Read-only guided adoption recommendation |
 | `baseline-project.mjs` | Read-only engineering/environment baseline recommendation and plan-first baseline apply |
 | `resolve-guided-baseline-selection.mjs` | Plain-language Baseline Decision Card recommendation |
@@ -97,6 +99,7 @@ Baseline enforcement checks:
 
 Product and claim checks:
 
+- `check-workflow-guidance.mjs` allows empty projects, but rejects Workflow Guidance Cards that ask too many questions, expose internal workflow jargon in plain mode, claim target-project writes, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.
 - `check-product-baseline.mjs` is source-strict for Dev Kit maintenance and target-safe for generated projects.
 - `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.
 - Assumption Register is required only when reports rely on inferred or unconfirmed facts.
@@ -126,6 +129,8 @@ For a normal target project:
 
 ```bash
 node scripts/workflow-next.mjs .
+node scripts/resolve-workflow-guidance.mjs .
+node scripts/check-workflow-guidance.mjs .
 node scripts/start-project.mjs .
 node scripts/check-guided-adoption.mjs .
 node scripts/check-ai-workflow.mjs . --mode core
@@ -161,6 +166,7 @@ For L2/L3 task completion:
 
 ```bash
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/<task>.md
+node scripts/check-workflow-guidance.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode implementation --task tasks/<task>.md
 node scripts/check-review-loop.mjs . --task tasks/<task>.md
 node scripts/check-next-step-boundary.mjs . --task tasks/<task>.md
