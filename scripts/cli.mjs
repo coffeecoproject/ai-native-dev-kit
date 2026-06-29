@@ -49,6 +49,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "debt-handoff": {
+    description: "Record debt and knowledge handoff context without forgiving debt or approving work.",
+    script: "scripts/resolve-debt-handoff.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "debt-handoff-check": {
+    description: "Check recorded Debt & Knowledge Handoff reports.",
+    script: "scripts/check-debt-handoff.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",
@@ -354,6 +366,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs guide-check .");
   console.log("  node scripts/cli.mjs delivery-path ../my-project");
   console.log("  node scripts/cli.mjs delivery-path-check .");
+  console.log("  node scripts/cli.mjs debt-handoff .");
+  console.log("  node scripts/cli.mjs debt-handoff-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs baseline-decision ../my-project");

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.26.0`
+Current version: `1.27.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.26.0`
 
 ## Current Release
 
-`1.26.0`
+`1.27.0`
 
 Includes:
 
+- Debt & Knowledge Handoff phase `1.27.0`: adds `debt-handoff` and `debt-handoff-check` so Codex can record interrupted work, known debt, verification notes, files to revisit, human decisions, and where to resume next
+- Added `core/debt-knowledge-handoff.md`, `docs/debt-knowledge-handoff.md`, `templates/debt-knowledge-handoff-report.md`, `checklists/debt-knowledge-handoff-review.md`, `prompts/debt-handoff-agent.md`, `debt-handoff-reports/`, `scripts/resolve-debt-handoff.mjs`, and `scripts/check-debt-handoff.mjs`
+- `1.27.0` does not forgive debt, approve implementation, approve release/production, change task state, change source of truth, replace Review Loop, or replace Safe Launch
 - Delivery Path Governance phase `1.26.0`: adds `delivery-path` and `delivery-path-check` so Codex can report whether a project is an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked
 - Added `core/delivery-path-governance.md`, `docs/delivery-path-governance.md`, `templates/delivery-path-report.md`, `checklists/delivery-path-review.md`, `prompts/delivery-path-agent.md`, `delivery-path-reports/`, `scripts/resolve-delivery-path.mjs`, and `scripts/check-delivery-path.mjs`
 - `1.26.0` does not write target files, change CI/hooks, change task state, approve implementation, approve release/production, replace Safe Launch, or prove real users can use the product

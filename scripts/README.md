@@ -66,6 +66,8 @@ Injected workflow scripts:
 - `scripts/check-workflow-guidance.mjs`
 - `scripts/resolve-review-surface.mjs`
 - `scripts/check-review-surface.mjs`
+- `scripts/resolve-debt-handoff.mjs`
+- `scripts/check-debt-handoff.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -140,6 +142,17 @@ node scripts/cli.mjs delivery-path-check .
 ```
 
 `resolve-delivery-path.mjs` is read-only. It reports the current delivery state, next target state, distance to useful use, evidence, blockers, next safe action, and human decisions. `check-delivery-path.mjs` rejects invalid states, missing evidence, release overclaims, Safe Launch replacement, and implementation/release approval claims.
+
+## resolve-debt-handoff.mjs / check-debt-handoff.mjs
+
+```bash
+node scripts/resolve-debt-handoff.mjs .
+node scripts/check-debt-handoff.mjs .
+node scripts/cli.mjs debt-handoff .
+node scripts/cli.mjs debt-handoff-check .
+```
+
+`resolve-debt-handoff.mjs` is read-only. It records debt level, knowledge handoff, verification notes, files to revisit, human decisions, and safe boundaries for paused, interrupted, or unfinished work. `check-debt-handoff.mjs` rejects debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, Safe Launch replacement, missing handoff subsections, and invalid debt levels.
 
 ## resolve-work-queue.mjs / check-work-queue.mjs
 

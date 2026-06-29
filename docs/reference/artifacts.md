@@ -19,6 +19,7 @@ Artifacts make AI work auditable without forcing every task into the heaviest pr
 |---|---|
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
 | `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
+| `debt-handoff-reports/` | Debt level, verification notes, files to revisit, human decisions, and next-run handoff |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
 | `review-loop-reports/` | Findings, AUTO_FIX rounds, verification, and remaining decisions |
@@ -133,6 +134,8 @@ Natural Language Workflow Orchestrator lives under `.ai-native/core/` in generat
 Review Surface Governance lives under `.ai-native/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
 
 Delivery Path Governance lives under `.ai-native/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
+
+Debt & Knowledge Handoff lives under `.ai-native/core/` in generated projects. It records what remains unfinished, how to verify it, which files or areas to revisit, and where to resume next time. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
 
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.26.0`
+`1.27.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.27.0` adds Debt & Knowledge Handoff through `debt-handoff`, `debt-handoff-check`, and Debt & Knowledge Handoff Reports.
+- `1.27.0` lets Codex record interrupted work, known debt, verification notes, files to revisit, human decisions, and where to resume next.
+- `1.27.0` keeps handoff reports non-approving: they do not forgive debt, approve implementation, approve release/production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
 - `1.26.0` adds Delivery Path Governance through `delivery-path`, `delivery-path-check`, and Delivery Path Reports.
 - `1.26.0` lets Codex explain whether a project is an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked.
 - `1.26.0` keeps Delivery Path Reports read-only: they do not write target files, change CI/hooks, change task state, approve implementation, approve release/production, replace Safe Launch, or prove real users can use the product.

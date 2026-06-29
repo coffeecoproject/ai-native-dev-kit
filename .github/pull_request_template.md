@@ -8,6 +8,7 @@ Explain what changed in plain language and why the change is safe to review.
 
 - Workflow Guidance:
 - Delivery Path:
+- Debt / Knowledge Handoff:
 - Request:
 - Preflight:
 - Spec:
@@ -46,6 +47,7 @@ node scripts/check-conversation-drift.mjs .
 node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/check-debt-handoff.mjs .
 ```
 
 ## Risk And Approval

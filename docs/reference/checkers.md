@@ -13,6 +13,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-review-surface.mjs` | Review Surface Card required-surface, post-execution contract, and overclaim checks |
 | `resolve-delivery-path.mjs` | Read-only delivery path resolver that reports current usable-state progress |
 | `check-delivery-path.mjs` | Delivery Path Report state, evidence, blocker, and overclaim checks |
+| `resolve-debt-handoff.mjs` | Read-only debt and handoff resolver for paused, interrupted, or unfinished work |
+| `check-debt-handoff.mjs` | Debt & Knowledge Handoff Report level, handoff, boundary, and overclaim checks |
 | `start-project.mjs` | Read-only guided adoption recommendation |
 | `baseline-project.mjs` | Read-only engineering/environment baseline recommendation and plan-first baseline apply |
 | `resolve-guided-baseline-selection.mjs` | Plain-language Baseline Decision Card recommendation |
@@ -106,6 +108,7 @@ Product and claim checks:
 - `check-workflow-guidance.mjs` allows empty projects, but rejects Workflow Guidance Cards that ask too many questions, expose internal workflow jargon in plain mode, claim target-project writes, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.
 - `check-review-surface.mjs` allows empty projects, but rejects Review Surface Cards that miss functional/code/verification/debt review, omit post-execution close-out fields, ask too many questions, claim target-project writes, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.
 - `check-delivery-path.mjs` allows empty projects, but rejects Delivery Path Reports that omit valid current/next states, evidence, blockers, next safe action, boundaries, or outcome, or claim target-project writes, CI/hook changes, task-state changes, implementation approval, release/production approval, Safe Launch replacement, or real-user-use proof.
+- `check-debt-handoff.mjs` allows empty projects, but rejects Debt & Knowledge Handoff Reports that omit debt levels, handoff subsections, boundaries, or valid outcomes, or claim debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, or Safe Launch replacement.
 - `check-product-baseline.mjs` is source-strict for Dev Kit maintenance and target-safe for generated projects.
 - `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.
 - Assumption Register is required only when reports rely on inferred or unconfirmed facts.
@@ -139,6 +142,8 @@ node scripts/resolve-workflow-guidance.mjs .
 node scripts/check-workflow-guidance.mjs .
 node scripts/resolve-review-surface.mjs .
 node scripts/check-review-surface.mjs .
+node scripts/resolve-debt-handoff.mjs .
+node scripts/check-debt-handoff.mjs .
 node scripts/start-project.mjs .
 node scripts/check-guided-adoption.mjs .
 node scripts/check-ai-workflow.mjs . --mode core

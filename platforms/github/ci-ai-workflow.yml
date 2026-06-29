@@ -77,6 +77,10 @@ jobs:
         run: node scripts/resolve-delivery-path.mjs .
       - name: Check delivery path
         run: node scripts/check-delivery-path.mjs .
+      - name: Resolve debt handoff
+        run: node scripts/resolve-debt-handoff.mjs .
+      - name: Check debt handoff
+        run: node scripts/check-debt-handoff.mjs .
       - name: Check change boundary
         run: node scripts/check-change-boundary.mjs .
       - name: Check baseline state
@@ -169,6 +173,10 @@ jobs:
         run: node --check scripts/resolve-delivery-path.mjs
       - name: Check delivery path checker syntax
         run: node --check scripts/check-delivery-path.mjs
+      - name: Check debt handoff resolver syntax
+        run: node --check scripts/resolve-debt-handoff.mjs
+      - name: Check debt handoff checker syntax
+        run: node --check scripts/check-debt-handoff.mjs
       - name: Check guided delivery loop checker syntax
         run: node --check scripts/check-guided-delivery-loop.mjs
       - name: Check change boundary checker syntax

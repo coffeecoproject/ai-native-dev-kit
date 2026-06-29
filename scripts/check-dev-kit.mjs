@@ -664,6 +664,10 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
     "node scripts/cli.mjs review-surface .",
+    "node scripts/check-delivery-path.mjs .",
+    "node scripts/cli.mjs delivery-path .",
+    "node scripts/check-debt-handoff.mjs .",
+    "node scripts/cli.mjs debt-handoff .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -705,10 +709,18 @@ function checkDevKitFirstPartyCi() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-delivery-path.mjs",
+    "resolve-delivery-path.mjs",
+    "check-debt-handoff.mjs",
+    "resolve-debt-handoff.mjs",
     "guide",
     "guide-check",
     "review-surface",
     "review-surface-check",
+    "delivery-path",
+    "delivery-path-check",
+    "debt-handoff",
+    "debt-handoff-check",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -758,6 +770,10 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
     "node scripts/cli.mjs review-surface .",
+    "node scripts/check-delivery-path.mjs .",
+    "node scripts/cli.mjs delivery-path .",
+    "node scripts/check-debt-handoff.mjs .",
+    "node scripts/cli.mjs debt-handoff .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -797,10 +813,18 @@ function checkDevKitFirstPartyCi() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-delivery-path.mjs",
+    "resolve-delivery-path.mjs",
+    "check-debt-handoff.mjs",
+    "resolve-debt-handoff.mjs",
     "guide",
     "guide-check",
     "review-surface",
     "review-surface-check",
+    "delivery-path",
+    "delivery-path-check",
+    "debt-handoff",
+    "debt-handoff-check",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -826,6 +850,7 @@ function checkDevKitFirstPartyCi() {
     "Human Summary",
     "Workflow Guidance",
     "Workflow Evidence",
+    "Debt / Knowledge Handoff",
     "Goal Card",
     "Subagent Run Plan",
     "Review Packet",
@@ -1288,6 +1313,14 @@ function checkCliFrontDoor() {
     "node --check scripts/check-review-surface.mjs",
     "node scripts/cli.mjs review-surface .",
     "node scripts/check-review-surface.mjs .",
+    "node --check scripts/resolve-delivery-path.mjs",
+    "node --check scripts/check-delivery-path.mjs",
+    "node scripts/cli.mjs delivery-path .",
+    "node scripts/check-delivery-path.mjs .",
+    "node --check scripts/resolve-debt-handoff.mjs",
+    "node --check scripts/check-debt-handoff.mjs",
+    "node scripts/cli.mjs debt-handoff .",
+    "node scripts/check-debt-handoff.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1328,6 +1361,8 @@ function checkCliFrontDoor() {
     "workflow-map-check",
     "change-boundary",
     "baseline-state",
+    "debt-handoff",
+    "debt-handoff-check",
     "baseline-decision",
     "baseline-decision-check",
     "standard-baseline",
@@ -1410,6 +1445,22 @@ function checkCliFrontDoor() {
     pass("CLI delivery-path-check delegates to delivery path checker");
   } else {
     fail(`CLI delivery-path-check failed: ${deliveryPathCheck.stderr || deliveryPathCheck.stdout}`);
+  }
+
+  const debtHandoff = runNode(["scripts/cli.mjs", "debt-handoff", "."]);
+  if (debtHandoff.status === 0
+    && debtHandoff.stdout.includes("Debt & Knowledge Handoff Report")
+    && debtHandoff.stdout.includes("This report forgives debt: No")) {
+    pass("CLI debt-handoff delegates to debt handoff resolver");
+  } else {
+    fail(`CLI debt-handoff failed: ${debtHandoff.stderr || debtHandoff.stdout}`);
+  }
+
+  const debtHandoffCheck = runNode(["scripts/cli.mjs", "debt-handoff-check", "."]);
+  if (debtHandoffCheck.status === 0 && debtHandoffCheck.stdout.includes("Debt & Knowledge Handoff check passed")) {
+    pass("CLI debt-handoff-check delegates to debt handoff checker");
+  } else {
+    fail(`CLI debt-handoff-check failed: ${debtHandoffCheck.stderr || debtHandoffCheck.stdout}`);
   }
 
   const baselineDecision = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
@@ -4730,6 +4781,108 @@ function checkDeliveryPathGovernanceProtocol() {
   }
 }
 
+function checkDebtKnowledgeHandoffProtocol() {
+  const required = [
+    "core/debt-knowledge-handoff.md",
+    "docs/debt-knowledge-handoff.md",
+    "templates/debt-knowledge-handoff-report.md",
+    "checklists/debt-knowledge-handoff-review.md",
+    "prompts/debt-handoff-agent.md",
+    "debt-handoff-reports/.gitkeep",
+    "scripts/resolve-debt-handoff.mjs",
+    "scripts/check-debt-handoff.mjs",
+    "examples/1.27-debt-knowledge-handoff/README.md",
+    "examples/1.27-debt-knowledge-handoff/debt-handoff-reports/001-booking-handoff.md",
+    "test-fixtures/bad/bad-debt-handoff-forgives-debt/debt-handoff-reports/001-bad.md",
+    "test-fixtures/bad/bad-debt-handoff-missing-handoff/debt-handoff-reports/001-bad.md",
+    "releases/1.27.0/release-record.md",
+    "releases/1.27.0/known-limitations.md",
+    "releases/1.27.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.27 debt handoff asset exists ${file}`);
+    else fail(`1.27 debt handoff asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/debt-knowledge-handoff.md"),
+    read("docs/debt-knowledge-handoff.md"),
+    read("templates/debt-knowledge-handoff-report.md"),
+    read("scripts/resolve-debt-handoff.mjs"),
+    read("scripts/check-debt-handoff.mjs"),
+    read("releases/1.27.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Debt & Knowledge Handoff",
+    "D0_NO_DEBT_FOUND",
+    "D4_HIGH_RISK_DEBT",
+    "How To Verify",
+    "Do Not Touch Without Approval",
+    "This report forgives debt: No",
+    "This report approves release or production: No",
+    "This report replaces Safe Launch: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.27 debt handoff includes ${marker}`);
+    else fail(`1.27 debt handoff missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-debt-handoff.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Debt & Knowledge Handoff Report")
+    && resolver.stdout.includes("This report forgives debt: No")) {
+    pass("1.27 debt handoff resolver prints safe report");
+  } else {
+    fail(`1.27 debt handoff resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-debt-handoff.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "DEBT_KNOWLEDGE_HANDOFF_REPORT"
+        && parsed.boundaries?.forgivesDebt === "No"
+        && parsed.debtRegister?.[0]?.level
+        && parsed.knowledgeHandoff?.howToVerify) {
+        pass("1.27 debt handoff resolver JSON includes debt, handoff, and boundaries");
+      } else {
+        fail(`1.27 debt handoff resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.27 debt handoff resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.27 debt handoff resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-debt-handoff.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Debt & Knowledge Handoff check passed")) {
+    pass("1.27 debt handoff checker passes source repo");
+  } else {
+    fail(`1.27 debt handoff checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-debt-handoff.mjs", "examples/1.27-debt-knowledge-handoff"]);
+  if (example.status === 0 && example.stdout.includes("Debt & Knowledge Handoff check passed")) {
+    pass("1.27 debt handoff example passes checker");
+  } else {
+    fail(`1.27 debt handoff example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["debt forgiven", ["scripts/check-debt-handoff.mjs", "test-fixtures/bad/bad-debt-handoff-forgives-debt"], "forbidden debt handoff claim"],
+    ["missing handoff", ["scripts/check-debt-handoff.mjs", "test-fixtures/bad/bad-debt-handoff-missing-handoff"], "handoff missing How To Verify"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.27 debt handoff rejects ${name}`);
+    } else {
+      fail(`1.27 debt handoff must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -5003,7 +5156,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -5012,7 +5165,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -5021,7 +5174,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -5093,6 +5246,8 @@ function checkPlatformAdapters() {
     "resolve-review-surface.mjs",
     "check-delivery-path.mjs",
     "resolve-delivery-path.mjs",
+    "check-debt-handoff.mjs",
+    "resolve-debt-handoff.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
     "resolve-standard-baseline.mjs",
@@ -5166,6 +5321,8 @@ function checkScriptSyntax() {
     "scripts/check-baseline-state.mjs",
     "scripts/resolve-delivery-path.mjs",
     "scripts/check-delivery-path.mjs",
+    "scripts/resolve-debt-handoff.mjs",
+    "scripts/check-debt-handoff.mjs",
     "scripts/resolve-standard-baseline.mjs",
     "scripts/check-standard-baseline-pack.mjs",
     "scripts/check-standard-baseline-selection.mjs",
@@ -5229,6 +5386,8 @@ function checkReadmePointers() {
     "node scripts/check-review-surface.mjs",
     "node scripts/cli.mjs delivery-path",
     "node scripts/check-delivery-path.mjs",
+    "node scripts/cli.mjs debt-handoff",
+    "node scripts/check-debt-handoff.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs baseline-decision",
@@ -5274,6 +5433,7 @@ function checkReadmePointers() {
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
     "docs/delivery-path-governance.md",
+    "docs/debt-knowledge-handoff.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -5300,6 +5460,7 @@ function checkReadmePointers() {
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
     "releases/1.26.0/release-record.md",
+    "releases/1.27.0/release-record.md",
     "releases/1.25.0/release-record.md",
     "releases/1.24.0/release-record.md",
     "docs/adoption-playbooks/new-project.md",
@@ -5339,6 +5500,8 @@ function checkReadmePointers() {
     "node scripts/check-review-surface.mjs",
     "node scripts/cli.mjs delivery-path",
     "node scripts/check-delivery-path.mjs",
+    "node scripts/cli.mjs debt-handoff",
+    "node scripts/check-debt-handoff.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs standard-baseline",
@@ -5371,6 +5534,7 @@ function checkReadmePointers() {
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
     "docs/delivery-path-governance.md",
+    "docs/debt-knowledge-handoff.md",
     "docs/first-hour.md",
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
@@ -7806,6 +7970,7 @@ checkHookOrchestrationProtocol();
 checkNaturalLanguageOrchestratorProtocol();
 checkReviewSurfaceGovernanceProtocol();
 checkDeliveryPathGovernanceProtocol();
+checkDebtKnowledgeHandoffProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

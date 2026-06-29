@@ -60,6 +60,7 @@
 | 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
 | 不确定任务完成后应该审什么 | `node scripts/cli.mjs review-surface ../my-project` | 执行前自动选择功能、代码、数据、权限、体验、发布、债务等审查面 |
 | 不确定项目离“能给人用”还有多远 | `node scripts/cli.mjs delivery-path ../my-project` | 用白话说明当前状态、下一阶段、缺口和阻塞点 |
+| 任务暂停、被打断或留下债务 | `node scripts/cli.mjs debt-handoff ../my-project` | 记录欠什么、怎么验证、下次从哪里接，不把记录当批准 |
 | 要检查当前配置 | `node scripts/cli.mjs check ../my-project --mode core` | 跑核心治理检查 |
 
 第一步，让 Codex 用白话判断下一步，不要求你先懂内部命令：
@@ -147,6 +148,7 @@ node scripts/cli.mjs doctor ../my-project
 | Goal + Subagent | 只有需要时才使用目标卡和 helper agent，并要求用完关闭 |
 | 审查面治理 | 执行前由 Codex 判断任务完成后必须审哪些面，执行后按面汇报结果和未验证项 |
 | 交付路径治理 | 判断项目现在是想法、计划、本地构建、自测、内测、发布审查还是被风险阻塞 |
+| 债务与知识交接 | 任务暂停、中断或留下债务时，记录债务等级、验证方式、下次入口和不能碰的范围 |
 | Review Loop | 任务完成后复查，限制自动修复，把风险问题交给人判断 |
 | 项目记忆治理 | Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
 | 安全交付判断 | 区分可以演示、可以交接、可以进入发布审查，还是还不 ready |
@@ -174,6 +176,8 @@ node scripts/cli.mjs review-surface .
 node scripts/check-review-surface.mjs .
 node scripts/cli.mjs delivery-path .
 node scripts/check-delivery-path.mjs .
+node scripts/cli.mjs debt-handoff .
+node scripts/check-debt-handoff.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
@@ -218,6 +222,7 @@ node scripts/check-guided-adoption.mjs .
 - 不要把 `READY_FOR_DEMO`、`READY_FOR_INTERNAL_HANDOFF` 或 `READY_FOR_RELEASE_REVIEW` 当成生产上线批准。
 - 不要把讨论、范围变化、旁路问题或风险问题直接当成继续当前任务的许可。
 - 不要把真实项目只读接入报告当成允许写入项目。
+- 不要把 Debt & Knowledge Handoff Report 当成债务豁免、继续执行批准或发布批准；它只负责把未完成事项交接清楚。
 - 不要把补丁分类报告当成允许实现；它只判断修复尺度。
 - 不要把文档生命周期报告当成允许删除、移动、归档或改变 source of truth；它只给归档/废弃/合并建议。
 - 不要把 Work Queue 当成实现授权；它只管理当前任务、暂停任务、停车场和恢复前检查。
@@ -268,6 +273,7 @@ node scripts/check-guided-adoption.mjs .
 - [Hook Orchestration](docs/hook-orchestration.md)：自动触发器怎么分级、规划、确认和回滚
 - [Review Surface Governance](docs/review-surface-governance.md)：执行前决定要审哪些面，执行后按面汇报结果
 - [Delivery Path Governance](docs/delivery-path-governance.md)：判断项目离“能给人使用”还有多远
+- [Debt & Knowledge Handoff](docs/debt-knowledge-handoff.md)：任务暂停、中断或留下债务时如何交接
 - [Baseline Pack System](docs/baseline-pack-system.md)：按项目级别、平台、能力和风险选择基线包
 
 接入项目：
@@ -293,6 +299,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.27 Release Record](releases/1.27.0/release-record.md)：1.27 债务与知识交接
 - [1.26 Release Record](releases/1.26.0/release-record.md)：1.26 交付路径治理
 - [1.25 Release Record](releases/1.25.0/release-record.md)：1.25 审查面治理
 - [1.24 Release Record](releases/1.24.0/release-record.md)：1.24 自然语言工作流总入口

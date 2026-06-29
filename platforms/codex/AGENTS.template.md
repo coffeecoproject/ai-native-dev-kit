@@ -80,6 +80,19 @@ node scripts/cli.mjs delivery-path-check .
 
 A Delivery Path Report is read-only. It does not write files, approve implementation, approve release or production, change CI/hooks, change task state, replace Safe Launch, or prove real users can use the product.
 
+## Debt & Knowledge Handoff
+
+Use `.ai-native/core/debt-knowledge-handoff.md` when work is paused, interrupted, leaves known debt, or needs reliable next-run context.
+
+Run:
+
+```bash
+node scripts/cli.mjs debt-handoff .
+node scripts/cli.mjs debt-handoff-check .
+```
+
+A Debt & Knowledge Handoff Report records debt level, verification notes, files to revisit, human decisions, and where to resume. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
+
 ## Required Preflight Output
 
 Before coding, output:
