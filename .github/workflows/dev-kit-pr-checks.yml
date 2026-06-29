@@ -71,6 +71,12 @@ jobs:
       - name: Document lifecycle smoke
         run: node scripts/cli.mjs doc-lifecycle .
 
+      - name: Document archive apply check
+        run: node scripts/check-document-archive-apply.mjs .
+
+      - name: Document archive apply smoke
+        run: node scripts/cli.mjs archive-apply .
+
       - name: Work queue check
         run: node scripts/check-work-queue.mjs .
 
@@ -178,6 +184,8 @@ jobs:
           node "$tmp/project/scripts/resolve-existing-workflow.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-document-lifecycle.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-document-lifecycle.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-document-archive-apply.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-document-archive-apply.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-hook-orchestration.mjs" "$tmp/project"
@@ -204,6 +212,8 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" workflow-map-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" archive-apply "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" archive-apply-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" work-queue "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" work-queue-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" hook-plan "$tmp/project"

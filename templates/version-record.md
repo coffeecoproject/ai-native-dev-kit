@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.27.0`
+`1.28.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.28.0` adds Document Archive Apply through `archive-apply`, `archive-apply-check`, Archive Apply Plans, and Archive Index previews.
+- `1.28.0` lets Codex turn document lifecycle archive suggestions into a controlled apply plan while keeping actual archive/move/delete/link rewrite actions blocked until explicit approval.
+- `1.28.0` keeps archive apply plans non-authorizing: they do not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, or approve cleanup completion.
 - `1.27.0` adds Debt & Knowledge Handoff through `debt-handoff`, `debt-handoff-check`, and Debt & Knowledge Handoff Reports.
 - `1.27.0` lets Codex record interrupted work, known debt, verification notes, files to revisit, human decisions, and where to resume next.
 - `1.27.0` keeps handoff reports non-approving: they do not forgive debt, approve implementation, approve release/production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.

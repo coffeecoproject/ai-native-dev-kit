@@ -432,6 +432,8 @@ function checkVersionMetadata() {
     "scripts/check-workflow-adoption-map.mjs",
     "scripts/resolve-document-lifecycle.mjs",
     "scripts/check-document-lifecycle.mjs",
+    "scripts/resolve-document-archive-apply.mjs",
+    "scripts/check-document-archive-apply.mjs",
     "scripts/resolve-work-queue.mjs",
     "scripts/check-work-queue.mjs",
     "scripts/resolve-hook-orchestration.mjs",
@@ -656,6 +658,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs workflow-map .",
     "node scripts/check-document-lifecycle.mjs .",
     "node scripts/cli.mjs doc-lifecycle .",
+    "node scripts/check-document-archive-apply.mjs .",
+    "node scripts/cli.mjs archive-apply .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
@@ -701,6 +705,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-existing-workflow.mjs",
     "check-document-lifecycle.mjs",
     "resolve-document-lifecycle.mjs",
+    "check-document-archive-apply.mjs",
+    "resolve-document-archive-apply.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -727,6 +733,8 @@ function checkDevKitFirstPartyCi() {
     "workflow-map-check",
     "doc-lifecycle",
     "doc-lifecycle-check",
+    "archive-apply",
+    "archive-apply-check",
     "work-queue",
     "work-queue-check",
     "hook-plan",
@@ -762,6 +770,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs workflow-map .",
     "node scripts/check-document-lifecycle.mjs .",
     "node scripts/cli.mjs doc-lifecycle .",
+    "node scripts/check-document-archive-apply.mjs .",
+    "node scripts/cli.mjs archive-apply .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
@@ -805,6 +815,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-existing-workflow.mjs",
     "check-document-lifecycle.mjs",
     "resolve-document-lifecycle.mjs",
+    "check-document-archive-apply.mjs",
+    "resolve-document-archive-apply.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -831,6 +843,8 @@ function checkDevKitFirstPartyCi() {
     "workflow-map-check",
     "doc-lifecycle",
     "doc-lifecycle-check",
+    "archive-apply",
+    "archive-apply-check",
     "work-queue",
     "work-queue-check",
     "hook-plan",
@@ -851,6 +865,7 @@ function checkDevKitFirstPartyCi() {
     "Workflow Guidance",
     "Workflow Evidence",
     "Debt / Knowledge Handoff",
+    "Document Archive Apply",
     "Goal Card",
     "Subagent Run Plan",
     "Review Packet",
@@ -1297,10 +1312,14 @@ function checkCliFrontDoor() {
     "node --check scripts/check-workflow-adoption-map.mjs",
     "node --check scripts/resolve-document-lifecycle.mjs",
     "node --check scripts/check-document-lifecycle.mjs",
+    "node --check scripts/resolve-document-archive-apply.mjs",
+    "node --check scripts/check-document-archive-apply.mjs",
     "node scripts/cli.mjs workflow-map .",
     "node scripts/check-workflow-adoption-map.mjs .",
     "node scripts/cli.mjs doc-lifecycle .",
     "node scripts/check-document-lifecycle.mjs .",
+    "node scripts/cli.mjs archive-apply .",
+    "node scripts/check-document-archive-apply.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs hook-plan .",
@@ -1359,6 +1378,8 @@ function checkCliFrontDoor() {
     "patch-classification",
     "workflow-map",
     "workflow-map-check",
+    "archive-apply",
+    "archive-apply-check",
     "change-boundary",
     "baseline-state",
     "debt-handoff",
@@ -1461,6 +1482,22 @@ function checkCliFrontDoor() {
     pass("CLI debt-handoff-check delegates to debt handoff checker");
   } else {
     fail(`CLI debt-handoff-check failed: ${debtHandoffCheck.stderr || debtHandoffCheck.stdout}`);
+  }
+
+  const archiveApply = runNode(["scripts/cli.mjs", "archive-apply", "."]);
+  if (archiveApply.status === 0
+    && archiveApply.stdout.includes("Document Archive Apply Plan")
+    && archiveApply.stdout.includes("This plan authorizes archive apply: No")) {
+    pass("CLI archive-apply delegates to document archive apply resolver");
+  } else {
+    fail(`CLI archive-apply failed: ${archiveApply.stderr || archiveApply.stdout}`);
+  }
+
+  const archiveApplyCheck = runNode(["scripts/cli.mjs", "archive-apply-check", "."]);
+  if (archiveApplyCheck.status === 0 && archiveApplyCheck.stdout.includes("Document Archive Apply check passed")) {
+    pass("CLI archive-apply-check delegates to document archive apply checker");
+  } else {
+    fail(`CLI archive-apply-check failed: ${archiveApplyCheck.stderr || archiveApplyCheck.stdout}`);
   }
 
   const baselineDecision = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
@@ -4257,6 +4294,112 @@ function checkDocumentLifecycleProtocol() {
   }
 }
 
+function checkDocumentArchiveApplyProtocol() {
+  const required = [
+    "core/document-archive-apply.md",
+    "docs/document-archive-apply.md",
+    "templates/document-archive-apply-plan.md",
+    "templates/archive-index.md",
+    "checklists/document-archive-apply-review.md",
+    "prompts/document-archive-agent.md",
+    "archive-apply-plans/.gitkeep",
+    "scripts/resolve-document-archive-apply.mjs",
+    "scripts/check-document-archive-apply.mjs",
+    "examples/1.28-document-archive-apply/README.md",
+    "examples/1.28-document-archive-apply/archive-apply-plans/001-archive-plan.md",
+    "test-fixtures/bad/bad-archive-apply-authorizes-archive/archive-apply-plans/001-bad.md",
+    "test-fixtures/bad/bad-archive-apply-missing-index/archive-apply-plans/001-bad.md",
+    "releases/1.28.0/release-record.md",
+    "releases/1.28.0/known-limitations.md",
+    "releases/1.28.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.28 document archive apply asset exists ${file}`);
+    else fail(`1.28 document archive apply asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/document-archive-apply.md"),
+    read("docs/document-archive-apply.md"),
+    read("templates/document-archive-apply-plan.md"),
+    read("templates/archive-index.md"),
+    read("scripts/resolve-document-archive-apply.mjs"),
+    read("scripts/check-document-archive-apply.mjs"),
+    read("releases/1.28.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Document Archive Apply Governance",
+    "Document Archive Apply Plan",
+    "Archive Apply States",
+    "Link Check Plan",
+    "Archive Index",
+    "Rollback Plan",
+    "This plan authorizes archive apply: No",
+    "This plan replaces Document Lifecycle: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.28 document archive apply includes ${marker}`);
+    else fail(`1.28 document archive apply missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-document-archive-apply.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Document Archive Apply Plan")
+    && resolver.stdout.includes("Link Check Plan")
+    && resolver.stdout.includes("This plan authorizes archive apply: No")) {
+    pass("1.28 document archive apply resolver prints safe plan");
+  } else {
+    fail(`1.28 document archive apply resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-document-archive-apply.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "DOCUMENT_ARCHIVE_APPLY_PLAN"
+        && parsed.boundaries?.authorizesArchiveApply === "No"
+        && parsed.boundaries?.movesOrArchivesFilesNow === "No"
+        && parsed.linkCheckPlan
+        && parsed.archiveIndex) {
+        pass("1.28 document archive apply resolver JSON includes boundaries, link check, and index");
+      } else {
+        fail(`1.28 document archive apply resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.28 document archive apply resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.28 document archive apply resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-document-archive-apply.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Document Archive Apply check passed")) {
+    pass("1.28 document archive apply checker passes source repo");
+  } else {
+    fail(`1.28 document archive apply checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-document-archive-apply.mjs", "examples/1.28-document-archive-apply"]);
+  if (example.status === 0 && example.stdout.includes("Document Archive Apply check passed")) {
+    pass("1.28 document archive apply example passes checker");
+  } else {
+    fail(`1.28 document archive apply example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["authorizes archive apply", ["scripts/check-document-archive-apply.mjs", "test-fixtures/bad/bad-archive-apply-authorizes-archive"], "forbidden archive apply claim"],
+    ["missing archive index", ["scripts/check-document-archive-apply.mjs", "test-fixtures/bad/bad-archive-apply-missing-index"], "missing Archive Index"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.28 document archive apply rejects ${name}`);
+    } else {
+      fail(`1.28 document archive apply must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkWorkQueueProtocol() {
   const required = [
     "core/work-queue.md",
@@ -5156,7 +5299,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -5165,7 +5308,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -5174,7 +5317,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -5204,7 +5347,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "delivery path", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "delivery path", "debt", "archive apply", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -5236,6 +5379,8 @@ function checkPlatformAdapters() {
     "resolve-existing-workflow.mjs",
     "check-document-lifecycle.mjs",
     "resolve-document-lifecycle.mjs",
+    "check-document-archive-apply.mjs",
+    "resolve-document-archive-apply.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -5388,6 +5533,8 @@ function checkReadmePointers() {
     "node scripts/check-delivery-path.mjs",
     "node scripts/cli.mjs debt-handoff",
     "node scripts/check-debt-handoff.mjs",
+    "node scripts/cli.mjs archive-apply",
+    "node scripts/check-document-archive-apply.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs baseline-decision",
@@ -5408,6 +5555,8 @@ function checkReadmePointers() {
     "node scripts/check-workflow-adoption-map.mjs",
     "node scripts/resolve-document-lifecycle.mjs",
     "node scripts/check-document-lifecycle.mjs",
+    "node scripts/resolve-document-archive-apply.mjs",
+    "node scripts/check-document-archive-apply.mjs",
     "node scripts/resolve-work-queue.mjs",
     "node scripts/check-work-queue.mjs",
     "node scripts/resolve-hook-orchestration.mjs",
@@ -5456,9 +5605,11 @@ function checkReadmePointers() {
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
+    "docs/document-archive-apply.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
+    "releases/1.28.0/release-record.md",
     "releases/1.26.0/release-record.md",
     "releases/1.27.0/release-record.md",
     "releases/1.25.0/release-record.md",
@@ -5502,6 +5653,8 @@ function checkReadmePointers() {
     "node scripts/check-delivery-path.mjs",
     "node scripts/cli.mjs debt-handoff",
     "node scripts/check-debt-handoff.mjs",
+    "node scripts/cli.mjs archive-apply",
+    "node scripts/check-document-archive-apply.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs standard-baseline",
@@ -5520,6 +5673,8 @@ function checkReadmePointers() {
     "node scripts/check-workflow-adoption-map.mjs",
     "node scripts/resolve-document-lifecycle.mjs",
     "node scripts/check-document-lifecycle.mjs",
+    "node scripts/resolve-document-archive-apply.mjs",
+    "node scripts/check-document-archive-apply.mjs",
     "node scripts/resolve-work-queue.mjs",
     "node scripts/check-work-queue.mjs",
     "node scripts/resolve-hook-orchestration.mjs",
@@ -5552,9 +5707,11 @@ function checkReadmePointers() {
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
+    "docs/document-archive-apply.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
+    "releases/1.28.0/release-record.md",
     "releases/1.26.0/release-record.md",
     "releases/1.25.0/release-record.md",
     "docs/migrations/0.33-to-1.0.md",
@@ -5590,6 +5747,7 @@ function checkReadmePointers() {
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
+    "docs/document-archive-apply.md",
     "docs/work-queue.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
@@ -7965,6 +8123,7 @@ checkFirstDeliveryWalkthroughProtocol();
 checkRealAdoptionAndPatchClassificationProtocol();
 checkExistingProjectWorkflowAdapterProtocol();
 checkDocumentLifecycleProtocol();
+checkDocumentArchiveApplyProtocol();
 checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
 checkNaturalLanguageOrchestratorProtocol();

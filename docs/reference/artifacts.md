@@ -51,6 +51,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `patch-classifications/` | Repair-scale classification before non-trivial fixes |
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
 | `doc-lifecycle-reports/` | Source-of-truth, stale, duplicate, archive, and deprecation candidate reports |
+| `archive-apply-plans/` | Plan-only archive action, link-check, archive index, rollback, and human-decision records |
 | `work-queue/` | Current task, paused tasks, backlog / parking lot, and resume review records |
 | `hook-orchestration-plans/` | Plan-first hook candidates, H0-H3 classification, approval requirements, and rollback notes |
 | `active-work-threads/` | Optional current-mainline and parking-lot tracking for broad or drifting work |

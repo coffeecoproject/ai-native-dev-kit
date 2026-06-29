@@ -181,6 +181,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "archive-apply": {
+    description: "Plan document archive apply actions without moving, deleting, or rewriting files.",
+    script: "scripts/resolve-document-archive-apply.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "archive-apply-check": {
+    description: "Check recorded Document Archive Apply Plans.",
+    script: "scripts/check-document-archive-apply.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "work-queue": {
     description: "Recommend current, paused, backlog, and resume state without changing task state.",
     script: "scripts/resolve-work-queue.mjs",
@@ -387,6 +399,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs workflow-map-check .");
   console.log("  node scripts/cli.mjs doc-lifecycle .");
   console.log("  node scripts/cli.mjs doc-lifecycle-check .");
+  console.log("  node scripts/cli.mjs archive-apply .");
+  console.log("  node scripts/cli.mjs archive-apply-check .");
   console.log("  node scripts/cli.mjs work-queue .");
   console.log("  node scripts/cli.mjs work-queue-check .");
   console.log("  node scripts/cli.mjs hook-plan .");

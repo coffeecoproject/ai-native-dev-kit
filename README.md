@@ -56,6 +56,7 @@
 | 要给项目选择基线 | `node scripts/cli.mjs baseline-decision ../my-project` | 用白话确认 BL0/BL1/BL2、平台和风险 |
 | 老项目怕被覆盖 | `node scripts/cli.mjs workflow-map ../my-project` | 先映射现有治理，说明该复用什么、不能动什么 |
 | 文档过期、重复或不知道谁是准的 | `node scripts/cli.mjs doc-lifecycle ../my-project` | 只读识别 source of truth、归档建议和废弃建议 |
+| 文档归档建议准备执行 | `node scripts/cli.mjs archive-apply ../my-project` | 先生成执行计划、链接检查、归档索引和回滚计划，不直接移动或删除文件 |
 | 任务做到一半被打断 | `node scripts/cli.mjs work-queue ../my-project` | 识别当前任务、暂停任务、停车场和恢复前检查 |
 | 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
 | 不确定任务完成后应该审什么 | `node scripts/cli.mjs review-surface ../my-project` | 执行前自动选择功能、代码、数据、权限、体验、发布、债务等审查面 |
@@ -158,10 +159,11 @@ node scripts/cli.mjs doctor ../my-project
 | 补丁分类 | 修复杂问题前先判断是安全小修、结构治理、需要人决策，还是不能补丁化处理 |
 | 老项目工作流映射 | 读取已有项目后，先说明哪些 AI Native 工作流该用、哪些现有流程要保留、哪些不能动 |
 | 文档生命周期 | 识别过期、重复、废弃和 source of truth，默认只给归档建议，不默认删除 |
+| 文档归档执行计划 | 把归档建议变成可审查的执行计划、链接检查、归档索引和回滚计划；不自动执行 |
 | Work Queue / Todo | 处理任务做到一半被打断、长期任务、暂停恢复和一次只能有一个当前任务 |
 | Hook 编排 | 区分可自动只读检查和必须人工确认的 hook，不自动安装、不改 CI、不加阻断 gate |
 
-`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`work-queue-check` 和 `hook-plan-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`work-queue` 和 `hook-plan` 会只读扫描项目结构，输出建议，不会改目标项目。
+`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`work-queue-check` 和 `hook-plan-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`archive-apply`、`work-queue` 和 `hook-plan` 会只读扫描项目结构，输出建议，不会改目标项目。
 
 ## Dev Kit 自检
 
@@ -178,6 +180,9 @@ node scripts/cli.mjs delivery-path .
 node scripts/check-delivery-path.mjs .
 node scripts/cli.mjs debt-handoff .
 node scripts/check-debt-handoff.mjs .
+node scripts/cli.mjs archive-apply .
+node scripts/resolve-document-archive-apply.mjs .
+node scripts/check-document-archive-apply.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
@@ -270,6 +275,7 @@ node scripts/check-guided-adoption.mjs .
 - [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)：已有项目如何先映射工作流，再决定是否接入
 - [Document Lifecycle](docs/document-lifecycle.md)：过期、重复、废弃文档和 source of truth 怎么治理
+- [Document Archive Apply](docs/document-archive-apply.md)：把文档归档建议变成可审查计划，默认不执行归档
 - [Work Queue](docs/work-queue.md)：任务做到一半被打断、暂停恢复和只保留一个当前任务怎么治理
 - [Hook Orchestration](docs/hook-orchestration.md)：自动触发器怎么分级、规划、确认和回滚
 - [Review Surface Governance](docs/review-surface-governance.md)：执行前决定要审哪些面，执行后按面汇报结果
@@ -300,6 +306,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.28 Release Record](releases/1.28.0/release-record.md)：1.28 文档归档执行计划
 - [1.27 Release Record](releases/1.27.0/release-record.md)：1.27 债务与知识交接
 - [1.26 Release Record](releases/1.26.0/release-record.md)：1.26 交付路径治理
 - [1.25 Release Record](releases/1.25.0/release-record.md)：1.25 审查面治理

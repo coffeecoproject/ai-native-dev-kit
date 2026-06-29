@@ -37,6 +37,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs workflow-map-check <project>` | Check recorded Workflow Adoption Maps | No |
 | `node scripts/cli.mjs doc-lifecycle <project>` | Recommend document lifecycle state, source-of-truth candidates, and archive suggestions without file changes | No |
 | `node scripts/cli.mjs doc-lifecycle-check <project>` | Check recorded Document Lifecycle Reports | No |
+| `node scripts/cli.mjs archive-apply <project>` | Plan document archive apply actions without moving, deleting, or rewriting files | No |
+| `node scripts/cli.mjs archive-apply-check <project>` | Check recorded Document Archive Apply Plans | No |
 | `node scripts/cli.mjs work-queue <project>` | Recommend current, paused, backlog, and resume state without changing task state | No |
 | `node scripts/cli.mjs work-queue-check <project>` | Check recorded Work Queue Reports and single-current-task rules | No |
 | `node scripts/cli.mjs hook-plan <project>` | Recommend hook candidates without installing hooks, changing CI, or adding gates | No |
@@ -135,6 +137,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-document-lifecycle.mjs` prints a read-only Document Lifecycle recommendation. It inventories likely source-of-truth docs, active references, stale candidates, duplicate candidates, archive suggestions, and deprecation suggestions. It does not delete, move, archive, rewrite, deprecate, or change source-of-truth files.
 
 `scripts/check-document-lifecycle.mjs` checks recorded Document Lifecycle Reports so stale/duplicate documentation cleanup does not become authorization to delete files, move files, archive files, change source of truth, change AGENTS/CI/hooks/release/legal/security/production docs, or approve cleanup work.
+
+`scripts/resolve-document-archive-apply.mjs` is the 1.28 document archive apply entry. It reads Document Lifecycle evidence when present and prints one plan-only Archive Apply Plan with readiness state, proposed archive actions, link-check plan, archive index preview, rollback plan, excluded files, human decisions, and explicit non-authorization boundaries. It does not move, delete, archive, rewrite links, or change source-of-truth files.
+
+`scripts/check-document-archive-apply.mjs` checks recorded Archive Apply Plans. It requires link-check and archive-index sections, rollback planning, explicit human decisions, and no-authority boundaries, and rejects plans that claim files were deleted, moved, archived, links were fixed, cleanup is complete, or archive apply is authorized.
 
 `scripts/resolve-work-queue.mjs` prints a read-only Work Queue recommendation. It inventories Work Queue reports, task cards, active work threads, paused tasks, backlog items, resume candidates, and dirty-worktree state. It does not change task state, approve implementation, approve target-project writes, promote backlog items, or resume stale work.
 

@@ -37,6 +37,7 @@ const typeMap = {
   "patch-classification-false-positive": { dir: "patch-classification-false-positives", template: "patch-classification-false-positive.md", defaultName: "patch-classification-false-positive" },
   "workflow-adoption-map": { dir: "workflow-adoption-maps", template: "workflow-adoption-map.md", defaultName: "workflow-adoption-map" },
   "document-lifecycle-report": { dir: "doc-lifecycle-reports", template: "document-lifecycle-report.md", defaultName: "document-lifecycle" },
+  "document-archive-apply-plan": { dir: "archive-apply-plans", template: "document-archive-apply-plan.md", defaultName: "archive-apply" },
   "work-queue-report": { dir: "work-queue", template: "work-queue-report.md", defaultName: "work-queue" },
   "hook-orchestration-plan": { dir: "hook-orchestration-plans", template: "hook-orchestration-plan.md", defaultName: "hook-plan" },
   "active-work-thread": { dir: "active-work-threads", template: "active-work-thread.md", defaultName: "active-work-thread" },
@@ -131,6 +132,11 @@ const aliases = {
   "docs-lifecycle": "document-lifecycle-report",
   "doc-cleanup": "document-lifecycle-report",
   "archive-suggestion": "document-lifecycle-report",
+  "archive-apply": "document-archive-apply-plan",
+  "archive-plan": "document-archive-apply-plan",
+  "archive-apply-plan": "document-archive-apply-plan",
+  "document-archive": "document-archive-apply-plan",
+  "document-archive-apply": "document-archive-apply-plan",
   "work-queue": "work-queue-report",
   "todo": "work-queue-report",
   "todo-list": "work-queue-report",
@@ -242,6 +248,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type patch-classification --name governed-web-repair-scale");
   console.error("  node scripts/new-workflow-item.mjs --type workflow-adoption-map --name governed-project");
   console.error("  node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs");
+  console.error("  node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name stale-docs-archive-plan");
   console.error("  node scripts/new-workflow-item.mjs --type work-queue-report --name current-work");
   console.error("  node scripts/new-workflow-item.mjs --type hook-orchestration-plan --name project-hooks");
   console.error("  node scripts/new-workflow-item.mjs --type active-work-thread --name first-slice");

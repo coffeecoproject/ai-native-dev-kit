@@ -57,6 +57,10 @@ jobs:
         run: node scripts/resolve-document-lifecycle.mjs .
       - name: Check document lifecycle
         run: node scripts/check-document-lifecycle.mjs .
+      - name: Resolve document archive apply
+        run: node scripts/resolve-document-archive-apply.mjs .
+      - name: Check document archive apply
+        run: node scripts/check-document-archive-apply.mjs .
       - name: Resolve work queue
         run: node scripts/resolve-work-queue.mjs .
       - name: Check work queue
@@ -153,6 +157,10 @@ jobs:
         run: node --check scripts/resolve-document-lifecycle.mjs
       - name: Check document lifecycle checker syntax
         run: node --check scripts/check-document-lifecycle.mjs
+      - name: Check document archive apply resolver syntax
+        run: node --check scripts/resolve-document-archive-apply.mjs
+      - name: Check document archive apply checker syntax
+        run: node --check scripts/check-document-archive-apply.mjs
       - name: Check work queue resolver syntax
         run: node --check scripts/resolve-work-queue.mjs
       - name: Check work queue checker syntax

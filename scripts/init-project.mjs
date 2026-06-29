@@ -17,6 +17,7 @@ const requiredPullRequestTemplateMarkers = [
   "Workflow Guidance",
   "Delivery Path",
   "Debt / Knowledge Handoff",
+  "Document Archive Apply",
   "Project onboarding",
   "Engineering baseline",
   "Workflow Evidence",
@@ -37,6 +38,7 @@ const requiredAgentGovernanceMarkers = [
   "Natural Language Workflow Guidance",
   "Delivery Path Governance",
   "Debt & Knowledge Handoff",
+  "Document Archive Apply",
   "Project Onboarding",
   "Engineering Baseline",
   "Environment Baseline",
@@ -210,6 +212,7 @@ function pullRequestTemplateGovernanceAppendix() {
     "- [ ] Workflow Guidance was used or marked not applicable when the request started from a broad goal, project path/repository, or next-step question",
     "- [ ] Delivery Path was recorded or marked not applicable when claiming local-use, self-test, internal-trial, release-review, or blocked status",
     "- [ ] Debt / Knowledge Handoff is recorded or marked not applicable when work is interrupted, paused, leaves known debt, or needs a reliable next-run handoff",
+    "- [ ] Document Archive Apply Plan is linked or marked not applicable when archive suggestions are ready to become an execution plan",
     "- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed",
     "- [ ] Project onboarding is confirmed or not applicable for this change",
     "- [ ] Engineering baseline was checked when this change touched structure, contracts, schema, permissions, migrations, dependencies, or cross-module state",
@@ -801,6 +804,22 @@ function agentGovernanceSectionContent() {
       "Run `node scripts/cli.mjs doc-lifecycle .` for a read-only recommendation and `node scripts/check-document-lifecycle.mjs .` when reports exist.",
       "",
     ].join("\n")],
+    ["Document Archive Apply", [
+      "## Document Archive Apply",
+      "",
+      "Use `.ai-native/core/document-archive-apply.md` and `.ai-native/docs/document-archive-apply.md` only after Document Lifecycle has produced archive suggestions that may be ready for controlled execution.",
+      "",
+      "Archive Apply is plan-first. It creates an apply plan, link-check plan, archive index preview, rollback plan, and human decision list. It does not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, approve cleanup completion, or authorize archive apply by itself.",
+      "",
+      "Optional artifacts:",
+      "",
+      "```bash",
+      "node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name <docs-area>",
+      "```",
+      "",
+      "Run `node scripts/cli.mjs archive-apply .` for a plan-only recommendation and `node scripts/check-document-archive-apply.mjs .` when plans exist.",
+      "",
+    ].join("\n")],
     ["Work Queue", [
       "## Work Queue",
       "",
@@ -1116,6 +1135,7 @@ function fallbackCopyRules() {
       { source: "docs/platform-standard-baseline-packs.md", target: ".ai-native/docs/platform-standard-baseline-packs.md" },
       { source: "docs/existing-project-workflow-adapter.md", target: ".ai-native/docs/existing-project-workflow-adapter.md" },
       { source: "docs/document-lifecycle.md", target: ".ai-native/docs/document-lifecycle.md" },
+      { source: "docs/document-archive-apply.md", target: ".ai-native/docs/document-archive-apply.md" },
       { source: "docs/work-queue.md", target: ".ai-native/docs/work-queue.md" },
       { source: "docs/hook-orchestration.md", target: ".ai-native/docs/hook-orchestration.md" },
       { source: "docs/review-surface-governance.md", target: ".ai-native/docs/review-surface-governance.md" },
@@ -1131,6 +1151,7 @@ function fallbackCopyRules() {
       { source: "core/standard-baseline-pack-registry.md", target: ".ai-native/core/standard-baseline-pack-registry.md" },
       { source: "core/existing-project-workflow-adapter.md", target: ".ai-native/core/existing-project-workflow-adapter.md" },
       { source: "core/document-lifecycle.md", target: ".ai-native/core/document-lifecycle.md" },
+      { source: "core/document-archive-apply.md", target: ".ai-native/core/document-archive-apply.md" },
       { source: "core/work-queue.md", target: ".ai-native/core/work-queue.md" },
       { source: "core/hook-orchestration.md", target: ".ai-native/core/hook-orchestration.md" },
       { source: "core/review-surface-governance.md", target: ".ai-native/core/review-surface-governance.md" },
@@ -1144,6 +1165,7 @@ function fallbackCopyRules() {
       { source: "prompts/standard-baseline-router-agent.md", target: ".ai-native/prompts/standard-baseline-router-agent.md" },
       { source: "prompts/workflow-adapter-agent.md", target: ".ai-native/prompts/workflow-adapter-agent.md" },
       { source: "prompts/document-lifecycle-agent.md", target: ".ai-native/prompts/document-lifecycle-agent.md" },
+      { source: "prompts/document-archive-agent.md", target: ".ai-native/prompts/document-archive-agent.md" },
       { source: "prompts/work-queue-agent.md", target: ".ai-native/prompts/work-queue-agent.md" },
       { source: "prompts/hook-orchestration-agent.md", target: ".ai-native/prompts/hook-orchestration-agent.md" },
       { source: "prompts/review-surface-agent.md", target: ".ai-native/prompts/review-surface-agent.md" },
@@ -1157,6 +1179,8 @@ function fallbackCopyRules() {
       { source: "templates/standard-baseline-selection-report.md", target: ".ai-native/templates/standard-baseline-selection-report.md" },
       { source: "templates/workflow-adoption-map.md", target: ".ai-native/templates/workflow-adoption-map.md" },
       { source: "templates/document-lifecycle-report.md", target: ".ai-native/templates/document-lifecycle-report.md" },
+      { source: "templates/document-archive-apply-plan.md", target: ".ai-native/templates/document-archive-apply-plan.md" },
+      { source: "templates/archive-index.md", target: ".ai-native/templates/archive-index.md" },
       { source: "templates/work-queue-report.md", target: ".ai-native/templates/work-queue-report.md" },
       { source: "templates/hook-orchestration-plan.md", target: ".ai-native/templates/hook-orchestration-plan.md" },
       { source: "templates/review-surface-card.md", target: ".ai-native/templates/review-surface-card.md" },
@@ -1165,6 +1189,7 @@ function fallbackCopyRules() {
       { source: "checklists/review-surface-review.md", target: ".ai-native/checklists/review-surface-review.md" },
       { source: "checklists/delivery-path-review.md", target: ".ai-native/checklists/delivery-path-review.md" },
       { source: "checklists/debt-knowledge-handoff-review.md", target: ".ai-native/checklists/debt-knowledge-handoff-review.md" },
+      { source: "checklists/document-archive-apply-review.md", target: ".ai-native/checklists/document-archive-apply-review.md" },
       { source: "scripts/check-ai-workflow.mjs", target: "scripts/check-ai-workflow.mjs" },
       { source: "scripts/baseline-project.mjs", target: "scripts/baseline-project.mjs" },
       { source: "scripts/check-product-baseline.mjs", target: "scripts/check-product-baseline.mjs" },
@@ -1193,6 +1218,8 @@ function fallbackCopyRules() {
       { source: "scripts/check-workflow-adoption-map.mjs", target: "scripts/check-workflow-adoption-map.mjs" },
       { source: "scripts/resolve-document-lifecycle.mjs", target: "scripts/resolve-document-lifecycle.mjs" },
       { source: "scripts/check-document-lifecycle.mjs", target: "scripts/check-document-lifecycle.mjs" },
+      { source: "scripts/resolve-document-archive-apply.mjs", target: "scripts/resolve-document-archive-apply.mjs" },
+      { source: "scripts/check-document-archive-apply.mjs", target: "scripts/check-document-archive-apply.mjs" },
       { source: "scripts/resolve-work-queue.mjs", target: "scripts/resolve-work-queue.mjs" },
       { source: "scripts/check-work-queue.mjs", target: "scripts/check-work-queue.mjs" },
       { source: "scripts/resolve-hook-orchestration.mjs", target: "scripts/resolve-hook-orchestration.mjs" },
@@ -1249,6 +1276,7 @@ function ensureWorkflowDirs(targetPath) {
     "baseline-state-reports",
     "workflow-adoption-maps",
     "doc-lifecycle-reports",
+    "archive-apply-plans",
     "work-queue",
     "hook-orchestration-plans",
     "review-surface-cards",
@@ -1307,6 +1335,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".ai-native/docs/platform-standard-baseline-packs.md",
       ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/document-lifecycle.md",
+      ".ai-native/docs/document-archive-apply.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/docs/hook-orchestration.md",
       ".ai-native/docs/review-surface-governance.md",
@@ -1343,6 +1372,8 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-workflow-adoption-map.mjs",
       "scripts/resolve-document-lifecycle.mjs",
       "scripts/check-document-lifecycle.mjs",
+      "scripts/resolve-document-archive-apply.mjs",
+      "scripts/check-document-archive-apply.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/resolve-hook-orchestration.mjs",
@@ -1390,6 +1421,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "baseline-state-reports",
       "workflow-adoption-maps",
       "doc-lifecycle-reports",
+      "archive-apply-plans",
       "work-queue",
       "hook-orchestration-plans",
       "review-surface-cards",
@@ -1809,12 +1841,13 @@ function printNextSteps() {
   console.log("13. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
   console.log("14. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
   console.log("15. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
-  console.log("16. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
-  console.log("17. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
-  console.log("18. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
-  console.log("19. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
-  console.log("20. When a task is paused, interrupted, or leaves known debt, run node scripts/cli.mjs debt-handoff . and record the handoff.");
-  console.log("21. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+  console.log("16. Before turning document archive suggestions into action, run node scripts/cli.mjs archive-apply . and review the plan.");
+  console.log("17. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
+  console.log("18. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
+  console.log("19. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
+  console.log("20. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
+  console.log("21. When a task is paused, interrupted, or leaves known debt, run node scripts/cli.mjs debt-handoff . and record the handoff.");
+  console.log("22. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
 }
 
 function isIgnorableNewProjectEntry(name) {

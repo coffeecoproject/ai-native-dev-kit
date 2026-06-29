@@ -59,6 +59,12 @@ For debt and knowledge handoff:
 - run `node scripts/cli.mjs debt-handoff-check .` when Debt & Knowledge Handoff Reports exist
 - do not treat handoff reports as debt forgiveness, implementation approval, release/production approval, task-state changes, source-of-truth changes, Review Loop replacement, or Safe Launch replacement
 
+For document archive apply:
+
+- run `node scripts/cli.mjs archive-apply .` only when Document Lifecycle archive suggestions need a controlled apply plan
+- run `node scripts/cli.mjs archive-apply-check .` when Archive Apply Plans exist
+- do not treat archive apply plans as permission to delete, move/archive, rewrite links, change source of truth, replace Document Lifecycle, or approve cleanup completion
+
 For project onboarding:
 
 - before first non-trivial implementation, use `.ai-native/prompts/project-onboarding-agent.md`
@@ -116,6 +122,7 @@ For workflow artifacts:
 - use `node scripts/new-workflow-item.mjs --type review-surface-card --name <slug>` before non-trivial implementation, repair, or review work when selected review surfaces need to be recorded
 - use `node scripts/new-workflow-item.mjs --type delivery-path-report --name <slug>` when delivery state needs to be recorded
 - use `node scripts/new-workflow-item.mjs --type debt-knowledge-handoff-report --name <slug>` when paused or unfinished work needs handoff context
+- use `node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name <slug>` when archive suggestions need a controlled apply plan
 - use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure
 - use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet
 - use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope
@@ -123,6 +130,7 @@ For workflow artifacts:
 - run `node scripts/check-review-surface.mjs .` when Review Surface Cards exist
 - run `node scripts/check-delivery-path.mjs .` when Delivery Path Reports exist
 - run `node scripts/check-debt-handoff.mjs .` when Debt & Knowledge Handoff Reports exist
+- run `node scripts/check-document-archive-apply.mjs .` when Archive Apply Plans exist
 - run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists
 - run `node scripts/check-goal-mode.mjs .` when Goal Cards exist
 - run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist

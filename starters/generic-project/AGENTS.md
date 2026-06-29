@@ -79,6 +79,19 @@ node scripts/cli.mjs debt-handoff-check .
 
 A Debt & Knowledge Handoff Report records debt level, verification notes, files to revisit, human decisions, and where to resume. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
 
+## Document Archive Apply
+
+Use `.ai-native/core/document-archive-apply.md` only after Document Lifecycle has produced archive suggestions that may be ready for controlled execution.
+
+Run:
+
+```bash
+node scripts/cli.mjs archive-apply .
+node scripts/cli.mjs archive-apply-check .
+```
+
+An Archive Apply Plan records the planned archive actions, link-check plan, archive index preview, rollback plan, and human decisions. It does not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, approve cleanup completion, or authorize archive apply by itself.
+
 ## Project Onboarding
 
 Before the first non-trivial implementation, run project onboarding.

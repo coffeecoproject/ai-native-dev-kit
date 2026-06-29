@@ -9,6 +9,7 @@ Explain what changed in plain language and why the change is safe to review.
 - Workflow Guidance:
 - Delivery Path:
 - Debt / Knowledge Handoff:
+- Document Archive Apply:
 - Request:
 - Preflight:
 - Spec:

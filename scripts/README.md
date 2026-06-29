@@ -58,6 +58,8 @@ Injected workflow scripts:
 - `scripts/workflow-next.mjs`
 - `scripts/resolve-document-lifecycle.mjs`
 - `scripts/check-document-lifecycle.mjs`
+- `scripts/resolve-document-archive-apply.mjs`
+- `scripts/check-document-archive-apply.mjs`
 - `scripts/resolve-work-queue.mjs`
 - `scripts/check-work-queue.mjs`
 - `scripts/resolve-hook-orchestration.mjs`
@@ -153,6 +155,19 @@ node scripts/cli.mjs debt-handoff-check .
 ```
 
 `resolve-debt-handoff.mjs` is read-only. It records debt level, knowledge handoff, verification notes, files to revisit, human decisions, and safe boundaries for paused, interrupted, or unfinished work. `check-debt-handoff.mjs` rejects debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, Safe Launch replacement, missing handoff subsections, and invalid debt levels.
+
+## resolve-document-archive-apply.mjs / check-document-archive-apply.mjs
+
+Plan archive apply without executing it.
+
+```bash
+node scripts/resolve-document-archive-apply.mjs .
+node scripts/check-document-archive-apply.mjs .
+node scripts/cli.mjs archive-apply .
+node scripts/cli.mjs archive-apply-check .
+```
+
+`resolve-document-archive-apply.mjs` is read-only. It turns Document Lifecycle archive suggestions into an apply plan, link-check plan, archive index preview, rollback plan, excluded-file list, and human decisions. `check-document-archive-apply.mjs` rejects archive apply authorization, moved/deleted/archived claims, link-rewrite claims, cleanup-complete claims, source-of-truth changes, and plans missing link-check, archive-index, or rollback sections.
 
 ## resolve-work-queue.mjs / check-work-queue.mjs
 
@@ -304,6 +319,11 @@ node scripts/check-document-lifecycle.mjs .
 Use `doc-lifecycle-reports/` when stale docs, duplicate docs, archive
 suggestions, deprecation suggestions, or source-of-truth conflicts need to be
 recorded. Archive is only a suggestion until a human approves a separate plan.
+
+Use `archive-apply-plans/` when approved archive suggestions need a controlled
+apply plan. The plan records what would move, what links must be checked, how the
+archive index would be updated, and how to roll back. It still does not execute
+archive actions.
 
 ## check-workflow-artifacts.mjs
 

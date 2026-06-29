@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.27.0`
+Current version: `1.28.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.27.0`
 
 ## Current Release
 
-`1.27.0`
+`1.28.0`
 
 Includes:
 
+- Document Archive Apply phase `1.28.0`: adds `archive-apply` and `archive-apply-check` so Codex can convert archive suggestions into an explicit apply plan without moving, deleting, or rewriting files
+- Added `core/document-archive-apply.md`, `docs/document-archive-apply.md`, `templates/document-archive-apply-plan.md`, `templates/archive-index.md`, `checklists/document-archive-apply-review.md`, `prompts/document-archive-agent.md`, `archive-apply-plans/`, `scripts/resolve-document-archive-apply.mjs`, and `scripts/check-document-archive-apply.mjs`
+- `1.28.0` does not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, approve cleanup completion, or authorize archive apply without explicit human approval
 - Debt & Knowledge Handoff phase `1.27.0`: adds `debt-handoff` and `debt-handoff-check` so Codex can record interrupted work, known debt, verification notes, files to revisit, human decisions, and where to resume next
 - Added `core/debt-knowledge-handoff.md`, `docs/debt-knowledge-handoff.md`, `templates/debt-knowledge-handoff-report.md`, `checklists/debt-knowledge-handoff-review.md`, `prompts/debt-handoff-agent.md`, `debt-handoff-reports/`, `scripts/resolve-debt-handoff.mjs`, and `scripts/check-debt-handoff.mjs`
 - `1.27.0` does not forgive debt, approve implementation, approve release/production, change task state, change source of truth, replace Review Loop, or replace Safe Launch
