@@ -60,6 +60,8 @@ Injected workflow scripts:
 - `scripts/check-document-lifecycle.mjs`
 - `scripts/resolve-work-queue.mjs`
 - `scripts/check-work-queue.mjs`
+- `scripts/resolve-hook-orchestration.mjs`
+- `scripts/check-hook-orchestration.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -108,6 +110,19 @@ node scripts/cli.mjs work-queue-check .
 ```
 
 `resolve-work-queue.mjs` is read-only. It reports current, paused, blocked, backlog, and resume candidates. `check-work-queue.mjs` enforces at most one `CURRENT` task and requires resume review before paused work continues.
+
+## resolve-hook-orchestration.mjs / check-hook-orchestration.mjs
+
+Review hook candidates without installing hooks.
+
+```bash
+node scripts/resolve-hook-orchestration.mjs .
+node scripts/check-hook-orchestration.mjs .
+node scripts/cli.mjs hook-plan .
+node scripts/cli.mjs hook-plan-check .
+```
+
+`resolve-hook-orchestration.mjs` is read-only. It classifies candidate triggers as H0/H1/H2/H3. `check-hook-orchestration.mjs` rejects plans that install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, or treat hook output as human approval.
 
 ## check-baseline-selection-precision.mjs
 

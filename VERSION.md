@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.22.0`
+Current version: `1.23.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.22.0`
 
 ## Current Release
 
-`1.22.0`
+`1.23.0`
 
 Includes:
 
+- Hook Orchestration Governance phase `1.23.0`: adds plan-first hook classification for automatic read-only checks, suggestion-only plans, confirmation-required hooks, and explicit-approval high-risk hooks
+- Added `core/hook-orchestration.md`, `docs/hook-orchestration.md`, `templates/hook-orchestration-plan.md`, `checklists/hook-orchestration-review.md`, `prompts/hook-orchestration-agent.md`, `hook-orchestration-plans/`, `scripts/resolve-hook-orchestration.mjs`, and `scripts/check-hook-orchestration.mjs`
+- `1.23.0` does not install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, change target-project files, or approve implementation/release/production
 - Work Queue / Todo Governance phase `1.22.0`: adds a dedicated task-state layer for interrupted work, long-running work, pause/resume, backlog parking, and single-current-task enforcement
 - Added `core/work-queue.md`, `docs/work-queue.md`, `templates/work-queue-report.md`, `checklists/work-queue-review.md`, `prompts/work-queue-agent.md`, `work-queue/`, `scripts/resolve-work-queue.mjs`, and `scripts/check-work-queue.mjs`
 - `1.22.0` does not approve implementation, target-project writes, scope expansion, release/production, hook execution, document cleanup, or stale-work resume without review

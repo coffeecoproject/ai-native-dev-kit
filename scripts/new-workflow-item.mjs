@@ -38,6 +38,7 @@ const typeMap = {
   "workflow-adoption-map": { dir: "workflow-adoption-maps", template: "workflow-adoption-map.md", defaultName: "workflow-adoption-map" },
   "document-lifecycle-report": { dir: "doc-lifecycle-reports", template: "document-lifecycle-report.md", defaultName: "document-lifecycle" },
   "work-queue-report": { dir: "work-queue", template: "work-queue-report.md", defaultName: "work-queue" },
+  "hook-orchestration-plan": { dir: "hook-orchestration-plans", template: "hook-orchestration-plan.md", defaultName: "hook-plan" },
   "active-work-thread": { dir: "active-work-threads", template: "active-work-thread.md", defaultName: "active-work-thread" },
   "guided-decision-summary": { dir: "guided-decision-summaries", template: "guided-decision-summary.md", defaultName: "guided-decision" },
   "change-boundary-report": { dir: "change-boundary-reports", template: "change-boundary-report.md", defaultName: "change-boundary" },
@@ -131,6 +132,11 @@ const aliases = {
   "task-queue": "work-queue-report",
   "pause-report": "work-queue-report",
   "resume-plan": "work-queue-report",
+  "hook-plan": "hook-orchestration-plan",
+  "hook-orchestration": "hook-orchestration-plan",
+  "hook-orchestration-report": "hook-orchestration-plan",
+  "hooks": "hook-orchestration-plan",
+  "automation-hook": "hook-orchestration-plan",
   "work-thread": "active-work-thread",
   "active-thread": "active-work-thread",
   "mainline": "active-work-thread",
@@ -210,6 +216,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type workflow-adoption-map --name governed-project");
   console.error("  node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs");
   console.error("  node scripts/new-workflow-item.mjs --type work-queue-report --name current-work");
+  console.error("  node scripts/new-workflow-item.mjs --type hook-orchestration-plan --name project-hooks");
   console.error("  node scripts/new-workflow-item.mjs --type active-work-thread --name first-slice");
   console.error("  node scripts/new-workflow-item.mjs --type guided-decision-summary --name status-model");
   console.error("  node scripts/new-workflow-item.mjs --type change-boundary-report --name task-scope");

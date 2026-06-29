@@ -133,8 +133,9 @@ node scripts/cli.mjs doctor ../my-project
 | 老项目工作流映射 | 读取已有项目后，先说明哪些 AI Native 工作流该用、哪些现有流程要保留、哪些不能动 |
 | 文档生命周期 | 识别过期、重复、废弃和 source of truth，默认只给归档建议，不默认删除 |
 | Work Queue / Todo | 处理任务做到一半被打断、长期任务、暂停恢复和一次只能有一个当前任务 |
+| Hook 编排 | 区分可自动只读检查和必须人工确认的 hook，不自动安装、不改 CI、不加阻断 gate |
 
-`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check` 和 `work-queue-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态或删除文档。`workflow-map`、`doc-lifecycle` 和 `work-queue` 会只读扫描项目结构，输出建议，不会改目标项目。
+`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`work-queue-check` 和 `hook-plan-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`work-queue` 和 `hook-plan` 会只读扫描项目结构，输出建议，不会改目标项目。
 
 ## Dev Kit 自检
 
@@ -157,6 +158,8 @@ node scripts/resolve-document-lifecycle.mjs .
 node scripts/check-document-lifecycle.mjs .
 node scripts/resolve-work-queue.mjs .
 node scripts/check-work-queue.mjs .
+node scripts/resolve-hook-orchestration.mjs .
+node scripts/check-hook-orchestration.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
 node scripts/resolve-guided-baseline-selection.mjs .
@@ -187,6 +190,7 @@ node scripts/check-guided-adoption.mjs .
 - 不要把补丁分类报告当成允许实现；它只判断修复尺度。
 - 不要把文档生命周期报告当成允许删除、移动、归档或改变 source of truth；它只给归档/废弃/合并建议。
 - 不要把 Work Queue 当成实现授权；它只管理当前任务、暂停任务、停车场和恢复前检查。
+- 不要把 Hook Plan 当成安装授权；它只做只读识别、风险分级和确认前方案。
 - 不要把基线决策卡当成写入、实现、发布或 BL2 启用授权；它只帮助用户确认路径。
 - 不要把标准基线包推荐当成已经选择、写入授权或具体实现任务批准。
 - 不要把工业包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
@@ -226,6 +230,7 @@ node scripts/check-guided-adoption.mjs .
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)：已有项目如何先映射工作流，再决定是否接入
 - [Document Lifecycle](docs/document-lifecycle.md)：过期、重复、废弃文档和 source of truth 怎么治理
 - [Work Queue](docs/work-queue.md)：任务做到一半被打断、暂停恢复和只保留一个当前任务怎么治理
+- [Hook Orchestration](docs/hook-orchestration.md)：自动触发器怎么分级、规划、确认和回滚
 - [Baseline Pack System](docs/baseline-pack-system.md)：按项目级别、平台、能力和风险选择基线包
 
 接入项目：
@@ -251,6 +256,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.23 Release Record](releases/1.23.0/release-record.md)：1.23 Hook 编排治理
 - [1.22 Release Record](releases/1.22.0/release-record.md)：1.22 Work Queue / Todo 治理
 - [1.21 Release Record](releases/1.21.0/release-record.md)：1.21 文档生命周期治理
 - [1.20 Release Record](releases/1.20.0/release-record.md)：1.20 老项目工作流接入映射
