@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.31.0`
+Current version: `1.32.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.31.0`
 
 ## Current Release
 
-`1.31.0`
+`1.32.0`
 
 Includes:
 
+- Execution Review Closure phase `1.32.0`: adds `closure` and `closure-check` so Codex can close a completed task with changed-file scope, review surface closure, verification closure, debt closure, and commit-readiness state
+- Added `core/execution-review-closure.md`, `docs/execution-review-closure.md`, execution closure templates/checklists/prompts, `execution-closures/`, resolver/checker scripts, CLI/CI/manifest coverage, a 1.32 example, bad fixtures, and release evidence
+- `1.32.0` does not write target files, approve implementation, approve release/production, change task state, forgive debt, replace Review Loop, replace Safe Launch, authorize commit/push, or approve high-risk decisions
 - Intent-Aware Deep Guide phase `1.31.0`: adds `guide --deep --intent "<goal>"` so Codex can combine project signals with the user's natural-language goal before choosing read-only downstream checks
 - Added intent classification, `intentUnderstanding` JSON output, a user-facing `User Intent` card section, docs/checker/CI coverage, a 1.31 example, and release evidence
 - `1.31.0` does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation/release/production, approve high-risk decisions, or make intent classification authoritative

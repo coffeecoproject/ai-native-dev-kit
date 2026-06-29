@@ -61,6 +61,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  closure: {
+    description: "Close execution with changed scope, verification, debt, and commit-readiness review.",
+    script: "scripts/resolve-execution-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "closure-check": {
+    description: "Check recorded Execution Closure reports.",
+    script: "scripts/check-execution-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",
@@ -394,6 +406,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs delivery-path-check .");
   console.log("  node scripts/cli.mjs debt-handoff .");
   console.log("  node scripts/cli.mjs debt-handoff-check .");
+  console.log("  node scripts/cli.mjs closure . --intent 'finish booking validation'");
+  console.log("  node scripts/cli.mjs closure-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs baseline-decision ../my-project");

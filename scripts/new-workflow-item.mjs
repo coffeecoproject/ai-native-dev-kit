@@ -52,6 +52,7 @@ const typeMap = {
   "review-surface-card": { dir: "review-surface-cards", template: "review-surface-card.md", defaultName: "review-surface" },
   "delivery-path-report": { dir: "delivery-path-reports", template: "delivery-path-report.md", defaultName: "delivery-path" },
   "debt-knowledge-handoff-report": { dir: "debt-handoff-reports", template: "debt-knowledge-handoff-report.md", defaultName: "debt-handoff" },
+  "execution-closure-report": { dir: "execution-closures", template: "execution-closure-report.md", defaultName: "execution-closure" },
   "user-decision-card": { dir: "decision-briefs", template: "user-decision-card.md", defaultName: "user-decision" },
 };
 
@@ -200,6 +201,13 @@ const aliases = {
   "knowledge-handoff": "debt-knowledge-handoff-report",
   "debt-register": "debt-knowledge-handoff-report",
   "debt-knowledge-handoff": "debt-knowledge-handoff-report",
+  closure: "execution-closure-report",
+  "execution-closure": "execution-closure-report",
+  "execution-review": "execution-closure-report",
+  "execution-review-closure": "execution-closure-report",
+  "closure-report": "execution-closure-report",
+  "post-execution": "execution-closure-report",
+  "commit-readiness": "execution-closure-report",
   "user-decision": "user-decision-card",
   "decision-card-user": "user-decision-card",
 };
@@ -269,6 +277,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type review-surface-card --name task-review-surface");
   console.error("  node scripts/new-workflow-item.mjs --type delivery-path-report --name current-delivery-path");
   console.error("  node scripts/new-workflow-item.mjs --type debt-knowledge-handoff-report --name interrupted-task");
+  console.error("  node scripts/new-workflow-item.mjs --type execution-closure-report --name task-closure");
   console.error("  node scripts/new-workflow-item.mjs --type user-decision-card --name first-decision");
 }
 

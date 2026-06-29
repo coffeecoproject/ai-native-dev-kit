@@ -81,6 +81,7 @@ const fullRequiredPaths = [
   "review-surface-cards",
   "delivery-path-reports",
   "debt-handoff-reports",
+  "execution-closures",
   "releases",
   "scripts/verify.sh",
   "scripts/check-ai-workflow.mjs",

@@ -122,6 +122,12 @@ jobs:
       - name: Debt handoff smoke
         run: node scripts/cli.mjs debt-handoff .
 
+      - name: Execution closure check
+        run: node scripts/check-execution-closure.mjs .
+
+      - name: Execution closure smoke
+        run: node scripts/cli.mjs closure . --intent "maintain Dev Kit closure" --verification "npm run verify passed"
+
       - name: Guided delivery check
         run: node scripts/check-guided-delivery-loop.mjs .
 
@@ -211,6 +217,8 @@ jobs:
           node "$tmp/project/scripts/resolve-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-debt-handoff.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-debt-handoff.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-execution-closure.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-execution-closure.mjs" "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep --intent "build an appointment app"
@@ -218,6 +226,8 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" review-surface "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" delivery-path "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" closure "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"
+          node "$tmp/project/scripts/cli.mjs" closure-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" delivery-path-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" debt-handoff "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" debt-handoff-check "$tmp/project"

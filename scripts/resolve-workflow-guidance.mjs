@@ -182,6 +182,13 @@ function classifyIntent(rawIntent) {
       riskLevel: "high",
     },
     {
+      classification: "EXECUTION_REVIEW_CLOSURE",
+      pattern: /\b(done|finish|finished|complete|closure|close|post[- ]?execution|commit|push|handoff result)\b|完成|做完|收口|闭环|复查结果|提交|推送/i,
+      risk: "execution closure",
+      focus: ["functional", "code", "verification", "debt", "scope boundary"],
+      riskLevel: "medium",
+    },
+    {
       classification: "DOCUMENT_GOVERNANCE",
       pattern: /\b(document|docs|readme|archive|stale|duplicate|source of truth)\b|文档|归档|过期|重复|废弃|清理|准的/i,
       risk: "document lifecycle",
@@ -279,6 +286,7 @@ function collectSignals(root, exists, pathSet, intent) {
     hasDocumentIntent: intent.classification === "DOCUMENT_GOVERNANCE",
     hasTaskSwitchIntent: intent.classification === "TASK_SWITCH_OR_RESUME",
     hasAutomationIntent: intent.classification === "AUTOMATION_OR_HOOK",
+    hasExecutionClosureIntent: intent.classification === "EXECUTION_REVIEW_CLOSURE",
     hasBugFixIntent: intent.classification === "BUG_FIX",
     hasNewProductIntent: intent.classification === "BUILD_NEW_PRODUCT",
     hasRiskSignals: /\b(auth|login|permission|rbac|payment|billing|finance|tax|migration|database|schema|privacy|security|compliance|production|release|deploy|hook|ci)\b/i.test(allText),
@@ -420,6 +428,9 @@ function routingFor(project, signals, delivery, intent) {
   if (signals.hasPaymentIntent || signals.hasAuthIntent || signals.hasDataIntent || signals.hasBugFixIntent || intent.classification === "ADD_FEATURE") {
     rows.push(route("Intent needs scoped review", "review surface", "Check the right risk areas before execution", "Yes"));
   }
+  if (project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasExecutionClosureIntent) {
+    rows.push(route("Execution needs closure", "execution closure", "Summarize changed scope, verification, debt, and commit readiness without approving commit", "Yes"));
+  }
   if (delivery.current === "READY_FOR_SELF_TEST" || delivery.current === "READY_FOR_INTERNAL_TRIAL" || delivery.current === "READY_FOR_RELEASE_REVIEW") {
     rows.push(route("Near delivery", "launch readiness", "Check whether the project can be tried or reviewed for launch", "Yes"));
   }
@@ -527,6 +538,14 @@ function deepCapabilities() {
       userMeaning: "判断这次是否需要记录债务或交接上下文",
       shouldRun: (project, signals) => project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasTaskSwitchIntent || signals.hasBugFixIntent,
       skipReason: () => "未发现明显的修复、暂停、切换或交接信号。",
+    },
+    {
+      id: "execution-closure",
+      script: "resolve-execution-closure.mjs",
+      acceptsIntent: true,
+      userMeaning: "判断本次执行是否可以收口、是否缺验证、是否能进入提交审查",
+      shouldRun: (project, signals) => project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasExecutionClosureIntent,
+      skipReason: () => "未发现执行完成、提交、推送、收口或脏工作区信号。",
     },
     {
       id: "doc-lifecycle",
@@ -650,6 +669,11 @@ function summarizeDeepCapability(result) {
     summary.plainFinding = `债务/交接判断是 ${summary.signal}。`;
     summary.nextAction = "如有遗留问题，先记录验证方式和下次恢复点。";
   }
+  if (result.id === "execution-closure") {
+    summary.signal = report.commitReadiness?.closureState || "unknown";
+    summary.plainFinding = `执行收口状态是 ${summary.signal}。`;
+    summary.nextAction = "先关闭验证、范围和债务，再决定是否进入提交审查。";
+  }
   if (result.id === "doc-lifecycle") {
     summary.signal = `${Array.isArray(report.documentInventory) ? report.documentInventory.length : 0} docs scanned`;
     summary.plainFinding = `扫描到 ${Array.isArray(report.documentInventory) ? report.documentInventory.length : 0} 份文档，可能有过期、重复或归档候选。`;
@@ -679,6 +703,10 @@ function recommendedNextStepFromDeep(project, delivery, orchestration, intent) {
 
   if (intent.classification === "TASK_SWITCH_OR_RESUME") {
     return "先确认当前任务、暂停任务和恢复点，再决定是否切换。";
+  }
+
+  if (intent.classification === "EXECUTION_REVIEW_CLOSURE") {
+    return "先做执行后收口，确认改动范围、验证证据和债务，再决定是否进入提交审查。";
   }
 
   const workQueue = orchestration.summaries.find((item) => item.id === "work-queue");

@@ -110,6 +110,7 @@ The intent must be classified before downstream routing. Allowed intent classes 
 - `RELEASE_OR_DEPLOY`
 - `DOCUMENT_GOVERNANCE`
 - `TASK_SWITCH_OR_RESUME`
+- `EXECUTION_REVIEW_CLOSURE`
 - `BUG_FIX`
 - `AUTOMATION_OR_HOOK`
 - `GENERAL_CHANGE`
@@ -126,6 +127,7 @@ Deep Guide Orchestration is selective, not exhaustive:
 - Document lifecycle runs only when meaningful document signals exist.
 - Hook policy runs only when CI, hook, scheduled automation, or production-sensitive signals exist.
 - Debt handoff may run when the intent is task switching, resume, bug fix, or unfinished work.
+- Execution closure may run when the project is dirty or the intent is finish, close, commit, push, or post-execution review.
 
 The result is still one Workflow Guidance Card. Plain mode should show what Codex checked, not internal command names.
 

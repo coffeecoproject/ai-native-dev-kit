@@ -727,6 +727,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-delivery-path.mjs",
     "check-debt-handoff.mjs",
     "resolve-debt-handoff.mjs",
+    "check-execution-closure.mjs",
+    "resolve-execution-closure.mjs",
     "guide",
     "guide . --deep",
     "guide . --deep --intent",
@@ -737,6 +739,8 @@ function checkDevKitFirstPartyCi() {
     "delivery-path-check",
     "debt-handoff",
     "debt-handoff-check",
+    "closure",
+    "closure-check",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -5248,6 +5252,109 @@ function checkDebtKnowledgeHandoffProtocol() {
   }
 }
 
+function checkExecutionReviewClosureProtocol() {
+  const required = [
+    "core/execution-review-closure.md",
+    "docs/execution-review-closure.md",
+    "templates/execution-closure-report.md",
+    "checklists/execution-review-closure-review.md",
+    "prompts/execution-closure-agent.md",
+    "execution-closures/.gitkeep",
+    "scripts/resolve-execution-closure.mjs",
+    "scripts/check-execution-closure.mjs",
+    "examples/1.32-execution-review-closure/README.md",
+    "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
+    "test-fixtures/bad/bad-execution-closure-approves-implementation/execution-closures/001-bad.md",
+    "test-fixtures/bad/bad-execution-closure-missing-verification/execution-closures/001-bad.md",
+    "releases/1.32.0/release-record.md",
+    "releases/1.32.0/known-limitations.md",
+    "releases/1.32.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.32 execution closure asset exists ${file}`);
+    else fail(`1.32 execution closure asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/execution-review-closure.md"),
+    read("docs/execution-review-closure.md"),
+    read("templates/execution-closure-report.md"),
+    read("scripts/resolve-execution-closure.mjs"),
+    read("scripts/check-execution-closure.mjs"),
+    read("releases/1.32.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Execution Review Closure",
+    "Execution Closure Report",
+    "READY_FOR_COMMIT_REVIEW",
+    "Verification Closure",
+    "Commit Readiness",
+    "This closure approves implementation: No",
+    "This closure authorizes commit or push: No",
+    "This closure replaces Safe Launch: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.32 execution closure includes ${marker}`);
+    else fail(`1.32 execution closure missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish Dev Kit closure", "--verification", "npm run verify passed"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Execution Closure Report")
+    && resolver.stdout.includes("Commit Readiness")
+    && resolver.stdout.includes("This closure authorizes commit or push: No")) {
+    pass("1.32 execution closure resolver prints safe report");
+  } else {
+    fail(`1.32 execution closure resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish Dev Kit closure", "--verification", "npm run verify passed", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "EXECUTION_REVIEW_CLOSURE"
+        && parsed.boundaries?.authorizesCommitOrPush === "No"
+        && parsed.commitReadiness?.closureState
+        && Array.isArray(parsed.reviewSurfaceClosure)) {
+        pass("1.32 execution closure resolver JSON includes closure state, surfaces, and boundary");
+      } else {
+        fail(`1.32 execution closure resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.32 execution closure resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.32 execution closure resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-execution-closure.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Execution Review Closure check passed")) {
+    pass("1.32 execution closure checker passes source repo");
+  } else {
+    fail(`1.32 execution closure checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-execution-closure.mjs", "examples/1.32-execution-review-closure"]);
+  if (example.status === 0 && example.stdout.includes("Execution Review Closure check passed")) {
+    pass("1.32 execution closure example passes checker");
+  } else {
+    fail(`1.32 execution closure example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["approval overclaim", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-approves-implementation"], "forbidden execution closure claim"],
+    ["missing verification", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-missing-verification"], "requires passing verification commands"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.32 execution closure rejects ${name}`);
+    } else {
+      fail(`1.32 execution closure must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -8358,6 +8465,7 @@ checkNaturalLanguageOrchestratorProtocol();
 checkReviewSurfaceGovernanceProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
+checkExecutionReviewClosureProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

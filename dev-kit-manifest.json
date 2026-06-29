@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.31.0",
+  "devKitVersion": "1.32.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.31.0"
+    "phase": "1.32.0"
   },
   "groups": {
     "sourceRequired": [
@@ -65,6 +65,7 @@
       "checklists/document-lifecycle-review.md",
       "checklists/engineering-baseline-review.md",
       "checklists/environment-baseline-review.md",
+      "checklists/execution-review-closure-review.md",
       "checklists/first-delivery-walkthrough-review.md",
       "checklists/git-boundary-review.md",
       "checklists/goal-mode-review.md",
@@ -109,6 +110,7 @@
       "core/document-lifecycle.md",
       "core/engineering-baseline.md",
       "core/environment-baseline.md",
+      "core/execution-review-closure.md",
       "core/existing-project-workflow-adapter.md",
       "core/extension-policy.md",
       "core/first-delivery-walkthrough.md",
@@ -177,6 +179,7 @@
       "docs/document-archive-apply.md",
       "docs/document-lifecycle.md",
       "docs/engineering-environment-baseline-1.2-plan.md",
+      "docs/execution-review-closure.md",
       "docs/existing-project-workflow-adapter.md",
       "docs/faq.md",
       "docs/first-delivery-walkthrough.md",
@@ -339,6 +342,12 @@
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
       "examples/1.3-guided-delivery-baseline/releases/example-release.md",
+      "examples/1.30-deep-guide-orchestration/README.md",
+      "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
+      "examples/1.31-intent-aware-deep-guide/README.md",
+      "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
+      "examples/1.32-execution-review-closure/README.md",
+      "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
       "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
@@ -436,6 +445,7 @@
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
       "examples/web-internal-admin-first-slice/task-card.md",
+      "execution-closures/.gitkeep",
       "final-reports/034-baseline-freeze-self-ci.md",
       "final-reports/035-readonly-manifest.md",
       "final-reports/036-cli-front-door.md",
@@ -668,6 +678,7 @@
       "prompts/document-lifecycle-agent.md",
       "prompts/engineering-baseline-agent.md",
       "prompts/environment-baseline-agent.md",
+      "prompts/execution-closure-agent.md",
       "prompts/goal-planner-agent.md",
       "prompts/guided-delivery-check-agent.md",
       "prompts/hook-policy-agent.md",
@@ -792,6 +803,15 @@
       "releases/1.3.0/known-limitations.md",
       "releases/1.3.0/release-record.md",
       "releases/1.3.0/self-check-report.md",
+      "releases/1.30.0/known-limitations.md",
+      "releases/1.30.0/release-record.md",
+      "releases/1.30.0/self-check-report.md",
+      "releases/1.31.0/known-limitations.md",
+      "releases/1.31.0/release-record.md",
+      "releases/1.31.0/self-check-report.md",
+      "releases/1.32.0/known-limitations.md",
+      "releases/1.32.0/release-record.md",
+      "releases/1.32.0/self-check-report.md",
       "releases/1.4.0/known-limitations.md",
       "releases/1.4.0/release-record.md",
       "releases/1.4.0/self-check-report.md",
@@ -905,6 +925,7 @@
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
+      "scripts/check-execution-closure.mjs",
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-fixtures.mjs",
       "scripts/check-glossary-usage.mjs",
@@ -949,6 +970,7 @@
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
       "scripts/resolve-document-lifecycle.mjs",
+      "scripts/resolve-execution-closure.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-policy.mjs",
@@ -1159,6 +1181,7 @@
       "templates/engineering-baseline.md",
       "templates/environment-baseline.md",
       "templates/eval.md",
+      "templates/execution-closure-report.md",
       "templates/existing-governance-map.md",
       "templates/final-report.md",
       "templates/follow-up-proposal.md",
@@ -1242,6 +1265,8 @@
       "test-fixtures/bad/bad-engineering-baseline-pending-decision/docs/engineering-baseline.md",
       "test-fixtures/bad/bad-engineering-baseline/docs/engineering-baseline.md",
       "test-fixtures/bad/bad-environment-baseline-secret/docs/environment-baseline.md",
+      "test-fixtures/bad/bad-execution-closure-approves-implementation/execution-closures/001-bad.md",
+      "test-fixtures/bad/bad-execution-closure-missing-verification/execution-closures/001-bad.md",
       "test-fixtures/bad/bad-first-delivery-missing-final/adoption-trial-reports/001-missing-final.md",
       "test-fixtures/bad/bad-first-delivery-missing-launch/adoption-trial-reports/001-missing-launch.md",
       "test-fixtures/bad/bad-first-delivery-overclaim/adoption-trial-reports/001-overclaim.md",
@@ -1433,17 +1458,7 @@
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
       "test-fixtures/output-quality/README.md",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep",
-      "examples/1.30-deep-guide-orchestration/README.md",
-      "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
-      "releases/1.30.0/known-limitations.md",
-      "releases/1.30.0/release-record.md",
-      "releases/1.30.0/self-check-report.md",
-      "examples/1.31-intent-aware-deep-guide/README.md",
-      "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
-      "releases/1.31.0/known-limitations.md",
-      "releases/1.31.0/release-record.md",
-      "releases/1.31.0/self-check-report.md"
+      "workflow-guidance-cards/.gitkeep"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -1463,6 +1478,7 @@
       ".ai-native/checklists/document-lifecycle-review.md",
       ".ai-native/checklists/engineering-baseline-review.md",
       ".ai-native/checklists/environment-baseline-review.md",
+      ".ai-native/checklists/execution-review-closure-review.md",
       ".ai-native/checklists/first-delivery-walkthrough-review.md",
       ".ai-native/checklists/git-boundary-review.md",
       ".ai-native/checklists/goal-mode-review.md",
@@ -1504,6 +1520,7 @@
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
+      ".ai-native/core/execution-review-closure.md",
       ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/extension-policy.md",
       ".ai-native/core/first-delivery-walkthrough.md",
@@ -1546,6 +1563,7 @@
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-archive-apply.md",
       ".ai-native/docs/document-lifecycle.md",
+      ".ai-native/docs/execution-review-closure.md",
       ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
@@ -1585,6 +1603,7 @@
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/engineering-baseline-agent.md",
       ".ai-native/prompts/environment-baseline-agent.md",
+      ".ai-native/prompts/execution-closure-agent.md",
       ".ai-native/prompts/goal-planner-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
@@ -1637,6 +1656,7 @@
       ".ai-native/templates/engineering-baseline.md",
       ".ai-native/templates/environment-baseline.md",
       ".ai-native/templates/eval.md",
+      ".ai-native/templates/execution-closure-report.md",
       ".ai-native/templates/existing-governance-map.md",
       ".ai-native/templates/final-report.md",
       ".ai-native/templates/follow-up-proposal.md",
@@ -1721,6 +1741,7 @@
       "docs/test-strategy.md",
       "docs/verification-matrix.md",
       "evals",
+      "execution-closures",
       "final-reports",
       "follow-up-proposals",
       "git-boundary-reports",
@@ -1758,6 +1779,7 @@
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
+      "scripts/check-execution-closure.mjs",
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
@@ -1796,6 +1818,7 @@
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
       "scripts/resolve-document-lifecycle.mjs",
+      "scripts/resolve-execution-closure.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
@@ -1839,6 +1862,7 @@
       ".ai-native/checklists/document-lifecycle-review.md",
       ".ai-native/checklists/engineering-baseline-review.md",
       ".ai-native/checklists/environment-baseline-review.md",
+      ".ai-native/checklists/execution-review-closure-review.md",
       ".ai-native/checklists/first-delivery-walkthrough-review.md",
       ".ai-native/checklists/git-boundary-review.md",
       ".ai-native/checklists/goal-mode-review.md",
@@ -1883,6 +1907,7 @@
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
+      ".ai-native/core/execution-review-closure.md",
       ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/extension-policy.md",
       ".ai-native/core/first-delivery-walkthrough.md",
@@ -1925,6 +1950,7 @@
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-archive-apply.md",
       ".ai-native/docs/document-lifecycle.md",
+      ".ai-native/docs/execution-review-closure.md",
       ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
@@ -1990,6 +2016,7 @@
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/engineering-baseline-agent.md",
       ".ai-native/prompts/environment-baseline-agent.md",
+      ".ai-native/prompts/execution-closure-agent.md",
       ".ai-native/prompts/goal-planner-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
@@ -2044,6 +2071,7 @@
       ".ai-native/templates/engineering-baseline.md",
       ".ai-native/templates/environment-baseline.md",
       ".ai-native/templates/eval.md",
+      ".ai-native/templates/execution-closure-report.md",
       ".ai-native/templates/existing-governance-map.md",
       ".ai-native/templates/final-report.md",
       ".ai-native/templates/follow-up-proposal.md",
@@ -2132,6 +2160,7 @@
       "docs/test-strategy.md",
       "docs/verification-matrix.md",
       "evals",
+      "execution-closures",
       "final-reports",
       "follow-up-proposals",
       "git-boundary-reports",
@@ -2169,6 +2198,7 @@
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
+      "scripts/check-execution-closure.mjs",
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
@@ -2210,6 +2240,7 @@
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
       "scripts/resolve-document-lifecycle.mjs",
+      "scripts/resolve-execution-closure.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
@@ -2250,6 +2281,7 @@
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
+      ".ai-native/core/execution-review-closure.md",
       ".ai-native/core/extension-policy.md",
       ".ai-native/core/gates.md",
       ".ai-native/core/git-boundary.md",
@@ -2278,6 +2310,7 @@
       "core/delivery-path-governance.md",
       "core/document-archive-apply.md",
       "core/document-lifecycle.md",
+      "core/execution-review-closure.md",
       "core/existing-project-workflow-adapter.md",
       "core/first-delivery-walkthrough.md",
       "core/guided-baseline-selection.md",
@@ -2323,6 +2356,7 @@
       "templates/engineering-baseline.md",
       "templates/environment-baseline.md",
       "templates/eval.md",
+      "templates/execution-closure-report.md",
       "templates/existing-governance-map.md",
       "templates/final-report.md",
       "templates/follow-up-proposal.md",
@@ -2391,6 +2425,7 @@
       "prompts/document-lifecycle-agent.md",
       "prompts/engineering-baseline-agent.md",
       "prompts/environment-baseline-agent.md",
+      "prompts/execution-closure-agent.md",
       "prompts/goal-planner-agent.md",
       "prompts/guided-delivery-check-agent.md",
       "prompts/hook-orchestration-agent.md",
@@ -2428,6 +2463,7 @@
       "checklists/document-lifecycle-review.md",
       "checklists/engineering-baseline-review.md",
       "checklists/environment-baseline-review.md",
+      "checklists/execution-review-closure-review.md",
       "checklists/first-delivery-walkthrough-review.md",
       "checklists/git-boundary-review.md",
       "checklists/goal-mode-review.md",
@@ -2504,6 +2540,7 @@
       "dev-kit-proposals",
       "doc-lifecycle-reports",
       "evals",
+      "execution-closures",
       "final-reports",
       "follow-up-proposals",
       "git-boundary-reports",
@@ -2555,6 +2592,7 @@
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
+      "scripts/check-execution-closure.mjs",
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-fixtures.mjs",
       "scripts/check-glossary-usage.mjs",
@@ -2601,6 +2639,7 @@
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
       "scripts/resolve-document-lifecycle.mjs",
+      "scripts/resolve-execution-closure.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
@@ -2721,6 +2760,8 @@
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
       "examples/1.3-guided-delivery-baseline/releases/example-release.md",
+      "examples/1.32-execution-review-closure/README.md",
+      "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
       "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
@@ -2855,6 +2896,8 @@
       "test-fixtures/bad/bad-engineering-baseline-pending-decision/docs/engineering-baseline.md",
       "test-fixtures/bad/bad-engineering-baseline/docs/engineering-baseline.md",
       "test-fixtures/bad/bad-environment-baseline-secret/docs/environment-baseline.md",
+      "test-fixtures/bad/bad-execution-closure-approves-implementation/execution-closures/001-bad.md",
+      "test-fixtures/bad/bad-execution-closure-missing-verification/execution-closures/001-bad.md",
       "test-fixtures/bad/bad-first-delivery-missing-final/adoption-trial-reports/001-missing-final.md",
       "test-fixtures/bad/bad-first-delivery-missing-launch/adoption-trial-reports/001-missing-launch.md",
       "test-fixtures/bad/bad-first-delivery-overclaim/adoption-trial-reports/001-overclaim.md",
@@ -3061,6 +3104,7 @@
       ".ai-native/checklists/delivery-path-review.md",
       ".ai-native/checklists/document-archive-apply-review.md",
       ".ai-native/checklists/document-lifecycle-review.md",
+      ".ai-native/checklists/execution-review-closure-review.md",
       ".ai-native/checklists/first-delivery-walkthrough-review.md",
       ".ai-native/checklists/git-boundary-review.md",
       ".ai-native/checklists/guided-delivery-loop-review.md",
@@ -3088,6 +3132,7 @@
       ".ai-native/core/delivery-path-governance.md",
       ".ai-native/core/document-archive-apply.md",
       ".ai-native/core/document-lifecycle.md",
+      ".ai-native/core/execution-review-closure.md",
       ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/first-delivery-walkthrough.md",
       ".ai-native/core/git-boundary.md",
@@ -3117,6 +3162,7 @@
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-archive-apply.md",
       ".ai-native/docs/document-lifecycle.md",
+      ".ai-native/docs/execution-review-closure.md",
       ".ai-native/docs/existing-project-workflow-adapter.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
@@ -3153,6 +3199,7 @@
       ".ai-native/prompts/delivery-path-agent.md",
       ".ai-native/prompts/document-archive-agent.md",
       ".ai-native/prompts/document-lifecycle-agent.md",
+      ".ai-native/prompts/execution-closure-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
       ".ai-native/prompts/hook-policy-agent.md",
@@ -3184,6 +3231,7 @@
       ".ai-native/templates/delivery-path-report.md",
       ".ai-native/templates/document-archive-apply-plan.md",
       ".ai-native/templates/document-lifecycle-report.md",
+      ".ai-native/templates/execution-closure-report.md",
       ".ai-native/templates/git-boundary-report.md",
       ".ai-native/templates/guided-decision-summary.md",
       ".ai-native/templates/hook-orchestration-plan.md",
@@ -3230,6 +3278,7 @@
       "docs/sample-policy.md",
       "docs/tech-stack-strategy.md",
       "docs/verification-matrix.md",
+      "execution-closures",
       "final-reports",
       "follow-up-proposals",
       "git-boundary-reports",
@@ -3264,6 +3313,7 @@
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
+      "scripts/check-execution-closure.mjs",
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
@@ -3305,6 +3355,7 @@
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
       "scripts/resolve-document-lifecycle.mjs",
+      "scripts/resolve-execution-closure.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
@@ -3340,6 +3391,7 @@
       ".ai-native/checklists/document-lifecycle-review.md",
       ".ai-native/checklists/engineering-baseline-review.md",
       ".ai-native/checklists/environment-baseline-review.md",
+      ".ai-native/checklists/execution-review-closure-review.md",
       ".ai-native/checklists/first-delivery-walkthrough-review.md",
       ".ai-native/checklists/git-boundary-review.md",
       ".ai-native/checklists/goal-mode-review.md",
@@ -3374,6 +3426,7 @@
       ".ai-native/core/document-lifecycle.md",
       ".ai-native/core/engineering-baseline.md",
       ".ai-native/core/environment-baseline.md",
+      ".ai-native/core/execution-review-closure.md",
       ".ai-native/core/existing-project-workflow-adapter.md",
       ".ai-native/core/first-delivery-walkthrough.md",
       ".ai-native/core/git-boundary.md",
@@ -3409,6 +3462,7 @@
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-archive-apply.md",
       ".ai-native/docs/document-lifecycle.md",
+      ".ai-native/docs/execution-review-closure.md",
       ".ai-native/docs/first-delivery-walkthrough.md",
       ".ai-native/docs/first-hour.md",
       ".ai-native/docs/goal-subagent-usage.md",
@@ -3458,6 +3512,7 @@
       ".ai-native/prompts/document-lifecycle-agent.md",
       ".ai-native/prompts/engineering-baseline-agent.md",
       ".ai-native/prompts/environment-baseline-agent.md",
+      ".ai-native/prompts/execution-closure-agent.md",
       ".ai-native/prompts/goal-planner-agent.md",
       ".ai-native/prompts/guided-delivery-check-agent.md",
       ".ai-native/prompts/hook-orchestration-agent.md",
@@ -3498,6 +3553,7 @@
       ".ai-native/templates/document-lifecycle-report.md",
       ".ai-native/templates/engineering-baseline.md",
       ".ai-native/templates/environment-baseline.md",
+      ".ai-native/templates/execution-closure-report.md",
       ".ai-native/templates/existing-governance-map.md",
       ".ai-native/templates/final-report.md",
       ".ai-native/templates/follow-up-proposal.md",
@@ -3556,6 +3612,7 @@
       "docs/sample-policy.md",
       "docs/tech-stack-strategy.md",
       "docs/verification-matrix.md",
+      "execution-closures",
       "final-reports",
       "follow-up-proposals",
       "git-boundary-reports",
@@ -3590,6 +3647,7 @@
       "scripts/check-document-lifecycle.mjs",
       "scripts/check-engineering-baseline.mjs",
       "scripts/check-environment-baseline.mjs",
+      "scripts/check-execution-closure.mjs",
       "scripts/check-first-delivery-walkthrough.mjs",
       "scripts/check-goal-mode.mjs",
       "scripts/check-guided-adoption.mjs",
@@ -3624,6 +3682,7 @@
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
       "scripts/resolve-document-lifecycle.mjs",
+      "scripts/resolve-execution-closure.mjs",
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
@@ -3649,34 +3708,6 @@
   "copyRules": {
     "directories": [
       {
-        "source": "checklists",
-        "target": ".ai-native/checklists"
-      },
-      {
-        "source": "core",
-        "target": ".ai-native/core"
-      },
-      {
-        "source": "profiles",
-        "target": ".ai-native/profiles"
-      },
-      {
-        "source": "prompts",
-        "target": ".ai-native/prompts"
-      },
-      {
-        "source": "schemas/artifacts",
-        "target": ".ai-native/schemas/artifacts"
-      },
-      {
-        "source": "standard-baseline-packs",
-        "target": ".ai-native/standard-baseline-packs"
-      },
-      {
-        "source": "templates",
-        "target": ".ai-native/templates"
-      },
-      {
         "source": "baseline-decision-cards",
         "target": "baseline-decision-cards"
       },
@@ -3693,12 +3724,24 @@
         "target": "change-boundary-reports"
       },
       {
+        "source": "checklists",
+        "target": ".ai-native/checklists"
+      },
+      {
+        "source": "core",
+        "target": ".ai-native/core"
+      },
+      {
         "source": "delivery-path-reports",
         "target": "delivery-path-reports"
       },
       {
         "source": "doc-lifecycle-reports",
         "target": "doc-lifecycle-reports"
+      },
+      {
+        "source": "execution-closures",
+        "target": "execution-closures"
       },
       {
         "source": "governance-maps",
@@ -3717,6 +3760,14 @@
         "target": "patch-classifications"
       },
       {
+        "source": "profiles",
+        "target": ".ai-native/profiles"
+      },
+      {
+        "source": "prompts",
+        "target": ".ai-native/prompts"
+      },
+      {
         "source": "real-adoption-trials",
         "target": "real-adoption-trials"
       },
@@ -3725,8 +3776,20 @@
         "target": "review-surface-cards"
       },
       {
+        "source": "schemas/artifacts",
+        "target": ".ai-native/schemas/artifacts"
+      },
+      {
+        "source": "standard-baseline-packs",
+        "target": ".ai-native/standard-baseline-packs"
+      },
+      {
         "source": "standard-baseline-selections",
         "target": "standard-baseline-selections"
+      },
+      {
+        "source": "templates",
+        "target": ".ai-native/templates"
       },
       {
         "source": "work-queue",
@@ -3769,6 +3832,10 @@
       {
         "source": "checklists/document-archive-apply-review.md",
         "target": ".ai-native/checklists/document-archive-apply-review.md"
+      },
+      {
+        "source": "checklists/execution-review-closure-review.md",
+        "target": ".ai-native/checklists/execution-review-closure-review.md"
       },
       {
         "source": "checklists/guided-delivery-loop-review.md",
@@ -3825,6 +3892,10 @@
       {
         "source": "core/document-archive-apply.md",
         "target": ".ai-native/core/document-archive-apply.md"
+      },
+      {
+        "source": "core/execution-review-closure.md",
+        "target": ".ai-native/core/execution-review-closure.md"
       },
       {
         "source": "core/guided-baseline-selection.md",
@@ -3919,6 +3990,10 @@
         "target": ".ai-native/docs/document-lifecycle.md"
       },
       {
+        "source": "docs/execution-review-closure.md",
+        "target": ".ai-native/docs/execution-review-closure.md"
+      },
+      {
         "source": "docs/existing-project-workflow-adapter.md",
         "target": ".ai-native/docs/existing-project-workflow-adapter.md"
       },
@@ -4003,6 +4078,10 @@
         "target": ".ai-native/docs/work-queue.md"
       },
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
         "source": "prompts/baseline-decision-agent.md",
         "target": ".ai-native/prompts/baseline-decision-agent.md"
       },
@@ -4033,6 +4112,10 @@
       {
         "source": "prompts/document-archive-agent.md",
         "target": ".ai-native/prompts/document-archive-agent.md"
+      },
+      {
+        "source": "prompts/execution-closure-agent.md",
+        "target": ".ai-native/prompts/execution-closure-agent.md"
       },
       {
         "source": "prompts/guided-delivery-check-agent.md",
@@ -4069,90 +4152,6 @@
       {
         "source": "prompts/workflow-concierge-agent.md",
         "target": ".ai-native/prompts/workflow-concierge-agent.md"
-      },
-      {
-        "source": "templates/active-work-thread.md",
-        "target": ".ai-native/templates/active-work-thread.md"
-      },
-      {
-        "source": "templates/archive-index.md",
-        "target": ".ai-native/templates/archive-index.md"
-      },
-      {
-        "source": "templates/baseline-decision-card.md",
-        "target": ".ai-native/templates/baseline-decision-card.md"
-      },
-      {
-        "source": "templates/baseline-pack-selection-report.md",
-        "target": ".ai-native/templates/baseline-pack-selection-report.md"
-      },
-      {
-        "source": "templates/baseline-state-report.md",
-        "target": ".ai-native/templates/baseline-state-report.md"
-      },
-      {
-        "source": "templates/change-boundary-report.md",
-        "target": ".ai-native/templates/change-boundary-report.md"
-      },
-      {
-        "source": "templates/debt-knowledge-handoff-report.md",
-        "target": ".ai-native/templates/debt-knowledge-handoff-report.md"
-      },
-      {
-        "source": "templates/delivery-path-report.md",
-        "target": ".ai-native/templates/delivery-path-report.md"
-      },
-      {
-        "source": "templates/document-archive-apply-plan.md",
-        "target": ".ai-native/templates/document-archive-apply-plan.md"
-      },
-      {
-        "source": "templates/guided-decision-summary.md",
-        "target": ".ai-native/templates/guided-decision-summary.md"
-      },
-      {
-        "source": "templates/hook-orchestration-plan.md",
-        "target": ".ai-native/templates/hook-orchestration-plan.md"
-      },
-      {
-        "source": "templates/patch-classification-false-positive.md",
-        "target": ".ai-native/templates/patch-classification-false-positive.md"
-      },
-      {
-        "source": "templates/patch-classification-report.md",
-        "target": ".ai-native/templates/patch-classification-report.md"
-      },
-      {
-        "source": "templates/project-hook-policy.md",
-        "target": ".ai-native/templates/project-hook-policy.md"
-      },
-      {
-        "source": "templates/real-adoption-trial-report.md",
-        "target": ".ai-native/templates/real-adoption-trial-report.md"
-      },
-      {
-        "source": "templates/review-surface-card.md",
-        "target": ".ai-native/templates/review-surface-card.md"
-      },
-      {
-        "source": "templates/standard-baseline-selection-report.md",
-        "target": ".ai-native/templates/standard-baseline-selection-report.md"
-      },
-      {
-        "source": "templates/user-decision-card.md",
-        "target": ".ai-native/templates/user-decision-card.md"
-      },
-      {
-        "source": "templates/work-queue-report.md",
-        "target": ".ai-native/templates/work-queue-report.md"
-      },
-      {
-        "source": "templates/workflow-guidance-card.md",
-        "target": ".ai-native/templates/workflow-guidance-card.md"
-      },
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
       },
       {
         "source": "scripts/baseline-project.mjs",
@@ -4213,6 +4212,10 @@
       {
         "source": "scripts/check-environment-baseline.mjs",
         "target": "scripts/check-environment-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-execution-closure.mjs",
+        "target": "scripts/check-execution-closure.mjs"
       },
       {
         "source": "scripts/check-first-delivery-walkthrough.mjs",
@@ -4379,6 +4382,10 @@
         "target": "scripts/resolve-document-lifecycle.mjs"
       },
       {
+        "source": "scripts/resolve-execution-closure.mjs",
+        "target": "scripts/resolve-execution-closure.mjs"
+      },
+      {
         "source": "scripts/resolve-existing-workflow.mjs",
         "target": "scripts/resolve-existing-workflow.mjs"
       },
@@ -4433,6 +4440,90 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "templates/active-work-thread.md",
+        "target": ".ai-native/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/archive-index.md",
+        "target": ".ai-native/templates/archive-index.md"
+      },
+      {
+        "source": "templates/baseline-decision-card.md",
+        "target": ".ai-native/templates/baseline-decision-card.md"
+      },
+      {
+        "source": "templates/baseline-pack-selection-report.md",
+        "target": ".ai-native/templates/baseline-pack-selection-report.md"
+      },
+      {
+        "source": "templates/baseline-state-report.md",
+        "target": ".ai-native/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/change-boundary-report.md",
+        "target": ".ai-native/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/debt-knowledge-handoff-report.md",
+        "target": ".ai-native/templates/debt-knowledge-handoff-report.md"
+      },
+      {
+        "source": "templates/delivery-path-report.md",
+        "target": ".ai-native/templates/delivery-path-report.md"
+      },
+      {
+        "source": "templates/document-archive-apply-plan.md",
+        "target": ".ai-native/templates/document-archive-apply-plan.md"
+      },
+      {
+        "source": "templates/execution-closure-report.md",
+        "target": ".ai-native/templates/execution-closure-report.md"
+      },
+      {
+        "source": "templates/guided-decision-summary.md",
+        "target": ".ai-native/templates/guided-decision-summary.md"
+      },
+      {
+        "source": "templates/hook-orchestration-plan.md",
+        "target": ".ai-native/templates/hook-orchestration-plan.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".ai-native/templates/patch-classification-false-positive.md"
+      },
+      {
+        "source": "templates/patch-classification-report.md",
+        "target": ".ai-native/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/project-hook-policy.md",
+        "target": ".ai-native/templates/project-hook-policy.md"
+      },
+      {
+        "source": "templates/real-adoption-trial-report.md",
+        "target": ".ai-native/templates/real-adoption-trial-report.md"
+      },
+      {
+        "source": "templates/review-surface-card.md",
+        "target": ".ai-native/templates/review-surface-card.md"
+      },
+      {
+        "source": "templates/standard-baseline-selection-report.md",
+        "target": ".ai-native/templates/standard-baseline-selection-report.md"
+      },
+      {
+        "source": "templates/user-decision-card.md",
+        "target": ".ai-native/templates/user-decision-card.md"
+      },
+      {
+        "source": "templates/work-queue-report.md",
+        "target": ".ai-native/templates/work-queue-report.md"
+      },
+      {
+        "source": "templates/workflow-guidance-card.md",
+        "target": ".ai-native/templates/workflow-guidance-card.md"
       }
     ]
   },

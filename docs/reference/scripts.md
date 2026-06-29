@@ -18,6 +18,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs delivery-path-check <project>` | Check recorded Delivery Path Reports | No |
 | `node scripts/cli.mjs debt-handoff <project>` | Record debt and handoff context for paused, interrupted, or unfinished work | No |
 | `node scripts/cli.mjs debt-handoff-check <project>` | Check recorded Debt & Knowledge Handoff Reports | No |
+| `node scripts/cli.mjs closure <project> --intent "<goal>" --verification "<evidence>"` | Close execution with scope, verification, debt, and commit-readiness review | No |
+| `node scripts/cli.mjs closure-check <project>` | Check recorded Execution Closure Reports | No |
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
@@ -86,7 +88,7 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. Use `--write-plan <file>` to write a reviewable plan and `--apply-plan <file>` to apply only approved baseline docs and baseline reports.
 
-`scripts/resolve-workflow-guidance.mjs` is the natural-language front door. It reads project state and prints one Workflow Guidance Card with a delivery path state, next step, distance to useful use, limited questions, internal routing, and explicit no-write/no-CI/no-hook/no-release boundaries. With `--deep`, it selectively runs read-only downstream resolvers such as review surface, delivery path, work queue, document lifecycle, workflow mapping, baseline decision, debt handoff, and hook policy, then compresses them back into one card. With `--intent`, it classifies the user's goal and passes it to downstream resolvers that accept intent. It does not write target-project files.
+`scripts/resolve-workflow-guidance.mjs` is the natural-language front door. It reads project state and prints one Workflow Guidance Card with a delivery path state, next step, distance to useful use, limited questions, internal routing, and explicit no-write/no-CI/no-hook/no-release boundaries. With `--deep`, it selectively runs read-only downstream resolvers such as review surface, delivery path, work queue, document lifecycle, workflow mapping, baseline decision, debt handoff, execution closure, and hook policy, then compresses them back into one card. With `--intent`, it classifies the user's goal and passes it to downstream resolvers that accept intent. It does not write target-project files.
 
 `scripts/check-workflow-guidance.mjs` checks recorded Workflow Guidance Cards. It rejects too many questions, internal jargon leaking into plain mode, target-project write approval, CI/hook/document/task-state approval, implementation approval, release/production approval, and high-risk decision approval.
 
@@ -101,6 +103,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-debt-handoff.mjs` is the 1.27 debt handoff entry. It reads project state and prints one Debt & Knowledge Handoff Report with debt level, knowledge handoff, verification notes, files to revisit, human decisions, and explicit non-approval boundaries. It does not write target-project files.
 
 `scripts/check-debt-handoff.mjs` checks recorded Debt & Knowledge Handoff Reports. It validates allowed debt levels, required handoff subsections, boundaries, outcomes, and rejects debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, and Safe Launch replacement.
+
+`scripts/resolve-execution-closure.mjs` is the 1.32 execution closure entry. It reads changed files, user intent, and optional verification evidence, then prints one Execution Closure Report with review surface closure, verification closure, scope boundary closure, debt closure, and commit readiness. It does not write target-project files or authorize commit/push.
+
+`scripts/check-execution-closure.mjs` checks recorded Execution Closure Reports. It rejects implementation approval, release/production approval, commit/push authorization, debt forgiveness, missing required review surfaces, missing boundaries, and `READY_FOR_COMMIT_REVIEW` without passing verification evidence.
 
 `scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
 

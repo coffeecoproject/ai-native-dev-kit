@@ -120,6 +120,7 @@ const fallbackWorkflowRequiredPaths = [
   "review-surface-cards",
   "delivery-path-reports",
   "debt-handoff-reports",
+  "execution-closures",
   ".ai-native/version.json",
   ".ai-native/docs/artifact-decision-tree.md",
   ".ai-native/docs/first-hour.md",

@@ -116,14 +116,20 @@ Return one plain-language next-step card from a natural-language project entry.
 node scripts/resolve-workflow-guidance.mjs .
 node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/resolve-workflow-guidance.mjs . --deep --intent "我要加支付预约"
+node scripts/resolve-execution-closure.mjs . --intent "完成预约校验" --verification "npm run verify passed"
+node scripts/check-execution-closure.mjs .
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs guide .
 node scripts/cli.mjs guide . --deep
 node scripts/cli.mjs guide . --deep --intent "维护 Dev Kit 自然语言入口"
+node scripts/cli.mjs closure . --intent "维护 Dev Kit 执行收口" --verification "npm run verify passed"
+node scripts/cli.mjs closure-check .
 node scripts/cli.mjs guide-check .
 ```
 
 `resolve-workflow-guidance.mjs` is read-only. It reports project state, delivery path state, recommended next step, distance to useful use, limited questions for the human, internal routing, and no-write/no-CI/no-hook/no-release boundaries. With `--deep`, it selectively summarizes relevant read-only downstream checks into one card. With `--intent`, it classifies the user's goal and passes that goal to downstream resolvers that support intent. `check-workflow-guidance.mjs` rejects overclaims, too many questions, and internal workflow jargon in plain mode.
+
+`resolve-execution-closure.mjs` is read-only. It reports changed scope, verification closure, review surface closure, debt closure, and commit readiness. `check-execution-closure.mjs` rejects closure overclaims, missing required surfaces, and commit-readiness without passing verification evidence.
 
 ## resolve-review-surface.mjs / check-review-surface.mjs
 

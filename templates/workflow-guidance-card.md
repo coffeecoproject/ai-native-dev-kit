@@ -21,7 +21,7 @@ What happens if you do nothing: <safe default>
 | Field | Value |
 |---|---|
 | Provided intent | `<user intent or Not provided>` |
-| Intent classification | `<NOT_PROVIDED / BUILD_NEW_PRODUCT / ADD_FEATURE / ADD_PAYMENT_OR_VALUE_TRANSFER / ADD_AUTH_OR_PERMISSION / DATA_OR_MIGRATION_CHANGE / RELEASE_OR_DEPLOY / DOCUMENT_GOVERNANCE / TASK_SWITCH_OR_RESUME / BUG_FIX / AUTOMATION_OR_HOOK / GENERAL_CHANGE>` |
+| Intent classification | `<NOT_PROVIDED / BUILD_NEW_PRODUCT / ADD_FEATURE / ADD_PAYMENT_OR_VALUE_TRANSFER / ADD_AUTH_OR_PERMISSION / DATA_OR_MIGRATION_CHANGE / RELEASE_OR_DEPLOY / DOCUMENT_GOVERNANCE / TASK_SWITCH_OR_RESUME / EXECUTION_REVIEW_CLOSURE / BUG_FIX / AUTOMATION_OR_HOOK / GENERAL_CHANGE>` |
 | Intent risk level | `<low / medium / high / unknown>` |
 | Review focus | `<plain review focus>` |
 
