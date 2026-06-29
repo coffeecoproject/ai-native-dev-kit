@@ -50,6 +50,19 @@ When the project is unclear, old, interrupted, or close to delivery, Codex can u
 node scripts/cli.mjs guide ../my-project --deep
 ```
 
+When the user has named the actual goal, pass that goal too:
+
+```bash
+node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"
+```
+
+Intent-aware guide uses both the project and the goal. For example:
+
+- "我要加支付预约" raises payment, data, permission, security/privacy, and release-impact review.
+- "我要清理过期文档" routes toward document lifecycle without moving or deleting files.
+- "这个任务暂停一下，下次继续" routes toward work queue and debt handoff.
+- "我要上线前检查" routes toward delivery path, release impact, and hook policy boundaries.
+
 Deep guide still returns one card. It only reads the project, then selectively checks the relevant areas:
 
 - project baseline direction for new projects
@@ -59,6 +72,7 @@ Deep guide still returns one card. It only reads the project, then selectively c
 - work queue when task-switching or unfinished work exists
 - document lifecycle when docs need review
 - hook policy when CI or automatic triggers exist
+- debt handoff when the intent is pause, resume, bug fix, or handoff
 
 It should not run every resolver just because it can. The goal is a smaller, clearer next step, not more output.
 

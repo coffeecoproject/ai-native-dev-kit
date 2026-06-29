@@ -729,6 +729,7 @@ function checkDevKitFirstPartyCi() {
     "resolve-debt-handoff.mjs",
     "guide",
     "guide . --deep",
+    "guide . --deep --intent",
     "guide-check",
     "review-surface",
     "review-surface-check",
@@ -4762,6 +4763,8 @@ function checkNaturalLanguageOrchestratorProtocol() {
     "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
     "examples/1.30-deep-guide-orchestration/README.md",
     "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
+    "examples/1.31-intent-aware-deep-guide/README.md",
+    "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
     "test-fixtures/bad/bad-workflow-guidance-too-many-questions/workflow-guidance-cards/001-bad.md",
     "test-fixtures/bad/bad-workflow-guidance-overclaim/workflow-guidance-cards/001-bad.md",
     "releases/1.24.0/release-record.md",
@@ -4770,6 +4773,9 @@ function checkNaturalLanguageOrchestratorProtocol() {
     "releases/1.30.0/release-record.md",
     "releases/1.30.0/known-limitations.md",
     "releases/1.30.0/self-check-report.md",
+    "releases/1.31.0/release-record.md",
+    "releases/1.31.0/known-limitations.md",
+    "releases/1.31.0/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.24 workflow guidance asset exists ${file}`);
@@ -4784,6 +4790,7 @@ function checkNaturalLanguageOrchestratorProtocol() {
     read("scripts/check-workflow-guidance.mjs"),
     read("releases/1.24.0/release-record.md"),
     exists("releases/1.30.0/release-record.md") ? read("releases/1.30.0/release-record.md") : "",
+    exists("releases/1.31.0/release-record.md") ? read("releases/1.31.0/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -4796,6 +4803,9 @@ function checkNaturalLanguageOrchestratorProtocol() {
     "This guidance modifies CI: No",
     "This guidance installs hooks: No",
     "--deep",
+    "--intent",
+    "Intent-Aware Deep Guide",
+    "intentUnderstanding",
     "Deep Guide Orchestration",
     "selective-read-only",
   ]) {
@@ -4865,6 +4875,29 @@ function checkNaturalLanguageOrchestratorProtocol() {
     fail(`1.30 deep workflow guidance resolver JSON failed: ${deepResolverJson.stderr || deepResolverJson.stdout}`);
   }
 
+  const intentResolver = runNode(["scripts/resolve-workflow-guidance.mjs", ".", "--deep", "--intent", "我要加支付预约", "--json"]);
+  if (intentResolver.status === 0) {
+    try {
+      const parsed = JSON.parse(intentResolver.stdout);
+      const selected = parsed.deepOrchestration?.selectedCapabilities || [];
+      if (parsed.intentUnderstanding?.classification === "ADD_PAYMENT_OR_VALUE_TRANSFER"
+        && parsed.intentUnderstanding?.riskLevel === "high"
+        && parsed.deepOrchestration?.intentAware === true
+        && parsed.deepOrchestration?.intentClassification === "ADD_PAYMENT_OR_VALUE_TRANSFER"
+        && selected.includes("review-surface")
+        && selected.includes("delivery-path")
+        && parsed.boundaries?.writesTargetFiles === "No") {
+        pass("1.31 intent-aware workflow guidance resolver JSON classifies and routes payment intent");
+      } else {
+        fail(`1.31 intent-aware workflow guidance resolver JSON missing expected fields: ${intentResolver.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.31 intent-aware workflow guidance resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.31 intent-aware workflow guidance resolver JSON failed: ${intentResolver.stderr || intentResolver.stdout}`);
+  }
+
   const check = runNode(["scripts/check-workflow-guidance.mjs", "."]);
   if (check.status === 0 && check.stdout.includes("Workflow guidance check passed")) {
     pass("1.24 workflow guidance checker passes source repo");
@@ -4884,6 +4917,13 @@ function checkNaturalLanguageOrchestratorProtocol() {
     pass("1.30 deep workflow guidance example passes checker");
   } else {
     fail(`1.30 deep workflow guidance example failed: ${deepExample.stderr || deepExample.stdout}`);
+  }
+
+  const intentExample = runNode(["scripts/check-workflow-guidance.mjs", "examples/1.31-intent-aware-deep-guide"]);
+  if (intentExample.status === 0 && intentExample.stdout.includes("Workflow guidance check passed")) {
+    pass("1.31 intent-aware workflow guidance example passes checker");
+  } else {
+    fail(`1.31 intent-aware workflow guidance example failed: ${intentExample.stderr || intentExample.stdout}`);
   }
 
   for (const [name, args, expected] of [

@@ -126,6 +126,8 @@ function checkCoreContent() {
     "Users should not need to choose commands",
     "Default output mode is `plain`",
     "Delivery Path State",
+    "Intent-Aware Deep Guide",
+    "guide --deep --intent",
     "Codex may ask at most 3 questions by default",
     "A Workflow Guidance Card does not",
   ]) {
@@ -208,6 +210,11 @@ function checkSourceEvidence() {
     "releases/1.24.0/release-record.md",
     "releases/1.24.0/known-limitations.md",
     "releases/1.24.0/self-check-report.md",
+    "examples/1.31-intent-aware-deep-guide/README.md",
+    "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
+    "releases/1.31.0/release-record.md",
+    "releases/1.31.0/known-limitations.md",
+    "releases/1.31.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.24 workflow guidance source evidence exists ${file}`);
     else fail(`1.24 workflow guidance source evidence missing ${file}`);
@@ -273,6 +280,29 @@ function checkSourceEvidence() {
     fail(`1.30 deep workflow guidance resolver JSON failed: ${deepResolverJson.stderr || deepResolverJson.stdout}`);
   }
 
+  const intentResolver = runNode(["scripts/resolve-workflow-guidance.mjs", ".", "--deep", "--intent", "我要加支付预约", "--json"]);
+  if (intentResolver.status === 0) {
+    try {
+      const parsed = JSON.parse(intentResolver.stdout);
+      const selected = parsed.deepOrchestration?.selectedCapabilities || [];
+      if (parsed.intentUnderstanding?.classification === "ADD_PAYMENT_OR_VALUE_TRANSFER"
+        && parsed.intentUnderstanding?.riskLevel === "high"
+        && parsed.deepOrchestration?.intentAware === true
+        && parsed.deepOrchestration?.intentClassification === "ADD_PAYMENT_OR_VALUE_TRANSFER"
+        && selected.includes("review-surface")
+        && selected.includes("delivery-path")
+        && parsed.boundaries?.writesTargetFiles === "No") {
+        pass("1.31 intent-aware deep workflow guidance resolver JSON classifies and routes payment intent");
+      } else {
+        fail(`1.31 intent-aware workflow guidance resolver JSON missing expected intent fields: ${intentResolver.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.31 intent-aware workflow guidance resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.31 intent-aware workflow guidance resolver JSON failed: ${intentResolver.stderr || intentResolver.stdout}`);
+  }
+
   const example = runNode(["scripts/check-workflow-guidance.mjs", "examples/1.24-natural-language-orchestrator"]);
   if (example.status === 0 && example.stdout.includes("Workflow guidance check passed")) {
     pass("1.24 workflow guidance example passes checker");
@@ -287,6 +317,15 @@ function checkSourceEvidence() {
     fail(`1.30 deep workflow guidance example failed: ${deepExample.stderr || deepExample.stdout}`);
   } else {
     pass("1.30 deep workflow guidance example not present yet");
+  }
+
+  const intentExample = runNode(["scripts/check-workflow-guidance.mjs", "examples/1.31-intent-aware-deep-guide"]);
+  if (intentExample.status === 0 && intentExample.stdout.includes("Workflow guidance check passed")) {
+    pass("1.31 intent-aware deep workflow guidance example passes checker");
+  } else if (exists("examples/1.31-intent-aware-deep-guide/README.md")) {
+    fail(`1.31 intent-aware deep workflow guidance example failed: ${intentExample.stderr || intentExample.stdout}`);
+  } else {
+    pass("1.31 intent-aware deep workflow guidance example not present yet");
   }
 
   for (const [name, target, expected] of [

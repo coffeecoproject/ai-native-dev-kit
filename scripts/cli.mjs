@@ -388,6 +388,7 @@ function printHelp() {
   console.log("Examples:");
   console.log("  node scripts/cli.mjs guide ../my-project");
   console.log("  node scripts/cli.mjs guide ../my-project --deep");
+  console.log("  node scripts/cli.mjs guide ../my-project --deep --intent '我要加支付预约'");
   console.log("  node scripts/cli.mjs guide-check .");
   console.log("  node scripts/cli.mjs delivery-path ../my-project");
   console.log("  node scripts/cli.mjs delivery-path-check .");
@@ -493,7 +494,7 @@ function shellQuote(value) {
 }
 
 function withDefaultTarget(args) {
-  return firstPositional(args, new Set(["--mode"])) ? args : [".", ...args];
+  return firstPositional(args, new Set(["--mode", "--format", "--intent", "--task", "--report", "--from-lifecycle"])) ? args : [".", ...args];
 }
 
 function withDefaultMode(args, defaultMode) {

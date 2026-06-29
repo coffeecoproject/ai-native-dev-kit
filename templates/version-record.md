@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.30.0`
+`1.31.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.31.0` adds Intent-Aware Deep Guide through `guide --deep --intent "<goal>"`, intent classification, and user-facing `User Intent` output.
+- `1.31.0` keeps intent non-authorizing: intent classification improves routing but does not approve writes, implementation, release, production, payment, auth, data, migration, security, privacy, tax, legal, hook, CI, or automation decisions.
 - `1.30.0` adds Deep Guide Orchestration through `guide --deep`, selective read-only downstream checks, and a compressed `What I Checked` section.
 - `1.30.0` keeps deep guide non-authorizing: it does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation/release/production, approve high-risk decisions, or replace detailed downstream evidence.
 - `1.29.0` adds Project Hook Policy through `hook-policy`, `hook-policy-check`, and Project Hook Policy documents.

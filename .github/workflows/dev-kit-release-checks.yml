@@ -101,6 +101,9 @@ jobs:
       - name: Deep workflow guidance smoke
         run: node scripts/cli.mjs guide . --deep
 
+      - name: Intent-aware deep workflow guidance smoke
+        run: node scripts/cli.mjs guide . --deep --intent "maintain Dev Kit guidance"
+
       - name: Review surface check
         run: node scripts/check-review-surface.mjs .
 
@@ -201,6 +204,7 @@ jobs:
           node "$tmp/project/scripts/check-workflow-guidance.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project" --deep
+          node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project" --deep --intent "build an appointment app"
           node "$tmp/project/scripts/check-review-surface.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-review-surface.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-delivery-path.mjs" "$tmp/project"
@@ -209,6 +213,7 @@ jobs:
           node "$tmp/project/scripts/resolve-debt-handoff.mjs" "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep
+          node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep --intent "build an appointment app"
           node "$tmp/project/scripts/cli.mjs" guide-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface-check "$tmp/project"

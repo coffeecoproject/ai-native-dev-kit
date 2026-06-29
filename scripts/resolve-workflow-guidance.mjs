@@ -16,12 +16,13 @@ const args = parseArgs(process.argv.slice(2));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const knownFlags = new Set(["json", "format", "mode", "deep"]);
+const knownFlags = new Set(["json", "format", "mode", "deep", "intent"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const userMode = String(args.mode || "plain").toLowerCase();
 const deepMode = Boolean(args.deep);
+const userIntent = String(args.intent || "").trim();
 const allowedFormats = new Set(["human", "json"]);
 const allowedModes = new Set(["plain", "developer", "maintainer"]);
 
@@ -42,7 +43,7 @@ if (!allowedModes.has(userMode)) {
   process.exit(1);
 }
 
-const guidance = buildWorkflowGuidance(projectRoot, userMode, { deep: deepMode });
+const guidance = buildWorkflowGuidance(projectRoot, userMode, { deep: deepMode, intent: userIntent });
 
 if (outputFormat === "json") {
   console.log(JSON.stringify(guidance, null, 2));
@@ -58,15 +59,16 @@ function buildWorkflowGuidance(root, mode, options = {}) {
     ignoredDirs: defaultIgnoredDirs,
   }) : [];
   const pathSet = new Set(paths);
-  const signals = collectSignals(root, exists, pathSet);
+  const intent = classifyIntent(options.intent || "");
+  const signals = collectSignals(root, exists, pathSet, intent);
   const project = classifyProject(root, exists, git, signals);
   const delivery = deliveryStateFor(project, signals);
-  const questions = questionsFor(project, signals, delivery);
-  const routing = routingFor(project, signals, delivery);
-  const deepOrchestration = options.deep ? buildDeepOrchestration(root, project, signals, delivery) : null;
+  const questions = questionsFor(project, signals, delivery, intent);
+  const routing = routingFor(project, signals, delivery, intent);
+  const deepOrchestration = options.deep ? buildDeepOrchestration(root, project, signals, delivery, intent) : null;
   const effectiveDelivery = effectiveDeliveryFromDeep(delivery, deepOrchestration);
   const nextStep = deepOrchestration
-    ? recommendedNextStepFromDeep(project, effectiveDelivery, deepOrchestration)
+    ? recommendedNextStepFromDeep(project, effectiveDelivery, deepOrchestration, intent)
     : recommendedNextStep(project, effectiveDelivery);
 
   return {
@@ -76,14 +78,15 @@ function buildWorkflowGuidance(root, mode, options = {}) {
     projectRoot: root,
     readOnly: true,
     userMode: mode,
+    intentUnderstanding: intent,
     humanDecisionSummary: {
-      conclusion: conclusionFor(project, effectiveDelivery, deepOrchestration),
+      conclusion: conclusionFor(project, effectiveDelivery, deepOrchestration, intent),
       recommendedNextStep: nextStep,
       canAiContinueNow: canContinue(project, effectiveDelivery),
       needFromHuman: questions.length > 0 ? questions.join(" / ") : "No decision needed for read-only guidance.",
       ifNothing: "No files are changed. No CI, hook, document, task state, release, or production behavior is changed.",
     },
-    plainSummary: plainSummary(project, effectiveDelivery),
+    plainSummary: plainSummary(project, effectiveDelivery, intent),
     projectReading: {
       userMode: mode,
       projectState: project.state,
@@ -115,7 +118,129 @@ function buildWorkflowGuidance(root, mode, options = {}) {
   };
 }
 
-function collectSignals(root, exists, pathSet) {
+function classifyIntent(rawIntent) {
+  const text = String(rawIntent || "").trim();
+  const normalized = text.toLowerCase();
+  const has = (pattern) => pattern.test(text) || pattern.test(normalized);
+  const riskSignals = [];
+  const reviewFocus = [];
+  let classification = "NOT_PROVIDED";
+  let deliveryTarget = "READY_FOR_PLAN";
+  let riskLevel = "low";
+  let userGoalSummary = "No user intent provided.";
+
+  if (!text) {
+    return {
+      rawIntent: "",
+      classification,
+      userGoalSummary,
+      riskLevel: "unknown",
+      riskSignals,
+      reviewFocus,
+      deliveryTarget: "NEEDS_PROJECT_READING",
+    };
+  }
+
+  classification = "GENERAL_CHANGE";
+  userGoalSummary = text;
+
+  const patterns = [
+    {
+      classification: "ADD_PAYMENT_OR_VALUE_TRANSFER",
+      pattern: /\b(payment|billing|invoice|refund|checkout|stripe|finance|tax)\b|支付|收款|退款|订单|账单|发票|财务|税务/i,
+      risk: "payment/value transfer",
+      focus: ["data", "permission", "security/privacy", "release impact"],
+      riskLevel: "high",
+    },
+    {
+      classification: "ADD_AUTH_OR_PERMISSION",
+      pattern: /\b(auth|login|permission|rbac|role|session|jwt|oauth|tenant|admin)\b|登录|权限|角色|认证|租户|管理员/i,
+      risk: "auth/permission",
+      focus: ["permission", "security/privacy", "data"],
+      riskLevel: "high",
+    },
+    {
+      classification: "DATA_OR_MIGRATION_CHANGE",
+      pattern: /\b(database|schema|migration|sql|db|storage|model|api contract)\b|数据库|数据|迁移|表结构|字段|存储|接口/i,
+      risk: "data/migration",
+      focus: ["data", "verification", "release impact"],
+      riskLevel: "high",
+    },
+    {
+      classification: "RELEASE_OR_DEPLOY",
+      pattern: /\b(release|deploy|production|launch|rollback|staging|go live)\b|上线|发布|部署|生产|回滚|灰度/i,
+      risk: "release/production",
+      focus: ["release impact", "verification", "security/privacy"],
+      riskLevel: "high",
+      deliveryTarget: "READY_FOR_RELEASE_REVIEW",
+    },
+    {
+      classification: "AUTOMATION_OR_HOOK",
+      pattern: /\b(hook|ci|workflow|github actions|cron|schedule|automation|auto-fix)\b|自动化|触发器|钩子|定时|流水线/i,
+      risk: "automation/hook",
+      focus: ["release impact", "existing governance", "verification"],
+      riskLevel: "high",
+    },
+    {
+      classification: "DOCUMENT_GOVERNANCE",
+      pattern: /\b(document|docs|readme|archive|stale|duplicate|source of truth)\b|文档|归档|过期|重复|废弃|清理|准的/i,
+      risk: "document lifecycle",
+      focus: ["documentation", "existing governance"],
+      riskLevel: "medium",
+    },
+    {
+      classification: "TASK_SWITCH_OR_RESUME",
+      pattern: /\b(todo|work queue|pause|resume|handoff|switch task|continue)\b|任务|待办|暂停|恢复|接着|继续|切换|交接/i,
+      risk: "task continuity",
+      focus: ["debt", "existing governance", "verification"],
+      riskLevel: "medium",
+    },
+    {
+      classification: "BUG_FIX",
+      pattern: /\b(bug|fix|error|failed|failure|crash|broken|regression)\b|修复|报错|错误|失败|崩溃|回归/i,
+      risk: "defect repair",
+      focus: ["functional", "code", "verification", "debt"],
+      riskLevel: "medium",
+    },
+    {
+      classification: "BUILD_NEW_PRODUCT",
+      pattern: /\b(new project|from zero|from scratch|build an app|create an app)\b|从零|新项目|新建|搭建|做一个|开发一个/i,
+      risk: "new product scope",
+      focus: ["baseline", "functional", "verification"],
+      riskLevel: "low",
+    },
+    {
+      classification: "ADD_FEATURE",
+      pattern: /\b(feature|add|implement|build|create)\b|新增|增加|加一个|实现|开发/i,
+      risk: "feature scope",
+      focus: ["functional", "code", "verification"],
+      riskLevel: "medium",
+    },
+  ];
+
+  for (const item of patterns) {
+    if (has(item.pattern)) {
+      classification = item.classification;
+      riskSignals.push(item.risk);
+      reviewFocus.push(...item.focus);
+      riskLevel = item.riskLevel;
+      if (item.deliveryTarget) deliveryTarget = item.deliveryTarget;
+      break;
+    }
+  }
+
+  return {
+    rawIntent: text,
+    classification,
+    userGoalSummary,
+    riskLevel,
+    riskSignals: [...new Set(riskSignals)],
+    reviewFocus: [...new Set(reviewFocus)],
+    deliveryTarget,
+  };
+}
+
+function collectSignals(root, exists, pathSet, intent) {
   const paths = [...pathSet];
   const joined = paths.join("\n");
   const packageJson = readJsonIfExists(path.join(root, "package.json"));
@@ -124,6 +249,13 @@ function collectSignals(root, exists, pathSet) {
     devDependencies: packageJson?.devDependencies || {},
     scripts: packageJson?.scripts || {},
   });
+  const intentText = [
+    intent.rawIntent,
+    intent.classification,
+    ...(intent.riskSignals || []),
+    ...(intent.reviewFocus || []),
+  ].join("\n");
+  const allText = `${joined}\n${packageText}\n${intentText}`;
   const has = (rel) => pathSet.has(rel) || fs.existsSync(path.join(root, rel));
   const hasPrefix = (prefix) => paths.some((item) => item === prefix || item.startsWith(`${prefix}/`));
 
@@ -138,7 +270,18 @@ function collectSignals(root, exists, pathSet) {
     hasWorkQueueSignals: hasPrefix("work-queue") || hasPrefix("active-work-threads") || hasPrefix("tasks"),
     hasHookOrCiSignals: hasPrefix(".github/workflows") || hasPrefix(".husky") || has(".pre-commit-config.yaml") || has(".pre-commit-config.yml"),
     hasReleaseSignals: /\b(prod|production|deploy|release|rollback|staging|incident|runbook)\b/i.test(joined),
-    hasRiskSignals: /\b(auth|login|permission|rbac|payment|billing|finance|tax|migration|database|schema|privacy|security|compliance)\b/i.test(`${joined}\n${packageText}`),
+    hasIntent: intent.classification !== "NOT_PROVIDED",
+    intentRiskLevel: intent.riskLevel,
+    hasPaymentIntent: intent.classification === "ADD_PAYMENT_OR_VALUE_TRANSFER",
+    hasAuthIntent: intent.classification === "ADD_AUTH_OR_PERMISSION",
+    hasDataIntent: intent.classification === "DATA_OR_MIGRATION_CHANGE",
+    hasReleaseIntent: intent.classification === "RELEASE_OR_DEPLOY",
+    hasDocumentIntent: intent.classification === "DOCUMENT_GOVERNANCE",
+    hasTaskSwitchIntent: intent.classification === "TASK_SWITCH_OR_RESUME",
+    hasAutomationIntent: intent.classification === "AUTOMATION_OR_HOOK",
+    hasBugFixIntent: intent.classification === "BUG_FIX",
+    hasNewProductIntent: intent.classification === "BUILD_NEW_PRODUCT",
+    hasRiskSignals: /\b(auth|login|permission|rbac|payment|billing|finance|tax|migration|database|schema|privacy|security|compliance|production|release|deploy|hook|ci)\b/i.test(allText),
     hasRunnableSignals: Boolean(packageJson) || has("go.mod") || has("pyproject.toml") || has("Package.swift") || has("build.gradle"),
     hasTestSignals: /\b(test|spec|e2e|playwright|vitest|jest|xctest|junit)\b/i.test(`${joined}\n${packageText}`),
     pathCount: paths.length,
@@ -237,11 +380,18 @@ function deliveryStateFor(project, signals) {
   return { current: "READY_FOR_PLAN", next: "READY_FOR_LOCAL_BUILD" };
 }
 
-function questionsFor(project, signals, delivery) {
+function questionsFor(project, signals, delivery, intent) {
   const questions = [];
+  if (intent.classification === "NOT_PROVIDED") questions.push("这次你想先推进什么目标？");
   if (project.existingUsersAssumed !== "No") questions.push("这个项目现在是否已经有人在用？");
-  if (project.riskLevel === "high" || signals.hasRiskSignals) questions.push("这次是否涉及登录、支付、数据、发布或迁移？");
+  if (project.riskLevel === "high" || signals.hasRiskSignals || intent.riskLevel === "high") {
+    questions.push(intent.rawIntent
+      ? "这个目标是否涉及真实用户、真实数据、线上环境或不可回滚风险？"
+      : "这次是否涉及登录、支付、数据、发布或迁移？");
+  }
   if (project.state === "DIRTY_WORKTREE_PROJECT") questions.push("当前未完成改动是继续、暂停，还是先切换到新任务？");
+  if (signals.hasDocumentIntent) questions.push("是否只需要归档建议，暂不移动或删除文档？");
+  if (signals.hasReleaseIntent) questions.push("这次目标是上线前检查，还是已经准备发布？");
   questions.push("是否允许我先生成计划，不直接改文件？");
   if (!questions.some((item) => item.includes("先做到"))) {
     questions.push("你希望先做到本地可跑、自己试用，还是上线前检查？");
@@ -250,22 +400,25 @@ function questionsFor(project, signals, delivery) {
   return questions.slice(0, maxQuestions);
 }
 
-function routingFor(project, signals, delivery) {
+function routingFor(project, signals, delivery, intent) {
   const rows = [];
-  if (project.state === "NEW_PROJECT") {
+  if (project.state === "NEW_PROJECT" || signals.hasNewProductIntent) {
     rows.push(route("New project", "baseline decision + standard baseline", "Start small with basic rules", "Yes"));
   }
   if (project.state === "EXISTING_GOVERNED_PROJECT" || project.state === "EXISTING_LIGHT_PROJECT" || project.state === "PRODUCTION_SENSITIVE_PROJECT") {
     rows.push(route("Existing project", "workflow adoption map + baseline decision", "Read existing rules before changing anything", "Yes"));
   }
-  if (project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasWorkQueueSignals) {
+  if (project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasWorkQueueSignals || signals.hasTaskSwitchIntent) {
     rows.push(route("Interrupted or unfinished work", "work queue", "Understand current and paused work before switching", "Yes"));
   }
-  if (signals.hasDocs) {
+  if (signals.hasDocs || signals.hasDocumentIntent) {
     rows.push(route("Documents may need review", "document lifecycle", "Mark stale or duplicate docs without deleting them", project.state === "NEW_PROJECT" ? "Later" : "Yes"));
   }
-  if (signals.hasHookOrCiSignals || project.state === "PRODUCTION_SENSITIVE_PROJECT") {
+  if (signals.hasHookOrCiSignals || project.state === "PRODUCTION_SENSITIVE_PROJECT" || signals.hasAutomationIntent || signals.hasReleaseIntent) {
     rows.push(route("Automation or CI exists", "hook plan", "Review automatic trigger risk without installing anything", "Yes"));
+  }
+  if (signals.hasPaymentIntent || signals.hasAuthIntent || signals.hasDataIntent || signals.hasBugFixIntent || intent.classification === "ADD_FEATURE") {
+    rows.push(route("Intent needs scoped review", "review surface", "Check the right risk areas before execution", "Yes"));
   }
   if (delivery.current === "READY_FOR_SELF_TEST" || delivery.current === "READY_FOR_INTERNAL_TRIAL" || delivery.current === "READY_FOR_RELEASE_REVIEW") {
     rows.push(route("Near delivery", "launch readiness", "Check whether the project can be tried or reviewed for launch", "Yes"));
@@ -274,16 +427,16 @@ function routingFor(project, signals, delivery) {
   return rows;
 }
 
-function buildDeepOrchestration(root, project, signals, delivery) {
-  const selected = selectDeepCapabilities(project, signals, delivery);
+function buildDeepOrchestration(root, project, signals, delivery, intent) {
+  const selected = selectDeepCapabilities(project, signals, delivery, intent);
   const skipped = deepCapabilities()
     .filter((capability) => !selected.some((item) => item.id === capability.id))
     .map((capability) => ({
       id: capability.id,
       userMeaning: capability.userMeaning,
-      reason: capability.skipReason(project, signals, delivery),
+      reason: capability.skipReason(project, signals, delivery, intent),
     }));
-  const results = selected.map((capability) => runDeepCapability(root, capability));
+  const results = selected.map((capability) => runDeepCapability(root, capability, intent));
   const summaries = results.map((result) => summarizeDeepCapability(result));
   const failures = results
     .filter((result) => result.status !== "PASS")
@@ -297,6 +450,8 @@ function buildDeepOrchestration(root, project, signals, delivery) {
   return {
     enabled: true,
     mode: "selective-read-only",
+    intentAware: intent.classification !== "NOT_PROVIDED",
+    intentClassification: intent.classification,
     selectedCapabilities: selected.map((capability) => capability.id),
     skippedCapabilities: skipped,
     summaries,
@@ -327,24 +482,25 @@ function deepCapabilities() {
       id: "baseline-decision",
       script: "resolve-guided-baseline-selection.mjs",
       userMeaning: "选择新项目需要的基础规则",
-      shouldRun: (project) => project.state === "NEW_PROJECT" || project.state === "UNKNOWN_PROJECT",
+      shouldRun: (project, signals) => project.state === "NEW_PROJECT" || project.state === "UNKNOWN_PROJECT" || signals.hasNewProductIntent,
       skipReason: () => "不是新项目入口，暂不需要先做基线选择。",
     },
     {
       id: "workflow-map",
       script: "resolve-existing-workflow.mjs",
       userMeaning: "先读清楚已有项目规则",
-      shouldRun: (project) => [
+      shouldRun: (project, signals) => [
         "EXISTING_LIGHT_PROJECT",
         "EXISTING_GOVERNED_PROJECT",
         "PRODUCTION_SENSITIVE_PROJECT",
         "DIRTY_WORKTREE_PROJECT",
-      ].includes(project.state),
+      ].includes(project.state) || signals.hasReleaseIntent,
       skipReason: () => "当前不是需要接入已有项目规则的场景。",
     },
     {
       id: "review-surface",
       script: "resolve-review-surface.mjs",
+      acceptsIntent: true,
       userMeaning: "判断这次工作完成后要检查哪些方面",
       shouldRun: () => true,
       skipReason: () => "始终应选择审查面。",
@@ -352,6 +508,7 @@ function deepCapabilities() {
     {
       id: "delivery-path",
       script: "resolve-delivery-path.mjs",
+      acceptsIntent: true,
       userMeaning: "判断离可用还差多远",
       shouldRun: () => true,
       skipReason: () => "始终应判断交付路径。",
@@ -360,31 +517,39 @@ function deepCapabilities() {
       id: "work-queue",
       script: "resolve-work-queue.mjs",
       userMeaning: "确认当前任务、暂停任务和待办",
-      shouldRun: (project, signals) => project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasWorkQueueSignals,
+      shouldRun: (project, signals) => project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasWorkQueueSignals || signals.hasTaskSwitchIntent,
       skipReason: () => "未发现明显的暂停任务、任务队列或未完成工作信号。",
+    },
+    {
+      id: "debt-handoff",
+      script: "resolve-debt-handoff.mjs",
+      acceptsIntent: true,
+      userMeaning: "判断这次是否需要记录债务或交接上下文",
+      shouldRun: (project, signals) => project.state === "DIRTY_WORKTREE_PROJECT" || signals.hasTaskSwitchIntent || signals.hasBugFixIntent,
+      skipReason: () => "未发现明显的修复、暂停、切换或交接信号。",
     },
     {
       id: "doc-lifecycle",
       script: "resolve-document-lifecycle.mjs",
       userMeaning: "判断文档是否可能过期、重复或需要归档建议",
-      shouldRun: (project, signals) => project.state !== "NEW_PROJECT" && signals.hasDocs,
+      shouldRun: (project, signals) => signals.hasDocumentIntent || (project.state !== "NEW_PROJECT" && signals.hasDocs),
       skipReason: () => "当前没有足够文档信号，或新项目阶段暂不优先处理文档生命周期。",
     },
     {
       id: "hook-policy",
       script: "resolve-hook-policy.mjs",
       userMeaning: "判断自动触发和 CI 相关规则是否需要先定边界",
-      shouldRun: (project, signals) => project.state === "PRODUCTION_SENSITIVE_PROJECT" || signals.hasHookOrCiSignals,
+      shouldRun: (project, signals) => project.state === "PRODUCTION_SENSITIVE_PROJECT" || signals.hasHookOrCiSignals || signals.hasAutomationIntent || signals.hasReleaseIntent,
       skipReason: () => "未发现明显的 CI、hook 或自动触发风险信号。",
     },
   ];
 }
 
-function selectDeepCapabilities(project, signals, delivery) {
-  return deepCapabilities().filter((capability) => capability.shouldRun(project, signals, delivery));
+function selectDeepCapabilities(project, signals, delivery, intent) {
+  return deepCapabilities().filter((capability) => capability.shouldRun(project, signals, delivery, intent));
 }
 
-function runDeepCapability(root, capability) {
+function runDeepCapability(root, capability, intent) {
   const scriptPath = path.join(__dirname, capability.script);
   if (!fs.existsSync(scriptPath)) {
     return {
@@ -395,7 +560,9 @@ function runDeepCapability(root, capability) {
     };
   }
 
-  const result = spawnSync(process.execPath, [scriptPath, root, "--json"], {
+  const childArgs = [scriptPath, root, "--json"];
+  if (capability.acceptsIntent && intent.rawIntent) childArgs.push("--intent", intent.rawIntent);
+  const result = spawnSync(process.execPath, childArgs, {
     cwd: path.resolve(__dirname, ".."),
     encoding: "utf8",
     maxBuffer: 1024 * 1024 * 12,
@@ -478,6 +645,11 @@ function summarizeDeepCapability(result) {
     summary.plainFinding = `发现 ${report.currentTaskCount || 0} 个当前任务、${Array.isArray(report.pausedTasks) ? report.pausedTasks.length : 0} 个暂停任务、${Array.isArray(report.backlogItems) ? report.backlogItems.length : 0} 个待办。`;
     summary.nextAction = "先确认当前主线任务，再切换或推进。";
   }
+  if (result.id === "debt-handoff") {
+    summary.signal = report.debtRegister?.[0]?.level || "unknown";
+    summary.plainFinding = `债务/交接判断是 ${summary.signal}。`;
+    summary.nextAction = "如有遗留问题，先记录验证方式和下次恢复点。";
+  }
   if (result.id === "doc-lifecycle") {
     summary.signal = `${Array.isArray(report.documentInventory) ? report.documentInventory.length : 0} docs scanned`;
     summary.plainFinding = `扫描到 ${Array.isArray(report.documentInventory) ? report.documentInventory.length : 0} 份文档，可能有过期、重复或归档候选。`;
@@ -492,9 +664,21 @@ function summarizeDeepCapability(result) {
   return summary;
 }
 
-function recommendedNextStepFromDeep(project, delivery, orchestration) {
+function recommendedNextStepFromDeep(project, delivery, orchestration, intent) {
   if (orchestration.failures.length > 0) {
     return "先修复只读编排里失败的检查，再决定是否进入计划或实现。";
+  }
+
+  if (intent.riskLevel === "high") {
+    return "先确认这个目标的高风险边界和审查面，再生成最小可验证计划。";
+  }
+
+  if (intent.classification === "DOCUMENT_GOVERNANCE") {
+    return "先生成文档生命周期判断和归档建议，不移动、不删除文档。";
+  }
+
+  if (intent.classification === "TASK_SWITCH_OR_RESUME") {
+    return "先确认当前任务、暂停任务和恢复点，再决定是否切换。";
   }
 
   const workQueue = orchestration.summaries.find((item) => item.id === "work-queue");
@@ -519,12 +703,15 @@ function route(situation, internalCapability, userMeaning, runNow) {
   return { situation, internalCapability, userMeaning, runNow };
 }
 
-function conclusionFor(project, delivery, orchestration = null) {
+function conclusionFor(project, delivery, orchestration = null, intent) {
   const state = plainProjectState(project.state);
+  const intentPart = intent?.classification && intent.classification !== "NOT_PROVIDED"
+    ? ` Intent is ${intent.classification}.`
+    : "";
   if (orchestration?.enabled) {
-    return `I read the project as ${state}. Deep guide checked ${orchestration.summaries.length} read-only area(s). Current delivery state is ${delivery.current}.`;
+    return `I read the project as ${state}.${intentPart} Deep guide checked ${orchestration.summaries.length} read-only area(s). Current delivery state is ${delivery.current}.`;
   }
-  return `I read the project as ${state}. Current delivery state is ${delivery.current}.`;
+  return `I read the project as ${state}.${intentPart} Current delivery state is ${delivery.current}.`;
 }
 
 function recommendedNextStep(project, delivery) {
@@ -549,20 +736,23 @@ function canContinue(project) {
   return "limited";
 }
 
-function plainSummary(project, delivery) {
+function plainSummary(project, delivery, intent) {
+  const intentPrefix = intent?.classification && intent.classification !== "NOT_PROVIDED"
+    ? `这次目标是：${intent.userGoalSummary}。`
+    : "";
   if (project.state === "DIRTY_WORKTREE_PROJECT") {
-    return "项目里有未完成改动。现在最安全的是先弄清楚这些改动属于哪个任务，再决定是否继续新工作。";
+    return `${intentPrefix}项目里有未完成改动。现在最安全的是先弄清楚这些改动属于哪个任务，再决定是否继续新工作。`;
   }
   if (project.state === "PRODUCTION_SENSITIVE_PROJECT") {
-    return "这个项目可能已经接近真实使用或涉及高风险内容。现在应先只读评估，不直接改发布、数据或自动化配置。";
+    return `${intentPrefix}这个项目可能已经接近真实使用或涉及高风险内容。现在应先只读评估，不直接改发布、数据或自动化配置。`;
   }
   if (project.state === "NEW_PROJECT") {
-    return "这是一个适合从小目标开始的新项目。下一步应先确定第一版要给谁用、解决什么问题、如何验证。";
+    return `${intentPrefix}这是一个适合从小目标开始的新项目。下一步应先确定第一版要给谁用、解决什么问题、如何验证。`;
   }
   if (project.state === "DEV_KIT_REPOSITORY") {
-    return "这是 Dev Kit 自身仓库。下一步应按维护流程做计划、验证和记录。";
+    return `${intentPrefix}这是 Dev Kit 自身仓库。下一步应按维护流程做计划、验证和记录。`;
   }
-  return `这个项目可以先进入计划阶段。当前状态是 ${delivery.current}，下一步不要直接写文件，先确认目标和风险。`;
+  return `${intentPrefix}这个项目可以先进入计划阶段。当前状态是 ${delivery.current}，下一步不要直接写文件，先确认目标和风险。`;
 }
 
 function distanceToUsefulUse(project, signals, delivery) {
@@ -624,6 +814,15 @@ function printHuman(report) {
   console.log("## Plain Summary");
   console.log("");
   console.log(report.plainSummary);
+  console.log("");
+  console.log("## User Intent");
+  console.log("");
+  console.log("| Field | Value |");
+  console.log("|---|---|");
+  console.log(`| Provided intent | ${sanitizeTableCell(report.intentUnderstanding.rawIntent || "Not provided")} |`);
+  console.log(`| Intent classification | \`${report.intentUnderstanding.classification}\` |`);
+  console.log(`| Intent risk level | ${report.intentUnderstanding.riskLevel} |`);
+  console.log(`| Review focus | ${sanitizeTableCell((report.intentUnderstanding.reviewFocus || []).join(", ") || "N/A")} |`);
   console.log("");
   console.log("## Project Reading");
   console.log("");

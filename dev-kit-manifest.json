@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.30.0",
+  "devKitVersion": "1.31.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.30.0"
+    "phase": "1.31.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1438,7 +1438,12 @@
       "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
       "releases/1.30.0/known-limitations.md",
       "releases/1.30.0/release-record.md",
-      "releases/1.30.0/self-check-report.md"
+      "releases/1.30.0/self-check-report.md",
+      "examples/1.31-intent-aware-deep-guide/README.md",
+      "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
+      "releases/1.31.0/known-limitations.md",
+      "releases/1.31.0/release-record.md",
+      "releases/1.31.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -4438,11 +4443,11 @@
       "templates/workflow-guidance-card.md",
       "scripts/resolve-workflow-guidance.mjs",
       "scripts/check-workflow-guidance.mjs",
-      "examples/1.30-deep-guide-orchestration/README.md",
-      "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
-      "releases/1.30.0/release-record.md",
-      "releases/1.30.0/known-limitations.md",
-      "releases/1.30.0/self-check-report.md"
+      "examples/1.31-intent-aware-deep-guide/README.md",
+      "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
+      "releases/1.31.0/release-record.md",
+      "releases/1.31.0/known-limitations.md",
+      "releases/1.31.0/self-check-report.md"
     ]
   }
 }

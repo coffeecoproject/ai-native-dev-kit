@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.30.0`
+Current version: `1.31.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.30.0`
 
 ## Current Release
 
-`1.30.0`
+`1.31.0`
 
 Includes:
 
+- Intent-Aware Deep Guide phase `1.31.0`: adds `guide --deep --intent "<goal>"` so Codex can combine project signals with the user's natural-language goal before choosing read-only downstream checks
+- Added intent classification, `intentUnderstanding` JSON output, a user-facing `User Intent` card section, docs/checker/CI coverage, a 1.31 example, and release evidence
+- `1.31.0` does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation/release/production, approve high-risk decisions, or make intent classification authoritative
 - Deep Guide Orchestration phase `1.30.0`: adds `guide --deep` so Codex can selectively run relevant read-only workflow resolvers and compress the result back into one user-facing Workflow Guidance Card
 - Added deep orchestration JSON output, a plain `What I Checked` section, docs/template updates, a 1.30 example, and release evidence
 - `1.30.0` does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation/release/production, approve high-risk decisions, or replace detailed downstream evidence

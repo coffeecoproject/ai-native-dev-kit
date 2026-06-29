@@ -90,6 +90,33 @@ Codex should choose existing capabilities internally:
 
 Use `guide --deep` when the user asks Codex to read a project and decide the safest path without making them choose workflow commands.
 
+## Intent-Aware Deep Guide
+
+Use `guide --deep --intent "<user goal>"` when the user has named the task or desired outcome.
+
+Intent-aware deep guide combines:
+
+- project structure
+- existing governance signals
+- the user's natural-language goal
+
+The intent must be classified before downstream routing. Allowed intent classes include:
+
+- `BUILD_NEW_PRODUCT`
+- `ADD_FEATURE`
+- `ADD_PAYMENT_OR_VALUE_TRANSFER`
+- `ADD_AUTH_OR_PERMISSION`
+- `DATA_OR_MIGRATION_CHANGE`
+- `RELEASE_OR_DEPLOY`
+- `DOCUMENT_GOVERNANCE`
+- `TASK_SWITCH_OR_RESUME`
+- `BUG_FIX`
+- `AUTOMATION_OR_HOOK`
+- `GENERAL_CHANGE`
+- `NOT_PROVIDED`
+
+Intent can raise risk and review surfaces, but it does not authorize writing.
+
 Deep Guide Orchestration is selective, not exhaustive:
 
 - New or unclear projects may route to baseline decision.
@@ -98,6 +125,7 @@ Deep Guide Orchestration is selective, not exhaustive:
 - Work queue runs only when task, interruption, or unfinished-work signals exist.
 - Document lifecycle runs only when meaningful document signals exist.
 - Hook policy runs only when CI, hook, scheduled automation, or production-sensitive signals exist.
+- Debt handoff may run when the intent is task switching, resume, bug fix, or unfinished work.
 
 The result is still one Workflow Guidance Card. Plain mode should show what Codex checked, not internal command names.
 
