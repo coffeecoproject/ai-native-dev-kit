@@ -39,6 +39,8 @@
 - [ ] Subagent Run Plan is linked or marked not applicable when helper agents were used
 - [ ] Request / preflight / spec / eval / task links are included or marked not applicable
 - [ ] Workflow artifact quality check passed or is not applicable
+- [ ] Review Surface Card is linked or marked not applicable before non-trivial implementation, repair, or review work
+- [ ] Review surface close-out includes per-surface result, unverified surfaces, debt result, and next delivery state
 - [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable
 - [ ] AI task log is written for L1/L2/L3 work or marked not applicable
 - [ ] Verification evidence is included

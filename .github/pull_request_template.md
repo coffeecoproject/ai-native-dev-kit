@@ -27,6 +27,8 @@ Explain what changed in plain language and why the change is safe to review.
 - Baseline State Report:
 - Goal Card:
 - Subagent Run Plan:
+- Review Surface Card:
+- Review Surface close-out:
 - Review Packet:
 - Review Loop Report:
 - Final Report:

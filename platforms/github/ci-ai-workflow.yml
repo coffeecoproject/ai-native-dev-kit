@@ -69,6 +69,10 @@ jobs:
         run: node scripts/resolve-workflow-guidance.mjs .
       - name: Check workflow guidance
         run: node scripts/check-workflow-guidance.mjs .
+      - name: Resolve review surface
+        run: node scripts/resolve-review-surface.mjs .
+      - name: Check review surface
+        run: node scripts/check-review-surface.mjs .
       - name: Check change boundary
         run: node scripts/check-change-boundary.mjs .
       - name: Check baseline state
@@ -153,6 +157,10 @@ jobs:
         run: node --check scripts/resolve-workflow-guidance.mjs
       - name: Check workflow guidance checker syntax
         run: node --check scripts/check-workflow-guidance.mjs
+      - name: Check review surface resolver syntax
+        run: node --check scripts/resolve-review-surface.mjs
+      - name: Check review surface checker syntax
+        run: node --check scripts/check-review-surface.mjs
       - name: Check guided delivery loop checker syntax
         run: node --check scripts/check-guided-delivery-loop.mjs
       - name: Check change boundary checker syntax

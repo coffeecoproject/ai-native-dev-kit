@@ -338,6 +338,25 @@ node scripts/check-patch-classification.mjs .
 
 Patch classification routes repair scale. It does not authorize implementation.
 
+## Review Surface Governance
+
+Use `.ai-native/core/review-surface-governance.md` before non-trivial implementation, repair, or review work to decide what must be reviewed before and after execution.
+
+Run:
+
+```bash
+node scripts/cli.mjs review-surface .
+node scripts/cli.mjs review-surface-check .
+```
+
+Codex selects review surfaces from the project and task intent. The human should not need to choose technical review types.
+
+Every Review Surface Card must include `FUNCTIONAL_REVIEW`, `CODE_REVIEW`, `VERIFICATION_REVIEW`, and `DEBT_REVIEW`.
+
+A Review Surface Card is pre-execution planning only. It does not write files, approve implementation, approve release or production, change CI, install hooks, change task state, or approve security/privacy/compliance/payment/migration/data decisions.
+
+After execution, final reporting must include per-surface result, unverified surfaces, debt result, and next delivery state.
+
 ## Review Loop
 
 For L2/L3 work or when review findings need closure, run `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>`. Record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and must stay inside approved task scope.

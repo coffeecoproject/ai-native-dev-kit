@@ -25,6 +25,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "review-surface": {
+    description: "Select review surfaces before execution without writing target files.",
+    script: "scripts/resolve-review-surface.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "review-surface-check": {
+    description: "Check recorded review surface cards.",
+    script: "scripts/check-review-surface.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",

@@ -64,6 +64,8 @@ Injected workflow scripts:
 - `scripts/check-hook-orchestration.mjs`
 - `scripts/resolve-workflow-guidance.mjs`
 - `scripts/check-workflow-guidance.mjs`
+- `scripts/resolve-review-surface.mjs`
+- `scripts/check-review-surface.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -112,6 +114,19 @@ node scripts/cli.mjs guide-check .
 ```
 
 `resolve-workflow-guidance.mjs` is read-only. It reports project state, delivery path state, recommended next step, distance to useful use, limited questions for the human, internal routing, and no-write/no-CI/no-hook/no-release boundaries. `check-workflow-guidance.mjs` rejects overclaims, too many questions, and internal workflow jargon in plain mode.
+
+## resolve-review-surface.mjs / check-review-surface.mjs
+
+Select what must be reviewed before and after execution.
+
+```bash
+node scripts/resolve-review-surface.mjs .
+node scripts/check-review-surface.mjs .
+node scripts/cli.mjs review-surface .
+node scripts/cli.mjs review-surface-check .
+```
+
+`resolve-review-surface.mjs` is read-only. It selects review surfaces from project signals and user intent, always including functional, code, verification, and debt review. `check-review-surface.mjs` rejects cards that miss required surfaces, omit post-execution close-out fields, or claim implementation, release, target-write, CI, hook, document, task-state, or high-risk approval.
 
 ## resolve-work-queue.mjs / check-work-queue.mjs
 

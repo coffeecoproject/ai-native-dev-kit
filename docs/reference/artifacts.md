@@ -17,6 +17,7 @@ Artifacts make AI work auditable without forcing every task into the heaviest pr
 
 | Directory | Purpose |
 |---|---|
+| `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
 | `review-loop-reports/` | Findings, AUTO_FIX rounds, verification, and remaining decisions |
@@ -128,6 +129,8 @@ Guided Baseline Selection lives under `.ai-native/core/` in generated projects. 
 
 Natural Language Workflow Orchestrator lives under `.ai-native/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
 
+Review Surface Governance lives under `.ai-native/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -144,6 +147,7 @@ Short rule:
 
 - need to define work: request, preflight, spec, eval, task
 - need to decide which workflow path to use: workflow guidance card
+- need to decide what must be reviewed before and after execution: review surface card
 - need to review work: review packet and review loop report
 - need a human decision: decision brief
 - need to suggest future work: follow-up proposal

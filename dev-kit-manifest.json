@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.24.0",
+  "devKitVersion": "1.25.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.24.0"
+    "phase": "1.25.0"
   },
   "groups": {
     "sourceRequired": [
@@ -75,6 +75,7 @@
       "checklists/real-adoption-trial-review.md",
       "checklists/release-gate.md",
       "checklists/review-loop-review.md",
+      "checklists/review-surface-review.md",
       "checklists/risk-gate.md",
       "checklists/scope-gate.md",
       "checklists/self-iteration-review.md",
@@ -119,6 +120,7 @@
       "core/project-onboarding.md",
       "core/real-project-adoption-trial.md",
       "core/review-loop.md",
+      "core/review-surface-governance.md",
       "core/safe-launch.md",
       "core/self-iteration.md",
       "core/skill-governance.md",
@@ -200,6 +202,7 @@
       "docs/reference/platform-standard-baseline-matrix.md",
       "docs/reference/scripts.md",
       "docs/reference/standard-baseline-packs.md",
+      "docs/review-surface-governance.md",
       "docs/safe-launch.md",
       "docs/standard-baseline-pack-registry-1.14-plan.md",
       "docs/standard-baseline-pack-registry.md",
@@ -306,6 +309,8 @@
       "examples/1.21-document-lifecycle/doc-lifecycle-reports/001-doc-lifecycle.md",
       "examples/1.24-natural-language-orchestrator/README.md",
       "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
+      "examples/1.25-review-surface-governance/README.md",
+      "examples/1.25-review-surface-governance/review-surface-cards/001-booking-review-surface.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -643,6 +648,7 @@
       "prompts/project-onboarding-agent.md",
       "prompts/real-adoption-agent.md",
       "prompts/reporter-agent.md",
+      "prompts/review-surface-agent.md",
       "prompts/reviewer-agent.md",
       "prompts/standard-baseline-router-agent.md",
       "prompts/walkthrough-agent.md",
@@ -739,6 +745,9 @@
       "releases/1.24.0/known-limitations.md",
       "releases/1.24.0/release-record.md",
       "releases/1.24.0/self-check-report.md",
+      "releases/1.25.0/known-limitations.md",
+      "releases/1.25.0/release-record.md",
+      "releases/1.25.0/self-check-report.md",
       "releases/1.3.0/known-limitations.md",
       "releases/1.3.0/release-record.md",
       "releases/1.3.0/self-check-report.md",
@@ -826,6 +835,7 @@
       "review-packets/140-project-memory-context-governance.md",
       "review-packets/170-first-delivery-walkthrough.md",
       "review-packets/180-real-project-adoption-trial.md",
+      "review-surface-cards/.gitkeep",
       "schemas/artifacts/eval.schema.json",
       "schemas/artifacts/goal-card.schema.json",
       "schemas/artifacts/preflight.schema.json",
@@ -869,6 +879,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-review-loop.mjs",
+      "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
@@ -894,6 +905,7 @@
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
+      "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-workflow-guidance.mjs",
       "scripts/score-output-quality.mjs",
@@ -1013,7 +1025,11 @@
       "standard-baseline-packs/web-runtime/pack.md",
       "standard-baseline-packs/web-runtime/templates/web-runtime-evidence.md",
       "standard-baseline-selections/.gitkeep",
+      "starters/codex-android-app/review-surface-cards/.gitkeep",
+      "starters/codex-ios-app/review-surface-cards/.gitkeep",
+      "starters/codex-web-app/review-surface-cards/.gitkeep",
       "starters/generic-project/AGENTS.md",
+      "starters/generic-project/review-surface-cards/.gitkeep",
       "subagent-run-plans/034-baseline-freeze-self-ci.md",
       "subagent-run-plans/035-readonly-manifest.md",
       "subagent-run-plans/036-cli-front-door.md",
@@ -1112,6 +1128,7 @@
       "templates/request-card.md",
       "templates/review-loop-report.md",
       "templates/review-packet.md",
+      "templates/review-surface-card.md",
       "templates/sample-policy.md",
       "templates/scope-change-report.md",
       "templates/skill-candidate.md",
@@ -1284,6 +1301,8 @@
       "test-fixtures/bad/bad-review-loop/review-packets/001-risky-dependency.md",
       "test-fixtures/bad/bad-review-loop/specs/001-risky-dependency.md",
       "test-fixtures/bad/bad-review-loop/tasks/001-risky-dependency.md",
+      "test-fixtures/bad/bad-review-surface-approves-implementation/review-surface-cards/001-bad.md",
+      "test-fixtures/bad/bad-review-surface-missing-debt/review-surface-cards/001-bad.md",
       "test-fixtures/bad/bad-standard-pack-default-enabled/standard-baseline-packs/bad-runtime/baselines/bad-baseline.md",
       "test-fixtures/bad/bad-standard-pack-default-enabled/standard-baseline-packs/bad-runtime/changelog.md",
       "test-fixtures/bad/bad-standard-pack-default-enabled/standard-baseline-packs/bad-runtime/checklists/bad-review.md",
@@ -1377,6 +1396,7 @@
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/release-gate.md",
       ".ai-native/checklists/review-loop-review.md",
+      ".ai-native/checklists/review-surface-review.md",
       ".ai-native/checklists/risk-gate.md",
       ".ai-native/checklists/scope-gate.md",
       ".ai-native/checklists/self-iteration-review.md",
@@ -1419,6 +1439,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-project-adoption-trial.md",
       ".ai-native/core/review-loop.md",
+      ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
       ".ai-native/core/self-iteration.md",
       ".ai-native/core/skill-governance.md",
@@ -1453,6 +1474,7 @@
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/project-memory.md",
       ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/docs/work-queue.md",
@@ -1482,6 +1504,7 @@
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/repair-agent.md",
       ".ai-native/prompts/reporter-agent.md",
+      ".ai-native/prompts/review-surface-agent.md",
       ".ai-native/prompts/reviewer-agent.md",
       ".ai-native/prompts/spec-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
@@ -1541,6 +1564,7 @@
       ".ai-native/templates/request-card.md",
       ".ai-native/templates/review-loop-report.md",
       ".ai-native/templates/review-packet.md",
+      ".ai-native/templates/review-surface-card.md",
       ".ai-native/templates/sample-policy.md",
       ".ai-native/templates/scope-change-report.md",
       ".ai-native/templates/skill-candidate.md",
@@ -1615,6 +1639,7 @@
       "review-loop-reports",
       "review-packets",
       "review-summaries",
+      "review-surface-cards",
       "scope-change-reports",
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
@@ -1641,6 +1666,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-review-loop.mjs",
+      "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
@@ -1664,6 +1690,7 @@
       "scripts/resolve-existing-workflow.mjs",
       "scripts/resolve-guided-baseline-selection.mjs",
       "scripts/resolve-hook-orchestration.mjs",
+      "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -1714,6 +1741,7 @@
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/release-gate.md",
       ".ai-native/checklists/review-loop-review.md",
+      ".ai-native/checklists/review-surface-review.md",
       ".ai-native/checklists/risk-gate.md",
       ".ai-native/checklists/scope-gate.md",
       ".ai-native/checklists/self-iteration-review.md",
@@ -1757,6 +1785,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-project-adoption-trial.md",
       ".ai-native/core/review-loop.md",
+      ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
       ".ai-native/core/self-iteration.md",
       ".ai-native/core/skill-governance.md",
@@ -1791,6 +1820,7 @@
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/project-memory.md",
       ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/docs/work-queue.md",
@@ -1846,6 +1876,7 @@
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/repair-agent.md",
       ".ai-native/prompts/reporter-agent.md",
+      ".ai-native/prompts/review-surface-agent.md",
       ".ai-native/prompts/reviewer-agent.md",
       ".ai-native/prompts/spec-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
@@ -1910,6 +1941,7 @@
       ".ai-native/templates/request-card.md",
       ".ai-native/templates/review-loop-report.md",
       ".ai-native/templates/review-packet.md",
+      ".ai-native/templates/review-surface-card.md",
       ".ai-native/templates/sample-policy.md",
       ".ai-native/templates/scope-change-report.md",
       ".ai-native/templates/skill-candidate.md",
@@ -1985,6 +2017,7 @@
       "review-loop-reports",
       "review-packets",
       "review-summaries",
+      "review-surface-cards",
       "scope-change-reports",
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
@@ -2014,6 +2047,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-review-loop.mjs",
+      "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
@@ -2039,6 +2073,7 @@
       "scripts/resolve-hook-orchestration.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
+      "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -2087,6 +2122,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-project-adoption-trial.md",
       ".ai-native/core/review-loop.md",
+      ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/self-iteration.md",
       ".ai-native/core/skill-governance.md",
       ".ai-native/core/subagent-orchestration.md",
@@ -2102,10 +2138,12 @@
       "core/natural-language-orchestrator.md",
       "core/patch-classification.md",
       "core/real-project-adoption-trial.md",
+      "core/review-surface-governance.md",
       "core/safe-launch.md",
       "core/standard-baseline-pack-registry.md"
     ],
     "templates": [
+      ".ai-native/templates/review-surface-card.md",
       "templates/active-work-thread.md",
       "templates/adoption-assessment.md",
       "templates/adoption-evidence-report.md",
@@ -2162,6 +2200,7 @@
       "templates/request-card.md",
       "templates/review-loop-report.md",
       "templates/review-packet.md",
+      "templates/review-surface-card.md",
       "templates/sample-policy.md",
       "templates/scope-change-report.md",
       "templates/skill-candidate.md",
@@ -2183,6 +2222,7 @@
       "templates/workflow-version.json"
     ],
     "prompts": [
+      ".ai-native/prompts/review-surface-agent.md",
       "prompts/baseline-decision-agent.md",
       "prompts/baseline-pack-router-agent.md",
       "prompts/baseline-setup-agent.md",
@@ -2205,6 +2245,7 @@
       "prompts/project-onboarding-agent.md",
       "prompts/real-adoption-agent.md",
       "prompts/reporter-agent.md",
+      "prompts/review-surface-agent.md",
       "prompts/reviewer-agent.md",
       "prompts/standard-baseline-router-agent.md",
       "prompts/walkthrough-agent.md",
@@ -2213,6 +2254,7 @@
       "prompts/workflow-concierge-agent.md"
     ],
     "checklists": [
+      ".ai-native/checklists/review-surface-review.md",
       "checklists/automation-review.md",
       "checklists/baseline-decision-review.md",
       "checklists/baseline-enforcement-review.md",
@@ -2242,6 +2284,7 @@
       "checklists/real-adoption-trial-review.md",
       "checklists/release-gate.md",
       "checklists/review-loop-review.md",
+      "checklists/review-surface-review.md",
       "checklists/risk-gate.md",
       "checklists/scope-gate.md",
       "checklists/self-iteration-review.md",
@@ -2317,6 +2360,7 @@
       "review-loop-reports",
       "review-packets",
       "review-summaries",
+      "review-surface-cards",
       "scope-change-reports",
       "skill-candidates",
       "specs",
@@ -2363,6 +2407,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-review-loop.mjs",
+      "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
@@ -2390,6 +2435,7 @@
       "scripts/resolve-hook-orchestration.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
+      "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -2489,6 +2535,8 @@
       "examples/1.23-hook-orchestration/hook-orchestration-plans/001-hook-plan.md",
       "examples/1.24-natural-language-orchestrator/README.md",
       "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
+      "examples/1.25-review-surface-governance/README.md",
+      "examples/1.25-review-surface-governance/review-surface-cards/001-booking-review-surface.md",
       "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
@@ -2745,6 +2793,8 @@
       "test-fixtures/bad/bad-review-loop/review-packets/001-risky-dependency.md",
       "test-fixtures/bad/bad-review-loop/specs/001-risky-dependency.md",
       "test-fixtures/bad/bad-review-loop/tasks/001-risky-dependency.md",
+      "test-fixtures/bad/bad-review-surface-approves-implementation/review-surface-cards/001-bad.md",
+      "test-fixtures/bad/bad-review-surface-missing-debt/review-surface-cards/001-bad.md",
       "test-fixtures/bad/bad-standard-pack-default-enabled/standard-baseline-packs/bad-runtime/baselines/bad-baseline.md",
       "test-fixtures/bad/bad-standard-pack-default-enabled/standard-baseline-packs/bad-runtime/changelog.md",
       "test-fixtures/bad/bad-standard-pack-default-enabled/standard-baseline-packs/bad-runtime/checklists/bad-review.md",
@@ -2828,6 +2878,7 @@
       ".ai-native/checklists/patch-classification-review.md",
       ".ai-native/checklists/product-baseline-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
+      ".ai-native/checklists/review-surface-review.md",
       ".ai-native/checklists/standard-baseline-selection-review.md",
       ".ai-native/checklists/work-queue-review.md",
       ".ai-native/checklists/workflow-adoption-map-review.md",
@@ -2853,6 +2904,7 @@
       ".ai-native/core/patch-classification.md",
       ".ai-native/core/product-baseline.md",
       ".ai-native/core/real-project-adoption-trial.md",
+      ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
       ".ai-native/core/standard-baseline-pack-registry.md",
       ".ai-native/core/work-queue.md",
@@ -2882,6 +2934,7 @@
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/project-memory.md",
       ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/docs/work-queue.md",
@@ -2903,6 +2956,7 @@
       ".ai-native/prompts/patch-classifier-agent.md",
       ".ai-native/prompts/product-baseline-agent.md",
       ".ai-native/prompts/real-adoption-agent.md",
+      ".ai-native/prompts/review-surface-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
       ".ai-native/prompts/walkthrough-agent.md",
       ".ai-native/prompts/work-queue-agent.md",
@@ -2931,6 +2985,7 @@
       ".ai-native/templates/patch-classification-report.md",
       ".ai-native/templates/product-baseline-review.md",
       ".ai-native/templates/real-adoption-trial-report.md",
+      ".ai-native/templates/review-surface-card.md",
       ".ai-native/templates/scope-change-report.md",
       ".ai-native/templates/standard-baseline-selection-report.md",
       ".ai-native/templates/user-decision-card.md",
@@ -2979,6 +3034,7 @@
       "review-loop-reports",
       "review-packets",
       "review-summaries",
+      "review-surface-cards",
       "scope-change-reports",
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
@@ -3008,6 +3064,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-review-loop.mjs",
+      "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
@@ -3033,6 +3090,7 @@
       "scripts/resolve-hook-orchestration.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
+      "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -3071,6 +3129,7 @@
       ".ai-native/checklists/project-onboarding-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/review-loop-review.md",
+      ".ai-native/checklists/review-surface-review.md",
       ".ai-native/checklists/standard-baseline-selection-review.md",
       ".ai-native/checklists/subagent-orchestration-review.md",
       ".ai-native/checklists/work-queue-review.md",
@@ -3104,6 +3163,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-project-adoption-trial.md",
       ".ai-native/core/review-loop.md",
+      ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
       ".ai-native/core/standard-baseline-pack-registry.md",
       ".ai-native/core/subagent-orchestration.md",
@@ -3129,6 +3189,7 @@
       ".ai-native/docs/natural-language-orchestrator.md",
       ".ai-native/docs/product-baseline.md",
       ".ai-native/docs/real-adoption-usage.md",
+      ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/docs/work-queue.md",
@@ -3170,6 +3231,7 @@
       ".ai-native/prompts/project-onboarding-agent.md",
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/reporter-agent.md",
+      ".ai-native/prompts/review-surface-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
       ".ai-native/prompts/walkthrough-agent.md",
       ".ai-native/prompts/work-queue-agent.md",
@@ -3214,6 +3276,7 @@
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/review-loop-report.md",
       ".ai-native/templates/review-packet.md",
+      ".ai-native/templates/review-surface-card.md",
       ".ai-native/templates/sample-policy.md",
       ".ai-native/templates/scope-change-report.md",
       ".ai-native/templates/standard-baseline-selection-report.md",
@@ -3264,6 +3327,7 @@
       "review-loop-reports",
       "review-packets",
       "review-summaries",
+      "review-surface-cards",
       "scope-change-reports",
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
@@ -3293,6 +3357,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-review-loop.mjs",
+      "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
@@ -3311,6 +3376,7 @@
       "scripts/resolve-hook-orchestration.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-platform-baseline.mjs",
+      "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -3329,6 +3395,34 @@
   "copyRules": {
     "directories": [
       {
+        "source": "checklists",
+        "target": ".ai-native/checklists"
+      },
+      {
+        "source": "core",
+        "target": ".ai-native/core"
+      },
+      {
+        "source": "profiles",
+        "target": ".ai-native/profiles"
+      },
+      {
+        "source": "prompts",
+        "target": ".ai-native/prompts"
+      },
+      {
+        "source": "schemas/artifacts",
+        "target": ".ai-native/schemas/artifacts"
+      },
+      {
+        "source": "standard-baseline-packs",
+        "target": ".ai-native/standard-baseline-packs"
+      },
+      {
+        "source": "templates",
+        "target": ".ai-native/templates"
+      },
+      {
         "source": "baseline-decision-cards",
         "target": "baseline-decision-cards"
       },
@@ -3343,14 +3437,6 @@
       {
         "source": "change-boundary-reports",
         "target": "change-boundary-reports"
-      },
-      {
-        "source": "checklists",
-        "target": ".ai-native/checklists"
-      },
-      {
-        "source": "core",
-        "target": ".ai-native/core"
       },
       {
         "source": "doc-lifecycle-reports",
@@ -3369,32 +3455,16 @@
         "target": "patch-classifications"
       },
       {
-        "source": "profiles",
-        "target": ".ai-native/profiles"
-      },
-      {
-        "source": "prompts",
-        "target": ".ai-native/prompts"
-      },
-      {
         "source": "real-adoption-trials",
         "target": "real-adoption-trials"
       },
       {
-        "source": "schemas/artifacts",
-        "target": ".ai-native/schemas/artifacts"
-      },
-      {
-        "source": "standard-baseline-packs",
-        "target": ".ai-native/standard-baseline-packs"
+        "source": "review-surface-cards",
+        "target": "review-surface-cards"
       },
       {
         "source": "standard-baseline-selections",
         "target": "standard-baseline-selections"
-      },
-      {
-        "source": "templates",
-        "target": ".ai-native/templates"
       },
       {
         "source": "work-queue",
@@ -3437,6 +3507,10 @@
       {
         "source": "checklists/real-adoption-trial-review.md",
         "target": ".ai-native/checklists/real-adoption-trial-review.md"
+      },
+      {
+        "source": "checklists/review-surface-review.md",
+        "target": ".ai-native/checklists/review-surface-review.md"
       },
       {
         "source": "checklists/standard-baseline-selection-review.md",
@@ -3485,6 +3559,10 @@
       {
         "source": "core/real-project-adoption-trial.md",
         "target": ".ai-native/core/real-project-adoption-trial.md"
+      },
+      {
+        "source": "core/review-surface-governance.md",
+        "target": ".ai-native/core/review-surface-governance.md"
       },
       {
         "source": "core/standard-baseline-pack-registry.md",
@@ -3599,6 +3677,10 @@
         "target": ".ai-native/docs/real-adoption-usage.md"
       },
       {
+        "source": "docs/review-surface-governance.md",
+        "target": ".ai-native/docs/review-surface-governance.md"
+      },
+      {
         "source": "docs/safe-launch.md",
         "target": ".ai-native/docs/safe-launch.md"
       },
@@ -3609,10 +3691,6 @@
       {
         "source": "docs/work-queue.md",
         "target": ".ai-native/docs/work-queue.md"
-      },
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
       },
       {
         "source": "prompts/baseline-decision-agent.md",
@@ -3651,6 +3729,10 @@
         "target": ".ai-native/prompts/real-adoption-agent.md"
       },
       {
+        "source": "prompts/review-surface-agent.md",
+        "target": ".ai-native/prompts/review-surface-agent.md"
+      },
+      {
         "source": "prompts/standard-baseline-router-agent.md",
         "target": ".ai-native/prompts/standard-baseline-router-agent.md"
       },
@@ -3661,6 +3743,70 @@
       {
         "source": "prompts/workflow-concierge-agent.md",
         "target": ".ai-native/prompts/workflow-concierge-agent.md"
+      },
+      {
+        "source": "templates/active-work-thread.md",
+        "target": ".ai-native/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/baseline-decision-card.md",
+        "target": ".ai-native/templates/baseline-decision-card.md"
+      },
+      {
+        "source": "templates/baseline-pack-selection-report.md",
+        "target": ".ai-native/templates/baseline-pack-selection-report.md"
+      },
+      {
+        "source": "templates/baseline-state-report.md",
+        "target": ".ai-native/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/change-boundary-report.md",
+        "target": ".ai-native/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/guided-decision-summary.md",
+        "target": ".ai-native/templates/guided-decision-summary.md"
+      },
+      {
+        "source": "templates/hook-orchestration-plan.md",
+        "target": ".ai-native/templates/hook-orchestration-plan.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".ai-native/templates/patch-classification-false-positive.md"
+      },
+      {
+        "source": "templates/patch-classification-report.md",
+        "target": ".ai-native/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/real-adoption-trial-report.md",
+        "target": ".ai-native/templates/real-adoption-trial-report.md"
+      },
+      {
+        "source": "templates/review-surface-card.md",
+        "target": ".ai-native/templates/review-surface-card.md"
+      },
+      {
+        "source": "templates/standard-baseline-selection-report.md",
+        "target": ".ai-native/templates/standard-baseline-selection-report.md"
+      },
+      {
+        "source": "templates/user-decision-card.md",
+        "target": ".ai-native/templates/user-decision-card.md"
+      },
+      {
+        "source": "templates/work-queue-report.md",
+        "target": ".ai-native/templates/work-queue-report.md"
+      },
+      {
+        "source": "templates/workflow-guidance-card.md",
+        "target": ".ai-native/templates/workflow-guidance-card.md"
+      },
+      {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
       },
       {
         "source": "scripts/baseline-project.mjs",
@@ -3775,6 +3921,10 @@
         "target": "scripts/check-review-loop.mjs"
       },
       {
+        "source": "scripts/check-review-surface.mjs",
+        "target": "scripts/check-review-surface.mjs"
+      },
+      {
         "source": "scripts/check-standard-baseline-pack.mjs",
         "target": "scripts/check-standard-baseline-pack.mjs"
       },
@@ -3875,6 +4025,10 @@
         "target": "scripts/resolve-platform-baseline.mjs"
       },
       {
+        "source": "scripts/resolve-review-surface.mjs",
+        "target": "scripts/resolve-review-surface.mjs"
+      },
+      {
         "source": "scripts/resolve-standard-baseline.mjs",
         "target": "scripts/resolve-standard-baseline.mjs"
       },
@@ -3901,62 +4055,6 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
-      },
-      {
-        "source": "templates/active-work-thread.md",
-        "target": ".ai-native/templates/active-work-thread.md"
-      },
-      {
-        "source": "templates/baseline-decision-card.md",
-        "target": ".ai-native/templates/baseline-decision-card.md"
-      },
-      {
-        "source": "templates/baseline-pack-selection-report.md",
-        "target": ".ai-native/templates/baseline-pack-selection-report.md"
-      },
-      {
-        "source": "templates/baseline-state-report.md",
-        "target": ".ai-native/templates/baseline-state-report.md"
-      },
-      {
-        "source": "templates/change-boundary-report.md",
-        "target": ".ai-native/templates/change-boundary-report.md"
-      },
-      {
-        "source": "templates/guided-decision-summary.md",
-        "target": ".ai-native/templates/guided-decision-summary.md"
-      },
-      {
-        "source": "templates/hook-orchestration-plan.md",
-        "target": ".ai-native/templates/hook-orchestration-plan.md"
-      },
-      {
-        "source": "templates/patch-classification-false-positive.md",
-        "target": ".ai-native/templates/patch-classification-false-positive.md"
-      },
-      {
-        "source": "templates/patch-classification-report.md",
-        "target": ".ai-native/templates/patch-classification-report.md"
-      },
-      {
-        "source": "templates/real-adoption-trial-report.md",
-        "target": ".ai-native/templates/real-adoption-trial-report.md"
-      },
-      {
-        "source": "templates/standard-baseline-selection-report.md",
-        "target": ".ai-native/templates/standard-baseline-selection-report.md"
-      },
-      {
-        "source": "templates/user-decision-card.md",
-        "target": ".ai-native/templates/user-decision-card.md"
-      },
-      {
-        "source": "templates/work-queue-report.md",
-        "target": ".ai-native/templates/work-queue-report.md"
-      },
-      {
-        "source": "templates/workflow-guidance-card.md",
-        "target": ".ai-native/templates/workflow-guidance-card.md"
       }
     ]
   },

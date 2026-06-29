@@ -47,6 +47,7 @@ const typeMap = {
   "standard-baseline-selection-report": { dir: "standard-baseline-selections", template: "standard-baseline-selection-report.md", defaultName: "standard-baseline-selection" },
   "baseline-decision-card": { dir: "baseline-decision-cards", template: "baseline-decision-card.md", defaultName: "baseline-decision" },
   "workflow-guidance-card": { dir: "workflow-guidance-cards", template: "workflow-guidance-card.md", defaultName: "workflow-guidance" },
+  "review-surface-card": { dir: "review-surface-cards", template: "review-surface-card.md", defaultName: "review-surface" },
   "user-decision-card": { dir: "decision-briefs", template: "user-decision-card.md", defaultName: "user-decision" },
 };
 
@@ -170,6 +171,11 @@ const aliases = {
   "workflow-guidance": "workflow-guidance-card",
   "workflow-guidance-report": "workflow-guidance-card",
   concierge: "workflow-guidance-card",
+  "review-surface": "review-surface-card",
+  "review-surface-card": "review-surface-card",
+  "review-plan": "review-surface-card",
+  "review-scope": "review-surface-card",
+  "review-surfaces": "review-surface-card",
   "user-decision": "user-decision-card",
   "decision-card-user": "user-decision-card",
 };
@@ -234,6 +240,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type standard-baseline-selection-report --name project-standard-baseline");
   console.error("  node scripts/new-workflow-item.mjs --type baseline-decision-card --name project-baseline-decision");
   console.error("  node scripts/new-workflow-item.mjs --type workflow-guidance-card --name first-guidance");
+  console.error("  node scripts/new-workflow-item.mjs --type review-surface-card --name task-review-surface");
   console.error("  node scripts/new-workflow-item.mjs --type user-decision-card --name first-decision");
 }
 

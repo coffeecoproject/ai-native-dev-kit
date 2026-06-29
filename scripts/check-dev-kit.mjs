@@ -438,6 +438,8 @@ function checkVersionMetadata() {
     "scripts/check-hook-orchestration.mjs",
     "scripts/resolve-workflow-guidance.mjs",
     "scripts/check-workflow-guidance.mjs",
+    "scripts/resolve-review-surface.mjs",
+    "scripts/check-review-surface.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -527,6 +529,7 @@ function checkVersionMetadata() {
     ".ai-native/core/work-queue.md",
     ".ai-native/core/hook-orchestration.md",
     ".ai-native/core/natural-language-orchestrator.md",
+    ".ai-native/core/review-surface-governance.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
     ".ai-native/core/standard-baseline-pack-registry.md",
@@ -546,6 +549,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/work-queue-report.md",
     ".ai-native/templates/hook-orchestration-plan.md",
     ".ai-native/templates/workflow-guidance-card.md",
+    ".ai-native/templates/review-surface-card.md",
     ".ai-native/templates/user-decision-card.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
@@ -564,6 +568,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/work-queue-agent.md",
     ".ai-native/prompts/hook-orchestration-agent.md",
     ".ai-native/prompts/workflow-concierge-agent.md",
+    ".ai-native/prompts/review-surface-agent.md",
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
@@ -582,6 +587,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/work-queue-review.md",
     ".ai-native/checklists/hook-orchestration-review.md",
     ".ai-native/checklists/workflow-guidance-review.md",
+    ".ai-native/checklists/review-surface-review.md",
     ".ai-native/checklists/standard-baseline-selection-review.md",
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
@@ -603,6 +609,7 @@ function checkVersionMetadata() {
     "work-queue",
     "hook-orchestration-plans",
     "workflow-guidance-cards",
+    "review-surface-cards",
     "change-boundary-reports",
     "baseline-state-reports",
     "adoption-recommendations",
@@ -655,6 +662,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs hook-plan .",
     "node scripts/check-workflow-guidance.mjs .",
     "node scripts/cli.mjs guide .",
+    "node scripts/check-review-surface.mjs .",
+    "node scripts/cli.mjs review-surface .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -694,8 +703,12 @@ function checkDevKitFirstPartyCi() {
     "resolve-hook-orchestration.mjs",
     "check-workflow-guidance.mjs",
     "resolve-workflow-guidance.mjs",
+    "check-review-surface.mjs",
+    "resolve-review-surface.mjs",
     "guide",
     "guide-check",
+    "review-surface",
+    "review-surface-check",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -743,6 +756,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs hook-plan .",
     "node scripts/check-workflow-guidance.mjs .",
     "node scripts/cli.mjs guide .",
+    "node scripts/check-review-surface.mjs .",
+    "node scripts/cli.mjs review-surface .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -780,8 +795,12 @@ function checkDevKitFirstPartyCi() {
     "resolve-hook-orchestration.mjs",
     "check-workflow-guidance.mjs",
     "resolve-workflow-guidance.mjs",
+    "check-review-surface.mjs",
+    "resolve-review-surface.mjs",
     "guide",
     "guide-check",
+    "review-surface",
+    "review-surface-check",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -1265,6 +1284,10 @@ function checkCliFrontDoor() {
     "node --check scripts/check-workflow-guidance.mjs",
     "node scripts/cli.mjs guide .",
     "node scripts/check-workflow-guidance.mjs .",
+    "node --check scripts/resolve-review-surface.mjs",
+    "node --check scripts/check-review-surface.mjs",
+    "node scripts/cli.mjs review-surface .",
+    "node scripts/check-review-surface.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1355,6 +1378,22 @@ function checkCliFrontDoor() {
     pass("CLI guide-check delegates to workflow guidance checker");
   } else {
     fail(`CLI guide-check failed: ${guideCheck.stderr || guideCheck.stdout}`);
+  }
+
+  const reviewSurface = runNode(["scripts/cli.mjs", "review-surface", "."]);
+  if (reviewSurface.status === 0
+    && reviewSurface.stdout.includes("Review Surface Card")
+    && reviewSurface.stdout.includes("This card writes target files: No")) {
+    pass("CLI review-surface delegates to review surface resolver");
+  } else {
+    fail(`CLI review-surface failed: ${reviewSurface.stderr || reviewSurface.stdout}`);
+  }
+
+  const reviewSurfaceCheck = runNode(["scripts/cli.mjs", "review-surface-check", "."]);
+  if (reviewSurfaceCheck.status === 0 && reviewSurfaceCheck.stdout.includes("Review surface check passed")) {
+    pass("CLI review-surface-check delegates to review surface checker");
+  } else {
+    fail(`CLI review-surface-check failed: ${reviewSurfaceCheck.stderr || reviewSurfaceCheck.stdout}`);
   }
 
   const baselineDecision = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
@@ -4469,6 +4508,109 @@ function checkNaturalLanguageOrchestratorProtocol() {
   }
 }
 
+function checkReviewSurfaceGovernanceProtocol() {
+  const required = [
+    "core/review-surface-governance.md",
+    "docs/review-surface-governance.md",
+    "templates/review-surface-card.md",
+    "checklists/review-surface-review.md",
+    "prompts/review-surface-agent.md",
+    "review-surface-cards/.gitkeep",
+    "scripts/resolve-review-surface.mjs",
+    "scripts/check-review-surface.mjs",
+    "examples/1.25-review-surface-governance/README.md",
+    "examples/1.25-review-surface-governance/review-surface-cards/001-booking-review-surface.md",
+    "test-fixtures/bad/bad-review-surface-approves-implementation/review-surface-cards/001-bad.md",
+    "test-fixtures/bad/bad-review-surface-missing-debt/review-surface-cards/001-bad.md",
+    "releases/1.25.0/release-record.md",
+    "releases/1.25.0/known-limitations.md",
+    "releases/1.25.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.25 review surface asset exists ${file}`);
+    else fail(`1.25 review surface asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/review-surface-governance.md"),
+    read("docs/review-surface-governance.md"),
+    read("templates/review-surface-card.md"),
+    read("scripts/resolve-review-surface.mjs"),
+    read("scripts/check-review-surface.mjs"),
+    read("releases/1.25.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Review Surface Governance",
+    "Review Surface Card",
+    "Codex selects review surfaces",
+    "DEBT_REVIEW is always required",
+    "Post-Execution Review Contract",
+    "This card writes target files: No",
+    "This card approves implementation: No",
+    "This card approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.25 review surface includes ${marker}`);
+    else fail(`1.25 review surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-review-surface.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Review Surface Card")
+    && resolver.stdout.includes("Selected Review Surfaces")
+    && resolver.stdout.includes("This card writes target files: No")) {
+    pass("1.25 review surface resolver prints safe card");
+  } else {
+    fail(`1.25 review surface resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-review-surface.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "REVIEW_SURFACE_CARD"
+        && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.selectedReviewSurfaces?.some((item) => item.surface === "DEBT_REVIEW")
+        && Array.isArray(parsed.postExecutionReviewContract)) {
+        pass("1.25 review surface resolver JSON includes boundaries, debt review, and post-execution contract");
+      } else {
+        fail(`1.25 review surface resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.25 review surface resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.25 review surface resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-review-surface.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Review surface check passed")) {
+    pass("1.25 review surface checker passes source repo");
+  } else {
+    fail(`1.25 review surface checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-review-surface.mjs", "examples/1.25-review-surface-governance"]);
+  if (example.status === 0 && example.stdout.includes("Review surface check passed")) {
+    pass("1.25 review surface example passes checker");
+  } else {
+    fail(`1.25 review surface example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["approval overclaim", ["scripts/check-review-surface.mjs", "test-fixtures/bad/bad-review-surface-approves-implementation"], "forbidden review surface claim"],
+    ["missing debt", ["scripts/check-review-surface.mjs", "test-fixtures/bad/bad-review-surface-missing-debt"], "missing required review surface: DEBT_REVIEW"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.25 review surface rejects ${name}`);
+    } else {
+      fail(`1.25 review surface must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -4716,6 +4858,7 @@ function checkStarters() {
     "automation-proposals/.gitkeep",
     "dev-kit-proposals/.gitkeep",
     "review-packets/.gitkeep",
+    "review-surface-cards/.gitkeep",
     "gpt-review-prompts/.gitkeep",
     "review-loop-reports/.gitkeep",
     "goal-cards/.gitkeep",
@@ -4741,7 +4884,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -4750,7 +4893,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -4759,7 +4902,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -4789,7 +4932,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state", "baseline pack", "workflow guidance"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -4827,6 +4970,8 @@ function checkPlatformAdapters() {
     "resolve-hook-orchestration.mjs",
     "check-workflow-guidance.mjs",
     "resolve-workflow-guidance.mjs",
+    "check-review-surface.mjs",
+    "resolve-review-surface.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
     "resolve-standard-baseline.mjs",
@@ -4957,6 +5102,8 @@ function checkReadmePointers() {
     "O2 + selected profiles + BL2",
     "node scripts/cli.mjs guide",
     "node scripts/check-workflow-guidance.mjs",
+    "node scripts/cli.mjs review-surface",
+    "node scripts/check-review-surface.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs baseline-decision",
@@ -5000,6 +5147,7 @@ function checkReadmePointers() {
     "不要",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/review-surface-governance.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -5025,6 +5173,7 @@ function checkReadmePointers() {
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
+    "releases/1.25.0/release-record.md",
     "releases/1.24.0/release-record.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -5059,6 +5208,8 @@ function checkReadmePointers() {
     "Codex 一句话入口",
     "node scripts/cli.mjs guide",
     "node scripts/check-workflow-guidance.mjs",
+    "node scripts/cli.mjs review-surface",
+    "node scripts/check-review-surface.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs standard-baseline",
@@ -5089,6 +5240,7 @@ function checkReadmePointers() {
     "重要边界",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/review-surface-governance.md",
     "docs/first-hour.md",
     "docs/guided-delivery-baseline.md",
     "docs/product-baseline.md",
@@ -5109,6 +5261,7 @@ function checkReadmePointers() {
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/baseline-pack-system.md",
+    "releases/1.25.0/release-record.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -5118,6 +5271,7 @@ function checkReadmePointers() {
   const requiredDocs = [
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/review-surface-governance.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -7518,6 +7672,7 @@ checkDocumentLifecycleProtocol();
 checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
 checkNaturalLanguageOrchestratorProtocol();
+checkReviewSurfaceGovernanceProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

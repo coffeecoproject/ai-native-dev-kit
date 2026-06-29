@@ -86,6 +86,12 @@ jobs:
       - name: Workflow guidance smoke
         run: node scripts/cli.mjs guide .
 
+      - name: Review surface check
+        run: node scripts/check-review-surface.mjs .
+
+      - name: Review surface smoke
+        run: node scripts/cli.mjs review-surface .
+
       - name: Guided delivery check
         run: node scripts/check-guided-delivery-loop.mjs .
 
@@ -163,8 +169,12 @@ jobs:
           node "$tmp/project/scripts/resolve-hook-orchestration.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-workflow-guidance.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-review-surface.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-review-surface.mjs" "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" review-surface "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" review-surface-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" baseline-decision-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" workflow-map "$tmp/project"

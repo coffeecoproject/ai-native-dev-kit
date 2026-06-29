@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.24.0`
+Current version: `1.25.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,14 @@ Current version: `1.24.0`
 
 ## Current Release
 
-`1.24.0`
+`1.25.0`
 
 Includes:
 
+- Review Surface Governance phase `1.25.0`: adds `review-surface` and `review-surface-check` so Codex can decide what must be reviewed before and after execution without asking users to choose technical review types
+- Added `core/review-surface-governance.md`, `docs/review-surface-governance.md`, `templates/review-surface-card.md`, `checklists/review-surface-review.md`, `prompts/review-surface-agent.md`, `review-surface-cards/`, `scripts/resolve-review-surface.mjs`, and `scripts/check-review-surface.mjs`
+- `1.25.0` always requires `FUNCTIONAL_REVIEW`, `CODE_REVIEW`, `VERIFICATION_REVIEW`, and `DEBT_REVIEW`, then adds data, permission, UX, documentation, release, existing-governance, and security/privacy review surfaces from project signals
+- `1.25.0` does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve security/privacy/compliance/payment/migration/data decisions
 - Natural Language Workflow Orchestrator phase `1.24.0`: adds `guide` and `guide-check` so Codex can read a project and return one plain Workflow Guidance Card before users need to understand internal workflow commands
 - Added `core/natural-language-orchestrator.md`, `docs/natural-language-orchestrator.md`, `templates/workflow-guidance-card.md`, `templates/user-decision-card.md`, `checklists/workflow-guidance-review.md`, `prompts/workflow-concierge-agent.md`, `workflow-guidance-cards/`, `scripts/resolve-workflow-guidance.mjs`, and `scripts/check-workflow-guidance.mjs`
 - `1.24.0` does not write target files, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve security/privacy/compliance/payment/migration/data decisions

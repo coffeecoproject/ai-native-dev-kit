@@ -101,10 +101,12 @@ For workflow artifacts:
 - use `node scripts/new-workflow-item.mjs` to create numbered request, preflight, spec, eval, task, AI log, review packet, GPT review prompt, review loop report, goal card, follow-up proposal, and final report files
 - use `node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows
 - use `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when a change needs independent human, GPT Pro, or second-model review
+- use `node scripts/new-workflow-item.mjs --type review-surface-card --name <slug>` before non-trivial implementation, repair, or review work when selected review surfaces need to be recorded
 - use `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need closure
 - use `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet
 - use `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>` when a bounded suggestion is related but outside current task scope
 - use `node scripts/new-workflow-item.mjs --type final-report --task <task-card>` when the result needs a durable final report
+- run `node scripts/check-review-surface.mjs .` when Review Surface Cards exist
 - run `node scripts/check-review-loop.mjs . --task <task-card>` when a Review Loop Report exists
 - run `node scripts/check-goal-mode.mjs .` when Goal Cards exist
 - run `node scripts/check-subagent-orchestration.mjs .` when Subagent Run Plans exist
