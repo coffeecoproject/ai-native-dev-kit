@@ -44,3 +44,23 @@ All commands are intended to be read-only for this calibration batch.
 `scoreboard.md` summarizes expected versus actual selector output for each
 sanitized read-only calibration case. It tracks false positives, false
 negatives, and fix status without claiming production validation.
+
+## Synthetic Precision Fixtures
+
+The 2026-06-29 batch adds generated local fixtures that exercise known
+selection-risk patterns without reading or modifying real projects:
+
+- Mini Program cloud functions
+- permission-only docs
+- active Web admin
+- production governed read-only projects
+- dirty worktrees with payment risk
+- monorepos with deferred platforms
+- backend data/API projects
+- empty unknown new projects
+
+Run:
+
+```bash
+node scripts/check-baseline-selection-precision.mjs .
+```

@@ -92,6 +92,22 @@ Default output is `--format human`: a human summary first, followed by technical
 
 `--enforce` exits non-zero when workflow assets are missing, versions mismatch, migration reports need approval, or onboarding is not ready.
 
+## check-baseline-selection-precision.mjs
+
+Check the Guided Baseline Selection precision scoreboard and synthetic
+calibration fixtures.
+
+```bash
+node scripts/check-baseline-selection-precision.mjs .
+node scripts/check-baseline-selection-precision.mjs . --skip-fixtures
+node scripts/check-baseline-selection-precision.mjs . --scoreboard baseline-calibration-reports/scoreboard.md
+```
+
+This checker validates scoreboard structure, false-positive / false-negative
+status values, required fixture case ids, and resolver output for generated
+local calibration cases. It is calibration evidence only; it does not approve
+target-project writes or prove production readiness.
+
 ## resolve-platform-baseline.mjs
 
 Resolve `docs/project-profile.md` `Selected Profiles` into an effective platform baseline from `.ai-native/profiles/*/baseline.json`, including required docs, escalation rules, risk mappings, verification, release checks, and AI boundaries.

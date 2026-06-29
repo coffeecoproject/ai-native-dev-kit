@@ -1146,6 +1146,7 @@ function checkCliFrontDoor() {
     "node --check scripts/check-standard-baseline-selection.mjs",
     "node --check scripts/resolve-guided-baseline-selection.mjs",
     "node --check scripts/check-guided-baseline-selection.mjs",
+    "node --check scripts/check-baseline-selection-precision.mjs",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1153,6 +1154,7 @@ function checkCliFrontDoor() {
     "node --check scripts/resolve-baseline-packs.mjs",
     "node --check scripts/check-baseline-pack-selection.mjs",
     "node scripts/check-baseline-pack-selection.mjs .",
+    "node scripts/check-baseline-selection-precision.mjs .",
     "git diff --check",
   ]) {
     if (verifySurface.includes(marker)) pass(`package.json verify surface includes ${marker}`);
@@ -3058,6 +3060,82 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
     }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
+function checkBaselineSelectionPrecisionCalibrationProtocol() {
+  const required = [
+    "docs/baseline-selection-precision-calibration-1.19-plan.md",
+    "baseline-calibration-reports/scoreboard.md",
+    "baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md",
+    "scripts/check-baseline-selection-precision.mjs",
+    "test-fixtures/bad/bad-baseline-selection-scoreboard/baseline-calibration-reports/scoreboard.md",
+    "releases/1.19.0/release-record.md",
+    "releases/1.19.0/known-limitations.md",
+    "releases/1.19.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.19 baseline selection precision asset exists ${file}`);
+    else fail(`1.19 baseline selection precision asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/baseline-selection-precision-calibration-1.19-plan.md"),
+    read("baseline-calibration-reports/scoreboard.md"),
+    read("baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md"),
+    read("scripts/check-baseline-selection-precision.mjs"),
+    read("releases/1.19.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Baseline Selection Precision Calibration",
+    "falsePositive",
+    "falseNegative",
+    "fixStatus",
+    "Synthetic Precision Fixtures",
+    "Mini Program cloud functions",
+    "permission-only docs",
+    "production governed read-only",
+    "dirty worktree with payment risk",
+    "monorepo with deferred platforms",
+    "backend data/API",
+    "empty unknown",
+    "not production validation",
+    "does not approve target-project writes",
+  ]) {
+    if (combined.includes(marker)) pass(`1.19 baseline selection precision includes ${marker}`);
+    else fail(`1.19 baseline selection precision missing ${marker}`);
+  }
+
+  const precision = runNode(["scripts/check-baseline-selection-precision.mjs", "."]);
+  if (precision.status === 0 && precision.stdout.includes("Baseline selection precision check passed")) {
+    pass("1.19 baseline selection precision checker passes");
+  } else {
+    fail(`1.19 baseline selection precision checker failed: ${precision.stderr || precision.stdout}`);
+  }
+
+  const scoreboardOnly = runNode(["scripts/check-baseline-selection-precision.mjs", ".", "--skip-fixtures"]);
+  if (scoreboardOnly.status === 0 && scoreboardOnly.stdout.includes("Baseline selection precision check passed")) {
+    pass("1.19 baseline selection precision scoreboard-only check passes");
+  } else {
+    fail(`1.19 baseline selection precision scoreboard-only check failed: ${scoreboardOnly.stderr || scoreboardOnly.stdout}`);
+  }
+
+  const bad = runNode([
+    "scripts/check-baseline-selection-precision.mjs",
+    "test-fixtures/bad/bad-baseline-selection-scoreboard",
+    "--scoreboard",
+    "baseline-calibration-reports/scoreboard.md",
+    "--skip-fixtures",
+  ]);
+  const badOutput = `${bad.stdout}\n${bad.stderr}`;
+  if (bad.status !== 0
+    && badOutput.includes("invalid case id")
+    && badOutput.includes("invalid falsePositive")
+    && badOutput.includes("invalid fixStatus")) {
+    pass("1.19 baseline selection precision checker rejects bad scoreboard");
+  } else {
+    fail(`1.19 baseline selection precision checker must reject bad scoreboard: ${badOutput}`);
   }
 }
 
@@ -6646,6 +6724,7 @@ checkBaselinePackSystemProtocol();
 checkStandardBaselinePackRegistryProtocol();
 checkGuidedBaselineSelectionEntryProtocol();
 checkGuidedBaselineSelectionCalibrationProtocol();
+checkBaselineSelectionPrecisionCalibrationProtocol();
 checkGuidedDeliveryBaselineProtocol();
 checkProjectMemoryContextGovernanceProtocol();
 checkSafeLaunchProtocol();

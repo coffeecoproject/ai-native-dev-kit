@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.18.1",
+  "devKitVersion": "1.19.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.18.1"
+    "phase": "1.19.0"
   },
   "groups": {
     "sourceRequired": [
@@ -39,6 +39,7 @@
       "baseline-calibration-reports/2026-06-28-local-miniprogram-payment-project.md",
       "baseline-calibration-reports/2026-06-28-local-production-governed-web-project.md",
       "baseline-calibration-reports/2026-06-28-summary.md",
+      "baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md",
       "baseline-calibration-reports/README.md",
       "baseline-calibration-reports/scoreboard.md",
       "baseline-decision-cards/.gitkeep",
@@ -137,6 +138,7 @@
       "docs/artifact-decision-tree.md",
       "docs/baseline-pack-system-1.13-plan.md",
       "docs/baseline-pack-system.md",
+      "docs/baseline-selection-precision-calibration-1.19-plan.md",
       "docs/baseline-setup.md",
       "docs/baseline-state.md",
       "docs/bl2-industrial-baseline-deepening-1.16-plan.md",
@@ -694,6 +696,9 @@
       "releases/1.18.1/known-limitations.md",
       "releases/1.18.1/release-record.md",
       "releases/1.18.1/self-check-report.md",
+      "releases/1.19.0/known-limitations.md",
+      "releases/1.19.0/release-record.md",
+      "releases/1.19.0/self-check-report.md",
       "releases/1.2.0/baseline-smoke.md",
       "releases/1.2.0/generated-project-smoke.md",
       "releases/1.2.0/known-limitations.md",
@@ -801,6 +806,7 @@
       "scripts/check-ai-workflow.mjs",
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-baseline-pack-selection.mjs",
+      "scripts/check-baseline-selection-precision.mjs",
       "scripts/check-baseline-state.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
@@ -1083,6 +1089,7 @@
       "test-fixtures/bad/README.md",
       "test-fixtures/bad/bad-ai-workflow-missing-assets/README.md",
       "test-fixtures/bad/bad-artifact-frontmatter-invalid/requests/001-invalid.md",
+      "test-fixtures/bad/bad-baseline-selection-scoreboard/baseline-calibration-reports/scoreboard.md",
       "test-fixtures/bad/bad-baseline-state-confirmed-no-evidence/baseline-state-reports/001-confirmed.md",
       "test-fixtures/bad/bad-baseline-task-missing-ref/docs/baseline-selection.md",
       "test-fixtures/bad/bad-baseline-task-missing-ref/tasks/001-missing-baseline-ref.md",

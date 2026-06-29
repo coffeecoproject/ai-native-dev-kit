@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.18.1`
+`1.19.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.19.0` adds Baseline Selection Precision Calibration: the precision scoreboard is machine-checkable, synthetic fixtures exercise known selector-risk patterns, and `scripts/check-baseline-selection-precision.mjs` compares resolver output against expected safe action, Platform States, packs, and BL2 candidate wording.
+- `1.19.0` does not add new packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation.
 - `1.18.1` hardens Guided Baseline Selection checks: Platform States are required, allowed state values are validated, required profile rows must exist, examples include Platform States, and `npm run verify` is split into named phases.
 - `1.18.1` adds a baseline-selection precision scoreboard for recording false positives, false negatives, and calibration status without claiming production validation.
 - `1.18.1` does not add new packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation.

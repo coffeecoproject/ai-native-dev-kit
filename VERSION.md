@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.18.1`
+Current version: `1.19.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.18.1`
 
 ## Current Release
 
-`1.18.1`
+`1.19.0`
 
 Includes:
 
+- Baseline Selection Precision Calibration phase `1.19.0`: adds a machine-checkable precision scoreboard, synthetic calibration fixtures, and `scripts/check-baseline-selection-precision.mjs` so Guided Baseline Selection can track false positives, false negatives, safe actions, Platform States, and BL2 candidate wording
+- `1.19.0` does not add new packs, promote draft packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Guided Baseline Selection Check Hardening patch `1.18.1`: makes `Platform States` a required Baseline Decision Card section, validates platform-state enum values and required profile rows, adds bad fixtures for missing/invalid platform states, splits `npm run verify` into named phases, and introduces a baseline-selection precision scoreboard
 - `1.18.1` does not add new packs, promote draft packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Guided Baseline Selection Calibration phase `1.18.0`: separates current safe action from target candidate level, adds Platform States for monorepos, makes Mini Program cloud functions mark backend/API scope as possible, and tightens internal-admin detection so permission/RBAC vocabulary alone does not infer an admin console
