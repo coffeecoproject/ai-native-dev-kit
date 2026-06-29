@@ -430,6 +430,8 @@ function checkVersionMetadata() {
     "scripts/check-patch-classification.mjs",
     "scripts/resolve-existing-workflow.mjs",
     "scripts/check-workflow-adoption-map.mjs",
+    "scripts/resolve-document-lifecycle.mjs",
+    "scripts/check-document-lifecycle.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -495,6 +497,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/guided-delivery-check.md",
     ".ai-native/docs/standard-baseline-pack-registry.md",
     ".ai-native/docs/existing-project-workflow-adapter.md",
+    ".ai-native/docs/document-lifecycle.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -511,6 +514,7 @@ function checkVersionMetadata() {
     ".ai-native/core/real-project-adoption-trial.md",
     ".ai-native/core/patch-classification.md",
     ".ai-native/core/existing-project-workflow-adapter.md",
+    ".ai-native/core/document-lifecycle.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
     ".ai-native/core/standard-baseline-pack-registry.md",
@@ -526,6 +530,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/real-adoption-trial-report.md",
     ".ai-native/templates/patch-classification-report.md",
     ".ai-native/templates/workflow-adoption-map.md",
+    ".ai-native/templates/document-lifecycle-report.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
     ".ai-native/templates/standard-baseline-selection-report.md",
@@ -539,6 +544,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/real-adoption-agent.md",
     ".ai-native/prompts/patch-classifier-agent.md",
     ".ai-native/prompts/workflow-adapter-agent.md",
+    ".ai-native/prompts/document-lifecycle-agent.md",
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
@@ -553,6 +559,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/real-adoption-trial-review.md",
     ".ai-native/checklists/patch-classification-review.md",
     ".ai-native/checklists/workflow-adoption-map-review.md",
+    ".ai-native/checklists/document-lifecycle-review.md",
     ".ai-native/checklists/standard-baseline-selection-review.md",
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
@@ -570,6 +577,7 @@ function checkVersionMetadata() {
     "governance-maps",
     "patch-classifications",
     "workflow-adoption-maps",
+    "doc-lifecycle-reports",
     "change-boundary-reports",
     "baseline-state-reports",
     "adoption-recommendations",
@@ -614,6 +622,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-patch-classification.mjs .",
     "node scripts/check-workflow-adoption-map.mjs .",
     "node scripts/cli.mjs workflow-map .",
+    "node scripts/check-document-lifecycle.mjs .",
+    "node scripts/cli.mjs doc-lifecycle .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -645,10 +655,14 @@ function checkDevKitFirstPartyCi() {
     "check-patch-classification.mjs",
     "check-workflow-adoption-map.mjs",
     "resolve-existing-workflow.mjs",
+    "check-document-lifecycle.mjs",
+    "resolve-document-lifecycle.mjs",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
     "workflow-map-check",
+    "doc-lifecycle",
+    "doc-lifecycle-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -678,6 +692,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/check-patch-classification.mjs .",
     "node scripts/check-workflow-adoption-map.mjs .",
     "node scripts/cli.mjs workflow-map .",
+    "node scripts/check-document-lifecycle.mjs .",
+    "node scripts/cli.mjs doc-lifecycle .",
     "node scripts/check-guided-delivery-loop.mjs .",
     "node scripts/check-change-boundary.mjs .",
     "node scripts/check-baseline-state.mjs .",
@@ -707,10 +723,14 @@ function checkDevKitFirstPartyCi() {
     "check-patch-classification.mjs",
     "check-workflow-adoption-map.mjs",
     "resolve-existing-workflow.mjs",
+    "check-document-lifecycle.mjs",
+    "resolve-document-lifecycle.mjs",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
     "workflow-map-check",
+    "doc-lifecycle",
+    "doc-lifecycle-check",
     "check-guided-delivery-loop.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
@@ -1169,6 +1189,8 @@ function checkCliFrontDoor() {
     "node --check scripts/check-baseline-selection-precision.mjs",
     "node --check scripts/resolve-existing-workflow.mjs",
     "node --check scripts/check-workflow-adoption-map.mjs",
+    "node --check scripts/resolve-document-lifecycle.mjs",
+    "node --check scripts/check-document-lifecycle.mjs",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -3925,6 +3947,114 @@ function checkExistingProjectWorkflowAdapterProtocol() {
   }
 }
 
+function checkDocumentLifecycleProtocol() {
+  const required = [
+    "core/document-lifecycle.md",
+    "docs/document-lifecycle.md",
+    "templates/document-lifecycle-report.md",
+    "checklists/document-lifecycle-review.md",
+    "prompts/document-lifecycle-agent.md",
+    "doc-lifecycle-reports/.gitkeep",
+    "scripts/resolve-document-lifecycle.mjs",
+    "scripts/check-document-lifecycle.mjs",
+    "examples/1.21-document-lifecycle/README.md",
+    "examples/1.21-document-lifecycle/doc-lifecycle-reports/001-doc-lifecycle.md",
+    "test-fixtures/bad/bad-document-lifecycle-authorizes-delete/doc-lifecycle-reports/001-bad.md",
+    "test-fixtures/bad/bad-document-lifecycle-missing-source-of-truth/doc-lifecycle-reports/001-bad.md",
+    "releases/1.21.0/release-record.md",
+    "releases/1.21.0/known-limitations.md",
+    "releases/1.21.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.21 document lifecycle asset exists ${file}`);
+    else fail(`1.21 document lifecycle asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/document-lifecycle.md"),
+    read("docs/document-lifecycle.md"),
+    read("templates/document-lifecycle-report.md"),
+    read("scripts/resolve-document-lifecycle.mjs"),
+    read("scripts/check-document-lifecycle.mjs"),
+    read("releases/1.21.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Document Lifecycle Governance",
+    "Document Lifecycle Report",
+    "ACTIVE_SOURCE_OF_TRUTH",
+    "DUPLICATE_CANDIDATE",
+    "ARCHIVE_CANDIDATE",
+    "DEPRECATION_CANDIDATE",
+    "Codex must recommend archive review before recommending deletion",
+    "Source Of Truth Map",
+    "Archive Suggestions",
+    "What Not To Delete",
+    "does not delete files",
+    "does not authorize deletion",
+    "does not move or archive files",
+    "does not change source of truth",
+  ]) {
+    if (combined.includes(marker)) pass(`1.21 document lifecycle includes ${marker}`);
+    else fail(`1.21 document lifecycle missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-document-lifecycle.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Document Lifecycle Recommendation")
+    && resolver.stdout.includes("This report deletes files: No")
+    && resolver.stdout.includes("Archive Suggestions")) {
+    pass("1.21 document lifecycle resolver passes source repo");
+  } else {
+    fail(`1.21 document lifecycle resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-document-lifecycle.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "DOCUMENT_LIFECYCLE_RECOMMENDATION"
+        && parsed.boundary?.deletesFiles === "No"
+        && Array.isArray(parsed.sourceOfTruthMap)) {
+        pass("1.21 document lifecycle resolver JSON includes map and boundary");
+      } else {
+        fail(`1.21 document lifecycle resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.21 document lifecycle resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.21 document lifecycle resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-document-lifecycle.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Document lifecycle check passed")) {
+    pass("1.21 document lifecycle checker passes source repo");
+  } else {
+    fail(`1.21 document lifecycle checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-document-lifecycle.mjs", "examples/1.21-document-lifecycle"]);
+  if (example.status === 0 && example.stdout.includes("Document lifecycle check passed")) {
+    pass("1.21 document lifecycle example passes checker");
+  } else {
+    fail(`1.21 document lifecycle example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["authorizes deletion", ["scripts/check-document-lifecycle.mjs", "test-fixtures/bad/bad-document-lifecycle-authorizes-delete"], "authorizes deletion"],
+    ["missing source of truth", ["scripts/check-document-lifecycle.mjs", "test-fixtures/bad/bad-document-lifecycle-missing-source-of-truth"], "source-of-truth map"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.21 document lifecycle rejects ${name}`);
+    } else {
+      fail(`1.21 document lifecycle must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -4275,6 +4405,8 @@ function checkPlatformAdapters() {
     "check-patch-classification.mjs",
     "check-workflow-adoption-map.mjs",
     "resolve-existing-workflow.mjs",
+    "check-document-lifecycle.mjs",
+    "resolve-document-lifecycle.mjs",
     "check-change-boundary.mjs",
     "check-baseline-state.mjs",
     "resolve-standard-baseline.mjs",
@@ -4335,6 +4467,8 @@ function checkScriptSyntax() {
     "scripts/check-patch-classification.mjs",
     "scripts/resolve-existing-workflow.mjs",
     "scripts/check-workflow-adoption-map.mjs",
+    "scripts/resolve-document-lifecycle.mjs",
+    "scripts/check-document-lifecycle.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -4412,6 +4546,8 @@ function checkReadmePointers() {
     "node scripts/check-baseline-state.mjs",
     "node scripts/resolve-existing-workflow.mjs",
     "node scripts/check-workflow-adoption-map.mjs",
+    "node scripts/resolve-document-lifecycle.mjs",
+    "node scripts/check-document-lifecycle.mjs",
     "node scripts/resolve-guided-baseline-selection.mjs",
     "node scripts/check-guided-baseline-selection.mjs",
     "node scripts/resolve-standard-baseline.mjs",
@@ -4449,6 +4585,7 @@ function checkReadmePointers() {
     "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
+    "docs/document-lifecycle.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -4496,6 +4633,8 @@ function checkReadmePointers() {
     "node scripts/check-baseline-state.mjs",
     "node scripts/resolve-existing-workflow.mjs",
     "node scripts/check-workflow-adoption-map.mjs",
+    "node scripts/resolve-document-lifecycle.mjs",
+    "node scripts/check-document-lifecycle.mjs",
     "node scripts/resolve-standard-baseline.mjs",
     "node scripts/check-standard-baseline-pack.mjs",
     "node scripts/check-standard-baseline-selection.mjs",
@@ -4519,6 +4658,7 @@ function checkReadmePointers() {
     "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
+    "docs/document-lifecycle.md",
     "docs/baseline-pack-system.md",
     "docs/migrations/0.33-to-1.0.md",
   ]) {
@@ -4549,6 +4689,7 @@ function checkReadmePointers() {
     "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
     "docs/existing-project-workflow-adapter.md",
+    "docs/document-lifecycle.md",
     "docs/baseline-pack-system.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
@@ -4621,6 +4762,7 @@ function checkReadmePointers() {
     "First Delivery Walkthrough",
     "Adoption Trial Report",
     "Workflow Adoption Map",
+    "Document Lifecycle",
     "Guided Delivery Check",
     "Change Boundary",
     "Baseline State",
@@ -4631,6 +4773,7 @@ function checkReadmePointers() {
     "scope-change-reports",
     "adoption-trial-reports",
     "workflow-adoption-maps",
+    "doc-lifecycle-reports",
     "follow-up-proposal",
     "final-report",
     "human-status-report",
@@ -6919,6 +7062,7 @@ checkConversationDriftProtocol();
 checkFirstDeliveryWalkthroughProtocol();
 checkRealAdoptionAndPatchClassificationProtocol();
 checkExistingProjectWorkflowAdapterProtocol();
+checkDocumentLifecycleProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

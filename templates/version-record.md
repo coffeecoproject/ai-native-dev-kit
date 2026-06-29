@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.20.0`
+`1.21.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.21.0` adds Document Lifecycle Governance through `doc-lifecycle`, `doc-lifecycle-check`, and Document Lifecycle Reports.
+- `1.21.0` defaults stale and duplicate docs to archive suggestions, not deletion, and does not move files or change source of truth.
 - `1.20.0` adds a read-only workflow adapter path for existing projects through `workflow-map`, `workflow-map-check`, and Workflow Adoption Map reports.
 - `1.20.0` does not install target-project workflow assets, change hooks or CI, approve implementation, approve production/release, or solve doc lifecycle, work queue, or hook orchestration phases.
 - `1.19.0` adds Baseline Selection Precision Calibration: the precision scoreboard is machine-checkable, synthetic fixtures exercise known selector-risk patterns, and `scripts/check-baseline-selection-precision.mjs` compares resolver output against expected safe action, Platform States, packs, and BL2 candidate wording.

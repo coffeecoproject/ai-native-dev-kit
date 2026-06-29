@@ -56,6 +56,8 @@ Injected workflow scripts:
 - `scripts/summarize-ai-logs.mjs`
 - `scripts/workflow-daily-summary.mjs`
 - `scripts/workflow-next.mjs`
+- `scripts/resolve-document-lifecycle.mjs`
+- `scripts/check-document-lifecycle.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -198,7 +200,24 @@ node scripts/new-workflow-item.mjs --type human-status-report --name workflow-ne
 node scripts/new-workflow-item.mjs --type decision-brief --name baseline-selection
 node scripts/new-workflow-item.mjs --type plain-review-summary --task tasks/001-first-slice.md
 node scripts/new-workflow-item.mjs --type customer-handoff --name release-001
+node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs
 ```
+
+## document lifecycle
+
+Review document lifecycle state without deleting, moving, archiving, or changing
+source of truth:
+
+```bash
+node scripts/cli.mjs doc-lifecycle .
+node scripts/cli.mjs doc-lifecycle-check .
+node scripts/resolve-document-lifecycle.mjs .
+node scripts/check-document-lifecycle.mjs .
+```
+
+Use `doc-lifecycle-reports/` when stale docs, duplicate docs, archive
+suggestions, deprecation suggestions, or source-of-truth conflicts need to be
+recorded. Archive is only a suggestion until a human approves a separate plan.
 
 ## check-workflow-artifacts.mjs
 

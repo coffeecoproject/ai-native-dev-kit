@@ -46,6 +46,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `governance-maps/` | Maps AI Native concepts to existing project authority |
 | `patch-classifications/` | Repair-scale classification before non-trivial fixes |
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
+| `doc-lifecycle-reports/` | Source-of-truth, stale, duplicate, archive, and deprecation candidate reports |
 | `active-work-threads/` | Optional current-mainline and parking-lot tracking for broad or drifting work |
 | `guided-decision-summaries/` | Optional decision summaries that translate technical choices into user-owned decisions |
 | `change-boundary-reports/` | Intended scope versus actual changed files evidence |
@@ -142,6 +143,7 @@ Short rule:
 - need to suggest future work: follow-up proposal
 - need to remember a possible project fact: learning candidate
 - need to fix stale context: context correction report
+- need to review stale or duplicate docs: document lifecycle report
 - need to decide what enters Git: git boundary report
 - need to classify delivery readiness: launch readiness report
 - need to route a new user message: conversation turn classification
