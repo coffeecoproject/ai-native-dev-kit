@@ -25,6 +25,7 @@ known selection-risk patterns without reading or modifying real projects.
 
 ```bash
 node scripts/check-baseline-selection-precision.mjs .
+node scripts/check-baseline-selection-precision.mjs . --json
 ```
 
 ## Expected Result
@@ -32,6 +33,9 @@ node scripts/check-baseline-selection-precision.mjs .
 The command must pass when:
 
 - `baseline-calibration-reports/scoreboard.md` contains all fixture case ids.
+- `baseline-calibration-reports/scoreboard.md` summary metrics match the table.
+- `baseline-calibration-reports/precision-fixtures.json` contains the fixture
+  registry.
 - Each case id is unique and machine-readable.
 - False positive / false negative / fix status fields use allowed values.
 - Synthetic resolver output matches each case expectation.

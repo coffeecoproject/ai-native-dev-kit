@@ -38,6 +38,29 @@ Where did the selector over-recommend or miss a signal?
 
 ## Required Behavior
 
+### Summary Metrics
+
+`baseline-calibration-reports/scoreboard.md` must include a machine-checkable
+`Summary Metrics` table. The checker must recompute metrics from calibration
+rows and fail if the table drifts.
+
+Required metrics:
+
+```text
+totalCases
+fixedCases
+pendingCases
+monitorCases
+notApplicableCases
+falsePositiveYes
+falsePositiveMonitor
+falseNegativeYes
+falseNegativeMonitor
+sanitizedLocalCases
+syntheticFixtureCases
+productionValidationClaims
+```
+
 ### Scoreboard Validation
 
 The precision checker must validate:
@@ -51,7 +74,13 @@ The precision checker must validate:
 
 ### Synthetic Precision Fixtures
 
-The checker must run local synthetic fixtures for:
+The checker must load fixture case ids from:
+
+```text
+baseline-calibration-reports/precision-fixtures.json
+```
+
+Then it must run local synthetic fixtures for:
 
 - Mini Program cloud functions
 - permission-only docs
@@ -64,6 +93,16 @@ The checker must run local synthetic fixtures for:
 
 Each case must compare resolver output against expected state, safe action,
 platform states, standard packs, and BL2 candidate language.
+
+### JSON Summary
+
+`check-baseline-selection-precision.mjs --json` must include:
+
+- computed metrics
+- registry path
+- expected fixture case ids
+- executed fixture case ids
+- pass/fail result list
 
 ### Human Boundary
 
@@ -94,6 +133,7 @@ Required checks:
 ```bash
 node scripts/check-baseline-selection-precision.mjs .
 node scripts/check-baseline-selection-precision.mjs . --skip-fixtures
+node scripts/check-baseline-selection-precision.mjs . --json
 npm run verify:baseline
 npm run verify:release
 npm run verify

@@ -15,6 +15,23 @@ calibration case.
 | `falseNegative` | Selector missed a signal that should have been surfaced. |
 | `fixStatus` | `fixed`, `pending`, `monitor`, or `not-applicable`. |
 
+## Summary Metrics
+
+| Metric | Value |
+|---|---|
+| `totalCases` | 12 |
+| `fixedCases` | 11 |
+| `pendingCases` | 0 |
+| `monitorCases` | 1 |
+| `notApplicableCases` | 0 |
+| `falsePositiveYes` | 0 |
+| `falsePositiveMonitor` | 0 |
+| `falseNegativeYes` | 0 |
+| `falseNegativeMonitor` | 1 |
+| `sanitizedLocalCases` | 4 |
+| `syntheticFixtureCases` | 8 |
+| `productionValidationClaims` | 0 |
+
 ## 2026-06-28 Calibration Batch
 
 | Case id | Project shape | Expected project state | Actual project state | Expected platform states | Actual platform states | Expected safe action | Actual safe action | Expected BL2 candidate | Actual BL2 candidate | falsePositive | falseNegative | fixStatus |

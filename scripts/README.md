@@ -100,13 +100,15 @@ calibration fixtures.
 ```bash
 node scripts/check-baseline-selection-precision.mjs .
 node scripts/check-baseline-selection-precision.mjs . --skip-fixtures
+node scripts/check-baseline-selection-precision.mjs . --json
 node scripts/check-baseline-selection-precision.mjs . --scoreboard baseline-calibration-reports/scoreboard.md
 ```
 
 This checker validates scoreboard structure, false-positive / false-negative
-status values, required fixture case ids, and resolver output for generated
-local calibration cases. It is calibration evidence only; it does not approve
-target-project writes or prove production readiness.
+status values, Summary Metrics, required fixture case ids from
+`baseline-calibration-reports/precision-fixtures.json`, and resolver output for
+generated local calibration cases. It is calibration evidence only; it does not
+approve target-project writes or prove production readiness.
 
 ## resolve-platform-baseline.mjs
 

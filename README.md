@@ -238,6 +238,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.19.1 Release Record](releases/1.19.1/release-record.md)：1.19.1 基线选择指标校验
 - [1.19 Release Record](releases/1.19.0/release-record.md)：1.19 基线选择准确性校准
 - [1.18.1 Release Record](releases/1.18.1/release-record.md)：1.18.1 基线选择检查收口
 - [1.18 Release Record](releases/1.18.0/release-record.md)：1.18 基线选择校准

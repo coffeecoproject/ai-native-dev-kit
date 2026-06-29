@@ -45,6 +45,13 @@ All commands are intended to be read-only for this calibration batch.
 sanitized read-only calibration case. It tracks false positives, false
 negatives, and fix status without claiming production validation.
 
+`scoreboard.md` also includes `Summary Metrics`. These values are recomputed by
+`scripts/check-baseline-selection-precision.mjs`; stale summary values fail the
+check.
+
+`precision-fixtures.json` is the registry for synthetic fixture case ids and
+purposes. Add new synthetic cases there before wiring them into the checker.
+
 ## Synthetic Precision Fixtures
 
 The 2026-06-29 batch adds generated local fixtures that exercise known

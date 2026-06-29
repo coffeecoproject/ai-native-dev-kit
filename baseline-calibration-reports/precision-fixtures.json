@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0",
+  "fixtureCases": [
+    {
+      "id": "precision-miniprogram-cloudfunctions",
+      "purpose": "Check Mini Program cloud functions make backend scope possible without forcing backend-api-standard.",
+      "tags": ["wechat-miniprogram", "backend-companion", "false-positive-guard"]
+    },
+    {
+      "id": "precision-permission-only-docs",
+      "purpose": "Check permission-only documentation does not infer internal-admin.",
+      "tags": ["permission", "internal-admin", "false-positive-guard"]
+    },
+    {
+      "id": "precision-web-admin-active",
+      "purpose": "Check active Web admin signals select Web and internal-admin standard packs.",
+      "tags": ["web-app", "internal-admin", "standard-pack"]
+    },
+    {
+      "id": "precision-production-governed-readonly",
+      "purpose": "Check production governed projects stay read-only mapping with BL2 candidate-only language.",
+      "tags": ["production-sensitive", "governed-project", "read-only"]
+    },
+    {
+      "id": "precision-dirty-payment-risk",
+      "purpose": "Check dirty worktrees stop writes while preserving later BL2 candidate language for payment risk.",
+      "tags": ["dirty-worktree", "payment-risk", "write-boundary"]
+    },
+    {
+      "id": "precision-monorepo-deferred-platforms",
+      "purpose": "Check monorepos distinguish selected, needs-confirmation, deferred, and not-detected platform states.",
+      "tags": ["monorepo", "platform-states", "deferred-platform"]
+    },
+    {
+      "id": "precision-backend-data-api",
+      "purpose": "Check backend/data signals select backend standard pack and keep BL2 candidate-only for data risk.",
+      "tags": ["backend-api", "data-risk", "bl2-candidate"]
+    },
+    {
+      "id": "precision-new-unknown-empty",
+      "purpose": "Check empty unknown targets stay BL0 discovery and do not select platform packs.",
+      "tags": ["new-project", "unknown-platform", "bl0"]
+    }
+  ]
+}

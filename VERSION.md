@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.19.0`
+Current version: `1.19.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.19.0`
 
 ## Current Release
 
-`1.19.0`
+`1.19.1`
 
 Includes:
 
+- Baseline Selection Precision Metrics patch `1.19.1`: adds scoreboard summary metrics with checker validation, externalizes synthetic fixture case ids to `precision-fixtures.json`, emits precision checker JSON summaries, and exposes the precision check as an explicit PR/release CI step
+- `1.19.1` does not add new packs, promote draft packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Baseline Selection Precision Calibration phase `1.19.0`: adds a machine-checkable precision scoreboard, synthetic calibration fixtures, and `scripts/check-baseline-selection-precision.mjs` so Guided Baseline Selection can track false positives, false negatives, safe actions, Platform States, and BL2 candidate wording
 - `1.19.0` does not add new packs, promote draft packs, enable BL2, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Guided Baseline Selection Check Hardening patch `1.18.1`: makes `Platform States` a required Baseline Decision Card section, validates platform-state enum values and required profile rows, adds bad fixtures for missing/invalid platform states, splits `npm run verify` into named phases, and introduces a baseline-selection precision scoreboard

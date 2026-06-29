@@ -13,16 +13,22 @@ const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["scoreboard", "json", "skip-fixtures"]);
+const knownFlags = new Set(["scoreboard", "registry", "json", "skip-fixtures"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const scoreboardPath = args.scoreboard
   ? path.resolve(projectRoot, String(args.scoreboard))
   : path.join(projectRoot, "baseline-calibration-reports", "scoreboard.md");
+const registryPath = args.registry
+  ? path.resolve(projectRoot, String(args.registry))
+  : resolveDefaultRegistryPath(projectRoot);
 const outputJson = Boolean(args.json);
 const skipFixtures = Boolean(args["skip-fixtures"]);
 const results = [];
 let failed = false;
+let scoreboardSummary = null;
+let fixtureCaseIds = [];
+const executedFixtureCaseIds = new Set();
 
 const requiredColumns = [
   "Case id",
@@ -40,15 +46,19 @@ const requiredColumns = [
   "fixStatus",
 ];
 
-const fixtureCaseIds = [
-  "precision-miniprogram-cloudfunctions",
-  "precision-permission-only-docs",
-  "precision-web-admin-active",
-  "precision-production-governed-readonly",
-  "precision-dirty-payment-risk",
-  "precision-monorepo-deferred-platforms",
-  "precision-backend-data-api",
-  "precision-new-unknown-empty",
+const requiredMetricKeys = [
+  "totalCases",
+  "fixedCases",
+  "pendingCases",
+  "monitorCases",
+  "notApplicableCases",
+  "falsePositiveYes",
+  "falsePositiveMonitor",
+  "falseNegativeYes",
+  "falseNegativeMonitor",
+  "sanitizedLocalCases",
+  "syntheticFixtureCases",
+  "productionValidationClaims",
 ];
 
 if (unknown.length > 0) {
@@ -82,6 +92,51 @@ function write(filePath, content) {
   fs.writeFileSync(filePath, content);
 }
 
+function resolveDefaultRegistryPath(root) {
+  const candidates = [
+    path.join(root, "baseline-calibration-reports", "precision-fixtures.json"),
+    path.join(kitRoot, "baseline-calibration-reports", "precision-fixtures.json"),
+  ];
+  return candidates.find((candidate) => fs.existsSync(candidate)) || candidates[0];
+}
+
+function loadFixtureRegistry() {
+  if (!fs.existsSync(registryPath)) {
+    fail(`fixture registry not found: ${registryPath}`);
+    return [];
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(read(registryPath));
+  } catch (error) {
+    fail(`fixture registry is invalid JSON: ${error.message}`);
+    return [];
+  }
+  if (parsed.schemaVersion === "1.0") pass("fixture registry schemaVersion is 1.0");
+  else fail(`fixture registry schemaVersion must be 1.0: ${parsed.schemaVersion || "<missing>"}`);
+  if (!Array.isArray(parsed.fixtureCases) || parsed.fixtureCases.length === 0) {
+    fail("fixture registry must include fixtureCases");
+    return [];
+  }
+  const seen = new Set();
+  const ids = [];
+  for (const item of parsed.fixtureCases) {
+    const id = item?.id || "";
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) {
+      fail(`fixture registry invalid case id: ${id || "<empty>"}`);
+      continue;
+    }
+    if (seen.has(id)) fail(`fixture registry duplicate case id: ${id}`);
+    seen.add(id);
+    ids.push(id);
+    if (typeof item.purpose === "string" && item.purpose.trim()) pass(`fixture registry ${id} has purpose`);
+    else fail(`fixture registry ${id} missing purpose`);
+    if (Array.isArray(item.tags) && item.tags.length > 0) pass(`fixture registry ${id} has tags`);
+    else fail(`fixture registry ${id} missing tags`);
+  }
+  return ids;
+}
+
 function parseScoreboardRows(content) {
   const rows = [];
   let headers = null;
@@ -105,6 +160,70 @@ function parseScoreboardRows(content) {
     rows.push(Object.fromEntries(headers.map((header, index) => [header, cells[index]])));
   }
   return rows;
+}
+
+function parseMetricRows(content) {
+  const metrics = {};
+  let headers = null;
+  for (const rawLine of content.split("\n")) {
+    const line = rawLine.trim();
+    if (!line.startsWith("|")) {
+      headers = null;
+      continue;
+    }
+    const cells = splitMarkdownRow(line).map((cell) => cell.trim());
+    if (cells.includes("Metric") && cells.includes("Value")) {
+      headers = cells;
+      continue;
+    }
+    if (!headers) continue;
+    if (cells.every((cell) => /^:?-{3,}:?$/.test(cell))) continue;
+    const row = Object.fromEntries(headers.map((header, index) => [header, cells[index] || ""]));
+    if (row.Metric) metrics[row.Metric.replaceAll("`", "").trim()] = row.Value.replaceAll("`", "").trim();
+  }
+  return metrics;
+}
+
+function computedMetrics(rows) {
+  const validRows = rows.filter((row) => !row.parseError);
+  const countBy = (column, value) => validRows.filter((row) => String(row[column] || "").toLowerCase() === value).length;
+  return {
+    totalCases: validRows.length,
+    fixedCases: countBy("fixStatus", "fixed"),
+    pendingCases: countBy("fixStatus", "pending"),
+    monitorCases: countBy("fixStatus", "monitor"),
+    notApplicableCases: countBy("fixStatus", "not-applicable"),
+    falsePositiveYes: countBy("falsePositive", "yes"),
+    falsePositiveMonitor: countBy("falsePositive", "monitor"),
+    falseNegativeYes: countBy("falseNegative", "yes"),
+    falseNegativeMonitor: countBy("falseNegative", "monitor"),
+    sanitizedLocalCases: validRows.filter((row) => String(row["Case id"] || "").startsWith("local-")).length,
+    syntheticFixtureCases: validRows.filter((row) => fixtureCaseIds.includes(row["Case id"])).length,
+    productionValidationClaims: 0,
+  };
+}
+
+function validateSummaryMetrics(content, rows) {
+  if (!content.includes("## Summary Metrics")) {
+    fail("scoreboard missing Summary Metrics section");
+    return null;
+  }
+  const parsed = parseMetricRows(content);
+  const computed = computedMetrics(rows);
+  for (const key of requiredMetricKeys) {
+    if (!Object.prototype.hasOwnProperty.call(parsed, key)) {
+      fail(`scoreboard Summary Metrics missing ${key}`);
+      continue;
+    }
+    const parsedValue = Number.parseInt(parsed[key], 10);
+    if (!Number.isFinite(parsedValue)) {
+      fail(`scoreboard Summary Metrics ${key} is not a number: ${parsed[key]}`);
+      continue;
+    }
+    if (parsedValue === computed[key]) pass(`scoreboard Summary Metrics ${key}=${parsedValue}`);
+    else fail(`scoreboard Summary Metrics ${key}=${parsedValue} does not match computed ${computed[key]}`);
+  }
+  return computed;
 }
 
 function validateScoreboard() {
@@ -132,6 +251,7 @@ function validateScoreboard() {
   const rows = parseScoreboardRows(content);
   if (rows.length >= fixtureCaseIds.length) pass(`scoreboard has ${rows.length} calibration rows`);
   else fail(`scoreboard must have at least ${fixtureCaseIds.length} calibration rows`);
+  scoreboardSummary = validateSummaryMetrics(content, rows);
 
   const caseIds = new Set();
   const allowedBoolean = new Set(["yes", "no", "monitor"]);
@@ -192,6 +312,7 @@ function platformState(decision, profile) {
 }
 
 function assertCase(caseId, decision, checks) {
+  executedFixtureCaseIds.add(caseId);
   if (decision.error) {
     fail(`${caseId} resolver failed: ${decision.error}`);
     return;
@@ -322,8 +443,13 @@ function runSyntheticFixtures() {
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
+  for (const id of fixtureCaseIds) {
+    if (executedFixtureCaseIds.has(id)) pass(`synthetic fixture executed ${id}`);
+    else fail(`synthetic fixture registry case was not executed: ${id}`);
+  }
 }
 
+fixtureCaseIds = loadFixtureRegistry();
 validateScoreboard();
 if (!skipFixtures) runSyntheticFixtures();
 
@@ -332,7 +458,13 @@ if (outputJson) {
     status: failed ? "FAIL" : "PASS",
     projectRoot,
     scoreboard: scoreboardPath,
+    registry: registryPath,
     skippedFixtures: skipFixtures,
+    summary: {
+      metrics: scoreboardSummary,
+      fixtureCaseIds,
+      executedFixtureCaseIds: [...executedFixtureCaseIds].sort(),
+    },
     results,
   }, null, 2));
 }

@@ -89,6 +89,9 @@ jobs:
       - name: Baseline pack selection check
         run: node scripts/check-baseline-pack-selection.mjs .
 
+      - name: Baseline selection precision check
+        run: node scripts/check-baseline-selection-precision.mjs .
+
       - name: Fixture suite
         run: node scripts/check-fixtures.mjs
 

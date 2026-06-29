@@ -3068,11 +3068,15 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
     "docs/baseline-selection-precision-calibration-1.19-plan.md",
     "baseline-calibration-reports/scoreboard.md",
     "baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md",
+    "baseline-calibration-reports/precision-fixtures.json",
     "scripts/check-baseline-selection-precision.mjs",
     "test-fixtures/bad/bad-baseline-selection-scoreboard/baseline-calibration-reports/scoreboard.md",
     "releases/1.19.0/release-record.md",
     "releases/1.19.0/known-limitations.md",
     "releases/1.19.0/self-check-report.md",
+    "releases/1.19.1/release-record.md",
+    "releases/1.19.1/known-limitations.md",
+    "releases/1.19.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.19 baseline selection precision asset exists ${file}`);
@@ -3083,8 +3087,12 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
     read("docs/baseline-selection-precision-calibration-1.19-plan.md"),
     read("baseline-calibration-reports/scoreboard.md"),
     read("baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md"),
+    read("baseline-calibration-reports/precision-fixtures.json"),
     read("scripts/check-baseline-selection-precision.mjs"),
     read("releases/1.19.0/release-record.md"),
+    read("releases/1.19.1/release-record.md"),
+    read(".github/workflows/dev-kit-pr-checks.yml"),
+    read(".github/workflows/dev-kit-release-checks.yml"),
   ].join("\n");
 
   for (const marker of [
@@ -3092,6 +3100,9 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
     "falsePositive",
     "falseNegative",
     "fixStatus",
+    "Summary Metrics",
+    "precision-fixtures.json",
+    "JSON summary",
     "Synthetic Precision Fixtures",
     "Mini Program cloud functions",
     "permission-only docs",
@@ -3102,6 +3113,7 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
     "empty unknown",
     "not production validation",
     "does not approve target-project writes",
+    "Baseline selection precision check",
   ]) {
     if (combined.includes(marker)) pass(`1.19 baseline selection precision includes ${marker}`);
     else fail(`1.19 baseline selection precision missing ${marker}`);
@@ -3119,6 +3131,25 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
     pass("1.19 baseline selection precision scoreboard-only check passes");
   } else {
     fail(`1.19 baseline selection precision scoreboard-only check failed: ${scoreboardOnly.stderr || scoreboardOnly.stdout}`);
+  }
+
+  const jsonSummary = runNode(["scripts/check-baseline-selection-precision.mjs", ".", "--json"]);
+  if (jsonSummary.status === 0) {
+    try {
+      const parsed = JSON.parse(jsonSummary.stdout);
+      if (parsed.summary?.metrics?.totalCases === 12
+        && parsed.summary?.metrics?.syntheticFixtureCases === 8
+        && Array.isArray(parsed.summary?.fixtureCaseIds)
+        && parsed.summary.fixtureCaseIds.length === 8) {
+        pass("1.19 baseline selection precision JSON summary includes metrics and fixture registry");
+      } else {
+        fail(`1.19 baseline selection precision JSON summary missing expected metrics: ${jsonSummary.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.19 baseline selection precision JSON summary invalid JSON: ${error.message}`);
+    }
+  } else {
+    fail(`1.19 baseline selection precision JSON summary failed: ${jsonSummary.stderr || jsonSummary.stdout}`);
   }
 
   const bad = runNode([
