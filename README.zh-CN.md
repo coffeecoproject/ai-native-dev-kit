@@ -61,6 +61,7 @@
 | 老项目怕被覆盖 | `node scripts/cli.mjs workflow-map ../my-project` | 先映射现有治理，说明该复用什么、不能动什么 |
 | 文档过期、重复或不知道谁是准的 | `node scripts/cli.mjs doc-lifecycle ../my-project` | 只读识别 source of truth、归档建议和废弃建议 |
 | 文档归档建议准备执行 | `node scripts/cli.mjs archive-apply ../my-project` | 先生成执行计划、链接检查、归档索引和回滚计划，不直接移动或删除文件 |
+| 任何建议准备写入项目 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 AI Native 工作流"` | 把所有可能写入的动作合成一张计划，说明改什么、不改什么、谁确认、怎么回滚 |
 | 任务做到一半被打断 | `node scripts/cli.mjs work-queue ../my-project` | 识别当前任务、暂停任务、停车场和恢复前检查 |
 | 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
 | 想明确项目允许哪些 hook | `node scripts/cli.mjs hook-policy ../my-project` | 定义允许范围、审批人和回滚方式，不安装 hook |
@@ -169,11 +170,12 @@ node scripts/cli.mjs doctor ../my-project
 | 老项目工作流映射 | 读取已有项目后，先说明哪些 AI Native 工作流该用、哪些现有流程要保留、哪些不能动 |
 | 文档生命周期 | 识别过期、重复、废弃和 source of truth，默认只给归档建议，不默认删除 |
 | 文档归档执行计划 | 把归档建议变成可审查的执行计划、链接检查、归档索引和回滚计划；不自动执行 |
+| 统一 Apply Plan | 把所有可能写入项目的动作收敛到一张计划；不自动写文件、不批准执行 |
 | Work Queue / Todo | 处理任务做到一半被打断、长期任务、暂停恢复和一次只能有一个当前任务 |
 | Hook 编排 | 区分可自动只读检查和必须人工确认的 hook，不自动安装、不改 CI、不加阻断 gate |
 | Hook Policy | 定义项目允许哪些 hook、谁批准、怎么禁用和回滚，不把建议变成安装 |
 
-`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`work-queue-check`、`hook-plan-check` 和 `hook-policy-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`archive-apply`、`work-queue`、`hook-plan` 和 `hook-policy` 会只读扫描项目结构，输出建议，不会改目标项目。
+`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`apply-plan-check`、`work-queue-check`、`hook-plan-check` 和 `hook-policy-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`archive-apply`、`apply-plan`、`work-queue`、`hook-plan` 和 `hook-policy` 会只读扫描项目结构，输出建议，不会改目标项目。
 
 ## Dev Kit 自检
 
@@ -198,6 +200,9 @@ node scripts/check-debt-handoff.mjs .
 node scripts/cli.mjs archive-apply .
 node scripts/resolve-document-archive-apply.mjs .
 node scripts/check-document-archive-apply.mjs .
+node scripts/cli.mjs apply-plan . --intent "维护 Dev Kit 写入计划" --action workflow-assets
+node scripts/resolve-apply-plan.mjs . --intent "维护 Dev Kit 写入计划" --action workflow-assets
+node scripts/check-apply-plan.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
@@ -292,6 +297,7 @@ node scripts/check-guided-adoption.mjs .
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)：已有项目如何先映射工作流，再决定是否接入
 - [Document Lifecycle](docs/document-lifecycle.md)：过期、重复、废弃文档和 source of truth 怎么治理
 - [Document Archive Apply](docs/document-archive-apply.md)：把文档归档建议变成可审查计划，默认不执行归档
+- [Unified Apply Plan](docs/unified-apply-plan.md)：把可能写入项目的动作合成一张可确认计划，默认不执行
 - [Work Queue](docs/work-queue.md)：任务做到一半被打断、暂停恢复和只保留一个当前任务怎么治理
 - [Hook Orchestration](docs/hook-orchestration.md)：自动触发器怎么分级、规划、确认和回滚
 - [Project Hook Policy](docs/hook-policy.md)：项目允许哪些 hook、谁审批、怎么禁用和回滚
@@ -323,6 +329,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.34 Release Record](releases/1.34.0/release-record.md)：1.34 统一 Apply Plan
 - [1.33 Release Record](releases/1.33.0/release-record.md)：1.33 证据链执行收口
 - [1.32 Release Record](releases/1.32.0/release-record.md)：1.32 执行后收口与复查闭环
 - [1.31 Release Record](releases/1.31.0/release-record.md)：1.31 意图感知深度 guide

@@ -434,6 +434,8 @@ function checkVersionMetadata() {
     "scripts/check-document-lifecycle.mjs",
     "scripts/resolve-document-archive-apply.mjs",
     "scripts/check-document-archive-apply.mjs",
+    "scripts/resolve-apply-plan.mjs",
+    "scripts/check-apply-plan.mjs",
     "scripts/resolve-work-queue.mjs",
     "scripts/check-work-queue.mjs",
     "scripts/resolve-hook-orchestration.mjs",
@@ -664,6 +666,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs doc-lifecycle .",
     "node scripts/check-document-archive-apply.mjs .",
     "node scripts/cli.mjs archive-apply .",
+    "node scripts/check-apply-plan.mjs .",
+    "node scripts/cli.mjs apply-plan .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
@@ -713,6 +717,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-document-lifecycle.mjs",
     "check-document-archive-apply.mjs",
     "resolve-document-archive-apply.mjs",
+    "check-apply-plan.mjs",
+    "resolve-apply-plan.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -788,6 +794,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs doc-lifecycle .",
     "node scripts/check-document-archive-apply.mjs .",
     "node scripts/cli.mjs archive-apply .",
+    "node scripts/check-apply-plan.mjs .",
+    "node scripts/cli.mjs apply-plan .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
@@ -835,6 +843,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-document-lifecycle.mjs",
     "check-document-archive-apply.mjs",
     "resolve-document-archive-apply.mjs",
+    "check-apply-plan.mjs",
+    "resolve-apply-plan.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -1336,12 +1346,16 @@ function checkCliFrontDoor() {
     "node --check scripts/check-document-lifecycle.mjs",
     "node --check scripts/resolve-document-archive-apply.mjs",
     "node --check scripts/check-document-archive-apply.mjs",
+    "node --check scripts/resolve-apply-plan.mjs",
+    "node --check scripts/check-apply-plan.mjs",
     "node scripts/cli.mjs workflow-map .",
     "node scripts/check-workflow-adoption-map.mjs .",
     "node scripts/cli.mjs doc-lifecycle .",
     "node scripts/check-document-lifecycle.mjs .",
     "node scripts/cli.mjs archive-apply .",
     "node scripts/check-document-archive-apply.mjs .",
+    "node scripts/cli.mjs apply-plan .",
+    "node scripts/check-apply-plan.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs hook-plan .",
@@ -1524,6 +1538,23 @@ function checkCliFrontDoor() {
     pass("CLI archive-apply-check delegates to document archive apply checker");
   } else {
     fail(`CLI archive-apply-check failed: ${archiveApplyCheck.stderr || archiveApplyCheck.stdout}`);
+  }
+
+  const applyPlan = runNode(["scripts/cli.mjs", "apply-plan", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets"]);
+  if (applyPlan.status === 0
+    && applyPlan.stdout.includes("Unified Apply Plan")
+    && applyPlan.stdout.includes("This plan authorizes apply: No")
+    && applyPlan.stdout.includes("Can Codex write now: No")) {
+    pass("CLI apply-plan delegates to unified apply plan resolver");
+  } else {
+    fail(`CLI apply-plan failed: ${applyPlan.stderr || applyPlan.stdout}`);
+  }
+
+  const applyPlanCheck = runNode(["scripts/cli.mjs", "apply-plan-check", "."]);
+  if (applyPlanCheck.status === 0 && applyPlanCheck.stdout.includes("Unified Apply Plan check passed")) {
+    pass("CLI apply-plan-check delegates to unified apply plan checker");
+  } else {
+    fail(`CLI apply-plan-check failed: ${applyPlanCheck.stderr || applyPlanCheck.stdout}`);
   }
 
   const baselineDecision = runNode(["scripts/cli.mjs", "baseline-decision", "."]);
@@ -4426,6 +4457,113 @@ function checkDocumentArchiveApplyProtocol() {
   }
 }
 
+function checkUnifiedApplyPlanProtocol() {
+  const required = [
+    "core/unified-apply-plan.md",
+    "docs/unified-apply-plan.md",
+    "docs/unified-apply-plan-1.34-plan.md",
+    "templates/unified-apply-plan.md",
+    "checklists/unified-apply-plan-review.md",
+    "prompts/apply-plan-agent.md",
+    "apply-plans/.gitkeep",
+    "scripts/resolve-apply-plan.mjs",
+    "scripts/check-apply-plan.mjs",
+    "examples/1.34-unified-apply-plan/README.md",
+    "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
+    "test-fixtures/bad/bad-apply-plan-authorizes-apply/apply-plans/001-bad.md",
+    "test-fixtures/bad/bad-apply-plan-writes-now/apply-plans/001-bad.md",
+    "releases/1.34.0/release-record.md",
+    "releases/1.34.0/known-limitations.md",
+    "releases/1.34.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.34 unified apply plan asset exists ${file}`);
+    else fail(`1.34 unified apply plan asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/unified-apply-plan.md"),
+    read("docs/unified-apply-plan.md"),
+    read("templates/unified-apply-plan.md"),
+    read("scripts/resolve-apply-plan.mjs"),
+    read("scripts/check-apply-plan.mjs"),
+    read("releases/1.34.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Unified Apply Plan Governance",
+    "Unified Apply Plan",
+    "Apply States",
+    "Planned Actions",
+    "Human-Only / Blocked Actions",
+    "Backup / Rollback Plan",
+    "This plan writes files now: No",
+    "This plan authorizes apply: No",
+    "This plan approves implementation: No",
+    "This plan approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.34 unified apply plan includes ${marker}`);
+    else fail(`1.34 unified apply plan missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Unified Apply Plan")
+    && resolver.stdout.includes("This plan authorizes apply: No")
+    && resolver.stdout.includes("Can Codex write now: No")) {
+    pass("1.34 unified apply plan resolver prints safe plan");
+  } else {
+    fail(`1.34 unified apply plan resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "UNIFIED_APPLY_PLAN"
+        && parsed.boundary?.authorizesApply === "No"
+        && parsed.boundary?.writesFilesNow === "No"
+        && Array.isArray(parsed.plannedActions)
+        && parsed.plannedActions.every((action) => action.willWriteNow === "No")) {
+        pass("1.34 unified apply plan resolver JSON includes actions and boundaries");
+      } else {
+        fail(`1.34 unified apply plan resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.34 unified apply plan resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.34 unified apply plan resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-apply-plan.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Unified Apply Plan check passed")) {
+    pass("1.34 unified apply plan checker passes source repo");
+  } else {
+    fail(`1.34 unified apply plan checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-apply-plan.mjs", "examples/1.34-unified-apply-plan"]);
+  if (example.status === 0 && example.stdout.includes("Unified Apply Plan check passed")) {
+    pass("1.34 unified apply plan example passes checker");
+  } else {
+    fail(`1.34 unified apply plan example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["authorizes apply", ["scripts/check-apply-plan.mjs", "test-fixtures/bad/bad-apply-plan-authorizes-apply"], "forbidden apply plan claim"],
+    ["writes now", ["scripts/check-apply-plan.mjs", "test-fixtures/bad/bad-apply-plan-writes-now"], "planned actions must not write now"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.34 unified apply plan rejects ${name}`);
+    } else {
+      fail(`1.34 unified apply plan must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkWorkQueueProtocol() {
   const required = [
     "core/work-queue.md",
@@ -5693,7 +5831,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/resolve-apply-plan.mjs", "scripts/check-apply-plan.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -5702,7 +5840,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -5711,7 +5849,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -5741,7 +5879,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "delivery path", "debt", "archive apply", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "delivery path", "debt", "archive apply", "apply plan", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -5775,6 +5913,8 @@ function checkPlatformAdapters() {
     "resolve-document-lifecycle.mjs",
     "check-document-archive-apply.mjs",
     "resolve-document-archive-apply.mjs",
+    "check-apply-plan.mjs",
+    "resolve-apply-plan.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -5929,6 +6069,8 @@ function checkReadmePointers() {
     "node scripts/check-debt-handoff.mjs",
     "node scripts/cli.mjs archive-apply",
     "node scripts/check-document-archive-apply.mjs",
+    "node scripts/cli.mjs apply-plan",
+    "node scripts/check-apply-plan.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs baseline-decision",
@@ -5951,6 +6093,8 @@ function checkReadmePointers() {
     "node scripts/check-document-lifecycle.mjs",
     "node scripts/resolve-document-archive-apply.mjs",
     "node scripts/check-document-archive-apply.mjs",
+    "node scripts/resolve-apply-plan.mjs",
+    "node scripts/check-apply-plan.mjs",
     "node scripts/resolve-work-queue.mjs",
     "node scripts/check-work-queue.mjs",
     "node scripts/resolve-hook-orchestration.mjs",
@@ -6051,6 +6195,8 @@ function checkReadmePointers() {
     "node scripts/check-debt-handoff.mjs",
     "node scripts/cli.mjs archive-apply",
     "node scripts/check-document-archive-apply.mjs",
+    "node scripts/cli.mjs apply-plan",
+    "node scripts/check-apply-plan.mjs",
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs standard-baseline",
@@ -6071,6 +6217,8 @@ function checkReadmePointers() {
     "node scripts/check-document-lifecycle.mjs",
     "node scripts/resolve-document-archive-apply.mjs",
     "node scripts/check-document-archive-apply.mjs",
+    "node scripts/resolve-apply-plan.mjs",
+    "node scripts/check-apply-plan.mjs",
     "node scripts/resolve-work-queue.mjs",
     "node scripts/check-work-queue.mjs",
     "node scripts/resolve-hook-orchestration.mjs",
@@ -6224,6 +6372,8 @@ function checkReadmePointers() {
     "Guided Delivery Check",
     "Change Boundary",
     "Baseline State",
+    "Unified Apply Plan",
+    "apply-plans",
     "change-boundary-reports",
     "baseline-state-reports",
     "launch-readiness",
@@ -8523,6 +8673,7 @@ checkRealAdoptionAndPatchClassificationProtocol();
 checkExistingProjectWorkflowAdapterProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
+checkUnifiedApplyPlanProtocol();
 checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
 checkHookPolicyProtocol();

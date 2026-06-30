@@ -73,6 +73,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "apply-plan": {
+    description: "Turn proposed project writes into one reviewable plan without writing target files.",
+    script: "scripts/resolve-apply-plan.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultApplyPlanTarget(args),
+  },
+  "apply-plan-check": {
+    description: "Check recorded Unified Apply Plans.",
+    script: "scripts/check-apply-plan.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",
@@ -408,6 +420,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs debt-handoff-check .");
   console.log("  node scripts/cli.mjs closure . --intent 'finish booking validation'");
   console.log("  node scripts/cli.mjs closure-check .");
+  console.log("  node scripts/cli.mjs apply-plan . --intent '接入 AI Native 工作流' --action workflow-assets");
+  console.log("  node scripts/cli.mjs apply-plan-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs baseline-decision ../my-project");
@@ -509,6 +523,28 @@ function shellQuote(value) {
 
 function withDefaultTarget(args) {
   return firstPositional(args, new Set(["--mode", "--format", "--intent", "--task", "--report", "--from-lifecycle"])) ? args : [".", ...args];
+}
+
+function withDefaultApplyPlanTarget(args) {
+  return firstPositional(args, new Set([
+    "--format",
+    "--intent",
+    "--action",
+    "--targets",
+    "--risk",
+    "--from-guidance",
+    "--from-workflow-map",
+    "--from-baseline-decision",
+    "--from-standard-baseline",
+    "--from-baseline-pack-selection",
+    "--from-archive-apply",
+    "--from-hook-plan",
+    "--from-hook-policy",
+    "--from-review-surface",
+    "--from-change-boundary",
+    "--from-debt-handoff",
+    "--from-closure",
+  ])) ? args : [".", ...args];
 }
 
 function withDefaultMode(args, defaultMode) {

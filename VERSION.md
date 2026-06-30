@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.33.0`
+Current version: `1.34.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.33.0`
 
 ## Current Release
 
-`1.33.0`
+`1.34.0`
 
 Includes:
 
+- Unified Apply Plan phase `1.34.0`: adds one reviewable apply-plan layer before any Codex action that may write target-project files
+- Added `core/unified-apply-plan.md`, `docs/unified-apply-plan.md`, `templates/unified-apply-plan.md`, `apply-plans/`, `apply-plan`, `apply-plan-check`, resolver/checker scripts, examples, bad fixtures, CI/manifest coverage, and release evidence
+- `1.34.0` does not write target files, approve apply, add a generic executor, apply init/update/baseline/archive/hook actions, enable industrial packs, approve implementation, approve release/production, or approve high-risk decisions
 - Evidence-Linked Closure phase `1.33.0`: upgrades execution closure so every `pass` can be linked to Review Surface, Review Loop, Change Boundary, Verification, Debt Handoff, and Delivery Path evidence
 - Added `docs/evidence-linked-closure-1.33-plan.md`, evidence-link CLI args, evidence-link report section, 1.33 example, bad fixtures, checker rules, CI/manifest coverage, and release evidence
 - `1.33.0` does not apply plans, write target files, approve implementation, authorize commit/push, approve release/production, forgive debt, or approve high-risk decisions

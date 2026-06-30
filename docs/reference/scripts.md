@@ -43,6 +43,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs doc-lifecycle-check <project>` | Check recorded Document Lifecycle Reports | No |
 | `node scripts/cli.mjs archive-apply <project>` | Plan document archive apply actions without moving, deleting, or rewriting files | No |
 | `node scripts/cli.mjs archive-apply-check <project>` | Check recorded Document Archive Apply Plans | No |
+| `node scripts/cli.mjs apply-plan <project> --intent "<goal>"` | Turn proposed project writes into one reviewable Unified Apply Plan | No |
+| `node scripts/cli.mjs apply-plan-check <project>` | Check recorded Unified Apply Plans | No |
 | `node scripts/cli.mjs work-queue <project>` | Recommend current, paused, backlog, and resume state without changing task state | No |
 | `node scripts/cli.mjs work-queue-check <project>` | Check recorded Work Queue Reports and single-current-task rules | No |
 | `node scripts/cli.mjs hook-plan <project>` | Recommend hook candidates without installing hooks, changing CI, or adding gates | No |
@@ -107,6 +109,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-execution-closure.mjs` is the 1.33 evidence-linked execution closure entry. It reads changed files, user intent, optional verification notes, and optional evidence refs such as `--review-surface-ref`, `--review-loop-ref`, `--change-boundary-ref`, `--verification-file`, `--debt-handoff-ref`, and `--delivery-path-ref`, then prints one Execution Closure Report with evidence links, review surface closure, verification closure, scope boundary closure, debt closure, and commit readiness. Changed files are not treated as functional or code-review proof. It does not write target-project files or authorize commit/push.
 
 `scripts/check-execution-closure.mjs` checks recorded Execution Closure Reports. It rejects implementation approval, release/production approval, commit/push authorization, debt forgiveness, missing required review surfaces, missing boundaries, functional/code pass based only on changed files, and `READY_FOR_COMMIT_REVIEW` without evidence links and passing verification evidence.
+
+`scripts/resolve-apply-plan.mjs` is the 1.34 unified apply-plan entry. It reads project state, user intent, proposed action types, target paths, and optional evidence refs, then prints one Unified Apply Plan with proposed writes, human-only or blocked actions, preconditions, backup, rollback, verification, and explicit no-write/no-apply boundaries. It does not write target-project files or authorize apply.
+
+`scripts/check-apply-plan.mjs` checks recorded Unified Apply Plans. It rejects write-now claims, apply authorization, implementation approval, release/production approval, CI/hook/archive/source-of-truth changes now, high-risk actions without human-only or approval-required status, missing rollback, and missing verification planning.
 
 `scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
 

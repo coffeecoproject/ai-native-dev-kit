@@ -92,6 +92,19 @@ node scripts/cli.mjs archive-apply-check .
 
 An Archive Apply Plan records the planned archive actions, link-check plan, archive index preview, rollback plan, and human decisions. It does not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, approve cleanup completion, or authorize archive apply by itself.
 
+## Unified Apply Plan
+
+Use `.ai-native/core/unified-apply-plan.md` before applying any recommendation that may write target-project files.
+
+Run:
+
+```bash
+node scripts/cli.mjs apply-plan . --intent "<goal>"
+node scripts/cli.mjs apply-plan-check .
+```
+
+A Unified Apply Plan records proposed writes, source evidence, human-only or blocked actions, preconditions, backup, rollback, verification, and boundaries. It does not write files, authorize apply, approve implementation, approve release or production, modify CI/hooks, delete/archive files, change source of truth, or grant permission to continue beyond scope.
+
 ## Project Hook Policy
 
 Use `.ai-native/core/hook-policy.md` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks.

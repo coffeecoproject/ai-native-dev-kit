@@ -60,6 +60,8 @@ Injected workflow scripts:
 - `scripts/check-document-lifecycle.mjs`
 - `scripts/resolve-document-archive-apply.mjs`
 - `scripts/check-document-archive-apply.mjs`
+- `scripts/resolve-apply-plan.mjs`
+- `scripts/check-apply-plan.mjs`
 - `scripts/resolve-work-queue.mjs`
 - `scripts/check-work-queue.mjs`
 - `scripts/resolve-hook-orchestration.mjs`
@@ -120,6 +122,8 @@ node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/resolve-workflow-guidance.mjs . --deep --intent "我要加支付预约"
 node scripts/resolve-execution-closure.mjs . --intent "完成预约校验" --verification "npm run verify passed"
 node scripts/resolve-execution-closure.mjs . --intent "完成预约校验" --review-surface-ref review-surface-cards/001.md --review-loop-ref review-loop-reports/001.md --change-boundary-ref change-boundary-reports/001.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001.md
+node scripts/resolve-apply-plan.mjs . --intent "接入 AI Native 工作流" --action workflow-assets
+node scripts/check-apply-plan.mjs .
 node scripts/check-execution-closure.mjs .
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs guide .

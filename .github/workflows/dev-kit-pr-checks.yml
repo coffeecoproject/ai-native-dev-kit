@@ -77,6 +77,15 @@ jobs:
       - name: Document archive apply smoke
         run: node scripts/cli.mjs archive-apply .
 
+      - name: Unified apply plan check
+        run: node scripts/check-apply-plan.mjs .
+
+      - name: Unified apply plan resolver smoke
+        run: node scripts/resolve-apply-plan.mjs . --intent "maintain Dev Kit apply plan" --action workflow-assets
+
+      - name: Unified apply plan smoke
+        run: node scripts/cli.mjs apply-plan . --intent "maintain Dev Kit apply plan" --action workflow-assets
+
       - name: Work queue check
         run: node scripts/check-work-queue.mjs .
 
@@ -207,6 +216,8 @@ jobs:
           node "$tmp/project/scripts/resolve-document-lifecycle.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-document-archive-apply.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-document-archive-apply.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-apply-plan.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-apply-plan.mjs" "$tmp/project" --intent "bootstrap workflow assets" --action workflow-assets
           node "$tmp/project/scripts/check-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-hook-orchestration.mjs" "$tmp/project"

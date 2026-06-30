@@ -20,6 +20,7 @@
 - [ ] Delivery Path is recorded or marked not applicable when this PR claims local-use, self-test, internal-trial, release-review, or blocked status
 - [ ] Debt / Knowledge Handoff is recorded or marked not applicable when this PR leaves known debt, pauses work, or needs next-run context
 - [ ] Document Archive Apply Plan is linked or marked not applicable when archive suggestions are ready for controlled apply
+- [ ] Unified Apply Plan is linked or marked not applicable before applying workflow assets, baseline docs, AGENTS/PR template governance, archive actions, hooks, CI, industrial packs, or other target-project writes
 - [ ] Project Hook Policy is linked or marked not applicable before hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks are proposed
 - [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed
 - [ ] Project onboarding is confirmed or not applicable for this change

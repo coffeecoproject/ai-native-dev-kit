@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.33.0`
+`1.34.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.34.0` adds Unified Apply Plan: proposed writes can be collected into one plan with evidence, action scope, human-only items, backup, rollback, verification, and explicit no-apply boundaries.
+- `1.34.0` keeps apply planning non-authorizing: it does not write files, approve apply, approve implementation, approve release/production, install hooks, change CI, archive documents, enable industrial packs, or approve high-risk decisions.
 - `1.33.0` adds Evidence-Linked Closure: closure can link Review Surface, Review Loop, Change Boundary, Verification, Debt Handoff, and Delivery Path evidence.
 - `1.33.0` treats changed files as scope evidence only; changed files do not prove functional or code review pass.
 - `1.32.0` adds Execution Review Closure through `closure`, `closure-check`, and Execution Closure Reports.

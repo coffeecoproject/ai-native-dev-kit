@@ -65,6 +65,12 @@ For document archive apply:
 - run `node scripts/cli.mjs archive-apply-check .` when Archive Apply Plans exist
 - do not treat archive apply plans as permission to delete, move/archive, rewrite links, change source of truth, replace Document Lifecycle, or approve cleanup completion
 
+For unified apply plans:
+
+- run `node scripts/cli.mjs apply-plan . --intent "<goal>"` before applying any recommendation that may write target-project files
+- run `node scripts/cli.mjs apply-plan-check .` when Unified Apply Plans exist
+- do not treat apply plans as permission to write files, authorize apply, approve implementation, approve release/production, modify CI/hooks, delete/archive files, change source of truth, or continue beyond scope
+
 For project hook policy:
 
 - run `node scripts/cli.mjs hook-policy .` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks
