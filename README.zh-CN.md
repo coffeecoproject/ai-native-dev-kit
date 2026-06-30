@@ -55,6 +55,7 @@
 | 想让 Codex 自己多看几层 | `node scripts/cli.mjs guide ../my-project --deep` | 内部选择性检查审查面、交付路径、任务、文档和自动化风险，最后仍只给一张卡 |
 | 已经知道这次想做什么 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` | 结合项目状态和目标判断风险、审查面和下一步 |
 | Codex 做完后要收口 | `node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --verification "npm run verify passed"` | 检查改动范围、验证、债务和是否能进入提交审查 |
+| 要做更严格的证据链收口 | `node scripts/cli.mjs closure ../my-project --review-surface-ref ... --review-loop-ref ... --verification-file ...` | 每个 pass 都必须能指向审查、边界、验证或债务证据 |
 | 刚拿到一个项目，不确定状态 | `node scripts/cli.mjs start ../my-project` | 先判断是新项目、老项目、强治理项目还是生产敏感项目 |
 | 要给项目选择基线 | `node scripts/cli.mjs baseline-decision ../my-project` | 用白话确认 BL0/BL1/BL2、平台和风险 |
 | 老项目怕被覆盖 | `node scripts/cli.mjs workflow-map ../my-project` | 先映射现有治理，说明该复用什么、不能动什么 |
@@ -75,6 +76,7 @@ node scripts/cli.mjs guide ../my-project
 node scripts/cli.mjs guide ../my-project --deep
 node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"
 node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --verification "npm run verify passed"
+node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --review-surface-ref review-surface-cards/001.md --review-loop-ref review-loop-reports/001.md --change-boundary-ref change-boundary-reports/001.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001.md
 ```
 
 第二步，如果你想看更具体的接入判断，让 Codex 只读判断项目状态：
@@ -184,6 +186,7 @@ node scripts/cli.mjs guide .
 node scripts/cli.mjs guide . --deep
 node scripts/cli.mjs guide . --deep --intent "维护 Dev Kit 自然语言入口"
 node scripts/cli.mjs closure . --intent "维护 Dev Kit 执行收口" --verification "npm run verify passed"
+node scripts/cli.mjs closure examples/1.33-evidence-linked-closure --intent "finish booking validation" --review-surface-ref review-surface-cards/001-booking.md --review-loop-ref review-loop-reports/001-booking.md --change-boundary-ref change-boundary-reports/001-booking.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001-booking.md --delivery-path-ref delivery-path-reports/001-booking.md
 node scripts/check-execution-closure.mjs .
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs review-surface .
@@ -320,6 +323,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.33 Release Record](releases/1.33.0/release-record.md)：1.33 证据链执行收口
 - [1.32 Release Record](releases/1.32.0/release-record.md)：1.32 执行后收口与复查闭环
 - [1.31 Release Record](releases/1.31.0/release-record.md)：1.31 意图感知深度 guide
 - [1.30 Release Record](releases/1.30.0/release-record.md)：1.30 深度 guide 编排

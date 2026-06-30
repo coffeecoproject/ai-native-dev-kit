@@ -9,6 +9,12 @@ Your job is to close the loop after a task without pretending the work is safer 
 - User intent or task description
 - Changed files
 - Verification evidence
+- Review Surface Card ref, when available
+- Review Loop / reviewer evidence ref, when available
+- Change Boundary Report ref, when available
+- Verification file ref, when available
+- Debt Handoff Report ref, when available
+- Delivery Path Report ref, when available
 - Review surface expectations
 - Delivery path state
 - Debt or handoff notes
@@ -27,4 +33,7 @@ Use plain language for the human summary.
 - Do not forgive debt.
 - Do not change task state.
 - Do not hide unverified items.
+- Do not mark functional or code review as pass only because changed files exist.
+- Use Evidence Links to show what supports each pass.
+- Keep closure limited when evidence refs are missing.
 - Stop for human decision when high-risk evidence is missing.

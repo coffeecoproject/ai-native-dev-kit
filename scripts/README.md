@@ -72,6 +72,8 @@ Injected workflow scripts:
 - `scripts/check-review-surface.mjs`
 - `scripts/resolve-debt-handoff.mjs`
 - `scripts/check-debt-handoff.mjs`
+- `scripts/resolve-execution-closure.mjs`
+- `scripts/check-execution-closure.mjs`
 
 ## check-ai-workflow.mjs
 
@@ -117,6 +119,7 @@ node scripts/resolve-workflow-guidance.mjs .
 node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/resolve-workflow-guidance.mjs . --deep --intent "我要加支付预约"
 node scripts/resolve-execution-closure.mjs . --intent "完成预约校验" --verification "npm run verify passed"
+node scripts/resolve-execution-closure.mjs . --intent "完成预约校验" --review-surface-ref review-surface-cards/001.md --review-loop-ref review-loop-reports/001.md --change-boundary-ref change-boundary-reports/001.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001.md
 node scripts/check-execution-closure.mjs .
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs guide .

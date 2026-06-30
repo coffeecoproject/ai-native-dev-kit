@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.32.0`
+`1.33.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.33.0` adds Evidence-Linked Closure: closure can link Review Surface, Review Loop, Change Boundary, Verification, Debt Handoff, and Delivery Path evidence.
+- `1.33.0` treats changed files as scope evidence only; changed files do not prove functional or code review pass.
 - `1.32.0` adds Execution Review Closure through `closure`, `closure-check`, and Execution Closure Reports.
 - `1.32.0` keeps closure non-authorizing: closure can report commit-readiness state but does not authorize commit, push, implementation, release, production, debt forgiveness, task-state change, or high-risk decisions.
 - `1.31.0` adds Intent-Aware Deep Guide through `guide --deep --intent "<goal>"`, intent classification, and user-facing `User Intent` output.

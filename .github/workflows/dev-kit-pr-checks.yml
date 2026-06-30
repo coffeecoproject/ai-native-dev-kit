@@ -131,6 +131,9 @@ jobs:
       - name: Execution closure smoke
         run: node scripts/cli.mjs closure . --intent "maintain Dev Kit closure" --verification "npm run verify passed"
 
+      - name: Evidence-linked execution closure smoke
+        run: node scripts/cli.mjs closure examples/1.33-evidence-linked-closure --intent "finish booking validation" --review-surface-ref review-surface-cards/001-booking.md --review-loop-ref review-loop-reports/001-booking.md --change-boundary-ref change-boundary-reports/001-booking.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001-booking.md --delivery-path-ref delivery-path-reports/001-booking.md
+
       - name: Guided delivery check
         run: node scripts/check-guided-delivery-loop.mjs .
 

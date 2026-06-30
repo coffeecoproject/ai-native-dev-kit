@@ -36,6 +36,7 @@ const requiredDirectories = ["execution-closures"];
 const reportSections = [
   "Human Decision Summary",
   "Task Context",
+  "Evidence Links",
   "Change Summary",
   "Review Surface Closure",
   "Verification Closure",
@@ -113,6 +114,8 @@ function checkCoreContent() {
   for (const marker of [
     "Execution Review Closure",
     "Execution Closure Report",
+    "Evidence-Linked Closure",
+    "Changed files prove that work happened",
     "READY_FOR_COMMIT_REVIEW",
     "This closure approves implementation: No",
     "This closure authorizes commit or push: No",
@@ -140,12 +143,17 @@ function checkReports() {
     }
 
     const reviewBody = sectionBody(content, "Review Surface Closure");
+    const evidenceBody = sectionBody(content, "Evidence Links");
     for (const surface of requiredSurfaces) {
       if (reviewBody.includes(surface)) pass(`${label} includes required closure surface ${surface}`);
       else fail(`${label} missing required closure surface ${surface}`);
     }
     if (/\b(pass|fail|not verified)\b/i.test(reviewBody)) pass(`${label} includes review result statuses`);
     else fail(`${label} must include review result statuses`);
+    if (/Review Surface Card/i.test(evidenceBody)) pass(`${label} includes evidence links`);
+    else fail(`${label} missing evidence links`);
+    rejectChangedFilesOnlyPass(reviewBody, label, "FUNCTIONAL_REVIEW");
+    rejectChangedFilesOnlyPass(reviewBody, label, "CODE_REVIEW");
 
     const verificationBody = sectionBody(content, "Verification Closure");
     if (/Verification commands/i.test(verificationBody)) pass(`${label} includes verification commands row`);
@@ -167,6 +175,20 @@ function checkReports() {
         pass(`${label} ready-for-commit does not leave verification review unverified`);
       } else {
         fail(`${label} READY_FOR_COMMIT_REVIEW cannot leave VERIFICATION_REVIEW not verified`);
+      }
+      requireEvidenceLinkStatus(evidenceBody, label, "Review Surface Card", "found");
+      requireEvidenceLinkStatus(evidenceBody, label, "Review Loop / Reviewer Evidence", "found");
+      requireEvidenceLinkStatus(evidenceBody, label, "Change Boundary Report", "found");
+      requireEvidenceLinkStatus(evidenceBody, label, "Debt Handoff Report", "found");
+      if (/(Verification File|Verification Note)/i.test(evidenceBody) && /\|\s*(Verification File|Verification Note)\s*\|[^|]+\|\s*(found|pass)\s*\|/i.test(evidenceBody)) {
+        pass(`${label} ready-for-commit has verification evidence link`);
+      } else {
+        fail(`${label} READY_FOR_COMMIT_REVIEW requires verification evidence link`);
+      }
+      if (!/\|\s*`?[A-Z][A-Z0-9_]+`?\s*\|\s*(fail|not verified)\s*\|/i.test(reviewBody)) {
+        pass(`${label} ready-for-commit closes selected review surfaces`);
+      } else {
+        fail(`${label} READY_FOR_COMMIT_REVIEW cannot leave selected review surfaces fail or not verified`);
       }
     }
 
@@ -196,14 +218,28 @@ function checkSourceEvidence() {
   for (const file of [
     "examples/1.32-execution-review-closure/README.md",
     "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
+    "docs/evidence-linked-closure-1.33-plan.md",
+    "examples/1.33-evidence-linked-closure/README.md",
+    "examples/1.33-evidence-linked-closure/execution-closures/001-booking.md",
+    "examples/1.33-evidence-linked-closure/review-surface-cards/001-booking.md",
+    "examples/1.33-evidence-linked-closure/review-loop-reports/001-booking.md",
+    "examples/1.33-evidence-linked-closure/change-boundary-reports/001-booking.md",
+    "examples/1.33-evidence-linked-closure/reports/verify-output.txt",
+    "examples/1.33-evidence-linked-closure/debt-handoff-reports/001-booking.md",
+    "examples/1.33-evidence-linked-closure/delivery-path-reports/001-booking.md",
     "test-fixtures/bad/bad-execution-closure-approves-implementation/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-missing-verification/execution-closures/001-bad.md",
+    "test-fixtures/bad/bad-execution-closure-changed-files-pass/execution-closures/001-bad.md",
+    "test-fixtures/bad/bad-execution-closure-ready-without-evidence/execution-closures/001-bad.md",
     "releases/1.32.0/release-record.md",
     "releases/1.32.0/known-limitations.md",
     "releases/1.32.0/self-check-report.md",
+    "releases/1.33.0/release-record.md",
+    "releases/1.33.0/known-limitations.md",
+    "releases/1.33.0/self-check-report.md",
   ]) {
-    if (exists(file)) pass(`1.32 execution closure source evidence exists ${file}`);
-    else fail(`1.32 execution closure source evidence missing ${file}`);
+    if (exists(file)) pass(`execution closure source evidence exists ${file}`);
+    else fail(`execution closure source evidence missing ${file}`);
   }
 
   const resolver = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish Dev Kit closure", "--verification", "npm run verify passed"]);
@@ -244,9 +280,55 @@ function checkSourceEvidence() {
     fail(`1.32 execution closure example failed: ${example.stderr || example.stdout}`);
   }
 
+  const evidenceExample = runNode(["scripts/check-execution-closure.mjs", "examples/1.33-evidence-linked-closure"]);
+  if (evidenceExample.status === 0 && evidenceExample.stdout.includes("Execution Review Closure check passed")) {
+    pass("1.33 evidence-linked closure example passes checker");
+  } else {
+    fail(`1.33 evidence-linked closure example failed: ${evidenceExample.stderr || evidenceExample.stdout}`);
+  }
+
+  const evidenceResolver = runNode([
+    "scripts/resolve-execution-closure.mjs",
+    "examples/1.33-evidence-linked-closure",
+    "--intent",
+    "finish booking validation",
+    "--review-surface-ref",
+    "review-surface-cards/001-booking.md",
+    "--review-loop-ref",
+    "review-loop-reports/001-booking.md",
+    "--change-boundary-ref",
+    "change-boundary-reports/001-booking.md",
+    "--verification-file",
+    "reports/verify-output.txt",
+    "--debt-handoff-ref",
+    "debt-handoff-reports/001-booking.md",
+    "--delivery-path-ref",
+    "delivery-path-reports/001-booking.md",
+    "--json",
+  ]);
+  if (evidenceResolver.status === 0) {
+    try {
+      const parsed = JSON.parse(evidenceResolver.stdout);
+      if (parsed.commitReadiness?.closureState === "READY_FOR_COMMIT_REVIEW"
+        && Array.isArray(parsed.evidenceLinks)
+        && parsed.evidenceLinks.some((item) => item.type === "Review Loop / Reviewer Evidence" && item.status === "found")
+        && parsed.reviewSurfaceClosure?.some((item) => item.surface === "CODE_REVIEW" && item.result === "pass" && /review-loop evidence/.test(item.evidence))) {
+        pass("1.33 evidence-linked resolver reaches ready state with linked evidence");
+      } else {
+        fail(`1.33 evidence-linked resolver JSON missing expected evidence-linked readiness: ${evidenceResolver.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.33 evidence-linked resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.33 evidence-linked resolver failed: ${evidenceResolver.stderr || evidenceResolver.stdout}`);
+  }
+
   for (const [name, args, expected] of [
     ["approval overclaim", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-approves-implementation"], "forbidden execution closure claim"],
     ["missing verification", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-missing-verification"], "requires passing verification commands"],
+    ["changed files pass", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-changed-files-pass"], "changed files as the only evidence"],
+    ["ready without evidence", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-ready-without-evidence"], "requires Review Surface Card found"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -288,6 +370,21 @@ function requireBoundaryNo(content, label, key) {
   const pattern = new RegExp(`^-\\s*${escapeRegExp(key)}:\\s*No\\s*$`, "im");
   if (pattern.test(content)) pass(`${label} boundary ${key}: No`);
   else fail(`${label} missing boundary ${key}: No`);
+}
+
+function rejectChangedFilesOnlyPass(reviewBody, label, surface) {
+  const pattern = new RegExp(`\\|\\s*\`?${escapeRegExp(surface)}\`?\\s*\\|\\s*pass\\s*\\|\\s*(changed files detected|no changed files detected)\\s*\\|`, "i");
+  if (pattern.test(reviewBody)) {
+    fail(`${label} ${surface} pass cannot use changed files as the only evidence`);
+  } else {
+    pass(`${label} ${surface} pass is not based only on changed files`);
+  }
+}
+
+function requireEvidenceLinkStatus(evidenceBody, label, evidence, status) {
+  const pattern = new RegExp(`\\|\\s*${escapeRegExp(evidence)}\\s*\\|[^|]*\\|\\s*${escapeRegExp(status)}\\s*\\|`, "i");
+  if (pattern.test(evidenceBody)) pass(`${label} ready-for-commit has ${evidence} ${status}`);
+  else fail(`${label} READY_FOR_COMMIT_REVIEW requires ${evidence} ${status}`);
 }
 
 function sectionBody(content, section) {

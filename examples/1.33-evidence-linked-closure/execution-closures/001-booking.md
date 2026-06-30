@@ -20,19 +20,19 @@ What happens if you do nothing: No files are changed. No task state, debt, commi
 | Related task card | `tasks/001-booking-validation.md` |
 | User intent | Finish booking validation |
 | Delivery path state | `READY_FOR_SELF_TEST` |
-| Review surface source | `review-surface-cards/001-booking-review-surface.md` |
+| Review surface source | `review-surface-cards/001-booking.md` |
 
 ## Evidence Links
 
 | Evidence | Ref | Status | Used for | Note |
 |---|---|---|---|---|
-| Review Surface Card | review-surface-cards/001-booking-review-surface.md | found | REVIEW_SURFACE_SELECTION | selected booking review surfaces |
-| Review Loop / Reviewer Evidence | review-loop-reports/001-booking-validation.md | found | FUNCTIONAL_REVIEW, CODE_REVIEW, selected review surfaces | reviewer evidence closed functional and code review |
-| Change Boundary Report | change-boundary-reports/001-booking-validation.md | found | SCOPE_BOUNDARY | recorded changed files inside task scope |
-| Verification File | reports/verify-output.txt | found | VERIFICATION_REVIEW | verification output recorded as passed |
-| Verification Note | inline --verification | pass | VERIFICATION_REVIEW | `npm run verify` passed |
-| Debt Handoff Report | debt-handoff-reports/001-booking-validation.md | found | DEBT_REVIEW | no blocking debt |
-| Delivery Path Report | delivery-path-reports/001-booking-validation.md | found | DELIVERY_PATH_STATE | ready for self-test |
+| Review Surface Card | review-surface-cards/001-booking.md | found | REVIEW_SURFACE_SELECTION | selected surfaces: FUNCTIONAL_REVIEW, CODE_REVIEW, UX_REVIEW, VERIFICATION_REVIEW, DEBT_REVIEW |
+| Review Loop / Reviewer Evidence | review-loop-reports/001-booking.md | found | FUNCTIONAL_REVIEW, CODE_REVIEW, selected review surfaces | review status: pass |
+| Change Boundary Report | change-boundary-reports/001-booking.md | found | SCOPE_BOUNDARY | boundary status: pass |
+| Verification File | reports/verify-output.txt | found | VERIFICATION_REVIEW | verification file status: pass |
+| Verification Note | inline --verification | pass | VERIFICATION_REVIEW | inline verification note classified without executing commands |
+| Debt Handoff Report | debt-handoff-reports/001-booking.md | found | DEBT_REVIEW | debt status: pass |
+| Delivery Path Report | delivery-path-reports/001-booking.md | found | DELIVERY_PATH_STATE | delivery path state: READY_FOR_SELF_TEST |
 | Git Diff Scope | git status --porcelain | read-only | CHANGE_SUMMARY | changed files are not correctness evidence |
 
 ## Change Summary
@@ -41,23 +41,24 @@ What happens if you do nothing: No files are changed. No task state, debt, commi
 |---|---|
 | Changed files count | 3 |
 | Changed files reviewed | pass |
-| What changed | Added booking form validation, validation messages, and self-test notes. |
-| Why it changed | Make the booking flow testable before payment or staff scheduling is added. |
+| What changed | Added booking validation, tests, and verification evidence. |
+| Why it changed | Make the booking flow testable before payment or reminder work. |
 
 ## Review Surface Closure
 
 | Surface | Result | Evidence | Unverified reason / owner |
 |---|---|---|---|
-| `FUNCTIONAL_REVIEW` | pass | booking validation cases matched task goal | N/A |
-| `CODE_REVIEW` | pass | changed files reviewed against local component structure | N/A |
-| `VERIFICATION_REVIEW` | pass | `npm run verify` passed | N/A |
-| `DEBT_REVIEW` | pass | no blocking debt found; reminder integration deferred explicitly | N/A |
+| `FUNCTIONAL_REVIEW` | pass | review-loop evidence: review-loop-reports/001-booking.md | N/A |
+| `CODE_REVIEW` | pass | review-loop evidence: review-loop-reports/001-booking.md | N/A |
+| `UX_REVIEW` | pass | review-loop evidence: review-loop-reports/001-booking.md | N/A |
+| `VERIFICATION_REVIEW` | pass | verification file: reports/verify-output.txt; status=pass | N/A |
+| `DEBT_REVIEW` | pass | debt handoff evidence: debt-handoff-reports/001-booking.md | N/A |
 
 ## Verification Closure
 
 | Check | Status | Evidence | Owner |
 |---|---|---|---|
-| Verification commands | pass | `npm run verify` passed | Codex |
+| Verification commands | pass | verification file: reports/verify-output.txt; status=pass | Codex |
 | Manual verification | not verified | manual browser test not provided in this simulated example | Codex / human |
 | Unverified items named | pass | manual browser verification remains unverified | Codex |
 
@@ -69,6 +70,7 @@ What happens if you do nothing: No files are changed. No task state, debt, commi
 | Out-of-scope changes found | No |
 | High-risk surfaces touched | No |
 | Requires human decision | No |
+| Change boundary ref | change-boundary-reports/001-booking.md |
 
 ## Debt Closure
 
@@ -77,7 +79,7 @@ What happens if you do nothing: No files are changed. No task state, debt, commi
 | Debt result | deferred |
 | Debt blocks release review | No |
 | Handoff needed | No |
-| Handoff ref | N/A |
+| Handoff ref | debt-handoff-reports/001-booking.md |
 
 ## Commit Readiness
 
@@ -86,7 +88,7 @@ What happens if you do nothing: No files are changed. No task state, debt, commi
 | Closure state | `READY_FOR_COMMIT_REVIEW` |
 | Can prepare commit review? | Yes |
 | Commit scope ready? | Yes |
-| Required before commit review | Human review of commit summary. |
+| Required before commit review | Human review of commit scope. |
 
 ## Human Decisions
 

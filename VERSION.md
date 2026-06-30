@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.32.0`
+Current version: `1.33.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.32.0`
 
 ## Current Release
 
-`1.32.0`
+`1.33.0`
 
 Includes:
 
+- Evidence-Linked Closure phase `1.33.0`: upgrades execution closure so every `pass` can be linked to Review Surface, Review Loop, Change Boundary, Verification, Debt Handoff, and Delivery Path evidence
+- Added `docs/evidence-linked-closure-1.33-plan.md`, evidence-link CLI args, evidence-link report section, 1.33 example, bad fixtures, checker rules, CI/manifest coverage, and release evidence
+- `1.33.0` does not apply plans, write target files, approve implementation, authorize commit/push, approve release/production, forgive debt, or approve high-risk decisions
 - Execution Review Closure phase `1.32.0`: adds `closure` and `closure-check` so Codex can close a completed task with changed-file scope, review surface closure, verification closure, debt closure, and commit-readiness state
 - Added `core/execution-review-closure.md`, `docs/execution-review-closure.md`, execution closure templates/checklists/prompts, `execution-closures/`, resolver/checker scripts, CLI/CI/manifest coverage, a 1.32 example, bad fixtures, and release evidence
 - `1.32.0` does not write target files, approve implementation, approve release/production, change task state, forgive debt, replace Review Loop, replace Safe Launch, authorize commit/push, or approve high-risk decisions

@@ -1,0 +1,5 @@
+npm run verify
+
+Result: PASS
+
+All booking validation checks passed in this example evidence file.

@@ -22,6 +22,19 @@ What happens if you do nothing: TODO.
 | Delivery path state | TODO / N/A |
 | Review surface source | TODO / N/A |
 
+## Evidence Links
+
+| Evidence | Ref | Status | Used for | Note |
+|---|---|---|---|---|
+| Review Surface Card | TODO / N/A | found / missing / not provided | REVIEW_SURFACE_SELECTION | Defines surfaces to close; does not make them pass |
+| Review Loop / Reviewer Evidence | TODO / N/A | found / missing / not provided | FUNCTIONAL_REVIEW, CODE_REVIEW, selected review surfaces | Required before marking functional/code review pass |
+| Change Boundary Report | TODO / N/A | found / missing / not provided | SCOPE_BOUNDARY | Required before commit-review readiness when files changed |
+| Verification File | TODO / N/A | found / missing / not provided | VERIFICATION_REVIEW | Full file content is not copied into closure output |
+| Verification Note | TODO / N/A | pass / fail / not verified / not provided | VERIFICATION_REVIEW | Inline note is evidence, not command execution |
+| Debt Handoff Report | TODO / N/A | found / missing / not provided | DEBT_REVIEW | Required when debt is deferred or non-trivial |
+| Delivery Path Report | TODO / N/A | found / missing / not provided | DELIVERY_PATH_STATE | Does not replace Safe Launch |
+| Git Diff Scope | git status / --base / --cached | read-only | CHANGE_SUMMARY | Changed files are not correctness evidence |
+
 ## Change Summary
 
 | Field | Value |
@@ -35,8 +48,8 @@ What happens if you do nothing: TODO.
 
 | Surface | Result | Evidence | Unverified reason / owner |
 |---|---|---|---|
-| `FUNCTIONAL_REVIEW` | pass / fail / not verified | TODO | TODO |
-| `CODE_REVIEW` | pass / fail / not verified | TODO | TODO |
+| `FUNCTIONAL_REVIEW` | pass / fail / not verified | TODO; changed files alone are not enough | TODO |
+| `CODE_REVIEW` | pass / fail / not verified | TODO; changed files alone are not enough | TODO |
 | `VERIFICATION_REVIEW` | pass / fail / not verified | TODO | TODO |
 | `DEBT_REVIEW` | pass / fail / not verified | TODO | TODO |
 

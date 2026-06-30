@@ -55,6 +55,7 @@ Boundary lines must include:
 
 Every Execution Closure Report must include:
 
+- evidence links
 - change summary
 - review surface closure
 - verification closure
@@ -65,6 +66,33 @@ Every Execution Closure Report must include:
 - explicit boundaries
 
 Every report must name all unverified items.
+
+## Evidence-Linked Closure
+
+Execution Closure is evidence-linked.
+
+Changed files prove that work happened. They do not prove that functionality works, code was reviewed, or selected review surfaces are closed.
+
+Codex must not mark `FUNCTIONAL_REVIEW` or `CODE_REVIEW` as `pass` only because changed files exist.
+
+Evidence links may include:
+
+- Review Surface Card: defines which review surfaces must close
+- Review Loop / reviewer evidence: can close functional, code, UX, data, permission, and other selected review surfaces
+- Change Boundary Report: can close scope boundary
+- Verification note or verification file: can close verification review
+- Debt & Knowledge Handoff: can close debt review when non-blocking
+- Delivery Path Report: can carry delivery state, but does not replace Safe Launch
+
+`READY_FOR_COMMIT_REVIEW` requires:
+
+- changed scope exists or the task/change is explicitly provided
+- verification status is `pass`
+- selected review surfaces are closed with evidence
+- functional/code pass is backed by review-loop or reviewer evidence, not changed files alone
+- changed files are inside a passing change boundary when files changed
+- debt is non-blocking or explicitly handed off
+- no high-risk decision is implicitly approved
 
 ## Relationship To Other Workflow Layers
 
