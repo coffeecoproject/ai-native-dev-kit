@@ -39,6 +39,7 @@ const typeMap = {
   "document-lifecycle-report": { dir: "doc-lifecycle-reports", template: "document-lifecycle-report.md", defaultName: "document-lifecycle" },
   "document-archive-apply-plan": { dir: "archive-apply-plans", template: "document-archive-apply-plan.md", defaultName: "archive-apply" },
   "unified-apply-plan": { dir: "apply-plans", template: "unified-apply-plan.md", defaultName: "apply-plan" },
+  "beginner-entry-card": { dir: "beginner-entry-cards", template: "beginner-entry-card.md", defaultName: "beginner-entry" },
   "work-queue-report": { dir: "work-queue", template: "work-queue-report.md", defaultName: "work-queue" },
   "hook-orchestration-plan": { dir: "hook-orchestration-plans", template: "hook-orchestration-plan.md", defaultName: "hook-plan" },
   "project-hook-policy": { dir: "hook-policies", template: "project-hook-policy.md", defaultName: "hook-policy" },
@@ -145,6 +146,11 @@ const aliases = {
   "unified-apply-plan": "unified-apply-plan",
   "apply": "unified-apply-plan",
   "write-plan": "unified-apply-plan",
+  ask: "beginner-entry-card",
+  "beginner-entry": "beginner-entry-card",
+  "beginner-entry-card": "beginner-entry-card",
+  beginner: "beginner-entry-card",
+  "user-entry": "beginner-entry-card",
   "work-queue": "work-queue-report",
   "todo": "work-queue-report",
   "todo-list": "work-queue-report",
@@ -269,6 +275,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type workflow-adoption-map --name governed-project");
   console.error("  node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs");
   console.error("  node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name stale-docs-archive-plan");
+  console.error("  node scripts/new-workflow-item.mjs --type beginner-entry-card --name first-user-goal");
   console.error("  node scripts/new-workflow-item.mjs --type work-queue-report --name current-work");
   console.error("  node scripts/new-workflow-item.mjs --type hook-orchestration-plan --name project-hooks");
   console.error("  node scripts/new-workflow-item.mjs --type project-hook-policy --name project-hooks");

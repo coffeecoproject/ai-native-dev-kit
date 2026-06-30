@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.34.0`
+Current version: `1.35.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.34.0`
 
 ## Current Release
 
-`1.34.0`
+`1.35.0`
 
 Includes:
 
+- Beginner Entry phase `1.35.0`: adds `ask` and `ask-check` so users can provide one natural-language goal without choosing internal workflow commands
+- Added `core/beginner-entry.md`, `docs/beginner-entry.md`, `templates/beginner-entry-card.md`, `beginner-entry-cards/`, resolver/checker scripts, examples, bad fixtures, CI/manifest coverage, and release evidence
+- `1.35.0` does not write target files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive/delete documents, change task state, enable baseline/industrial packs, or approve high-risk decisions
 - Unified Apply Plan phase `1.34.0`: adds one reviewable apply-plan layer before any Codex action that may write target-project files
 - Added `core/unified-apply-plan.md`, `docs/unified-apply-plan.md`, `templates/unified-apply-plan.md`, `apply-plans/`, `apply-plan`, `apply-plan-check`, resolver/checker scripts, examples, bad fixtures, CI/manifest coverage, and release evidence
 - `1.34.0` does not write target files, approve apply, add a generic executor, apply init/update/baseline/archive/hook actions, enable industrial packs, approve implementation, approve release/production, or approve high-risk decisions

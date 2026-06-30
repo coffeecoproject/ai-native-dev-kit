@@ -43,6 +43,17 @@ node scripts/workflow-next.mjs .
 
 Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
 
+## Beginner Entry
+
+When the user gives one natural-language goal, asks what to do next, or does not know which workflow command to choose, start with Beginner Entry:
+
+```bash
+node scripts/cli.mjs ask . "<user goal>"
+node scripts/cli.mjs ask-check .
+```
+
+Beginner Entry returns one plain card with what Codex understood, the recommended path, a small set of human decisions, safe next actions, blocked actions, routing evidence, and explicit boundaries. It does not write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
+
 ## Natural Language Workflow Guidance
 
 When the user gives a broad goal, asks what to do next, or provides a project path/repository without naming a workflow command, start with the plain guidance entry:

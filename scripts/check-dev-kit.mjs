@@ -436,6 +436,8 @@ function checkVersionMetadata() {
     "scripts/check-document-archive-apply.mjs",
     "scripts/resolve-apply-plan.mjs",
     "scripts/check-apply-plan.mjs",
+    "scripts/resolve-beginner-entry.mjs",
+    "scripts/check-beginner-entry.mjs",
     "scripts/resolve-work-queue.mjs",
     "scripts/check-work-queue.mjs",
     "scripts/resolve-hook-orchestration.mjs",
@@ -512,6 +514,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/standard-baseline-pack-registry.md",
     ".ai-native/docs/existing-project-workflow-adapter.md",
     ".ai-native/docs/document-lifecycle.md",
+    ".ai-native/docs/beginner-entry.md",
     ".ai-native/docs/work-queue.md",
     ".ai-native/docs/hook-orchestration.md",
     ".ai-native/docs/hook-policy.md",
@@ -533,6 +536,7 @@ function checkVersionMetadata() {
     ".ai-native/core/patch-classification.md",
     ".ai-native/core/existing-project-workflow-adapter.md",
     ".ai-native/core/document-lifecycle.md",
+    ".ai-native/core/beginner-entry.md",
     ".ai-native/core/work-queue.md",
     ".ai-native/core/hook-orchestration.md",
     ".ai-native/core/natural-language-orchestrator.md",
@@ -553,6 +557,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/patch-classification-report.md",
     ".ai-native/templates/workflow-adoption-map.md",
     ".ai-native/templates/document-lifecycle-report.md",
+    ".ai-native/templates/beginner-entry-card.md",
     ".ai-native/templates/work-queue-report.md",
     ".ai-native/templates/hook-orchestration-plan.md",
     ".ai-native/templates/workflow-guidance-card.md",
@@ -572,6 +577,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/patch-classifier-agent.md",
     ".ai-native/prompts/workflow-adapter-agent.md",
     ".ai-native/prompts/document-lifecycle-agent.md",
+    ".ai-native/prompts/beginner-entry-agent.md",
     ".ai-native/prompts/work-queue-agent.md",
     ".ai-native/prompts/hook-orchestration-agent.md",
     ".ai-native/prompts/workflow-concierge-agent.md",
@@ -591,6 +597,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/patch-classification-review.md",
     ".ai-native/checklists/workflow-adoption-map-review.md",
     ".ai-native/checklists/document-lifecycle-review.md",
+    ".ai-native/checklists/beginner-entry-review.md",
     ".ai-native/checklists/work-queue-review.md",
     ".ai-native/checklists/hook-orchestration-review.md",
     ".ai-native/checklists/workflow-guidance-review.md",
@@ -613,6 +620,7 @@ function checkVersionMetadata() {
     "patch-classifications",
     "workflow-adoption-maps",
     "doc-lifecycle-reports",
+    "beginner-entry-cards",
     "work-queue",
     "hook-orchestration-plans",
     "hook-policies",
@@ -668,6 +676,9 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs archive-apply .",
     "node scripts/check-apply-plan.mjs .",
     "node scripts/cli.mjs apply-plan .",
+    "node scripts/check-beginner-entry.mjs .",
+    "node scripts/resolve-beginner-entry.mjs . --goal",
+    "node scripts/cli.mjs ask .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
@@ -719,6 +730,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-document-archive-apply.mjs",
     "check-apply-plan.mjs",
     "resolve-apply-plan.mjs",
+    "check-beginner-entry.mjs",
+    "resolve-beginner-entry.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -739,6 +752,8 @@ function checkDevKitFirstPartyCi() {
     "guide . --deep",
     "guide . --deep --intent",
     "guide-check",
+    "ask",
+    "ask-check",
     "review-surface",
     "review-surface-check",
     "delivery-path",
@@ -796,6 +811,9 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs archive-apply .",
     "node scripts/check-apply-plan.mjs .",
     "node scripts/cli.mjs apply-plan .",
+    "node scripts/check-beginner-entry.mjs .",
+    "node scripts/resolve-beginner-entry.mjs . --goal",
+    "node scripts/cli.mjs ask .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-hook-orchestration.mjs .",
@@ -845,6 +863,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-document-archive-apply.mjs",
     "check-apply-plan.mjs",
     "resolve-apply-plan.mjs",
+    "check-beginner-entry.mjs",
+    "resolve-beginner-entry.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -861,6 +881,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-debt-handoff.mjs",
     "guide",
     "guide-check",
+    "ask",
+    "ask-check",
     "review-surface",
     "review-surface-check",
     "delivery-path",
@@ -895,6 +917,7 @@ function checkDevKitFirstPartyCi() {
   for (const marker of [
     "Human Summary",
     "Workflow Guidance",
+    "Beginner Entry",
     "Workflow Evidence",
     "Debt / Knowledge Handoff",
     "Document Archive Apply",
@@ -1348,6 +1371,8 @@ function checkCliFrontDoor() {
     "node --check scripts/check-document-archive-apply.mjs",
     "node --check scripts/resolve-apply-plan.mjs",
     "node --check scripts/check-apply-plan.mjs",
+    "node --check scripts/resolve-beginner-entry.mjs",
+    "node --check scripts/check-beginner-entry.mjs",
     "node scripts/cli.mjs workflow-map .",
     "node scripts/check-workflow-adoption-map.mjs .",
     "node scripts/cli.mjs doc-lifecycle .",
@@ -1356,6 +1381,8 @@ function checkCliFrontDoor() {
     "node scripts/check-document-archive-apply.mjs .",
     "node scripts/cli.mjs apply-plan .",
     "node scripts/check-apply-plan.mjs .",
+    "node scripts/cli.mjs ask .",
+    "node scripts/check-beginner-entry.mjs .",
     "node scripts/cli.mjs work-queue .",
     "node scripts/check-work-queue.mjs .",
     "node scripts/cli.mjs hook-plan .",
@@ -1406,6 +1433,8 @@ function checkCliFrontDoor() {
     "Manifest: dev-kit-manifest.json",
     "guide",
     "guide-check",
+    "ask",
+    "ask-check",
     "start",
     "baseline",
     "product-baseline",
@@ -1474,6 +1503,22 @@ function checkCliFrontDoor() {
     pass("CLI guide-check delegates to workflow guidance checker");
   } else {
     fail(`CLI guide-check failed: ${guideCheck.stderr || guideCheck.stdout}`);
+  }
+
+  const beginnerEntry = runNode(["scripts/cli.mjs", "ask", ".", "maintain Dev Kit beginner entry"]);
+  if (beginnerEntry.status === 0
+    && beginnerEntry.stdout.includes("Beginner Entry Card")
+    && beginnerEntry.stdout.includes("This entry writes target files: No")) {
+    pass("CLI ask delegates to beginner entry resolver");
+  } else {
+    fail(`CLI ask failed: ${beginnerEntry.stderr || beginnerEntry.stdout}`);
+  }
+
+  const beginnerEntryCheck = runNode(["scripts/cli.mjs", "ask-check", "."]);
+  if (beginnerEntryCheck.status === 0 && beginnerEntryCheck.stdout.includes("Beginner Entry check passed")) {
+    pass("CLI ask-check delegates to beginner entry checker");
+  } else {
+    fail(`CLI ask-check failed: ${beginnerEntryCheck.stderr || beginnerEntryCheck.stdout}`);
   }
 
   const reviewSurface = runNode(["scripts/cli.mjs", "review-surface", "."]);
@@ -4564,6 +4609,145 @@ function checkUnifiedApplyPlanProtocol() {
   }
 }
 
+function checkBeginnerEntryProtocol() {
+  const required = [
+    "core/beginner-entry.md",
+    "docs/beginner-entry.md",
+    "docs/beginner-entry-1.35-plan.md",
+    "templates/beginner-entry-card.md",
+    "checklists/beginner-entry-review.md",
+    "prompts/beginner-entry-agent.md",
+    "beginner-entry-cards/.gitkeep",
+    "scripts/resolve-beginner-entry.mjs",
+    "scripts/check-beginner-entry.mjs",
+    "examples/1.35-beginner-entry/README.md",
+    "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
+    "test-fixtures/bad/bad-beginner-entry-authorizes-write/beginner-entry-cards/001-bad.md",
+    "test-fixtures/bad/bad-beginner-entry-jargon/beginner-entry-cards/001-bad.md",
+    "test-fixtures/bad/bad-beginner-entry-too-many-questions/beginner-entry-cards/001-bad.md",
+    "releases/1.35.0/release-record.md",
+    "releases/1.35.0/known-limitations.md",
+    "releases/1.35.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.35 beginner entry asset exists ${file}`);
+    else fail(`1.35 beginner entry asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/beginner-entry.md"),
+    read("docs/beginner-entry.md"),
+    read("templates/beginner-entry-card.md"),
+    read("scripts/resolve-beginner-entry.mjs"),
+    read("scripts/check-beginner-entry.mjs"),
+    read("releases/1.35.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Beginner Entry Governance",
+    "users who should not need to know AI Native workflow commands",
+    "ask at most 3 human questions by default",
+    "Beginner Entry Card",
+    "What Codex Must Not Do Yet",
+    "This entry writes target files: No",
+    "This entry authorizes apply: No",
+    "This entry approves implementation: No",
+    "This entry approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.35 beginner entry includes ${marker}`);
+    else fail(`1.35 beginner entry missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "ask",
+    "ask-check",
+    "scripts/resolve-beginner-entry.mjs",
+    "scripts/check-beginner-entry.mjs",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports beginner entry marker ${marker}`);
+    else fail(`CLI missing beginner entry marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "beginner-entry-card",
+    "beginner-entry-cards",
+    "beginner-entry-card.md",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports beginner entry marker ${marker}`);
+    else fail(`new-workflow-item missing beginner entry marker ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "维护 Dev Kit 小白入口"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Beginner Entry Card")
+    && resolver.stdout.includes("This entry writes target files: No")
+    && resolver.stdout.includes("Can Codex change files now: No")) {
+    pass("1.35 beginner entry resolver prints safe card");
+  } else {
+    fail(`1.35 beginner entry resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const positionalResolver = runNode(["scripts/resolve-beginner-entry.mjs", "我想把当前项目接入 AI Native"]);
+  if (positionalResolver.status === 0
+    && positionalResolver.stdout.includes("Beginner Entry Card")
+    && positionalResolver.stdout.includes("This entry writes target files: No")) {
+    pass("1.35 beginner entry resolver accepts one-sentence goal");
+  } else {
+    fail(`1.35 beginner entry one-sentence goal failed: ${positionalResolver.stderr || positionalResolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "维护 Dev Kit 小白入口", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "BEGINNER_ENTRY_CARD"
+        && parsed.boundary?.writesTargetFiles === "No"
+        && parsed.boundary?.authorizesApply === "No"
+        && parsed.routingEvidence?.technicalEvidenceAvailable === "yes"
+        && Array.isArray(parsed.questionsForHuman)
+        && parsed.questionsForHuman.length <= 3) {
+        pass("1.35 beginner entry resolver JSON includes bounded decisions and boundaries");
+      } else {
+        fail(`1.35 beginner entry resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.35 beginner entry resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.35 beginner entry resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-beginner-entry.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Beginner Entry check passed")) {
+    pass("1.35 beginner entry checker passes source repo");
+  } else {
+    fail(`1.35 beginner entry checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-beginner-entry.mjs", "examples/1.35-beginner-entry"]);
+  if (example.status === 0 && example.stdout.includes("Beginner Entry check passed")) {
+    pass("1.35 beginner entry example passes checker");
+  } else {
+    fail(`1.35 beginner entry example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["authorizes write", ["scripts/check-beginner-entry.mjs", "test-fixtures/bad/bad-beginner-entry-authorizes-write"], "forbidden beginner entry claim"],
+    ["jargon", ["scripts/check-beginner-entry.mjs", "test-fixtures/bad/bad-beginner-entry-jargon"], "internal workflow jargon"],
+    ["too many questions", ["scripts/check-beginner-entry.mjs", "test-fixtures/bad/bad-beginner-entry-too-many-questions"], "too many questions"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.35 beginner entry rejects ${name}`);
+    } else {
+      fail(`1.35 beginner entry must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkWorkQueueProtocol() {
   const required = [
     "core/work-queue.md",
@@ -5831,7 +6015,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/resolve-apply-plan.mjs", "scripts/check-apply-plan.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-beginner-entry.mjs", "scripts/check-beginner-entry.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/resolve-apply-plan.mjs", "scripts/check-apply-plan.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -5840,7 +6024,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Beginner Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -5849,7 +6033,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Beginner Entry", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -5879,7 +6063,7 @@ function checkPlatformAdapters() {
     ["platforms/github/pull_request_template.md", githubPr],
   ]) {
     const normalized = content.toLowerCase();
-    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "delivery path", "debt", "archive apply", "apply plan", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
+    for (const marker of ["bootstrap", "onboarding", "artifact", "skill", "automation", "daily summary", "human summary", "next-step", "subagent", "product baseline", "claim control", "assumption", "context governance", "git boundary", "safe launch", "conversation drift", "first delivery", "guided delivery", "delivery path", "debt", "archive apply", "apply plan", "beginner entry", "change boundary", "baseline state", "baseline pack", "workflow guidance", "review surface"]) {
       if (normalized.includes(marker)) {
         pass(`${name} includes ${marker}`);
       } else {
@@ -5915,6 +6099,8 @@ function checkPlatformAdapters() {
     "resolve-document-archive-apply.mjs",
     "check-apply-plan.mjs",
     "resolve-apply-plan.mjs",
+    "check-beginner-entry.mjs",
+    "resolve-beginner-entry.mjs",
     "check-work-queue.mjs",
     "resolve-work-queue.mjs",
     "check-hook-orchestration.mjs",
@@ -6095,6 +6281,9 @@ function checkReadmePointers() {
     "node scripts/check-document-archive-apply.mjs",
     "node scripts/resolve-apply-plan.mjs",
     "node scripts/check-apply-plan.mjs",
+    "node scripts/cli.mjs ask",
+    "node scripts/resolve-beginner-entry.mjs",
+    "node scripts/check-beginner-entry.mjs",
     "node scripts/resolve-work-queue.mjs",
     "node scripts/check-work-queue.mjs",
     "node scripts/resolve-hook-orchestration.mjs",
@@ -6144,6 +6333,7 @@ function checkReadmePointers() {
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
     "docs/document-archive-apply.md",
+    "docs/beginner-entry.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/hook-policy.md",
@@ -6252,6 +6442,7 @@ function checkReadmePointers() {
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
     "docs/document-archive-apply.md",
+    "docs/beginner-entry.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/hook-policy.md",
@@ -6373,6 +6564,8 @@ function checkReadmePointers() {
     "Change Boundary",
     "Baseline State",
     "Unified Apply Plan",
+    "Beginner Entry",
+    "beginner-entry-cards",
     "apply-plans",
     "change-boundary-reports",
     "baseline-state-reports",
@@ -6420,6 +6613,7 @@ function runNode(args, options = {}) {
   return spawnSync(process.execPath, args, {
     cwd: options.cwd || kitRoot,
     encoding: "utf8",
+    maxBuffer: options.maxBuffer || 1024 * 1024 * 80,
   });
 }
 
@@ -6761,6 +6955,44 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project guided adoption report check");
 
+  const beginnerEntryResolverCheck = runNode([
+    path.join(target, "scripts", "resolve-beginner-entry.mjs"),
+    target,
+    "--goal",
+    "build an appointment app",
+  ]);
+  if (beginnerEntryResolverCheck.status !== 0
+    || !beginnerEntryResolverCheck.stdout.includes("Beginner Entry Card")
+    || !beginnerEntryResolverCheck.stdout.includes("This entry writes target files: No")) {
+    fail(`generated project beginner entry resolver failed: ${beginnerEntryResolverCheck.stderr || beginnerEntryResolverCheck.stdout}`);
+    return;
+  }
+  pass("generated project beginner entry resolver");
+
+  const beginnerEntryCheck = runNode([
+    path.join(target, "scripts", "check-beginner-entry.mjs"),
+    target,
+  ]);
+  if (beginnerEntryCheck.status !== 0 || !beginnerEntryCheck.stdout.includes("Beginner Entry check passed")) {
+    fail(`generated project beginner entry check failed: ${beginnerEntryCheck.stderr || beginnerEntryCheck.stdout}`);
+    return;
+  }
+  pass("generated project beginner entry check");
+
+  const beginnerEntryCli = runNode([
+    path.join(target, "scripts", "cli.mjs"),
+    "ask",
+    target,
+    "build an appointment app",
+  ]);
+  if (beginnerEntryCli.status !== 0
+    || !beginnerEntryCli.stdout.includes("Beginner Entry Card")
+    || !beginnerEntryCli.stdout.includes("This entry writes target files: No")) {
+    fail(`generated project CLI ask failed: ${beginnerEntryCli.stderr || beginnerEntryCli.stdout}`);
+    return;
+  }
+  pass("generated project CLI ask");
+
   const summaryCheck = runNode([
     path.join(target, "scripts", "summarize-ai-logs.mjs"),
     target,
@@ -6801,6 +7033,8 @@ function checkGeneratedProjectE2E() {
     "scripts/check-next-step-boundary.mjs",
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
+    "scripts/resolve-beginner-entry.mjs",
+    "scripts/check-beginner-entry.mjs",
     "scripts/check-engineering-baseline.mjs",
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
@@ -6826,6 +7060,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/docs/change-boundary.md",
     ".ai-native/docs/baseline-state.md",
     ".ai-native/docs/guided-delivery-check.md",
+    ".ai-native/docs/beginner-entry.md",
     ".ai-native/core/engineering-baseline.md",
     ".ai-native/core/outcome-baseline.md",
     ".ai-native/core/product-baseline.md",
@@ -6835,6 +7070,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/core/git-boundary.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
+    ".ai-native/core/beginner-entry.md",
     ".ai-native/templates/engineering-baseline.md",
     ".ai-native/templates/product-baseline-review.md",
     ".ai-native/templates/claim-control-report.md",
@@ -6844,6 +7080,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/templates/git-boundary-report.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
+    ".ai-native/templates/beginner-entry-card.md",
     ".ai-native/checklists/engineering-baseline-review.md",
     ".ai-native/checklists/product-baseline-review.md",
     ".ai-native/checklists/claim-control-review.md",
@@ -6852,6 +7089,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
     ".ai-native/checklists/baseline-state-review.md",
+    ".ai-native/checklists/beginner-entry-review.md",
     ".ai-native/core/next-step-boundary.md",
     ".ai-native/core/goal-mode.md",
     ".ai-native/core/subagent-orchestration.md",
@@ -6870,6 +7108,7 @@ function checkGeneratedProjectE2E() {
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
+    ".ai-native/prompts/beginner-entry-agent.md",
     ".ai-native/core/output-protocol.md",
     ".ai-native/core/glossary.md",
     ".ai-native/prompts/reporter-agent.md",
@@ -6885,6 +7124,7 @@ function checkGeneratedProjectE2E() {
     "customer-handoffs/.gitkeep",
     "follow-up-proposals/.gitkeep",
     "final-reports/.gitkeep",
+    "beginner-entry-cards/.gitkeep",
     "learning-candidates/.gitkeep",
     "context-corrections/.gitkeep",
     "git-boundary-reports/.gitkeep",
@@ -8674,6 +8914,7 @@ checkExistingProjectWorkflowAdapterProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();
+checkBeginnerEntryProtocol();
 checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
 checkHookPolicyProtocol();

@@ -13,6 +13,18 @@ const packageJson = readJsonIfExists(path.join(kitRoot, "package.json"));
 const version = manifest?.devKitVersion || packageJson?.version || readVersionFile();
 
 const commandRegistry = {
+  ask: {
+    description: "Accept one natural-language goal and return a beginner-friendly entry card.",
+    script: "scripts/resolve-beginner-entry.mjs",
+    writes: false,
+    buildArgs: (args) => args,
+  },
+  "ask-check": {
+    description: "Check recorded Beginner Entry Cards.",
+    script: "scripts/check-beginner-entry.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   guide: {
     description: "Read a project and return one plain-language workflow guidance card.",
     script: "scripts/resolve-workflow-guidance.mjs",
@@ -410,6 +422,9 @@ function printHelp() {
   }
   console.log("");
   console.log("Examples:");
+  console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
+  console.log("  node scripts/cli.mjs ask '我想把当前项目接入 AI Native'");
+  console.log("  node scripts/cli.mjs ask-check .");
   console.log("  node scripts/cli.mjs guide ../my-project");
   console.log("  node scripts/cli.mjs guide ../my-project --deep");
   console.log("  node scripts/cli.mjs guide ../my-project --deep --intent '我要加支付预约'");

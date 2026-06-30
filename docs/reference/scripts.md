@@ -8,6 +8,9 @@ Use `scripts/cli.mjs` for daily operation.
 
 | Command | Purpose | Writes |
 |---|---|---|
+| `node scripts/cli.mjs ask <project> "<goal>"` | Accept one natural-language goal and return a beginner-friendly entry card | No |
+| `node scripts/cli.mjs ask "<goal>"` | Use the current directory as the project and return a beginner-friendly entry card | No |
+| `node scripts/cli.mjs ask-check <project>` | Check recorded Beginner Entry Cards | No |
 | `node scripts/cli.mjs guide <project>` | Read a project and return one plain-language Workflow Guidance Card | No |
 | `node scripts/cli.mjs guide <project> --deep` | Selectively run read-only downstream resolvers and return one compressed guidance card | No |
 | `node scripts/cli.mjs guide <project> --deep --intent "<goal>"` | Combine project signals with the user's natural-language goal before routing | No |
@@ -93,6 +96,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-workflow-guidance.mjs` is the natural-language front door. It reads project state and prints one Workflow Guidance Card with a delivery path state, next step, distance to useful use, limited questions, internal routing, and explicit no-write/no-CI/no-hook/no-release boundaries. With `--deep`, it selectively runs read-only downstream resolvers such as review surface, delivery path, work queue, document lifecycle, workflow mapping, baseline decision, debt handoff, execution closure, and hook policy, then compresses them back into one card. With `--intent`, it classifies the user's goal and passes it to downstream resolvers that accept intent. It does not write target-project files.
 
 `scripts/check-workflow-guidance.mjs` checks recorded Workflow Guidance Cards. It rejects too many questions, internal jargon leaking into plain mode, target-project write approval, CI/hook/document/task-state approval, implementation approval, release/production approval, and high-risk decision approval.
+
+`scripts/resolve-beginner-entry.mjs` is the 1.35 beginner entry. It accepts one user goal, runs the existing read-only guidance path internally, and prints one Beginner Entry Card with what Codex understood, a plain recommended path, at most 3 human questions, safe next actions, blocked actions, routing evidence, and explicit boundaries. It supports `node scripts/cli.mjs ask <project> "<goal>"` and `node scripts/cli.mjs ask "<goal>"`.
+
+`scripts/check-beginner-entry.mjs` checks recorded Beginner Entry Cards. It rejects internal workflow jargon on the user-facing surface, more than 3 questions, target-project write approval, apply authorization, implementation approval, release/production approval, CI/hook/document/task-state changes, baseline/industrial pack enablement, and high-risk decision approval.
 
 `scripts/resolve-review-surface.mjs` is the 1.25 review-surface entry. It reads project state and task intent signals, then prints one Review Surface Card with selected review surfaces, before/after expectations, human-decision flags, post-execution contract, and explicit no-write/no-approval boundaries. It does not write target-project files.
 

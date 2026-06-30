@@ -37,6 +37,13 @@ Before non-trivial work, read:
 - If `workflow-next` reports `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, stop before creating artifacts or executing tasks until the human confirms how to handle existing changes.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not write target files. Create a real adoption trial report and run `node scripts/check-real-adoption-trial.mjs .` first.
 
+## Beginner Entry
+
+- When the user gives one natural-language goal, asks what to do next, or should not need to choose internal workflow commands, run `node scripts/cli.mjs ask . "<user goal>"`.
+- Run `node scripts/cli.mjs ask-check .` when Beginner Entry Cards exist.
+- Use the Beginner Entry Card to explain the recommended path in plain language and keep the user responsible only for confirmation, judgment, and risk acceptance.
+- Do not treat Beginner Entry as permission to write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
+
 ## Workflow Guidance
 
 - When the user gives a broad goal, asks what to do next, or provides a project path/repository without naming a workflow command, run `node scripts/resolve-workflow-guidance.mjs .`.

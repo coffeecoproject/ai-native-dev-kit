@@ -62,6 +62,8 @@ Injected workflow scripts:
 - `scripts/check-document-archive-apply.mjs`
 - `scripts/resolve-apply-plan.mjs`
 - `scripts/check-apply-plan.mjs`
+- `scripts/resolve-beginner-entry.mjs`
+- `scripts/check-beginner-entry.mjs`
 - `scripts/resolve-work-queue.mjs`
 - `scripts/check-work-queue.mjs`
 - `scripts/resolve-hook-orchestration.mjs`
@@ -117,6 +119,11 @@ Default output is `--format human`: a human summary first, followed by technical
 Return one plain-language next-step card from a natural-language project entry.
 
 ```bash
+node scripts/resolve-beginner-entry.mjs . --goal "我想做一个预约 App"
+node scripts/check-beginner-entry.mjs .
+node scripts/cli.mjs ask . "我想做一个预约 App"
+node scripts/cli.mjs ask "我想把当前项目接入 AI Native"
+node scripts/cli.mjs ask-check .
 node scripts/resolve-workflow-guidance.mjs .
 node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/resolve-workflow-guidance.mjs . --deep --intent "我要加支付预约"

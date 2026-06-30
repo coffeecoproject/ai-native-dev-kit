@@ -407,5 +407,6 @@ function runNode(argv) {
   return spawnSync(process.execPath, argv, {
     cwd: projectRoot,
     encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 80,
   });
 }

@@ -51,6 +51,7 @@
 
 | 当前情况 | 先跑什么 | 目的 |
 |---|---|---|
+| 只想用一句话开始，不想懂流程 | `node scripts/cli.mjs ask ../my-project "我想做一个预约 App"` | Codex 自己读项目、判断路径，并只把需要你确认的少数问题说清楚 |
 | 不确定该用哪条流程 | `node scripts/cli.mjs guide ../my-project` | 先用白话给出项目状态、下一步、风险和需要你确认的少数问题 |
 | 想让 Codex 自己多看几层 | `node scripts/cli.mjs guide ../my-project --deep` | 内部选择性检查审查面、交付路径、任务、文档和自动化风险，最后仍只给一张卡 |
 | 已经知道这次想做什么 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` | 结合项目状态和目标判断风险、审查面和下一步 |
@@ -73,6 +74,8 @@
 第一步，让 Codex 用白话判断下一步，不要求你先懂内部命令：
 
 ```bash
+node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
+node scripts/cli.mjs ask "我想把当前项目接入 AI Native"
 node scripts/cli.mjs guide ../my-project
 node scripts/cli.mjs guide ../my-project --deep
 node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"
@@ -167,6 +170,7 @@ node scripts/cli.mjs doctor ../my-project
 | 首次交付演练 | 从一句想法走完一次需求、规格、任务、验证、复查和交付边界 |
 | 真实项目只读接入 | 对已上线或强治理项目，先映射现有治理，不覆盖原流程 |
 | 补丁分类 | 修复杂问题前先判断是安全小修、结构治理、需要人决策，还是不能补丁化处理 |
+| 小白自然语言入口 | 用户只说目标，Codex 自己判断内部该走哪条链路，并输出一张可确认卡 |
 | 老项目工作流映射 | 读取已有项目后，先说明哪些 AI Native 工作流该用、哪些现有流程要保留、哪些不能动 |
 | 文档生命周期 | 识别过期、重复、废弃和 source of truth，默认只给归档建议，不默认删除 |
 | 文档归档执行计划 | 把归档建议变成可审查的执行计划、链接检查、归档索引和回滚计划；不自动执行 |
@@ -175,7 +179,7 @@ node scripts/cli.mjs doctor ../my-project
 | Hook 编排 | 区分可自动只读检查和必须人工确认的 hook，不自动安装、不改 CI、不加阻断 gate |
 | Hook Policy | 定义项目允许哪些 hook、谁批准、怎么禁用和回滚，不把建议变成安装 |
 
-`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`apply-plan-check`、`work-queue-check`、`hook-plan-check` 和 `hook-policy-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`workflow-map`、`doc-lifecycle`、`archive-apply`、`apply-plan`、`work-queue`、`hook-plan` 和 `hook-policy` 会只读扫描项目结构，输出建议，不会改目标项目。
+`ask-check`、`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`apply-plan-check`、`work-queue-check`、`hook-plan-check` 和 `hook-policy-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`ask`、`workflow-map`、`doc-lifecycle`、`archive-apply`、`apply-plan`、`work-queue`、`hook-plan` 和 `hook-policy` 会只读扫描项目结构，输出建议，不会改目标项目。
 
 ## Dev Kit 自检
 
@@ -184,6 +188,9 @@ node scripts/cli.mjs doctor ../my-project
 ```bash
 npm run verify
 npm run verify:governance
+node scripts/cli.mjs ask . "维护 Dev Kit 小白入口"
+node scripts/resolve-beginner-entry.mjs . --goal "维护 Dev Kit 小白入口"
+node scripts/check-beginner-entry.mjs .
 node scripts/cli.mjs guide .
 node scripts/cli.mjs guide . --deep
 node scripts/cli.mjs guide . --deep --intent "维护 Dev Kit 自然语言入口"
@@ -270,6 +277,7 @@ node scripts/check-guided-adoption.mjs .
 - [First Hour](docs/first-hour.md)：第一次接入项目时怎么走
 - [Codex Usage](docs/codex-usage.md)：Codex 使用路径
 - [Mental Model](docs/mental-model.md)：整体心智模型
+- [Beginner Entry](docs/beginner-entry.md)：用户只说一句目标时，Codex 怎么自己判断路径并给出确认卡
 - [Natural Language Orchestrator](docs/natural-language-orchestrator.md)：用户只说目标时，Codex 怎么给出下一步指导卡
 
 使用工作流：
@@ -329,6 +337,7 @@ node scripts/check-guided-adoption.mjs .
 
 版本记录：
 
+- [1.35 Release Record](releases/1.35.0/release-record.md)：1.35 小白自然语言入口
 - [1.34 Release Record](releases/1.34.0/release-record.md)：1.34 统一 Apply Plan
 - [1.33 Release Record](releases/1.33.0/release-record.md)：1.33 证据链执行收口
 - [1.32 Release Record](releases/1.32.0/release-record.md)：1.32 执行后收口与复查闭环

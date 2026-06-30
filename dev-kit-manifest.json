@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.34.0",
+  "devKitVersion": "1.35.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.34.0"
+    "phase": "1.35.0"
   },
   "groups": {
     "sourceRequired": [
@@ -49,11 +49,13 @@
       "baseline-gap-reports/.gitkeep",
       "baseline-pack-selections/.gitkeep",
       "baseline-recommendations/.gitkeep",
+      "beginner-entry-cards/.gitkeep",
       "checklists/automation-review.md",
       "checklists/baseline-decision-review.md",
       "checklists/baseline-enforcement-review.md",
       "checklists/baseline-pack-selection-review.md",
       "checklists/baseline-state-review.md",
+      "checklists/beginner-entry-review.md",
       "checklists/change-boundary-review.md",
       "checklists/claim-control-review.md",
       "checklists/context-governance-review.md",
@@ -101,6 +103,7 @@
       "core/baseline-enforcement.md",
       "core/baseline-pack-system.md",
       "core/baseline-state.md",
+      "core/beginner-entry.md",
       "core/change-boundary.md",
       "core/claim-control.md",
       "core/context-governance.md",
@@ -167,6 +170,8 @@
       "docs/baseline-selection-precision-calibration-1.19-plan.md",
       "docs/baseline-setup.md",
       "docs/baseline-state.md",
+      "docs/beginner-entry-1.35-plan.md",
+      "docs/beginner-entry.md",
       "docs/bl2-industrial-baseline-deepening-1.16-plan.md",
       "docs/bl2-industrial-baseline-deepening.md",
       "docs/change-boundary-baseline-state-1.12-plan.md",
@@ -364,6 +369,8 @@
       "examples/1.33-evidence-linked-closure/review-surface-cards/001-booking.md",
       "examples/1.34-unified-apply-plan/README.md",
       "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
+      "examples/1.35-beginner-entry/README.md",
+      "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
       "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
@@ -683,6 +690,7 @@
       "prompts/baseline-pack-router-agent.md",
       "prompts/baseline-setup-agent.md",
       "prompts/baseline-state-agent.md",
+      "prompts/beginner-entry-agent.md",
       "prompts/bootstrap-agent.md",
       "prompts/change-boundary-agent.md",
       "prompts/claim-control-agent.md",
@@ -835,6 +843,9 @@
       "releases/1.34.0/known-limitations.md",
       "releases/1.34.0/release-record.md",
       "releases/1.34.0/self-check-report.md",
+      "releases/1.35.0/known-limitations.md",
+      "releases/1.35.0/release-record.md",
+      "releases/1.35.0/self-check-report.md",
       "releases/1.4.0/known-limitations.md",
       "releases/1.4.0/release-record.md",
       "releases/1.4.0/self-check-report.md",
@@ -938,6 +949,7 @@
       "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-selection-precision.mjs",
       "scripts/check-baseline-state.mjs",
+      "scripts/check-beginner-entry.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
@@ -991,6 +1003,7 @@
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
@@ -1189,6 +1202,7 @@
       "templates/baseline-recommendation-report.md",
       "templates/baseline-selection.md",
       "templates/baseline-state-report.md",
+      "templates/beginner-entry-card.md",
       "templates/business-spec-index.md",
       "templates/change-boundary-report.md",
       "templates/claim-control-report.md",
@@ -1267,6 +1281,9 @@
       "test-fixtures/bad/bad-baseline-state-confirmed-no-evidence/baseline-state-reports/001-confirmed.md",
       "test-fixtures/bad/bad-baseline-task-missing-ref/docs/baseline-selection.md",
       "test-fixtures/bad/bad-baseline-task-missing-ref/tasks/001-missing-baseline-ref.md",
+      "test-fixtures/bad/bad-beginner-entry-authorizes-write/beginner-entry-cards/001-bad.md",
+      "test-fixtures/bad/bad-beginner-entry-jargon/beginner-entry-cards/001-bad.md",
+      "test-fixtures/bad/bad-beginner-entry-too-many-questions/beginner-entry-cards/001-bad.md",
       "test-fixtures/bad/bad-bl2-baseline-no-review-loop/docs/baseline-selection.md",
       "test-fixtures/bad/bad-change-boundary-forbidden/change-boundary-reports/001-forbidden.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
@@ -1496,6 +1513,7 @@
       ".ai-native/checklists/baseline-enforcement-review.md",
       ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
+      ".ai-native/checklists/beginner-entry-review.md",
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
@@ -1540,6 +1558,7 @@
       ".ai-native/core/baseline-enforcement.md",
       ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
+      ".ai-native/core/beginner-entry.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
@@ -1587,6 +1606,7 @@
       ".ai-native/docs/baseline-pack-system.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/baseline-state.md",
+      ".ai-native/docs/beginner-entry.md",
       ".ai-native/docs/change-boundary.md",
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
@@ -1624,6 +1644,7 @@
       ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
+      ".ai-native/prompts/beginner-entry-agent.md",
       ".ai-native/prompts/bootstrap-agent.md",
       ".ai-native/prompts/builder-agent.md",
       ".ai-native/prompts/change-boundary-agent.md",
@@ -1673,6 +1694,7 @@
       ".ai-native/templates/baseline-pack-selection-report.md",
       ".ai-native/templates/baseline-recommendation-report.md",
       ".ai-native/templates/baseline-state-report.md",
+      ".ai-native/templates/beginner-entry-card.md",
       ".ai-native/templates/business-spec-index.md",
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
@@ -1750,6 +1772,7 @@
       "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
+      "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
       "conversation-turns",
@@ -1806,6 +1829,7 @@
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
+      "scripts/check-beginner-entry.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
@@ -1852,6 +1876,7 @@
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
@@ -1888,6 +1913,7 @@
       ".ai-native/checklists/baseline-enforcement-review.md",
       ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
+      ".ai-native/checklists/beginner-entry-review.md",
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
@@ -1935,6 +1961,7 @@
       ".ai-native/core/baseline-enforcement.md",
       ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
+      ".ai-native/core/beginner-entry.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
@@ -1982,6 +2009,7 @@
       ".ai-native/docs/baseline-pack-system.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/baseline-state.md",
+      ".ai-native/docs/beginner-entry.md",
       ".ai-native/docs/change-boundary.md",
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
@@ -2045,6 +2073,7 @@
       ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
+      ".ai-native/prompts/beginner-entry-agent.md",
       ".ai-native/prompts/bootstrap-agent.md",
       ".ai-native/prompts/builder-agent.md",
       ".ai-native/prompts/change-boundary-agent.md",
@@ -2096,6 +2125,7 @@
       ".ai-native/templates/baseline-recommendation-report.md",
       ".ai-native/templates/baseline-selection.md",
       ".ai-native/templates/baseline-state-report.md",
+      ".ai-native/templates/beginner-entry-card.md",
       ".ai-native/templates/business-spec-index.md",
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
@@ -2177,6 +2207,7 @@
       "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
+      "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
       "conversation-turns",
@@ -2233,6 +2264,7 @@
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
+      "scripts/check-beginner-entry.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
@@ -2282,6 +2314,7 @@
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
@@ -2320,6 +2353,7 @@
       ".ai-native/core/baseline-enforcement.md",
       ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
+      ".ai-native/core/beginner-entry.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
@@ -2350,6 +2384,7 @@
       ".ai-native/core/task-levels.md",
       ".ai-native/core/workflow.md",
       "core/baseline-state.md",
+      "core/beginner-entry.md",
       "core/change-boundary.md",
       "core/conversation-drift-control.md",
       "core/debt-knowledge-handoff.md",
@@ -2386,6 +2421,7 @@
       "templates/baseline-recommendation-report.md",
       "templates/baseline-selection.md",
       "templates/baseline-state-report.md",
+      "templates/beginner-entry-card.md",
       "templates/business-spec-index.md",
       "templates/change-boundary-report.md",
       "templates/claim-control-report.md",
@@ -2462,6 +2498,7 @@
       "prompts/baseline-pack-router-agent.md",
       "prompts/baseline-setup-agent.md",
       "prompts/baseline-state-agent.md",
+      "prompts/beginner-entry-agent.md",
       "prompts/bootstrap-agent.md",
       "prompts/change-boundary-agent.md",
       "prompts/claim-control-agent.md",
@@ -2500,6 +2537,7 @@
       "checklists/baseline-enforcement-review.md",
       "checklists/baseline-pack-selection-review.md",
       "checklists/baseline-state-review.md",
+      "checklists/beginner-entry-review.md",
       "checklists/change-boundary-review.md",
       "checklists/claim-control-review.md",
       "checklists/context-governance-review.md",
@@ -2581,6 +2619,7 @@
       "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
+      "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
       "conversation-turns",
@@ -2633,6 +2672,7 @@
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
+      "scripts/check-beginner-entry.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
@@ -2688,6 +2728,7 @@
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
@@ -2825,6 +2866,8 @@
       "examples/1.33-evidence-linked-closure/review-surface-cards/001-booking.md",
       "examples/1.34-unified-apply-plan/README.md",
       "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
+      "examples/1.35-beginner-entry/README.md",
+      "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
       "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
@@ -2935,6 +2978,9 @@
       "test-fixtures/bad/bad-baseline-state-confirmed-no-evidence/baseline-state-reports/001-confirmed.md",
       "test-fixtures/bad/bad-baseline-task-missing-ref/docs/baseline-selection.md",
       "test-fixtures/bad/bad-baseline-task-missing-ref/tasks/001-missing-baseline-ref.md",
+      "test-fixtures/bad/bad-beginner-entry-authorizes-write/beginner-entry-cards/001-bad.md",
+      "test-fixtures/bad/bad-beginner-entry-jargon/beginner-entry-cards/001-bad.md",
+      "test-fixtures/bad/bad-beginner-entry-too-many-questions/beginner-entry-cards/001-bad.md",
       "test-fixtures/bad/bad-bl2-baseline-no-review-loop/docs/baseline-selection.md",
       "test-fixtures/bad/bad-change-boundary-forbidden/change-boundary-reports/001-forbidden.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
@@ -3163,6 +3209,7 @@
       ".ai-native/checklists/baseline-decision-review.md",
       ".ai-native/checklists/baseline-pack-selection-review.md",
       ".ai-native/checklists/baseline-state-review.md",
+      ".ai-native/checklists/beginner-entry-review.md",
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
@@ -3191,6 +3238,7 @@
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/baseline-pack-system.md",
       ".ai-native/core/baseline-state.md",
+      ".ai-native/core/beginner-entry.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
@@ -3223,6 +3271,7 @@
       ".ai-native/docs/baseline-pack-system.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/baseline-state.md",
+      ".ai-native/docs/beginner-entry.md",
       ".ai-native/docs/change-boundary.md",
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
@@ -3261,6 +3310,7 @@
       ".ai-native/prompts/baseline-decision-agent.md",
       ".ai-native/prompts/baseline-pack-router-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
+      ".ai-native/prompts/beginner-entry-agent.md",
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
       ".ai-native/prompts/context-governance-agent.md",
@@ -3294,6 +3344,7 @@
       ".ai-native/templates/baseline-decision-card.md",
       ".ai-native/templates/baseline-pack-selection-report.md",
       ".ai-native/templates/baseline-state-report.md",
+      ".ai-native/templates/beginner-entry-card.md",
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
       ".ai-native/templates/context-correction-report.md",
@@ -3334,6 +3385,7 @@
       "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
+      "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
       "conversation-turns",
@@ -3377,6 +3429,7 @@
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
+      "scripts/check-beginner-entry.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
@@ -3426,6 +3479,7 @@
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
@@ -3456,6 +3510,7 @@
       ".ai-native/checklists/baseline-decision-review.md",
       ".ai-native/checklists/baseline-enforcement-review.md",
       ".ai-native/checklists/baseline-state-review.md",
+      ".ai-native/checklists/beginner-entry-review.md",
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
@@ -3491,6 +3546,7 @@
       ".ai-native/core/assumption-register.md",
       ".ai-native/core/baseline-enforcement.md",
       ".ai-native/core/baseline-state.md",
+      ".ai-native/core/beginner-entry.md",
       ".ai-native/core/change-boundary.md",
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
@@ -3531,6 +3587,7 @@
       ".ai-native/docs/artifact-decision-tree.md",
       ".ai-native/docs/baseline-setup.md",
       ".ai-native/docs/baseline-state.md",
+      ".ai-native/docs/beginner-entry.md",
       ".ai-native/docs/change-boundary.md",
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
@@ -3580,6 +3637,7 @@
       ".ai-native/prompts/baseline-decision-agent.md",
       ".ai-native/prompts/baseline-setup-agent.md",
       ".ai-native/prompts/baseline-state-agent.md",
+      ".ai-native/prompts/beginner-entry-agent.md",
       ".ai-native/prompts/bootstrap-agent.md",
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
@@ -3620,6 +3678,7 @@
       ".ai-native/templates/baseline-recommendation-report.md",
       ".ai-native/templates/baseline-selection.md",
       ".ai-native/templates/baseline-state-report.md",
+      ".ai-native/templates/beginner-entry-card.md",
       ".ai-native/templates/business-spec-index.md",
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
@@ -3677,6 +3736,7 @@
       "baseline-pack-selections",
       "baseline-recommendations",
       "baseline-state-reports",
+      "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
       "conversation-turns",
@@ -3719,6 +3779,7 @@
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-baseline-pack-selection.mjs",
       "scripts/check-baseline-state.mjs",
+      "scripts/check-beginner-entry.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
@@ -3761,6 +3822,7 @@
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
+      "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
@@ -3835,6 +3897,10 @@
         "target": "baseline-state-reports"
       },
       {
+        "source": "beginner-entry-cards",
+        "target": "beginner-entry-cards"
+      },
+      {
         "source": "change-boundary-reports",
         "target": "change-boundary-reports"
       },
@@ -3905,6 +3971,10 @@
         "target": ".ai-native/checklists/baseline-state-review.md"
       },
       {
+        "source": "checklists/beginner-entry-review.md",
+        "target": ".ai-native/checklists/beginner-entry-review.md"
+      },
+      {
         "source": "checklists/change-boundary-review.md",
         "target": ".ai-native/checklists/change-boundary-review.md"
       },
@@ -3963,6 +4033,10 @@
       {
         "source": "core/baseline-state.md",
         "target": ".ai-native/core/baseline-state.md"
+      },
+      {
+        "source": "core/beginner-entry.md",
+        "target": ".ai-native/core/beginner-entry.md"
       },
       {
         "source": "core/change-boundary.md",
@@ -4051,6 +4125,10 @@
       {
         "source": "docs/baseline-state.md",
         "target": ".ai-native/docs/baseline-state.md"
+      },
+      {
+        "source": "docs/beginner-entry.md",
+        "target": ".ai-native/docs/beginner-entry.md"
       },
       {
         "source": "docs/change-boundary.md",
@@ -4193,6 +4271,10 @@
         "target": ".ai-native/prompts/baseline-state-agent.md"
       },
       {
+        "source": "prompts/beginner-entry-agent.md",
+        "target": ".ai-native/prompts/beginner-entry-agent.md"
+      },
+      {
         "source": "prompts/change-boundary-agent.md",
         "target": ".ai-native/prompts/change-boundary-agent.md"
       },
@@ -4271,6 +4353,10 @@
       {
         "source": "templates/baseline-state-report.md",
         "target": ".ai-native/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/beginner-entry-card.md",
+        "target": ".ai-native/templates/beginner-entry-card.md"
       },
       {
         "source": "templates/change-boundary-report.md",
@@ -4367,6 +4453,10 @@
       {
         "source": "scripts/check-baseline-state.mjs",
         "target": "scripts/check-baseline-state.mjs"
+      },
+      {
+        "source": "scripts/check-beginner-entry.mjs",
+        "target": "scripts/check-beginner-entry.mjs"
       },
       {
         "source": "scripts/check-change-boundary.mjs",
@@ -4563,6 +4653,10 @@
       {
         "source": "scripts/resolve-baseline-packs.mjs",
         "target": "scripts/resolve-baseline-packs.mjs"
+      },
+      {
+        "source": "scripts/resolve-beginner-entry.mjs",
+        "target": "scripts/resolve-beginner-entry.mjs"
       },
       {
         "source": "scripts/resolve-debt-handoff.mjs",

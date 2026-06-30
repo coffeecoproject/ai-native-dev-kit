@@ -80,6 +80,15 @@ jobs:
       - name: Unified apply plan smoke
         run: node scripts/cli.mjs apply-plan . --intent "maintain Dev Kit apply plan" --action workflow-assets
 
+      - name: Beginner entry check
+        run: node scripts/check-beginner-entry.mjs .
+
+      - name: Beginner entry resolver smoke
+        run: node scripts/resolve-beginner-entry.mjs . --goal "maintain Dev Kit beginner entry"
+
+      - name: Beginner entry smoke
+        run: node scripts/cli.mjs ask . "maintain Dev Kit beginner entry"
+
       - name: Work queue check
         run: node scripts/check-work-queue.mjs .
 
@@ -212,6 +221,8 @@ jobs:
           node "$tmp/project/scripts/resolve-document-archive-apply.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-apply-plan.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-apply-plan.mjs" "$tmp/project" --intent "bootstrap workflow assets" --action workflow-assets
+          node "$tmp/project/scripts/check-beginner-entry.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-beginner-entry.mjs" "$tmp/project" --goal "build an appointment app"
           node "$tmp/project/scripts/check-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-hook-orchestration.mjs" "$tmp/project"
@@ -234,6 +245,8 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep --intent "build an appointment app"
           node "$tmp/project/scripts/cli.mjs" guide-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" ask "$tmp/project" "build an appointment app"
+          node "$tmp/project/scripts/cli.mjs" ask-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" delivery-path "$tmp/project"

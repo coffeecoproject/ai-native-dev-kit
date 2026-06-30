@@ -17,6 +17,7 @@
 ## Workflow Evidence
 
 - [ ] Workflow Guidance was used or marked not applicable when the request started from a broad goal, project path/repository, or next-step question
+- [ ] Beginner Entry was used or marked not applicable when the user gave a one-sentence goal or did not know which workflow command to choose
 - [ ] Delivery Path is recorded or marked not applicable when this PR claims local-use, self-test, internal-trial, release-review, or blocked status
 - [ ] Debt / Knowledge Handoff is recorded or marked not applicable when this PR leaves known debt, pauses work, or needs next-run context
 - [ ] Document Archive Apply Plan is linked or marked not applicable when archive suggestions are ready for controlled apply
