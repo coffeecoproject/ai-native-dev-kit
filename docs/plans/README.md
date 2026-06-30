@@ -1,0 +1,10 @@
+# Historical Plans
+
+This directory stores implementation plans and phase plans.
+
+Plans are useful context, but they are not the current source of truth by themselves. Current behavior is defined by `core/`, active `docs/` usage pages, scripts, templates, checklists, and release evidence.
+
+## Rule
+
+Use plans to understand why a feature was introduced. Use current docs and scripts to understand how IntentOS behaves now.
+

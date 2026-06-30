@@ -10,7 +10,7 @@ Request: `requests/038-init-update-safety.md`
 
 Preflight: `preflight/038-init-update-safety.md`
 
-Productization plan: `docs/productization-hardcut-1.0-plan.md`
+Productization plan: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Decision brief: `decision-briefs/038-init-update-safety.md`
 

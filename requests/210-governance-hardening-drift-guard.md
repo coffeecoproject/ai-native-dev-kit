@@ -12,7 +12,7 @@ Harden the dev kit after 1.10 so release pointers, init behavior, manifest cover
 
 ## Goal
 
-Implement 1.11.0 Governance Hardening & Drift Guard according to `docs/governance-hardening-drift-guard-1.11-plan.md`.
+Implement 1.11.0 Governance Hardening & Drift Guard according to `docs/plans/governance-hardening-drift-guard-1.11-plan.md`.
 
 ## Scope
 

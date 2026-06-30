@@ -10,7 +10,7 @@ The release creates one read-only plan surface before Codex writes target-projec
 
 - `core/unified-apply-plan.md`
 - `docs/unified-apply-plan.md`
-- `docs/unified-apply-plan-1.34-plan.md`
+- `docs/plans/unified-apply-plan-1.34-plan.md`
 - `templates/unified-apply-plan.md`
 - `checklists/unified-apply-plan-review.md`
 - `prompts/apply-plan-agent.md`

@@ -850,7 +850,7 @@ The first slice for weak-background users should usually target `READY_FOR_DEMO`
 
 Files:
 
-- `docs/guided-decision-delivery-loop-1.10-plan.md`
+- `docs/plans/guided-decision-delivery-loop-1.10-plan.md`
 
 Goal:
 

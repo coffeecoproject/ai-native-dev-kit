@@ -10,7 +10,7 @@ Request: `requests/037-manifest-authoritative.md`
 
 Preflight: `preflight/037-manifest-authoritative.md`
 
-Productization plan: `docs/productization-hardcut-1.0-plan.md`
+Productization plan: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Decision brief: `decision-briefs/037-manifest-authoritative.md`
 

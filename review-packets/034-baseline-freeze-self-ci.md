@@ -49,7 +49,7 @@ Excluded:
 
 | Evidence | Ref |
 |---|---|
-| Productization plan | `docs/productization-hardcut-1.0-plan.md` |
+| Productization plan | `docs/plans/productization-hardcut-1.0-plan.md` |
 | Task card | `tasks/034-baseline-freeze-self-ci.md` |
 | Baseline freeze | `releases/0.33.0/baseline-freeze.md` |
 | Self-check report | `releases/0.33.0/self-check-report.md` |

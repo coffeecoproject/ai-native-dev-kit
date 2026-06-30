@@ -10,7 +10,7 @@ Request: `requests/039-artifact-frontmatter-schema.md`
 
 Preflight: `preflight/039-artifact-frontmatter-schema.md`
 
-Productization plan: `docs/productization-hardcut-1.0-plan.md`
+Productization plan: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Decision brief: `decision-briefs/039-artifact-frontmatter-schema.md`
 

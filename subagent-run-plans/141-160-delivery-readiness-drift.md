@@ -113,7 +113,7 @@ node --check scripts/check-conversation-drift.mjs
 
 Related files:
 
-- `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
+- `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
 - `scripts/check-launch-readiness.mjs`
 - `scripts/check-conversation-drift.mjs`
 

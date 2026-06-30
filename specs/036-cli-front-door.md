@@ -10,7 +10,7 @@ Request: `requests/036-cli-front-door.md`
 
 Preflight: `preflight/036-cli-front-door.md`
 
-Productization plan: `docs/productization-hardcut-1.0-plan.md`
+Productization plan: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Decision brief: `decision-briefs/036-cli-front-door.md`
 

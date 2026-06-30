@@ -120,7 +120,7 @@ Next action: implement docs IA and migration plan command, then run full self-ch
 
 Related files:
 
-- `docs/productization-hardcut-1.0-plan.md`
+- `docs/plans/productization-hardcut-1.0-plan.md`
 - `scripts/cli.mjs`
 - `scripts/check-dev-kit.mjs`
 
@@ -128,7 +128,7 @@ Commands run:
 
 ```text
 git status -sb
-sed -n '775,860p' docs/productization-hardcut-1.0-plan.md
+sed -n '775,860p' docs/plans/productization-hardcut-1.0-plan.md
 sed -n '1,260p' scripts/cli.mjs
 ```
 

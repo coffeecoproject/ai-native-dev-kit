@@ -12,7 +12,7 @@ Add a formal 1.12.0 upgrade so Codex can better control change boundaries, check
 
 ## Goal
 
-Implement `docs/change-boundary-baseline-state-1.12-plan.md` as a release-grade dev-kit upgrade.
+Implement `docs/plans/change-boundary-baseline-state-1.12-plan.md` as a release-grade dev-kit upgrade.
 
 ## Scope
 

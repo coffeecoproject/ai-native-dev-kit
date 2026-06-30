@@ -106,7 +106,7 @@ Related files:
 
 - `scripts/cli.mjs`
 - `scripts/check-dev-kit.mjs`
-- `docs/productization-hardcut-1.0-plan.md`
+- `docs/plans/productization-hardcut-1.0-plan.md`
 
 Commands run:
 

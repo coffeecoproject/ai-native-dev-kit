@@ -37,4 +37,4 @@ status: approved
 - `core/patch-classification.md`
 - `core/baseline-enforcement.md`
 - `core/claim-control.md`
-- `docs/change-boundary-baseline-state-1.12-plan.md`
+- `docs/plans/change-boundary-baseline-state-1.12-plan.md`

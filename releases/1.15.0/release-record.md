@@ -13,7 +13,7 @@ Codex can now recommend ordinary draft standard packs for Web, Mini Program, iOS
 - `android-app-standard`
 - `internal-admin-standard`
 - `environment-standard`
-- `docs/platform-standard-baseline-packs-1.15-plan.md`
+- `docs/plans/platform-standard-baseline-packs-1.15-plan.md`
 - `docs/platform-standard-baseline-packs.md`
 - `docs/reference/platform-standard-baseline-matrix.md`
 - `examples/1.15-platform-standard-baselines/`

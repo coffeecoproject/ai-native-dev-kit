@@ -8,7 +8,7 @@ Review 1.2.0 for overreach, missing assets, and generated-project completeness.
 
 Engineering baseline checked: Yes
 
-Engineering baseline ref: `core/engineering-baseline.md`, `docs/engineering-environment-baseline-1.2-plan.md`
+Engineering baseline ref: `core/engineering-baseline.md`, `docs/plans/engineering-environment-baseline-1.2-plan.md`
 
 Engineering baseline gaps: none known
 

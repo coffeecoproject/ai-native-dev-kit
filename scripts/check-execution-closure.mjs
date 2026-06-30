@@ -218,7 +218,7 @@ function checkSourceEvidence() {
   for (const file of [
     "examples/1.32-execution-review-closure/README.md",
     "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
-    "docs/evidence-linked-closure-1.33-plan.md",
+    "docs/plans/evidence-linked-closure-1.33-plan.md",
     "examples/1.33-evidence-linked-closure/README.md",
     "examples/1.33-evidence-linked-closure/execution-closures/001-booking.md",
     "examples/1.33-evidence-linked-closure/review-surface-cards/001-booking.md",

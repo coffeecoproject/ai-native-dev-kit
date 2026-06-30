@@ -20,7 +20,7 @@ Route `0.40.0` as a bounded implementation phase for fixture coverage, not check
 
 Goal: Expand fixture matrix coverage before checker internals are refactored.
 
-Source: `docs/productization-hardcut-1.0-plan.md`
+Source: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Non-goals: checker library refactor, source-code scanning, dependency additions, generated project snapshots.
 

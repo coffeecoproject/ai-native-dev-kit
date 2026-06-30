@@ -20,7 +20,7 @@ Implement the 1.11.0 hardening plan and verify it through self-check.
 
 ## Implementation Steps
 
-1. Add `docs/governance-hardening-drift-guard-1.11-plan.md`.
+1. Add `docs/plans/governance-hardening-drift-guard-1.11-plan.md`.
 2. Update README release pointers.
 3. Add direct init non-empty guard and `--force-new-project`.
 4. Add manifest reverse drift guard.

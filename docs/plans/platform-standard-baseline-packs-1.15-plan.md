@@ -735,7 +735,7 @@ Add or confirm coverage for:
 Add:
 
 ```text
-docs/platform-standard-baseline-packs-1.15-plan.md
+docs/plans/platform-standard-baseline-packs-1.15-plan.md
 docs/platform-standard-baseline-packs.md
 docs/reference/platform-standard-baseline-matrix.md
 ```

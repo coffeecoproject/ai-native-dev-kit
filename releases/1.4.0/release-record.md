@@ -70,7 +70,7 @@ git diff --check
 
 ## Related Artifacts
 
-- docs/project-memory-context-governance-1.4-plan.md
+- docs/plans/project-memory-context-governance-1.4-plan.md
 - requests/140-project-memory-context-governance.md
 - tasks/140-project-memory-context-governance.md
 - review-loop-reports/140-project-memory-context-governance.md

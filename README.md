@@ -1,393 +1,243 @@
-# AI Native Dev Kit
+# IntentOS
 
-`ai-native-dev-kit` 是一套让 Codex 或其他 AI 安全接入软件项目的工作流底座。
+An AI-native system for guided software delivery.
 
-它不是提示词合集，也不是代码模板。它解决的是一个更现实的问题：AI 进入项目后，应该先理解项目、确认边界、写下计划，再执行、验证和复查，而不是一上来改代码。
+Formerly: **AI Native Dev Kit**.
+
+> You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
+
+IntentOS is not a prompt collection, a code template, or a framework starter. It is a workflow and governance layer for Codex and other AI coding agents.
+
+It helps AI avoid the most common failure mode in software projects: changing code before it understands the project, the risk, the current task, and the human decision boundary.
 
 ## 3 分钟理解
 
-可以把它理解成一层“AI 协作治理”。
-
-| 项目类型 | 默认做法 |
-|---|---|
-| 新项目 | 从第一天开始沉淀需求、风险、工程规则、验证和记录 |
-| 已有项目 | 先读现有代码和规则，再让新增需求走统一流程 |
-| 已上线项目 | 先只读评估现有治理，不直接初始化、不覆盖原规则 |
-
-核心顺序是：
+IntentOS 把 AI 协作开发拆成一条可控路径：
 
 ```text
-读项目 -> 判断状态 -> 推荐路径 -> 人确认关键决策 -> AI 按计划执行
+用户目标 -> 读项目 -> 判断状态 -> 推荐路径 -> 人确认关键决策 -> 计划写入 -> 执行 -> 验证 -> 复查 -> 收口
 ```
 
-所有需要判断的输出，会先给“推荐选项、备选方案、是否写文件、风险、不处理会怎样”，再给技术细节。用户只需要做选择和确认，不需要先看懂内部状态码。
-
-## 它解决什么
-
-- 避免 AI 没读懂项目就直接改代码。
-- 把工程规范、运行环境、发布边界先说清楚。
-- 把“人做判断”和“AI 做执行”分开。
-- 避免聊天、讨论、临时想法被误当成执行许可。
-- 修复杂问题前先判断修复尺度，避免小补丁掩盖结构问题。
-- 对真实强治理项目，先映射已有规则，而不是复制一套新规则进去。
-
-## 怎么选
-
-不要一开始把所有能力都打开，先按项目风险选。
-
-| 项目状态 | 推荐方式 |
+| 项目状态 | 默认方式 |
 |---|---|
-| 试验、小工具、低风险功能 | `O0 + BL0 + core workflow` |
-| 普通 Web、中台、小程序、App、后台服务 | `O1 + selected profiles + BL1 + selected standard packs` |
-| 有客户、生产数据、权限、支付、发布风险 | `O2 + selected profiles + BL2 + selected standard packs + selected industrial overlays` |
+| 新项目 | 先确认目标、平台、基线和第一版范围，再开始搭建 |
+| 已有项目 | 先读现有代码、文档和规则，再接管新增需求 |
+| 已上线项目 | 默认只读接入，先映射现有治理，不覆盖发布和回滚流程 |
 
-平台 profile 负责区分 Web、iOS、Android、微信小程序、后端、内部管理系统、高风险变更等工程差异。
+核心原则很简单：
 
-标准基线包是普通项目的工程护栏。工业包是生产敏感、高风险、客户数据、支付、发布等增强护栏。默认先推荐最小标准基线；工业包只作为可选增强，不默认启用，`draft` 不等于生产稳定。
+- 用户负责目标、取舍、风险接受和发布确认。
+- AI 负责读取、整理、生成计划、执行、验证和记录。
+- 所有可能写入项目的动作，都必须先变成可确认的计划。
 
-## 最小开始方式
+## Start With One Sentence
 
-如果只是想判断第一步该做什么，先按这个表选：
-
-| 当前情况 | 先跑什么 | 目的 |
-|---|---|---|
-| 只想用一句话开始，不想懂流程 | `node scripts/cli.mjs ask ../my-project "我想做一个预约 App"` | Codex 自己读项目、判断路径，并只把需要你确认的少数问题说清楚 |
-| 不确定该用哪条流程 | `node scripts/cli.mjs guide ../my-project` | 先用白话给出项目状态、下一步、风险和需要你确认的少数问题 |
-| 想让 Codex 自己多看几层 | `node scripts/cli.mjs guide ../my-project --deep` | 内部选择性检查审查面、交付路径、任务、文档和自动化风险，最后仍只给一张卡 |
-| 已经知道这次想做什么 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` | 结合项目状态和目标判断风险、审查面和下一步 |
-| Codex 做完后要收口 | `node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --verification "npm run verify passed"` | 检查改动范围、验证、债务和是否能进入提交审查 |
-| 要做更严格的证据链收口 | `node scripts/cli.mjs closure ../my-project --review-surface-ref ... --review-loop-ref ... --verification-file ...` | 每个 pass 都必须能指向审查、边界、验证或债务证据 |
-| 刚拿到一个项目，不确定状态 | `node scripts/cli.mjs start ../my-project` | 先判断是新项目、老项目、强治理项目还是生产敏感项目 |
-| 要给项目选择基线 | `node scripts/cli.mjs baseline-decision ../my-project` | 用白话确认 BL0/BL1/BL2、平台和风险 |
-| 老项目怕被覆盖 | `node scripts/cli.mjs workflow-map ../my-project` | 先映射现有治理，说明该复用什么、不能动什么 |
-| 文档过期、重复或不知道谁是准的 | `node scripts/cli.mjs doc-lifecycle ../my-project` | 只读识别 source of truth、归档建议和废弃建议 |
-| 文档归档建议准备执行 | `node scripts/cli.mjs archive-apply ../my-project` | 先生成执行计划、链接检查、归档索引和回滚计划，不直接移动或删除文件 |
-| 任何建议准备写入项目 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 AI Native 工作流"` | 把所有可能写入的动作合成一张计划，说明改什么、不改什么、谁确认、怎么回滚 |
-| 任务做到一半被打断 | `node scripts/cli.mjs work-queue ../my-project` | 识别当前任务、暂停任务、停车场和恢复前检查 |
-| 想做 hook、CI 或自动触发 | `node scripts/cli.mjs hook-plan ../my-project` | 只读分级，不安装 hook、不改 CI |
-| 想明确项目允许哪些 hook | `node scripts/cli.mjs hook-policy ../my-project` | 定义允许范围、审批人和回滚方式，不安装 hook |
-| 不确定任务完成后应该审什么 | `node scripts/cli.mjs review-surface ../my-project` | 执行前自动选择功能、代码、数据、权限、体验、发布、债务等审查面 |
-| 不确定项目离“能给人用”还有多远 | `node scripts/cli.mjs delivery-path ../my-project` | 用白话说明当前状态、下一阶段、缺口和阻塞点 |
-| 任务暂停、被打断或留下债务 | `node scripts/cli.mjs debt-handoff ../my-project` | 记录欠什么、怎么验证、下次从哪里接，不把记录当批准 |
-| 要检查当前配置 | `node scripts/cli.mjs check ../my-project --mode core` | 跑核心治理检查 |
-
-第一步，让 Codex 用白话判断下一步，不要求你先懂内部命令：
+Most users should start here:
 
 ```bash
 node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
-node scripts/cli.mjs ask "我想把当前项目接入 AI Native"
-node scripts/cli.mjs guide ../my-project
-node scripts/cli.mjs guide ../my-project --deep
-node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"
-node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --verification "npm run verify passed"
-node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --review-surface-ref review-surface-cards/001.md --review-loop-ref review-loop-reports/001.md --change-boundary-ref change-boundary-reports/001.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001.md
 ```
 
-第二步，如果你想看更具体的接入判断，让 Codex 只读判断项目状态：
+或者在当前项目里：
 
 ```bash
-node scripts/cli.mjs start ../my-project
+node scripts/cli.mjs ask "我想把当前项目接入 IntentOS"
 ```
 
-第三步，让 Codex 判断需要哪些工程基线和环境基线：
+`ask` 会输出一张 Beginner Entry Card，说明：
 
-```bash
-node scripts/cli.mjs baseline ../my-project
-```
+- AI 理解了什么；
+- 建议先走哪条路径；
+- 需要你确认哪几个问题；
+- Codex 下一步可以安全做什么；
+- Codex 现在不能做什么。
 
-第四步，让 Codex 用白话给出“基线决策卡”，用户只确认项目状态、风险和是否允许继续：
+你不需要先知道 `workflow-map`、`baseline-decision`、`apply-plan`、`BL2` 或 hook policy 是什么。Codex 会自己选择内部路径，并把结果翻译成人能判断的内容。
 
-```bash
-node scripts/cli.mjs baseline-decision ../my-project
-```
+## When To Use It
 
-第五步，如果项目可能涉及平台、后台、权限、数据、支付或发布风险，让 Codex 只读推荐基线包：
+| 场景 | IntentOS 会怎么处理 |
+|---|---|
+| 从 0 做一个产品 | 先确认平台、目标用户、第一条核心流程和工程基线 |
+| 进行中的项目 | 先检查当前状态、未完成任务、基线缺口和可写入范围 |
+| 老项目接入 AI | 先做 existing workflow mapping，不直接复制整套规则 |
+| 已上线项目 | 默认 read-only adapter，保护现有 CI、发布、回滚和证据链 |
+| 任务做到一半被打断 | 用 Work Queue / Todo 记录当前任务、暂停任务和恢复入口 |
+| 想加 hook 或自动化 | 先生成 hook plan / hook policy，不自动安装、不改 CI |
+| 复杂问题怕被补丁化 | 先做 patch classification，再决定是小修、结构治理还是人工决策 |
 
-```bash
-node scripts/cli.mjs standard-baseline ../my-project
-node scripts/cli.mjs baseline-packs ../my-project
-```
+## Project Levels
 
-如果要看更底层的工作流状态：
+IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 
-```bash
-node scripts/cli.mjs next ../my-project
-```
+| 级别 | 适合项目 | 默认建议 |
+|---|---|---|
+| O0 / BL0 | 试验、小工具、低风险功能 | 轻量流程和最小基线 |
+| O1 / BL1 | 普通 Web、中台、小程序、App、后台服务 | 标准流程、平台 profile、标准基线包 |
+| O2 / BL2 | 有客户、生产数据、权限、支付、发布风险 | 标准基线 + 按需工业增强包 + 更严格证据 |
 
-新项目初始化：
+平台 profile 用来区分 Web、iOS、Android、微信小程序、后端、内部管理系统和高风险变更。标准基线包处理普通工程质量；工业增强包只在 BL2、高风险或生产敏感场景下按需启用。
 
-```bash
-node scripts/cli.mjs init --starter generic-project --target ../my-project
-```
+## What Is Included
 
-已有项目先预览，不直接写入：
-
-```bash
-node scripts/cli.mjs update --target ../my-project --dry-run
-```
-
-旧版本升级先生成迁移计划：
-
-```bash
-node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --dry-run
-```
-
-检查项目：
-
-```bash
-node scripts/cli.mjs check ../my-project --mode core
-node scripts/cli.mjs doctor ../my-project
-```
-
-## Codex 一句话入口
-
-把仓库地址、目录或文件给 Codex，然后说：
-
-```text
-请读取这套 AI Native Dev Kit，并自己判断当前项目状态，然后完成 workflow 配置。
-```
-
-如果你说“先看下、先沟通、先评估、不要执行”，Codex 只能分析，不能改文件。
-
-## 核心能力
+IntentOS 当前包含这些核心能力：
 
 | 能力 | 作用 |
 |---|---|
-| 自然语言总入口 | 用户只说目标或给项目路径，Codex 先给一张白话指导卡，不要求用户选择内部流程 |
-| 引导式接入 | 先判断项目是新项目、已有项目、强治理项目、生产敏感项目、dirty worktree，还是已接入项目 |
-| 基线决策卡 | 把 BL0/BL1/BL2、标准包、工业包候选、风险和下一步翻译成用户可确认的短卡片 |
-| 工程/环境基线 | 明确代码结构、数据库、API、权限、运行环境、构建测试、发布回滚和密钥边界 |
-| 标准基线包 | 先按平台、后台、发布回滚等普通工程需要推荐最小标准基线 |
-| 工业增强包 | 只在 BL2、高风险、生产敏感、客户数据、支付或发布风险存在时作为可选叠加 |
-| Goal + Subagent | 只有需要时才使用目标卡和 helper agent，并要求用完关闭 |
-| 审查面治理 | 执行前由 Codex 判断任务完成后必须审哪些面，执行后按面汇报结果和未验证项 |
-| 交付路径治理 | 判断项目现在是想法、计划、本地构建、自测、内测、发布审查还是被风险阻塞 |
-| 债务与知识交接 | 任务暂停、中断或留下债务时，记录债务等级、验证方式、下次入口和不能碰的范围 |
-| Review Loop | 任务完成后复查，限制自动修复，把风险问题交给人判断 |
-| 项目记忆治理 | Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
-| 安全交付判断 | 区分可以演示、可以交接、可以进入发布审查，还是还不 ready |
-| 对话偏移控制 | 识别讨论、范围变化、新想法和风险问题，避免误执行 |
-| 首次交付演练 | 从一句想法走完一次需求、规格、任务、验证、复查和交付边界 |
-| 真实项目只读接入 | 对已上线或强治理项目，先映射现有治理，不覆盖原流程 |
-| 补丁分类 | 修复杂问题前先判断是安全小修、结构治理、需要人决策，还是不能补丁化处理 |
-| 小白自然语言入口 | 用户只说目标，Codex 自己判断内部该走哪条链路，并输出一张可确认卡 |
-| 老项目工作流映射 | 读取已有项目后，先说明哪些 AI Native 工作流该用、哪些现有流程要保留、哪些不能动 |
-| 文档生命周期 | 识别过期、重复、废弃和 source of truth，默认只给归档建议，不默认删除 |
-| 文档归档执行计划 | 把归档建议变成可审查的执行计划、链接检查、归档索引和回滚计划；不自动执行 |
-| 统一 Apply Plan | 把所有可能写入项目的动作收敛到一张计划；不自动写文件、不批准执行 |
-| Work Queue / Todo | 处理任务做到一半被打断、长期任务、暂停恢复和一次只能有一个当前任务 |
-| Hook 编排 | 区分可自动只读检查和必须人工确认的 hook，不自动安装、不改 CI、不加阻断 gate |
-| Hook Policy | 定义项目允许哪些 hook、谁批准、怎么禁用和回滚，不把建议变成安装 |
+| Beginner Entry | 用户只说目标，AI 给出可确认的下一步 |
+| Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
+| Baseline Decision | 用白话确认 BL0 / BL1 / BL2、平台和风险 |
+| Standard Baseline Packs | 为不同平台提供普通工程基线 |
+| Industrial Overlays | 为生产、客户数据、权限、支付、发布等风险提供增强治理 |
+| Review Surface | 执行前判断任务完成后需要审哪些面 |
+| Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
+| Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
+| Work Queue / Todo | 管理当前任务、暂停任务、停车场和恢复入口 |
+| Document Lifecycle | 识别过期、重复、废弃文档和 source of truth，默认建议归档，不默认删除 |
+| Hook Policy | 定义项目允许哪些 hook、谁确认、怎么禁用和回滚 |
+| Execution Closure | 收口改动范围、验证结果、债务和提交前证据 |
+| Project Memory | 让 Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
 
-`ask-check`、`real-adoption`、`patch-classification`、`workflow-map-check`、`doc-lifecycle-check`、`archive-apply-check`、`apply-plan-check`、`work-queue-check`、`hook-plan-check` 和 `hook-policy-check` 检查的是已经记录好的证据，不会自动写入桥接文件、批准实现、改变任务状态、安装 hook 或删除文档。`ask`、`workflow-map`、`doc-lifecycle`、`archive-apply`、`apply-plan`、`work-queue`、`hook-plan` 和 `hook-policy` 会只读扫描项目结构，输出建议，不会改目标项目。
+## Common Commands
 
-## Dev Kit 自检
+| 你想做什么 | 命令 |
+|---|---|
+| 用一句话开始 | `node scripts/cli.mjs ask ../my-project "我想做一个预约 App"` |
+| 看更完整的下一步建议 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` |
+| 判断项目状态 | `node scripts/cli.mjs start ../my-project` |
+| 选择项目基线 | `node scripts/cli.mjs baseline-decision ../my-project` |
+| 老项目先映射现有治理 | `node scripts/cli.mjs workflow-map ../my-project` |
+| 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
+| 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
+| 检查文档生命周期 | `node scripts/cli.mjs doc-lifecycle ../my-project` |
+| 规划 hook 而不安装 | `node scripts/cli.mjs hook-policy ../my-project` |
+| 执行完成后收口 | `node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --verification "npm run verify passed"` |
+| 检查当前配置 | `node scripts/cli.mjs check ../my-project --mode core` |
 
-维护 Dev Kit 自身时，可以检查产品边界和声明口径：
+完整命令见 [Scripts Reference](docs/reference/scripts.md)。
+
+## Safety Boundaries
+
+IntentOS 默认保护这些边界：
+
+- 不因为一句话就写文件。
+- 不把建议当成执行授权。
+- 不自动改 CI、hook、发布流程或生产配置。
+- 不自动启用 BL2 或工业增强包。
+- 不自动删除、移动、归档或重写文档。
+- 不替用户批准权限、支付、税务、法务、数据迁移、生产发布等高风险决策。
+- 不覆盖已有强治理项目的规则；先只读映射，再决定是否选择性接入。
+
+一句话：IntentOS 让 AI 更会推进项目，但不让 AI 替人做风险决定。
+
+## New, Existing, And Production Projects
+
+新项目可以直接从自然语言目标开始：
+
+```bash
+node scripts/cli.mjs ask ../new-project "我想做一个中小企业管理中台"
+```
+
+已有项目应该先读项目，再决定接入方式：
+
+```bash
+node scripts/cli.mjs start ../existing-project
+node scripts/cli.mjs workflow-map ../existing-project
+```
+
+已上线或强治理项目默认只读：
+
+```bash
+node scripts/cli.mjs guide ../production-project --deep --intent "接入 IntentOS"
+```
+
+如果后续确实需要写入，先生成计划：
+
+```bash
+node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS 工作流"
+```
+
+## Verify This Repository
+
+维护 IntentOS 本身时，可以运行：
 
 ```bash
 npm run verify
 npm run verify:governance
-node scripts/cli.mjs ask . "维护 Dev Kit 小白入口"
-node scripts/resolve-beginner-entry.mjs . --goal "维护 Dev Kit 小白入口"
+node scripts/cli.mjs ask . "维护 IntentOS 小白入口"
+node scripts/resolve-beginner-entry.mjs . --goal "维护 IntentOS 小白入口"
 node scripts/check-beginner-entry.mjs .
-node scripts/cli.mjs guide .
-node scripts/cli.mjs guide . --deep
-node scripts/cli.mjs guide . --deep --intent "维护 Dev Kit 自然语言入口"
-node scripts/cli.mjs closure . --intent "维护 Dev Kit 执行收口" --verification "npm run verify passed"
-node scripts/cli.mjs closure examples/1.33-evidence-linked-closure --intent "finish booking validation" --review-surface-ref review-surface-cards/001-booking.md --review-loop-ref review-loop-reports/001-booking.md --change-boundary-ref change-boundary-reports/001-booking.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001-booking.md --delivery-path-ref delivery-path-reports/001-booking.md
-node scripts/check-execution-closure.mjs .
 node scripts/check-workflow-guidance.mjs .
-node scripts/cli.mjs review-surface .
-node scripts/check-review-surface.mjs .
-node scripts/cli.mjs delivery-path .
-node scripts/check-delivery-path.mjs .
-node scripts/cli.mjs debt-handoff .
-node scripts/check-debt-handoff.mjs .
-node scripts/cli.mjs archive-apply .
-node scripts/resolve-document-archive-apply.mjs .
-node scripts/check-document-archive-apply.mjs .
-node scripts/cli.mjs apply-plan . --intent "维护 Dev Kit 写入计划" --action workflow-assets
-node scripts/resolve-apply-plan.mjs . --intent "维护 Dev Kit 写入计划" --action workflow-assets
-node scripts/check-apply-plan.mjs .
-node scripts/check-product-baseline.mjs .
-node scripts/check-claim-control.mjs .
-node scripts/check-context-governance.mjs .
-node scripts/check-launch-readiness.mjs .
-node scripts/check-conversation-drift.mjs .
-node scripts/check-guided-delivery-loop.mjs .
-node scripts/check-first-delivery-walkthrough.mjs .
-node scripts/check-real-adoption-trial.mjs .
-node scripts/check-patch-classification.mjs .
-node scripts/resolve-existing-workflow.mjs .
-node scripts/check-workflow-adoption-map.mjs .
-node scripts/resolve-document-lifecycle.mjs .
-node scripts/check-document-lifecycle.mjs .
-node scripts/resolve-work-queue.mjs .
-node scripts/check-work-queue.mjs .
-node scripts/resolve-hook-orchestration.mjs .
-node scripts/check-hook-orchestration.mjs .
-node scripts/resolve-hook-policy.mjs .
-node scripts/check-hook-policy.mjs .
-node scripts/check-change-boundary.mjs .
-node scripts/check-baseline-state.mjs .
-node scripts/resolve-guided-baseline-selection.mjs .
-node scripts/check-guided-baseline-selection.mjs .
-node scripts/resolve-standard-baseline.mjs .
-node scripts/check-standard-baseline-pack.mjs .
-node scripts/check-standard-baseline-selection.mjs .
-node scripts/resolve-baseline-packs.mjs .
-node scripts/check-baseline-pack-selection.mjs .
-node scripts/check-guided-adoption.mjs .
 ```
 
-## 重要边界
+## Documentation
 
-- 不是每次都要开 Goal Card 或 subagent；按任务风险决定。
-- 不是每次改动都走最重流程；任务完成后再进入 Review Loop。
-- 不是所有标准包或工业包都装进项目；只启用项目需要且被人确认的部分。
-- 已上线或强治理项目不要直接初始化；先走只读接入评估。
-- `baseline` 默认只生成建议，不直接改目标项目。
-- `migrate` 当前只生成计划，不直接改目标项目。
-- 人负责风险接受、业务取舍和发布确认；AI 负责整理、执行、检查和记录。
-- 不要把模拟 dogfood、生成项目 smoke、首次交付演练说成真实生产验证。
-- 不要把 AI 推断出的环境、发布、回滚、监控信息当成已确认事实。
-- 不要把 Codex 观察到的内容直接当成项目记忆；必须先做人确认。
-- 不要把 `READY_FOR_DEMO`、`READY_FOR_INTERNAL_HANDOFF` 或 `READY_FOR_RELEASE_REVIEW` 当成生产上线批准。
-- 不要把讨论、范围变化、旁路问题或风险问题直接当成继续当前任务的许可。
-- 不要把真实项目只读接入报告当成允许写入项目。
-- 不要把 Debt & Knowledge Handoff Report 当成债务豁免、继续执行批准或发布批准；它只负责把未完成事项交接清楚。
-- 不要把补丁分类报告当成允许实现；它只判断修复尺度。
-- 不要把文档生命周期报告当成允许删除、移动、归档或改变 source of truth；它只给归档/废弃/合并建议。
-- 不要把 Work Queue 当成实现授权；它只管理当前任务、暂停任务、停车场和恢复前检查。
-- 不要把 Hook Plan 当成安装授权；它只做只读识别、风险分级和确认前方案。
-- 不要把 Review Surface Card 当成实现授权；它只说明任务完成后必须审哪些面，以及哪些面没有验证。
-- 不要把 Delivery Path Report 当成上线或可用授权；它只说明当前离可使用、内测或发布审查还有多远。
-- 不要把基线决策卡当成写入、实现、发布或 BL2 启用授权；它只帮助用户确认路径。
-- 不要把标准基线包推荐当成已经选择、写入授权或具体实现任务批准。
-- 不要把工业包推荐当成已经选择或已经批准；BL2、draft 包和风险包都需要人确认。
-- 不要把 Workflow Guidance Card 当成写入、实现、发布、安装 hook、修改 CI、归档文档或切换任务状态的授权；它只说明下一步建议。
+Start here:
 
-## 完整说明
+- [Documentation Home](docs/README.md)
+- [Documentation Index](docs/index.md)
+- [Operator Manual](docs/operator-manual.md)
+- [Quickstart](docs/quickstart.md)
+- [First Hour](docs/first-hour.md)
+- [Beginner Entry](docs/beginner-entry.md)
+- [Natural Language Orchestrator](docs/natural-language-orchestrator.md)
+- [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
-先读这些：
+Core workflow:
 
-- [中文说明](README.zh-CN.md)
-- [Operator Manual](docs/operator-manual.md)：完整操作手册
-- [Quickstart](docs/quickstart.md)：快速开始
-- [First Hour](docs/first-hour.md)：第一次接入项目时怎么走
-- [Codex Usage](docs/codex-usage.md)：Codex 使用路径
-- [Mental Model](docs/mental-model.md)：整体心智模型
-- [Beginner Entry](docs/beginner-entry.md)：用户只说一句目标时，Codex 怎么自己判断路径并给出确认卡
-- [Natural Language Orchestrator](docs/natural-language-orchestrator.md)：用户只说目标时，Codex 怎么给出下一步指导卡
+- [Repository Structure](docs/repository-structure.md)
+- [Document Ownership](docs/document-ownership.md)
+- [Artifact Decision Tree](docs/artifact-decision-tree.md)
+- [Guided Delivery Baseline](docs/guided-delivery-baseline.md)
+- [Product Baseline](docs/product-baseline.md)
+- [Claim Control](docs/claim-control.md)
+- [Project Memory](docs/project-memory.md)
+- [Git Boundary](docs/git-boundary.md)
+- [Context Governance Usage](docs/context-governance-usage.md)
+- [Minimal Commit Set](docs/minimal-commit-set.md)
+- [Safe Launch](docs/safe-launch.md)
+- [Conversation Drift Control](docs/conversation-drift-control.md)
+- [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)
+- [Change Boundary](docs/change-boundary.md)
+- [Baseline State](docs/baseline-state.md)
+- [Guided Delivery Check](docs/guided-delivery-check.md)
+- [Review Surface Governance](docs/review-surface-governance.md)
+- [Delivery Path Governance](docs/delivery-path-governance.md)
+- [Debt & Knowledge Handoff](docs/debt-knowledge-handoff.md)
+- [Unified Apply Plan](docs/unified-apply-plan.md)
+- [Work Queue](docs/work-queue.md)
+- [Document Lifecycle](docs/document-lifecycle.md)
+- [Document Archive Apply](docs/document-archive-apply.md)
+- [Hook Orchestration](docs/hook-orchestration.md)
+- [Project Hook Policy](docs/hook-policy.md)
 
-使用工作流：
+Baselines and project adoption:
 
-- [Artifact Decision Tree](docs/artifact-decision-tree.md)：什么时候用哪个文件
-- [Goal + Subagent Usage](docs/goal-subagent-usage.md)：目标和 subagent 编排
-- [Guided Delivery Baseline](docs/guided-delivery-baseline.md)：引导式交付基准
-- [Product Baseline](docs/product-baseline.md)：产品边界
-- [Claim Control](docs/claim-control.md)：声明口径控制
-- [Project Memory](docs/project-memory.md)：项目记忆与上下文治理
-- [Git Boundary](docs/git-boundary.md)：哪些内容应该进 Git
-- [Context Governance Usage](docs/context-governance-usage.md)：上下文治理怎么用
-- [Minimal Commit Set](docs/minimal-commit-set.md)：提交时只提交什么
-- [Safe Launch](docs/safe-launch.md)：交付前判断能不能演示、交接或进入发布审查
-- [Conversation Drift Control](docs/conversation-drift-control.md)：对话偏移和范围变化控制
-- [First Delivery Walkthrough](docs/first-delivery-walkthrough.md)：从一句想法到首个 demo 边界的完整演练
-- [Guided Decision & Delivery Loop](docs/guided-decision-delivery-loop.md)：让 Codex 推荐最小安全路径，用户只确认目标、取舍和风险
-- [Guided Baseline Selection Entry](docs/guided-baseline-selection-entry.md)：把基线选择变成用户看得懂的决策卡
-- [Standard Baseline Pack Registry](docs/standard-baseline-pack-registry.md)：先选普通工程标准基线，再看是否需要工业增强
-- [Platform Standard Baseline Packs](docs/platform-standard-baseline-packs.md)：按 Web、小程序、iOS、Android、中台等平台推荐普通标准基线
-- [Change Boundary](docs/change-boundary.md)：检查实际改动是否仍在本次任务边界内
-- [Baseline State](docs/baseline-state.md)：区分基线是建议、待确认、需证据，还是已确认
-- [Guided Delivery Check](docs/guided-delivery-check.md)：检查当前主线、停车场和 D0-D4 决策边界
-- [Real Adoption Usage](docs/real-adoption-usage.md)：真实项目只读接入怎么用
-- [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)：已有项目如何先映射工作流，再决定是否接入
-- [Document Lifecycle](docs/document-lifecycle.md)：过期、重复、废弃文档和 source of truth 怎么治理
-- [Document Archive Apply](docs/document-archive-apply.md)：把文档归档建议变成可审查计划，默认不执行归档
-- [Unified Apply Plan](docs/unified-apply-plan.md)：把可能写入项目的动作合成一张可确认计划，默认不执行
-- [Work Queue](docs/work-queue.md)：任务做到一半被打断、暂停恢复和只保留一个当前任务怎么治理
-- [Hook Orchestration](docs/hook-orchestration.md)：自动触发器怎么分级、规划、确认和回滚
-- [Project Hook Policy](docs/hook-policy.md)：项目允许哪些 hook、谁审批、怎么禁用和回滚
-- [Review Surface Governance](docs/review-surface-governance.md)：执行前决定要审哪些面，执行后按面汇报结果
-- [Delivery Path Governance](docs/delivery-path-governance.md)：判断项目离“能给人使用”还有多远
-- [Debt & Knowledge Handoff](docs/debt-knowledge-handoff.md)：任务暂停、中断或留下债务时如何交接
-- [Baseline Pack System](docs/baseline-pack-system.md)：按项目级别、平台、能力和风险选择基线包
+- [Baseline Pack System](docs/baseline-pack-system.md)
+- [Standard Baseline Pack Registry](docs/standard-baseline-pack-registry.md)
+- [Platform Standard Baseline Packs](docs/platform-standard-baseline-packs.md)
+- [New Project Playbook](docs/adoption-playbooks/new-project.md)
+- [Existing Light Project Playbook](docs/adoption-playbooks/existing-light-project.md)
+- [Governed Read-Only Playbook](docs/adoption-playbooks/governed-project-read-only.md)
+- [Production Project Adapter Playbook](docs/adoption-playbooks/production-project-adapter.md)
 
-接入项目：
+Reference:
 
-- [Baseline Setup](docs/baseline-setup.md)：工程基线与环境基线设置
-- [New Project Playbook](docs/adoption-playbooks/new-project.md)：新项目接入
-- [Existing Light Project Playbook](docs/adoption-playbooks/existing-light-project.md)：已有轻治理项目接入
-- [Governed Read-Only Playbook](docs/adoption-playbooks/governed-project-read-only.md)：强治理项目只读接入
-- [Production Project Adapter Playbook](docs/adoption-playbooks/production-project-adapter.md)：已上线项目 adapter 接入
+- [Historical Plans](docs/plans/README.md)
+- [Roadmaps](docs/roadmaps/README.md)
+- [Scripts Reference](docs/reference/scripts.md)
+- [Artifacts Reference](docs/reference/artifacts.md)
+- [Checkers Reference](docs/reference/checkers.md)
+- [Standard Baseline Packs Reference](docs/reference/standard-baseline-packs.md)
+- [Industrial Packs Reference](docs/reference/industrial-packs.md)
+- [Migration Index](docs/migrations/index.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [FAQ](docs/faq.md)
 
-查规范：
+Current release:
 
-- [Scripts Reference](docs/reference/scripts.md)：命令说明
-- [Artifacts Reference](docs/reference/artifacts.md)：文件说明
-- [Checkers Reference](docs/reference/checkers.md)：检查器说明
-- [Standard Baseline Packs Reference](docs/reference/standard-baseline-packs.md)：标准基线包说明
-- [Platform Standard Baseline Matrix](docs/reference/platform-standard-baseline-matrix.md)：平台标准基线矩阵
-- [Industrial Packs Reference](docs/reference/industrial-packs.md)：工业包说明
-- [Migration Index](docs/migrations/index.md)：迁移入口
-- [0.33 to 1.0 Migration](docs/migrations/0.33-to-1.0.md)：0.33 到 1.0 迁移说明
-- [Troubleshooting](docs/troubleshooting.md)：常见问题处理
-- [FAQ](docs/faq.md)：问答
-
-版本记录：
-
-- [1.35 Release Record](releases/1.35.0/release-record.md)：1.35 小白自然语言入口
-- [1.34 Release Record](releases/1.34.0/release-record.md)：1.34 统一 Apply Plan
-- [1.33 Release Record](releases/1.33.0/release-record.md)：1.33 证据链执行收口
-- [1.32 Release Record](releases/1.32.0/release-record.md)：1.32 执行后收口与复查闭环
-- [1.31 Release Record](releases/1.31.0/release-record.md)：1.31 意图感知深度 guide
-- [1.30 Release Record](releases/1.30.0/release-record.md)：1.30 深度 guide 编排
-- [1.29 Release Record](releases/1.29.0/release-record.md)：1.29 项目 Hook Policy
-- [1.28 Release Record](releases/1.28.0/release-record.md)：1.28 文档归档执行计划
-- [1.27 Release Record](releases/1.27.0/release-record.md)：1.27 债务与知识交接
-- [1.26 Release Record](releases/1.26.0/release-record.md)：1.26 交付路径治理
-- [1.25 Release Record](releases/1.25.0/release-record.md)：1.25 审查面治理
-- [1.24 Release Record](releases/1.24.0/release-record.md)：1.24 自然语言工作流总入口
-- [1.23.1 Release Record](releases/1.23.1/release-record.md)：1.23.1 治理验证和 README 入口修整
-- [1.23 Release Record](releases/1.23.0/release-record.md)：1.23 Hook 编排治理
-- [1.22 Release Record](releases/1.22.0/release-record.md)：1.22 Work Queue / Todo 治理
-- [1.21 Release Record](releases/1.21.0/release-record.md)：1.21 文档生命周期治理
-- [1.20 Release Record](releases/1.20.0/release-record.md)：1.20 老项目工作流接入映射
-- [1.19.1 Release Record](releases/1.19.1/release-record.md)：1.19.1 基线选择指标校验
-- [1.19 Release Record](releases/1.19.0/release-record.md)：1.19 基线选择准确性校准
-- [1.18.1 Release Record](releases/1.18.1/release-record.md)：1.18.1 基线选择检查收口
-- [1.18 Release Record](releases/1.18.0/release-record.md)：1.18 基线选择校准
-- [1.17.1 Release Record](releases/1.17.1/release-record.md)：1.17.1 基线决策卡校准
-- [1.17 Release Record](releases/1.17.0/release-record.md)：1.17 引导式基线决策卡入口
-- [1.16 Release Record](releases/1.16.0/release-record.md)：1.16 BL2 工业基线深化
-- [1.15.1 Release Record](releases/1.15.1/release-record.md)：1.15.1 标准包注册表硬化
-- [1.15 Release Record](releases/1.15.0/release-record.md)：1.15 平台标准基线包
-- [1.14.1 Release Record](releases/1.14.1/release-record.md)：1.14.1 标准基线包校验硬化
-- [1.14 Release Record](releases/1.14.0/release-record.md)：1.14 标准基线包注册表
-- [1.13 Release Record](releases/1.13.0/release-record.md)：1.13 基线包选择系统
-- [1.12.1 Release Record](releases/1.12.1/release-record.md)：1.12.1 manifest、README 自检入口和 fallback 同步
-- [1.12 Release Record](releases/1.12.0/release-record.md)：1.12 变更边界、引导式交付检查与基线状态保护
-- [1.11 Release Record](releases/1.11.0/release-record.md)：1.11 治理硬化与漂移防护
-- [1.10 Release Record](releases/1.10.0/release-record.md)：1.10 引导式决策与交付闭环
-- [1.9 Release Record](releases/1.9.0/release-record.md)：1.9 人类决策摘要
-- [1.8.1 Release Record](releases/1.8.1/release-record.md)：1.8.1 真实项目接入校准
-- [1.8 Release Record](releases/1.8.0/release-record.md)：1.8 真实项目只读接入与补丁分类治理
-- [1.7 Release Record](releases/1.7.0/release-record.md)：1.7 首次交付演练
-- [1.6 Release Record](releases/1.6.0/release-record.md)：1.6 对话偏移控制
-- [1.5 Release Record](releases/1.5.0/release-record.md)：1.5 安全交付就绪
-- [1.4.1 Release Record](releases/1.4.1/release-record.md)：1.4.1 上下文治理使用修整
-- [1.4 Release Record](releases/1.4.0/release-record.md)：1.4 项目记忆与上下文治理
-- [1.3 Release Record](releases/1.3.0/release-record.md)：1.3 引导式交付基准
-- [1.2 Release Record](releases/1.2.0/release-record.md)：1.2 基线引导设置
-- [1.1 Release Record](releases/1.1.0/release-record.md)：1.1 引导式接入入口
-- [1.0 Release Record](releases/1.0.0/release-record.md)：1.0 发布边界
-- [Productization Hardcut Plan](docs/productization-hardcut-1.0-plan.md)
-
-治理说明：
-
-- `.github/CODEOWNERS` 当前只记录 owner 规则待确认，不声明假 owner；代码所有权强制审查需要维护者账号确认后再启用。
+- [1.36 Release Record](releases/1.36.0/release-record.md)
+- [Version History](VERSION.md)
 
 ## License
 

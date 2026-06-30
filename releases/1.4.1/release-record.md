@@ -11,7 +11,7 @@ It improves how users and Codex understand project memory, context correction, a
 - `docs/context-governance-usage.md`
 - `docs/minimal-commit-set.md`
 - wording cleanup in `scripts/check-product-baseline.mjs`
-- roadmap coverage in `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
+- roadmap coverage in `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
 
 ## Not Included
 

@@ -26,7 +26,7 @@ The implementation must stay inside Phase 0.34.0. It must not introduce CLI, man
 
 ## Manual Review Checklist
 
-- Confirm CI commands match `docs/productization-hardcut-1.0-plan.md`.
+- Confirm CI commands match `docs/plans/productization-hardcut-1.0-plan.md`.
 - Confirm baseline commit and version are recorded.
 - Confirm generated-project smoke evidence is included.
 - Confirm no target-project bootstrap semantics changed.

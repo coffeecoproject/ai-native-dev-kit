@@ -187,7 +187,7 @@ function checkReports() {
 
 function checkSourceEvidence() {
   for (const file of [
-    "docs/delivery-governance-roadmap-1.26-1.29.md",
+    "docs/roadmaps/delivery-governance-roadmap-1.26-1.29.md",
     "examples/1.26-delivery-path-governance/README.md",
     "examples/1.26-delivery-path-governance/delivery-path-reports/001-booking-delivery-path.md",
     "releases/1.26.0/release-record.md",

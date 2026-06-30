@@ -10,7 +10,7 @@ Request: `requests/035-readonly-manifest.md`
 
 Preflight: `preflight/035-readonly-manifest.md`
 
-Productization plan: `docs/productization-hardcut-1.0-plan.md`
+Productization plan: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Decision brief: `decision-briefs/035-readonly-manifest.md`
 

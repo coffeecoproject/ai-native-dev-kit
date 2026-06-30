@@ -22,7 +22,7 @@ recommendation-risk patterns.
   - backend data/API projects
   - empty unknown new projects
 - Added `baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md`.
-- Added `docs/baseline-selection-precision-calibration-1.19-plan.md`.
+- Added `docs/plans/baseline-selection-precision-calibration-1.19-plan.md`.
 - Added a bad scoreboard fixture to prove invalid precision records fail.
 - Integrated the precision checker into `npm run verify:baseline`.
 

@@ -20,7 +20,7 @@ Route `0.40.1` as a bounded implementation phase for internal checker refactorin
 
 Goal: Extract shared checker utility libraries while preserving existing checker behavior.
 
-Source: `docs/productization-hardcut-1.0-plan.md`
+Source: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Non-goals: new workflow concepts, checker semantic changes, dependency additions, migration command implementation, generated project snapshots.
 

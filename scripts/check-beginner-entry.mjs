@@ -172,7 +172,7 @@ function checkBeginnerEntryCards() {
 
 function checkSourceEvidence() {
   for (const file of [
-    "docs/beginner-entry-1.35-plan.md",
+    "docs/plans/beginner-entry-1.35-plan.md",
     "examples/1.35-beginner-entry/README.md",
     "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
     "test-fixtures/bad/bad-beginner-entry-authorizes-write/beginner-entry-cards/001-bad.md",

@@ -116,7 +116,7 @@ Changed files:
 - `package.json`
 - `templates/workflow-version.json`
 - `templates/version-record.md`
-- `docs/productization-hardcut-1.0-plan.md`
+- `docs/plans/productization-hardcut-1.0-plan.md`
 - `releases/0.42.0/phase-report.md`
 - `requests/preflight/specs/evals/tasks/goal-cards/subagent-run-plans/review-packets/review-loop-reports/final-reports/ai-logs` for 042
 

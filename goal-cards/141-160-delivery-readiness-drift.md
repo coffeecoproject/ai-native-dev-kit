@@ -79,7 +79,7 @@ Decision Brief needed: No
 |---|---|---|---|
 | Request | No | user thread | request is in conversation |
 | Preflight | No | covered by repository read and plan doc | no separate project adoption |
-| Spec | Yes | `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md` | upgrade specification |
+| Spec | Yes | `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md` | upgrade specification |
 | Eval | Yes | `releases/1.6.0/self-check-report.md` | final verification evidence |
 | Task | Yes | `goal-cards/141-160-delivery-readiness-drift.md` | selected task container |
 | Review Packet | No | not required before GPT handoff | user will send repo to GPT after push |
@@ -113,7 +113,7 @@ Next action: implement the approved artifacts, run checks, commit, and push.
 
 Related files:
 
-- `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
+- `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
 - `core/safe-launch.md`
 - `core/conversation-drift-control.md`
 - `scripts/check-launch-readiness.mjs`

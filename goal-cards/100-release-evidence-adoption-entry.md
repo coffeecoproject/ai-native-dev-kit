@@ -22,7 +22,7 @@ One-sentence conclusion:
 
 Goal: complete 1.0 minimum productization release evidence.
 
-Source: `docs/productization-hardcut-1.0-plan.md`
+Source: `docs/plans/productization-hardcut-1.0-plan.md`
 
 Non-goals: no package publish, no migration apply, no industrial pack promotion, no 10/10 evidence claim.
 
@@ -118,7 +118,7 @@ Implement release evidence and run final gates.
 
 Related files:
 
-- `docs/productization-hardcut-1.0-plan.md`
+- `docs/plans/productization-hardcut-1.0-plan.md`
 - `releases/1.0.0/`
 - `scripts/check-dev-kit.mjs`
 - `dev-kit-manifest.json`

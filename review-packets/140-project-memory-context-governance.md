@@ -21,7 +21,7 @@ Review whether 1.4 adds project memory as controlled source-of-truth governance 
 
 ## Evidence
 
-- `docs/project-memory-context-governance-1.4-plan.md`
+- `docs/plans/project-memory-context-governance-1.4-plan.md`
 - `core/context-governance.md`
 - `core/git-boundary.md`
 - `scripts/check-context-governance.mjs`

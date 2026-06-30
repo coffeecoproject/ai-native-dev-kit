@@ -265,7 +265,7 @@ function scanForSecrets() {
 
 function checkSourceEvidence() {
   for (const file of [
-    "docs/project-memory-context-governance-1.4-plan.md",
+    "docs/plans/project-memory-context-governance-1.4-plan.md",
     "examples/1.4-project-memory-context/README.md",
     "releases/1.4.0/release-record.md",
     "releases/1.4.0/known-limitations.md",

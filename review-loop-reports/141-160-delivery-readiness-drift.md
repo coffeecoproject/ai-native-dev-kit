@@ -24,7 +24,7 @@ Next action: run full dev-kit checks, repair deterministic failures, then commit
 
 Task: `goal-cards/141-160-delivery-readiness-drift.md`
 
-Related Spec: `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
+Related Spec: `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
 
 Related Eval: `releases/1.6.0/self-check-report.md`
 
@@ -48,7 +48,7 @@ GPT Review Prompt ref: not created; user will submit pushed repo for GPT review.
 
 Task: `goal-cards/141-160-delivery-readiness-drift.md`
 
-Spec: `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
+Spec: `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
 
 Eval: `releases/1.6.0/self-check-report.md`
 

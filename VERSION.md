@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.35.0`
+Current version: `1.36.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.35.0`
 
 ## Current Release
 
-`1.35.0`
+`1.36.0`
 
 Includes:
 
+- Repository Information Architecture phase `1.36.0`: adds documentation entry points, repository structure guidance, document ownership rules, and separates historical plans and roadmaps from active usage docs
+- Added `docs/README.md`, `docs/index.md`, `docs/repository-structure.md`, `docs/document-ownership.md`, `docs/plans/`, `docs/roadmaps/`, 1.36 release evidence, manifest coverage, and README product-homepage alignment
+- `1.36.0` does not move root workflow artifact directories, change generated-project paths, change CLI behavior, delete historical documents, archive release evidence, or change adoption/baseline/review/hook/apply semantics
 - Beginner Entry phase `1.35.0`: adds `ask` and `ask-check` so users can provide one natural-language goal without choosing internal workflow commands
 - Added `core/beginner-entry.md`, `docs/beginner-entry.md`, `templates/beginner-entry-card.md`, `beginner-entry-cards/`, resolver/checker scripts, examples, bad fixtures, CI/manifest coverage, and release evidence
 - `1.35.0` does not write target files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive/delete documents, change task state, enable baseline/industrial packs, or approve high-risk decisions
@@ -21,7 +24,7 @@ Includes:
 - Added `core/unified-apply-plan.md`, `docs/unified-apply-plan.md`, `templates/unified-apply-plan.md`, `apply-plans/`, `apply-plan`, `apply-plan-check`, resolver/checker scripts, examples, bad fixtures, CI/manifest coverage, and release evidence
 - `1.34.0` does not write target files, approve apply, add a generic executor, apply init/update/baseline/archive/hook actions, enable industrial packs, approve implementation, approve release/production, or approve high-risk decisions
 - Evidence-Linked Closure phase `1.33.0`: upgrades execution closure so every `pass` can be linked to Review Surface, Review Loop, Change Boundary, Verification, Debt Handoff, and Delivery Path evidence
-- Added `docs/evidence-linked-closure-1.33-plan.md`, evidence-link CLI args, evidence-link report section, 1.33 example, bad fixtures, checker rules, CI/manifest coverage, and release evidence
+- Added `docs/plans/evidence-linked-closure-1.33-plan.md`, evidence-link CLI args, evidence-link report section, 1.33 example, bad fixtures, checker rules, CI/manifest coverage, and release evidence
 - `1.33.0` does not apply plans, write target files, approve implementation, authorize commit/push, approve release/production, forgive debt, or approve high-risk decisions
 - Execution Review Closure phase `1.32.0`: adds `closure` and `closure-check` so Codex can close a completed task with changed-file scope, review surface closure, verification closure, debt closure, and commit-readiness state
 - Added `core/execution-review-closure.md`, `docs/execution-review-closure.md`, execution closure templates/checklists/prompts, `execution-closures/`, resolver/checker scripts, CLI/CI/manifest coverage, a 1.32 example, bad fixtures, and release evidence
@@ -94,7 +97,7 @@ Includes:
 - CLI now includes `guided-delivery`, `change-boundary`, and `baseline-state`; `new-workflow-item` can create Change Boundary and Baseline State reports
 - `1.12.0` does not automatically inspect real projects, approve target-project writes, approve production/release/risk decisions, confirm no-code baselines as implemented, add automatic GPT/API review, or promote industrial packs
 - Governance Hardening & Drift Guard phase `1.11.0`: README release sync, direct init non-empty protection, manifest reverse drift guard, structured release section checks, and `npm run verify`
-- Added `docs/governance-hardening-drift-guard-1.11-plan.md` and `releases/1.11.0/` evidence for this hardening phase
+- Added `docs/plans/governance-hardening-drift-guard-1.11-plan.md` and `releases/1.11.0/` evidence for this hardening phase
 - Direct new-project init now refuses non-empty target directories unless `--force-new-project` is explicitly passed; existing-project update remains plan-first
 - `check-manifest` now fails important source assets that are not covered by manifest source or copy-rule inventory
 - `check-claim-control` and `check-product-baseline` now require meaningful release section bodies, not only section headings
@@ -105,7 +108,7 @@ Includes:
 - `new-workflow-item` can now create `active-work-thread` and `guided-decision-summary` artifacts
 - `1.10.0` does not add a new blocking checker, automatic GPT/API review, automatic real-project scanning, target-project write approval, implementation approval, release approval, risk approval, production approval, or weaker patch classification defaults
 - Human Decision Summary phase `1.9.0`: decision-heavy output now starts with a clear recommendation, alternatives, file-write impact, risk, and no-decision outcome before technical details
-- Added `docs/human-decision-summary-1.9-plan.md` and `releases/1.9.0/` evidence for the output clarity upgrade
+- Added `docs/plans/human-decision-summary-1.9-plan.md` and `releases/1.9.0/` evidence for the output clarity upgrade
 - Updated `core/output-protocol.md`, reporter/workflow prompts, human-facing templates, `workflow-next`, `start`, `baseline`, and governance migration reports to use the decision-summary format
 - `1.9.0` does not add automatic GPT/API review, automatic real-project scanning, new target-project write authority, release approval, risk approval, or baseline direct apply
 - Real adoption calibration phase `1.8.1`: separates recommended profiles from risk/capability packs, adds patch classification false-positive records, and clarifies that `real-adoption` checks recorded reports rather than auto-generating target-project reports
@@ -131,7 +134,7 @@ Includes:
 - Added `launch-readiness/` as an optional delivery readiness evidence directory; ready states require verification and no pending human decisions
 - `READY_FOR_DEMO`, `READY_FOR_INTERNAL_HANDOFF`, and `READY_FOR_RELEASE_REVIEW` are recommendations only and do not approve production launch
 - Context polish phase `1.4.1`: added `docs/context-governance-usage.md`, `docs/minimal-commit-set.md`, and cleaned old guided delivery wording
-- Added `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`, `releases/1.4.1/`, `releases/1.5.0/`, and `releases/1.6.0/`
+- Added `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`, `releases/1.4.1/`, `releases/1.5.0/`, and `releases/1.6.0/`
 - CLI now includes `launch-readiness` and `conversation-drift`
 - `1.6.0` does not implement external GPT/API hook automation, production deployment automation, legal/compliance approval, or automatic scope approval
 - Project Memory & Context Governance phase `1.4.0`: Git Boundary, Context Governance, Learning Candidate, Context Correction Report, and Git Boundary Report
@@ -258,7 +261,7 @@ Includes:
 - expanded negative fixtures for pending Engineering Baseline decisions, excessive AUTO_FIX rounds, and missing human-decision routing for `RISK_DECISION`
 - fixture cases now include repair guidance for stable checker maintenance
 - Governance Hardening roadmap for 0.30 fixture-driven checks, 0.31 Goal Mode, and 0.32 Subagent Orchestration
-- `docs/governance-hardening-roadmap.md`
+- `docs/roadmaps/governance-hardening-roadmap.md`
 - `scripts/check-fixtures.mjs` for dev-kit-only golden example and negative fixture validation
 - `test-fixtures/` with bad Engineering Baseline, Review Loop, and Next-Step Boundary cases
 - golden examples for Engineering Baseline enum-vs-lookup, DTO/domain boundary, and Next-Step Boundary suggestions

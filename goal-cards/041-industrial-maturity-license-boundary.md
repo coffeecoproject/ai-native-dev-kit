@@ -122,7 +122,7 @@ Next action: create the 0.41 workflow chain, implement bounded docs/schema/check
 
 Related files:
 
-- `docs/productization-hardcut-1.0-plan.md`
+- `docs/plans/productization-hardcut-1.0-plan.md`
 - `industrial-packs/schema/pack.schema.json`
 - `LICENSE.md`
 git status -sb

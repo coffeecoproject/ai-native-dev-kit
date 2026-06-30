@@ -75,7 +75,7 @@ Proceed with behavior-preserving helper refactor and stop if fixture expectation
 
 Related files:
 
-- `docs/productization-hardcut-1.0-plan.md`
+- `docs/plans/productization-hardcut-1.0-plan.md`
 - `tasks/040-checker-library-refactor.md`
 - `test-fixtures/fixture-cases.json`
 

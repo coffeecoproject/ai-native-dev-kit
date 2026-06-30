@@ -8,7 +8,7 @@ Execution Closure now distinguishes between "changed files exist" and "review ev
 
 ## Added
 
-- `docs/evidence-linked-closure-1.33-plan.md`
+- `docs/plans/evidence-linked-closure-1.33-plan.md`
 - Evidence-link arguments for `scripts/resolve-execution-closure.mjs`
   - `--review-surface-ref`
   - `--review-loop-ref`

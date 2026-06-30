@@ -17,7 +17,7 @@ people without requiring the user to understand internal workflow commands.
 - `delivery-path-reports/`
 - `scripts/resolve-delivery-path.mjs`
 - `scripts/check-delivery-path.mjs`
-- `docs/delivery-governance-roadmap-1.26-1.29.md`
+- `docs/roadmaps/delivery-governance-roadmap-1.26-1.29.md`
 - 1.26 example and bad fixtures
 
 ## Boundary

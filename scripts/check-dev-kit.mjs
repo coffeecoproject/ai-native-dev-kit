@@ -49,10 +49,16 @@ function checkRequiredFiles() {
     "docs/quickstart.md",
     "docs/codex-usage.md",
     "docs/mental-model.md",
+    "docs/README.md",
+    "docs/index.md",
+    "docs/repository-structure.md",
+    "docs/document-ownership.md",
+    "docs/plans/README.md",
     "docs/artifact-decision-tree.md",
     "docs/goal-subagent-usage.md",
-    "docs/governance-hardening-roadmap.md",
-    "docs/productization-hardcut-1.0-plan.md",
+    "docs/roadmaps/governance-hardening-roadmap.md",
+    "docs/roadmaps/README.md",
+    "docs/plans/productization-hardcut-1.0-plan.md",
     "dev-kit-manifest.json",
     "schemas/dev-kit-manifest.schema.json",
     ".github/workflows/dev-kit-pr-checks.yml",
@@ -2359,7 +2365,7 @@ function checkOutputExperienceProtocol() {
 
 function checkGuidedDecisionDeliveryLoopProtocol() {
   const required = [
-    "docs/guided-decision-delivery-loop-1.10-plan.md",
+    "docs/plans/guided-decision-delivery-loop-1.10-plan.md",
     "docs/guided-decision-delivery-loop.md",
     "core/decision-delegation-boundary.md",
     "core/guided-delivery-loop.md",
@@ -2436,7 +2442,7 @@ function checkGuidedDecisionDeliveryLoopProtocol() {
 
 function checkGovernanceHardeningDriftGuardProtocol() {
   const required = [
-    "docs/governance-hardening-drift-guard-1.11-plan.md",
+    "docs/plans/governance-hardening-drift-guard-1.11-plan.md",
     "requests/210-governance-hardening-drift-guard.md",
     "preflight/210-governance-hardening-drift-guard.md",
     "specs/210-governance-hardening-drift-guard.md",
@@ -2453,7 +2459,7 @@ function checkGovernanceHardeningDriftGuardProtocol() {
   }
 
   const combined = [
-    read("docs/governance-hardening-drift-guard-1.11-plan.md"),
+    read("docs/plans/governance-hardening-drift-guard-1.11-plan.md"),
     read("releases/1.11.0/release-record.md"),
     read("releases/1.11.0/known-limitations.md"),
   ].join("\n");
@@ -2496,7 +2502,7 @@ function checkGovernanceHardeningDriftGuardProtocol() {
 
 function checkChangeBoundaryBaselineStateProtocol() {
   const required = [
-    "docs/change-boundary-baseline-state-1.12-plan.md",
+    "docs/plans/change-boundary-baseline-state-1.12-plan.md",
     "core/change-boundary.md",
     "core/baseline-state.md",
     "docs/change-boundary.md",
@@ -2541,7 +2547,7 @@ function checkChangeBoundaryBaselineStateProtocol() {
   }
 
   const combined = [
-    read("docs/change-boundary-baseline-state-1.12-plan.md"),
+    read("docs/plans/change-boundary-baseline-state-1.12-plan.md"),
     read("core/change-boundary.md"),
     read("core/baseline-state.md"),
     read("docs/change-boundary.md"),
@@ -2664,7 +2670,7 @@ function checkChangeBoundaryBaselineStateProtocol() {
 
 function checkBaselinePackSystemProtocol() {
   const required = [
-    "docs/baseline-pack-system-1.13-plan.md",
+    "docs/plans/baseline-pack-system-1.13-plan.md",
     "core/baseline-pack-system.md",
     "docs/baseline-pack-system.md",
     "templates/baseline-pack-selection-report.md",
@@ -2689,7 +2695,7 @@ function checkBaselinePackSystemProtocol() {
   }
 
   const combined = [
-    read("docs/baseline-pack-system-1.13-plan.md"),
+    read("docs/plans/baseline-pack-system-1.13-plan.md"),
     read("core/baseline-pack-system.md"),
     read("docs/baseline-pack-system.md"),
     read("templates/baseline-pack-selection-report.md"),
@@ -2861,10 +2867,10 @@ function checkBaselinePackSystemProtocol() {
 
 function checkStandardBaselinePackRegistryProtocol() {
   const required = [
-    "docs/standard-baseline-pack-registry-1.14-plan.md",
-    "docs/platform-standard-baseline-packs-1.15-plan.md",
-    "docs/bl2-industrial-baseline-deepening-1.16-plan.md",
-    "docs/guided-baseline-selection-entry-1.17-plan.md",
+    "docs/plans/standard-baseline-pack-registry-1.14-plan.md",
+    "docs/plans/platform-standard-baseline-packs-1.15-plan.md",
+    "docs/plans/bl2-industrial-baseline-deepening-1.16-plan.md",
+    "docs/plans/guided-baseline-selection-entry-1.17-plan.md",
     "core/standard-baseline-pack-registry.md",
     "docs/standard-baseline-pack-registry.md",
     "docs/platform-standard-baseline-packs.md",
@@ -2939,10 +2945,10 @@ function checkStandardBaselinePackRegistryProtocol() {
   }
 
   const combined = [
-    read("docs/standard-baseline-pack-registry-1.14-plan.md"),
-    read("docs/platform-standard-baseline-packs-1.15-plan.md"),
-    read("docs/bl2-industrial-baseline-deepening-1.16-plan.md"),
-    read("docs/guided-baseline-selection-entry-1.17-plan.md"),
+    read("docs/plans/standard-baseline-pack-registry-1.14-plan.md"),
+    read("docs/plans/platform-standard-baseline-packs-1.15-plan.md"),
+    read("docs/plans/bl2-industrial-baseline-deepening-1.16-plan.md"),
+    read("docs/plans/guided-baseline-selection-entry-1.17-plan.md"),
     read("core/standard-baseline-pack-registry.md"),
     read("docs/standard-baseline-pack-registry.md"),
     read("docs/platform-standard-baseline-packs.md"),
@@ -3206,7 +3212,7 @@ function checkGuidedBaselineSelectionEntryProtocol() {
   }
 
   const combined = [
-    read("docs/guided-baseline-selection-entry-1.17-plan.md"),
+    read("docs/plans/guided-baseline-selection-entry-1.17-plan.md"),
     read("core/guided-baseline-selection.md"),
     read("docs/guided-baseline-selection-entry.md"),
     read("templates/baseline-decision-card.md"),
@@ -3331,13 +3337,13 @@ function checkGuidedBaselineSelectionEntryProtocol() {
 
 function checkGuidedBaselineSelectionCalibrationProtocol() {
   const required = [
-    "docs/guided-baseline-selection-calibration-1.18-plan.md",
+    "docs/plans/guided-baseline-selection-calibration-1.18-plan.md",
     "baseline-calibration-reports/2026-06-28-summary.md",
     "baseline-calibration-reports/2026-06-28-local-ios-industrial-monorepo-project.md",
     "releases/1.18.0/release-record.md",
     "releases/1.18.0/known-limitations.md",
     "releases/1.18.0/self-check-report.md",
-    "docs/guided-baseline-selection-calibration-1.18.1-plan.md",
+    "docs/plans/guided-baseline-selection-calibration-1.18.1-plan.md",
     "baseline-calibration-reports/scoreboard.md",
     "releases/1.18.1/release-record.md",
     "releases/1.18.1/known-limitations.md",
@@ -3349,7 +3355,7 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
   }
 
   const combined = [
-    read("docs/guided-baseline-selection-calibration-1.18-plan.md"),
+    read("docs/plans/guided-baseline-selection-calibration-1.18-plan.md"),
     read("core/guided-baseline-selection.md"),
     read("docs/guided-baseline-selection-entry.md"),
     read("templates/baseline-decision-card.md"),
@@ -3357,7 +3363,7 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
     read("scripts/resolve-guided-baseline-selection.mjs"),
     read("scripts/baseline-project.mjs"),
     read("releases/1.18.0/release-record.md"),
-    read("docs/guided-baseline-selection-calibration-1.18.1-plan.md"),
+    read("docs/plans/guided-baseline-selection-calibration-1.18.1-plan.md"),
     read("baseline-calibration-reports/scoreboard.md"),
     read("releases/1.18.1/release-record.md"),
   ].join("\n");
@@ -3463,7 +3469,7 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
 
 function checkBaselineSelectionPrecisionCalibrationProtocol() {
   const required = [
-    "docs/baseline-selection-precision-calibration-1.19-plan.md",
+    "docs/plans/baseline-selection-precision-calibration-1.19-plan.md",
     "baseline-calibration-reports/scoreboard.md",
     "baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md",
     "baseline-calibration-reports/precision-fixtures.json",
@@ -3482,7 +3488,7 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
   }
 
   const combined = [
-    read("docs/baseline-selection-precision-calibration-1.19-plan.md"),
+    read("docs/plans/baseline-selection-precision-calibration-1.19-plan.md"),
     read("baseline-calibration-reports/scoreboard.md"),
     read("baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md"),
     read("baseline-calibration-reports/precision-fixtures.json"),
@@ -3570,7 +3576,7 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
 
 function checkGuidedDeliveryBaselineProtocol() {
   const required = [
-    "docs/guided-delivery-baseline-1.3-plan.md",
+    "docs/plans/guided-delivery-baseline-1.3-plan.md",
     "core/outcome-baseline.md",
     "core/product-baseline.md",
     "core/claim-control.md",
@@ -3697,7 +3703,7 @@ function checkGuidedDeliveryBaselineProtocol() {
 
 function checkProjectMemoryContextGovernanceProtocol() {
   const required = [
-    "docs/project-memory-context-governance-1.4-plan.md",
+    "docs/plans/project-memory-context-governance-1.4-plan.md",
     "core/context-governance.md",
     "core/git-boundary.md",
     "templates/learning-candidate.md",
@@ -3772,7 +3778,7 @@ function checkProjectMemoryContextGovernanceProtocol() {
 
 function checkSafeLaunchProtocol() {
   const required = [
-    "docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md",
+    "docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md",
     "docs/context-governance-usage.md",
     "docs/minimal-commit-set.md",
     "core/safe-launch.md",
@@ -4039,7 +4045,7 @@ function checkFirstDeliveryWalkthroughProtocol() {
 
 function checkRealAdoptionAndPatchClassificationProtocol() {
   const required = [
-    "docs/real-project-adoption-trial-1.8-plan.md",
+    "docs/plans/real-project-adoption-trial-1.8-plan.md",
     "docs/real-adoption-usage.md",
     "core/real-project-adoption-trial.md",
     "core/patch-classification.md",
@@ -4506,7 +4512,7 @@ function checkUnifiedApplyPlanProtocol() {
   const required = [
     "core/unified-apply-plan.md",
     "docs/unified-apply-plan.md",
-    "docs/unified-apply-plan-1.34-plan.md",
+    "docs/plans/unified-apply-plan-1.34-plan.md",
     "templates/unified-apply-plan.md",
     "checklists/unified-apply-plan-review.md",
     "prompts/apply-plan-agent.md",
@@ -4613,7 +4619,7 @@ function checkBeginnerEntryProtocol() {
   const required = [
     "core/beginner-entry.md",
     "docs/beginner-entry.md",
-    "docs/beginner-entry-1.35-plan.md",
+    "docs/plans/beginner-entry-1.35-plan.md",
     "templates/beginner-entry-card.md",
     "checklists/beginner-entry-review.md",
     "prompts/beginner-entry-agent.md",
@@ -5371,7 +5377,7 @@ function checkReviewSurfaceGovernanceProtocol() {
 
 function checkDeliveryPathGovernanceProtocol() {
   const required = [
-    "docs/delivery-governance-roadmap-1.26-1.29.md",
+    "docs/roadmaps/delivery-governance-roadmap-1.26-1.29.md",
     "core/delivery-path-governance.md",
     "docs/delivery-path-governance.md",
     "templates/delivery-path-report.md",
@@ -5584,7 +5590,7 @@ function checkExecutionReviewClosureProtocol() {
     "execution-closures/.gitkeep",
     "scripts/resolve-execution-closure.mjs",
     "scripts/check-execution-closure.mjs",
-    "docs/evidence-linked-closure-1.33-plan.md",
+    "docs/plans/evidence-linked-closure-1.33-plan.md",
     "examples/1.32-execution-review-closure/README.md",
     "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
     "examples/1.33-evidence-linked-closure/README.md",
@@ -5852,7 +5858,7 @@ function checkIndustrialPacks() {
   }
 
   const combined = [
-    read("docs/bl2-industrial-baseline-deepening-1.16-plan.md"),
+    read("docs/plans/bl2-industrial-baseline-deepening-1.16-plan.md"),
     read("docs/bl2-industrial-baseline-deepening.md"),
     read("docs/reference/bl2-industrial-pack-depth-matrix.md"),
     read("docs/reference/industrial-packs.md"),
@@ -6237,76 +6243,48 @@ function checkReadmePointers() {
   const readme = read("README.md");
   const zhReadme = read("README.zh-CN.md");
   const requiredReadmePointers = [
+    "IntentOS",
     "AI Native Dev Kit",
+    "An AI-native system for guided software delivery",
+    "You describe the goal",
     "3 分钟理解",
     "新项目",
     "已有项目",
     "已上线",
-    "O0 + BL0",
-    "O1 + selected profiles + BL1",
-    "O2 + selected profiles + BL2",
+    "用户负责目标、取舍、风险接受和发布确认",
+    "所有可能写入项目的动作，都必须先变成可确认的计划",
+    "O0 / BL0",
+    "O1 / BL1",
+    "O2 / BL2",
+    "Beginner Entry",
+    "Unified Apply Plan",
+    "Work Queue / Todo",
+    "Document Lifecycle",
+    "Hook Policy",
     "node scripts/cli.mjs guide",
-    "node scripts/check-workflow-guidance.mjs",
-    "node scripts/cli.mjs review-surface",
-    "node scripts/check-review-surface.mjs",
-    "node scripts/cli.mjs delivery-path",
-    "node scripts/check-delivery-path.mjs",
-    "node scripts/cli.mjs debt-handoff",
-    "node scripts/check-debt-handoff.mjs",
-    "node scripts/cli.mjs archive-apply",
-    "node scripts/check-document-archive-apply.mjs",
     "node scripts/cli.mjs apply-plan",
-    "node scripts/check-apply-plan.mjs",
     "node scripts/cli.mjs start",
-    "node scripts/cli.mjs baseline",
     "node scripts/cli.mjs baseline-decision",
-    "node scripts/cli.mjs standard-baseline",
-    "node scripts/cli.mjs baseline-packs",
+    "node scripts/cli.mjs workflow-map",
+    "node scripts/cli.mjs work-queue",
+    "node scripts/cli.mjs doc-lifecycle",
+    "node scripts/cli.mjs hook-policy",
+    "node scripts/cli.mjs closure",
+    "node scripts/cli.mjs check",
     "npm run verify",
     "npm run verify:governance",
-    "node scripts/check-product-baseline.mjs",
-    "node scripts/check-claim-control.mjs",
-    "node scripts/check-context-governance.mjs",
-    "node scripts/check-launch-readiness.mjs",
-    "node scripts/check-conversation-drift.mjs",
-    "node scripts/check-guided-delivery-loop.mjs",
-    "node scripts/check-first-delivery-walkthrough.mjs",
-    "node scripts/check-change-boundary.mjs",
-    "node scripts/check-baseline-state.mjs",
-    "node scripts/resolve-existing-workflow.mjs",
-    "node scripts/check-workflow-adoption-map.mjs",
-    "node scripts/resolve-document-lifecycle.mjs",
-    "node scripts/check-document-lifecycle.mjs",
-    "node scripts/resolve-document-archive-apply.mjs",
-    "node scripts/check-document-archive-apply.mjs",
-    "node scripts/resolve-apply-plan.mjs",
-    "node scripts/check-apply-plan.mjs",
     "node scripts/cli.mjs ask",
     "node scripts/resolve-beginner-entry.mjs",
     "node scripts/check-beginner-entry.mjs",
-    "node scripts/resolve-work-queue.mjs",
-    "node scripts/check-work-queue.mjs",
-    "node scripts/resolve-hook-orchestration.mjs",
-    "node scripts/check-hook-orchestration.mjs",
-    "node scripts/resolve-guided-baseline-selection.mjs",
-    "node scripts/check-guided-baseline-selection.mjs",
-    "node scripts/resolve-standard-baseline.mjs",
-    "node scripts/check-standard-baseline-pack.mjs",
-    "node scripts/check-standard-baseline-selection.mjs",
-    "node scripts/resolve-baseline-packs.mjs",
-    "node scripts/check-baseline-pack-selection.mjs",
-    "node scripts/cli.mjs next",
-    "node scripts/cli.mjs init",
-    "node scripts/cli.mjs update",
-    "node scripts/cli.mjs migrate",
-    "node scripts/cli.mjs check",
-    "releases/1.23.0/release-record.md",
-    "releases/1.22.0/release-record.md",
-    "releases/1.10.0/release-record.md",
-    "releases/1.9.0/release-record.md",
-    "不要",
+    "node scripts/check-workflow-guidance.mjs",
+    "不因为一句话就写文件",
+    "不把建议当成执行授权",
+    "不自动改 CI、hook、发布流程或生产配置",
+    "不自动启用 BL2 或工业增强包",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/beginner-entry.md",
+    "docs/existing-project-workflow-adapter.md",
     "docs/review-surface-governance.md",
     "docs/delivery-path-governance.md",
     "docs/debt-knowledge-handoff.md",
@@ -6317,49 +6295,22 @@ function checkReadmePointers() {
     "docs/reference/standard-baseline-packs.md",
     "docs/reference/industrial-packs.md",
     "docs/guided-delivery-baseline.md",
-    "docs/product-baseline.md",
-    "docs/claim-control.md",
-    "docs/project-memory.md",
-    "docs/git-boundary.md",
-    "docs/context-governance-usage.md",
-    "docs/minimal-commit-set.md",
-    "docs/safe-launch.md",
-    "docs/conversation-drift-control.md",
-    "docs/first-delivery-walkthrough.md",
-    "docs/change-boundary.md",
-    "docs/baseline-state.md",
-    "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
-    "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
     "docs/document-archive-apply.md",
-    "docs/beginner-entry.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/hook-policy.md",
     "docs/baseline-pack-system.md",
-    "releases/1.29.0/release-record.md",
-    "releases/1.28.0/release-record.md",
-    "releases/1.26.0/release-record.md",
-    "releases/1.27.0/release-record.md",
-    "releases/1.25.0/release-record.md",
-    "releases/1.24.0/release-record.md",
     "docs/adoption-playbooks/new-project.md",
     "docs/adoption-playbooks/existing-light-project.md",
     "docs/adoption-playbooks/governed-project-read-only.md",
     "docs/adoption-playbooks/production-project-adapter.md",
     "docs/migrations/index.md",
-    "docs/migrations/0.33-to-1.0.md",
     "docs/troubleshooting.md",
     "docs/faq.md",
-    "releases/1.7.0/release-record.md",
-    "releases/1.4.0/release-record.md",
-    "releases/1.4.1/release-record.md",
-    "releases/1.5.0/release-record.md",
-    "releases/1.6.0/release-record.md",
-    "releases/1.3.0/release-record.md",
-    "releases/1.2.0/release-record.md",
-    "releases/1.1.0/release-record.md",
+    "VERSION.md",
+    "License",
   ];
   for (const pointer of requiredReadmePointers) {
     if (readme.includes(pointer)) pass(`README entry mentions ${pointer}`);
@@ -6373,52 +6324,24 @@ function checkReadmePointers() {
   }
 
   for (const pointer of [
-    "最小开始方式",
-    "Codex 一句话入口",
+    "IntentOS 中文说明",
+    "面向 AI 协作开发的项目交付系统",
+    "一句话开始",
+    "适合什么场景",
+    "项目分级",
+    "安全边界",
     "node scripts/cli.mjs guide",
-    "node scripts/check-workflow-guidance.mjs",
-    "node scripts/cli.mjs review-surface",
-    "node scripts/check-review-surface.mjs",
-    "node scripts/cli.mjs delivery-path",
-    "node scripts/check-delivery-path.mjs",
-    "node scripts/cli.mjs debt-handoff",
-    "node scripts/check-debt-handoff.mjs",
-    "node scripts/cli.mjs archive-apply",
-    "node scripts/check-document-archive-apply.mjs",
     "node scripts/cli.mjs apply-plan",
-    "node scripts/check-apply-plan.mjs",
     "node scripts/cli.mjs start",
-    "node scripts/cli.mjs baseline",
-    "node scripts/cli.mjs standard-baseline",
-    "node scripts/cli.mjs baseline-packs",
+    "node scripts/cli.mjs baseline-decision",
+    "node scripts/cli.mjs workflow-map",
+    "node scripts/cli.mjs work-queue",
+    "node scripts/cli.mjs doc-lifecycle",
+    "node scripts/cli.mjs hook-policy",
+    "node scripts/cli.mjs closure",
     "npm run verify",
     "npm run verify:governance",
-    "node scripts/check-product-baseline.mjs",
-    "node scripts/check-context-governance.mjs",
-    "node scripts/check-launch-readiness.mjs",
-    "node scripts/check-conversation-drift.mjs",
-    "node scripts/check-guided-delivery-loop.mjs",
-    "node scripts/check-first-delivery-walkthrough.mjs",
-    "node scripts/check-change-boundary.mjs",
-    "node scripts/check-baseline-state.mjs",
-    "node scripts/resolve-existing-workflow.mjs",
-    "node scripts/check-workflow-adoption-map.mjs",
-    "node scripts/resolve-document-lifecycle.mjs",
-    "node scripts/check-document-lifecycle.mjs",
-    "node scripts/resolve-document-archive-apply.mjs",
-    "node scripts/check-document-archive-apply.mjs",
-    "node scripts/resolve-apply-plan.mjs",
-    "node scripts/check-apply-plan.mjs",
-    "node scripts/resolve-work-queue.mjs",
-    "node scripts/check-work-queue.mjs",
-    "node scripts/resolve-hook-orchestration.mjs",
-    "node scripts/check-hook-orchestration.mjs",
-    "node scripts/resolve-standard-baseline.mjs",
-    "node scripts/check-standard-baseline-pack.mjs",
-    "node scripts/check-standard-baseline-selection.mjs",
-    "node scripts/resolve-baseline-packs.mjs",
-    "node scripts/check-baseline-pack-selection.mjs",
-    "重要边界",
+    "node scripts/check-beginner-entry.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
@@ -6447,17 +6370,28 @@ function checkReadmePointers() {
     "docs/hook-orchestration.md",
     "docs/hook-policy.md",
     "docs/baseline-pack-system.md",
-    "releases/1.29.0/release-record.md",
-    "releases/1.28.0/release-record.md",
-    "releases/1.26.0/release-record.md",
-    "releases/1.25.0/release-record.md",
-    "docs/migrations/0.33-to-1.0.md",
+    "docs/reference/scripts.md",
+    "docs/README.md",
+    "docs/index.md",
+    "docs/repository-structure.md",
+    "docs/document-ownership.md",
+    "docs/plans/README.md",
+    "docs/roadmaps/README.md",
+    "releases/1.36.0/release-record.md",
+    "VERSION.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
     else fail(`README.zh-CN missing ${pointer}`);
   }
 
   const requiredDocs = [
+    "docs/README.md",
+    "docs/index.md",
+    "docs/repository-structure.md",
+    "docs/document-ownership.md",
+    "docs/plans/README.md",
+    "docs/plans/repository-information-architecture-1.36-plan.md",
+    "docs/roadmaps/README.md",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
@@ -6502,6 +6436,60 @@ function checkReadmePointers() {
     else fail(`docs IA file missing ${doc}`);
   }
 
+  const rootDocs = fs.readdirSync(path.join(kitRoot, "docs"), { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+    .map((entry) => entry.name)
+    .sort();
+  const misplacedPlans = rootDocs.filter((name) => /-\d+(?:\.\d+)*-plan\.md$/.test(name));
+  const misplacedRoadmaps = rootDocs.filter((name) => /roadmap/i.test(name));
+  if (misplacedPlans.length === 0) pass("docs IA keeps historical plan files out of docs root");
+  else fail(`docs IA has plan files in docs root: ${misplacedPlans.join(", ")}`);
+  if (misplacedRoadmaps.length === 0) pass("docs IA keeps roadmap files out of docs root");
+  else fail(`docs IA has roadmap files in docs root: ${misplacedRoadmaps.join(", ")}`);
+
+  const plans = fs.readdirSync(path.join(kitRoot, "docs", "plans"))
+    .filter((name) => name.endsWith(".md"))
+    .sort();
+  const roadmaps = fs.readdirSync(path.join(kitRoot, "docs", "roadmaps"))
+    .filter((name) => name.endsWith(".md"))
+    .sort();
+  if (plans.includes("repository-information-architecture-1.36-plan.md")
+    && plans.includes("beginner-entry-1.35-plan.md")
+    && plans.includes("productization-hardcut-1.0-plan.md")) {
+    pass("docs IA has historical plans under docs/plans");
+  } else {
+    fail(`docs IA missing expected plans under docs/plans: ${plans.join(", ")}`);
+  }
+  if (roadmaps.includes("governance-hardening-roadmap.md")
+    && roadmaps.includes("delivery-governance-roadmap-1.26-1.29.md")) {
+    pass("docs IA has roadmap docs under docs/roadmaps");
+  } else {
+    fail(`docs IA missing expected roadmaps under docs/roadmaps: ${roadmaps.join(", ")}`);
+  }
+
+  const repositoryStructure = read("docs/repository-structure.md");
+  for (const marker of [
+    "Root Directory Classes",
+    "Why Many Root Artifact Directories Remain Flat",
+    "workflow artifact contract",
+    "Do not move root workflow artifact directories",
+  ]) {
+    if (repositoryStructure.includes(marker)) pass(`repository structure docs include ${marker}`);
+    else fail(`repository structure docs missing ${marker}`);
+  }
+
+  const ownership = read("docs/document-ownership.md");
+  for (const marker of [
+    "Source Of Truth",
+    "Historical plans",
+    "Roadmaps",
+    "When Docs Disagree",
+    "does not authorize deletion",
+  ]) {
+    if (ownership.includes(marker)) pass(`document ownership docs include ${marker}`);
+    else fail(`document ownership docs missing ${marker}`);
+  }
+
   const referenceContent = [
     readme,
     zhReadme,
@@ -6511,7 +6499,7 @@ function checkReadmePointers() {
     read("docs/mental-model.md"),
     read("docs/artifact-decision-tree.md"),
     read("docs/goal-subagent-usage.md"),
-    read("docs/governance-hardening-roadmap.md"),
+    read("docs/roadmaps/governance-hardening-roadmap.md"),
   ].join("\n");
   const requiredReferencePointers = [
     "generic-project",

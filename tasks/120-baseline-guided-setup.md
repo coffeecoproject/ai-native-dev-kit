@@ -26,7 +26,7 @@ Baseline refs:
 
 - `core/engineering-baseline.md`
 - `core/environment-baseline.md`
-- `docs/engineering-environment-baseline-1.2-plan.md`
+- `docs/plans/engineering-environment-baseline-1.2-plan.md`
 
 Baseline decisions introduced:
 

@@ -10,7 +10,7 @@ The release creates a simpler natural-language entry for users who should not ne
 
 - `core/beginner-entry.md`
 - `docs/beginner-entry.md`
-- `docs/beginner-entry-1.35-plan.md`
+- `docs/plans/beginner-entry-1.35-plan.md`
 - `templates/beginner-entry-card.md`
 - `checklists/beginner-entry-review.md`
 - `prompts/beginner-entry-agent.md`

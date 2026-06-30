@@ -67,7 +67,7 @@ node scripts/check-dev-kit.mjs
 
 ## Related Artifacts
 
-- docs/guided-delivery-baseline-1.3-plan.md
+- docs/plans/guided-delivery-baseline-1.3-plan.md
 - requests/130-guided-delivery-baseline.md
 - tasks/130-guided-delivery-baseline.md
 - review-loop-reports/130-guided-delivery-baseline.md

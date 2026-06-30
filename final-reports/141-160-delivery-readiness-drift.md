@@ -67,7 +67,7 @@ Push the verified commit, then hand the repo to GPT for review.
 
 Task: `goal-cards/141-160-delivery-readiness-drift.md`
 
-Spec: `docs/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
+Spec: `docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md`
 
 Eval: `releases/1.6.0/self-check-report.md`
 

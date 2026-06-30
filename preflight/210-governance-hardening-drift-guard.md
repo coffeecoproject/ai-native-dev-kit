@@ -18,7 +18,7 @@ status: approved
 
 - Current release before this work: `1.10.0`.
 - Review feedback identified drift risk in README, manifest, init semantics, and marker-based release checks.
-- `docs/governance-hardening-drift-guard-1.11-plan.md` defines the approved implementation path.
+- `docs/plans/governance-hardening-drift-guard-1.11-plan.md` defines the approved implementation path.
 
 ## Risk Gate
 
@@ -34,5 +34,5 @@ status: approved
 - `core/claim-control.md`
 - `core/product-baseline.md`
 - `core/context-governance.md`
-- `docs/governance-hardening-drift-guard-1.11-plan.md`
+- `docs/plans/governance-hardening-drift-guard-1.11-plan.md`
 

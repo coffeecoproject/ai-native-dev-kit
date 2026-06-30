@@ -10,7 +10,7 @@ Request: `requests/034-baseline-freeze-self-ci.md`
 
 Preflight: `preflight/034-baseline-freeze-self-ci.md`
 
-Productization plan: `docs/productization-hardcut-1.0-plan.md`
+Productization plan: `docs/plans/productization-hardcut-1.0-plan.md`
 
 ## Problem
 

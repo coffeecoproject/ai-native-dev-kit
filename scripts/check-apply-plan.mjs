@@ -215,7 +215,7 @@ function requireVerification(content, label) {
 
 function checkSourceEvidence() {
   for (const file of [
-    "docs/unified-apply-plan-1.34-plan.md",
+    "docs/plans/unified-apply-plan-1.34-plan.md",
     "examples/1.34-unified-apply-plan/README.md",
     "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
     "test-fixtures/bad/bad-apply-plan-authorizes-apply/apply-plans/001-bad.md",
