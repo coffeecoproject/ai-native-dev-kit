@@ -66,6 +66,15 @@ node scripts/cli.mjs baseline <project>
 
 `baseline` is read-only by default. It recommends Engineering and Environment Baseline setup and must report `Can AI write now: No`. Writes require `baseline-project --write-plan` and reviewed `--apply-plan`.
 
+When a Unified Apply Plan exists and the user asks whether it can be executed, do not treat the conversation as apply permission. Run Controlled Apply Readiness first:
+
+```bash
+node scripts/cli.mjs apply-readiness <project> --plan <apply-plan>
+node scripts/cli.mjs apply-readiness-check <project>
+```
+
+Controlled Apply Readiness is still read-only. It can classify a plan as not ready, blocked, human-only, or a low-risk candidate for future human-approved apply. It does not write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
+
 For platform standard baseline recommendations:
 
 ```bash

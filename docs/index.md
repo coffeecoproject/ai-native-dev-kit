@@ -33,6 +33,7 @@ This index separates current operating documents from reference material, histor
 - [Debt & Knowledge Handoff](debt-knowledge-handoff.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
+- [Controlled Apply Readiness](controlled-apply-readiness.md)
 - [Work Queue](work-queue.md)
 - [Conversation Drift Control](conversation-drift-control.md)
 - [Safe Launch](safe-launch.md)

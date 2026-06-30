@@ -103,6 +103,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "apply-readiness": {
+    description: "Evaluate whether a Unified Apply Plan is ready for future human-approved controlled apply.",
+    script: "scripts/resolve-controlled-apply-readiness.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "apply-readiness-check": {
+    description: "Check recorded Controlled Apply Readiness Reports.",
+    script: "scripts/check-controlled-apply-readiness.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",
@@ -444,6 +456,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs closure-check .");
   console.log("  node scripts/cli.mjs apply-plan . --intent '接入 AI Native 工作流' --action workflow-assets");
   console.log("  node scripts/cli.mjs apply-plan-check .");
+  console.log("  node scripts/cli.mjs apply-readiness . --plan apply-plans/001-example.md");
+  console.log("  node scripts/cli.mjs apply-readiness-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs baseline-decision ../my-project");

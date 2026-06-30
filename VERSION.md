@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.37.0`
+Current version: `1.38.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.37.0`
 
 ## Current Release
 
-`1.37.0`
+`1.38.0`
 
 Includes:
 
+- Controlled Apply Readiness phase `1.38.0`: adds a pre-execution readiness gate after Unified Apply Plan so Codex can evaluate whether a reviewed plan is eligible for a future human-approved controlled apply step
+- Added `core/controlled-apply-readiness.md`, `docs/controlled-apply-readiness.md`, `templates/controlled-apply-readiness-report.md`, `apply-readiness-reports/`, resolver/checker scripts, CLI entries, examples, bad fixtures, manifest/generated-project coverage, and release evidence
+- `1.38.0` does not add an apply runner, write target files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive/delete/rewrite documents, change source of truth, enable baseline/industrial packs, or approve high-risk decisions
 - Conversation-Native Ask phase `1.37.0`: makes natural-language project goals the default conversational entry, internally routing through Beginner Entry behavior without requiring users to know workflow commands
 - Added `core/conversation-native-ask.md`, `docs/conversation-native-ask.md`, `templates/conversation-ask-card.md`, `conversation-ask-cards/`, checker/prompt/checklist assets, examples, bad fixtures, manifest/generated-project coverage, and release evidence
 - `1.37.0` does not write target files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive/delete/rewrite documents, change task state, enable baseline/industrial packs, add an apply runner, or approve high-risk decisions

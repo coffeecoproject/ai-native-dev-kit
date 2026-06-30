@@ -101,6 +101,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Review Surface | 执行前判断任务完成后需要审哪些面 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
+| Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
 | Work Queue / Todo | 管理当前任务、暂停任务、停车场和恢复入口 |
 | Document Lifecycle | 识别过期、重复、废弃文档和 source of truth，默认建议归档，不默认删除 |
 | Hook Policy | 定义项目允许哪些 hook、谁确认、怎么禁用和回滚 |
@@ -117,6 +118,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | 选择项目基线 | `node scripts/cli.mjs baseline-decision ../my-project` |
 | 老项目先映射现有治理 | `node scripts/cli.mjs workflow-map ../my-project` |
 | 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
+| 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
 | 检查文档生命周期 | `node scripts/cli.mjs doc-lifecycle ../my-project` |
 | 规划 hook 而不安装 | `node scripts/cli.mjs hook-policy ../my-project` |
@@ -177,6 +179,7 @@ node scripts/cli.mjs ask . "维护 IntentOS 小白入口"
 node scripts/resolve-beginner-entry.mjs . --goal "维护 IntentOS 小白入口"
 node scripts/check-beginner-entry.mjs .
 node scripts/check-conversation-native-ask.mjs .
+node scripts/check-controlled-apply-readiness.mjs .
 node scripts/check-workflow-guidance.mjs .
 ```
 
@@ -216,6 +219,7 @@ node scripts/check-workflow-guidance.mjs .
 - [Delivery Path Governance](docs/delivery-path-governance.md)
 - [Debt & Knowledge Handoff](docs/debt-knowledge-handoff.md)
 - [Unified Apply Plan](docs/unified-apply-plan.md)
+- [Controlled Apply Readiness](docs/controlled-apply-readiness.md)
 - [Work Queue](docs/work-queue.md)
 - [Document Lifecycle](docs/document-lifecycle.md)
 - [Document Archive Apply](docs/document-archive-apply.md)
@@ -247,7 +251,7 @@ node scripts/check-workflow-guidance.mjs .
 
 当前版本：
 
-- [1.37 Release Record](releases/1.37.0/release-record.md)
+- [1.38 Release Record](releases/1.38.0/release-record.md)
 - [Version History](VERSION.md)
 
 ## License

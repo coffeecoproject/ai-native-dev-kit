@@ -130,6 +130,19 @@ node scripts/cli.mjs apply-plan-check .
 
 A Unified Apply Plan records proposed writes, source evidence, human-only or blocked actions, preconditions, backup, rollback, verification, and boundaries. It does not write files, authorize apply, approve implementation, approve release or production, modify CI/hooks, delete/archive files, change source of truth, or grant permission to continue beyond scope.
 
+## Controlled Apply Readiness
+
+Use `.ai-native/core/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future human-approved controlled apply step.
+
+Run:
+
+```bash
+node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <clean|dirty>
+node scripts/cli.mjs apply-readiness-check .
+```
+
+Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversible, verifiable, and still requires explicit human approval. It does not execute writes, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
+
 ## Project Hook Policy
 
 Use `.ai-native/core/hook-policy.md` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks.

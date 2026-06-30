@@ -74,6 +74,12 @@ Before non-trivial work, read:
 - Run `node scripts/cli.mjs apply-plan-check .` when Unified Apply Plans exist.
 - Do not treat apply plans as permission to write files, authorize apply, approve implementation, approve release/production, modify CI/hooks, delete/archive files, change source of truth, or continue beyond scope.
 
+## Controlled Apply Readiness
+
+- Run `node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <clean|dirty>` after a Unified Apply Plan exists and before any future human-approved controlled apply step.
+- Run `node scripts/cli.mjs apply-readiness-check .` when Controlled Apply Readiness Reports exist.
+- Do not treat readiness reports as permission to write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
+
 ## Project Hook Policy
 
 - Run `node scripts/cli.mjs hook-policy .` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks.

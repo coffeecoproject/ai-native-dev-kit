@@ -4754,6 +4754,133 @@ function checkBeginnerEntryProtocol() {
   }
 }
 
+function checkControlledApplyReadinessProtocol() {
+  const required = [
+    "core/controlled-apply-readiness.md",
+    "docs/controlled-apply-readiness.md",
+    "docs/plans/controlled-apply-readiness-1.38-plan.md",
+    "templates/controlled-apply-readiness-report.md",
+    "checklists/controlled-apply-readiness-review.md",
+    "prompts/controlled-apply-readiness-agent.md",
+    "apply-readiness-reports/.gitkeep",
+    "scripts/resolve-controlled-apply-readiness.mjs",
+    "scripts/check-controlled-apply-readiness.mjs",
+    "examples/1.38-controlled-apply-readiness/README.md",
+    "examples/1.38-controlled-apply-readiness/apply-readiness-reports/001-workflow-assets.md",
+    "test-fixtures/bad/bad-controlled-apply-authorizes-apply/apply-readiness-reports/001-bad.md",
+    "test-fixtures/bad/bad-controlled-apply-high-risk-ready/apply-readiness-reports/001-bad.md",
+    "test-fixtures/bad/bad-controlled-apply-proceeds-without-approval/apply-readiness-reports/001-bad.md",
+    "releases/1.38.0/release-record.md",
+    "releases/1.38.0/known-limitations.md",
+    "releases/1.38.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.38 controlled apply readiness asset exists ${file}`);
+    else fail(`1.38 controlled apply readiness asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/controlled-apply-readiness.md"),
+    read("docs/controlled-apply-readiness.md"),
+    read("templates/controlled-apply-readiness-report.md"),
+    read("scripts/resolve-controlled-apply-readiness.mjs"),
+    read("scripts/check-controlled-apply-readiness.mjs"),
+    read("releases/1.38.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Controlled Apply Readiness Governance",
+    "It does not execute the plan",
+    "READY_FOR_HUMAN_APPROVED_APPLY",
+    "Human-Only Actions",
+    "This readiness report writes files now: No",
+    "This readiness report authorizes apply: No",
+    "This readiness report approves implementation: No",
+    "This readiness report approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.38 controlled apply readiness includes ${marker}`);
+    else fail(`1.38 controlled apply readiness missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "apply-readiness",
+    "apply-readiness-check",
+    "scripts/resolve-controlled-apply-readiness.mjs",
+    "scripts/check-controlled-apply-readiness.mjs",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports controlled apply readiness marker ${marker}`);
+    else fail(`CLI missing controlled apply readiness marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "controlled-apply-readiness-report",
+    "apply-readiness-reports",
+    "controlled-apply-readiness-report.md",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports controlled apply readiness marker ${marker}`);
+    else fail(`new-workflow-item missing controlled apply readiness marker ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-controlled-apply-readiness.mjs", ".", "--plan", "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md", "--git-state", "clean"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Controlled Apply Readiness Report")
+    && resolver.stdout.includes("Can Codex apply now")
+    && resolver.stdout.includes("This readiness report authorizes apply: No")) {
+    pass("1.38 controlled apply readiness resolver prints safe report");
+  } else {
+    fail(`1.38 controlled apply readiness resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-controlled-apply-readiness.mjs", ".", "--plan", "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md", "--git-state", "clean", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "CONTROLLED_APPLY_READINESS"
+        && parsed.boundary?.authorizesApply === "No"
+        && parsed.boundary?.writesFilesNow === "No"
+        && parsed.readinessState?.canProceedWithoutNewApproval === "No") {
+        pass("1.38 controlled apply readiness resolver JSON includes boundaries");
+      } else {
+        fail(`1.38 controlled apply readiness resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.38 controlled apply readiness resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.38 controlled apply readiness resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-controlled-apply-readiness.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Controlled Apply Readiness check passed")) {
+    pass("1.38 controlled apply readiness checker passes source repo");
+  } else {
+    fail(`1.38 controlled apply readiness checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-controlled-apply-readiness.mjs", "examples/1.38-controlled-apply-readiness"]);
+  if (example.status === 0 && example.stdout.includes("Controlled Apply Readiness check passed")) {
+    pass("1.38 controlled apply readiness example passes checker");
+  } else {
+    fail(`1.38 controlled apply readiness example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["authorizes apply", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-controlled-apply-authorizes-apply"], "forbidden controlled apply readiness claim"],
+    ["high-risk ready", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-controlled-apply-high-risk-ready"], "cannot be READY_FOR_HUMAN_APPROVED_APPLY"],
+    ["proceeds without approval", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-controlled-apply-proceeds-without-approval"], "must state it cannot proceed without new approval"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.38 controlled apply readiness rejects ${name}`);
+    } else {
+      fail(`1.38 controlled apply readiness must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkConversationNativeAskProtocol() {
   const required = [
     "core/conversation-native-ask.md",
@@ -6475,7 +6602,7 @@ function checkReadmePointers() {
     "docs/document-ownership.md",
     "docs/plans/README.md",
     "docs/roadmaps/README.md",
-    "releases/1.37.0/release-record.md",
+    currentReleasePointer,
     "VERSION.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -9002,6 +9129,7 @@ checkExistingProjectWorkflowAdapterProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();
+checkControlledApplyReadinessProtocol();
 checkBeginnerEntryProtocol();
 checkConversationNativeAskProtocol();
 checkWorkQueueProtocol();

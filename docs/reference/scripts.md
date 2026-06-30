@@ -49,6 +49,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs archive-apply-check <project>` | Check recorded Document Archive Apply Plans | No |
 | `node scripts/cli.mjs apply-plan <project> --intent "<goal>"` | Turn proposed project writes into one reviewable Unified Apply Plan | No |
 | `node scripts/cli.mjs apply-plan-check <project>` | Check recorded Unified Apply Plans | No |
+| `node scripts/cli.mjs apply-readiness <project> --plan <apply-plan>` | Evaluate whether an apply plan is eligible for a future human-approved controlled apply step | No |
+| `node scripts/cli.mjs apply-readiness-check <project>` | Check recorded Controlled Apply Readiness Reports | No |
 | `node scripts/cli.mjs work-queue <project>` | Recommend current, paused, backlog, and resume state without changing task state | No |
 | `node scripts/cli.mjs work-queue-check <project>` | Check recorded Work Queue Reports and single-current-task rules | No |
 | `node scripts/cli.mjs hook-plan <project>` | Recommend hook candidates without installing hooks, changing CI, or adding gates | No |
@@ -123,6 +125,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-apply-plan.mjs` is the 1.34 unified apply-plan entry. It reads project state, user intent, proposed action types, target paths, and optional evidence refs, then prints one Unified Apply Plan with proposed writes, human-only or blocked actions, preconditions, backup, rollback, verification, and explicit no-write/no-apply boundaries. It does not write target-project files or authorize apply.
 
 `scripts/check-apply-plan.mjs` checks recorded Unified Apply Plans. It rejects write-now claims, apply authorization, implementation approval, release/production approval, CI/hook/archive/source-of-truth changes now, high-risk actions without human-only or approval-required status, missing rollback, and missing verification planning.
+
+`scripts/resolve-controlled-apply-readiness.mjs` is the 1.38 controlled apply readiness entry. It reads one Unified Apply Plan and reports whether the plan is not ready, human-only, blocked, or a low-risk candidate for future human-approved apply. It does not write target-project files or authorize apply.
+
+`scripts/check-controlled-apply-readiness.mjs` checks recorded Controlled Apply Readiness Reports. It rejects apply authorization, write-now claims, proceeding without new approval, high-risk actions marked ready, missing rollback, missing verification, and release/production/hook/CI/source-of-truth overclaims.
 
 `scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
 

@@ -12,6 +12,7 @@ Explain what changed in plain language and why the change is safe to review.
 - Debt / Knowledge Handoff:
 - Document Archive Apply:
 - Unified Apply Plan:
+- Controlled Apply Readiness:
 - Project Hook Policy:
 - Request:
 - Preflight:

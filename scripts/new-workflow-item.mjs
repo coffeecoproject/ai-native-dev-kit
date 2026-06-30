@@ -39,6 +39,7 @@ const typeMap = {
   "document-lifecycle-report": { dir: "doc-lifecycle-reports", template: "document-lifecycle-report.md", defaultName: "document-lifecycle" },
   "document-archive-apply-plan": { dir: "archive-apply-plans", template: "document-archive-apply-plan.md", defaultName: "archive-apply" },
   "unified-apply-plan": { dir: "apply-plans", template: "unified-apply-plan.md", defaultName: "apply-plan" },
+  "controlled-apply-readiness-report": { dir: "apply-readiness-reports", template: "controlled-apply-readiness-report.md", defaultName: "apply-readiness" },
   "beginner-entry-card": { dir: "beginner-entry-cards", template: "beginner-entry-card.md", defaultName: "beginner-entry" },
   "conversation-ask-card": { dir: "conversation-ask-cards", template: "conversation-ask-card.md", defaultName: "conversation-ask" },
   "work-queue-report": { dir: "work-queue", template: "work-queue-report.md", defaultName: "work-queue" },
@@ -147,6 +148,11 @@ const aliases = {
   "unified-apply-plan": "unified-apply-plan",
   "apply": "unified-apply-plan",
   "write-plan": "unified-apply-plan",
+  "apply-readiness": "controlled-apply-readiness-report",
+  "controlled-apply": "controlled-apply-readiness-report",
+  "controlled-apply-readiness": "controlled-apply-readiness-report",
+  "apply-ready": "controlled-apply-readiness-report",
+  "apply-readiness-report": "controlled-apply-readiness-report",
   ask: "beginner-entry-card",
   "beginner-entry": "beginner-entry-card",
   "beginner-entry-card": "beginner-entry-card",
@@ -280,6 +286,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type workflow-adoption-map --name governed-project");
   console.error("  node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs");
   console.error("  node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name stale-docs-archive-plan");
+  console.error("  node scripts/new-workflow-item.mjs --type controlled-apply-readiness-report --name workflow-assets");
   console.error("  node scripts/new-workflow-item.mjs --type beginner-entry-card --name first-user-goal");
   console.error("  node scripts/new-workflow-item.mjs --type conversation-ask-card --name first-conversation-goal");
   console.error("  node scripts/new-workflow-item.mjs --type work-queue-report --name current-work");

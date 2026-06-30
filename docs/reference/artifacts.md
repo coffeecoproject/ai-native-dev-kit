@@ -53,6 +53,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
 | `doc-lifecycle-reports/` | Source-of-truth, stale, duplicate, archive, and deprecation candidate reports |
 | `archive-apply-plans/` | Plan-only archive action, link-check, archive index, rollback, and human-decision records |
+| `apply-readiness-reports/` | Pre-execution readiness reports for reviewed Unified Apply Plans |
 | `work-queue/` | Current task, paused tasks, backlog / parking lot, and resume review records |
 | `hook-orchestration-plans/` | Plan-first hook candidates, H0-H3 classification, approval requirements, and rollback notes |
 | `hook-policies/` | Project hook policy, allowed hook classes, approval owners, and rollback / disable rules |
@@ -135,6 +136,8 @@ Guided Baseline Selection lives under `.ai-native/core/` in generated projects. 
 Natural Language Workflow Orchestrator lives under `.ai-native/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
 
 Conversation-Native Ask lives under `.ai-native/core/` in generated projects. It makes a plain user goal equivalent to Beginner Entry behavior in conversation, without requiring the user to know or run CLI commands first.
+
+Controlled Apply Readiness lives under `.ai-native/core/` in generated projects. It checks whether a Unified Apply Plan is eligible for a future human-approved controlled apply step, while keeping actual apply, implementation, release, production, hooks, CI, archive, and high-risk decisions unauthorized.
 
 Review Surface Governance lives under `.ai-native/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
 
