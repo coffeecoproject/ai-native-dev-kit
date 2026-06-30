@@ -23,6 +23,23 @@ Codex may draft and execute. Humans keep responsibility for decisions, risk acce
 
 ## Entry Rule
 
+When a user gives a plain project goal in conversation, treat it as Conversation-Native Ask unless the user clearly says they only want to discuss, review, compare, inspect, pause, or stop.
+
+The user should not need to know the command name before Codex can route the work:
+
+```text
+我想做一个预约 App，你帮我开始。
+```
+
+For durable evidence and maintainer debugging, the equivalent command remains:
+
+```bash
+node scripts/cli.mjs ask <project> "<goal>"
+node scripts/cli.mjs conversation-ask-check <project>
+```
+
+Conversation-Native Ask is routing only. It does not authorize writes, apply, implementation, release, production, CI, hooks, document cleanup, task-state changes, baseline activation, or high-risk decisions.
+
 Always start by reading project state before writing files:
 
 ```bash

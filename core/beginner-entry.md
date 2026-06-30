@@ -4,6 +4,8 @@ Beginner Entry is the plain-language front door for users who should not need to
 
 It receives one user goal, reads the project in read-only mode, calls existing guidance logic, and returns one Beginner Entry Card.
 
+Conversation-Native Ask defines when Codex should apply this behavior automatically from a normal user message.
+
 ## Purpose
 
 - Let users describe the desired outcome in natural language.

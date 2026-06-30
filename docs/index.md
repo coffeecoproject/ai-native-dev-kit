@@ -15,6 +15,7 @@ This index separates current operating documents from reference material, histor
 ## Entry And Routing
 
 - [Beginner Entry](beginner-entry.md)
+- [Conversation-Native Ask](conversation-native-ask.md)
 - [Natural Language Orchestrator](natural-language-orchestrator.md)
 - [Guided Delivery Check](guided-delivery-check.md)
 - [Guided Baseline Selection Entry](guided-baseline-selection-entry.md)
@@ -83,4 +84,3 @@ This index separates current operating documents from reference material, histor
 - [Migrations](migrations/)
 - [Version History](../VERSION.md)
 - [Release Evidence](../releases/)
-

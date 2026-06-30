@@ -18,7 +18,7 @@ What is happening now?
 
 | Situation | Use | Do not use it as |
 |---|---|---|
-| User only gives a plain-language goal and should not need workflow terms | `beginner-entry-cards/` | apply approval or implementation permission |
+| User only gives a plain-language goal and should not need workflow terms | `conversation-ask-cards/` or `beginner-entry-cards/` | apply approval or implementation permission |
 | User intent needs route selection before artifacts or code | `goal-cards/` | implementation approval |
 | Helper agents are used for planning, research, review, repair analysis, or reporting | `subagent-run-plans/` | permission for background agents or multiple writers |
 | User asks for a change | `requests/` | approval to implement a vague request |

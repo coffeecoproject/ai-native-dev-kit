@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.36.0",
+  "devKitVersion": "1.37.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.36.0"
+    "phase": "1.37.0"
   },
   "groups": {
     "sourceRequired": [
@@ -60,6 +60,7 @@
       "checklists/claim-control-review.md",
       "checklists/context-governance-review.md",
       "checklists/conversation-drift-review.md",
+      "checklists/conversation-native-ask-review.md",
       "checklists/core-purity-review.md",
       "checklists/daily-summary-review.md",
       "checklists/debt-knowledge-handoff-review.md",
@@ -97,6 +98,7 @@
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md",
       "context-corrections/.gitkeep",
+      "conversation-ask-cards/.gitkeep",
       "conversation-turns/.gitkeep",
       "core/assumption-register.md",
       "core/automation-governance.md",
@@ -108,6 +110,7 @@
       "core/claim-control.md",
       "core/context-governance.md",
       "core/conversation-drift-control.md",
+      "core/conversation-native-ask.md",
       "core/debt-knowledge-handoff.md",
       "core/decision-delegation-boundary.md",
       "core/delivery-path-governance.md",
@@ -176,6 +179,7 @@
       "docs/codex-usage.md",
       "docs/context-governance-usage.md",
       "docs/conversation-drift-control.md",
+      "docs/conversation-native-ask.md",
       "docs/debt-knowledge-handoff.md",
       "docs/delivery-path-governance.md",
       "docs/document-archive-apply.md",
@@ -206,6 +210,7 @@
       "docs/plans/beginner-entry-1.35-plan.md",
       "docs/plans/bl2-industrial-baseline-deepening-1.16-plan.md",
       "docs/plans/change-boundary-baseline-state-1.12-plan.md",
+      "docs/plans/conversation-native-ask-1.37-plan.md",
       "docs/plans/engineering-environment-baseline-1.2-plan.md",
       "docs/plans/evidence-linked-closure-1.33-plan.md",
       "docs/plans/governance-hardening-drift-guard-1.11-plan.md",
@@ -378,6 +383,8 @@
       "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
       "examples/1.35-beginner-entry/README.md",
       "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
+      "examples/1.37-conversation-native-ask/README.md",
+      "examples/1.37-conversation-native-ask/conversation-ask-cards/001-appointment-app.md",
       "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
@@ -702,6 +709,7 @@
       "prompts/change-boundary-agent.md",
       "prompts/claim-control-agent.md",
       "prompts/context-governance-agent.md",
+      "prompts/conversation-native-ask-agent.md",
       "prompts/conversation-router-agent.md",
       "prompts/debt-handoff-agent.md",
       "prompts/delivery-coach-agent.md",
@@ -856,6 +864,9 @@
       "releases/1.36.0/known-limitations.md",
       "releases/1.36.0/release-record.md",
       "releases/1.36.0/self-check-report.md",
+      "releases/1.37.0/known-limitations.md",
+      "releases/1.37.0/release-record.md",
+      "releases/1.37.0/self-check-report.md",
       "releases/1.4.0/known-limitations.md",
       "releases/1.4.0/release-record.md",
       "releases/1.4.0/self-check-report.md",
@@ -964,6 +975,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-conversation-native-ask.mjs",
       "scripts/check-debt-handoff.mjs",
       "scripts/check-delivery-path.mjs",
       "scripts/check-dev-kit.mjs",
@@ -1217,6 +1229,7 @@
       "templates/change-boundary-report.md",
       "templates/claim-control-report.md",
       "templates/context-correction-report.md",
+      "templates/conversation-ask-card.md",
       "templates/conversation-turn-classification.md",
       "templates/customer-handoff.md",
       "templates/daily-automation-prompt.md",
@@ -1308,6 +1321,9 @@
       "test-fixtures/bad/bad-context-correction-missing-evidence/templates/context-correction-report.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/templates/git-boundary-report.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/templates/learning-candidate.md",
+      "test-fixtures/bad/bad-conversation-ask-authorizes-write/conversation-ask-cards/001-bad.md",
+      "test-fixtures/bad/bad-conversation-ask-cli-burden/conversation-ask-cards/001-bad.md",
+      "test-fixtures/bad/bad-conversation-ask-too-many-questions/conversation-ask-cards/001-bad.md",
       "test-fixtures/bad/bad-conversation-discuss-only-writes/conversation-turns/001-discuss-writes.md",
       "test-fixtures/bad/bad-conversation-risk-auto-continue/conversation-turns/001-risk-auto.md",
       "test-fixtures/bad/bad-conversation-scope-creep/conversation-turns/001-scope-creep.md",
@@ -1528,6 +1544,7 @@
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
+      ".ai-native/checklists/conversation-native-ask-review.md",
       ".ai-native/checklists/core-purity-review.md",
       ".ai-native/checklists/daily-summary-review.md",
       ".ai-native/checklists/debt-knowledge-handoff-review.md",
@@ -1573,6 +1590,7 @@
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
+      ".ai-native/core/conversation-native-ask.md",
       ".ai-native/core/debt-knowledge-handoff.md",
       ".ai-native/core/decision-delegation-boundary.md",
       ".ai-native/core/delivery-path-governance.md",
@@ -1621,6 +1639,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/conversation-native-ask.md",
       ".ai-native/docs/debt-knowledge-handoff.md",
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-archive-apply.md",
@@ -1660,6 +1679,7 @@
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
       ".ai-native/prompts/context-governance-agent.md",
+      ".ai-native/prompts/conversation-native-ask-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/debt-handoff-agent.md",
       ".ai-native/prompts/delivery-coach-agent.md",
@@ -1709,6 +1729,7 @@
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
       ".ai-native/templates/context-correction-report.md",
+      ".ai-native/templates/conversation-ask-card.md",
       ".ai-native/templates/conversation-turn-classification.md",
       ".ai-native/templates/customer-handoff.md",
       ".ai-native/templates/daily-automation-prompt.md",
@@ -1785,6 +1806,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
+      "conversation-ask-cards",
       "conversation-turns",
       "customer-handoffs",
       "debt-handoff-reports",
@@ -1844,6 +1866,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-conversation-native-ask.mjs",
       "scripts/check-debt-handoff.mjs",
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
@@ -1928,6 +1951,7 @@
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
+      ".ai-native/checklists/conversation-native-ask-review.md",
       ".ai-native/checklists/core-purity-review.md",
       ".ai-native/checklists/daily-summary-review.md",
       ".ai-native/checklists/debt-knowledge-handoff-review.md",
@@ -1976,6 +2000,7 @@
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
+      ".ai-native/core/conversation-native-ask.md",
       ".ai-native/core/debt-knowledge-handoff.md",
       ".ai-native/core/decision-delegation-boundary.md",
       ".ai-native/core/delivery-path-governance.md",
@@ -2024,6 +2049,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/conversation-native-ask.md",
       ".ai-native/docs/debt-knowledge-handoff.md",
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-archive-apply.md",
@@ -2089,6 +2115,7 @@
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
       ".ai-native/prompts/context-governance-agent.md",
+      ".ai-native/prompts/conversation-native-ask-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/debt-handoff-agent.md",
       ".ai-native/prompts/delivery-coach-agent.md",
@@ -2140,6 +2167,7 @@
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
       ".ai-native/templates/context-correction-report.md",
+      ".ai-native/templates/conversation-ask-card.md",
       ".ai-native/templates/conversation-turn-classification.md",
       ".ai-native/templates/customer-handoff.md",
       ".ai-native/templates/daily-automation-prompt.md",
@@ -2220,6 +2248,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
+      "conversation-ask-cards",
       "conversation-turns",
       "customer-handoffs",
       "debt-handoff-reports",
@@ -2279,6 +2308,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-conversation-native-ask.mjs",
       "scripts/check-debt-handoff.mjs",
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
@@ -2632,6 +2662,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
+      "conversation-ask-cards",
       "conversation-turns",
       "customer-handoffs",
       "debt-handoff-reports",
@@ -3224,6 +3255,7 @@
       ".ai-native/checklists/claim-control-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
+      ".ai-native/checklists/conversation-native-ask-review.md",
       ".ai-native/checklists/debt-knowledge-handoff-review.md",
       ".ai-native/checklists/delivery-path-review.md",
       ".ai-native/checklists/document-archive-apply-review.md",
@@ -3253,6 +3285,7 @@
       ".ai-native/core/claim-control.md",
       ".ai-native/core/context-governance.md",
       ".ai-native/core/conversation-drift-control.md",
+      ".ai-native/core/conversation-native-ask.md",
       ".ai-native/core/debt-knowledge-handoff.md",
       ".ai-native/core/decision-delegation-boundary.md",
       ".ai-native/core/delivery-path-governance.md",
@@ -3286,6 +3319,7 @@
       ".ai-native/docs/claim-control.md",
       ".ai-native/docs/context-governance-usage.md",
       ".ai-native/docs/conversation-drift-control.md",
+      ".ai-native/docs/conversation-native-ask.md",
       ".ai-native/docs/debt-knowledge-handoff.md",
       ".ai-native/docs/delivery-path-governance.md",
       ".ai-native/docs/document-archive-apply.md",
@@ -3324,6 +3358,7 @@
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
       ".ai-native/prompts/context-governance-agent.md",
+      ".ai-native/prompts/conversation-native-ask-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/debt-handoff-agent.md",
       ".ai-native/prompts/delivery-coach-agent.md",
@@ -3358,6 +3393,7 @@
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/claim-control-report.md",
       ".ai-native/templates/context-correction-report.md",
+      ".ai-native/templates/conversation-ask-card.md",
       ".ai-native/templates/conversation-turn-classification.md",
       ".ai-native/templates/debt-knowledge-handoff-report.md",
       ".ai-native/templates/delivery-path-report.md",
@@ -3398,6 +3434,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "context-corrections",
+      "conversation-ask-cards",
       "conversation-turns",
       "customer-handoffs",
       "debt-handoff-reports",
@@ -3444,6 +3481,7 @@
       "scripts/check-claim-control.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-conversation-drift.mjs",
+      "scripts/check-conversation-native-ask.mjs",
       "scripts/check-debt-handoff.mjs",
       "scripts/check-delivery-path.mjs",
       "scripts/check-document-archive-apply.mjs",
@@ -3989,6 +4027,10 @@
         "target": ".ai-native/checklists/change-boundary-review.md"
       },
       {
+        "source": "checklists/conversation-native-ask-review.md",
+        "target": ".ai-native/checklists/conversation-native-ask-review.md"
+      },
+      {
         "source": "checklists/debt-knowledge-handoff-review.md",
         "target": ".ai-native/checklists/debt-knowledge-handoff-review.md"
       },
@@ -4051,6 +4093,10 @@
       {
         "source": "core/change-boundary.md",
         "target": ".ai-native/core/change-boundary.md"
+      },
+      {
+        "source": "core/conversation-native-ask.md",
+        "target": ".ai-native/core/conversation-native-ask.md"
       },
       {
         "source": "core/debt-knowledge-handoff.md",
@@ -4155,6 +4201,10 @@
       {
         "source": "docs/conversation-drift-control.md",
         "target": ".ai-native/docs/conversation-drift-control.md"
+      },
+      {
+        "source": "docs/conversation-native-ask.md",
+        "target": ".ai-native/docs/conversation-native-ask.md"
       },
       {
         "source": "docs/debt-knowledge-handoff.md",
@@ -4265,6 +4315,10 @@
         "target": ".ai-native/docs/work-queue.md"
       },
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
         "source": "prompts/apply-plan-agent.md",
         "target": ".ai-native/prompts/apply-plan-agent.md"
       },
@@ -4287,6 +4341,10 @@
       {
         "source": "prompts/change-boundary-agent.md",
         "target": ".ai-native/prompts/change-boundary-agent.md"
+      },
+      {
+        "source": "prompts/conversation-native-ask-agent.md",
+        "target": ".ai-native/prompts/conversation-native-ask-agent.md"
       },
       {
         "source": "prompts/debt-handoff-agent.md",
@@ -4345,102 +4403,6 @@
         "target": ".ai-native/prompts/workflow-concierge-agent.md"
       },
       {
-        "source": "templates/active-work-thread.md",
-        "target": ".ai-native/templates/active-work-thread.md"
-      },
-      {
-        "source": "templates/archive-index.md",
-        "target": ".ai-native/templates/archive-index.md"
-      },
-      {
-        "source": "templates/baseline-decision-card.md",
-        "target": ".ai-native/templates/baseline-decision-card.md"
-      },
-      {
-        "source": "templates/baseline-pack-selection-report.md",
-        "target": ".ai-native/templates/baseline-pack-selection-report.md"
-      },
-      {
-        "source": "templates/baseline-state-report.md",
-        "target": ".ai-native/templates/baseline-state-report.md"
-      },
-      {
-        "source": "templates/beginner-entry-card.md",
-        "target": ".ai-native/templates/beginner-entry-card.md"
-      },
-      {
-        "source": "templates/change-boundary-report.md",
-        "target": ".ai-native/templates/change-boundary-report.md"
-      },
-      {
-        "source": "templates/debt-knowledge-handoff-report.md",
-        "target": ".ai-native/templates/debt-knowledge-handoff-report.md"
-      },
-      {
-        "source": "templates/delivery-path-report.md",
-        "target": ".ai-native/templates/delivery-path-report.md"
-      },
-      {
-        "source": "templates/document-archive-apply-plan.md",
-        "target": ".ai-native/templates/document-archive-apply-plan.md"
-      },
-      {
-        "source": "templates/execution-closure-report.md",
-        "target": ".ai-native/templates/execution-closure-report.md"
-      },
-      {
-        "source": "templates/guided-decision-summary.md",
-        "target": ".ai-native/templates/guided-decision-summary.md"
-      },
-      {
-        "source": "templates/hook-orchestration-plan.md",
-        "target": ".ai-native/templates/hook-orchestration-plan.md"
-      },
-      {
-        "source": "templates/patch-classification-false-positive.md",
-        "target": ".ai-native/templates/patch-classification-false-positive.md"
-      },
-      {
-        "source": "templates/patch-classification-report.md",
-        "target": ".ai-native/templates/patch-classification-report.md"
-      },
-      {
-        "source": "templates/project-hook-policy.md",
-        "target": ".ai-native/templates/project-hook-policy.md"
-      },
-      {
-        "source": "templates/real-adoption-trial-report.md",
-        "target": ".ai-native/templates/real-adoption-trial-report.md"
-      },
-      {
-        "source": "templates/review-surface-card.md",
-        "target": ".ai-native/templates/review-surface-card.md"
-      },
-      {
-        "source": "templates/standard-baseline-selection-report.md",
-        "target": ".ai-native/templates/standard-baseline-selection-report.md"
-      },
-      {
-        "source": "templates/unified-apply-plan.md",
-        "target": ".ai-native/templates/unified-apply-plan.md"
-      },
-      {
-        "source": "templates/user-decision-card.md",
-        "target": ".ai-native/templates/user-decision-card.md"
-      },
-      {
-        "source": "templates/work-queue-report.md",
-        "target": ".ai-native/templates/work-queue-report.md"
-      },
-      {
-        "source": "templates/workflow-guidance-card.md",
-        "target": ".ai-native/templates/workflow-guidance-card.md"
-      },
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
-      },
-      {
         "source": "scripts/baseline-project.mjs",
         "target": "scripts/baseline-project.mjs"
       },
@@ -4483,6 +4445,10 @@
       {
         "source": "scripts/check-conversation-drift.mjs",
         "target": "scripts/check-conversation-drift.mjs"
+      },
+      {
+        "source": "scripts/check-conversation-native-ask.mjs",
+        "target": "scripts/check-conversation-native-ask.mjs"
       },
       {
         "source": "scripts/check-debt-handoff.mjs",
@@ -4743,33 +4709,141 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "templates/active-work-thread.md",
+        "target": ".ai-native/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/archive-index.md",
+        "target": ".ai-native/templates/archive-index.md"
+      },
+      {
+        "source": "templates/baseline-decision-card.md",
+        "target": ".ai-native/templates/baseline-decision-card.md"
+      },
+      {
+        "source": "templates/baseline-pack-selection-report.md",
+        "target": ".ai-native/templates/baseline-pack-selection-report.md"
+      },
+      {
+        "source": "templates/baseline-state-report.md",
+        "target": ".ai-native/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/beginner-entry-card.md",
+        "target": ".ai-native/templates/beginner-entry-card.md"
+      },
+      {
+        "source": "templates/change-boundary-report.md",
+        "target": ".ai-native/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/conversation-ask-card.md",
+        "target": ".ai-native/templates/conversation-ask-card.md"
+      },
+      {
+        "source": "templates/debt-knowledge-handoff-report.md",
+        "target": ".ai-native/templates/debt-knowledge-handoff-report.md"
+      },
+      {
+        "source": "templates/delivery-path-report.md",
+        "target": ".ai-native/templates/delivery-path-report.md"
+      },
+      {
+        "source": "templates/document-archive-apply-plan.md",
+        "target": ".ai-native/templates/document-archive-apply-plan.md"
+      },
+      {
+        "source": "templates/execution-closure-report.md",
+        "target": ".ai-native/templates/execution-closure-report.md"
+      },
+      {
+        "source": "templates/guided-decision-summary.md",
+        "target": ".ai-native/templates/guided-decision-summary.md"
+      },
+      {
+        "source": "templates/hook-orchestration-plan.md",
+        "target": ".ai-native/templates/hook-orchestration-plan.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".ai-native/templates/patch-classification-false-positive.md"
+      },
+      {
+        "source": "templates/patch-classification-report.md",
+        "target": ".ai-native/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/project-hook-policy.md",
+        "target": ".ai-native/templates/project-hook-policy.md"
+      },
+      {
+        "source": "templates/real-adoption-trial-report.md",
+        "target": ".ai-native/templates/real-adoption-trial-report.md"
+      },
+      {
+        "source": "templates/review-surface-card.md",
+        "target": ".ai-native/templates/review-surface-card.md"
+      },
+      {
+        "source": "templates/standard-baseline-selection-report.md",
+        "target": ".ai-native/templates/standard-baseline-selection-report.md"
+      },
+      {
+        "source": "templates/unified-apply-plan.md",
+        "target": ".ai-native/templates/unified-apply-plan.md"
+      },
+      {
+        "source": "templates/user-decision-card.md",
+        "target": ".ai-native/templates/user-decision-card.md"
+      },
+      {
+        "source": "templates/work-queue-report.md",
+        "target": ".ai-native/templates/work-queue-report.md"
+      },
+      {
+        "source": "templates/workflow-guidance-card.md",
+        "target": ".ai-native/templates/workflow-guidance-card.md"
       }
     ]
   },
   "assets": {
     "sourceRequired": [
       "apply-plans/.gitkeep",
+      "checklists/conversation-native-ask-review.md",
       "checklists/unified-apply-plan-review.md",
+      "core/conversation-native-ask.md",
       "core/natural-language-orchestrator.md",
       "core/unified-apply-plan.md",
+      "docs/conversation-native-ask.md",
       "docs/natural-language-orchestrator.md",
+      "docs/plans/conversation-native-ask-1.37-plan.md",
       "docs/plans/unified-apply-plan-1.34-plan.md",
       "docs/unified-apply-plan.md",
       "examples/1.31-intent-aware-deep-guide/README.md",
       "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
       "examples/1.34-unified-apply-plan/README.md",
       "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
+      "examples/1.37-conversation-native-ask/README.md",
+      "examples/1.37-conversation-native-ask/conversation-ask-cards/001-appointment-app.md",
       "prompts/apply-plan-agent.md",
+      "prompts/conversation-native-ask-agent.md",
       "releases/1.31.0/known-limitations.md",
       "releases/1.31.0/release-record.md",
       "releases/1.31.0/self-check-report.md",
       "releases/1.34.0/known-limitations.md",
       "releases/1.34.0/release-record.md",
       "releases/1.34.0/self-check-report.md",
+      "releases/1.37.0/known-limitations.md",
+      "releases/1.37.0/release-record.md",
+      "releases/1.37.0/self-check-report.md",
       "scripts/check-apply-plan.mjs",
+      "scripts/check-conversation-native-ask.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-workflow-guidance.mjs",
+      "templates/conversation-ask-card.md",
       "templates/unified-apply-plan.md",
       "templates/workflow-guidance-card.md",
       "test-fixtures/bad/bad-apply-plan-authorizes-apply/apply-plans/001-bad.md",

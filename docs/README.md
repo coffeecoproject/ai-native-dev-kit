@@ -10,6 +10,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [First Hour](first-hour.md)
 - [Operator Manual](operator-manual.md)
 - [Beginner Entry](beginner-entry.md)
+- [Conversation-Native Ask](conversation-native-ask.md)
 - [Natural Language Orchestrator](natural-language-orchestrator.md)
 
 ## Project Adoption
@@ -51,4 +52,3 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Reference Docs](reference/)
 - [Historical Plans](plans/)
 - [Roadmaps](roadmaps/)
-

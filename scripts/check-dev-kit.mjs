@@ -4754,6 +4754,100 @@ function checkBeginnerEntryProtocol() {
   }
 }
 
+function checkConversationNativeAskProtocol() {
+  const required = [
+    "core/conversation-native-ask.md",
+    "docs/conversation-native-ask.md",
+    "docs/plans/conversation-native-ask-1.37-plan.md",
+    "templates/conversation-ask-card.md",
+    "checklists/conversation-native-ask-review.md",
+    "prompts/conversation-native-ask-agent.md",
+    "conversation-ask-cards/.gitkeep",
+    "scripts/check-conversation-native-ask.mjs",
+    "examples/1.37-conversation-native-ask/README.md",
+    "examples/1.37-conversation-native-ask/conversation-ask-cards/001-appointment-app.md",
+    "test-fixtures/bad/bad-conversation-ask-authorizes-write/conversation-ask-cards/001-bad.md",
+    "test-fixtures/bad/bad-conversation-ask-cli-burden/conversation-ask-cards/001-bad.md",
+    "test-fixtures/bad/bad-conversation-ask-too-many-questions/conversation-ask-cards/001-bad.md",
+    "releases/1.37.0/release-record.md",
+    "releases/1.37.0/known-limitations.md",
+    "releases/1.37.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.37 conversation-native ask asset exists ${file}`);
+    else fail(`1.37 conversation-native ask asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/conversation-native-ask.md"),
+    read("docs/conversation-native-ask.md"),
+    read("templates/conversation-ask-card.md"),
+    read("scripts/check-conversation-native-ask.mjs"),
+    read("releases/1.37.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Conversation-Native Ask Governance",
+    "default conversational behavior",
+    "Codex should not require the user to first run",
+    "does not replace Beginner Entry",
+    "This conversation ask writes target files: No",
+    "This conversation ask authorizes apply: No",
+    "This conversation ask approves implementation: No",
+    "This conversation ask requires the user to run CLI commands first: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.37 conversation-native ask includes ${marker}`);
+    else fail(`1.37 conversation-native ask missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "conversation-ask-check",
+    "scripts/check-conversation-native-ask.mjs",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports conversation-native ask marker ${marker}`);
+    else fail(`CLI missing conversation-native ask marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "conversation-ask-card",
+    "conversation-ask-cards",
+    "conversation-ask-card.md",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports conversation-native ask marker ${marker}`);
+    else fail(`new-workflow-item missing conversation-native ask marker ${marker}`);
+  }
+
+  const check = runNode(["scripts/check-conversation-native-ask.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Conversation-Native Ask check passed")) {
+    pass("1.37 conversation-native ask checker passes source repo");
+  } else {
+    fail(`1.37 conversation-native ask checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-conversation-native-ask.mjs", "examples/1.37-conversation-native-ask"]);
+  if (example.status === 0 && example.stdout.includes("Conversation-Native Ask check passed")) {
+    pass("1.37 conversation-native ask example passes checker");
+  } else {
+    fail(`1.37 conversation-native ask example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["authorizes write", ["scripts/check-conversation-native-ask.mjs", "test-fixtures/bad/bad-conversation-ask-authorizes-write"], "forbidden conversation ask claim"],
+    ["CLI burden", ["scripts/check-conversation-native-ask.mjs", "test-fixtures/bad/bad-conversation-ask-cli-burden"], "requires CLI command burden"],
+    ["too many questions", ["scripts/check-conversation-native-ask.mjs", "test-fixtures/bad/bad-conversation-ask-too-many-questions"], "too many questions"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.37 conversation-native ask rejects ${name}`);
+    } else {
+      fail(`1.37 conversation-native ask must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkWorkQueueProtocol() {
   const required = [
     "core/work-queue.md",
@@ -6284,6 +6378,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/beginner-entry.md",
+    "docs/conversation-native-ask.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/review-surface-governance.md",
     "docs/delivery-path-governance.md",
@@ -6327,6 +6422,7 @@ function checkReadmePointers() {
     "IntentOS 中文说明",
     "面向 AI 协作开发的项目交付系统",
     "一句话开始",
+    "Conversation-Native Ask",
     "适合什么场景",
     "项目分级",
     "安全边界",
@@ -6342,6 +6438,7 @@ function checkReadmePointers() {
     "npm run verify",
     "npm run verify:governance",
     "node scripts/check-beginner-entry.mjs",
+    "node scripts/check-conversation-native-ask.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
@@ -6366,6 +6463,7 @@ function checkReadmePointers() {
     "docs/document-lifecycle.md",
     "docs/document-archive-apply.md",
     "docs/beginner-entry.md",
+    "docs/conversation-native-ask.md",
     "docs/work-queue.md",
     "docs/hook-orchestration.md",
     "docs/hook-policy.md",
@@ -6377,7 +6475,7 @@ function checkReadmePointers() {
     "docs/document-ownership.md",
     "docs/plans/README.md",
     "docs/roadmaps/README.md",
-    "releases/1.36.0/release-record.md",
+    "releases/1.37.0/release-record.md",
     "VERSION.md",
   ]) {
     if (zhReadme.includes(pointer)) pass(`README.zh-CN mentions ${pointer}`);
@@ -6391,6 +6489,7 @@ function checkReadmePointers() {
     "docs/document-ownership.md",
     "docs/plans/README.md",
     "docs/plans/repository-information-architecture-1.36-plan.md",
+    "docs/plans/conversation-native-ask-1.37-plan.md",
     "docs/roadmaps/README.md",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
@@ -6411,6 +6510,7 @@ function checkReadmePointers() {
     "docs/minimal-commit-set.md",
     "docs/safe-launch.md",
     "docs/conversation-drift-control.md",
+    "docs/conversation-native-ask.md",
     "docs/first-delivery-walkthrough.md",
     "docs/change-boundary.md",
     "docs/baseline-state.md",
@@ -8903,6 +9003,7 @@ checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();
 checkBeginnerEntryProtocol();
+checkConversationNativeAskProtocol();
 checkWorkQueueProtocol();
 checkHookOrchestrationProtocol();
 checkHookPolicyProtocol();

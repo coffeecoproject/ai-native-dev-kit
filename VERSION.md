@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.36.0`
+Current version: `1.37.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.36.0`
 
 ## Current Release
 
-`1.36.0`
+`1.37.0`
 
 Includes:
 
+- Conversation-Native Ask phase `1.37.0`: makes natural-language project goals the default conversational entry, internally routing through Beginner Entry behavior without requiring users to know workflow commands
+- Added `core/conversation-native-ask.md`, `docs/conversation-native-ask.md`, `templates/conversation-ask-card.md`, `conversation-ask-cards/`, checker/prompt/checklist assets, examples, bad fixtures, manifest/generated-project coverage, and release evidence
+- `1.37.0` does not write target files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive/delete/rewrite documents, change task state, enable baseline/industrial packs, add an apply runner, or approve high-risk decisions
 - Repository Information Architecture phase `1.36.0`: adds documentation entry points, repository structure guidance, document ownership rules, and separates historical plans and roadmaps from active usage docs
 - Added `docs/README.md`, `docs/index.md`, `docs/repository-structure.md`, `docs/document-ownership.md`, `docs/plans/`, `docs/roadmaps/`, 1.36 release evidence, manifest coverage, and README product-homepage alignment
 - `1.36.0` does not move root workflow artifact directories, change generated-project paths, change CLI behavior, delete historical documents, archive release evidence, or change adoption/baseline/review/hook/apply semantics

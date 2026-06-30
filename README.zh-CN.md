@@ -34,6 +34,14 @@ IntentOS 把 AI 协作开发拆成一条可控路径：
 
 多数用户从这里开始就够了：
 
+```text
+我想做一个预约 App，你帮我开始。
+```
+
+Codex 应该把这种自然语言目标自动当成 IntentOS 入口，内部按 Beginner Entry 处理。
+
+如果需要命令行证据、CI 验证或维护者调试，等价命令是：
+
 ```bash
 node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
 ```
@@ -53,6 +61,8 @@ node scripts/cli.mjs ask "我想把当前项目接入 IntentOS"
 - Codex 现在不能做什么。
 
 你不需要先知道 `workflow-map`、`baseline-decision`、`apply-plan`、`BL2` 或 hook policy 是什么。Codex 会自己选择内部路径，并把结果翻译成人能判断的内容。
+
+1.37 加入 Conversation-Native Ask：命令是实现和审查证据，不是普通用户开始前必须知道的东西。
 
 ## 适合什么场景
 
@@ -82,6 +92,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 
 | 能力 | 作用 |
 |---|---|
+| Conversation-Native Ask | 用户直接说目标，Codex 自动按入口流程判断 |
 | Beginner Entry | 用户只说目标，AI 给出可确认的下一步 |
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
 | Baseline Decision | 用白话确认 BL0 / BL1 / BL2、平台和风险 |
@@ -165,6 +176,7 @@ npm run verify:governance
 node scripts/cli.mjs ask . "维护 IntentOS 小白入口"
 node scripts/resolve-beginner-entry.mjs . --goal "维护 IntentOS 小白入口"
 node scripts/check-beginner-entry.mjs .
+node scripts/check-conversation-native-ask.mjs .
 node scripts/check-workflow-guidance.mjs .
 ```
 
@@ -178,6 +190,7 @@ node scripts/check-workflow-guidance.mjs .
 - [Quickstart](docs/quickstart.md)
 - [First Hour](docs/first-hour.md)
 - [Beginner Entry](docs/beginner-entry.md)
+- [Conversation-Native Ask](docs/conversation-native-ask.md)
 - [Natural Language Orchestrator](docs/natural-language-orchestrator.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
@@ -234,7 +247,7 @@ node scripts/check-workflow-guidance.mjs .
 
 当前版本：
 
-- [1.36 Release Record](releases/1.36.0/release-record.md)
+- [1.37 Release Record](releases/1.37.0/release-record.md)
 - [Version History](VERSION.md)
 
 ## License

@@ -31,6 +31,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-context-governance.mjs` | Learning candidates, context corrections, Git boundary reports, and source-of-truth boundaries |
 | `check-launch-readiness.mjs` | Launch readiness reports, evidence, human decisions, and overclaims |
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
+| `check-conversation-native-ask.mjs` | Conversation Ask Card boundary, no-CLI-burden, question-count, and overclaim checks |
 | `check-guided-delivery-loop.mjs` | Active work thread, parking lot, and guided decision boundaries |
 | `check-first-delivery-walkthrough.mjs` | First Delivery Walkthrough and Adoption Trial evidence |
 | `check-real-adoption-trial.mjs` | Real-project read-only adoption trial reports, bridge boundaries, and public evidence status |
@@ -119,6 +120,7 @@ Product and claim checks:
 - `check-context-governance.mjs` is candidate/audit focused; it does not approve project facts or require learning candidates for every task.
 - `check-launch-readiness.mjs` allows empty projects, but rejects ready states without verification, reports with pending human decisions, and production-safety overclaims.
 - `check-conversation-drift.mjs` allows empty projects, but rejects discussion-only writes, scope changes without human decision, and risk decisions that auto-continue.
+- `check-conversation-native-ask.mjs` allows empty projects, but rejects Conversation Ask Cards that make users run CLI commands before Codex can route work, ask too many questions, claim target-project writes, authorize apply, approve implementation, approve release/production, modify CI/hooks, delete/archive/rewrite documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
 - `check-first-delivery-walkthrough.mjs` allows empty projects, but rejects walkthrough reports missing final report or launch readiness references, simulated evidence overclaims, and unclosed subagents.
 - `check-real-adoption-trial.mjs` allows empty projects, but rejects real adoption reports with target writes, missing read-only evidence, unsafe bridge claims, local-only public naming, overclaims, secret-like content, or unclosed subagents.
 - `check-patch-classification.mjs` allows empty projects, but rejects unsafe `SAFE_LOCAL_FIX` classification on high-risk surfaces, patch reports that authorize implementation, missing evidence, completed `DO_NOT_PATCH` reports, and false-positive records that accept real high-risk impact as safe.

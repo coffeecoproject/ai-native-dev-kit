@@ -16,7 +16,7 @@ The repository is intentionally not organized like a normal application codebase
 | Platforms and starters | `platforms/`, `starters/`, `profiles/` | Project-specific adapters and starter assets |
 | Baseline packs | `standard-baseline-packs/`, `industrial-packs/` | Standard and industrial baseline package definitions |
 | Evidence and examples | `examples/`, `releases/`, `test-fixtures/` | Verification, release evidence, and negative cases |
-| Workflow artifacts | `requests/`, `tasks/`, `review-packets/`, `apply-plans/`, `work-queue/` | IntentOS artifact contract used by scripts and generated projects |
+| Workflow artifacts | `requests/`, `tasks/`, `review-packets/`, `conversation-ask-cards/`, `apply-plans/`, `work-queue/` | IntentOS artifact contract used by scripts and generated projects |
 
 ## Why Many Root Artifact Directories Remain Flat
 
@@ -31,6 +31,7 @@ tasks/
 review-packets/
 review-loop-reports/
 apply-plans/
+conversation-ask-cards/
 work-queue/
 hook-policies/
 workflow-guidance-cards/
@@ -68,4 +69,3 @@ Current operating docs stay directly under `docs/`. Historical implementation pl
 - Do not delete historical plans; move them under `docs/plans/`.
 - Do not delete roadmap documents; move them under `docs/roadmaps/`.
 - Update `dev-kit-manifest.json`, README links, and self-checks whenever documentation source paths move.
-

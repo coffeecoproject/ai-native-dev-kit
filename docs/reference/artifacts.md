@@ -31,6 +31,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 
 | Directory | Purpose |
 |---|---|
+| `conversation-ask-cards/` | Conversation-native entry cards for natural-language user goals |
 | `workflow-guidance-cards/` | Plain next-step guidance cards from the natural-language front door |
 | `adoption-recommendations/` | Saved first-hour adoption recommendation reports |
 | `baseline-recommendations/` | Saved engineering/environment baseline recommendation reports |
@@ -133,6 +134,8 @@ Guided Baseline Selection lives under `.ai-native/core/` in generated projects. 
 
 Natural Language Workflow Orchestrator lives under `.ai-native/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
 
+Conversation-Native Ask lives under `.ai-native/core/` in generated projects. It makes a plain user goal equivalent to Beginner Entry behavior in conversation, without requiring the user to know or run CLI commands first.
+
 Review Surface Governance lives under `.ai-native/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
 
 Delivery Path Governance lives under `.ai-native/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
@@ -154,6 +157,7 @@ Use `docs/artifact-decision-tree.md` when unsure.
 Short rule:
 
 - need to define work: request, preflight, spec, eval, task
+- need to route a plain user goal without command burden: conversation ask card
 - need to decide which workflow path to use: workflow guidance card
 - need to decide what must be reviewed before and after execution: review surface card
 - need to review work: review packet and review loop report

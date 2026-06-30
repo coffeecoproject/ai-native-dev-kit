@@ -4,6 +4,8 @@ Beginner Entry is the simplest way to use the workflow.
 
 The user gives one sentence. Codex reads the project and returns one plain card.
 
+In 1.37, this is also the default conversation behavior. The user can simply say the goal in chat; Codex should internally route through Beginner Entry instead of making the user run a command first.
+
 ```bash
 node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
 ```

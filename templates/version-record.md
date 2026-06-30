@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.36.0`
+`1.37.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.37.0` adds Conversation-Native Ask: a user's plain project goal can be treated as the default entry path, internally routing through Beginner Entry behavior without making the user choose workflow command names first.
+- `1.37.0` keeps conversational entry non-authorizing: it does not write target-project files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
 - `1.36.0` adds Repository Information Architecture: README is the product entry, `docs/README.md` and `docs/index.md` are the documentation entry, `docs/repository-structure.md` explains root artifact directories, and `docs/document-ownership.md` defines source-of-truth rules.
 - `1.36.0` moves historical implementation plans into `docs/plans/` and roadmap documents into `docs/roadmaps/` without changing generated-project artifact paths or CLI behavior.
 - `1.35.0` adds Beginner Entry: users can provide one natural-language goal through `ask` without choosing internal workflow commands.
