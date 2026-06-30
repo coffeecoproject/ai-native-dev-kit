@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.41.1`
+Current version: `1.45.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,16 @@ Current version: `1.41.1`
 
 ## Current Release
 
-`1.41.1`
+`1.45.0`
 
 Includes:
 
+- Ordinary User Product Loop phase `1.45.0`: completes the 1.42-1.45 first-slice chain with a low-risk controlled apply candidate layer for small, exact, reversible, testable proposed changes
+- Ordinary User First-Slice phase `1.42.0`: adds `first-slice` and `first-slice-check` so a plain goal can become a first useful version scope, with at most 3 questions, backlog, verification, and no-write boundaries
+- Product Completeness phase `1.43.0`: adds `product-completeness` and `product-completeness-check` so Codex can distinguish idea-only, first-slice-defined, runnable MVP, internal-trial-ready, release-review-needed, and blocked states without approving release
+- Real MVP Example Evidence phase `1.44.0`: adds a locally runnable booking web MVP example with first-slice, completeness, final-report, and smoke-test evidence
+- Low-Risk Controlled Apply Candidate phase `1.45.0`: adds `apply-candidate` and `apply-candidate-check` so small proposed writes can be classified for later human-approved apply planning without writing files now
+- `1.45.0` does not add an apply runner, write target files, authorize apply, approve implementation, approve release/production, modify CI, install hooks, touch production/secrets/payment/permission/migration/data surfaces, enable BL2, or promote industrial packs
 - Structured Evidence Hardening patch `1.41.1`: fixes stale 1.41 release evidence, adds `--require-structured-evidence` strict mode to apply/readiness/approval checkers, requires local plan reference resolution in strict readiness/approval checks, rejects non-`NO_APPLY_PLAN` structured readiness evidence with empty actions, and adds strict-mode bad fixtures
 - `1.41.1` keeps compatibility fallback by default: historical Markdown artifacts still pass the existing semantic checks unless strict mode is explicitly requested
 - `1.41.1` does not add a controlled apply runner, write target files, validate real human identity, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, enable BL2, or enable industrial packs

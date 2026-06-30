@@ -67,6 +67,48 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "first-slice": {
+    description: "Turn an ordinary user goal into a first useful version scope without writing target files.",
+    script: "scripts/resolve-first-slice.mjs",
+    writes: false,
+    buildArgs: (args) => args,
+  },
+  "first-slice-check": {
+    description: "Check recorded Ordinary User First-Slice Cards.",
+    script: "scripts/check-first-slice.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "product-completeness": {
+    description: "Report whether a first version is idea-only, runnable MVP, internal-trial ready, or blocked.",
+    script: "scripts/resolve-product-completeness.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "product-completeness-check": {
+    description: "Check recorded Product Completeness Reports.",
+    script: "scripts/check-product-completeness.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "mvp-example-check": {
+    description: "Check the built-in booking MVP example evidence.",
+    script: "scripts/check-mvp-example.mjs",
+    writes: false,
+    buildArgs: (args) => args,
+  },
+  "apply-candidate": {
+    description: "Record whether a proposed small change is low risk enough for later human-approved apply planning.",
+    script: "scripts/resolve-low-risk-apply-candidate.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "apply-candidate-check": {
+    description: "Check recorded Low-Risk Controlled Apply Candidate records.",
+    script: "scripts/check-low-risk-apply-candidate.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "debt-handoff": {
     description: "Record debt and knowledge handoff context without forgiving debt or approving work.",
     script: "scripts/resolve-debt-handoff.mjs",
@@ -457,6 +499,13 @@ function printHelp() {
   console.log("  node scripts/cli.mjs guide-check .");
   console.log("  node scripts/cli.mjs delivery-path ../my-project");
   console.log("  node scripts/cli.mjs delivery-path-check .");
+  console.log("  node scripts/cli.mjs first-slice ../my-project '我想做一个预约 App'");
+  console.log("  node scripts/cli.mjs first-slice-check .");
+  console.log("  node scripts/cli.mjs product-completeness .");
+  console.log("  node scripts/cli.mjs product-completeness-check .");
+  console.log("  node scripts/cli.mjs mvp-example-check");
+  console.log("  node scripts/cli.mjs apply-candidate . --intent 'update local demo copy' --path examples/mvp-booking-web-app/src/app.js");
+  console.log("  node scripts/cli.mjs apply-candidate-check .");
   console.log("  node scripts/cli.mjs debt-handoff .");
   console.log("  node scripts/cli.mjs debt-handoff-check .");
   console.log("  node scripts/cli.mjs closure . --intent 'finish booking validation'");

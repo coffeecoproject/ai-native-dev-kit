@@ -13,6 +13,13 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-review-surface.mjs` | Review Surface Card required-surface, post-execution contract, and overclaim checks |
 | `resolve-delivery-path.mjs` | Read-only delivery path resolver that reports current usable-state progress |
 | `check-delivery-path.mjs` | Delivery Path Report state, evidence, blocker, and overclaim checks |
+| `resolve-first-slice.mjs` | Read-only ordinary-user first-slice resolver for a first useful version |
+| `check-first-slice.mjs` | Ordinary User First-Slice Card plain-language, question-count, backlog, and boundary checks |
+| `resolve-product-completeness.mjs` | Read-only product completeness resolver for idea, first-slice, runnable MVP, internal-trial, release-review, or blocked state |
+| `check-product-completeness.mjs` | Product Completeness Report state, checklist, evidence, and release-overclaim checks |
+| `check-mvp-example.mjs` | Built-in booking MVP example evidence and smoke-test checker |
+| `resolve-low-risk-apply-candidate.mjs` | Read-only low-risk apply candidate resolver for exact, reversible, testable proposed changes |
+| `check-low-risk-apply-candidate.mjs` | Low-Risk Controlled Apply Candidate path, risk, rollback, verification, and no-apply boundary checks |
 | `resolve-debt-handoff.mjs` | Read-only debt and handoff resolver for paused, interrupted, or unfinished work |
 | `check-debt-handoff.mjs` | Debt & Knowledge Handoff Report level, handoff, boundary, and overclaim checks |
 | `start-project.mjs` | Read-only guided adoption recommendation |
@@ -116,6 +123,10 @@ Product and claim checks:
 - `check-workflow-guidance.mjs` allows empty projects, but rejects Workflow Guidance Cards that ask too many questions, expose internal workflow jargon in plain mode, claim target-project writes, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.
 - `check-review-surface.mjs` allows empty projects, but rejects Review Surface Cards that miss functional/code/verification/debt review, omit post-execution close-out fields, ask too many questions, claim target-project writes, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.
 - `check-delivery-path.mjs` allows empty projects, but rejects Delivery Path Reports that omit valid current/next states, evidence, blockers, next safe action, boundaries, or outcome, or claim target-project writes, CI/hook changes, task-state changes, implementation approval, release/production approval, Safe Launch replacement, or real-user-use proof.
+- `check-first-slice.mjs` allows empty projects, but rejects First-Slice Cards that expose internal jargon, ask more than 3 questions, omit backlog, omit verification, approve target-project writes, approve implementation, approve release/production, change CI/hooks, touch payment/secrets/production/migration/permission surfaces, or enable BL2/industrial packs.
+- `check-product-completeness.mjs` allows empty projects, but rejects Product Completeness Reports that omit product state, core checklist surfaces, local run/demo instructions, verification evidence, boundaries, or outcome, or claim implementation/release/production approval.
+- `check-mvp-example.mjs` checks only the bundled booking MVP example. It proves the example is coherent and locally testable; it does not prove any target project is production-ready.
+- `check-low-risk-apply-candidate.mjs` allows empty projects, but rejects candidate records that authorize apply, claim writes now, use wildcard/parent/absolute/home/backslash target paths, omit rollback or verification, approve implementation, approve release/production, change CI/hooks, or touch high-risk surfaces without no-authority boundaries.
 - `check-debt-handoff.mjs` allows empty projects, but rejects Debt & Knowledge Handoff Reports that omit debt levels, handoff subsections, boundaries, or valid outcomes, or claim debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, or Safe Launch replacement.
 - `check-product-baseline.mjs` is source-strict for Dev Kit maintenance and target-safe for generated projects.
 - `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.

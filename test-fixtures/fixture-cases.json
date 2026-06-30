@@ -1916,5 +1916,173 @@
       "structured readiness actions must not be empty"
     ],
     "howToFix": "Structured readiness evidence must keep action rows non-empty unless the readiness state is NO_APPLY_PLAN."
+  },
+  {
+    "name": "good ordinary first-slice booking",
+    "type": "golden",
+    "checker": "check-first-slice",
+    "script": "scripts/check-first-slice.mjs",
+    "args": [
+      "examples/1.42-ordinary-user-first-slice"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Ordinary User First-Slice check passed"
+    ],
+    "howToFix": "Keep the ordinary user first-slice example plain, bounded, and limited to at most three questions."
+  },
+  {
+    "name": "bad first-slice authorizes write",
+    "type": "bad",
+    "checker": "check-first-slice",
+    "script": "scripts/check-first-slice.mjs",
+    "args": [
+      "test-fixtures/bad/bad-first-slice-authorizes-write"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "boundary This card writes target files must be No"
+    ],
+    "howToFix": "First-slice cards must not authorize target-project writes."
+  },
+  {
+    "name": "bad first-slice exposes internal jargon",
+    "type": "bad",
+    "checker": "check-first-slice",
+    "script": "scripts/check-first-slice.mjs",
+    "args": [
+      "test-fixtures/bad/bad-first-slice-jargon"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "internal jargon"
+    ],
+    "howToFix": "First-slice user-facing sections must avoid internal workflow jargon."
+  },
+  {
+    "name": "bad first-slice too many questions",
+    "type": "bad",
+    "checker": "check-first-slice",
+    "script": "scripts/check-first-slice.mjs",
+    "args": [
+      "test-fixtures/bad/bad-first-slice-too-many-questions"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "must ask 1-3 questions"
+    ],
+    "howToFix": "First-slice cards must keep questions to one to three."
+  },
+  {
+    "name": "good product completeness booking MVP",
+    "type": "golden",
+    "checker": "check-product-completeness",
+    "script": "scripts/check-product-completeness.mjs",
+    "args": [
+      "examples/1.43-product-completeness-gate"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Product Completeness check passed"
+    ],
+    "howToFix": "Keep the product completeness example complete and non-releasing."
+  },
+  {
+    "name": "bad product completeness release overclaim",
+    "type": "bad",
+    "checker": "check-product-completeness",
+    "script": "scripts/check-product-completeness.mjs",
+    "args": [
+      "test-fixtures/bad/bad-product-completeness-release-overclaim"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "boundary This report approves release or production must be No"
+    ],
+    "howToFix": "Product completeness reports must never approve release or production."
+  },
+  {
+    "name": "bad product completeness missing run",
+    "type": "bad",
+    "checker": "check-product-completeness",
+    "script": "scripts/check-product-completeness.mjs",
+    "args": [
+      "test-fixtures/bad/bad-product-completeness-missing-run"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "checklist missing Local run or demo instructions"
+    ],
+    "howToFix": "Product completeness reports must include local run or demo instructions."
+  },
+  {
+    "name": "good MVP booking example",
+    "type": "golden",
+    "checker": "check-mvp-example",
+    "script": "scripts/check-mvp-example.mjs",
+    "args": [
+      "examples/mvp-booking-web-app"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "MVP Example check passed"
+    ],
+    "howToFix": "Keep the bundled booking MVP example locally runnable with coherent evidence."
+  },
+  {
+    "name": "good low-risk apply candidate",
+    "type": "golden",
+    "checker": "check-low-risk-apply-candidate",
+    "script": "scripts/check-low-risk-apply-candidate.mjs",
+    "args": [
+      "examples/1.45-low-risk-apply-candidate"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Low-Risk Controlled Apply Candidate check passed"
+    ],
+    "howToFix": "Keep the low-risk apply candidate example exact, reversible, and non-authorizing."
+  },
+  {
+    "name": "bad apply candidate authorizes apply",
+    "type": "bad",
+    "checker": "check-low-risk-apply-candidate",
+    "script": "scripts/check-low-risk-apply-candidate.mjs",
+    "args": [
+      "test-fixtures/bad/bad-apply-candidate-authorizes-run"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "boundary This candidate authorizes apply must be No"
+    ],
+    "howToFix": "Apply candidate records must not authorize apply."
+  },
+  {
+    "name": "bad apply candidate broad path",
+    "type": "bad",
+    "checker": "check-low-risk-apply-candidate",
+    "script": "scripts/check-low-risk-apply-candidate.mjs",
+    "args": [
+      "test-fixtures/bad/bad-apply-candidate-broad-path"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "unsafe target path"
+    ],
+    "howToFix": "Apply candidate paths must be exact and bounded."
+  },
+  {
+    "name": "bad apply candidate high risk",
+    "type": "bad",
+    "checker": "check-low-risk-apply-candidate",
+    "script": "scripts/check-low-risk-apply-candidate.mjs",
+    "args": [
+      "test-fixtures/bad/bad-apply-candidate-high-risk"
+    ],
+    "expectStatus": "nonzero",
+    "expectStdoutIncludes": [
+      "mentions high-risk surface without explicit no-authority boundary"
+    ],
+    "howToFix": "High-risk surfaces must stop or include explicit no-authority boundaries."
   }
 ]

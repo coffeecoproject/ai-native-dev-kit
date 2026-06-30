@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.41.1",
+  "devKitVersion": "1.45.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.41.1"
+    "phase": "1.45.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1608,7 +1608,75 @@
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
       "test-fixtures/output-quality/README.md",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md",
+      "core/ordinary-user-first-slice.md",
+      "docs/ordinary-user-first-slice.md",
+      "templates/ordinary-user-first-slice-card.md",
+      "checklists/ordinary-user-first-slice-review.md",
+      "prompts/ordinary-user-first-slice-agent.md",
+      "ordinary-first-slices/.gitkeep",
+      "scripts/resolve-first-slice.mjs",
+      "scripts/check-first-slice.mjs",
+      "core/product-completeness-gate.md",
+      "docs/product-completeness-gate.md",
+      "templates/product-completeness-report.md",
+      "checklists/product-completeness-gate-review.md",
+      "prompts/product-completeness-agent.md",
+      "product-completeness-reports/.gitkeep",
+      "scripts/resolve-product-completeness.mjs",
+      "scripts/check-product-completeness.mjs",
+      "core/real-mvp-example-evidence.md",
+      "docs/real-mvp-example-evidence.md",
+      "templates/real-mvp-example-record.md",
+      "checklists/real-mvp-example-review.md",
+      "prompts/real-mvp-example-agent.md",
+      "mvp-example-reports/.gitkeep",
+      "scripts/check-mvp-example.mjs",
+      "core/low-risk-controlled-apply-candidate.md",
+      "docs/low-risk-controlled-apply-candidate.md",
+      "templates/low-risk-controlled-apply-candidate.md",
+      "checklists/low-risk-controlled-apply-candidate-review.md",
+      "prompts/low-risk-controlled-apply-candidate-agent.md",
+      "controlled-apply-candidates/.gitkeep",
+      "scripts/resolve-low-risk-apply-candidate.mjs",
+      "scripts/check-low-risk-apply-candidate.mjs",
+      "examples/1.42-ordinary-user-first-slice/README.md",
+      "examples/1.42-ordinary-user-first-slice/ordinary-first-slices/001-booking-app.md",
+      "examples/1.43-product-completeness-gate/README.md",
+      "examples/1.43-product-completeness-gate/product-completeness-reports/001-booking-mvp.md",
+      "examples/mvp-booking-web-app/README.md",
+      "examples/mvp-booking-web-app/package.json",
+      "examples/mvp-booking-web-app/src/index.html",
+      "examples/mvp-booking-web-app/src/styles.css",
+      "examples/mvp-booking-web-app/src/app.js",
+      "examples/mvp-booking-web-app/scripts/smoke-test.mjs",
+      "examples/mvp-booking-web-app/docs/product-brief.md",
+      "examples/mvp-booking-web-app/ordinary-first-slices/001-booking-web-app.md",
+      "examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md",
+      "examples/mvp-booking-web-app/final-reports/001-booking-web-app.md",
+      "examples/1.45-low-risk-apply-candidate/README.md",
+      "examples/1.45-low-risk-apply-candidate/controlled-apply-candidates/001-booking-demo.md",
+      "test-fixtures/bad/bad-first-slice-authorizes-write/ordinary-first-slices/001-bad.md",
+      "test-fixtures/bad/bad-first-slice-jargon/ordinary-first-slices/001-bad.md",
+      "test-fixtures/bad/bad-first-slice-too-many-questions/ordinary-first-slices/001-bad.md",
+      "test-fixtures/bad/bad-product-completeness-release-overclaim/product-completeness-reports/001-bad.md",
+      "test-fixtures/bad/bad-product-completeness-missing-run/product-completeness-reports/001-bad.md",
+      "test-fixtures/bad/bad-apply-candidate-authorizes-run/controlled-apply-candidates/001-bad.md",
+      "test-fixtures/bad/bad-apply-candidate-broad-path/controlled-apply-candidates/001-bad.md",
+      "test-fixtures/bad/bad-apply-candidate-high-risk/controlled-apply-candidates/001-bad.md",
+      "releases/1.42.0/release-record.md",
+      "releases/1.42.0/known-limitations.md",
+      "releases/1.42.0/self-check-report.md",
+      "releases/1.43.0/release-record.md",
+      "releases/1.43.0/known-limitations.md",
+      "releases/1.43.0/self-check-report.md",
+      "releases/1.44.0/release-record.md",
+      "releases/1.44.0/known-limitations.md",
+      "releases/1.44.0/self-check-report.md",
+      "releases/1.45.0/release-record.md",
+      "releases/1.45.0/known-limitations.md",
+      "releases/1.45.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2026,7 +2094,38 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".ai-native/core/ordinary-user-first-slice.md",
+      ".ai-native/core/product-completeness-gate.md",
+      ".ai-native/core/real-mvp-example-evidence.md",
+      ".ai-native/core/low-risk-controlled-apply-candidate.md",
+      ".ai-native/docs/ordinary-user-first-slice.md",
+      ".ai-native/docs/product-completeness-gate.md",
+      ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/low-risk-controlled-apply-candidate.md",
+      ".ai-native/templates/ordinary-user-first-slice-card.md",
+      ".ai-native/templates/product-completeness-report.md",
+      ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/low-risk-controlled-apply-candidate.md",
+      ".ai-native/checklists/ordinary-user-first-slice-review.md",
+      ".ai-native/checklists/product-completeness-gate-review.md",
+      ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/low-risk-controlled-apply-candidate-review.md",
+      ".ai-native/prompts/ordinary-user-first-slice-agent.md",
+      ".ai-native/prompts/product-completeness-agent.md",
+      ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/low-risk-controlled-apply-candidate-agent.md",
+      "scripts/resolve-first-slice.mjs",
+      "scripts/check-first-slice.mjs",
+      "scripts/resolve-product-completeness.mjs",
+      "scripts/check-product-completeness.mjs",
+      "scripts/check-mvp-example.mjs",
+      "scripts/resolve-low-risk-apply-candidate.mjs",
+      "scripts/check-low-risk-apply-candidate.mjs",
+      "ordinary-first-slices",
+      "product-completeness-reports",
+      "mvp-example-reports",
+      "controlled-apply-candidates"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -2493,7 +2592,38 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".ai-native/core/ordinary-user-first-slice.md",
+      ".ai-native/core/product-completeness-gate.md",
+      ".ai-native/core/real-mvp-example-evidence.md",
+      ".ai-native/core/low-risk-controlled-apply-candidate.md",
+      ".ai-native/docs/ordinary-user-first-slice.md",
+      ".ai-native/docs/product-completeness-gate.md",
+      ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/low-risk-controlled-apply-candidate.md",
+      ".ai-native/templates/ordinary-user-first-slice-card.md",
+      ".ai-native/templates/product-completeness-report.md",
+      ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/low-risk-controlled-apply-candidate.md",
+      ".ai-native/checklists/ordinary-user-first-slice-review.md",
+      ".ai-native/checklists/product-completeness-gate-review.md",
+      ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/low-risk-controlled-apply-candidate-review.md",
+      ".ai-native/prompts/ordinary-user-first-slice-agent.md",
+      ".ai-native/prompts/product-completeness-agent.md",
+      ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/low-risk-controlled-apply-candidate-agent.md",
+      "scripts/resolve-first-slice.mjs",
+      "scripts/check-first-slice.mjs",
+      "scripts/resolve-product-completeness.mjs",
+      "scripts/check-product-completeness.mjs",
+      "scripts/check-mvp-example.mjs",
+      "scripts/resolve-low-risk-apply-candidate.mjs",
+      "scripts/check-low-risk-apply-candidate.mjs",
+      "ordinary-first-slices",
+      "product-completeness-reports",
+      "mvp-example-reports",
+      "controlled-apply-candidates"
     ],
     "aiNativeCore": [
       ".ai-native/core/assumption-register.md",
@@ -2554,7 +2684,15 @@
       "core/review-surface-governance.md",
       "core/safe-launch.md",
       "core/standard-baseline-pack-registry.md",
-      "core/unified-apply-plan.md"
+      "core/unified-apply-plan.md",
+      "core/ordinary-user-first-slice.md",
+      "core/product-completeness-gate.md",
+      "core/real-mvp-example-evidence.md",
+      "core/low-risk-controlled-apply-candidate.md",
+      ".ai-native/core/ordinary-user-first-slice.md",
+      ".ai-native/core/product-completeness-gate.md",
+      ".ai-native/core/real-mvp-example-evidence.md",
+      ".ai-native/core/low-risk-controlled-apply-candidate.md"
     ],
     "templates": [
       ".ai-native/templates/review-surface-card.md",
@@ -2643,7 +2781,15 @@
       "templates/workflow-guidance-card.md",
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
-      "templates/workflow-version.json"
+      "templates/workflow-version.json",
+      "templates/ordinary-user-first-slice-card.md",
+      "templates/product-completeness-report.md",
+      "templates/real-mvp-example-record.md",
+      "templates/low-risk-controlled-apply-candidate.md",
+      ".ai-native/templates/ordinary-user-first-slice-card.md",
+      ".ai-native/templates/product-completeness-report.md",
+      ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/low-risk-controlled-apply-candidate.md"
     ],
     "prompts": [
       ".ai-native/prompts/review-surface-agent.md",
@@ -2684,7 +2830,15 @@
       "prompts/walkthrough-agent.md",
       "prompts/work-queue-agent.md",
       "prompts/workflow-adapter-agent.md",
-      "prompts/workflow-concierge-agent.md"
+      "prompts/workflow-concierge-agent.md",
+      "prompts/ordinary-user-first-slice-agent.md",
+      "prompts/product-completeness-agent.md",
+      "prompts/real-mvp-example-agent.md",
+      "prompts/low-risk-controlled-apply-candidate-agent.md",
+      ".ai-native/prompts/ordinary-user-first-slice-agent.md",
+      ".ai-native/prompts/product-completeness-agent.md",
+      ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/low-risk-controlled-apply-candidate-agent.md"
     ],
     "checklists": [
       ".ai-native/checklists/review-surface-review.md",
@@ -2737,7 +2891,15 @@
       "checklists/verification-gate.md",
       "checklists/work-queue-review.md",
       "checklists/workflow-adoption-map-review.md",
-      "checklists/workflow-guidance-review.md"
+      "checklists/workflow-guidance-review.md",
+      "checklists/ordinary-user-first-slice-review.md",
+      "checklists/product-completeness-gate-review.md",
+      "checklists/real-mvp-example-review.md",
+      "checklists/low-risk-controlled-apply-candidate-review.md",
+      ".ai-native/checklists/ordinary-user-first-slice-review.md",
+      ".ai-native/checklists/product-completeness-gate-review.md",
+      ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/low-risk-controlled-apply-candidate-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -2824,7 +2986,11 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "ordinary-first-slices",
+      "product-completeness-reports",
+      "mvp-example-reports",
+      "controlled-apply-candidates"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -2912,7 +3078,14 @@
       "scripts/start-project.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/workflow-daily-summary.mjs",
-      "scripts/workflow-next.mjs"
+      "scripts/workflow-next.mjs",
+      "scripts/resolve-first-slice.mjs",
+      "scripts/check-first-slice.mjs",
+      "scripts/resolve-product-completeness.mjs",
+      "scripts/check-product-completeness.mjs",
+      "scripts/check-mvp-example.mjs",
+      "scripts/resolve-low-risk-apply-candidate.mjs",
+      "scripts/check-low-risk-apply-candidate.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -3138,7 +3311,23 @@
       "examples/web-internal-admin-first-slice/preflight-report.md",
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
-      "examples/web-internal-admin-first-slice/task-card.md"
+      "examples/web-internal-admin-first-slice/task-card.md",
+      "examples/1.42-ordinary-user-first-slice/README.md",
+      "examples/1.42-ordinary-user-first-slice/ordinary-first-slices/001-booking-app.md",
+      "examples/1.43-product-completeness-gate/README.md",
+      "examples/1.43-product-completeness-gate/product-completeness-reports/001-booking-mvp.md",
+      "examples/mvp-booking-web-app/README.md",
+      "examples/mvp-booking-web-app/package.json",
+      "examples/mvp-booking-web-app/src/index.html",
+      "examples/mvp-booking-web-app/src/styles.css",
+      "examples/mvp-booking-web-app/src/app.js",
+      "examples/mvp-booking-web-app/scripts/smoke-test.mjs",
+      "examples/mvp-booking-web-app/docs/product-brief.md",
+      "examples/mvp-booking-web-app/ordinary-first-slices/001-booking-web-app.md",
+      "examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md",
+      "examples/mvp-booking-web-app/final-reports/001-booking-web-app.md",
+      "examples/1.45-low-risk-apply-candidate/README.md",
+      "examples/1.45-low-risk-apply-candidate/controlled-apply-candidates/001-booking-demo.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -3394,7 +3583,15 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md"
+      "test-fixtures/output-quality/README.md",
+      "test-fixtures/bad/bad-first-slice-authorizes-write/ordinary-first-slices/001-bad.md",
+      "test-fixtures/bad/bad-first-slice-jargon/ordinary-first-slices/001-bad.md",
+      "test-fixtures/bad/bad-first-slice-too-many-questions/ordinary-first-slices/001-bad.md",
+      "test-fixtures/bad/bad-product-completeness-release-overclaim/product-completeness-reports/001-bad.md",
+      "test-fixtures/bad/bad-product-completeness-missing-run/product-completeness-reports/001-bad.md",
+      "test-fixtures/bad/bad-apply-candidate-authorizes-run/controlled-apply-candidates/001-bad.md",
+      "test-fixtures/bad/bad-apply-candidate-broad-path/controlled-apply-candidates/001-bad.md",
+      "test-fixtures/bad/bad-apply-candidate-high-risk/controlled-apply-candidates/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -3723,7 +3920,38 @@
       "subagent-run-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      ".ai-native/core/ordinary-user-first-slice.md",
+      ".ai-native/core/product-completeness-gate.md",
+      ".ai-native/core/real-mvp-example-evidence.md",
+      ".ai-native/core/low-risk-controlled-apply-candidate.md",
+      ".ai-native/docs/ordinary-user-first-slice.md",
+      ".ai-native/docs/product-completeness-gate.md",
+      ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/low-risk-controlled-apply-candidate.md",
+      ".ai-native/templates/ordinary-user-first-slice-card.md",
+      ".ai-native/templates/product-completeness-report.md",
+      ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/low-risk-controlled-apply-candidate.md",
+      ".ai-native/checklists/ordinary-user-first-slice-review.md",
+      ".ai-native/checklists/product-completeness-gate-review.md",
+      ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/low-risk-controlled-apply-candidate-review.md",
+      ".ai-native/prompts/ordinary-user-first-slice-agent.md",
+      ".ai-native/prompts/product-completeness-agent.md",
+      ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/low-risk-controlled-apply-candidate-agent.md",
+      "scripts/resolve-first-slice.mjs",
+      "scripts/check-first-slice.mjs",
+      "scripts/resolve-product-completeness.mjs",
+      "scripts/check-product-completeness.mjs",
+      "scripts/check-mvp-example.mjs",
+      "scripts/resolve-low-risk-apply-candidate.mjs",
+      "scripts/check-low-risk-apply-candidate.mjs",
+      "ordinary-first-slices",
+      "product-completeness-reports",
+      "mvp-example-reports",
+      "controlled-apply-candidates"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -4076,7 +4304,38 @@
       "subagent-run-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      ".ai-native/core/ordinary-user-first-slice.md",
+      ".ai-native/core/product-completeness-gate.md",
+      ".ai-native/core/real-mvp-example-evidence.md",
+      ".ai-native/core/low-risk-controlled-apply-candidate.md",
+      ".ai-native/docs/ordinary-user-first-slice.md",
+      ".ai-native/docs/product-completeness-gate.md",
+      ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/low-risk-controlled-apply-candidate.md",
+      ".ai-native/templates/ordinary-user-first-slice-card.md",
+      ".ai-native/templates/product-completeness-report.md",
+      ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/low-risk-controlled-apply-candidate.md",
+      ".ai-native/checklists/ordinary-user-first-slice-review.md",
+      ".ai-native/checklists/product-completeness-gate-review.md",
+      ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/low-risk-controlled-apply-candidate-review.md",
+      ".ai-native/prompts/ordinary-user-first-slice-agent.md",
+      ".ai-native/prompts/product-completeness-agent.md",
+      ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/low-risk-controlled-apply-candidate-agent.md",
+      "scripts/resolve-first-slice.mjs",
+      "scripts/check-first-slice.mjs",
+      "scripts/resolve-product-completeness.mjs",
+      "scripts/check-product-completeness.mjs",
+      "scripts/check-mvp-example.mjs",
+      "scripts/resolve-low-risk-apply-candidate.mjs",
+      "scripts/check-low-risk-apply-candidate.mjs",
+      "ordinary-first-slices",
+      "product-completeness-reports",
+      "mvp-example-reports",
+      "controlled-apply-candidates"
     ]
   },
   "copyRules": {
@@ -4192,6 +4451,22 @@
       {
         "source": "workflow-guidance-cards",
         "target": "workflow-guidance-cards"
+      },
+      {
+        "source": "ordinary-first-slices",
+        "target": "ordinary-first-slices"
+      },
+      {
+        "source": "product-completeness-reports",
+        "target": "product-completeness-reports"
+      },
+      {
+        "source": "mvp-example-reports",
+        "target": "mvp-example-reports"
+      },
+      {
+        "source": "controlled-apply-candidates",
+        "target": "controlled-apply-candidates"
       }
     ],
     "files": [
@@ -5050,6 +5325,50 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "docs/ordinary-user-first-slice.md",
+        "target": ".ai-native/docs/ordinary-user-first-slice.md"
+      },
+      {
+        "source": "docs/product-completeness-gate.md",
+        "target": ".ai-native/docs/product-completeness-gate.md"
+      },
+      {
+        "source": "docs/real-mvp-example-evidence.md",
+        "target": ".ai-native/docs/real-mvp-example-evidence.md"
+      },
+      {
+        "source": "docs/low-risk-controlled-apply-candidate.md",
+        "target": ".ai-native/docs/low-risk-controlled-apply-candidate.md"
+      },
+      {
+        "source": "scripts/resolve-first-slice.mjs",
+        "target": "scripts/resolve-first-slice.mjs"
+      },
+      {
+        "source": "scripts/check-first-slice.mjs",
+        "target": "scripts/check-first-slice.mjs"
+      },
+      {
+        "source": "scripts/resolve-product-completeness.mjs",
+        "target": "scripts/resolve-product-completeness.mjs"
+      },
+      {
+        "source": "scripts/check-product-completeness.mjs",
+        "target": "scripts/check-product-completeness.mjs"
+      },
+      {
+        "source": "scripts/check-mvp-example.mjs",
+        "target": "scripts/check-mvp-example.mjs"
+      },
+      {
+        "source": "scripts/resolve-low-risk-apply-candidate.mjs",
+        "target": "scripts/resolve-low-risk-apply-candidate.mjs"
+      },
+      {
+        "source": "scripts/check-low-risk-apply-candidate.mjs",
+        "target": "scripts/check-low-risk-apply-candidate.mjs"
       }
     ]
   },
@@ -5092,7 +5411,34 @@
       "templates/unified-apply-plan.md",
       "templates/workflow-guidance-card.md",
       "test-fixtures/bad/bad-apply-plan-authorizes-apply/apply-plans/001-bad.md",
-      "test-fixtures/bad/bad-apply-plan-writes-now/apply-plans/001-bad.md"
+      "test-fixtures/bad/bad-apply-plan-writes-now/apply-plans/001-bad.md",
+      "core/ordinary-user-first-slice.md",
+      "core/product-completeness-gate.md",
+      "core/real-mvp-example-evidence.md",
+      "core/low-risk-controlled-apply-candidate.md",
+      "docs/ordinary-user-first-slice.md",
+      "docs/product-completeness-gate.md",
+      "docs/real-mvp-example-evidence.md",
+      "docs/low-risk-controlled-apply-candidate.md",
+      "templates/ordinary-user-first-slice-card.md",
+      "templates/product-completeness-report.md",
+      "templates/real-mvp-example-record.md",
+      "templates/low-risk-controlled-apply-candidate.md",
+      "checklists/ordinary-user-first-slice-review.md",
+      "checklists/product-completeness-gate-review.md",
+      "checklists/real-mvp-example-review.md",
+      "checklists/low-risk-controlled-apply-candidate-review.md",
+      "prompts/ordinary-user-first-slice-agent.md",
+      "prompts/product-completeness-agent.md",
+      "prompts/real-mvp-example-agent.md",
+      "prompts/low-risk-controlled-apply-candidate-agent.md",
+      "scripts/resolve-first-slice.mjs",
+      "scripts/check-first-slice.mjs",
+      "scripts/resolve-product-completeness.mjs",
+      "scripts/check-product-completeness.mjs",
+      "scripts/check-mvp-example.mjs",
+      "scripts/resolve-low-risk-apply-candidate.mjs",
+      "scripts/check-low-risk-apply-candidate.mjs"
     ]
   }
 }

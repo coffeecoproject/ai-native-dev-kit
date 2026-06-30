@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.41.1`
+`1.45.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.45.0` completes the ordinary-user first-slice product loop: first-slice scope, product completeness, runnable MVP example evidence, and low-risk controlled apply candidate records.
+- `1.45.0` keeps the new loop non-executing: it does not write files, authorize apply, approve implementation, approve release/production, change CI/hooks, touch high-risk surfaces, enable BL2, or promote industrial packs.
 - `1.41.1` hardens Structured Evidence Schema: apply/readiness/approval checkers support `--require-structured-evidence`, strict readiness/approval checks require local apply-plan reference resolution, and structured readiness rejects empty actions unless the state is `NO_APPLY_PLAN`.
 - `1.41.1` keeps legacy Markdown compatibility by default and remains non-executing.
 - `1.41.0` adds Structured Evidence Schema: Unified Apply Plan, Controlled Apply Readiness, and Approval Record can include machine-readable JSON evidence with schema validation and apply plan digest cross-checks.

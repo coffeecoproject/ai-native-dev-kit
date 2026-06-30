@@ -6218,6 +6218,205 @@ function checkExecutionReviewClosureProtocol() {
   }
 }
 
+function checkOrdinaryUserProductLoopProtocol() {
+  const required = [
+    "docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md",
+    "core/ordinary-user-first-slice.md",
+    "docs/ordinary-user-first-slice.md",
+    "templates/ordinary-user-first-slice-card.md",
+    "checklists/ordinary-user-first-slice-review.md",
+    "prompts/ordinary-user-first-slice-agent.md",
+    "ordinary-first-slices/.gitkeep",
+    "scripts/resolve-first-slice.mjs",
+    "scripts/check-first-slice.mjs",
+    "core/product-completeness-gate.md",
+    "docs/product-completeness-gate.md",
+    "templates/product-completeness-report.md",
+    "checklists/product-completeness-gate-review.md",
+    "prompts/product-completeness-agent.md",
+    "product-completeness-reports/.gitkeep",
+    "scripts/resolve-product-completeness.mjs",
+    "scripts/check-product-completeness.mjs",
+    "core/real-mvp-example-evidence.md",
+    "docs/real-mvp-example-evidence.md",
+    "templates/real-mvp-example-record.md",
+    "checklists/real-mvp-example-review.md",
+    "prompts/real-mvp-example-agent.md",
+    "mvp-example-reports/.gitkeep",
+    "scripts/check-mvp-example.mjs",
+    "core/low-risk-controlled-apply-candidate.md",
+    "docs/low-risk-controlled-apply-candidate.md",
+    "templates/low-risk-controlled-apply-candidate.md",
+    "checklists/low-risk-controlled-apply-candidate-review.md",
+    "prompts/low-risk-controlled-apply-candidate-agent.md",
+    "controlled-apply-candidates/.gitkeep",
+    "scripts/resolve-low-risk-apply-candidate.mjs",
+    "scripts/check-low-risk-apply-candidate.mjs",
+    "examples/1.42-ordinary-user-first-slice/README.md",
+    "examples/1.42-ordinary-user-first-slice/ordinary-first-slices/001-booking-app.md",
+    "examples/1.43-product-completeness-gate/README.md",
+    "examples/1.43-product-completeness-gate/product-completeness-reports/001-booking-mvp.md",
+    "examples/mvp-booking-web-app/README.md",
+    "examples/mvp-booking-web-app/package.json",
+    "examples/mvp-booking-web-app/src/index.html",
+    "examples/mvp-booking-web-app/src/styles.css",
+    "examples/mvp-booking-web-app/src/app.js",
+    "examples/mvp-booking-web-app/scripts/smoke-test.mjs",
+    "examples/mvp-booking-web-app/docs/product-brief.md",
+    "examples/mvp-booking-web-app/ordinary-first-slices/001-booking-web-app.md",
+    "examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md",
+    "examples/mvp-booking-web-app/final-reports/001-booking-web-app.md",
+    "examples/1.45-low-risk-apply-candidate/README.md",
+    "examples/1.45-low-risk-apply-candidate/controlled-apply-candidates/001-booking-demo.md",
+    "test-fixtures/bad/bad-first-slice-authorizes-write/ordinary-first-slices/001-bad.md",
+    "test-fixtures/bad/bad-first-slice-jargon/ordinary-first-slices/001-bad.md",
+    "test-fixtures/bad/bad-first-slice-too-many-questions/ordinary-first-slices/001-bad.md",
+    "test-fixtures/bad/bad-product-completeness-release-overclaim/product-completeness-reports/001-bad.md",
+    "test-fixtures/bad/bad-product-completeness-missing-run/product-completeness-reports/001-bad.md",
+    "test-fixtures/bad/bad-apply-candidate-authorizes-run/controlled-apply-candidates/001-bad.md",
+    "test-fixtures/bad/bad-apply-candidate-broad-path/controlled-apply-candidates/001-bad.md",
+    "test-fixtures/bad/bad-apply-candidate-high-risk/controlled-apply-candidates/001-bad.md",
+    "releases/1.42.0/release-record.md",
+    "releases/1.42.0/known-limitations.md",
+    "releases/1.42.0/self-check-report.md",
+    "releases/1.43.0/release-record.md",
+    "releases/1.43.0/known-limitations.md",
+    "releases/1.43.0/self-check-report.md",
+    "releases/1.44.0/release-record.md",
+    "releases/1.44.0/known-limitations.md",
+    "releases/1.44.0/self-check-report.md",
+    "releases/1.45.0/release-record.md",
+    "releases/1.45.0/known-limitations.md",
+    "releases/1.45.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.42-1.45 ordinary user product loop asset exists ${file}`);
+    else fail(`1.42-1.45 ordinary user product loop asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md"),
+    read("core/ordinary-user-first-slice.md"),
+    read("core/product-completeness-gate.md"),
+    read("core/real-mvp-example-evidence.md"),
+    read("core/low-risk-controlled-apply-candidate.md"),
+    read("templates/ordinary-user-first-slice-card.md"),
+    read("templates/product-completeness-report.md"),
+    read("templates/low-risk-controlled-apply-candidate.md"),
+    read("scripts/resolve-first-slice.mjs"),
+    read("scripts/resolve-product-completeness.mjs"),
+    read("scripts/resolve-low-risk-apply-candidate.mjs"),
+    read("docs/reference/scripts.md"),
+    read("docs/reference/checkers.md"),
+    read("docs/reference/artifacts.md"),
+    read("scripts/cli.mjs"),
+  ].join("\n");
+
+  for (const marker of [
+    "Ordinary User First-Slice",
+    "Product Completeness",
+    "Real MVP Example",
+    "Low-Risk Controlled Apply Candidate",
+    "This card writes target files: No",
+    "This report approves release or production: No",
+    "This candidate authorizes apply: No",
+    "first-slice",
+    "product-completeness",
+    "mvp-example-check",
+    "apply-candidate",
+  ]) {
+    if (combined.includes(marker)) pass(`1.42-1.45 ordinary user product loop includes ${marker}`);
+    else fail(`1.42-1.45 ordinary user product loop missing ${marker}`);
+  }
+
+  const firstSliceResolver = runNode(["scripts/resolve-first-slice.mjs", ".", "我想做一个预约 App"]);
+  if (firstSliceResolver.status === 0
+    && firstSliceResolver.stdout.includes("Ordinary User First-Slice Card")
+    && firstSliceResolver.stdout.includes("This card writes target files: No")) {
+    pass("1.42 first-slice resolver prints safe card");
+  } else {
+    fail(`1.42 first-slice resolver failed: ${firstSliceResolver.stderr || firstSliceResolver.stdout}`);
+  }
+
+  const firstSliceExample = runNode(["scripts/check-first-slice.mjs", "examples/1.42-ordinary-user-first-slice"]);
+  if (firstSliceExample.status === 0 && firstSliceExample.stdout.includes("Ordinary User First-Slice check passed")) {
+    pass("1.42 first-slice example passes checker");
+  } else {
+    fail(`1.42 first-slice example failed: ${firstSliceExample.stderr || firstSliceExample.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["first-slice write authorization", "test-fixtures/bad/bad-first-slice-authorizes-write", "boundary This card writes target files must be No"],
+    ["first-slice jargon", "test-fixtures/bad/bad-first-slice-jargon", "internal jargon"],
+    ["first-slice too many questions", "test-fixtures/bad/bad-first-slice-too-many-questions", "must ask 1-3 questions"],
+  ]) {
+    const result = runNode(["scripts/check-first-slice.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) pass(`1.42 rejects ${name}`);
+    else fail(`1.42 must reject ${name}: ${output}`);
+  }
+
+  const productResolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/1.43-product-completeness-gate"]);
+  if (productResolver.status === 0
+    && productResolver.stdout.includes("Product Completeness Report")
+    && productResolver.stdout.includes("This report approves release or production: No")) {
+    pass("1.43 product completeness resolver prints safe report");
+  } else {
+    fail(`1.43 product completeness resolver failed: ${productResolver.stderr || productResolver.stdout}`);
+  }
+
+  const productExample = runNode(["scripts/check-product-completeness.mjs", "examples/1.43-product-completeness-gate"]);
+  if (productExample.status === 0 && productExample.stdout.includes("Product Completeness check passed")) {
+    pass("1.43 product completeness example passes checker");
+  } else {
+    fail(`1.43 product completeness example failed: ${productExample.stderr || productExample.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["product release overclaim", "test-fixtures/bad/bad-product-completeness-release-overclaim", "boundary This report approves release or production must be No"],
+    ["product missing run", "test-fixtures/bad/bad-product-completeness-missing-run", "checklist missing Local run or demo instructions"],
+  ]) {
+    const result = runNode(["scripts/check-product-completeness.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) pass(`1.43 rejects ${name}`);
+    else fail(`1.43 must reject ${name}: ${output}`);
+  }
+
+  const mvpExample = runNode(["scripts/check-mvp-example.mjs", "examples/mvp-booking-web-app"]);
+  if (mvpExample.status === 0 && mvpExample.stdout.includes("MVP Example check passed")) {
+    pass("1.44 booking MVP example passes checker and local smoke test");
+  } else {
+    fail(`1.44 booking MVP example failed: ${mvpExample.stderr || mvpExample.stdout}`);
+  }
+
+  const applyResolver = runNode(["scripts/resolve-low-risk-apply-candidate.mjs", ".", "--intent", "update local booking demo copy", "--path", "examples/mvp-booking-web-app/src/app.js"]);
+  if (applyResolver.status === 0
+    && applyResolver.stdout.includes("Low-Risk Controlled Apply Candidate")
+    && applyResolver.stdout.includes("This candidate authorizes apply: No")) {
+    pass("1.45 apply candidate resolver prints safe record");
+  } else {
+    fail(`1.45 apply candidate resolver failed: ${applyResolver.stderr || applyResolver.stdout}`);
+  }
+
+  const applyExample = runNode(["scripts/check-low-risk-apply-candidate.mjs", "examples/1.45-low-risk-apply-candidate"]);
+  if (applyExample.status === 0 && applyExample.stdout.includes("Low-Risk Controlled Apply Candidate check passed")) {
+    pass("1.45 apply candidate example passes checker");
+  } else {
+    fail(`1.45 apply candidate example failed: ${applyExample.stderr || applyExample.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["apply authorization", "test-fixtures/bad/bad-apply-candidate-authorizes-run", "boundary This candidate authorizes apply must be No"],
+    ["broad path", "test-fixtures/bad/bad-apply-candidate-broad-path", "unsafe target path"],
+    ["high risk", "test-fixtures/bad/bad-apply-candidate-high-risk", "mentions high-risk surface without explicit no-authority boundary"],
+  ]) {
+    const result = runNode(["scripts/check-low-risk-apply-candidate.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) pass(`1.45 rejects ${name}`);
+    else fail(`1.45 must reject ${name}: ${output}`);
+  }
+}
+
 function checkProfiles() {
   const profileRoot = path.join(kitRoot, "profiles");
   const requiredSections = [
@@ -6661,6 +6860,13 @@ function checkScriptSyntax() {
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
+    "scripts/resolve-first-slice.mjs",
+    "scripts/check-first-slice.mjs",
+    "scripts/resolve-product-completeness.mjs",
+    "scripts/check-product-completeness.mjs",
+    "scripts/check-mvp-example.mjs",
+    "scripts/resolve-low-risk-apply-candidate.mjs",
+    "scripts/check-low-risk-apply-candidate.mjs",
     "scripts/resolve-delivery-path.mjs",
     "scripts/check-delivery-path.mjs",
     "scripts/resolve-debt-handoff.mjs",
@@ -9411,6 +9617,7 @@ checkReviewSurfaceGovernanceProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkExecutionReviewClosureProtocol();
+checkOrdinaryUserProductLoopProtocol();
 checkProfiles();
 checkIndustrialPacks();
 checkIndustrialBaselineResolver();

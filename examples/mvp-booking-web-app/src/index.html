@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Booking Demo</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel">
+        <p class="eyebrow">Local first version</p>
+        <h1>Booking Demo</h1>
+        <form id="booking-form">
+          <label>Name<input name="name" required placeholder="Alex"></label>
+          <label>Phone<input name="phone" required placeholder="13800000000"></label>
+          <label>Service<select name="service"><option>Climbing intro class</option><option>Private coaching</option></select></label>
+          <label>Date<input name="date" required type="date"></label>
+          <label>Time<input name="time" required type="time"></label>
+          <button type="submit">Submit booking</button>
+        </form>
+      </section>
+      <section class="panel">
+        <p class="eyebrow">Operator view</p>
+        <h2>Bookings</h2>
+        <ul id="booking-list"></ul>
+        <p id="empty-state">No bookings yet.</p>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

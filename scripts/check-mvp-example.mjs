@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { parseArgs, unknownOptions } from "./lib/args.mjs";
+
+const args = parseArgs(process.argv.slice(2));
+const unknown = unknownOptions(args, new Set(["json"]));
+const targetRoot = path.resolve(process.cwd(), args._[0] || "examples/mvp-booking-web-app");
+const outputJson = Boolean(args.json);
+let failed = false;
+const checks = [];
+
+if (unknown.length > 0) {
+  console.error(`FAIL unknown option: --${unknown.join(", --")}`);
+  process.exit(1);
+}
+
+if (!outputJson) {
+  console.log("# MVP Example Check");
+  console.log("");
+}
+
+for (const file of [
+  "README.md",
+  "package.json",
+  "src/index.html",
+  "src/styles.css",
+  "src/app.js",
+  "scripts/smoke-test.mjs",
+  "docs/product-brief.md",
+  "ordinary-first-slices/001-booking-web-app.md",
+  "product-completeness-reports/001-booking-web-app.md",
+  "final-reports/001-booking-web-app.md",
+]) exists(file) ? pass(`${file} exists`) : fail(`missing ${file}`);
+
+const readme = read("README.md");
+if (/Original user goal/i.test(readme) && /Run/i.test(readme) && /Verify/i.test(readme)) pass("README includes original goal, run, and verify instructions");
+else fail("README must include original goal, run, and verify instructions");
+
+const packageJson = readJson("package.json");
+if (packageJson?.scripts?.test) pass("package.json includes test script");
+else fail("package.json must include test script");
+
+const app = `${read("src/index.html")}\n${read("src/app.js")}`;
+for (const marker of ["booking", "name", "phone", "date", "time", "operator"]) {
+  app.toLowerCase().includes(marker) ? pass(`app includes ${marker}`) : fail(`app missing ${marker}`);
+}
+
+const firstSlice = read("ordinary-first-slices/001-booking-web-app.md");
+if (/This card writes target files:\s*No/i.test(firstSlice) && /Backlog \/ Later/.test(firstSlice)) pass("first-slice card keeps boundaries and backlog");
+else fail("first-slice card must keep boundaries and backlog");
+
+const completeness = read("product-completeness-reports/001-booking-web-app.md");
+if (/RUNNABLE_MVP/.test(completeness) && /This report approves release or production:\s*No/i.test(completeness)) pass("product completeness report records local runnable MVP without release approval");
+else fail("product completeness report must record local runnable MVP without release approval");
+
+const finalReport = read("final-reports/001-booking-web-app.md");
+if (/local demo/i.test(finalReport) && /production/i.test(finalReport) && /not approved|No/i.test(finalReport)) pass("final report keeps local demo boundary");
+else fail("final report must keep local demo boundary");
+
+if (packageJson?.scripts?.test) {
+  const result = spawnSync("npm", ["test"], { cwd: targetRoot, encoding: "utf8", maxBuffer: 1024 * 1024 * 4 });
+  if (result.status === 0) pass("MVP example test script passes");
+  else fail(`MVP example test script failed: ${result.stderr || result.stdout}`);
+}
+
+emit();
+
+function exists(file) {
+  return fs.existsSync(path.join(targetRoot, file));
+}
+
+function read(file) {
+  const full = path.join(targetRoot, file);
+  return fs.existsSync(full) ? fs.readFileSync(full, "utf8") : "";
+}
+
+function readJson(file) {
+  try {
+    const content = read(file);
+    return content ? JSON.parse(content) : null;
+  } catch {
+    return null;
+  }
+}
+
+function pass(message) {
+  checks.push({ status: "PASS", message });
+  if (!outputJson) console.log(`PASS ${message}`);
+}
+
+function fail(message) {
+  failed = true;
+  checks.push({ status: "FAIL", message });
+  if (!outputJson) console.log(`FAIL ${message}`);
+}
+
+function emit() {
+  if (outputJson) console.log(JSON.stringify({ ok: !failed, checks }, null, 2));
+  else {
+    console.log("");
+    console.log(failed ? "MVP Example check failed." : "MVP Example check passed.");
+  }
+  process.exit(failed ? 1 : 0);
+}

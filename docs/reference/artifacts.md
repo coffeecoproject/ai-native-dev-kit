@@ -21,6 +21,10 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 |---|---|
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
 | `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
+| `ordinary-first-slices/` | First useful version scope for ordinary user goals |
+| `product-completeness-reports/` | Product-state, checklist, evidence, gaps, and next-action reports |
+| `mvp-example-reports/` | Real MVP example evidence and limitations records |
+| `controlled-apply-candidates/` | Low-risk controlled apply candidate records for later human approval |
 | `debt-handoff-reports/` | Debt level, verification notes, files to revisit, human decisions, and next-run handoff |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
@@ -170,6 +174,10 @@ Short rule:
 - need to route a plain user goal without command burden: conversation ask card
 - need to decide which workflow path to use: workflow guidance card
 - need to decide what must be reviewed before and after execution: review surface card
+- need to turn a broad ordinary-user goal into the first useful version: ordinary first-slice card
+- need to tell whether the work is a runnable product or still just an idea: product completeness report
+- need to prove the bundled MVP example is locally coherent: MVP example report
+- need to decide whether a tiny proposed write is safe enough to ask for later approval: controlled apply candidate
 - need to review work: review packet and review loop report
 - need a human decision: decision brief
 - need to suggest future work: follow-up proposal
