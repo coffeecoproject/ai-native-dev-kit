@@ -4,11 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.41.0`.
+Current release: `1.41.1`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `ai-native` command/package name is kept as a compatibility alias for now.
 
 Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.41.x`, focused on structured evidence for the apply/readiness/approval chain.
+
+1.41.1 hardens structured evidence with optional strict mode: new artifacts can require `Machine-Readable Evidence`, local plan reference resolution, and digest cross-checks while legacy Markdown remains compatible by default.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -285,7 +287,7 @@ Reference:
 
 Current release:
 
-- [1.41.0 Release Record](releases/1.41.0/release-record.md)
+- [1.41.1 Release Record](releases/1.41.1/release-record.md)
 - [Version History](VERSION.md)
 
 ## License

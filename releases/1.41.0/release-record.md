@@ -51,7 +51,7 @@ Markdown remains the human-readable record. The new `Machine-Readable Evidence` 
 | `scripts/lib/artifact-schema.mjs` | Local repository evidence |
 | 1.41 structured example | Local repository evidence |
 | Bad structured digest fixtures | Local repository evidence |
-| Full verification | Pending final self-check update |
+| Full verification | Completed; see `releases/1.41.0/self-check-report.md` |
 
 ## Known Limitations
 

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.41.0`
+Current version: `1.41.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.41.0`
 
 ## Current Release
 
-`1.41.0`
+`1.41.1`
 
 Includes:
 
+- Structured Evidence Hardening patch `1.41.1`: fixes stale 1.41 release evidence, adds `--require-structured-evidence` strict mode to apply/readiness/approval checkers, requires local plan reference resolution in strict readiness/approval checks, rejects non-`NO_APPLY_PLAN` structured readiness evidence with empty actions, and adds strict-mode bad fixtures
+- `1.41.1` keeps compatibility fallback by default: historical Markdown artifacts still pass the existing semantic checks unless strict mode is explicitly requested
+- `1.41.1` does not add a controlled apply runner, write target files, validate real human identity, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, enable BL2, or enable industrial packs
 - Structured Evidence Schema phase `1.41.0`: adds machine-readable JSON evidence schemas for Unified Apply Plan, Controlled Apply Readiness, and Approval Record, with canonical apply plan digest validation and digest cross-checks from readiness/approval records back to the referenced apply plan
 - Added `schemas/artifacts/unified-apply-plan.schema.json`, `schemas/artifacts/controlled-apply-readiness.schema.json`, `schemas/artifacts/approval-record.schema.json`, `scripts/lib/artifact-schema.mjs`, `docs/structured-evidence-schema.md`, templates with `Machine-Readable Evidence` blocks, examples, bad fixtures, manifest/generated-project coverage, and release evidence
 - `1.41.0` does not add a controlled apply runner, write target files, validate real human identity, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, enable BL2, or enable industrial packs

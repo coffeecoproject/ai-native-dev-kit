@@ -59,6 +59,14 @@ export function evidenceDigest(value, omittedKeys = ["plan_digest"]) {
 export function validateEvidenceBlock(content, schema, label, options = {}) {
   const extracted = extractMachineReadableEvidence(content);
   if (!extracted) {
+    if (options.require) {
+      return {
+        present: false,
+        ok: false,
+        value: null,
+        errors: [`${label}: Machine-Readable Evidence is required`],
+      };
+    }
     return {
       present: false,
       ok: true,

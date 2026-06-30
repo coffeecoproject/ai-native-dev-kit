@@ -13,9 +13,10 @@ import {
 } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json"]));
+const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -171,12 +172,12 @@ function checkRecords() {
 }
 
 function checkStructuredEvidence(content, label, file) {
-  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label);
-  if (!result.present) return;
+  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, { require: requireStructuredEvidence });
   if (!result.ok) {
     for (const error of result.errors) fail(error);
     return;
   }
+  if (!result.present) return;
 
   const evidence = result.value;
   pass(`${label} structured approval evidence matches schema`);
@@ -222,6 +223,10 @@ function checkStructuredEvidence(content, label, file) {
 
   const reference = resolveEvidenceReference(projectRoot, file, evidence.approved_plan?.path);
   if (!reference) {
+    if (requireStructuredEvidence) {
+      fail(`${label} structured approval plan reference must resolve in --require-structured-evidence mode`);
+      return;
+    }
     pass(`${label} structured approval plan reference not found locally; digest cross-check skipped`);
     return;
   }
@@ -361,6 +366,10 @@ function checkSourceEvidence() {
     "docs/structured-evidence-schema.md",
     "examples/1.41-structured-evidence-schema/approval-records/001-structured-workflow-assets.md",
     "test-fixtures/bad/bad-structured-approval-plan-digest/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-structured-approval-missing-plan-ref/approval-records/001-bad.md",
+    "releases/1.41.1/release-record.md",
+    "releases/1.41.1/known-limitations.md",
+    "releases/1.41.1/self-check-report.md",
     "releases/1.40.0/release-record.md",
     "releases/1.40.0/known-limitations.md",
     "releases/1.40.0/self-check-report.md",
@@ -386,22 +395,31 @@ function checkSourceEvidence() {
     fail(`1.41 structured approval example failed: ${structuredExample.stderr || structuredExample.stdout}`);
   }
 
-  for (const [name, target, expected] of [
-    ["AI owner", "test-fixtures/bad/bad-approval-record-ai-owner", "approval owner must be a specific human owner"],
-    ["missing plan hash", "test-fixtures/bad/bad-approval-record-missing-plan-hash", "must include a plan hash"],
-    ["all actions", "test-fixtures/bad/bad-approval-record-all-actions", "approved action ids must be explicit"],
-    ["auto apply", "test-fixtures/bad/bad-approval-record-auto-apply", "forbidden approval record claim"],
-    ["high risk", "test-fixtures/bad/bad-approval-record-high-risk", "cannot approve high-risk actions"],
-    ["wildcard path", "test-fixtures/bad/bad-approval-record-wildcard-path", "must use exact bounded target paths"],
-    ["parent traversal", "test-fixtures/bad/bad-approval-record-parent-traversal", "must use exact bounded target paths"],
-    ["symlink path", "test-fixtures/bad/bad-approval-record-symlink-path", "must use exact bounded target paths"],
-    ["expired approval", "test-fixtures/bad/bad-approval-record-expired", "approval is expired"],
-    ["ambiguous owner", "test-fixtures/bad/bad-approval-record-ambiguous-owner", "approval owner must be a specific human owner"],
-    ["mismatched action ID", "test-fixtures/bad/bad-approval-record-mismatched-action-id", "human approval statement must match approved action IDs"],
-    ["plan changed", "test-fixtures/bad/bad-approval-record-plan-changed", "plan changed after approval"],
-    ["structured digest", "test-fixtures/bad/bad-structured-approval-plan-digest", "approved_plan.plan_digest does not match referenced apply plan evidence"],
+  const strictStructuredExample = runNode(["scripts/check-approval-record.mjs", "examples/1.41-structured-evidence-schema", "--require-structured-evidence"]);
+  if (strictStructuredExample.status === 0 && strictStructuredExample.stdout.includes("structured approval references matching apply plan digest")) {
+    pass("1.41.1 structured approval example passes strict checker");
+  } else {
+    fail(`1.41.1 strict structured approval example failed: ${strictStructuredExample.stderr || strictStructuredExample.stdout}`);
+  }
+
+  for (const [name, targetArgs, expected] of [
+    ["AI owner", ["test-fixtures/bad/bad-approval-record-ai-owner"], "approval owner must be a specific human owner"],
+    ["missing plan hash", ["test-fixtures/bad/bad-approval-record-missing-plan-hash"], "must include a plan hash"],
+    ["all actions", ["test-fixtures/bad/bad-approval-record-all-actions"], "approved action ids must be explicit"],
+    ["auto apply", ["test-fixtures/bad/bad-approval-record-auto-apply"], "forbidden approval record claim"],
+    ["high risk", ["test-fixtures/bad/bad-approval-record-high-risk"], "cannot approve high-risk actions"],
+    ["wildcard path", ["test-fixtures/bad/bad-approval-record-wildcard-path"], "must use exact bounded target paths"],
+    ["parent traversal", ["test-fixtures/bad/bad-approval-record-parent-traversal"], "must use exact bounded target paths"],
+    ["symlink path", ["test-fixtures/bad/bad-approval-record-symlink-path"], "must use exact bounded target paths"],
+    ["expired approval", ["test-fixtures/bad/bad-approval-record-expired"], "approval is expired"],
+    ["ambiguous owner", ["test-fixtures/bad/bad-approval-record-ambiguous-owner"], "approval owner must be a specific human owner"],
+    ["mismatched action ID", ["test-fixtures/bad/bad-approval-record-mismatched-action-id"], "human approval statement must match approved action IDs"],
+    ["plan changed", ["test-fixtures/bad/bad-approval-record-plan-changed"], "plan changed after approval"],
+    ["structured digest", ["test-fixtures/bad/bad-structured-approval-plan-digest"], "approved_plan.plan_digest does not match referenced apply plan evidence"],
+    ["strict missing structured evidence", ["examples/1.40-approval-record-governance", "--require-structured-evidence"], "Machine-Readable Evidence is required"],
+    ["strict missing plan reference", ["test-fixtures/bad/bad-structured-approval-missing-plan-ref", "--require-structured-evidence"], "plan reference must resolve"],
   ]) {
-    const result = runNode(["scripts/check-approval-record.mjs", target]);
+    const result = runNode(["scripts/check-approval-record.mjs", ...targetArgs]);
     const output = `${result.stdout}\n${result.stderr}`;
     if (result.status !== 0 && output.includes(expected)) pass(`1.40 approval record rejects ${name}`);
     else fail(`1.40 approval record must reject ${name}: ${output}`);

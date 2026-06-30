@@ -13,9 +13,10 @@ import {
 } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json"]));
+const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -219,12 +220,12 @@ function checkReports() {
 }
 
 function checkStructuredEvidence(content, label, file) {
-  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label);
-  if (!result.present) return;
+  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, { require: requireStructuredEvidence });
   if (!result.ok) {
     for (const error of result.errors) fail(error);
     return;
   }
+  if (!result.present) return;
 
   const evidence = result.value;
   pass(`${label} structured readiness evidence matches schema`);
@@ -241,8 +242,25 @@ function checkStructuredEvidence(content, label, file) {
     fail(`${label} structured boundary must keep all authority flags false`);
   }
 
+  if (evidence.readiness_state !== "NO_APPLY_PLAN" && (!Array.isArray(evidence.actions) || evidence.actions.length === 0)) {
+    fail(`${label} structured readiness actions must not be empty unless readiness_state is NO_APPLY_PLAN`);
+  } else {
+    pass(`${label} structured readiness action count matches readiness state`);
+  }
+
+  const emptyPathAction = (evidence.actions || []).find((action) => !Array.isArray(action.target_paths) || action.target_paths.length === 0);
+  if (emptyPathAction) {
+    fail(`${label} structured readiness action ${emptyPathAction.id || "<unknown>"} must include target_paths`);
+  } else {
+    pass(`${label} structured readiness actions include target paths`);
+  }
+
   const reference = resolveEvidenceReference(projectRoot, file, evidence.apply_plan?.path);
   if (!reference) {
+    if (requireStructuredEvidence) {
+      fail(`${label} structured readiness plan reference must resolve in --require-structured-evidence mode`);
+      return;
+    }
     pass(`${label} structured readiness plan reference not found locally; digest cross-check skipped`);
     return;
   }
@@ -268,6 +286,11 @@ function checkSourceEvidence() {
     "docs/structured-evidence-schema.md",
     "examples/1.41-structured-evidence-schema/apply-readiness-reports/001-structured-workflow-assets.md",
     "test-fixtures/bad/bad-structured-readiness-plan-digest/apply-readiness-reports/001-bad.md",
+    "test-fixtures/bad/bad-structured-readiness-missing-plan-ref/apply-readiness-reports/001-bad.md",
+    "test-fixtures/bad/bad-structured-readiness-empty-actions/apply-readiness-reports/001-bad.md",
+    "releases/1.41.1/release-record.md",
+    "releases/1.41.1/known-limitations.md",
+    "releases/1.41.1/self-check-report.md",
     "releases/1.38.0/release-record.md",
     "releases/1.38.0/known-limitations.md",
     "releases/1.38.0/self-check-report.md",
@@ -322,13 +345,23 @@ function checkSourceEvidence() {
     fail(`1.41 structured readiness example failed: ${structuredExample.stderr || structuredExample.stdout}`);
   }
 
-  for (const [name, target, expected] of [
-    ["authorizes apply", "test-fixtures/bad/bad-controlled-apply-authorizes-apply", "forbidden controlled apply readiness claim"],
-    ["high-risk ready", "test-fixtures/bad/bad-controlled-apply-high-risk-ready", "cannot be READY_FOR_HUMAN_APPROVED_APPLY"],
-    ["proceeds without approval", "test-fixtures/bad/bad-controlled-apply-proceeds-without-approval", "must state it cannot proceed without new approval"],
-    ["structured digest", "test-fixtures/bad/bad-structured-readiness-plan-digest", "apply_plan.plan_digest does not match referenced apply plan evidence"],
+  const strictStructuredExample = runNode(["scripts/check-controlled-apply-readiness.mjs", "examples/1.41-structured-evidence-schema", "--require-structured-evidence"]);
+  if (strictStructuredExample.status === 0 && strictStructuredExample.stdout.includes("structured readiness references matching apply plan digest")) {
+    pass("1.41.1 structured readiness example passes strict checker");
+  } else {
+    fail(`1.41.1 strict structured readiness example failed: ${strictStructuredExample.stderr || strictStructuredExample.stdout}`);
+  }
+
+  for (const [name, targetArgs, expected] of [
+    ["authorizes apply", ["test-fixtures/bad/bad-controlled-apply-authorizes-apply"], "forbidden controlled apply readiness claim"],
+    ["high-risk ready", ["test-fixtures/bad/bad-controlled-apply-high-risk-ready"], "cannot be READY_FOR_HUMAN_APPROVED_APPLY"],
+    ["proceeds without approval", ["test-fixtures/bad/bad-controlled-apply-proceeds-without-approval"], "must state it cannot proceed without new approval"],
+    ["structured digest", ["test-fixtures/bad/bad-structured-readiness-plan-digest"], "apply_plan.plan_digest does not match referenced apply plan evidence"],
+    ["strict missing structured evidence", ["examples/1.38-controlled-apply-readiness", "--require-structured-evidence"], "Machine-Readable Evidence is required"],
+    ["strict missing plan reference", ["test-fixtures/bad/bad-structured-readiness-missing-plan-ref", "--require-structured-evidence"], "plan reference must resolve"],
+    ["structured empty actions", ["test-fixtures/bad/bad-structured-readiness-empty-actions"], "structured readiness actions must not be empty"],
   ]) {
-    const result = runNode(["scripts/check-controlled-apply-readiness.mjs", target]);
+    const result = runNode(["scripts/check-controlled-apply-readiness.mjs", ...targetArgs]);
     const output = `${result.stdout}\n${result.stderr}`;
     if (result.status !== 0 && output.includes(expected)) pass(`1.38 controlled apply readiness rejects ${name}`);
     else fail(`1.38 controlled apply readiness must reject ${name}: ${output}`);

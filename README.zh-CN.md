@@ -4,11 +4,13 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.41.0`。
+当前版本：`1.41.1`。
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`ai-native` 命令和包名暂时作为兼容别名保留。
 
 版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.41.x`，重点是 apply / readiness / approval 链路的结构化证据。
+
+1.41.1 加固了结构化证据：新 artifact 可以启用严格模式，要求必须有 `Machine-Readable Evidence`、本地 plan 引用和 digest 回查；旧 Markdown 文档默认仍保持兼容。
 
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
@@ -283,7 +285,7 @@ node scripts/check-workflow-guidance.mjs .
 
 当前版本：
 
-- [1.41.0 Release Record](releases/1.41.0/release-record.md)
+- [1.41.1 Release Record](releases/1.41.1/release-record.md)
 - [Version History](VERSION.md)
 
 ## License

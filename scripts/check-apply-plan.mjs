@@ -8,9 +8,10 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json"]));
+const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -157,12 +158,15 @@ function checkPlans() {
 }
 
 function checkStructuredEvidence(content, label) {
-  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, { digestField: "plan_digest" });
-  if (!result.present) return;
+  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, {
+    digestField: "plan_digest",
+    require: requireStructuredEvidence,
+  });
   if (!result.ok) {
     for (const error of result.errors) fail(error);
     return;
   }
+  if (!result.present) return;
 
   const evidence = result.value;
   pass(`${label} structured apply plan evidence matches schema`);
@@ -258,6 +262,9 @@ function checkSourceEvidence() {
     "examples/1.41-structured-evidence-schema/README.md",
     "examples/1.41-structured-evidence-schema/apply-plans/001-structured-workflow-assets.md",
     "test-fixtures/bad/bad-structured-apply-plan-digest/apply-plans/001-bad.md",
+    "releases/1.41.1/release-record.md",
+    "releases/1.41.1/known-limitations.md",
+    "releases/1.41.1/self-check-report.md",
     "releases/1.34.0/release-record.md",
     "releases/1.34.0/known-limitations.md",
     "releases/1.34.0/self-check-report.md",
@@ -310,12 +317,20 @@ function checkSourceEvidence() {
     fail(`1.41 structured apply plan example failed: ${structuredExample.stderr || structuredExample.stdout}`);
   }
 
-  for (const [name, target, expected] of [
-    ["authorizes apply", "test-fixtures/bad/bad-apply-plan-authorizes-apply", "forbidden apply plan claim"],
-    ["writes now", "test-fixtures/bad/bad-apply-plan-writes-now", "planned actions must not write now"],
-    ["structured digest", "test-fixtures/bad/bad-structured-apply-plan-digest", "plan_digest does not match canonical evidence digest"],
+  const strictStructuredExample = runNode(["scripts/check-apply-plan.mjs", "examples/1.41-structured-evidence-schema", "--require-structured-evidence"]);
+  if (strictStructuredExample.status === 0 && strictStructuredExample.stdout.includes("structured apply plan evidence matches schema")) {
+    pass("1.41.1 structured apply plan example passes strict checker");
+  } else {
+    fail(`1.41.1 strict structured apply plan example failed: ${strictStructuredExample.stderr || strictStructuredExample.stdout}`);
+  }
+
+  for (const [name, targetArgs, expected] of [
+    ["authorizes apply", ["test-fixtures/bad/bad-apply-plan-authorizes-apply"], "forbidden apply plan claim"],
+    ["writes now", ["test-fixtures/bad/bad-apply-plan-writes-now"], "planned actions must not write now"],
+    ["structured digest", ["test-fixtures/bad/bad-structured-apply-plan-digest"], "plan_digest does not match canonical evidence digest"],
+    ["strict missing structured evidence", ["examples/1.34-unified-apply-plan", "--require-structured-evidence"], "Machine-Readable Evidence is required"],
   ]) {
-    const result = runNode(["scripts/check-apply-plan.mjs", target]);
+    const result = runNode(["scripts/check-apply-plan.mjs", ...targetArgs]);
     const output = `${result.stdout}\n${result.stderr}`;
     if (result.status !== 0 && output.includes(expected)) pass(`1.34 unified apply plan rejects ${name}`);
     else fail(`1.34 unified apply plan must reject ${name}: ${output}`);

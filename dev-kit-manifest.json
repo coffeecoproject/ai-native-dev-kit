@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.41.0",
+  "devKitVersion": "1.41.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.41.0"
+    "phase": "1.41.1"
   },
   "groups": {
     "sourceRequired": [
@@ -240,6 +240,7 @@
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
       "docs/plans/repository-information-architecture-1.36-plan.md",
       "docs/plans/standard-baseline-pack-registry-1.14-plan.md",
+      "docs/plans/structured-evidence-hardening-1.41.1-plan.md",
       "docs/plans/structured-evidence-schema-1.41-plan.md",
       "docs/plans/subagent-dispatch-hygiene-1.39-plan.md",
       "docs/plans/unified-apply-plan-1.34-plan.md",
@@ -919,6 +920,9 @@
       "releases/1.41.0/known-limitations.md",
       "releases/1.41.0/release-record.md",
       "releases/1.41.0/self-check-report.md",
+      "releases/1.41.1/known-limitations.md",
+      "releases/1.41.1/release-record.md",
+      "releases/1.41.1/self-check-report.md",
       "releases/1.5.0/known-limitations.md",
       "releases/1.5.0/release-record.md",
       "releases/1.5.0/self-check-report.md",

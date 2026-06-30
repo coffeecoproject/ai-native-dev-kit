@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.41.0`
+`1.41.1`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.41.1` hardens Structured Evidence Schema: apply/readiness/approval checkers support `--require-structured-evidence`, strict readiness/approval checks require local apply-plan reference resolution, and structured readiness rejects empty actions unless the state is `NO_APPLY_PLAN`.
+- `1.41.1` keeps legacy Markdown compatibility by default and remains non-executing.
 - `1.41.0` adds Structured Evidence Schema: Unified Apply Plan, Controlled Apply Readiness, and Approval Record can include machine-readable JSON evidence with schema validation and apply plan digest cross-checks.
 - `1.41.0` keeps structured evidence non-executing: it does not add a controlled apply runner, write files, validate real human identity, authorize automatic apply, approve implementation, approve release/production, install hooks, change CI, change source of truth, enable BL2, or enable industrial packs.
 - `1.40.1` hardens Approval Record Governance: naming is clarified, artifact lifecycle and O0 / BL0 lightweight path docs are added, and approval records reject wildcard paths, parent traversal, symlink aliases, expired approvals, ambiguous human owners, mismatched action IDs, and plan-changed-after-approval records.

@@ -4950,6 +4950,7 @@ function checkApprovalRecordGovernanceProtocol() {
     "docs/plans/approval-record-governance-1.40-plan.md",
     "docs/plans/approval-record-hardening-1.40.1-plan.md",
     "docs/plans/structured-evidence-schema-1.41-plan.md",
+    "docs/plans/structured-evidence-hardening-1.41.1-plan.md",
     "docs/artifact-lifecycle.md",
     "docs/o0-bl0-lightweight-path.md",
     "docs/structured-evidence-schema.md",
@@ -4987,6 +4988,9 @@ function checkApprovalRecordGovernanceProtocol() {
     "test-fixtures/bad/bad-structured-apply-plan-digest/apply-plans/001-bad.md",
     "test-fixtures/bad/bad-structured-readiness-plan-digest/apply-readiness-reports/001-bad.md",
     "test-fixtures/bad/bad-structured-approval-plan-digest/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-structured-readiness-missing-plan-ref/apply-readiness-reports/001-bad.md",
+    "test-fixtures/bad/bad-structured-readiness-empty-actions/apply-readiness-reports/001-bad.md",
+    "test-fixtures/bad/bad-structured-approval-missing-plan-ref/approval-records/001-bad.md",
     "releases/1.40.0/release-record.md",
     "releases/1.40.0/known-limitations.md",
     "releases/1.40.0/self-check-report.md",
@@ -4996,6 +5000,9 @@ function checkApprovalRecordGovernanceProtocol() {
     "releases/1.41.0/release-record.md",
     "releases/1.41.0/known-limitations.md",
     "releases/1.41.0/self-check-report.md",
+    "releases/1.41.1/release-record.md",
+    "releases/1.41.1/known-limitations.md",
+    "releases/1.41.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.40 approval record asset exists ${file}`);
@@ -5011,6 +5018,7 @@ function checkApprovalRecordGovernanceProtocol() {
     read("releases/1.40.0/release-record.md"),
     read("releases/1.40.1/release-record.md"),
     read("releases/1.41.0/release-record.md"),
+    read("releases/1.41.1/release-record.md"),
     read("docs/artifact-lifecycle.md"),
     read("docs/o0-bl0-lightweight-path.md"),
     read("docs/structured-evidence-schema.md"),
@@ -5026,6 +5034,7 @@ function checkApprovalRecordGovernanceProtocol() {
     "O0 / BL0 Lightweight Path",
     "Structured Evidence Schema",
     "Machine-Readable Evidence",
+    "require-structured-evidence",
     "plan_digest",
     "canonical evidence digest",
     "wildcard paths",
@@ -5076,6 +5085,9 @@ function checkApprovalRecordGovernanceProtocol() {
     ["structured apply plan", ["scripts/check-apply-plan.mjs", "examples/1.41-structured-evidence-schema"], "structured apply plan evidence matches schema"],
     ["structured readiness", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.41-structured-evidence-schema"], "structured readiness evidence matches schema"],
     ["structured approval", ["scripts/check-approval-record.mjs", "examples/1.41-structured-evidence-schema"], "structured approval evidence matches schema"],
+    ["strict structured apply plan", ["scripts/check-apply-plan.mjs", "examples/1.41-structured-evidence-schema", "--require-structured-evidence"], "structured apply plan evidence matches schema"],
+    ["strict structured readiness", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.41-structured-evidence-schema", "--require-structured-evidence"], "structured readiness references matching apply plan digest"],
+    ["strict structured approval", ["scripts/check-approval-record.mjs", "examples/1.41-structured-evidence-schema", "--require-structured-evidence"], "structured approval references matching apply plan digest"],
   ]) {
     const result = runNode(args);
     if (result.status === 0 && result.stdout.includes(expected)) {
@@ -5101,6 +5113,12 @@ function checkApprovalRecordGovernanceProtocol() {
     ["structured apply digest", ["scripts/check-apply-plan.mjs", "test-fixtures/bad/bad-structured-apply-plan-digest"], "plan_digest does not match canonical evidence digest"],
     ["structured readiness digest", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-structured-readiness-plan-digest"], "apply_plan.plan_digest does not match referenced apply plan evidence"],
     ["structured approval digest", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-structured-approval-plan-digest"], "approved_plan.plan_digest does not match referenced apply plan evidence"],
+    ["strict apply missing structured evidence", ["scripts/check-apply-plan.mjs", "examples/1.34-unified-apply-plan", "--require-structured-evidence"], "Machine-Readable Evidence is required"],
+    ["strict readiness missing structured evidence", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.38-controlled-apply-readiness", "--require-structured-evidence"], "Machine-Readable Evidence is required"],
+    ["strict approval missing structured evidence", ["scripts/check-approval-record.mjs", "examples/1.40-approval-record-governance", "--require-structured-evidence"], "Machine-Readable Evidence is required"],
+    ["strict readiness missing plan reference", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-structured-readiness-missing-plan-ref", "--require-structured-evidence"], "plan reference must resolve"],
+    ["strict approval missing plan reference", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-structured-approval-missing-plan-ref", "--require-structured-evidence"], "plan reference must resolve"],
+    ["structured readiness empty actions", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-structured-readiness-empty-actions"], "structured readiness actions must not be empty"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;

@@ -18,9 +18,25 @@ The Markdown sections remain the human-readable record. The `Machine-Readable Ev
 - Boundary fields must stay false unless a future controlled runner explicitly supports a safe mode.
 - Approval evidence still does not authorize automatic apply.
 
+## Strict Mode
+
+Default checks remain compatible with older Markdown artifacts. Strict mode is explicit:
+
+```bash
+node scripts/check-apply-plan.mjs <project> --require-structured-evidence
+node scripts/check-controlled-apply-readiness.mjs <project> --require-structured-evidence
+node scripts/check-approval-record.mjs <project> --require-structured-evidence
+```
+
+Strict mode requires `Machine-Readable Evidence`. For readiness and approval records, strict mode also requires the referenced apply plan to resolve locally so the checker can verify the plan digest.
+
+Structured readiness evidence must include at least one action unless `readiness_state` is `NO_APPLY_PLAN`.
+
 ## Current Boundary
 
 Structured evidence improves verification. It does not write files, execute apply plans, validate real human identity, approve implementation, approve release or production, install hooks, change CI, or enable BL2.
+
+The schema files are not the complete safety boundary by themselves. Use the corresponding IntentOS checker because path, boundary, digest, readiness, approval, and non-authorization rules are enforced by the checker code as well as the schema.
 
 ## Human Workflow
 
@@ -29,4 +45,3 @@ Structured evidence improves verification. It does not write files, execute appl
 3. Codex creates readiness and approval records that reference the plan digest.
 4. Checkers validate both readable Markdown boundaries and structured JSON evidence.
 5. Humans still approve or reject the actual decision.
-
