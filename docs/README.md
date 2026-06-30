@@ -34,6 +34,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)
+- [Approval Record Governance](approval-record-governance.md)
 - [Work Queue](work-queue.md)
 - [Document Lifecycle](document-lifecycle.md)
 - [Document Archive Apply](document-archive-apply.md)

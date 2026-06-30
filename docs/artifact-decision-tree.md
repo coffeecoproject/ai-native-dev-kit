@@ -31,6 +31,9 @@ What is happening now?
 | Technical choice needs to become a human-owned decision | `guided-decision-summaries/` | implementation approval |
 | Actual changed files need to be proven against intended scope | `change-boundary-reports/` | permission to widen scope |
 | Baselines are drafted before implementation/evidence exists | `baseline-state-reports/` | proof that the baseline is implemented |
+| A possible target-project write needs a reviewable plan | `apply-plans/` | approval to write |
+| A reviewed apply plan needs execution-readiness classification | `apply-readiness-reports/` | human approval |
+| A human explicitly approves exact action IDs and target paths | `approval-records/` | automatic apply or release approval |
 | AI completed L1/L2/L3 work | `ai-logs/` | final product documentation |
 | A change needs independent review | `review-packets/` | approval |
 | GPT Pro, a second model, or a reviewer needs a prompt | `gpt-review-prompts/` | whole-repo context dump |
@@ -62,6 +65,7 @@ request
 -> implementation
 -> verification
 -> change boundary report when actual changed files need scope proof
+-> apply plan / readiness / approval record when a future controlled write path is being considered
 -> review packet when independent review is needed
 -> review loop report when findings need closure
 -> final report when durable result record is needed

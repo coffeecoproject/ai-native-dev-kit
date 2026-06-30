@@ -115,6 +115,12 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "approval-record-check": {
+    description: "Check recorded Approval Records for human-owned bounded approval evidence.",
+    script: "scripts/check-approval-record.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Guide project adoption with a read-only recommendation.",
     script: "scripts/start-project.mjs",
@@ -458,6 +464,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs apply-plan-check .");
   console.log("  node scripts/cli.mjs apply-readiness . --plan apply-plans/001-example.md");
   console.log("  node scripts/cli.mjs apply-readiness-check .");
+  console.log("  node scripts/cli.mjs approval-record-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
   console.log("  node scripts/cli.mjs baseline ../my-project");
   console.log("  node scripts/cli.mjs baseline-decision ../my-project");

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.39.0`
+Current version: `1.40.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.39.0`
 
 ## Current Release
 
-`1.39.0`
+`1.40.0`
 
 Includes:
 
+- Approval Record Governance phase `1.40.0`: adds a human approval evidence layer after Controlled Apply Readiness so Codex records exactly which action IDs, target paths, plan hash, expiry, rollback, and verification a human approved
+- Added `core/approval-record-governance.md`, `docs/approval-record-governance.md`, `templates/approval-record.md`, `approval-records/`, `approval-record-check`, `scripts/check-approval-record.mjs`, `approval-record` artifact generation, examples, bad fixtures, manifest/generated-project coverage, and release evidence
+- `1.40.0` does not add an apply runner, write target files, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, enable high-risk actions, or let Codex/AI/reviewer/subagent output count as human approval
 - Subagent Dispatch Hygiene phase `1.39.0`: adds recover-before-dispatch rules so Codex checks stale helpers, completed helpers, unused planned helpers, task drift, and active writer count before opening or reusing helper agents
 - Added `core/subagent-dispatch-hygiene.md`, `docs/subagent-dispatch-hygiene.md`, `Dispatch Hygiene` run-plan fields, generated defaults, checker enforcement, examples, bad fixtures, generated-project copy coverage, and release evidence
 - `1.39.0` does not create or close real subagents automatically, add a scheduler, install hooks, call external GPT/API review, modify CI in target projects, approve implementation, approve release/production, or grant new write authority

@@ -1603,5 +1603,89 @@
       "dirty worktree continues without decision"
     ],
     "howToFix": "Dirty worktree cards must stop before writes and ask whether to continue read-only, plan only, or wait."
+  },
+  {
+    "name": "good approval record workflow assets",
+    "type": "golden",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "examples/1.40-approval-record-governance"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Approval Record check passed"
+    ],
+    "howToFix": "Keep the approval record example human-owned, bounded, expiring, and non-executing."
+  },
+  {
+    "name": "bad approval record AI owner",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-ai-owner"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "approval owner must be human"
+    ],
+    "howToFix": "Approval Records must identify human approval, not Codex, AI, reviewers, subagents, automation, or system output."
+  },
+  {
+    "name": "bad approval record missing plan hash",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-missing-plan-hash"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "must include a plan hash"
+    ],
+    "howToFix": "Approved records must reference a specific plan hash."
+  },
+  {
+    "name": "bad approval record all actions",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-all-actions"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "approved action ids must be explicit"
+    ],
+    "howToFix": "Approved records must list exact action IDs and bounded target paths."
+  },
+  {
+    "name": "bad approval record auto apply",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-auto-apply"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "forbidden approval record claim"
+    ],
+    "howToFix": "Approval Records must not authorize automatic apply or say Codex can apply now."
+  },
+  {
+    "name": "bad approval record high risk",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-high-risk"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "cannot approve high-risk actions"
+    ],
+    "howToFix": "High-risk actions must stay human-only or blocked outside Approval Record controlled apply evidence."
   }
 ]

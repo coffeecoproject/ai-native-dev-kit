@@ -31,6 +31,17 @@ Read-only adoption assessment
   -> Adapter setup, if still needed
 ```
 
+For target-project writes that need plan-first control, use this separate chain:
+
+```text
+Unified Apply Plan
+  -> Controlled Apply Readiness
+  -> Approval Record
+  -> Future controlled apply candidate, if ever implemented
+```
+
+The Approval Record records exact human approval evidence. It is not automatic apply authority.
+
 ## Workflow
 
 Use the core workflow for every project.

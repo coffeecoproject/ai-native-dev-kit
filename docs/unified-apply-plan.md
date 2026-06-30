@@ -87,8 +87,9 @@ Typical sequence:
 ```text
 guide / start / workflow-map / baseline-decision
 -> unified apply plan
--> human approval
--> specialized apply command or manual controlled change
+-> controlled apply readiness
+-> approval record if a human approves exact action IDs
+-> specialized apply command or manual controlled change, if separately authorized
 -> verification
 -> execution closure
 ```

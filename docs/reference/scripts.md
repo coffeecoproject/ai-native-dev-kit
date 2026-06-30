@@ -51,6 +51,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs apply-plan-check <project>` | Check recorded Unified Apply Plans | No |
 | `node scripts/cli.mjs apply-readiness <project> --plan <apply-plan>` | Evaluate whether an apply plan is eligible for a future human-approved controlled apply step | No |
 | `node scripts/cli.mjs apply-readiness-check <project>` | Check recorded Controlled Apply Readiness Reports | No |
+| `node scripts/cli.mjs approval-record-check <project>` | Check recorded Approval Records for human-owned bounded approval evidence | No |
 | `node scripts/cli.mjs work-queue <project>` | Recommend current, paused, backlog, and resume state without changing task state | No |
 | `node scripts/cli.mjs work-queue-check <project>` | Check recorded Work Queue Reports and single-current-task rules | No |
 | `node scripts/cli.mjs hook-plan <project>` | Recommend hook candidates without installing hooks, changing CI, or adding gates | No |
@@ -129,6 +130,8 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-controlled-apply-readiness.mjs` is the 1.38 controlled apply readiness entry. It reads one Unified Apply Plan and reports whether the plan is not ready, human-only, blocked, or a low-risk candidate for future human-approved apply. It does not write target-project files or authorize apply.
 
 `scripts/check-controlled-apply-readiness.mjs` checks recorded Controlled Apply Readiness Reports. It rejects apply authorization, write-now claims, proceeding without new approval, high-risk actions marked ready, missing rollback, missing verification, and release/production/hook/CI/source-of-truth overclaims.
+
+`scripts/check-approval-record.mjs` checks recorded Approval Records. It allows empty projects, but when records exist it rejects non-human approval, missing plan hash, blanket action approval, automatic apply authorization, unbounded target paths, open-ended expiry, missing rollback or verification acknowledgement, high-risk action approval, and implementation/release/production/hook/CI/source-of-truth overclaims.
 
 `scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
 
@@ -233,6 +236,7 @@ Common types:
 - `patch-classification-false-positive`
 - `workflow-adoption-map`
 - `document-lifecycle-report`
+- `approval-record`
 - `review-surface-card`
 - `debt-knowledge-handoff-report`
 - `active-work-thread`
@@ -281,6 +285,7 @@ node scripts/resolve-existing-workflow.mjs .
 node scripts/check-workflow-adoption-map.mjs .
 node scripts/resolve-document-lifecycle.mjs .
 node scripts/check-document-lifecycle.mjs .
+node scripts/check-approval-record.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
 node scripts/resolve-guided-baseline-selection.mjs .
@@ -312,6 +317,7 @@ These are primarily for maintaining this repository:
 - `scripts/check-workflow-adoption-map.mjs`
 - `scripts/resolve-document-lifecycle.mjs`
 - `scripts/check-document-lifecycle.mjs`
+- `scripts/check-approval-record.mjs`
 - `scripts/check-change-boundary.mjs`
 - `scripts/check-baseline-state.mjs`
 - `scripts/resolve-baseline-packs.mjs`

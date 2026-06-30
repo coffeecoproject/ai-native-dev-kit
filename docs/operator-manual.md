@@ -75,6 +75,15 @@ node scripts/cli.mjs apply-readiness-check <project>
 
 Controlled Apply Readiness is still read-only. It can classify a plan as not ready, blocked, human-only, or a low-risk candidate for future human-approved apply. It does not write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
 
+When a human explicitly approves exact action IDs from a readiness-reviewed plan, record that approval separately:
+
+```bash
+node scripts/new-workflow-item.mjs --type approval-record --name <apply-scope>
+node scripts/cli.mjs approval-record-check <project>
+```
+
+Approval Record Governance records who approved, which plan and hash were approved, exact action IDs, target paths, expiry, rollback acknowledgement, and verification acknowledgement. It still does not execute writes, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, or enable high-risk actions.
+
 For platform standard baseline recommendations:
 
 ```bash

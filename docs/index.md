@@ -35,6 +35,7 @@ This index separates current operating documents from reference material, histor
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)
+- [Approval Record Governance](approval-record-governance.md)
 - [Work Queue](work-queue.md)
 - [Conversation Drift Control](conversation-drift-control.md)
 - [Safe Launch](safe-launch.md)

@@ -44,6 +44,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-document-archive-apply.mjs` | Archive Apply Plan boundary, link-check, index, rollback, and overclaim checks |
 | `resolve-controlled-apply-readiness.mjs` | Read-only readiness classifier for reviewed Unified Apply Plans |
 | `check-controlled-apply-readiness.mjs` | Controlled Apply Readiness boundary, approval, high-risk, rollback, and verification checks |
+| `check-approval-record.mjs` | Approval Record human-owner, action ID, plan hash, expiry, rollback, verification, and non-authorization checks |
 | `resolve-work-queue.mjs` | Read-only Work Queue recommendation for current, paused, backlog, and resume state |
 | `check-work-queue.mjs` | Work Queue Report boundary, single-current-task, paused resume review, and backlog parking checks |
 | `resolve-hook-orchestration.mjs` | Read-only hook candidate inventory and H0-H3 risk recommendation |
@@ -131,6 +132,7 @@ Product and claim checks:
 - `check-document-lifecycle.mjs` allows empty projects, but rejects Document Lifecycle Reports that authorize deletion, omit source-of-truth mapping, skip archive suggestions, claim files were deleted/moved/archived, change source of truth, approve cleanup work, or miss no-delete protection for source-of-truth, AGENTS, CI/hooks, release, legal, security, production, evidence, customer, or secret-bearing docs.
 - `check-document-archive-apply.mjs` allows empty projects, but rejects Archive Apply Plans that authorize archive apply, claim files were moved/deleted/archived, claim links were fixed, omit link-check planning, omit archive-index planning, omit rollback planning, replace Document Lifecycle, change source of truth, or approve cleanup completion.
 - `check-controlled-apply-readiness.mjs` allows empty projects, but rejects readiness reports that authorize apply, allow Codex to proceed without new approval, mark high-risk actions ready, omit rollback or verification readiness, install hooks/change CI, change source of truth, approve implementation, or approve release/production.
+- `check-approval-record.mjs` allows empty projects, but rejects Approval Records that use non-human approval, omit plan hash, use blanket action approval, authorize automatic apply, use unbounded target paths, omit expiry, miss rollback or verification acknowledgement, approve high-risk actions, install hooks/change CI, change source of truth, approve implementation, or approve release/production.
 - `check-work-queue.mjs` allows empty projects, but rejects Work Queue Reports with multiple `CURRENT` tasks, paused tasks without resume review, backlog execution approval, target-project write approval, implementation approval, scope expansion approval, release/production approval, or stale-work resume without review.
 - `check-hook-orchestration.mjs` allows empty projects, but rejects Hook Orchestration Plans that install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, change target-project files, treat hook output as human approval, skip H2/H3 approval, omit rollback/disable planning, or approve implementation/release/production.
 - `check-hook-policy.mjs` allows empty projects, but rejects Project Hook Policies that install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, enable auto-fix, treat hook output as human approval, omit H0-H3 classes, omit approval owners, omit rollback/disable policy, replace Hook Orchestration, or approve implementation/release/production.
@@ -178,6 +180,7 @@ node scripts/resolve-existing-workflow.mjs .
 node scripts/check-workflow-adoption-map.mjs .
 node scripts/resolve-document-lifecycle.mjs .
 node scripts/check-document-lifecycle.mjs .
+node scripts/check-approval-record.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
 node scripts/resolve-guided-baseline-selection.mjs .

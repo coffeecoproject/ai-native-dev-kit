@@ -4941,6 +4941,105 @@ function checkControlledApplyReadinessProtocol() {
   }
 }
 
+function checkApprovalRecordGovernanceProtocol() {
+  const required = [
+    "core/approval-record-governance.md",
+    "docs/approval-record-governance.md",
+    "docs/roadmaps/controlled-apply-execution-roadmap-1.40-1.42.md",
+    "docs/plans/approval-record-governance-1.40-plan.md",
+    "templates/approval-record.md",
+    "checklists/approval-record-review.md",
+    "prompts/approval-record-agent.md",
+    "approval-records/.gitkeep",
+    "scripts/check-approval-record.mjs",
+    "examples/1.40-approval-record-governance/README.md",
+    "examples/1.40-approval-record-governance/approval-records/001-workflow-assets.md",
+    "test-fixtures/bad/bad-approval-record-ai-owner/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-missing-plan-hash/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-all-actions/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-auto-apply/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-high-risk/approval-records/001-bad.md",
+    "releases/1.40.0/release-record.md",
+    "releases/1.40.0/known-limitations.md",
+    "releases/1.40.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.40 approval record asset exists ${file}`);
+    else fail(`1.40 approval record asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/approval-record-governance.md"),
+    read("docs/approval-record-governance.md"),
+    read("templates/approval-record.md"),
+    read("scripts/check-approval-record.mjs"),
+    read("releases/1.40.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Approval Record Governance",
+    "What exactly did a human approve?",
+    "Approval owner type",
+    "Plan hash",
+    "Approved action IDs must be explicit",
+    "This approval record authorizes automatic apply: No",
+    "This approval record approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.40 approval record includes ${marker}`);
+    else fail(`1.40 approval record missing ${marker}`);
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const marker of [
+    "approval-record-check",
+    "scripts/check-approval-record.mjs",
+  ]) {
+    if (cli.includes(marker)) pass(`CLI supports approval record marker ${marker}`);
+    else fail(`CLI missing approval record marker ${marker}`);
+  }
+
+  const newWorkflowItem = read("scripts/new-workflow-item.mjs");
+  for (const marker of [
+    "approval-record",
+    "approval-records",
+    "approval-record.md",
+    "Approval status: `DRAFT`",
+  ]) {
+    if (newWorkflowItem.includes(marker)) pass(`new-workflow-item supports approval record marker ${marker}`);
+    else fail(`new-workflow-item missing approval record marker ${marker}`);
+  }
+
+  const check = runNode(["scripts/check-approval-record.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Approval Record check passed")) {
+    pass("1.40 approval record checker passes source repo");
+  } else {
+    fail(`1.40 approval record checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-approval-record.mjs", "examples/1.40-approval-record-governance"]);
+  if (example.status === 0 && example.stdout.includes("Approval Record check passed")) {
+    pass("1.40 approval record example passes checker");
+  } else {
+    fail(`1.40 approval record example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["AI owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ai-owner"], "approval owner must be human"],
+    ["missing plan hash", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-missing-plan-hash"], "must include a plan hash"],
+    ["all actions", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-all-actions"], "approved action ids must be explicit"],
+    ["auto apply", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-auto-apply"], "forbidden approval record claim"],
+    ["high risk", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-high-risk"], "cannot approve high-risk actions"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.40 approval record rejects ${name}`);
+    } else {
+      fail(`1.40 approval record must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkConversationNativeAskProtocol() {
   const required = [
     "core/conversation-native-ask.md",
@@ -6475,6 +6574,7 @@ function checkScriptSyntax() {
     "scripts/check-delivery-path.mjs",
     "scripts/resolve-debt-handoff.mjs",
     "scripts/check-debt-handoff.mjs",
+    "scripts/check-approval-record.mjs",
     "scripts/resolve-standard-baseline.mjs",
     "scripts/check-standard-baseline-pack.mjs",
     "scripts/check-standard-baseline-selection.mjs",
@@ -6539,6 +6639,7 @@ function checkReadmePointers() {
     "O2 / BL2",
     "Beginner Entry",
     "Unified Apply Plan",
+    "Approval Record",
     "Work Queue / Todo",
     "Document Lifecycle",
     "Hook Policy",
@@ -6557,6 +6658,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs ask",
     "node scripts/resolve-beginner-entry.mjs",
     "node scripts/check-beginner-entry.mjs",
+    "node scripts/check-approval-record.mjs",
     "node scripts/check-workflow-guidance.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
@@ -6570,6 +6672,7 @@ function checkReadmePointers() {
     "docs/review-surface-governance.md",
     "docs/delivery-path-governance.md",
     "docs/debt-knowledge-handoff.md",
+    "docs/approval-record-governance.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -9190,6 +9293,7 @@ checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();
 checkControlledApplyReadinessProtocol();
+checkApprovalRecordGovernanceProtocol();
 checkBeginnerEntryProtocol();
 checkConversationNativeAskProtocol();
 checkWorkQueueProtocol();

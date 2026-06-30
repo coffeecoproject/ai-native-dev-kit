@@ -86,4 +86,10 @@ Controlled Apply Readiness answers:
 Is this plan eligible for a future human-approved controlled apply?
 ```
 
-Neither one is an executor.
+Approval Record Governance answers:
+
+```text
+What exactly did the human approve?
+```
+
+None of these steps is an executor.

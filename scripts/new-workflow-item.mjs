@@ -40,6 +40,7 @@ const typeMap = {
   "document-archive-apply-plan": { dir: "archive-apply-plans", template: "document-archive-apply-plan.md", defaultName: "archive-apply" },
   "unified-apply-plan": { dir: "apply-plans", template: "unified-apply-plan.md", defaultName: "apply-plan" },
   "controlled-apply-readiness-report": { dir: "apply-readiness-reports", template: "controlled-apply-readiness-report.md", defaultName: "apply-readiness" },
+  "approval-record": { dir: "approval-records", template: "approval-record.md", defaultName: "approval-record" },
   "beginner-entry-card": { dir: "beginner-entry-cards", template: "beginner-entry-card.md", defaultName: "beginner-entry" },
   "conversation-ask-card": { dir: "conversation-ask-cards", template: "conversation-ask-card.md", defaultName: "conversation-ask" },
   "work-queue-report": { dir: "work-queue", template: "work-queue-report.md", defaultName: "work-queue" },
@@ -153,6 +154,10 @@ const aliases = {
   "controlled-apply-readiness": "controlled-apply-readiness-report",
   "apply-ready": "controlled-apply-readiness-report",
   "apply-readiness-report": "controlled-apply-readiness-report",
+  approval: "approval-record",
+  "approval-record": "approval-record",
+  "human-approval": "approval-record",
+  "apply-approval": "approval-record",
   ask: "beginner-entry-card",
   "beginner-entry": "beginner-entry-card",
   "beginner-entry-card": "beginner-entry-card",
@@ -287,6 +292,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs");
   console.error("  node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name stale-docs-archive-plan");
   console.error("  node scripts/new-workflow-item.mjs --type controlled-apply-readiness-report --name workflow-assets");
+  console.error("  node scripts/new-workflow-item.mjs --type approval-record --name workflow-assets");
   console.error("  node scripts/new-workflow-item.mjs --type beginner-entry-card --name first-user-goal");
   console.error("  node scripts/new-workflow-item.mjs --type conversation-ask-card --name first-conversation-goal");
   console.error("  node scripts/new-workflow-item.mjs --type work-queue-report --name current-work");
@@ -1801,6 +1807,46 @@ function fillBaselineDecisionCard(content, context) {
   return output;
 }
 
+function fillApprovalRecord(content, context) {
+  let output = setTitle(content, `# Approval Record: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Human Decision Summary",
+    [
+      "Approval status: `DRAFT`",
+      "",
+      "Conclusion: `Approval has not been granted yet.`",
+      "",
+      "Can Codex apply now: No",
+      "",
+      "What I need from you: `Confirm exact action IDs, target paths, expiry, rollback acknowledgement, and verification acknowledgement.`",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Approval Identity",
+    [
+      "| Field | Value |",
+      "|---|---|",
+      "| Approved by |  |",
+      "| Approval owner type | HUMAN |",
+      "| Approval captured from | conversation |",
+      `| Approval captured at | ${context.date} |`,
+      `| Recorded by | ${context.agent || "Codex"} |`,
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
+    "Approved Action IDs",
+    [
+      "| Action ID | Action type | Target paths | Approved? | Notes |",
+      "|---|---|---|---|---|",
+      "| A001 | WORKFLOW_ASSET_UPDATE | exact/path.md | No | Draft only; not approved yet |",
+    ].join("\n"),
+  );
+  return output;
+}
+
 function frontmatterFor(type, context) {
   const common = {
     schema_version: "1.0",
@@ -1868,6 +1914,13 @@ function frontmatterFor(type, context) {
     return {
       ...common,
       baseline_decision: "PENDING",
+      status: "draft",
+    };
+  }
+  if (type === "approval-record") {
+    return {
+      ...common,
+      approval_status: "DRAFT",
       status: "draft",
     };
   }
@@ -1992,6 +2045,7 @@ if (type === "baseline-state-report") content = fillBaselineStateReport(content,
 if (type === "baseline-pack-selection-report") content = fillBaselinePackSelectionReport(content, baseContext);
 if (type === "standard-baseline-selection-report") content = fillStandardBaselineSelectionReport(content, baseContext);
 if (type === "baseline-decision-card") content = fillBaselineDecisionCard(content, baseContext);
+if (type === "approval-record") content = fillApprovalRecord(content, baseContext);
 
 const frontmatter = frontmatterFor(type, baseContext);
 if (frontmatter) content = addFrontmatter(content, frontmatter);
@@ -2088,6 +2142,10 @@ if (type === "review-packet") {
   console.log("- Keep no-code and evidence-required baselines separate from confirmed project facts.");
   console.log("- Do not claim production-ready or industrial-grade status without evidence.");
   console.log("- Run node scripts/check-baseline-state.mjs . --report <this-file> after filling the report.");
+} else if (type === "approval-record") {
+  console.log("- Keep this as DRAFT until a human approves exact action IDs and bounded target paths.");
+  console.log("- Fill plan hash, expiry, rollback acknowledgement, and verification acknowledgement before marking APPROVED.");
+  console.log("- Run node scripts/check-approval-record.mjs . after filling the record.");
 } else {
   console.log("- Fill all placeholder sections from project conversation and evidence.");
   console.log("- Keep exactly one request/preflight/spec/eval/task chain for the current implementation task.");
