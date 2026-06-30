@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1.41.0",
+  "artifactType": "controlled_apply_readiness",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "readiness_state",
+    "can_codex_apply_now",
+    "requires_explicit_human_approval",
+    "can_proceed_without_new_approval",
+    "apply_plan",
+    "actions",
+    "preconditions",
+    "rollback",
+    "verification",
+    "boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.41.0"] },
+    "artifact_type": { "type": "string", "enum": ["controlled_apply_readiness"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "readiness_state": {
+      "type": "string",
+      "enum": ["NO_APPLY_PLAN", "NOT_READY", "READY_FOR_HUMAN_APPROVED_APPLY", "HUMAN_ONLY", "BLOCKED"]
+    },
+    "can_codex_apply_now": { "type": "boolean" },
+    "requires_explicit_human_approval": { "type": "boolean" },
+    "can_proceed_without_new_approval": { "type": "boolean" },
+    "apply_plan": {
+      "type": "object",
+      "required": ["path", "plan_digest"],
+      "properties": {
+        "path": { "type": "string" },
+        "plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "classification", "target_paths"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z]-?[0-9]{3}$" },
+          "classification": { "type": "string", "enum": ["LOW_RISK_CANDIDATE", "HUMAN_ONLY", "BLOCKED"] },
+          "target_paths": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "status"],
+        "properties": {
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "fail", "not_applicable"] }
+        }
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "required": ["required", "path", "step", "verification"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "path": { "type": "string" },
+        "step": { "type": "string" },
+        "verification": { "type": "string" }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["pre_apply", "post_apply", "evidence_path"],
+      "properties": {
+        "pre_apply": { "type": "string" },
+        "post_apply": { "type": "string" },
+        "evidence_path": { "type": "string" }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "writes_files_now",
+        "authorizes_apply",
+        "approves_implementation",
+        "approves_release_or_production",
+        "installs_hooks_or_changes_ci",
+        "enables_high_risk_actions"
+      ],
+      "properties": {
+        "writes_files_now": { "type": "boolean" },
+        "authorizes_apply": { "type": "boolean" },
+        "approves_implementation": { "type": "boolean" },
+        "approves_release_or_production": { "type": "boolean" },
+        "installs_hooks_or_changes_ci": { "type": "boolean" },
+        "enables_high_risk_actions": { "type": "boolean" }
+      }
+    },
+    "outcome": { "type": "string", "enum": ["READINESS_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"] }
+  }
+}

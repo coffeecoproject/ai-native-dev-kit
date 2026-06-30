@@ -1434,7 +1434,8 @@ function checkCliFrontDoor() {
     return;
   }
   for (const marker of [
-    "AI Native Dev Kit CLI",
+    "IntentOS CLI",
+    "Compatibility alias: ai-native",
     currentVersion(),
     "Manifest: dev-kit-manifest.json",
     "guide",
@@ -4947,21 +4948,54 @@ function checkApprovalRecordGovernanceProtocol() {
     "docs/approval-record-governance.md",
     "docs/roadmaps/controlled-apply-execution-roadmap-1.40-1.42.md",
     "docs/plans/approval-record-governance-1.40-plan.md",
+    "docs/plans/approval-record-hardening-1.40.1-plan.md",
+    "docs/plans/structured-evidence-schema-1.41-plan.md",
+    "docs/artifact-lifecycle.md",
+    "docs/o0-bl0-lightweight-path.md",
+    "docs/structured-evidence-schema.md",
     "templates/approval-record.md",
+    "templates/controlled-apply-readiness-report.md",
+    "templates/unified-apply-plan.md",
     "checklists/approval-record-review.md",
     "prompts/approval-record-agent.md",
     "approval-records/.gitkeep",
+    "schemas/artifacts/approval-record.schema.json",
+    "schemas/artifacts/controlled-apply-readiness.schema.json",
+    "schemas/artifacts/unified-apply-plan.schema.json",
+    "scripts/lib/artifact-schema.mjs",
+    "scripts/check-apply-plan.mjs",
+    "scripts/check-controlled-apply-readiness.mjs",
     "scripts/check-approval-record.mjs",
     "examples/1.40-approval-record-governance/README.md",
     "examples/1.40-approval-record-governance/approval-records/001-workflow-assets.md",
+    "examples/1.41-structured-evidence-schema/README.md",
+    "examples/1.41-structured-evidence-schema/apply-plans/001-structured-workflow-assets.md",
+    "examples/1.41-structured-evidence-schema/apply-readiness-reports/001-structured-workflow-assets.md",
+    "examples/1.41-structured-evidence-schema/approval-records/001-structured-workflow-assets.md",
     "test-fixtures/bad/bad-approval-record-ai-owner/approval-records/001-bad.md",
     "test-fixtures/bad/bad-approval-record-missing-plan-hash/approval-records/001-bad.md",
     "test-fixtures/bad/bad-approval-record-all-actions/approval-records/001-bad.md",
     "test-fixtures/bad/bad-approval-record-auto-apply/approval-records/001-bad.md",
     "test-fixtures/bad/bad-approval-record-high-risk/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-wildcard-path/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-parent-traversal/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-symlink-path/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-expired/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-ambiguous-owner/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-mismatched-action-id/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-plan-changed/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-structured-apply-plan-digest/apply-plans/001-bad.md",
+    "test-fixtures/bad/bad-structured-readiness-plan-digest/apply-readiness-reports/001-bad.md",
+    "test-fixtures/bad/bad-structured-approval-plan-digest/approval-records/001-bad.md",
     "releases/1.40.0/release-record.md",
     "releases/1.40.0/known-limitations.md",
     "releases/1.40.0/self-check-report.md",
+    "releases/1.40.1/release-record.md",
+    "releases/1.40.1/known-limitations.md",
+    "releases/1.40.1/self-check-report.md",
+    "releases/1.41.0/release-record.md",
+    "releases/1.41.0/known-limitations.md",
+    "releases/1.41.0/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.40 approval record asset exists ${file}`);
@@ -4973,7 +5007,13 @@ function checkApprovalRecordGovernanceProtocol() {
     read("docs/approval-record-governance.md"),
     read("templates/approval-record.md"),
     read("scripts/check-approval-record.mjs"),
+    read("scripts/lib/artifact-schema.mjs"),
     read("releases/1.40.0/release-record.md"),
+    read("releases/1.40.1/release-record.md"),
+    read("releases/1.41.0/release-record.md"),
+    read("docs/artifact-lifecycle.md"),
+    read("docs/o0-bl0-lightweight-path.md"),
+    read("docs/structured-evidence-schema.md"),
   ].join("\n");
 
   for (const marker of [
@@ -4982,6 +5022,15 @@ function checkApprovalRecordGovernanceProtocol() {
     "Approval owner type",
     "Plan hash",
     "Approved action IDs must be explicit",
+    "Artifact Lifecycle Map",
+    "O0 / BL0 Lightweight Path",
+    "Structured Evidence Schema",
+    "Machine-Readable Evidence",
+    "plan_digest",
+    "canonical evidence digest",
+    "wildcard paths",
+    "parent directory traversal",
+    "symlink aliases",
     "This approval record authorizes automatic apply: No",
     "This approval record approves release or production: No",
   ]) {
@@ -5024,11 +5073,34 @@ function checkApprovalRecordGovernanceProtocol() {
   }
 
   for (const [name, args, expected] of [
-    ["AI owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ai-owner"], "approval owner must be human"],
+    ["structured apply plan", ["scripts/check-apply-plan.mjs", "examples/1.41-structured-evidence-schema"], "structured apply plan evidence matches schema"],
+    ["structured readiness", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.41-structured-evidence-schema"], "structured readiness evidence matches schema"],
+    ["structured approval", ["scripts/check-approval-record.mjs", "examples/1.41-structured-evidence-schema"], "structured approval evidence matches schema"],
+  ]) {
+    const result = runNode(args);
+    if (result.status === 0 && result.stdout.includes(expected)) {
+      pass(`1.41 ${name} example passes checker`);
+    } else {
+      fail(`1.41 ${name} example failed: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  for (const [name, args, expected] of [
+    ["AI owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ai-owner"], "approval owner must be a specific human owner"],
     ["missing plan hash", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-missing-plan-hash"], "must include a plan hash"],
     ["all actions", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-all-actions"], "approved action ids must be explicit"],
     ["auto apply", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-auto-apply"], "forbidden approval record claim"],
     ["high risk", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-high-risk"], "cannot approve high-risk actions"],
+    ["wildcard path", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-wildcard-path"], "must use exact bounded target paths"],
+    ["parent traversal", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-parent-traversal"], "must use exact bounded target paths"],
+    ["symlink path", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-symlink-path"], "must use exact bounded target paths"],
+    ["expired approval", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-expired"], "approval is expired"],
+    ["ambiguous owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ambiguous-owner"], "approval owner must be a specific human owner"],
+    ["mismatched action ID", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-mismatched-action-id"], "human approval statement must match approved action IDs"],
+    ["plan changed", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-plan-changed"], "plan changed after approval"],
+    ["structured apply digest", ["scripts/check-apply-plan.mjs", "test-fixtures/bad/bad-structured-apply-plan-digest"], "plan_digest does not match canonical evidence digest"],
+    ["structured readiness digest", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-structured-readiness-plan-digest"], "apply_plan.plan_digest does not match referenced apply plan evidence"],
+    ["structured approval digest", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-structured-approval-plan-digest"], "approved_plan.plan_digest does not match referenced apply plan evidence"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -6538,6 +6610,7 @@ function checkPlatformAdapters() {
 
 function checkScriptSyntax() {
   const scripts = [
+    "scripts/lib/artifact-schema.mjs",
     "scripts/init-project.mjs",
     "scripts/check-ai-workflow.mjs",
     "scripts/check-guided-adoption.mjs",
@@ -6640,6 +6713,9 @@ function checkReadmePointers() {
     "Beginner Entry",
     "Unified Apply Plan",
     "Approval Record",
+    "Structured Evidence Schema",
+    "Artifact Lifecycle Map",
+    "O0 / BL0 Lightweight Path",
     "Work Queue / Todo",
     "Document Lifecycle",
     "Hook Policy",
@@ -6673,6 +6749,9 @@ function checkReadmePointers() {
     "docs/delivery-path-governance.md",
     "docs/debt-knowledge-handoff.md",
     "docs/approval-record-governance.md",
+    "docs/structured-evidence-schema.md",
+    "docs/artifact-lifecycle.md",
+    "docs/o0-bl0-lightweight-path.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
     "docs/reference/artifacts.md",
@@ -6715,6 +6794,9 @@ function checkReadmePointers() {
     "Conversation-Native Ask",
     "适合什么场景",
     "项目分级",
+    "Artifact Lifecycle Map",
+    "Structured Evidence Schema",
+    "O0 / BL0 Lightweight Path",
     "安全边界",
     "node scripts/cli.mjs guide",
     "node scripts/cli.mjs apply-plan",
@@ -6749,6 +6831,7 @@ function checkReadmePointers() {
     "docs/baseline-state.md",
     "docs/guided-delivery-check.md",
     "docs/standard-baseline-pack-registry.md",
+    "docs/structured-evidence-schema.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/document-lifecycle.md",
     "docs/document-archive-apply.md",
@@ -6763,6 +6846,9 @@ function checkReadmePointers() {
     "docs/index.md",
     "docs/repository-structure.md",
     "docs/document-ownership.md",
+    "docs/artifact-lifecycle.md",
+    "docs/structured-evidence-schema.md",
+    "docs/o0-bl0-lightweight-path.md",
     "docs/plans/README.md",
     "docs/roadmaps/README.md",
     currentReleasePointer,
@@ -6777,6 +6863,9 @@ function checkReadmePointers() {
     "docs/index.md",
     "docs/repository-structure.md",
     "docs/document-ownership.md",
+    "docs/artifact-lifecycle.md",
+    "docs/structured-evidence-schema.md",
+    "docs/o0-bl0-lightweight-path.md",
     "docs/plans/README.md",
     "docs/plans/repository-information-architecture-1.36-plan.md",
     "docs/plans/conversation-native-ask-1.37-plan.md",

@@ -141,7 +141,7 @@ Use the smallest loop that fits the risk:
 Request -> Preflight -> Engineering/Environment Baseline -> Spec -> Eval -> Task -> Verify -> Review -> Final Report
 ```
 
-L0/L1 tasks may use a lighter set of artifacts when the project policy allows it. L2/L3 tasks require Review Packet and Review Loop Report.
+O0 / BL0 and L0/L1 tasks may use a lighter set of artifacts when the project policy allows it. Use `docs/o0-bl0-lightweight-path.md` for small local or prototype work, and `docs/artifact-lifecycle.md` to decide when heavier artifacts are actually needed. L2/L3 tasks require Review Packet and Review Loop Report.
 
 ## Goal Mode
 

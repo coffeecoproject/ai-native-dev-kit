@@ -28,6 +28,7 @@ What I need from you: `No additional approval is recorded by this file. Future a
 | Controlled Apply Readiness Report | `apply-readiness-reports/001-workflow-assets.md` |
 | Plan hash | `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` |
 | Plan version/date | 2026-06-30 |
+| Plan changed after approval | No |
 
 ## Approved Action IDs
 
@@ -59,7 +60,7 @@ What I need from you: `No additional approval is recorded by this file. Future a
 
 | Field | Value |
 |---|---|
-| Approval expires at | 2026-06-30 23:59 +0800 |
+| Approval expires at | 2099-12-31 23:59 +0800 |
 | Re-approval required after expiry | Yes |
 
 ## Rollback Acknowledgement

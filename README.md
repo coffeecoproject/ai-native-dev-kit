@@ -4,6 +4,12 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
+Current release: `1.41.0`.
+
+Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `ai-native` command/package name is kept as a compatibility alias for now.
+
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.41.x`, focused on structured evidence for the apply/readiness/approval chain.
+
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
 IntentOS is not a prompt collection, a code template, or a framework starter. It is a workflow and governance layer for Codex and other AI coding agents.
@@ -111,16 +117,34 @@ IntentOS 当前包含这些核心能力：
 | Execution Closure | 收口改动范围、验证结果、债务和提交前证据 |
 | Project Memory | 让 Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
 
-## Common Commands
+## User Entry
+
+Most users only need this pattern:
+
+```text
+Tell Codex the project goal in plain language.
+Codex reads the project, recommends the path, and asks for the few decisions that matter.
+```
+
+For durable command-line evidence, use:
 
 | 你想做什么 | 命令 |
 |---|---|
 | 用一句话开始 | `node scripts/cli.mjs ask ../my-project "我想做一个预约 App"` |
 | 看更完整的下一步建议 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` |
+| 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
+
+You do not need to choose internal workflow commands before starting.
+
+## Maintainer And Evidence Commands
+
+These commands are for maintainers, CI, audits, and explicit evidence:
+
+| 你想做什么 | 命令 |
+|---|---|
 | 判断项目状态 | `node scripts/cli.mjs start ../my-project` |
 | 选择项目基线 | `node scripts/cli.mjs baseline-decision ../my-project` |
 | 老项目先映射现有治理 | `node scripts/cli.mjs workflow-map ../my-project` |
-| 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |
 | 检查人工批准记录 | `node scripts/cli.mjs approval-record-check ../my-project` |
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
@@ -207,6 +231,8 @@ Core workflow:
 - [Repository Structure](docs/repository-structure.md)
 - [Document Ownership](docs/document-ownership.md)
 - [Artifact Decision Tree](docs/artifact-decision-tree.md)
+- [Artifact Lifecycle Map](docs/artifact-lifecycle.md)
+- [O0 / BL0 Lightweight Path](docs/o0-bl0-lightweight-path.md)
 - [Subagent Dispatch Hygiene](docs/subagent-dispatch-hygiene.md)
 - [Guided Delivery Baseline](docs/guided-delivery-baseline.md)
 - [Product Baseline](docs/product-baseline.md)
@@ -227,6 +253,7 @@ Core workflow:
 - [Unified Apply Plan](docs/unified-apply-plan.md)
 - [Controlled Apply Readiness](docs/controlled-apply-readiness.md)
 - [Approval Record Governance](docs/approval-record-governance.md)
+- [Structured Evidence Schema](docs/structured-evidence-schema.md)
 - [Work Queue](docs/work-queue.md)
 - [Document Lifecycle](docs/document-lifecycle.md)
 - [Document Archive Apply](docs/document-archive-apply.md)
@@ -258,7 +285,7 @@ Reference:
 
 Current release:
 
-- [1.40 Release Record](releases/1.40.0/release-record.md)
+- [1.41.0 Release Record](releases/1.41.0/release-record.md)
 - [Version History](VERSION.md)
 
 ## License

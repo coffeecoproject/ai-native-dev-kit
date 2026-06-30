@@ -5,6 +5,12 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import {
+  extractMachineReadableEvidence,
+  loadSchema,
+  resolveEvidenceReference,
+  validateEvidenceBlock,
+} from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json"]));
@@ -15,6 +21,7 @@ const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json
 const shouldRequireAssets = isSourceRepo
   || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
   || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/approval-record.schema.json");
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -28,6 +35,7 @@ const requiredAssets = [
   "checklists/approval-record-review.md",
   "prompts/approval-record-agent.md",
   "scripts/check-approval-record.mjs",
+  "schemas/artifacts/approval-record.schema.json",
 ];
 const requiredDirectories = ["approval-records"];
 const reportSections = [
@@ -60,7 +68,9 @@ const highRiskActions = [
   "LEGAL_LICENSE_POLICY_CHANGE",
 ];
 const nonHumanApprover = /\b(Codex|AI|LLM|model|reviewer|subagent|automation|system|bot)\b/i;
+const ambiguousHumanApprover = /^(human|owner|user|the user|someone|somebody|stakeholder|team|project team|approver|not specified|unknown|tbd|n\/a)$/i;
 const broadApproval = /\b(all actions|everything|entire repo|all files|any file|whatever Codex thinks|whatever is needed|future changes|blanket approval|\*)\b/i;
+const unsafePathPattern = /(^\/|^~\/|^[A-Za-z]:\\|(^|\/)\.\.(\/|$)|\\|[*?\[\]{}]|\bsymlink:)/i;
 const forbiddenClaims = [
   /\bThis approval record writes files now:\s*Yes\b/i,
   /\bThis approval record authorizes automatic apply:\s*Yes\b/i,
@@ -132,6 +142,7 @@ function checkRecords() {
   for (const file of files) {
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
+    checkStructuredEvidence(content, label, file);
     for (const section of reportSections) requireSection(content, section, label);
     if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
     const scanContent = contentForForbiddenScan(content);
@@ -159,14 +170,83 @@ function checkRecords() {
   }
 }
 
+function checkStructuredEvidence(content, label, file) {
+  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label);
+  if (!result.present) return;
+  if (!result.ok) {
+    for (const error of result.errors) fail(error);
+    return;
+  }
+
+  const evidence = result.value;
+  pass(`${label} structured approval evidence matches schema`);
+
+  if (evidence.approval_status === "APPROVED") {
+    if (evidence.approved_by && !nonHumanApprover.test(evidence.approved_by) && !ambiguousHumanApprover.test(evidence.approved_by)) {
+      pass(`${label} structured approval owner is specific human`);
+    } else {
+      fail(`${label} structured approval owner must be a specific human owner`);
+    }
+    if (evidence.plan_changed_after_approval === false) pass(`${label} structured approval confirms plan unchanged`);
+    else fail(`${label} structured approval must not approve a changed plan`);
+    if (evidence.risk_acceptance?.high_risk_action_included === false
+      && evidence.risk_acceptance?.human_only_action_included === false) {
+      pass(`${label} structured approval excludes high-risk and human-only actions`);
+    } else {
+      fail(`${label} structured approval must exclude high-risk and human-only actions`);
+    }
+    if (evidence.rollback_reviewed === true && evidence.verification_reviewed === true) {
+      pass(`${label} structured approval includes rollback and verification acknowledgement`);
+    } else {
+      fail(`${label} structured approval must acknowledge rollback and verification review`);
+    }
+  }
+
+  const approvedPathIds = new Set((evidence.approved_action_paths || []).map((item) => item.id));
+  const approvedIds = new Set(evidence.approved_action_ids || []);
+  const idsMatch = approvedIds.size === approvedPathIds.size && [...approvedIds].every((id) => approvedPathIds.has(id));
+  if (idsMatch) pass(`${label} structured approval action IDs match action path rows`);
+  else fail(`${label} structured approval action IDs must match action path rows`);
+
+  if ((evidence.approved_action_paths || []).every((item) => exactStructuredPaths(item.target_paths))) {
+    pass(`${label} structured approval paths are exact and bounded`);
+  } else {
+    fail(`${label} structured approval target paths must be exact and bounded`);
+  }
+
+  if (evidence.boundary && Object.values(evidence.boundary).every((value) => value === false)) {
+    pass(`${label} structured approval boundary keeps approval non-executing`);
+  } else {
+    fail(`${label} structured approval boundary must keep all authority flags false`);
+  }
+
+  const reference = resolveEvidenceReference(projectRoot, file, evidence.approved_plan?.path);
+  if (!reference) {
+    pass(`${label} structured approval plan reference not found locally; digest cross-check skipped`);
+    return;
+  }
+  const referencedContent = fs.readFileSync(reference, "utf8");
+  const referenced = extractMachineReadableEvidence(referencedContent);
+  if (referenced?.ok && referenced.value?.plan_digest === evidence.approved_plan.plan_digest) {
+    pass(`${label} structured approval references matching apply plan digest`);
+  } else {
+    fail(`${label} structured approval approved_plan.plan_digest does not match referenced apply plan evidence`);
+  }
+}
+
+function exactStructuredPaths(paths) {
+  if (!Array.isArray(paths) || paths.length === 0) return false;
+  return paths.every((item) => looksBoundedPathList(`\`${item}\``));
+}
+
 function checkApprovedRecord(content, label) {
   const identity = sectionBody(content, "Approval Identity");
   const approvedBy = strip(tableValue(identity, "Approved by"));
   const ownerType = strip(tableValue(identity, "Approval owner type")).replace(/`/g, "");
-  if (approvedBy && !placeholder(approvedBy) && !nonHumanApprover.test(approvedBy)) {
+  if (approvedBy && !placeholder(approvedBy) && !nonHumanApprover.test(approvedBy) && !ambiguousHumanApprover.test(approvedBy)) {
     pass(`${label} approved record has human approver`);
   } else {
-    fail(`${label} approved record approval owner must be human`);
+    fail(`${label} approved record approval owner must be a specific human owner`);
   }
   if (ownerType === "HUMAN") pass(`${label} approval owner type is HUMAN`);
   else fail(`${label} approved record must set Approval owner type to HUMAN`);
@@ -176,14 +256,22 @@ function checkApprovedRecord(content, label) {
   else fail(`${label} approved records must reference a Unified Apply Plan`);
   if (/sha256:[a-f0-9]{64}\b/i.test(plan)) pass(`${label} approved record includes plan hash`);
   else fail(`${label} approved records must include a plan hash`);
+  if (/Plan changed after approval\s*\|\s*Yes/i.test(plan)) fail(`${label} plan changed after approval and must be re-approved`);
+  else pass(`${label} does not record plan changes after approval`);
 
   const actions = sectionBody(content, "Approved Action IDs");
+  const approvedRows = approvedActionRows(actions);
+  const approvedIds = approvedRows.map((row) => row.id);
   if (broadApproval.test(actions)) fail(`${label} approved action ids must be explicit`);
   else pass(`${label} avoids blanket action approval`);
-  if (/\b[A-Z]\d{3}\b/.test(actions) && /\|\s*Yes\s*\|/i.test(actions)) {
+  if (approvedIds.length > 0) {
     pass(`${label} approved action ids are explicit`);
   } else {
     fail(`${label} approved records must include explicit approved action IDs`);
+  }
+  for (const row of approvedRows) {
+    if (looksBoundedPathList(row.paths)) pass(`${label} approved action ${row.id} uses bounded target paths`);
+    else fail(`${label} approved action ${row.id} must use exact bounded target paths`);
   }
 
   const scope = sectionBody(content, "Approval Scope");
@@ -214,6 +302,8 @@ function checkApprovedRecord(content, label) {
   } else {
     fail(`${label} approved records must include a bounded expiry`);
   }
+  if (isExpiredApproval(expiryValue)) fail(`${label} approval is expired and must be re-approved`);
+  else pass(`${label} approval is not expired`);
   if (/Re-approval required after expiry\s*\|\s*Yes/i.test(expiry)) pass(`${label} requires re-approval after expiry`);
   else fail(`${label} must require re-approval after expiry`);
 
@@ -227,6 +317,14 @@ function checkApprovedRecord(content, label) {
   const statement = sectionBody(content, "Human Approval Statement");
   if (broadApproval.test(statement)) fail(`${label} human approval statement must not be blanket approval`);
   else pass(`${label} human approval statement is bounded`);
+  const statementIds = [...new Set([...statement.matchAll(/\b[A-Z]-?\d{3}\b/g)].map((match) => match[0]))];
+  const missingStatementIds = approvedIds.filter((id) => !statementIds.includes(id));
+  const extraStatementIds = statementIds.filter((id) => !approvedIds.includes(id));
+  if (approvedIds.length > 0 && missingStatementIds.length === 0 && extraStatementIds.length === 0) {
+    pass(`${label} human approval statement matches approved action IDs`);
+  } else {
+    fail(`${label} human approval statement must match approved action IDs`);
+  }
 }
 
 function checkNonApprovedRecord(content, label, status) {
@@ -251,12 +349,27 @@ function checkSourceEvidence() {
     "test-fixtures/bad/bad-approval-record-all-actions/approval-records/001-bad.md",
     "test-fixtures/bad/bad-approval-record-auto-apply/approval-records/001-bad.md",
     "test-fixtures/bad/bad-approval-record-high-risk/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-wildcard-path/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-parent-traversal/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-symlink-path/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-expired/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-ambiguous-owner/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-mismatched-action-id/approval-records/001-bad.md",
+    "test-fixtures/bad/bad-approval-record-plan-changed/approval-records/001-bad.md",
+    "schemas/artifacts/approval-record.schema.json",
+    "docs/plans/structured-evidence-schema-1.41-plan.md",
+    "docs/structured-evidence-schema.md",
+    "examples/1.41-structured-evidence-schema/approval-records/001-structured-workflow-assets.md",
+    "test-fixtures/bad/bad-structured-approval-plan-digest/approval-records/001-bad.md",
     "releases/1.40.0/release-record.md",
     "releases/1.40.0/known-limitations.md",
     "releases/1.40.0/self-check-report.md",
+    "releases/1.41.0/release-record.md",
+    "releases/1.41.0/known-limitations.md",
+    "releases/1.41.0/self-check-report.md",
   ]) {
-    if (exists(file)) pass(`1.40 approval record source evidence exists ${file}`);
-    else fail(`1.40 approval record source evidence missing ${file}`);
+    if (exists(file)) pass(`approval record source evidence exists ${file}`);
+    else fail(`approval record source evidence missing ${file}`);
   }
 
   const example = runNode(["scripts/check-approval-record.mjs", "examples/1.40-approval-record-governance"]);
@@ -266,12 +379,27 @@ function checkSourceEvidence() {
     fail(`1.40 approval record example failed: ${example.stderr || example.stdout}`);
   }
 
+  const structuredExample = runNode(["scripts/check-approval-record.mjs", "examples/1.41-structured-evidence-schema"]);
+  if (structuredExample.status === 0 && structuredExample.stdout.includes("structured approval evidence matches schema")) {
+    pass("1.41 structured approval example passes schema-backed checker");
+  } else {
+    fail(`1.41 structured approval example failed: ${structuredExample.stderr || structuredExample.stdout}`);
+  }
+
   for (const [name, target, expected] of [
-    ["AI owner", "test-fixtures/bad/bad-approval-record-ai-owner", "approval owner must be human"],
+    ["AI owner", "test-fixtures/bad/bad-approval-record-ai-owner", "approval owner must be a specific human owner"],
     ["missing plan hash", "test-fixtures/bad/bad-approval-record-missing-plan-hash", "must include a plan hash"],
     ["all actions", "test-fixtures/bad/bad-approval-record-all-actions", "approved action ids must be explicit"],
     ["auto apply", "test-fixtures/bad/bad-approval-record-auto-apply", "forbidden approval record claim"],
     ["high risk", "test-fixtures/bad/bad-approval-record-high-risk", "cannot approve high-risk actions"],
+    ["wildcard path", "test-fixtures/bad/bad-approval-record-wildcard-path", "must use exact bounded target paths"],
+    ["parent traversal", "test-fixtures/bad/bad-approval-record-parent-traversal", "must use exact bounded target paths"],
+    ["symlink path", "test-fixtures/bad/bad-approval-record-symlink-path", "must use exact bounded target paths"],
+    ["expired approval", "test-fixtures/bad/bad-approval-record-expired", "approval is expired"],
+    ["ambiguous owner", "test-fixtures/bad/bad-approval-record-ambiguous-owner", "approval owner must be a specific human owner"],
+    ["mismatched action ID", "test-fixtures/bad/bad-approval-record-mismatched-action-id", "human approval statement must match approved action IDs"],
+    ["plan changed", "test-fixtures/bad/bad-approval-record-plan-changed", "plan changed after approval"],
+    ["structured digest", "test-fixtures/bad/bad-structured-approval-plan-digest", "approved_plan.plan_digest does not match referenced apply plan evidence"],
   ]) {
     const result = runNode(["scripts/check-approval-record.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -287,8 +415,54 @@ function approvalStatus(content) {
 
 function looksBoundedPathList(value) {
   const text = String(value || "");
-  if (/[<>]/.test(text)) return false;
+  if (!text || /[<>]/.test(text) || unsafePathPattern.test(text)) return false;
+  const paths = pathList(text);
+  return paths.length > 0 && paths.every(isSafeRelativePath);
+}
+
+function pathList(value) {
+  return String(value || "")
+    .split(/[,;\n]/)
+    .map((item) => item.replace(/`/g, "").trim())
+    .filter(Boolean);
+}
+
+function isSafeRelativePath(value) {
+  const text = String(value || "").trim();
+  if (!text || placeholder(text)) return false;
+  if (broadApproval.test(text) || unsafePathPattern.test(text)) return false;
+  if (path.isAbsolute(text) || text.startsWith("~")) return false;
+  const normalized = path.posix.normalize(text.replaceAll("\\", "/"));
+  if (normalized === "." || normalized === ".." || normalized.startsWith("../") || normalized.includes("/../")) return false;
   return /[\w.-]+\/[\w./-]+|\.[\w./-]+|[\w.-]+\.[A-Za-z0-9]+/.test(text);
+}
+
+function approvedActionRows(section) {
+  return String(section || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("|") && !/^\|\s*-+/.test(line))
+    .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()))
+    .filter((cells) => cells.length >= 5 && /\b[A-Z]-?\d{3}\b/.test(cells[0]) && /^yes$/i.test(cells[3]))
+    .map((cells) => ({
+      id: cells[0].replace(/`/g, ""),
+      type: cells[1].replace(/`/g, ""),
+      paths: cells[2],
+    }));
+}
+
+function isExpiredApproval(value) {
+  const date = parseDateValue(value);
+  if (!date) return false;
+  return date.getTime() < Date.now();
+}
+
+function parseDateValue(value) {
+  const text = strip(value);
+  const match = text.match(/\b(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+  if (!match) return null;
+  const [, year, month, day, hour = "23", minute = "59"] = match;
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute)));
 }
 
 function markdownPath(value) {

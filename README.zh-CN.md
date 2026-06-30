@@ -4,6 +4,12 @@
 
 原名：**AI Native Dev Kit**。
 
+当前版本：`1.41.0`。
+
+命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`ai-native` 命令和包名暂时作为兼容别名保留。
+
+版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.41.x`，重点是 apply / readiness / approval 链路的结构化证据。
+
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
 IntentOS 不是提示词合集，也不是代码模板。它是一套给 Codex 和其他 AI 编程助手使用的工作流与治理底座。
@@ -109,16 +115,34 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Execution Closure | 收口改动范围、验证结果、债务和提交前证据 |
 | Project Memory | 让 Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
 
-## 常用命令
+## 用户入口
+
+多数用户只需要这样开始：
+
+```text
+直接告诉 Codex 你的项目目标。
+Codex 读取项目、推荐路径，并只问少数真正需要你判断的问题。
+```
+
+需要命令行证据时，用：
 
 | 你想做什么 | 命令 |
 |---|---|
 | 用一句话开始 | `node scripts/cli.mjs ask ../my-project "我想做一个预约 App"` |
 | 看更完整的下一步建议 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` |
+| 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
+
+普通用户不需要先理解内部 workflow 命令。
+
+## 维护者和证据命令
+
+这些命令主要给维护者、CI、审计和显式证据使用：
+
+| 你想做什么 | 命令 |
+|---|---|
 | 判断项目状态 | `node scripts/cli.mjs start ../my-project` |
 | 选择项目基线 | `node scripts/cli.mjs baseline-decision ../my-project` |
 | 老项目先映射现有治理 | `node scripts/cli.mjs workflow-map ../my-project` |
-| 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |
 | 检查人工批准记录 | `node scripts/cli.mjs approval-record-check ../my-project` |
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
@@ -205,6 +229,8 @@ node scripts/check-workflow-guidance.mjs .
 - [Repository Structure](docs/repository-structure.md)
 - [Document Ownership](docs/document-ownership.md)
 - [Artifact Decision Tree](docs/artifact-decision-tree.md)
+- [Artifact Lifecycle Map](docs/artifact-lifecycle.md)
+- [O0 / BL0 Lightweight Path](docs/o0-bl0-lightweight-path.md)
 - [Subagent Dispatch Hygiene](docs/subagent-dispatch-hygiene.md)
 - [Guided Delivery Baseline](docs/guided-delivery-baseline.md)
 - [Product Baseline](docs/product-baseline.md)
@@ -225,6 +251,7 @@ node scripts/check-workflow-guidance.mjs .
 - [Unified Apply Plan](docs/unified-apply-plan.md)
 - [Controlled Apply Readiness](docs/controlled-apply-readiness.md)
 - [Approval Record Governance](docs/approval-record-governance.md)
+- [Structured Evidence Schema](docs/structured-evidence-schema.md)
 - [Work Queue](docs/work-queue.md)
 - [Document Lifecycle](docs/document-lifecycle.md)
 - [Document Archive Apply](docs/document-archive-apply.md)
@@ -256,7 +283,7 @@ node scripts/check-workflow-guidance.mjs .
 
 当前版本：
 
-- [1.40 Release Record](releases/1.40.0/release-record.md)
+- [1.41.0 Release Record](releases/1.41.0/release-record.md)
 - [Version History](VERSION.md)
 
 ## License

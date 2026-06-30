@@ -28,18 +28,60 @@ What I need from you: `<approval details / missing scope / no action>`
 | Controlled Apply Readiness Report | `<path or N/A>` |
 | Plan hash | `sha256:<64 hex>` |
 | Plan version/date | `<version or date>` |
+| Plan changed after approval | No |
 
 ## Approved Action IDs
 
 | Action ID | Action type | Target paths | Approved? | Notes |
 |---|---|---|---|---|
-| `<A001>` | `<WORKFLOW_ASSET_UPDATE>` | `<exact paths>` | Yes / No | `<notes>` |
+| `<A-001>` | `<WORKFLOW_ASSET_UPDATE>` | `<exact relative paths; no wildcard / traversal / symlink>` | Yes / No | `<notes>` |
+
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.41.0",
+  "artifact_type": "approval_record",
+  "artifact_id": "<approval-record-id>",
+  "approval_status": "PENDING_REVIEW",
+  "approved_by": "<specific human owner>",
+  "approval_owner_type": "HUMAN",
+  "approved_plan": {
+    "path": "<apply-plan-path>",
+    "plan_digest": "sha256:<matching-apply-plan-digest>"
+  },
+  "approved_action_ids": ["A-001"],
+  "approved_action_paths": [
+    {
+      "id": "A-001",
+      "target_paths": ["<exact-relative-path>"]
+    }
+  ],
+  "expires_at": "<YYYY-MM-DDTHH:mm:ssZ>",
+  "plan_changed_after_approval": false,
+  "risk_acceptance": {
+    "high_risk_action_included": false,
+    "human_only_action_included": false
+  },
+  "rollback_reviewed": false,
+  "verification_reviewed": false,
+  "boundary": {
+    "writes_files_now": false,
+    "authorizes_automatic_apply": false,
+    "approves_implementation": false,
+    "approves_release_or_production": false,
+    "installs_hooks_or_changes_ci": false,
+    "enables_high_risk_actions": false,
+    "lets_codex_proceed_without_readiness": false
+  }
+}
+```
 
 ## Approval Scope
 
 | Field | Value |
 |---|---|
-| Included target paths | `<exact paths>` |
+| Included target paths | `<exact relative paths; no wildcard / traversal / symlink>` |
 | Excluded target paths | `<exact paths or N/A>` |
 | Max change size | `<files or lines>` |
 | Timebox | `<date or duration>` |

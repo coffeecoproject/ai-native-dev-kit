@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.40.0`
+`1.41.0`
 
 ## Project Version File
 
@@ -19,8 +19,10 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.41.0` adds Structured Evidence Schema: Unified Apply Plan, Controlled Apply Readiness, and Approval Record can include machine-readable JSON evidence with schema validation and apply plan digest cross-checks.
+- `1.41.0` keeps structured evidence non-executing: it does not add a controlled apply runner, write files, validate real human identity, authorize automatic apply, approve implementation, approve release/production, install hooks, change CI, change source of truth, enable BL2, or enable industrial packs.
+- `1.40.1` hardens Approval Record Governance: naming is clarified, artifact lifecycle and O0 / BL0 lightweight path docs are added, and approval records reject wildcard paths, parent traversal, symlink aliases, expired approvals, ambiguous human owners, mismatched action IDs, and plan-changed-after-approval records.
 - `1.40.0` adds Approval Record Governance: after Controlled Apply Readiness, Codex can record exactly which action IDs, target paths, plan hash, expiry, rollback, and verification a human approved.
-- `1.40.0` keeps approval records non-executing: they do not add an apply runner, write files, authorize automatic apply, approve implementation, approve release/production, install hooks, change CI, change source of truth, enable high-risk actions, or let Codex/AI/reviewer/subagent output count as human approval.
 - `1.39.0` adds Subagent Dispatch Hygiene: before opening or reusing helper agents, Codex records recover-before-dispatch checks for stale helpers, completed helpers, unused planned helpers, task drift, and active writer count.
 - `1.39.0` keeps dispatch hygiene non-automating: it does not create or close real subagents, add schedulers, install hooks, call external GPT/API review, approve writes, approve implementation, or approve release/production.
 - `1.38.0` adds Controlled Apply Readiness: after a Unified Apply Plan exists, Codex can evaluate whether it is eligible for a future human-approved controlled apply step.

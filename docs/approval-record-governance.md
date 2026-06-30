@@ -30,7 +30,7 @@ Codex should record the decision as an Approval Record, check it, and stop befor
 
 Codex should capture:
 
-- who approved;
+- which specific human owner approved;
 - which apply plan was approved;
 - the plan hash;
 - exact approved action IDs;
@@ -39,6 +39,10 @@ Codex should capture:
 - rollback acknowledgement;
 - verification acknowledgement;
 - what is not approved.
+
+The target paths must be exact relative paths. Wildcards, parent directory traversal, absolute paths, backslashes, and symlink aliases are not valid approval scope.
+
+The human approval statement must match the approved action IDs in the action table. Expired approvals or records where the plan changed after approval need fresh approval.
 
 ## What Codex Must Not Do
 
@@ -52,6 +56,9 @@ Approval Record Governance must not:
 - approve migrations, secrets, payments, legal, privacy, security, or compliance changes;
 - accept Codex, AI, reviewer, or subagent output as human approval;
 - accept `all actions` or `entire repo` as valid scope.
+- accept ambiguous owners like `someone`, `owner`, or `team`;
+- accept wildcard, symlink, absolute, or parent-traversal paths;
+- keep using approval after it expires or after the plan changes.
 
 ## Commands
 

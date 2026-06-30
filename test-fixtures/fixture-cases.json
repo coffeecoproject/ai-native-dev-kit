@@ -1628,7 +1628,7 @@
     ],
     "expectStatus": "nonzero",
     "expectStderrIncludes": [
-      "approval owner must be human"
+      "approval owner must be a specific human owner"
     ],
     "howToFix": "Approval Records must identify human approval, not Codex, AI, reviewers, subagents, automation, or system output."
   },
@@ -1687,5 +1687,145 @@
       "cannot approve high-risk actions"
     ],
     "howToFix": "High-risk actions must stay human-only or blocked outside Approval Record controlled apply evidence."
+  },
+  {
+    "name": "bad approval record wildcard path",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-wildcard-path"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "must use exact bounded target paths"
+    ],
+    "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
+  },
+  {
+    "name": "bad approval record parent traversal",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-parent-traversal"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "must use exact bounded target paths"
+    ],
+    "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
+  },
+  {
+    "name": "bad approval record symlink path",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-symlink-path"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "must use exact bounded target paths"
+    ],
+    "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
+  },
+  {
+    "name": "bad approval record expired",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-expired"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "approval is expired"
+    ],
+    "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
+  },
+  {
+    "name": "bad approval record ambiguous owner",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-ambiguous-owner"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "approval owner must be a specific human owner"
+    ],
+    "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
+  },
+  {
+    "name": "bad approval record mismatched action id",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-mismatched-action-id"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "human approval statement must match approved action IDs"
+    ],
+    "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
+  },
+  {
+    "name": "bad approval record plan changed",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-approval-record-plan-changed"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "plan changed after approval"
+    ],
+    "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
+  },
+  {
+    "name": "bad structured apply plan digest",
+    "type": "bad",
+    "checker": "check-apply-plan",
+    "script": "scripts/check-apply-plan.mjs",
+    "args": [
+      "test-fixtures/bad/bad-structured-apply-plan-digest"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "plan_digest does not match canonical evidence digest"
+    ],
+    "howToFix": "Structured apply plan evidence must reject stale or forged plan digests."
+  },
+  {
+    "name": "bad structured readiness plan digest",
+    "type": "bad",
+    "checker": "check-controlled-apply-readiness",
+    "script": "scripts/check-controlled-apply-readiness.mjs",
+    "args": [
+      "test-fixtures/bad/bad-structured-readiness-plan-digest"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "apply_plan.plan_digest does not match referenced apply plan evidence"
+    ],
+    "howToFix": "Structured readiness evidence must reference the exact apply plan digest."
+  },
+  {
+    "name": "bad structured approval plan digest",
+    "type": "bad",
+    "checker": "check-approval-record",
+    "script": "scripts/check-approval-record.mjs",
+    "args": [
+      "test-fixtures/bad/bad-structured-approval-plan-digest"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "approved_plan.plan_digest does not match referenced apply plan evidence"
+    ],
+    "howToFix": "Structured approval evidence must reference the exact approved apply plan digest."
   }
 ]

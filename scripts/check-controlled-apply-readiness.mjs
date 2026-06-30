@@ -5,6 +5,12 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import {
+  extractMachineReadableEvidence,
+  loadSchema,
+  resolveEvidenceReference,
+  validateEvidenceBlock,
+} from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json"]));
@@ -15,6 +21,7 @@ const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json
 const shouldRequireAssets = isSourceRepo
   || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
   || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/controlled-apply-readiness.schema.json");
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -29,6 +36,7 @@ const requiredAssets = [
   "prompts/controlled-apply-readiness-agent.md",
   "scripts/resolve-controlled-apply-readiness.mjs",
   "scripts/check-controlled-apply-readiness.mjs",
+  "schemas/artifacts/controlled-apply-readiness.schema.json",
 ];
 const requiredDirectories = ["apply-readiness-reports"];
 const reportSections = [
@@ -137,6 +145,7 @@ function checkReports() {
   for (const file of files) {
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
+    checkStructuredEvidence(content, label, file);
     for (const section of reportSections) requireSection(content, section, label);
     if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
     const scanContent = contentForForbiddenScan(content);
@@ -209,6 +218,43 @@ function checkReports() {
   }
 }
 
+function checkStructuredEvidence(content, label, file) {
+  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label);
+  if (!result.present) return;
+  if (!result.ok) {
+    for (const error of result.errors) fail(error);
+    return;
+  }
+
+  const evidence = result.value;
+  pass(`${label} structured readiness evidence matches schema`);
+
+  if (evidence.can_codex_apply_now === false) pass(`${label} structured evidence states Codex cannot apply now`);
+  else fail(`${label} structured evidence must state can_codex_apply_now false`);
+  if (evidence.requires_explicit_human_approval === true) pass(`${label} structured evidence requires human approval`);
+  else fail(`${label} structured evidence must require explicit human approval`);
+  if (evidence.can_proceed_without_new_approval === false) pass(`${label} structured evidence cannot proceed without new approval`);
+  else fail(`${label} structured evidence must not proceed without new approval`);
+  if (evidence.boundary && Object.values(evidence.boundary).every((value) => value === false)) {
+    pass(`${label} structured boundary keeps readiness non-authorizing`);
+  } else {
+    fail(`${label} structured boundary must keep all authority flags false`);
+  }
+
+  const reference = resolveEvidenceReference(projectRoot, file, evidence.apply_plan?.path);
+  if (!reference) {
+    pass(`${label} structured readiness plan reference not found locally; digest cross-check skipped`);
+    return;
+  }
+  const referencedContent = fs.readFileSync(reference, "utf8");
+  const referenced = extractMachineReadableEvidence(referencedContent);
+  if (referenced?.ok && referenced.value?.plan_digest === evidence.apply_plan.plan_digest) {
+    pass(`${label} structured readiness references matching apply plan digest`);
+  } else {
+    fail(`${label} structured readiness apply_plan.plan_digest does not match referenced apply plan evidence`);
+  }
+}
+
 function checkSourceEvidence() {
   for (const file of [
     "docs/plans/controlled-apply-readiness-1.38-plan.md",
@@ -217,12 +263,20 @@ function checkSourceEvidence() {
     "test-fixtures/bad/bad-controlled-apply-authorizes-apply/apply-readiness-reports/001-bad.md",
     "test-fixtures/bad/bad-controlled-apply-high-risk-ready/apply-readiness-reports/001-bad.md",
     "test-fixtures/bad/bad-controlled-apply-proceeds-without-approval/apply-readiness-reports/001-bad.md",
+    "schemas/artifacts/controlled-apply-readiness.schema.json",
+    "docs/plans/structured-evidence-schema-1.41-plan.md",
+    "docs/structured-evidence-schema.md",
+    "examples/1.41-structured-evidence-schema/apply-readiness-reports/001-structured-workflow-assets.md",
+    "test-fixtures/bad/bad-structured-readiness-plan-digest/apply-readiness-reports/001-bad.md",
     "releases/1.38.0/release-record.md",
     "releases/1.38.0/known-limitations.md",
     "releases/1.38.0/self-check-report.md",
+    "releases/1.41.0/release-record.md",
+    "releases/1.41.0/known-limitations.md",
+    "releases/1.41.0/self-check-report.md",
   ]) {
-    if (exists(file)) pass(`1.38 controlled apply readiness source evidence exists ${file}`);
-    else fail(`1.38 controlled apply readiness source evidence missing ${file}`);
+    if (exists(file)) pass(`controlled apply readiness source evidence exists ${file}`);
+    else fail(`controlled apply readiness source evidence missing ${file}`);
   }
 
   const resolver = runNode(["scripts/resolve-controlled-apply-readiness.mjs", ".", "--plan", "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md", "--git-state", "clean"]);
@@ -261,10 +315,18 @@ function checkSourceEvidence() {
     fail(`1.38 controlled apply readiness example failed: ${example.stderr || example.stdout}`);
   }
 
+  const structuredExample = runNode(["scripts/check-controlled-apply-readiness.mjs", "examples/1.41-structured-evidence-schema"]);
+  if (structuredExample.status === 0 && structuredExample.stdout.includes("structured readiness evidence matches schema")) {
+    pass("1.41 structured readiness example passes schema-backed checker");
+  } else {
+    fail(`1.41 structured readiness example failed: ${structuredExample.stderr || structuredExample.stdout}`);
+  }
+
   for (const [name, target, expected] of [
     ["authorizes apply", "test-fixtures/bad/bad-controlled-apply-authorizes-apply", "forbidden controlled apply readiness claim"],
     ["high-risk ready", "test-fixtures/bad/bad-controlled-apply-high-risk-ready", "cannot be READY_FOR_HUMAN_APPROVED_APPLY"],
     ["proceeds without approval", "test-fixtures/bad/bad-controlled-apply-proceeds-without-approval", "must state it cannot proceed without new approval"],
+    ["structured digest", "test-fixtures/bad/bad-structured-readiness-plan-digest", "apply_plan.plan_digest does not match referenced apply plan evidence"],
   ]) {
     const result = runNode(["scripts/check-controlled-apply-readiness.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;

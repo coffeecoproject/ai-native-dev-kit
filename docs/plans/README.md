@@ -8,3 +8,7 @@ Plans are useful context, but they are not the current source of truth by themse
 
 Use plans to understand why a feature was introduced. Use current docs and scripts to understand how IntentOS behaves now.
 
+## Recent Plans
+
+- [Structured Evidence Schema 1.41](structured-evidence-schema-1.41-plan.md)
+- [Approval Record Hardening 1.40.1](approval-record-hardening-1.40.1-plan.md)

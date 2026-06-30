@@ -33,6 +33,58 @@ If nothing is approved:
 | Hook Policy / Hook Plan |  | missing / present / not applicable |
 | Execution Closure Report |  | missing / present / not applicable |
 
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.41.0",
+  "artifact_type": "unified_apply_plan",
+  "artifact_id": "<apply-plan-id>",
+  "plan_digest": "sha256:<computed-from-canonical-json-with-plan_digest-omitted>",
+  "intent": "<human-readable intent>",
+  "state": "PLAN_ONLY",
+  "can_apply_now": false,
+  "can_codex_write_now": false,
+  "actions": [
+    {
+      "id": "A-001",
+      "action_type": "WORKFLOW_ASSET_UPDATE",
+      "target_paths": ["<exact-relative-path>"],
+      "risk_level": "STANDARD",
+      "status": "PLAN_ONLY",
+      "will_write_now": false,
+      "approval_required": true,
+      "rollback_required": true
+    }
+  ],
+  "preconditions": ["<precondition>"],
+  "rollback": {
+    "required": true,
+    "path": "<backup-or-rollback-evidence-path>",
+    "step": "<rollback step>",
+    "verification": "<rollback verification>"
+  },
+  "verification": [
+    {
+      "command_or_method": "<command or manual method>",
+      "required_before_apply": true,
+      "required_after_apply": true,
+      "evidence_path": "<evidence-path>",
+      "owner": "Codex"
+    }
+  ],
+  "boundary": {
+    "writes_files_now": false,
+    "authorizes_apply": false,
+    "approves_implementation": false,
+    "approves_release_or_production": false,
+    "modifies_ci_or_hooks_now": false,
+    "changes_source_of_truth_now": false
+  },
+  "outcome": "NEEDS_HUMAN_DECISION"
+}
+```
+
 ## Planned Actions
 
 | ID | Action type | Target paths | Reason | Status | Will write now | Approval required | Rollback required |

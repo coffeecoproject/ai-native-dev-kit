@@ -35,6 +35,54 @@ What I need from you: `<approval / missing evidence / owner decision / no decisi
 |---|---|---|---|
 | `<ACTION_TYPE>` | `<paths>` | LOW_RISK_CANDIDATE / HUMAN_ONLY / BLOCKED | `<reason>` |
 
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.41.0",
+  "artifact_type": "controlled_apply_readiness",
+  "artifact_id": "<readiness-id>",
+  "readiness_state": "NOT_READY",
+  "can_codex_apply_now": false,
+  "requires_explicit_human_approval": true,
+  "can_proceed_without_new_approval": false,
+  "apply_plan": {
+    "path": "<apply-plan-path>",
+    "plan_digest": "sha256:<matching-apply-plan-digest>"
+  },
+  "actions": [
+    {
+      "id": "A-001",
+      "classification": "LOW_RISK_CANDIDATE",
+      "target_paths": ["<exact-relative-path>"]
+    }
+  ],
+  "preconditions": [
+    { "name": "Apply plan exists", "status": "pass" }
+  ],
+  "rollback": {
+    "required": true,
+    "path": "<backup-or-rollback-evidence-path>",
+    "step": "<rollback step>",
+    "verification": "<rollback verification>"
+  },
+  "verification": {
+    "pre_apply": "<pre-apply verification>",
+    "post_apply": "<post-apply verification>",
+    "evidence_path": "<evidence-path>"
+  },
+  "boundary": {
+    "writes_files_now": false,
+    "authorizes_apply": false,
+    "approves_implementation": false,
+    "approves_release_or_production": false,
+    "installs_hooks_or_changes_ci": false,
+    "enables_high_risk_actions": false
+  },
+  "outcome": "READINESS_RECORDED"
+}
+```
+
 ## Preconditions
 
 | Precondition | Status | Evidence |

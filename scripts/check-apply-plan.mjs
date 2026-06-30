@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json"]));
@@ -15,6 +16,7 @@ const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json
 const shouldRequireAssets = isSourceRepo
   || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
   || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/unified-apply-plan.schema.json");
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -29,6 +31,7 @@ const requiredAssets = [
   "prompts/apply-plan-agent.md",
   "scripts/resolve-apply-plan.mjs",
   "scripts/check-apply-plan.mjs",
+  "schemas/artifacts/unified-apply-plan.schema.json",
 ];
 const requiredDirectories = ["apply-plans"];
 const reportSections = [
@@ -127,6 +130,7 @@ function checkPlans() {
   for (const file of files) {
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
+    checkStructuredEvidence(content, label);
     for (const section of reportSections) requireSection(content, section, label);
     if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
     const scanContent = contentForForbiddenScan(content);
@@ -149,6 +153,34 @@ function checkPlans() {
     const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
     if (allowedOutcomes.has(outcome)) pass(`${label} has valid Outcome`);
     else fail(`${label} has invalid Outcome: ${outcome || "<empty>"}`);
+  }
+}
+
+function checkStructuredEvidence(content, label) {
+  const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, { digestField: "plan_digest" });
+  if (!result.present) return;
+  if (!result.ok) {
+    for (const error of result.errors) fail(error);
+    return;
+  }
+
+  const evidence = result.value;
+  pass(`${label} structured apply plan evidence matches schema`);
+  pass(`${label} structured apply plan digest matches canonical evidence`);
+
+  if (evidence.can_apply_now === false) pass(`${label} structured evidence states apply cannot run now`);
+  else fail(`${label} structured evidence must state can_apply_now false`);
+  if (evidence.can_codex_write_now === false) pass(`${label} structured evidence states Codex cannot write now`);
+  else fail(`${label} structured evidence must state can_codex_write_now false`);
+  if (Array.isArray(evidence.actions) && evidence.actions.every((action) => action.will_write_now === false)) {
+    pass(`${label} structured actions do not write now`);
+  } else {
+    fail(`${label} structured actions must not write now`);
+  }
+  if (evidence.boundary && Object.values(evidence.boundary).every((value) => value === false)) {
+    pass(`${label} structured boundary keeps apply non-authorizing`);
+  } else {
+    fail(`${label} structured boundary must keep all authority flags false`);
   }
 }
 
@@ -220,12 +252,21 @@ function checkSourceEvidence() {
     "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
     "test-fixtures/bad/bad-apply-plan-authorizes-apply/apply-plans/001-bad.md",
     "test-fixtures/bad/bad-apply-plan-writes-now/apply-plans/001-bad.md",
+    "schemas/artifacts/unified-apply-plan.schema.json",
+    "docs/plans/structured-evidence-schema-1.41-plan.md",
+    "docs/structured-evidence-schema.md",
+    "examples/1.41-structured-evidence-schema/README.md",
+    "examples/1.41-structured-evidence-schema/apply-plans/001-structured-workflow-assets.md",
+    "test-fixtures/bad/bad-structured-apply-plan-digest/apply-plans/001-bad.md",
     "releases/1.34.0/release-record.md",
     "releases/1.34.0/known-limitations.md",
     "releases/1.34.0/self-check-report.md",
+    "releases/1.41.0/release-record.md",
+    "releases/1.41.0/known-limitations.md",
+    "releases/1.41.0/self-check-report.md",
   ]) {
-    if (exists(file)) pass(`1.34 unified apply plan source evidence exists ${file}`);
-    else fail(`1.34 unified apply plan source evidence missing ${file}`);
+    if (exists(file)) pass(`unified apply plan source evidence exists ${file}`);
+    else fail(`unified apply plan source evidence missing ${file}`);
   }
 
   const resolver = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets"]);
@@ -262,9 +303,17 @@ function checkSourceEvidence() {
   if (example.status === 0 && example.stdout.includes("Unified Apply Plan check passed")) pass("1.34 unified apply plan example passes checker");
   else fail(`1.34 unified apply plan example failed: ${example.stderr || example.stdout}`);
 
+  const structuredExample = runNode(["scripts/check-apply-plan.mjs", "examples/1.41-structured-evidence-schema"]);
+  if (structuredExample.status === 0 && structuredExample.stdout.includes("structured apply plan evidence matches schema")) {
+    pass("1.41 structured apply plan example passes schema-backed checker");
+  } else {
+    fail(`1.41 structured apply plan example failed: ${structuredExample.stderr || structuredExample.stdout}`);
+  }
+
   for (const [name, target, expected] of [
     ["authorizes apply", "test-fixtures/bad/bad-apply-plan-authorizes-apply", "forbidden apply plan claim"],
     ["writes now", "test-fixtures/bad/bad-apply-plan-writes-now", "planned actions must not write now"],
+    ["structured digest", "test-fixtures/bad/bad-structured-apply-plan-digest", "plan_digest does not match canonical evidence digest"],
   ]) {
     const result = runNode(["scripts/check-apply-plan.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;

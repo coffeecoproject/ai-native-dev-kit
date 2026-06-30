@@ -9,6 +9,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Quickstart](quickstart.md)
 - [First Hour](first-hour.md)
 - [Operator Manual](operator-manual.md)
+- [O0 / BL0 Lightweight Path](o0-bl0-lightweight-path.md)
 - [Beginner Entry](beginner-entry.md)
 - [Conversation-Native Ask](conversation-native-ask.md)
 - [Natural Language Orchestrator](natural-language-orchestrator.md)
@@ -25,6 +26,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 ## Core Governance
 
 - [Artifact Decision Tree](artifact-decision-tree.md)
+- [Artifact Lifecycle Map](artifact-lifecycle.md)
 - [Subagent Dispatch Hygiene](subagent-dispatch-hygiene.md)
 - [Guided Delivery Baseline](guided-delivery-baseline.md)
 - [Guided Decision & Delivery Loop](guided-decision-delivery-loop.md)
@@ -35,6 +37,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)
 - [Approval Record Governance](approval-record-governance.md)
+- [Structured Evidence Schema](structured-evidence-schema.md)
 - [Work Queue](work-queue.md)
 - [Document Lifecycle](document-lifecycle.md)
 - [Document Archive Apply](document-archive-apply.md)

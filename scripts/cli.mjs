@@ -218,7 +218,7 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultTarget(args),
   },
   "workflow-map": {
-    description: "Recommend how AI Native workflow should map to an existing project before writes.",
+    description: "Recommend how IntentOS workflow should map to an existing project before writes.",
     script: "scripts/resolve-existing-workflow.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
@@ -428,7 +428,8 @@ function printShortUsage() {
 }
 
 function printHelp() {
-  console.log(`AI Native Dev Kit CLI ${version}`);
+  console.log(`IntentOS CLI ${version}`);
+  console.log("Compatibility alias: ai-native / ai-native-dev-kit");
   console.log("");
   console.log("Usage:");
   console.log("  node scripts/cli.mjs <command> [args]");
@@ -447,7 +448,7 @@ function printHelp() {
   console.log("");
   console.log("Examples:");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
-  console.log("  node scripts/cli.mjs ask '我想把当前项目接入 AI Native'");
+  console.log("  node scripts/cli.mjs ask '我想把当前项目接入 IntentOS'");
   console.log("  node scripts/cli.mjs ask-check .");
   console.log("  node scripts/cli.mjs conversation-ask-check .");
   console.log("  node scripts/cli.mjs guide ../my-project");
@@ -460,7 +461,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs debt-handoff-check .");
   console.log("  node scripts/cli.mjs closure . --intent 'finish booking validation'");
   console.log("  node scripts/cli.mjs closure-check .");
-  console.log("  node scripts/cli.mjs apply-plan . --intent '接入 AI Native 工作流' --action workflow-assets");
+  console.log("  node scripts/cli.mjs apply-plan . --intent '接入 IntentOS 工作流' --action workflow-assets");
   console.log("  node scripts/cli.mjs apply-plan-check .");
   console.log("  node scripts/cli.mjs apply-readiness . --plan apply-plans/001-example.md");
   console.log("  node scripts/cli.mjs apply-readiness-check .");
@@ -506,7 +507,8 @@ function printHelp() {
 }
 
 function printCommandHelp(name, command) {
-  console.log(`ai-native ${name}`);
+  console.log(`IntentOS command: ${name}`);
+  console.log("Compatibility alias: ai-native");
   console.log("");
   console.log(command.description);
   console.log("");

@@ -2,6 +2,8 @@
 
 Artifacts make AI work auditable without forcing every task into the heaviest process.
 
+Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0-lightweight-path.md` when the task is a prototype, small tool, or low-risk local change.
+
 ## Core Task Artifacts
 
 | Directory | Purpose | When to use |
@@ -72,6 +74,8 @@ False-positive records are not overrides. They document reviewed calibration onl
 Goal Card is not approval to implement. Subagent output is not authority. Human Approval remains separate.
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
+
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, and Approval Record artifacts.
 
 ## Reporting Artifacts
 

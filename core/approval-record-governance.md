@@ -41,7 +41,7 @@ The record is evidence. It is not an executor, release gate, or blanket permissi
 
 An approved record must include:
 
-- human approver identity or role;
+- specific human approver identity or accountable role;
 - approval owner type set to `HUMAN`;
 - one referenced Unified Apply Plan;
 - one plan hash;
@@ -52,6 +52,8 @@ An approved record must include:
 - rollback acknowledgement;
 - verification acknowledgement;
 - non-authorizations.
+
+Ambiguous approvers such as `someone`, `owner`, `human`, `team`, or `unknown` are not valid approval owners.
 
 ## Approved Action Rules
 
@@ -72,6 +74,30 @@ whatever Codex thinks is needed
 entire repo
 all files
 ```
+
+The human approval statement must name the same approved action IDs as the action table. If the table says `A001` but the statement says `A002`, the record is invalid.
+
+## Target Path Rules
+
+Included target paths must be exact relative paths.
+
+Not allowed:
+
+```text
+docs/*.md
+../outside-project.md
+/absolute/path
+symlink:docs/current.md
+all files
+```
+
+Approval Records must not use wildcard paths, parent directory traversal, slash-leading absolute paths, platform absolute paths, backslashes, or symlink aliases.
+
+## Expiry And Plan Change Rules
+
+Approval must be time-bounded. If the approval is expired, revoked, or the plan changed after approval, Codex must request fresh approval.
+
+`1.40.1` rejects records that explicitly say the plan changed after approval. Full digest recomputation is reserved for the later machine-readable schema phase.
 
 ## High-Risk Action Rules
 

@@ -39,9 +39,9 @@ It must not:
 - approve release, production, hooks, CI, migrations, secrets, payments, security, privacy, compliance, legal, or industrial pack changes;
 - allow blanket approval such as `all actions`, `entire repo`, or `whatever Codex thinks is needed`.
 
-## Phase 1.41: Machine-readable Apply Plan Schema
+## Phase 1.41: Structured Evidence Schema
 
-Add a structured schema for apply actions so future tooling can validate intent without parsing prose.
+Add structured schema evidence for the apply/readiness/approval chain so future tooling can validate intent without parsing prose.
 
 This phase should define:
 
@@ -49,7 +49,9 @@ This phase should define:
 - action type;
 - target paths;
 - risk classification;
-- required approval record reference;
+- apply plan digest;
+- readiness and approval references to the same digest;
+- approval scope;
 - preconditions;
 - backup and rollback steps;
 - verification commands;

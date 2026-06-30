@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.41.0",
+  "artifactType": "approval_record",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "approval_status",
+    "approved_by",
+    "approval_owner_type",
+    "approved_plan",
+    "approved_action_ids",
+    "approved_action_paths",
+    "expires_at",
+    "plan_changed_after_approval",
+    "risk_acceptance",
+    "rollback_reviewed",
+    "verification_reviewed",
+    "boundary"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.41.0"] },
+    "artifact_type": { "type": "string", "enum": ["approval_record"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "approval_status": { "type": "string", "enum": ["DRAFT", "PENDING_REVIEW", "APPROVED", "REVOKED", "EXPIRED"] },
+    "approved_by": { "type": "string" },
+    "approval_owner_type": { "type": "string", "enum": ["HUMAN"] },
+    "approved_plan": {
+      "type": "object",
+      "required": ["path", "plan_digest"],
+      "properties": {
+        "path": { "type": "string" },
+        "plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "approved_action_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^[A-Z]-?[0-9]{3}$" }
+    },
+    "approved_action_paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "target_paths"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z]-?[0-9]{3}$" },
+          "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        }
+      }
+    },
+    "expires_at": { "type": "string" },
+    "plan_changed_after_approval": { "type": "boolean" },
+    "risk_acceptance": {
+      "type": "object",
+      "required": ["high_risk_action_included", "human_only_action_included"],
+      "properties": {
+        "high_risk_action_included": { "type": "boolean" },
+        "human_only_action_included": { "type": "boolean" }
+      }
+    },
+    "rollback_reviewed": { "type": "boolean" },
+    "verification_reviewed": { "type": "boolean" },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "writes_files_now",
+        "authorizes_automatic_apply",
+        "approves_implementation",
+        "approves_release_or_production",
+        "installs_hooks_or_changes_ci",
+        "enables_high_risk_actions",
+        "lets_codex_proceed_without_readiness"
+      ],
+      "properties": {
+        "writes_files_now": { "type": "boolean" },
+        "authorizes_automatic_apply": { "type": "boolean" },
+        "approves_implementation": { "type": "boolean" },
+        "approves_release_or_production": { "type": "boolean" },
+        "installs_hooks_or_changes_ci": { "type": "boolean" },
+        "enables_high_risk_actions": { "type": "boolean" },
+        "lets_codex_proceed_without_readiness": { "type": "boolean" }
+      }
+    }
+  }
+}

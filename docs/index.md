@@ -7,6 +7,7 @@ This index separates current operating documents from reference material, histor
 - [Quickstart](quickstart.md)
 - [First Hour](first-hour.md)
 - [Operator Manual](operator-manual.md)
+- [O0 / BL0 Lightweight Path](o0-bl0-lightweight-path.md)
 - [Codex Usage](codex-usage.md)
 - [Mental Model](mental-model.md)
 - [FAQ](faq.md)
@@ -23,6 +24,7 @@ This index separates current operating documents from reference material, histor
 ## Governance Docs
 
 - [Artifact Decision Tree](artifact-decision-tree.md)
+- [Artifact Lifecycle Map](artifact-lifecycle.md)
 - [Goal + Subagent Usage](goal-subagent-usage.md)
 - [Subagent Dispatch Hygiene](subagent-dispatch-hygiene.md)
 - [Guided Delivery Baseline](guided-delivery-baseline.md)
@@ -36,6 +38,7 @@ This index separates current operating documents from reference material, histor
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)
 - [Approval Record Governance](approval-record-governance.md)
+- [Structured Evidence Schema](structured-evidence-schema.md)
 - [Work Queue](work-queue.md)
 - [Conversation Drift Control](conversation-drift-control.md)
 - [Safe Launch](safe-launch.md)

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.40.0`
+Current version: `1.41.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,15 @@ Current version: `1.40.0`
 
 ## Current Release
 
-`1.40.0`
+`1.41.0`
 
 Includes:
 
+- Structured Evidence Schema phase `1.41.0`: adds machine-readable JSON evidence schemas for Unified Apply Plan, Controlled Apply Readiness, and Approval Record, with canonical apply plan digest validation and digest cross-checks from readiness/approval records back to the referenced apply plan
+- Added `schemas/artifacts/unified-apply-plan.schema.json`, `schemas/artifacts/controlled-apply-readiness.schema.json`, `schemas/artifacts/approval-record.schema.json`, `scripts/lib/artifact-schema.mjs`, `docs/structured-evidence-schema.md`, templates with `Machine-Readable Evidence` blocks, examples, bad fixtures, manifest/generated-project coverage, and release evidence
+- `1.41.0` does not add a controlled apply runner, write target files, validate real human identity, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, enable BL2, or enable industrial packs
+- Approval Record hardening patch `1.40.1`: clarifies IntentOS / AI Native Dev Kit / `ai-native` naming, adds artifact lifecycle and O0 / BL0 lightweight path docs, and strengthens Approval Record boundaries for wildcard paths, parent traversal, symlink aliases, expired approvals, ambiguous human owners, mismatched action IDs, and plan-changed-after-approval records
+- `1.40.1` remains a stabilization release: it does not add machine-readable apply schemas, controlled apply runner behavior, target-project writes, automatic apply, CI/hook changes, release/production approval, BL2 activation, or industrial pack enablement
 - Approval Record Governance phase `1.40.0`: adds a human approval evidence layer after Controlled Apply Readiness so Codex records exactly which action IDs, target paths, plan hash, expiry, rollback, and verification a human approved
 - Added `core/approval-record-governance.md`, `docs/approval-record-governance.md`, `templates/approval-record.md`, `approval-records/`, `approval-record-check`, `scripts/check-approval-record.mjs`, `approval-record` artifact generation, examples, bad fixtures, manifest/generated-project coverage, and release evidence
 - `1.40.0` does not add an apply runner, write target files, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, enable high-risk actions, or let Codex/AI/reviewer/subagent output count as human approval
