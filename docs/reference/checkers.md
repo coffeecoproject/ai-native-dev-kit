@@ -66,7 +66,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-review-loop.mjs` | Review Packet and Review Loop semantics |
 | `check-next-step-boundary.mjs` | Bounded Next-Step suggestions |
 | `check-goal-mode.mjs` | Goal Card semantics |
-| `check-subagent-orchestration.mjs` | Many readers / one writer and helper closure |
+| `check-subagent-orchestration.mjs` | Many readers / one writer, dispatch hygiene, and helper closure |
 | `workflow-daily-summary.mjs` | Project-scoped daily summary support |
 | `summarize-ai-logs.mjs` | Summarize AI task logs |
 

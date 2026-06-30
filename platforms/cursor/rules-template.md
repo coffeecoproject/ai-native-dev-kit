@@ -205,6 +205,7 @@ For guided delivery:
 - Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.
 - Use `node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>` to record helper-agent roles, authority, handoff, and closure.
 - Follow many readers, one writer. Subagent output is input, not authority.
+- Apply Subagent Dispatch Hygiene before opening or reusing helpers: recover before dispatch, close or skip stale helpers, check task drift, and keep at most one active writer.
 - Close or skip every subagent after handoff.
 - Do not send a final response, commit, or mark work complete while any subagent is `RUNNING`, standing by, or occupying a slot.
 - Do not use helper agents to resolve `NEEDS_HUMAN_DECISION`, approve risk, approve release, create automations, call external GPT/API reviewers, or bypass Review Loop boundaries.

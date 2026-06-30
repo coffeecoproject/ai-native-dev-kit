@@ -2233,8 +2233,27 @@ function checkEngineeringBaselineProtocol() {
 }
 
 function checkSubagentOrchestrationProtocol() {
+  for (const file of [
+    "core/subagent-dispatch-hygiene.md",
+    "docs/subagent-dispatch-hygiene.md",
+    "docs/plans/subagent-dispatch-hygiene-1.39-plan.md",
+    "examples/1.39-subagent-dispatch-hygiene/README.md",
+    "examples/1.39-subagent-dispatch-hygiene/subagent-run-plans/001-dispatch-hygiene.md",
+    "test-fixtures/bad/bad-subagent-dispatch-idle-running/subagent-run-plans/001-bad.md",
+    "test-fixtures/bad/bad-subagent-dispatch-multiple-writers/subagent-run-plans/001-bad.md",
+    "test-fixtures/bad/bad-subagent-dispatch-task-drift/subagent-run-plans/001-bad.md",
+    "releases/1.39.0/release-record.md",
+    "releases/1.39.0/known-limitations.md",
+    "releases/1.39.0/self-check-report.md",
+  ]) {
+    if (exists(file)) pass(`1.39 subagent dispatch hygiene asset exists ${file}`);
+    else fail(`1.39 subagent dispatch hygiene asset missing ${file}`);
+  }
+
   const files = {
     "core/subagent-orchestration.md": read("core/subagent-orchestration.md"),
+    "core/subagent-dispatch-hygiene.md": read("core/subagent-dispatch-hygiene.md"),
+    "docs/subagent-dispatch-hygiene.md": read("docs/subagent-dispatch-hygiene.md"),
     "templates/subagent-run-plan.md": read("templates/subagent-run-plan.md"),
     "checklists/subagent-orchestration-review.md": read("checklists/subagent-orchestration-review.md"),
     "prompts/engineering-baseline-agent.md": read("prompts/engineering-baseline-agent.md"),
@@ -2264,6 +2283,14 @@ function checkSubagentOrchestrationProtocol() {
     "Close / Release Requirement",
     "Do not leave a subagent in `RUNNING` after its output has been consumed",
     "Do not keep standby subagents open",
+    "Subagent Dispatch Hygiene",
+    "Recover before dispatch",
+    "Before dispatch checked",
+    "Idle subagents recovered",
+    "Completed subagents closed",
+    "Unused planned subagents skipped",
+    "Task drift checked",
+    "Dispatch allowed",
     "Subagent output is input to the main thread",
     "use external GPT/API reviewer automation from this protocol",
     "node scripts/check-subagent-orchestration.mjs .",
@@ -2286,6 +2313,13 @@ function checkSubagentOrchestrationProtocol() {
     "more than one active writer is not allowed",
     "all subagents must be closed or skipped before final response",
     "subagents must not be left occupying slots after handoff",
+    "Dispatch Hygiene",
+    "idle subagents must be recovered before dispatch",
+    "completed subagents must be closed before dispatch",
+    "unused planned subagents must be skipped before dispatch",
+    "stale task subagents must be closed or skipped before dispatch",
+    "task drift must be checked before subagent dispatch",
+    "dispatch cannot be allowed with more than one active writer",
     "Forbidden Actions missing guard",
     "external GPT\\/API",
   ]) {
@@ -2304,6 +2338,32 @@ function checkSubagentOrchestrationProtocol() {
     fail(`Subagent Orchestration example check failed: ${goodExample.stderr || goodExample.stdout}`);
   } else {
     pass("Subagent Orchestration example check");
+  }
+
+  const dispatchExample = runNode([
+    path.join(kitRoot, "scripts", "check-subagent-orchestration.mjs"),
+    path.join(kitRoot, "examples", "1.39-subagent-dispatch-hygiene"),
+  ]);
+  if (dispatchExample.status !== 0) {
+    fail(`Subagent Dispatch Hygiene example check failed: ${dispatchExample.stderr || dispatchExample.stdout}`);
+  } else {
+    pass("Subagent Dispatch Hygiene example check");
+  }
+
+  for (const [fixture, expected] of [
+    ["bad-subagent-dispatch-idle-running", "idle subagents must be recovered before dispatch"],
+    ["bad-subagent-dispatch-multiple-writers", "dispatch cannot be allowed with more than one active writer"],
+    ["bad-subagent-dispatch-task-drift", "task drift must be checked before subagent dispatch"],
+  ]) {
+    const badResult = runNode([
+      path.join(kitRoot, "scripts", "check-subagent-orchestration.mjs"),
+      path.join(kitRoot, "test-fixtures", "bad", fixture),
+    ]);
+    if (badResult.status === 0 || !(badResult.stderr || badResult.stdout).includes(expected)) {
+      fail(`Subagent Dispatch Hygiene fixture ${fixture} should fail with ${expected}: ${badResult.stderr || badResult.stdout}`);
+    } else {
+      pass(`Subagent Dispatch Hygiene fixture ${fixture} rejected`);
+    }
   }
 }
 

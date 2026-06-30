@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.38.0`
+`1.39.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.39.0` adds Subagent Dispatch Hygiene: before opening or reusing helper agents, Codex records recover-before-dispatch checks for stale helpers, completed helpers, unused planned helpers, task drift, and active writer count.
+- `1.39.0` keeps dispatch hygiene non-automating: it does not create or close real subagents, add schedulers, install hooks, call external GPT/API review, approve writes, approve implementation, or approve release/production.
 - `1.38.0` adds Controlled Apply Readiness: after a Unified Apply Plan exists, Codex can evaluate whether it is eligible for a future human-approved controlled apply step.
 - `1.38.0` keeps readiness non-authorizing: it does not add an apply runner, write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive documents, change source of truth, enable industrial packs, or approve high-risk decisions.
 - `1.37.0` adds Conversation-Native Ask: a user's plain project goal can be treated as the default entry path, internally routing through Beginner Entry behavior without making the user choose workflow command names first.

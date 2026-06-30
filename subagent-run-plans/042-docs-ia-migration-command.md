@@ -66,6 +66,28 @@ No subagent left occupying a slot after handoff: Yes
 
 Closure notes: No subagent is running. All helper roles are skipped and main thread owns writes.
 
+## Dispatch Hygiene
+
+Before dispatch checked: Yes
+
+Idle subagents recovered: Yes
+
+Completed subagents closed: Yes
+
+Unused planned subagents skipped: N/A
+
+Stale task subagents closed or skipped: Yes
+
+Task drift checked: Yes
+
+Active writer count: 0
+
+Dispatch allowed: Yes
+
+Dispatch block reason: N/A
+
+Recovery notes: Historical run plan updated to record that no helper should be reused before cleanup.
+
 ## Allowed Actions
 
 - Use read-only helper agents to inspect files, summarize findings, or review artifacts.

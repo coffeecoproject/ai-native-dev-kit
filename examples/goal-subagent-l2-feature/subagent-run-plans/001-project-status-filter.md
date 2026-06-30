@@ -48,6 +48,28 @@ No subagent left occupying a slot after handoff: Yes
 
 Closure evidence: Each row in Role Roster has a concrete handoff artifact.
 
+## Dispatch Hygiene
+
+Before dispatch checked: Yes
+
+Idle subagents recovered: Yes
+
+Completed subagents closed: Yes
+
+Unused planned subagents skipped: N/A
+
+Stale task subagents closed or skipped: Yes
+
+Task drift checked: Yes
+
+Active writer count: 0
+
+Dispatch allowed: Yes
+
+Dispatch block reason: N/A
+
+Recovery notes: The simulated task ends with all helpers closed and no stale helper remains for a later dispatch.
+
 ## Allowed Actions
 
 - Use read-only helper agents to inspect workflow artifacts and baseline.

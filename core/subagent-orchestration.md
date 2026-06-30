@@ -122,6 +122,27 @@ All subagents must be CLOSED or SKIPPED before the main thread sends the final t
 
 This prevents helper agents from occupying slots, holding stale context, or acting on old instructions after the task ends.
 
+## Dispatch Hygiene
+
+Before opening or reusing helper agents, apply Subagent Dispatch Hygiene:
+
+```text
+Recover before dispatch.
+```
+
+The run plan must record:
+
+- `Before dispatch checked: Yes`
+- idle subagents recovered or `N/A`
+- completed subagents closed or `N/A`
+- unused planned subagents skipped or `N/A`
+- stale task subagents closed or skipped
+- task drift checked
+- active writer count
+- dispatch allowed only when cleanup is complete
+
+Do not dispatch a helper while a completed helper is still open, a stale task helper is still active, an unused planned helper has not been skipped, or more than one writer would be active.
+
 ## Close / Release Requirement
 
 When a subagent is done, close or release it immediately.

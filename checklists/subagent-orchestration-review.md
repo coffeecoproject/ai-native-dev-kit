@@ -33,6 +33,16 @@ Use this checklist when reviewing a Subagent Run Plan or any multi-agent executi
 - [ ] Closure evidence is recorded.
 - [ ] The final response says which subagents ran and that they were closed or skipped.
 
+## Dispatch Hygiene
+
+- [ ] `Before dispatch checked` is `Yes` before any helper is opened or reused.
+- [ ] Idle helpers are recovered or marked `N/A`.
+- [ ] Completed helpers are closed before more work is sent.
+- [ ] Unused planned helpers are marked `SKIPPED`.
+- [ ] Stale task helpers are closed or skipped before dispatch.
+- [ ] Task drift is checked before dispatch.
+- [ ] Dispatch is not allowed with more than one active writer.
+
 ## Handoff
 
 - [ ] Subagent outputs are routed to Review Loop, Decision Brief, Follow-up Proposal, Final Report, Human Decisions Needed, or no action.

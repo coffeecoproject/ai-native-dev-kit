@@ -56,6 +56,14 @@ Typical cases:
 
 Do not keep helper agents open after their output is consumed. Every helper agent must be `CLOSED` or `SKIPPED` before final response, commit, or handoff.
 
+Before opening or reusing a helper agent, Codex must also apply dispatch hygiene:
+
+```text
+Recover before dispatch.
+```
+
+That means old helpers are closed or skipped, stale task helpers are not reused silently, task drift is checked, and there is at most one active writer before another helper is dispatched.
+
 ## The Default Rule
 
 ```text
@@ -121,6 +129,8 @@ Create and check a Subagent Run Plan:
 node scripts/new-workflow-item.mjs --type subagent-run-plan --task tasks/<task>.md --subagent-mode REVIEW_LOOP
 node scripts/check-subagent-orchestration.mjs .
 ```
+
+For dispatch-specific rules, see `docs/subagent-dispatch-hygiene.md`.
 
 Check a full L2 task route:
 

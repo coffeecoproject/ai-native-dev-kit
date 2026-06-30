@@ -25,6 +25,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 ## Core Governance
 
 - [Artifact Decision Tree](artifact-decision-tree.md)
+- [Subagent Dispatch Hygiene](subagent-dispatch-hygiene.md)
 - [Guided Delivery Baseline](guided-delivery-baseline.md)
 - [Guided Decision & Delivery Loop](guided-decision-delivery-loop.md)
 - [Review Surface Governance](review-surface-governance.md)

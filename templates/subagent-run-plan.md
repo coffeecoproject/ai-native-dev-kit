@@ -89,6 +89,28 @@ No subagent left occupying a slot after handoff: Yes / No
 
 Closure notes:
 
+## Dispatch Hygiene
+
+Before dispatch checked: Yes / No
+
+Idle subagents recovered: Yes / No / N/A
+
+Completed subagents closed: Yes / No / N/A
+
+Unused planned subagents skipped: Yes / No / N/A
+
+Stale task subagents closed or skipped: Yes / No / N/A
+
+Task drift checked: Yes / No
+
+Active writer count: 0 / 1 / >1
+
+Dispatch allowed: Yes / No
+
+Dispatch block reason:
+
+Recovery notes:
+
 ## Allowed Actions
 
 - Open only the subagents listed in the Role Roster.

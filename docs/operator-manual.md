@@ -164,6 +164,7 @@ Rules:
 
 - Many readers, one writer.
 - Reviewer agents stay read-only.
+- Recover before dispatch: close or skip stale helpers before opening another helper.
 - Every helper must end as `CLOSED` or `SKIPPED`.
 - No helper agent may remain `RUNNING` before final response, commit, or handoff.
 

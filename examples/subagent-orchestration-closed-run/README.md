@@ -5,6 +5,7 @@ This example shows a safe helper-agent run:
 - many readers, one writer
 - reviewer is read-only
 - builder is the only writer
+- dispatch hygiene is checked before any future helper dispatch
 - every subagent is `CLOSED`
 - no subagent is left occupying a slot after handoff
 

@@ -37,6 +37,7 @@ const requiredSections = [
   "Role Roster",
   "Writer Control",
   "Lifecycle Closure",
+  "Dispatch Hygiene",
   "Allowed Actions",
   "Forbidden Actions",
   "Handoff / Findings",
@@ -119,6 +120,29 @@ function isPlaceholder(value) {
     || String(value || "").includes("<");
 }
 
+function fieldValue(body, label) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return body.match(new RegExp(`^\\s*${escaped}:\\s*(.+)\\s*$`, "im"))?.[1]?.trim() || "";
+}
+
+function isYes(value) {
+  return /^Yes\b/i.test(String(value || "").trim());
+}
+
+function isNo(value) {
+  return /^No\b/i.test(String(value || "").trim());
+}
+
+function isNA(value) {
+  return /^(N\/A|Not applicable|None)$/i.test(String(value || "").trim());
+}
+
+function parseNonNegativeInt(value) {
+  const normalized = String(value || "").trim();
+  if (!/^\d+$/.test(normalized)) return null;
+  return Number(normalized);
+}
+
 function validateRunPlan(plan) {
   if (plan.missing) {
     return {
@@ -196,6 +220,45 @@ function validateRunPlan(plan) {
   }
   if (/No subagent left occupying a slot after handoff:\s*No/i.test(lifecycle)) {
     issues.push("subagents must not be left occupying slots after handoff");
+  }
+
+  const dispatch = sectionBody(content, "Dispatch Hygiene") || "";
+  const beforeDispatch = fieldValue(dispatch, "Before dispatch checked");
+  const idleRecovered = fieldValue(dispatch, "Idle subagents recovered");
+  const completedClosed = fieldValue(dispatch, "Completed subagents closed");
+  const unusedSkipped = fieldValue(dispatch, "Unused planned subagents skipped");
+  const staleClosed = fieldValue(dispatch, "Stale task subagents closed or skipped");
+  const taskDriftChecked = fieldValue(dispatch, "Task drift checked");
+  const activeWriterCount = parseNonNegativeInt(fieldValue(dispatch, "Active writer count"));
+  const dispatchAllowed = fieldValue(dispatch, "Dispatch allowed");
+
+  if (!isYes(beforeDispatch)) {
+    issues.push("dispatch hygiene must be checked before subagent dispatch");
+  }
+  for (const [value, missingIssue, noIssue] of [
+    [idleRecovered, "Dispatch Hygiene must record Idle subagents recovered", "idle subagents must be recovered before dispatch"],
+    [completedClosed, "Dispatch Hygiene must record Completed subagents closed", "completed subagents must be closed before dispatch"],
+    [unusedSkipped, "Dispatch Hygiene must record Unused planned subagents skipped", "unused planned subagents must be skipped before dispatch"],
+    [staleClosed, "Dispatch Hygiene must record Stale task subagents closed or skipped", "stale task subagents must be closed or skipped before dispatch"],
+  ]) {
+    if (!value) {
+      issues.push(missingIssue);
+    } else if (isNo(value)) {
+      issues.push(noIssue);
+    } else if (!isYes(value) && !isNA(value)) {
+      issues.push(`${missingIssue}: expected Yes or N/A`);
+    }
+  }
+  if (!isYes(taskDriftChecked)) {
+    issues.push("task drift must be checked before subagent dispatch");
+  }
+  if (activeWriterCount === null) {
+    issues.push("Dispatch Hygiene must record numeric Active writer count");
+  } else if (activeWriterCount > 1) {
+    issues.push("dispatch cannot be allowed with more than one active writer");
+  }
+  if (!isYes(dispatchAllowed) && !isNo(dispatchAllowed)) {
+    issues.push("Dispatch Hygiene must record Dispatch allowed: Yes or No");
   }
 
   const forbidden = sectionBody(content, "Forbidden Actions") || "";

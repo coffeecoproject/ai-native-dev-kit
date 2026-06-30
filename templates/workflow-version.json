@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.38.0",
+  "devKitVersion": "1.39.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -67,6 +67,7 @@
     ".ai-native/core/review-surface-governance.md",
     ".ai-native/core/safe-launch.md",
     ".ai-native/core/standard-baseline-pack-registry.md",
+    ".ai-native/core/subagent-dispatch-hygiene.md",
     ".ai-native/core/unified-apply-plan.md",
     ".ai-native/core/work-queue.md",
     ".ai-native/dev-kit-manifest.json",
@@ -106,6 +107,7 @@
     ".ai-native/docs/review-surface-governance.md",
     ".ai-native/docs/safe-launch.md",
     ".ai-native/docs/standard-baseline-pack-registry.md",
+    ".ai-native/docs/subagent-dispatch-hygiene.md",
     ".ai-native/docs/unified-apply-plan.md",
     ".ai-native/docs/work-queue.md",
     ".ai-native/industrial-packs",

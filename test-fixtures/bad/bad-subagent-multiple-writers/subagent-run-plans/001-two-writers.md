@@ -45,6 +45,28 @@ No subagent left occupying a slot after handoff: No
 
 Closure notes: bad fixture.
 
+## Dispatch Hygiene
+
+Before dispatch checked: Yes
+
+Idle subagents recovered: Yes
+
+Completed subagents closed: Yes
+
+Unused planned subagents skipped: N/A
+
+Stale task subagents closed or skipped: Yes
+
+Task drift checked: Yes
+
+Active writer count: 2
+
+Dispatch allowed: Yes
+
+Dispatch block reason: multiple writers were ignored
+
+Recovery notes: Bad fixture intentionally leaves two writers active.
+
 ## Allowed Actions
 
 - Bad fixture.

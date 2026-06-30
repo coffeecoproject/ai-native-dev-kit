@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.38.0",
+  "devKitVersion": "1.39.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.38.0"
+    "phase": "1.39.0"
   },
   "groups": {
     "sourceRequired": [
@@ -147,6 +147,7 @@
       "core/self-iteration.md",
       "core/skill-governance.md",
       "core/standard-baseline-pack-registry.md",
+      "core/subagent-dispatch-hygiene.md",
       "core/subagent-orchestration.md",
       "core/task-levels.md",
       "core/unified-apply-plan.md",
@@ -231,6 +232,7 @@
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
       "docs/plans/repository-information-architecture-1.36-plan.md",
       "docs/plans/standard-baseline-pack-registry-1.14-plan.md",
+      "docs/plans/subagent-dispatch-hygiene-1.39-plan.md",
       "docs/plans/unified-apply-plan-1.34-plan.md",
       "docs/platform-standard-baseline-packs.md",
       "docs/product-baseline.md",
@@ -252,6 +254,7 @@
       "docs/roadmaps/governance-hardening-roadmap.md",
       "docs/safe-launch.md",
       "docs/standard-baseline-pack-registry.md",
+      "docs/subagent-dispatch-hygiene.md",
       "docs/troubleshooting.md",
       "docs/unified-apply-plan.md",
       "evals/034-baseline-freeze-self-ci.md",
@@ -392,6 +395,8 @@
       "examples/1.37-conversation-native-ask/conversation-ask-cards/001-appointment-app.md",
       "examples/1.38-controlled-apply-readiness/README.md",
       "examples/1.38-controlled-apply-readiness/apply-readiness-reports/001-workflow-assets.md",
+      "examples/1.39-subagent-dispatch-hygiene/README.md",
+      "examples/1.39-subagent-dispatch-hygiene/subagent-run-plans/001-dispatch-hygiene.md",
       "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
@@ -878,6 +883,9 @@
       "releases/1.38.0/known-limitations.md",
       "releases/1.38.0/release-record.md",
       "releases/1.38.0/self-check-report.md",
+      "releases/1.39.0/known-limitations.md",
+      "releases/1.39.0/release-record.md",
+      "releases/1.39.0/self-check-report.md",
       "releases/1.4.0/known-limitations.md",
       "releases/1.4.0/release-record.md",
       "releases/1.4.0/self-check-report.md",
@@ -1532,6 +1540,9 @@
       "test-fixtures/bad/bad-standard-selection-unknown-pack/standard-baseline-selections/001-bad.md",
       "test-fixtures/bad/bad-standard-selection-unknown-profile/standard-baseline-selections/001-bad.md",
       "test-fixtures/bad/bad-standard-selection-write-approved/standard-baseline-selections/001-bad.md",
+      "test-fixtures/bad/bad-subagent-dispatch-idle-running/subagent-run-plans/001-bad.md",
+      "test-fixtures/bad/bad-subagent-dispatch-multiple-writers/subagent-run-plans/001-bad.md",
+      "test-fixtures/bad/bad-subagent-dispatch-task-drift/subagent-run-plans/001-bad.md",
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
       "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
@@ -1643,6 +1654,7 @@
       ".ai-native/core/self-iteration.md",
       ".ai-native/core/skill-governance.md",
       ".ai-native/core/standard-baseline-pack-registry.md",
+      ".ai-native/core/subagent-dispatch-hygiene.md",
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/unified-apply-plan.md",
@@ -1685,6 +1697,7 @@
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
+      ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/prompts/apply-plan-agent.md",
@@ -2061,6 +2074,7 @@
       ".ai-native/core/self-iteration.md",
       ".ai-native/core/skill-governance.md",
       ".ai-native/core/standard-baseline-pack-registry.md",
+      ".ai-native/core/subagent-dispatch-hygiene.md",
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/unified-apply-plan.md",
@@ -2103,6 +2117,7 @@
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
+      ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs/README.md",
@@ -2453,9 +2468,11 @@
       ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/self-iteration.md",
       ".ai-native/core/skill-governance.md",
+      ".ai-native/core/subagent-dispatch-hygiene.md",
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/workflow.md",
+      ".ai-native/docs/subagent-dispatch-hygiene.md",
       "core/baseline-state.md",
       "core/beginner-entry.md",
       "core/change-boundary.md",
@@ -2951,6 +2968,8 @@
       "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
       "examples/1.38-controlled-apply-readiness/README.md",
       "examples/1.38-controlled-apply-readiness/apply-readiness-reports/001-workflow-assets.md",
+      "examples/1.39-subagent-dispatch-hygiene/README.md",
+      "examples/1.39-subagent-dispatch-hygiene/subagent-run-plans/001-dispatch-hygiene.md",
       "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
@@ -3272,6 +3291,9 @@
       "test-fixtures/bad/bad-standard-selection-unknown-pack/standard-baseline-selections/001-bad.md",
       "test-fixtures/bad/bad-standard-selection-unknown-profile/standard-baseline-selections/001-bad.md",
       "test-fixtures/bad/bad-standard-selection-write-approved/standard-baseline-selections/001-bad.md",
+      "test-fixtures/bad/bad-subagent-dispatch-idle-running/subagent-run-plans/001-bad.md",
+      "test-fixtures/bad/bad-subagent-dispatch-multiple-writers/subagent-run-plans/001-bad.md",
+      "test-fixtures/bad/bad-subagent-dispatch-task-drift/subagent-run-plans/001-bad.md",
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
       "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
@@ -3354,6 +3376,7 @@
       ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
       ".ai-native/core/standard-baseline-pack-registry.md",
+      ".ai-native/core/subagent-dispatch-hygiene.md",
       ".ai-native/core/unified-apply-plan.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/dev-kit-manifest.json",
@@ -3393,6 +3416,7 @@
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
+      ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs",
@@ -4228,6 +4252,10 @@
         "target": ".ai-native/core/standard-baseline-pack-registry.md"
       },
       {
+        "source": "core/subagent-dispatch-hygiene.md",
+        "target": ".ai-native/core/subagent-dispatch-hygiene.md"
+      },
+      {
         "source": "core/unified-apply-plan.md",
         "target": ".ai-native/core/unified-apply-plan.md"
       },
@@ -4384,12 +4412,20 @@
         "target": ".ai-native/docs/standard-baseline-pack-registry.md"
       },
       {
+        "source": "docs/subagent-dispatch-hygiene.md",
+        "target": ".ai-native/docs/subagent-dispatch-hygiene.md"
+      },
+      {
         "source": "docs/unified-apply-plan.md",
         "target": ".ai-native/docs/unified-apply-plan.md"
       },
       {
         "source": "docs/work-queue.md",
         "target": ".ai-native/docs/work-queue.md"
+      },
+      {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
       },
       {
         "source": "prompts/apply-plan-agent.md",
@@ -4478,110 +4514,6 @@
       {
         "source": "prompts/workflow-concierge-agent.md",
         "target": ".ai-native/prompts/workflow-concierge-agent.md"
-      },
-      {
-        "source": "templates/active-work-thread.md",
-        "target": ".ai-native/templates/active-work-thread.md"
-      },
-      {
-        "source": "templates/archive-index.md",
-        "target": ".ai-native/templates/archive-index.md"
-      },
-      {
-        "source": "templates/baseline-decision-card.md",
-        "target": ".ai-native/templates/baseline-decision-card.md"
-      },
-      {
-        "source": "templates/baseline-pack-selection-report.md",
-        "target": ".ai-native/templates/baseline-pack-selection-report.md"
-      },
-      {
-        "source": "templates/baseline-state-report.md",
-        "target": ".ai-native/templates/baseline-state-report.md"
-      },
-      {
-        "source": "templates/beginner-entry-card.md",
-        "target": ".ai-native/templates/beginner-entry-card.md"
-      },
-      {
-        "source": "templates/change-boundary-report.md",
-        "target": ".ai-native/templates/change-boundary-report.md"
-      },
-      {
-        "source": "templates/controlled-apply-readiness-report.md",
-        "target": ".ai-native/templates/controlled-apply-readiness-report.md"
-      },
-      {
-        "source": "templates/conversation-ask-card.md",
-        "target": ".ai-native/templates/conversation-ask-card.md"
-      },
-      {
-        "source": "templates/debt-knowledge-handoff-report.md",
-        "target": ".ai-native/templates/debt-knowledge-handoff-report.md"
-      },
-      {
-        "source": "templates/delivery-path-report.md",
-        "target": ".ai-native/templates/delivery-path-report.md"
-      },
-      {
-        "source": "templates/document-archive-apply-plan.md",
-        "target": ".ai-native/templates/document-archive-apply-plan.md"
-      },
-      {
-        "source": "templates/execution-closure-report.md",
-        "target": ".ai-native/templates/execution-closure-report.md"
-      },
-      {
-        "source": "templates/guided-decision-summary.md",
-        "target": ".ai-native/templates/guided-decision-summary.md"
-      },
-      {
-        "source": "templates/hook-orchestration-plan.md",
-        "target": ".ai-native/templates/hook-orchestration-plan.md"
-      },
-      {
-        "source": "templates/patch-classification-false-positive.md",
-        "target": ".ai-native/templates/patch-classification-false-positive.md"
-      },
-      {
-        "source": "templates/patch-classification-report.md",
-        "target": ".ai-native/templates/patch-classification-report.md"
-      },
-      {
-        "source": "templates/project-hook-policy.md",
-        "target": ".ai-native/templates/project-hook-policy.md"
-      },
-      {
-        "source": "templates/real-adoption-trial-report.md",
-        "target": ".ai-native/templates/real-adoption-trial-report.md"
-      },
-      {
-        "source": "templates/review-surface-card.md",
-        "target": ".ai-native/templates/review-surface-card.md"
-      },
-      {
-        "source": "templates/standard-baseline-selection-report.md",
-        "target": ".ai-native/templates/standard-baseline-selection-report.md"
-      },
-      {
-        "source": "templates/unified-apply-plan.md",
-        "target": ".ai-native/templates/unified-apply-plan.md"
-      },
-      {
-        "source": "templates/user-decision-card.md",
-        "target": ".ai-native/templates/user-decision-card.md"
-      },
-      {
-        "source": "templates/work-queue-report.md",
-        "target": ".ai-native/templates/work-queue-report.md"
-      },
-      {
-        "source": "templates/workflow-guidance-card.md",
-        "target": ".ai-native/templates/workflow-guidance-card.md"
-      },
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
       },
       {
         "source": "scripts/baseline-project.mjs",
@@ -4898,6 +4830,106 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "templates/active-work-thread.md",
+        "target": ".ai-native/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/archive-index.md",
+        "target": ".ai-native/templates/archive-index.md"
+      },
+      {
+        "source": "templates/baseline-decision-card.md",
+        "target": ".ai-native/templates/baseline-decision-card.md"
+      },
+      {
+        "source": "templates/baseline-pack-selection-report.md",
+        "target": ".ai-native/templates/baseline-pack-selection-report.md"
+      },
+      {
+        "source": "templates/baseline-state-report.md",
+        "target": ".ai-native/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/beginner-entry-card.md",
+        "target": ".ai-native/templates/beginner-entry-card.md"
+      },
+      {
+        "source": "templates/change-boundary-report.md",
+        "target": ".ai-native/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/controlled-apply-readiness-report.md",
+        "target": ".ai-native/templates/controlled-apply-readiness-report.md"
+      },
+      {
+        "source": "templates/conversation-ask-card.md",
+        "target": ".ai-native/templates/conversation-ask-card.md"
+      },
+      {
+        "source": "templates/debt-knowledge-handoff-report.md",
+        "target": ".ai-native/templates/debt-knowledge-handoff-report.md"
+      },
+      {
+        "source": "templates/delivery-path-report.md",
+        "target": ".ai-native/templates/delivery-path-report.md"
+      },
+      {
+        "source": "templates/document-archive-apply-plan.md",
+        "target": ".ai-native/templates/document-archive-apply-plan.md"
+      },
+      {
+        "source": "templates/execution-closure-report.md",
+        "target": ".ai-native/templates/execution-closure-report.md"
+      },
+      {
+        "source": "templates/guided-decision-summary.md",
+        "target": ".ai-native/templates/guided-decision-summary.md"
+      },
+      {
+        "source": "templates/hook-orchestration-plan.md",
+        "target": ".ai-native/templates/hook-orchestration-plan.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".ai-native/templates/patch-classification-false-positive.md"
+      },
+      {
+        "source": "templates/patch-classification-report.md",
+        "target": ".ai-native/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/project-hook-policy.md",
+        "target": ".ai-native/templates/project-hook-policy.md"
+      },
+      {
+        "source": "templates/real-adoption-trial-report.md",
+        "target": ".ai-native/templates/real-adoption-trial-report.md"
+      },
+      {
+        "source": "templates/review-surface-card.md",
+        "target": ".ai-native/templates/review-surface-card.md"
+      },
+      {
+        "source": "templates/standard-baseline-selection-report.md",
+        "target": ".ai-native/templates/standard-baseline-selection-report.md"
+      },
+      {
+        "source": "templates/unified-apply-plan.md",
+        "target": ".ai-native/templates/unified-apply-plan.md"
+      },
+      {
+        "source": "templates/user-decision-card.md",
+        "target": ".ai-native/templates/user-decision-card.md"
+      },
+      {
+        "source": "templates/work-queue-report.md",
+        "target": ".ai-native/templates/work-queue-report.md"
+      },
+      {
+        "source": "templates/workflow-guidance-card.md",
+        "target": ".ai-native/templates/workflow-guidance-card.md"
       }
     ]
   },

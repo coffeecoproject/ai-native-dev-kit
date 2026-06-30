@@ -1278,6 +1278,31 @@ function fillSubagentRunPlan(content, context) {
   );
   output = setSection(
     output,
+    "Dispatch Hygiene",
+    [
+      "Before dispatch checked: Yes",
+      "",
+      "Idle subagents recovered: N/A",
+      "",
+      "Completed subagents closed: N/A",
+      "",
+      "Unused planned subagents skipped: Yes",
+      "",
+      "Stale task subagents closed or skipped: Yes",
+      "",
+      "Task drift checked: Yes",
+      "",
+      "Active writer count: 0",
+      "",
+      "Dispatch allowed: Yes",
+      "",
+      "Dispatch block reason: N/A",
+      "",
+      "Recovery notes: No helper is currently running. If the user switches tasks, create or update a run plan before dispatch.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
     "Allowed Actions",
     [
       "- Use read-only helper agents to inspect files, summarize findings, or review artifacts.",

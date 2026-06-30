@@ -24,6 +24,7 @@ This index separates current operating documents from reference material, histor
 
 - [Artifact Decision Tree](artifact-decision-tree.md)
 - [Goal + Subagent Usage](goal-subagent-usage.md)
+- [Subagent Dispatch Hygiene](subagent-dispatch-hygiene.md)
 - [Guided Delivery Baseline](guided-delivery-baseline.md)
 - [Guided Decision & Delivery Loop](guided-decision-delivery-loop.md)
 - [Change Boundary](change-boundary.md)

@@ -37,7 +37,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `baseline-recommendations/` | Saved engineering/environment baseline recommendation reports |
 | `baseline-gap-reports/` | Durable baseline gap follow-up reports when needed |
 | `goal-cards/` | Goal Mode route and task level |
-| `subagent-run-plans/` | Helper agent roles, authority, handoff, and closure |
+| `subagent-run-plans/` | Helper agent roles, authority, dispatch hygiene, handoff, and closure |
 | `decision-briefs/` | Human decision input |
 | `follow-up-proposals/` | Suggestions outside the current task |
 | `learning-candidates/` | Proposed project memory that is not confirmed yet |

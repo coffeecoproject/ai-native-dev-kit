@@ -60,6 +60,28 @@ No subagent left occupying a slot after handoff: Yes
 
 Closure notes: All helper outputs were consumed by the main thread and the helpers were closed.
 
+## Dispatch Hygiene
+
+Before dispatch checked: Yes
+
+Idle subagents recovered: Yes
+
+Completed subagents closed: Yes
+
+Unused planned subagents skipped: N/A
+
+Stale task subagents closed or skipped: Yes
+
+Task drift checked: Yes
+
+Active writer count: 0
+
+Dispatch allowed: Yes
+
+Dispatch block reason: N/A
+
+Recovery notes: All helpers were closed before the final response and no stale helper remains for a future dispatch.
+
 ## Allowed Actions
 
 - Open only the subagents listed in the Role Roster.

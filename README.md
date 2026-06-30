@@ -204,6 +204,7 @@ Core workflow:
 - [Repository Structure](docs/repository-structure.md)
 - [Document Ownership](docs/document-ownership.md)
 - [Artifact Decision Tree](docs/artifact-decision-tree.md)
+- [Subagent Dispatch Hygiene](docs/subagent-dispatch-hygiene.md)
 - [Guided Delivery Baseline](docs/guided-delivery-baseline.md)
 - [Product Baseline](docs/product-baseline.md)
 - [Claim Control](docs/claim-control.md)
@@ -253,7 +254,7 @@ Reference:
 
 Current release:
 
-- [1.38 Release Record](releases/1.38.0/release-record.md)
+- [1.39 Release Record](releases/1.39.0/release-record.md)
 - [Version History](VERSION.md)
 
 ## License

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.38.0`
+Current version: `1.39.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.38.0`
 
 ## Current Release
 
-`1.38.0`
+`1.39.0`
 
 Includes:
 
+- Subagent Dispatch Hygiene phase `1.39.0`: adds recover-before-dispatch rules so Codex checks stale helpers, completed helpers, unused planned helpers, task drift, and active writer count before opening or reusing helper agents
+- Added `core/subagent-dispatch-hygiene.md`, `docs/subagent-dispatch-hygiene.md`, `Dispatch Hygiene` run-plan fields, generated defaults, checker enforcement, examples, bad fixtures, generated-project copy coverage, and release evidence
+- `1.39.0` does not create or close real subagents automatically, add a scheduler, install hooks, call external GPT/API review, modify CI in target projects, approve implementation, approve release/production, or grant new write authority
 - Controlled Apply Readiness phase `1.38.0`: adds a pre-execution readiness gate after Unified Apply Plan so Codex can evaluate whether a reviewed plan is eligible for a future human-approved controlled apply step
 - Added `core/controlled-apply-readiness.md`, `docs/controlled-apply-readiness.md`, `templates/controlled-apply-readiness-report.md`, `apply-readiness-reports/`, resolver/checker scripts, CLI entries, examples, bad fixtures, manifest/generated-project coverage, and release evidence
 - `1.38.0` does not add an apply runner, write target files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive/delete/rewrite documents, change source of truth, enable baseline/industrial packs, or approve high-risk decisions

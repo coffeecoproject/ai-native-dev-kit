@@ -367,6 +367,8 @@ Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for 
 
 The default rule is: many readers, one writer. Subagent output is input, not authority. The main thread remains responsible for writes, verification, and final reporting.
 
+Before opening or reusing helper agents, apply Subagent Dispatch Hygiene: recover before dispatch. Close or skip stale helpers, check task drift, and confirm no more than one active writer before sending new work to a helper.
+
 Create a Subagent Run Plan with:
 
 ```bash
