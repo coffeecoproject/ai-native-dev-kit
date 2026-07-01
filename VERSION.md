@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.49.0`
+Current version: `1.50.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.49.0`
 
 ## Current Release
 
-`1.49.0`
+`1.50.0`
 
 Includes:
 
+- Evidence Reference Resolution phase `1.50.0`: adds `--resolve-evidence-refs` for strict Change Impact Coverage close-out, read-only git changed-file input through `--from-git-diff` / `--cached` / `--base`, and strict Execution Closure linking through `--require-impact-coverage`
+- `1.50.0` keeps legacy Markdown reports and 1.49 structured records compatible by default; evidence reference resolution and impact-coverage-required closure checks run only when explicitly requested
+- `1.50.0` does not write target-project files, automatically implement missing surfaces, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Safe Launch, or prove every possible impact was found
 - Structured Impact Coverage phase `1.49.0`: adds `schemas/artifacts/change-impact-coverage.schema.json`, machine-readable Change Impact Coverage evidence, `preflight` / `closure` modes, `--require-structured-evidence`, `--strict-evidence`, changed-file implication checks, a strict 1.49 example, bad fixtures, and Execution Closure citation support
 - `1.49.0` keeps legacy Markdown reports compatible by default; strict structured evidence is required only when explicitly requested
 - `1.49.0` does not write target-project files, automatically implement missing surfaces, authorize implementation, authorize apply, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Safe Launch, or prove every possible impact was found

@@ -1,0 +1,5 @@
+User flow evidence:
+
+- Contract creation now treats a blank title as invalid input.
+- The user stays on the contract form instead of creating an incomplete contract.
+- The validation message is visible before completion.

@@ -61,6 +61,8 @@ Summarize what may be incomplete if this change is implemented in only one layer
 | `PERMISSION_RISK` | `NOT_STARTED` |  | Pre-execution report. |
 | `RELEASE_IMPACT` | `NOT_STARTED` |  | Pre-execution report. |
 
+Evidence may be a project-local file path, `command-output:<path>`, `artifact:<id>`, or `human-decision:<id>` when strict evidence reference resolution is enabled.
+
 ## Verification Coverage
 
 | Surface | Verification | Evidence | Status |

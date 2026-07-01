@@ -44,11 +44,26 @@ For strict close-out, use:
 node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence
 ```
 
+For stricter close-out where evidence paths must really resolve, use:
+
+```bash
+node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs
+```
+
 Plainly:
 
 - `preflight` means "what could be affected before we code?"
 - `closure` means "after the work, did we really close every required affected part?"
 - `--strict-evidence` means "`DONE` cannot be backed by vague placeholder text."
+- `--resolve-evidence-refs` means "`DONE` evidence must point to a real project-local file or accepted recorded reference."
+
+Codex can also read changed files from git:
+
+```bash
+node scripts/cli.mjs impact-coverage . --intent "add contract input restriction" --from-git-diff
+node scripts/cli.mjs impact-coverage . --intent "add contract input restriction" --from-git-diff --cached
+node scripts/cli.mjs impact-coverage . --intent "add contract input restriction" --from-git-diff --base origin/main
+```
 
 ## When To Use It
 
@@ -93,3 +108,14 @@ schemas/artifacts/change-impact-coverage.schema.json
 ```
 
 This lets Codex verify that the Markdown table and machine-readable record agree on mode, outcome, surfaces, statuses, changed files, and no-authority boundaries.
+
+## Evidence References
+
+When strict reference resolution is enabled, `DONE` evidence may be:
+
+- a relative file path inside the project
+- `command-output:<path>` for a saved command output file
+- `artifact:<id-or-ref>` for a recorded workflow artifact
+- `human-decision:<id-or-ref>` for a recorded human decision
+
+Changed files and evidence paths are still evidence signals, not implementation approval.

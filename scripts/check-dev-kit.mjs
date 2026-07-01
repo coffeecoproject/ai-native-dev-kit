@@ -5896,6 +5896,7 @@ function checkChangeImpactCoverageProtocol() {
     "docs/change-impact-coverage.md",
     "docs/plans/change-impact-coverage-1.48-plan.md",
     "docs/plans/structured-impact-coverage-1.49-plan.md",
+    "docs/plans/evidence-reference-resolution-1.50-plan.md",
     "templates/change-impact-coverage-report.md",
     "checklists/change-impact-coverage-review.md",
     "prompts/change-impact-coverage-agent.md",
@@ -5907,6 +5908,15 @@ function checkChangeImpactCoverageProtocol() {
     "examples/1.48-change-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
     "examples/1.49-structured-impact-coverage/contract-input-rule/README.md",
     "examples/1.49-structured-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/user-flow-contract-title-required.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/frontend-contract-form-validation.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/api-contract-title-validation.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/backend-contract-validation.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/error-copy-title-required.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/test-contract-input-rule.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/docs-contract-input-rule.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/execution-closures/001-contract-input-rule.md",
+    "examples/1.50-evidence-reference-resolution/README.md",
     "test-fixtures/bad/bad-change-impact-backend-only/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-frontend-only/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-api-without-tests/change-impact-coverage-reports/001-bad.md",
@@ -5915,12 +5925,16 @@ function checkChangeImpactCoverageProtocol() {
     "test-fixtures/bad/bad-change-impact-missing-structured-evidence/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-placeholder-evidence/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-closure-not-started/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-missing-evidence-ref/change-impact-coverage-reports/001-bad.md",
     "releases/1.48.0/release-record.md",
     "releases/1.48.0/known-limitations.md",
     "releases/1.48.0/self-check-report.md",
     "releases/1.49.0/release-record.md",
     "releases/1.49.0/known-limitations.md",
     "releases/1.49.0/self-check-report.md",
+    "releases/1.50.0/release-record.md",
+    "releases/1.50.0/known-limitations.md",
+    "releases/1.50.0/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.49 change impact coverage asset exists ${file}`);
@@ -5936,8 +5950,10 @@ function checkChangeImpactCoverageProtocol() {
     read("scripts/check-change-impact-coverage.mjs"),
     read("docs/plans/change-impact-coverage-1.48-plan.md"),
     read("docs/plans/structured-impact-coverage-1.49-plan.md"),
+    read("docs/plans/evidence-reference-resolution-1.50-plan.md"),
     read("releases/1.48.0/release-record.md"),
     read("releases/1.49.0/release-record.md"),
+    read("releases/1.50.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -5946,6 +5962,8 @@ function checkChangeImpactCoverageProtocol() {
     "Machine-Readable Evidence",
     "require-structured-evidence",
     "strict-evidence",
+    "resolve-evidence-refs",
+    "from-git-diff",
     "closure mode",
     "USER_FLOW",
     "FRONTEND_UI",
@@ -6018,11 +6036,12 @@ function checkChangeImpactCoverageProtocol() {
     "--mode",
     "closure",
     "--strict-evidence",
+    "--resolve-evidence-refs",
   ]);
   if (strictExample.status === 0
     && strictExample.stdout.includes("has valid structured evidence")
     && strictExample.stdout.includes("Change Impact Coverage check passed")) {
-    pass("1.49 structured change impact coverage example passes strict closure checker");
+    pass("1.50 structured change impact coverage example passes strict closure checker with evidence refs");
   } else {
     fail(`1.49 structured change impact coverage example failed: ${strictExample.stderr || strictExample.stdout}`);
   }
@@ -6036,6 +6055,7 @@ function checkChangeImpactCoverageProtocol() {
     ["missing structured evidence", "test-fixtures/bad/bad-change-impact-missing-structured-evidence", "Machine-Readable Evidence is required", ["--require-structured-evidence", "--mode", "closure"]],
     ["placeholder evidence", "test-fixtures/bad/bad-change-impact-placeholder-evidence", "uses placeholder evidence", ["--strict-evidence", "--mode", "closure"]],
     ["closure not started", "test-fixtures/bad/bad-change-impact-closure-not-started", "closure mode cannot leave required surface FRONTEND_UI NOT_STARTED", ["--mode", "closure"]],
+    ["missing evidence ref", "test-fixtures/bad/bad-change-impact-missing-evidence-ref", "evidence ref is not resolvable", ["--mode", "closure", "--resolve-evidence-refs"]],
   ]) {
     const result = runNode(["scripts/check-change-impact-coverage.mjs", target, ...extraArgs]);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -6273,16 +6293,21 @@ function checkExecutionReviewClosureProtocol() {
     "examples/1.33-evidence-linked-closure/reports/verify-output.txt",
     "examples/1.33-evidence-linked-closure/debt-handoff-reports/001-booking.md",
     "examples/1.33-evidence-linked-closure/delivery-path-reports/001-booking.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/execution-closures/001-contract-input-rule.md",
     "test-fixtures/bad/bad-execution-closure-approves-implementation/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-missing-verification/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-changed-files-pass/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-ready-without-evidence/execution-closures/001-bad.md",
+    "test-fixtures/bad/bad-execution-closure-missing-impact-coverage/execution-closures/001-bad.md",
     "releases/1.32.0/release-record.md",
     "releases/1.32.0/known-limitations.md",
     "releases/1.32.0/self-check-report.md",
     "releases/1.33.0/release-record.md",
     "releases/1.33.0/known-limitations.md",
     "releases/1.33.0/self-check-report.md",
+    "releases/1.50.0/release-record.md",
+    "releases/1.50.0/known-limitations.md",
+    "releases/1.50.0/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.32 execution closure asset exists ${file}`);
@@ -6297,6 +6322,7 @@ function checkExecutionReviewClosureProtocol() {
     read("scripts/check-execution-closure.mjs"),
     read("releases/1.32.0/release-record.md"),
     read("releases/1.33.0/release-record.md"),
+    read("releases/1.50.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -6309,6 +6335,8 @@ function checkExecutionReviewClosureProtocol() {
     "changed files are not proof",
     "--review-surface-ref",
     "--verification-file",
+    "require-impact-coverage",
+    "Change Impact Coverage Report",
     "This closure approves implementation: No",
     "This closure authorizes commit or push: No",
     "This closure replaces Safe Launch: No",
@@ -6367,6 +6395,15 @@ function checkExecutionReviewClosureProtocol() {
     fail(`1.33 evidence-linked closure example failed: ${evidenceExample.stderr || evidenceExample.stdout}`);
   }
 
+  const impactCoverageExample = runNode(["scripts/check-execution-closure.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule", "--require-impact-coverage"]);
+  if (impactCoverageExample.status === 0
+    && impactCoverageExample.stdout.includes("linked Change Impact Coverage Report passes strict closure evidence checks")
+    && impactCoverageExample.stdout.includes("Execution Review Closure check passed")) {
+    pass("1.50 execution closure example requires linked strict impact coverage");
+  } else {
+    fail(`1.50 execution closure impact coverage example failed: ${impactCoverageExample.stderr || impactCoverageExample.stdout}`);
+  }
+
   const evidenceResolver = runNode([
     "scripts/resolve-execution-closure.mjs",
     "examples/1.33-evidence-linked-closure",
@@ -6409,6 +6446,7 @@ function checkExecutionReviewClosureProtocol() {
     ["missing verification", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-missing-verification"], "requires passing verification commands"],
     ["changed files pass", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-changed-files-pass"], "changed files as the only evidence"],
     ["ready without evidence", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-ready-without-evidence"], "requires Review Surface Card found"],
+    ["missing impact coverage", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-missing-impact-coverage", "--require-impact-coverage"], "requires Change Impact Coverage Report found"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;

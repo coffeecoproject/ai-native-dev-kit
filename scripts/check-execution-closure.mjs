@@ -3,14 +3,19 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { resolveEvidenceReference } from "./lib/artifact-schema.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
+const __filename = fileURLToPath(import.meta.url);
+const scriptDir = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json"]);
+const knownFlags = new Set(["json", "require-impact-coverage"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireImpactCoverage = Boolean(args["require-impact-coverage"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -187,6 +192,9 @@ function checkReports() {
       } else {
         fail(`${label} READY_FOR_COMMIT_REVIEW requires verification evidence link`);
       }
+      if (requireImpactCoverage && crossSurfaceClosureChange(content)) {
+        requireImpactCoverageLink(evidenceBody, file, label);
+      }
       if (!/\|\s*`?[A-Z][A-Z0-9_]+`?\s*\|\s*(fail|not verified)\s*\|/i.test(reviewBody)) {
         pass(`${label} ready-for-commit closes selected review surfaces`);
       } else {
@@ -229,16 +237,21 @@ function checkSourceEvidence() {
     "examples/1.33-evidence-linked-closure/reports/verify-output.txt",
     "examples/1.33-evidence-linked-closure/debt-handoff-reports/001-booking.md",
     "examples/1.33-evidence-linked-closure/delivery-path-reports/001-booking.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/execution-closures/001-contract-input-rule.md",
     "test-fixtures/bad/bad-execution-closure-approves-implementation/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-missing-verification/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-changed-files-pass/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-ready-without-evidence/execution-closures/001-bad.md",
+    "test-fixtures/bad/bad-execution-closure-missing-impact-coverage/execution-closures/001-bad.md",
     "releases/1.32.0/release-record.md",
     "releases/1.32.0/known-limitations.md",
     "releases/1.32.0/self-check-report.md",
     "releases/1.33.0/release-record.md",
     "releases/1.33.0/known-limitations.md",
     "releases/1.33.0/self-check-report.md",
+    "releases/1.50.0/release-record.md",
+    "releases/1.50.0/known-limitations.md",
+    "releases/1.50.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`execution closure source evidence exists ${file}`);
     else fail(`execution closure source evidence missing ${file}`);
@@ -289,6 +302,15 @@ function checkSourceEvidence() {
     fail(`1.33 evidence-linked closure example failed: ${evidenceExample.stderr || evidenceExample.stdout}`);
   }
 
+  const impactCoverageExample = runNode(["scripts/check-execution-closure.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule", "--require-impact-coverage"]);
+  if (impactCoverageExample.status === 0
+    && impactCoverageExample.stdout.includes("linked Change Impact Coverage Report passes strict closure evidence checks")
+    && impactCoverageExample.stdout.includes("Execution Review Closure check passed")) {
+    pass("1.50 execution closure example requires linked strict impact coverage");
+  } else {
+    fail(`1.50 execution closure impact coverage example failed: ${impactCoverageExample.stderr || impactCoverageExample.stdout}`);
+  }
+
   const evidenceResolver = runNode([
     "scripts/resolve-execution-closure.mjs",
     "examples/1.33-evidence-linked-closure",
@@ -331,6 +353,7 @@ function checkSourceEvidence() {
     ["missing verification", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-missing-verification"], "requires passing verification commands"],
     ["changed files pass", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-changed-files-pass"], "changed files as the only evidence"],
     ["ready without evidence", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-ready-without-evidence"], "requires Review Surface Card found"],
+    ["missing impact coverage", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-missing-impact-coverage", "--require-impact-coverage"], "requires Change Impact Coverage Report found"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -387,6 +410,59 @@ function requireEvidenceLinkStatus(evidenceBody, label, evidence, status) {
   const pattern = new RegExp(`\\|\\s*${escapeRegExp(evidence)}\\s*\\|[^|]*\\|\\s*${escapeRegExp(status)}\\s*\\|`, "i");
   if (pattern.test(evidenceBody)) pass(`${label} ready-for-commit has ${evidence} ${status}`);
   else fail(`${label} READY_FOR_COMMIT_REVIEW requires ${evidence} ${status}`);
+}
+
+function requireImpactCoverageLink(evidenceBody, file, label) {
+  const link = evidenceLink(evidenceBody, "Change Impact Coverage Report");
+  if (!link) {
+    fail(`${label} READY_FOR_COMMIT_REVIEW requires Change Impact Coverage Report found`);
+    return;
+  }
+  if (link.status !== "found") {
+    fail(`${label} READY_FOR_COMMIT_REVIEW requires Change Impact Coverage Report found`);
+    return;
+  }
+
+  const resolved = resolveEvidenceReference(projectRoot, file, link.ref);
+  if (!resolved) {
+    fail(`${label} Change Impact Coverage Report ref is not resolvable: ${link.ref}`);
+    return;
+  }
+
+  const impactCheck = runNode([
+    "scripts/check-change-impact-coverage.mjs",
+    projectRoot,
+    "--require-structured-evidence",
+    "--mode",
+    "closure",
+    "--strict-evidence",
+    "--resolve-evidence-refs",
+  ]);
+  if (impactCheck.status === 0) {
+    pass(`${label} linked Change Impact Coverage Report passes strict closure evidence checks`);
+  } else {
+    fail(`${label} linked Change Impact Coverage Report failed strict closure evidence checks: ${impactCheck.stderr || impactCheck.stdout}`);
+  }
+}
+
+function evidenceLink(evidenceBody, evidence) {
+  for (const line of String(evidenceBody || "").split("\n")) {
+    if (!line.trim().startsWith("|")) continue;
+    const cells = line.split("|").slice(1, -1).map((cell) => strip(cell));
+    if (cells.length < 3) continue;
+    if (strip(cells[0]).toLowerCase() !== evidence.toLowerCase()) continue;
+    return {
+      evidence: cells[0],
+      ref: cells[1],
+      status: cells[2].toLowerCase(),
+    };
+  }
+  return null;
+}
+
+function crossSurfaceClosureChange(content) {
+  const text = String(content || "").toLowerCase();
+  return /\b(validation|business rule|api|backend|server|data model|database|schema|permission|role|rbac|tenant|error copy|input restriction|contract)\b/.test(text);
 }
 
 function sectionBody(content, section) {
@@ -478,7 +554,11 @@ function exists(relativePath) {
 }
 
 function runNode(nodeArgs) {
-  return spawnSync(process.execPath, nodeArgs, {
+  const resolvedArgs = nodeArgs.slice();
+  if (/^scripts\/[^/]+\.mjs$/.test(resolvedArgs[0] || "")) {
+    resolvedArgs[0] = path.join(scriptDir, path.basename(resolvedArgs[0]));
+  }
+  return spawnSync(process.execPath, resolvedArgs, {
     cwd: projectRoot,
     encoding: "utf8",
     maxBuffer: 1024 * 1024 * 16,

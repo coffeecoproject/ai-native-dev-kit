@@ -42,6 +42,14 @@ When closure reports are recorded:
 node scripts/cli.mjs closure-check .
 ```
 
+For cross-surface work such as validation, API, backend, data, permission, or error-copy changes, use the stricter check:
+
+```bash
+node scripts/check-execution-closure.mjs . --require-impact-coverage
+```
+
+Plainly: if the closure says the work is ready, it must point to a Change Impact Coverage report that proves the affected surfaces were closed.
+
 If verification already ran, pass a plain evidence note:
 
 ```bash

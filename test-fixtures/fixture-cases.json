@@ -2156,7 +2156,8 @@
       "--require-structured-evidence",
       "--mode",
       "closure",
-      "--strict-evidence"
+      "--strict-evidence",
+      "--resolve-evidence-refs"
     ],
     "expectStatus": 0,
     "expectStdoutIncludes": [
@@ -2164,6 +2165,22 @@
       "Change Impact Coverage check passed"
     ],
     "howToFix": "Keep the 1.49 structured impact coverage example valid in strict closure mode."
+  },
+  {
+    "name": "good execution closure with required impact coverage",
+    "type": "golden",
+    "checker": "check-execution-closure",
+    "script": "scripts/check-execution-closure.mjs",
+    "args": [
+      "examples/1.49-structured-impact-coverage/contract-input-rule",
+      "--require-impact-coverage"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "linked Change Impact Coverage Report passes strict closure evidence checks",
+      "Execution Review Closure check passed"
+    ],
+    "howToFix": "Keep cross-surface READY closures linked to strict impact coverage evidence."
   },
   {
     "name": "bad change impact missing structured evidence",
@@ -2215,6 +2232,38 @@
       "closure changed-files backend rule work must close FRONTEND_UI"
     ],
     "howToFix": "Closure mode must not leave required impact surfaces open after backend rule files changed."
+  },
+  {
+    "name": "bad change impact missing evidence ref",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-missing-evidence-ref",
+      "--mode",
+      "closure",
+      "--resolve-evidence-refs"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "evidence ref is not resolvable"
+    ],
+    "howToFix": "Strict evidence reference resolution must reject DONE evidence paths that do not resolve."
+  },
+  {
+    "name": "bad execution closure missing impact coverage",
+    "type": "bad",
+    "checker": "check-execution-closure",
+    "script": "scripts/check-execution-closure.mjs",
+    "args": [
+      "test-fixtures/bad/bad-execution-closure-missing-impact-coverage",
+      "--require-impact-coverage"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "requires Change Impact Coverage Report found"
+    ],
+    "howToFix": "Cross-surface READY closures must cite strict Change Impact Coverage when required."
   },
   {
     "name": "bad change impact coverage backend only",

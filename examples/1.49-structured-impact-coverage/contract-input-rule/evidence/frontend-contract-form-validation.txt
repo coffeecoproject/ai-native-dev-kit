@@ -1,0 +1,5 @@
+Frontend evidence:
+
+- `ContractForm` trims the contract title before submit.
+- Empty titles block submit and show the required-title error message.
+- Non-empty titles continue through the existing create-contract path.

@@ -75,6 +75,14 @@ node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --
 
 Strict mode rejects placeholder `DONE` evidence such as `TBD`, `placeholder`, `not recorded`, or example-only evidence.
 
+For stricter evidence reliability, use:
+
+```bash
+node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs
+```
+
+`--resolve-evidence-refs` requires every `DONE` implementation and verification evidence reference to resolve to a bounded project-local file, `command-output:<path>`, `artifact:<id-or-ref>`, or `human-decision:<id-or-ref>`.
+
 ## Required Behavior
 
 Before implementation, Codex should:
@@ -93,7 +101,7 @@ After implementation, Codex should:
 4. Stop if permission, data, migration, payment, production, or compliance scope needs human decision.
 5. Feed missed surfaces into Review Loop or Execution Closure.
 
-When `--changed-files` or a changed-file list is available, Codex must use it as a risk signal:
+When `--changed-files`, `--from-git-diff`, `--cached`, `--base`, or another changed-file list is available, Codex must use it as a risk signal:
 
 - backend validation/rule files imply frontend, API, error copy, and test closure for rule changes
 - frontend form/view files imply backend, API, and test closure for rule changes
@@ -101,6 +109,8 @@ When `--changed-files` or a changed-file list is available, Codex must use it as
 - migration/schema/model files imply data-model review
 - auth/permission/security files imply human permission-risk review unless clearly closed
 - deploy/release/rollback/CI files imply release-impact review unless clearly closed
+
+Changed files reduce manual copying but do not prove correctness.
 
 ## Stop Conditions
 
@@ -128,5 +138,6 @@ Stop and ask for human decision when:
 - Product Completeness checks whether a product slice is usable.
 - Execution Closure proves what changed and how it was verified.
 - Execution Closure should cite Change Impact Coverage when a cross-surface rule or behavior change is closed.
+- Strict Execution Closure can use `--require-impact-coverage` to require a linked Change Impact Coverage report before `READY_FOR_COMMIT_REVIEW`.
 - Review Loop handles low-risk repair and re-review.
 - Safe Launch remains required before launch or production claims.

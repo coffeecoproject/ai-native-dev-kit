@@ -94,7 +94,9 @@ jobs:
       - name: Check change impact coverage
         run: node scripts/check-change-impact-coverage.mjs .
       - name: Check structured change impact coverage example
-        run: node scripts/check-change-impact-coverage.mjs examples/1.49-structured-impact-coverage/contract-input-rule --require-structured-evidence --mode closure --strict-evidence
+        run: node scripts/check-change-impact-coverage.mjs examples/1.49-structured-impact-coverage/contract-input-rule --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs
+      - name: Check impact-linked execution closure example
+        run: node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverage/contract-input-rule --require-impact-coverage
       - name: Resolve delivery path
         run: node scripts/resolve-delivery-path.mjs .
       - name: Check delivery path

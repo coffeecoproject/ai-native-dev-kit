@@ -1,0 +1,5 @@
+Backend rule evidence:
+
+- Server-side contract validation trims title input.
+- Blank title values are rejected before persistence.
+- The backend rule matches the frontend and API contract behavior.

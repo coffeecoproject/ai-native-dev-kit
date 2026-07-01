@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
@@ -12,16 +13,19 @@ import {
 } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode"]);
+const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode", "from-git-diff", "cached", "base"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const intent = String(args.intent || args._.slice(1).join(" ") || "").trim();
 const mode = String(args.mode || "preflight").trim().toLowerCase();
-const changedFiles = String(args["changed-files"] || "")
+const explicitChangedFiles = String(args["changed-files"] || "")
   .split(",")
   .map((item) => item.trim())
   .filter(Boolean);
+const gitDiffRequested = Boolean(args["from-git-diff"]);
+const cachedDiffRequested = Boolean(args.cached);
+const baseRef = args.base ? String(args.base).trim() : "";
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -40,6 +44,15 @@ if (!["preflight", "closure"].includes(mode)) {
   process.exit(1);
 }
 
+if (cachedDiffRequested && baseRef) {
+  console.error("FAIL --cached and --base cannot be combined.");
+  process.exit(1);
+}
+
+const gitChangedFiles = gitDiffRequested
+  ? readGitChangedFiles(projectRoot, { cached: cachedDiffRequested, base: baseRef })
+  : [];
+const changedFiles = unique([...explicitChangedFiles, ...gitChangedFiles]);
 const report = buildReport(projectRoot, intent, changedFiles, mode);
 
 if (outputFormat === "json") console.log(JSON.stringify(report, null, 2));
@@ -395,4 +408,25 @@ function artifactId(userIntent, explicitChangedFiles) {
     .slice(0, 64)
     .replace(/^-+|-+$/g, "");
   return slug || "change-impact";
+}
+
+function readGitChangedFiles(root, options = {}) {
+  const gitArgs = ["diff", "--name-only"];
+  if (options.cached) gitArgs.push("--cached");
+  if (options.base) gitArgs.push(options.base);
+  gitArgs.push("--");
+  const result = spawnSync("git", gitArgs, {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024,
+  });
+  if (result.status !== 0) {
+    console.error(`FAIL --from-git-diff could not read git diff: ${result.stderr || result.stdout}`);
+    process.exit(1);
+  }
+  return result.stdout.split("\n").map((line) => line.trim()).filter(Boolean);
+}
+
+function unique(values) {
+  return [...new Set(values.filter(Boolean))];
 }

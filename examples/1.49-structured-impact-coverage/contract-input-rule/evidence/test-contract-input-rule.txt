@@ -1,0 +1,5 @@
+Test evidence:
+
+- Contract title validation test rejects an empty string.
+- Contract title validation test rejects whitespace-only input.
+- Contract title validation test accepts a non-empty title.

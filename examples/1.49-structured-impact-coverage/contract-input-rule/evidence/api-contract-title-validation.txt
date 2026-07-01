@@ -1,0 +1,5 @@
+API contract evidence:
+
+- Create-contract payloads require a non-empty title string.
+- Blank or whitespace-only title values return validation failure.
+- Existing valid payload shape remains unchanged.

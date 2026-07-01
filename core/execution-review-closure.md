@@ -80,6 +80,7 @@ Evidence links may include:
 - Review Surface Card: defines which review surfaces must close
 - Review Loop / reviewer evidence: can close functional, code, UX, data, permission, and other selected review surfaces
 - Change Boundary Report: can close scope boundary
+- Change Impact Coverage Report: can close cross-surface validation, API, backend, data, permission, and error-copy coverage
 - Verification note or verification file: can close verification review
 - Debt & Knowledge Handoff: can close debt review when non-blocking
 - Delivery Path Report: can carry delivery state, but does not replace Safe Launch
@@ -93,6 +94,14 @@ Evidence links may include:
 - changed files are inside a passing change boundary when files changed
 - debt is non-blocking or explicitly handed off
 - no high-risk decision is implicitly approved
+
+When strict impact coverage is requested, use:
+
+```bash
+node scripts/check-execution-closure.mjs . --require-impact-coverage
+```
+
+In that mode, a `READY_FOR_COMMIT_REVIEW` closure that mentions validation, business rules, API, backend, data, permission, schema, contract, input restriction, or error-copy work must cite a found Change Impact Coverage Report. The linked project must also pass the strict Change Impact Coverage checker with evidence reference resolution.
 
 ## Relationship To Other Workflow Layers
 

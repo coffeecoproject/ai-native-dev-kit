@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.49.0`
+`1.50.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.50.0` hardens evidence reliability: strict Change Impact Coverage checks can require resolvable `DONE` evidence refs, impact coverage can read changed files from git diff, and Execution Closure can require linked strict impact coverage for cross-surface READY closures.
+- `1.50.0` keeps strict evidence reference resolution opt-in and does not approve implementation, apply, commit, push, release, or production.
 - `1.49.0` hardens Change Impact Coverage: reports can include structured `Machine-Readable Evidence`, `preflight` / `closure` modes, strict evidence checks, changed-file implication checks, and Execution Closure citation support.
 - `1.49.0` keeps old Markdown reports compatible by default and only requires strict structured evidence when explicitly requested.
 - `1.48.0` adds Change Impact Coverage: Codex can map and close affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete.

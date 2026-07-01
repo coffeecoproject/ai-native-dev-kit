@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Evidence Reference Resolution 1.50](evidence-reference-resolution-1.50-plan.md)
 - [Structured Impact Coverage 1.49](structured-impact-coverage-1.49-plan.md)
 - [Change Impact Coverage 1.48](change-impact-coverage-1.48-plan.md)
 - [Evidence Reliability & Risk Calibration 1.47](evidence-reliability-risk-calibration-1.47-plan.md)

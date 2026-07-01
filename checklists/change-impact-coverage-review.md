@@ -9,6 +9,7 @@
 - Every implemented `DONE` surface links evidence.
 - In `closure` mode, no required surface remains `NOT_STARTED`.
 - In strict mode, `DONE` evidence is not placeholder text.
+- When evidence reference resolution is enabled, every `DONE` implementation and verification evidence ref resolves.
 - Structured reports include valid `Machine-Readable Evidence`.
 - Structured mode, outcome, and surface statuses match the Markdown report.
 - Every `NOT_APPLICABLE` surface has a concrete reason.
@@ -31,6 +32,7 @@
 - High-risk surfaces are marked `NOT_APPLICABLE` without a reason.
 - A `DONE` status has no evidence.
 - A `DONE` status uses placeholder evidence in strict mode.
+- `--resolve-evidence-refs` is enabled and a `DONE` evidence ref cannot be resolved.
 - A closure report leaves a required surface as `NOT_STARTED`.
 - Required structured evidence is missing or invalid.
 - The report says it is safe to release, production-ready, or approved.

@@ -4,18 +4,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { loadSchema, resolveEvidenceReference, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "mode", "require-structured-evidence", "strict-evidence"]);
+const knownFlags = new Set(["json", "mode", "require-structured-evidence", "strict-evidence", "resolve-evidence-refs"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requestedMode = args.mode ? String(args.mode).trim().toLowerCase() : "";
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const strictEvidence = Boolean(args["strict-evidence"]);
+const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"]);
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -191,6 +192,9 @@ function checkReport(file) {
     if (row.status === "DONE" && strictEvidence && placeholderEvidence(row.evidence)) {
       fail(`${label} DONE surface ${row.surface} uses placeholder evidence`);
     }
+    if (row.status === "DONE" && resolveEvidenceRefs) {
+      requireResolvableEvidenceRef(label, file, row, "implementation coverage");
+    }
     if ((row.status === "NOT_APPLICABLE" || row.status === "OUT_OF_SCOPE") && !meaningful(row.reason)) {
       fail(`${label} ${row.status} surface ${row.surface} needs reason`);
     }
@@ -214,6 +218,9 @@ function checkReport(file) {
     if (row.status === "DONE" && strictEvidence && placeholderEvidence(row.evidence)) {
       fail(`${label} DONE verification ${row.surface} uses placeholder evidence`);
     }
+    if (row.status === "DONE" && resolveEvidenceRefs) {
+      requireResolvableEvidenceRef(label, file, row, "verification coverage");
+    }
   }
 
   const structured = checkMachineReadableEvidence(content, label, {
@@ -222,6 +229,7 @@ function checkReport(file) {
     mapRows,
     coverageRows,
     verificationRows,
+    file,
   });
   const effectiveMode = requestedMode || structured?.mode || markdownMode || "preflight";
   const changedFiles = structured?.changed_files || markdownChangedFiles;
@@ -415,6 +423,15 @@ function checkMachineReadableEvidence(content, label, markdown) {
     }
   }
 
+  if (resolveEvidenceRefs) {
+    for (const row of evidence.implementation_coverage || []) {
+      if (row.status === "DONE") requireResolvableEvidenceRef(label, markdown.file, row, "structured implementation coverage");
+    }
+    for (const row of evidence.verification_coverage || []) {
+      if (row.status === "DONE") requireResolvableEvidenceRef(label, markdown.file, row, "structured verification coverage");
+    }
+  }
+
   return evidence;
 }
 
@@ -475,6 +492,7 @@ function checkSourceEvidence() {
     "templates/change-impact-coverage-report.md",
     "checklists/change-impact-coverage-review.md",
     "prompts/change-impact-coverage-agent.md",
+    "docs/plans/evidence-reference-resolution-1.50-plan.md",
     "change-impact-coverage-reports/.gitkeep",
     "schemas/artifacts/change-impact-coverage.schema.json",
     "scripts/resolve-change-impact-coverage.mjs",
@@ -483,6 +501,14 @@ function checkSourceEvidence() {
     "examples/1.48-change-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
     "examples/1.49-structured-impact-coverage/contract-input-rule/README.md",
     "examples/1.49-structured-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/user-flow-contract-title-required.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/frontend-contract-form-validation.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/api-contract-title-validation.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/backend-contract-validation.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/error-copy-title-required.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/test-contract-input-rule.txt",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/docs-contract-input-rule.md",
+    "examples/1.50-evidence-reference-resolution/README.md",
     "test-fixtures/bad/bad-change-impact-backend-only/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-frontend-only/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-api-without-tests/change-impact-coverage-reports/001-bad.md",
@@ -491,12 +517,16 @@ function checkSourceEvidence() {
     "test-fixtures/bad/bad-change-impact-missing-structured-evidence/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-placeholder-evidence/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-closure-not-started/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-missing-evidence-ref/change-impact-coverage-reports/001-bad.md",
     "releases/1.48.0/release-record.md",
     "releases/1.48.0/known-limitations.md",
     "releases/1.48.0/self-check-report.md",
     "releases/1.49.0/release-record.md",
     "releases/1.49.0/known-limitations.md",
     "releases/1.49.0/self-check-report.md",
+    "releases/1.50.0/release-record.md",
+    "releases/1.50.0/known-limitations.md",
+    "releases/1.50.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.49 change impact coverage source evidence exists ${file}`);
     else fail(`1.49 change impact coverage source evidence missing ${file}`);
@@ -547,6 +577,7 @@ function checkSourceEvidence() {
     "--mode",
     "closure",
     "--strict-evidence",
+    "--resolve-evidence-refs",
   ]);
   if (strictExample.status === 0
     && strictExample.stdout.includes("has valid structured evidence")
@@ -565,6 +596,7 @@ function checkSourceEvidence() {
     ["missing structured evidence", "test-fixtures/bad/bad-change-impact-missing-structured-evidence", "Machine-Readable Evidence is required", ["--require-structured-evidence", "--mode", "closure"]],
     ["placeholder evidence", "test-fixtures/bad/bad-change-impact-placeholder-evidence", "uses placeholder evidence", ["--strict-evidence", "--mode", "closure"]],
     ["closure not started", "test-fixtures/bad/bad-change-impact-closure-not-started", "closure mode cannot leave required surface FRONTEND_UI NOT_STARTED", ["--mode", "closure"]],
+    ["missing evidence ref", "test-fixtures/bad/bad-change-impact-missing-evidence-ref", "evidence ref is not resolvable", ["--mode", "closure", "--resolve-evidence-refs"]],
   ]) {
     const [name, target, expected, extraArgs] = fixture;
     const result = runNode(["scripts/check-change-impact-coverage.mjs", target, ...extraArgs]);
@@ -637,6 +669,51 @@ function placeholderEvidence(value) {
   const text = stripMarkdown(value).trim().toLowerCase();
   if (!text) return true;
   return /\b(todo|tbd|placeholder|example placeholder|sample evidence|fake evidence|not recorded|not provided|manual example verification evidence|insert evidence|fill this|unknown)\b/.test(text);
+}
+
+function requireResolvableEvidenceRef(label, reportFile, row, context) {
+  const refs = evidenceReferences(row.evidence);
+  if (refs.length === 0) {
+    fail(`${label} ${context} ${row.surface} evidence has no resolvable reference`);
+    return;
+  }
+
+  const resolved = refs.find((ref) => isResolvableEvidenceRef(reportFile, ref));
+  if (resolved) {
+    pass(`${label} ${context} ${row.surface} evidence ref resolves`);
+    return;
+  }
+
+  fail(`${label} ${context} ${row.surface} evidence ref is not resolvable: ${refs.join(", ")}`);
+}
+
+function evidenceReferences(value) {
+  const raw = stripMarkdown(value).trim();
+  if (!raw || placeholderEvidence(raw)) return [];
+  const codeRefs = [...String(value || "").matchAll(/`([^`]+)`/g)]
+    .map((match) => match[1].trim())
+    .filter(Boolean);
+  if (codeRefs.length > 0) return codeRefs;
+  return raw.split(/\s*(?:,|;|\n)\s*/)
+    .map((item) => item.trim())
+    .map((item) => item.replace(/^(see|ref|file|evidence)\s*:\s*/i, "").trim())
+    .filter(Boolean);
+}
+
+function isResolvableEvidenceRef(reportFile, ref) {
+  const value = String(ref || "").trim();
+  if (!value || placeholderEvidence(value)) return false;
+
+  const commandOutput = value.match(/^command-output:(.+)$/i);
+  if (commandOutput) {
+    return Boolean(resolveEvidenceReference(projectRoot, reportFile, commandOutput[1].trim()));
+  }
+
+  if (/^(artifact|human-decision):[a-z0-9][a-z0-9._:/-]{2,}$/i.test(value)) {
+    return true;
+  }
+
+  return Boolean(resolveEvidenceReference(projectRoot, reportFile, value));
 }
 
 function codeOrTextValue(body) {

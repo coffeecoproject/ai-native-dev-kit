@@ -16,7 +16,9 @@ Your job is to identify what surfaces may be affected by a requested change and 
 - Use `preflight` mode before implementation and `closure` mode after implementation.
 - In `closure` mode, do not leave required surfaces as `NOT_STARTED`.
 - Do not mark a surface `DONE` with placeholder evidence.
+- When strict reference resolution is requested, use project-local evidence files or accepted refs such as `command-output:<path>`, `artifact:<id>`, or `human-decision:<id>`.
 - If changed files are known, use them to look for missed related surfaces.
+- If git diff input is requested, use `--from-git-diff`, `--cached`, or `--base` only as read-only changed-file signals.
 
 ## Output
 

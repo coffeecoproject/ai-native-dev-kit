@@ -20,6 +20,14 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 
 - Change Impact Coverage
 
+1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
+
+- `--resolve-evidence-refs` requires `DONE` evidence references to resolve
+- `command-output:<path>` points to a saved command output file
+- `artifact:<id-or-ref>` points to a recorded workflow artifact reference
+- `human-decision:<id-or-ref>` points to a recorded human decision reference
+- `--require-impact-coverage` lets Execution Closure require a strict Change Impact Coverage report for cross-surface READY closures
+
 The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
 
 ## Rules
@@ -42,6 +50,7 @@ node scripts/check-controlled-apply-readiness.mjs <project> --require-structured
 node scripts/check-approval-record.mjs <project> --require-structured-evidence
 node scripts/check-low-risk-apply-candidate.mjs <project> --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence
+node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs
 ```
 
 Strict mode requires `Machine-Readable Evidence`. For readiness and approval records, strict mode also requires the referenced apply plan to resolve locally so the checker can verify the plan digest.
