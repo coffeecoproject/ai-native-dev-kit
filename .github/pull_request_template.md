@@ -36,6 +36,7 @@ Explain what changed in plain language and why the change is safe to review.
 - Subagent Run Plan:
 - Review Surface Card:
 - Review Surface close-out:
+- Change Impact Coverage Report:
 - Review Packet:
 - Review Loop Report:
 - Final Report:
@@ -52,6 +53,7 @@ node scripts/check-conversation-drift.mjs .
 node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-change-boundary.mjs .
 node scripts/check-baseline-state.mjs .
+node scripts/check-change-impact-coverage.mjs .
 node scripts/check-debt-handoff.mjs .
 ```
 

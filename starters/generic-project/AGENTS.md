@@ -368,6 +368,23 @@ A Review Surface Card is pre-execution planning only. It does not write files, a
 
 After execution, final reporting must include per-surface result, unverified surfaces, debt result, and next delivery state.
 
+## Change Impact Coverage
+
+Use `.ai-native/core/change-impact-coverage.md` when a task changes validation rules, form restrictions, API behavior, backend/domain rules, data model, permissions, error copy, or any user-visible business rule.
+
+Run:
+
+```bash
+node scripts/cli.mjs impact-coverage . --intent "<user request>"
+node scripts/cli.mjs impact-coverage-check .
+```
+
+Codex selects affected surfaces from the request and project signals. The human should not need to choose technical surfaces manually.
+
+Every Change Impact Coverage Report must close or decision-bind likely affected surfaces such as `USER_FLOW`, `FRONTEND_UI`, `API_CONTRACT`, `BACKEND_RULE`, `ERROR_COPY`, `TEST_COVERAGE`, and `DOCS_HANDOFF`. High-risk `DATA_MODEL`, `PERMISSION_RISK`, and `RELEASE_IMPACT` surfaces require concrete exclusion reasons or human decision.
+
+A Change Impact Coverage Report is read-only planning and close-out evidence. It does not write files, approve implementation, approve release or production, replace Safe Launch, or prove every possible impact was found.
+
 ## Review Loop
 
 For L2/L3 work or when review findings need closure, run `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>`. Record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and must stay inside approved task scope.

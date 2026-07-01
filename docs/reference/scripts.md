@@ -18,6 +18,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs guide-check <project>` | Check recorded Workflow Guidance Cards | No |
 | `node scripts/cli.mjs review-surface <project>` | Select review surfaces before execution without writing target files | No |
 | `node scripts/cli.mjs review-surface-check <project>` | Check recorded Review Surface Cards | No |
+| `node scripts/cli.mjs impact-coverage <project> --intent "<change>"` | Map affected surfaces for a business-rule or product-behavior change before it is treated as complete | No |
+| `node scripts/cli.mjs impact-coverage-check <project>` | Check recorded Change Impact Coverage Reports | No |
 | `node scripts/cli.mjs delivery-path <project>` | Report current path toward useful use, self-test, internal trial, release review, or blocked status | No |
 | `node scripts/cli.mjs delivery-path-check <project>` | Check recorded Delivery Path Reports | No |
 | `node scripts/cli.mjs first-slice <project> "<goal>"` | Turn an ordinary user goal into a first useful version scope without writing target files | No |
@@ -118,6 +120,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-review-surface.mjs` is the 1.25 review-surface entry. It reads project state and task intent signals, then prints one Review Surface Card with selected review surfaces, before/after expectations, human-decision flags, post-execution contract, and explicit no-write/no-approval boundaries. It does not write target-project files.
 
 `scripts/check-review-surface.mjs` checks recorded Review Surface Cards. It requires `FUNCTIONAL_REVIEW`, `CODE_REVIEW`, `VERIFICATION_REVIEW`, and `DEBT_REVIEW`, validates allowed surfaces and outcomes, requires post-execution close-out fields, and rejects implementation approval, release/production approval, CI/hook/document/task-state approval, and high-risk decision approval.
+
+`scripts/resolve-change-impact-coverage.mjs` is the 1.48 change impact coverage entry. It reads the user intent, project signals, and optional changed files, then prints one Change Impact Coverage Report with likely affected surfaces, human decisions, implementation coverage placeholders, verification expectations, and explicit no-write/no-approval boundaries. It does not write target-project files or prove every possible impact was found.
+
+`scripts/check-change-impact-coverage.mjs` checks recorded Change Impact Coverage Reports. It rejects authorization overclaims, missing affected-surface rows, `DONE` surfaces without evidence, high-risk `NOT_APPLICABLE` surfaces without concrete reasons, backend-only/frontend-only rule changes, API contract changes without test evidence, and completed rule/API work without verification coverage.
 
 `scripts/resolve-delivery-path.mjs` is the 1.26 delivery path entry. It reads project state and prints one Delivery Path Report with current state, next target state, distance to useful use, evidence, blockers, next safe action, human decisions, and explicit no-write/no-release boundaries. It does not write target-project files.
 
@@ -260,6 +266,7 @@ Common types:
 - `document-lifecycle-report`
 - `approval-record`
 - `review-surface-card`
+- `change-impact-coverage-report`
 - `debt-knowledge-handoff-report`
 - `active-work-thread`
 - `guided-decision-summary`
@@ -275,6 +282,8 @@ Use `active-work-thread` only when broad conversation, side ideas, or repeated d
 Use `change-boundary-report` when actual changed files need to be checked against intended scope. Use `baseline-state-report` when Codex drafts or reviews baselines before real project evidence exists.
 
 Use `baseline-pack-selection-report` when Codex recommends BL level and industrial pack candidates before a human confirms the pack set.
+
+Use `change-impact-coverage-report` when a rule, validation, form, API, backend, data, permission, error-copy, or business-behavior change needs cross-surface coverage before it can be considered complete.
 
 ## Checks
 
@@ -303,6 +312,8 @@ node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/resolve-change-impact-coverage.mjs . --intent "<change>"
+node scripts/check-change-impact-coverage.mjs .
 node scripts/resolve-existing-workflow.mjs .
 node scripts/check-workflow-adoption-map.mjs .
 node scripts/resolve-document-lifecycle.mjs .
@@ -335,6 +346,8 @@ These are primarily for maintaining this repository:
 - `scripts/check-guided-delivery-loop.mjs`
 - `scripts/check-real-adoption-trial.mjs`
 - `scripts/check-patch-classification.mjs`
+- `scripts/resolve-change-impact-coverage.mjs`
+- `scripts/check-change-impact-coverage.mjs`
 - `scripts/resolve-existing-workflow.mjs`
 - `scripts/check-workflow-adoption-map.mjs`
 - `scripts/resolve-document-lifecycle.mjs`

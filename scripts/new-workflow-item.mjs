@@ -55,6 +55,7 @@ const typeMap = {
   "baseline-decision-card": { dir: "baseline-decision-cards", template: "baseline-decision-card.md", defaultName: "baseline-decision" },
   "workflow-guidance-card": { dir: "workflow-guidance-cards", template: "workflow-guidance-card.md", defaultName: "workflow-guidance" },
   "review-surface-card": { dir: "review-surface-cards", template: "review-surface-card.md", defaultName: "review-surface" },
+  "change-impact-coverage-report": { dir: "change-impact-coverage-reports", template: "change-impact-coverage-report.md", defaultName: "change-impact-coverage" },
   "delivery-path-report": { dir: "delivery-path-reports", template: "delivery-path-report.md", defaultName: "delivery-path" },
   "debt-knowledge-handoff-report": { dir: "debt-handoff-reports", template: "debt-knowledge-handoff-report.md", defaultName: "debt-handoff" },
   "execution-closure-report": { dir: "execution-closures", template: "execution-closure-report.md", defaultName: "execution-closure" },
@@ -219,6 +220,10 @@ const aliases = {
   "review-plan": "review-surface-card",
   "review-scope": "review-surface-card",
   "review-surfaces": "review-surface-card",
+  "impact-coverage": "change-impact-coverage-report",
+  "change-impact": "change-impact-coverage-report",
+  "change-impact-coverage": "change-impact-coverage-report",
+  "impact-coverage-report": "change-impact-coverage-report",
   "delivery-path": "delivery-path-report",
   "delivery-state": "delivery-path-report",
   "delivery-path-report": "delivery-path-report",
@@ -307,6 +312,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type baseline-decision-card --name project-baseline-decision");
   console.error("  node scripts/new-workflow-item.mjs --type workflow-guidance-card --name first-guidance");
   console.error("  node scripts/new-workflow-item.mjs --type review-surface-card --name task-review-surface");
+  console.error("  node scripts/new-workflow-item.mjs --type change-impact-coverage-report --name contract-input-rule");
   console.error("  node scripts/new-workflow-item.mjs --type delivery-path-report --name current-delivery-path");
   console.error("  node scripts/new-workflow-item.mjs --type debt-knowledge-handoff-report --name interrupted-task");
   console.error("  node scripts/new-workflow-item.mjs --type execution-closure-report --name task-closure");
@@ -1903,7 +1909,7 @@ function frontmatterFor(type, context) {
       decision_level: type === "guided-decision-summary" ? "D1" : undefined,
     };
   }
-  if (type === "change-boundary-report" || type === "baseline-state-report") {
+  if (type === "change-boundary-report" || type === "baseline-state-report" || type === "change-impact-coverage-report") {
     return {
       ...common,
       task: context.taskRef,
@@ -1938,7 +1944,7 @@ if (!type || !typeMap[type]) {
 
 const projectRoot = path.resolve(process.cwd(), args.root || ".");
 const config = typeMap[type];
-const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report", "goal-card", "subagent-run-plan", "change-boundary-report", "baseline-state-report"]);
+const taskBasedTypes = new Set(["log", "review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-proposal", "final-report", "goal-card", "subagent-run-plan", "change-boundary-report", "baseline-state-report", "change-impact-coverage-report"]);
 
 let requestRef = resolveRef(projectRoot, args.request || (type === "preflight" ? args.from : null), "request");
 let preflightRef = resolveRef(projectRoot, args.preflight, "preflight");
@@ -2138,6 +2144,10 @@ if (type === "review-packet") {
   console.log("- Compare actual changed files with the approved task boundary.");
   console.log("- Do not mark PASS when forbidden or out-of-scope files changed.");
   console.log("- Run node scripts/check-change-boundary.mjs . --report <this-file> after filling the report.");
+} else if (type === "change-impact-coverage-report") {
+  console.log("- Close every affected surface as DONE, NOT_APPLICABLE, OUT_OF_SCOPE, or NEEDS_HUMAN_DECISION.");
+  console.log("- Do not claim a cross-surface rule is complete after backend-only or frontend-only work.");
+  console.log("- Run node scripts/check-change-impact-coverage.mjs . after filling the report.");
 } else if (type === "baseline-state-report") {
   console.log("- Keep no-code and evidence-required baselines separate from confirmed project facts.");
   console.log("- Do not claim production-ready or industrial-grade status without evidence.");

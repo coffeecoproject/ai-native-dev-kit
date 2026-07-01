@@ -146,6 +146,12 @@ jobs:
       - name: Review surface smoke
         run: node scripts/cli.mjs review-surface .
 
+      - name: Change impact coverage check
+        run: node scripts/check-change-impact-coverage.mjs .
+
+      - name: Change impact coverage smoke
+        run: node scripts/cli.mjs impact-coverage . --intent "maintain Dev Kit change impact coverage"
+
       - name: Delivery path check
         run: node scripts/check-delivery-path.mjs .
 
@@ -259,6 +265,8 @@ jobs:
           node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project" --deep --intent "build an appointment app"
           node "$tmp/project/scripts/check-review-surface.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-review-surface.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-change-impact-coverage.mjs" "$tmp/project"
+          node "$tmp/project/scripts/resolve-change-impact-coverage.mjs" "$tmp/project" --intent "generated project validation rule"
           node "$tmp/project/scripts/check-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-debt-handoff.mjs" "$tmp/project"
@@ -273,6 +281,8 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" ask-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" impact-coverage "$tmp/project" --intent "generated project validation rule"
+          node "$tmp/project/scripts/cli.mjs" impact-coverage-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" delivery-path "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" closure "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"
           node "$tmp/project/scripts/cli.mjs" closure-check "$tmp/project"

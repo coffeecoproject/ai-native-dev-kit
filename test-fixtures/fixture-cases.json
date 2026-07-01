@@ -2131,5 +2131,89 @@
       "mentions high-risk surface without explicit no-authority boundary"
     ],
     "howToFix": "High-risk surfaces must stop or include explicit no-authority boundaries."
+  },
+  {
+    "name": "good change impact coverage contract input rule",
+    "type": "golden",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "examples/1.48-change-impact-coverage/contract-input-rule"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Change Impact Coverage check passed"
+    ],
+    "howToFix": "Keep the 1.48 contract input rule example complete across frontend, API, backend, copy, tests, and handoff surfaces."
+  },
+  {
+    "name": "bad change impact coverage backend only",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-backend-only"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "backend rule change must close FRONTEND_UI"
+    ],
+    "howToFix": "The checker must reject backend-only completion for cross-surface rule changes."
+  },
+  {
+    "name": "bad change impact coverage frontend only",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-frontend-only"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "frontend rule change must close BACKEND_RULE"
+    ],
+    "howToFix": "The checker must reject frontend-only completion for cross-surface rule changes."
+  },
+  {
+    "name": "bad change impact coverage api without tests",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-api-without-tests"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "API contract change needs DONE test coverage evidence"
+    ],
+    "howToFix": "The checker must reject API contract completion without test evidence."
+  },
+  {
+    "name": "bad change impact coverage high risk not applicable",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-high-risk-na"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "high-risk surface PERMISSION_RISK cannot be NOT_APPLICABLE"
+    ],
+    "howToFix": "The checker must reject high-risk not-applicable claims without concrete reasons."
+  },
+  {
+    "name": "bad change impact coverage approval overclaim",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-approves-implementation"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "forbidden change impact claim"
+    ],
+    "howToFix": "The checker must reject reports that claim they approve implementation or release."
   }
 ]

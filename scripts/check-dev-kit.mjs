@@ -455,6 +455,8 @@ function checkVersionMetadata() {
     "scripts/check-workflow-guidance.mjs",
     "scripts/resolve-review-surface.mjs",
     "scripts/check-review-surface.mjs",
+    "scripts/resolve-change-impact-coverage.mjs",
+    "scripts/check-change-impact-coverage.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -526,6 +528,7 @@ function checkVersionMetadata() {
     ".ai-native/docs/hook-orchestration.md",
     ".ai-native/docs/hook-policy.md",
     ".ai-native/docs/natural-language-orchestrator.md",
+    ".ai-native/docs/change-impact-coverage.md",
     ".ai-native/docs/context-governance-usage.md",
     ".ai-native/docs/minimal-commit-set.md",
     ".ai-native/docs/safe-launch.md",
@@ -548,6 +551,7 @@ function checkVersionMetadata() {
     ".ai-native/core/hook-orchestration.md",
     ".ai-native/core/natural-language-orchestrator.md",
     ".ai-native/core/review-surface-governance.md",
+    ".ai-native/core/change-impact-coverage.md",
     ".ai-native/core/change-boundary.md",
     ".ai-native/core/baseline-state.md",
     ".ai-native/core/standard-baseline-pack-registry.md",
@@ -569,6 +573,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/hook-orchestration-plan.md",
     ".ai-native/templates/workflow-guidance-card.md",
     ".ai-native/templates/review-surface-card.md",
+    ".ai-native/templates/change-impact-coverage-report.md",
     ".ai-native/templates/user-decision-card.md",
     ".ai-native/templates/change-boundary-report.md",
     ".ai-native/templates/baseline-state-report.md",
@@ -589,6 +594,7 @@ function checkVersionMetadata() {
     ".ai-native/prompts/hook-orchestration-agent.md",
     ".ai-native/prompts/workflow-concierge-agent.md",
     ".ai-native/prompts/review-surface-agent.md",
+    ".ai-native/prompts/change-impact-coverage-agent.md",
     ".ai-native/prompts/guided-delivery-check-agent.md",
     ".ai-native/prompts/change-boundary-agent.md",
     ".ai-native/prompts/baseline-state-agent.md",
@@ -609,6 +615,7 @@ function checkVersionMetadata() {
     ".ai-native/checklists/hook-orchestration-review.md",
     ".ai-native/checklists/workflow-guidance-review.md",
     ".ai-native/checklists/review-surface-review.md",
+    ".ai-native/checklists/change-impact-coverage-review.md",
     ".ai-native/checklists/standard-baseline-selection-review.md",
     ".ai-native/checklists/guided-delivery-loop-review.md",
     ".ai-native/checklists/change-boundary-review.md",
@@ -633,6 +640,7 @@ function checkVersionMetadata() {
     "hook-policies",
     "workflow-guidance-cards",
     "review-surface-cards",
+    "change-impact-coverage-reports",
     "change-boundary-reports",
     "baseline-state-reports",
     "adoption-recommendations",
@@ -696,6 +704,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
     "node scripts/cli.mjs review-surface .",
+    "node scripts/check-change-impact-coverage.mjs .",
+    "node scripts/cli.mjs impact-coverage .",
     "node scripts/check-delivery-path.mjs .",
     "node scripts/cli.mjs delivery-path .",
     "node scripts/check-debt-handoff.mjs .",
@@ -749,6 +759,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-change-impact-coverage.mjs",
+    "resolve-change-impact-coverage.mjs",
     "check-delivery-path.mjs",
     "resolve-delivery-path.mjs",
     "check-debt-handoff.mjs",
@@ -763,6 +775,8 @@ function checkDevKitFirstPartyCi() {
     "ask-check",
     "review-surface",
     "review-surface-check",
+    "impact-coverage",
+    "impact-coverage-check",
     "delivery-path",
     "delivery-path-check",
     "debt-handoff",
@@ -831,6 +845,8 @@ function checkDevKitFirstPartyCi() {
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
     "node scripts/cli.mjs review-surface .",
+    "node scripts/check-change-impact-coverage.mjs .",
+    "node scripts/cli.mjs impact-coverage .",
     "node scripts/check-delivery-path.mjs .",
     "node scripts/cli.mjs delivery-path .",
     "node scripts/check-debt-handoff.mjs .",
@@ -882,6 +898,8 @@ function checkDevKitFirstPartyCi() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-change-impact-coverage.mjs",
+    "resolve-change-impact-coverage.mjs",
     "check-delivery-path.mjs",
     "resolve-delivery-path.mjs",
     "check-debt-handoff.mjs",
@@ -892,6 +910,8 @@ function checkDevKitFirstPartyCi() {
     "ask-check",
     "review-surface",
     "review-surface-check",
+    "impact-coverage",
+    "impact-coverage-check",
     "delivery-path",
     "delivery-path-check",
     "debt-handoff",
@@ -944,6 +964,7 @@ function checkDevKitFirstPartyCi() {
     "Guided Delivery Loop",
     "Change Boundary Report",
     "Baseline State Report",
+    "Change Impact Coverage Report",
   ]) {
     if (prTemplate.includes(marker)) pass(`dev-kit PR template includes ${marker}`);
     else fail(`dev-kit PR template missing ${marker}`);
@@ -1409,6 +1430,10 @@ function checkCliFrontDoor() {
     "node --check scripts/check-review-surface.mjs",
     "node scripts/cli.mjs review-surface .",
     "node scripts/check-review-surface.mjs .",
+    "node --check scripts/resolve-change-impact-coverage.mjs",
+    "node --check scripts/check-change-impact-coverage.mjs",
+    "node scripts/cli.mjs impact-coverage .",
+    "node scripts/check-change-impact-coverage.mjs .",
     "node --check scripts/resolve-delivery-path.mjs",
     "node --check scripts/check-delivery-path.mjs",
     "node scripts/cli.mjs delivery-path .",
@@ -1546,6 +1571,22 @@ function checkCliFrontDoor() {
     pass("CLI review-surface-check delegates to review surface checker");
   } else {
     fail(`CLI review-surface-check failed: ${reviewSurfaceCheck.stderr || reviewSurfaceCheck.stdout}`);
+  }
+
+  const impactCoverage = runNode(["scripts/cli.mjs", "impact-coverage", ".", "--intent", "add contract input restriction"]);
+  if (impactCoverage.status === 0
+    && impactCoverage.stdout.includes("Change Impact Coverage Report")
+    && impactCoverage.stdout.includes("This report writes target files: No")) {
+    pass("CLI impact-coverage delegates to change impact coverage resolver");
+  } else {
+    fail(`CLI impact-coverage failed: ${impactCoverage.stderr || impactCoverage.stdout}`);
+  }
+
+  const impactCoverageCheck = runNode(["scripts/cli.mjs", "impact-coverage-check", "."]);
+  if (impactCoverageCheck.status === 0 && impactCoverageCheck.stdout.includes("Change Impact Coverage check passed")) {
+    pass("CLI impact-coverage-check delegates to change impact coverage checker");
+  } else {
+    fail(`CLI impact-coverage-check failed: ${impactCoverageCheck.stderr || impactCoverageCheck.stdout}`);
   }
 
   const deliveryPath = runNode(["scripts/cli.mjs", "delivery-path", "."]);
@@ -5849,6 +5890,127 @@ function checkReviewSurfaceGovernanceProtocol() {
   }
 }
 
+function checkChangeImpactCoverageProtocol() {
+  const required = [
+    "core/change-impact-coverage.md",
+    "docs/change-impact-coverage.md",
+    "docs/plans/change-impact-coverage-1.48-plan.md",
+    "templates/change-impact-coverage-report.md",
+    "checklists/change-impact-coverage-review.md",
+    "prompts/change-impact-coverage-agent.md",
+    "change-impact-coverage-reports/.gitkeep",
+    "scripts/resolve-change-impact-coverage.mjs",
+    "scripts/check-change-impact-coverage.mjs",
+    "examples/1.48-change-impact-coverage/contract-input-rule/README.md",
+    "examples/1.48-change-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
+    "test-fixtures/bad/bad-change-impact-backend-only/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-frontend-only/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-api-without-tests/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-high-risk-na/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-approves-implementation/change-impact-coverage-reports/001-bad.md",
+    "releases/1.48.0/release-record.md",
+    "releases/1.48.0/known-limitations.md",
+    "releases/1.48.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.48 change impact coverage asset exists ${file}`);
+    else fail(`1.48 change impact coverage asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/change-impact-coverage.md"),
+    read("docs/change-impact-coverage.md"),
+    read("templates/change-impact-coverage-report.md"),
+    read("checklists/change-impact-coverage-review.md"),
+    read("scripts/resolve-change-impact-coverage.mjs"),
+    read("scripts/check-change-impact-coverage.mjs"),
+    read("docs/plans/change-impact-coverage-1.48-plan.md"),
+    read("releases/1.48.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Change Impact Coverage",
+    "prevents partial implementation",
+    "USER_FLOW",
+    "FRONTEND_UI",
+    "API_CONTRACT",
+    "BACKEND_RULE",
+    "DATA_MODEL",
+    "ERROR_COPY",
+    "TEST_COVERAGE",
+    "DOCS_HANDOFF",
+    "PERMISSION_RISK",
+    "RELEASE_IMPACT",
+    "This report authorizes implementation: No",
+    "This report approves release or production: No",
+    "backend-only",
+    "frontend-only",
+  ]) {
+    if (combined.includes(marker)) pass(`1.48 change impact coverage includes ${marker}`);
+    else fail(`1.48 change impact coverage missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-change-impact-coverage.mjs", "examples/mvp-booking-web-app", "--intent", "add contract input restriction"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Change Impact Coverage Report")
+    && resolver.stdout.includes("FRONTEND_UI")
+    && resolver.stdout.includes("BACKEND_RULE")
+    && resolver.stdout.includes("This report writes target files: No")) {
+    pass("1.48 change impact coverage resolver prints safe cross-surface report");
+  } else {
+    fail(`1.48 change impact coverage resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-change-impact-coverage.mjs", "examples/mvp-booking-web-app", "--intent", "add contract input restriction", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "CHANGE_IMPACT_COVERAGE_REPORT"
+        && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.affectedSurfaceMap?.some((item) => item.surface === "FRONTEND_UI")
+        && parsed.affectedSurfaceMap?.some((item) => item.surface === "BACKEND_RULE")) {
+        pass("1.48 change impact coverage resolver JSON includes boundaries and cross-surface map");
+      } else {
+        fail(`1.48 change impact coverage resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.48 change impact coverage resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.48 change impact coverage resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-change-impact-coverage.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Change Impact Coverage check passed")) {
+    pass("1.48 change impact coverage checker passes source repo");
+  } else {
+    fail(`1.48 change impact coverage checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-change-impact-coverage.mjs", "examples/1.48-change-impact-coverage/contract-input-rule"]);
+  if (example.status === 0 && example.stdout.includes("Change Impact Coverage check passed")) {
+    pass("1.48 change impact coverage example passes checker");
+  } else {
+    fail(`1.48 change impact coverage example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["backend-only rule", "test-fixtures/bad/bad-change-impact-backend-only", "backend rule change must close FRONTEND_UI"],
+    ["frontend-only rule", "test-fixtures/bad/bad-change-impact-frontend-only", "frontend rule change must close BACKEND_RULE"],
+    ["API without tests", "test-fixtures/bad/bad-change-impact-api-without-tests", "API contract change needs DONE test coverage evidence"],
+    ["high-risk not applicable", "test-fixtures/bad/bad-change-impact-high-risk-na", "high-risk surface PERMISSION_RISK cannot be NOT_APPLICABLE"],
+    ["approval overclaim", "test-fixtures/bad/bad-change-impact-approves-implementation", "forbidden change impact claim"],
+  ]) {
+    const result = runNode(["scripts/check-change-impact-coverage.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.48 change impact coverage rejects ${name}`);
+    } else {
+      fail(`1.48 change impact coverage must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkDeliveryPathGovernanceProtocol() {
   const required = [
     "docs/roadmaps/delivery-governance-roadmap-1.26-1.29.md",
@@ -6772,6 +6934,7 @@ function checkStarters() {
     "dev-kit-proposals/.gitkeep",
     "review-packets/.gitkeep",
     "review-surface-cards/.gitkeep",
+    "change-impact-coverage-reports/.gitkeep",
     "gpt-review-prompts/.gitkeep",
     "review-loop-reports/.gitkeep",
     "goal-cards/.gitkeep",
@@ -6797,7 +6960,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-beginner-entry.mjs", "scripts/check-beginner-entry.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/resolve-apply-plan.mjs", "scripts/check-apply-plan.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-beginner-entry.mjs", "scripts/check-beginner-entry.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-change-impact-coverage.mjs", "scripts/check-change-impact-coverage.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/resolve-apply-plan.mjs", "scripts/check-apply-plan.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -6806,7 +6969,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Beginner Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Beginner Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Change Impact Coverage", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -6815,7 +6978,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Beginner Entry", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Beginner Entry", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Change Impact Coverage Report", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -6891,6 +7054,8 @@ function checkPlatformAdapters() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-change-impact-coverage.mjs",
+    "resolve-change-impact-coverage.mjs",
     "check-delivery-path.mjs",
     "resolve-delivery-path.mjs",
     "check-debt-handoff.mjs",
@@ -6964,6 +7129,8 @@ function checkScriptSyntax() {
     "scripts/check-hook-orchestration.mjs",
     "scripts/resolve-workflow-guidance.mjs",
     "scripts/check-workflow-guidance.mjs",
+    "scripts/resolve-change-impact-coverage.mjs",
+    "scripts/check-change-impact-coverage.mjs",
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
@@ -7043,6 +7210,7 @@ function checkReadmePointers() {
     "O2 / BL2",
     "Beginner Entry",
     "Unified Apply Plan",
+    "Change Impact Coverage",
     "Approval Record",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
@@ -7055,6 +7223,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline-decision",
     "node scripts/cli.mjs workflow-map",
+    "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7077,6 +7246,7 @@ function checkReadmePointers() {
     "docs/conversation-native-ask.md",
     "docs/existing-project-workflow-adapter.md",
     "docs/review-surface-governance.md",
+    "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
     "docs/debt-knowledge-handoff.md",
     "docs/approval-record-governance.md",
@@ -7134,6 +7304,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs start",
     "node scripts/cli.mjs baseline-decision",
     "node scripts/cli.mjs workflow-map",
+    "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7145,6 +7316,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
+    "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
     "docs/debt-knowledge-handoff.md",
     "docs/first-hour.md",
@@ -7204,6 +7376,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/review-surface-governance.md",
+    "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
     "docs/first-hour.md",
     "docs/reference/scripts.md",
@@ -9721,6 +9894,7 @@ checkHookOrchestrationProtocol();
 checkHookPolicyProtocol();
 checkNaturalLanguageOrchestratorProtocol();
 checkReviewSurfaceGovernanceProtocol();
+checkChangeImpactCoverageProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkExecutionReviewClosureProtocol();

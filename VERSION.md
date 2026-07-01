@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.47.0`
+Current version: `1.48.0`
 
 ## Versioning Policy
 
@@ -10,12 +10,15 @@ Current version: `1.47.0`
 
 ## Current Release
 
-`1.47.0`
+`1.48.0`
 
 Includes:
 
+- Change Impact Coverage phase `1.48.0`: adds `impact-coverage` and `impact-coverage-check` so Codex can map and close affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete
+- Added `core/change-impact-coverage.md`, `docs/change-impact-coverage.md`, `templates/change-impact-coverage-report.md`, `checklists/change-impact-coverage-review.md`, `prompts/change-impact-coverage-agent.md`, `change-impact-coverage-reports/`, `scripts/resolve-change-impact-coverage.mjs`, `scripts/check-change-impact-coverage.mjs`, a 1.48 example, bad fixtures, generated-project asset coverage, and release evidence
+- `1.48.0` does not write target-project files, automatically implement missing surfaces, authorize implementation, authorize apply, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Safe Launch, or prove every possible impact was found
 - Evidence Reliability & Risk Calibration phase `1.47.0`: adds structured product-completeness evidence, risk-surface false-positive calibration, a non-Web CLI MVP example, and source-evidence naming cleanup for structured apply candidates
-- `1.47.0` does not add an apply runner, write target files, authorize apply, approve implementation, approve release/production, modify CI, install hooks, touch production/secrets/payment/permission/migration/data surfaces, enable BL2, or implement Change Impact Coverage
+- `1.47.0` does not add an apply runner, write target files, authorize apply, approve implementation, approve release/production, modify CI, install hooks, touch production/secrets/payment/permission/migration/data surfaces, or enable BL2
 - Ordinary User Product Loop Hardening phase `1.46.0`: hardens the 1.42-1.45 ordinary-user path with Quickstart entry-first guidance, shared risk-surface analysis, product-completeness explicit evidence support, a second local MVP example, and structured low-risk apply candidate evidence
 - `1.46.0` does not add an apply runner, write target files, authorize apply, approve implementation, approve release/production, modify CI, install hooks, touch production/secrets/payment/permission/migration/data surfaces, enable BL2, or promote industrial packs
 - Ordinary User Product Loop phase `1.45.0`: completes the 1.42-1.45 first-slice chain with a low-risk controlled apply candidate layer for small, exact, reversible, testable proposed changes

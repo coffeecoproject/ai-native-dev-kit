@@ -55,6 +55,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "impact-coverage": {
+    description: "Map affected surfaces for a change so Codex does not complete only one layer.",
+    script: "scripts/resolve-change-impact-coverage.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "impact-coverage-check": {
+    description: "Check recorded Change Impact Coverage reports.",
+    script: "scripts/check-change-impact-coverage.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "delivery-path": {
     description: "Report how far a project is from useful use without approving release.",
     script: "scripts/resolve-delivery-path.mjs",
@@ -530,6 +542,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs first-delivery .");
   console.log("  node scripts/cli.mjs real-adoption .");
   console.log("  node scripts/cli.mjs patch-classification .");
+  console.log("  node scripts/cli.mjs impact-coverage . --intent 'add contract input restriction'");
+  console.log("  node scripts/cli.mjs impact-coverage-check .");
   console.log("  node scripts/cli.mjs workflow-map ../existing-project");
   console.log("  node scripts/cli.mjs workflow-map-check .");
   console.log("  node scripts/cli.mjs doc-lifecycle .");

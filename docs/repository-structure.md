@@ -36,6 +36,7 @@ conversation-ask-cards/
 work-queue/
 hook-policies/
 workflow-guidance-cards/
+change-impact-coverage-reports/
 baseline-decision-cards/
 delivery-path-reports/
 debt-handoff-reports/

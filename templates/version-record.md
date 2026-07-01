@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.47.0`
+`1.48.0`
 
 ## Project Version File
 
@@ -19,8 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.48.0` adds Change Impact Coverage: Codex can map and close affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete.
+- `1.48.0` remains non-executing: it does not write files, implement missing surfaces automatically, authorize apply, approve implementation, approve release/production, change CI/hooks, touch high-risk surfaces, enable BL2, or prove every possible impact was found.
 - `1.47.0` hardens evidence reliability and risk calibration: product completeness can read structured JSON evidence, MVP examples include booking, dashboard, and CLI shapes, benign workflow/key/package wording is calibrated, and structured apply-candidate source checks use the 1.46 evidence boundary.
-- `1.47.0` remains non-executing and does not implement Change Impact Coverage.
 - `1.46.0` hardens the ordinary-user product loop: Quickstart starts with the user goal, product completeness can cite explicit smoke evidence, MVP examples cover booking and dashboard shapes, risk-surface checks are shared, and low-risk apply candidate records can be strict structured evidence.
 - `1.46.0` remains non-executing: it does not add an apply runner, write files, authorize apply, approve implementation, approve release/production, change CI/hooks, touch high-risk surfaces, enable BL2, or promote industrial packs.
 - `1.45.0` completes the ordinary-user first-slice product loop: first-slice scope, product completeness, runnable MVP example evidence, and low-risk controlled apply candidate records.

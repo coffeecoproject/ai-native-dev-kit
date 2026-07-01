@@ -31,6 +31,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Guided Delivery Baseline](guided-delivery-baseline.md)
 - [Guided Decision & Delivery Loop](guided-decision-delivery-loop.md)
 - [Review Surface Governance](review-surface-governance.md)
+- [Change Impact Coverage](change-impact-coverage.md)
 - [Delivery Path Governance](delivery-path-governance.md)
 - [Ordinary User First Slice](ordinary-user-first-slice.md)
 - [Product Completeness Gate](product-completeness-gate.md)

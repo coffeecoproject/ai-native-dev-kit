@@ -89,6 +89,10 @@ jobs:
         run: node scripts/resolve-review-surface.mjs .
       - name: Check review surface
         run: node scripts/check-review-surface.mjs .
+      - name: Resolve change impact coverage
+        run: node scripts/resolve-change-impact-coverage.mjs . --intent "workflow CI maintenance"
+      - name: Check change impact coverage
+        run: node scripts/check-change-impact-coverage.mjs .
       - name: Resolve delivery path
         run: node scripts/resolve-delivery-path.mjs .
       - name: Check delivery path
@@ -201,6 +205,10 @@ jobs:
         run: node --check scripts/resolve-review-surface.mjs
       - name: Check review surface checker syntax
         run: node --check scripts/check-review-surface.mjs
+      - name: Check change impact coverage resolver syntax
+        run: node --check scripts/resolve-change-impact-coverage.mjs
+      - name: Check change impact coverage checker syntax
+        run: node --check scripts/check-change-impact-coverage.mjs
       - name: Check delivery path resolver syntax
         run: node --check scripts/resolve-delivery-path.mjs
       - name: Check delivery path checker syntax

@@ -11,6 +11,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-workflow-guidance.mjs` | Workflow Guidance Card boundary, plain-language, question-count, and overclaim checks |
 | `resolve-review-surface.mjs` | Read-only review surface selector that returns a Review Surface Card before execution |
 | `check-review-surface.mjs` | Review Surface Card required-surface, post-execution contract, and overclaim checks |
+| `resolve-change-impact-coverage.mjs` | Read-only affected-surface mapper for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
+| `check-change-impact-coverage.mjs` | Change Impact Coverage report completeness, cross-surface close-out, evidence, and overclaim checks |
 | `resolve-delivery-path.mjs` | Read-only delivery path resolver that reports current usable-state progress |
 | `check-delivery-path.mjs` | Delivery Path Report state, evidence, blocker, and overclaim checks |
 | `resolve-first-slice.mjs` | Read-only ordinary-user first-slice resolver for a first useful version |
@@ -122,6 +124,7 @@ Product and claim checks:
 
 - `check-workflow-guidance.mjs` allows empty projects, but rejects Workflow Guidance Cards that ask too many questions, expose internal workflow jargon in plain mode, claim target-project writes, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.
 - `check-review-surface.mjs` allows empty projects, but rejects Review Surface Cards that miss functional/code/verification/debt review, omit post-execution close-out fields, ask too many questions, claim target-project writes, modify CI, install hooks, delete/archive documents, change task state, approve implementation, approve release/production, or approve high-risk domain decisions.
+- `check-change-impact-coverage.mjs` allows empty projects, but rejects Change Impact Coverage Reports that authorize implementation or release, omit affected-surface rows, mark `DONE` without evidence, mark high-risk surfaces `NOT_APPLICABLE` without concrete reasons, complete backend-only or frontend-only rule changes without closing related surfaces, or complete API contract changes without test evidence.
 - `check-delivery-path.mjs` allows empty projects, but rejects Delivery Path Reports that omit valid current/next states, evidence, blockers, next safe action, boundaries, or outcome, or claim target-project writes, CI/hook changes, task-state changes, implementation approval, release/production approval, Safe Launch replacement, or real-user-use proof.
 - `check-first-slice.mjs` allows empty projects, but rejects First-Slice Cards that expose internal jargon, ask more than 3 questions, omit backlog, omit verification, approve target-project writes, approve implementation, approve release/production, change CI/hooks, touch payment/secrets/production/migration/permission surfaces, or enable BL2/industrial packs.
 - `check-product-completeness.mjs` allows empty projects, but rejects Product Completeness Reports that omit product state, core checklist surfaces, local run/demo instructions, verification evidence, boundaries, or outcome, or claim implementation/release/production approval. New Dev Kit examples should use structured JSON product evidence.
@@ -169,6 +172,8 @@ node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/check-workflow-guidance.mjs .
 node scripts/resolve-review-surface.mjs .
 node scripts/check-review-surface.mjs .
+node scripts/resolve-change-impact-coverage.mjs . --intent "<change>"
+node scripts/check-change-impact-coverage.mjs .
 node scripts/resolve-debt-handoff.mjs .
 node scripts/check-debt-handoff.mjs .
 node scripts/resolve-document-archive-apply.mjs .
@@ -211,6 +216,7 @@ For L2/L3 task completion:
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/<task>.md
 node scripts/check-workflow-guidance.mjs .
 node scripts/check-review-surface.mjs .
+node scripts/check-change-impact-coverage.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode implementation --task tasks/<task>.md
 node scripts/check-review-loop.mjs . --task tasks/<task>.md
 node scripts/check-next-step-boundary.mjs . --task tasks/<task>.md

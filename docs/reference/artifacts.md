@@ -20,6 +20,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | Directory | Purpose |
 |---|---|
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
+| `change-impact-coverage-reports/` | Affected-surface coverage for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
 | `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
 | `ordinary-first-slices/` | First useful version scope for ordinary user goals |
 | `product-completeness-reports/` | Product-state, checklist, evidence, gaps, and next-action reports |
@@ -152,6 +153,8 @@ Approval Record Governance lives under `.ai-native/core/` in generated projects.
 
 Review Surface Governance lives under `.ai-native/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
 
+Change Impact Coverage lives under `.ai-native/core/` in generated projects. It helps Codex avoid partial implementation by recording affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete.
+
 Delivery Path Governance lives under `.ai-native/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
 
 Debt & Knowledge Handoff lives under `.ai-native/core/` in generated projects. It records what remains unfinished, how to verify it, which files or areas to revisit, and where to resume next time. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
@@ -174,6 +177,7 @@ Short rule:
 - need to route a plain user goal without command burden: conversation ask card
 - need to decide which workflow path to use: workflow guidance card
 - need to decide what must be reviewed before and after execution: review surface card
+- need to prevent a rule or behavior change from being backend-only/frontend-only/API-only: change impact coverage report
 - need to turn a broad ordinary-user goal into the first useful version: ordinary first-slice card
 - need to tell whether the work is a runnable product or still just an idea: product completeness report
 - need to prove the bundled MVP example is locally coherent: MVP example report
