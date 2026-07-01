@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.46.0",
+  "artifactType": "low_risk_apply_candidate",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "candidate_digest",
+    "intent",
+    "candidate_type",
+    "target_paths",
+    "risk_level",
+    "risk_surfaces",
+    "risk_reasons",
+    "path_safety",
+    "verification",
+    "rollback",
+    "authority",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.46.0"] },
+    "artifact_type": { "type": "string", "enum": ["low_risk_apply_candidate"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "candidate_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "intent": { "type": "string" },
+    "candidate_type": { "type": "string" },
+    "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "risk_level": { "type": "string", "enum": ["LOW", "HIGH", "BLOCKED"] },
+    "risk_surfaces": { "type": "array", "items": { "type": "string" } },
+    "risk_reasons": { "type": "array", "items": { "type": "string" } },
+    "path_safety": {
+      "type": "object",
+      "required": ["safe", "findings"],
+      "properties": {
+        "safe": { "type": "boolean" },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["method", "evidence_path", "owner"],
+        "properties": {
+          "method": { "type": "string" },
+          "evidence_path": { "type": "string" },
+          "owner": { "type": "string" }
+        }
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "required": ["required", "method", "target_paths"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "method": { "type": "string" },
+        "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "required": [
+        "writes_now",
+        "authorizes_apply",
+        "approves_implementation",
+        "approves_release_or_production",
+        "modifies_ci_or_hooks_now",
+        "touches_payment_secrets_production_migration_data_or_permissions"
+      ],
+      "properties": {
+        "writes_now": { "type": "boolean" },
+        "authorizes_apply": { "type": "boolean" },
+        "approves_implementation": { "type": "boolean" },
+        "approves_release_or_production": { "type": "boolean" },
+        "modifies_ci_or_hooks_now": { "type": "boolean" },
+        "touches_payment_secrets_production_migration_data_or_permissions": { "type": "boolean" }
+      }
+    },
+    "outcome": { "type": "string", "enum": ["LOW_RISK_APPLY_CANDIDATE_RECORDED", "NOT_READY", "BLOCKED"] }
+  },
+  "additionalProperties": false
+}

@@ -1,17 +1,60 @@
 # Quickstart
 
-This guide is for starting or upgrading a project with the AI Native Dev Kit.
+This guide is for starting or upgrading a project with IntentOS.
 
 The workflow goal is simple: let AI draft and execute, while humans keep decisions, risk acceptance, and final review.
 
 For the decision model behind workflow, profiles, BL levels, standard baseline packs, and industrial packs, see `docs/mental-model.md`.
 
-## Codex Bootstrap
+## Start Here: Ordinary User Product Loop
+
+If you are starting from a plain idea, do not begin with baseline, hook, workflow-map, or apply-plan commands. Start with the product goal.
+
+```text
+我想做一个预约 App，你帮我开始。
+```
+
+Codex should read the project briefly, recommend the first useful version, and ask only the few decisions that matter. The ordinary path is:
+
+```text
+plain goal
+-> first-slice recommendation
+-> local MVP or local demo evidence
+-> product completeness check
+-> low-risk apply candidate only when a small later write is being considered
+```
+
+For command-line evidence, use:
+
+```bash
+node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
+node scripts/cli.mjs first-slice ../my-project "我想做一个预约 App"
+node scripts/cli.mjs product-completeness ../my-project --evidence evidence/smoke-output.txt
+```
+
+If the project already has a small local change candidate, record it without writing files:
+
+```bash
+node scripts/cli.mjs apply-candidate ../my-project \
+  --intent "update local demo copy" \
+  --path src/example.js
+```
+
+These commands are read-only. They do not approve implementation, release, production, CI, hooks, payment, permissions, migrations, secrets, or data changes.
+
+Use the built-in local examples to see the path end to end:
+
+```bash
+node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
+node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
+```
+
+## Maintainer Bootstrap And Adoption
 
 When using Codex, you can provide the dev-kit path, repo URL, archive, or copied files and say:
 
 ```text
-Read this AI Native Dev Kit and configure the current project yourself.
+Read this IntentOS / AI Native Dev Kit and configure the current project yourself.
 ```
 
 Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to review or discuss first, it should not write files. If you ask it to configure, it should run `start` first so the human sees a guided adoption recommendation:

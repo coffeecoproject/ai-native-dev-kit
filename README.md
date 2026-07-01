@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.45.0`.
+Current release: `1.46.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `ai-native` command/package name is kept as a compatibility alias for now.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.45.x`, focused on ordinary-user first-slice delivery, product completeness, real MVP example evidence, and low-risk apply candidate review.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.46.x`, focused on hardening ordinary-user first-slice delivery, product completeness evidence, real MVP examples, shared risk surfaces, and low-risk apply candidate review.
 
-1.45.0 connects a plain idea to a first useful version: first-slice scope, product completeness, a runnable booking MVP example, and a low-risk candidate layer for later human-approved apply planning.
+1.46.0 hardens the ordinary-user product loop: first-slice scope, product completeness with explicit smoke evidence, two runnable local MVP examples, shared risk-surface checks, and structured low-risk candidate evidence for later human-approved apply planning.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -108,7 +108,7 @@ IntentOS 当前包含这些核心能力：
 | Baseline Decision | 用白话确认 BL0 / BL1 / BL2、平台和风险 |
 | Ordinary First Slice | 把普通用户的一句话目标整理成第一版范围、问题、延期项和验证方式 |
 | Product Completeness | 判断现在是想法、第一版范围、可本地运行 MVP、内测候选还是阻塞 |
-| Real MVP Example | 用内置预约 Web MVP 样例证明这条链路可以本地跑通 |
+| Real MVP Example | 用内置预约和看板 Web MVP 样例证明这条链路可以本地跑通 |
 | Standard Baseline Packs | 为不同平台提供普通工程基线 |
 | Industrial Overlays | 为生产、客户数据、权限、支付、发布等风险提供增强治理 |
 | Review Surface | 执行前判断任务完成后需要审哪些面 |
@@ -138,7 +138,7 @@ For durable command-line evidence, use:
 |---|---|
 | 用一句话开始 | `node scripts/cli.mjs ask ../my-project "我想做一个预约 App"` |
 | 明确第一版范围 | `node scripts/cli.mjs first-slice ../my-project "我想做一个预约 App"` |
-| 判断是否像一个产品 | `node scripts/cli.mjs product-completeness ../my-project` |
+| 判断是否像一个产品 | `node scripts/cli.mjs product-completeness ../my-project --evidence evidence/smoke-output.txt` |
 | 看更完整的下一步建议 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` |
 | 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
 | 判断小改动能否进入后续人工批准计划 | `node scripts/cli.mjs apply-candidate ../my-project --intent "update local demo copy" --path src/example.js` |
@@ -222,7 +222,8 @@ node scripts/check-workflow-guidance.mjs .
 node scripts/check-first-slice.mjs .
 node scripts/check-product-completeness.mjs .
 node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
-node scripts/check-low-risk-apply-candidate.mjs .
+node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
+node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 ```
 
 ## Documentation
@@ -298,6 +299,7 @@ Reference:
 
 Current release:
 
+- [1.46.0 Release Record](releases/1.46.0/release-record.md)
 - [1.45.0 Release Record](releases/1.45.0/release-record.md)
 - [Version History](VERSION.md)
 

@@ -23,8 +23,9 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs first-slice <project> "<goal>"` | Turn an ordinary user goal into a first useful version scope without writing target files | No |
 | `node scripts/cli.mjs first-slice-check <project>` | Check recorded Ordinary User First-Slice Cards | No |
 | `node scripts/cli.mjs product-completeness <project>` | Report whether a first version is idea-only, runnable MVP, internal-trial ready, release-review needed, or blocked | No |
+| `node scripts/cli.mjs product-completeness <project> --evidence <file>` | Include explicit local smoke/demo evidence in the product completeness report | No |
 | `node scripts/cli.mjs product-completeness-check <project>` | Check recorded Product Completeness Reports | No |
-| `node scripts/cli.mjs mvp-example-check [example]` | Check the built-in booking MVP example evidence | No |
+| `node scripts/cli.mjs mvp-example-check [example]` | Check a built-in local MVP example, metadata, evidence, and smoke test | No |
 | `node scripts/cli.mjs apply-candidate <project> --intent "<change>" --path <file>` | Record whether a proposed small change is low risk enough for later human-approved apply planning | No |
 | `node scripts/cli.mjs apply-candidate-check <project>` | Check recorded Low-Risk Controlled Apply Candidate records | No |
 | `node scripts/cli.mjs debt-handoff <project>` | Record debt and handoff context for paused, interrupted, or unfinished work | No |
@@ -122,19 +123,19 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-delivery-path.mjs` checks recorded Delivery Path Reports. It validates allowed delivery states, evidence, blockers, next action, user-decision limits, and rejects implementation approval, release/production approval, CI/hook/task-state approval, Safe Launch replacement, and real-user-use overclaims.
 
-`scripts/resolve-first-slice.mjs` is the 1.42 ordinary-user first-slice entry. It accepts a plain goal such as "I want to build a booking app" and prints one Ordinary User First-Slice Card with the first useful version, at most 3 questions, backlog, verification, and explicit no-write/no-release boundaries. It does not write target-project files.
+`scripts/resolve-first-slice.mjs` is the 1.42 ordinary-user first-slice entry. It accepts a plain goal such as "I want to build a booking app" and prints one Ordinary User First-Slice Card with the first useful version, at most 3 questions, backlog, verification, and explicit no-write/no-release boundaries. It uses the shared risk surface library for conservative routing and does not write target-project files.
 
 `scripts/check-first-slice.mjs` checks recorded Ordinary User First-Slice Cards. It rejects internal jargon on the user-facing surface, more than 3 questions, missing backlog, target-project write approval, implementation approval, release/production approval, CI/hook changes, payment/secrets/production/migration/permission touch, and BL2/industrial enablement.
 
-`scripts/resolve-product-completeness.mjs` is the 1.43 product completeness gate. It reports whether the current work is still an idea, has a defined first slice, is a runnable local MVP, is ready for internal trial, needs release review, or is blocked. It does not approve release or production.
+`scripts/resolve-product-completeness.mjs` is the 1.43 product completeness gate. It reports whether the current work is still an idea, has a defined first slice, is a runnable local MVP, is ready for internal trial, needs release review, or is blocked. Use `--evidence <file>` to cite local smoke/demo evidence. It does not approve release or production.
 
 `scripts/check-product-completeness.mjs` checks recorded Product Completeness Reports. It requires target user, core flow, surface, risk boundary, empty/error states, local run, verification, handoff, feedback capture, and next backlog coverage, and rejects release/production overclaims.
 
-`scripts/check-mvp-example.mjs` is the 1.44 real MVP example evidence checker. It checks the built-in booking web app example, its first-slice card, completeness report, final report, and local smoke test.
+`scripts/check-mvp-example.mjs` is the 1.44 real MVP example evidence checker. It checks built-in local MVP examples, metadata markers, first-slice cards, completeness reports, final reports, explicit smoke evidence, and local smoke tests.
 
-`scripts/resolve-low-risk-apply-candidate.mjs` is the 1.45 low-risk controlled apply candidate entry. It records whether a proposed small change is exact, local, reversible, and testable enough to ask for later human approval. It does not write files or authorize apply.
+`scripts/resolve-low-risk-apply-candidate.mjs` is the 1.45 low-risk controlled apply candidate entry, hardened in 1.46 with shared risk surfaces and machine-readable evidence. It records whether a proposed small change is exact, local, reversible, and testable enough to ask for later human approval. It does not write files or authorize apply.
 
-`scripts/check-low-risk-apply-candidate.mjs` checks recorded Low-Risk Controlled Apply Candidate records. It rejects unsafe paths, high-risk surfaces without no-authority boundaries, missing rollback, missing verification, apply authorization, implementation approval, release/production approval, and CI/hook changes.
+`scripts/check-low-risk-apply-candidate.mjs` checks recorded Low-Risk Controlled Apply Candidate records. It rejects unsafe paths, high-risk surfaces without no-authority boundaries, missing rollback, missing verification, apply authorization, implementation approval, release/production approval, and CI/hook changes. Use `--require-structured-evidence` when new records must include a valid `Machine-Readable Evidence` block.
 
 `scripts/resolve-debt-handoff.mjs` is the 1.27 debt handoff entry. It reads project state and prints one Debt & Knowledge Handoff Report with debt level, knowledge handoff, verification notes, files to revisit, human decisions, and explicit non-approval boundaries. It does not write target-project files.
 

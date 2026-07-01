@@ -10,6 +10,8 @@ I want to build a booking app.
 
 Codex should not ask the user to choose workflow commands. It should produce one first-slice recommendation, ask only the few decisions that matter, and keep risky items in backlog.
 
+1.46 routes risk through the shared risk-surface library so first-slice and low-risk apply candidate decisions use the same vocabulary.
+
 ## Command Evidence
 
 ```bash

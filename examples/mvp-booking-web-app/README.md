@@ -20,12 +20,15 @@ Open `src/index.html` in a browser.
 npm test
 ```
 
+Expected local evidence is recorded in `evidence/smoke-output.txt`.
+
 ## What works
 
 - Visitor fills name, phone, service, date, and time.
 - Visitor submits a booking.
 - Operator can see the booking in a local list.
 - Empty state appears before bookings exist.
+- Required fields block incomplete local submissions in the browser.
 
 ## Boundary
 

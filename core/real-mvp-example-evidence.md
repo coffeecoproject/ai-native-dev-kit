@@ -10,6 +10,7 @@ Each real MVP example must include:
 - actual application files;
 - local run instructions;
 - verification command;
+- explicit smoke or demo evidence;
 - ordinary first-slice card;
 - product completeness report;
 - final report;

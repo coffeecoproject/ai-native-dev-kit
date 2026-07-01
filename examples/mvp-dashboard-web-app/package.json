@@ -1,0 +1,13 @@
+{
+  "name": "intentos-mvp-dashboard-web-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "intentosExample": {
+    "kind": "ordinary-user-local-mvp",
+    "markers": ["dashboard", "metric", "work-item", "status", "empty-state", "error-state"]
+  },
+  "scripts": {
+    "test": "node scripts/smoke-test.mjs"
+  }
+}

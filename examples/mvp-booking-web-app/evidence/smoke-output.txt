@@ -1,0 +1,2 @@
+MVP booking smoke test passed.
+Checked required fields, empty state marker, submit handler, and local operator list rendering.

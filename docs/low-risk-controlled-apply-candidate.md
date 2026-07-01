@@ -37,5 +37,14 @@ The user should see:
 - how it would be verified
 - how it could be rolled back
 - whether a human decision is needed
+- a machine-readable evidence block for strict checks
 
 The user should not be asked to understand internal workflow names.
+
+Strict mode can require structured evidence:
+
+```bash
+node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
+```
+
+Default mode remains compatible with older target-project Markdown records.

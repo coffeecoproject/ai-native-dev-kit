@@ -17,6 +17,7 @@ It complements Delivery Path. Delivery Path explains project progress; Product C
 - empty and error states;
 - local run or demo instructions;
 - verification evidence;
+- explicit smoke or demo evidence when available;
 - trial or handoff instructions;
 - feedback, logging, or issue capture path;
 - next version backlog.

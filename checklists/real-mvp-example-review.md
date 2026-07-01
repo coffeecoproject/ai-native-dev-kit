@@ -5,6 +5,7 @@
 - Actual app files exist.
 - Local run instructions exist.
 - Verification command exists and can pass.
+- Explicit smoke or demo evidence exists.
 - First-slice card exists.
 - Product completeness report exists.
 - Final report exists.

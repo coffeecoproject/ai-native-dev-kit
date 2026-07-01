@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.45.0`
+Current version: `1.46.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.45.0`
 
 ## Current Release
 
-`1.45.0`
+`1.46.0`
 
 Includes:
 
+- Ordinary User Product Loop Hardening phase `1.46.0`: hardens the 1.42-1.45 ordinary-user path with Quickstart entry-first guidance, shared risk-surface analysis, product-completeness explicit evidence support, a second local MVP example, and structured low-risk apply candidate evidence
+- `1.46.0` does not add an apply runner, write target files, authorize apply, approve implementation, approve release/production, modify CI, install hooks, touch production/secrets/payment/permission/migration/data surfaces, enable BL2, or promote industrial packs
 - Ordinary User Product Loop phase `1.45.0`: completes the 1.42-1.45 first-slice chain with a low-risk controlled apply candidate layer for small, exact, reversible, testable proposed changes
 - Ordinary User First-Slice phase `1.42.0`: adds `first-slice` and `first-slice-check` so a plain goal can become a first useful version scope, with at most 3 questions, backlog, verification, and no-write boundaries
 - Product Completeness phase `1.43.0`: adds `product-completeness` and `product-completeness-check` so Codex can distinguish idea-only, first-slice-defined, runnable MVP, internal-trial-ready, release-review-needed, and blocked states without approving release

@@ -6221,6 +6221,7 @@ function checkExecutionReviewClosureProtocol() {
 function checkOrdinaryUserProductLoopProtocol() {
   const required = [
     "docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md",
+    "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
     "core/ordinary-user-first-slice.md",
     "docs/ordinary-user-first-slice.md",
     "templates/ordinary-user-first-slice-card.md",
@@ -6250,6 +6251,8 @@ function checkOrdinaryUserProductLoopProtocol() {
     "checklists/low-risk-controlled-apply-candidate-review.md",
     "prompts/low-risk-controlled-apply-candidate-agent.md",
     "controlled-apply-candidates/.gitkeep",
+    "schemas/artifacts/low-risk-apply-candidate.schema.json",
+    "scripts/lib/risk-surfaces.mjs",
     "scripts/resolve-low-risk-apply-candidate.mjs",
     "scripts/check-low-risk-apply-candidate.mjs",
     "examples/1.42-ordinary-user-first-slice/README.md",
@@ -6262,10 +6265,22 @@ function checkOrdinaryUserProductLoopProtocol() {
     "examples/mvp-booking-web-app/src/styles.css",
     "examples/mvp-booking-web-app/src/app.js",
     "examples/mvp-booking-web-app/scripts/smoke-test.mjs",
+    "examples/mvp-booking-web-app/evidence/smoke-output.txt",
     "examples/mvp-booking-web-app/docs/product-brief.md",
     "examples/mvp-booking-web-app/ordinary-first-slices/001-booking-web-app.md",
     "examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md",
     "examples/mvp-booking-web-app/final-reports/001-booking-web-app.md",
+    "examples/mvp-dashboard-web-app/README.md",
+    "examples/mvp-dashboard-web-app/package.json",
+    "examples/mvp-dashboard-web-app/src/index.html",
+    "examples/mvp-dashboard-web-app/src/styles.css",
+    "examples/mvp-dashboard-web-app/src/app.js",
+    "examples/mvp-dashboard-web-app/scripts/smoke-test.mjs",
+    "examples/mvp-dashboard-web-app/evidence/smoke-output.txt",
+    "examples/mvp-dashboard-web-app/docs/product-brief.md",
+    "examples/mvp-dashboard-web-app/ordinary-first-slices/001-dashboard-web-app.md",
+    "examples/mvp-dashboard-web-app/product-completeness-reports/001-dashboard-web-app.md",
+    "examples/mvp-dashboard-web-app/final-reports/001-dashboard-web-app.md",
     "examples/1.45-low-risk-apply-candidate/README.md",
     "examples/1.45-low-risk-apply-candidate/controlled-apply-candidates/001-booking-demo.md",
     "test-fixtures/bad/bad-first-slice-authorizes-write/ordinary-first-slices/001-bad.md",
@@ -6288,14 +6303,18 @@ function checkOrdinaryUserProductLoopProtocol() {
     "releases/1.45.0/release-record.md",
     "releases/1.45.0/known-limitations.md",
     "releases/1.45.0/self-check-report.md",
+    "releases/1.46.0/release-record.md",
+    "releases/1.46.0/known-limitations.md",
+    "releases/1.46.0/self-check-report.md",
   ];
   for (const file of required) {
-    if (exists(file)) pass(`1.42-1.45 ordinary user product loop asset exists ${file}`);
-    else fail(`1.42-1.45 ordinary user product loop asset missing ${file}`);
+    if (exists(file)) pass(`1.42-1.46 ordinary user product loop asset exists ${file}`);
+    else fail(`1.42-1.46 ordinary user product loop asset missing ${file}`);
   }
 
   const combined = [
     read("docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md"),
+    read("docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md"),
     read("core/ordinary-user-first-slice.md"),
     read("core/product-completeness-gate.md"),
     read("core/real-mvp-example-evidence.md"),
@@ -6303,9 +6322,13 @@ function checkOrdinaryUserProductLoopProtocol() {
     read("templates/ordinary-user-first-slice-card.md"),
     read("templates/product-completeness-report.md"),
     read("templates/low-risk-controlled-apply-candidate.md"),
+    read("schemas/artifacts/low-risk-apply-candidate.schema.json"),
+    read("scripts/lib/risk-surfaces.mjs"),
     read("scripts/resolve-first-slice.mjs"),
     read("scripts/resolve-product-completeness.mjs"),
     read("scripts/resolve-low-risk-apply-candidate.mjs"),
+    read("examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md"),
+    read("examples/mvp-dashboard-web-app/README.md"),
     read("docs/reference/scripts.md"),
     read("docs/reference/checkers.md"),
     read("docs/reference/artifacts.md"),
@@ -6317,6 +6340,10 @@ function checkOrdinaryUserProductLoopProtocol() {
     "Product Completeness",
     "Real MVP Example",
     "Low-Risk Controlled Apply Candidate",
+    "Machine-Readable Evidence",
+    "analyzeRiskSurfaces",
+    "evidence/smoke-output.txt",
+    "MVP Dashboard Web App",
     "This card writes target files: No",
     "This report approves release or production: No",
     "This candidate authorizes apply: No",
@@ -6325,8 +6352,8 @@ function checkOrdinaryUserProductLoopProtocol() {
     "mvp-example-check",
     "apply-candidate",
   ]) {
-    if (combined.includes(marker)) pass(`1.42-1.45 ordinary user product loop includes ${marker}`);
-    else fail(`1.42-1.45 ordinary user product loop missing ${marker}`);
+    if (combined.includes(marker)) pass(`1.42-1.46 ordinary user product loop includes ${marker}`);
+    else fail(`1.42-1.46 ordinary user product loop missing ${marker}`);
   }
 
   const firstSliceResolver = runNode(["scripts/resolve-first-slice.mjs", ".", "我想做一个预约 App"]);
@@ -6356,11 +6383,12 @@ function checkOrdinaryUserProductLoopProtocol() {
     else fail(`1.42 must reject ${name}: ${output}`);
   }
 
-  const productResolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/1.43-product-completeness-gate"]);
+  const productResolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/mvp-booking-web-app", "--evidence", "evidence/smoke-output.txt"]);
   if (productResolver.status === 0
     && productResolver.stdout.includes("Product Completeness Report")
+    && productResolver.stdout.includes("Explicit evidence: evidence/smoke-output.txt")
     && productResolver.stdout.includes("This report approves release or production: No")) {
-    pass("1.43 product completeness resolver prints safe report");
+    pass("1.43 product completeness resolver prints safe evidence-linked report");
   } else {
     fail(`1.43 product completeness resolver failed: ${productResolver.stderr || productResolver.stdout}`);
   }
@@ -6389,6 +6417,13 @@ function checkOrdinaryUserProductLoopProtocol() {
     fail(`1.44 booking MVP example failed: ${mvpExample.stderr || mvpExample.stdout}`);
   }
 
+  const dashboardExample = runNode(["scripts/check-mvp-example.mjs", "examples/mvp-dashboard-web-app"]);
+  if (dashboardExample.status === 0 && dashboardExample.stdout.includes("MVP Example check passed")) {
+    pass("1.46 dashboard MVP example passes checker and local smoke test");
+  } else {
+    fail(`1.46 dashboard MVP example failed: ${dashboardExample.stderr || dashboardExample.stdout}`);
+  }
+
   const applyResolver = runNode(["scripts/resolve-low-risk-apply-candidate.mjs", ".", "--intent", "update local booking demo copy", "--path", "examples/mvp-booking-web-app/src/app.js"]);
   if (applyResolver.status === 0
     && applyResolver.stdout.includes("Low-Risk Controlled Apply Candidate")
@@ -6398,9 +6433,9 @@ function checkOrdinaryUserProductLoopProtocol() {
     fail(`1.45 apply candidate resolver failed: ${applyResolver.stderr || applyResolver.stdout}`);
   }
 
-  const applyExample = runNode(["scripts/check-low-risk-apply-candidate.mjs", "examples/1.45-low-risk-apply-candidate"]);
+  const applyExample = runNode(["scripts/check-low-risk-apply-candidate.mjs", "examples/1.45-low-risk-apply-candidate", "--require-structured-evidence"]);
   if (applyExample.status === 0 && applyExample.stdout.includes("Low-Risk Controlled Apply Candidate check passed")) {
-    pass("1.45 apply candidate example passes checker");
+    pass("1.45 apply candidate example passes strict structured checker");
   } else {
     fail(`1.45 apply candidate example failed: ${applyExample.stderr || applyExample.stdout}`);
   }

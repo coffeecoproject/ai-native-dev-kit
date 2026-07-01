@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Ordinary User Product Loop Hardening 1.46](ordinary-user-product-loop-hardening-1.46-plan.md)
 - [Structured Evidence Hardening 1.41.1](structured-evidence-hardening-1.41.1-plan.md)
 - [Structured Evidence Schema 1.41](structured-evidence-schema-1.41-plan.md)
 - [Approval Record Hardening 1.40.1](approval-record-hardening-1.40.1-plan.md)

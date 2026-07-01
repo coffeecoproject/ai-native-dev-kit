@@ -7,6 +7,7 @@
 - Empty and error states are addressed.
 - Local run or demo instructions exist.
 - Verification evidence exists or is marked missing.
+- Explicit smoke or demo evidence is cited when available.
 - Trial or handoff instructions exist.
 - Feedback or issue capture path exists.
 - Next version backlog is present.

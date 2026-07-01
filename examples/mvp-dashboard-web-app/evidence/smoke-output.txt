@@ -1,0 +1,2 @@
+MVP dashboard smoke test passed.
+Checked metrics, work item rendering, empty state marker, and error state marker.

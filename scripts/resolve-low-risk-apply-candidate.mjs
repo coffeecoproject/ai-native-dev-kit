@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json", "intent", "path", "type"]));
@@ -10,7 +11,12 @@ const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const intent = String(args.intent || args._.slice(1).join(" ") || "small local change").trim();
 const candidateType = String(args.type || inferType(intent)).trim();
 const targetPaths = normalizePaths(args.path || defaultPath(candidateType));
-const risk = classifyRisk(intent, targetPaths, projectRoot);
+const risk = analyzeRiskSurfaces({
+  intent,
+  paths: targetPaths,
+  projectRoot,
+  includeProjectSignals: true,
+});
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -32,7 +38,10 @@ function buildRecord() {
     targetPaths,
     lowRisk: !risk.high,
     riskReasons: risk.reasons,
+    riskSurfaces: risk.surfaces,
+    pathFindings: risk.pathFindings,
     outcome: risk.high ? "NOT_READY" : "LOW_RISK_APPLY_CANDIDATE_RECORDED",
+    machineReadableEvidence: buildMachineReadableEvidence(risk.high ? "NOT_READY" : "LOW_RISK_APPLY_CANDIDATE_RECORDED"),
   };
 }
 
@@ -54,28 +63,58 @@ function inferType(value) {
   return "config-free code";
 }
 
-function classifyRisk(value, paths, root) {
-  const reasons = [];
-  const text = `${value}\n${paths.join("\n")}\n${safeRead(path.join(root, "package.json"))}`;
-  if (/(payment|支付|billing|auth|login|权限|permission|secret|token|production|deploy|release|migration|database|schema|privacy|security|legal|ci|hook|线上|生产|迁移)/i.test(text)) {
-    reasons.push("intent or project signals include high-risk surfaces");
-  }
-  for (const targetPath of paths) {
-    if (isUnsafePath(targetPath)) reasons.push(`unsafe target path: ${targetPath}`);
-  }
-  return { high: reasons.length > 0, reasons };
+function buildMachineReadableEvidence(outcome) {
+  const evidence = {
+    schema_version: "1.46.0",
+    artifact_type: "low_risk_apply_candidate",
+    artifact_id: candidateId(intent, targetPaths),
+    candidate_digest: "",
+    intent,
+    candidate_type: candidateType,
+    target_paths: targetPaths,
+    risk_level: risk.high ? "HIGH" : "LOW",
+    risk_surfaces: risk.surfaces,
+    risk_reasons: risk.reasons,
+    path_safety: {
+      safe: risk.pathFindings.length === 0,
+      findings: risk.pathFindings,
+    },
+    verification: [
+      {
+        method: "Run the smallest relevant local check after a separately approved apply.",
+        evidence_path: "final report or command output after approved apply",
+        owner: "Codex after human approval",
+      },
+    ],
+    rollback: {
+      required: true,
+      method: "Revert only the exact target paths listed in this candidate.",
+      target_paths: targetPaths,
+    },
+    authority: {
+      writes_now: false,
+      authorizes_apply: false,
+      approves_implementation: false,
+      approves_release_or_production: false,
+      modifies_ci_or_hooks_now: false,
+      touches_payment_secrets_production_migration_data_or_permissions: false,
+    },
+    outcome,
+  };
+  return {
+    ...evidence,
+    candidate_digest: evidenceDigest(evidence, ["candidate_digest"]),
+  };
 }
 
-function isUnsafePath(value) {
-  return value === "/" || value.startsWith("/") || value.startsWith("~") || value.includes("..") || value.includes("*") || value.includes("\\");
-}
-
-function safeRead(filePath) {
-  try {
-    return fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8") : "";
-  } catch {
-    return "";
-  }
+function candidateId(value, paths) {
+  const seed = `${value}-${paths.join("-")}`.toLowerCase();
+  const slug = seed
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64)
+    .replace(/^-+|-+$/g, "");
+  return slug || "candidate";
 }
 
 function printRecord(record) {
@@ -136,6 +175,12 @@ function printRecord(record) {
   console.log("- This candidate approves release or production: No");
   console.log("- This candidate changes CI or hooks: No");
   console.log("- This candidate touches payment, secrets, production, migration, data, or permissions: No");
+  console.log("");
+  console.log("## Machine-Readable Evidence");
+  console.log("");
+  console.log("```json");
+  console.log(JSON.stringify(record.machineReadableEvidence, null, 2));
+  console.log("```");
   console.log("");
   console.log("## Outcome");
   console.log("");

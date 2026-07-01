@@ -8,6 +8,10 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 - Controlled Apply Readiness
 - Approval Record
 
+1.46.0 extends the same pattern to:
+
+- Low-Risk Controlled Apply Candidate
+
 The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
 
 ## Rules
@@ -26,11 +30,14 @@ Default checks remain compatible with older Markdown artifacts. Strict mode is e
 node scripts/check-apply-plan.mjs <project> --require-structured-evidence
 node scripts/check-controlled-apply-readiness.mjs <project> --require-structured-evidence
 node scripts/check-approval-record.mjs <project> --require-structured-evidence
+node scripts/check-low-risk-apply-candidate.mjs <project> --require-structured-evidence
 ```
 
 Strict mode requires `Machine-Readable Evidence`. For readiness and approval records, strict mode also requires the referenced apply plan to resolve locally so the checker can verify the plan digest.
 
 Structured readiness evidence must include at least one action unless `readiness_state` is `NO_APPLY_PLAN`.
+
+Low-risk apply candidate strict mode requires a valid `candidate_digest`, exact target paths, path safety evidence, rollback, verification, and authority fields that all remain non-authorizing.
 
 ## Current Boundary
 

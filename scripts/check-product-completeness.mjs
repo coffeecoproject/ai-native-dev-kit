@@ -89,8 +89,8 @@ function checkSourceEvidence() {
   const example = runNode(["scripts/check-product-completeness.mjs", "examples/1.43-product-completeness-gate"]);
   if (example.status === 0 && example.stdout.includes("Product Completeness check passed")) pass("1.43 product completeness example passes checker");
   else fail(`1.43 product completeness example failed: ${example.stderr || example.stdout}`);
-  const resolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/1.43-product-completeness-gate"]);
-  if (resolver.status === 0 && resolver.stdout.includes("Product Completeness Report") && resolver.stdout.includes("This report approves release or production: No")) pass("1.43 product completeness resolver prints safe report");
+  const resolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/mvp-booking-web-app", "--evidence", "evidence/smoke-output.txt"]);
+  if (resolver.status === 0 && resolver.stdout.includes("Product Completeness Report") && resolver.stdout.includes("Explicit evidence: evidence/smoke-output.txt") && resolver.stdout.includes("This report approves release or production: No")) pass("1.43 product completeness resolver prints safe evidence-linked report");
   else fail(`1.43 product completeness resolver failed: ${resolver.stderr || resolver.stdout}`);
   for (const [name, target, expected] of [
     ["release overclaim", "test-fixtures/bad/bad-product-completeness-release-overclaim", "boundary This report approves release or production must be No"],

@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json", "goal", "platform", "audience"]));
@@ -65,6 +66,8 @@ function buildCard(root, userGoal, selectedPlatform, targetAudience) {
     goal: userGoal || "not provided",
     platform: selectedPlatform,
     riskLevel: risk.high ? "needs-review" : "low",
+    riskSurfaces: risk.surfaces,
+    riskReasons: risk.reasons,
     humanSummary: {
       understood: userGoal || "你还没有说明想做什么。",
       firstVersion,
@@ -99,7 +102,7 @@ function buildCard(root, userGoal, selectedPlatform, targetAudience) {
 }
 
 function inferPlatform(root, userGoal) {
-  const text = `${userGoal || ""}\n${safeRead(path.join(root, "package.json"))}`.toLowerCase();
+  const text = `${userGoal || ""}\n${packageSignals(root)}`.toLowerCase();
   if (/小程序|miniprogram|wechat/.test(text)) return "Mini Program";
   if (/ios|iphone|swift/.test(text)) return "iOS";
   if (/android|kotlin/.test(text)) return "Android";
@@ -108,9 +111,15 @@ function inferPlatform(root, userGoal) {
 }
 
 function riskFor(userGoal, root) {
-  const text = `${userGoal || ""}\n${safeRead(path.join(root, "package.json"))}\n${listSome(root)}`.toLowerCase();
+  const risk = analyzeRiskSurfaces({
+    intent: userGoal,
+    projectRoot: root,
+    includeProjectSignals: true,
+  });
   return {
-    high: /(payment|支付|billing|login|登录|auth|权限|permission|privacy|security|migration|database|production|release|deploy|ci|hook|secret|线上|生产|迁移)/i.test(text),
+    high: risk.high,
+    surfaces: risk.surfaces,
+    reasons: risk.reasons,
   };
 }
 
@@ -205,9 +214,17 @@ function safeRead(filePath) {
   }
 }
 
-function listSome(root) {
+function packageSignals(root) {
   try {
-    return fs.existsSync(root) ? fs.readdirSync(root).slice(0, 50).join("\n") : "";
+    const content = safeRead(path.join(root, "package.json"));
+    if (!content) return "";
+    const pkg = JSON.parse(content);
+    return [
+      pkg.name,
+      Object.keys(pkg.dependencies || {}).join("\n"),
+      Object.keys(pkg.devDependencies || {}).join("\n"),
+      Object.keys(pkg.peerDependencies || {}).join("\n"),
+    ].filter(Boolean).join("\n");
   } catch {
     return "";
   }

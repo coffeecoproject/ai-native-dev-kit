@@ -4,12 +4,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
+import { isSafeTargetPath } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json"]));
+const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const candidateSchema = loadSchema(projectRoot, "schemas/artifacts/low-risk-apply-candidate.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json")) && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"));
 let failed = false;
@@ -62,7 +66,7 @@ function checkReports() {
     if (paths.length > 0) pass(`${label} lists exact target paths`);
     else fail(`${label} must list exact target paths`);
     for (const candidatePath of paths) {
-      isSafeTargetPath(candidatePath) ? pass(`${label} target path ${candidatePath} is bounded`) : fail(`${label} has unsafe target path: ${candidatePath}`);
+      isSafeTargetPath(candidatePath, projectRoot) ? pass(`${label} target path ${candidatePath} is bounded`) : fail(`${label} has unsafe target path: ${candidatePath}`);
     }
     const all = content.toLowerCase();
     if (/(payment|支付|billing|auth|login|权限|permission|secret|token|production|deploy|release|migration|database|schema|privacy|security|legal|ci|hook|线上|生产|迁移)/i.test(all)) {
@@ -89,6 +93,7 @@ function checkReports() {
     const outcome = sectionBody(content, "Outcome", { fallback: "" }).replace(/`/g, "").trim().split(/\s+/)[0];
     if (["LOW_RISK_APPLY_CANDIDATE_RECORDED", "NOT_READY", "BLOCKED"].includes(outcome)) pass(`${label} has valid Outcome`);
     else fail(`${label} has invalid Outcome: ${outcome || "<empty>"}`);
+    checkMachineReadableEvidence(content, label, { outcome, paths });
   }
 }
 
@@ -104,10 +109,10 @@ function checkSourceEvidence() {
     "releases/1.45.0/self-check-report.md",
   ]) exists(file) ? pass(`1.45 apply candidate source evidence exists ${file}`) : fail(`1.45 apply candidate source evidence missing ${file}`);
   const resolver = runNode(["scripts/resolve-low-risk-apply-candidate.mjs", ".", "--intent", "update local booking demo copy", "--path", "examples/mvp-booking-web-app/src/app.js"]);
-  if (resolver.status === 0 && resolver.stdout.includes("Low-Risk Controlled Apply Candidate") && resolver.stdout.includes("This candidate authorizes apply: No")) pass("1.45 apply candidate resolver prints safe candidate");
+  if (resolver.status === 0 && resolver.stdout.includes("Low-Risk Controlled Apply Candidate") && resolver.stdout.includes("Machine-Readable Evidence") && resolver.stdout.includes("This candidate authorizes apply: No")) pass("1.45 apply candidate resolver prints safe structured candidate");
   else fail(`1.45 apply candidate resolver failed: ${resolver.stderr || resolver.stdout}`);
-  const example = runNode(["scripts/check-low-risk-apply-candidate.mjs", "examples/1.45-low-risk-apply-candidate"]);
-  if (example.status === 0 && example.stdout.includes("Low-Risk Controlled Apply Candidate check passed")) pass("1.45 apply candidate example passes checker");
+  const example = runNode(["scripts/check-low-risk-apply-candidate.mjs", "examples/1.45-low-risk-apply-candidate", "--require-structured-evidence"]);
+  if (example.status === 0 && example.stdout.includes("Low-Risk Controlled Apply Candidate check passed")) pass("1.45 apply candidate example passes strict structured checker");
   else fail(`1.45 apply candidate example failed: ${example.stderr || example.stdout}`);
   for (const [name, target, expected] of [
     ["authorizes run", "test-fixtures/bad/bad-apply-candidate-authorizes-run", "boundary This candidate authorizes apply must be No"],
@@ -118,6 +123,50 @@ function checkSourceEvidence() {
     const output = `${bad.stdout}\n${bad.stderr}`;
     if (bad.status !== 0 && output.includes(expected)) pass(`1.45 apply candidate rejects ${name}`);
     else fail(`1.45 apply candidate must reject ${name}: ${output}`);
+  }
+}
+
+function checkMachineReadableEvidence(content, label, markdown) {
+  const result = validateEvidenceBlock(content, candidateSchema, label, {
+    require: requireStructuredEvidence,
+    digestField: "candidate_digest",
+  });
+  if (!result.present && !requireStructuredEvidence) {
+    pass(`${label} structured evidence optional and not present`);
+    return;
+  }
+  if (!result.ok) {
+    result.errors.forEach((error) => fail(error));
+    return;
+  }
+  const evidence = result.value;
+  pass(`${label} has valid structured evidence`);
+
+  if (evidence.outcome === markdown.outcome) pass(`${label} structured outcome matches Markdown outcome`);
+  else fail(`${label} structured outcome ${evidence.outcome} must match Markdown outcome ${markdown.outcome}`);
+
+  const evidencePaths = evidence.target_paths || [];
+  const markdownPaths = markdown.paths || [];
+  const missingMarkdownPath = evidencePaths.find((candidatePath) => !markdownPaths.includes(candidatePath));
+  if (!missingMarkdownPath) pass(`${label} structured target paths match Markdown target paths`);
+  else fail(`${label} structured target path missing from Markdown scope: ${missingMarkdownPath}`);
+
+  for (const candidatePath of evidencePaths) {
+    if (isSafeTargetPath(candidatePath, projectRoot)) pass(`${label} structured target path ${candidatePath} is bounded`);
+    else fail(`${label} structured target path is unsafe: ${candidatePath}`);
+  }
+
+  const authority = evidence.authority || {};
+  for (const [field, expected] of [
+    ["writes_now", false],
+    ["authorizes_apply", false],
+    ["approves_implementation", false],
+    ["approves_release_or_production", false],
+    ["modifies_ci_or_hooks_now", false],
+    ["touches_payment_secrets_production_migration_data_or_permissions", false],
+  ]) {
+    if (authority[field] === expected) pass(`${label} structured authority ${field}: false`);
+    else fail(`${label} structured authority ${field} must be false`);
   }
 }
 
@@ -140,10 +189,6 @@ function extractCodeValues(value) {
   const matches = [...String(value || "").matchAll(/`([^`]+)`/g)].map((match) => match[1].trim()).filter(Boolean);
   if (matches.length > 0) return matches;
   return String(value || "").split(",").map((item) => item.trim()).filter(Boolean);
-}
-
-function isSafeTargetPath(value) {
-  return Boolean(value) && value !== "/" && !value.startsWith("/") && !value.startsWith("~") && !value.includes("..") && !value.includes("*") && !value.includes("\\");
 }
 
 function markdownFiles(dir) {

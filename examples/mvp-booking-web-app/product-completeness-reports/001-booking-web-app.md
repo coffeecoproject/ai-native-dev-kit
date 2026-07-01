@@ -27,7 +27,7 @@ Recommended next action: run the smoke test and collect internal feedback.
 | Permission and risk boundary | pass | out-of-scope list |
 | Empty and error states | pass | empty booking state and required fields |
 | Local run or demo instructions | pass | `README.md` |
-| Verification evidence | pass | `npm test` |
+| Verification evidence | pass | `npm test`, `evidence/smoke-output.txt` |
 | Trial or handoff instructions | pass | `final-reports/001-booking-web-app.md` |
 | Feedback or issue capture | pass | final report next steps |
 | Next version backlog | pass | first-slice backlog |
@@ -38,6 +38,7 @@ Recommended next action: run the smoke test and collect internal feedback.
 |---|---|---|
 | Local run | pass | `open src/index.html` |
 | Core flow verification | pass | `npm test` |
+| Explicit smoke evidence | pass | `evidence/smoke-output.txt` |
 
 ## Gaps
 

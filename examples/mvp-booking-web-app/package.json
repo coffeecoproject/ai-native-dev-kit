@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "intentosExample": {
+    "kind": "ordinary-user-local-mvp",
+    "markers": ["booking", "name", "phone", "date", "time", "operator", "empty-state"]
+  },
   "scripts": {
     "test": "node scripts/smoke-test.mjs"
   }

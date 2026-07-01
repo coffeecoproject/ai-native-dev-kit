@@ -79,7 +79,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, and Approval Record artifacts. Schema files alone are not the complete safety boundary; run the corresponding checker, and use `--require-structured-evidence` when new artifacts must be strict.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, and Low-Risk Controlled Apply Candidate artifacts. Schema files alone are not the complete safety boundary; run the corresponding checker, and use `--require-structured-evidence` when new artifacts must be strict.
 
 ## Reporting Artifacts
 

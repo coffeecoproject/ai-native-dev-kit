@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project Dashboard Demo</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="header">
+        <p class="eyebrow">Local first version</p>
+        <h1>Project Dashboard Demo</h1>
+        <p>Track status, blockers, and next actions with local demo data.</p>
+      </header>
+      <section class="metrics" aria-label="Project metrics">
+        <article class="metric"><span id="metric-active">0</span><p>Active work items</p></article>
+        <article class="metric"><span id="metric-blocked">0</span><p>Blocked</p></article>
+        <article class="metric"><span id="metric-done">0</span><p>Done this week</p></article>
+      </section>
+      <section class="panel">
+        <h2>Work items</h2>
+        <ul id="work-item-list"></ul>
+        <p id="empty-state">No work items yet.</p>
+        <p id="error-state" hidden>Could not load local demo data.</p>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

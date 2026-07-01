@@ -14,6 +14,7 @@ Codex should:
 - separate first-version scope from backlog;
 - explain what Codex can safely do next;
 - name verification before implementation;
+- use the shared risk-surface rules before recommending a low-risk path;
 - keep production, payment, data, permissions, CI, hooks, release, and migration out unless explicitly approved through the heavier path.
 
 ## First-Slice Output

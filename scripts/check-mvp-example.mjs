@@ -29,10 +29,8 @@ for (const file of [
   "src/styles.css",
   "src/app.js",
   "scripts/smoke-test.mjs",
+  "evidence/smoke-output.txt",
   "docs/product-brief.md",
-  "ordinary-first-slices/001-booking-web-app.md",
-  "product-completeness-reports/001-booking-web-app.md",
-  "final-reports/001-booking-web-app.md",
 ]) exists(file) ? pass(`${file} exists`) : fail(`missing ${file}`);
 
 const readme = read("README.md");
@@ -43,22 +41,36 @@ const packageJson = readJson("package.json");
 if (packageJson?.scripts?.test) pass("package.json includes test script");
 else fail("package.json must include test script");
 
+const firstSlicePath = firstMarkdownPath("ordinary-first-slices");
+const completenessPath = firstMarkdownPath("product-completeness-reports");
+const finalReportPath = firstMarkdownPath("final-reports");
+firstSlicePath ? pass(`${firstSlicePath} exists`) : fail("ordinary-first-slices must include one markdown record");
+completenessPath ? pass(`${completenessPath} exists`) : fail("product-completeness-reports must include one markdown record");
+finalReportPath ? pass(`${finalReportPath} exists`) : fail("final-reports must include one markdown record");
+
 const app = `${read("src/index.html")}\n${read("src/app.js")}`;
-for (const marker of ["booking", "name", "phone", "date", "time", "operator"]) {
+const markers = Array.isArray(packageJson?.intentosExample?.markers) && packageJson.intentosExample.markers.length > 0
+  ? packageJson.intentosExample.markers
+  : ["booking", "name", "phone", "date", "time", "operator"];
+for (const marker of markers) {
   app.toLowerCase().includes(marker) ? pass(`app includes ${marker}`) : fail(`app missing ${marker}`);
 }
 
-const firstSlice = read("ordinary-first-slices/001-booking-web-app.md");
+const firstSlice = firstSlicePath ? read(firstSlicePath) : "";
 if (/This card writes target files:\s*No/i.test(firstSlice) && /Backlog \/ Later/.test(firstSlice)) pass("first-slice card keeps boundaries and backlog");
 else fail("first-slice card must keep boundaries and backlog");
 
-const completeness = read("product-completeness-reports/001-booking-web-app.md");
+const completeness = completenessPath ? read(completenessPath) : "";
 if (/RUNNABLE_MVP/.test(completeness) && /This report approves release or production:\s*No/i.test(completeness)) pass("product completeness report records local runnable MVP without release approval");
 else fail("product completeness report must record local runnable MVP without release approval");
 
-const finalReport = read("final-reports/001-booking-web-app.md");
+const finalReport = finalReportPath ? read(finalReportPath) : "";
 if (/local demo/i.test(finalReport) && /production/i.test(finalReport) && /not approved|No/i.test(finalReport)) pass("final report keeps local demo boundary");
 else fail("final report must keep local demo boundary");
+
+const smokeEvidence = read("evidence/smoke-output.txt");
+if (/\b(pass|passed|success|ok)\b/i.test(smokeEvidence) && !/\b(fail|failed|failure|exception)\b|error:/i.test(smokeEvidence)) pass("smoke output evidence records a passing local check");
+else fail("smoke output evidence must record a passing local check");
 
 if (packageJson?.scripts?.test) {
   const result = spawnSync("npm", ["test"], { cwd: targetRoot, encoding: "utf8", maxBuffer: 1024 * 1024 * 4 });
@@ -84,6 +96,13 @@ function readJson(file) {
   } catch {
     return null;
   }
+}
+
+function firstMarkdownPath(dir) {
+  const full = path.join(targetRoot, dir);
+  if (!fs.existsSync(full) || !fs.statSync(full).isDirectory()) return "";
+  const found = fs.readdirSync(full).find((entry) => entry.endsWith(".md"));
+  return found ? `${dir}/${found}` : "";
 }
 
 function pass(message) {

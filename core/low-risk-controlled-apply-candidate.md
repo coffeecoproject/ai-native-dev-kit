@@ -34,7 +34,10 @@ Every candidate record must include:
 - Forbidden Actions
 - Verification And Rollback
 - Boundaries
+- Machine-Readable Evidence
 - Outcome
+
+`Machine-Readable Evidence` is required for new source examples and strict checks. Historical target-project Markdown records remain compatible unless strict mode is requested.
 
 ## Hard Stops
 
@@ -43,6 +46,7 @@ A candidate is not low risk when it:
 - uses wildcard, parent traversal, absolute, home, or backslash paths
 - changes CI, hooks, release, deployment, secrets, or production configuration
 - touches payment, permission, authentication, data migration, database schema, legal, security, or privacy surfaces
+- points at generated, dependency, ignored, symlink, CI workflow, or hook paths
 - lacks rollback or verification
 - claims that writing, applying, implementation, or release is already approved
 
