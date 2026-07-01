@@ -32,6 +32,7 @@ if (shouldRequireAssets) {
     "templates/product-completeness-report.md",
     "checklists/product-completeness-gate-review.md",
     "prompts/product-completeness-agent.md",
+    "schemas/artifacts/product-completeness-evidence.schema.json",
     "scripts/resolve-product-completeness.mjs",
     "scripts/check-product-completeness.mjs",
   ]) exists(file) ? pass(`${file} exists`) : fail(`missing ${file}`);
@@ -42,7 +43,7 @@ if (shouldRequireAssets) {
 
 checkReports();
 if (isSourceRepo) checkSourceEvidence();
-else pass("source-only 1.43 product completeness evidence checks skipped for target project");
+else pass("source-only product completeness evidence checks skipped for target project");
 emit();
 
 function checkReports() {
@@ -85,13 +86,20 @@ function checkSourceEvidence() {
     "releases/1.43.0/release-record.md",
     "releases/1.43.0/known-limitations.md",
     "releases/1.43.0/self-check-report.md",
-  ]) exists(file) ? pass(`1.43 product completeness source evidence exists ${file}`) : fail(`1.43 product completeness source evidence missing ${file}`);
+    "schemas/artifacts/product-completeness-evidence.schema.json",
+    "releases/1.47.0/release-record.md",
+    "releases/1.47.0/known-limitations.md",
+    "releases/1.47.0/self-check-report.md",
+  ]) exists(file) ? pass(`product completeness source evidence exists ${file}`) : fail(`product completeness source evidence missing ${file}`);
   const example = runNode(["scripts/check-product-completeness.mjs", "examples/1.43-product-completeness-gate"]);
   if (example.status === 0 && example.stdout.includes("Product Completeness check passed")) pass("1.43 product completeness example passes checker");
   else fail(`1.43 product completeness example failed: ${example.stderr || example.stdout}`);
-  const resolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/mvp-booking-web-app", "--evidence", "evidence/smoke-output.txt"]);
-  if (resolver.status === 0 && resolver.stdout.includes("Product Completeness Report") && resolver.stdout.includes("Explicit evidence: evidence/smoke-output.txt") && resolver.stdout.includes("This report approves release or production: No")) pass("1.43 product completeness resolver prints safe evidence-linked report");
-  else fail(`1.43 product completeness resolver failed: ${resolver.stderr || resolver.stdout}`);
+  const legacyResolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/mvp-booking-web-app", "--evidence", "evidence/smoke-output.txt"]);
+  if (legacyResolver.status === 0 && legacyResolver.stdout.includes("Product Completeness Report") && legacyResolver.stdout.includes("Explicit evidence: evidence/smoke-output.txt") && legacyResolver.stdout.includes("This report approves release or production: No")) pass("legacy text product completeness resolver prints safe evidence-linked report");
+  else fail(`legacy text product completeness resolver failed: ${legacyResolver.stderr || legacyResolver.stdout}`);
+  const structuredResolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/mvp-booking-web-app", "--evidence", "evidence/smoke-output.json"]);
+  if (structuredResolver.status === 0 && structuredResolver.stdout.includes("Product Completeness Report") && structuredResolver.stdout.includes("Explicit evidence: evidence/smoke-output.json") && structuredResolver.stdout.includes("structured evidence:") && structuredResolver.stdout.includes("This report approves release or production: No")) pass("1.47 structured product completeness resolver prints safe evidence-linked report");
+  else fail(`1.47 structured product completeness resolver failed: ${structuredResolver.stderr || structuredResolver.stdout}`);
   for (const [name, target, expected] of [
     ["release overclaim", "test-fixtures/bad/bad-product-completeness-release-overclaim", "boundary This report approves release or production must be No"],
     ["missing run surface", "test-fixtures/bad/bad-product-completeness-missing-run", "checklist missing Local run or demo instructions"],
@@ -143,7 +151,7 @@ function runNode(argv) {
 }
 
 function exists(file) {
-  return fs.existsSync(path.join(projectRoot, file));
+  return fs.existsSync(path.join(projectRoot, file)) || fs.existsSync(path.join(projectRoot, ".ai-native", file));
 }
 
 function rel(file) {

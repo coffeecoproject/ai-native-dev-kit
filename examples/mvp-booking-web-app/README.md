@@ -20,7 +20,7 @@ Open `src/index.html` in a browser.
 npm test
 ```
 
-Expected local evidence is recorded in `evidence/smoke-output.txt`.
+Expected local evidence is recorded in `evidence/smoke-output.txt` and `evidence/smoke-output.json`.
 
 ## What works
 

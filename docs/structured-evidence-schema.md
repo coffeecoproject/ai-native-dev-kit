@@ -12,6 +12,10 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 
 - Low-Risk Controlled Apply Candidate
 
+1.47.0 adds structured local product evidence for:
+
+- Product Completeness Evidence files passed to `--evidence`
+
 The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
 
 ## Rules
@@ -21,6 +25,7 @@ The Markdown sections remain the human-readable record. The `Machine-Readable Ev
 - Readiness and Approval records must reference the same `plan_digest` when the apply plan file is available.
 - Boundary fields must stay false unless a future controlled runner explicitly supports a safe mode.
 - Approval evidence still does not authorize automatic apply.
+- Product completeness evidence still does not approve release, production, or real-user adoption.
 
 ## Strict Mode
 
@@ -38,6 +43,14 @@ Strict mode requires `Machine-Readable Evidence`. For readiness and approval rec
 Structured readiness evidence must include at least one action unless `readiness_state` is `NO_APPLY_PLAN`.
 
 Low-risk apply candidate strict mode requires a valid `candidate_digest`, exact target paths, path safety evidence, rollback, verification, and authority fields that all remain non-authorizing.
+
+Product completeness structured evidence is supplied as a JSON file, not as a Markdown `Machine-Readable Evidence` block:
+
+```bash
+node scripts/resolve-product-completeness.mjs <project> --evidence evidence/smoke-output.json
+```
+
+The JSON must match `schemas/artifacts/product-completeness-evidence.schema.json` and keep `approves_release_or_production` and `proves_real_users_can_use_product` false.
 
 ## Current Boundary
 

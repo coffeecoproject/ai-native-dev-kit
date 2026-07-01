@@ -1,0 +1,2 @@
+MVP CLI note tool smoke test passed.
+Checked help command, add command, list command, and empty-state output.

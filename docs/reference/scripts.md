@@ -23,7 +23,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs first-slice <project> "<goal>"` | Turn an ordinary user goal into a first useful version scope without writing target files | No |
 | `node scripts/cli.mjs first-slice-check <project>` | Check recorded Ordinary User First-Slice Cards | No |
 | `node scripts/cli.mjs product-completeness <project>` | Report whether a first version is idea-only, runnable MVP, internal-trial ready, release-review needed, or blocked | No |
-| `node scripts/cli.mjs product-completeness <project> --evidence <file>` | Include explicit local smoke/demo evidence in the product completeness report | No |
+| `node scripts/cli.mjs product-completeness <project> --evidence <file>` | Include explicit local smoke/demo evidence in the product completeness report; text and structured JSON are supported | No |
 | `node scripts/cli.mjs product-completeness-check <project>` | Check recorded Product Completeness Reports | No |
 | `node scripts/cli.mjs mvp-example-check [example]` | Check a built-in local MVP example, metadata, evidence, and smoke test | No |
 | `node scripts/cli.mjs apply-candidate <project> --intent "<change>" --path <file>` | Record whether a proposed small change is low risk enough for later human-approved apply planning | No |
@@ -127,9 +127,9 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-first-slice.mjs` checks recorded Ordinary User First-Slice Cards. It rejects internal jargon on the user-facing surface, more than 3 questions, missing backlog, target-project write approval, implementation approval, release/production approval, CI/hook changes, payment/secrets/production/migration/permission touch, and BL2/industrial enablement.
 
-`scripts/resolve-product-completeness.mjs` is the 1.43 product completeness gate. It reports whether the current work is still an idea, has a defined first slice, is a runnable local MVP, is ready for internal trial, needs release review, or is blocked. Use `--evidence <file>` to cite local smoke/demo evidence. It does not approve release or production.
+`scripts/resolve-product-completeness.mjs` is the 1.43 product completeness gate, hardened in 1.47 with structured JSON evidence support. It reports whether the current work is still an idea, has a defined first slice, is a runnable local MVP, is ready for internal trial, needs release review, or is blocked. Use `--evidence <file>` to cite local smoke/demo evidence. It does not approve release or production.
 
-`scripts/check-product-completeness.mjs` checks recorded Product Completeness Reports. It requires target user, core flow, surface, risk boundary, empty/error states, local run, verification, handoff, feedback capture, and next backlog coverage, and rejects release/production overclaims.
+`scripts/check-product-completeness.mjs` checks recorded Product Completeness Reports. It requires target user, core flow, surface, risk boundary, empty/error states, local run, verification, handoff, feedback capture, and next backlog coverage, and rejects release/production overclaims. Source examples use structured `product_completeness_evidence`.
 
 `scripts/check-mvp-example.mjs` is the 1.44 real MVP example evidence checker. It checks built-in local MVP examples, metadata markers, first-slice cards, completeness reports, final reports, explicit smoke evidence, and local smoke tests.
 

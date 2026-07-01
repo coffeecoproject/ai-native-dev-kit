@@ -7,6 +7,7 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { sourceRequiredPaths } from "./lib/manifest.mjs";
 import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
+import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1332,7 +1333,10 @@ function checkCliFrontDoor() {
   if (pkg.private === true) pass("package.json remains private during CLI front-door phase");
   else fail("package.json must remain private until package publishing is explicitly approved");
 
-  if (pkg.bin?.["ai-native"] === "./scripts/cli.mjs") pass("package.json exposes ai-native bin");
+  if (pkg.bin?.["intentos"] === "./scripts/cli.mjs") pass("package.json exposes intentos bin");
+  else fail("package.json must expose intentos bin at ./scripts/cli.mjs");
+
+  if (pkg.bin?.["ai-native"] === "./scripts/cli.mjs") pass("package.json exposes ai-native compatibility bin");
   else fail("package.json must expose ai-native bin at ./scripts/cli.mjs");
 
   if (pkg.engines?.node === ">=22") pass("package.json declares Node >=22 engine");
@@ -6222,6 +6226,8 @@ function checkOrdinaryUserProductLoopProtocol() {
   const required = [
     "docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md",
     "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
+    "docs/plans/evidence-reliability-risk-calibration-1.47-plan.md",
+    "baseline-calibration-reports/risk-surface-false-positives.md",
     "core/ordinary-user-first-slice.md",
     "docs/ordinary-user-first-slice.md",
     "templates/ordinary-user-first-slice-card.md",
@@ -6251,6 +6257,7 @@ function checkOrdinaryUserProductLoopProtocol() {
     "checklists/low-risk-controlled-apply-candidate-review.md",
     "prompts/low-risk-controlled-apply-candidate-agent.md",
     "controlled-apply-candidates/.gitkeep",
+    "schemas/artifacts/product-completeness-evidence.schema.json",
     "schemas/artifacts/low-risk-apply-candidate.schema.json",
     "scripts/lib/risk-surfaces.mjs",
     "scripts/resolve-low-risk-apply-candidate.mjs",
@@ -6266,6 +6273,7 @@ function checkOrdinaryUserProductLoopProtocol() {
     "examples/mvp-booking-web-app/src/app.js",
     "examples/mvp-booking-web-app/scripts/smoke-test.mjs",
     "examples/mvp-booking-web-app/evidence/smoke-output.txt",
+    "examples/mvp-booking-web-app/evidence/smoke-output.json",
     "examples/mvp-booking-web-app/docs/product-brief.md",
     "examples/mvp-booking-web-app/ordinary-first-slices/001-booking-web-app.md",
     "examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md",
@@ -6277,10 +6285,21 @@ function checkOrdinaryUserProductLoopProtocol() {
     "examples/mvp-dashboard-web-app/src/app.js",
     "examples/mvp-dashboard-web-app/scripts/smoke-test.mjs",
     "examples/mvp-dashboard-web-app/evidence/smoke-output.txt",
+    "examples/mvp-dashboard-web-app/evidence/smoke-output.json",
     "examples/mvp-dashboard-web-app/docs/product-brief.md",
     "examples/mvp-dashboard-web-app/ordinary-first-slices/001-dashboard-web-app.md",
     "examples/mvp-dashboard-web-app/product-completeness-reports/001-dashboard-web-app.md",
     "examples/mvp-dashboard-web-app/final-reports/001-dashboard-web-app.md",
+    "examples/mvp-cli-note-tool/README.md",
+    "examples/mvp-cli-note-tool/package.json",
+    "examples/mvp-cli-note-tool/src/cli.mjs",
+    "examples/mvp-cli-note-tool/scripts/smoke-test.mjs",
+    "examples/mvp-cli-note-tool/evidence/smoke-output.txt",
+    "examples/mvp-cli-note-tool/evidence/smoke-output.json",
+    "examples/mvp-cli-note-tool/docs/product-brief.md",
+    "examples/mvp-cli-note-tool/ordinary-first-slices/001-cli-note-tool.md",
+    "examples/mvp-cli-note-tool/product-completeness-reports/001-cli-note-tool.md",
+    "examples/mvp-cli-note-tool/final-reports/001-cli-note-tool.md",
     "examples/1.45-low-risk-apply-candidate/README.md",
     "examples/1.45-low-risk-apply-candidate/controlled-apply-candidates/001-booking-demo.md",
     "test-fixtures/bad/bad-first-slice-authorizes-write/ordinary-first-slices/001-bad.md",
@@ -6306,15 +6325,20 @@ function checkOrdinaryUserProductLoopProtocol() {
     "releases/1.46.0/release-record.md",
     "releases/1.46.0/known-limitations.md",
     "releases/1.46.0/self-check-report.md",
+    "releases/1.47.0/release-record.md",
+    "releases/1.47.0/known-limitations.md",
+    "releases/1.47.0/self-check-report.md",
   ];
   for (const file of required) {
-    if (exists(file)) pass(`1.42-1.46 ordinary user product loop asset exists ${file}`);
-    else fail(`1.42-1.46 ordinary user product loop asset missing ${file}`);
+    if (exists(file)) pass(`1.42-1.47 ordinary user product loop asset exists ${file}`);
+    else fail(`1.42-1.47 ordinary user product loop asset missing ${file}`);
   }
 
   const combined = [
     read("docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md"),
     read("docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md"),
+    read("docs/plans/evidence-reliability-risk-calibration-1.47-plan.md"),
+    read("baseline-calibration-reports/risk-surface-false-positives.md"),
     read("core/ordinary-user-first-slice.md"),
     read("core/product-completeness-gate.md"),
     read("core/real-mvp-example-evidence.md"),
@@ -6322,13 +6346,18 @@ function checkOrdinaryUserProductLoopProtocol() {
     read("templates/ordinary-user-first-slice-card.md"),
     read("templates/product-completeness-report.md"),
     read("templates/low-risk-controlled-apply-candidate.md"),
+    read("schemas/artifacts/product-completeness-evidence.schema.json"),
     read("schemas/artifacts/low-risk-apply-candidate.schema.json"),
     read("scripts/lib/risk-surfaces.mjs"),
     read("scripts/resolve-first-slice.mjs"),
     read("scripts/resolve-product-completeness.mjs"),
     read("scripts/resolve-low-risk-apply-candidate.mjs"),
     read("examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md"),
+    read("examples/mvp-booking-web-app/evidence/smoke-output.json"),
     read("examples/mvp-dashboard-web-app/README.md"),
+    read("examples/mvp-dashboard-web-app/evidence/smoke-output.json"),
+    read("examples/mvp-cli-note-tool/README.md"),
+    read("examples/mvp-cli-note-tool/evidence/smoke-output.json"),
     read("docs/reference/scripts.md"),
     read("docs/reference/checkers.md"),
     read("docs/reference/artifacts.md"),
@@ -6341,9 +6370,12 @@ function checkOrdinaryUserProductLoopProtocol() {
     "Real MVP Example",
     "Low-Risk Controlled Apply Candidate",
     "Machine-Readable Evidence",
+    "product_completeness_evidence",
     "analyzeRiskSurfaces",
     "evidence/smoke-output.txt",
+    "evidence/smoke-output.json",
     "MVP Dashboard Web App",
+    "MVP CLI Note Tool",
     "This card writes target files: No",
     "This report approves release or production: No",
     "This candidate authorizes apply: No",
@@ -6352,8 +6384,8 @@ function checkOrdinaryUserProductLoopProtocol() {
     "mvp-example-check",
     "apply-candidate",
   ]) {
-    if (combined.includes(marker)) pass(`1.42-1.46 ordinary user product loop includes ${marker}`);
-    else fail(`1.42-1.46 ordinary user product loop missing ${marker}`);
+    if (combined.includes(marker)) pass(`1.42-1.47 ordinary user product loop includes ${marker}`);
+    else fail(`1.42-1.47 ordinary user product loop missing ${marker}`);
   }
 
   const firstSliceResolver = runNode(["scripts/resolve-first-slice.mjs", ".", "我想做一个预约 App"]);
@@ -6383,14 +6415,15 @@ function checkOrdinaryUserProductLoopProtocol() {
     else fail(`1.42 must reject ${name}: ${output}`);
   }
 
-  const productResolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/mvp-booking-web-app", "--evidence", "evidence/smoke-output.txt"]);
+  const productResolver = runNode(["scripts/resolve-product-completeness.mjs", "examples/mvp-booking-web-app", "--evidence", "evidence/smoke-output.json"]);
   if (productResolver.status === 0
     && productResolver.stdout.includes("Product Completeness Report")
-    && productResolver.stdout.includes("Explicit evidence: evidence/smoke-output.txt")
+    && productResolver.stdout.includes("Explicit evidence: evidence/smoke-output.json")
+    && productResolver.stdout.includes("structured evidence:")
     && productResolver.stdout.includes("This report approves release or production: No")) {
-    pass("1.43 product completeness resolver prints safe evidence-linked report");
+    pass("1.47 product completeness resolver prints safe structured evidence-linked report");
   } else {
-    fail(`1.43 product completeness resolver failed: ${productResolver.stderr || productResolver.stdout}`);
+    fail(`1.47 product completeness resolver failed: ${productResolver.stderr || productResolver.stdout}`);
   }
 
   const productExample = runNode(["scripts/check-product-completeness.mjs", "examples/1.43-product-completeness-gate"]);
@@ -6424,20 +6457,27 @@ function checkOrdinaryUserProductLoopProtocol() {
     fail(`1.46 dashboard MVP example failed: ${dashboardExample.stderr || dashboardExample.stdout}`);
   }
 
+  const cliExample = runNode(["scripts/check-mvp-example.mjs", "examples/mvp-cli-note-tool"]);
+  if (cliExample.status === 0 && cliExample.stdout.includes("MVP Example check passed")) {
+    pass("1.47 CLI MVP example passes checker and local smoke test");
+  } else {
+    fail(`1.47 CLI MVP example failed: ${cliExample.stderr || cliExample.stdout}`);
+  }
+
   const applyResolver = runNode(["scripts/resolve-low-risk-apply-candidate.mjs", ".", "--intent", "update local booking demo copy", "--path", "examples/mvp-booking-web-app/src/app.js"]);
   if (applyResolver.status === 0
     && applyResolver.stdout.includes("Low-Risk Controlled Apply Candidate")
     && applyResolver.stdout.includes("This candidate authorizes apply: No")) {
-    pass("1.45 apply candidate resolver prints safe record");
+    pass("1.46 structured apply candidate resolver prints safe record");
   } else {
-    fail(`1.45 apply candidate resolver failed: ${applyResolver.stderr || applyResolver.stdout}`);
+    fail(`1.46 structured apply candidate resolver failed: ${applyResolver.stderr || applyResolver.stdout}`);
   }
 
   const applyExample = runNode(["scripts/check-low-risk-apply-candidate.mjs", "examples/1.45-low-risk-apply-candidate", "--require-structured-evidence"]);
   if (applyExample.status === 0 && applyExample.stdout.includes("Low-Risk Controlled Apply Candidate check passed")) {
-    pass("1.45 apply candidate example passes strict structured checker");
+    pass("1.46 structured apply candidate example passes strict structured checker");
   } else {
-    fail(`1.45 apply candidate example failed: ${applyExample.stderr || applyExample.stdout}`);
+    fail(`1.46 structured apply candidate example failed: ${applyExample.stderr || applyExample.stdout}`);
   }
 
   for (const [name, target, expected] of [
@@ -6447,9 +6487,41 @@ function checkOrdinaryUserProductLoopProtocol() {
   ]) {
     const result = runNode(["scripts/check-low-risk-apply-candidate.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;
-    if (result.status !== 0 && output.includes(expected)) pass(`1.45 rejects ${name}`);
-    else fail(`1.45 must reject ${name}: ${output}`);
+    if (result.status !== 0 && output.includes(expected)) pass(`structured apply candidate rejects ${name}`);
+    else fail(`structured apply candidate must reject ${name}: ${output}`);
   }
+
+  checkRiskSurfaceCalibration();
+}
+
+function checkRiskSurfaceCalibration() {
+  const benign = analyzeRiskSurfaces({
+    intent: "update product workflow label, key metric copy, and package display text",
+    paths: ["examples/mvp-cli-note-tool/README.md"],
+  });
+  if (!benign.high) pass("1.47 risk calibration keeps benign workflow/key/package copy low-risk");
+  else fail(`1.47 risk calibration false positive: ${benign.reasons.join("; ")}`);
+
+  const secret = analyzeRiskSurfaces({
+    intent: "update API key and secret token handling",
+    paths: ["src/example.js"],
+  });
+  if (secret.high && secret.surfaces.includes("environment-secret")) pass("1.47 risk calibration detects secret key context");
+  else fail("1.47 risk calibration must detect secret key context");
+
+  const ciWorkflow = analyzeRiskSurfaces({
+    intent: "update GitHub workflow file",
+    paths: [".github/workflows/dev-kit-release-checks.yml"],
+  });
+  if (ciWorkflow.high && ciWorkflow.reasons.some((reason) => reason.includes("CI workflow path") || reason.includes("ci-hook-automation"))) pass("1.47 risk calibration detects CI workflow context");
+  else fail("1.47 risk calibration must detect CI workflow context");
+
+  const dataMigration = analyzeRiskSurfaces({
+    intent: "change database migration for payment permissions",
+    paths: ["src/domain.js"],
+  });
+  if (dataMigration.high && dataMigration.surfaces.includes("database-migration") && dataMigration.surfaces.includes("payment-billing") && dataMigration.surfaces.includes("auth-permission")) pass("1.47 risk calibration detects migration payment permission context");
+  else fail("1.47 risk calibration must detect migration payment permission context");
 }
 
 function checkProfiles() {

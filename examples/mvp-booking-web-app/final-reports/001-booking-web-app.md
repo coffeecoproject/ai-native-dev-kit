@@ -8,7 +8,7 @@ The local demo booking app is implemented as a static web app.
 
 | Check | Result | Evidence |
 |---|---|---|
-| Smoke test | pass | `npm test`, `evidence/smoke-output.txt` |
+| Smoke test | pass | `npm test`, `evidence/smoke-output.txt`, `evidence/smoke-output.json` |
 | Local demo instructions | pass | `README.md` |
 | Empty state | pass | `#empty-state` shows before bookings exist |
 | Required-field guard | pass | browser required fields for name, phone, date, and time |

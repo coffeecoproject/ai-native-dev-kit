@@ -3,12 +3,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json", "intent", "evidence"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const intent = String(args.intent || args._?.slice(1).join(" ") || "").trim();
 const evidencePaths = normalizeList(args.evidence);
+const productEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/product-completeness-evidence.schema.json");
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -22,7 +24,7 @@ else printReport(report);
 function buildReport(root, userIntent, explicitEvidencePaths) {
   const paths = listFiles(root);
   const explicitEvidence = collectEvidence(root, explicitEvidencePaths);
-  const hasCode = paths.some((item) => /\.(html|tsx?|jsx?|swift|kt|java|vue|svelte)$/.test(item));
+  const hasCode = paths.some((item) => /\.(html|mjs|cjs|tsx?|jsx?|swift|kt|java|vue|svelte)$/.test(item));
   const hasPackage = fs.existsSync(path.join(root, "package.json"));
   const packageJson = readJson(path.join(root, "package.json"));
   const scripts = packageJson?.scripts || {};
@@ -158,6 +160,8 @@ function collectEvidence(root, relativePaths) {
       return { path: relativePath, status: "fail", summary: "evidence file missing" };
     }
     const content = fs.readFileSync(fullPath, "utf8");
+    const structured = collectStructuredEvidence(relativePath, content);
+    if (structured) return structured;
     const hasFailure = /\b(fail|failed|failure|exception)\b|error:/i.test(content);
     const hasPass = /\b(pass|passed|success|successful|ok)\b/i.test(content);
     return {
@@ -166,6 +170,32 @@ function collectEvidence(root, relativePaths) {
       summary: firstLine(content) || "evidence file recorded",
     };
   });
+}
+
+function collectStructuredEvidence(relativePath, content) {
+  const trimmed = String(content || "").trim();
+  if (!relativePath.endsWith(".json") && !trimmed.startsWith("{")) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch (error) {
+    return { path: relativePath, status: "fail", summary: `structured evidence JSON invalid: ${error.message}` };
+  }
+  if (!productEvidenceSchema) {
+    return { path: relativePath, status: "fail", summary: "structured evidence schema missing" };
+  }
+  const validation = validateSchema(parsed, productEvidenceSchema, { label: relativePath });
+  if (!validation.ok) {
+    return { path: relativePath, status: "fail", summary: validation.errors.join("; ") };
+  }
+  if (parsed.authority?.approves_release_or_production !== false || parsed.authority?.proves_real_users_can_use_product !== false) {
+    return { path: relativePath, status: "fail", summary: "structured evidence authority must stay non-authorizing" };
+  }
+  return {
+    path: relativePath,
+    status: parsed.status,
+    summary: `structured evidence: ${parsed.summary || parsed.command || "recorded"}; checks=${(parsed.checks || []).join(", ")}`,
+  };
 }
 
 function firstLine(value) {

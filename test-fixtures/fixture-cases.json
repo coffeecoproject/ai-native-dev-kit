@@ -2044,6 +2044,38 @@
     "howToFix": "Keep the bundled dashboard MVP example locally runnable with coherent evidence."
   },
   {
+    "name": "good MVP CLI note tool example",
+    "type": "golden",
+    "checker": "check-mvp-example",
+    "script": "scripts/check-mvp-example.mjs",
+    "args": [
+      "examples/mvp-cli-note-tool"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "MVP Example check passed"
+    ],
+    "howToFix": "Keep the bundled CLI MVP example locally runnable with coherent structured evidence."
+  },
+  {
+    "name": "good product completeness structured evidence",
+    "type": "golden",
+    "checker": "resolve-product-completeness",
+    "script": "scripts/resolve-product-completeness.mjs",
+    "args": [
+      "examples/mvp-cli-note-tool",
+      "--evidence",
+      "evidence/smoke-output.json"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Product Completeness Report",
+      "Explicit evidence: evidence/smoke-output.json",
+      "structured evidence:"
+    ],
+    "howToFix": "Keep structured product evidence readable by the product completeness resolver."
+  },
+  {
     "name": "good low-risk apply candidate",
     "type": "golden",
     "checker": "check-low-risk-apply-candidate",

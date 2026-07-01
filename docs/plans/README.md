@@ -10,6 +10,8 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Change Impact Coverage 1.48](change-impact-coverage-1.48-plan.md)
+- [Evidence Reliability & Risk Calibration 1.47](evidence-reliability-risk-calibration-1.47-plan.md)
 - [Ordinary User Product Loop Hardening 1.46](ordinary-user-product-loop-hardening-1.46-plan.md)
 - [Structured Evidence Hardening 1.41.1](structured-evidence-hardening-1.41.1-plan.md)
 - [Structured Evidence Schema 1.41](structured-evidence-schema-1.41-plan.md)

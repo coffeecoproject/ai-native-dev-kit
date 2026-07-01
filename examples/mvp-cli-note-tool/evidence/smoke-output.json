@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.47.0",
+  "artifact_type": "product_completeness_evidence",
+  "status": "pass",
+  "command": "npm test",
+  "checks": [
+    "help_command",
+    "add_command",
+    "list_command",
+    "empty_state"
+  ],
+  "output_file": "evidence/smoke-output.txt",
+  "summary": "CLI note tool local smoke test passed.",
+  "authority": {
+    "approves_release_or_production": false,
+    "proves_real_users_can_use_product": false
+  }
+}

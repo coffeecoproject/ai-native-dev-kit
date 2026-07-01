@@ -4,13 +4,13 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.46.0`。
+当前版本：`1.47.0`。
 
-命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`ai-native` 命令和包名暂时作为兼容别名保留。
+命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
 
-版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.46.x`，重点是普通用户第一版产品闭环加固、产品完整度证据、真实 MVP 样例、共享风险识别和低风险候选写入判断。
+版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.47.x`，重点是结构化产品证据、风险识别校准、可迁移 MVP 样例和低风险候选写入判断。
 
-1.46.0 加固了这条路径：先定第一版范围，再用明确 smoke 证据判断是否像一个可运行产品，用预约和看板两个本地 MVP 样例验证，最后只记录低风险小改动能否进入后续人工批准计划。
+1.47.0 继续加固证据可靠性：产品完整度可以读取结构化 JSON smoke 证据，MVP 样例覆盖预约、看板和 CLI 三种形态，低风险候选继续只做严格结构化记录，不授权写入。
 
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
@@ -221,6 +221,7 @@ node scripts/check-first-slice.mjs .
 node scripts/check-product-completeness.mjs .
 node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
 node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
+node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 ```
 
@@ -297,6 +298,7 @@ node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 
 当前版本：
 
+- [1.47.0 Release Record](releases/1.47.0/release-record.md)
 - [1.46.0 Release Record](releases/1.46.0/release-record.md)
 - [1.45.0 Release Record](releases/1.45.0/release-record.md)
 - [Version History](VERSION.md)

@@ -18,6 +18,7 @@ It complements Delivery Path. Delivery Path explains project progress; Product C
 - local run or demo instructions;
 - verification evidence;
 - explicit smoke or demo evidence when available;
+- structured JSON smoke or demo evidence for new Dev Kit examples;
 - trial or handoff instructions;
 - feedback, logging, or issue capture path;
 - next version backlog.
@@ -34,3 +35,5 @@ It complements Delivery Path. Delivery Path explains project progress; Product C
 ## Boundary
 
 Product Completeness Gate does not approve production release, replace Safe Launch, certify legal/security/privacy/compliance, or prove real-user adoption.
+
+Structured evidence improves local verification only. It does not authorize apply, implementation, release, production, or real-user readiness.

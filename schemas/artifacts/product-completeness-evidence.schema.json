@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Product Completeness Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "status",
+    "command",
+    "checks",
+    "summary",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "product_completeness_evidence"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "review",
+        "fail"
+      ]
+    },
+    "command": {
+      "type": "string"
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "output_file": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approves_release_or_production",
+        "proves_real_users_can_use_product"
+      ],
+      "properties": {
+        "approves_release_or_production": {
+          "type": "boolean"
+        },
+        "proves_real_users_can_use_product": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

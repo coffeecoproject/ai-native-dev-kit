@@ -36,6 +36,7 @@ if (shouldRequireAssets) {
     "templates/low-risk-controlled-apply-candidate.md",
     "checklists/low-risk-controlled-apply-candidate-review.md",
     "prompts/low-risk-controlled-apply-candidate-agent.md",
+    "schemas/artifacts/low-risk-apply-candidate.schema.json",
     "scripts/resolve-low-risk-apply-candidate.mjs",
     "scripts/check-low-risk-apply-candidate.mjs",
   ]) exists(file) ? pass(`${file} exists`) : fail(`missing ${file}`);
@@ -46,7 +47,7 @@ if (shouldRequireAssets) {
 
 checkReports();
 if (isSourceRepo) checkSourceEvidence();
-else pass("source-only 1.45 apply candidate evidence checks skipped for target project");
+else pass("source-only structured apply candidate evidence checks skipped for target project");
 emit();
 
 function checkReports() {
@@ -107,13 +108,20 @@ function checkSourceEvidence() {
     "releases/1.45.0/release-record.md",
     "releases/1.45.0/known-limitations.md",
     "releases/1.45.0/self-check-report.md",
-  ]) exists(file) ? pass(`1.45 apply candidate source evidence exists ${file}`) : fail(`1.45 apply candidate source evidence missing ${file}`);
+    "schemas/artifacts/low-risk-apply-candidate.schema.json",
+    "releases/1.46.0/release-record.md",
+    "releases/1.46.0/known-limitations.md",
+    "releases/1.46.0/self-check-report.md",
+    "releases/1.47.0/release-record.md",
+    "releases/1.47.0/known-limitations.md",
+    "releases/1.47.0/self-check-report.md",
+  ]) exists(file) ? pass(`structured apply candidate source evidence exists ${file}`) : fail(`structured apply candidate source evidence missing ${file}`);
   const resolver = runNode(["scripts/resolve-low-risk-apply-candidate.mjs", ".", "--intent", "update local booking demo copy", "--path", "examples/mvp-booking-web-app/src/app.js"]);
-  if (resolver.status === 0 && resolver.stdout.includes("Low-Risk Controlled Apply Candidate") && resolver.stdout.includes("Machine-Readable Evidence") && resolver.stdout.includes("This candidate authorizes apply: No")) pass("1.45 apply candidate resolver prints safe structured candidate");
-  else fail(`1.45 apply candidate resolver failed: ${resolver.stderr || resolver.stdout}`);
+  if (resolver.status === 0 && resolver.stdout.includes("Low-Risk Controlled Apply Candidate") && resolver.stdout.includes("Machine-Readable Evidence") && resolver.stdout.includes("This candidate authorizes apply: No")) pass("1.46 structured apply candidate resolver prints safe structured candidate");
+  else fail(`1.46 structured apply candidate resolver failed: ${resolver.stderr || resolver.stdout}`);
   const example = runNode(["scripts/check-low-risk-apply-candidate.mjs", "examples/1.45-low-risk-apply-candidate", "--require-structured-evidence"]);
-  if (example.status === 0 && example.stdout.includes("Low-Risk Controlled Apply Candidate check passed")) pass("1.45 apply candidate example passes strict structured checker");
-  else fail(`1.45 apply candidate example failed: ${example.stderr || example.stdout}`);
+  if (example.status === 0 && example.stdout.includes("Low-Risk Controlled Apply Candidate check passed")) pass("1.46 structured apply candidate example passes strict structured checker");
+  else fail(`1.46 structured apply candidate example failed: ${example.stderr || example.stdout}`);
   for (const [name, target, expected] of [
     ["authorizes run", "test-fixtures/bad/bad-apply-candidate-authorizes-run", "boundary This candidate authorizes apply must be No"],
     ["broad path", "test-fixtures/bad/bad-apply-candidate-broad-path", "unsafe target path"],
@@ -121,8 +129,8 @@ function checkSourceEvidence() {
   ]) {
     const bad = runNode(["scripts/check-low-risk-apply-candidate.mjs", target]);
     const output = `${bad.stdout}\n${bad.stderr}`;
-    if (bad.status !== 0 && output.includes(expected)) pass(`1.45 apply candidate rejects ${name}`);
-    else fail(`1.45 apply candidate must reject ${name}: ${output}`);
+    if (bad.status !== 0 && output.includes(expected)) pass(`structured apply candidate rejects ${name}`);
+    else fail(`structured apply candidate must reject ${name}: ${output}`);
   }
 }
 
@@ -216,7 +224,7 @@ function runNode(argv) {
 }
 
 function exists(file) {
-  return fs.existsSync(path.join(projectRoot, file));
+  return fs.existsSync(path.join(projectRoot, file)) || fs.existsSync(path.join(projectRoot, ".ai-native", file));
 }
 
 function rel(file) {

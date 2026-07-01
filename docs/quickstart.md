@@ -29,7 +29,7 @@ For command-line evidence, use:
 ```bash
 node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
 node scripts/cli.mjs first-slice ../my-project "我想做一个预约 App"
-node scripts/cli.mjs product-completeness ../my-project --evidence evidence/smoke-output.txt
+node scripts/cli.mjs product-completeness ../my-project --evidence evidence/smoke-output.json
 ```
 
 If the project already has a small local change candidate, record it without writing files:
@@ -47,6 +47,7 @@ Use the built-in local examples to see the path end to end:
 ```bash
 node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
 node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
+node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
 ```
 
 ## Maintainer Bootstrap And Adoption

@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.47.0",
+  "artifact_type": "product_completeness_evidence",
+  "status": "pass",
+  "command": "npm test",
+  "checks": [
+    "required_fields",
+    "empty_state",
+    "submit_handler",
+    "local_operator_list"
+  ],
+  "output_file": "evidence/smoke-output.txt",
+  "summary": "Booking MVP local smoke test passed.",
+  "authority": {
+    "approves_release_or_production": false,
+    "proves_real_users_can_use_product": false
+  }
+}

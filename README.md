@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.46.0`.
+Current release: `1.47.0`.
 
-Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `ai-native` command/package name is kept as a compatibility alias for now.
+Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.46.x`, focused on hardening ordinary-user first-slice delivery, product completeness evidence, real MVP examples, shared risk surfaces, and low-risk apply candidate review.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.47.x`, focused on structured product evidence, risk-surface calibration, portable MVP examples, and low-risk apply candidate review.
 
-1.46.0 hardens the ordinary-user product loop: first-slice scope, product completeness with explicit smoke evidence, two runnable local MVP examples, shared risk-surface checks, and structured low-risk candidate evidence for later human-approved apply planning.
+1.47.0 hardens evidence reliability and risk calibration: product completeness can read structured JSON smoke evidence, MVP examples cover booking, dashboard, and CLI shapes, and low-risk candidate checks keep strict structured evidence without authorizing apply.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -223,6 +223,7 @@ node scripts/check-first-slice.mjs .
 node scripts/check-product-completeness.mjs .
 node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
 node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
+node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 ```
 
@@ -299,6 +300,7 @@ Reference:
 
 Current release:
 
+- [1.47.0 Release Record](releases/1.47.0/release-record.md)
 - [1.46.0 Release Record](releases/1.46.0/release-record.md)
 - [1.45.0 Release Record](releases/1.45.0/release-record.md)
 - [Version History](VERSION.md)

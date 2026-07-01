@@ -1,0 +1,23 @@
+{
+  "name": "mvp-cli-note-tool",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/cli.mjs help",
+    "test": "node scripts/smoke-test.mjs"
+  },
+  "intentosExample": {
+    "kind": "ordinary-user-local-mvp",
+    "surface": "cli-tool",
+    "requiredFiles": [
+      "src/cli.mjs"
+    ],
+    "markers": [
+      "note",
+      "add",
+      "list",
+      "empty-state",
+      "help"
+    ]
+  }
+}

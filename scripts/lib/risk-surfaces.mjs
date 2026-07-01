@@ -16,7 +16,7 @@ export const highRiskSurfaces = [
   {
     id: "auth-permission",
     label: "auth / permission",
-    patterns: [/\bauth\b/i, /\bauthentication\b/i, /\bauthorization\b/i, /\bpermission\b/i, /\brbac\b/i, /\brole\b/i, /\bsession\b/i, /\bidentity\b/i, /登录|认证|鉴权|授权|权限|角色|身份/],
+    patterns: [/\bauth\b/i, /\bauthentication\b/i, /\bauthorization\b/i, /\bpermissions?\b/i, /\brbac\b/i, /\brole\b/i, /\bsession\b/i, /\bidentity\b/i, /登录|认证|鉴权|授权|权限|角色|身份/],
   },
   {
     id: "payment-billing",
@@ -31,12 +31,12 @@ export const highRiskSurfaces = [
   {
     id: "environment-secret",
     label: "environment / secrets",
-    patterns: [/\benv\b/i, /\benvironment\b/i, /\bsecret\b/i, /\btoken\b/i, /\bkey\b/i, /环境变量|密钥|令牌|凭证/],
+    patterns: [/\benv\b/i, /\benvironment\b/i, /\bsecret\b/i, /\btoken\b/i, /\b(api|access|secret|private|client|public|ssh|github|openai|stripe)[-_ ]?key\b/i, /\bkey\s*[:=]/i, /环境变量|密钥|令牌|凭证/],
   },
   {
     id: "ci-hook-automation",
     label: "CI / hooks / automation",
-    patterns: [/\bgate\b/i, /\bci\b/i, /\bworkflow\b/i, /\bhook\b/i, /\bwebhook\b/i, /\bautomation\b/i, /门禁|流水线|自动化|钩子/],
+    patterns: [/\bgate\b/i, /\bci\b/i, /\.github\/workflows\//i, /\bworkflow\s+(file|yml|yaml|ci|gate|automation)\b/i, /\b(github|ci|release|automation|hook|pre-commit|post-commit|pipeline)\s+workflow\b/i, /\bhook\b/i, /\bwebhook\b/i, /\bautomation\b/i, /门禁|流水线|自动化|钩子/],
   },
   {
     id: "security-privacy-compliance",
@@ -56,12 +56,12 @@ export const highRiskSurfaces = [
   {
     id: "dependency-package",
     label: "dependency / package",
-    patterns: [/\bdependency\b/i, /\bpackage\b/i, /依赖|包管理|升级依赖/],
+    patterns: [/\bdependency\b/i, /\bdependencies\b/i, /\bpackage\.json\b/i, /\bpackage-lock\.json\b/i, /\bpnpm-lock\.yaml\b/i, /\byarn\.lock\b/i, /\bupgrade package\b/i, /依赖|包管理|升级依赖/],
   },
   {
     id: "audit",
     label: "audit",
-    patterns: [/\baudit\b/i, /审计|留痕/],
+    patterns: [/\baudit\s+(log|trail|record|evidence|event)\b/i, /\bsecurity audit\b/i, /审计|留痕/],
   },
 ];
 

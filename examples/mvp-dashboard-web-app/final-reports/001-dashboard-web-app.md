@@ -8,7 +8,7 @@ The local dashboard demo is implemented as a static web app.
 
 | Check | Result | Evidence |
 |---|---|---|
-| Smoke test | pass | `npm test`, `evidence/smoke-output.txt` |
+| Smoke test | pass | `npm test`, `evidence/smoke-output.txt`, `evidence/smoke-output.json` |
 | Local demo instructions | pass | `README.md` |
 | Empty state | pass | `#empty-state` exists |
 | Error state | pass | `#error-state` exists |

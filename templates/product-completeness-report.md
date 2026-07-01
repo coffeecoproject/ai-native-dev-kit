@@ -39,6 +39,7 @@ Recommended next action: <plain next action>
 | Local run | not verified | <command or note> |
 | Core flow verification | not verified | <command or note> |
 | Explicit smoke evidence | not verified | <evidence file, if provided> |
+| Structured product evidence | not verified | <JSON evidence file, if provided> |
 
 ## Gaps
 
