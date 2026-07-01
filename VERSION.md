@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.48.0`
+Current version: `1.49.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.48.0`
 
 ## Current Release
 
-`1.48.0`
+`1.49.0`
 
 Includes:
 
+- Structured Impact Coverage phase `1.49.0`: adds `schemas/artifacts/change-impact-coverage.schema.json`, machine-readable Change Impact Coverage evidence, `preflight` / `closure` modes, `--require-structured-evidence`, `--strict-evidence`, changed-file implication checks, a strict 1.49 example, bad fixtures, and Execution Closure citation support
+- `1.49.0` keeps legacy Markdown reports compatible by default; strict structured evidence is required only when explicitly requested
+- `1.49.0` does not write target-project files, automatically implement missing surfaces, authorize implementation, authorize apply, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Safe Launch, or prove every possible impact was found
 - Change Impact Coverage phase `1.48.0`: adds `impact-coverage` and `impact-coverage-check` so Codex can map and close affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete
 - Added `core/change-impact-coverage.md`, `docs/change-impact-coverage.md`, `templates/change-impact-coverage-report.md`, `checklists/change-impact-coverage-review.md`, `prompts/change-impact-coverage-agent.md`, `change-impact-coverage-reports/`, `scripts/resolve-change-impact-coverage.mjs`, `scripts/check-change-impact-coverage.mjs`, a 1.48 example, bad fixtures, generated-project asset coverage, and release evidence
 - `1.48.0` does not write target-project files, automatically implement missing surfaces, authorize implementation, authorize apply, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Safe Launch, or prove every possible impact was found

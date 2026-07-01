@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "1.49.0",
+  "artifactType": "change_impact_coverage",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "impact_digest",
+    "mode",
+    "user_request",
+    "change_type",
+    "changed_files",
+    "affected_surface_map",
+    "implementation_coverage",
+    "verification_coverage",
+    "missed_surface_review",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.49.0"] },
+    "artifact_type": { "type": "string", "enum": ["change_impact_coverage"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "impact_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "mode": { "type": "string", "enum": ["preflight", "closure"] },
+    "user_request": {
+      "type": "object",
+      "required": ["intent", "task_ref", "project_profile"],
+      "properties": {
+        "intent": { "type": "string" },
+        "task_ref": { "type": "string" },
+        "project_profile": { "type": "string" }
+      }
+    },
+    "change_type": {
+      "type": "object",
+      "required": ["primary_type", "risk_level", "reason"],
+      "properties": {
+        "primary_type": {
+          "type": "string",
+          "enum": [
+            "DOCS_ONLY",
+            "COPY_ONLY",
+            "PERMISSION_OR_VISIBILITY_RULE",
+            "DATA_OR_MODEL_CHANGE",
+            "VALIDATION_OR_BUSINESS_RULE",
+            "API_CONTRACT_CHANGE",
+            "GENERAL_PRODUCT_CHANGE"
+          ]
+        },
+        "risk_level": { "type": "string", "enum": ["low", "high"] },
+        "reason": { "type": "string" }
+      }
+    },
+    "changed_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "affected_surface_map": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["surface", "status", "reason", "expected_evidence"],
+        "properties": {
+          "surface": {
+            "type": "string",
+            "enum": [
+              "USER_FLOW",
+              "FRONTEND_UI",
+              "API_CONTRACT",
+              "BACKEND_RULE",
+              "DATA_MODEL",
+              "ERROR_COPY",
+              "TEST_COVERAGE",
+              "DOCS_HANDOFF",
+              "PERMISSION_RISK",
+              "RELEASE_IMPACT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["REQUIRED", "OPTIONAL", "NOT_APPLICABLE", "NEEDS_HUMAN_DECISION"]
+          },
+          "reason": { "type": "string" },
+          "expected_evidence": { "type": "string" }
+        }
+      }
+    },
+    "implementation_coverage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["surface", "status", "evidence", "reason"],
+        "properties": {
+          "surface": {
+            "type": "string",
+            "enum": [
+              "USER_FLOW",
+              "FRONTEND_UI",
+              "API_CONTRACT",
+              "BACKEND_RULE",
+              "DATA_MODEL",
+              "ERROR_COPY",
+              "TEST_COVERAGE",
+              "DOCS_HANDOFF",
+              "PERMISSION_RISK",
+              "RELEASE_IMPACT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DONE", "NOT_APPLICABLE", "OUT_OF_SCOPE", "NEEDS_HUMAN_DECISION", "NOT_STARTED"]
+          },
+          "evidence": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "verification_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["surface", "verification", "evidence", "status"],
+        "properties": {
+          "surface": {
+            "type": "string",
+            "enum": [
+              "USER_FLOW",
+              "FRONTEND_UI",
+              "API_CONTRACT",
+              "BACKEND_RULE",
+              "DATA_MODEL",
+              "ERROR_COPY",
+              "TEST_COVERAGE",
+              "DOCS_HANDOFF",
+              "PERMISSION_RISK",
+              "RELEASE_IMPACT"
+            ]
+          },
+          "verification": { "type": "string" },
+          "evidence": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["DONE", "NOT_APPLICABLE", "OUT_OF_SCOPE", "NEEDS_HUMAN_DECISION", "NOT_STARTED"]
+          }
+        }
+      }
+    },
+    "missed_surface_review": {
+      "type": "object",
+      "required": ["missed_surfaces_found", "notes"],
+      "properties": {
+        "missed_surfaces_found": { "type": "string", "enum": ["Yes", "No"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "required": [
+        "writes_target_files",
+        "authorizes_implementation",
+        "approves_release_or_production",
+        "replaces_human_product_judgment",
+        "proves_every_possible_impact_was_found"
+      ],
+      "properties": {
+        "writes_target_files": { "type": "boolean" },
+        "authorizes_implementation": { "type": "boolean" },
+        "approves_release_or_production": { "type": "boolean" },
+        "replaces_human_product_judgment": { "type": "boolean" },
+        "proves_every_possible_impact_was_found": { "type": "boolean" }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["CHANGE_IMPACT_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"]
+    }
+  },
+  "additionalProperties": false
+}

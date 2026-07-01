@@ -16,6 +16,10 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 
 - Product Completeness Evidence files passed to `--evidence`
 
+1.49.0 extends structured Markdown evidence to:
+
+- Change Impact Coverage
+
 The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
 
 ## Rules
@@ -26,6 +30,7 @@ The Markdown sections remain the human-readable record. The `Machine-Readable Ev
 - Boundary fields must stay false unless a future controlled runner explicitly supports a safe mode.
 - Approval evidence still does not authorize automatic apply.
 - Product completeness evidence still does not approve release, production, or real-user adoption.
+- Change impact coverage evidence still does not authorize implementation, apply, release, production, or high-risk decisions.
 
 ## Strict Mode
 
@@ -36,6 +41,7 @@ node scripts/check-apply-plan.mjs <project> --require-structured-evidence
 node scripts/check-controlled-apply-readiness.mjs <project> --require-structured-evidence
 node scripts/check-approval-record.mjs <project> --require-structured-evidence
 node scripts/check-low-risk-apply-candidate.mjs <project> --require-structured-evidence
+node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence
 ```
 
 Strict mode requires `Machine-Readable Evidence`. For readiness and approval records, strict mode also requires the referenced apply plan to resolve locally so the checker can verify the plan digest.
@@ -43,6 +49,8 @@ Strict mode requires `Machine-Readable Evidence`. For readiness and approval rec
 Structured readiness evidence must include at least one action unless `readiness_state` is `NO_APPLY_PLAN`.
 
 Low-risk apply candidate strict mode requires a valid `candidate_digest`, exact target paths, path safety evidence, rollback, verification, and authority fields that all remain non-authorizing.
+
+Change impact coverage strict closure mode requires a valid `impact_digest`, matching Markdown and JSON surface statuses, non-placeholder `DONE` evidence, and required surfaces closed instead of left `NOT_STARTED`.
 
 Product completeness structured evidence is supplied as a JSON file, not as a Markdown `Machine-Readable Evidence` block:
 

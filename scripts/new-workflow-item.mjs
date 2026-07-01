@@ -2148,6 +2148,7 @@ if (type === "review-packet") {
   console.log("- Close every affected surface as DONE, NOT_APPLICABLE, OUT_OF_SCOPE, or NEEDS_HUMAN_DECISION.");
   console.log("- Do not claim a cross-surface rule is complete after backend-only or frontend-only work.");
   console.log("- Run node scripts/check-change-impact-coverage.mjs . after filling the report.");
+  console.log("- For completed strict close-out records, run node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence.");
 } else if (type === "baseline-state-report") {
   console.log("- Keep no-code and evidence-required baselines separate from confirmed project facts.");
   console.log("- Do not claim production-ready or industrial-grade status without evidence.");

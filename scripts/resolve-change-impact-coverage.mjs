@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { evidenceDigest } from "./lib/artifact-schema.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import {
   defaultIgnoredDirs,
@@ -11,11 +12,12 @@ import {
 } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "changed-files"]);
+const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const intent = String(args.intent || args._.slice(1).join(" ") || "").trim();
+const mode = String(args.mode || "preflight").trim().toLowerCase();
 const changedFiles = String(args["changed-files"] || "")
   .split(",")
   .map((item) => item.trim())
@@ -32,12 +34,18 @@ if (!["human", "json"].includes(outputFormat)) {
   process.exit(1);
 }
 
-const report = buildReport(projectRoot, intent, changedFiles);
+if (!["preflight", "closure"].includes(mode)) {
+  console.error(`FAIL unknown --mode: ${mode}`);
+  console.error("Use --mode preflight or --mode closure.");
+  process.exit(1);
+}
+
+const report = buildReport(projectRoot, intent, changedFiles, mode);
 
 if (outputFormat === "json") console.log(JSON.stringify(report, null, 2));
 else printHuman(report);
 
-function buildReport(root, userIntent, explicitChangedFiles) {
+function buildReport(root, userIntent, explicitChangedFiles, requestedMode) {
   const exists = fs.existsSync(root);
   const paths = exists ? walkRelativePaths(root, ".", {
     maxDepth: 5,
@@ -61,6 +69,7 @@ function buildReport(root, userIntent, explicitChangedFiles) {
     generatedAt: new Date().toISOString(),
     projectRoot: root,
     readOnly: true,
+    mode: requestedMode,
     intent: userIntent || "Not provided",
     changedFiles: explicitChangedFiles,
     humanSummary: summaryFor(changeType, surfaces, risk),
@@ -98,6 +107,73 @@ function buildReport(root, userIntent, explicitChangedFiles) {
       provesEveryPossibleImpactWasFound: "No",
     },
     outcome,
+    machineReadableEvidence: buildMachineReadableEvidence({
+      mode: requestedMode,
+      userIntent,
+      changeType,
+      risk,
+      explicitChangedFiles,
+      surfaces,
+      questions,
+      outcome,
+    }),
+  };
+}
+
+function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome }) {
+  const evidence = {
+    schema_version: "1.49.0",
+    artifact_type: "change_impact_coverage",
+    artifact_id: artifactId(userIntent, explicitChangedFiles),
+    impact_digest: "",
+    mode: requestedMode,
+    user_request: {
+      intent: userIntent || "Not provided",
+      task_ref: "not provided",
+      project_profile: "inferred from project signals",
+    },
+    change_type: {
+      primary_type: changeType,
+      risk_level: risk.high ? "high" : "low",
+      reason: reasonFor(collectSignals(projectRoot, fs.existsSync(projectRoot), [], userIntent, explicitChangedFiles), risk),
+    },
+    changed_files: explicitChangedFiles,
+    affected_surface_map: surfaces.map((surface) => ({
+      surface: surface.surface,
+      status: surface.status,
+      reason: surface.reason,
+      expected_evidence: surface.expectedEvidence,
+    })),
+    implementation_coverage: surfaces.map((surface) => ({
+      surface: surface.surface,
+      status: surface.status === "NOT_APPLICABLE" ? "NOT_APPLICABLE" : "NOT_STARTED",
+      evidence: "",
+      reason: surface.status === "NOT_APPLICABLE" ? surface.reason : "Pre-execution report.",
+    })),
+    verification_coverage: surfaces
+      .filter((surface) => surface.surface === "TEST_COVERAGE" || surface.status === "REQUIRED")
+      .map((surface) => ({
+        surface: surface.surface,
+        verification: surface.surface === "TEST_COVERAGE" ? "Run task-appropriate tests or smoke evidence." : "Confirm surface-specific evidence after implementation.",
+        evidence: "",
+        status: "NOT_STARTED",
+      })),
+    missed_surface_review: {
+      missed_surfaces_found: "No",
+      notes: "Pre-execution report; missed surfaces must be reviewed after implementation.",
+    },
+    boundaries: {
+      writes_target_files: false,
+      authorizes_implementation: false,
+      approves_release_or_production: false,
+      replaces_human_product_judgment: false,
+      proves_every_possible_impact_was_found: false,
+    },
+    outcome,
+  };
+  return {
+    ...evidence,
+    impact_digest: evidenceDigest(evidence, ["impact_digest"]),
   };
 }
 
@@ -243,9 +319,15 @@ function printHuman(report) {
   console.log("");
   console.log("## Change Type");
   console.log("");
+  console.log(`- Mode: \`${report.mode}\``);
   console.log(`- Primary type: \`${report.changeType.primaryType}\``);
   console.log(`- Risk level: ${report.changeType.riskLevel}`);
   console.log(`- Reason: ${report.changeType.reason}`);
+  console.log("");
+  console.log("## Changed Files");
+  console.log("");
+  if (report.changedFiles.length > 0) report.changedFiles.forEach((file) => console.log(`- \`${file}\``));
+  else console.log("- None provided.");
   console.log("");
   console.log("## Affected Surface Map");
   console.log("");
@@ -294,7 +376,23 @@ function printHuman(report) {
   console.log("- This report replaces human product judgment: No");
   console.log("- This report proves every possible impact was found: No");
   console.log("");
+  console.log("## Machine-Readable Evidence");
+  console.log("");
+  console.log("```json");
+  console.log(JSON.stringify(report.machineReadableEvidence, null, 2));
+  console.log("```");
+  console.log("");
   console.log("## Outcome");
   console.log("");
   console.log(`\`${report.outcome}\``);
+}
+
+function artifactId(userIntent, explicitChangedFiles) {
+  const seed = `${userIntent || "change-impact"}-${explicitChangedFiles.join("-")}`.toLowerCase();
+  const slug = seed
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64)
+    .replace(/^-+|-+$/g, "");
+  return slug || "change-impact";
 }

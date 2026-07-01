@@ -12,9 +12,14 @@ Summarize what may be incomplete if this change is implemented in only one layer
 
 ## Change Type
 
+- Mode: `preflight / closure`
 - Primary type:
 - Risk level:
 - Reason:
+
+## Changed Files
+
+- None provided.
 
 ## Affected Surface Map
 
@@ -74,6 +79,44 @@ Summarize what may be incomplete if this change is implemented in only one layer
 - This report approves release or production: No
 - This report replaces human product judgment: No
 - This report proves every possible impact was found: No
+
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.49.0",
+  "artifact_type": "change_impact_coverage",
+  "artifact_id": "change-impact-example",
+  "impact_digest": "sha256:<computed>",
+  "mode": "preflight",
+  "user_request": {
+    "intent": "<request>",
+    "task_ref": "<task ref or not provided>",
+    "project_profile": "<project/profile>"
+  },
+  "change_type": {
+    "primary_type": "VALIDATION_OR_BUSINESS_RULE",
+    "risk_level": "low",
+    "reason": "<reason>"
+  },
+  "changed_files": [],
+  "affected_surface_map": [],
+  "implementation_coverage": [],
+  "verification_coverage": [],
+  "missed_surface_review": {
+    "missed_surfaces_found": "No",
+    "notes": "<notes>"
+  },
+  "boundaries": {
+    "writes_target_files": false,
+    "authorizes_implementation": false,
+    "approves_release_or_production": false,
+    "replaces_human_product_judgment": false,
+    "proves_every_possible_impact_was_found": false
+  },
+  "outcome": "CHANGE_IMPACT_RECORDED"
+}
+```
 
 ## Outcome
 

@@ -37,6 +37,7 @@ Explain what changed in plain language and why the change is safe to review.
 - Review Surface Card:
 - Review Surface close-out:
 - Change Impact Coverage Report:
+- Strict Change Impact Coverage closure evidence, if required:
 - Review Packet:
 - Review Loop Report:
 - Final Report:

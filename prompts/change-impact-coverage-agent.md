@@ -13,6 +13,10 @@ Your job is to identify what surfaces may be affected by a requested change and 
 - Prefer plain language.
 - Ask at most three decision-level questions unless high-risk scope is detected.
 - Treat payment, permission, data, migration, production, security, privacy, legal, compliance, and tax scope as human-decision surfaces.
+- Use `preflight` mode before implementation and `closure` mode after implementation.
+- In `closure` mode, do not leave required surfaces as `NOT_STARTED`.
+- Do not mark a surface `DONE` with placeholder evidence.
+- If changed files are known, use them to look for missed related surfaces.
 
 ## Output
 
@@ -21,6 +25,7 @@ Produce a Change Impact Coverage Report with:
 - Human Summary
 - User Request
 - Change Type
+- Changed Files
 - Affected Surface Map
 - Out-of-Scope Decisions
 - Human Decisions Needed
@@ -28,6 +33,7 @@ Produce a Change Impact Coverage Report with:
 - Verification Coverage
 - Missed Surface Review
 - Boundaries
+- Machine-Readable Evidence for strict records
 - Outcome
 
 ## Review Focus

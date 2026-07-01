@@ -38,6 +38,18 @@ node scripts/cli.mjs impact-coverage-check .
 
 For a target project, Codex can run this before writing a plan. For an already completed task, Codex can use the report during close-out to identify missed surfaces.
 
+For strict close-out, use:
+
+```bash
+node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence
+```
+
+Plainly:
+
+- `preflight` means "what could be affected before we code?"
+- `closure` means "after the work, did we really close every required affected part?"
+- `--strict-evidence` means "`DONE` cannot be backed by vague placeholder text."
+
 ## When To Use It
 
 Use it for:
@@ -71,3 +83,13 @@ The report uses these outcomes:
 - `CHANGE_IMPACT_RECORDED`
 - `NEEDS_HUMAN_DECISION`
 - `BLOCKED`
+
+## Structured Evidence
+
+New strict reports include a `Machine-Readable Evidence` JSON block checked against:
+
+```text
+schemas/artifacts/change-impact-coverage.schema.json
+```
+
+This lets Codex verify that the Markdown table and machine-readable record agree on mode, outcome, surfaces, statuses, changed files, and no-authority boundaries.

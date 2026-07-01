@@ -383,6 +383,8 @@ Codex selects affected surfaces from the request and project signals. The human 
 
 Every Change Impact Coverage Report must close or decision-bind likely affected surfaces such as `USER_FLOW`, `FRONTEND_UI`, `API_CONTRACT`, `BACKEND_RULE`, `ERROR_COPY`, `TEST_COVERAGE`, and `DOCS_HANDOFF`. High-risk `DATA_MODEL`, `PERMISSION_RISK`, and `RELEASE_IMPACT` surfaces require concrete exclusion reasons or human decision.
 
+Use `--require-structured-evidence --mode closure --strict-evidence` for new strict close-out records when the task has already been implemented.
+
 A Change Impact Coverage Report is read-only planning and close-out evidence. It does not write files, approve implementation, approve release or production, replace Safe Launch, or prove every possible impact was found.
 
 ## Review Loop

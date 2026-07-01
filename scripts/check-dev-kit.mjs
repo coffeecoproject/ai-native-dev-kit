@@ -5895,26 +5895,36 @@ function checkChangeImpactCoverageProtocol() {
     "core/change-impact-coverage.md",
     "docs/change-impact-coverage.md",
     "docs/plans/change-impact-coverage-1.48-plan.md",
+    "docs/plans/structured-impact-coverage-1.49-plan.md",
     "templates/change-impact-coverage-report.md",
     "checklists/change-impact-coverage-review.md",
     "prompts/change-impact-coverage-agent.md",
+    "schemas/artifacts/change-impact-coverage.schema.json",
     "change-impact-coverage-reports/.gitkeep",
     "scripts/resolve-change-impact-coverage.mjs",
     "scripts/check-change-impact-coverage.mjs",
     "examples/1.48-change-impact-coverage/contract-input-rule/README.md",
     "examples/1.48-change-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/README.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
     "test-fixtures/bad/bad-change-impact-backend-only/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-frontend-only/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-api-without-tests/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-high-risk-na/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-approves-implementation/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-missing-structured-evidence/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-placeholder-evidence/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-closure-not-started/change-impact-coverage-reports/001-bad.md",
     "releases/1.48.0/release-record.md",
     "releases/1.48.0/known-limitations.md",
     "releases/1.48.0/self-check-report.md",
+    "releases/1.49.0/release-record.md",
+    "releases/1.49.0/known-limitations.md",
+    "releases/1.49.0/self-check-report.md",
   ];
   for (const file of required) {
-    if (exists(file)) pass(`1.48 change impact coverage asset exists ${file}`);
-    else fail(`1.48 change impact coverage asset missing ${file}`);
+    if (exists(file)) pass(`1.49 change impact coverage asset exists ${file}`);
+    else fail(`1.49 change impact coverage asset missing ${file}`);
   }
 
   const combined = [
@@ -5925,12 +5935,18 @@ function checkChangeImpactCoverageProtocol() {
     read("scripts/resolve-change-impact-coverage.mjs"),
     read("scripts/check-change-impact-coverage.mjs"),
     read("docs/plans/change-impact-coverage-1.48-plan.md"),
+    read("docs/plans/structured-impact-coverage-1.49-plan.md"),
     read("releases/1.48.0/release-record.md"),
+    read("releases/1.49.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
     "Change Impact Coverage",
     "prevents partial implementation",
+    "Machine-Readable Evidence",
+    "require-structured-evidence",
+    "strict-evidence",
+    "closure mode",
     "USER_FLOW",
     "FRONTEND_UI",
     "API_CONTRACT",
@@ -5946,8 +5962,8 @@ function checkChangeImpactCoverageProtocol() {
     "backend-only",
     "frontend-only",
   ]) {
-    if (combined.includes(marker)) pass(`1.48 change impact coverage includes ${marker}`);
-    else fail(`1.48 change impact coverage missing ${marker}`);
+    if (combined.includes(marker)) pass(`1.49 change impact coverage includes ${marker}`);
+    else fail(`1.49 change impact coverage missing ${marker}`);
   }
 
   const resolver = runNode(["scripts/resolve-change-impact-coverage.mjs", "examples/mvp-booking-web-app", "--intent", "add contract input restriction"]);
@@ -5956,9 +5972,9 @@ function checkChangeImpactCoverageProtocol() {
     && resolver.stdout.includes("FRONTEND_UI")
     && resolver.stdout.includes("BACKEND_RULE")
     && resolver.stdout.includes("This report writes target files: No")) {
-    pass("1.48 change impact coverage resolver prints safe cross-surface report");
+    pass("1.49 change impact coverage resolver prints safe cross-surface report");
   } else {
-    fail(`1.48 change impact coverage resolver failed: ${resolver.stderr || resolver.stdout}`);
+    fail(`1.49 change impact coverage resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
   const resolverJson = runNode(["scripts/resolve-change-impact-coverage.mjs", "examples/mvp-booking-web-app", "--intent", "add contract input restriction", "--json"]);
@@ -5967,46 +5983,66 @@ function checkChangeImpactCoverageProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "CHANGE_IMPACT_COVERAGE_REPORT"
         && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.machineReadableEvidence?.artifact_type === "change_impact_coverage"
         && parsed.affectedSurfaceMap?.some((item) => item.surface === "FRONTEND_UI")
         && parsed.affectedSurfaceMap?.some((item) => item.surface === "BACKEND_RULE")) {
-        pass("1.48 change impact coverage resolver JSON includes boundaries and cross-surface map");
+        pass("1.49 change impact coverage resolver JSON includes boundaries, structured evidence, and cross-surface map");
       } else {
-        fail(`1.48 change impact coverage resolver JSON missing expected fields: ${resolverJson.stdout}`);
+        fail(`1.49 change impact coverage resolver JSON missing expected fields: ${resolverJson.stdout}`);
       }
     } catch (error) {
-      fail(`1.48 change impact coverage resolver JSON invalid: ${error.message}`);
+      fail(`1.49 change impact coverage resolver JSON invalid: ${error.message}`);
     }
   } else {
-    fail(`1.48 change impact coverage resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+    fail(`1.49 change impact coverage resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
   }
 
   const check = runNode(["scripts/check-change-impact-coverage.mjs", "."]);
   if (check.status === 0 && check.stdout.includes("Change Impact Coverage check passed")) {
-    pass("1.48 change impact coverage checker passes source repo");
+    pass("1.49 change impact coverage checker passes source repo");
   } else {
-    fail(`1.48 change impact coverage checker failed: ${check.stderr || check.stdout}`);
+    fail(`1.49 change impact coverage checker failed: ${check.stderr || check.stdout}`);
   }
 
   const example = runNode(["scripts/check-change-impact-coverage.mjs", "examples/1.48-change-impact-coverage/contract-input-rule"]);
   if (example.status === 0 && example.stdout.includes("Change Impact Coverage check passed")) {
-    pass("1.48 change impact coverage example passes checker");
+    pass("1.48 legacy change impact coverage example passes checker");
   } else {
     fail(`1.48 change impact coverage example failed: ${example.stderr || example.stdout}`);
   }
 
-  for (const [name, target, expected] of [
-    ["backend-only rule", "test-fixtures/bad/bad-change-impact-backend-only", "backend rule change must close FRONTEND_UI"],
-    ["frontend-only rule", "test-fixtures/bad/bad-change-impact-frontend-only", "frontend rule change must close BACKEND_RULE"],
-    ["API without tests", "test-fixtures/bad/bad-change-impact-api-without-tests", "API contract change needs DONE test coverage evidence"],
-    ["high-risk not applicable", "test-fixtures/bad/bad-change-impact-high-risk-na", "high-risk surface PERMISSION_RISK cannot be NOT_APPLICABLE"],
-    ["approval overclaim", "test-fixtures/bad/bad-change-impact-approves-implementation", "forbidden change impact claim"],
+  const strictExample = runNode([
+    "scripts/check-change-impact-coverage.mjs",
+    "examples/1.49-structured-impact-coverage/contract-input-rule",
+    "--require-structured-evidence",
+    "--mode",
+    "closure",
+    "--strict-evidence",
+  ]);
+  if (strictExample.status === 0
+    && strictExample.stdout.includes("has valid structured evidence")
+    && strictExample.stdout.includes("Change Impact Coverage check passed")) {
+    pass("1.49 structured change impact coverage example passes strict closure checker");
+  } else {
+    fail(`1.49 structured change impact coverage example failed: ${strictExample.stderr || strictExample.stdout}`);
+  }
+
+  for (const [name, target, expected, extraArgs] of [
+    ["backend-only rule", "test-fixtures/bad/bad-change-impact-backend-only", "backend rule change must close FRONTEND_UI", []],
+    ["frontend-only rule", "test-fixtures/bad/bad-change-impact-frontend-only", "frontend rule change must close BACKEND_RULE", []],
+    ["API without tests", "test-fixtures/bad/bad-change-impact-api-without-tests", "API contract change needs DONE test coverage evidence", []],
+    ["high-risk not applicable", "test-fixtures/bad/bad-change-impact-high-risk-na", "high-risk surface PERMISSION_RISK cannot be NOT_APPLICABLE", []],
+    ["approval overclaim", "test-fixtures/bad/bad-change-impact-approves-implementation", "forbidden change impact claim", []],
+    ["missing structured evidence", "test-fixtures/bad/bad-change-impact-missing-structured-evidence", "Machine-Readable Evidence is required", ["--require-structured-evidence", "--mode", "closure"]],
+    ["placeholder evidence", "test-fixtures/bad/bad-change-impact-placeholder-evidence", "uses placeholder evidence", ["--strict-evidence", "--mode", "closure"]],
+    ["closure not started", "test-fixtures/bad/bad-change-impact-closure-not-started", "closure mode cannot leave required surface FRONTEND_UI NOT_STARTED", ["--mode", "closure"]],
   ]) {
-    const result = runNode(["scripts/check-change-impact-coverage.mjs", target]);
+    const result = runNode(["scripts/check-change-impact-coverage.mjs", target, ...extraArgs]);
     const output = `${result.stdout}\n${result.stderr}`;
     if (result.status !== 0 && output.includes(expected)) {
-      pass(`1.48 change impact coverage rejects ${name}`);
+      pass(`1.49 change impact coverage rejects ${name}`);
     } else {
-      fail(`1.48 change impact coverage must reject ${name}: ${output}`);
+      fail(`1.49 change impact coverage must reject ${name}: ${output}`);
     }
   }
 }

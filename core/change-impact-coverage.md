@@ -60,6 +60,21 @@ It is optional for clearly isolated copy-only or docs-only tasks, but Codex must
 - `NEEDS_HUMAN_DECISION`: cannot be closed without human decision.
 - `NOT_STARTED`: pre-execution report only; implementation has not started.
 
+## Modes
+
+Change Impact Coverage has two modes:
+
+- `preflight`: used before implementation. Required surfaces may be `NOT_STARTED` because the report is an impact map, not a completion claim.
+- `closure`: used after implementation or during task close-out. Required surfaces must not remain `NOT_STARTED`; each one must be `DONE`, `NOT_APPLICABLE`, `OUT_OF_SCOPE`, or `NEEDS_HUMAN_DECISION` with evidence or reason.
+
+Legacy Markdown reports remain valid by default. New strict records should include `Machine-Readable Evidence` and can be checked with:
+
+```bash
+node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence
+```
+
+Strict mode rejects placeholder `DONE` evidence such as `TBD`, `placeholder`, `not recorded`, or example-only evidence.
+
 ## Required Behavior
 
 Before implementation, Codex should:
@@ -77,6 +92,15 @@ After implementation, Codex should:
 3. Explain every `NOT_APPLICABLE` or `OUT_OF_SCOPE` surface.
 4. Stop if permission, data, migration, payment, production, or compliance scope needs human decision.
 5. Feed missed surfaces into Review Loop or Execution Closure.
+
+When `--changed-files` or a changed-file list is available, Codex must use it as a risk signal:
+
+- backend validation/rule files imply frontend, API, error copy, and test closure for rule changes
+- frontend form/view files imply backend, API, and test closure for rule changes
+- API/DTO/schema files imply API and test closure
+- migration/schema/model files imply data-model review
+- auth/permission/security files imply human permission-risk review unless clearly closed
+- deploy/release/rollback/CI files imply release-impact review unless clearly closed
 
 ## Stop Conditions
 
@@ -103,5 +127,6 @@ Stop and ask for human decision when:
 - Engineering Baseline defines project conventions.
 - Product Completeness checks whether a product slice is usable.
 - Execution Closure proves what changed and how it was verified.
+- Execution Closure should cite Change Impact Coverage when a cross-surface rule or behavior change is closed.
 - Review Loop handles low-risk repair and re-review.
 - Safe Launch remains required before launch or production claims.

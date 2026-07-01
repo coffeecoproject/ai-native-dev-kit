@@ -152,6 +152,8 @@ function checkReports() {
     else fail(`${label} must include review result statuses`);
     if (/Review Surface Card/i.test(evidenceBody)) pass(`${label} includes evidence links`);
     else fail(`${label} missing evidence links`);
+    if (/Change Impact Coverage Report/i.test(evidenceBody)) pass(`${label} can cite change impact coverage evidence`);
+    else pass(`${label} change impact coverage evidence not provided; optional unless cross-surface behavior changed`);
     rejectChangedFilesOnlyPass(reviewBody, label, "FUNCTIONAL_REVIEW");
     rejectChangedFilesOnlyPass(reviewBody, label, "CODE_REVIEW");
 

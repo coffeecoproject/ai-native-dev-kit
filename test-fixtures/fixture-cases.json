@@ -2147,6 +2147,76 @@
     "howToFix": "Keep the 1.48 contract input rule example complete across frontend, API, backend, copy, tests, and handoff surfaces."
   },
   {
+    "name": "good structured change impact coverage closure",
+    "type": "golden",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "examples/1.49-structured-impact-coverage/contract-input-rule",
+      "--require-structured-evidence",
+      "--mode",
+      "closure",
+      "--strict-evidence"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "has valid structured evidence",
+      "Change Impact Coverage check passed"
+    ],
+    "howToFix": "Keep the 1.49 structured impact coverage example valid in strict closure mode."
+  },
+  {
+    "name": "bad change impact missing structured evidence",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-missing-structured-evidence",
+      "--require-structured-evidence",
+      "--mode",
+      "closure"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "Machine-Readable Evidence is required"
+    ],
+    "howToFix": "Strict impact coverage records must include machine-readable evidence."
+  },
+  {
+    "name": "bad change impact placeholder evidence",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-placeholder-evidence",
+      "--strict-evidence",
+      "--mode",
+      "closure"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "uses placeholder evidence"
+    ],
+    "howToFix": "Strict impact coverage DONE evidence must be concrete, not placeholder text."
+  },
+  {
+    "name": "bad change impact closure not started",
+    "type": "bad",
+    "checker": "check-change-impact-coverage",
+    "script": "scripts/check-change-impact-coverage.mjs",
+    "args": [
+      "test-fixtures/bad/bad-change-impact-closure-not-started",
+      "--mode",
+      "closure"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "closure mode cannot leave required surface FRONTEND_UI NOT_STARTED",
+      "closure changed-files backend rule work must close FRONTEND_UI"
+    ],
+    "howToFix": "Closure mode must not leave required impact surfaces open after backend rule files changed."
+  },
+  {
     "name": "bad change impact coverage backend only",
     "type": "bad",
     "checker": "check-change-impact-coverage",

@@ -93,6 +93,8 @@ jobs:
         run: node scripts/resolve-change-impact-coverage.mjs . --intent "workflow CI maintenance"
       - name: Check change impact coverage
         run: node scripts/check-change-impact-coverage.mjs .
+      - name: Check structured change impact coverage example
+        run: node scripts/check-change-impact-coverage.mjs examples/1.49-structured-impact-coverage/contract-input-rule --require-structured-evidence --mode closure --strict-evidence
       - name: Resolve delivery path
         run: node scripts/resolve-delivery-path.mjs .
       - name: Check delivery path

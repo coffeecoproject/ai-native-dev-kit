@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.48.0`.
+Current release: `1.49.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.48.x`, focused on change impact coverage so business-rule changes do not stop at one layer.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.49.x`, focused on structured impact coverage so business-rule changes cannot be closed with open surfaces or placeholder evidence.
 
-1.48.0 adds Change Impact Coverage: when a task changes validation, input rules, API behavior, backend logic, data, permissions, or user-facing messages, Codex records which related surfaces must be handled, ruled out, or sent back for human decision.
+1.49.0 hardens Change Impact Coverage: Codex can use `preflight` before implementation, `closure` after implementation, structured evidence for strict records, and changed-file signals to catch incomplete frontend/API/backend/test handoff.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -142,6 +142,7 @@ For durable command-line evidence, use:
 | 判断是否像一个产品 | `node scripts/cli.mjs product-completeness ../my-project --evidence evidence/smoke-output.txt` |
 | 看更完整的下一步建议 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` |
 | 检查一次规则变更会影响哪些面 | `node scripts/cli.mjs impact-coverage ../my-project --intent "新增合同录入限制"` |
+| 严格检查规则变更是否完整收口 | `node scripts/check-change-impact-coverage.mjs ../my-project --require-structured-evidence --mode closure --strict-evidence` |
 | 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
 | 判断小改动能否进入后续人工批准计划 | `node scripts/cli.mjs apply-candidate ../my-project --intent "update local demo copy" --path src/example.js` |
 
@@ -161,6 +162,7 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
 | 检查文档生命周期 | `node scripts/cli.mjs doc-lifecycle ../my-project` |
 | 检查变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage-check ../my-project` |
+| 严格检查变更影响闭环证据 | `node scripts/check-change-impact-coverage.mjs ../my-project --require-structured-evidence --mode closure --strict-evidence` |
 | 规划 hook 而不安装 | `node scripts/cli.mjs hook-policy ../my-project` |
 | 执行完成后收口 | `node scripts/cli.mjs closure ../my-project --intent "完成预约校验" --verification "npm run verify passed"` |
 | 检查当前配置 | `node scripts/cli.mjs check ../my-project --mode core` |
@@ -229,6 +231,7 @@ node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
 node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs .
+node scripts/check-change-impact-coverage.mjs examples/1.49-structured-impact-coverage/contract-input-rule --require-structured-evidence --mode closure --strict-evidence
 ```
 
 ## Documentation
@@ -305,6 +308,7 @@ Reference:
 
 Current release:
 
+- [1.49.0 Release Record](releases/1.49.0/release-record.md)
 - [1.48.0 Release Record](releases/1.48.0/release-record.md)
 - [1.47.0 Release Record](releases/1.47.0/release-record.md)
 - [1.46.0 Release Record](releases/1.46.0/release-record.md)
