@@ -83,6 +83,14 @@ node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --
 
 `--resolve-evidence-refs` requires every `DONE` implementation and verification evidence reference to resolve to a bounded project-local file, `command-output:<path>`, `artifact:<id-or-ref>`, or `human-decision:<id-or-ref>`.
 
+For close-out evidence precision, use:
+
+```bash
+node scripts/check-change-impact-coverage.mjs . --report change-impact-coverage-reports/001-example.md --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs --require-precise-evidence
+```
+
+`--report` checks one exact Change Impact Coverage report. `--require-precise-evidence` requires resolved evidence files to contain meaningful non-placeholder content, and requires `artifact:<id-or-ref>` and `human-decision:<id-or-ref>` to resolve to real recorded project artifacts. It remains read-only.
+
 ## Required Behavior
 
 Before implementation, Codex should:
@@ -139,5 +147,6 @@ Stop and ask for human decision when:
 - Execution Closure proves what changed and how it was verified.
 - Execution Closure should cite Change Impact Coverage when a cross-surface rule or behavior change is closed.
 - Strict Execution Closure can use `--require-impact-coverage` to require a linked Change Impact Coverage report before `READY_FOR_COMMIT_REVIEW`.
+- Precision Execution Closure can use `--require-precise-evidence` to require the exact linked report to match the current closure task or intent.
 - Review Loop handles low-risk repair and re-review.
 - Safe Launch remains required before launch or production claims.

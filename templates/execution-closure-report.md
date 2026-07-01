@@ -108,3 +108,5 @@ What happens if you do nothing: TODO.
 ## Outcome
 
 `CLOSURE_RECORDED`
+
+Precision mode may require the linked Change Impact Coverage Report to be the exact current task report and to match this closure task or intent.

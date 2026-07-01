@@ -63,6 +63,8 @@ Summarize what may be incomplete if this change is implemented in only one layer
 
 Evidence may be a project-local file path, `command-output:<path>`, `artifact:<id>`, or `human-decision:<id>` when strict evidence reference resolution is enabled.
 
+When precision mode is enabled, evidence files must contain meaningful non-placeholder content, and `artifact:` / `human-decision:` references must resolve to real recorded project artifacts.
+
 ## Verification Coverage
 
 | Surface | Verification | Evidence | Status |

@@ -50,6 +50,14 @@ node scripts/check-execution-closure.mjs . --require-impact-coverage
 
 Plainly: if the closure says the work is ready, it must point to a Change Impact Coverage report that proves the affected surfaces were closed.
 
+For stricter close-out, use:
+
+```bash
+node scripts/check-execution-closure.mjs . --require-impact-coverage --require-precise-evidence
+```
+
+Plainly: the linked impact report must be the right report for this task, not just any old report in the project.
+
 If verification already ran, pass a plain evidence note:
 
 ```bash

@@ -5,17 +5,18 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { resolveEvidenceReference } from "./lib/artifact-schema.mjs";
+import { extractMachineReadableEvidence, resolveEvidenceReference } from "./lib/artifact-schema.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "require-impact-coverage"]);
+const knownFlags = new Set(["json", "require-impact-coverage", "require-precise-evidence"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireImpactCoverage = Boolean(args["require-impact-coverage"]);
+const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -193,7 +194,7 @@ function checkReports() {
         fail(`${label} READY_FOR_COMMIT_REVIEW requires verification evidence link`);
       }
       if (requireImpactCoverage && crossSurfaceClosureChange(content)) {
-        requireImpactCoverageLink(evidenceBody, file, label);
+        requireImpactCoverageLink(content, evidenceBody, file, label);
       }
       if (!/\|\s*`?[A-Z][A-Z0-9_]+`?\s*\|\s*(fail|not verified)\s*\|/i.test(reviewBody)) {
         pass(`${label} ready-for-commit closes selected review surfaces`);
@@ -238,11 +239,21 @@ function checkSourceEvidence() {
     "examples/1.33-evidence-linked-closure/debt-handoff-reports/001-booking.md",
     "examples/1.33-evidence-linked-closure/delivery-path-reports/001-booking.md",
     "examples/1.49-structured-impact-coverage/contract-input-rule/execution-closures/001-contract-input-rule.md",
+    "docs/plans/closeout-evidence-precision-1.51-plan.md",
     "test-fixtures/bad/bad-execution-closure-approves-implementation/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-missing-verification/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-changed-files-pass/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-ready-without-evidence/execution-closures/001-bad.md",
     "test-fixtures/bad/bad-execution-closure-missing-impact-coverage/execution-closures/001-bad.md",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/change-impact-coverage-reports/001-contract-input-rule.md",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/evidence/api-contract-title-validation.txt",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/evidence/backend-contract-validation.txt",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/evidence/docs-contract-input-rule.md",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/evidence/error-copy-title-required.txt",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/evidence/frontend-contract-form-validation.txt",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/evidence/test-contract-input-rule.txt",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/evidence/user-flow-contract-title-required.txt",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report/execution-closures/001-contract-input-rule.md",
     "releases/1.32.0/release-record.md",
     "releases/1.32.0/known-limitations.md",
     "releases/1.32.0/self-check-report.md",
@@ -252,6 +263,9 @@ function checkSourceEvidence() {
     "releases/1.50.0/release-record.md",
     "releases/1.50.0/known-limitations.md",
     "releases/1.50.0/self-check-report.md",
+    "releases/1.51.0/release-record.md",
+    "releases/1.51.0/known-limitations.md",
+    "releases/1.51.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`execution closure source evidence exists ${file}`);
     else fail(`execution closure source evidence missing ${file}`);
@@ -302,11 +316,12 @@ function checkSourceEvidence() {
     fail(`1.33 evidence-linked closure example failed: ${evidenceExample.stderr || evidenceExample.stdout}`);
   }
 
-  const impactCoverageExample = runNode(["scripts/check-execution-closure.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule", "--require-impact-coverage"]);
+  const impactCoverageExample = runNode(["scripts/check-execution-closure.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule", "--require-impact-coverage", "--require-precise-evidence"]);
   if (impactCoverageExample.status === 0
     && impactCoverageExample.stdout.includes("linked Change Impact Coverage Report passes strict closure evidence checks")
+    && impactCoverageExample.stdout.includes("precise linked report matches current closure task or intent")
     && impactCoverageExample.stdout.includes("Execution Review Closure check passed")) {
-    pass("1.50 execution closure example requires linked strict impact coverage");
+    pass("1.51 execution closure example requires linked precise impact coverage");
   } else {
     fail(`1.50 execution closure impact coverage example failed: ${impactCoverageExample.stderr || impactCoverageExample.stdout}`);
   }
@@ -354,6 +369,7 @@ function checkSourceEvidence() {
     ["changed files pass", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-changed-files-pass"], "changed files as the only evidence"],
     ["ready without evidence", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-ready-without-evidence"], "requires Review Surface Card found"],
     ["missing impact coverage", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-missing-impact-coverage", "--require-impact-coverage"], "requires Change Impact Coverage Report found"],
+    ["stale impact report", ["scripts/check-execution-closure.mjs", "test-fixtures/bad/bad-execution-closure-stale-impact-report", "--require-impact-coverage", "--require-precise-evidence"], "precise linked report must match current closure task or intent"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -412,7 +428,7 @@ function requireEvidenceLinkStatus(evidenceBody, label, evidence, status) {
   else fail(`${label} READY_FOR_COMMIT_REVIEW requires ${evidence} ${status}`);
 }
 
-function requireImpactCoverageLink(evidenceBody, file, label) {
+function requireImpactCoverageLink(content, evidenceBody, file, label) {
   const link = evidenceLink(evidenceBody, "Change Impact Coverage Report");
   if (!link) {
     fail(`${label} READY_FOR_COMMIT_REVIEW requires Change Impact Coverage Report found`);
@@ -429,20 +445,76 @@ function requireImpactCoverageLink(evidenceBody, file, label) {
     return;
   }
 
-  const impactCheck = runNode([
+  const impactCheckArgs = [
     "scripts/check-change-impact-coverage.mjs",
     projectRoot,
+  ];
+  if (requirePreciseEvidence) {
+    impactCheckArgs.push("--report", rel(resolved));
+  }
+  impactCheckArgs.push(
     "--require-structured-evidence",
     "--mode",
     "closure",
     "--strict-evidence",
     "--resolve-evidence-refs",
-  ]);
+  );
+  if (requirePreciseEvidence) impactCheckArgs.push("--require-precise-evidence");
+
+  const impactCheck = runNode(impactCheckArgs);
   if (impactCheck.status === 0) {
     pass(`${label} linked Change Impact Coverage Report passes strict closure evidence checks`);
   } else {
     fail(`${label} linked Change Impact Coverage Report failed strict closure evidence checks: ${impactCheck.stderr || impactCheck.stdout}`);
   }
+
+  if (requirePreciseEvidence) {
+    requirePreciseImpactCoverageLink(content, resolved, label);
+  }
+}
+
+function requirePreciseImpactCoverageLink(closureContent, impactFile, label) {
+  const reportContent = fs.readFileSync(impactFile, "utf8");
+  const extracted = extractMachineReadableEvidence(reportContent);
+  const evidence = extracted?.ok ? extracted.value : null;
+  if (evidence?.artifact_type === "change_impact_coverage") {
+    pass(`${label} precise linked report has change_impact_coverage artifact type`);
+  } else {
+    fail(`${label} precise linked report must be artifact type change_impact_coverage`);
+  }
+
+  const closureTask = normalizeComparable(tableValue(closureContent, "Related task card"));
+  const closureIntent = normalizeComparable(tableValue(closureContent, "User intent"));
+  const reportTask = normalizeComparable(evidence?.user_request?.task_ref || markdownTaskRef(reportContent));
+  const reportIntent = normalizeComparable(evidence?.user_request?.intent || markdownRequest(reportContent));
+
+  const taskMatches = Boolean(closureTask && reportTask && (closureTask === reportTask || closureTask.includes(reportTask) || reportTask.includes(closureTask)));
+  const intentMatches = Boolean(closureIntent && reportIntent && (closureIntent === reportIntent || closureIntent.includes(reportIntent) || reportIntent.includes(closureIntent)));
+
+  if (taskMatches || intentMatches) {
+    pass(`${label} precise linked report matches current closure task or intent`);
+  } else {
+    fail(`${label} precise linked report must match current closure task or intent`);
+  }
+}
+
+function markdownTaskRef(content) {
+  const match = String(content || "").match(/^\s*-\s*Task ref\s*:\s*(.+)$/im);
+  return match ? match[1].trim() : "";
+}
+
+function markdownRequest(content) {
+  const match = String(content || "").match(/^\s*-\s*Request\s*:\s*(.+)$/im);
+  return match ? match[1].trim() : "";
+}
+
+function normalizeComparable(value) {
+  return String(value || "")
+    .replace(/`/g, "")
+    .replace(/\b(TODO|N\/A|not provided)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 function evidenceLink(evidenceBody, evidence) {

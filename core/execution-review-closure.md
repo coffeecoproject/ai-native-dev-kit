@@ -103,6 +103,14 @@ node scripts/check-execution-closure.mjs . --require-impact-coverage
 
 In that mode, a `READY_FOR_COMMIT_REVIEW` closure that mentions validation, business rules, API, backend, data, permission, schema, contract, input restriction, or error-copy work must cite a found Change Impact Coverage Report. The linked project must also pass the strict Change Impact Coverage checker with evidence reference resolution.
 
+For close-out evidence precision, use:
+
+```bash
+node scripts/check-execution-closure.mjs . --require-impact-coverage --require-precise-evidence
+```
+
+In precision mode, Execution Closure validates the exact linked Change Impact Coverage report. The linked report must be a `change_impact_coverage` artifact, pass strict single-report checking, and match the current closure task or intent. This prevents an old or unrelated report from closing the current task.
+
 ## Relationship To Other Workflow Layers
 
 Execution Review Closure consumes or references:

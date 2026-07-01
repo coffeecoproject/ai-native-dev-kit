@@ -56,6 +56,19 @@ Plainly:
 - `closure` means "after the work, did we really close every required affected part?"
 - `--strict-evidence` means "`DONE` cannot be backed by vague placeholder text."
 - `--resolve-evidence-refs` means "`DONE` evidence must point to a real project-local file or accepted recorded reference."
+- `--require-precise-evidence` means resolved files must have meaningful content, and recorded `artifact:` / `human-decision:` references must point to real records.
+
+To check one exact report during close-out:
+
+```bash
+node scripts/check-change-impact-coverage.mjs . \
+  --report change-impact-coverage-reports/001-example.md \
+  --require-structured-evidence \
+  --mode closure \
+  --strict-evidence \
+  --resolve-evidence-refs \
+  --require-precise-evidence
+```
 
 Codex can also read changed files from git:
 

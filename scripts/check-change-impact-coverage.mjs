@@ -9,14 +9,16 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "mode", "require-structured-evidence", "strict-evidence", "resolve-evidence-refs"]);
+const knownFlags = new Set(["json", "mode", "report", "require-structured-evidence", "strict-evidence", "resolve-evidence-refs", "require-precise-evidence"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requestedMode = args.mode ? String(args.mode).trim().toLowerCase() : "";
+const requestedReport = args.report ? String(args.report).trim() : "";
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const strictEvidence = Boolean(args["strict-evidence"]);
-const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"]);
+const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
+const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"] || requirePreciseEvidence);
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -146,7 +148,7 @@ function checkCoreContent() {
 }
 
 function checkReports() {
-  const files = markdownFiles("change-impact-coverage-reports");
+  const files = requestedReport ? selectedReportFiles(requestedReport) : markdownFiles("change-impact-coverage-reports");
   if (files.length === 0) {
     pass("change impact coverage check skipped: no reports");
     return;
@@ -493,6 +495,7 @@ function checkSourceEvidence() {
     "checklists/change-impact-coverage-review.md",
     "prompts/change-impact-coverage-agent.md",
     "docs/plans/evidence-reference-resolution-1.50-plan.md",
+    "docs/plans/closeout-evidence-precision-1.51-plan.md",
     "change-impact-coverage-reports/.gitkeep",
     "schemas/artifacts/change-impact-coverage.schema.json",
     "scripts/resolve-change-impact-coverage.mjs",
@@ -518,6 +521,9 @@ function checkSourceEvidence() {
     "test-fixtures/bad/bad-change-impact-placeholder-evidence/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-closure-not-started/change-impact-coverage-reports/001-bad.md",
     "test-fixtures/bad/bad-change-impact-missing-evidence-ref/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-weak-evidence/change-impact-coverage-reports/001-bad.md",
+    "test-fixtures/bad/bad-change-impact-weak-evidence/evidence/weak.txt",
+    "test-fixtures/bad/bad-change-impact-unresolved-artifact-ref/change-impact-coverage-reports/001-bad.md",
     "releases/1.48.0/release-record.md",
     "releases/1.48.0/known-limitations.md",
     "releases/1.48.0/self-check-report.md",
@@ -527,6 +533,9 @@ function checkSourceEvidence() {
     "releases/1.50.0/release-record.md",
     "releases/1.50.0/known-limitations.md",
     "releases/1.50.0/self-check-report.md",
+    "releases/1.51.0/release-record.md",
+    "releases/1.51.0/known-limitations.md",
+    "releases/1.51.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.49 change impact coverage source evidence exists ${file}`);
     else fail(`1.49 change impact coverage source evidence missing ${file}`);
@@ -578,11 +587,15 @@ function checkSourceEvidence() {
     "closure",
     "--strict-evidence",
     "--resolve-evidence-refs",
+    "--require-precise-evidence",
+    "--report",
+    "change-impact-coverage-reports/001-contract-input-rule.md",
   ]);
   if (strictExample.status === 0
     && strictExample.stdout.includes("has valid structured evidence")
+    && strictExample.stdout.includes("precise evidence refs pass")
     && strictExample.stdout.includes("Change Impact Coverage check passed")) {
-    pass("1.49 structured change impact coverage example passes strict closure checker");
+    pass("1.51 structured change impact coverage example passes strict precision checker");
   } else {
     fail(`1.49 structured change impact coverage example failed: ${strictExample.stderr || strictExample.stdout}`);
   }
@@ -597,6 +610,8 @@ function checkSourceEvidence() {
     ["placeholder evidence", "test-fixtures/bad/bad-change-impact-placeholder-evidence", "uses placeholder evidence", ["--strict-evidence", "--mode", "closure"]],
     ["closure not started", "test-fixtures/bad/bad-change-impact-closure-not-started", "closure mode cannot leave required surface FRONTEND_UI NOT_STARTED", ["--mode", "closure"]],
     ["missing evidence ref", "test-fixtures/bad/bad-change-impact-missing-evidence-ref", "evidence ref is not resolvable", ["--mode", "closure", "--resolve-evidence-refs"]],
+    ["weak precise evidence", "test-fixtures/bad/bad-change-impact-weak-evidence", "resolved evidence file is empty or too short", ["--mode", "closure", "--resolve-evidence-refs", "--require-precise-evidence"]],
+    ["unresolved artifact ref", "test-fixtures/bad/bad-change-impact-unresolved-artifact-ref", "artifact record was not found", ["--mode", "closure", "--resolve-evidence-refs", "--require-precise-evidence"]],
   ]) {
     const [name, target, expected, extraArgs] = fixture;
     const result = runNode(["scripts/check-change-impact-coverage.mjs", target, ...extraArgs]);
@@ -678,6 +693,21 @@ function requireResolvableEvidenceRef(label, reportFile, row, context) {
     return;
   }
 
+  if (requirePreciseEvidence) {
+    let allResolved = true;
+    for (const ref of refs) {
+      const result = preciseEvidenceResolution(reportFile, ref);
+      if (result.ok) {
+        pass(`${label} ${context} ${row.surface} precise evidence ref resolves: ${ref}`);
+      } else {
+        allResolved = false;
+        fail(`${label} ${context} ${row.surface} precise evidence ref failed: ${ref} (${result.reason})`);
+      }
+    }
+    if (allResolved) pass(`${label} ${context} ${row.surface} precise evidence refs pass`);
+    return;
+  }
+
   const resolved = refs.find((ref) => isResolvableEvidenceRef(reportFile, ref));
   if (resolved) {
     pass(`${label} ${context} ${row.surface} evidence ref resolves`);
@@ -716,6 +746,103 @@ function isResolvableEvidenceRef(reportFile, ref) {
   return Boolean(resolveEvidenceReference(projectRoot, reportFile, value));
 }
 
+function preciseEvidenceResolution(reportFile, ref) {
+  const value = String(ref || "").trim();
+  if (!value || placeholderEvidence(value)) return { ok: false, reason: "placeholder or empty reference" };
+
+  const commandOutput = value.match(/^command-output:(.+)$/i);
+  if (commandOutput) {
+    return preciseFileResolution(reportFile, commandOutput[1].trim(), "command-output");
+  }
+
+  const artifact = value.match(/^artifact:(.+)$/i);
+  if (artifact) {
+    return preciseRecordedReferenceResolution(reportFile, artifact[1].trim(), "artifact");
+  }
+
+  const humanDecision = value.match(/^human-decision:(.+)$/i);
+  if (humanDecision) {
+    return preciseRecordedReferenceResolution(reportFile, humanDecision[1].trim(), "human-decision");
+  }
+
+  return preciseFileResolution(reportFile, value, "file");
+}
+
+function preciseFileResolution(reportFile, ref, kind) {
+  const file = resolveEvidenceReference(projectRoot, reportFile, ref);
+  if (!file) return { ok: false, reason: `${kind} reference is not project-local or does not exist` };
+  const quality = evidenceFileQuality(file);
+  if (!quality.ok) return quality;
+  return { ok: true, file };
+}
+
+function preciseRecordedReferenceResolution(reportFile, ref, kind) {
+  const direct = resolveEvidenceReference(projectRoot, reportFile, ref);
+  if (direct) {
+    const quality = evidenceFileQuality(direct);
+    if (!quality.ok) return quality;
+    return { ok: true, file: direct };
+  }
+
+  const found = findRecordedReference(ref, kind);
+  if (!found) return { ok: false, reason: `${kind} record was not found` };
+  const quality = evidenceFileQuality(found);
+  if (!quality.ok) return quality;
+  return { ok: true, file: found };
+}
+
+function findRecordedReference(ref, kind) {
+  const needle = stripMarkdown(ref).trim();
+  if (!needle || placeholderEvidence(needle)) return null;
+  const roots = kind === "human-decision"
+    ? ["approval-records", "guided-decision-summaries", "decision-briefs", "human-status-reports"]
+    : [
+        "change-impact-coverage-reports",
+        "execution-closures",
+        "review-surface-cards",
+        "review-loop-reports",
+        "change-boundary-reports",
+        "debt-handoff-reports",
+        "delivery-path-reports",
+        "approval-records",
+        "apply-plans",
+      ];
+  for (const root of roots) {
+    const dir = path.join(projectRoot, root);
+    if (!fs.existsSync(dir)) continue;
+    const files = [];
+    walk(dir, files);
+    for (const file of files.filter((item) => item.endsWith(".md"))) {
+      const relative = rel(file);
+      if (relative === needle || relative.endsWith(`/${needle}`) || path.basename(file, ".md") === needle) return file;
+      const content = fs.readFileSync(file, "utf8");
+      if (containsRecordedId(content, needle)) return file;
+    }
+  }
+  return null;
+}
+
+function containsRecordedId(content, id) {
+  const escaped = escapeRegExp(id);
+  return new RegExp(`"artifact_id"\\s*:\\s*"${escaped}"`, "i").test(content)
+    || new RegExp(`\\bArtifact ID\\s*[:|]\\s*\`?${escaped}\`?`, "i").test(content)
+    || new RegExp(`\\bDecision ID\\s*[:|]\\s*\`?${escaped}\`?`, "i").test(content)
+    || new RegExp(`\\bApproval ID\\s*[:|]\\s*\`?${escaped}\`?`, "i").test(content);
+}
+
+function evidenceFileQuality(file) {
+  let content = "";
+  try {
+    content = fs.readFileSync(file, "utf8");
+  } catch (error) {
+    return { ok: false, reason: `cannot read evidence file: ${error.message}` };
+  }
+  const text = stripMarkdown(content).replace(/\s+/g, " ").trim();
+  if (text.length < 16) return { ok: false, reason: "resolved evidence file is empty or too short" };
+  if (placeholderEvidence(text)) return { ok: false, reason: "resolved evidence file contains placeholder evidence" };
+  return { ok: true, file };
+}
+
 function codeOrTextValue(body) {
   const code = String(body || "").match(/`([A-Z_]+)`/);
   if (code) return code[1];
@@ -729,6 +856,25 @@ function markdownFiles(dir) {
   const files = [];
   walk(rootDir, files);
   return files.filter((file) => /\.md$/i.test(file)).sort();
+}
+
+function selectedReportFiles(reportRef) {
+  const candidates = [];
+  if (path.isAbsolute(reportRef)) candidates.push(path.resolve(reportRef));
+  else {
+    candidates.push(path.resolve(projectRoot, reportRef));
+    candidates.push(path.resolve(projectRoot, "change-impact-coverage-reports", reportRef));
+  }
+  for (const candidate of candidates) {
+    const relative = path.relative(projectRoot, candidate);
+    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile() && /\.md$/i.test(candidate)) {
+      pass(`selected change impact coverage report found ${relative.replaceAll(path.sep, "/")}`);
+      return [candidate];
+    }
+  }
+  fail(`selected change impact coverage report is not resolvable: ${reportRef}`);
+  return [];
 }
 
 function walk(dir, files) {

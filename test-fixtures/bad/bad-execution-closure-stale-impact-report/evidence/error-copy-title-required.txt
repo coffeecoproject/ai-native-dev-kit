@@ -1,0 +1,5 @@
+Error copy evidence:
+
+- Blank contract title shows: "Contract title is required."
+- The message explains the blocked action without exposing internal details.
+- The same copy is used by frontend and backend validation evidence.
