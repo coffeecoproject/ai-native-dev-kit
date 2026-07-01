@@ -413,6 +413,34 @@ function checkVersionMetadata() {
     fail(`templates/workflow-version.json version ${workflowVersion.devKitVersion} does not match ${version}`);
   }
 
+  const packageVersion = JSON.parse(read("package.json")).version;
+  if (packageVersion === version) {
+    pass("package.json matches current version");
+  } else {
+    fail(`package.json version ${packageVersion} does not match ${version}`);
+  }
+
+  const manifestVersion = JSON.parse(read("dev-kit-manifest.json")).devKitVersion;
+  if (manifestVersion === version) {
+    pass("dev-kit-manifest.json matches current version");
+  } else {
+    fail(`dev-kit-manifest.json version ${manifestVersion} does not match ${version}`);
+  }
+
+  const readme = read("README.md");
+  if (readme.includes(`Current release: \`${version}\`.`) && readme.includes(`releases/${version}/release-record.md`)) {
+    pass("README.md current release matches current version");
+  } else {
+    fail(`README.md current release metadata must match ${version}`);
+  }
+
+  const chineseReadme = read("README.zh-CN.md");
+  if (chineseReadme.includes(`当前版本：\`${version}\`。`) && chineseReadme.includes(`releases/${version}/release-record.md`)) {
+    pass("README.zh-CN.md current release matches current version");
+  } else {
+    fail(`README.zh-CN.md current release metadata must match ${version}`);
+  }
+
   const versionRecord = read("templates/version-record.md");
   if (versionRecord.includes(`\`${version}\``)) {
     pass("templates/version-record.md matches current version");
