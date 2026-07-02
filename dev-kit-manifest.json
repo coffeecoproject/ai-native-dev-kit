@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.52.0",
+  "devKitVersion": "1.53.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.52.0"
+    "phase": "1.53.0"
   },
   "groups": {
     "sourceRequired": [
@@ -64,6 +64,7 @@
       "checklists/change-boundary-review.md",
       "checklists/change-impact-coverage-review.md",
       "checklists/claim-control-review.md",
+      "checklists/closure-decision-review.md",
       "checklists/context-governance-review.md",
       "checklists/controlled-apply-readiness-review.md",
       "checklists/conversation-drift-review.md",
@@ -109,6 +110,7 @@
       "checklists/verification-gate.md",
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md",
+      "closure-decisions/.gitkeep",
       "context-corrections/.gitkeep",
       "controlled-apply-candidates/.gitkeep",
       "conversation-ask-cards/.gitkeep",
@@ -169,6 +171,7 @@
       "core/subagent-orchestration.md",
       "core/task-levels.md",
       "core/unified-apply-plan.md",
+      "core/unified-closure-model.md",
       "core/workflow.md",
       "debt-handoff-reports/.gitkeep",
       "decision-briefs/035-readonly-manifest.md",
@@ -270,6 +273,7 @@
       "docs/plans/structured-impact-coverage-1.49-plan.md",
       "docs/plans/subagent-dispatch-hygiene-1.39-plan.md",
       "docs/plans/unified-apply-plan-1.34-plan.md",
+      "docs/plans/unified-closure-model-1.53-plan.md",
       "docs/platform-standard-baseline-packs.md",
       "docs/product-baseline.md",
       "docs/product-completeness-gate.md",
@@ -298,6 +302,7 @@
       "docs/subagent-dispatch-hygiene.md",
       "docs/troubleshooting.md",
       "docs/unified-apply-plan.md",
+      "docs/unified-closure-model.md",
       "evals/034-baseline-freeze-self-ci.md",
       "evals/035-readonly-manifest.md",
       "evals/036-cli-front-door.md",
@@ -471,6 +476,8 @@
       "examples/1.50-evidence-reference-resolution/README.md",
       "examples/1.52-guided-closure-experience/README.md",
       "examples/1.52-guided-closure-experience/guided-closure-cards/001-booking-validation.md",
+      "examples/1.53-unified-closure-model/README.md",
+      "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
       "examples/1.6-conversation-drift-control/README.md",
       "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
@@ -828,6 +835,7 @@
       "prompts/change-boundary-agent.md",
       "prompts/change-impact-coverage-agent.md",
       "prompts/claim-control-agent.md",
+      "prompts/closure-decision-agent.md",
       "prompts/context-governance-agent.md",
       "prompts/controlled-apply-readiness-agent.md",
       "prompts/conversation-native-ask-agent.md",
@@ -1053,6 +1061,9 @@
       "releases/1.52.0/known-limitations.md",
       "releases/1.52.0/release-record.md",
       "releases/1.52.0/self-check-report.md",
+      "releases/1.53.0/known-limitations.md",
+      "releases/1.53.0/release-record.md",
+      "releases/1.53.0/self-check-report.md",
       "releases/1.6.0/known-limitations.md",
       "releases/1.6.0/release-record.md",
       "releases/1.6.0/self-check-report.md",
@@ -1158,6 +1169,7 @@
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
+      "scripts/check-closure-decision.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -1219,6 +1231,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
+      "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -1432,6 +1445,7 @@
       "templates/change-boundary-report.md",
       "templates/change-impact-coverage-report.md",
       "templates/claim-control-report.md",
+      "templates/closure-decision.md",
       "templates/context-correction-report.md",
       "templates/controlled-apply-readiness-report.md",
       "templates/conversation-ask-card.md",
@@ -1546,6 +1560,8 @@
       "test-fixtures/bad/bad-change-impact-unresolved-artifact-ref/change-impact-coverage-reports/001-bad.md",
       "test-fixtures/bad/bad-change-impact-weak-evidence/change-impact-coverage-reports/001-bad.md",
       "test-fixtures/bad/bad-change-impact-weak-evidence/evidence/weak.txt",
+      "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
@@ -1803,6 +1819,7 @@
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/change-impact-coverage-review.md",
       ".ai-native/checklists/claim-control-review.md",
+      ".ai-native/checklists/closure-decision-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/controlled-apply-readiness-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
@@ -1902,6 +1919,7 @@
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/unified-apply-plan.md",
+      ".ai-native/core/unified-closure-model.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/core/workflow.md",
       ".ai-native/dev-kit-manifest.json",
@@ -1950,6 +1968,7 @@
       ".ai-native/docs/structured-evidence-schema.md",
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
+      ".ai-native/docs/unified-closure-model.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/prompts/apply-plan-agent.md",
       ".ai-native/prompts/architect-agent.md",
@@ -1963,6 +1982,7 @@
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/change-impact-coverage-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
+      ".ai-native/prompts/closure-decision-agent.md",
       ".ai-native/prompts/context-governance-agent.md",
       ".ai-native/prompts/controlled-apply-readiness-agent.md",
       ".ai-native/prompts/conversation-native-ask-agent.md",
@@ -2020,6 +2040,7 @@
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/change-impact-coverage-report.md",
       ".ai-native/templates/claim-control-report.md",
+      ".ai-native/templates/closure-decision.md",
       ".ai-native/templates/context-correction-report.md",
       ".ai-native/templates/controlled-apply-readiness-report.md",
       ".ai-native/templates/conversation-ask-card.md",
@@ -2105,6 +2126,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "change-impact-coverage-reports",
+      "closure-decisions",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -2170,6 +2192,7 @@
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
+      "scripts/check-closure-decision.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -2223,6 +2246,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
+      "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -2269,6 +2293,7 @@
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/change-impact-coverage-review.md",
       ".ai-native/checklists/claim-control-review.md",
+      ".ai-native/checklists/closure-decision-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/controlled-apply-readiness-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
@@ -2372,6 +2397,7 @@
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/unified-apply-plan.md",
+      ".ai-native/core/unified-closure-model.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/core/workflow.md",
       ".ai-native/dev-kit-manifest.json",
@@ -2423,6 +2449,7 @@
       ".ai-native/docs/structured-evidence-schema.md",
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
+      ".ai-native/docs/unified-closure-model.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs/README.md",
       ".ai-native/industrial-packs/index.json",
@@ -2463,6 +2490,7 @@
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/change-impact-coverage-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
+      ".ai-native/prompts/closure-decision-agent.md",
       ".ai-native/prompts/context-governance-agent.md",
       ".ai-native/prompts/controlled-apply-readiness-agent.md",
       ".ai-native/prompts/conversation-native-ask-agent.md",
@@ -2523,6 +2551,7 @@
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/change-impact-coverage-report.md",
       ".ai-native/templates/claim-control-report.md",
+      ".ai-native/templates/closure-decision.md",
       ".ai-native/templates/context-correction-report.md",
       ".ai-native/templates/controlled-apply-readiness-report.md",
       ".ai-native/templates/conversation-ask-card.md",
@@ -2613,6 +2642,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "change-impact-coverage-reports",
+      "closure-decisions",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -2679,6 +2709,7 @@
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
+      "scripts/check-closure-decision.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -2735,6 +2766,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
+      "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -2814,6 +2846,7 @@
       ".ai-native/core/subagent-dispatch-hygiene.md",
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
+      ".ai-native/core/unified-closure-model.md",
       ".ai-native/core/workflow.md",
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/schemas/artifacts",
@@ -2844,7 +2877,8 @@
       "core/review-surface-governance.md",
       "core/safe-launch.md",
       "core/standard-baseline-pack-registry.md",
-      "core/unified-apply-plan.md"
+      "core/unified-apply-plan.md",
+      "core/unified-closure-model.md"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -2874,6 +2908,7 @@
       "templates/change-boundary-report.md",
       "templates/change-impact-coverage-report.md",
       "templates/claim-control-report.md",
+      "templates/closure-decision.md",
       "templates/context-correction-report.md",
       "templates/controlled-apply-readiness-report.md",
       "templates/conversation-turn-classification.md",
@@ -2964,6 +2999,7 @@
       "prompts/change-boundary-agent.md",
       "prompts/change-impact-coverage-agent.md",
       "prompts/claim-control-agent.md",
+      "prompts/closure-decision-agent.md",
       "prompts/context-governance-agent.md",
       "prompts/controlled-apply-readiness-agent.md",
       "prompts/conversation-router-agent.md",
@@ -3015,6 +3051,7 @@
       "checklists/change-boundary-review.md",
       "checklists/change-impact-coverage-review.md",
       "checklists/claim-control-review.md",
+      "checklists/closure-decision-review.md",
       "checklists/context-governance-review.md",
       "checklists/controlled-apply-readiness-review.md",
       "checklists/conversation-drift-review.md",
@@ -3105,6 +3142,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "change-impact-coverage-reports",
+      "closure-decisions",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -3167,6 +3205,7 @@
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
+      "scripts/check-closure-decision.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -3228,6 +3267,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
+      "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -3409,6 +3449,8 @@
       "examples/1.50-evidence-reference-resolution/README.md",
       "examples/1.52-guided-closure-experience/README.md",
       "examples/1.52-guided-closure-experience/guided-closure-cards/001-booking-validation.md",
+      "examples/1.53-unified-closure-model/README.md",
+      "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
       "examples/1.6-conversation-drift-control/README.md",
       "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
@@ -3579,6 +3621,8 @@
       "test-fixtures/bad/bad-change-impact-unresolved-artifact-ref/change-impact-coverage-reports/001-bad.md",
       "test-fixtures/bad/bad-change-impact-weak-evidence/change-impact-coverage-reports/001-bad.md",
       "test-fixtures/bad/bad-change-impact-weak-evidence/evidence/weak.txt",
+      "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
@@ -3833,6 +3877,7 @@
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/change-impact-coverage-review.md",
       ".ai-native/checklists/claim-control-review.md",
+      ".ai-native/checklists/closure-decision-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/controlled-apply-readiness-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
@@ -3903,6 +3948,7 @@
       ".ai-native/core/standard-baseline-pack-registry.md",
       ".ai-native/core/subagent-dispatch-hygiene.md",
       ".ai-native/core/unified-apply-plan.md",
+      ".ai-native/core/unified-closure-model.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/approval-record-governance.md",
@@ -3953,6 +3999,7 @@
       ".ai-native/docs/structured-evidence-schema.md",
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
+      ".ai-native/docs/unified-closure-model.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs",
       ".ai-native/profiles",
@@ -3966,6 +4013,7 @@
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/change-impact-coverage-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
+      ".ai-native/prompts/closure-decision-agent.md",
       ".ai-native/prompts/context-governance-agent.md",
       ".ai-native/prompts/controlled-apply-readiness-agent.md",
       ".ai-native/prompts/conversation-native-ask-agent.md",
@@ -4009,6 +4057,7 @@
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/change-impact-coverage-report.md",
       ".ai-native/templates/claim-control-report.md",
+      ".ai-native/templates/closure-decision.md",
       ".ai-native/templates/context-correction-report.md",
       ".ai-native/templates/controlled-apply-readiness-report.md",
       ".ai-native/templates/conversation-ask-card.md",
@@ -4059,6 +4108,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "change-impact-coverage-reports",
+      "closure-decisions",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -4112,6 +4162,7 @@
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
+      "scripts/check-closure-decision.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -4168,6 +4219,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
+      "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -4207,6 +4259,7 @@
       ".ai-native/checklists/change-boundary-review.md",
       ".ai-native/checklists/change-impact-coverage-review.md",
       ".ai-native/checklists/claim-control-review.md",
+      ".ai-native/checklists/closure-decision-review.md",
       ".ai-native/checklists/context-governance-review.md",
       ".ai-native/checklists/controlled-apply-readiness-review.md",
       ".ai-native/checklists/conversation-drift-review.md",
@@ -4289,6 +4342,7 @@
       ".ai-native/core/standard-baseline-pack-registry.md",
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/unified-apply-plan.md",
+      ".ai-native/core/unified-closure-model.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/core/workflow.md",
       ".ai-native/docs/artifact-decision-tree.md",
@@ -4328,6 +4382,7 @@
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/docs/unified-apply-plan.md",
+      ".ai-native/docs/unified-closure-model.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs/index.json",
       ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
@@ -4356,6 +4411,7 @@
       ".ai-native/prompts/change-boundary-agent.md",
       ".ai-native/prompts/change-impact-coverage-agent.md",
       ".ai-native/prompts/claim-control-agent.md",
+      ".ai-native/prompts/closure-decision-agent.md",
       ".ai-native/prompts/controlled-apply-readiness-agent.md",
       ".ai-native/prompts/conversation-router-agent.md",
       ".ai-native/prompts/debt-handoff-agent.md",
@@ -4404,6 +4460,7 @@
       ".ai-native/templates/change-boundary-report.md",
       ".ai-native/templates/change-impact-coverage-report.md",
       ".ai-native/templates/claim-control-report.md",
+      ".ai-native/templates/closure-decision.md",
       ".ai-native/templates/controlled-apply-readiness-report.md",
       ".ai-native/templates/conversation-turn-classification.md",
       ".ai-native/templates/customer-handoff.md",
@@ -4469,6 +4526,7 @@
       "beginner-entry-cards",
       "change-boundary-reports",
       "change-impact-coverage-reports",
+      "closure-decisions",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-turns",
@@ -4520,6 +4578,7 @@
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
+      "scripts/check-closure-decision.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -4568,6 +4627,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
+      "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -4641,6 +4701,10 @@
       {
         "source": "checklists",
         "target": ".ai-native/checklists"
+      },
+      {
+        "source": "closure-decisions",
+        "target": "closure-decisions"
       },
       {
         "source": "controlled-apply-candidates",
@@ -4763,6 +4827,10 @@
       {
         "source": "checklists/change-impact-coverage-review.md",
         "target": ".ai-native/checklists/change-impact-coverage-review.md"
+      },
+      {
+        "source": "checklists/closure-decision-review.md",
+        "target": ".ai-native/checklists/closure-decision-review.md"
       },
       {
         "source": "checklists/controlled-apply-readiness-review.md",
@@ -4919,6 +4987,10 @@
       {
         "source": "core/unified-apply-plan.md",
         "target": ".ai-native/core/unified-apply-plan.md"
+      },
+      {
+        "source": "core/unified-closure-model.md",
+        "target": ".ai-native/core/unified-closure-model.md"
       },
       {
         "source": "core/work-queue.md",
@@ -5121,6 +5193,10 @@
         "target": ".ai-native/docs/unified-apply-plan.md"
       },
       {
+        "source": "docs/unified-closure-model.md",
+        "target": ".ai-native/docs/unified-closure-model.md"
+      },
+      {
         "source": "docs/work-queue.md",
         "target": ".ai-native/docs/work-queue.md"
       },
@@ -5155,6 +5231,10 @@
       {
         "source": "prompts/change-impact-coverage-agent.md",
         "target": ".ai-native/prompts/change-impact-coverage-agent.md"
+      },
+      {
+        "source": "prompts/closure-decision-agent.md",
+        "target": ".ai-native/prompts/closure-decision-agent.md"
       },
       {
         "source": "prompts/controlled-apply-readiness-agent.md",
@@ -5267,6 +5347,10 @@
       {
         "source": "scripts/check-claim-control.mjs",
         "target": "scripts/check-claim-control.mjs"
+      },
+      {
+        "source": "scripts/check-closure-decision.mjs",
+        "target": "scripts/check-closure-decision.mjs"
       },
       {
         "source": "scripts/check-context-governance.mjs",
@@ -5493,6 +5577,10 @@
         "target": "scripts/resolve-change-impact-coverage.mjs"
       },
       {
+        "source": "scripts/resolve-closure-decision.mjs",
+        "target": "scripts/resolve-closure-decision.mjs"
+      },
+      {
         "source": "scripts/resolve-controlled-apply-readiness.mjs",
         "target": "scripts/resolve-controlled-apply-readiness.mjs"
       },
@@ -5619,6 +5707,10 @@
       {
         "source": "templates/change-impact-coverage-report.md",
         "target": ".ai-native/templates/change-impact-coverage-report.md"
+      },
+      {
+        "source": "templates/closure-decision.md",
+        "target": ".ai-native/templates/closure-decision.md"
       },
       {
         "source": "templates/controlled-apply-readiness-report.md",

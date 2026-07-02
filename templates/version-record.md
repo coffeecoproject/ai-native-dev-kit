@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.52.0`
+`1.53.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.53.0` adds Unified Closure Model: `finish` now returns one final Closure Decision for a task while Change Impact Coverage, Execution Closure, Guided Closure, and Evidence Precision remain inputs.
+- `1.53.0` prevents split close-out truth by making the stricter result win when lower-level closure artifacts disagree.
 - `1.52.0` adds Guided Closure Experience: users can ask whether a task is done through `finish`, while Codex summarizes close-out status, missing work, safe next action, human decisions, and technical evidence in one read-only card.
 - `1.52.0` keeps low-level strict evidence commands available for maintainers and CI, but default user-facing close-out should not require users to choose strict flags.
 - `1.51.0` hardens close-out evidence precision: strict checks can require exact Change Impact Coverage report selection, task/intent alignment, meaningful resolved evidence files, and real record resolution for `artifact:` / `human-decision:` refs.

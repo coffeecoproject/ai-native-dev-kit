@@ -33,8 +33,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs apply-candidate-check <project>` | Check recorded Low-Risk Controlled Apply Candidate records | No |
 | `node scripts/cli.mjs debt-handoff <project>` | Record debt and handoff context for paused, interrupted, or unfinished work | No |
 | `node scripts/cli.mjs debt-handoff-check <project>` | Check recorded Debt & Knowledge Handoff Reports | No |
-| `node scripts/cli.mjs finish <project> --intent "<goal>" --verification "<evidence>"` | Answer whether a task can be treated as done with one plain Guided Closure Card | No |
-| `node scripts/cli.mjs finish-check <project>` | Check recorded Guided Closure Cards | No |
+| `node scripts/cli.mjs finish <project> --intent "<goal>" --verification "<evidence>"` | Answer whether a task can be treated as done with one Unified Closure Decision | No |
+| `node scripts/cli.mjs finish-check <project>` | Check recorded Unified Closure Decisions | No |
 | `node scripts/cli.mjs closure <project> --intent "<goal>" --verification "<evidence>"` | Close execution with scope, verification, debt, and commit-readiness review | No |
 | `node scripts/cli.mjs closure-check <project>` | Check recorded Execution Closure Reports | No |
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
@@ -150,7 +150,11 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-debt-handoff.mjs` checks recorded Debt & Knowledge Handoff Reports. It validates allowed debt levels, required handoff subsections, boundaries, outcomes, and rejects debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, and Safe Launch replacement.
 
-`scripts/resolve-guided-closure.mjs` is the 1.52 guided close-out entry behind `node scripts/cli.mjs finish`. It reads project state, intent, verification notes, existing related-surface reports, and existing close-out reports, then prints one Guided Closure Card with a plain close-out state, what was checked, what is still missing, what Codex can safely do next, what needs human decision, and technical details. It does not write target-project files or authorize apply, implementation, commit, push, release, production, CI, hooks, task-state changes, debt forgiveness, Review Loop replacement, Safe Launch replacement, or high-risk decisions.
+`scripts/resolve-closure-decision.mjs` is the 1.53 unified close-out entry behind `node scripts/cli.mjs finish`. It treats Change Impact Coverage, Execution Closure, Guided Closure, verification, and human decisions as inputs, then prints one Unified Closure Decision. It uses the stricter result when inputs disagree and does not write target-project files or authorize apply, implementation, commit, push, release, production, CI, hooks, task-state changes, Review Loop replacement, Safe Launch replacement, or high-risk decisions.
+
+`scripts/check-closure-decision.mjs` checks recorded Unified Closure Decisions. It rejects split close-out truth, `DONE` without verification/execution evidence, missing single-source rules, and overclaims about writes, apply, implementation, commit/push, release/production, CI/hooks, task-state changes, Review Loop, Safe Launch, or high-risk decisions.
+
+`scripts/resolve-guided-closure.mjs` is the 1.52 guided close-out input. It reads project state, intent, verification notes, existing related-surface reports, and existing close-out reports, then prints one Guided Closure Card with a plain close-out state, what was checked, what is still missing, what Codex can safely do next, what needs human decision, and technical details. It does not write target-project files or authorize apply, implementation, commit, push, release, production, CI, hooks, task-state changes, debt forgiveness, Review Loop replacement, Safe Launch replacement, or high-risk decisions.
 
 `scripts/check-guided-closure.mjs` checks recorded Guided Closure Cards. It rejects user-facing strict command burden, too many human decisions, missing checked areas, missing technical details, and overclaims about writes, apply, implementation, commit/push, release/production, CI/hooks, task-state changes, debt forgiveness, Review Loop, Safe Launch, or high-risk decisions.
 
@@ -321,6 +325,8 @@ node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/resolve-change-impact-coverage.mjs . --intent "<change>"
 node scripts/check-change-impact-coverage.mjs .
+node scripts/resolve-closure-decision.mjs . --intent "<change>" --verification "<verification evidence>"
+node scripts/check-closure-decision.mjs .
 node scripts/resolve-existing-workflow.mjs .
 node scripts/check-workflow-adoption-map.mjs .
 node scripts/resolve-document-lifecycle.mjs .

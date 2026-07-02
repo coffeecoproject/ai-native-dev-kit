@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.52.0`.
+Current release: `1.53.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.52.x`, focused on guided close-out so users can ask whether work is done without choosing internal evidence commands.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.53.x`, focused on one final close-out decision so users can ask whether work is done without choosing internal evidence commands.
 
-1.52.0 adds Guided Closure Experience: Codex can summarize close-out status, missing work, safe next action, human decisions, and technical evidence in one read-only card while keeping strict 1.48-1.51 evidence checks available for maintainers and CI.
+1.53.0 adds Unified Closure Model: Codex now resolves Change Impact Coverage, Execution Closure, Guided Closure, and evidence precision into one read-only Closure Decision while keeping strict lower-level checks available for maintainers and CI.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -114,7 +114,7 @@ IntentOS 当前包含这些核心能力：
 | Review Surface | 执行前判断任务完成后需要审哪些面 |
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
-| Guided Closure | 用户问“能算完成了吗”时，AI 用一张卡说明能否收口、还缺什么、下一步是什么 |
+| Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
 | Low-Risk Apply Candidate | 判断一个小改动是否足够窄、可回滚、可验证，能否进入后续人工批准计划 |
@@ -158,8 +158,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查人工批准记录 | `node scripts/cli.mjs approval-record-check ../my-project` |
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
 | 检查文档生命周期 | `node scripts/cli.mjs doc-lifecycle ../my-project` |
-| 生成一张引导式收口卡 | `node scripts/cli.mjs finish ../my-project --intent "完成预约校验" --verification "npm run verify passed"` |
-| 检查引导式收口卡 | `node scripts/cli.mjs finish-check ../my-project` |
+| 生成统一收口结论 | `node scripts/cli.mjs finish ../my-project --intent "完成预约校验" --verification "npm run verify passed"` |
+| 检查统一收口结论 | `node scripts/cli.mjs finish-check ../my-project` |
 | 生成变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage ../my-project --intent "新增合同录入限制"` |
 | 检查变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage-check ../my-project` |
 | 严格检查变更影响闭环证据 | `node scripts/check-change-impact-coverage.mjs ../my-project --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs` |
@@ -231,6 +231,7 @@ node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
 node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
 node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
 node scripts/cli.mjs finish . --intent "维护 IntentOS 收口体验" --verification "npm run verify passed"
+node scripts/check-closure-decision.mjs .
 node scripts/check-guided-closure.mjs .
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs .
@@ -250,6 +251,7 @@ Start here:
 - [Beginner Entry](docs/beginner-entry.md)
 - [Conversation-Native Ask](docs/conversation-native-ask.md)
 - [Natural Language Orchestrator](docs/natural-language-orchestrator.md)
+- [Unified Closure Model](docs/unified-closure-model.md)
 - [Guided Closure Experience](docs/guided-closure-experience.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
@@ -313,7 +315,7 @@ Reference:
 
 Current release:
 
-- [1.52.0 Release Record](releases/1.52.0/release-record.md)
+- [1.53.0 Release Record](releases/1.53.0/release-record.md)
 - [1.51.0 Release Record](releases/1.51.0/release-record.md)
 - [1.49.0 Release Record](releases/1.49.0/release-record.md)
 - [1.48.0 Release Record](releases/1.48.0/release-record.md)

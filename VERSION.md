@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.52.0`
+Current version: `1.53.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.52.0`
 
 ## Current Release
 
-`1.52.0`
+`1.53.0`
 
 Includes:
 
+- Unified Closure Model phase `1.53.0`: adds Unified Closure Decisions so one task has one final close-out truth while Change Impact Coverage, Execution Closure, Guided Closure, and Evidence Precision remain inputs
+- `1.53.0` upgrades `finish` / `finish-check` to the unified decision entry, keeps lower-level 1.49-1.52 scripts available for maintainers and CI, and uses the stricter result when close-out inputs disagree
+- `1.53.0` does not remove existing close-out artifacts, migrate historical records, write target-project files, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, replace Review Loop, replace Safe Launch, or approve security/privacy/compliance/payment/migration decisions
 - Guided Closure Experience phase `1.52.0`: adds `finish` / `finish-check`, Guided Closure Cards, and a plain close-out entry so users can ask whether a task is done without choosing internal strict evidence commands
 - `1.52.0` keeps strict 1.48-1.51 evidence checks available for maintainers and CI while keeping the default user surface read-only and plain-language
 - `1.52.0` does not write target-project files, auto-generate missing reports, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Review Loop, replace Safe Launch, judge product correctness, or prove production readiness

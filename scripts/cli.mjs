@@ -134,14 +134,14 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultTarget(args),
   },
   finish: {
-    description: "Answer whether a task can be treated as done with one plain Guided Closure Card.",
-    script: "scripts/resolve-guided-closure.mjs",
+    description: "Answer whether a task can be treated as done with one Unified Closure Decision.",
+    script: "scripts/resolve-closure-decision.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
   "finish-check": {
-    description: "Check recorded Guided Closure Cards.",
-    script: "scripts/check-guided-closure.mjs",
+    description: "Check recorded Unified Closure Decisions.",
+    script: "scripts/check-closure-decision.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },

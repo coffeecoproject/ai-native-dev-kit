@@ -56,7 +56,7 @@ node scripts/cli.mjs finish ../my-project \
   --verification "npm run verify passed"
 ```
 
-`finish` returns one Guided Closure Card. It does not approve commit, push, release, or production.
+`finish` returns one Unified Closure Decision. It treats impact coverage, execution closure, guided closure, and evidence precision as inputs. It does not approve commit, push, release, or production.
 
 Use the built-in local examples to see the path end to end:
 

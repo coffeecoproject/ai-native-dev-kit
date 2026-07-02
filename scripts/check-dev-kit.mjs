@@ -473,6 +473,8 @@ function checkVersionMetadata() {
     "scripts/check-apply-plan.mjs",
     "scripts/resolve-beginner-entry.mjs",
     "scripts/check-beginner-entry.mjs",
+    "scripts/resolve-closure-decision.mjs",
+    "scripts/check-closure-decision.mjs",
     "scripts/resolve-guided-closure.mjs",
     "scripts/check-guided-closure.mjs",
     "scripts/resolve-work-queue.mjs",
@@ -580,6 +582,7 @@ function checkVersionMetadata() {
     ".ai-native/core/work-queue.md",
     ".ai-native/core/hook-orchestration.md",
     ".ai-native/core/natural-language-orchestrator.md",
+    ".ai-native/core/unified-closure-model.md",
     ".ai-native/core/review-surface-governance.md",
     ".ai-native/core/change-impact-coverage.md",
     ".ai-native/core/change-boundary.md",
@@ -602,6 +605,7 @@ function checkVersionMetadata() {
     ".ai-native/templates/work-queue-report.md",
     ".ai-native/templates/hook-orchestration-plan.md",
     ".ai-native/templates/workflow-guidance-card.md",
+    ".ai-native/templates/closure-decision.md",
     ".ai-native/templates/review-surface-card.md",
     ".ai-native/templates/change-impact-coverage-report.md",
     ".ai-native/templates/user-decision-card.md",
@@ -1472,9 +1476,12 @@ function checkCliFrontDoor() {
     "node --check scripts/check-debt-handoff.mjs",
     "node scripts/cli.mjs debt-handoff .",
     "node scripts/check-debt-handoff.mjs .",
+    "node --check scripts/resolve-closure-decision.mjs",
+    "node --check scripts/check-closure-decision.mjs",
+    "node scripts/cli.mjs finish .",
+    "node scripts/check-closure-decision.mjs .",
     "node --check scripts/resolve-guided-closure.mjs",
     "node --check scripts/check-guided-closure.mjs",
-    "node scripts/cli.mjs finish .",
     "node scripts/check-guided-closure.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
@@ -1595,16 +1602,16 @@ function checkCliFrontDoor() {
 
   const guidedClosure = runNode(["scripts/cli.mjs", "finish", ".", "--intent", "maintain Dev Kit close-out experience", "--verification", "npm run verify passed"]);
   if (guidedClosure.status === 0
-    && guidedClosure.stdout.includes("Guided Closure Card")
-    && guidedClosure.stdout.includes("This card writes target files: No")) {
-    pass("CLI finish delegates to guided closure resolver");
+    && guidedClosure.stdout.includes("Unified Closure Decision")
+    && guidedClosure.stdout.includes("This decision writes target files: No")) {
+    pass("CLI finish delegates to unified closure resolver");
   } else {
     fail(`CLI finish failed: ${guidedClosure.stderr || guidedClosure.stdout}`);
   }
 
   const guidedClosureCheck = runNode(["scripts/cli.mjs", "finish-check", "."]);
-  if (guidedClosureCheck.status === 0 && guidedClosureCheck.stdout.includes("Guided Closure check passed")) {
-    pass("CLI finish-check delegates to guided closure checker");
+  if (guidedClosureCheck.status === 0 && guidedClosureCheck.stdout.includes("Unified Closure Decision check passed")) {
+    pass("CLI finish-check delegates to unified closure checker");
   } else {
     fail(`CLI finish-check failed: ${guidedClosureCheck.stderr || guidedClosureCheck.stdout}`);
   }
@@ -6444,6 +6451,108 @@ function checkGuidedClosureExperienceProtocol() {
   }
 }
 
+function checkUnifiedClosureModelProtocol() {
+  const required = [
+    "core/unified-closure-model.md",
+    "docs/unified-closure-model.md",
+    "templates/closure-decision.md",
+    "checklists/closure-decision-review.md",
+    "prompts/closure-decision-agent.md",
+    "closure-decisions/.gitkeep",
+    "scripts/resolve-closure-decision.mjs",
+    "scripts/check-closure-decision.mjs",
+    "examples/1.53-unified-closure-model/README.md",
+    "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
+    "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
+    "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
+    "releases/1.53.0/release-record.md",
+    "releases/1.53.0/known-limitations.md",
+    "releases/1.53.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.53 unified closure asset exists ${file}`);
+    else fail(`1.53 unified closure asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/unified-closure-model.md"),
+    read("docs/unified-closure-model.md"),
+    read("templates/closure-decision.md"),
+    read("scripts/resolve-closure-decision.mjs"),
+    read("scripts/check-closure-decision.mjs"),
+    read("releases/1.53.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Unified Closure Model",
+    "Unified Closure Decision",
+    "single closure source",
+    "UNIFIED_CLOSURE_DECISION",
+    "NEEDS_IMPACT_COVERAGE",
+    "This decision writes target files: No",
+    "This decision approves commit or push: No",
+    "This decision approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.53 unified closure includes ${marker}`);
+    else fail(`1.53 unified closure missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-closure-decision.mjs", ".", "--intent", "maintain IntentOS closure model", "--verification", "npm run verify passed"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Unified Closure Decision")
+    && resolver.stdout.includes("This decision writes target files: No")) {
+    pass("1.53 unified closure resolver prints safe decision");
+  } else {
+    fail(`1.53 unified closure resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-closure-decision.mjs", ".", "--intent", "maintain IntentOS closure model", "--verification", "npm run verify passed", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "UNIFIED_CLOSURE_DECISION"
+        && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.closureDecision?.finalClosureSource === "UNIFIED_CLOSURE_DECISION"
+        && Array.isArray(parsed.decisionInputs)) {
+        pass("1.53 unified closure resolver JSON includes decision inputs and boundaries");
+      } else {
+        fail(`1.53 unified closure resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.53 unified closure resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.53 unified closure resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-closure-decision.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Unified Closure Decision check passed")) {
+    pass("1.53 unified closure checker passes source repo");
+  } else {
+    fail(`1.53 unified closure checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.53-unified-closure-model"]);
+  if (example.status === 0 && example.stdout.includes("Unified Closure Decision check passed")) {
+    pass("1.53 unified closure example passes checker");
+  } else {
+    fail(`1.53 unified closure example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["done without evidence", ["scripts/check-closure-decision.mjs", "test-fixtures/bad/bad-closure-decision-done-without-evidence"], "cannot be DONE without"],
+    ["split truth", ["scripts/check-closure-decision.mjs", "test-fixtures/bad/bad-closure-decision-split-truth"], "must confirm single closure source"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.53 unified closure rejects ${name}`);
+    } else {
+      fail(`1.53 unified closure must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -7478,6 +7587,7 @@ function checkReadmePointers() {
     "Unified Apply Plan",
     "Change Impact Coverage",
     "Approval Record",
+    "Unified Closure",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
     "O0 / BL0 Lightweight Path",
@@ -7503,6 +7613,7 @@ function checkReadmePointers() {
     "node scripts/check-beginner-entry.mjs",
     "node scripts/check-approval-record.mjs",
     "node scripts/check-workflow-guidance.mjs",
+    "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
@@ -7510,6 +7621,7 @@ function checkReadmePointers() {
     "不自动启用 BL2 或工业增强包",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/unified-closure-model.md",
     "docs/guided-closure-experience.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
@@ -7583,9 +7695,11 @@ function checkReadmePointers() {
     "npm run verify:governance",
     "node scripts/check-beginner-entry.mjs",
     "node scripts/check-conversation-native-ask.mjs",
+    "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/unified-closure-model.md",
     "docs/guided-closure-experience.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
@@ -7647,6 +7761,7 @@ function checkReadmePointers() {
     "docs/roadmaps/README.md",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/unified-closure-model.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -10169,6 +10284,7 @@ checkReviewSurfaceGovernanceProtocol();
 checkChangeImpactCoverageProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
+checkUnifiedClosureModelProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();
 checkOrdinaryUserProductLoopProtocol();

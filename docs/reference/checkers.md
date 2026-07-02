@@ -24,6 +24,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-low-risk-apply-candidate.mjs` | Low-Risk Controlled Apply Candidate path, risk, rollback, verification, structured evidence, and no-apply boundary checks |
 | `resolve-debt-handoff.mjs` | Read-only debt and handoff resolver for paused, interrupted, or unfinished work |
 | `check-debt-handoff.mjs` | Debt & Knowledge Handoff Report level, handoff, boundary, and overclaim checks |
+| `resolve-closure-decision.mjs` | Read-only unified close-out resolver that turns close-out inputs into one final Closure Decision |
+| `check-closure-decision.mjs` | Unified Closure Decision single-source, DONE-evidence, boundary, and split-truth checks |
 | `resolve-guided-closure.mjs` | Read-only guided close-out entry that answers whether a task can be treated as done without user-facing strict command burden |
 | `check-guided-closure.mjs` | Guided Closure Card state, checked-area, question-count, plain-language, and overclaim checks |
 | `start-project.mjs` | Read-only guided adoption recommendation |
@@ -133,6 +135,7 @@ Product and claim checks:
 - `check-mvp-example.mjs` checks bundled local MVP examples across Web and CLI shapes. It proves the example is coherent and locally testable; it does not prove any target project is production-ready.
 - `check-low-risk-apply-candidate.mjs` allows empty projects, but rejects candidate records that authorize apply, claim writes now, use wildcard/parent/absolute/home/backslash/generated/ignored/symlink/CI/hook target paths, omit rollback or verification, approve implementation, approve release/production, change CI/hooks, or touch high-risk surfaces without no-authority boundaries. Use `--require-structured-evidence` for new strict records.
 - `check-debt-handoff.mjs` allows empty projects, but rejects Debt & Knowledge Handoff Reports that omit debt levels, handoff subsections, boundaries, or valid outcomes, or claim debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, or Safe Launch replacement.
+- `check-closure-decision.mjs` allows empty projects, but rejects Unified Closure Decisions that use non-unified final sources, miss the single-source rule, claim `DONE` without verification or execution closure evidence, claim `DONE` while impact coverage or human decision is missing, authorize writes/apply/implementation/commit/push/release/production/CI/hooks, replace Review Loop, replace Safe Launch, or approve high-risk decisions.
 - `check-guided-closure.mjs` allows empty projects, but rejects Guided Closure Cards that expose low-level strict close-out commands or flags on the user surface, ask too many human decisions, omit checked areas or technical detail, approve target-project writes, authorize apply, approve implementation, approve commit/push, approve release/production, modify CI/hooks, change task state, forgive debt, replace Review Loop, replace Safe Launch, or approve high-risk decisions.
 - `check-product-baseline.mjs` is source-strict for Dev Kit maintenance and target-safe for generated projects.
 - `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.
@@ -180,8 +183,9 @@ node scripts/resolve-change-impact-coverage.mjs . --intent "<change>"
 node scripts/check-change-impact-coverage.mjs .
 node scripts/resolve-debt-handoff.mjs .
 node scripts/check-debt-handoff.mjs .
+node scripts/resolve-closure-decision.mjs . --intent "<change>" --verification "<verification evidence>"
+node scripts/check-closure-decision.mjs .
 node scripts/resolve-guided-closure.mjs . --intent "<change>" --verification "<verification evidence>"
-node scripts/check-guided-closure.mjs .
 node scripts/resolve-document-archive-apply.mjs .
 node scripts/check-document-archive-apply.mjs .
 node scripts/start-project.mjs .

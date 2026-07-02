@@ -27,6 +27,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `mvp-example-reports/` | Real MVP example evidence and limitations records |
 | `controlled-apply-candidates/` | Low-risk controlled apply candidate records for later human approval |
 | `debt-handoff-reports/` | Debt level, verification notes, files to revisit, human decisions, and next-run handoff |
+| `closure-decisions/` | Single final close-out decision for a task, using stricter result when lower-level inputs disagree |
 | `guided-closure-cards/` | Plain close-out status, missing work, safe next action, human decisions, and technical evidence summary |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
@@ -159,6 +160,8 @@ Change Impact Coverage lives under `.ai-native/core/` in generated projects. It 
 Delivery Path Governance lives under `.ai-native/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
 
 Debt & Knowledge Handoff lives under `.ai-native/core/` in generated projects. It records what remains unfinished, how to verify it, which files or areas to revisit, and where to resume next time. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
+
+Unified Closure Model lives under `.ai-native/core/` in generated projects. It makes one task close-out resolve to one final Closure Decision. Change Impact Coverage, Execution Closure, Guided Closure, and precise evidence checks are inputs, not competing final truth.
 
 Guided Closure Experience lives under `.ai-native/core/` in generated projects. It answers "can this task be treated as done?" with one read-only Guided Closure Card, while keeping strict Change Impact Coverage, Execution Closure, and precise evidence checks available for maintainers and CI.
 
