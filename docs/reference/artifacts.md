@@ -27,6 +27,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `mvp-example-reports/` | Real MVP example evidence and limitations records |
 | `controlled-apply-candidates/` | Low-risk controlled apply candidate records for later human approval |
 | `debt-handoff-reports/` | Debt level, verification notes, files to revisit, human decisions, and next-run handoff |
+| `guided-closure-cards/` | Plain close-out status, missing work, safe next action, human decisions, and technical evidence summary |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
 | `review-loop-reports/` | Findings, AUTO_FIX rounds, verification, and remaining decisions |
@@ -159,6 +160,8 @@ Delivery Path Governance lives under `.ai-native/core/` in generated projects. I
 
 Debt & Knowledge Handoff lives under `.ai-native/core/` in generated projects. It records what remains unfinished, how to verify it, which files or areas to revisit, and where to resume next time. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
 
+Guided Closure Experience lives under `.ai-native/core/` in generated projects. It answers "can this task be treated as done?" with one read-only Guided Closure Card, while keeping strict Change Impact Coverage, Execution Closure, and precise evidence checks available for maintainers and CI.
+
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 
 ## Frontmatter
@@ -182,6 +185,7 @@ Short rule:
 - need to tell whether the work is a runnable product or still just an idea: product completeness report
 - need to prove the bundled MVP example is locally coherent: MVP example report
 - need to decide whether a tiny proposed write is safe enough to ask for later approval: controlled apply candidate
+- need to answer whether a task can be treated as done without exposing internal strict commands: guided closure card
 - need to review work: review packet and review loop report
 - need a human decision: decision brief
 - need to suggest future work: follow-up proposal

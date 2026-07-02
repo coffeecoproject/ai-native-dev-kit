@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.51.0`
+`1.52.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.52.0` adds Guided Closure Experience: users can ask whether a task is done through `finish`, while Codex summarizes close-out status, missing work, safe next action, human decisions, and technical evidence in one read-only card.
+- `1.52.0` keeps low-level strict evidence commands available for maintainers and CI, but default user-facing close-out should not require users to choose strict flags.
 - `1.51.0` hardens close-out evidence precision: strict checks can require exact Change Impact Coverage report selection, task/intent alignment, meaningful resolved evidence files, and real record resolution for `artifact:` / `human-decision:` refs.
 - `1.51.0` keeps precision checks opt-in and does not approve implementation, apply, commit, push, release, production, or high-risk decisions.
 - `1.50.0` hardens evidence reliability: strict Change Impact Coverage checks can require resolvable `DONE` evidence refs, impact coverage can read changed files from git diff, and Execution Closure can require linked strict impact coverage for cross-surface READY closures.

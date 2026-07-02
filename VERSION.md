@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.51.0`
+Current version: `1.52.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.51.0`
 
 ## Current Release
 
-`1.51.0`
+`1.52.0`
 
 Includes:
 
+- Guided Closure Experience phase `1.52.0`: adds `finish` / `finish-check`, Guided Closure Cards, and a plain close-out entry so users can ask whether a task is done without choosing internal strict evidence commands
+- `1.52.0` keeps strict 1.48-1.51 evidence checks available for maintainers and CI while keeping the default user surface read-only and plain-language
+- `1.52.0` does not write target-project files, auto-generate missing reports, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Review Loop, replace Safe Launch, judge product correctness, or prove production readiness
 - Close-Out Evidence Precision phase `1.51.0`: adds `--require-precise-evidence`, exact Change Impact Coverage report checking through `--report`, strict Execution Closure task/intent alignment, weak evidence-file rejection, and real record resolution for `artifact:` / `human-decision:` refs
 - `1.51.0` keeps legacy Markdown reports and 1.50 evidence reference checks compatible by default; precision checks run only when explicitly requested
 - `1.51.0` does not write target-project files, automatically implement missing surfaces, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, touch production/secrets/payment/permission/migration/data surfaces, replace Safe Launch, judge product correctness, or prove every possible impact was found

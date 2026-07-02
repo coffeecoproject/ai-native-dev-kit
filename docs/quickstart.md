@@ -42,6 +42,22 @@ node scripts/cli.mjs apply-candidate ../my-project \
 
 These commands are read-only. They do not approve implementation, release, production, CI, hooks, payment, permissions, migrations, secrets, or data changes.
 
+When you want to know whether a task can be treated as done, ask naturally:
+
+```text
+这个任务能算完成了吗？
+```
+
+For command-line evidence, use:
+
+```bash
+node scripts/cli.mjs finish ../my-project \
+  --intent "新增合同录入限制" \
+  --verification "npm run verify passed"
+```
+
+`finish` returns one Guided Closure Card. It does not approve commit, push, release, or production.
+
 Use the built-in local examples to see the path end to end:
 
 ```bash

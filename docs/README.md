@@ -13,6 +13,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Beginner Entry](beginner-entry.md)
 - [Conversation-Native Ask](conversation-native-ask.md)
 - [Natural Language Orchestrator](natural-language-orchestrator.md)
+- [Guided Closure Experience](guided-closure-experience.md)
 
 ## Project Adoption
 
@@ -38,6 +39,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Real MVP Example Evidence](real-mvp-example-evidence.md)
 - [Low-Risk Controlled Apply Candidate](low-risk-controlled-apply-candidate.md)
 - [Debt & Knowledge Handoff](debt-knowledge-handoff.md)
+- [Guided Closure Experience](guided-closure-experience.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)

@@ -133,6 +133,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  finish: {
+    description: "Answer whether a task can be treated as done with one plain Guided Closure Card.",
+    script: "scripts/resolve-guided-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "finish-check": {
+    description: "Check recorded Guided Closure Cards.",
+    script: "scripts/check-guided-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   closure: {
     description: "Close execution with changed scope, verification, debt, and commit-readiness review.",
     script: "scripts/resolve-execution-closure.mjs",
@@ -520,6 +532,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs apply-candidate-check .");
   console.log("  node scripts/cli.mjs debt-handoff .");
   console.log("  node scripts/cli.mjs debt-handoff-check .");
+  console.log("  node scripts/cli.mjs finish . --intent 'finish booking validation' --verification 'npm run verify passed'");
+  console.log("  node scripts/cli.mjs finish-check .");
   console.log("  node scripts/cli.mjs closure . --intent 'finish booking validation'");
   console.log("  node scripts/cli.mjs closure-check .");
   console.log("  node scripts/cli.mjs apply-plan . --intent '接入 IntentOS 工作流' --action workflow-assets");

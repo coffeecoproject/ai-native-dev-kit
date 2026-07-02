@@ -473,6 +473,8 @@ function checkVersionMetadata() {
     "scripts/check-apply-plan.mjs",
     "scripts/resolve-beginner-entry.mjs",
     "scripts/check-beginner-entry.mjs",
+    "scripts/resolve-guided-closure.mjs",
+    "scripts/check-guided-closure.mjs",
     "scripts/resolve-work-queue.mjs",
     "scripts/check-work-queue.mjs",
     "scripts/resolve-hook-orchestration.mjs",
@@ -1470,6 +1472,10 @@ function checkCliFrontDoor() {
     "node --check scripts/check-debt-handoff.mjs",
     "node scripts/cli.mjs debt-handoff .",
     "node scripts/check-debt-handoff.mjs .",
+    "node --check scripts/resolve-guided-closure.mjs",
+    "node --check scripts/check-guided-closure.mjs",
+    "node scripts/cli.mjs finish .",
+    "node scripts/check-guided-closure.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1517,6 +1523,8 @@ function checkCliFrontDoor() {
     "baseline-state",
     "debt-handoff",
     "debt-handoff-check",
+    "finish",
+    "finish-check",
     "baseline-decision",
     "baseline-decision-check",
     "standard-baseline",
@@ -1583,6 +1591,22 @@ function checkCliFrontDoor() {
     pass("CLI ask-check delegates to beginner entry checker");
   } else {
     fail(`CLI ask-check failed: ${beginnerEntryCheck.stderr || beginnerEntryCheck.stdout}`);
+  }
+
+  const guidedClosure = runNode(["scripts/cli.mjs", "finish", ".", "--intent", "maintain Dev Kit close-out experience", "--verification", "npm run verify passed"]);
+  if (guidedClosure.status === 0
+    && guidedClosure.stdout.includes("Guided Closure Card")
+    && guidedClosure.stdout.includes("This card writes target files: No")) {
+    pass("CLI finish delegates to guided closure resolver");
+  } else {
+    fail(`CLI finish failed: ${guidedClosure.stderr || guidedClosure.stdout}`);
+  }
+
+  const guidedClosureCheck = runNode(["scripts/cli.mjs", "finish-check", "."]);
+  if (guidedClosureCheck.status === 0 && guidedClosureCheck.stdout.includes("Guided Closure check passed")) {
+    pass("CLI finish-check delegates to guided closure checker");
+  } else {
+    fail(`CLI finish-check failed: ${guidedClosureCheck.stderr || guidedClosureCheck.stdout}`);
   }
 
   const reviewSurface = runNode(["scripts/cli.mjs", "review-surface", "."]);
@@ -6317,6 +6341,109 @@ function checkDebtKnowledgeHandoffProtocol() {
   }
 }
 
+function checkGuidedClosureExperienceProtocol() {
+  const required = [
+    "core/guided-closure-experience.md",
+    "docs/guided-closure-experience.md",
+    "templates/guided-closure-card.md",
+    "checklists/guided-closure-review.md",
+    "prompts/guided-closure-agent.md",
+    "guided-closure-cards/.gitkeep",
+    "scripts/resolve-guided-closure.mjs",
+    "scripts/check-guided-closure.mjs",
+    "examples/1.52-guided-closure-experience/README.md",
+    "examples/1.52-guided-closure-experience/guided-closure-cards/001-booking-validation.md",
+    "test-fixtures/bad/bad-guided-closure-technical-burden/guided-closure-cards/001-bad.md",
+    "test-fixtures/bad/bad-guided-closure-overclaim/guided-closure-cards/001-bad.md",
+    "releases/1.52.0/release-record.md",
+    "releases/1.52.0/known-limitations.md",
+    "releases/1.52.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.52 guided closure asset exists ${file}`);
+    else fail(`1.52 guided closure asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/guided-closure-experience.md"),
+    read("docs/guided-closure-experience.md"),
+    read("templates/guided-closure-card.md"),
+    read("scripts/resolve-guided-closure.mjs"),
+    read("scripts/check-guided-closure.mjs"),
+    read("releases/1.52.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Guided Closure Experience",
+    "Guided Closure Card",
+    "Users should not need to choose",
+    "NO_TASK_TO_CLOSE",
+    "NEEDS_IMPACT_COVERAGE",
+    "READY_FOR_REVIEW",
+    "This card writes target files: No",
+    "This card approves commit or push: No",
+    "This card approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.52 guided closure includes ${marker}`);
+    else fail(`1.52 guided closure missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-guided-closure.mjs", ".", "--intent", "maintain IntentOS close-out experience", "--verification", "npm run verify passed"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Guided Closure Card")
+    && resolver.stdout.includes("This card writes target files: No")) {
+    pass("1.52 guided closure resolver prints safe card");
+  } else {
+    fail(`1.52 guided closure resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-guided-closure.mjs", ".", "--intent", "maintain IntentOS close-out experience", "--verification", "npm run verify passed", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "GUIDED_CLOSURE_CARD"
+        && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.plainCloseOutStatus?.closureState
+        && Array.isArray(parsed.whatIChecked)) {
+        pass("1.52 guided closure resolver JSON includes state, checks, and boundaries");
+      } else {
+        fail(`1.52 guided closure resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.52 guided closure resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.52 guided closure resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-guided-closure.mjs", "."]);
+  if (check.status === 0 && check.stdout.includes("Guided Closure check passed")) {
+    pass("1.52 guided closure checker passes source repo");
+  } else {
+    fail(`1.52 guided closure checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-guided-closure.mjs", "examples/1.52-guided-closure-experience"]);
+  if (example.status === 0 && example.stdout.includes("Guided Closure check passed")) {
+    pass("1.52 guided closure example passes checker");
+  } else {
+    fail(`1.52 guided closure example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, args, expected] of [
+    ["technical burden", ["scripts/check-guided-closure.mjs", "test-fixtures/bad/bad-guided-closure-technical-burden"], "internal close-out command burden"],
+    ["overclaim", ["scripts/check-guided-closure.mjs", "test-fixtures/bad/bad-guided-closure-overclaim"], "forbidden guided closure claim"],
+  ]) {
+    const result = runNode(args);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.52 guided closure rejects ${name}`);
+    } else {
+      fail(`1.52 guided closure must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -7266,6 +7393,8 @@ function checkScriptSyntax() {
     "scripts/check-hook-orchestration.mjs",
     "scripts/resolve-workflow-guidance.mjs",
     "scripts/check-workflow-guidance.mjs",
+    "scripts/resolve-guided-closure.mjs",
+    "scripts/check-guided-closure.mjs",
     "scripts/resolve-change-impact-coverage.mjs",
     "scripts/check-change-impact-coverage.mjs",
     "scripts/check-guided-delivery-loop.mjs",
@@ -7361,6 +7490,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs baseline-decision",
     "node scripts/cli.mjs workflow-map",
     "node scripts/cli.mjs impact-coverage",
+    "node scripts/cli.mjs finish",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7373,12 +7503,14 @@ function checkReadmePointers() {
     "node scripts/check-beginner-entry.mjs",
     "node scripts/check-approval-record.mjs",
     "node scripts/check-workflow-guidance.mjs",
+    "node scripts/check-guided-closure.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
     "不自动改 CI、hook、发布流程或生产配置",
     "不自动启用 BL2 或工业增强包",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/guided-closure-experience.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
     "docs/existing-project-workflow-adapter.md",
@@ -7442,6 +7574,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs baseline-decision",
     "node scripts/cli.mjs workflow-map",
     "node scripts/cli.mjs impact-coverage",
+    "node scripts/cli.mjs finish",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7450,8 +7583,10 @@ function checkReadmePointers() {
     "npm run verify:governance",
     "node scripts/check-beginner-entry.mjs",
     "node scripts/check-conversation-native-ask.mjs",
+    "node scripts/check-guided-closure.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
+    "docs/guided-closure-experience.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -10034,6 +10169,7 @@ checkReviewSurfaceGovernanceProtocol();
 checkChangeImpactCoverageProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
+checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();
 checkOrdinaryUserProductLoopProtocol();
 checkProfiles();
