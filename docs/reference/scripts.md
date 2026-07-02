@@ -49,6 +49,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs claim-control <project>` | Check release/report wording against evidence boundaries | No |
 | `node scripts/cli.mjs context-governance <project>` | Check project memory, context correction, and Git boundary governance | No |
 | `node scripts/cli.mjs launch-readiness <project>` | Check Safe Launch / Delivery Readiness reports | No |
+| `node scripts/cli.mjs launch-view <project> --intent "<goal>" --verification "<evidence>"` | Answer whether closed work can enter launch review without approving release | No |
+| `node scripts/cli.mjs launch-view-check <project>` | Check recorded Launch Review Views | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
 | `node scripts/cli.mjs guided-delivery <project>` | Check active work thread, parking lot, and guided decision boundaries | No |
 | `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
@@ -193,6 +195,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/check-context-governance.mjs` checks Learning Candidates, Context Correction Reports, Git Boundary Reports, and source-of-truth boundaries.
 
 `scripts/check-launch-readiness.mjs` checks Launch Readiness Reports, readiness states, verification evidence, pending human decisions, and launch overclaims.
+
+`scripts/resolve-launch-review-view.mjs` is the 1.55 launch review view entry. It reads or generates Unified Closure input, reuses Safe Launch labels, detects platform hints, lists launch surface gaps, and prints one Launch Review View. It does not write target-project files, deploy, publish, submit review, approve release/production, modify CI/hooks, or change production configuration.
+
+`scripts/check-launch-review-view.mjs` checks recorded Launch Review Views. It rejects missing Unified Closure input, invented launch labels, `READY_FOR_RELEASE_REVIEW` without `DONE` closure, missing rollback/monitoring/release-owner/post-launch-smoke evidence for release review, release/production approval claims, deploy/publish/submit claims, and attempts to replace Unified Closure, Safe Launch, or project release SOPs.
 
 `scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
 

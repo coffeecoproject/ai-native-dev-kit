@@ -29,6 +29,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `debt-handoff-reports/` | Debt level, verification notes, files to revisit, human decisions, and next-run handoff |
 | `closure-decisions/` | Single final close-out decision for a task, with explain trace and stricter result when lower-level inputs disagree |
 | `guided-closure-cards/` | Plain close-out status, missing work, safe next action, human decisions, and technical evidence summary |
+| `launch-review-views/` | Read-only launch review view built from Unified Closure, Safe Launch labels, launch surface gaps, and human release decisions |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
 | `review-loop-reports/` | Findings, AUTO_FIX rounds, verification, and remaining decisions |
@@ -131,6 +132,8 @@ Context Governance and Git Boundary live under `.ai-native/core/` in generated p
 
 Safe Launch lives under `.ai-native/core/` in generated projects. It constrains readiness wording and keeps demo, internal handoff, release review, blocked, and not-ready states separate from production approval.
 
+Launch Review View lives under `.ai-native/core/` in generated projects. It answers whether closed work can enter launch review by reusing Unified Closure and Safe Launch labels. It does not approve release, deploy, submit review, change production configuration, or replace the project release SOP.
+
 Conversation Drift Control lives under `.ai-native/core/` in generated projects. It constrains how Codex handles discussion-only turns, scope changes, new tasks, direct follow-ups, and risk decisions during active work.
 
 Real Project Read-only Adoption Trial and Patch Classification Governance live under `.ai-native/core/` in generated projects. They constrain how Codex enters governed or production-sensitive projects and prevent unsafe symptom patches from being treated as safe local fixes.
@@ -189,6 +192,7 @@ Short rule:
 - need to prove the bundled MVP example is locally coherent: MVP example report
 - need to decide whether a tiny proposed write is safe enough to ask for later approval: controlled apply candidate
 - need to answer whether a task can be treated as done without exposing internal strict commands: guided closure card
+- need to answer whether closed work can enter launch review: launch review view
 - need to review work: review packet and review loop report
 - need a human decision: decision brief
 - need to suggest future work: follow-up proposal

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.54.0`
+`1.55.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.55.0` adds Launch Review View: users can ask whether closed work can enter launch review while Unified Closure remains the close-out source and Safe Launch remains the readiness-label source.
+- `1.55.0` does not approve release, deploy, publish, submit review, change production configuration, change secrets/DNS/CI/hooks/payment/permissions/migrations, or replace project release SOPs.
 - `1.54.0` adds Decision Explain Trace: Closure Decisions now explain why the final result was selected through Decision Trace, Dominant Reason, and Conflict Summary.
 - `1.54.0` does not add another close-out command or final closure source; it keeps `finish` as the plain close-out entry.
 - `1.53.0` adds Unified Closure Model: `finish` now returns one final Closure Decision for a task while Change Impact Coverage, Execution Closure, Guided Closure, and Evidence Precision remain inputs.

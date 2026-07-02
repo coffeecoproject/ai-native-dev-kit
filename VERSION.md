@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.54.0`
+Current version: `1.55.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.54.0`
 
 ## Current Release
 
-`1.54.0`
+`1.55.0`
 
 Includes:
 
+- Launch Review View phase `1.55.0`: adds `launch-view` / `launch-view-check` so users can ask whether closed work can enter launch review without choosing internal evidence commands
+- `1.55.0` reuses Unified Closure as the close-out source and Safe Launch readiness labels as the launch label source; it does not create a second launch decision system
+- `1.55.0` does not write target-project files, deploy, publish, submit app review, approve release/production, modify CI/hooks, change secrets/DNS/environment/app-store/payment/permission/migration/production data, replace project release SOPs, or approve security/privacy/compliance/legal/tax/finance/payment decisions
 - Decision Explain Trace phase `1.54.0`: adds Decision Trace, Dominant Reason, and Conflict Summary to Unified Closure Decisions so the single final answer explains why it was selected
 - `1.54.0` keeps `finish` as the user-facing close-out entry, does not add another closure source, and makes `finish-check` reject current Closure Decision records that lack explainability
 - `1.54.0` does not write target-project files, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, replace lower-level evidence checks, or approve security/privacy/compliance/payment/migration decisions

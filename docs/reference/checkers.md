@@ -43,6 +43,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-claim-control.mjs` | Release/report wording, evidence claims, and assumption register boundaries |
 | `check-context-governance.mjs` | Learning candidates, context corrections, Git boundary reports, and source-of-truth boundaries |
 | `check-launch-readiness.mjs` | Launch readiness reports, evidence, human decisions, and overclaims |
+| `resolve-launch-review-view.mjs` | Read-only launch review view resolver that depends on Unified Closure and Safe Launch labels |
+| `check-launch-review-view.mjs` | Launch Review View closure dependency, launch surface, release-owner, and no-release-approval checks |
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
 | `check-conversation-native-ask.mjs` | Conversation Ask Card boundary, no-CLI-burden, question-count, and overclaim checks |
 | `check-guided-delivery-loop.mjs` | Active work thread, parking lot, and guided decision boundaries |
@@ -142,6 +144,7 @@ Product and claim checks:
 - Assumption Register is required only when reports rely on inferred or unconfirmed facts.
 - `check-context-governance.mjs` is candidate/audit focused; it does not approve project facts or require learning candidates for every task.
 - `check-launch-readiness.mjs` allows empty projects, but rejects ready states without verification, reports with pending human decisions, and production-safety overclaims.
+- `check-launch-review-view.mjs` allows empty projects, but rejects Launch Review Views that miss Unified Closure input, invent launch states, claim release review readiness without DONE closure, omit rollback/monitoring/release-owner/post-launch-smoke evidence for `READY_FOR_RELEASE_REVIEW`, approve release/production, claim deployment/publishing/submission happened, modify CI/hooks/production config/secrets/DNS/app-store/payment/permissions/migrations, or replace Unified Closure, Safe Launch, or project release SOPs.
 - `check-conversation-drift.mjs` allows empty projects, but rejects discussion-only writes, scope changes without human decision, and risk decisions that auto-continue.
 - `check-conversation-native-ask.mjs` allows empty projects, but rejects Conversation Ask Cards that make users run CLI commands before Codex can route work, ask too many questions, claim target-project writes, authorize apply, approve implementation, approve release/production, modify CI/hooks, delete/archive/rewrite documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
 - `check-first-delivery-walkthrough.mjs` allows empty projects, but rejects walkthrough reports missing final report or launch readiness references, simulated evidence overclaims, and unclosed subagents.
@@ -199,6 +202,8 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
+node scripts/resolve-launch-review-view.mjs . --intent "<release review goal>" --verification "<verification evidence>"
+node scripts/check-launch-review-view.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .

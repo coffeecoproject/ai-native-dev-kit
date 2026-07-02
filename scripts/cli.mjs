@@ -259,6 +259,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "launch-view": {
+    description: "Answer whether closed work can enter launch review without approving release.",
+    script: "scripts/resolve-launch-review-view.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "launch-view-check": {
+    description: "Check recorded Launch Review Views.",
+    script: "scripts/check-launch-review-view.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "conversation-drift": {
     description: "Check conversation turn routing and scope-change governance.",
     script: "scripts/check-conversation-drift.mjs",
@@ -552,6 +564,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs claim-control .");
   console.log("  node scripts/cli.mjs context-governance .");
   console.log("  node scripts/cli.mjs launch-readiness .");
+  console.log("  node scripts/cli.mjs launch-view . --intent 'prepare release review' --verification 'npm run verify passed'");
+  console.log("  node scripts/cli.mjs launch-view-check .");
   console.log("  node scripts/cli.mjs conversation-drift .");
   console.log("  node scripts/cli.mjs first-delivery .");
   console.log("  node scripts/cli.mjs real-adoption .");

@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.54.0`.
+Current release: `1.55.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.54.x`, focused on one final close-out decision and an explanation of why that decision was selected.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.55.x`, focused on one final close-out decision, explaining that decision, and turning it into a launch-review view.
 
-1.54.0 adds Decision Explain Trace: Codex still gives one final Closure Decision, and now explains which input controlled that decision, which inputs passed, and why the stricter result won.
+1.55.0 adds Launch Review View: Codex can answer whether closed work can enter launch review, what still blocks launch review, and which human release decision is still needed. It does not approve release or deploy anything.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -115,6 +115,7 @@ IntentOS 当前包含这些核心能力：
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
+| Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
 | Low-Risk Apply Candidate | 判断一个小改动是否足够窄、可回滚、可验证，能否进入后续人工批准计划 |
@@ -160,6 +161,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查文档生命周期 | `node scripts/cli.mjs doc-lifecycle ../my-project` |
 | 生成统一收口结论 | `node scripts/cli.mjs finish ../my-project --intent "完成预约校验" --verification "npm run verify passed"` |
 | 检查统一收口结论 | `node scripts/cli.mjs finish-check ../my-project` |
+| 生成上线评审视图 | `node scripts/cli.mjs launch-view ../my-project --intent "准备上线评审" --verification "npm run verify passed"` |
+| 检查上线评审视图 | `node scripts/cli.mjs launch-view-check ../my-project` |
 | 生成变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage ../my-project --intent "新增合同录入限制"` |
 | 检查变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage-check ../my-project` |
 | 严格检查变更影响闭环证据 | `node scripts/check-change-impact-coverage.mjs ../my-project --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs` |
@@ -254,6 +257,7 @@ Start here:
 - [Unified Closure Model](docs/unified-closure-model.md)
 - [Decision Explain Trace](docs/decision-explain-trace.md)
 - [Guided Closure Experience](docs/guided-closure-experience.md)
+- [Launch Review View](docs/launch-review-view.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
 Core workflow:
@@ -316,6 +320,7 @@ Reference:
 
 Current release:
 
+- [1.55.0 Release Record](releases/1.55.0/release-record.md)
 - [1.54.0 Release Record](releases/1.54.0/release-record.md)
 - [1.53.0 Release Record](releases/1.53.0/release-record.md)
 - [1.51.0 Release Record](releases/1.51.0/release-record.md)

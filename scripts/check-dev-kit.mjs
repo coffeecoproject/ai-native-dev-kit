@@ -1483,6 +1483,10 @@ function checkCliFrontDoor() {
     "node --check scripts/resolve-guided-closure.mjs",
     "node --check scripts/check-guided-closure.mjs",
     "node scripts/check-guided-closure.mjs .",
+    "node --check scripts/resolve-launch-review-view.mjs",
+    "node --check scripts/check-launch-review-view.mjs",
+    "node scripts/cli.mjs launch-view .",
+    "node scripts/check-launch-review-view.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1518,6 +1522,8 @@ function checkCliFrontDoor() {
     "claim-control",
     "context-governance",
     "launch-readiness",
+    "launch-view",
+    "launch-view-check",
     "conversation-drift",
     "guided-delivery",
     "real-adoption",
@@ -1781,6 +1787,22 @@ function checkCliFrontDoor() {
     pass("CLI launch-readiness delegates to launch readiness checker");
   } else {
     fail(`CLI launch-readiness failed: ${launchReadiness.stderr || launchReadiness.stdout}`);
+  }
+
+  const launchView = runNode(["scripts/cli.mjs", "launch-view", ".", "--intent", "prepare release review", "--verification", "npm run verify passed"]);
+  if (launchView.status === 0
+    && launchView.stdout.includes("Launch Review View")
+    && launchView.stdout.includes("This view approves release or production: No")) {
+    pass("CLI launch-view delegates to launch review view resolver");
+  } else {
+    fail(`CLI launch-view failed: ${launchView.stderr || launchView.stdout}`);
+  }
+
+  const launchViewCheck = runNode(["scripts/cli.mjs", "launch-view-check", "."]);
+  if (launchViewCheck.status === 0 && launchViewCheck.stdout.includes("Launch Review View check passed")) {
+    pass("CLI launch-view-check delegates to launch review view checker");
+  } else {
+    fail(`CLI launch-view-check failed: ${launchViewCheck.stderr || launchViewCheck.stdout}`);
   }
 
   const conversationDrift = runNode(["scripts/cli.mjs", "conversation-drift", "."]);
@@ -6636,6 +6658,114 @@ function checkDecisionExplainTraceProtocol() {
   }
 }
 
+function checkLaunchReviewViewProtocol() {
+  const required = [
+    "core/launch-review-view.md",
+    "docs/launch-review-view.md",
+    "templates/launch-review-view-card.md",
+    "checklists/launch-review-view-review.md",
+    "prompts/launch-review-view-agent.md",
+    "launch-review-views/.gitkeep",
+    "scripts/resolve-launch-review-view.mjs",
+    "scripts/check-launch-review-view.mjs",
+    "docs/plans/launch-review-view-1.55-plan.md",
+    "examples/1.55-launch-review-view/web-internal-handoff/README.md",
+    "examples/1.55-launch-review-view/web-internal-handoff/launch-review-views/001-web-mvp.md",
+    "test-fixtures/bad/bad-launch-view-missing-closure/launch-review-views/001-bad.md",
+    "test-fixtures/bad/bad-launch-view-release-review-missing-rollback/launch-review-views/001-bad.md",
+    "test-fixtures/bad/bad-launch-view-claims-production-approval/launch-review-views/001-bad.md",
+    "releases/1.55.0/release-record.md",
+    "releases/1.55.0/known-limitations.md",
+    "releases/1.55.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.55 launch review view asset exists ${file}`);
+    else fail(`1.55 launch review view asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/launch-review-view.md"),
+    read("docs/launch-review-view.md"),
+    read("templates/launch-review-view-card.md"),
+    read("scripts/resolve-launch-review-view.mjs"),
+    read("scripts/check-launch-review-view.mjs"),
+    read("docs/plans/launch-review-view-1.55-plan.md"),
+    read("releases/1.55.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Launch Review View",
+    "Unified Closure Decision",
+    "Safe Launch readiness labels",
+    "Human Release Decision outside IntentOS",
+    "must not override Unified Closure",
+    "does not create a second launch decision system",
+    "READY_FOR_RELEASE_REVIEW",
+    "This view approves release or production: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.55 launch review view includes ${marker}`);
+    else fail(`1.55 launch review view missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-launch-review-view.mjs", ".", "--intent", "prepare release review", "--verification", "npm run verify passed"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Launch Review View")
+    && resolver.stdout.includes("## Unified Closure Input")
+    && resolver.stdout.includes("## Safe Launch View")
+    && resolver.stdout.includes("This view approves release or production: No")) {
+    pass("1.55 launch review resolver prints safe view");
+  } else {
+    fail(`1.55 launch review resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-launch-review-view.mjs", ".", "--intent", "prepare release review", "--verification", "npm run verify passed", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "LAUNCH_REVIEW_VIEW"
+        && parsed.unifiedClosureInput?.closureDecision
+        && parsed.safeLaunchView?.safeLaunchLabel
+        && parsed.boundaries?.approvesReleaseOrProduction === "No") {
+        pass("1.55 launch review resolver JSON includes closure input, label, and boundary");
+      } else {
+        fail(`1.55 launch review resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.55 launch review resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.55 launch review resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-launch-review-view.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Launch Review View check passed")) {
+    pass("1.55 launch review checker passes source repo");
+  } else {
+    fail(`1.55 launch review checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-launch-review-view.mjs", "examples/1.55-launch-review-view/web-internal-handoff"]);
+  if (example.status === 0 && example.stdout.includes("Launch Review View check passed")) {
+    pass("1.55 launch review example passes checker");
+  } else {
+    fail(`1.55 launch review example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["missing closure", "test-fixtures/bad/bad-launch-view-missing-closure", "must reference Unified Closure input"],
+    ["release review missing rollback", "test-fixtures/bad/bad-launch-view-release-review-missing-rollback", "requires Rollback PASS"],
+    ["production approval claim", "test-fixtures/bad/bad-launch-view-claims-production-approval", "forbidden launch review claim"],
+  ]) {
+    const result = runNode(["scripts/check-launch-review-view.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.55 launch review rejects ${name}`);
+    } else {
+      fail(`1.55 launch review must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -7672,6 +7802,7 @@ function checkReadmePointers() {
     "Approval Record",
     "Unified Closure",
     "Decision Explain Trace",
+    "Launch Review View",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
     "O0 / BL0 Lightweight Path",
@@ -7685,6 +7816,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs workflow-map",
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
+    "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7708,6 +7840,7 @@ function checkReadmePointers() {
     "docs/unified-closure-model.md",
     "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
+    "docs/launch-review-view.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
     "docs/existing-project-workflow-adapter.md",
@@ -7764,6 +7897,7 @@ function checkReadmePointers() {
     "Artifact Lifecycle Map",
     "Structured Evidence Schema",
     "Decision Explain Trace",
+    "Launch Review View",
     "O0 / BL0 Lightweight Path",
     "安全边界",
     "node scripts/cli.mjs guide",
@@ -7773,6 +7907,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs workflow-map",
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
+    "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7783,11 +7918,13 @@ function checkReadmePointers() {
     "node scripts/check-conversation-native-ask.mjs",
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
+    "node scripts/check-launch-review-view.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/unified-closure-model.md",
     "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
+    "docs/launch-review-view.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -7850,6 +7987,7 @@ function checkReadmePointers() {
     "docs/natural-language-orchestrator.md",
     "docs/unified-closure-model.md",
     "docs/decision-explain-trace.md",
+    "docs/launch-review-view.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -10374,6 +10512,7 @@ checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();
 checkDecisionExplainTraceProtocol();
+checkLaunchReviewViewProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();
 checkOrdinaryUserProductLoopProtocol();

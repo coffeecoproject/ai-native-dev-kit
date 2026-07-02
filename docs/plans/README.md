@@ -10,6 +10,11 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Launch Review View 1.55](launch-review-view-1.55-plan.md)
+- [Decision Explain Trace 1.54](decision-explain-trace-1.54-plan.md)
+- [Unified Closure Model 1.53](unified-closure-model-1.53-plan.md)
+- [Guided Closure Experience 1.52](guided-closure-experience-1.52-plan.md)
+- [Close-Out Evidence Precision 1.51](closeout-evidence-precision-1.51-plan.md)
 - [Evidence Reference Resolution 1.50](evidence-reference-resolution-1.50-plan.md)
 - [Structured Impact Coverage 1.49](structured-impact-coverage-1.49-plan.md)
 - [Change Impact Coverage 1.48](change-impact-coverage-1.48-plan.md)

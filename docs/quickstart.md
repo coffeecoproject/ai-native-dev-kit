@@ -58,6 +58,22 @@ node scripts/cli.mjs finish ../my-project \
 
 `finish` returns one Unified Closure Decision and explains why that decision was selected. It treats impact coverage, execution closure, guided closure, and evidence precision as inputs. It does not approve commit, push, release, or production.
 
+When you want to know whether closed work can enter launch review, ask naturally:
+
+```text
+这个版本可以上线了吗？
+```
+
+For command-line evidence, use:
+
+```bash
+node scripts/cli.mjs launch-view ../my-project \
+  --intent "准备上线评审" \
+  --verification "npm run verify passed"
+```
+
+`launch-view` returns one Launch Review View. It depends on Unified Closure and Safe Launch labels, lists launch-specific gaps, and keeps the final release decision outside IntentOS.
+
 Use the built-in local examples to see the path end to end:
 
 ```bash
@@ -178,6 +194,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
+node scripts/check-launch-review-view.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .

@@ -16,6 +16,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Unified Closure Model](unified-closure-model.md)
 - [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
+- [Launch Review View](launch-review-view.md)
 
 ## Project Adoption
 
@@ -44,6 +45,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Unified Closure Model](unified-closure-model.md)
 - [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
+- [Launch Review View](launch-review-view.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)
