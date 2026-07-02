@@ -6553,6 +6553,89 @@ function checkUnifiedClosureModelProtocol() {
   }
 }
 
+function checkDecisionExplainTraceProtocol() {
+  const required = [
+    "core/decision-explain-trace.md",
+    "docs/decision-explain-trace.md",
+    "docs/plans/decision-explain-trace-1.54-plan.md",
+    "examples/1.54-decision-explain-trace/README.md",
+    "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
+    "test-fixtures/bad/bad-closure-decision-missing-explain-trace/closure-decisions/001-bad.md",
+    "releases/1.54.0/release-record.md",
+    "releases/1.54.0/known-limitations.md",
+    "releases/1.54.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.54 decision explain trace asset exists ${file}`);
+    else fail(`1.54 decision explain trace asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/decision-explain-trace.md"),
+    read("docs/decision-explain-trace.md"),
+    read("templates/closure-decision.md"),
+    read("scripts/resolve-closure-decision.mjs"),
+    read("scripts/check-closure-decision.mjs"),
+    read("releases/1.54.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Decision Explain Trace",
+    "Decision Trace",
+    "Dominant Reason",
+    "Conflict Summary",
+    "why the single Unified Closure Decision was selected",
+    "does not create a second final closure source",
+  ]) {
+    if (combined.includes(marker)) pass(`1.54 decision explain trace includes ${marker}`);
+    else fail(`1.54 decision explain trace missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-closure-decision.mjs", ".", "--intent", "maintain IntentOS closure explanation", "--verification", "npm run verify passed"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("## Decision Trace")
+    && resolver.stdout.includes("## Dominant Reason")
+    && resolver.stdout.includes("## Conflict Summary")) {
+    pass("1.54 closure resolver prints explain trace sections");
+  } else {
+    fail(`1.54 closure resolver missing explain trace sections: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-closure-decision.mjs", ".", "--intent", "maintain IntentOS closure explanation", "--verification", "npm run verify passed", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (Array.isArray(parsed.decisionTrace)
+        && parsed.decisionTrace.length >= 3
+        && parsed.dominantReason?.whyThisDecides
+        && parsed.conflictSummary?.summary) {
+        pass("1.54 closure resolver JSON includes explain trace fields");
+      } else {
+        fail(`1.54 closure resolver JSON missing explain trace fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.54 closure resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.54 closure resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace"]);
+  if (example.status === 0 && example.stdout.includes("Unified Closure Decision check passed")) {
+    pass("1.54 decision explain trace example passes checker");
+  } else {
+    fail(`1.54 decision explain trace example failed: ${example.stderr || example.stdout}`);
+  }
+
+  const bad = runNode(["scripts/check-closure-decision.mjs", "test-fixtures/bad/bad-closure-decision-missing-explain-trace"]);
+  const badOutput = `${bad.stdout}\n${bad.stderr}`;
+  if (bad.status !== 0 && badOutput.includes("missing section Decision Trace")) {
+    pass("1.54 decision explain trace rejects missing trace");
+  } else {
+    fail(`1.54 decision explain trace must reject missing trace: ${badOutput}`);
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -7588,6 +7671,7 @@ function checkReadmePointers() {
     "Change Impact Coverage",
     "Approval Record",
     "Unified Closure",
+    "Decision Explain Trace",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
     "O0 / BL0 Lightweight Path",
@@ -7622,6 +7706,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/unified-closure-model.md",
+    "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
@@ -7678,6 +7763,7 @@ function checkReadmePointers() {
     "项目分级",
     "Artifact Lifecycle Map",
     "Structured Evidence Schema",
+    "Decision Explain Trace",
     "O0 / BL0 Lightweight Path",
     "安全边界",
     "node scripts/cli.mjs guide",
@@ -7700,6 +7786,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/unified-closure-model.md",
+    "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
@@ -7762,6 +7849,7 @@ function checkReadmePointers() {
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/unified-closure-model.md",
+    "docs/decision-explain-trace.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -10285,6 +10373,7 @@ checkChangeImpactCoverageProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();
+checkDecisionExplainTraceProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();
 checkOrdinaryUserProductLoopProtocol();

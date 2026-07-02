@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.53.0`
+Current version: `1.54.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.53.0`
 
 ## Current Release
 
-`1.53.0`
+`1.54.0`
 
 Includes:
 
+- Decision Explain Trace phase `1.54.0`: adds Decision Trace, Dominant Reason, and Conflict Summary to Unified Closure Decisions so the single final answer explains why it was selected
+- `1.54.0` keeps `finish` as the user-facing close-out entry, does not add another closure source, and makes `finish-check` reject current Closure Decision records that lack explainability
+- `1.54.0` does not write target-project files, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, replace lower-level evidence checks, or approve security/privacy/compliance/payment/migration decisions
 - Unified Closure Model phase `1.53.0`: adds Unified Closure Decisions so one task has one final close-out truth while Change Impact Coverage, Execution Closure, Guided Closure, and Evidence Precision remain inputs
 - `1.53.0` upgrades `finish` / `finish-check` to the unified decision entry, keeps lower-level 1.49-1.52 scripts available for maintainers and CI, and uses the stricter result when close-out inputs disagree
 - `1.53.0` does not remove existing close-out artifacts, migrate historical records, write target-project files, authorize implementation, authorize apply, approve commit/push, approve release/production, modify CI/hooks, replace Review Loop, replace Safe Launch, or approve security/privacy/compliance/payment/migration decisions

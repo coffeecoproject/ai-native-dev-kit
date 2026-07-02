@@ -25,7 +25,9 @@ if (unknown.length > 0) {
 
 const requiredAssets = [
   "core/unified-closure-model.md",
+  "core/decision-explain-trace.md",
   "docs/unified-closure-model.md",
+  "docs/decision-explain-trace.md",
   "templates/closure-decision.md",
   "checklists/closure-decision-review.md",
   "prompts/closure-decision-agent.md",
@@ -37,6 +39,9 @@ const sections = [
   "Human Summary",
   "Closure Decision",
   "Decision Inputs",
+  "Decision Trace",
+  "Dominant Reason",
+  "Conflict Summary",
   "Single Source Rule",
   "Required Next Action",
   "Evidence Map",
@@ -69,6 +74,8 @@ const forbiddenClaims = [
   /\bproduction ready\b/i,
   /\bsafe to launch\b/i,
   /\bimplementation approved\b/i,
+  /\bno explanation needed\b/i,
+  /\bfinal decision only\b/i,
 ];
 
 let failed = false;
@@ -104,6 +111,7 @@ emitAndExit();
 
 function checkCoreContent() {
   const core = readResolved("core/unified-closure-model.md");
+  const trace = readResolved("core/decision-explain-trace.md");
   if (!core) return;
   for (const marker of [
     "Unified Closure Model",
@@ -115,6 +123,11 @@ function checkCoreContent() {
   ]) {
     if (core.includes(marker)) pass(`unified closure core includes ${marker}`);
     else fail(`unified closure core missing ${marker}`);
+  }
+  if (trace.includes("Decision Explain Trace") && trace.includes("Dominant Reason") && trace.includes("Conflict Summary")) {
+    pass("decision explain trace core includes trace markers");
+  } else {
+    fail("decision explain trace core missing required trace markers");
   }
 }
 
@@ -141,6 +154,10 @@ function checkClosureDecisions() {
     const finalSource = tableValue(content, "Final closure source");
     if (finalSource === "UNIFIED_CLOSURE_DECISION") pass(`${label} declares unified final closure source`);
     else fail(`${label} must declare UNIFIED_CLOSURE_DECISION as final closure source`);
+
+    requireDecisionTrace(content, label);
+    requireDominantReason(content, label, decision);
+    requireConflictSummary(content, label);
 
     const singleSource = sectionBody(content, "Single Source Rule") || "";
     if (/single closure source for this task:\s*Yes/i.test(singleSource)) pass(`${label} confirms single closure source`);
@@ -188,19 +205,70 @@ function requireDoneEvidence(content, label) {
   else fail(`${label} cannot be DONE with missing human decision`);
 }
 
+function requireDecisionTrace(content, label) {
+  const trace = sectionBody(content, "Decision Trace") || "";
+  if (trace.includes("| Step | Input | Status | Effect |")) pass(`${label} includes Decision Trace table`);
+  else fail(`${label} Decision Trace must include Step/Input/Status/Effect table`);
+  const rows = trace.split("\n").filter((line) => /^\|\s*\d+\s*\|/.test(line));
+  if (rows.length >= 3) pass(`${label} Decision Trace includes multiple input steps`);
+  else fail(`${label} Decision Trace must include multiple input steps`);
+  if (/Dominant reason:/i.test(trace)) pass(`${label} Decision Trace identifies the dominant reason`);
+  else fail(`${label} Decision Trace must identify the dominant reason`);
+}
+
+function requireDominantReason(content, label, decision) {
+  const body = sectionBody(content, "Dominant Reason") || "";
+  const dominantInput = tableValue(body, "Input");
+  const dominantStatus = tableValue(body, "Status");
+  const dominantResult = tableValue(body, "Result");
+  const why = tableValue(body, "Why this decides");
+  if (dominantInput) pass(`${label} Dominant Reason has input`);
+  else fail(`${label} Dominant Reason must name the deciding input`);
+  if (dominantStatus) pass(`${label} Dominant Reason has status`);
+  else fail(`${label} Dominant Reason must include deciding status`);
+  if (dominantResult === decision) pass(`${label} Dominant Reason result matches Closure Decision`);
+  else fail(`${label} Dominant Reason result must match Closure Decision`);
+  if (why && why.length >= 20) pass(`${label} Dominant Reason explains why`);
+  else fail(`${label} Dominant Reason must explain why this input decides`);
+  if (decision !== "DONE" && /^(PASS|N\/A|OPTIONAL)$/i.test(dominantStatus)) {
+    fail(`${label} non-DONE decision cannot be explained by non-blocking dominant status`);
+  }
+}
+
+function requireConflictSummary(content, label) {
+  const body = sectionBody(content, "Conflict Summary") || "";
+  const disagreement = tableValue(body, "Inputs disagree");
+  const stricterInput = tableValue(body, "Stricter input");
+  const summary = tableValue(body, "Summary");
+  if (["Yes", "No"].includes(disagreement)) pass(`${label} Conflict Summary states whether inputs disagree`);
+  else fail(`${label} Conflict Summary must state Inputs disagree as Yes or No`);
+  if (stricterInput) pass(`${label} Conflict Summary names stricter input`);
+  else fail(`${label} Conflict Summary must name the stricter input`);
+  if (summary && summary.length >= 20) pass(`${label} Conflict Summary explains the conflict or absence of conflict`);
+  else fail(`${label} Conflict Summary must explain the conflict or absence of conflict`);
+}
+
 function checkSourceEvidence() {
   for (const file of [
     "docs/plans/unified-closure-model-1.53-plan.md",
+    "docs/plans/decision-explain-trace-1.54-plan.md",
+    "docs/decision-explain-trace.md",
     "examples/1.53-unified-closure-model/README.md",
     "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
+    "examples/1.54-decision-explain-trace/README.md",
+    "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
     "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
     "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
+    "test-fixtures/bad/bad-closure-decision-missing-explain-trace/closure-decisions/001-bad.md",
     "releases/1.53.0/release-record.md",
     "releases/1.53.0/known-limitations.md",
     "releases/1.53.0/self-check-report.md",
+    "releases/1.54.0/release-record.md",
+    "releases/1.54.0/known-limitations.md",
+    "releases/1.54.0/self-check-report.md",
   ]) {
-    if (exists(file)) pass(`1.53 unified closure source evidence exists ${file}`);
-    else fail(`1.53 unified closure source evidence missing ${file}`);
+    if (exists(file)) pass(`1.54 closure explanation source evidence exists ${file}`);
+    else fail(`1.54 closure explanation source evidence missing ${file}`);
   }
 
   const resolver = runNode(["scripts/resolve-closure-decision.mjs", ".", "--intent", "maintain IntentOS closure model", "--verification", "npm run verify passed"]);
@@ -218,10 +286,13 @@ function checkSourceEvidence() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "UNIFIED_CLOSURE_DECISION"
         && parsed.boundaries?.writesTargetFiles === "No"
-        && parsed.closureDecision?.finalClosureSource === "UNIFIED_CLOSURE_DECISION") {
-        pass("1.53 unified closure resolver JSON includes single source decision and boundaries");
+        && parsed.closureDecision?.finalClosureSource === "UNIFIED_CLOSURE_DECISION"
+        && Array.isArray(parsed.decisionTrace)
+        && parsed.dominantReason?.result
+        && parsed.conflictSummary?.summary) {
+        pass("1.54 closure decision resolver JSON includes explain trace fields and boundaries");
       } else {
-        fail(`1.53 unified closure resolver JSON missing expected fields: ${resolverJson.stdout}`);
+        fail(`1.54 closure decision resolver JSON missing expected explain trace fields: ${resolverJson.stdout}`);
       }
     } catch (error) {
       fail(`1.53 unified closure resolver JSON invalid: ${error.message}`);
@@ -237,14 +308,22 @@ function checkSourceEvidence() {
     fail(`1.53 unified closure example failed: ${example.stderr || example.stdout}`);
   }
 
+  const explainExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace"]);
+  if (explainExample.status === 0 && explainExample.stdout.includes("Unified Closure Decision check passed")) {
+    pass("1.54 decision explain trace example passes checker");
+  } else {
+    fail(`1.54 decision explain trace example failed: ${explainExample.stderr || explainExample.stdout}`);
+  }
+
   for (const [name, target, expected] of [
     ["done without evidence", "test-fixtures/bad/bad-closure-decision-done-without-evidence", "cannot be DONE without"],
     ["split truth", "test-fixtures/bad/bad-closure-decision-split-truth", "must confirm single closure source"],
+    ["missing explain trace", "test-fixtures/bad/bad-closure-decision-missing-explain-trace", "missing section Decision Trace"],
   ]) {
     const result = runNode(["scripts/check-closure-decision.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;
-    if (result.status !== 0 && output.includes(expected)) pass(`1.53 unified closure rejects ${name}`);
-    else fail(`1.53 unified closure must reject ${name}: ${output}`);
+    if (result.status !== 0 && output.includes(expected)) pass(`1.54 closure decision rejects ${name}`);
+    else fail(`1.54 closure decision must reject ${name}: ${output}`);
   }
 }
 

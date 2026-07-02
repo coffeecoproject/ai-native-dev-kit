@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.53.0`.
+Current release: `1.54.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.53.x`, focused on one final close-out decision so users can ask whether work is done without choosing internal evidence commands.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.54.x`, focused on one final close-out decision and an explanation of why that decision was selected.
 
-1.53.0 adds Unified Closure Model: Codex now resolves Change Impact Coverage, Execution Closure, Guided Closure, and evidence precision into one read-only Closure Decision while keeping strict lower-level checks available for maintainers and CI.
+1.54.0 adds Decision Explain Trace: Codex still gives one final Closure Decision, and now explains which input controlled that decision, which inputs passed, and why the stricter result won.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -252,6 +252,7 @@ Start here:
 - [Conversation-Native Ask](docs/conversation-native-ask.md)
 - [Natural Language Orchestrator](docs/natural-language-orchestrator.md)
 - [Unified Closure Model](docs/unified-closure-model.md)
+- [Decision Explain Trace](docs/decision-explain-trace.md)
 - [Guided Closure Experience](docs/guided-closure-experience.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
@@ -315,6 +316,7 @@ Reference:
 
 Current release:
 
+- [1.54.0 Release Record](releases/1.54.0/release-record.md)
 - [1.53.0 Release Record](releases/1.53.0/release-record.md)
 - [1.51.0 Release Record](releases/1.51.0/release-record.md)
 - [1.49.0 Release Record](releases/1.49.0/release-record.md)

@@ -4,13 +4,13 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.53.0`。
+当前版本：`1.54.0`。
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
 
-版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.53.x`，重点是统一任务收口判断，让用户不用选择内部证据命令，也能判断任务是否能算完成。
+版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.54.x`，重点是统一任务收口判断，并解释为什么得到这个判断。
 
-1.53.0 加入 Unified Closure Model：Codex 会把变更影响覆盖、执行收口、引导式收口和证据精确性合成一个只读 Closure Decision，避免多个检查给出不同“是否完成”的答案；底层严格检查继续保留给维护者和 CI 使用。
+1.54.0 加入 Decision Explain Trace：Codex 仍然只给一个最终 Closure Decision，同时说明哪个输入决定了结果、哪些输入已经通过、为什么更严格的结果会生效。
 
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
@@ -250,6 +250,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 - [Conversation-Native Ask](docs/conversation-native-ask.md)
 - [Natural Language Orchestrator](docs/natural-language-orchestrator.md)
 - [Unified Closure Model](docs/unified-closure-model.md)
+- [Decision Explain Trace](docs/decision-explain-trace.md)
 - [Guided Closure Experience](docs/guided-closure-experience.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
@@ -313,6 +314,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.54.0 Release Record](releases/1.54.0/release-record.md)
 - [1.53.0 Release Record](releases/1.53.0/release-record.md)
 - [1.51.0 Release Record](releases/1.51.0/release-record.md)
 - [1.49.0 Release Record](releases/1.49.0/release-record.md)

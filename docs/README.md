@@ -14,6 +14,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Conversation-Native Ask](conversation-native-ask.md)
 - [Natural Language Orchestrator](natural-language-orchestrator.md)
 - [Unified Closure Model](unified-closure-model.md)
+- [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
 
 ## Project Adoption
@@ -41,6 +42,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Low-Risk Controlled Apply Candidate](low-risk-controlled-apply-candidate.md)
 - [Debt & Knowledge Handoff](debt-knowledge-handoff.md)
 - [Unified Closure Model](unified-closure-model.md)
+- [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)

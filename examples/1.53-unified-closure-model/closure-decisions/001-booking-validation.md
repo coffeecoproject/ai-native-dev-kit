@@ -27,6 +27,34 @@ What I need from you: No human decision is required by this read-only decision.
 | Verification | `PASS` | reports/verify-output.txt | Passing verification was provided. |
 | Human Decision | `N/A` | N/A | No high-risk decision signal detected. |
 
+## Decision Trace
+
+| Step | Input | Status | Effect |
+|---|---|---|---|
+| 1 | Change Impact Coverage | `PASS` | Supports close-out but cannot override stricter inputs. |
+| 2 | Execution Closure | `PASS` | Supports close-out but cannot override stricter inputs. |
+| 3 | Guided Closure | `PASS` | Supports close-out but cannot override stricter inputs. |
+| 4 | Verification | `PASS` | Supports close-out but cannot override stricter inputs. |
+| 5 | Human Decision | `N/A` | No blocking signal for this decision. |
+| 6 | Required inputs | `PASS` | Dominant reason: this input sets final decision to DONE. |
+
+## Dominant Reason
+
+| Field | Value |
+|---|---|
+| Input | Required inputs |
+| Status | `PASS` |
+| Result | `DONE` |
+| Why this decides | No stricter missing, failed, or human-decision input outranks completion. |
+
+## Conflict Summary
+
+| Field | Value |
+|---|---|
+| Inputs disagree | No |
+| Stricter input | Required inputs |
+| Summary | No lower-level conflict detected; required inputs support DONE. |
+
 ## Single Source Rule
 
 This decision is the single closure source for this task: Yes

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.53.0`
+`1.54.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.54.0` adds Decision Explain Trace: Closure Decisions now explain why the final result was selected through Decision Trace, Dominant Reason, and Conflict Summary.
+- `1.54.0` does not add another close-out command or final closure source; it keeps `finish` as the plain close-out entry.
 - `1.53.0` adds Unified Closure Model: `finish` now returns one final Closure Decision for a task while Change Impact Coverage, Execution Closure, Guided Closure, and Evidence Precision remain inputs.
 - `1.53.0` prevents split close-out truth by making the stricter result win when lower-level closure artifacts disagree.
 - `1.52.0` adds Guided Closure Experience: users can ask whether a task is done through `finish`, while Codex summarizes close-out status, missing work, safe next action, human decisions, and technical evidence in one read-only card.

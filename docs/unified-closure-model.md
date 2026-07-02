@@ -48,6 +48,18 @@ node scripts/cli.mjs finish ../my-project --intent "finish booking validation" -
 
 This is read-only. It does not approve code, commit, push, release, production, CI, hooks, or high-risk decisions.
 
+## Explainability
+
+`finish` should not only give a final answer. It should also explain why that answer was selected.
+
+The Closure Decision includes:
+
+- Decision Trace
+- Dominant Reason
+- Conflict Summary
+
+These sections show which input decided the result, which inputs passed, which inputs were missing, and why the stricter result won.
+
 ## Maintainer Checks
 
 ```bash

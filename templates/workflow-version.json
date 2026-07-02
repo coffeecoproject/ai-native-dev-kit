@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.53.0",
+  "devKitVersion": "1.54.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -85,6 +85,7 @@
     ".ai-native/core/subagent-dispatch-hygiene.md",
     ".ai-native/core/unified-apply-plan.md",
     ".ai-native/core/unified-closure-model.md",
+    ".ai-native/core/decision-explain-trace.md",
     ".ai-native/core/work-queue.md",
     ".ai-native/dev-kit-manifest.json",
     ".ai-native/docs/approval-record-governance.md",
@@ -136,6 +137,7 @@
     ".ai-native/docs/subagent-dispatch-hygiene.md",
     ".ai-native/docs/unified-apply-plan.md",
     ".ai-native/docs/unified-closure-model.md",
+    ".ai-native/docs/decision-explain-trace.md",
     ".ai-native/docs/work-queue.md",
     ".ai-native/industrial-packs",
     ".ai-native/profiles",

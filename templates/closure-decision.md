@@ -27,6 +27,31 @@ What I need from you:
 | Verification | `MISSING` | N/A | Passing verification is not recorded. |
 | Human Decision | `N/A` | N/A | No high-risk decision is recorded. |
 
+## Decision Trace
+
+| Step | Input | Status | Effect |
+|---|---|---|---|
+| 1 | Change Impact Coverage | `MISSING` | Dominant reason: this input sets final decision to NEEDS_IMPACT_COVERAGE. |
+| 2 | Execution Closure | `MISSING` | Stricter than done, but lower precedence than Change Impact Coverage. |
+| 3 | Verification | `MISSING` | Stricter than done, but lower precedence than Change Impact Coverage. |
+
+## Dominant Reason
+
+| Field | Value |
+|---|---|
+| Input | Change Impact Coverage |
+| Status | `MISSING` |
+| Result | `NEEDS_IMPACT_COVERAGE` |
+| Why this decides | Related-surface coverage outranks a completion claim when behavior or rule changes may affect more than one surface. |
+
+## Conflict Summary
+
+| Field | Value |
+|---|---|
+| Inputs disagree | Yes |
+| Stricter input | Change Impact Coverage |
+| Summary | Some closure inputs may pass, but missing related-surface coverage controls the final result; stricter result wins. |
+
 ## Single Source Rule
 
 This decision is the single closure source for this task: Yes

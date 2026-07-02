@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.53.0",
+  "devKitVersion": "1.54.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.53.0"
+    "phase": "1.54.0"
   },
   "groups": {
     "sourceRequired": [
@@ -172,6 +172,7 @@
       "core/task-levels.md",
       "core/unified-apply-plan.md",
       "core/unified-closure-model.md",
+      "core/decision-explain-trace.md",
       "core/workflow.md",
       "debt-handoff-reports/.gitkeep",
       "decision-briefs/035-readonly-manifest.md",
@@ -274,6 +275,7 @@
       "docs/plans/subagent-dispatch-hygiene-1.39-plan.md",
       "docs/plans/unified-apply-plan-1.34-plan.md",
       "docs/plans/unified-closure-model-1.53-plan.md",
+      "docs/plans/decision-explain-trace-1.54-plan.md",
       "docs/platform-standard-baseline-packs.md",
       "docs/product-baseline.md",
       "docs/product-completeness-gate.md",
@@ -303,6 +305,7 @@
       "docs/troubleshooting.md",
       "docs/unified-apply-plan.md",
       "docs/unified-closure-model.md",
+      "docs/decision-explain-trace.md",
       "evals/034-baseline-freeze-self-ci.md",
       "evals/035-readonly-manifest.md",
       "evals/036-cli-front-door.md",
@@ -478,6 +481,8 @@
       "examples/1.52-guided-closure-experience/guided-closure-cards/001-booking-validation.md",
       "examples/1.53-unified-closure-model/README.md",
       "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
+      "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
+      "examples/1.54-decision-explain-trace/README.md",
       "examples/1.6-conversation-drift-control/README.md",
       "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
@@ -1064,6 +1069,9 @@
       "releases/1.53.0/known-limitations.md",
       "releases/1.53.0/release-record.md",
       "releases/1.53.0/self-check-report.md",
+      "releases/1.54.0/self-check-report.md",
+      "releases/1.54.0/release-record.md",
+      "releases/1.54.0/known-limitations.md",
       "releases/1.6.0/known-limitations.md",
       "releases/1.6.0/release-record.md",
       "releases/1.6.0/self-check-report.md",
@@ -1562,6 +1570,7 @@
       "test-fixtures/bad/bad-change-impact-weak-evidence/evidence/weak.txt",
       "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-closure-decision-missing-explain-trace/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
@@ -1920,6 +1929,7 @@
       ".ai-native/core/task-levels.md",
       ".ai-native/core/unified-apply-plan.md",
       ".ai-native/core/unified-closure-model.md",
+      ".ai-native/core/decision-explain-trace.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/core/workflow.md",
       ".ai-native/dev-kit-manifest.json",
@@ -1969,6 +1979,7 @@
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
       ".ai-native/docs/unified-closure-model.md",
+      ".ai-native/docs/decision-explain-trace.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/prompts/apply-plan-agent.md",
       ".ai-native/prompts/architect-agent.md",
@@ -2398,6 +2409,7 @@
       ".ai-native/core/task-levels.md",
       ".ai-native/core/unified-apply-plan.md",
       ".ai-native/core/unified-closure-model.md",
+      ".ai-native/core/decision-explain-trace.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/core/workflow.md",
       ".ai-native/dev-kit-manifest.json",
@@ -2450,6 +2462,7 @@
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
       ".ai-native/docs/unified-closure-model.md",
+      ".ai-native/docs/decision-explain-trace.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs/README.md",
       ".ai-native/industrial-packs/index.json",
@@ -2847,6 +2860,7 @@
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/task-levels.md",
       ".ai-native/core/unified-closure-model.md",
+      ".ai-native/core/decision-explain-trace.md",
       ".ai-native/core/workflow.md",
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/schemas/artifacts",
@@ -2878,7 +2892,8 @@
       "core/safe-launch.md",
       "core/standard-baseline-pack-registry.md",
       "core/unified-apply-plan.md",
-      "core/unified-closure-model.md"
+      "core/unified-closure-model.md",
+      "core/decision-explain-trace.md"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3451,6 +3466,8 @@
       "examples/1.52-guided-closure-experience/guided-closure-cards/001-booking-validation.md",
       "examples/1.53-unified-closure-model/README.md",
       "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
+      "examples/1.54-decision-explain-trace/README.md",
+      "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
       "examples/1.6-conversation-drift-control/README.md",
       "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
@@ -3623,6 +3640,7 @@
       "test-fixtures/bad/bad-change-impact-weak-evidence/evidence/weak.txt",
       "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-closure-decision-missing-explain-trace/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
@@ -3949,6 +3967,7 @@
       ".ai-native/core/subagent-dispatch-hygiene.md",
       ".ai-native/core/unified-apply-plan.md",
       ".ai-native/core/unified-closure-model.md",
+      ".ai-native/core/decision-explain-trace.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/dev-kit-manifest.json",
       ".ai-native/docs/approval-record-governance.md",
@@ -4000,6 +4019,7 @@
       ".ai-native/docs/subagent-dispatch-hygiene.md",
       ".ai-native/docs/unified-apply-plan.md",
       ".ai-native/docs/unified-closure-model.md",
+      ".ai-native/docs/decision-explain-trace.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs",
       ".ai-native/profiles",
@@ -4343,6 +4363,7 @@
       ".ai-native/core/subagent-orchestration.md",
       ".ai-native/core/unified-apply-plan.md",
       ".ai-native/core/unified-closure-model.md",
+      ".ai-native/core/decision-explain-trace.md",
       ".ai-native/core/work-queue.md",
       ".ai-native/core/workflow.md",
       ".ai-native/docs/artifact-decision-tree.md",
@@ -4383,6 +4404,7 @@
       ".ai-native/docs/standard-baseline-pack-registry.md",
       ".ai-native/docs/unified-apply-plan.md",
       ".ai-native/docs/unified-closure-model.md",
+      ".ai-native/docs/decision-explain-trace.md",
       ".ai-native/docs/work-queue.md",
       ".ai-native/industrial-packs/index.json",
       ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
@@ -4993,6 +5015,10 @@
         "target": ".ai-native/core/unified-closure-model.md"
       },
       {
+        "source": "core/decision-explain-trace.md",
+        "target": ".ai-native/core/decision-explain-trace.md"
+      },
+      {
         "source": "core/work-queue.md",
         "target": ".ai-native/core/work-queue.md"
       },
@@ -5195,6 +5221,10 @@
       {
         "source": "docs/unified-closure-model.md",
         "target": ".ai-native/docs/unified-closure-model.md"
+      },
+      {
+        "source": "docs/decision-explain-trace.md",
+        "target": ".ai-native/docs/decision-explain-trace.md"
       },
       {
         "source": "docs/work-queue.md",

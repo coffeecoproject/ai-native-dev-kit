@@ -30,6 +30,18 @@ The final closure truth is the latest applicable Unified Closure Decision for th
 
 If Guided Closure, Execution Closure, and Change Impact Coverage disagree, Codex must report the disagreement and choose the stricter decision.
 
+## Explain Trace
+
+The final decision must be explainable.
+
+Current Closure Decision records should include:
+
+- Decision Trace: how each input affected the final decision.
+- Dominant Reason: the one input that controls the final result.
+- Conflict Summary: whether inputs disagreed and why the stricter result won.
+
+The trace explains the decision. It does not create another final closure source.
+
 ## Input Roles
 
 | Input | Role |

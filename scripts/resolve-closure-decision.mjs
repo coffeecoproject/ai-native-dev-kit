@@ -59,6 +59,9 @@ function buildClosureDecision(root, context) {
   }) : [];
   const inputs = collectInputs(root, context, git, paths);
   const decision = chooseDecision(inputs);
+  const dominantReason = dominantReasonFor(decision, inputs);
+  const conflictSummary = summarizeConflicts(decision, inputs, dominantReason);
+  const decisionTrace = buildDecisionTrace(inputs, decision, dominantReason);
   return {
     reportType: "UNIFIED_CLOSURE_DECISION",
     generatedBy: "scripts/resolve-closure-decision.mjs",
@@ -83,6 +86,9 @@ function buildClosureDecision(root, context) {
       ref: item.ref || "N/A",
       finding: item.finding,
     })),
+    decisionTrace,
+    dominantReason,
+    conflictSummary,
     singleSourceRule: {
       thisDecisionIsSingleClosureSource: "Yes",
       stricterResultWinsWhenInputsDisagree: "Yes",
@@ -149,6 +155,75 @@ function chooseDecision(inputs) {
 
 function makeDecision(name, reason) {
   return { name, reason };
+}
+
+function dominantReasonFor(decisionValue, inputs) {
+  const byName = Object.fromEntries(inputs.map((item) => [item.name, item]));
+  const dominantInputName = {
+    BLOCKED: byName["Project path"]?.status === "FAIL" ? "Project path" : "Verification",
+    NEEDS_HUMAN_DECISION: "Human Decision",
+    NEEDS_IMPACT_COVERAGE: "Change Impact Coverage",
+    NEEDS_EVIDENCE: byName.Verification?.status !== "PASS" ? "Verification" : "Execution Closure",
+    NOT_DONE: "Task intent",
+    DONE: "Required inputs",
+  }[decisionValue.name] || "Unified Closure Decision";
+
+  const dominantInput = byName[dominantInputName] || input("Required inputs", "PASS", "N/A", "Required close-out inputs are present.");
+  return {
+    input: dominantInput.name,
+    status: dominantInput.status,
+    result: decisionValue.name,
+    whyThisDecides: whyDominant(decisionValue, dominantInput),
+  };
+}
+
+function whyDominant(decisionValue, dominantInput) {
+  if (decisionValue.name === "DONE") return "No stricter missing, failed, or human-decision input outranks completion.";
+  if (decisionValue.name === "BLOCKED") return `${dominantInput.name} blocks close-out before any completion claim can be accepted.`;
+  if (decisionValue.name === "NEEDS_HUMAN_DECISION") return "Human decision outranks implementation, verification, and evidence when high-risk scope is present.";
+  if (decisionValue.name === "NEEDS_IMPACT_COVERAGE") return "Related-surface coverage outranks a completion claim when behavior or rule changes may affect more than one surface.";
+  if (decisionValue.name === "NEEDS_EVIDENCE") return `${dominantInput.name} is required evidence before the task can count as done.`;
+  if (decisionValue.name === "NOT_DONE") return "A task cannot be closed without a clear task intent.";
+  return dominantInput.finding;
+}
+
+function summarizeConflicts(decisionValue, inputs, dominantReason) {
+  const passingInputs = inputs.filter((item) => item.status === "PASS").map((item) => item.name);
+  const stricterInputs = inputs
+    .filter((item) => ["FAIL", "MISSING", "NEEDS_REVIEW"].includes(item.status))
+    .map((item) => `${item.name}=${item.status}`);
+  const hasConflict = passingInputs.length > 0 && stricterInputs.length > 0;
+  const summary = hasConflict
+    ? `Some inputs pass (${passingInputs.join(", ")}), but ${dominantReason.input} drives ${decisionValue.name}; stricter result wins.`
+    : decisionValue.name === "DONE"
+      ? "No lower-level conflict detected; required inputs support DONE."
+      : `${dominantReason.input} drives ${decisionValue.name}; no passing input overrides that stricter result.`;
+  return {
+    inputsDisagree: hasConflict ? "Yes" : "No",
+    stricterInput: dominantReason.input,
+    summary,
+  };
+}
+
+function buildDecisionTrace(inputs, decisionValue, dominantReason) {
+  return inputs.map((item, index) => ({
+    step: String(index + 1),
+    input: item.name,
+    status: item.status,
+    effect: traceEffect(item, decisionValue, dominantReason),
+  }));
+}
+
+function traceEffect(item, decisionValue, dominantReason) {
+  if (item.name === dominantReason.input) {
+    return `Dominant reason: this input sets final decision to ${decisionValue.name}.`;
+  }
+  if (["FAIL", "MISSING", "NEEDS_REVIEW"].includes(item.status)) {
+    return `Stricter than done, but lower precedence than ${dominantReason.input}.`;
+  }
+  if (item.status === "PASS") return "Supports close-out but cannot override stricter inputs.";
+  if (item.status === "OPTIONAL") return "Optional input; does not decide close-out.";
+  return "No blocking signal for this decision.";
 }
 
 function input(name, status, ref, finding) {
@@ -292,6 +367,31 @@ function printHuman(report) {
   for (const item of report.decisionInputs) {
     console.log(`| ${item.input} | \`${item.status}\` | ${item.ref} | ${item.finding} |`);
   }
+  console.log("");
+  console.log("## Decision Trace");
+  console.log("");
+  console.log("| Step | Input | Status | Effect |");
+  console.log("|---|---|---|---|");
+  for (const item of report.decisionTrace) {
+    console.log(`| ${item.step} | ${item.input} | \`${item.status}\` | ${item.effect} |`);
+  }
+  console.log("");
+  console.log("## Dominant Reason");
+  console.log("");
+  console.log("| Field | Value |");
+  console.log("|---|---|");
+  console.log(`| Input | ${report.dominantReason.input} |`);
+  console.log(`| Status | \`${report.dominantReason.status}\` |`);
+  console.log(`| Result | \`${report.dominantReason.result}\` |`);
+  console.log(`| Why this decides | ${report.dominantReason.whyThisDecides} |`);
+  console.log("");
+  console.log("## Conflict Summary");
+  console.log("");
+  console.log("| Field | Value |");
+  console.log("|---|---|");
+  console.log(`| Inputs disagree | ${report.conflictSummary.inputsDisagree} |`);
+  console.log(`| Stricter input | ${report.conflictSummary.stricterInput} |`);
+  console.log(`| Summary | ${report.conflictSummary.summary} |`);
   console.log("");
   console.log("## Single Source Rule");
   console.log("");
