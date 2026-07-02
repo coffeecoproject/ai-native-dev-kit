@@ -74,6 +74,22 @@ node scripts/cli.mjs launch-view ../my-project \
 
 `launch-view` returns one Launch Review View. It depends on Unified Closure and Safe Launch labels, lists launch-specific gaps, and keeps the final release decision outside IntentOS.
 
+After a human release owner approves release, ask naturally:
+
+```text
+那接下来怎么发布？
+```
+
+For command-line evidence, use:
+
+```bash
+node scripts/cli.mjs release-execution ../my-project \
+  --intent "准备发布执行" \
+  --mode PLAN_ONLY
+```
+
+`release-execution` returns one Release Execution Plan. It uses Launch Review View and Human Release Approval as inputs, then lists release steps, owners, stop conditions, and evidence. It does not approve release, deploy by itself, submit app review, run migrations, or change production configuration.
+
 Use the built-in local examples to see the path end to end:
 
 ```bash
@@ -195,6 +211,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-launch-review-view.mjs .
+node scripts/check-release-execution.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .

@@ -22,6 +22,7 @@ This index separates current operating documents from reference material, histor
 - [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
 - [Launch Review View](launch-review-view.md)
+- [Release Execution Protocol](release-execution-protocol.md)
 - [Guided Delivery Check](guided-delivery-check.md)
 - [Guided Baseline Selection Entry](guided-baseline-selection-entry.md)
 
@@ -47,6 +48,7 @@ This index separates current operating documents from reference material, histor
 - [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
 - [Launch Review View](launch-review-view.md)
+- [Release Execution Protocol](release-execution-protocol.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)

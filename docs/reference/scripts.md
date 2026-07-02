@@ -51,6 +51,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs launch-readiness <project>` | Check Safe Launch / Delivery Readiness reports | No |
 | `node scripts/cli.mjs launch-view <project> --intent "<goal>" --verification "<evidence>"` | Answer whether closed work can enter launch review without approving release | No |
 | `node scripts/cli.mjs launch-view-check <project>` | Check recorded Launch Review Views | No |
+| `node scripts/cli.mjs release-execution <project> --intent "<goal>" --mode PLAN_ONLY` | Plan bounded release execution after launch review and human release approval | No |
+| `node scripts/cli.mjs release-execution-check <project>` | Check recorded Release Execution Plans | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
 | `node scripts/cli.mjs guided-delivery <project>` | Check active work thread, parking lot, and guided decision boundaries | No |
 | `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
@@ -199,6 +201,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-launch-review-view.mjs` is the 1.55 launch review view entry. It reads or generates Unified Closure input, reuses Safe Launch labels, detects platform hints, lists launch surface gaps, and prints one Launch Review View. It does not write target-project files, deploy, publish, submit review, approve release/production, modify CI/hooks, or change production configuration.
 
 `scripts/check-launch-review-view.mjs` checks recorded Launch Review Views. It rejects missing Unified Closure input, invented launch labels, `READY_FOR_RELEASE_REVIEW` without `DONE` closure, missing rollback/monitoring/release-owner/post-launch-smoke evidence for release review, release/production approval claims, deploy/publish/submit claims, and attempts to replace Unified Closure, Safe Launch, or project release SOPs.
+
+`scripts/resolve-release-execution.mjs` is the 1.56 release execution entry. It reads or generates Launch Review View input, reads optional human approval evidence, classifies the execution mode, lists preconditions, classifies step ownership, and prints one Release Execution Plan. It does not write target-project files, approve release, deploy, publish, submit review, run migrations, change production configuration, change secrets/DNS/CI/hooks/payment/permissions/app-store/mini-program settings, or make Codex the release owner.
+
+`scripts/check-release-execution.mjs` checks recorded Release Execution Plans. It rejects missing Launch Review input, real execution without scoped Human Release Approval, unsafe `ASSISTED_EXECUTION`, high-risk production steps assigned to Codex, release/production approval claims, and attempts to treat Launch Review View as release approval.
 
 `scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
 

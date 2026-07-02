@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.55.0`
+Current version: `1.56.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.55.0`
 
 ## Current Release
 
-`1.55.0`
+`1.56.0`
 
 Includes:
 
+- Release Execution Protocol phase `1.56.0`: adds `release-execution` / `release-execution-check` so users can turn ready launch review plus human release approval into a bounded release execution plan
+- `1.56.0` supports `PLAN_ONLY`, `HUMAN_EXECUTION_HANDOFF`, `ASSISTED_EXECUTION`, and `BLOCKED` modes while keeping high-risk production actions human-owned or external-release-system-owned by default
+- `1.56.0` does not approve release, deploy, publish, submit review, run migrations, change production configuration, change secrets/DNS/CI/hooks/payment/permissions/app-store/mini-program settings, replace release SOPs, make Codex the release owner, or treat user confirmation as blanket production authorization
 - Launch Review View phase `1.55.0`: adds `launch-view` / `launch-view-check` so users can ask whether closed work can enter launch review without choosing internal evidence commands
 - `1.55.0` reuses Unified Closure as the close-out source and Safe Launch readiness labels as the launch label source; it does not create a second launch decision system
 - `1.55.0` does not write target-project files, deploy, publish, submit app review, approve release/production, modify CI/hooks, change secrets/DNS/environment/app-store/payment/permission/migration/production data, replace project release SOPs, or approve security/privacy/compliance/legal/tax/finance/payment decisions

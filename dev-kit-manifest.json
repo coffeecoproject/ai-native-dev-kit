@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.55.0",
+  "devKitVersion": "1.56.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.55.0"
+    "phase": "1.56.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1833,7 +1833,24 @@
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
       "test-fixtures/output-quality/README.md",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "checklists/release-execution-review.md",
+      "core/release-execution-protocol.md",
+      "docs/release-execution-protocol.md",
+      "docs/plans/release-execution-protocol-1.56-plan.md",
+      "examples/1.56-release-execution/web-assisted-handoff/README.md",
+      "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md",
+      "prompts/release-execution-agent.md",
+      "release-execution-plans/.gitkeep",
+      "releases/1.56.0/known-limitations.md",
+      "releases/1.56.0/release-record.md",
+      "releases/1.56.0/self-check-report.md",
+      "scripts/check-release-execution.mjs",
+      "scripts/resolve-release-execution.mjs",
+      "templates/release-execution-plan.md",
+      "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-missing-launch-view/release-execution-plans/001-bad.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2316,7 +2333,8 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "release-execution-plans/.gitkeep"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -2848,7 +2866,8 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "release-execution-plans/.gitkeep"
     ],
     "aiNativeCore": [
       ".ai-native/core/assumption-register.md",
@@ -2917,6 +2936,7 @@
       "core/guided-closure-experience.md",
       "core/hook-policy.md",
       "core/launch-review-view.md",
+      "core/release-execution-protocol.md",
       "core/low-risk-controlled-apply-candidate.md",
       "core/natural-language-orchestrator.md",
       "core/ordinary-user-first-slice.md",
@@ -2987,6 +3007,7 @@
       "templates/human-status-report.md",
       "templates/launch-readiness-report.md",
       "templates/launch-review-view-card.md",
+      "templates/release-execution-plan.md",
       "templates/learning-candidate.md",
       "templates/low-risk-controlled-apply-candidate.md",
       "templates/onboarding-decisions.md",
@@ -3069,6 +3090,7 @@
       "prompts/hook-policy-agent.md",
       "prompts/launch-readiness-agent.md",
       "prompts/launch-review-view-agent.md",
+      "prompts/release-execution-agent.md",
       "prompts/low-risk-controlled-apply-candidate-agent.md",
       "prompts/ordinary-user-first-slice-agent.md",
       "prompts/patch-classifier-agent.md",
@@ -3126,6 +3148,7 @@
       "checklists/industrial-pack-review.md",
       "checklists/launch-readiness-review.md",
       "checklists/launch-review-view-review.md",
+      "checklists/release-execution-review.md",
       "checklists/low-risk-controlled-apply-candidate-review.md",
       "checklists/next-step-boundary-review.md",
       "checklists/ordinary-user-first-slice-review.md",
@@ -3220,6 +3243,7 @@
       "hook-policies",
       "launch-readiness",
       "launch-review-views",
+      "release-execution-plans",
       "learning-candidates",
       "mvp-example-reports",
       "ordinary-first-slices",
@@ -3286,6 +3310,7 @@
       "scripts/check-industrial-pack.mjs",
       "scripts/check-launch-readiness.mjs",
       "scripts/check-launch-review-view.mjs",
+      "scripts/check-release-execution.mjs",
       "scripts/check-low-risk-apply-candidate.mjs",
       "scripts/check-manifest.mjs",
       "scripts/check-mvp-example.mjs",
@@ -3337,6 +3362,7 @@
       "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-launch-review-view.mjs",
+      "scripts/resolve-release-execution.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
@@ -3635,7 +3661,9 @@
       "examples/web-internal-admin-first-slice/preflight-report.md",
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
-      "examples/web-internal-admin-first-slice/task-card.md"
+      "examples/web-internal-admin-first-slice/task-card.md",
+      "examples/1.56-release-execution/web-assisted-handoff/README.md",
+      "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -3929,7 +3957,10 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md"
+      "test-fixtures/output-quality/README.md",
+      "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-missing-launch-view/release-execution-plans/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -4323,7 +4354,15 @@
       "subagent-run-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      "release-execution-plans",
+      ".ai-native/core/release-execution-protocol.md",
+      ".ai-native/docs/release-execution-protocol.md",
+      ".ai-native/templates/release-execution-plan.md",
+      ".ai-native/checklists/release-execution-review.md",
+      ".ai-native/prompts/release-execution-agent.md",
+      "scripts/check-release-execution.mjs",
+      "scripts/resolve-release-execution.mjs"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -4363,6 +4402,7 @@
       ".ai-native/checklists/project-onboarding-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/release-execution-review.md",
       ".ai-native/checklists/review-loop-review.md",
       ".ai-native/checklists/review-surface-review.md",
       ".ai-native/checklists/standard-baseline-selection-review.md",
@@ -4413,6 +4453,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-mvp-example-evidence.md",
       ".ai-native/core/real-project-adoption-trial.md",
+      ".ai-native/core/release-execution-protocol.md",
       ".ai-native/core/review-loop.md",
       ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
@@ -4457,6 +4498,7 @@
       ".ai-native/docs/product-completeness-gate.md",
       ".ai-native/docs/real-adoption-usage.md",
       ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/release-execution-protocol.md",
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
@@ -4516,6 +4558,7 @@
       ".ai-native/prompts/project-onboarding-agent.md",
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/release-execution-agent.md",
       ".ai-native/prompts/reporter-agent.md",
       ".ai-native/prompts/review-surface-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
@@ -4576,6 +4619,7 @@
       ".ai-native/templates/project-profile.md",
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/release-execution-plan.md",
       ".ai-native/templates/review-loop-report.md",
       ".ai-native/templates/review-packet.md",
       ".ai-native/templates/review-surface-card.md",
@@ -4693,6 +4737,7 @@
       "scripts/check-product-completeness.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
+      "scripts/check-release-execution.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
@@ -4728,6 +4773,7 @@
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
+      "scripts/resolve-release-execution.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
@@ -4829,6 +4875,10 @@
       {
         "source": "launch-review-views",
         "target": "launch-review-views"
+      },
+      {
+        "source": "release-execution-plans",
+        "target": "release-execution-plans"
       },
       {
         "source": "mvp-example-reports",
@@ -5751,6 +5801,34 @@
       {
         "source": "scripts/resolve-launch-review-view.mjs",
         "target": "scripts/resolve-launch-review-view.mjs"
+      },
+      {
+        "source": "core/release-execution-protocol.md",
+        "target": ".ai-native/core/release-execution-protocol.md"
+      },
+      {
+        "source": "docs/release-execution-protocol.md",
+        "target": ".ai-native/docs/release-execution-protocol.md"
+      },
+      {
+        "source": "templates/release-execution-plan.md",
+        "target": ".ai-native/templates/release-execution-plan.md"
+      },
+      {
+        "source": "checklists/release-execution-review.md",
+        "target": ".ai-native/checklists/release-execution-review.md"
+      },
+      {
+        "source": "prompts/release-execution-agent.md",
+        "target": ".ai-native/prompts/release-execution-agent.md"
+      },
+      {
+        "source": "scripts/check-release-execution.mjs",
+        "target": "scripts/check-release-execution.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-execution.mjs",
+        "target": "scripts/resolve-release-execution.mjs"
       },
       {
         "source": "scripts/resolve-low-risk-apply-candidate.mjs",

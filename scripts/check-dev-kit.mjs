@@ -1487,6 +1487,10 @@ function checkCliFrontDoor() {
     "node --check scripts/check-launch-review-view.mjs",
     "node scripts/cli.mjs launch-view .",
     "node scripts/check-launch-review-view.mjs .",
+    "node --check scripts/resolve-release-execution.mjs",
+    "node --check scripts/check-release-execution.mjs",
+    "node scripts/cli.mjs release-execution .",
+    "node scripts/check-release-execution.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1524,6 +1528,8 @@ function checkCliFrontDoor() {
     "launch-readiness",
     "launch-view",
     "launch-view-check",
+    "release-execution",
+    "release-execution-check",
     "conversation-drift",
     "guided-delivery",
     "real-adoption",
@@ -1803,6 +1809,23 @@ function checkCliFrontDoor() {
     pass("CLI launch-view-check delegates to launch review view checker");
   } else {
     fail(`CLI launch-view-check failed: ${launchViewCheck.stderr || launchViewCheck.stdout}`);
+  }
+
+  const releaseExecution = runNode(["scripts/cli.mjs", "release-execution", ".", "--intent", "prepare release execution"]);
+  if (releaseExecution.status === 0
+    && releaseExecution.stdout.includes("Release Execution Plan")
+    && releaseExecution.stdout.includes("This plan approves release: No")
+    && releaseExecution.stdout.includes("This plan executes release by itself: No")) {
+    pass("CLI release-execution delegates to release execution resolver");
+  } else {
+    fail(`CLI release-execution failed: ${releaseExecution.stderr || releaseExecution.stdout}`);
+  }
+
+  const releaseExecutionCheck = runNode(["scripts/cli.mjs", "release-execution-check", "."]);
+  if (releaseExecutionCheck.status === 0 && releaseExecutionCheck.stdout.includes("Release Execution check passed")) {
+    pass("CLI release-execution-check delegates to release execution checker");
+  } else {
+    fail(`CLI release-execution-check failed: ${releaseExecutionCheck.stderr || releaseExecutionCheck.stdout}`);
   }
 
   const conversationDrift = runNode(["scripts/cli.mjs", "conversation-drift", "."]);
@@ -6766,6 +6789,114 @@ function checkLaunchReviewViewProtocol() {
   }
 }
 
+function checkReleaseExecutionProtocol() {
+  const required = [
+    "core/release-execution-protocol.md",
+    "docs/release-execution-protocol.md",
+    "templates/release-execution-plan.md",
+    "checklists/release-execution-review.md",
+    "prompts/release-execution-agent.md",
+    "release-execution-plans/.gitkeep",
+    "scripts/resolve-release-execution.mjs",
+    "scripts/check-release-execution.mjs",
+    "docs/plans/release-execution-protocol-1.56-plan.md",
+    "examples/1.56-release-execution/web-assisted-handoff/README.md",
+    "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md",
+    "test-fixtures/bad/bad-release-execution-missing-launch-view/release-execution-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",
+    "releases/1.56.0/release-record.md",
+    "releases/1.56.0/known-limitations.md",
+    "releases/1.56.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.56 release execution asset exists ${file}`);
+    else fail(`1.56 release execution asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/release-execution-protocol.md"),
+    read("docs/release-execution-protocol.md"),
+    read("templates/release-execution-plan.md"),
+    read("scripts/resolve-release-execution.mjs"),
+    read("scripts/check-release-execution.mjs"),
+    read("docs/plans/release-execution-protocol-1.56-plan.md"),
+    read("releases/1.56.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Release Execution Protocol",
+    "Launch Review View",
+    "Human Release Approval",
+    "ASSISTED_EXECUTION",
+    "does not execute release by itself",
+    "This plan approves release: No",
+    "This plan executes release by itself: No",
+    "does not make Codex the release owner",
+  ]) {
+    if (combined.includes(marker)) pass(`1.56 release execution includes ${marker}`);
+    else fail(`1.56 release execution missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-release-execution.mjs", ".", "--intent", "prepare release execution"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Release Execution Plan")
+    && resolver.stdout.includes("## Execution Mode")
+    && resolver.stdout.includes("This plan approves release: No")
+    && resolver.stdout.includes("This plan executes release by itself: No")) {
+    pass("1.56 release execution resolver prints safe plan");
+  } else {
+    fail(`1.56 release execution resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-release-execution.mjs", ".", "--intent", "prepare release execution", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "RELEASE_EXECUTION_PLAN"
+        && parsed.executionMode?.mode
+        && parsed.boundaries?.approvesRelease === "No"
+        && parsed.boundaries?.executesReleaseByItself === "No") {
+        pass("1.56 release execution resolver JSON includes mode and boundaries");
+      } else {
+        fail(`1.56 release execution resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.56 release execution resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.56 release execution resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-release-execution.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Release Execution check passed")) {
+    pass("1.56 release execution checker passes source repo");
+  } else {
+    fail(`1.56 release execution checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-release-execution.mjs", "examples/1.56-release-execution/web-assisted-handoff"]);
+  if (example.status === 0 && example.stdout.includes("Release Execution check passed")) {
+    pass("1.56 release execution example passes checker");
+  } else {
+    fail(`1.56 release execution example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["missing launch view", "test-fixtures/bad/bad-release-execution-missing-launch-view", "must reference Launch Review input"],
+    ["assisted without approval", "test-fixtures/bad/bad-release-execution-assisted-without-approval", "requires scoped Human Release Approval"],
+    ["auto production deploy", "test-fixtures/bad/bad-release-execution-auto-production-deploy", "assigns high-risk release step to Codex"],
+  ]) {
+    const result = runNode(["scripts/check-release-execution.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.56 release execution rejects ${name}`);
+    } else {
+      fail(`1.56 release execution must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -7803,6 +7934,7 @@ function checkReadmePointers() {
     "Unified Closure",
     "Decision Explain Trace",
     "Launch Review View",
+    "Release Execution",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
     "O0 / BL0 Lightweight Path",
@@ -7817,6 +7949,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
     "node scripts/cli.mjs launch-view",
+    "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7831,6 +7964,7 @@ function checkReadmePointers() {
     "node scripts/check-workflow-guidance.mjs",
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
+    "node scripts/check-release-execution.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
     "不自动改 CI、hook、发布流程或生产配置",
@@ -7841,6 +7975,7 @@ function checkReadmePointers() {
     "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
     "docs/launch-review-view.md",
+    "docs/release-execution-protocol.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
     "docs/existing-project-workflow-adapter.md",
@@ -7898,6 +8033,7 @@ function checkReadmePointers() {
     "Structured Evidence Schema",
     "Decision Explain Trace",
     "Launch Review View",
+    "Release Execution",
     "O0 / BL0 Lightweight Path",
     "安全边界",
     "node scripts/cli.mjs guide",
@@ -7908,6 +8044,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
     "node scripts/cli.mjs launch-view",
+    "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -7919,12 +8056,14 @@ function checkReadmePointers() {
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
     "node scripts/check-launch-review-view.mjs",
+    "node scripts/check-release-execution.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/unified-closure-model.md",
     "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
     "docs/launch-review-view.md",
+    "docs/release-execution-protocol.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -7988,6 +8127,7 @@ function checkReadmePointers() {
     "docs/unified-closure-model.md",
     "docs/decision-explain-trace.md",
     "docs/launch-review-view.md",
+    "docs/release-execution-protocol.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -10513,6 +10653,7 @@ checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
+checkReleaseExecutionProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();
 checkOrdinaryUserProductLoopProtocol();

@@ -342,6 +342,11 @@ const productionSignalPaths = [
   "infra/prod",
   "infra/staging",
 ];
+const workflowInternalProductionSignalPaths = new Set([
+  "release-execution-plans",
+  "scripts/check-release-execution.mjs",
+  "scripts/resolve-release-execution.mjs",
+]);
 const productionPathPattern = /\b(prod|production|staging|release|deploy|deployment|rollback|recovery|incident|runbook|monitoring|observability|migration|backup|restore)\b/i;
 const ignoredSignalDirs = defaultIgnoredDirs;
 
@@ -400,12 +405,18 @@ function matchedExistingPaths(paths) {
   return paths.filter((rel) => exists(rel)).sort();
 }
 
+function isWorkflowInternalProductionSignal(rel) {
+  return workflowInternalProductionSignalPaths.has(rel)
+    || rel.startsWith("release-execution-plans/");
+}
+
 function governanceSignals() {
   const basicSignals = matchedExistingPaths(governanceSignalPaths);
   const directProductionSignals = matchedExistingPaths(productionSignalPaths);
   const pathSignals = projectRelativePaths(".", 4)
     .filter((rel) => productionPathPattern.test(rel))
     .filter((rel) => !rel.startsWith(".ai-native/"))
+    .filter((rel) => !isWorkflowInternalProductionSignal(rel))
     .slice(0, 50)
     .sort();
   const productionSignals = unique([...directProductionSignals, ...pathSignals]);

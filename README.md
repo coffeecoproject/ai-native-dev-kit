@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.55.0`.
+Current release: `1.56.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.55.x`, focused on one final close-out decision, explaining that decision, and turning it into a launch-review view.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.56.x`, focused on one final close-out decision, explaining that decision, turning it into launch review, and planning bounded release execution after human approval.
 
-1.55.0 adds Launch Review View: Codex can answer whether closed work can enter launch review, what still blocks launch review, and which human release decision is still needed. It does not approve release or deploy anything.
+1.56.0 adds Release Execution Protocol: after Launch Review View and explicit human release approval, Codex can produce a bounded release execution plan. It does not approve release, deploy by itself, or treat user confirmation as blanket production authorization.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -116,6 +116,7 @@ IntentOS 当前包含这些核心能力：
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |
+| Release Execution | 用户确认发布后，把执行步骤、负责人、停止条件和证据要求整理成受控发布执行计划 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
 | Low-Risk Apply Candidate | 判断一个小改动是否足够窄、可回滚、可验证，能否进入后续人工批准计划 |
@@ -163,6 +164,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查统一收口结论 | `node scripts/cli.mjs finish-check ../my-project` |
 | 生成上线评审视图 | `node scripts/cli.mjs launch-view ../my-project --intent "准备上线评审" --verification "npm run verify passed"` |
 | 检查上线评审视图 | `node scripts/cli.mjs launch-view-check ../my-project` |
+| 生成发布执行计划 | `node scripts/cli.mjs release-execution ../my-project --intent "准备发布执行" --mode PLAN_ONLY` |
+| 检查发布执行计划 | `node scripts/cli.mjs release-execution-check ../my-project` |
 | 生成变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage ../my-project --intent "新增合同录入限制"` |
 | 检查变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage-check ../my-project` |
 | 严格检查变更影响闭环证据 | `node scripts/check-change-impact-coverage.mjs ../my-project --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs` |
@@ -236,6 +239,8 @@ node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
 node scripts/cli.mjs finish . --intent "维护 IntentOS 收口体验" --verification "npm run verify passed"
 node scripts/check-closure-decision.mjs .
 node scripts/check-guided-closure.mjs .
+node scripts/check-launch-review-view.mjs .
+node scripts/check-release-execution.mjs .
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs .
 node scripts/check-change-impact-coverage.mjs examples/1.49-structured-impact-coverage/contract-input-rule --report change-impact-coverage-reports/001-contract-input-rule.md --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs --require-precise-evidence
@@ -258,6 +263,7 @@ Start here:
 - [Decision Explain Trace](docs/decision-explain-trace.md)
 - [Guided Closure Experience](docs/guided-closure-experience.md)
 - [Launch Review View](docs/launch-review-view.md)
+- [Release Execution Protocol](docs/release-execution-protocol.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
 Core workflow:
@@ -320,6 +326,7 @@ Reference:
 
 Current release:
 
+- [1.56.0 Release Record](releases/1.56.0/release-record.md)
 - [1.55.0 Release Record](releases/1.55.0/release-record.md)
 - [1.54.0 Release Record](releases/1.54.0/release-record.md)
 - [1.53.0 Release Record](releases/1.53.0/release-record.md)
