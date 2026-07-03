@@ -261,6 +261,15 @@ function checkSourceEvidence() {
     fail(`1.20 workflow-map resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
+  const governedResolver = runNode(["scripts/resolve-existing-workflow.mjs", "examples/1.20-existing-project-workflow-adapter"]);
+  if (governedResolver.status === 0
+    && governedResolver.stdout.includes("This map is diagnostic")
+    && governedResolver.stdout.includes("Native Migration Plan")) {
+    pass("1.64 workflow-map resolver clarifies diagnostic-to-native-migration path");
+  } else {
+    fail(`1.64 workflow-map diagnostic wording missing: ${governedResolver.stderr || governedResolver.stdout}`);
+  }
+
   const resolverJson = runNode(["scripts/resolve-existing-workflow.mjs", ".", "--json"]);
   if (resolverJson.status === 0) {
     try {

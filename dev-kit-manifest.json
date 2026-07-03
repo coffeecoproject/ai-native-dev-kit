@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.63.0",
+  "devKitVersion": "1.64.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.63.0"
+    "phase": "1.64.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1998,6 +1998,18 @@
       "test-fixtures/bad/bad-native-migration-structured-evidence-mismatch/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-schema-invalid/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-workflow-map-adapter-endpoint/workflow-adoption-maps/001-bad.md",
+      "docs/plans/native-migration-parser-calibration-1.64-plan.md",
+      "examples/1.64-native-migration-parser-calibration/README.md",
+      "examples/1.64-native-migration-parser-calibration/table-long-bilingual/AGENTS.md",
+      "examples/1.64-native-migration-parser-calibration/table-long-bilingual/docs/GOVERNANCE.md",
+      "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
+      "test-fixtures/bad/bad-native-migration-rule-json-mismatch/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-line-range-mismatch/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-missing-skipped-block-reporting/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-structured-action-writes/native-migration-plans/001-bad.md",
+      "releases/1.64.0/release-record.md",
+      "releases/1.64.0/known-limitations.md",
+      "releases/1.64.0/self-check-report.md",
       "releases/1.63.0/release-record.md",
       "releases/1.63.0/known-limitations.md",
       "releases/1.63.0/self-check-report.md"
@@ -3954,7 +3966,9 @@
       "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
       "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
       "examples/1.63-native-migration-precision/README.md",
-      "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md"
+      "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
+      "examples/1.64-native-migration-parser-calibration/README.md",
+      "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4295,7 +4309,11 @@
       "test-fixtures/bad/bad-native-migration-missing-line-range/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-structured-evidence-mismatch/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-schema-invalid/native-migration-plans/001-bad.md",
-      "test-fixtures/bad/bad-workflow-map-adapter-endpoint/workflow-adoption-maps/001-bad.md"
+      "test-fixtures/bad/bad-workflow-map-adapter-endpoint/workflow-adoption-maps/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-rule-json-mismatch/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-line-range-mismatch/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-missing-skipped-block-reporting/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-structured-action-writes/native-migration-plans/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",

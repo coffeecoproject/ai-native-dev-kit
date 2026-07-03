@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.63.0`
+Current version: `1.64.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.63.0`
 
 ## Current Release
 
-`1.63.0`
+`1.64.0`
 
 Includes:
 
+- Native Migration Parser Calibration phase `1.64.0`: adds skipped-block and low-signal block visibility for tables, long paragraphs, and ambiguous governance text, and tightens strict Markdown/JSON rule consistency by `rule_id`
+- `1.64.0` validates structured `proposed_actions` as plan-only and human-approved, keeps 1.63 structured records compatible, and clarifies workflow-map output as diagnostic before Native Migration Plan
+- `1.64.0` adds a table/long-paragraph/bilingual positive example plus bad fixtures for rule JSON mismatch, line-range mismatch, missing skipped-block reporting, and structured action writes
 - Native Migration Precision Hardening phase `1.63.0`: upgrades old-project native migration from file-level governance detection to rule-level extraction with source line ranges, context headings, confidence, rule extraction coverage, parser warnings, and machine-readable migration evidence
 - `1.63.0` adds `schemas/artifacts/native-migration-plan.schema.json`, `scripts/lib/native-rule-extraction.mjs`, strict `check-native-migration --require-structured-evidence`, a mixed-rule positive example, and bad fixtures for collapsed rules, missing line ranges, structured-evidence mismatch, schema drift, and workflow-map endpoint overclaim
 - `1.63.0` keeps old Markdown native migration reports compatible by default; strict structured evidence is required only when explicitly requested for real governance replacement review

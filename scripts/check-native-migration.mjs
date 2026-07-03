@@ -71,6 +71,7 @@ const allowedRuleClasses = new Set([
   "UNKNOWN_AUTHORITY",
 ]);
 const allowedConfidence = new Set(["HIGH", "MEDIUM", "LOW"]);
+const allowedSchemaVersions = new Set(["1.63.0", "1.64.0"]);
 const forbiddenClaims = [
   /\bfully migrated\b/i,
   /\balready fully migrated\b/i,
@@ -235,7 +236,12 @@ function checkRuleExtractionCoverage(content, label, structuredEvidence) {
     return;
   }
   for (const row of rows) {
-    const [sourceFile, linesScanned, rulesExtracted, unclassifiedBlocks, parserWarnings] = row.map(stripMarkdown);
+    const cells = row.map(stripMarkdown);
+    const [sourceFile, linesScanned, rulesExtracted, unclassifiedBlocks] = cells;
+    const hasExtendedCoverage = cells.length >= 7;
+    const skippedBlocks = hasExtendedCoverage ? cells[4] : "";
+    const lowSignalBlocks = hasExtendedCoverage ? cells[5] : "";
+    const parserWarnings = hasExtendedCoverage ? cells[6] : cells[4];
     const rowLabel = `${label} coverage ${sourceFile || "source"}`;
     if (isConcrete(sourceFile)) pass(`${rowLabel} records source file`);
     else fail(`${rowLabel} missing source file`);
@@ -245,6 +251,14 @@ function checkRuleExtractionCoverage(content, label, structuredEvidence) {
     else fail(`${rowLabel} missing numeric rules extracted`);
     if (/^\d+$/.test(unclassifiedBlocks)) pass(`${rowLabel} records unclassified block count`);
     else fail(`${rowLabel} missing unclassified block count`);
+    if (hasExtendedCoverage) {
+      if (/^\d+$/.test(skippedBlocks)) pass(`${rowLabel} records skipped block count`);
+      else fail(`${rowLabel} missing skipped block count`);
+      if (/^\d+$/.test(lowSignalBlocks)) pass(`${rowLabel} records low-signal block count`);
+      else fail(`${rowLabel} missing low-signal block count`);
+    } else if (structuredEvidence?.schema_version === "1.64.0") {
+      fail(`${rowLabel} must record skipped and low-signal block counts for 1.64 evidence`);
+    }
     if (isConcrete(parserWarnings) || parserWarnings === "None") pass(`${rowLabel} records parser warning status`);
     else fail(`${rowLabel} missing parser warning status`);
   }
@@ -342,6 +356,7 @@ function checkRuleClassification(content, label, structuredEvidence) {
     } else {
       fail(`${label} rule table count ${rows.length} does not match structured evidence ${structuredEvidence.rule_classifications?.length || 0}`);
     }
+    checkRuleConsistency(rows.map(parseRuleRow), structuredEvidence.rule_classifications || [], label);
   }
 }
 
@@ -427,7 +442,7 @@ function checkStructuredEvidence(content, label, summary) {
     else fail(`${label} structured evidence missing ${field}`);
   }
 
-  if (parsed.schema_version === "1.63.0") pass(`${label} structured evidence schema version is 1.63.0`);
+  if (allowedSchemaVersions.has(parsed.schema_version)) pass(`${label} structured evidence schema version is supported`);
   else fail(`${label} structured evidence has invalid schema version: ${parsed.schema_version || "<empty>"}`);
   if (parsed.artifact_type === "native_migration_plan") pass(`${label} structured evidence artifact type is native_migration_plan`);
   else fail(`${label} structured evidence has invalid artifact type: ${parsed.artifact_type || "<empty>"}`);
@@ -451,7 +466,7 @@ function checkStructuredEvidence(content, label, summary) {
   if (!Array.isArray(parsed.rule_extraction_coverage) || parsed.rule_extraction_coverage.length === 0) {
     fail(`${label} structured evidence must include rule extraction coverage`);
   } else {
-    for (const item of parsed.rule_extraction_coverage) validateStructuredCoverage(item, label);
+    for (const item of parsed.rule_extraction_coverage) validateStructuredCoverage(item, label, parsed.schema_version);
   }
 
   if (!Array.isArray(parsed.rule_classifications) || parsed.rule_classifications.length === 0) {
@@ -469,6 +484,8 @@ function checkStructuredEvidence(content, label, summary) {
     }
   }
 
+  validateStructuredProposedActions(parsed.proposed_actions, label);
+
   if (parsed.boundary?.writesTargetFiles === "No"
     && parsed.boundary?.authorizesTargetFileWrites === "No"
     && parsed.boundary?.approvesImplementation === "No"
@@ -482,7 +499,7 @@ function checkStructuredEvidence(content, label, summary) {
   return parsed;
 }
 
-function validateStructuredCoverage(item, label) {
+function validateStructuredCoverage(item, label, schemaVersion) {
   const rowLabel = `${label} structured coverage ${item?.source_file || "source"}`;
   if (isConcrete(item?.source_file)) pass(`${rowLabel} has source file`);
   else fail(`${rowLabel} missing source file`);
@@ -492,11 +509,20 @@ function validateStructuredCoverage(item, label) {
   else fail(`${rowLabel} missing numeric rules extracted`);
   if (Array.isArray(item?.unclassified_blocks)) pass(`${rowLabel} has unclassified block list`);
   else fail(`${rowLabel} missing unclassified block list`);
+  if (schemaVersion === "1.64.0") {
+    if (Array.isArray(item?.skipped_blocks)) pass(`${rowLabel} has skipped block list`);
+    else fail(`${rowLabel} missing skipped block list`);
+    if (Array.isArray(item?.low_signal_blocks)) pass(`${rowLabel} has low-signal block list`);
+    else fail(`${rowLabel} missing low-signal block list`);
+  }
   if (Array.isArray(item?.parser_warnings)) pass(`${rowLabel} has parser warnings list`);
   else fail(`${rowLabel} missing parser warnings list`);
-  if (Array.isArray(item?.unclassified_blocks) && item.unclassified_blocks.length > 0
+  const hasReviewBlocks = (Array.isArray(item?.unclassified_blocks) && item.unclassified_blocks.length > 0)
+    || (Array.isArray(item?.skipped_blocks) && item.skipped_blocks.length > 0)
+    || (Array.isArray(item?.low_signal_blocks) && item.low_signal_blocks.length > 0);
+  if (hasReviewBlocks
     && (!Array.isArray(item?.parser_warnings) || item.parser_warnings.length === 0)) {
-    fail(`${rowLabel} must include parser warnings when unclassified blocks exist`);
+    fail(`${rowLabel} must include parser warnings when unclassified, skipped, or low-signal blocks exist`);
   }
 }
 
@@ -537,6 +563,71 @@ function validateStructuredRule(item, label) {
     && /\b(replace|remove|drop)\b/i.test(`${item?.preserve_or_replace || ""} ${item?.target_action || ""}`)) {
     fail(`${rowLabel} must not replace business or production authority`);
   }
+}
+
+function validateStructuredProposedActions(actions, label) {
+  if (!Array.isArray(actions) || actions.length === 0) {
+    fail(`${label} structured evidence must include proposed actions`);
+    return;
+  }
+  for (const action of actions) {
+    const rowLabel = `${label} structured proposed action ${action?.step || action?.action || "action"}`;
+    for (const field of ["step", "action", "exactTargetPath", "writesTargetFiles", "requiresHumanApproval", "status"]) {
+      if (isConcrete(action?.[field]) || Number.isInteger(action?.[field])) pass(`${rowLabel} includes ${field}`);
+      else fail(`${rowLabel} missing ${field}`);
+    }
+    if (isConcrete(action?.exactTargetPath)) pass(`${rowLabel} has exact target path`);
+    else fail(`${rowLabel} missing exact target path`);
+    if (broadPathPattern.test(` ${action?.exactTargetPath || ""} `)) fail(`${rowLabel} uses broad target path: ${action?.exactTargetPath}`);
+    if (action?.writesTargetFiles === "No") pass(`${rowLabel} stays plan-only`);
+    else fail(`${rowLabel} must not write target files`);
+    if (action?.requiresHumanApproval === "Yes") pass(`${rowLabel} requires human approval`);
+    else fail(`${rowLabel} must require human approval`);
+  }
+}
+
+function checkRuleConsistency(markdownRules, structuredRules, label) {
+  const structuredById = new Map(structuredRules.map((rule) => [stripMarkdown(rule.rule_id || ""), rule]));
+  for (const markdownRule of markdownRules) {
+    const structured = structuredById.get(markdownRule.ruleId);
+    const rowLabel = `${label} ${markdownRule.ruleId || "rule"} Markdown/JSON`;
+    if (!structured) {
+      fail(`${rowLabel} missing structured evidence rule`);
+      continue;
+    }
+    compareRuleField(rowLabel, "source_file", markdownRule.sourceFile, structured.source_file);
+    const [startLine, endLine] = lineRangeParts(markdownRule.sourceLineRange);
+    compareRuleField(rowLabel, "source_start_line", startLine, structured.source_start_line);
+    compareRuleField(rowLabel, "source_end_line", endLine, structured.source_end_line);
+    compareRuleField(rowLabel, "context_heading", markdownRule.contextHeading, structured.context_heading);
+    compareRuleField(rowLabel, "source_excerpt", markdownRule.sourceExcerpt, structured.source_excerpt);
+    compareRuleField(rowLabel, "rule_class", markdownRule.ruleClass, structured.rule_class);
+    compareRuleField(rowLabel, "authority", markdownRule.authority, structured.authority);
+    compareRuleField(rowLabel, "default_handling", markdownRule.defaultHandling, structured.default_handling);
+    compareRuleField(rowLabel, "preserve_or_replace", markdownRule.preserveOrReplace, structured.preserve_or_replace);
+    compareRuleField(rowLabel, "risk_surfaces", markdownRule.riskSurfaces, structured.risk_surfaces);
+    compareRuleField(rowLabel, "target_action", markdownRule.targetAction, structured.target_action);
+    compareRuleField(rowLabel, "human_decision_required", markdownRule.humanDecisionRequired, structured.human_decision_required);
+    compareRuleField(rowLabel, "confidence", markdownRule.confidence, structured.confidence);
+  }
+}
+
+function compareRuleField(label, field, markdownValue, structuredValue) {
+  const md = normalizeComparable(markdownValue);
+  const json = normalizeComparable(structuredValue);
+  if (md === json) pass(`${label} ${field} matches`);
+  else fail(`${label} ${field} mismatch: markdown=${md || "<empty>"} json=${json || "<empty>"}`);
+}
+
+function normalizeComparable(value) {
+  if (Number.isInteger(value)) return String(value);
+  return stripMarkdown(String(value || "")).replace(/\s+/g, " ").trim();
+}
+
+function lineRangeParts(value) {
+  const match = String(value || "").trim().match(/^(\d+)-(\d+)$/);
+  if (!match) return ["", ""];
+  return [match[1], match[2]];
 }
 
 function fencedJson(body) {
@@ -630,6 +721,7 @@ function checkSourceEvidence() {
   for (const file of [
     "docs/plans/native-first-existing-project-migration-1.62-plan.md",
     "docs/plans/native-migration-precision-hardening-1.63-plan.md",
+    "docs/plans/native-migration-parser-calibration-1.64-plan.md",
     "core/native-first-existing-project-migration.md",
     "docs/native-first-existing-project-migration.md",
     "templates/native-migration-plan.md",
@@ -647,9 +739,14 @@ function checkSourceEvidence() {
     "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
     "examples/1.63-native-migration-precision/README.md",
     "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
+    "examples/1.64-native-migration-parser-calibration/README.md",
+    "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
     "releases/1.62.0/release-record.md",
     "releases/1.62.0/known-limitations.md",
     "releases/1.62.0/self-check-report.md",
+    "releases/1.64.0/release-record.md",
+    "releases/1.64.0/known-limitations.md",
+    "releases/1.64.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`native migration source evidence exists ${file}`);
     else fail(`native migration source evidence missing ${file}`);
@@ -699,6 +796,10 @@ function checkSourceEvidence() {
   if (strictExample.status === 0) pass("1.63 native migration precision example passes strict checker");
   else fail(`1.63 native migration precision example failed: ${strictExample.stderr || strictExample.stdout}`);
 
+  const strictCalibrationExample = runNode(["scripts/check-native-migration.mjs", "examples/1.64-native-migration-parser-calibration/table-long-bilingual", "--require-structured-evidence"]);
+  if (strictCalibrationExample.status === 0) pass("1.64 native migration parser calibration example passes strict checker");
+  else fail(`1.64 native migration parser calibration example failed: ${strictCalibrationExample.stderr || strictCalibrationExample.stdout}`);
+
   for (const target of [
     "bad-native-migration-drops-business-rule",
     "bad-native-migration-direct-agents-overwrite",
@@ -729,6 +830,17 @@ function checkSourceEvidence() {
     const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
     if (result.status !== 0) pass(`1.63 native migration rejects ${target}`);
     else fail(`1.63 native migration should reject ${target}`);
+  }
+
+  for (const target of [
+    "bad-native-migration-rule-json-mismatch",
+    "bad-native-migration-line-range-mismatch",
+    "bad-native-migration-missing-skipped-block-reporting",
+    "bad-native-migration-structured-action-writes",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.64 native migration rejects ${target}`);
+    else fail(`1.64 native migration should reject ${target}`);
   }
 }
 

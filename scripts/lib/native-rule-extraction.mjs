@@ -35,22 +35,30 @@ const businessPattern = /\b(customer|user-visible|business|contract|invoice|tax|
 const engineeringPattern = /\b(enum|string|schema|dto|type|architecture|build|test|lint|package|database|api|folder|structure|dependency|frontend|backend)\b/i;
 const workflowPattern = /\b(codex|ai|agent|workflow|review|approval|apply|task|commit|pr|pull request|prompt|subagent|finish|queue)\b/i;
 const historicalPattern = /\b(historical|legacy|old note|deprecated|stale|archive|todo|temporary)\b/i;
+const governanceHeadingPattern = /\b(rule|rules|governance|policy|policies|constraint|constraints|baseline|release|permission|approval|workflow|agent|codex|业务|规则|治理|基线|发布|权限|审批|流程)\b/i;
 
 export function extractNativeRulesFromMarkdown(content, sourceFile) {
   const lines = content.split(/\r?\n/);
   const headingStack = [];
   const rules = [];
   const unclassifiedBlocks = [];
+  const skippedBlocks = [];
+  const lowSignalBlocks = [];
   const parserWarnings = [];
   let fenced = false;
   let fenceStart = 0;
   let fenceLanguage = "";
   let currentCode = [];
+  let tableBlock = null;
 
   for (let index = 0; index < lines.length; index += 1) {
     const lineNumber = index + 1;
     const raw = lines[index];
     const trimmed = raw.trim();
+    if (tableBlock && !looksLikeMarkdownTable(trimmed)) {
+      flushTableBlock(tableBlock, skippedBlocks, parserWarnings, sourceFile);
+      tableBlock = null;
+    }
     const fence = trimmed.match(/^```([A-Za-z0-9_-]*)/);
     if (fence) {
       if (!fenced) {
@@ -88,10 +96,49 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
       continue;
     }
 
+    if (looksLikeMarkdownTable(trimmed)) {
+      if (!tableBlock) {
+        tableBlock = {
+          start: lineNumber,
+          end: lineNumber,
+          contextHeading: currentHeading(headingStack),
+          lines: [],
+        };
+      }
+      tableBlock.end = lineNumber;
+      tableBlock.lines.push(trimmed);
+      continue;
+    }
+
     const candidate = candidateText(trimmed);
-    if (!candidate) continue;
-    if (!hasRuleSignal(candidate) && !hasRuleSignal(currentHeading(headingStack))) continue;
-    if (looksLikeMarkdownTable(candidate)) continue;
+    if (!candidate) {
+      if (trimmed.length > 220) {
+        skippedBlocks.push({
+          source_file: sourceFile,
+          source_start_line: lineNumber,
+          source_end_line: lineNumber,
+          context_heading: currentHeading(headingStack),
+          excerpt: normalizeExcerpt(trimmed),
+          reason: "Long paragraph skipped by deterministic extractor; review manually before migration.",
+        });
+        parserWarnings.push(`${sourceFile}:${lineNumber}-${lineNumber} long paragraph skipped by deterministic extractor`);
+      }
+      continue;
+    }
+    if (!hasRuleSignal(candidate) && !hasRuleSignal(currentHeading(headingStack))) {
+      if (governanceHeadingPattern.test(currentHeading(headingStack))) {
+        lowSignalBlocks.push({
+          source_file: sourceFile,
+          source_start_line: lineNumber,
+          source_end_line: lineNumber,
+          context_heading: currentHeading(headingStack),
+          excerpt: normalizeExcerpt(candidate),
+          reason: "Low-signal text under a governance-like heading was not classified automatically.",
+        });
+        parserWarnings.push(`${sourceFile}:${lineNumber}-${lineNumber} low-signal governance text needs manual review`);
+      }
+      continue;
+    }
 
     const classification = classifyNativeRule({
       sourceFile,
@@ -108,6 +155,8 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
       ...classification,
     });
   }
+
+  if (tableBlock) flushTableBlock(tableBlock, skippedBlocks, parserWarnings, sourceFile);
 
   if (fenced) {
     unclassifiedBlocks.push({
@@ -128,6 +177,8 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
       lines_scanned: lines.length,
       rules_extracted: rules.length,
       unclassified_blocks: unclassifiedBlocks,
+      skipped_blocks: skippedBlocks,
+      low_signal_blocks: lowSignalBlocks,
       parser_warnings: parserWarnings,
     },
   };
@@ -138,11 +189,11 @@ export function classifyNativeRule({ sourceFile, text, contextHeading = "" }) {
   if (productionPattern.test(value)) {
     return ruleClass("PRODUCTION_CONTROL", "project/release owner", "preserve and escalate", "preserve", "Release and production controls remain external to IntentOS workflow convenience.", "release, production", "map to Release Guide / Recipe / Handoff without replacement", "Yes", confidence(value, productionPattern));
   }
-  if (businessPattern.test(value)) {
-    return ruleClass("BUSINESS_FACT", "project owner", "preserve or escalate", "preserve", "Business facts are project-owned and cannot be replaced by workflow migration.", "business, data", "preserve as project constraint", "Yes", confidence(value, businessPattern));
-  }
   if (engineeringPattern.test(value)) {
     return ruleClass("ENGINEERING_BASELINE", "project baseline", "migrate into IntentOS baseline after review", "map", "Engineering rules can become baseline evidence after review.", "engineering", "map to engineering/environment baseline", "Yes", confidence(value, engineeringPattern));
+  }
+  if (businessPattern.test(value)) {
+    return ruleClass("BUSINESS_FACT", "project owner", "preserve or escalate", "preserve", "Business facts are project-owned and cannot be replaced by workflow migration.", "business, data", "preserve as project constraint", "Yes", confidence(value, businessPattern));
   }
   if (workflowPattern.test(value)) {
     return ruleClass("WORKFLOW_RULE", "old workflow source", "replace after reviewed plan and approval", "replace", "Old AI workflow guidance can move under IntentOS workflow authority after approval.", "workflow", "replace with IntentOS workflow rule through apply-plan", "Yes", confidence(value, workflowPattern));
@@ -194,6 +245,20 @@ function confidence(value, pattern) {
 
 function looksLikeMarkdownTable(value) {
   return value.startsWith("|") || /^:?-{3,}:?$/.test(value);
+}
+
+function flushTableBlock(block, skippedBlocks, parserWarnings, sourceFile) {
+  if (!block || block.lines.length === 0) return;
+  const excerpt = normalizeExcerpt(block.lines.join(" "));
+  skippedBlocks.push({
+    source_file: sourceFile,
+    source_start_line: block.start,
+    source_end_line: block.end,
+    context_heading: block.contextHeading,
+    excerpt,
+    reason: "Markdown table skipped by deterministic extractor; classify table rules manually before migration.",
+  });
+  parserWarnings.push(`${sourceFile}:${block.start}-${block.end} markdown table skipped by deterministic extractor`);
 }
 
 function normalizeText(value) {

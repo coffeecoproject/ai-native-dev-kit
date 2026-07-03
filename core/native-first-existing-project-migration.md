@@ -74,6 +74,8 @@ Every migration plan should include a Rule Extraction Coverage summary:
 | Lines scanned | Number of source lines reviewed |
 | Rules extracted | Number of rule rows extracted from that source |
 | Unclassified blocks | Blocks that may contain commands or policy but need manual classification |
+| Skipped blocks | Tables, long paragraphs, or other blocks the deterministic parser did not convert into rules |
+| Low-signal blocks | Governance-like text that lacks enough rule signal for automatic classification |
 | Parser warnings | Non-blocking parser warnings that must stay visible to the human reviewer |
 
 In strict mode, `check-native-migration` requires this coverage plus machine-readable evidence.
@@ -88,8 +90,12 @@ The JSON must match the human-readable summary. It must keep:
 - `business_authority` as `PROJECT_OWNED`
 - `production_authority` as `HUMAN_OR_EXTERNAL_SYSTEM`
 - exact source line ranges for each extracted rule
-- parser warnings when unclassified blocks exist
+- skipped and low-signal block arrays for 1.64+ evidence
+- parser warnings when unclassified, skipped, or low-signal blocks exist
 - the same extracted-rule count as the coverage summary
+- `proposed_actions` where every action is plan-only and requires human approval
+
+In strict mode, the checker compares each Markdown rule row against its JSON rule by `rule_id`. The rule class, line range, authority, preserve/replace decision, risk surface, target action, human-decision flag, and confidence must match.
 
 ## AGENTS.md Handling
 

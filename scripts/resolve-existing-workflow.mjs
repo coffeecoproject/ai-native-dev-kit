@@ -401,15 +401,15 @@ function conclusionFor(classification, adapterMode) {
     return "Workflow adapter is not the right first step for this target.";
   }
   if (classification.projectState === "DIRTY_WORKTREE_PROJECT") {
-    return "This project has existing uncommitted work; pause adoption and map workflow only after the worktree boundary is decided.";
+    return "This map is diagnostic. This project has existing uncommitted work, so resolve the worktree boundary before any Native Migration Plan or adapter apply.";
   }
   if (classification.projectState === "EXISTING_PRODUCTION_PROJECT") {
-    return "This project has production or release signals; use a read-only workflow map before any write plan.";
+    return "This map is diagnostic. If you want IntentOS to become the Codex workflow for this production-sensitive project, the next step is a Native Migration Plan that preserves production and release authority.";
   }
   if (classification.projectState === "EXISTING_GOVERNED_PROJECT") {
-    return "This project already has governance; map AI Native workflow onto existing rules before adding anything.";
+    return "This map is diagnostic. If you want IntentOS to become the Codex workflow for this governed project, the next step is a Native Migration Plan that classifies existing rules first.";
   }
-  return "Use a lightweight workflow adapter path before adding workflow assets.";
+  return "This map is diagnostic. If you want IntentOS to become the Codex workflow for this project, the next step is a Native Migration Plan. Adapter-only remains available when ownership, production, compliance, or project constraints block native migration.";
 }
 
 function inventory(signals) {

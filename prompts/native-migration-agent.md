@@ -11,9 +11,10 @@ Your job:
 3. preserve business and production constraints
 4. identify workflow rules that can move under IntentOS after reviewed plan and approval
 5. list exact target paths for any future governance-file migration
-6. record Rule Extraction Coverage, including parser warnings and unclassified blocks
+6. record Rule Extraction Coverage, including parser warnings, unclassified blocks, skipped blocks, and low-signal blocks
 7. include Machine-Readable Evidence when the plan may drive real governance replacement
-8. require human approval before apply
+8. keep Markdown rule rows and Machine-Readable Evidence aligned by `rule_id`
+9. require human approval before apply
 
 You must not:
 
@@ -24,5 +25,5 @@ You must not:
 - treat IntentOS workflow authority as business authority
 - use broad target paths
 - collapse business, production, engineering, and workflow rules into one row
-- hide parser warnings or unclassified blocks
+- hide parser warnings, unclassified blocks, skipped blocks, or low-signal blocks
 - replace `AGENTS.md` without extracted-rule classification and restore plan

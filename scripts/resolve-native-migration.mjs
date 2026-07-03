@@ -60,7 +60,7 @@ function buildNativeMigration(root, options) {
 
   const report = {
     reportType: "NATIVE_FIRST_EXISTING_PROJECT_MIGRATION",
-    schemaVersion: "1.63.0",
+    schemaVersion: "1.64.0",
     generatedBy: "scripts/resolve-native-migration.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -347,6 +347,8 @@ function classifyRules(root, signals) {
           linesScanned: 0,
           rulesExtracted: 1,
           unclassifiedBlocks: [],
+          skippedBlocks: [],
+          lowSignalBlocks: [],
           parserWarnings: ["No existing governance rule source detected."],
         },
       ],
@@ -366,6 +368,8 @@ function classifyRules(root, signals) {
         linesScanned: 0,
         rulesExtracted: 1,
         unclassifiedBlocks: [],
+        skippedBlocks: [],
+        lowSignalBlocks: [],
         parserWarnings: [`${rel} was detected as a path but not readable as a file.`],
       });
       warnings.push(`${rel} was detected as a path but not readable as a file.`);
@@ -449,13 +453,29 @@ function toCoverage(coverage) {
       excerpt: item.excerpt,
       reason: item.reason,
     })),
+    skippedBlocks: (coverage.skipped_blocks || []).map((item) => ({
+      sourceFile: item.source_file,
+      sourceStartLine: item.source_start_line,
+      sourceEndLine: item.source_end_line,
+      contextHeading: item.context_heading,
+      excerpt: item.excerpt,
+      reason: item.reason,
+    })),
+    lowSignalBlocks: (coverage.low_signal_blocks || []).map((item) => ({
+      sourceFile: item.source_file,
+      sourceStartLine: item.source_start_line,
+      sourceEndLine: item.source_end_line,
+      contextHeading: item.context_heading,
+      excerpt: item.excerpt,
+      reason: item.reason,
+    })),
     parserWarnings: coverage.parser_warnings,
   };
 }
 
 function structuredEvidenceFor(report) {
   return {
-    schema_version: "1.63.0",
+    schema_version: "1.64.0",
     artifact_type: "native_migration_plan",
     report_type: report.reportType,
     project_state: report.projectState.state,
@@ -471,6 +491,22 @@ function structuredEvidenceFor(report) {
       lines_scanned: item.linesScanned,
       rules_extracted: item.rulesExtracted,
       unclassified_blocks: item.unclassifiedBlocks.map((block) => ({
+        source_file: block.sourceFile,
+        source_start_line: block.sourceStartLine,
+        source_end_line: block.sourceEndLine,
+        context_heading: block.contextHeading,
+        excerpt: block.excerpt,
+        reason: block.reason,
+      })),
+      skipped_blocks: (item.skippedBlocks || []).map((block) => ({
+        source_file: block.sourceFile,
+        source_start_line: block.sourceStartLine,
+        source_end_line: block.sourceEndLine,
+        context_heading: block.contextHeading,
+        excerpt: block.excerpt,
+        reason: block.reason,
+      })),
+      low_signal_blocks: (item.lowSignalBlocks || []).map((block) => ({
         source_file: block.sourceFile,
         source_start_line: block.sourceStartLine,
         source_end_line: block.sourceEndLine,
@@ -628,10 +664,10 @@ function printHuman(report) {
   console.log("");
   console.log("## Rule Extraction Coverage");
   console.log("");
-  console.log("| Source file | Lines scanned | Rules extracted | Unclassified blocks | Parser warnings |");
-  console.log("| --- | --- | --- | --- | --- |");
+  console.log("| Source file | Lines scanned | Rules extracted | Unclassified blocks | Skipped blocks | Low-signal blocks | Parser warnings |");
+  console.log("| --- | --- | --- | --- | --- | --- | --- |");
   for (const item of report.ruleExtractionCoverage) {
-    console.log(`| ${item.sourceFile} | ${item.linesScanned} | ${item.rulesExtracted} | ${item.unclassifiedBlocks.length} | ${item.parserWarnings.length ? item.parserWarnings.join("<br>") : "None"} |`);
+    console.log(`| ${item.sourceFile} | ${item.linesScanned} | ${item.rulesExtracted} | ${item.unclassifiedBlocks.length} | ${(item.skippedBlocks || []).length} | ${(item.lowSignalBlocks || []).length} | ${item.parserWarnings.length ? item.parserWarnings.join("<br>") : "None"} |`);
   }
   console.log("");
   console.log("## Extracted Rule Classification");

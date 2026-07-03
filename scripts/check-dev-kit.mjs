@@ -4606,6 +4606,7 @@ function checkNativeFirstMigrationProtocol() {
   const required = [
     "docs/plans/native-first-existing-project-migration-1.62-plan.md",
     "docs/plans/native-migration-precision-hardening-1.63-plan.md",
+    "docs/plans/native-migration-parser-calibration-1.64-plan.md",
     "core/native-first-existing-project-migration.md",
     "docs/native-first-existing-project-migration.md",
     "templates/native-migration-plan.md",
@@ -4623,6 +4624,10 @@ function checkNativeFirstMigrationProtocol() {
     "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
     "examples/1.63-native-migration-precision/README.md",
     "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
+    "examples/1.64-native-migration-parser-calibration/README.md",
+    "examples/1.64-native-migration-parser-calibration/table-long-bilingual/AGENTS.md",
+    "examples/1.64-native-migration-parser-calibration/table-long-bilingual/docs/GOVERNANCE.md",
+    "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
     "releases/1.62.0/release-record.md",
     "releases/1.62.0/known-limitations.md",
     "releases/1.62.0/self-check-report.md",
@@ -4644,6 +4649,10 @@ function checkNativeFirstMigrationProtocol() {
     "test-fixtures/bad/bad-native-migration-missing-line-range/native-migration-plans/001-bad.md",
     "test-fixtures/bad/bad-native-migration-structured-evidence-mismatch/native-migration-plans/001-bad.md",
     "test-fixtures/bad/bad-native-migration-schema-invalid/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-rule-json-mismatch/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-line-range-mismatch/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-missing-skipped-block-reporting/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-structured-action-writes/native-migration-plans/001-bad.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.62 native migration asset exists ${file}`);
@@ -4660,6 +4669,7 @@ function checkNativeFirstMigrationProtocol() {
     read("schemas/artifacts/native-migration-plan.schema.json"),
     read("releases/1.62.0/release-record.md"),
     read("releases/1.63.0/release-record.md"),
+    read("releases/1.64.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -4679,6 +4689,10 @@ function checkNativeFirstMigrationProtocol() {
     "Machine-Readable Evidence",
     "require-structured-evidence",
     "parser_warnings",
+    "skipped_blocks",
+    "low_signal_blocks",
+    "proposed_actions",
+    "Markdown/JSON",
   ]) {
     if (combined.includes(marker)) pass(`native migration includes ${marker}`);
     else fail(`native migration missing ${marker}`);
@@ -4750,6 +4764,10 @@ function checkNativeFirstMigrationProtocol() {
   if (strictExample.status === 0) pass("1.63 native migration precision example passes strict checker");
   else fail(`1.63 native migration precision example failed: ${strictExample.stderr || strictExample.stdout}`);
 
+  const strictCalibrationExample = runNode(["scripts/check-native-migration.mjs", "examples/1.64-native-migration-parser-calibration/table-long-bilingual", "--require-structured-evidence"]);
+  if (strictCalibrationExample.status === 0) pass("1.64 native migration parser calibration example passes strict checker");
+  else fail(`1.64 native migration parser calibration example failed: ${strictCalibrationExample.stderr || strictCalibrationExample.stdout}`);
+
   for (const target of [
     "bad-native-migration-drops-business-rule",
     "bad-native-migration-direct-agents-overwrite",
@@ -4780,6 +4798,17 @@ function checkNativeFirstMigrationProtocol() {
     const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
     if (result.status !== 0) pass(`1.63 native migration rejects ${target}`);
     else fail(`1.63 native migration must reject ${target}`);
+  }
+
+  for (const target of [
+    "bad-native-migration-rule-json-mismatch",
+    "bad-native-migration-line-range-mismatch",
+    "bad-native-migration-missing-skipped-block-reporting",
+    "bad-native-migration-structured-action-writes",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.64 native migration rejects ${target}`);
+    else fail(`1.64 native migration must reject ${target}`);
   }
 }
 

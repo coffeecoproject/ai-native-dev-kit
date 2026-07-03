@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.63.0`
+`1.64.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.64.0` hardens Native Migration parser calibration and evidence consistency with skipped-block reporting, low-signal block reporting, rule-id Markdown/JSON consistency, and structured proposed-action validation.
+- `1.64.0` clarifies workflow-map output as diagnostic before Native Migration Plan; it does not authorize target-project writes or governance replacement.
 - `1.63.0` hardens Native-First Existing Project Migration: old and governed projects can be migrated with rule-level source line ranges, context headings, confidence, extraction coverage, parser warnings, and machine-readable evidence.
 - `1.63.0` keeps old Markdown native migration reports compatible by default; strict structured evidence is required only when explicitly requested before real governance replacement review.
 - `1.63.0` does not overwrite `AGENTS.md`, CI, hooks, release SOPs, production config, business logic, or secrets.

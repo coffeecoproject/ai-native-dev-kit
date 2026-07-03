@@ -31,7 +31,7 @@ Then Codex should explain:
 - which exact old rules were extracted, with source line ranges
 - which project constraints must be preserved
 - which conflicts block apply
-- which parser warnings or unclassified blocks need human review
+- which parser warnings, unclassified blocks, skipped blocks, or low-signal blocks need human review
 - what the human needs to decide
 
 ## What It Does Not Do
@@ -68,6 +68,7 @@ The safe path is:
 Native Migration Plan
 Rule Extraction Coverage
 Machine-Readable Evidence
+Markdown / JSON rule consistency
 Unified Apply Plan
 Controlled Apply Readiness
 Approval Record
