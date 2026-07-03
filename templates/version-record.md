@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.61.0`
+`1.62.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.62.0` adds Native-First Existing Project Migration Planning: old and governed projects can move from adapter mapping into IntentOS-native planning without direct target-file writes.
+- `1.62.0` requires existing rules to be classified before replacement and keeps business and production authority outside IntentOS workflow authority.
 - `1.61.0` hardens Release Guide and Release Handoff Packs: handoff generation is deferred until prerequisite route steps are ready.
 - `1.61.0` adds strict machine-readable release handoff evidence for recipe, approval, owner, rollback, monitoring, post-release smoke, and handoff/execution boundaries.
 - `1.61.0` makes `READY_FOR_HANDOFF_REVIEW` mean handoff review only; it is not release approval, deployment permission, provider access, package upload, secret access, or Codex release ownership.

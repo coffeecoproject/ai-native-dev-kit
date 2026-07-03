@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.61.0",
+  "devKitVersion": "1.62.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.61.0"
+    "phase": "1.62.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1955,7 +1955,37 @@
       "releases/1.61.0/release-record.md",
       "releases/1.61.0/known-limitations.md",
       "releases/1.61.0/self-check-report.md",
-      "docs/plans/native-first-existing-project-migration-1.62-plan.md"
+      "docs/plans/native-first-existing-project-migration-1.62-plan.md",
+      "core/native-first-existing-project-migration.md",
+      "docs/native-first-existing-project-migration.md",
+      "templates/native-migration-plan.md",
+      "checklists/native-migration-review.md",
+      "prompts/native-migration-agent.md",
+      "native-migration-plans/.gitkeep",
+      "scripts/resolve-native-migration.mjs",
+      "scripts/check-native-migration.mjs",
+      "examples/1.62-native-first-existing-project/README.md",
+      "examples/1.62-native-first-existing-project/light-web/native-migration-plans/001-light-web.md",
+      "examples/1.62-native-first-existing-project/governed-admin/native-migration-plans/001-governed-admin.md",
+      "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
+      "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
+      "releases/1.62.0/release-record.md",
+      "releases/1.62.0/known-limitations.md",
+      "releases/1.62.0/self-check-report.md",
+      "test-fixtures/bad/bad-native-migration-drops-business-rule/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-direct-agents-overwrite/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-keeps-split-authority/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-auto-ci-hook/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-production-config/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-human-approval/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-restore-plan/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-approves-implementation/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-unknown-owner/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-business-rule-as-workflow-rule/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-production-control-as-baseline/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-source-excerpt/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-broad-target-path/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2459,7 +2489,15 @@
       "scripts/check-release-handoff-pack.mjs",
       ".ai-native/core/release-path-hardening.md",
       ".ai-native/docs/release-path-hardening.md",
-      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json",
+      ".ai-native/checklists/native-migration-review.md",
+      ".ai-native/core/native-first-existing-project-migration.md",
+      ".ai-native/docs/native-first-existing-project-migration.md",
+      ".ai-native/prompts/native-migration-agent.md",
+      ".ai-native/templates/native-migration-plan.md",
+      "native-migration-plans",
+      "scripts/resolve-native-migration.mjs",
+      "scripts/check-native-migration.mjs"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -3012,7 +3050,15 @@
       "scripts/check-release-handoff-pack.mjs",
       ".ai-native/core/release-path-hardening.md",
       ".ai-native/docs/release-path-hardening.md",
-      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json",
+      ".ai-native/checklists/native-migration-review.md",
+      ".ai-native/core/native-first-existing-project-migration.md",
+      ".ai-native/docs/native-first-existing-project-migration.md",
+      ".ai-native/prompts/native-migration-agent.md",
+      ".ai-native/templates/native-migration-plan.md",
+      "native-migration-plans",
+      "scripts/resolve-native-migration.mjs",
+      "scripts/check-native-migration.mjs"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3113,7 +3159,12 @@
       ".ai-native/templates/release-handoff-pack.md",
       ".ai-native/core/release-path-hardening.md",
       ".ai-native/docs/release-path-hardening.md",
-      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json",
+      "checklists/native-migration-review.md",
+      "core/native-first-existing-project-migration.md",
+      "docs/native-first-existing-project-migration.md",
+      "prompts/native-migration-agent.md",
+      "templates/native-migration-plan.md"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3221,7 +3272,8 @@
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
       "templates/workflow-version.json",
-      "templates/release-handoff-pack.md"
+      "templates/release-handoff-pack.md",
+      "templates/native-migration-plan.md"
     ],
     "prompts": [
       ".ai-native/prompts/change-impact-coverage-agent.md",
@@ -3280,7 +3332,8 @@
       "prompts/work-queue-agent.md",
       "prompts/workflow-adapter-agent.md",
       "prompts/workflow-concierge-agent.md",
-      "prompts/release-handoff-pack-agent.md"
+      "prompts/release-handoff-pack-agent.md",
+      "prompts/native-migration-agent.md"
     ],
     "checklists": [
       ".ai-native/checklists/change-impact-coverage-review.md",
@@ -3351,7 +3404,8 @@
       "checklists/work-queue-review.md",
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md",
-      "checklists/release-handoff-pack-review.md"
+      "checklists/release-handoff-pack-review.md",
+      "checklists/native-migration-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -3451,7 +3505,8 @@
       "workflow-guidance-cards",
       "workflow-improvements",
       "workflow-retros",
-      "release-handoff-packs"
+      "release-handoff-packs",
+      "native-migration-plans"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -3564,7 +3619,9 @@
       "scripts/workflow-daily-summary.mjs",
       "scripts/workflow-next.mjs",
       "scripts/resolve-release-handoff-pack.mjs",
-      "scripts/check-release-handoff-pack.mjs"
+      "scripts/check-release-handoff-pack.mjs",
+      "scripts/resolve-native-migration.mjs",
+      "scripts/check-native-migration.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -3869,7 +3926,12 @@
       "examples/1.60-release-handoff-packs/mini-program-review/README.md",
       "examples/1.60-release-handoff-packs/mini-program-review/release-handoff-packs/001-mini-program-review.md",
       "examples/1.60-release-handoff-packs/backend-api-release/README.md",
-      "examples/1.60-release-handoff-packs/backend-api-release/release-handoff-packs/001-backend-api-release.md"
+      "examples/1.60-release-handoff-packs/backend-api-release/release-handoff-packs/001-backend-api-release.md",
+      "examples/1.62-native-first-existing-project/README.md",
+      "examples/1.62-native-first-existing-project/light-web/native-migration-plans/001-light-web.md",
+      "examples/1.62-native-first-existing-project/governed-admin/native-migration-plans/001-governed-admin.md",
+      "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
+      "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4191,7 +4253,21 @@
       "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex/release-handoff-packs/001-bad.md",
       "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md",
       "test-fixtures/bad/bad-release-handoff-missing-structured-evidence/release-handoff-packs/001-bad.md",
-      "test-fixtures/bad/bad-release-handoff-execution-redefines-evidence/release-handoff-packs/001-bad.md"
+      "test-fixtures/bad/bad-release-handoff-execution-redefines-evidence/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-drops-business-rule/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-direct-agents-overwrite/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-keeps-split-authority/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-auto-ci-hook/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-production-config/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-human-approval/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-restore-plan/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-approves-implementation/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-unknown-owner/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-business-rule-as-workflow-rule/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-production-control-as-baseline/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-source-excerpt/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-broad-target-path/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -4623,7 +4699,15 @@
       ".ai-native/templates/release-handoff-pack.md",
       ".ai-native/core/release-path-hardening.md",
       ".ai-native/docs/release-path-hardening.md",
-      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json",
+      ".ai-native/checklists/native-migration-review.md",
+      ".ai-native/core/native-first-existing-project-migration.md",
+      ".ai-native/docs/native-first-existing-project-migration.md",
+      ".ai-native/prompts/native-migration-agent.md",
+      ".ai-native/templates/native-migration-plan.md",
+      "native-migration-plans",
+      "scripts/resolve-native-migration.mjs",
+      "scripts/check-native-migration.mjs"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -5064,7 +5148,15 @@
       "scripts/check-release-handoff-pack.mjs",
       ".ai-native/core/release-path-hardening.md",
       ".ai-native/docs/release-path-hardening.md",
-      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json",
+      ".ai-native/checklists/native-migration-review.md",
+      ".ai-native/core/native-first-existing-project-migration.md",
+      ".ai-native/docs/native-first-existing-project-migration.md",
+      ".ai-native/prompts/native-migration-agent.md",
+      ".ai-native/templates/native-migration-plan.md",
+      "native-migration-plans",
+      "scripts/resolve-native-migration.mjs",
+      "scripts/check-native-migration.mjs"
     ]
   },
   "copyRules": {
@@ -5232,6 +5324,10 @@
       {
         "source": "release-handoff-packs",
         "target": "release-handoff-packs"
+      },
+      {
+        "source": "native-migration-plans",
+        "target": "native-migration-plans"
       }
     ],
     "files": [
@@ -6410,6 +6506,34 @@
       {
         "source": "schemas/artifacts/release-handoff-evidence.schema.json",
         "target": ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
+      },
+      {
+        "source": "core/native-first-existing-project-migration.md",
+        "target": ".ai-native/core/native-first-existing-project-migration.md"
+      },
+      {
+        "source": "docs/native-first-existing-project-migration.md",
+        "target": ".ai-native/docs/native-first-existing-project-migration.md"
+      },
+      {
+        "source": "templates/native-migration-plan.md",
+        "target": ".ai-native/templates/native-migration-plan.md"
+      },
+      {
+        "source": "checklists/native-migration-review.md",
+        "target": ".ai-native/checklists/native-migration-review.md"
+      },
+      {
+        "source": "prompts/native-migration-agent.md",
+        "target": ".ai-native/prompts/native-migration-agent.md"
+      },
+      {
+        "source": "scripts/resolve-native-migration.mjs",
+        "target": "scripts/resolve-native-migration.mjs"
+      },
+      {
+        "source": "scripts/check-native-migration.mjs",
+        "target": "scripts/check-native-migration.mjs"
       }
     ]
   },

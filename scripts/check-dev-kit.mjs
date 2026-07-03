@@ -4532,6 +4532,7 @@ function checkExistingProjectWorkflowAdapterProtocol() {
     "BLOCKED_NEEDS_OWNER",
     "For existing projects, Codex must recommend a workflow adapter path before recommending file writes",
     "Recommended AI Native Workflow Use",
+    "Native Migration Plan",
     "What Not To Touch",
     "does not install target-project workflow assets",
     "does not change hooks or CI",
@@ -4544,6 +4545,7 @@ function checkExistingProjectWorkflowAdapterProtocol() {
   const resolver = runNode(["scripts/resolve-existing-workflow.mjs", "."]);
   if (resolver.status === 0
     && resolver.stdout.includes("Workflow Adoption Map Recommendation")
+    && resolver.stdout.includes("Native Migration Recommendation")
     && resolver.stdout.includes("This report authorizes target-project writes: No")) {
     pass("1.20 workflow adapter resolver passes source repo");
   } else {
@@ -4556,7 +4558,10 @@ function checkExistingProjectWorkflowAdapterProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "WORKFLOW_ADOPTION_MAP_RECOMMENDATION"
         && parsed.boundary?.authorizesTargetProjectWrites === "No"
-        && Array.isArray(parsed.recommendedAiNativeWorkflowUse)) {
+        && Array.isArray(parsed.recommendedAiNativeWorkflowUse)
+        && parsed.nativeMigrationRecommendation?.nextStep
+        && parsed.nativeMigrationRecommendation?.posture
+        && parsed.nativeMigrationRecommendation?.writes === "No") {
         pass("1.20 workflow adapter resolver JSON includes map and boundary");
       } else {
         fail(`1.20 workflow adapter resolver JSON missing expected fields: ${resolverJson.stdout}`);
@@ -4593,6 +4598,156 @@ function checkExistingProjectWorkflowAdapterProtocol() {
     } else {
       fail(`1.20 workflow adapter must reject ${name}: ${output}`);
     }
+  }
+}
+
+function checkNativeFirstMigrationProtocol() {
+  const required = [
+    "docs/plans/native-first-existing-project-migration-1.62-plan.md",
+    "core/native-first-existing-project-migration.md",
+    "docs/native-first-existing-project-migration.md",
+    "templates/native-migration-plan.md",
+    "checklists/native-migration-review.md",
+    "prompts/native-migration-agent.md",
+    "native-migration-plans/.gitkeep",
+    "scripts/resolve-native-migration.mjs",
+    "scripts/check-native-migration.mjs",
+    "examples/1.62-native-first-existing-project/README.md",
+    "examples/1.62-native-first-existing-project/light-web/native-migration-plans/001-light-web.md",
+    "examples/1.62-native-first-existing-project/governed-admin/native-migration-plans/001-governed-admin.md",
+    "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
+    "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
+    "releases/1.62.0/release-record.md",
+    "releases/1.62.0/known-limitations.md",
+    "releases/1.62.0/self-check-report.md",
+    "test-fixtures/bad/bad-native-migration-drops-business-rule/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-direct-agents-overwrite/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-keeps-split-authority/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-auto-ci-hook/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-production-config/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-no-human-approval/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-no-restore-plan/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-approves-implementation/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-unknown-owner/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-business-rule-as-workflow-rule/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-production-control-as-baseline/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-no-source-excerpt/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-broad-target-path/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.62 native migration asset exists ${file}`);
+    else fail(`1.62 native migration asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/native-first-existing-project-migration.md"),
+    read("docs/native-first-existing-project-migration.md"),
+    read("templates/native-migration-plan.md"),
+    read("scripts/resolve-native-migration.mjs"),
+    read("scripts/check-native-migration.mjs"),
+    read("releases/1.62.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Native-First Existing Project Migration",
+    "Native-First Migration Planning mode",
+    "IntentOS may become the workflow authority",
+    "IntentOS must not become the business",
+    "intentOsWorkflowAuthority",
+    "targetFileWriteAuthority",
+    "businessAuthority",
+    "productionAuthority",
+    "Unified Apply Plan",
+    "Controlled Apply Readiness",
+    "Approval Record",
+    "This plan writes target files: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.62 native migration includes ${marker}`);
+    else fail(`1.62 native migration missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-native-migration.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("I have switched to IntentOS Native-First Migration Planning mode.")
+    && resolver.stdout.includes("This plan writes target files: No")
+    && resolver.stdout.includes("Unified Apply Plan")) {
+    pass("1.62 native migration resolver prints safe plan");
+  } else {
+    fail(`1.62 native migration resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-native-migration.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "NATIVE_FIRST_EXISTING_PROJECT_MIGRATION"
+        && parsed.canCodexWriteNow === "No"
+        && parsed.businessAuthority === "PROJECT_OWNED"
+        && parsed.productionAuthority === "HUMAN_OR_EXTERNAL_SYSTEM"
+        && parsed.boundary?.writesTargetFiles === "No") {
+        pass("1.62 native migration resolver JSON includes safe authority fields");
+      } else {
+        fail(`1.62 native migration resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.62 native migration resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.62 native migration resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-native-migration.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Native Migration check passed")) {
+    pass("1.62 native migration checker passes source repo");
+  } else {
+    fail(`1.62 native migration checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "native-migration", "."]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Native-First Migration Planning mode")) {
+    pass("CLI native-migration delegates to native migration resolver");
+  } else {
+    fail(`CLI native-migration failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "native-migration-check", "."]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("Native Migration check passed")) {
+    pass("CLI native-migration-check delegates to native migration checker");
+  } else {
+    fail(`CLI native-migration-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const target of [
+    "examples/1.62-native-first-existing-project/light-web",
+    "examples/1.62-native-first-existing-project/governed-admin",
+    "examples/1.62-native-first-existing-project/production-maintained",
+    "examples/1.62-native-first-existing-project/dirty-worktree",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", target]);
+    if (result.status === 0) pass(`1.62 native migration example passes ${target}`);
+    else fail(`1.62 native migration example failed ${target}: ${result.stderr || result.stdout}`);
+  }
+
+  for (const target of [
+    "bad-native-migration-drops-business-rule",
+    "bad-native-migration-direct-agents-overwrite",
+    "bad-native-migration-keeps-split-authority",
+    "bad-native-migration-auto-ci-hook",
+    "bad-native-migration-production-config",
+    "bad-native-migration-no-human-approval",
+    "bad-native-migration-no-restore-plan",
+    "bad-native-migration-approves-implementation",
+    "bad-native-migration-unknown-owner",
+    "bad-native-migration-business-rule-as-workflow-rule",
+    "bad-native-migration-production-control-as-baseline",
+    "bad-native-migration-no-source-excerpt",
+    "bad-native-migration-broad-target-path",
+    "bad-native-migration-no-authority-transition",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`]);
+    if (result.status !== 0) pass(`1.62 native migration rejects ${target}`);
+    else fail(`1.62 native migration must reject ${target}`);
   }
 }
 
@@ -11379,6 +11534,7 @@ checkConversationDriftProtocol();
 checkFirstDeliveryWalkthroughProtocol();
 checkRealAdoptionAndPatchClassificationProtocol();
 checkExistingProjectWorkflowAdapterProtocol();
+checkNativeFirstMigrationProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();

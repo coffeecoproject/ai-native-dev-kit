@@ -367,6 +367,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "native-migration": {
+    description: "Switch an existing project into IntentOS Native-First Migration Planning mode without writing target files.",
+    script: "scripts/resolve-native-migration.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "native-migration-check": {
+    description: "Check recorded Native Migration Plans for authority, approval, restore, and no-write boundaries.",
+    script: "scripts/check-native-migration.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "doc-lifecycle": {
     description: "Recommend document lifecycle state without deleting, moving, or archiving files.",
     script: "scripts/resolve-document-lifecycle.mjs",

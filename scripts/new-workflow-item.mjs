@@ -43,6 +43,7 @@ const typeMap = {
   "patch-classification": { dir: "patch-classifications", template: "patch-classification-report.md", defaultName: "patch-classification" },
   "patch-classification-false-positive": { dir: "patch-classification-false-positives", template: "patch-classification-false-positive.md", defaultName: "patch-classification-false-positive" },
   "workflow-adoption-map": { dir: "workflow-adoption-maps", template: "workflow-adoption-map.md", defaultName: "workflow-adoption-map" },
+  "native-migration-plan": { dir: "native-migration-plans", template: "native-migration-plan.md", defaultName: "native-migration" },
   "document-lifecycle-report": { dir: "doc-lifecycle-reports", template: "document-lifecycle-report.md", defaultName: "document-lifecycle" },
   "document-archive-apply-plan": { dir: "archive-apply-plans", template: "document-archive-apply-plan.md", defaultName: "archive-apply" },
   "unified-apply-plan": { dir: "apply-plans", template: "unified-apply-plan.md", defaultName: "apply-plan" },
@@ -167,6 +168,10 @@ const aliases = {
   "workflow-adoption": "workflow-adoption-map",
   "adoption-map": "workflow-adoption-map",
   "existing-workflow": "workflow-adoption-map",
+  "native-migration": "native-migration-plan",
+  "migration-plan": "native-migration-plan",
+  "native-migration-plan": "native-migration-plan",
+  "existing-project-migration": "native-migration-plan",
   "doc-lifecycle": "document-lifecycle-report",
   "document-lifecycle": "document-lifecycle-report",
   "document-lifecycle-review": "document-lifecycle-report",
@@ -327,6 +332,7 @@ function usage() {
   console.error("  node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-web-readonly");
   console.error("  node scripts/new-workflow-item.mjs --type patch-classification --name governed-web-repair-scale");
   console.error("  node scripts/new-workflow-item.mjs --type workflow-adoption-map --name governed-project");
+  console.error("  node scripts/new-workflow-item.mjs --type native-migration-plan --name governed-project");
   console.error("  node scripts/new-workflow-item.mjs --type document-lifecycle-report --name stale-docs");
   console.error("  node scripts/new-workflow-item.mjs --type document-archive-apply-plan --name stale-docs-archive-plan");
   console.error("  node scripts/new-workflow-item.mjs --type controlled-apply-readiness-report --name workflow-assets");

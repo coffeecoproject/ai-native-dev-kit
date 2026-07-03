@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.61.0`
+Current version: `1.62.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.61.0`
 
 ## Current Release
 
-`1.61.0`
+`1.62.0`
 
 Includes:
 
+- Native-First Existing Project Migration phase `1.62.0`: lets Codex switch old, governed, dirty, or production-maintained projects into IntentOS-native migration planning instead of stopping at adapter-only advice
+- `1.62.0` classifies existing rules as business facts, project constraints, production controls, engineering baselines, workflow rules, historical notes, or unknown-authority items before any replacement
+- `1.62.0` keeps business and production authority project-owned/human-owned, and routes any approved governance-file edits through Native Migration Plan -> Unified Apply Plan -> Controlled Apply Readiness -> Approval Record
 - Release Path Hardening phase `1.61.0`: makes Release Guide defer Release Handoff Pack generation until prerequisite route steps are ready, adds strict machine-readable release handoff evidence, and clarifies that `READY_FOR_HANDOFF_REVIEW` means handoff review only, not release approval
 - `1.61.0` treats the Release Handoff Pack as the single source for recipe, structured approval, release owner, rollback, monitoring, post-release smoke, and handoff/execution boundary facts; Release Execution must consume these facts and must not redefine them
 - `1.61.0` does not approve release, execute release commands, deploy, publish, upload, submit, migrate, call provider APIs, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production data/production config, or make Codex the release owner

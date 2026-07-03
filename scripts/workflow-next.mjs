@@ -343,11 +343,14 @@ const productionSignalPaths = [
   "infra/staging",
 ];
 const workflowInternalProductionSignalPaths = new Set([
+  "native-migration-plans",
   "release-adapters",
   "release-recipes",
   "release-handoff-packs",
   "release-guides",
   "release-execution-plans",
+  "scripts/check-native-migration.mjs",
+  "scripts/resolve-native-migration.mjs",
   "scripts/check-release-adapter.mjs",
   "scripts/check-platform-release-recipe.mjs",
   "scripts/check-release-handoff-pack.mjs",
@@ -419,6 +422,7 @@ function matchedExistingPaths(paths) {
 
 function isWorkflowInternalProductionSignal(rel) {
   return workflowInternalProductionSignalPaths.has(rel)
+    || rel.startsWith("native-migration-plans/")
     || rel.startsWith("release-adapters/")
     || rel.startsWith("release-recipes/")
     || rel.startsWith("release-handoff-packs/")

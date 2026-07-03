@@ -64,6 +64,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `adoption-trial-reports/` | First Delivery Walkthrough and real/simulated adoption trial evidence |
 | `real-adoption-trials/` | Real-project read-only adoption trial reports |
 | `governance-maps/` | Maps AI Native concepts to existing project authority |
+| `native-migration-plans/` | Plan-only IntentOS-native migration records for old projects; classify old rules before any governance replacement |
 | `patch-classifications/` | Repair-scale classification before non-trivial fixes |
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
 | `doc-lifecycle-reports/` | Source-of-truth, stale, duplicate, archive, and deprecation candidate reports |

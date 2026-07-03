@@ -28,6 +28,7 @@ This index separates current operating documents from reference material, histor
 - [Release Handoff Packs](release-handoff-packs.md)
 - [Release Path Hardening](release-path-hardening.md)
 - [Release Execution Protocol](release-execution-protocol.md)
+- [Native-First Existing Project Migration](native-first-existing-project-migration.md)
 - [Guided Delivery Check](guided-delivery-check.md)
 - [Guided Baseline Selection Entry](guided-baseline-selection-entry.md)
 
@@ -59,6 +60,7 @@ This index separates current operating documents from reference material, histor
 - [Release Handoff Packs](release-handoff-packs.md)
 - [Release Path Hardening](release-path-hardening.md)
 - [Release Execution Protocol](release-execution-protocol.md)
+- [Native-First Existing Project Migration](native-first-existing-project-migration.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)
@@ -97,6 +99,7 @@ This index separates current operating documents from reference material, histor
 - [Existing Light Project Playbook](adoption-playbooks/existing-light-project.md)
 - [Governed Read-Only Playbook](adoption-playbooks/governed-project-read-only.md)
 - [Production Project Adapter Playbook](adoption-playbooks/production-project-adapter.md)
+- [Native-First Existing Project Migration](native-first-existing-project-migration.md)
 
 ## Reference
 

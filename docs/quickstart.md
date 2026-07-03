@@ -592,6 +592,22 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 
 If the result is `RUN_ADOPTION_ASSESSMENT`, keep the first pass read-only. Map existing agent rules, CI, baselines, evidence, release/rollback controls, and dirty worktree state before asking for adapter approval.
 
+From 1.62 onward, if the user wants the existing project to actually adopt
+IntentOS instead of staying adapter-only, generate a native migration plan
+before any workflow asset write:
+
+```bash
+node ai-native-dev-kit/scripts/cli.mjs workflow-map ../existing-project
+node ai-native-dev-kit/scripts/cli.mjs native-migration ../existing-project
+node ai-native-dev-kit/scripts/cli.mjs native-migration-check ../existing-project
+```
+
+The native migration plan is still plan-only. It can classify old rules and
+recommend IntentOS as the future planning workflow, but it cannot overwrite
+`AGENTS.md`, CI, hooks, release SOPs, production config, business logic, data, or
+secrets. Any approved governance-file edit must still go through Unified Apply
+Plan, Controlled Apply Readiness, and Approval Record.
+
 It creates `AGENTS.md` when missing. If the project already has `AGENTS.md` and it is missing workflow governance markers, the update command writes a migration report instead of modifying the file:
 
 ```text

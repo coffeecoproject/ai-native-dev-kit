@@ -7,6 +7,12 @@ documents, gates, release flow, or production sensitivity.
 It is not a bootstrap protocol. It does not install AI Native workflow assets,
 change CI, modify hooks, overwrite agent rules, or approve code changes.
 
+From 1.62 onward, this adapter is a diagnostic safety layer, not the preferred
+end state when the user asks Codex to configure an existing project for
+IntentOS. If the user asks to "adopt IntentOS", "configure yourself", "switch
+into this workflow", or similar, Codex should use this adapter map as input to a
+Native Migration Plan.
+
 Machine-checkable boundary:
 
 - The adapter does not install target-project workflow assets.
@@ -32,6 +38,17 @@ What must not be touched?
 ## Default Rule
 
 For existing projects, Codex must recommend a workflow adapter path before recommending file writes.
+
+If the user wants IntentOS adoption, the next planning chain is:
+
+```text
+Workflow Adoption Map
+Native Migration Plan
+Unified Apply Plan
+Controlled Apply Readiness
+Approval Record
+approved governance-file edits only
+```
 
 The Workflow Adoption Map is read-only by default. It maps existing workflow to
 recommended AI Native usage. It does not authorize:
@@ -107,6 +124,7 @@ adapter change. The adapter should reuse:
 Codex may recommend additions only as proposals:
 
 - a `workflow-adoption-map` report
+- a `native-migration-plan` report when the user asks to switch into IntentOS
 - a docs-only adapter page
 - selected report templates
 - selected checker commands
@@ -154,4 +172,5 @@ Forbidden:
 - The adapter installed workflow assets.
 - The adapter approved implementation, release, hooks, CI, or production.
 - The adapter replaced the project's existing governance.
+- The adapter is the final IntentOS-native migration state.
 - The adapter proves production readiness or compliance.

@@ -48,6 +48,7 @@ function buildWorkflowMap(root) {
   const classification = classify(root, exists, git, signals);
   const adapterMode = adapterModeFor(classification);
   const recommendedChoice = choiceFor(adapterMode, classification);
+  const nativeMigrationRecommendation = nativeMigrationFor(adapterMode, classification);
 
   return {
     reportType: "WORKFLOW_ADOPTION_MAP_RECOMMENDATION",
@@ -76,6 +77,7 @@ function buildWorkflowMap(root) {
     },
     existingWorkflowInventory: inventory(signals),
     recommendedAiNativeWorkflowUse: recommendedWorkflowUse(classification),
+    nativeMigrationRecommendation,
     whatToReuse: reuseList(signals, classification),
     whatToAdd: additionsFor(adapterMode, classification),
     whatNotToTouch: forbiddenTouchList(classification),
@@ -341,6 +343,59 @@ function choiceFor(adapterMode, classification) {
   };
 }
 
+function nativeMigrationFor(adapterMode, classification) {
+  if (classification.projectState === "NEW_OR_EMPTY_PROJECT" || adapterMode === "NOT_APPLICABLE") {
+    return {
+      nextStep: "Use new-project bootstrap or baseline selection instead of existing-project native migration.",
+      command: "node scripts/cli.mjs start <project>",
+      posture: "FULL_MANAGED_INTENTOS_NATIVE",
+      reason: "The target is not an old-project migration target.",
+      writes: "No",
+      approvalNeeded: "Yes before any target-project writes",
+    };
+  }
+  if (adapterMode === "BLOCKED_NEEDS_OWNER") {
+    return {
+      nextStep: "Do not migrate yet; resolve owner, risk, or dirty worktree first.",
+      command: "node scripts/cli.mjs native-migration <project>",
+      posture: classification.projectState === "DIRTY_WORKTREE_PROJECT"
+        ? "NATIVE_FIRST_PENDING_WORKTREE_REVIEW"
+        : "BLOCKED_NEEDS_OWNER",
+      reason: "Native migration planning can record the block, but cannot write target files.",
+      writes: "No",
+      approvalNeeded: "Yes before any target-project writes",
+    };
+  }
+  if (classification.projectState === "EXISTING_PRODUCTION_PROJECT") {
+    return {
+      nextStep: "Generate a Native Migration Plan that preserves production and release authority.",
+      command: "node scripts/cli.mjs native-migration <project>",
+      posture: "PRODUCTION_SAFE_NATIVE_OVERLAY",
+      reason: "IntentOS can become the planning workflow while production controls remain external.",
+      writes: "No",
+      approvalNeeded: "Yes before any governance replacement",
+    };
+  }
+  if (classification.projectState === "EXISTING_GOVERNED_PROJECT") {
+    return {
+      nextStep: "Generate a Native Migration Plan and classify governance conflicts before any bridge apply.",
+      command: "node scripts/cli.mjs native-migration <project>",
+      posture: "NATIVE_FIRST_WITH_GOVERNANCE_CONFLICT_REVIEW",
+      reason: "Existing governance should be classified rather than left in adapter-only limbo.",
+      writes: "No",
+      approvalNeeded: "Yes before any governance replacement",
+    };
+  }
+  return {
+    nextStep: "Generate a Native Migration Plan for a light existing project.",
+    command: "node scripts/cli.mjs native-migration <project>",
+    posture: "NATIVE_FIRST_MIGRATION",
+    reason: "Light projects can use IntentOS-native planning after human confirmation.",
+    writes: "No",
+    approvalNeeded: "Yes before any target-project writes",
+  };
+}
+
 function conclusionFor(classification, adapterMode) {
   if (adapterMode === "NOT_APPLICABLE") {
     return "Workflow adapter is not the right first step for this target.";
@@ -387,6 +442,7 @@ function recommendedWorkflowUse(classification) {
     workflowUse("New request or feature", "Request / Spec / Task Card", nowForGoverned ? "Yes" : "Later", "Use only after adapter boundary is clear.", "Yes"),
     workflowUse("Risk or baseline choice", "Baseline Decision Card", "Yes", "Use before changing baseline, platform, or risk scope.", "Yes"),
     workflowUse("Existing governance mapping", "Workflow Adoption Map", "Yes", "Use as the first old-project routing artifact.", "No"),
+    workflowUse("IntentOS adoption for old projects", "Native Migration Plan", "Yes", "Use after workflow-map when the user asks to adopt or configure IntentOS.", "Yes"),
     workflowUse("Actual file-change boundary", "Change Boundary Report", "Yes", "Use before multi-file changes or when scope may drift.", "Yes"),
     workflowUse("Complex repair", "Patch Classification", "Yes", "Use before non-trivial fixes, hardcuts, or remediation.", "Yes"),
     workflowUse("Completion review", "Review Loop", "Yes", "Use after task completion, not after every small edit.", "No"),
@@ -421,17 +477,20 @@ function additionsFor(adapterMode) {
   if (adapterMode === "READ_ONLY_MAP") {
     return [
       addition("Workflow Adoption Map report", "Record how AI Native should route future work.", "No", "No", "Recommended"),
+      addition("Native Migration Plan", "Move from adapter mapping into IntentOS-native planning after the user asks to adopt.", "No", "Yes", "Recommended"),
       addition("Docs-only bridge", "Optional shared adapter document after review.", "Docs only", "Yes", "Later"),
     ];
   }
   if (adapterMode === "DOCS_ONLY_BRIDGE") {
     return [
       addition("Workflow Adoption Map report", "Record current workflow and routing.", "No", "No", "Recommended"),
+      addition("Native Migration Plan", "Classify old rules and plan IntentOS-native adoption.", "No", "Yes", "Recommended"),
       addition("Docs-only bridge", "Add an approved adapter doc without changing gates or code.", "Docs only", "Yes", "Candidate"),
     ];
   }
   return [
     addition("Workflow Adoption Map report", "Record safe boundary only.", "No", "No", "Recommended"),
+    addition("Native Migration Plan", "Record blocked native migration posture without writing target files.", "No", "Yes", "Later"),
   ];
 }
 
@@ -480,13 +539,14 @@ function adapterPlan(adapterMode, classification) {
   const steps = [
     planStep(1, "Keep existing workflow authoritative", "No", "No", "PROPOSED"),
     planStep(2, "Use workflow-map before recommending old-project writes", "No", "No", "PROPOSED"),
+    planStep(3, "If user wants IntentOS adoption, generate Native Migration Plan", "No", "Yes", "PROPOSED"),
   ];
   if (adapterMode === "DOCS_ONLY_BRIDGE") {
-    steps.push(planStep(3, "Draft docs-only bridge after review", "Docs only", "Yes", "PENDING"));
+    steps.push(planStep(4, "Draft docs-only bridge after review", "Docs only", "Yes", "PENDING"));
   } else if (adapterMode === "READ_ONLY_MAP") {
-    steps.push(planStep(3, "Prepare docs-only bridge only if approved later", "Docs only", "Yes", "PENDING"));
+    steps.push(planStep(4, "Prepare docs-only bridge only if approved later", "Docs only", "Yes", "PENDING"));
   } else if (classification.projectState === "DIRTY_WORKTREE_PROJECT") {
-    steps.push(planStep(3, "Resolve dirty worktree boundary before adoption", "No", "Yes", "BLOCKED"));
+    steps.push(planStep(4, "Resolve dirty worktree boundary before adoption", "No", "Yes", "BLOCKED"));
   }
   return steps;
 }
@@ -559,6 +619,17 @@ function printHuman(report) {
   for (const item of report.recommendedAiNativeWorkflowUse) {
     console.log(`| ${item.situation} | ${item.workflow} | ${item.useNow} | ${item.howToConnect} | ${item.humanDecisionNeeded} |`);
   }
+  console.log("");
+  console.log("## Native Migration Recommendation");
+  console.log("");
+  console.log("| Field | Value |");
+  console.log("|---|---|");
+  console.log(`| Next step | ${report.nativeMigrationRecommendation.nextStep} |`);
+  console.log(`| Command | \`${report.nativeMigrationRecommendation.command}\` |`);
+  console.log(`| Posture | \`${report.nativeMigrationRecommendation.posture}\` |`);
+  console.log(`| Reason | ${report.nativeMigrationRecommendation.reason} |`);
+  console.log(`| Writes target files? | ${report.nativeMigrationRecommendation.writes} |`);
+  console.log(`| Approval needed | ${report.nativeMigrationRecommendation.approvalNeeded} |`);
   console.log("");
   console.log("## What To Reuse");
   console.log("");

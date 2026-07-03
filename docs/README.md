@@ -23,11 +23,13 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Release Handoff Packs](release-handoff-packs.md)
 - [Release Path Hardening](release-path-hardening.md)
 - [Release Execution Protocol](release-execution-protocol.md)
+- [Native-First Existing Project Migration](native-first-existing-project-migration.md)
 
 ## Project Adoption
 
 - [Baseline Setup](baseline-setup.md)
 - [Existing Project Workflow Adapter](existing-project-workflow-adapter.md)
+- [Native-First Existing Project Migration](native-first-existing-project-migration.md)
 - [New Project Playbook](adoption-playbooks/new-project.md)
 - [Existing Light Project Playbook](adoption-playbooks/existing-light-project.md)
 - [Governed Read-Only Playbook](adoption-playbooks/governed-project-read-only.md)
@@ -58,6 +60,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Release Handoff Packs](release-handoff-packs.md)
 - [Release Path Hardening](release-path-hardening.md)
 - [Release Execution Protocol](release-execution-protocol.md)
+- [Native-First Existing Project Migration](native-first-existing-project-migration.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)

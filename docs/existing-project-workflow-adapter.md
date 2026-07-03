@@ -14,6 +14,11 @@ The user should only make decisions such as "keep read-only", "allow a docs-only
 adapter", or "pause". The user should not need to understand every script or
 file path before Codex can explain the safe path.
 
+From 1.62 onward, this map is not the final answer when the user says "configure
+yourself", "use IntentOS here", or "switch this old project into the new
+workflow". In that case, Codex should move from adapter mapping into a Native
+Migration Plan.
+
 ## Commands
 
 Generate a read-only recommendation:
@@ -42,7 +47,8 @@ or workflow asset installation.
 ```text
 workflow-map
 -> workflow adoption map report
--> human chooses read-only / docs-only / pause
+-> if user wants IntentOS adoption, native-migration
+-> human chooses native migration / docs-only / pause
 -> optional reviewed plan
 -> controlled apply only if approved
 ```
@@ -66,6 +72,7 @@ workflow-map
 | B. Docs-only bridge | Save an approved adapter doc | Docs only |
 | C. Thin operational bridge | Add selected reviewed assets that point to existing authority | Approved assets only |
 | D. Pause | Stop until ownership or risk is clearer | No |
+| E. Native migration plan | Use IntentOS as the planning workflow while preserving project authority | Plan only |
 
 ## Boundary
 
@@ -83,6 +90,7 @@ It does not:
 - approve code changes
 - approve implementation
 - approve production or release work
+- replace a reviewed Native Migration Plan
 
 If Codex wants to do any of those, it must present a separate reviewed plan and
 wait for human approval.

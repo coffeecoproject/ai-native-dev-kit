@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.61.0",
+  "devKitVersion": "1.62.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -433,6 +433,14 @@
     ".ai-native/templates/release-handoff-pack.md",
     ".ai-native/core/release-path-hardening.md",
     ".ai-native/docs/release-path-hardening.md",
-    ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
+    ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json",
+    ".ai-native/checklists/native-migration-review.md",
+    ".ai-native/core/native-first-existing-project-migration.md",
+    ".ai-native/docs/native-first-existing-project-migration.md",
+    ".ai-native/prompts/native-migration-agent.md",
+    ".ai-native/templates/native-migration-plan.md",
+    "native-migration-plans",
+    "scripts/resolve-native-migration.mjs",
+    "scripts/check-native-migration.mjs"
   ]
 }
