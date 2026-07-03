@@ -63,8 +63,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-patch-classification.mjs` | Repair-scale classification and false-positive calibration before non-trivial fixes |
 | `resolve-existing-workflow.mjs` | Read-only Workflow Adoption Map recommendation for existing projects |
 | `check-workflow-adoption-map.mjs` | Workflow Adoption Map boundary, routing, and overclaim checks |
-| `resolve-native-migration.mjs` | Read-only Native-First Migration Plan resolver for old, governed, dirty, and production-maintained projects |
-| `check-native-migration.mjs` | Native Migration Plan authority, source evidence, approval, restore, and no-write boundary checks |
+| `resolve-native-migration.mjs` | Read-only Native-First Migration Plan resolver with rule-level extraction, coverage, parser warnings, and structured evidence |
+| `check-native-migration.mjs` | Native Migration Plan authority, source evidence, approval, restore, no-write boundary, and optional strict structured evidence checks |
 | `resolve-document-lifecycle.mjs` | Read-only document lifecycle recommendation with source-of-truth and archive-suggestion mapping |
 | `check-document-lifecycle.mjs` | Document Lifecycle Report boundary, source-of-truth, archive, deprecation, and deletion-authorization checks |
 | `resolve-document-archive-apply.mjs` | Read-only archive apply planner with link-check and archive-index preview |

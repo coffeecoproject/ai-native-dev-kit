@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.62.0`
+Current version: `1.63.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.62.0`
 
 ## Current Release
 
-`1.62.0`
+`1.63.0`
 
 Includes:
 
+- Native Migration Precision Hardening phase `1.63.0`: upgrades old-project native migration from file-level governance detection to rule-level extraction with source line ranges, context headings, confidence, rule extraction coverage, parser warnings, and machine-readable migration evidence
+- `1.63.0` adds `schemas/artifacts/native-migration-plan.schema.json`, `scripts/lib/native-rule-extraction.mjs`, strict `check-native-migration --require-structured-evidence`, a mixed-rule positive example, and bad fixtures for collapsed rules, missing line ranges, structured-evidence mismatch, schema drift, and workflow-map endpoint overclaim
+- `1.63.0` keeps old Markdown native migration reports compatible by default; strict structured evidence is required only when explicitly requested for real governance replacement review
 - Native-First Existing Project Migration phase `1.62.0`: lets Codex switch old, governed, dirty, or production-maintained projects into IntentOS-native migration planning instead of stopping at adapter-only advice
 - `1.62.0` classifies existing rules as business facts, project constraints, production controls, engineering baselines, workflow rules, historical notes, or unknown-authority items before any replacement
 - `1.62.0` keeps business and production authority project-owned/human-owned, and routes any approved governance-file edits through Native Migration Plan -> Unified Apply Plan -> Controlled Apply Readiness -> Approval Record

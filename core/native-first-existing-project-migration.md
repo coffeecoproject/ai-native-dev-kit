@@ -60,7 +60,36 @@ Existing rules must be classified before replacement.
 | `HISTORICAL_NOTE` | Archive suggestion, not deletion |
 | `UNKNOWN_AUTHORITY` | Stop for classification |
 
-Each extracted rule needs source file, source excerpt, source location, rule class, authority, target action, risk surface, and reason.
+Each extracted rule needs source file, source line range, context heading, source excerpt, rule class, authority, target action, risk surface, reason, and confidence.
+
+## Rule Extraction Coverage
+
+Native migration must not collapse a whole `AGENTS.md`, baseline document, release SOP, or old workflow note into one broad decision.
+
+Every migration plan should include a Rule Extraction Coverage summary:
+
+| Field | Meaning |
+| --- | --- |
+| Source file | File scanned for old rules |
+| Lines scanned | Number of source lines reviewed |
+| Rules extracted | Number of rule rows extracted from that source |
+| Unclassified blocks | Blocks that may contain commands or policy but need manual classification |
+| Parser warnings | Non-blocking parser warnings that must stay visible to the human reviewer |
+
+In strict mode, `check-native-migration` requires this coverage plus machine-readable evidence.
+
+## Machine-Readable Evidence
+
+New Native Migration Plans should include a `Machine-Readable Evidence` JSON block using `schemas/artifacts/native-migration-plan.schema.json`.
+
+The JSON must match the human-readable summary. It must keep:
+
+- `can_codex_write_now` as `No`
+- `business_authority` as `PROJECT_OWNED`
+- `production_authority` as `HUMAN_OR_EXTERNAL_SYSTEM`
+- exact source line ranges for each extracted rule
+- parser warnings when unclassified blocks exist
+- the same extracted-rule count as the coverage summary
 
 ## AGENTS.md Handling
 

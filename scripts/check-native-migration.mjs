@@ -8,10 +8,11 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json"]);
+const knownFlags = new Set(["json", "require-structured-evidence"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -69,6 +70,7 @@ const allowedRuleClasses = new Set([
   "HISTORICAL_NOTE",
   "UNKNOWN_AUTHORITY",
 ]);
+const allowedConfidence = new Set(["HIGH", "MEDIUM", "LOW"]);
 const forbiddenClaims = [
   /\bfully migrated\b/i,
   /\balready fully migrated\b/i,
@@ -168,6 +170,9 @@ function checkNativeMigrationPlans() {
     }
 
     for (const section of requiredSections) requireSection(content, section, label);
+    if (requireStructuredEvidence) {
+      for (const section of ["Rule Extraction Coverage", "Machine-Readable Evidence"]) requireSection(content, section, label);
+    }
 
     const summary = sectionBody(content, "Human Summary") || "";
     const posture = tableValue(summary, "Recommended Posture");
@@ -193,7 +198,18 @@ function checkNativeMigrationPlans() {
     if (approvalBeforeApply === "Yes") pass(`${label} requires human approval before apply`);
     else fail(`${label} must require human approval before apply`);
 
-    checkRuleClassification(content, label);
+    const structuredEvidence = checkStructuredEvidence(content, label, {
+      posture,
+      canWrite,
+      workflowAuthority,
+      writeAuthority,
+      businessAuthority,
+      productionAuthority,
+      approvalBeforeApply,
+    });
+
+    checkRuleExtractionCoverage(content, label, structuredEvidence);
+    checkRuleClassification(content, label, structuredEvidence);
     checkProposedActions(content, label);
     checkAgentsHandling(content, label);
     checkRestorePlan(content, label);
@@ -207,7 +223,39 @@ function checkNativeMigrationPlans() {
   }
 }
 
-function checkRuleClassification(content, label) {
+function checkRuleExtractionCoverage(content, label, structuredEvidence) {
+  const body = sectionBody(content, "Rule Extraction Coverage", { fallback: "" }) || "";
+  if (!body.trim()) {
+    if (requireStructuredEvidence) fail(`${label} must include Rule Extraction Coverage in strict mode`);
+    return;
+  }
+  const rows = tableRows(body);
+  if (rows.length === 0) {
+    fail(`${label} must include rule extraction coverage rows`);
+    return;
+  }
+  for (const row of rows) {
+    const [sourceFile, linesScanned, rulesExtracted, unclassifiedBlocks, parserWarnings] = row.map(stripMarkdown);
+    const rowLabel = `${label} coverage ${sourceFile || "source"}`;
+    if (isConcrete(sourceFile)) pass(`${rowLabel} records source file`);
+    else fail(`${rowLabel} missing source file`);
+    if (isPositiveInteger(linesScanned) || linesScanned === "0") pass(`${rowLabel} records lines scanned`);
+    else fail(`${rowLabel} missing numeric lines scanned`);
+    if (isPositiveInteger(rulesExtracted) || rulesExtracted === "0") pass(`${rowLabel} records rules extracted`);
+    else fail(`${rowLabel} missing numeric rules extracted`);
+    if (/^\d+$/.test(unclassifiedBlocks)) pass(`${rowLabel} records unclassified block count`);
+    else fail(`${rowLabel} missing unclassified block count`);
+    if (isConcrete(parserWarnings) || parserWarnings === "None") pass(`${rowLabel} records parser warning status`);
+    else fail(`${rowLabel} missing parser warning status`);
+  }
+  if (structuredEvidence) {
+    const coverageCount = structuredEvidence.rule_extraction_coverage?.length || 0;
+    if (coverageCount === rows.length) pass(`${label} coverage table matches structured evidence source count`);
+    else fail(`${label} coverage table count ${rows.length} does not match structured evidence ${coverageCount}`);
+  }
+}
+
+function checkRuleClassification(content, label, structuredEvidence) {
   const body = sectionBody(content, "Extracted Rule Classification") || "";
   const rows = tableRows(body);
   if (rows.length === 0) {
@@ -215,9 +263,12 @@ function checkRuleClassification(content, label) {
     return;
   }
   for (const row of rows) {
-    const [
+    const parsed = parseRuleRow(row);
+    const {
       ruleId,
       sourceFile,
+      sourceLineRange,
+      contextHeading,
       sourceExcerpt,
       ruleClass,
       authority,
@@ -227,7 +278,8 @@ function checkRuleClassification(content, label) {
       riskSurfaces,
       targetAction,
       humanDecisionRequired,
-    ] = row.map(stripMarkdown);
+      confidence,
+    } = parsed;
     const rowLabel = `${label} ${ruleId || "rule"}`;
     if (isConcrete(ruleId)) pass(`${rowLabel} records rule id`);
     else fail(`${rowLabel} missing rule id`);
@@ -235,6 +287,18 @@ function checkRuleClassification(content, label) {
     else fail(`${rowLabel} missing source file`);
     if (isConcrete(sourceExcerpt) && sourceExcerpt !== "N/A") pass(`${rowLabel} records source excerpt`);
     else fail(`${rowLabel} missing source excerpt`);
+    if (sourceLineRange) {
+      if (validLineRange(sourceLineRange)) pass(`${rowLabel} records source line range`);
+      else fail(`${rowLabel} has invalid source line range: ${sourceLineRange}`);
+    } else if (requireStructuredEvidence) {
+      fail(`${rowLabel} missing source line range in strict mode`);
+    }
+    if (contextHeading) {
+      if (isConcrete(contextHeading)) pass(`${rowLabel} records context heading`);
+      else fail(`${rowLabel} missing context heading`);
+    } else if (requireStructuredEvidence) {
+      fail(`${rowLabel} missing context heading in strict mode`);
+    }
     if (allowedRuleClasses.has(ruleClass)) pass(`${rowLabel} has valid rule class`);
     else fail(`${rowLabel} has invalid rule class: ${ruleClass || "<empty>"}`);
     if (isConcrete(authority)) pass(`${rowLabel} records authority`);
@@ -251,6 +315,12 @@ function checkRuleClassification(content, label) {
     else fail(`${rowLabel} missing target action`);
     if (humanDecisionRequired === "Yes") pass(`${rowLabel} requires human decision`);
     else fail(`${rowLabel} must require human decision`);
+    if (confidence) {
+      if (allowedConfidence.has(confidence)) pass(`${rowLabel} records valid confidence`);
+      else fail(`${rowLabel} has invalid confidence: ${confidence}`);
+    } else if (requireStructuredEvidence) {
+      fail(`${rowLabel} missing confidence in strict mode`);
+    }
 
     const excerptAndAction = `${sourceExcerpt} ${targetAction} ${preserveOrReplace}`;
     if (ruleClass === "WORKFLOW_RULE"
@@ -266,6 +336,212 @@ function checkRuleClassification(content, label) {
       fail(`${rowLabel} unknown authority must stop for classification`);
     }
   }
+  if (structuredEvidence) {
+    if ((structuredEvidence.rule_classifications?.length || 0) === rows.length) {
+      pass(`${label} rule table matches structured evidence rule count`);
+    } else {
+      fail(`${label} rule table count ${rows.length} does not match structured evidence ${structuredEvidence.rule_classifications?.length || 0}`);
+    }
+  }
+}
+
+function parseRuleRow(row) {
+  const cells = row.map(stripMarkdown);
+  if (cells.length >= 14) {
+    return {
+      ruleId: cells[0],
+      sourceFile: cells[1],
+      sourceLineRange: cells[2],
+      contextHeading: cells[3],
+      sourceExcerpt: cells[4],
+      ruleClass: cells[5],
+      authority: cells[6],
+      defaultHandling: cells[7],
+      preserveOrReplace: cells[8],
+      reason: cells[9],
+      riskSurfaces: cells[10],
+      targetAction: cells[11],
+      humanDecisionRequired: cells[12],
+      confidence: cells[13],
+    };
+  }
+  return {
+    ruleId: cells[0],
+    sourceFile: cells[1],
+    sourceLineRange: "",
+    contextHeading: "",
+    sourceExcerpt: cells[2],
+    ruleClass: cells[3],
+    authority: cells[4],
+    defaultHandling: cells[5],
+    preserveOrReplace: cells[6],
+    reason: cells[7],
+    riskSurfaces: cells[8],
+    targetAction: cells[9],
+    humanDecisionRequired: cells[10],
+    confidence: "",
+  };
+}
+
+function checkStructuredEvidence(content, label, summary) {
+  const body = sectionBody(content, "Machine-Readable Evidence", { fallback: "" }) || "";
+  if (!body.trim()) {
+    if (requireStructuredEvidence) fail(`${label} must include Machine-Readable Evidence in strict mode`);
+    return null;
+  }
+  const jsonText = fencedJson(body);
+  if (!jsonText) {
+    fail(`${label} Machine-Readable Evidence must contain a fenced json block`);
+    return null;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+    pass(`${label} Machine-Readable Evidence parses as JSON`);
+  } catch (error) {
+    fail(`${label} Machine-Readable Evidence JSON invalid: ${error.message}`);
+    return null;
+  }
+
+  const required = [
+    "schema_version",
+    "artifact_type",
+    "report_type",
+    "project_state",
+    "posture",
+    "can_codex_write_now",
+    "intent_os_workflow_authority",
+    "target_file_write_authority",
+    "business_authority",
+    "production_authority",
+    "requires_human_approval_before_apply",
+    "rule_extraction_coverage",
+    "rule_classifications",
+    "proposed_actions",
+    "authority_transition",
+    "boundary",
+    "outcome",
+  ];
+  for (const field of required) {
+    if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} structured evidence includes ${field}`);
+    else fail(`${label} structured evidence missing ${field}`);
+  }
+
+  if (parsed.schema_version === "1.63.0") pass(`${label} structured evidence schema version is 1.63.0`);
+  else fail(`${label} structured evidence has invalid schema version: ${parsed.schema_version || "<empty>"}`);
+  if (parsed.artifact_type === "native_migration_plan") pass(`${label} structured evidence artifact type is native_migration_plan`);
+  else fail(`${label} structured evidence has invalid artifact type: ${parsed.artifact_type || "<empty>"}`);
+  if (parsed.report_type === "NATIVE_FIRST_EXISTING_PROJECT_MIGRATION") pass(`${label} structured evidence report type is valid`);
+  else fail(`${label} structured evidence has invalid report type: ${parsed.report_type || "<empty>"}`);
+  if (parsed.posture === summary.posture) pass(`${label} structured posture matches Human Summary`);
+  else fail(`${label} structured posture ${parsed.posture || "<empty>"} does not match summary ${summary.posture || "<empty>"}`);
+  if (parsed.can_codex_write_now === summary.canWrite) pass(`${label} structured write authority matches Human Summary`);
+  else fail(`${label} structured can_codex_write_now must match Human Summary`);
+  if (parsed.intent_os_workflow_authority === summary.workflowAuthority) pass(`${label} structured workflow authority matches Human Summary`);
+  else fail(`${label} structured workflow authority must match Human Summary`);
+  if (parsed.target_file_write_authority === summary.writeAuthority) pass(`${label} structured target-file authority matches Human Summary`);
+  else fail(`${label} structured target-file authority must match Human Summary`);
+  if (parsed.business_authority === "PROJECT_OWNED" && parsed.business_authority === summary.businessAuthority) pass(`${label} structured business authority stays project-owned`);
+  else fail(`${label} structured business authority must be PROJECT_OWNED`);
+  if (parsed.production_authority === "HUMAN_OR_EXTERNAL_SYSTEM" && parsed.production_authority === summary.productionAuthority) pass(`${label} structured production authority stays human/external`);
+  else fail(`${label} structured production authority must be HUMAN_OR_EXTERNAL_SYSTEM`);
+  if (parsed.requires_human_approval_before_apply === "Yes" && parsed.requires_human_approval_before_apply === summary.approvalBeforeApply) pass(`${label} structured approval requirement matches`);
+  else fail(`${label} structured evidence must require human approval before apply`);
+
+  if (!Array.isArray(parsed.rule_extraction_coverage) || parsed.rule_extraction_coverage.length === 0) {
+    fail(`${label} structured evidence must include rule extraction coverage`);
+  } else {
+    for (const item of parsed.rule_extraction_coverage) validateStructuredCoverage(item, label);
+  }
+
+  if (!Array.isArray(parsed.rule_classifications) || parsed.rule_classifications.length === 0) {
+    fail(`${label} structured evidence must include rule classifications`);
+  } else {
+    for (const item of parsed.rule_classifications) validateStructuredRule(item, label);
+  }
+
+  if (Array.isArray(parsed.rule_extraction_coverage) && Array.isArray(parsed.rule_classifications)) {
+    const extracted = parsed.rule_extraction_coverage.reduce((sum, item) => sum + Number(item.rules_extracted || 0), 0);
+    if (extracted === parsed.rule_classifications.length) {
+      pass(`${label} structured extracted-rule count matches classifications`);
+    } else {
+      fail(`${label} structured extracted-rule count ${extracted} does not match classifications ${parsed.rule_classifications.length}`);
+    }
+  }
+
+  if (parsed.boundary?.writesTargetFiles === "No"
+    && parsed.boundary?.authorizesTargetFileWrites === "No"
+    && parsed.boundary?.approvesImplementation === "No"
+    && parsed.boundary?.approvesReleaseOrProduction === "No"
+    && parsed.boundary?.modifiesCiOrHooks === "No") {
+    pass(`${label} structured boundary remains plan-only`);
+  } else {
+    fail(`${label} structured boundary must remain plan-only`);
+  }
+
+  return parsed;
+}
+
+function validateStructuredCoverage(item, label) {
+  const rowLabel = `${label} structured coverage ${item?.source_file || "source"}`;
+  if (isConcrete(item?.source_file)) pass(`${rowLabel} has source file`);
+  else fail(`${rowLabel} missing source file`);
+  if (Number.isInteger(item?.lines_scanned) && item.lines_scanned >= 0) pass(`${rowLabel} has lines scanned`);
+  else fail(`${rowLabel} missing numeric lines scanned`);
+  if (Number.isInteger(item?.rules_extracted) && item.rules_extracted >= 0) pass(`${rowLabel} has rules extracted`);
+  else fail(`${rowLabel} missing numeric rules extracted`);
+  if (Array.isArray(item?.unclassified_blocks)) pass(`${rowLabel} has unclassified block list`);
+  else fail(`${rowLabel} missing unclassified block list`);
+  if (Array.isArray(item?.parser_warnings)) pass(`${rowLabel} has parser warnings list`);
+  else fail(`${rowLabel} missing parser warnings list`);
+  if (Array.isArray(item?.unclassified_blocks) && item.unclassified_blocks.length > 0
+    && (!Array.isArray(item?.parser_warnings) || item.parser_warnings.length === 0)) {
+    fail(`${rowLabel} must include parser warnings when unclassified blocks exist`);
+  }
+}
+
+function validateStructuredRule(item, label) {
+  const rowLabel = `${label} structured rule ${item?.rule_id || "rule"}`;
+  for (const field of [
+    "rule_id",
+    "source_file",
+    "source_start_line",
+    "source_end_line",
+    "context_heading",
+    "source_excerpt",
+    "rule_class",
+    "authority",
+    "default_handling",
+    "preserve_or_replace",
+    "reason",
+    "risk_surfaces",
+    "target_action",
+    "human_decision_required",
+    "confidence",
+  ]) {
+    if (isConcrete(item?.[field]) || Number.isInteger(item?.[field])) pass(`${rowLabel} includes ${field}`);
+    else fail(`${rowLabel} missing ${field}`);
+  }
+  if (Number.isInteger(item?.source_start_line) && Number.isInteger(item?.source_end_line) && item.source_start_line <= item.source_end_line) {
+    pass(`${rowLabel} line range is valid`);
+  } else {
+    fail(`${rowLabel} line range is invalid`);
+  }
+  if (allowedRuleClasses.has(item?.rule_class)) pass(`${rowLabel} has valid rule class`);
+  else fail(`${rowLabel} invalid rule class: ${item?.rule_class || "<empty>"}`);
+  if (allowedConfidence.has(item?.confidence)) pass(`${rowLabel} has valid confidence`);
+  else fail(`${rowLabel} invalid confidence: ${item?.confidence || "<empty>"}`);
+  if (item?.human_decision_required === "Yes") pass(`${rowLabel} requires human decision`);
+  else fail(`${rowLabel} must require human decision`);
+  if ((item?.rule_class === "BUSINESS_FACT" || item?.rule_class === "PRODUCTION_CONTROL")
+    && /\b(replace|remove|drop)\b/i.test(`${item?.preserve_or_replace || ""} ${item?.target_action || ""}`)) {
+    fail(`${rowLabel} must not replace business or production authority`);
+  }
+}
+
+function fencedJson(body) {
+  const match = body.match(/```json\s*([\s\S]*?)```/i);
+  return match?.[1]?.trim() || "";
 }
 
 function checkProposedActions(content, label) {
@@ -353,9 +629,12 @@ function checkBoundaries(content, label) {
 function checkSourceEvidence() {
   for (const file of [
     "docs/plans/native-first-existing-project-migration-1.62-plan.md",
+    "docs/plans/native-migration-precision-hardening-1.63-plan.md",
     "core/native-first-existing-project-migration.md",
     "docs/native-first-existing-project-migration.md",
     "templates/native-migration-plan.md",
+    "schemas/artifacts/native-migration-plan.schema.json",
+    "scripts/lib/native-rule-extraction.mjs",
     "checklists/native-migration-review.md",
     "prompts/native-migration-agent.md",
     "native-migration-plans/.gitkeep",
@@ -366,12 +645,14 @@ function checkSourceEvidence() {
     "examples/1.62-native-first-existing-project/governed-admin/native-migration-plans/001-governed-admin.md",
     "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
     "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
+    "examples/1.63-native-migration-precision/README.md",
+    "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
     "releases/1.62.0/release-record.md",
     "releases/1.62.0/known-limitations.md",
     "releases/1.62.0/self-check-report.md",
   ]) {
-    if (exists(file)) pass(`1.62 native migration source evidence exists ${file}`);
-    else fail(`1.62 native migration source evidence missing ${file}`);
+    if (exists(file)) pass(`native migration source evidence exists ${file}`);
+    else fail(`native migration source evidence missing ${file}`);
   }
 
   const resolver = runNode(["scripts/resolve-native-migration.mjs", "."]);
@@ -414,6 +695,10 @@ function checkSourceEvidence() {
     else fail(`1.62 native migration example failed ${target}: ${result.stderr || result.stdout}`);
   }
 
+  const strictExample = runNode(["scripts/check-native-migration.mjs", "examples/1.63-native-migration-precision/mixed-agent-rules", "--require-structured-evidence"]);
+  if (strictExample.status === 0) pass("1.63 native migration precision example passes strict checker");
+  else fail(`1.63 native migration precision example failed: ${strictExample.stderr || strictExample.stdout}`);
+
   for (const target of [
     "bad-native-migration-drops-business-rule",
     "bad-native-migration-direct-agents-overwrite",
@@ -433,6 +718,17 @@ function checkSourceEvidence() {
     const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`]);
     if (result.status !== 0) pass(`1.62 native migration rejects ${target}`);
     else fail(`1.62 native migration should reject ${target}`);
+  }
+
+  for (const target of [
+    "bad-native-migration-mixed-rules-collapsed",
+    "bad-native-migration-missing-line-range",
+    "bad-native-migration-structured-evidence-mismatch",
+    "bad-native-migration-schema-invalid",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.63 native migration rejects ${target}`);
+    else fail(`1.63 native migration should reject ${target}`);
   }
 }
 
@@ -517,7 +813,12 @@ function tableRows(content) {
     .filter((cells) => cells.length > 0)
     .filter((cells) => !cells.every((cell) => /^:?-{3,}:?$/.test(cell.trim())))
     .filter((cells) => !/^rule id$/i.test(stripMarkdown(cells[0] || "")))
-    .filter((cells) => !/^step$/i.test(stripMarkdown(cells[0] || "")));
+    .filter((cells) => !/^step$/i.test(stripMarkdown(cells[0] || "")))
+    .filter((cells) => !/^source file$/i.test(stripMarkdown(cells[0] || "")))
+    .filter((cells) => !/^field$/i.test(stripMarkdown(cells[0] || "")))
+    .filter((cells) => !/^decision$/i.test(stripMarkdown(cells[0] || "")))
+    .filter((cells) => !/^conflict id$/i.test(stripMarkdown(cells[0] || "")))
+    .filter((cells) => !/^item$/i.test(stripMarkdown(cells[0] || "")));
 }
 
 function codeOrTextValue(body) {
@@ -529,6 +830,16 @@ function codeOrTextValue(body) {
 function isConcrete(value) {
   const text = stripMarkdown(value || "");
   return Boolean(text) && !/^(N\/A|TBD|TODO|unknown|none|<.*>)$/i.test(text);
+}
+
+function isPositiveInteger(value) {
+  return /^[1-9]\d*$/.test(String(value || "").trim());
+}
+
+function validLineRange(value) {
+  const match = String(value || "").trim().match(/^(\d+)-(\d+)$/);
+  if (!match) return false;
+  return Number(match[1]) >= 1 && Number(match[2]) >= Number(match[1]);
 }
 
 function exists(relPath) {

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "1.63.0",
+  "artifactType": "native_migration_plan",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "report_type",
+    "project_state",
+    "posture",
+    "can_codex_write_now",
+    "intent_os_workflow_authority",
+    "target_file_write_authority",
+    "business_authority",
+    "production_authority",
+    "requires_human_approval_before_apply",
+    "rule_extraction_coverage",
+    "rule_classifications",
+    "proposed_actions",
+    "authority_transition",
+    "boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.63.0"] },
+    "artifact_type": { "type": "string", "enum": ["native_migration_plan"] },
+    "report_type": { "type": "string", "enum": ["NATIVE_FIRST_EXISTING_PROJECT_MIGRATION"] },
+    "project_state": { "type": "string" },
+    "posture": { "type": "string" },
+    "can_codex_write_now": { "type": "string", "enum": ["No"] },
+    "intent_os_workflow_authority": { "type": "string", "enum": ["ACTIVE_FOR_PLANNING", "PENDING_APPROVAL", "BLOCKED"] },
+    "target_file_write_authority": { "type": "string", "enum": ["NO_WRITE", "PLAN_REQUIRED", "APPROVAL_REQUIRED"] },
+    "business_authority": { "type": "string", "enum": ["PROJECT_OWNED"] },
+    "production_authority": { "type": "string", "enum": ["HUMAN_OR_EXTERNAL_SYSTEM"] },
+    "requires_human_approval_before_apply": { "type": "string", "enum": ["Yes"] },
+    "rule_extraction_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_file", "lines_scanned", "rules_extracted", "unclassified_blocks", "parser_warnings"],
+        "properties": {
+          "source_file": { "type": "string" },
+          "lines_scanned": { "type": "integer" },
+          "rules_extracted": { "type": "integer" },
+          "unclassified_blocks": { "type": "array" },
+          "parser_warnings": { "type": "array" }
+        }
+      }
+    },
+    "rule_classifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "rule_id",
+          "source_file",
+          "source_start_line",
+          "source_end_line",
+          "context_heading",
+          "source_excerpt",
+          "rule_class",
+          "authority",
+          "default_handling",
+          "preserve_or_replace",
+          "reason",
+          "risk_surfaces",
+          "target_action",
+          "human_decision_required",
+          "confidence"
+        ],
+        "properties": {
+          "rule_id": { "type": "string" },
+          "source_file": { "type": "string" },
+          "source_start_line": { "type": "integer" },
+          "source_end_line": { "type": "integer" },
+          "context_heading": { "type": "string" },
+          "source_excerpt": { "type": "string" },
+          "rule_class": {
+            "type": "string",
+            "enum": [
+              "BUSINESS_FACT",
+              "PROJECT_CONSTRAINT",
+              "PRODUCTION_CONTROL",
+              "ENGINEERING_BASELINE",
+              "WORKFLOW_RULE",
+              "HISTORICAL_NOTE",
+              "UNKNOWN_AUTHORITY"
+            ]
+          },
+          "authority": { "type": "string" },
+          "default_handling": { "type": "string" },
+          "preserve_or_replace": { "type": "string" },
+          "reason": { "type": "string" },
+          "risk_surfaces": { "type": "string" },
+          "target_action": { "type": "string" },
+          "human_decision_required": { "type": "string", "enum": ["Yes"] },
+          "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] }
+        }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "writesTargetFiles",
+        "authorizesTargetFileWrites",
+        "approvesImplementation",
+        "approvesReleaseOrProduction",
+        "modifiesCiOrHooks"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["NATIVE_MIGRATION_PLAN_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"]
+    }
+  }
+}

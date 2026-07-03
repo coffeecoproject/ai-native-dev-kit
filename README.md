@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.62.0`.
+Current release: `1.63.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.62.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, and native-first migration planning for existing projects.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.63.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, and rule-level native migration planning for existing projects.
 
-1.62.0 adds Native-First Existing Project Migration Planning: when an old or governed project should adopt IntentOS, Codex can switch into a plan-only migration mode, classify existing rules, preserve business and production authority, and route any approved governance edits through Unified Apply Plan, Controlled Apply Readiness, and Approval Record. It still does not overwrite `AGENTS.md`, CI, hooks, release SOPs, production config, business logic, or secrets.
+1.63.0 hardens Native-First Existing Project Migration: when an old or governed project should adopt IntentOS, Codex now extracts old rules with source line ranges, records rule extraction coverage and parser warnings, and can require machine-readable migration evidence before any real governance replacement plan. It still does not overwrite `AGENTS.md`, CI, hooks, release SOPs, production config, business logic, or secrets.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -353,6 +353,7 @@ Reference:
 
 Current release:
 
+- [1.63.0 Release Record](releases/1.63.0/release-record.md)
 - [1.62.0 Release Record](releases/1.62.0/release-record.md)
 - [1.61.0 Release Record](releases/1.61.0/release-record.md)
 - [1.60.0 Release Record](releases/1.60.0/release-record.md)

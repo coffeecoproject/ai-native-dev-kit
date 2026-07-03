@@ -69,7 +69,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs workflow-map <project>` | Recommend how AI Native workflow should map to an existing project before writes | No |
 | `node scripts/cli.mjs workflow-map-check <project>` | Check recorded Workflow Adoption Maps | No |
 | `node scripts/cli.mjs native-migration <project>` | Switch an existing project into IntentOS Native-First Migration Planning mode without writing target files | No |
-| `node scripts/cli.mjs native-migration-check <project>` | Check recorded Native Migration Plans for authority, approval, restore, and no-write boundaries | No |
+| `node scripts/cli.mjs native-migration-check <project>` | Check recorded Native Migration Plans for authority, approval, restore, no-write boundaries, and optional strict structured evidence | No |
 | `node scripts/cli.mjs doc-lifecycle <project>` | Recommend document lifecycle state, source-of-truth candidates, and archive suggestions without file changes | No |
 | `node scripts/cli.mjs doc-lifecycle-check <project>` | Check recorded Document Lifecycle Reports | No |
 | `node scripts/cli.mjs archive-apply <project>` | Plan document archive apply actions without moving, deleting, or rewriting files | No |
@@ -244,9 +244,9 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/resolve-existing-workflow.mjs` prints a read-only Workflow Adoption Map recommendation for existing projects. It inventories agent rules, docs, work intake, review/evidence, CI/gates, release/rollback, hooks/automation, and existing AI Native assets, then recommends which AI Native workflow pieces to use before any target-project writes.
 
-`scripts/resolve-native-migration.mjs` is the 1.62 old-project native migration entry. It switches Codex into IntentOS Native-First Migration Planning mode, classifies existing rules and authority, preserves business and production constraints, and proposes a Native Migration Plan. It does not write target-project files, approve implementation, approve release, overwrite `AGENTS.md`, edit CI/hooks, change production config, or replace business authority.
+`scripts/resolve-native-migration.mjs` is the old-project native migration entry. It switches Codex into IntentOS Native-First Migration Planning mode, extracts existing rules with source line ranges, records coverage and parser warnings, preserves business and production constraints, and proposes a Native Migration Plan. It does not write target-project files, approve implementation, approve release, overwrite `AGENTS.md`, edit CI/hooks, change production config, or replace business authority.
 
-`scripts/check-native-migration.mjs` checks recorded Native Migration Plans. It rejects missing source excerpts, broad target paths, skipped human approval, missing restore plans, direct `AGENTS.md` overwrites, CI/hook edits, implementation/release approval claims, business-rule drops, production-control replacement, and split equal authority between old workflow and IntentOS.
+`scripts/check-native-migration.mjs` checks recorded Native Migration Plans. Default mode stays compatible with older Markdown records; `--require-structured-evidence` requires Machine-Readable Evidence, source line ranges, extraction coverage, parser warnings, and Markdown/JSON consistency. It rejects missing source excerpts, broad target paths, skipped human approval, missing restore plans, direct `AGENTS.md` overwrites, CI/hook edits, implementation/release approval claims, business-rule drops, production-control replacement, split equal authority between old workflow and IntentOS, collapsed mixed rules, and schema drift.
 
 `scripts/check-workflow-adoption-map.mjs` checks recorded Workflow Adoption Maps so old-project workflow recommendations do not become authorization to write files, change CI/hooks, overwrite existing governance, approve implementation, or approve release/production/high-risk decisions.
 

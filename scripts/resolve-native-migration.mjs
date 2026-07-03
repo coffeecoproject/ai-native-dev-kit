@@ -9,6 +9,7 @@ import {
   hasProjectSignals,
   walkRelativePaths,
 } from "./lib/project-signals.mjs";
+import { extractNativeRulesFromMarkdown } from "./lib/native-rule-extraction.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "owner", "adapter-only"]);
@@ -51,14 +52,15 @@ function buildNativeMigration(root, options) {
   const posture = postureFor(projectState, options);
   const authority = authorityFor(posture, projectState);
   const inventory = inventoryFor(signals);
-  const ruleClassifications = classifyRules(root, signals);
+  const { ruleClassifications, ruleExtractionCoverage, parserWarnings } = classifyRules(root, signals);
   const conflicts = conflictsFor(signals, posture, ruleClassifications);
   const proposedActions = proposedActionsFor(posture, signals, projectState);
   const humanDecisionsNeeded = humanDecisionsFor(posture, projectState, signals);
   const outcome = outcomeFor(posture);
 
-  return {
+  const report = {
     reportType: "NATIVE_FIRST_EXISTING_PROJECT_MIGRATION",
+    schemaVersion: "1.63.0",
     generatedBy: "scripts/resolve-native-migration.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -71,6 +73,8 @@ function buildNativeMigration(root, options) {
     requiresHumanApprovalBeforeApply: "Yes",
     recommendedNextStep: recommendedNextStepFor(posture),
     existingGovernanceInventory: inventory,
+    ruleExtractionCoverage,
+    parserWarnings,
     ruleClassifications,
     conflicts,
     proposedActions,
@@ -88,6 +92,8 @@ function buildNativeMigration(root, options) {
     },
     outcome,
   };
+  report.structuredEvidence = structuredEvidenceFor(report);
+  return report;
 }
 
 function collectSignals(root, pathSet) {
@@ -315,11 +321,14 @@ function classifyRules(root, signals) {
   ];
   const unique = Array.from(new Set(candidates)).slice(0, 10);
   if (unique.length === 0) {
-    return [
-      {
+    const fallback = {
+      ruleClassifications: [
+        {
         ruleId: "R-001",
         sourceFile: "project scan",
-        sourceLocation: "signals",
+        sourceStartLine: 1,
+        sourceEndLine: 1,
+        contextHeading: "project scan",
         sourceExcerpt: "No existing governance rule source detected.",
         ruleClass: "UNKNOWN_AUTHORITY",
         authority: "unknown",
@@ -329,72 +338,171 @@ function classifyRules(root, signals) {
         riskSurfaces: "workflow",
         targetAction: "ask human to confirm native adoption scope",
         humanDecisionRequired: "Yes",
+        confidence: "LOW",
       },
-    ];
-  }
-
-  return unique.map((rel, index) => {
-    const source = readSourceExcerpt(root, rel);
-    const classification = classifyRuleText(rel, source.excerpt);
-    return {
-      ruleId: `R-${String(index + 1).padStart(3, "0")}`,
-      sourceFile: rel,
-      sourceLocation: source.location,
-      sourceExcerpt: source.excerpt,
-      ruleClass: classification.ruleClass,
-      authority: classification.authority,
-      defaultHandling: classification.defaultHandling,
-      preserveOrReplace: classification.preserveOrReplace,
-      reason: classification.reason,
-      riskSurfaces: classification.riskSurfaces,
-      targetAction: classification.targetAction,
-      humanDecisionRequired: classification.humanDecisionRequired,
+      ],
+      ruleExtractionCoverage: [
+        {
+          sourceFile: "project scan",
+          linesScanned: 0,
+          rulesExtracted: 1,
+          unclassifiedBlocks: [],
+          parserWarnings: ["No existing governance rule source detected."],
+        },
+      ],
+      parserWarnings: ["No existing governance rule source detected."],
     };
-  });
-}
-
-function readSourceExcerpt(root, rel) {
-  const full = path.join(root, rel);
-  if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) {
-    return { location: "path detected", excerpt: rel };
+    return fallback;
   }
-  const lines = fs.readFileSync(full, "utf8").split(/\r?\n/);
-  const index = lines.findIndex((line) => line.trim() && !/^[-#\s]*$/.test(line.trim()));
-  const lineNumber = index === -1 ? 1 : index + 1;
-  const excerpt = (lines[index] || rel).trim().replace(/\|/g, "/").slice(0, 140);
+
+  const extractedRules = [];
+  const coverage = [];
+  const warnings = [];
+  for (const rel of unique) {
+    const full = path.join(root, rel);
+    if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) {
+      coverage.push({
+        sourceFile: rel,
+        linesScanned: 0,
+        rulesExtracted: 1,
+        unclassifiedBlocks: [],
+        parserWarnings: [`${rel} was detected as a path but not readable as a file.`],
+      });
+      warnings.push(`${rel} was detected as a path but not readable as a file.`);
+      extractedRules.push({
+        source_file: rel,
+        source_start_line: 1,
+        source_end_line: 1,
+        source_excerpt: rel,
+        context_heading: "path detected",
+        rule_class: "UNKNOWN_AUTHORITY",
+        authority: "unknown",
+        default_handling: "stop for classification",
+        preserve_or_replace: "preserve until classified",
+        reason: "Detected path needs owner confirmation before migration.",
+        risk_surfaces: "workflow",
+        target_action: "ask human to classify authority",
+        human_decision_required: "Yes",
+        confidence: "LOW",
+      });
+      continue;
+    }
+    const content = fs.readFileSync(full, "utf8");
+    const extracted = extractNativeRulesFromMarkdown(content, rel);
+    coverage.push(toCoverage(extracted.coverage));
+    warnings.push(...extracted.coverage.parser_warnings);
+    extractedRules.push(...extracted.rules);
+    if (extracted.rules.length === 0) {
+      extractedRules.push({
+        source_file: rel,
+        source_start_line: 1,
+        source_end_line: Math.max(1, content.split(/\r?\n/).length),
+        source_excerpt: `No rule-like lines extracted from ${rel}.`,
+        context_heading: "file scan",
+        rule_class: "UNKNOWN_AUTHORITY",
+        authority: "unknown",
+        default_handling: "stop for classification",
+        preserve_or_replace: "preserve until classified",
+        reason: "The file was detected as governance-like but no rule-level extraction was confident.",
+        risk_surfaces: "workflow",
+        target_action: "ask human to classify authority",
+        human_decision_required: "Yes",
+        confidence: "LOW",
+      });
+    }
+  }
+
   return {
-    location: `line ${lineNumber}`,
-    excerpt,
+    ruleClassifications: extractedRules.slice(0, 40).map((item, index) => ({
+      ruleId: `R-${String(index + 1).padStart(3, "0")}`,
+      sourceFile: item.source_file,
+      sourceStartLine: item.source_start_line,
+      sourceEndLine: item.source_end_line,
+      contextHeading: item.context_heading,
+      sourceExcerpt: item.source_excerpt,
+      ruleClass: item.rule_class,
+      authority: item.authority,
+      defaultHandling: item.default_handling,
+      preserveOrReplace: item.preserve_or_replace,
+      reason: item.reason,
+      riskSurfaces: item.risk_surfaces,
+      targetAction: item.target_action,
+      humanDecisionRequired: item.human_decision_required,
+      confidence: item.confidence,
+      detectedTerms: item.detected_terms || [],
+    })),
+    ruleExtractionCoverage: coverage,
+    parserWarnings: warnings,
   };
 }
 
-function classifyRuleText(rel, text) {
-  const value = `${rel} ${text}`;
-  if (/\b(release|rollback|deploy|production|prod|incident|secret|migration|provider|staging|backup|restore)\b/i.test(value)) {
-    return ruleClass("PRODUCTION_CONTROL", "project/release owner", "preserve and escalate", "preserve", "Release and production controls remain external to IntentOS workflow convenience.", "release, production", "map to Release Guide / Recipe / Handoff without replacement", "Yes");
-  }
-  if (/\b(customer|user-visible|business|contract|invoice|tax|finance|HR|payment|permission|data meaning)\b/i.test(value)) {
-    return ruleClass("BUSINESS_FACT", "project owner", "preserve or escalate", "preserve", "Business facts are project-owned and cannot be replaced by workflow migration.", "business, data", "preserve as project constraint", "Yes");
-  }
-  if (/\b(enum|string|schema|DTO|type|architecture|build|test|lint|package|database|API|folder|structure)\b/i.test(value)) {
-    return ruleClass("ENGINEERING_BASELINE", "project baseline", "migrate into IntentOS baseline after review", "map", "Engineering rules can become baseline evidence after review.", "engineering", "map to engineering/environment baseline", "Yes");
-  }
-  if (/\b(Codex|AI|agent|workflow|review|approval|apply|task|commit|PR|pull request|prompt)\b/i.test(value)) {
-    return ruleClass("WORKFLOW_RULE", "old workflow source", "replace after reviewed plan and approval", "replace", "Old AI workflow guidance can move under IntentOS workflow authority after approval.", "workflow", "replace with IntentOS workflow rule through apply-plan", "Yes");
-  }
-  return ruleClass("UNKNOWN_AUTHORITY", "unknown", "stop for classification", "preserve until classified", "The source needs an owner or current authority decision before migration.", "workflow", "ask human to classify authority", "Yes");
+function toCoverage(coverage) {
+  return {
+    sourceFile: coverage.source_file,
+    linesScanned: coverage.lines_scanned,
+    rulesExtracted: coverage.rules_extracted,
+    unclassifiedBlocks: coverage.unclassified_blocks.map((item) => ({
+      sourceFile: item.source_file,
+      sourceStartLine: item.source_start_line,
+      sourceEndLine: item.source_end_line,
+      contextHeading: item.context_heading,
+      excerpt: item.excerpt,
+      reason: item.reason,
+    })),
+    parserWarnings: coverage.parser_warnings,
+  };
 }
 
-function ruleClass(ruleClassValue, authority, defaultHandling, preserveOrReplace, reason, riskSurfaces, targetAction, humanDecisionRequired) {
+function structuredEvidenceFor(report) {
   return {
-    ruleClass: ruleClassValue,
-    authority,
-    defaultHandling,
-    preserveOrReplace,
-    reason,
-    riskSurfaces,
-    targetAction,
-    humanDecisionRequired,
+    schema_version: "1.63.0",
+    artifact_type: "native_migration_plan",
+    report_type: report.reportType,
+    project_state: report.projectState.state,
+    posture: report.posture,
+    can_codex_write_now: report.canCodexWriteNow,
+    intent_os_workflow_authority: report.intentOsWorkflowAuthority,
+    target_file_write_authority: report.targetFileWriteAuthority,
+    business_authority: report.businessAuthority,
+    production_authority: report.productionAuthority,
+    requires_human_approval_before_apply: report.requiresHumanApprovalBeforeApply,
+    rule_extraction_coverage: report.ruleExtractionCoverage.map((item) => ({
+      source_file: item.sourceFile,
+      lines_scanned: item.linesScanned,
+      rules_extracted: item.rulesExtracted,
+      unclassified_blocks: item.unclassifiedBlocks.map((block) => ({
+        source_file: block.sourceFile,
+        source_start_line: block.sourceStartLine,
+        source_end_line: block.sourceEndLine,
+        context_heading: block.contextHeading,
+        excerpt: block.excerpt,
+        reason: block.reason,
+      })),
+      parser_warnings: item.parserWarnings,
+    })),
+    rule_classifications: report.ruleClassifications.map((item) => ({
+      rule_id: item.ruleId,
+      source_file: item.sourceFile,
+      source_start_line: item.sourceStartLine,
+      source_end_line: item.sourceEndLine,
+      context_heading: item.contextHeading,
+      source_excerpt: item.sourceExcerpt,
+      rule_class: item.ruleClass,
+      authority: item.authority,
+      default_handling: item.defaultHandling,
+      preserve_or_replace: item.preserveOrReplace,
+      reason: item.reason,
+      risk_surfaces: item.riskSurfaces,
+      target_action: item.targetAction,
+      human_decision_required: item.humanDecisionRequired,
+      confidence: item.confidence,
+    })),
+    conflicts: report.conflicts,
+    proposed_actions: report.proposedActions,
+    authority_transition: report.authorityTransition,
+    human_decisions_needed: report.humanDecisionsNeeded,
+    boundary: report.boundary,
+    outcome: report.outcome,
   };
 }
 
@@ -518,6 +626,14 @@ function printHuman(report) {
     console.log(`| ${item.area} | ${item.source} | ${item.handling} |`);
   }
   console.log("");
+  console.log("## Rule Extraction Coverage");
+  console.log("");
+  console.log("| Source file | Lines scanned | Rules extracted | Unclassified blocks | Parser warnings |");
+  console.log("| --- | --- | --- | --- | --- |");
+  for (const item of report.ruleExtractionCoverage) {
+    console.log(`| ${item.sourceFile} | ${item.linesScanned} | ${item.rulesExtracted} | ${item.unclassifiedBlocks.length} | ${item.parserWarnings.length ? item.parserWarnings.join("<br>") : "None"} |`);
+  }
+  console.log("");
   console.log("## Extracted Rule Classification");
   console.log("");
   printRuleTable(report.ruleClassifications);
@@ -605,15 +721,21 @@ function printHuman(report) {
   console.log("- This plan requires human approval before governance replacement: Yes");
   console.log("- This plan treats IntentOS workflow authority as business authority: No");
   console.log("");
+  console.log("## Machine-Readable Evidence");
+  console.log("");
+  console.log("```json");
+  console.log(JSON.stringify(report.structuredEvidence, null, 2));
+  console.log("```");
+  console.log("");
   console.log("## Outcome");
   console.log("");
   console.log(`\`${report.outcome}\``);
 }
 
 function printRuleTable(items) {
-  console.log("| Rule ID | Source file | Source location / excerpt | Rule class | Authority | Default handling | Preserve or replace | Reason | Risk surfaces | Target action | Human decision required |");
-  console.log("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
+  console.log("| Rule ID | Source file | Source line range | Context heading | Source location / excerpt | Rule class | Authority | Default handling | Preserve or replace | Reason | Risk surfaces | Target action | Human decision required | Confidence |");
+  console.log("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const item of items) {
-    console.log(`| \`${item.ruleId}\` | ${item.sourceFile} | ${item.sourceLocation}: ${item.sourceExcerpt} | \`${item.ruleClass}\` | ${item.authority} | ${item.defaultHandling} | ${item.preserveOrReplace} | ${item.reason} | ${item.riskSurfaces} | ${item.targetAction} | ${item.humanDecisionRequired} |`);
+    console.log(`| \`${item.ruleId}\` | ${item.sourceFile} | ${item.sourceStartLine}-${item.sourceEndLine} | ${item.contextHeading} | ${item.sourceExcerpt} | \`${item.ruleClass}\` | ${item.authority} | ${item.defaultHandling} | ${item.preserveOrReplace} | ${item.reason} | ${item.riskSurfaces} | ${item.targetAction} | ${item.humanDecisionRequired} | ${item.confidence} |`);
   }
 }

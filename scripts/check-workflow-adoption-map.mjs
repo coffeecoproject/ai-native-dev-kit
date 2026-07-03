@@ -94,6 +94,8 @@ const forbiddenClaims = [
   /\bcompliance approved\b/i,
   /\bfully migrated\b/i,
   /\bfully configured\b/i,
+  /\bfinal adoption endpoint\b/i,
+  /\bworkflow map is enough for native migration\b/i,
 ];
 
 let failed = false;
@@ -188,6 +190,7 @@ function checkWorkflowMaps() {
       "Request / Spec / Task Card",
       "Baseline Decision Card",
       "Workflow Adoption Map",
+      "Native Migration Plan",
       "Change Boundary Report",
       "Patch Classification",
       "Review Loop",
@@ -286,6 +289,7 @@ function checkSourceEvidence() {
   for (const [name, target, expected] of [
     ["authorizes write", "test-fixtures/bad/bad-workflow-adoption-authorizes-write", "authorizes target-project writes"],
     ["missing workflow use", "test-fixtures/bad/bad-workflow-adoption-missing-use", "Request / Spec / Task Card"],
+    ["adapter endpoint", "test-fixtures/bad/bad-workflow-map-adapter-endpoint", "final adoption endpoint"],
   ]) {
     const result = runNode(["scripts/check-workflow-adoption-map.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;

@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.62.0",
+  "devKitVersion": "1.63.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -441,6 +441,8 @@
     ".ai-native/templates/native-migration-plan.md",
     "native-migration-plans",
     "scripts/resolve-native-migration.mjs",
-    "scripts/check-native-migration.mjs"
+    "scripts/check-native-migration.mjs",
+    ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
+    "scripts/lib/native-rule-extraction.mjs"
   ]
 }

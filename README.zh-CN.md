@@ -4,13 +4,13 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.62.0`。
+当前版本：`1.63.0`。
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
 
-版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.62.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包、人工批准后的受控发布执行计划，以及老项目的原生迁移规划。
+版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.63.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包、人工批准后的受控发布执行计划，以及老项目的规则级原生迁移规划。
 
-1.62.0 增加 Native-First Existing Project Migration Planning：老项目或强治理项目要接入 IntentOS 时，Codex 可以先切到只做计划的原生迁移模式，分类旧规则，保留业务和生产权力，再把获批的治理文件改动交给 Unified Apply Plan、Controlled Apply Readiness 和 Approval Record。它仍然不会直接覆盖 `AGENTS.md`、CI、hook、发布 SOP、生产配置、业务逻辑或密钥。
+1.63.0 强化 Native-First Existing Project Migration：老项目或强治理项目要接入 IntentOS 时，Codex 不只判断文件，还会按行抽取旧规则，记录抽取覆盖、未分类块和 parser warnings；真正要替换治理文件前，可以要求机器可读迁移证据。它仍然不会直接覆盖 `AGENTS.md`、CI、hook、发布 SOP、生产配置、业务逻辑或密钥。
 
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
@@ -351,6 +351,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.63.0 Release Record](releases/1.63.0/release-record.md)
 - [1.62.0 Release Record](releases/1.62.0/release-record.md)
 - [1.61.0 Release Record](releases/1.61.0/release-record.md)
 - [1.60.0 Release Record](releases/1.60.0/release-record.md)

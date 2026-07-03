@@ -4590,6 +4590,7 @@ function checkExistingProjectWorkflowAdapterProtocol() {
   for (const [name, args, expected] of [
     ["authorizes write", ["scripts/check-workflow-adoption-map.mjs", "test-fixtures/bad/bad-workflow-adoption-authorizes-write"], "authorizes target-project writes"],
     ["missing workflow use", ["scripts/check-workflow-adoption-map.mjs", "test-fixtures/bad/bad-workflow-adoption-missing-use"], "Request / Spec / Task Card"],
+    ["adapter endpoint", ["scripts/check-workflow-adoption-map.mjs", "test-fixtures/bad/bad-workflow-map-adapter-endpoint"], "final adoption endpoint"],
   ]) {
     const result = runNode(args);
     const output = `${result.stdout}\n${result.stderr}`;
@@ -4604,9 +4605,12 @@ function checkExistingProjectWorkflowAdapterProtocol() {
 function checkNativeFirstMigrationProtocol() {
   const required = [
     "docs/plans/native-first-existing-project-migration-1.62-plan.md",
+    "docs/plans/native-migration-precision-hardening-1.63-plan.md",
     "core/native-first-existing-project-migration.md",
     "docs/native-first-existing-project-migration.md",
     "templates/native-migration-plan.md",
+    "schemas/artifacts/native-migration-plan.schema.json",
+    "scripts/lib/native-rule-extraction.mjs",
     "checklists/native-migration-review.md",
     "prompts/native-migration-agent.md",
     "native-migration-plans/.gitkeep",
@@ -4617,6 +4621,8 @@ function checkNativeFirstMigrationProtocol() {
     "examples/1.62-native-first-existing-project/governed-admin/native-migration-plans/001-governed-admin.md",
     "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
     "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
+    "examples/1.63-native-migration-precision/README.md",
+    "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
     "releases/1.62.0/release-record.md",
     "releases/1.62.0/known-limitations.md",
     "releases/1.62.0/self-check-report.md",
@@ -4634,6 +4640,10 @@ function checkNativeFirstMigrationProtocol() {
     "test-fixtures/bad/bad-native-migration-no-source-excerpt/native-migration-plans/001-bad.md",
     "test-fixtures/bad/bad-native-migration-broad-target-path/native-migration-plans/001-bad.md",
     "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-mixed-rules-collapsed/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-missing-line-range/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-structured-evidence-mismatch/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-schema-invalid/native-migration-plans/001-bad.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.62 native migration asset exists ${file}`);
@@ -4646,7 +4656,10 @@ function checkNativeFirstMigrationProtocol() {
     read("templates/native-migration-plan.md"),
     read("scripts/resolve-native-migration.mjs"),
     read("scripts/check-native-migration.mjs"),
+    read("scripts/lib/native-rule-extraction.mjs"),
+    read("schemas/artifacts/native-migration-plan.schema.json"),
     read("releases/1.62.0/release-record.md"),
+    read("releases/1.63.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -4662,9 +4675,13 @@ function checkNativeFirstMigrationProtocol() {
     "Controlled Apply Readiness",
     "Approval Record",
     "This plan writes target files: No",
+    "Rule Extraction Coverage",
+    "Machine-Readable Evidence",
+    "require-structured-evidence",
+    "parser_warnings",
   ]) {
-    if (combined.includes(marker)) pass(`1.62 native migration includes ${marker}`);
-    else fail(`1.62 native migration missing ${marker}`);
+    if (combined.includes(marker)) pass(`native migration includes ${marker}`);
+    else fail(`native migration missing ${marker}`);
   }
 
   const resolver = runNode(["scripts/resolve-native-migration.mjs", "."]);
@@ -4729,6 +4746,10 @@ function checkNativeFirstMigrationProtocol() {
     else fail(`1.62 native migration example failed ${target}: ${result.stderr || result.stdout}`);
   }
 
+  const strictExample = runNode(["scripts/check-native-migration.mjs", "examples/1.63-native-migration-precision/mixed-agent-rules", "--require-structured-evidence"]);
+  if (strictExample.status === 0) pass("1.63 native migration precision example passes strict checker");
+  else fail(`1.63 native migration precision example failed: ${strictExample.stderr || strictExample.stdout}`);
+
   for (const target of [
     "bad-native-migration-drops-business-rule",
     "bad-native-migration-direct-agents-overwrite",
@@ -4748,6 +4769,17 @@ function checkNativeFirstMigrationProtocol() {
     const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`]);
     if (result.status !== 0) pass(`1.62 native migration rejects ${target}`);
     else fail(`1.62 native migration must reject ${target}`);
+  }
+
+  for (const target of [
+    "bad-native-migration-mixed-rules-collapsed",
+    "bad-native-migration-missing-line-range",
+    "bad-native-migration-structured-evidence-mismatch",
+    "bad-native-migration-schema-invalid",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.63 native migration rejects ${target}`);
+    else fail(`1.63 native migration must reject ${target}`);
   }
 }
 

@@ -68,6 +68,7 @@ existing governance.
 | New request or feature | Request / Spec / Task Card | Yes | Use after the current project owner confirms task scope | Yes |
 | Risk or baseline choice | Baseline Decision Card | Yes | Use before changing baseline, platform, or risk scope | Yes |
 | Existing governance mapping | Workflow Adoption Map | Yes | This report records the map | No |
+| IntentOS adoption for old projects | Native Migration Plan | Yes | Use after workflow-map when the user asks to adopt or configure IntentOS | Yes |
 | Actual file-change boundary | Change Boundary Report | Yes | Use before multi-file changes | Yes |
 | Complex repair | Patch Classification | Yes | Use before non-trivial fixes or hardcuts | Yes |
 | Completion review | Review Loop | Yes | Use after task completion, not after every small edit | No |

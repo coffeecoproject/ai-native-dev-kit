@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.62.0",
+  "devKitVersion": "1.63.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.62.0"
+    "phase": "1.63.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1985,7 +1985,22 @@
       "test-fixtures/bad/bad-native-migration-production-control-as-baseline/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-no-source-excerpt/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-broad-target-path/native-migration-plans/001-bad.md",
-      "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md"
+      "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md",
+      "docs/plans/native-migration-precision-hardening-1.63-plan.md",
+      "schemas/artifacts/native-migration-plan.schema.json",
+      "scripts/lib/native-rule-extraction.mjs",
+      "examples/1.63-native-migration-precision/README.md",
+      "examples/1.63-native-migration-precision/mixed-agent-rules/AGENTS.md",
+      "examples/1.63-native-migration-precision/mixed-agent-rules/docs/WEB_ENGINEERING_BASELINE.md",
+      "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
+      "test-fixtures/bad/bad-native-migration-mixed-rules-collapsed/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-missing-line-range/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-structured-evidence-mismatch/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-schema-invalid/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-workflow-map-adapter-endpoint/workflow-adoption-maps/001-bad.md",
+      "releases/1.63.0/release-record.md",
+      "releases/1.63.0/known-limitations.md",
+      "releases/1.63.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2497,7 +2512,9 @@
       ".ai-native/templates/native-migration-plan.md",
       "native-migration-plans",
       "scripts/resolve-native-migration.mjs",
-      "scripts/check-native-migration.mjs"
+      "scripts/check-native-migration.mjs",
+      ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
+      "scripts/lib/native-rule-extraction.mjs"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -3058,7 +3075,9 @@
       ".ai-native/templates/native-migration-plan.md",
       "native-migration-plans",
       "scripts/resolve-native-migration.mjs",
-      "scripts/check-native-migration.mjs"
+      "scripts/check-native-migration.mjs",
+      ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
+      "scripts/lib/native-rule-extraction.mjs"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3164,7 +3183,8 @@
       "core/native-first-existing-project-migration.md",
       "docs/native-first-existing-project-migration.md",
       "prompts/native-migration-agent.md",
-      "templates/native-migration-plan.md"
+      "templates/native-migration-plan.md",
+      "schemas/artifacts/native-migration-plan.schema.json"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3621,7 +3641,8 @@
       "scripts/resolve-release-handoff-pack.mjs",
       "scripts/check-release-handoff-pack.mjs",
       "scripts/resolve-native-migration.mjs",
-      "scripts/check-native-migration.mjs"
+      "scripts/check-native-migration.mjs",
+      "scripts/lib/native-rule-extraction.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -3931,7 +3952,9 @@
       "examples/1.62-native-first-existing-project/light-web/native-migration-plans/001-light-web.md",
       "examples/1.62-native-first-existing-project/governed-admin/native-migration-plans/001-governed-admin.md",
       "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
-      "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md"
+      "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
+      "examples/1.63-native-migration-precision/README.md",
+      "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4267,7 +4290,12 @@
       "test-fixtures/bad/bad-native-migration-production-control-as-baseline/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-no-source-excerpt/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-broad-target-path/native-migration-plans/001-bad.md",
-      "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md"
+      "test-fixtures/bad/bad-native-migration-no-authority-transition/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-mixed-rules-collapsed/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-missing-line-range/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-structured-evidence-mismatch/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-schema-invalid/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-workflow-map-adapter-endpoint/workflow-adoption-maps/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -4707,7 +4735,9 @@
       ".ai-native/templates/native-migration-plan.md",
       "native-migration-plans",
       "scripts/resolve-native-migration.mjs",
-      "scripts/check-native-migration.mjs"
+      "scripts/check-native-migration.mjs",
+      ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
+      "scripts/lib/native-rule-extraction.mjs"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -6534,6 +6564,14 @@
       {
         "source": "scripts/check-native-migration.mjs",
         "target": "scripts/check-native-migration.mjs"
+      },
+      {
+        "source": "schemas/artifacts/native-migration-plan.schema.json",
+        "target": ".ai-native/schemas/artifacts/native-migration-plan.schema.json"
+      },
+      {
+        "source": "scripts/lib/native-rule-extraction.mjs",
+        "target": "scripts/lib/native-rule-extraction.mjs"
       }
     ]
   },

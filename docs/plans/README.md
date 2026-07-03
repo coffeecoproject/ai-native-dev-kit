@@ -10,6 +10,9 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Native Migration Precision Hardening 1.63](native-migration-precision-hardening-1.63-plan.md)
+- [Native-First Existing Project Migration 1.62](native-first-existing-project-migration-1.62-plan.md)
+- [Release Path Hardening 1.61](release-path-hardening-1.61-plan.md)
 - [Release Path Consolidation 1.58](release-path-consolidation-1.58-plan.md)
 - [Release Path Consolidation 1.58-1.60](release-path-consolidation-1.58-1.60-plan.md)
 - [Platform Release Recipes 1.59](platform-release-recipes-1.59-plan.md)
