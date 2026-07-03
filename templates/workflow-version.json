@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.59.0",
+  "devKitVersion": "1.60.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -422,6 +422,14 @@
     "subagent-run-plans",
     "work-queue",
     "workflow-adoption-maps",
-    "workflow-guidance-cards"
+    "workflow-guidance-cards",
+    "release-handoff-packs",
+    "scripts/resolve-release-handoff-pack.mjs",
+    "scripts/check-release-handoff-pack.mjs",
+    ".ai-native/checklists/release-handoff-pack-review.md",
+    ".ai-native/core/release-handoff-packs.md",
+    ".ai-native/docs/release-handoff-packs.md",
+    ".ai-native/prompts/release-handoff-pack-agent.md",
+    ".ai-native/templates/release-handoff-pack.md"
   ]
 }

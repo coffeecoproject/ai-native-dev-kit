@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.59.0",
+  "devKitVersion": "1.60.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.59.0"
+    "phase": "1.60.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1919,7 +1919,33 @@
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
       "test-fixtures/output-quality/README.md",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "core/release-handoff-packs.md",
+      "docs/release-handoff-packs.md",
+      "templates/release-handoff-pack.md",
+      "checklists/release-handoff-pack-review.md",
+      "prompts/release-handoff-pack-agent.md",
+      "release-handoff-packs/.gitkeep",
+      "scripts/resolve-release-handoff-pack.mjs",
+      "scripts/check-release-handoff-pack.mjs",
+      "examples/1.60-release-handoff-packs/web-hosted-preview/README.md",
+      "examples/1.60-release-handoff-packs/web-hosted-preview/release-handoff-packs/001-web-hosted-preview.md",
+      "examples/1.60-release-handoff-packs/mini-program-review/README.md",
+      "examples/1.60-release-handoff-packs/mini-program-review/release-handoff-packs/001-mini-program-review.md",
+      "examples/1.60-release-handoff-packs/backend-api-release/README.md",
+      "examples/1.60-release-handoff-packs/backend-api-release/release-handoff-packs/001-backend-api-release.md",
+      "test-fixtures/bad/bad-release-handoff-codex-production/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-approval/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-owner/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-rollback/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-monitoring/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-secret-request/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-remote-state/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md",
+      "releases/1.60.0/release-record.md",
+      "releases/1.60.0/known-limitations.md",
+      "releases/1.60.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2417,7 +2443,10 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "release-handoff-packs",
+      "scripts/resolve-release-handoff-pack.mjs",
+      "scripts/check-release-handoff-pack.mjs"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -2964,7 +2993,10 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "release-handoff-packs",
+      "scripts/resolve-release-handoff-pack.mjs",
+      "scripts/check-release-handoff-pack.mjs"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3057,7 +3089,12 @@
       "core/safe-launch.md",
       "core/standard-baseline-pack-registry.md",
       "core/unified-apply-plan.md",
-      "core/unified-closure-model.md"
+      "core/unified-closure-model.md",
+      ".ai-native/checklists/release-handoff-pack-review.md",
+      ".ai-native/core/release-handoff-packs.md",
+      ".ai-native/docs/release-handoff-packs.md",
+      ".ai-native/prompts/release-handoff-pack-agent.md",
+      ".ai-native/templates/release-handoff-pack.md"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3164,7 +3201,8 @@
       "templates/workflow-guidance-card.md",
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
-      "templates/workflow-version.json"
+      "templates/workflow-version.json",
+      "templates/release-handoff-pack.md"
     ],
     "prompts": [
       ".ai-native/prompts/change-impact-coverage-agent.md",
@@ -3222,7 +3260,8 @@
       "prompts/walkthrough-agent.md",
       "prompts/work-queue-agent.md",
       "prompts/workflow-adapter-agent.md",
-      "prompts/workflow-concierge-agent.md"
+      "prompts/workflow-concierge-agent.md",
+      "prompts/release-handoff-pack-agent.md"
     ],
     "checklists": [
       ".ai-native/checklists/change-impact-coverage-review.md",
@@ -3292,7 +3331,8 @@
       "checklists/verification-gate.md",
       "checklists/work-queue-review.md",
       "checklists/workflow-adoption-map-review.md",
-      "checklists/workflow-guidance-review.md"
+      "checklists/workflow-guidance-review.md",
+      "checklists/release-handoff-pack-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -3391,7 +3431,8 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "release-handoff-packs"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -3502,7 +3543,9 @@
       "scripts/start-project.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/workflow-daily-summary.mjs",
-      "scripts/workflow-next.mjs"
+      "scripts/workflow-next.mjs",
+      "scripts/resolve-release-handoff-pack.mjs",
+      "scripts/check-release-handoff-pack.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -3801,7 +3844,13 @@
       "examples/web-internal-admin-first-slice/preflight-report.md",
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
-      "examples/web-internal-admin-first-slice/task-card.md"
+      "examples/web-internal-admin-first-slice/task-card.md",
+      "examples/1.60-release-handoff-packs/web-hosted-preview/README.md",
+      "examples/1.60-release-handoff-packs/web-hosted-preview/release-handoff-packs/001-web-hosted-preview.md",
+      "examples/1.60-release-handoff-packs/mini-program-review/README.md",
+      "examples/1.60-release-handoff-packs/mini-program-review/release-handoff-packs/001-mini-program-review.md",
+      "examples/1.60-release-handoff-packs/backend-api-release/README.md",
+      "examples/1.60-release-handoff-packs/backend-api-release/release-handoff-packs/001-backend-api-release.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4112,7 +4161,16 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md"
+      "test-fixtures/output-quality/README.md",
+      "test-fixtures/bad/bad-release-handoff-codex-production/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-approval/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-owner/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-rollback/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-monitoring/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-secret-request/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-remote-state/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -4533,7 +4591,15 @@
       "subagent-run-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      "release-handoff-packs",
+      "scripts/resolve-release-handoff-pack.mjs",
+      "scripts/check-release-handoff-pack.mjs",
+      ".ai-native/checklists/release-handoff-pack-review.md",
+      ".ai-native/core/release-handoff-packs.md",
+      ".ai-native/docs/release-handoff-packs.md",
+      ".ai-native/prompts/release-handoff-pack-agent.md",
+      ".ai-native/templates/release-handoff-pack.md"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -4968,7 +5034,10 @@
       "subagent-run-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      "release-handoff-packs",
+      "scripts/resolve-release-handoff-pack.mjs",
+      "scripts/check-release-handoff-pack.mjs"
     ]
   },
   "copyRules": {
@@ -5132,6 +5201,10 @@
       {
         "source": "workflow-guidance-cards",
         "target": "workflow-guidance-cards"
+      },
+      {
+        "source": "release-handoff-packs",
+        "target": "release-handoff-packs"
       }
     ],
     "files": [
@@ -6270,6 +6343,34 @@
       {
         "source": "templates/workflow-guidance-card.md",
         "target": ".ai-native/templates/workflow-guidance-card.md"
+      },
+      {
+        "source": "scripts/resolve-release-handoff-pack.mjs",
+        "target": "scripts/resolve-release-handoff-pack.mjs"
+      },
+      {
+        "source": "scripts/check-release-handoff-pack.mjs",
+        "target": "scripts/check-release-handoff-pack.mjs"
+      },
+      {
+        "source": "core/release-handoff-packs.md",
+        "target": ".ai-native/core/release-handoff-packs.md"
+      },
+      {
+        "source": "docs/release-handoff-packs.md",
+        "target": ".ai-native/docs/release-handoff-packs.md"
+      },
+      {
+        "source": "templates/release-handoff-pack.md",
+        "target": ".ai-native/templates/release-handoff-pack.md"
+      },
+      {
+        "source": "checklists/release-handoff-pack-review.md",
+        "target": ".ai-native/checklists/release-handoff-pack-review.md"
+      },
+      {
+        "source": "prompts/release-handoff-pack-agent.md",
+        "target": ".ai-native/prompts/release-handoff-pack-agent.md"
       }
     ]
   },

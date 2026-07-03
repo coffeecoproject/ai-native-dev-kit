@@ -16,6 +16,7 @@ const knownFlags = new Set([
   "release-target",
   "platform",
   "recipe-id",
+  "pack-id",
   "release-owner",
   "approval-ref",
   "approval-status",
@@ -53,6 +54,7 @@ const context = {
   releaseTarget: normalizeTarget(stringArg("release-target")),
   platform: stringArg("platform"),
   recipeId: stringArg("recipe-id"),
+  packId: stringArg("pack-id"),
   releaseOwner: stringArg("release-owner"),
   approvalRef: stringArg("approval-ref"),
   approvalStatus: normalizeApprovalStatus(stringArg("approval-status")),
@@ -79,6 +81,7 @@ else printHuman(report);
 function buildReleaseGuide(root, options) {
   const adapter = resolveAdapter(root, options);
   const recipe = resolveRecipe(root, options);
+  const handoff = resolveHandoff(root, options, recipe);
   const launchReview = resolveLaunchReview(root, options);
   const approval = resolveStructuredApproval(root, options);
   const evidenceQuality = buildEvidenceQuality(options, launchReview, approval);
@@ -102,8 +105,9 @@ function buildReleaseGuide(root, options) {
       safeNextStep,
     },
     beginnerReleaseGuideCard: beginnerCard(route, adapter, recipe, launchReview, approval, evidenceQuality, safeNextStep),
-    releaseGuideRouting: routingRows(adapter, recipe, launchReview, approval, route),
+    releaseGuideRouting: routingRows(adapter, recipe, handoff, launchReview, approval, route),
     platformReleaseRecipe: recipeRows(recipe),
+    releaseHandoffPack: handoffRows(handoff),
     structuredReleaseApprovalGate: approvalRows(approval),
     assistLevelClassification: assistLevelRows(assistLevel),
     commandRiskClassification: commandRisk,
@@ -111,10 +115,12 @@ function buildReleaseGuide(root, options) {
     internalRouting: [
       { input: "Release Adapter", ref: adapter.ref },
       { input: "Platform Release Recipe", ref: recipe.ref },
+      { input: "Release Handoff Pack", ref: handoff.ref },
       { input: "Launch Review View", ref: launchReview.ref },
       { input: "Release Execution", ref: "scripts/resolve-release-execution.mjs" },
     ],
     releaseExecutionBridge: [
+      `node scripts/cli.mjs release-handoff . --intent "${options.intent}" --recipe-id ${recipe.selectedRecipeId} --release-target ${releaseTarget}`,
       `node scripts/cli.mjs release-execution . --intent "prepare release execution" --mode PLAN_ONLY`,
     ],
     boundaries: {
@@ -177,6 +183,70 @@ function resolveRecipe(root, options) {
       safeFirstTarget: "N/A",
       ref: "scripts/resolve-platform-release-recipe.mjs",
       reason: `Platform Release Recipe JSON could not be parsed: ${error.message}`,
+    };
+  }
+}
+
+function resolveHandoff(root, options, recipe) {
+  const command = [
+    path.join(scriptDir, "resolve-release-handoff-pack.mjs"),
+    root,
+    "--intent",
+    options.intent,
+    "--json",
+  ];
+  if (options.platform) command.push("--platform", options.platform);
+  if (options.recipeId || recipe.selectedRecipeId) command.push("--recipe-id", options.recipeId || recipe.selectedRecipeId);
+  if (options.packId) command.push("--pack-id", options.packId);
+  if (options.releaseTarget) command.push("--release-target", options.releaseTarget);
+  if (options.releaseOwner) command.push("--release-owner", options.releaseOwner);
+  if (options.approvalRef) command.push("--approval-ref", options.approvalRef);
+  if (options.approvalStatus) command.push("--approval-status", options.approvalStatus);
+  if (options.approvalType) command.push("--approval-type", options.approvalType);
+  if (options.approvalScope) command.push("--approval-scope", options.approvalScope);
+  if (options.approvalTime) command.push("--approval-time", options.approvalTime);
+  if (options.allowedCodexActions) command.push("--allowed-codex-actions", options.allowedCodexActions);
+  if (options.blockedActions) command.push("--blocked-actions", options.blockedActions);
+  if (options.approvalExpiry) command.push("--approval-expiry", options.approvalExpiry);
+  if (options.evidencePath) command.push("--evidence-path", options.evidencePath);
+  if (options.releaseSop) command.push("--release-sop", options.releaseSop);
+  if (options.rollback) command.push("--rollback", options.rollback);
+  if (options.monitoring) command.push("--monitoring", options.monitoring);
+  if (options.environment) command.push("--environment", options.environment);
+  if (options.postLaunchSmoke) command.push("--post-launch-smoke", options.postLaunchSmoke);
+  const result = spawnSync(process.execPath, command, { encoding: "utf8" });
+  if (result.status !== 0) {
+    return {
+      status: "MISSING",
+      packId: "N/A",
+      executionLevel: "N/A",
+      handoffState: "BLOCKED",
+      releaseOwner: "N/A",
+      ref: "scripts/resolve-release-handoff-pack.mjs",
+      reason: result.stderr || result.stdout || "Release Handoff Pack could not be resolved.",
+    };
+  }
+  try {
+    const parsed = JSON.parse(result.stdout);
+    const summary = parsed.humanSummary || {};
+    return {
+      status: summary.handoffState === "READY_FOR_HANDOFF_REVIEW" ? "READY" : "BLOCKED",
+      packId: summary.packId || "N/A",
+      executionLevel: summary.executionLevel || "N/A",
+      handoffState: summary.handoffState || "N/A",
+      releaseOwner: summary.releaseOwner || "N/A",
+      ref: "generated:resolve-release-handoff-pack",
+      reason: summary.safeNextStep || "Release Handoff Pack generated.",
+    };
+  } catch (error) {
+    return {
+      status: "MISSING",
+      packId: "N/A",
+      executionLevel: "N/A",
+      handoffState: "BLOCKED",
+      releaseOwner: "N/A",
+      ref: "scripts/resolve-release-handoff-pack.mjs",
+      reason: `Release Handoff Pack JSON could not be parsed: ${error.message}`,
     };
   }
 }
@@ -449,10 +519,11 @@ function beginnerCard(routeValue, adapter, recipe, launchReview, approval, evide
   };
 }
 
-function routingRows(adapter, recipe, launchReview, approval, routeValue) {
+function routingRows(adapter, recipe, handoff, launchReview, approval, routeValue) {
   return [
     stage("Release Adapter", adapter.status, adapter.ref, adapter.reason),
     stage("Platform Release Recipe", recipe.status, recipe.ref, recipe.reason),
+    stage("Release Handoff Pack", handoff.status, handoff.ref, handoff.reason),
     stage("Launch Review View", launchReview.status, launchReview.ref, launchReview.reason),
     stage("Structured Release Approval", approval.structured === "Yes" ? "PASS" : "MISSING", approval.ref, approval.structured === "Yes" ? "Structured approval is complete." : "Structured target/scope/owner/actions/evidence/expiry required."),
     stage("Release Execution Protocol", routeValue.state === "READY_FOR_RELEASE_EXECUTION_PLAN" ? "READY" : "PLAN_ONLY", "scripts/resolve-release-execution.mjs", "No real release action is approved by Release Guide."),
@@ -468,6 +539,18 @@ function recipeRows(recipe) {
     field("Safe First Target", code(recipe.safeFirstTarget)),
     field("Ref", recipe.ref),
     field("Notes", recipe.reason),
+  ];
+}
+
+function handoffRows(handoff) {
+  return [
+    field("Pack ID", code(handoff.packId)),
+    field("Status", code(handoff.status)),
+    field("Execution Level", code(handoff.executionLevel)),
+    field("Handoff State", code(handoff.handoffState)),
+    field("Release Owner", handoff.releaseOwner),
+    field("Ref", handoff.ref),
+    field("Notes", handoff.reason),
   ];
 }
 
@@ -572,6 +655,10 @@ function printHuman(report) {
 
   console.log("## Platform Release Recipe");
   printTable(["Field", "Value"], report.platformReleaseRecipe.map((item) => [item.field, item.value]));
+  console.log("");
+
+  console.log("## Release Handoff Pack");
+  printTable(["Field", "Value"], report.releaseHandoffPack.map((item) => [item.field, item.value]));
   console.log("");
 
   console.log("## Structured Release Approval Gate");

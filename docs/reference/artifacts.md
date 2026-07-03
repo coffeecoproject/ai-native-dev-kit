@@ -33,6 +33,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `release-adapters/` | Beginner-readable project release adapter profiles |
 | `release-guides/` | Unified beginner-facing release guide cards that route adapter, launch review, structured approval, and release execution planning |
 | `release-recipes/` | Platform release recipes that map platform-specific release prerequisites without executing release actions |
+| `release-handoff-packs/` | Bounded release handoff packages that separate Codex, human, and external-system release responsibilities |
 | `release-execution-plans/` | Bounded release execution plans after launch review and human release approval |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
@@ -139,6 +140,8 @@ Safe Launch lives under `.ai-native/core/` in generated projects. It constrains 
 Launch Review View lives under `.ai-native/core/` in generated projects. It answers whether closed work can enter launch review by reusing Unified Closure and Safe Launch labels. It does not approve release, deploy, submit review, change production configuration, or replace the project release SOP.
 
 Release Execution Protocol lives under `.ai-native/core/` in generated projects. It turns ready launch review plus explicit human release approval into a bounded release execution plan. It does not approve release, deploy by itself, submit app review, run migrations, change production configuration, or make Codex the release owner.
+
+Release Handoff Packs live under `release-handoff-packs/` in generated projects. They turn selected platform recipes and structured release approvals into bounded handoff packages. They do not approve release, execute release commands, call provider APIs, upload packages, submit review, run migrations, change production configuration, or make Codex the release owner.
 
 Guided Release Adapter lives under `.ai-native/core/` in generated projects. It discovers a project-specific release path, recommends a safe beginner target, records missing release inputs, and bridges into Release Execution. It does not approve release, deploy production, request/store secrets, mutate release infrastructure, or make Codex the release owner.
 

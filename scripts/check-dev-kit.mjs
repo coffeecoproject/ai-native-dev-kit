@@ -1504,6 +1504,11 @@ function checkCliFrontDoor() {
     "node scripts/cli.mjs release-recipe .",
     "node scripts/cli.mjs release-recipe-check .",
     "node scripts/check-platform-release-recipe.mjs .",
+    "node --check scripts/resolve-release-handoff-pack.mjs",
+    "node --check scripts/check-release-handoff-pack.mjs",
+    "node scripts/cli.mjs release-handoff .",
+    "node scripts/cli.mjs release-handoff-check .",
+    "node scripts/check-release-handoff-pack.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1547,6 +1552,8 @@ function checkCliFrontDoor() {
     "release-guide-check",
     "release-recipe",
     "release-recipe-check",
+    "release-handoff",
+    "release-handoff-check",
     "release-execution",
     "release-execution-check",
     "conversation-drift",
@@ -1880,6 +1887,23 @@ function checkCliFrontDoor() {
     pass("CLI release-recipe-check delegates to platform release recipe checker");
   } else {
     fail(`CLI release-recipe-check failed: ${releaseRecipeCheck.stderr || releaseRecipeCheck.stdout}`);
+  }
+
+  const releaseHandoff = runNode(["scripts/cli.mjs", "release-handoff", ".", "--intent", "help me launch"]);
+  if (releaseHandoff.status === 0
+    && releaseHandoff.stdout.includes("Release Handoff Pack")
+    && releaseHandoff.stdout.includes("This pack approves release: No")
+    && releaseHandoff.stdout.includes("This pack deploys, publishes, uploads, submits, migrates, or releases by itself: No")) {
+    pass("CLI release-handoff delegates to release handoff pack resolver");
+  } else {
+    fail(`CLI release-handoff failed: ${releaseHandoff.stderr || releaseHandoff.stdout}`);
+  }
+
+  const releaseHandoffCheck = runNode(["scripts/cli.mjs", "release-handoff-check", "."]);
+  if (releaseHandoffCheck.status === 0 && releaseHandoffCheck.stdout.includes("Release Handoff Pack check passed")) {
+    pass("CLI release-handoff-check delegates to release handoff pack checker");
+  } else {
+    fail(`CLI release-handoff-check failed: ${releaseHandoffCheck.stderr || releaseHandoffCheck.stdout}`);
   }
 
   const releaseExecution = runNode(["scripts/cli.mjs", "release-execution", ".", "--intent", "prepare release execution"]);
@@ -7353,6 +7377,155 @@ function checkPlatformReleaseRecipeProtocol() {
   }
 }
 
+function checkReleaseHandoffPackProtocol() {
+  const required = [
+    "core/release-handoff-packs.md",
+    "docs/release-handoff-packs.md",
+    "templates/release-handoff-pack.md",
+    "checklists/release-handoff-pack-review.md",
+    "prompts/release-handoff-pack-agent.md",
+    "release-handoff-packs/.gitkeep",
+    "scripts/resolve-release-handoff-pack.mjs",
+    "scripts/check-release-handoff-pack.mjs",
+    "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
+    "examples/1.60-release-handoff-packs/web-hosted-preview/README.md",
+    "examples/1.60-release-handoff-packs/web-hosted-preview/release-handoff-packs/001-web-hosted-preview.md",
+    "examples/1.60-release-handoff-packs/mini-program-review/README.md",
+    "examples/1.60-release-handoff-packs/mini-program-review/release-handoff-packs/001-mini-program-review.md",
+    "examples/1.60-release-handoff-packs/backend-api-release/README.md",
+    "examples/1.60-release-handoff-packs/backend-api-release/release-handoff-packs/001-backend-api-release.md",
+    "test-fixtures/bad/bad-release-handoff-codex-production/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-missing-approval/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-missing-owner/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-missing-rollback/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-missing-monitoring/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-secret-request/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-remote-state/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md",
+    "releases/1.60.0/release-record.md",
+    "releases/1.60.0/known-limitations.md",
+    "releases/1.60.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.60 release handoff pack asset exists ${file}`);
+    else fail(`1.60 release handoff pack asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/release-handoff-packs.md"),
+    read("docs/release-handoff-packs.md"),
+    read("templates/release-handoff-pack.md"),
+    read("scripts/resolve-release-handoff-pack.mjs"),
+    read("scripts/check-release-handoff-pack.mjs"),
+    read("releases/1.60.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Release Handoff Packs",
+    "bounded runbooks",
+    "Codex May Run",
+    "does not approve release",
+    "does not execute release commands",
+    "structured approval",
+    "external-system",
+  ]) {
+    if (combined.includes(marker)) pass(`1.60 release handoff pack includes ${marker}`);
+    else fail(`1.60 release handoff pack missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-release-handoff-pack.mjs", ".", "--intent", "help me launch"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Release Handoff Pack")
+    && resolver.stdout.includes("## Codex May Run")
+    && resolver.stdout.includes("This pack approves release: No")
+    && resolver.stdout.includes("This pack deploys, publishes, uploads, submits, migrates, or releases by itself: No")) {
+    pass("1.60 release handoff pack resolver prints safe handoff");
+  } else {
+    fail(`1.60 release handoff pack resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-release-handoff-pack.mjs", ".", "--intent", "help me launch", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "RELEASE_HANDOFF_PACK"
+        && parsed.humanSummary?.packId
+        && parsed.boundaries?.approvesRelease === "No"
+        && Array.isArray(parsed.codexMayRun)
+        && Array.isArray(parsed.humanMustRun)
+        && Array.isArray(parsed.externalSystemMustRun)) {
+        pass("1.60 release handoff pack resolver JSON includes pack, boundaries, and ownership");
+      } else {
+        fail(`1.60 release handoff pack resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.60 release handoff pack resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.60 release handoff pack resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-release-handoff-pack.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Release Handoff Pack check passed")) {
+    pass("1.60 release handoff pack checker passes source repo");
+  } else {
+    fail(`1.60 release handoff pack checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const guideJson = runNode(["scripts/resolve-release-guide.mjs", ".", "--intent", "help me launch", "--json"]);
+  if (guideJson.status === 0) {
+    try {
+      const parsed = JSON.parse(guideJson.stdout);
+      const hasHandoff = Array.isArray(parsed.releaseHandoffPack)
+        && parsed.releaseHandoffPack.some((row) => row.field === "Pack ID")
+        && parsed.releaseGuideRouting?.some((row) => row.stage === "Release Handoff Pack");
+      if (hasHandoff) {
+        pass("1.60 release guide consumes release handoff pack routing");
+      } else {
+        fail(`1.60 release guide missing handoff pack bridge: ${guideJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.60 release guide handoff JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.60 release guide handoff bridge failed: ${guideJson.stderr || guideJson.stdout}`);
+  }
+
+  for (const target of [
+    "examples/1.60-release-handoff-packs/web-hosted-preview",
+    "examples/1.60-release-handoff-packs/mini-program-review",
+    "examples/1.60-release-handoff-packs/backend-api-release",
+  ]) {
+    const result = runNode(["scripts/check-release-handoff-pack.mjs", target]);
+    if (result.status === 0 && result.stdout.includes("Release Handoff Pack check passed")) {
+      pass(`1.60 release handoff pack example passes: ${target}`);
+    } else {
+      fail(`1.60 release handoff pack example failed ${target}: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  for (const [name, target, expected] of [
+    ["codex production", "test-fixtures/bad/bad-release-handoff-codex-production", "Codex May Run"],
+    ["missing approval", "test-fixtures/bad/bad-release-handoff-missing-approval", "Approval Type"],
+    ["missing owner", "test-fixtures/bad/bad-release-handoff-missing-owner", "Release Owner"],
+    ["missing rollback", "test-fixtures/bad/bad-release-handoff-missing-rollback", "Rollback Evidence"],
+    ["missing monitoring", "test-fixtures/bad/bad-release-handoff-missing-monitoring", "Monitoring Evidence"],
+    ["secret request", "test-fixtures/bad/bad-release-handoff-secret-request", "secret"],
+    ["remote state", "test-fixtures/bad/bad-release-handoff-remote-state", "Codex May Run"],
+    ["store assigned to Codex", "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex", "Codex May Run"],
+    ["migration assigned to Codex", "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex", "Codex May Run"],
+  ]) {
+    const result = runNode(["scripts/check-release-handoff-pack.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.60 release handoff pack rejects ${name}`);
+    } else {
+      fail(`1.60 release handoff pack must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -8318,6 +8491,8 @@ function checkScriptSyntax() {
     "scripts/check-low-risk-apply-candidate.mjs",
     "scripts/resolve-platform-release-recipe.mjs",
     "scripts/check-platform-release-recipe.mjs",
+    "scripts/resolve-release-handoff-pack.mjs",
+    "scripts/check-release-handoff-pack.mjs",
     "scripts/resolve-delivery-path.mjs",
     "scripts/check-delivery-path.mjs",
     "scripts/resolve-debt-handoff.mjs",
@@ -8395,6 +8570,7 @@ function checkReadmePointers() {
     "Guided Release Adapter",
     "Release Guide",
     "Platform Release Recipes",
+    "Release Handoff Packs",
     "Release Execution",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
@@ -8413,6 +8589,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs release-adapter",
     "node scripts/cli.mjs release-guide",
     "node scripts/cli.mjs release-recipe",
+    "node scripts/cli.mjs release-handoff",
     "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
@@ -8431,6 +8608,7 @@ function checkReadmePointers() {
     "node scripts/check-release-adapter.mjs",
     "node scripts/check-release-guide.mjs",
     "node scripts/check-platform-release-recipe.mjs",
+    "node scripts/check-release-handoff-pack.mjs",
     "node scripts/check-release-execution.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
@@ -8445,6 +8623,7 @@ function checkReadmePointers() {
     "docs/release-adapter.md",
     "docs/release-guide.md",
     "docs/platform-release-recipes.md",
+    "docs/release-handoff-packs.md",
     "docs/release-execution-protocol.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
@@ -11139,6 +11318,7 @@ checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();
 checkReleaseGuideProtocol();
 checkPlatformReleaseRecipeProtocol();
+checkReleaseHandoffPackProtocol();
 checkReleaseExecutionProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();

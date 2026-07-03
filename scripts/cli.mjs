@@ -319,6 +319,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "release-handoff": {
+    description: "Prepare a bounded release handoff pack without executing release commands.",
+    script: "scripts/resolve-release-handoff-pack.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-handoff-check": {
+    description: "Check recorded Release Handoff Packs.",
+    script: "scripts/check-release-handoff-pack.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "conversation-drift": {
     description: "Check conversation turn routing and scope-change governance.",
     script: "scripts/check-conversation-drift.mjs",
@@ -620,6 +632,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs release-guide-check .");
   console.log("  node scripts/cli.mjs release-recipe . --intent 'help me launch'");
   console.log("  node scripts/cli.mjs release-recipe-check .");
+  console.log("  node scripts/cli.mjs release-handoff . --intent 'help me launch'");
+  console.log("  node scripts/cli.mjs release-handoff-check .");
   console.log("  node scripts/cli.mjs release-execution . --intent 'prepare release execution'");
   console.log("  node scripts/cli.mjs release-execution-check .");
   console.log("  node scripts/cli.mjs conversation-drift .");

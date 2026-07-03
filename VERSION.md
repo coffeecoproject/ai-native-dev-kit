@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.59.0`
+Current version: `1.60.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.59.0`
 
 ## Current Release
 
-`1.59.0`
+`1.60.0`
 
 Includes:
 
+- Release Handoff Packs phase `1.60.0`: adds `release-handoff` / `release-handoff-check` so a selected platform recipe and structured release approval can become a bounded handoff package with Codex, human, and external-system ownership separated
+- `1.60.0` requires selected recipe, structured approval, release owner, rollback evidence, monitoring evidence, post-release smoke, and close-out evidence before a handoff can be treated as ready
+- `1.60.0` does not approve release, execute release commands, deploy, publish, upload, submit, migrate, call provider APIs, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production data/production config, turn structured approval into blanket authorization, or make Codex the release owner
 - Platform Release Recipes phase `1.59.0`: adds `release-recipe` / `release-recipe-check` so Release Guide can map a launch request to platform-specific release prerequisites without requiring provider command execution
 - `1.59.0` ships strict recipes for `web-hosted-preview`, `backend-api-handoff`, and `mini-program-review-handoff`, plus draft recipes for iOS, Android, internal admin, and web container/server release paths
 - `1.59.0` does not approve release, deploy, publish, upload, submit, migrate, call provider APIs, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production data/production config, or make Codex the release owner

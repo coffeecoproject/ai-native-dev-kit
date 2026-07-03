@@ -57,6 +57,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs release-guide-check <project>` | Check recorded Release Guide Cards | No |
 | `node scripts/cli.mjs release-recipe <project> --intent "<goal>"` | Select or inspect a platform release recipe without executing release commands | No |
 | `node scripts/cli.mjs release-recipe-check <project>` | Check recorded Platform Release Recipes | No |
+| `node scripts/cli.mjs release-handoff <project> --intent "<goal>"` | Prepare a bounded release handoff pack without executing release commands | No |
+| `node scripts/cli.mjs release-handoff-check <project>` | Check recorded Release Handoff Packs | No |
 | `node scripts/cli.mjs release-execution <project> --intent "<goal>" --mode PLAN_ONLY` | Plan bounded release execution after launch review and human release approval | No |
 | `node scripts/cli.mjs release-execution-check <project>` | Check recorded Release Execution Plans | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
@@ -223,6 +225,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-platform-release-recipe.mjs` is the 1.59 platform release recipe entry. It selects or suggests a read-only platform recipe with confidence, safe first target, required inputs, Codex boundaries, and a Release Guide bridge. It does not execute release commands, call provider APIs, ask for secrets, upload packages, or mutate remote state.
 
 `scripts/check-platform-release-recipe.mjs` checks recorded Platform Release Recipes. It rejects production actions assigned to Codex, secret requests, missing rollback, missing monitoring, missing release owner, provider assumptions stated as certainty, and draft recipes in strict mode.
+
+`scripts/resolve-release-handoff-pack.mjs` is the 1.60 release handoff entry. It turns a selected Platform Release Recipe and structured Release Approval into one bounded handoff pack with Codex, human, and external-system ownership separated. It does not write target-project files, approve release, execute release commands, call provider APIs, ask for secrets, upload packages, submit review, run migrations, or mutate remote state.
+
+`scripts/check-release-handoff-pack.mjs` checks recorded Release Handoff Packs. It rejects production deploys, store/mini-program submission, production migrations, remote-state commands, secret requests, missing structured approval, missing release owner, missing rollback evidence, missing monitoring evidence, and attempts to make Codex the release owner.
 
 `scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
 

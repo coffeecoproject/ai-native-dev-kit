@@ -345,14 +345,17 @@ const productionSignalPaths = [
 const workflowInternalProductionSignalPaths = new Set([
   "release-adapters",
   "release-recipes",
+  "release-handoff-packs",
   "release-guides",
   "release-execution-plans",
   "scripts/check-release-adapter.mjs",
   "scripts/check-platform-release-recipe.mjs",
+  "scripts/check-release-handoff-pack.mjs",
   "scripts/check-release-guide.mjs",
   "scripts/check-release-execution.mjs",
   "scripts/resolve-release-adapter.mjs",
   "scripts/resolve-platform-release-recipe.mjs",
+  "scripts/resolve-release-handoff-pack.mjs",
   "scripts/resolve-release-guide.mjs",
   "scripts/resolve-release-execution.mjs",
 ]);
@@ -418,6 +421,7 @@ function isWorkflowInternalProductionSignal(rel) {
   return workflowInternalProductionSignalPaths.has(rel)
     || rel.startsWith("release-adapters/")
     || rel.startsWith("release-recipes/")
+    || rel.startsWith("release-handoff-packs/")
     || rel.startsWith("release-guides/")
     || rel.startsWith("release-execution-plans/");
 }

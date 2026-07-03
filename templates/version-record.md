@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.59.0`
+`1.60.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.60.0` adds Release Handoff Packs: Release Guide can bridge a selected platform recipe and structured release approval into a bounded handoff package.
+- `1.60.0` separates Codex, human, and external-system ownership and requires owner, rollback, monitoring, smoke, and close-out evidence.
+- `1.60.0` keeps handoff packs read-only: no release approval, release command execution, provider API calls, deploys, uploads, submissions, migrations, secret handling, production mutation, blanket authorization, or Codex release ownership.
 - `1.59.0` adds Platform Release Recipes: Release Guide can select or suggest a platform release recipe before release execution planning.
 - `1.59.0` ships strict recipes for web hosted preview, backend/API handoff, and mini-program review handoff; draft recipes remain non-strict.
 - `1.59.0` keeps recipes read-only: no release approval, provider API calls, deploys, uploads, submissions, migrations, secret handling, production mutation, or Codex release ownership.
