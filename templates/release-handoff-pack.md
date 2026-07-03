@@ -10,6 +10,7 @@
 | Execution Level | `<PREVIEW_ASSIST/STAGING_HANDOFF/PRODUCTION_HANDOFF>` |
 | Release Owner | `<HUMAN_REQUIRED or EXTERNAL_RELEASE_SYSTEM>` |
 | Handoff State | `<BLOCKED_BY_STRUCTURED_APPROVAL/READY_FOR_HANDOFF_REVIEW>` |
+| Meaning | Ready state means handoff review only, not release approval |
 
 ## Selected Recipe
 
@@ -105,6 +106,67 @@
 | Item | Requirement |
 |---|---|
 | Final evidence | Record actual executor, result, rollback status, monitoring status, and unresolved decisions |
+
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.61.0",
+  "artifact_type": "release_handoff_evidence",
+  "artifact_id": "<pack-id>",
+  "handoff_evidence_digest": "sha256:<computed>",
+  "handoff_pack": {
+    "pack_id": "<pack-id>",
+    "recipe_id": "<recipe-id>",
+    "release_target": "<target>",
+    "execution_level": "PREVIEW_ASSIST",
+    "handoff_state": "READY_FOR_HANDOFF_REVIEW",
+    "handoff_review_only": true
+  },
+  "structured_approval": {
+    "approval_type": "RELEASE_APPROVAL",
+    "approval_status": "APPROVED",
+    "release_target": "<target>",
+    "approved_scope": "<scope>",
+    "approved_by": "<human owner>",
+    "approval_time": "<timestamp>",
+    "allowed_codex_actions": ["LOCAL_READ_ONLY"],
+    "blocked_actions": ["production deploy", "provider API", "secrets"],
+    "evidence_path": "<path>",
+    "expiry": "<timestamp or condition>"
+  },
+  "release_owner": {
+    "owner_type": "HUMAN_REQUIRED",
+    "owner_ref": "<human owner>"
+  },
+  "rollback": {
+    "path": "<rollback path>",
+    "owner": "<rollback owner>",
+    "restore_condition": "<when rollback is used>"
+  },
+  "monitoring": {
+    "path": "<monitoring path>",
+    "owner": "<monitoring owner>",
+    "signal_type": "dashboard",
+    "observation_path": "<observation path>"
+  },
+  "post_release_smoke": {
+    "target_level": "preview",
+    "owner": "<owner>",
+    "read_only": true,
+    "evidence_path": "<smoke evidence path>"
+  },
+  "handoff_execution_boundary": {
+    "handoff_is_execution_input": true,
+    "execution_redefines_owner_evidence": false,
+    "approves_release": false,
+    "executes_release_commands": false,
+    "codex_release_owner": false,
+    "high_risk_actions_human_or_external": true
+  },
+  "outcome": "READY_FOR_HANDOFF_REVIEW"
+}
+```
 
 ## Release Guide Bridge
 

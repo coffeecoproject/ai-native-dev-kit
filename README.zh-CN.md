@@ -4,13 +4,13 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.60.0`。
+当前版本：`1.61.0`。
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
 
-版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.60.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包，以及人工批准后的受控发布执行计划。
+版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.61.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包，以及人工批准后的受控发布执行计划。
 
-1.60.0 加入 Release Handoff Packs：用户说“帮我上线”时，Release Guide 可以把平台配方和结构化审批整理成发布交接包，说明 Codex 能准备什么、人必须确认什么、外部系统要执行什么、需要记录哪些证据。交接包不批准上线，不执行发布命令，不部署生产，不运行云平台 API，不上传包，也不让用户贴密钥。
+1.61.0 加强发布路径：Release Guide 会等前置步骤满足后才生成发布交接包；交接包会用结构化证据记录平台配方、审批、负责人、回滚、监控、发布后 smoke 和执行边界。“可以进入交接评审”不等于批准上线、不等于允许部署、不等于能调用云平台、不等于可以上传包，也不需要用户贴密钥。
 
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
@@ -118,6 +118,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Release Guide | 用户说“帮我上线”时，Codex 用一个入口判断应该走发布适配、上线评审、结构化审批还是发布执行计划 |
 | Platform Release Recipes | 根据 Web、后端、小程序等平台给出发布前通常需要的准备清单，但不执行发布 |
 | Release Handoff Packs | 把平台配方和结构化审批变成可交接的发布包，明确 Codex、人和外部系统各自负责什么 |
+| Release Path Hardening | 防止上线交接包过早生成，并用结构化证据证明交接包不是发布批准 |
 | Release Execution | 用户确认发布后，把执行步骤、负责人、停止条件和证据要求整理成受控发布执行计划 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
@@ -345,6 +346,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.61.0 Release Record](releases/1.61.0/release-record.md)
 - [1.60.0 Release Record](releases/1.60.0/release-record.md)
 - [1.59.0 Release Record](releases/1.59.0/release-record.md)
 - [1.58.0 Release Record](releases/1.58.0/release-record.md)

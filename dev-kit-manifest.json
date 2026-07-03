@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.60.0",
+  "devKitVersion": "1.61.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.60.0"
+    "phase": "1.61.0"
   },
   "groups": {
     "sourceRequired": [
@@ -1945,7 +1945,17 @@
       "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md",
       "releases/1.60.0/release-record.md",
       "releases/1.60.0/known-limitations.md",
-      "releases/1.60.0/self-check-report.md"
+      "releases/1.60.0/self-check-report.md",
+      "docs/plans/release-path-hardening-1.61-plan.md",
+      "core/release-path-hardening.md",
+      "docs/release-path-hardening.md",
+      "schemas/artifacts/release-handoff-evidence.schema.json",
+      "test-fixtures/bad/bad-release-handoff-missing-structured-evidence/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-execution-redefines-evidence/release-handoff-packs/001-bad.md",
+      "releases/1.61.0/release-record.md",
+      "releases/1.61.0/known-limitations.md",
+      "releases/1.61.0/self-check-report.md",
+      "docs/plans/native-first-existing-project-migration-1.62-plan.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2446,7 +2456,10 @@
       "workflow-retros",
       "release-handoff-packs",
       "scripts/resolve-release-handoff-pack.mjs",
-      "scripts/check-release-handoff-pack.mjs"
+      "scripts/check-release-handoff-pack.mjs",
+      ".ai-native/core/release-path-hardening.md",
+      ".ai-native/docs/release-path-hardening.md",
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -2996,7 +3009,10 @@
       "workflow-retros",
       "release-handoff-packs",
       "scripts/resolve-release-handoff-pack.mjs",
-      "scripts/check-release-handoff-pack.mjs"
+      "scripts/check-release-handoff-pack.mjs",
+      ".ai-native/core/release-path-hardening.md",
+      ".ai-native/docs/release-path-hardening.md",
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3094,7 +3110,10 @@
       ".ai-native/core/release-handoff-packs.md",
       ".ai-native/docs/release-handoff-packs.md",
       ".ai-native/prompts/release-handoff-pack-agent.md",
-      ".ai-native/templates/release-handoff-pack.md"
+      ".ai-native/templates/release-handoff-pack.md",
+      ".ai-native/core/release-path-hardening.md",
+      ".ai-native/docs/release-path-hardening.md",
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -4170,7 +4189,9 @@
       "test-fixtures/bad/bad-release-handoff-secret-request/release-handoff-packs/001-bad.md",
       "test-fixtures/bad/bad-release-handoff-remote-state/release-handoff-packs/001-bad.md",
       "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex/release-handoff-packs/001-bad.md",
-      "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md"
+      "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-missing-structured-evidence/release-handoff-packs/001-bad.md",
+      "test-fixtures/bad/bad-release-handoff-execution-redefines-evidence/release-handoff-packs/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -4599,7 +4620,10 @@
       ".ai-native/core/release-handoff-packs.md",
       ".ai-native/docs/release-handoff-packs.md",
       ".ai-native/prompts/release-handoff-pack-agent.md",
-      ".ai-native/templates/release-handoff-pack.md"
+      ".ai-native/templates/release-handoff-pack.md",
+      ".ai-native/core/release-path-hardening.md",
+      ".ai-native/docs/release-path-hardening.md",
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -5037,7 +5061,10 @@
       "workflow-guidance-cards",
       "release-handoff-packs",
       "scripts/resolve-release-handoff-pack.mjs",
-      "scripts/check-release-handoff-pack.mjs"
+      "scripts/check-release-handoff-pack.mjs",
+      ".ai-native/core/release-path-hardening.md",
+      ".ai-native/docs/release-path-hardening.md",
+      ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
     ]
   },
   "copyRules": {
@@ -6371,6 +6398,18 @@
       {
         "source": "prompts/release-handoff-pack-agent.md",
         "target": ".ai-native/prompts/release-handoff-pack-agent.md"
+      },
+      {
+        "source": "core/release-path-hardening.md",
+        "target": ".ai-native/core/release-path-hardening.md"
+      },
+      {
+        "source": "docs/release-path-hardening.md",
+        "target": ".ai-native/docs/release-path-hardening.md"
+      },
+      {
+        "source": "schemas/artifacts/release-handoff-evidence.schema.json",
+        "target": ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
       }
     ]
   },

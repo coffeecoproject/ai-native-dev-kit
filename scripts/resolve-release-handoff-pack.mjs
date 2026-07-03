@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { evidenceDigest } from "./lib/artifact-schema.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -79,6 +80,16 @@ function buildReleaseHandoffPack(root, options) {
   const evidence = buildEvidence(options, approval);
   const handoff = evaluateHandoff(recipe, approval, owner, evidence);
   const codexMayRun = codexMayRunRows(options, approval, pack);
+  const machineReadableEvidence = buildMachineReadableEvidence({
+    pack,
+    recipe,
+    approval,
+    releaseTarget,
+    owner,
+    evidence,
+    handoff,
+    options,
+  });
 
   return {
     reportType: "RELEASE_HANDOFF_PACK",
@@ -108,6 +119,7 @@ function buildReleaseHandoffPack(root, options) {
     monitoringEvidence: evidence.monitoringEvidence,
     postReleaseSmoke: evidence.postReleaseSmoke,
     postReleaseCloseOut: postReleaseCloseOutRows(pack),
+    machineReadableEvidence,
     releaseGuideBridge: [
       `node scripts/cli.mjs release-guide . --intent "${options.intent}" --recipe-id ${recipe.selectedRecipeId} --release-target ${releaseTarget}`,
     ],
@@ -293,7 +305,10 @@ function evaluateHandoff(recipe, approval, owner, evidence) {
   if (evidence.monitoringEvidence.some((item) => item.status !== "PASS")) {
     return state("BLOCKED_BY_MONITORING_EVIDENCE", "Record monitoring or observation path and owner.");
   }
-  return state("READY_FOR_HANDOFF_REVIEW", "Review the handoff pack with the release owner; high-risk actions remain human/external-system-owned.");
+  if (evidence.postReleaseSmoke.some((item) => item.status !== "PASS")) {
+    return state("BLOCKED_BY_POST_RELEASE_SMOKE_EVIDENCE", "Record post-release smoke target, owner, read-only checks, and evidence path.");
+  }
+  return state("READY_FOR_HANDOFF_REVIEW", "Ready for handoff review, not release approval. Review with the release owner; high-risk actions remain human/external-system-owned.");
 }
 
 function state(outcome, safeNextStep) {
@@ -351,6 +366,67 @@ function postReleaseCloseOutRows(pack) {
     { item: "Unresolved decisions", requirement: "Record remaining human decisions or N/A reason." },
     { item: "Pack limit", requirement: `This pack remains ${pack.executionLevel}; it is not release approval.` },
   ];
+}
+
+function buildMachineReadableEvidence({ pack, recipe, approval, releaseTarget, owner, evidence, handoff, options }) {
+  const value = {
+    schema_version: "1.61.0",
+    artifact_type: "release_handoff_evidence",
+    artifact_id: slug(`${pack.id}-${releaseTarget}`),
+    handoff_evidence_digest: "",
+    handoff_pack: {
+      pack_id: pack.id,
+      recipe_id: recipe.selectedRecipeId,
+      release_target: releaseTarget,
+      execution_level: pack.executionLevel,
+      handoff_state: handoff.state,
+      handoff_review_only: true,
+    },
+    structured_approval: {
+      approval_type: approval.approvalType,
+      approval_status: approval.approvalStatus,
+      release_target: approval.releaseTarget || releaseTarget,
+      approved_scope: approval.approvedScope,
+      approved_by: approval.approvedBy,
+      approval_time: approval.approvalTime,
+      allowed_codex_actions: splitActions(approval.allowedCodexActions),
+      blocked_actions: splitActions(approval.blockedActions),
+      evidence_path: approval.evidencePath,
+      expiry: approval.expiry,
+    },
+    release_owner: {
+      owner_type: ownerType(owner),
+      owner_ref: owner || "N/A",
+    },
+    rollback: {
+      path: firstEvidenceRef(evidence.rollbackEvidence),
+      owner: ownerFromEvidence(options.rollback, owner),
+      restore_condition: restoreConditionFromEvidence(options.rollback),
+    },
+    monitoring: {
+      path: firstEvidenceRef(evidence.monitoringEvidence),
+      owner: ownerFromEvidence(options.monitoring, owner),
+      signal_type: monitoringSignalType(options.monitoring),
+      observation_path: firstEvidenceRef(evidence.monitoringEvidence),
+    },
+    post_release_smoke: {
+      target_level: smokeTargetLevel(releaseTarget),
+      owner: ownerFromEvidence(options.postLaunchSmoke, owner),
+      read_only: true,
+      evidence_path: firstEvidenceRef(evidence.postReleaseSmoke),
+    },
+    handoff_execution_boundary: {
+      handoff_is_execution_input: true,
+      execution_redefines_owner_evidence: false,
+      approves_release: false,
+      executes_release_commands: false,
+      codex_release_owner: false,
+      high_risk_actions_human_or_external: true,
+    },
+    outcome: handoff.outcome,
+  };
+  value.handoff_evidence_digest = evidenceDigest(value, ["handoff_evidence_digest"]);
+  return value;
 }
 
 function recipeRows(recipe) {
@@ -419,6 +495,12 @@ function printHuman(report) {
   printObjectRows("Monitoring Evidence", report.monitoringEvidence);
   printObjectRows("Post-release Smoke", report.postReleaseSmoke);
   printObjectRows("Post-release Close-out", report.postReleaseCloseOut);
+  console.log("## Machine-Readable Evidence");
+  console.log("");
+  console.log("```json");
+  console.log(JSON.stringify(report.machineReadableEvidence, null, 2));
+  console.log("```");
+  console.log("");
   console.log("## Release Guide Bridge");
   console.log("");
   console.log("```bash");
@@ -520,6 +602,66 @@ function code(value) {
 function isConcrete(value) {
   const normalized = stripCode(value);
   return Boolean(normalized) && !/^(N\/A|TBD|TODO|PENDING|MISSING|UNKNOWN|REPLACE_WITH|none)$/i.test(normalized);
+}
+
+function splitActions(value) {
+  const text = stripCode(value);
+  if (!isConcrete(text)) return [];
+  return text
+    .split(/[,;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function slug(value) {
+  return String(value || "release-handoff")
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    || "release-handoff";
+}
+
+function firstEvidenceRef(rows) {
+  const row = (rows || []).find((item) => isConcrete(item.ref));
+  return row ? row.ref : "N/A";
+}
+
+function ownerType(owner) {
+  return /external/i.test(String(owner || "")) ? "EXTERNAL_RELEASE_SYSTEM" : "HUMAN_REQUIRED";
+}
+
+function ownerFromEvidence(text, fallbackOwner) {
+  const value = stripCode(text);
+  const ownerMatch = value.match(/\bowned by\s+(.+)$/i);
+  if (ownerMatch) return ownerMatch[1].trim();
+  if (/external/i.test(value)) return "EXTERNAL_RELEASE_SYSTEM";
+  return isConcrete(fallbackOwner) ? fallbackOwner : "HUMAN_REQUIRED";
+}
+
+function restoreConditionFromEvidence(text) {
+  const value = stripCode(text);
+  if (!isConcrete(value)) return "N/A";
+  const conditionMatch = value.match(/\brestore(?:s|d)?(?: when| if| condition)?[:\s]+(.+)$/i);
+  return conditionMatch ? conditionMatch[1].trim() : value;
+}
+
+function monitoringSignalType(text) {
+  const value = String(text || "").toLowerCase();
+  if (/dashboard/.test(value)) return "dashboard";
+  if (/\blog\b|logs/.test(value)) return "log";
+  if (/health/.test(value)) return "healthcheck";
+  if (/smoke/.test(value)) return "smoke";
+  if (/incident/.test(value)) return "incident-channel";
+  return "other";
+}
+
+function smokeTargetLevel(target) {
+  const value = String(target || "").toLowerCase();
+  if (/prod/.test(value)) return "production";
+  if (/stag/.test(value)) return "staging";
+  if (/review|mini|app/.test(value)) return "review";
+  if (/preview|test/.test(value)) return "preview";
+  return "local";
 }
 
 function remoteOrHighRiskPattern() {

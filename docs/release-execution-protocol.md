@@ -11,6 +11,8 @@ In plain language:
 
 It does not mean Codex automatically publishes or deploys.
 
+From 1.61 onward, Release Execution should consume a Release Handoff Pack when one exists. The handoff pack owns release owner, approval, rollback, monitoring, smoke, and responsibility facts. Release Execution remains a plan-only layer and should not create a second source of truth.
+
 ## How To Use
 
 Generate a release execution plan:
@@ -78,3 +80,5 @@ Who must do it?
 What proof do we need?
 Where must Codex stop?
 ```
+
+If the previous step says `READY_FOR_HANDOFF_REVIEW`, that means ready for handoff review, not release approval.

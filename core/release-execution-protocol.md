@@ -22,6 +22,15 @@ Unified Closure Decision
 
 Release Execution depends on Launch Review View.
 
+From 1.61 onward, Release Execution also consumes Release Handoff Pack facts when a handoff pack exists.
+
+```text
+Release Handoff Pack = owner / approval / rollback / monitoring / smoke / boundary truth
+Release Execution Plan = plan-only consumer of that truth
+```
+
+Release Execution must not redefine release owner, rollback, monitoring, post-release smoke, or high-risk executor ownership when a handoff pack exists.
+
 If Launch Review View is not `READY_FOR_RELEASE_REVIEW`, real release execution is blocked.
 
 If human release approval is missing, Release Execution may produce a plan, but real release execution is not allowed.
@@ -89,3 +98,5 @@ A Release Execution Plan must show:
 User approval opens the Release Execution workflow.
 
 It does not automatically authorize every release action.
+
+Release handoff readiness is not release approval.

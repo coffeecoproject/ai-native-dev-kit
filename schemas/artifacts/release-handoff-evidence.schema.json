@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "1.61.0",
+  "artifactType": "release_handoff_evidence",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "handoff_evidence_digest",
+    "handoff_pack",
+    "structured_approval",
+    "release_owner",
+    "rollback",
+    "monitoring",
+    "post_release_smoke",
+    "handoff_execution_boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.61.0"] },
+    "artifact_type": { "type": "string", "enum": ["release_handoff_evidence"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "handoff_evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "handoff_pack": {
+      "type": "object",
+      "required": ["pack_id", "recipe_id", "release_target", "execution_level", "handoff_state", "handoff_review_only"],
+      "properties": {
+        "pack_id": { "type": "string" },
+        "recipe_id": { "type": "string" },
+        "release_target": { "type": "string" },
+        "execution_level": { "type": "string", "enum": ["PREVIEW_ASSIST", "STAGING_HANDOFF", "PRODUCTION_HANDOFF"] },
+        "handoff_state": {
+          "type": "string",
+          "enum": [
+            "BLOCKED_BY_SELECTED_RECIPE",
+            "BLOCKED_BY_STRUCTURED_APPROVAL",
+            "BLOCKED_BY_RELEASE_OWNER",
+            "BLOCKED_BY_ROLLBACK_EVIDENCE",
+            "BLOCKED_BY_MONITORING_EVIDENCE",
+            "BLOCKED_BY_POST_RELEASE_SMOKE_EVIDENCE",
+            "READY_FOR_HANDOFF_REVIEW"
+          ]
+        },
+        "handoff_review_only": { "type": "boolean" }
+      }
+    },
+    "structured_approval": {
+      "type": "object",
+      "required": ["approval_type", "approval_status", "release_target", "approved_scope", "approved_by", "approval_time", "allowed_codex_actions", "blocked_actions", "evidence_path", "expiry"],
+      "properties": {
+        "approval_type": { "type": "string" },
+        "approval_status": { "type": "string", "enum": ["APPROVED", "PENDING", "REJECTED", "MISSING"] },
+        "release_target": { "type": "string" },
+        "approved_scope": { "type": "string" },
+        "approved_by": { "type": "string" },
+        "approval_time": { "type": "string" },
+        "allowed_codex_actions": { "type": "array", "items": { "type": "string" } },
+        "blocked_actions": { "type": "array", "items": { "type": "string" } },
+        "evidence_path": { "type": "string" },
+        "expiry": { "type": "string" }
+      }
+    },
+    "release_owner": {
+      "type": "object",
+      "required": ["owner_type", "owner_ref"],
+      "properties": {
+        "owner_type": { "type": "string", "enum": ["HUMAN_REQUIRED", "EXTERNAL_RELEASE_SYSTEM"] },
+        "owner_ref": { "type": "string" }
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "required": ["path", "owner", "restore_condition"],
+      "properties": {
+        "path": { "type": "string" },
+        "owner": { "type": "string" },
+        "restore_condition": { "type": "string" }
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "required": ["path", "owner", "signal_type", "observation_path"],
+      "properties": {
+        "path": { "type": "string" },
+        "owner": { "type": "string" },
+        "signal_type": { "type": "string", "enum": ["dashboard", "log", "healthcheck", "smoke", "incident-channel", "other"] },
+        "observation_path": { "type": "string" }
+      }
+    },
+    "post_release_smoke": {
+      "type": "object",
+      "required": ["target_level", "owner", "read_only", "evidence_path"],
+      "properties": {
+        "target_level": { "type": "string", "enum": ["local", "preview", "staging", "production", "review"] },
+        "owner": { "type": "string" },
+        "read_only": { "type": "boolean" },
+        "evidence_path": { "type": "string" }
+      }
+    },
+    "handoff_execution_boundary": {
+      "type": "object",
+      "required": [
+        "handoff_is_execution_input",
+        "execution_redefines_owner_evidence",
+        "approves_release",
+        "executes_release_commands",
+        "codex_release_owner",
+        "high_risk_actions_human_or_external"
+      ],
+      "properties": {
+        "handoff_is_execution_input": { "type": "boolean" },
+        "execution_redefines_owner_evidence": { "type": "boolean" },
+        "approves_release": { "type": "boolean" },
+        "executes_release_commands": { "type": "boolean" },
+        "codex_release_owner": { "type": "boolean" },
+        "high_risk_actions_human_or_external": { "type": "boolean" }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "BLOCKED_BY_SELECTED_RECIPE",
+        "BLOCKED_BY_STRUCTURED_APPROVAL",
+        "BLOCKED_BY_RELEASE_OWNER",
+        "BLOCKED_BY_ROLLBACK_EVIDENCE",
+        "BLOCKED_BY_MONITORING_EVIDENCE",
+        "BLOCKED_BY_POST_RELEASE_SMOKE_EVIDENCE",
+        "READY_FOR_HANDOFF_REVIEW"
+      ]
+    }
+  }
+}

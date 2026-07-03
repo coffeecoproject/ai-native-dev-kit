@@ -141,7 +141,7 @@ Launch Review View lives under `.ai-native/core/` in generated projects. It answ
 
 Release Execution Protocol lives under `.ai-native/core/` in generated projects. It turns ready launch review plus explicit human release approval into a bounded release execution plan. It does not approve release, deploy by itself, submit app review, run migrations, change production configuration, or make Codex the release owner.
 
-Release Handoff Packs live under `release-handoff-packs/` in generated projects. They turn selected platform recipes and structured release approvals into bounded handoff packages. They do not approve release, execute release commands, call provider APIs, upload packages, submit review, run migrations, change production configuration, or make Codex the release owner.
+Release Handoff Packs live under `release-handoff-packs/` in generated projects. They turn selected platform recipes and structured release approvals into bounded handoff packages. From 1.61 onward, strict handoff evidence uses `schemas/artifacts/release-handoff-evidence.schema.json` so recipe, approval, owner, rollback, monitoring, post-release smoke, and handoff/execution boundaries are machine-checkable. They do not approve release, execute release commands, call provider APIs, upload packages, submit review, run migrations, change production configuration, or make Codex the release owner.
 
 Guided Release Adapter lives under `.ai-native/core/` in generated projects. It discovers a project-specific release path, recommends a safe beginner target, records missing release inputs, and bridges into Release Execution. It does not approve release, deploy production, request/store secrets, mutate release infrastructure, or make Codex the release owner.
 

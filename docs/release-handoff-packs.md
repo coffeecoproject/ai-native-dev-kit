@@ -2,6 +2,8 @@
 
 Release Handoff Packs turn a selected platform recipe and structured approval into a bounded release handoff.
 
+From 1.61 onward, a handoff pack is also the source of truth for release owner, approval, rollback, monitoring, smoke, and ownership boundaries. Release Execution can consume those facts, but it should not redefine them.
+
 They are for the moment after IntentOS knows:
 
 - what kind of project this is
@@ -43,7 +45,12 @@ For direct handoff inspection:
 ```bash
 node scripts/cli.mjs release-handoff ../my-project --intent "help me launch"
 node scripts/cli.mjs release-handoff-check ../my-project
+node scripts/cli.mjs release-handoff-check ../my-project --require-structured-evidence
 ```
+
+Strict mode requires `Machine-Readable Evidence` matching `schemas/artifacts/release-handoff-evidence.schema.json`.
+
+`READY_FOR_HANDOFF_REVIEW` means ready for handoff review, not release approval.
 
 ## Safety Rule
 

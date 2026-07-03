@@ -81,13 +81,18 @@ else printHuman(report);
 function buildReleaseGuide(root, options) {
   const adapter = resolveAdapter(root, options);
   const recipe = resolveRecipe(root, options);
-  const handoff = resolveHandoff(root, options, recipe);
   const launchReview = resolveLaunchReview(root, options);
   const approval = resolveStructuredApproval(root, options);
   const evidenceQuality = buildEvidenceQuality(options, launchReview, approval);
   const releaseTarget = options.releaseTarget || adapter.recommendedTarget || "PREVIEW_OR_TEST";
   const assistLevel = assistLevelFor(releaseTarget);
-  const route = chooseRoute(adapter, launchReview, approval, evidenceQuality);
+  let route = chooseRoute(adapter, recipe, launchReview, approval, evidenceQuality);
+  const handoff = shouldResolveHandoff(route)
+    ? resolveHandoff(root, options, recipe)
+    : deferredHandoff(route);
+  if (route.state === "READY_FOR_RELEASE_EXECUTION_PLAN" && handoff.status !== "READY") {
+    route = routeValue("NEEDS_RELEASE_HANDOFF", "RELEASE_HANDOFF_PACK", "NEEDS_RELEASE_HANDOFF");
+  }
   const safeNextStep = nextStepFor(route, adapter, launchReview, approval, evidenceQuality);
   const commandRisk = commandRiskClassification();
 
@@ -119,10 +124,7 @@ function buildReleaseGuide(root, options) {
       { input: "Launch Review View", ref: launchReview.ref },
       { input: "Release Execution", ref: "scripts/resolve-release-execution.mjs" },
     ],
-    releaseExecutionBridge: [
-      `node scripts/cli.mjs release-handoff . --intent "${options.intent}" --recipe-id ${recipe.selectedRecipeId} --release-target ${releaseTarget}`,
-      `node scripts/cli.mjs release-execution . --intent "prepare release execution" --mode PLAN_ONLY`,
-    ],
+    releaseExecutionBridge: releaseBridgeRows(options, recipe, releaseTarget, handoff),
     boundaries: {
       approvesRelease: "No",
       deploysOrPublishesByItself: "No",
@@ -133,6 +135,22 @@ function buildReleaseGuide(root, options) {
       makesCodexReleaseOwner: "No",
     },
     outcome: route.outcome,
+  };
+}
+
+function shouldResolveHandoff(route) {
+  return new Set(["READY_FOR_RELEASE_EXECUTION_PLAN"]).has(route.state);
+}
+
+function deferredHandoff(route) {
+  return {
+    status: "DEFERRED",
+    packId: "N/A",
+    executionLevel: "N/A",
+    handoffState: "DEFERRED_UNTIL_RELEASE_GUIDE_READY",
+    releaseOwner: "N/A",
+    ref: "deferred:release-handoff-pack",
+    reason: `Release Handoff Pack will be generated after ${route.recommendedRoute} is resolved.`,
   };
 }
 
@@ -442,33 +460,39 @@ function buildEvidenceQuality(options, launchReview, approval) {
   ];
 }
 
-function chooseRoute(adapter, launchReview, approval, evidenceQuality) {
+function chooseRoute(adapter, recipe, launchReview, approval, evidenceQuality) {
   if (adapter.status === "BLOCKED") {
-    return route("BLOCKED_RELEASE_PATH", "RELEASE_ADAPTER", "BLOCKED_RELEASE_PATH");
+    return routeValue("BLOCKED_RELEASE_PATH", "RELEASE_ADAPTER", "BLOCKED_RELEASE_PATH");
   }
   if (adapter.status !== "PASS") {
-    return route("NEEDS_RELEASE_ADAPTER", "RELEASE_ADAPTER", "NEEDS_RELEASE_ADAPTER");
+    return routeValue("NEEDS_RELEASE_ADAPTER", "RELEASE_ADAPTER", "NEEDS_RELEASE_ADAPTER");
+  }
+  if (recipe.status !== "PASS") {
+    return routeValue("NEEDS_PLATFORM_RELEASE_RECIPE", "PLATFORM_RELEASE_RECIPE", "NEEDS_PLATFORM_RELEASE_RECIPE");
   }
   if (launchReview.status !== "PASS") {
-    return route("NEEDS_LAUNCH_REVIEW", "LAUNCH_REVIEW_VIEW", "NEEDS_LAUNCH_REVIEW");
+    return routeValue("NEEDS_LAUNCH_REVIEW", "LAUNCH_REVIEW_VIEW", "NEEDS_LAUNCH_REVIEW");
   }
   if (approval.structured !== "Yes") {
-    return route("NEEDS_STRUCTURED_RELEASE_APPROVAL", "STRUCTURED_RELEASE_APPROVAL", "NEEDS_STRUCTURED_RELEASE_APPROVAL");
+    return routeValue("NEEDS_STRUCTURED_RELEASE_APPROVAL", "STRUCTURED_RELEASE_APPROVAL", "NEEDS_STRUCTURED_RELEASE_APPROVAL");
   }
   const missingEvidence = evidenceQuality.filter((item) => item.status !== "PASS");
   if (missingEvidence.length > 0) {
-    return route("NEEDS_RELEASE_EVIDENCE_QUALITY", "RELEASE_GUIDE_EVIDENCE", "NEEDS_RELEASE_EVIDENCE_QUALITY");
+    return routeValue("NEEDS_RELEASE_EVIDENCE_QUALITY", "RELEASE_GUIDE_EVIDENCE", "NEEDS_RELEASE_EVIDENCE_QUALITY");
   }
-  return route("READY_FOR_RELEASE_EXECUTION_PLAN", "RELEASE_EXECUTION_PROTOCOL", "READY_FOR_RELEASE_EXECUTION_PLAN");
+  return routeValue("READY_FOR_RELEASE_EXECUTION_PLAN", "RELEASE_EXECUTION_PROTOCOL", "READY_FOR_RELEASE_EXECUTION_PLAN");
 }
 
-function route(state, recommendedRoute, outcome) {
+function routeValue(state, recommendedRoute, outcome) {
   return { state, recommendedRoute, outcome };
 }
 
 function nextStepFor(routeValue, adapter, launchReview, approval, evidenceQuality) {
   if (routeValue.state === "NEEDS_RELEASE_ADAPTER") {
     return "Review the Release Adapter output and confirm the first safe release target.";
+  }
+  if (routeValue.state === "NEEDS_PLATFORM_RELEASE_RECIPE") {
+    return "Confirm the platform release recipe before a handoff pack is generated.";
   }
   if (routeValue.state === "NEEDS_LAUNCH_REVIEW") {
     return `Close Launch Review gaps before release approval. Current launch label: ${launchReview.safeLaunchLabel}.`;
@@ -482,6 +506,9 @@ function nextStepFor(routeValue, adapter, launchReview, approval, evidenceQualit
   }
   if (routeValue.state === "READY_FOR_RELEASE_EXECUTION_PLAN") {
     return "Prepare a Release Execution Plan in PLAN_ONLY mode; high-risk release actions remain human/external-system-owned.";
+  }
+  if (routeValue.state === "NEEDS_RELEASE_HANDOFF") {
+    return "Prepare a Release Handoff Pack first; execution planning must consume handoff facts instead of redefining them.";
   }
   return adapter.reason || "Release path is blocked until project release inputs are clarified.";
 }
@@ -499,6 +526,7 @@ function beginnerCard(routeValue, adapter, recipe, launchReview, approval, evide
     whatIFound: [
       `Release Adapter state: ${adapter.adapterState}.`,
       `Platform recipe: ${recipe.selectedRecipeId} (${recipe.recipeStatus}, confidence ${recipe.selectionConfidence}).`,
+      `Release handoff: ${routeValue.state === "READY_FOR_RELEASE_EXECUTION_PLAN" ? "ready to generate" : `deferred until ${routeValue.recommendedRoute} is resolved`}.`,
       `Launch Review label: ${launchReview.safeLaunchLabel}.`,
       `Structured approval: ${approval.structured}.`,
       `Missing evidence quality: ${evidenceQuality.filter((item) => item.status !== "PASS").map((item) => item.evidence).join(", ") || "none"}.`,
@@ -550,7 +578,7 @@ function handoffRows(handoff) {
     field("Handoff State", code(handoff.handoffState)),
     field("Release Owner", handoff.releaseOwner),
     field("Ref", handoff.ref),
-    field("Notes", handoff.reason),
+    field("Notes", `${handoff.reason} Ready means handoff review only, not release approval.`),
   ];
 }
 
@@ -613,6 +641,19 @@ function stage(stageValue, status, ref, notes) {
 
 function field(fieldValue, value) {
   return { field: fieldValue, value: value || "N/A" };
+}
+
+function releaseBridgeRows(options, recipe, releaseTarget, handoff) {
+  if (handoff.status === "DEFERRED") {
+    return [
+      `# release-handoff deferred: ${handoff.reason}`,
+      "# release-execution deferred until a handoff pack exists",
+    ];
+  }
+  return [
+    `node scripts/cli.mjs release-handoff . --intent "${options.intent}" --recipe-id ${recipe.selectedRecipeId} --release-target ${releaseTarget}`,
+    `node scripts/cli.mjs release-execution . --intent "prepare release execution" --mode PLAN_ONLY`,
+  ];
 }
 
 function printHuman(report) {

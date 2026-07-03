@@ -19,11 +19,16 @@ Release Guide
   -> Platform Release Recipe
   -> Structured Release Approval
   -> Release Handoff Pack
+  -> Release Execution Plan
   -> Human / External Release System
   -> Evidence / Close-out
 ```
 
-Handoff packs are bounded runbooks and evidence packages. They are not release approval, provider automation, CI/CD setup, secret validation, production execution, app-store submission, mini-program submission, or database migration execution.
+Handoff packs are bounded runbooks and evidence packages. They are the release handoff source of truth for owner, approval, rollback, monitoring, smoke, and responsibility boundaries.
+
+Release Execution can consume a handoff pack. It must not redefine the owner/evidence truth when a handoff pack exists.
+
+Handoff packs are not release approval, provider automation, CI/CD setup, secret validation, production execution, app-store submission, mini-program submission, or database migration execution.
 
 ## Pack Contract
 
@@ -112,3 +117,5 @@ Release Handoff Packs do not:
 A handoff pack can make a release handoff precise.
 
 It cannot make the release decision.
+
+`READY_FOR_HANDOFF_REVIEW` means ready for handoff review, not release approval.

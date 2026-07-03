@@ -52,7 +52,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `resolve-platform-release-recipe.mjs` | Read-only platform release recipe selector with confidence, safe target, and no-execution boundaries |
 | `check-platform-release-recipe.mjs` | Platform Release Recipe owner, rollback, monitoring, strict/draft, secret, and Codex-boundary checks |
 | `resolve-release-handoff-pack.mjs` | Read-only release handoff pack resolver that separates Codex, human, and external-system ownership |
-| `check-release-handoff-pack.mjs` | Release Handoff Pack approval, owner, evidence, Codex-boundary, and no-execution checks |
+| `check-release-handoff-pack.mjs` | Release Handoff Pack approval, owner, evidence, Codex-boundary, structured evidence, and no-execution checks |
 | `resolve-release-execution.mjs` | Read-only release execution planner after Launch Review View and Human Release Approval |
 | `check-release-execution.mjs` | Release Execution Plan preconditions, approval, step ownership, evidence, and no-auto-production checks |
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
@@ -158,7 +158,7 @@ Product and claim checks:
 - `check-release-adapter.mjs` allows empty projects, but rejects Release Adapter Profiles that miss the Beginner Release Card, include secret-like values or requests, assign high-risk release actions to Codex, approve release/production, mutate release infrastructure, or treat beginner confirmation as production approval.
 - `check-release-guide.mjs` allows empty projects, but rejects Release Guide Cards that use unstructured approval for execution readiness, assign production handoff to Codex, classify remote-side-effect commands as local-safe, mark weak evidence as PASS, approve release/production, mutate release infrastructure, or treat free-form approval text as release approval.
 - `check-platform-release-recipe.mjs` allows empty projects, but rejects Platform Release Recipes that assign production or remote-side-effect release actions to Codex, ask for secrets, omit rollback/monitoring/release owner, present provider assumptions as certainty, or pass draft recipes under `--strict`.
-- `check-release-handoff-pack.mjs` allows empty projects, but rejects Release Handoff Packs that assign production deploy, store/mini-program submission, production migration, remote-state commands, provider APIs, or secrets to Codex; omit structured approval, release owner, rollback evidence, monitoring evidence, or close-out evidence; approve release/production; mutate release infrastructure; or make Codex the release owner.
+- `check-release-handoff-pack.mjs` allows empty projects, but rejects Release Handoff Packs that assign production deploy, store/mini-program submission, production migration, remote-state commands, provider APIs, or secrets to Codex; omit structured approval, release owner, rollback evidence, monitoring evidence, post-release smoke, or close-out evidence; approve release/production; mutate release infrastructure; make Codex the release owner; or redefine handoff evidence inside execution. Use `--require-structured-evidence` when release handoff evidence must contain valid `release_handoff_evidence` JSON.
 - `check-release-execution.mjs` allows empty projects, but rejects Release Execution Plans that miss Launch Review input, allow real execution without scoped Human Release Approval, mark high-risk production deploy/publish/submit/migration/secrets/DNS/payment/permissions/config steps as Codex-executed, approve release/production, treat Launch Review View as release approval, or make Codex the release owner.
 - `check-conversation-drift.mjs` allows empty projects, but rejects discussion-only writes, scope changes without human decision, and risk decisions that auto-continue.
 - `check-conversation-native-ask.mjs` allows empty projects, but rejects Conversation Ask Cards that make users run CLI commands before Codex can route work, ask too many questions, claim target-project writes, authorize apply, approve implementation, approve release/production, modify CI/hooks, delete/archive/rewrite documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
@@ -227,6 +227,7 @@ node scripts/resolve-platform-release-recipe.mjs . --intent "help me launch"
 node scripts/check-platform-release-recipe.mjs .
 node scripts/resolve-release-handoff-pack.mjs . --intent "help me launch"
 node scripts/check-release-handoff-pack.mjs .
+node scripts/check-release-handoff-pack.mjs . --require-structured-evidence
 node scripts/resolve-release-execution.mjs . --intent "<release execution goal>"
 node scripts/check-release-execution.mjs .
 node scripts/check-conversation-drift.mjs .

@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.60.0",
+  "devKitVersion": "1.61.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -430,6 +430,9 @@
     ".ai-native/core/release-handoff-packs.md",
     ".ai-native/docs/release-handoff-packs.md",
     ".ai-native/prompts/release-handoff-pack-agent.md",
-    ".ai-native/templates/release-handoff-pack.md"
+    ".ai-native/templates/release-handoff-pack.md",
+    ".ai-native/core/release-path-hardening.md",
+    ".ai-native/docs/release-path-hardening.md",
+    ".ai-native/schemas/artifacts/release-handoff-evidence.schema.json"
   ]
 }

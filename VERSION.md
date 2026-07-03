@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.60.0`
+Current version: `1.61.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.60.0`
 
 ## Current Release
 
-`1.60.0`
+`1.61.0`
 
 Includes:
 
+- Release Path Hardening phase `1.61.0`: makes Release Guide defer Release Handoff Pack generation until prerequisite route steps are ready, adds strict machine-readable release handoff evidence, and clarifies that `READY_FOR_HANDOFF_REVIEW` means handoff review only, not release approval
+- `1.61.0` treats the Release Handoff Pack as the single source for recipe, structured approval, release owner, rollback, monitoring, post-release smoke, and handoff/execution boundary facts; Release Execution must consume these facts and must not redefine them
+- `1.61.0` does not approve release, execute release commands, deploy, publish, upload, submit, migrate, call provider APIs, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production data/production config, or make Codex the release owner
 - Release Handoff Packs phase `1.60.0`: adds `release-handoff` / `release-handoff-check` so a selected platform recipe and structured release approval can become a bounded handoff package with Codex, human, and external-system ownership separated
 - `1.60.0` requires selected recipe, structured approval, release owner, rollback evidence, monitoring evidence, post-release smoke, and close-out evidence before a handoff can be treated as ready
 - `1.60.0` does not approve release, execute release commands, deploy, publish, upload, submit, migrate, call provider APIs, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production data/production config, turn structured approval into blanket authorization, or make Codex the release owner

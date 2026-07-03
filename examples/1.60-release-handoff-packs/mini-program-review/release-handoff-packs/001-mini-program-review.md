@@ -9,7 +9,7 @@
 | Execution Level | `PRODUCTION_HANDOFF` |
 | Release Owner | HUMAN_REQUIRED: mini program release owner |
 | Handoff State | `READY_FOR_HANDOFF_REVIEW` |
-| Safe Next Step | Review the handoff pack with the release owner; high-risk actions remain human/external-system-owned. |
+| Safe Next Step | Ready for handoff review, not release approval. Review with the release owner; high-risk actions remain human/external-system-owned. |
 
 ## Selected Recipe
 
@@ -30,11 +30,11 @@
 | Approval Type | `RELEASE_APPROVAL` |
 | Approval Status | `APPROVED` |
 | Release Target | mini-program-review |
-| Approved Scope | mini-program review handoff only |
+| Approved Scope | mini program review handoff only |
 | Approved By | HUMAN_REQUIRED: mini program release owner |
 | Approval Time | 2026-07-03T00:00:00Z |
-| Allowed Codex Actions | LOCAL_TEST npm run test |
-| Blocked Actions | upload mini-program package, submit review, release reviewed version, secrets |
+| Allowed Codex Actions | LOCAL_READ_ONLY inspect release checklist |
+| Blocked Actions | upload, submit review, release reviewed version, secrets, provider API |
 | Evidence Path | release-handoff-packs/001-mini-program-review.md |
 | Expiry / Reconfirm By | 2026-07-10T00:00:00Z |
 
@@ -43,9 +43,9 @@
 | input | minimumQuality |
 | --- | --- |
 | Release owner | HUMAN_REQUIRED: mini program release owner |
-| Release SOP | docs/mini-program-review-sop.md |
-| Rollback | docs/mini-program-rollback.md owned by release owner |
-| Monitoring | docs/mini-program-monitoring.md owned by release owner |
+| Release SOP | docs/mini-program-release-sop.md |
+| Rollback | docs/mini-program-rollback.md owned by mini program release owner restore condition: keep previous approved version |
+| Monitoring | docs/mini-program-monitoring.md log owned by mini program release owner |
 
 ## Preflight Steps
 
@@ -57,7 +57,7 @@
 
 | action | riskClass | condition |
 | --- | --- | --- |
-| LOCAL_TEST npm run test | LOCAL_TEST | Allowed only within structured approval, recipe policy, and stop conditions. |
+| LOCAL_READ_ONLY inspect release checklist | LOCAL_READ_ONLY | Allowed only within structured approval, recipe policy, and stop conditions. |
 
 ## Human Must Run
 
@@ -85,7 +85,7 @@
 | evidence | status | ref | minimumQuality |
 | --- | --- | --- | --- |
 | Structured release approval | PASS | release-handoff-packs/001-mini-program-review.md | Approval type, target, scope, owner, allowed actions, blocked actions, evidence, and expiry. |
-| Release SOP | PASS | docs/mini-program-review-sop.md | Project release procedure or owner-owned path. |
+| Release SOP | PASS | docs/mini-program-release-sop.md | Project release procedure or owner-owned path. |
 | Environment | PASS | mini program review environment reference | Target environment and non-secret setup reference. |
 | Verification output | PASS | release-handoff-packs/001-mini-program-review.md | Command, timestamp, result, and path. |
 
@@ -93,19 +93,19 @@
 
 | evidence | status | ref | minimumQuality |
 | --- | --- | --- | --- |
-| Rollback path | PASS | docs/mini-program-rollback.md owned by release owner | Path, owner, and restoration condition. |
+| Rollback path | PASS | docs/mini-program-rollback.md owned by mini program release owner restore condition: keep previous approved version | Path, owner, and restoration condition. |
 
 ## Monitoring Evidence
 
 | evidence | status | ref | minimumQuality |
 | --- | --- | --- | --- |
-| Monitoring path | PASS | docs/mini-program-monitoring.md owned by release owner | Dashboard/log/check path and owner. |
+| Monitoring path | PASS | docs/mini-program-monitoring.md log owned by mini program release owner | Dashboard/log/check path and owner. |
 
 ## Post-release Smoke
 
 | evidence | status | ref | minimumQuality |
 | --- | --- | --- | --- |
-| Post-release smoke | PASS | mini program review smoke checklist owned by release owner | Target level, owner, read-only checks, and result path. |
+| Post-release smoke | PASS | review smoke checklist owned by mini program release owner | Target level, owner, read-only checks, and result path. |
 
 ## Post-release Close-out
 
@@ -117,6 +117,75 @@
 | Monitoring status | Record observation path and owner. |
 | Unresolved decisions | Record remaining human decisions or N/A reason. |
 | Pack limit | This pack remains PRODUCTION_HANDOFF; it is not release approval. |
+
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.61.0",
+  "artifact_type": "release_handoff_evidence",
+  "artifact_id": "mini-program-review-handoff-mini-program-review",
+  "handoff_evidence_digest": "sha256:48cf2cf320cf744a85c2e99ad81310fd75a2d174dd8312eb9cde1c5452524478",
+  "handoff_pack": {
+    "pack_id": "mini-program-review-handoff",
+    "recipe_id": "mini-program-review-handoff",
+    "release_target": "mini-program-review",
+    "execution_level": "PRODUCTION_HANDOFF",
+    "handoff_state": "READY_FOR_HANDOFF_REVIEW",
+    "handoff_review_only": true
+  },
+  "structured_approval": {
+    "approval_type": "RELEASE_APPROVAL",
+    "approval_status": "APPROVED",
+    "release_target": "mini-program-review",
+    "approved_scope": "mini program review handoff only",
+    "approved_by": "HUMAN_REQUIRED: mini program release owner",
+    "approval_time": "2026-07-03T00:00:00Z",
+    "allowed_codex_actions": [
+      "LOCAL_READ_ONLY inspect release checklist"
+    ],
+    "blocked_actions": [
+      "upload",
+      "submit review",
+      "release reviewed version",
+      "secrets",
+      "provider API"
+    ],
+    "evidence_path": "release-handoff-packs/001-mini-program-review.md",
+    "expiry": "2026-07-10T00:00:00Z"
+  },
+  "release_owner": {
+    "owner_type": "HUMAN_REQUIRED",
+    "owner_ref": "HUMAN_REQUIRED: mini program release owner"
+  },
+  "rollback": {
+    "path": "docs/mini-program-rollback.md owned by mini program release owner restore condition: keep previous approved version",
+    "owner": "mini program release owner restore condition: keep previous approved version",
+    "restore_condition": "keep previous approved version"
+  },
+  "monitoring": {
+    "path": "docs/mini-program-monitoring.md log owned by mini program release owner",
+    "owner": "mini program release owner",
+    "signal_type": "log",
+    "observation_path": "docs/mini-program-monitoring.md log owned by mini program release owner"
+  },
+  "post_release_smoke": {
+    "target_level": "review",
+    "owner": "mini program release owner",
+    "read_only": true,
+    "evidence_path": "review smoke checklist owned by mini program release owner"
+  },
+  "handoff_execution_boundary": {
+    "handoff_is_execution_input": true,
+    "execution_redefines_owner_evidence": false,
+    "approves_release": false,
+    "executes_release_commands": false,
+    "codex_release_owner": false,
+    "high_risk_actions_human_or_external": true
+  },
+  "outcome": "READY_FOR_HANDOFF_REVIEW"
+}
+```
 
 ## Release Guide Bridge
 

@@ -6,12 +6,15 @@ import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json"]);
+const knownFlags = new Set(["json", "require-structured-evidence"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const releaseHandoffEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/release-handoff-evidence.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -60,6 +63,7 @@ const allowedOutcomes = new Set([
   "BLOCKED_BY_RELEASE_OWNER",
   "BLOCKED_BY_ROLLBACK_EVIDENCE",
   "BLOCKED_BY_MONITORING_EVIDENCE",
+  "BLOCKED_BY_POST_RELEASE_SMOKE_EVIDENCE",
   "READY_FOR_HANDOFF_REVIEW",
 ]);
 const allowedLevels = new Set(["PREVIEW_ASSIST", "STAGING_HANDOFF", "PRODUCTION_HANDOFF"]);
@@ -175,7 +179,16 @@ function checkHandoffPacks() {
     checkCodexMayRun(content, label);
     requireEvidenceSection(content, label, "Rollback Evidence", /rollback|restore|fallback/i);
     requireEvidenceSection(content, label, "Monitoring Evidence", /monitoring|dashboard|log|health|smoke|observation/i);
+    requireEvidenceSection(content, label, "Post-release Smoke", /smoke|observation|read-only|result|evidence/i);
     requireCloseOutSection(content, label);
+    checkStructuredReleaseHandoffEvidence(content, label, {
+      packId,
+      recipeId,
+      releaseTarget,
+      executionLevel,
+      releaseOwner,
+      outcome,
+    });
 
     for (const boundary of [
       "This pack approves release",
@@ -255,11 +268,15 @@ function requireCloseOutSection(content, label) {
 function checkSourceEvidence() {
   for (const file of [
     "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
+    "docs/plans/release-path-hardening-1.61-plan.md",
+    "core/release-path-hardening.md",
     "core/release-handoff-packs.md",
+    "docs/release-path-hardening.md",
     "docs/release-handoff-packs.md",
     "templates/release-handoff-pack.md",
     "checklists/release-handoff-pack-review.md",
     "prompts/release-handoff-pack-agent.md",
+    "schemas/artifacts/release-handoff-evidence.schema.json",
     "scripts/resolve-release-handoff-pack.mjs",
     "scripts/check-release-handoff-pack.mjs",
     "examples/1.60-release-handoff-packs/web-hosted-preview/README.md",
@@ -277,9 +294,14 @@ function checkSourceEvidence() {
     "test-fixtures/bad/bad-release-handoff-remote-state/release-handoff-packs/001-bad.md",
     "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex/release-handoff-packs/001-bad.md",
     "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-missing-structured-evidence/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-execution-redefines-evidence/release-handoff-packs/001-bad.md",
     "releases/1.60.0/release-record.md",
     "releases/1.60.0/known-limitations.md",
     "releases/1.60.0/self-check-report.md",
+    "releases/1.61.0/release-record.md",
+    "releases/1.61.0/known-limitations.md",
+    "releases/1.61.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.60 release handoff pack source evidence exists ${file}`);
     else fail(`1.60 release handoff pack source evidence missing ${file}`);
@@ -349,6 +371,73 @@ function checkSourceEvidence() {
       fail(`1.60 release handoff pack must reject ${name}: ${output}`);
     }
   }
+}
+
+function checkStructuredReleaseHandoffEvidence(content, label, expected) {
+  const validation = validateEvidenceBlock(content, releaseHandoffEvidenceSchema, label, {
+    require: requireStructuredEvidence,
+    digestField: "handoff_evidence_digest",
+  });
+  if (!validation.present && !requireStructuredEvidence) {
+    pass(`${label} structured release handoff evidence optional`);
+    return;
+  }
+  if (!validation.ok) {
+    for (const error of validation.errors) fail(error);
+    return;
+  }
+  pass(`${label} structured release handoff evidence matches schema`);
+  const evidence = validation.value;
+  if (evidence.handoff_pack?.pack_id === expected.packId) pass(`${label} structured evidence matches Pack ID`);
+  else fail(`${label} structured evidence Pack ID must match Human Summary`);
+  if (evidence.handoff_pack?.recipe_id === expected.recipeId) pass(`${label} structured evidence matches Recipe ID`);
+  else fail(`${label} structured evidence Recipe ID must match Human Summary`);
+  if (evidence.handoff_pack?.release_target === expected.releaseTarget) pass(`${label} structured evidence matches Release Target`);
+  else fail(`${label} structured evidence Release Target must match Human Summary`);
+  if (evidence.handoff_pack?.execution_level === expected.executionLevel) pass(`${label} structured evidence matches Execution Level`);
+  else fail(`${label} structured evidence Execution Level must match Human Summary`);
+  if (evidence.handoff_pack?.handoff_state === expected.outcome) pass(`${label} structured evidence matches Outcome`);
+  else fail(`${label} structured evidence handoff state must match Outcome`);
+  if (evidence.handoff_pack?.handoff_review_only === true) pass(`${label} structured evidence marks handoff review only`);
+  else fail(`${label} structured evidence must mark handoff_review_only true`);
+  const owner = evidence.release_owner || {};
+  if (["HUMAN_REQUIRED", "EXTERNAL_RELEASE_SYSTEM"].includes(owner.owner_type) && isConcrete(owner.owner_ref)) {
+    pass(`${label} structured evidence keeps release owner human/external`);
+  } else {
+    fail(`${label} structured evidence must keep release owner human/external`);
+  }
+  const boundary = evidence.handoff_execution_boundary || {};
+  const boundaryChecks = [
+    ["handoff_is_execution_input", boundary.handoff_is_execution_input === true],
+    ["execution_redefines_owner_evidence", boundary.execution_redefines_owner_evidence === false],
+    ["approves_release", boundary.approves_release === false],
+    ["executes_release_commands", boundary.executes_release_commands === false],
+    ["codex_release_owner", boundary.codex_release_owner === false],
+    ["high_risk_actions_human_or_external", boundary.high_risk_actions_human_or_external === true],
+  ];
+  for (const [name, ok] of boundaryChecks) {
+    if (ok) pass(`${label} structured boundary ${name}`);
+    else fail(`${label} structured boundary invalid: ${name}`);
+  }
+  if (requireStructuredEvidence) {
+    requireStructuredConcrete(label, "structured approval approved_by", evidence.structured_approval?.approved_by);
+    requireStructuredConcrete(label, "structured approval evidence_path", evidence.structured_approval?.evidence_path);
+    requireStructuredConcrete(label, "rollback path", evidence.rollback?.path);
+    requireStructuredConcrete(label, "rollback owner", evidence.rollback?.owner);
+    requireStructuredConcrete(label, "rollback restore_condition", evidence.rollback?.restore_condition);
+    requireStructuredConcrete(label, "monitoring path", evidence.monitoring?.path);
+    requireStructuredConcrete(label, "monitoring owner", evidence.monitoring?.owner);
+    requireStructuredConcrete(label, "monitoring observation_path", evidence.monitoring?.observation_path);
+    requireStructuredConcrete(label, "post-release smoke owner", evidence.post_release_smoke?.owner);
+    requireStructuredConcrete(label, "post-release smoke evidence_path", evidence.post_release_smoke?.evidence_path);
+    if (evidence.post_release_smoke?.read_only === true) pass(`${label} structured post-release smoke is read-only`);
+    else fail(`${label} structured post-release smoke must be read_only true`);
+  }
+}
+
+function requireStructuredConcrete(label, field, value) {
+  if (isConcrete(value)) pass(`${label} structured ${field} is concrete`);
+  else fail(`${label} structured ${field} must be concrete`);
 }
 
 function resolveAsset(relativePath) {

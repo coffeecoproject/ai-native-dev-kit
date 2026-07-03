@@ -6869,7 +6869,7 @@ function checkLaunchReviewViewProtocol() {
     fail(`1.55 launch review example failed: ${example.stderr || example.stdout}`);
   }
 
-  for (const [name, target, expected] of [
+  for (const [name, target, expected, extraArgs = []] of [
     ["missing closure", "test-fixtures/bad/bad-launch-view-missing-closure", "must reference Unified Closure input"],
     ["release review missing rollback", "test-fixtures/bad/bad-launch-view-release-review-missing-rollback", "requires Rollback PASS"],
     ["production approval claim", "test-fixtures/bad/bad-launch-view-claims-production-approval", "forbidden launch review claim"],
@@ -7388,6 +7388,10 @@ function checkReleaseHandoffPackProtocol() {
     "scripts/resolve-release-handoff-pack.mjs",
     "scripts/check-release-handoff-pack.mjs",
     "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
+    "docs/plans/release-path-hardening-1.61-plan.md",
+    "core/release-path-hardening.md",
+    "docs/release-path-hardening.md",
+    "schemas/artifacts/release-handoff-evidence.schema.json",
     "examples/1.60-release-handoff-packs/web-hosted-preview/README.md",
     "examples/1.60-release-handoff-packs/web-hosted-preview/release-handoff-packs/001-web-hosted-preview.md",
     "examples/1.60-release-handoff-packs/mini-program-review/README.md",
@@ -7403,46 +7407,67 @@ function checkReleaseHandoffPackProtocol() {
     "test-fixtures/bad/bad-release-handoff-remote-state/release-handoff-packs/001-bad.md",
     "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex/release-handoff-packs/001-bad.md",
     "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-missing-structured-evidence/release-handoff-packs/001-bad.md",
+    "test-fixtures/bad/bad-release-handoff-execution-redefines-evidence/release-handoff-packs/001-bad.md",
     "releases/1.60.0/release-record.md",
     "releases/1.60.0/known-limitations.md",
     "releases/1.60.0/self-check-report.md",
+    "releases/1.61.0/release-record.md",
+    "releases/1.61.0/known-limitations.md",
+    "releases/1.61.0/self-check-report.md",
   ];
   for (const file of required) {
-    if (exists(file)) pass(`1.60 release handoff pack asset exists ${file}`);
-    else fail(`1.60 release handoff pack asset missing ${file}`);
+    if (exists(file)) pass(`1.61 release path hardening asset exists ${file}`);
+    else fail(`1.61 release path hardening asset missing ${file}`);
   }
 
   const combined = [
+    read("core/release-path-hardening.md"),
     read("core/release-handoff-packs.md"),
+    read("docs/release-path-hardening.md"),
     read("docs/release-handoff-packs.md"),
     read("templates/release-handoff-pack.md"),
+    read("schemas/artifacts/release-handoff-evidence.schema.json"),
     read("scripts/resolve-release-handoff-pack.mjs"),
     read("scripts/check-release-handoff-pack.mjs"),
+    read("scripts/resolve-release-guide.mjs"),
+    read("docs/plans/release-path-hardening-1.61-plan.md"),
+    read("releases/1.61.0/release-record.md"),
     read("releases/1.60.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
     "Release Handoff Packs",
+    "Release Path Hardening",
     "bounded runbooks",
     "Codex May Run",
     "does not approve release",
     "does not execute release commands",
     "structured approval",
+    "Machine-Readable Evidence",
+    "release_handoff_evidence",
+    "--require-structured-evidence",
+    "DEFERRED_UNTIL_RELEASE_GUIDE_READY",
+    "Ready for handoff review, not release approval",
+    "handoff_is_execution_input",
+    "execution_redefines_owner_evidence",
     "external-system",
   ]) {
-    if (combined.includes(marker)) pass(`1.60 release handoff pack includes ${marker}`);
-    else fail(`1.60 release handoff pack missing ${marker}`);
+    if (combined.includes(marker)) pass(`1.61 release path hardening includes ${marker}`);
+    else fail(`1.61 release path hardening missing ${marker}`);
   }
 
   const resolver = runNode(["scripts/resolve-release-handoff-pack.mjs", ".", "--intent", "help me launch"]);
   if (resolver.status === 0
     && resolver.stdout.includes("# Release Handoff Pack")
     && resolver.stdout.includes("## Codex May Run")
+    && resolver.stdout.includes("## Machine-Readable Evidence")
+    && resolver.stdout.includes("release_handoff_evidence")
     && resolver.stdout.includes("This pack approves release: No")
     && resolver.stdout.includes("This pack deploys, publishes, uploads, submits, migrates, or releases by itself: No")) {
-    pass("1.60 release handoff pack resolver prints safe handoff");
+    pass("1.61 release handoff pack resolver prints safe structured handoff");
   } else {
-    fail(`1.60 release handoff pack resolver failed: ${resolver.stderr || resolver.stdout}`);
+    fail(`1.61 release handoff pack resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
   const resolverJson = runNode(["scripts/resolve-release-handoff-pack.mjs", ".", "--intent", "help me launch", "--json"]);
@@ -7452,44 +7477,99 @@ function checkReleaseHandoffPackProtocol() {
       if (parsed.reportType === "RELEASE_HANDOFF_PACK"
         && parsed.humanSummary?.packId
         && parsed.boundaries?.approvesRelease === "No"
+        && parsed.machineReadableEvidence?.artifact_type === "release_handoff_evidence"
+        && parsed.machineReadableEvidence?.handoff_execution_boundary?.handoff_is_execution_input === true
+        && parsed.machineReadableEvidence?.handoff_execution_boundary?.execution_redefines_owner_evidence === false
+        && parsed.machineReadableEvidence?.handoff_execution_boundary?.approves_release === false
+        && parsed.machineReadableEvidence?.handoff_execution_boundary?.executes_release_commands === false
+        && parsed.machineReadableEvidence?.handoff_execution_boundary?.codex_release_owner === false
         && Array.isArray(parsed.codexMayRun)
         && Array.isArray(parsed.humanMustRun)
         && Array.isArray(parsed.externalSystemMustRun)) {
-        pass("1.60 release handoff pack resolver JSON includes pack, boundaries, and ownership");
+        pass("1.61 release handoff pack resolver JSON includes structured evidence and boundaries");
       } else {
-        fail(`1.60 release handoff pack resolver JSON missing expected fields: ${resolverJson.stdout}`);
+        fail(`1.61 release handoff pack resolver JSON missing expected fields: ${resolverJson.stdout}`);
       }
     } catch (error) {
-      fail(`1.60 release handoff pack resolver JSON invalid: ${error.message}`);
+      fail(`1.61 release handoff pack resolver JSON invalid: ${error.message}`);
     }
   } else {
-    fail(`1.60 release handoff pack resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+    fail(`1.61 release handoff pack resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const readyResolver = runNode([
+    "scripts/resolve-release-handoff-pack.mjs",
+    ".",
+    "--intent",
+    "help me launch",
+    "--release-target",
+    "web-hosted-preview",
+    "--recipe-id",
+    "web-hosted-preview",
+    "--approval-type",
+    "RELEASE_APPROVAL",
+    "--approval-status",
+    "APPROVED",
+    "--approval-scope",
+    "web-hosted-preview handoff review",
+    "--approval-time",
+    "2026-07-03T00:00:00Z",
+    "--allowed-codex-actions",
+    "LOCAL_READ_ONLY",
+    "--blocked-actions",
+    "PRODUCTION_DEPLOY,SECRET_ACCESS,REMOTE_STATE_MUTATION",
+    "--approval-expiry",
+    "2026-07-10",
+    "--release-owner",
+    "human:release-owner",
+    "--evidence-path",
+    "approval-records/demo-release-approval.md",
+    "--release-sop",
+    "docs/release-sop.md owned by human:release-owner",
+    "--rollback",
+    "docs/release-rollback.md owned by human:release-owner restore when smoke fails",
+    "--monitoring",
+    "docs/monitoring.md owned by human:release-owner smoke dashboard",
+    "--environment",
+    "docs/environment.md",
+    "--post-launch-smoke",
+    "docs/post-release-smoke.md owned by human:release-owner read-only smoke check",
+  ]);
+  if (readyResolver.status === 0
+    && readyResolver.stdout.includes("READY_FOR_HANDOFF_REVIEW")
+    && readyResolver.stdout.includes("Ready for handoff review, not release approval")) {
+    pass("1.61 release handoff ready wording is handoff review only");
+  } else {
+    fail(`1.61 release handoff ready wording failed: ${readyResolver.stderr || readyResolver.stdout}`);
   }
 
   const source = runNode(["scripts/check-release-handoff-pack.mjs", "."]);
   if (source.status === 0 && source.stdout.includes("Release Handoff Pack check passed")) {
-    pass("1.60 release handoff pack checker passes source repo");
+    pass("1.61 release handoff pack checker passes source repo");
   } else {
-    fail(`1.60 release handoff pack checker failed: ${source.stderr || source.stdout}`);
+    fail(`1.61 release handoff pack checker failed: ${source.stderr || source.stdout}`);
   }
 
   const guideJson = runNode(["scripts/resolve-release-guide.mjs", ".", "--intent", "help me launch", "--json"]);
   if (guideJson.status === 0) {
     try {
       const parsed = JSON.parse(guideJson.stdout);
-      const hasHandoff = Array.isArray(parsed.releaseHandoffPack)
-        && parsed.releaseHandoffPack.some((row) => row.field === "Pack ID")
-        && parsed.releaseGuideRouting?.some((row) => row.stage === "Release Handoff Pack");
-      if (hasHandoff) {
-        pass("1.60 release guide consumes release handoff pack routing");
+      const handoffRoute = parsed.releaseGuideRouting?.find((row) => row.stage === "Release Handoff Pack");
+      const handoffStatus = parsed.releaseHandoffPack?.find?.((row) => row.field === "Status")?.value || "";
+      const handoffState = parsed.releaseHandoffPack?.find?.((row) => row.field === "Handoff State")?.value || "";
+      const handoffDeferred = handoffStatus.includes("DEFERRED")
+        && handoffState.includes("DEFERRED_UNTIL_RELEASE_GUIDE_READY")
+        && handoffRoute?.status === "DEFERRED";
+      if (handoffDeferred) {
+        pass("1.61 release guide defers handoff pack until route prerequisites are ready");
       } else {
-        fail(`1.60 release guide missing handoff pack bridge: ${guideJson.stdout}`);
+        fail(`1.61 release guide missing deferred handoff bridge: ${guideJson.stdout}`);
       }
     } catch (error) {
-      fail(`1.60 release guide handoff JSON invalid: ${error.message}`);
+      fail(`1.61 release guide handoff JSON invalid: ${error.message}`);
     }
   } else {
-    fail(`1.60 release guide handoff bridge failed: ${guideJson.stderr || guideJson.stdout}`);
+    fail(`1.61 release guide handoff bridge failed: ${guideJson.stderr || guideJson.stdout}`);
   }
 
   for (const target of [
@@ -7497,15 +7577,15 @@ function checkReleaseHandoffPackProtocol() {
     "examples/1.60-release-handoff-packs/mini-program-review",
     "examples/1.60-release-handoff-packs/backend-api-release",
   ]) {
-    const result = runNode(["scripts/check-release-handoff-pack.mjs", target]);
+    const result = runNode(["scripts/check-release-handoff-pack.mjs", target, "--require-structured-evidence"]);
     if (result.status === 0 && result.stdout.includes("Release Handoff Pack check passed")) {
-      pass(`1.60 release handoff pack example passes: ${target}`);
+      pass(`1.61 release handoff pack strict example passes: ${target}`);
     } else {
-      fail(`1.60 release handoff pack example failed ${target}: ${result.stderr || result.stdout}`);
+      fail(`1.61 release handoff pack strict example failed ${target}: ${result.stderr || result.stdout}`);
     }
   }
 
-  for (const [name, target, expected] of [
+  for (const [name, target, expected, extraArgs = []] of [
     ["codex production", "test-fixtures/bad/bad-release-handoff-codex-production", "Codex May Run"],
     ["missing approval", "test-fixtures/bad/bad-release-handoff-missing-approval", "Approval Type"],
     ["missing owner", "test-fixtures/bad/bad-release-handoff-missing-owner", "Release Owner"],
@@ -7515,13 +7595,15 @@ function checkReleaseHandoffPackProtocol() {
     ["remote state", "test-fixtures/bad/bad-release-handoff-remote-state", "Codex May Run"],
     ["store assigned to Codex", "test-fixtures/bad/bad-release-handoff-store-assigned-to-codex", "Codex May Run"],
     ["migration assigned to Codex", "test-fixtures/bad/bad-release-handoff-migration-assigned-to-codex", "Codex May Run"],
+    ["missing structured evidence", "test-fixtures/bad/bad-release-handoff-missing-structured-evidence", "Machine-Readable Evidence is required", ["--require-structured-evidence"]],
+    ["execution redefines evidence", "test-fixtures/bad/bad-release-handoff-execution-redefines-evidence", "execution_redefines_owner_evidence", ["--require-structured-evidence"]],
   ]) {
-    const result = runNode(["scripts/check-release-handoff-pack.mjs", target]);
+    const result = runNode(["scripts/check-release-handoff-pack.mjs", target, ...extraArgs]);
     const output = `${result.stdout}\n${result.stderr}`;
     if (result.status !== 0 && output.includes(expected)) {
-      pass(`1.60 release handoff pack rejects ${name}`);
+      pass(`1.61 release handoff pack rejects ${name}`);
     } else {
-      fail(`1.60 release handoff pack must reject ${name}: ${output}`);
+      fail(`1.61 release handoff pack must reject ${name}: ${output}`);
     }
   }
 }

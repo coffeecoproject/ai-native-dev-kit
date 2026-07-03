@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.60.0`.
+Current release: `1.61.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.60.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, and bounded release execution planning after human approval.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.61.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, and bounded release execution planning after human approval.
 
-1.60.0 adds Release Handoff Packs: Release Guide can now turn a selected platform recipe and structured approval into a bounded handoff package. It separates what Codex may prepare, what humans must decide, what external systems must run, and what evidence must be recorded. Handoff packs do not approve release, execute release commands, deploy production, run provider APIs, upload packages, or ask users for secrets.
+1.61.0 hardens the release path: Release Guide now waits until prerequisite route steps are ready before generating a Release Handoff Pack, and handoff packs include machine-readable evidence for recipe, approval, owner, rollback, monitoring, post-release smoke, and execution boundaries. "Ready for handoff review" still does not mean release approval, deployment permission, provider access, package upload, or secret access.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -120,6 +120,7 @@ IntentOS 当前包含这些核心能力：
 | Release Guide | 用户说“帮我上线”时，Codex 用一个入口判断应该走发布适配、上线评审、结构化审批还是发布执行计划 |
 | Platform Release Recipes | 根据 Web、后端、小程序等平台给出发布前通常需要的准备清单，但不执行发布 |
 | Release Handoff Packs | 把平台配方和结构化审批变成可交接的发布包，明确 Codex、人和外部系统各自负责什么 |
+| Release Path Hardening | 防止上线交接包过早生成，并用结构化证据证明交接包不是发布批准 |
 | Release Execution | 用户确认发布后，把执行步骤、负责人、停止条件和证据要求整理成受控发布执行计划 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
@@ -347,6 +348,7 @@ Reference:
 
 Current release:
 
+- [1.61.0 Release Record](releases/1.61.0/release-record.md)
 - [1.60.0 Release Record](releases/1.60.0/release-record.md)
 - [1.59.0 Release Record](releases/1.59.0/release-record.md)
 - [1.58.0 Release Record](releases/1.58.0/release-record.md)

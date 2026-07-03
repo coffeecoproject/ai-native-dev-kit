@@ -90,6 +90,7 @@ node scripts/cli.mjs release-guide ../my-project \
 `release-guide` returns one Release Guide Card. It routes internally across release adapter, launch review, structured release approval, platform release recipes, release handoff packs, and release execution planning. It does not approve release, deploy production, run provider API commands, ask for secrets, or mutate release infrastructure.
 From 1.59 onward, it can select or suggest a Platform Release Recipe so Codex can explain what this platform usually needs before release execution planning.
 From 1.60 onward, it can also bridge into a Release Handoff Pack so Codex, human, and external-system responsibilities are separated before any execution plan.
+From 1.61 onward, it defers the Release Handoff Pack until prerequisite release-guide route steps are ready, and strict handoff checks require machine-readable evidence. `READY_FOR_HANDOFF_REVIEW` means handoff review only; it is not release approval.
 
 Maintainers can still call lower-level release evidence commands directly:
 
