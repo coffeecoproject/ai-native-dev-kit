@@ -203,6 +203,12 @@ function routeFromGuidance(guidance, goal) {
       recommendedPath: "先做执行后收口，确认改动范围、验证结果和遗留问题，再进入提交审查。",
     };
   }
+  if (intent === "RELEASE_OR_DEPLOY") {
+    return {
+      plainRoute: "release-guide-first",
+      recommendedPath: "先做一张上线引导卡，把发布目标、人工审批、证据和哪些动作必须由人执行说清楚。",
+    };
+  }
   if (intent === "TASK_SWITCH_OR_RESUME") {
     return {
       plainRoute: "manage-interrupted-work",
@@ -251,6 +257,10 @@ function questionsFor(guidance, goal, route) {
     preferred.push("第一版主要给谁用？");
     preferred.push("第一版只需要先完成哪一个核心流程？");
   }
+  if (route.plainRoute === "release-guide-first") {
+    preferred.push("这次是预览测试、内部试用，还是正式发布？");
+    preferred.push("谁负责最终确认发布？");
+  }
   if (route.plainRoute === "read-existing-rules-first" || route.plainRoute === "risk-first-plan") {
     preferred.push("这个项目现在是否已经有人在用？");
     preferred.push("这次是否涉及真实数据、线上环境或不可回滚风险？");
@@ -278,6 +288,9 @@ function safeActionsFor(guidance, goal, route) {
   } else if (route.plainRoute === "close-current-work") {
     actions.push("只读检查改动范围、验证证据和遗留问题。");
     actions.push("判断是否可以进入提交审查。");
+  } else if (route.plainRoute === "release-guide-first") {
+    actions.push("只读生成上线引导卡，整理发布目标、审批、证据和人工执行边界。");
+    actions.push("判断是否可以进入发布执行计划，而不是直接发布。");
   } else if (route.plainRoute === "review-documents") {
     actions.push("只读列出可能过期、重复或需要归档建议的文档。");
     actions.push("先给建议，不移动、不删除。");
@@ -297,6 +310,9 @@ function blockedActionsFor(route) {
   if (route.plainRoute === "review-documents") common.push("不能直接移动、删除或重写文档。");
   if (route.plainRoute === "read-existing-rules-first" || route.plainRoute === "risk-first-plan") {
     common.push("不能覆盖已有规则、发布配置或自动触发器。");
+  }
+  if (route.plainRoute === "release-guide-first") {
+    common.push("不能替你批准发布、填写密钥、调用云平台或提交应用商店审核。");
   }
   return common.slice(0, 3);
 }

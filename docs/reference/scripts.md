@@ -53,6 +53,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs launch-view-check <project>` | Check recorded Launch Review Views | No |
 | `node scripts/cli.mjs release-adapter <project> --intent "<goal>"` | Discover and explain a project-specific beginner release path | No |
 | `node scripts/cli.mjs release-adapter-check <project>` | Check recorded Release Adapter Profiles | No |
+| `node scripts/cli.mjs release-guide <project> --intent "<goal>"` | Route launch intent through one beginner-friendly Release Guide Card | No |
+| `node scripts/cli.mjs release-guide-check <project>` | Check recorded Release Guide Cards | No |
 | `node scripts/cli.mjs release-execution <project> --intent "<goal>" --mode PLAN_ONLY` | Plan bounded release execution after launch review and human release approval | No |
 | `node scripts/cli.mjs release-execution-check <project>` | Check recorded Release Execution Plans | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
@@ -211,6 +213,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-release-adapter.mjs` is the 1.57 beginner release adapter entry. It reads project files, detects platform/build/test/deployment signals, recommends a safe first release target, records missing inputs, and prints one Release Adapter Profile. It does not write target-project files, approve release, deploy production, ask for secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production config, or make Codex the release owner.
 
 `scripts/check-release-adapter.mjs` checks recorded Release Adapter Profiles. It rejects missing Beginner Release Cards, secret-like content, high-risk release actions assigned to Codex, release/production approval claims, and attempts to treat beginner confirmation as production approval.
+
+`scripts/resolve-release-guide.mjs` is the 1.58 release guide entry. It routes launch intent through Release Adapter, Launch Review View, Structured Release Approval, and Release Execution Protocol, then prints one beginner-facing Release Guide Card. It does not write target-project files, approve release, deploy, publish previews by itself, run provider API commands, ask for secrets, or make Codex the release owner.
+
+`scripts/check-release-guide.mjs` checks recorded Release Guide Cards. It rejects unstructured approval for execution readiness, production handoff assigned to Codex, remote-side-effect commands classified as local-safe, weak PASS evidence, secret-like content, release/production approval claims, and attempts to treat free-form approval text as release approval.
 
 `scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
 

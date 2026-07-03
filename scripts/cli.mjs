@@ -295,6 +295,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "release-guide": {
+    description: "Route launch intent through one beginner-friendly release guide.",
+    script: "scripts/resolve-release-guide.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-guide-check": {
+    description: "Check recorded Release Guide Cards.",
+    script: "scripts/check-release-guide.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "conversation-drift": {
     description: "Check conversation turn routing and scope-change governance.",
     script: "scripts/check-conversation-drift.mjs",
@@ -592,6 +604,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs launch-view-check .");
   console.log("  node scripts/cli.mjs release-adapter . --intent 'prepare release adapter'");
   console.log("  node scripts/cli.mjs release-adapter-check .");
+  console.log("  node scripts/cli.mjs release-guide . --intent 'help me launch'");
+  console.log("  node scripts/cli.mjs release-guide-check .");
   console.log("  node scripts/cli.mjs release-execution . --intent 'prepare release execution'");
   console.log("  node scripts/cli.mjs release-execution-check .");
   console.log("  node scripts/cli.mjs conversation-drift .");

@@ -1495,6 +1495,10 @@ function checkCliFrontDoor() {
     "node --check scripts/check-release-adapter.mjs",
     "node scripts/cli.mjs release-adapter .",
     "node scripts/check-release-adapter.mjs .",
+    "node --check scripts/resolve-release-guide.mjs",
+    "node --check scripts/check-release-guide.mjs",
+    "node scripts/cli.mjs release-guide .",
+    "node scripts/check-release-guide.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1534,6 +1538,8 @@ function checkCliFrontDoor() {
     "launch-view-check",
     "release-adapter",
     "release-adapter-check",
+    "release-guide",
+    "release-guide-check",
     "release-execution",
     "release-execution-check",
     "conversation-drift",
@@ -1833,6 +1839,23 @@ function checkCliFrontDoor() {
     pass("CLI release-adapter-check delegates to release adapter checker");
   } else {
     fail(`CLI release-adapter-check failed: ${releaseAdapterCheck.stderr || releaseAdapterCheck.stdout}`);
+  }
+
+  const releaseGuide = runNode(["scripts/cli.mjs", "release-guide", ".", "--intent", "help me launch"]);
+  if (releaseGuide.status === 0
+    && releaseGuide.stdout.includes("Release Guide Card")
+    && releaseGuide.stdout.includes("This guide approves release: No")
+    && releaseGuide.stdout.includes("This guide deploys or publishes by itself: No")) {
+    pass("CLI release-guide delegates to release guide resolver");
+  } else {
+    fail(`CLI release-guide failed: ${releaseGuide.stderr || releaseGuide.stdout}`);
+  }
+
+  const releaseGuideCheck = runNode(["scripts/cli.mjs", "release-guide-check", "."]);
+  if (releaseGuideCheck.status === 0 && releaseGuideCheck.stdout.includes("Release Guide check passed")) {
+    pass("CLI release-guide-check delegates to release guide checker");
+  } else {
+    fail(`CLI release-guide-check failed: ${releaseGuideCheck.stderr || releaseGuideCheck.stdout}`);
   }
 
   const releaseExecution = runNode(["scripts/cli.mjs", "release-execution", ".", "--intent", "prepare release execution"]);
@@ -7030,6 +7053,125 @@ function checkReleaseAdapterProtocol() {
   }
 }
 
+function checkReleaseGuideProtocol() {
+  const required = [
+    "core/release-guide.md",
+    "docs/release-guide.md",
+    "templates/release-guide-card.md",
+    "templates/release-approval-record.md",
+    "checklists/release-guide-review.md",
+    "prompts/release-guide-agent.md",
+    "release-guides/.gitkeep",
+    "scripts/resolve-release-guide.mjs",
+    "scripts/check-release-guide.mjs",
+    "docs/plans/release-path-consolidation-1.58-plan.md",
+    "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
+    "examples/1.58-release-guide-consolidation/web-preview-release-guide/README.md",
+    "examples/1.58-release-guide-consolidation/web-preview-release-guide/release-guides/001-release-guide.md",
+    "test-fixtures/bad/bad-release-guide-unstructured-approval/release-guides/001-bad.md",
+    "test-fixtures/bad/bad-release-guide-codex-production/release-guides/001-bad.md",
+    "test-fixtures/bad/bad-release-guide-remote-local/release-guides/001-bad.md",
+    "test-fixtures/bad/bad-release-guide-weak-evidence/release-guides/001-bad.md",
+    "releases/1.58.0/release-record.md",
+    "releases/1.58.0/known-limitations.md",
+    "releases/1.58.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.58 release guide asset exists ${file}`);
+    else fail(`1.58 release guide asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/release-guide.md"),
+    read("docs/release-guide.md"),
+    read("templates/release-guide-card.md"),
+    read("templates/release-approval-record.md"),
+    read("scripts/resolve-release-guide.mjs"),
+    read("scripts/check-release-guide.mjs"),
+    read("docs/plans/release-path-consolidation-1.58-plan.md"),
+    read("docs/plans/release-path-consolidation-1.58-1.60-plan.md"),
+    read("releases/1.58.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Release Guide",
+    "Structured Approval",
+    "Assist Levels",
+    "Command Risk Classes",
+    "Evidence Quality",
+    "This guide approves release: No",
+    "This guide deploys or publishes by itself: No",
+    "Unknown commands default to NO_RUN",
+    "does not call provider APIs",
+    "does not request, store, print, or infer secrets",
+  ]) {
+    if (combined.includes(marker)) pass(`1.58 release guide includes ${marker}`);
+    else fail(`1.58 release guide missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-release-guide.mjs", ".", "--intent", "help me launch"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Release Guide Card")
+    && resolver.stdout.includes("## Structured Release Approval Gate")
+    && resolver.stdout.includes("## Assist Level Classification")
+    && resolver.stdout.includes("This guide approves release: No")
+    && resolver.stdout.includes("This guide deploys or publishes by itself: No")) {
+    pass("1.58 release guide resolver prints safe guide");
+  } else {
+    fail(`1.58 release guide resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-release-guide.mjs", ".", "--intent", "help me launch", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "RELEASE_GUIDE_CARD"
+        && parsed.humanSummary?.guideState
+        && Array.isArray(parsed.structuredReleaseApprovalGate)
+        && parsed.assistLevelClassification?.some((item) => item.level === "PREVIEW_ASSIST")
+        && parsed.boundaries?.approvesRelease === "No"
+        && parsed.boundaries?.deploysOrPublishesByItself === "No") {
+        pass("1.58 release guide resolver JSON includes approval, assist, and boundaries");
+      } else {
+        fail(`1.58 release guide resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.58 release guide resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.58 release guide resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-release-guide.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Release Guide check passed")) {
+    pass("1.58 release guide checker passes source repo");
+  } else {
+    fail(`1.58 release guide checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-release-guide.mjs", "examples/1.58-release-guide-consolidation/web-preview-release-guide"]);
+  if (example.status === 0 && example.stdout.includes("Release Guide check passed")) {
+    pass("1.58 release guide example passes checker");
+  } else {
+    fail(`1.58 release guide example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["unstructured approval", "test-fixtures/bad/bad-release-guide-unstructured-approval", "requires structured approval field"],
+    ["codex production", "test-fixtures/bad/bad-release-guide-codex-production", "production handoff must be human"],
+    ["remote local", "test-fixtures/bad/bad-release-guide-remote-local", "remote side-effect"],
+    ["weak evidence", "test-fixtures/bad/bad-release-guide-weak-evidence", "PASS without concrete ref"],
+  ]) {
+    const result = runNode(["scripts/check-release-guide.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.58 release guide rejects ${name}`);
+    } else {
+      fail(`1.58 release guide must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -8068,6 +8210,7 @@ function checkReadmePointers() {
     "Decision Explain Trace",
     "Launch Review View",
     "Guided Release Adapter",
+    "Release Guide",
     "Release Execution",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
@@ -8084,6 +8227,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs finish",
     "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs release-adapter",
+    "node scripts/cli.mjs release-guide",
     "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
@@ -8100,6 +8244,7 @@ function checkReadmePointers() {
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
     "node scripts/check-release-adapter.mjs",
+    "node scripts/check-release-guide.mjs",
     "node scripts/check-release-execution.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
@@ -8112,6 +8257,7 @@ function checkReadmePointers() {
     "docs/guided-closure-experience.md",
     "docs/launch-review-view.md",
     "docs/release-adapter.md",
+    "docs/release-guide.md",
     "docs/release-execution-protocol.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
@@ -8171,6 +8317,7 @@ function checkReadmePointers() {
     "Decision Explain Trace",
     "Launch Review View",
     "Guided Release Adapter",
+    "Release Guide",
     "Release Execution",
     "O0 / BL0 Lightweight Path",
     "安全边界",
@@ -8183,6 +8330,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs finish",
     "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs release-adapter",
+    "node scripts/cli.mjs release-guide",
     "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
@@ -8196,6 +8344,7 @@ function checkReadmePointers() {
     "node scripts/check-guided-closure.mjs",
     "node scripts/check-launch-review-view.mjs",
     "node scripts/check-release-adapter.mjs",
+    "node scripts/check-release-guide.mjs",
     "node scripts/check-release-execution.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
@@ -8204,6 +8353,7 @@ function checkReadmePointers() {
     "docs/guided-closure-experience.md",
     "docs/launch-review-view.md",
     "docs/release-adapter.md",
+    "docs/release-guide.md",
     "docs/release-execution-protocol.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
@@ -10796,6 +10946,7 @@ checkUnifiedClosureModelProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();
+checkReleaseGuideProtocol();
 checkReleaseExecutionProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();

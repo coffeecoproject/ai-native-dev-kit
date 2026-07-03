@@ -422,6 +422,9 @@ function routingFor(project, signals, delivery, intent) {
   if (signals.hasDocs || signals.hasDocumentIntent) {
     rows.push(route("Documents may need review", "document lifecycle", "Mark stale or duplicate docs without deleting them", project.state === "NEW_PROJECT" ? "Later" : "Yes"));
   }
+  if (signals.hasReleaseIntent) {
+    rows.push(route("Release path requested", "release guide", "Use one launch entry before adapter, launch view, approval, or execution planning", "Yes"));
+  }
   if (signals.hasHookOrCiSignals || project.state === "PRODUCTION_SENSITIVE_PROJECT" || signals.hasAutomationIntent || signals.hasReleaseIntent) {
     rows.push(route("Automation or CI exists", "hook plan", "Review automatic trigger risk without installing anything", "Yes"));
   }
@@ -523,6 +526,14 @@ function deepCapabilities() {
       userMeaning: "判断离可用还差多远",
       shouldRun: () => true,
       skipReason: () => "始终应判断交付路径。",
+    },
+    {
+      id: "release-guide",
+      script: "resolve-release-guide.mjs",
+      acceptsIntent: true,
+      userMeaning: "把上线目标收敛成一张发布引导卡",
+      shouldRun: (project, signals) => signals.hasReleaseIntent || project.state === "PRODUCTION_SENSITIVE_PROJECT",
+      skipReason: () => "未发现上线、发布或生产环境目标。",
     },
     {
       id: "work-queue",
@@ -659,6 +670,11 @@ function summarizeDeepCapability(result) {
     summary.plainFinding = `当前交付状态是 ${report.deliveryPathState?.currentState || "unknown"}，下一步目标是 ${report.deliveryPathState?.nextTargetState || "unknown"}。`;
     summary.nextAction = "先补齐下一阶段所需证据。";
   }
+  if (result.id === "release-guide") {
+    summary.signal = report.humanSummary?.guideState || report.outcome || "unknown";
+    summary.plainFinding = `上线引导状态是 ${summary.signal}。`;
+    summary.nextAction = "先按 Release Guide 补齐发布目标、审批、证据和人工执行边界。";
+  }
   if (result.id === "work-queue") {
     summary.signal = `${report.currentTaskCount || 0} current / ${Array.isArray(report.pausedTasks) ? report.pausedTasks.length : 0} paused`;
     summary.plainFinding = `发现 ${report.currentTaskCount || 0} 个当前任务、${Array.isArray(report.pausedTasks) ? report.pausedTasks.length : 0} 个暂停任务、${Array.isArray(report.backlogItems) ? report.backlogItems.length : 0} 个待办。`;
@@ -691,6 +707,10 @@ function summarizeDeepCapability(result) {
 function recommendedNextStepFromDeep(project, delivery, orchestration, intent) {
   if (orchestration.failures.length > 0) {
     return "先修复只读编排里失败的检查，再决定是否进入计划或实现。";
+  }
+
+  if (intent.classification === "RELEASE_OR_DEPLOY") {
+    return "先走 Release Guide：把发布目标、审批、证据、人工执行边界和下一步安全动作放在一张卡里确认。";
   }
 
   if (intent.riskLevel === "high") {

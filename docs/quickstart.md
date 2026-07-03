@@ -77,17 +77,24 @@ node scripts/cli.mjs launch-view ../my-project \
 When a beginner user wants to prepare release but does not know the deployment path, ask naturally:
 
 ```text
-这个项目准备上线，你自己配置发布流程。
+帮我看看这个项目怎么上线。
 ```
 
 For command-line evidence, use:
 
 ```bash
-node scripts/cli.mjs release-adapter ../my-project \
-  --intent "准备发布适配"
+node scripts/cli.mjs release-guide ../my-project \
+  --intent "帮我上线"
 ```
 
-`release-adapter` returns one Release Adapter Profile. It discovers platform, build/test commands, deployment hints, missing inputs, beginner choices, and the bridge into Release Execution. It does not approve release, deploy production, ask for secrets, or mutate release infrastructure.
+`release-guide` returns one Release Guide Card. It routes internally across release adapter, launch review, structured release approval, and release execution planning. It does not approve release, deploy production, run provider API commands, ask for secrets, or mutate release infrastructure.
+
+Maintainers can still call lower-level release evidence commands directly:
+
+```bash
+node scripts/cli.mjs release-adapter ../my-project --intent "准备发布适配"
+node scripts/cli.mjs release-execution ../my-project --intent "准备发布执行" --mode PLAN_ONLY
+```
 
 After a human release owner approves release, ask naturally:
 

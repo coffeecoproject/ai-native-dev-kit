@@ -31,6 +31,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `guided-closure-cards/` | Plain close-out status, missing work, safe next action, human decisions, and technical evidence summary |
 | `launch-review-views/` | Read-only launch review view built from Unified Closure, Safe Launch labels, launch surface gaps, and human release decisions |
 | `release-adapters/` | Beginner-readable project release adapter profiles |
+| `release-guides/` | Unified beginner-facing release guide cards that route adapter, launch review, structured approval, and release execution planning |
 | `release-execution-plans/` | Bounded release execution plans after launch review and human release approval |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
@@ -66,7 +67,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `doc-lifecycle-reports/` | Source-of-truth, stale, duplicate, archive, and deprecation candidate reports |
 | `archive-apply-plans/` | Plan-only archive action, link-check, archive index, rollback, and human-decision records |
 | `apply-readiness-reports/` | Pre-execution readiness reports for reviewed Unified Apply Plans |
-| `approval-records/` | Human-owned approval evidence for exact action IDs, target paths, expiry, rollback, and verification |
+| `approval-records/` | Human-owned approval evidence for exact action IDs, target paths, expiry, rollback, verification, and structured release approval |
 | `work-queue/` | Current task, paused tasks, backlog / parking lot, and resume review records |
 | `hook-orchestration-plans/` | Plan-first hook candidates, H0-H3 classification, approval requirements, and rollback notes |
 | `hook-policies/` | Project hook policy, allowed hook classes, approval owners, and rollback / disable rules |
