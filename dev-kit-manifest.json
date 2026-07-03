@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.56.0",
+  "devKitVersion": "1.57.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.56.0"
+    "phase": "1.57.0"
   },
   "groups": {
     "sourceRequired": [
@@ -97,6 +97,8 @@
       "checklists/project-onboarding-review.md",
       "checklists/real-adoption-trial-review.md",
       "checklists/real-mvp-example-review.md",
+      "checklists/release-adapter-review.md",
+      "checklists/release-execution-review.md",
       "checklists/release-gate.md",
       "checklists/review-loop-review.md",
       "checklists/review-surface-review.md",
@@ -164,6 +166,8 @@
       "core/project-onboarding.md",
       "core/real-mvp-example-evidence.md",
       "core/real-project-adoption-trial.md",
+      "core/release-adapter.md",
+      "core/release-execution-protocol.md",
       "core/review-loop.md",
       "core/review-surface-governance.md",
       "core/safe-launch.md",
@@ -266,6 +270,7 @@
       "docs/plans/guided-closure-experience-1.52-plan.md",
       "docs/plans/guided-decision-delivery-loop-1.10-plan.md",
       "docs/plans/guided-delivery-baseline-1.3-plan.md",
+      "docs/plans/guided-release-adapter-1.57-plan.md",
       "docs/plans/human-decision-summary-1.9-plan.md",
       "docs/plans/launch-review-view-1.55-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
@@ -273,6 +278,7 @@
       "docs/plans/productization-hardcut-1.0-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
+      "docs/plans/release-execution-protocol-1.56-plan.md",
       "docs/plans/repository-information-architecture-1.36-plan.md",
       "docs/plans/standard-baseline-pack-registry-1.14-plan.md",
       "docs/plans/structured-evidence-hardening-1.41.1-plan.md",
@@ -295,6 +301,8 @@
       "docs/reference/platform-standard-baseline-matrix.md",
       "docs/reference/scripts.md",
       "docs/reference/standard-baseline-packs.md",
+      "docs/release-adapter.md",
+      "docs/release-execution-protocol.md",
       "docs/repository-structure.md",
       "docs/review-surface-governance.md",
       "docs/roadmaps/README.md",
@@ -489,6 +497,10 @@
       "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
       "examples/1.55-launch-review-view/web-internal-handoff/README.md",
       "examples/1.55-launch-review-view/web-internal-handoff/launch-review-views/001-web-mvp.md",
+      "examples/1.56-release-execution/web-assisted-handoff/README.md",
+      "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md",
+      "examples/1.57-guided-release-adapter/web-vercel-preview/README.md",
+      "examples/1.57-guided-release-adapter/web-vercel-preview/release-adapters/001-release-adapter.md",
       "examples/1.6-conversation-drift-control/README.md",
       "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
@@ -874,6 +886,8 @@
       "prompts/project-onboarding-agent.md",
       "prompts/real-adoption-agent.md",
       "prompts/real-mvp-example-agent.md",
+      "prompts/release-adapter-agent.md",
+      "prompts/release-execution-agent.md",
       "prompts/reporter-agent.md",
       "prompts/review-surface-agent.md",
       "prompts/reviewer-agent.md",
@@ -883,6 +897,8 @@
       "prompts/workflow-concierge-agent.md",
       "real-adoption-trials/.gitkeep",
       "real-adoption-trials/180-governed-web-readonly.md",
+      "release-adapters/.gitkeep",
+      "release-execution-plans/.gitkeep",
       "releases/0.33.0/baseline-freeze.md",
       "releases/0.33.0/self-check-report.md",
       "releases/0.34.0/phase-report.md",
@@ -1083,6 +1099,12 @@
       "releases/1.55.0/known-limitations.md",
       "releases/1.55.0/release-record.md",
       "releases/1.55.0/self-check-report.md",
+      "releases/1.56.0/known-limitations.md",
+      "releases/1.56.0/release-record.md",
+      "releases/1.56.0/self-check-report.md",
+      "releases/1.57.0/known-limitations.md",
+      "releases/1.57.0/release-record.md",
+      "releases/1.57.0/self-check-report.md",
       "releases/1.6.0/known-limitations.md",
       "releases/1.6.0/release-record.md",
       "releases/1.6.0/self-check-report.md",
@@ -1225,6 +1247,8 @@
       "scripts/check-product-completeness.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
+      "scripts/check-release-adapter.mjs",
+      "scripts/check-release-execution.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
@@ -1268,6 +1292,8 @@
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
+      "scripts/resolve-release-adapter.mjs",
+      "scripts/resolve-release-execution.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -1515,6 +1541,8 @@
       "templates/project-profile.md",
       "templates/real-adoption-trial-report.md",
       "templates/real-mvp-example-record.md",
+      "templates/release-adapter-profile.md",
+      "templates/release-execution-plan.md",
       "templates/request-card.md",
       "templates/review-loop-report.md",
       "templates/review-packet.md",
@@ -1754,6 +1782,12 @@
       "test-fixtures/bad/bad-real-adoption-overclaim/real-adoption-trials/001-overclaim.md",
       "test-fixtures/bad/bad-real-adoption-public-name/real-adoption-trials/001-public-name.md",
       "test-fixtures/bad/bad-real-adoption-target-write/real-adoption-trials/001-target-write.md",
+      "test-fixtures/bad/bad-release-adapter-codex-auto-production/release-adapters/001-bad.md",
+      "test-fixtures/bad/bad-release-adapter-missing-beginner-card/release-adapters/001-bad.md",
+      "test-fixtures/bad/bad-release-adapter-secret-request/release-adapters/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-missing-launch-view/release-execution-plans/001-bad.md",
       "test-fixtures/bad/bad-report-as-approval/final-reports/001-release.md",
       "test-fixtures/bad/bad-review-loop-too-many-rounds/evals/001-auto-fix-rounds.md",
       "test-fixtures/bad/bad-review-loop-too-many-rounds/review-loop-reports/001-auto-fix-rounds.md",
@@ -1833,24 +1867,7 @@
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
       "test-fixtures/output-quality/README.md",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep",
-      "checklists/release-execution-review.md",
-      "core/release-execution-protocol.md",
-      "docs/release-execution-protocol.md",
-      "docs/plans/release-execution-protocol-1.56-plan.md",
-      "examples/1.56-release-execution/web-assisted-handoff/README.md",
-      "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md",
-      "prompts/release-execution-agent.md",
-      "release-execution-plans/.gitkeep",
-      "releases/1.56.0/known-limitations.md",
-      "releases/1.56.0/release-record.md",
-      "releases/1.56.0/self-check-report.md",
-      "scripts/check-release-execution.mjs",
-      "scripts/resolve-release-execution.mjs",
-      "templates/release-execution-plan.md",
-      "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-execution-missing-launch-view/release-execution-plans/001-bad.md"
+      "workflow-guidance-cards/.gitkeep"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -1894,6 +1911,7 @@
       ".ai-native/checklists/project-onboarding-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/release-adapter-review.md",
       ".ai-native/checklists/release-gate.md",
       ".ai-native/checklists/review-loop-review.md",
       ".ai-native/checklists/review-surface-review.md",
@@ -1955,6 +1973,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-mvp-example-evidence.md",
       ".ai-native/core/real-project-adoption-trial.md",
+      ".ai-native/core/release-adapter.md",
       ".ai-native/core/review-loop.md",
       ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
@@ -2010,6 +2029,7 @@
       ".ai-native/docs/project-memory.md",
       ".ai-native/docs/real-adoption-usage.md",
       ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/release-adapter.md",
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
@@ -2059,6 +2079,7 @@
       ".ai-native/prompts/project-onboarding-agent.md",
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/release-adapter-agent.md",
       ".ai-native/prompts/repair-agent.md",
       ".ai-native/prompts/reporter-agent.md",
       ".ai-native/prompts/review-surface-agent.md",
@@ -2135,6 +2156,7 @@
       ".ai-native/templates/project-profile.md",
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/release-adapter-profile.md",
       ".ai-native/templates/request-card.md",
       ".ai-native/templates/review-loop-report.md",
       ".ai-native/templates/review-packet.md",
@@ -2226,6 +2248,8 @@
       "preflight",
       "product-completeness-reports",
       "real-adoption-trials",
+      "release-adapters",
+      "release-execution-plans/.gitkeep",
       "releases",
       "requests",
       "review-loop-reports",
@@ -2274,6 +2298,7 @@
       "scripts/check-product-completeness.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
+      "scripts/check-release-adapter.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
@@ -2314,6 +2339,7 @@
       "scripts/resolve-launch-review-view.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-product-completeness.mjs",
+      "scripts/resolve-release-adapter.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
@@ -2333,8 +2359,7 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros",
-      "release-execution-plans/.gitkeep"
+      "workflow-retros"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -2381,6 +2406,7 @@
       ".ai-native/checklists/project-onboarding-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/release-adapter-review.md",
       ".ai-native/checklists/release-gate.md",
       ".ai-native/checklists/review-loop-review.md",
       ".ai-native/checklists/review-surface-review.md",
@@ -2444,6 +2470,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-mvp-example-evidence.md",
       ".ai-native/core/real-project-adoption-trial.md",
+      ".ai-native/core/release-adapter.md",
       ".ai-native/core/review-loop.md",
       ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
@@ -2502,6 +2529,7 @@
       ".ai-native/docs/project-memory.md",
       ".ai-native/docs/real-adoption-usage.md",
       ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/release-adapter.md",
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
@@ -2578,6 +2606,7 @@
       ".ai-native/prompts/project-onboarding-agent.md",
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/release-adapter-agent.md",
       ".ai-native/prompts/repair-agent.md",
       ".ai-native/prompts/reporter-agent.md",
       ".ai-native/prompts/review-surface-agent.md",
@@ -2660,6 +2689,7 @@
       ".ai-native/templates/project-profile.md",
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/release-adapter-profile.md",
       ".ai-native/templates/request-card.md",
       ".ai-native/templates/review-loop-report.md",
       ".ai-native/templates/review-packet.md",
@@ -2753,6 +2783,8 @@
       "preflight",
       "product-completeness-reports",
       "real-adoption-trials",
+      "release-adapters",
+      "release-execution-plans/.gitkeep",
       "releases",
       "requests",
       "review-loop-reports",
@@ -2805,6 +2837,7 @@
       "scripts/check-product-completeness.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
+      "scripts/check-release-adapter.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
@@ -2847,6 +2880,7 @@
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
+      "scripts/resolve-release-adapter.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
@@ -2866,8 +2900,7 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros",
-      "release-execution-plans/.gitkeep"
+      "workflow-retros"
     ],
     "aiNativeCore": [
       ".ai-native/core/assumption-register.md",
@@ -2936,7 +2969,6 @@
       "core/guided-closure-experience.md",
       "core/hook-policy.md",
       "core/launch-review-view.md",
-      "core/release-execution-protocol.md",
       "core/low-risk-controlled-apply-candidate.md",
       "core/natural-language-orchestrator.md",
       "core/ordinary-user-first-slice.md",
@@ -2944,6 +2976,8 @@
       "core/product-completeness-gate.md",
       "core/real-mvp-example-evidence.md",
       "core/real-project-adoption-trial.md",
+      "core/release-adapter.md",
+      "core/release-execution-protocol.md",
       "core/review-surface-governance.md",
       "core/safe-launch.md",
       "core/standard-baseline-pack-registry.md",
@@ -3007,7 +3041,6 @@
       "templates/human-status-report.md",
       "templates/launch-readiness-report.md",
       "templates/launch-review-view-card.md",
-      "templates/release-execution-plan.md",
       "templates/learning-candidate.md",
       "templates/low-risk-controlled-apply-candidate.md",
       "templates/onboarding-decisions.md",
@@ -3028,6 +3061,8 @@
       "templates/project-profile.md",
       "templates/real-adoption-trial-report.md",
       "templates/real-mvp-example-record.md",
+      "templates/release-adapter-profile.md",
+      "templates/release-execution-plan.md",
       "templates/request-card.md",
       "templates/review-loop-report.md",
       "templates/review-packet.md",
@@ -3090,7 +3125,6 @@
       "prompts/hook-policy-agent.md",
       "prompts/launch-readiness-agent.md",
       "prompts/launch-review-view-agent.md",
-      "prompts/release-execution-agent.md",
       "prompts/low-risk-controlled-apply-candidate-agent.md",
       "prompts/ordinary-user-first-slice-agent.md",
       "prompts/patch-classifier-agent.md",
@@ -3099,6 +3133,8 @@
       "prompts/project-onboarding-agent.md",
       "prompts/real-adoption-agent.md",
       "prompts/real-mvp-example-agent.md",
+      "prompts/release-adapter-agent.md",
+      "prompts/release-execution-agent.md",
       "prompts/reporter-agent.md",
       "prompts/review-surface-agent.md",
       "prompts/reviewer-agent.md",
@@ -3148,7 +3184,6 @@
       "checklists/industrial-pack-review.md",
       "checklists/launch-readiness-review.md",
       "checklists/launch-review-view-review.md",
-      "checklists/release-execution-review.md",
       "checklists/low-risk-controlled-apply-candidate-review.md",
       "checklists/next-step-boundary-review.md",
       "checklists/ordinary-user-first-slice-review.md",
@@ -3159,6 +3194,8 @@
       "checklists/project-onboarding-review.md",
       "checklists/real-adoption-trial-review.md",
       "checklists/real-mvp-example-review.md",
+      "checklists/release-adapter-review.md",
+      "checklists/release-execution-review.md",
       "checklists/release-gate.md",
       "checklists/review-loop-review.md",
       "checklists/review-surface-review.md",
@@ -3243,7 +3280,6 @@
       "hook-policies",
       "launch-readiness",
       "launch-review-views",
-      "release-execution-plans",
       "learning-candidates",
       "mvp-example-reports",
       "ordinary-first-slices",
@@ -3252,6 +3288,8 @@
       "preflight",
       "product-completeness-reports",
       "real-adoption-trials",
+      "release-adapters",
+      "release-execution-plans",
       "releases",
       "requests",
       "review-loop-reports",
@@ -3310,7 +3348,6 @@
       "scripts/check-industrial-pack.mjs",
       "scripts/check-launch-readiness.mjs",
       "scripts/check-launch-review-view.mjs",
-      "scripts/check-release-execution.mjs",
       "scripts/check-low-risk-apply-candidate.mjs",
       "scripts/check-manifest.mjs",
       "scripts/check-mvp-example.mjs",
@@ -3321,6 +3358,8 @@
       "scripts/check-product-completeness.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
+      "scripts/check-release-adapter.mjs",
+      "scripts/check-release-execution.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
@@ -3362,10 +3401,11 @@
       "scripts/resolve-hook-policy.mjs",
       "scripts/resolve-industrial-baseline.mjs",
       "scripts/resolve-launch-review-view.mjs",
-      "scripts/resolve-release-execution.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
+      "scripts/resolve-release-adapter.mjs",
+      "scripts/resolve-release-execution.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
@@ -3537,6 +3577,10 @@
       "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
       "examples/1.55-launch-review-view/web-internal-handoff/README.md",
       "examples/1.55-launch-review-view/web-internal-handoff/launch-review-views/001-web-mvp.md",
+      "examples/1.56-release-execution/web-assisted-handoff/README.md",
+      "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md",
+      "examples/1.57-guided-release-adapter/web-vercel-preview/README.md",
+      "examples/1.57-guided-release-adapter/web-vercel-preview/release-adapters/001-release-adapter.md",
       "examples/1.6-conversation-drift-control/README.md",
       "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
@@ -3661,9 +3705,7 @@
       "examples/web-internal-admin-first-slice/preflight-report.md",
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
-      "examples/web-internal-admin-first-slice/task-card.md",
-      "examples/1.56-release-execution/web-assisted-handoff/README.md",
-      "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md"
+      "examples/web-internal-admin-first-slice/task-card.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -3878,6 +3920,12 @@
       "test-fixtures/bad/bad-real-adoption-overclaim/real-adoption-trials/001-overclaim.md",
       "test-fixtures/bad/bad-real-adoption-public-name/real-adoption-trials/001-public-name.md",
       "test-fixtures/bad/bad-real-adoption-target-write/real-adoption-trials/001-target-write.md",
+      "test-fixtures/bad/bad-release-adapter-codex-auto-production/release-adapters/001-bad.md",
+      "test-fixtures/bad/bad-release-adapter-missing-beginner-card/release-adapters/001-bad.md",
+      "test-fixtures/bad/bad-release-adapter-secret-request/release-adapters/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-execution-missing-launch-view/release-execution-plans/001-bad.md",
       "test-fixtures/bad/bad-report-as-approval/final-reports/001-release.md",
       "test-fixtures/bad/bad-review-loop-too-many-rounds/evals/001-auto-fix-rounds.md",
       "test-fixtures/bad/bad-review-loop-too-many-rounds/review-loop-reports/001-auto-fix-rounds.md",
@@ -3957,10 +4005,7 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.ai-native/version.json",
-      "test-fixtures/output-quality/README.md",
-      "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-execution-missing-launch-view/release-execution-plans/001-bad.md"
+      "test-fixtures/output-quality/README.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -3997,6 +4042,8 @@
       ".ai-native/checklists/product-completeness-gate-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/release-adapter-review.md",
+      ".ai-native/checklists/release-execution-review.md",
       ".ai-native/checklists/review-surface-review.md",
       ".ai-native/checklists/standard-baseline-selection-review.md",
       ".ai-native/checklists/unified-apply-plan-review.md",
@@ -4041,6 +4088,8 @@
       ".ai-native/core/product-completeness-gate.md",
       ".ai-native/core/real-mvp-example-evidence.md",
       ".ai-native/core/real-project-adoption-trial.md",
+      ".ai-native/core/release-adapter.md",
+      ".ai-native/core/release-execution-protocol.md",
       ".ai-native/core/review-surface-governance.md",
       ".ai-native/core/safe-launch.md",
       ".ai-native/core/standard-baseline-pack-registry.md",
@@ -4093,6 +4142,8 @@
       ".ai-native/docs/project-memory.md",
       ".ai-native/docs/real-adoption-usage.md",
       ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/release-adapter.md",
+      ".ai-native/docs/release-execution-protocol.md",
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
       ".ai-native/docs/standard-baseline-pack-registry.md",
@@ -4137,6 +4188,8 @@
       ".ai-native/prompts/product-completeness-agent.md",
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/release-adapter-agent.md",
+      ".ai-native/prompts/release-execution-agent.md",
       ".ai-native/prompts/review-surface-agent.md",
       ".ai-native/prompts/standard-baseline-router-agent.md",
       ".ai-native/prompts/walkthrough-agent.md",
@@ -4184,6 +4237,8 @@
       ".ai-native/templates/project-hook-policy.md",
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/release-adapter-profile.md",
+      ".ai-native/templates/release-execution-plan.md",
       ".ai-native/templates/review-surface-card.md",
       ".ai-native/templates/scope-change-report.md",
       ".ai-native/templates/standard-baseline-selection-report.md",
@@ -4249,6 +4304,8 @@
       "patch-classifications",
       "product-completeness-reports",
       "real-adoption-trials",
+      "release-adapters",
+      "release-execution-plans",
       "review-loop-reports",
       "review-packets",
       "review-summaries",
@@ -4299,6 +4356,8 @@
       "scripts/check-product-completeness.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
+      "scripts/check-release-adapter.mjs",
+      "scripts/check-release-execution.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
       "scripts/check-standard-baseline-pack.mjs",
@@ -4341,6 +4400,8 @@
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
+      "scripts/resolve-release-adapter.mjs",
+      "scripts/resolve-release-execution.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
       "scripts/resolve-work-queue.mjs",
@@ -4354,15 +4415,7 @@
       "subagent-run-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards",
-      "release-execution-plans",
-      ".ai-native/core/release-execution-protocol.md",
-      ".ai-native/docs/release-execution-protocol.md",
-      ".ai-native/templates/release-execution-plan.md",
-      ".ai-native/checklists/release-execution-review.md",
-      ".ai-native/prompts/release-execution-agent.md",
-      "scripts/check-release-execution.mjs",
-      "scripts/resolve-release-execution.mjs"
+      "workflow-guidance-cards"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -4402,6 +4455,7 @@
       ".ai-native/checklists/project-onboarding-review.md",
       ".ai-native/checklists/real-adoption-trial-review.md",
       ".ai-native/checklists/real-mvp-example-review.md",
+      ".ai-native/checklists/release-adapter-review.md",
       ".ai-native/checklists/release-execution-review.md",
       ".ai-native/checklists/review-loop-review.md",
       ".ai-native/checklists/review-surface-review.md",
@@ -4453,6 +4507,7 @@
       ".ai-native/core/project-onboarding.md",
       ".ai-native/core/real-mvp-example-evidence.md",
       ".ai-native/core/real-project-adoption-trial.md",
+      ".ai-native/core/release-adapter.md",
       ".ai-native/core/release-execution-protocol.md",
       ".ai-native/core/review-loop.md",
       ".ai-native/core/review-surface-governance.md",
@@ -4498,6 +4553,7 @@
       ".ai-native/docs/product-completeness-gate.md",
       ".ai-native/docs/real-adoption-usage.md",
       ".ai-native/docs/real-mvp-example-evidence.md",
+      ".ai-native/docs/release-adapter.md",
       ".ai-native/docs/release-execution-protocol.md",
       ".ai-native/docs/review-surface-governance.md",
       ".ai-native/docs/safe-launch.md",
@@ -4558,6 +4614,7 @@
       ".ai-native/prompts/project-onboarding-agent.md",
       ".ai-native/prompts/real-adoption-agent.md",
       ".ai-native/prompts/real-mvp-example-agent.md",
+      ".ai-native/prompts/release-adapter-agent.md",
       ".ai-native/prompts/release-execution-agent.md",
       ".ai-native/prompts/reporter-agent.md",
       ".ai-native/prompts/review-surface-agent.md",
@@ -4619,6 +4676,7 @@
       ".ai-native/templates/project-profile.md",
       ".ai-native/templates/real-adoption-trial-report.md",
       ".ai-native/templates/real-mvp-example-record.md",
+      ".ai-native/templates/release-adapter-profile.md",
       ".ai-native/templates/release-execution-plan.md",
       ".ai-native/templates/review-loop-report.md",
       ".ai-native/templates/review-packet.md",
@@ -4688,6 +4746,7 @@
       "patch-classifications",
       "product-completeness-reports",
       "real-adoption-trials",
+      "release-adapters",
       "review-loop-reports",
       "review-packets",
       "review-summaries",
@@ -4737,6 +4796,7 @@
       "scripts/check-product-completeness.mjs",
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
+      "scripts/check-release-adapter.mjs",
       "scripts/check-release-execution.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
@@ -4773,6 +4833,7 @@
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
+      "scripts/resolve-release-adapter.mjs",
       "scripts/resolve-release-execution.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -4877,10 +4938,6 @@
         "target": "launch-review-views"
       },
       {
-        "source": "release-execution-plans",
-        "target": "release-execution-plans"
-      },
-      {
         "source": "mvp-example-reports",
         "target": "mvp-example-reports"
       },
@@ -4907,6 +4964,14 @@
       {
         "source": "real-adoption-trials",
         "target": "real-adoption-trials"
+      },
+      {
+        "source": "release-adapters",
+        "target": "release-adapters"
+      },
+      {
+        "source": "release-execution-plans",
+        "target": "release-execution-plans"
       },
       {
         "source": "review-surface-cards",
@@ -5019,6 +5084,14 @@
         "target": ".ai-native/checklists/real-adoption-trial-review.md"
       },
       {
+        "source": "checklists/release-adapter-review.md",
+        "target": ".ai-native/checklists/release-adapter-review.md"
+      },
+      {
+        "source": "checklists/release-execution-review.md",
+        "target": ".ai-native/checklists/release-execution-review.md"
+      },
+      {
         "source": "checklists/review-surface-review.md",
         "target": ".ai-native/checklists/review-surface-review.md"
       },
@@ -5121,6 +5194,14 @@
       {
         "source": "core/real-project-adoption-trial.md",
         "target": ".ai-native/core/real-project-adoption-trial.md"
+      },
+      {
+        "source": "core/release-adapter.md",
+        "target": ".ai-native/core/release-adapter.md"
+      },
+      {
+        "source": "core/release-execution-protocol.md",
+        "target": ".ai-native/core/release-execution-protocol.md"
       },
       {
         "source": "core/review-surface-governance.md",
@@ -5327,6 +5408,14 @@
         "target": ".ai-native/docs/real-mvp-example-evidence.md"
       },
       {
+        "source": "docs/release-adapter.md",
+        "target": ".ai-native/docs/release-adapter.md"
+      },
+      {
+        "source": "docs/release-execution-protocol.md",
+        "target": ".ai-native/docs/release-execution-protocol.md"
+      },
+      {
         "source": "docs/review-surface-governance.md",
         "target": ".ai-native/docs/review-surface-governance.md"
       },
@@ -5449,6 +5538,14 @@
       {
         "source": "prompts/real-adoption-agent.md",
         "target": ".ai-native/prompts/real-adoption-agent.md"
+      },
+      {
+        "source": "prompts/release-adapter-agent.md",
+        "target": ".ai-native/prompts/release-adapter-agent.md"
+      },
+      {
+        "source": "prompts/release-execution-agent.md",
+        "target": ".ai-native/prompts/release-execution-agent.md"
       },
       {
         "source": "prompts/review-surface-agent.md",
@@ -5647,6 +5744,14 @@
         "target": "scripts/check-real-adoption-trial.mjs"
       },
       {
+        "source": "scripts/check-release-adapter.mjs",
+        "target": "scripts/check-release-adapter.mjs"
+      },
+      {
+        "source": "scripts/check-release-execution.mjs",
+        "target": "scripts/check-release-execution.mjs"
+      },
+      {
         "source": "scripts/check-review-loop.mjs",
         "target": "scripts/check-review-loop.mjs"
       },
@@ -5803,34 +5908,6 @@
         "target": "scripts/resolve-launch-review-view.mjs"
       },
       {
-        "source": "core/release-execution-protocol.md",
-        "target": ".ai-native/core/release-execution-protocol.md"
-      },
-      {
-        "source": "docs/release-execution-protocol.md",
-        "target": ".ai-native/docs/release-execution-protocol.md"
-      },
-      {
-        "source": "templates/release-execution-plan.md",
-        "target": ".ai-native/templates/release-execution-plan.md"
-      },
-      {
-        "source": "checklists/release-execution-review.md",
-        "target": ".ai-native/checklists/release-execution-review.md"
-      },
-      {
-        "source": "prompts/release-execution-agent.md",
-        "target": ".ai-native/prompts/release-execution-agent.md"
-      },
-      {
-        "source": "scripts/check-release-execution.mjs",
-        "target": "scripts/check-release-execution.mjs"
-      },
-      {
-        "source": "scripts/resolve-release-execution.mjs",
-        "target": "scripts/resolve-release-execution.mjs"
-      },
-      {
         "source": "scripts/resolve-low-risk-apply-candidate.mjs",
         "target": "scripts/resolve-low-risk-apply-candidate.mjs"
       },
@@ -5841,6 +5918,14 @@
       {
         "source": "scripts/resolve-product-completeness.mjs",
         "target": "scripts/resolve-product-completeness.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-adapter.mjs",
+        "target": "scripts/resolve-release-adapter.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-execution.mjs",
+        "target": "scripts/resolve-release-execution.mjs"
       },
       {
         "source": "scripts/resolve-review-surface.mjs",
@@ -5965,6 +6050,14 @@
       {
         "source": "templates/real-adoption-trial-report.md",
         "target": ".ai-native/templates/real-adoption-trial-report.md"
+      },
+      {
+        "source": "templates/release-adapter-profile.md",
+        "target": ".ai-native/templates/release-adapter-profile.md"
+      },
+      {
+        "source": "templates/release-execution-plan.md",
+        "target": ".ai-native/templates/release-execution-plan.md"
       },
       {
         "source": "templates/review-surface-card.md",

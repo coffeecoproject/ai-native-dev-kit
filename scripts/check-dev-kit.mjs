@@ -1491,6 +1491,10 @@ function checkCliFrontDoor() {
     "node --check scripts/check-release-execution.mjs",
     "node scripts/cli.mjs release-execution .",
     "node scripts/check-release-execution.mjs .",
+    "node --check scripts/resolve-release-adapter.mjs",
+    "node --check scripts/check-release-adapter.mjs",
+    "node scripts/cli.mjs release-adapter .",
+    "node scripts/check-release-adapter.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1528,6 +1532,8 @@ function checkCliFrontDoor() {
     "launch-readiness",
     "launch-view",
     "launch-view-check",
+    "release-adapter",
+    "release-adapter-check",
     "release-execution",
     "release-execution-check",
     "conversation-drift",
@@ -1809,6 +1815,24 @@ function checkCliFrontDoor() {
     pass("CLI launch-view-check delegates to launch review view checker");
   } else {
     fail(`CLI launch-view-check failed: ${launchViewCheck.stderr || launchViewCheck.stdout}`);
+  }
+
+  const releaseAdapter = runNode(["scripts/cli.mjs", "release-adapter", ".", "--intent", "prepare release adapter"]);
+  if (releaseAdapter.status === 0
+    && releaseAdapter.stdout.includes("Release Adapter Profile")
+    && releaseAdapter.stdout.includes("Beginner Release Card")
+    && releaseAdapter.stdout.includes("This adapter approves release: No")
+    && releaseAdapter.stdout.includes("This adapter deploys by itself: No")) {
+    pass("CLI release-adapter delegates to release adapter resolver");
+  } else {
+    fail(`CLI release-adapter failed: ${releaseAdapter.stderr || releaseAdapter.stdout}`);
+  }
+
+  const releaseAdapterCheck = runNode(["scripts/cli.mjs", "release-adapter-check", "."]);
+  if (releaseAdapterCheck.status === 0 && releaseAdapterCheck.stdout.includes("Release Adapter check passed")) {
+    pass("CLI release-adapter-check delegates to release adapter checker");
+  } else {
+    fail(`CLI release-adapter-check failed: ${releaseAdapterCheck.stderr || releaseAdapterCheck.stdout}`);
   }
 
   const releaseExecution = runNode(["scripts/cli.mjs", "release-execution", ".", "--intent", "prepare release execution"]);
@@ -6897,6 +6921,115 @@ function checkReleaseExecutionProtocol() {
   }
 }
 
+function checkReleaseAdapterProtocol() {
+  const required = [
+    "core/release-adapter.md",
+    "docs/release-adapter.md",
+    "templates/release-adapter-profile.md",
+    "checklists/release-adapter-review.md",
+    "prompts/release-adapter-agent.md",
+    "release-adapters/.gitkeep",
+    "scripts/resolve-release-adapter.mjs",
+    "scripts/check-release-adapter.mjs",
+    "docs/plans/guided-release-adapter-1.57-plan.md",
+    "examples/1.57-guided-release-adapter/web-vercel-preview/README.md",
+    "examples/1.57-guided-release-adapter/web-vercel-preview/release-adapters/001-release-adapter.md",
+    "test-fixtures/bad/bad-release-adapter-missing-beginner-card/release-adapters/001-bad.md",
+    "test-fixtures/bad/bad-release-adapter-codex-auto-production/release-adapters/001-bad.md",
+    "test-fixtures/bad/bad-release-adapter-secret-request/release-adapters/001-bad.md",
+    "releases/1.57.0/release-record.md",
+    "releases/1.57.0/known-limitations.md",
+    "releases/1.57.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.57 release adapter asset exists ${file}`);
+    else fail(`1.57 release adapter asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/release-adapter.md"),
+    read("docs/release-adapter.md"),
+    read("templates/release-adapter-profile.md"),
+    read("scripts/resolve-release-adapter.mjs"),
+    read("scripts/check-release-adapter.mjs"),
+    read("docs/plans/guided-release-adapter-1.57-plan.md"),
+    read("releases/1.57.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Guided Release Adapter",
+    "Beginner Release Card",
+    "Project Release Profile",
+    "Release Execution Protocol",
+    "This adapter approves release: No",
+    "This adapter deploys by itself: No",
+    "does not ask for or store secrets",
+    "does not treat beginner confirmation as production approval",
+  ]) {
+    if (combined.includes(marker)) pass(`1.57 release adapter includes ${marker}`);
+    else fail(`1.57 release adapter missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-release-adapter.mjs", ".", "--intent", "prepare release adapter"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Release Adapter Profile")
+    && resolver.stdout.includes("## Beginner Release Card")
+    && resolver.stdout.includes("This adapter approves release: No")
+    && resolver.stdout.includes("This adapter deploys by itself: No")) {
+    pass("1.57 release adapter resolver prints safe profile");
+  } else {
+    fail(`1.57 release adapter resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-release-adapter.mjs", ".", "--intent", "prepare release adapter", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "RELEASE_ADAPTER_PROFILE"
+        && parsed.humanSummary?.adapterState
+        && parsed.beginnerReleaseCard?.recommendedChoice
+        && parsed.boundaries?.approvesRelease === "No"
+        && parsed.boundaries?.deploysByItself === "No") {
+        pass("1.57 release adapter resolver JSON includes state, beginner card, and boundaries");
+      } else {
+        fail(`1.57 release adapter resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.57 release adapter resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.57 release adapter resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-release-adapter.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Release Adapter check passed")) {
+    pass("1.57 release adapter checker passes source repo");
+  } else {
+    fail(`1.57 release adapter checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-release-adapter.mjs", "examples/1.57-guided-release-adapter/web-vercel-preview"]);
+  if (example.status === 0 && example.stdout.includes("Release Adapter check passed")) {
+    pass("1.57 release adapter example passes checker");
+  } else {
+    fail(`1.57 release adapter example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["missing beginner card", "test-fixtures/bad/bad-release-adapter-missing-beginner-card", "must include Beginner Release Card"],
+    ["codex auto production", "test-fixtures/bad/bad-release-adapter-codex-auto-production", "assigns high-risk release action to Codex"],
+    ["secret request", "test-fixtures/bad/bad-release-adapter-secret-request", "contains secret-like content"],
+  ]) {
+    const result = runNode(["scripts/check-release-adapter.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.57 release adapter rejects ${name}`);
+    } else {
+      fail(`1.57 release adapter must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -7934,6 +8067,7 @@ function checkReadmePointers() {
     "Unified Closure",
     "Decision Explain Trace",
     "Launch Review View",
+    "Guided Release Adapter",
     "Release Execution",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
@@ -7949,6 +8083,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
     "node scripts/cli.mjs launch-view",
+    "node scripts/cli.mjs release-adapter",
     "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
@@ -7964,6 +8099,7 @@ function checkReadmePointers() {
     "node scripts/check-workflow-guidance.mjs",
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
+    "node scripts/check-release-adapter.mjs",
     "node scripts/check-release-execution.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
@@ -7975,6 +8111,7 @@ function checkReadmePointers() {
     "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
     "docs/launch-review-view.md",
+    "docs/release-adapter.md",
     "docs/release-execution-protocol.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
@@ -8033,6 +8170,7 @@ function checkReadmePointers() {
     "Structured Evidence Schema",
     "Decision Explain Trace",
     "Launch Review View",
+    "Guided Release Adapter",
     "Release Execution",
     "O0 / BL0 Lightweight Path",
     "安全边界",
@@ -8044,6 +8182,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
     "node scripts/cli.mjs launch-view",
+    "node scripts/cli.mjs release-adapter",
     "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
@@ -8056,6 +8195,7 @@ function checkReadmePointers() {
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
     "node scripts/check-launch-review-view.mjs",
+    "node scripts/check-release-adapter.mjs",
     "node scripts/check-release-execution.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
@@ -8063,6 +8203,7 @@ function checkReadmePointers() {
     "docs/decision-explain-trace.md",
     "docs/guided-closure-experience.md",
     "docs/launch-review-view.md",
+    "docs/release-adapter.md",
     "docs/release-execution-protocol.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
@@ -8127,6 +8268,7 @@ function checkReadmePointers() {
     "docs/unified-closure-model.md",
     "docs/decision-explain-trace.md",
     "docs/launch-review-view.md",
+    "docs/release-adapter.md",
     "docs/release-execution-protocol.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
@@ -10653,6 +10795,7 @@ checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
+checkReleaseAdapterProtocol();
 checkReleaseExecutionProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();

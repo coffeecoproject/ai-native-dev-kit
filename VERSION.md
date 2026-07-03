@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.56.0`
+Current version: `1.57.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.56.0`
 
 ## Current Release
 
-`1.56.0`
+`1.57.0`
 
 Includes:
 
+- Guided Release Adapter phase `1.57.0`: adds `release-adapter` / `release-adapter-check` so Codex can discover a project-specific release path and translate it into a beginner-readable release profile
+- `1.57.0` recommends a safe first release target, records build/test/deploy/environment/rollback/monitoring/owner evidence, and bridges into Release Execution without requiring the user to understand deployment internals
+- `1.57.0` does not approve release, deploy production, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production config, make Codex the release owner, or treat beginner confirmation as production approval
 - Release Execution Protocol phase `1.56.0`: adds `release-execution` / `release-execution-check` so users can turn ready launch review plus human release approval into a bounded release execution plan
 - `1.56.0` supports `PLAN_ONLY`, `HUMAN_EXECUTION_HANDOFF`, `ASSISTED_EXECUTION`, and `BLOCKED` modes while keeping high-risk production actions human-owned or external-release-system-owned by default
 - `1.56.0` does not approve release, deploy, publish, submit review, run migrations, change production configuration, change secrets/DNS/CI/hooks/payment/permissions/app-store/mini-program settings, replace release SOPs, make Codex the release owner, or treat user confirmation as blanket production authorization

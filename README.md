@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.56.0`.
+Current release: `1.57.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.56.x`, focused on one final close-out decision, explaining that decision, turning it into launch review, and planning bounded release execution after human approval.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.57.x`, focused on one final close-out decision, launch review, beginner-friendly release adaptation, and bounded release execution after human approval.
 
-1.56.0 adds Release Execution Protocol: after Launch Review View and explicit human release approval, Codex can produce a bounded release execution plan. It does not approve release, deploy by itself, or treat user confirmation as blanket production authorization.
+1.57.0 adds Guided Release Adapter: Codex can discover how a project should release, recommend a safe first target, explain missing release inputs in plain language, and bridge into Release Execution. It does not approve release, deploy production, or ask users for secrets.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -116,6 +116,7 @@ IntentOS 当前包含这些核心能力：
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |
+| Guided Release Adapter | 用户想上线但不懂发布流程时，Codex 自动发现项目发布方式并生成小白可读的发布适配卡 |
 | Release Execution | 用户确认发布后，把执行步骤、负责人、停止条件和证据要求整理成受控发布执行计划 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
@@ -164,6 +165,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查统一收口结论 | `node scripts/cli.mjs finish-check ../my-project` |
 | 生成上线评审视图 | `node scripts/cli.mjs launch-view ../my-project --intent "准备上线评审" --verification "npm run verify passed"` |
 | 检查上线评审视图 | `node scripts/cli.mjs launch-view-check ../my-project` |
+| 生成发布适配卡 | `node scripts/cli.mjs release-adapter ../my-project --intent "准备发布适配"` |
+| 检查发布适配卡 | `node scripts/cli.mjs release-adapter-check ../my-project` |
 | 生成发布执行计划 | `node scripts/cli.mjs release-execution ../my-project --intent "准备发布执行" --mode PLAN_ONLY` |
 | 检查发布执行计划 | `node scripts/cli.mjs release-execution-check ../my-project` |
 | 生成变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage ../my-project --intent "新增合同录入限制"` |
@@ -240,6 +243,7 @@ node scripts/cli.mjs finish . --intent "维护 IntentOS 收口体验" --verifica
 node scripts/check-closure-decision.mjs .
 node scripts/check-guided-closure.mjs .
 node scripts/check-launch-review-view.mjs .
+node scripts/check-release-adapter.mjs .
 node scripts/check-release-execution.mjs .
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs .
@@ -263,6 +267,7 @@ Start here:
 - [Decision Explain Trace](docs/decision-explain-trace.md)
 - [Guided Closure Experience](docs/guided-closure-experience.md)
 - [Launch Review View](docs/launch-review-view.md)
+- [Guided Release Adapter](docs/release-adapter.md)
 - [Release Execution Protocol](docs/release-execution-protocol.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
@@ -326,6 +331,7 @@ Reference:
 
 Current release:
 
+- [1.57.0 Release Record](releases/1.57.0/release-record.md)
 - [1.56.0 Release Record](releases/1.56.0/release-record.md)
 - [1.55.0 Release Record](releases/1.55.0/release-record.md)
 - [1.54.0 Release Record](releases/1.54.0/release-record.md)

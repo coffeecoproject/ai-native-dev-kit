@@ -343,8 +343,11 @@ const productionSignalPaths = [
   "infra/staging",
 ];
 const workflowInternalProductionSignalPaths = new Set([
+  "release-adapters",
   "release-execution-plans",
+  "scripts/check-release-adapter.mjs",
   "scripts/check-release-execution.mjs",
+  "scripts/resolve-release-adapter.mjs",
   "scripts/resolve-release-execution.mjs",
 ]);
 const productionPathPattern = /\b(prod|production|staging|release|deploy|deployment|rollback|recovery|incident|runbook|monitoring|observability|migration|backup|restore)\b/i;
@@ -407,6 +410,7 @@ function matchedExistingPaths(paths) {
 
 function isWorkflowInternalProductionSignal(rel) {
   return workflowInternalProductionSignalPaths.has(rel)
+    || rel.startsWith("release-adapters/")
     || rel.startsWith("release-execution-plans/");
 }
 

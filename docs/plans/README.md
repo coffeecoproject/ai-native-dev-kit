@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Guided Release Adapter 1.57](guided-release-adapter-1.57-plan.md)
 - [Release Execution Protocol 1.56](release-execution-protocol-1.56-plan.md)
 - [Launch Review View 1.55](launch-review-view-1.55-plan.md)
 - [Decision Explain Trace 1.54](decision-explain-trace-1.54-plan.md)

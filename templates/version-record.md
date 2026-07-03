@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.56.0`
+`1.57.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.57.0` adds Guided Release Adapter: Codex can discover a project-specific release path, recommend a safe beginner-friendly release target, record missing release inputs, and bridge into Release Execution.
+- `1.57.0` does not approve release, deploy production, request or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production config, make Codex the release owner, or treat beginner confirmation as production approval.
 - `1.56.0` adds Release Execution Protocol: after Launch Review View and explicit Human Release Approval, Codex can generate a bounded release execution plan with step owners, stop conditions, and evidence capture.
 - `1.56.0` does not approve release, deploy, publish, submit review, run migrations, change production configuration, change secrets/DNS/CI/hooks/payment/permissions/app-store/mini-program settings, replace release SOPs, or make Codex the release owner.
 - `1.55.0` adds Launch Review View: users can ask whether closed work can enter launch review while Unified Closure remains the close-out source and Safe Launch remains the readiness-label source.

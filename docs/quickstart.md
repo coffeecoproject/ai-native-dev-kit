@@ -74,6 +74,21 @@ node scripts/cli.mjs launch-view ../my-project \
 
 `launch-view` returns one Launch Review View. It depends on Unified Closure and Safe Launch labels, lists launch-specific gaps, and keeps the final release decision outside IntentOS.
 
+When a beginner user wants to prepare release but does not know the deployment path, ask naturally:
+
+```text
+这个项目准备上线，你自己配置发布流程。
+```
+
+For command-line evidence, use:
+
+```bash
+node scripts/cli.mjs release-adapter ../my-project \
+  --intent "准备发布适配"
+```
+
+`release-adapter` returns one Release Adapter Profile. It discovers platform, build/test commands, deployment hints, missing inputs, beginner choices, and the bridge into Release Execution. It does not approve release, deploy production, ask for secrets, or mutate release infrastructure.
+
 After a human release owner approves release, ask naturally:
 
 ```text
@@ -211,6 +226,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
 node scripts/check-launch-readiness.mjs .
 node scripts/check-launch-review-view.mjs .
+node scripts/check-release-adapter.mjs .
 node scripts/check-release-execution.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-guided-delivery-loop.mjs .

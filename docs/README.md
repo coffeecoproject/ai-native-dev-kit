@@ -17,6 +17,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
 - [Launch Review View](launch-review-view.md)
+- [Guided Release Adapter](release-adapter.md)
 - [Release Execution Protocol](release-execution-protocol.md)
 
 ## Project Adoption
@@ -47,6 +48,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Decision Explain Trace](decision-explain-trace.md)
 - [Guided Closure Experience](guided-closure-experience.md)
 - [Launch Review View](launch-review-view.md)
+- [Guided Release Adapter](release-adapter.md)
 - [Release Execution Protocol](release-execution-protocol.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
