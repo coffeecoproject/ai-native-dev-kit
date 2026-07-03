@@ -1499,6 +1499,11 @@ function checkCliFrontDoor() {
     "node --check scripts/check-release-guide.mjs",
     "node scripts/cli.mjs release-guide .",
     "node scripts/check-release-guide.mjs .",
+    "node --check scripts/resolve-platform-release-recipe.mjs",
+    "node --check scripts/check-platform-release-recipe.mjs",
+    "node scripts/cli.mjs release-recipe .",
+    "node scripts/cli.mjs release-recipe-check .",
+    "node scripts/check-platform-release-recipe.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1540,6 +1545,8 @@ function checkCliFrontDoor() {
     "release-adapter-check",
     "release-guide",
     "release-guide-check",
+    "release-recipe",
+    "release-recipe-check",
     "release-execution",
     "release-execution-check",
     "conversation-drift",
@@ -1856,6 +1863,23 @@ function checkCliFrontDoor() {
     pass("CLI release-guide-check delegates to release guide checker");
   } else {
     fail(`CLI release-guide-check failed: ${releaseGuideCheck.stderr || releaseGuideCheck.stdout}`);
+  }
+
+  const releaseRecipe = runNode(["scripts/cli.mjs", "release-recipe", ".", "--intent", "help me launch"]);
+  if (releaseRecipe.status === 0
+    && releaseRecipe.stdout.includes("Platform Release Recipe Selection")
+    && releaseRecipe.stdout.includes("This recipe approves release: No")
+    && releaseRecipe.stdout.includes("This recipe deploys or publishes by itself: No")) {
+    pass("CLI release-recipe delegates to platform release recipe resolver");
+  } else {
+    fail(`CLI release-recipe failed: ${releaseRecipe.stderr || releaseRecipe.stdout}`);
+  }
+
+  const releaseRecipeCheck = runNode(["scripts/cli.mjs", "release-recipe-check", "."]);
+  if (releaseRecipeCheck.status === 0 && releaseRecipeCheck.stdout.includes("Platform Release Recipe check passed")) {
+    pass("CLI release-recipe-check delegates to platform release recipe checker");
+  } else {
+    fail(`CLI release-recipe-check failed: ${releaseRecipeCheck.stderr || releaseRecipeCheck.stdout}`);
   }
 
   const releaseExecution = runNode(["scripts/cli.mjs", "release-execution", ".", "--intent", "prepare release execution"]);
@@ -7172,6 +7196,163 @@ function checkReleaseGuideProtocol() {
   }
 }
 
+function checkPlatformReleaseRecipeProtocol() {
+  const required = [
+    "core/platform-release-recipes.md",
+    "docs/platform-release-recipes.md",
+    "templates/platform-release-recipe.md",
+    "checklists/platform-release-recipe-review.md",
+    "prompts/platform-release-recipe-agent.md",
+    "release-recipes/.gitkeep",
+    "release-recipes/web-hosted-preview.md",
+    "release-recipes/backend-api-handoff.md",
+    "release-recipes/mini-program-review-handoff.md",
+    "release-recipes/draft-ios-testflight.md",
+    "release-recipes/draft-android-internal-testing.md",
+    "release-recipes/draft-internal-admin-rollout.md",
+    "release-recipes/draft-web-container-release.md",
+    "scripts/resolve-platform-release-recipe.mjs",
+    "scripts/check-platform-release-recipe.mjs",
+    "docs/plans/platform-release-recipes-1.59-plan.md",
+    "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
+    "examples/1.59-platform-release-recipes/web-hosted-preview/README.md",
+    "examples/1.59-platform-release-recipes/web-hosted-preview/release-recipes/001-web-hosted-preview.md",
+    "examples/1.59-platform-release-recipes/mini-program-review/README.md",
+    "examples/1.59-platform-release-recipes/mini-program-review/release-recipes/001-mini-program-review.md",
+    "examples/1.59-platform-release-recipes/backend-api-handoff/README.md",
+    "examples/1.59-platform-release-recipes/backend-api-handoff/release-recipes/001-backend-api-handoff.md",
+    "test-fixtures/bad/bad-release-recipe-codex-production/release-recipes/001-bad.md",
+    "test-fixtures/bad/bad-release-recipe-secret-request/release-recipes/001-bad.md",
+    "test-fixtures/bad/bad-release-recipe-missing-rollback/release-recipes/001-bad.md",
+    "test-fixtures/bad/bad-release-recipe-missing-monitoring/release-recipes/001-bad.md",
+    "test-fixtures/bad/bad-release-recipe-missing-owner/release-recipes/001-bad.md",
+    "test-fixtures/bad/bad-release-recipe-provider-certainty/release-recipes/001-bad.md",
+    "test-fixtures/bad/bad-release-recipe-draft-strict/release-recipes/001-bad.md",
+    "releases/1.59.0/release-record.md",
+    "releases/1.59.0/known-limitations.md",
+    "releases/1.59.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.59 platform release recipe asset exists ${file}`);
+    else fail(`1.59 platform release recipe asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/platform-release-recipes.md"),
+    read("docs/platform-release-recipes.md"),
+    read("templates/platform-release-recipe.md"),
+    read("scripts/resolve-platform-release-recipe.mjs"),
+    read("scripts/check-platform-release-recipe.mjs"),
+    read("docs/plans/platform-release-recipes-1.59-plan.md"),
+    read("docs/plans/release-path-consolidation-1.58-1.60-plan.md"),
+    read("releases/1.59.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Platform Release Recipes",
+    "Strict And Draft Recipes",
+    "web-hosted-preview",
+    "backend-api-handoff",
+    "mini-program-review-handoff",
+    "DRAFT",
+    "does not approve release",
+    "does not execute release commands",
+    "provider APIs",
+    "secrets",
+    "draft recipes",
+  ]) {
+    if (combined.includes(marker)) pass(`1.59 platform release recipe includes ${marker}`);
+    else fail(`1.59 platform release recipe missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-platform-release-recipe.mjs", ".", "--intent", "help me launch"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Platform Release Recipe Selection")
+    && resolver.stdout.includes("## Beginner Recipe Card")
+    && resolver.stdout.includes("This recipe approves release: No")
+    && resolver.stdout.includes("This recipe deploys or publishes by itself: No")) {
+    pass("1.59 platform release recipe resolver prints safe selection");
+  } else {
+    fail(`1.59 platform release recipe resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-platform-release-recipe.mjs", ".", "--intent", "help me launch", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "PLATFORM_RELEASE_RECIPE_SELECTION"
+        && parsed.humanSummary?.selectedRecipeId
+        && parsed.boundaries?.approvesRelease === "No"
+        && Array.isArray(parsed.codexAllowedActions)) {
+        pass("1.59 platform release recipe resolver JSON includes recipe, boundaries, and allowed actions");
+      } else {
+        fail(`1.59 platform release recipe resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.59 platform release recipe resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.59 platform release recipe resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-platform-release-recipe.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Platform Release Recipe check passed")) {
+    pass("1.59 platform release recipe checker passes source repo");
+  } else {
+    fail(`1.59 platform release recipe checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  for (const target of [
+    "examples/1.59-platform-release-recipes/web-hosted-preview",
+    "examples/1.59-platform-release-recipes/mini-program-review",
+    "examples/1.59-platform-release-recipes/backend-api-handoff",
+  ]) {
+    const result = runNode(["scripts/check-platform-release-recipe.mjs", target, "--strict"]);
+    if (result.status === 0 && result.stdout.includes("Platform Release Recipe check passed")) {
+      pass(`1.59 platform release recipe example passes ${target}`);
+    } else {
+      fail(`1.59 platform release recipe example failed ${target}: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  const guideJson = runNode(["scripts/resolve-release-guide.mjs", ".", "--intent", "help me launch", "--json"]);
+  if (guideJson.status === 0) {
+    try {
+      const parsed = JSON.parse(guideJson.stdout);
+      if (Array.isArray(parsed.platformReleaseRecipe)
+        && parsed.releaseGuideRouting?.some((item) => item.stage === "Platform Release Recipe")) {
+        pass("1.59 release guide consumes platform release recipe selection");
+      } else {
+        fail(`1.59 release guide missing platform release recipe bridge: ${guideJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.59 release guide platform recipe JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.59 release guide platform recipe bridge failed: ${guideJson.stderr || guideJson.stdout}`);
+  }
+
+  for (const [name, target, expected, mode] of [
+    ["codex production", "test-fixtures/bad/bad-release-recipe-codex-production", "Codex Allowed Actions", ""],
+    ["secret request", "test-fixtures/bad/bad-release-recipe-secret-request", "secret", ""],
+    ["missing rollback", "test-fixtures/bad/bad-release-recipe-missing-rollback", "Rollback Requirements", ""],
+    ["missing monitoring", "test-fixtures/bad/bad-release-recipe-missing-monitoring", "Monitoring Requirements", ""],
+    ["missing owner", "test-fixtures/bad/bad-release-recipe-missing-owner", "Release Owner", ""],
+    ["provider certainty", "test-fixtures/bad/bad-release-recipe-provider-certainty", "provider assumptions", ""],
+    ["draft strict", "test-fixtures/bad/bad-release-recipe-draft-strict", "cannot pass --strict", "--strict"],
+  ]) {
+    const command = ["scripts/check-platform-release-recipe.mjs", target];
+    if (mode) command.push(mode);
+    const result = runNode(command);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.59 platform release recipe rejects ${name}`);
+    } else {
+      fail(`1.59 platform release recipe must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkExecutionReviewClosureProtocol() {
   const required = [
     "core/execution-review-closure.md",
@@ -8135,6 +8316,8 @@ function checkScriptSyntax() {
     "scripts/check-mvp-example.mjs",
     "scripts/resolve-low-risk-apply-candidate.mjs",
     "scripts/check-low-risk-apply-candidate.mjs",
+    "scripts/resolve-platform-release-recipe.mjs",
+    "scripts/check-platform-release-recipe.mjs",
     "scripts/resolve-delivery-path.mjs",
     "scripts/check-delivery-path.mjs",
     "scripts/resolve-debt-handoff.mjs",
@@ -8211,6 +8394,7 @@ function checkReadmePointers() {
     "Launch Review View",
     "Guided Release Adapter",
     "Release Guide",
+    "Platform Release Recipes",
     "Release Execution",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
@@ -8228,6 +8412,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs release-adapter",
     "node scripts/cli.mjs release-guide",
+    "node scripts/cli.mjs release-recipe",
     "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
@@ -8245,6 +8430,7 @@ function checkReadmePointers() {
     "node scripts/check-guided-closure.mjs",
     "node scripts/check-release-adapter.mjs",
     "node scripts/check-release-guide.mjs",
+    "node scripts/check-platform-release-recipe.mjs",
     "node scripts/check-release-execution.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
@@ -8258,6 +8444,7 @@ function checkReadmePointers() {
     "docs/launch-review-view.md",
     "docs/release-adapter.md",
     "docs/release-guide.md",
+    "docs/platform-release-recipes.md",
     "docs/release-execution-protocol.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
@@ -8318,6 +8505,7 @@ function checkReadmePointers() {
     "Launch Review View",
     "Guided Release Adapter",
     "Release Guide",
+    "Platform Release Recipes",
     "Release Execution",
     "O0 / BL0 Lightweight Path",
     "安全边界",
@@ -8331,6 +8519,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs release-adapter",
     "node scripts/cli.mjs release-guide",
+    "node scripts/cli.mjs release-recipe",
     "node scripts/cli.mjs release-execution",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
@@ -8345,6 +8534,7 @@ function checkReadmePointers() {
     "node scripts/check-launch-review-view.mjs",
     "node scripts/check-release-adapter.mjs",
     "node scripts/check-release-guide.mjs",
+    "node scripts/check-platform-release-recipe.mjs",
     "node scripts/check-release-execution.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
@@ -8354,6 +8544,7 @@ function checkReadmePointers() {
     "docs/launch-review-view.md",
     "docs/release-adapter.md",
     "docs/release-guide.md",
+    "docs/platform-release-recipes.md",
     "docs/release-execution-protocol.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
@@ -10947,6 +11138,7 @@ checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();
 checkReleaseGuideProtocol();
+checkPlatformReleaseRecipeProtocol();
 checkReleaseExecutionProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();

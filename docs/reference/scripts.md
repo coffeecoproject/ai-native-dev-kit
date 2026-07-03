@@ -55,6 +55,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs release-adapter-check <project>` | Check recorded Release Adapter Profiles | No |
 | `node scripts/cli.mjs release-guide <project> --intent "<goal>"` | Route launch intent through one beginner-friendly Release Guide Card | No |
 | `node scripts/cli.mjs release-guide-check <project>` | Check recorded Release Guide Cards | No |
+| `node scripts/cli.mjs release-recipe <project> --intent "<goal>"` | Select or inspect a platform release recipe without executing release commands | No |
+| `node scripts/cli.mjs release-recipe-check <project>` | Check recorded Platform Release Recipes | No |
 | `node scripts/cli.mjs release-execution <project> --intent "<goal>" --mode PLAN_ONLY` | Plan bounded release execution after launch review and human release approval | No |
 | `node scripts/cli.mjs release-execution-check <project>` | Check recorded Release Execution Plans | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
@@ -217,6 +219,10 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 `scripts/resolve-release-guide.mjs` is the 1.58 release guide entry. It routes launch intent through Release Adapter, Launch Review View, Structured Release Approval, and Release Execution Protocol, then prints one beginner-facing Release Guide Card. It does not write target-project files, approve release, deploy, publish previews by itself, run provider API commands, ask for secrets, or make Codex the release owner.
 
 `scripts/check-release-guide.mjs` checks recorded Release Guide Cards. It rejects unstructured approval for execution readiness, production handoff assigned to Codex, remote-side-effect commands classified as local-safe, weak PASS evidence, secret-like content, release/production approval claims, and attempts to treat free-form approval text as release approval.
+
+`scripts/resolve-platform-release-recipe.mjs` is the 1.59 platform release recipe entry. It selects or suggests a read-only platform recipe with confidence, safe first target, required inputs, Codex boundaries, and a Release Guide bridge. It does not execute release commands, call provider APIs, ask for secrets, upload packages, or mutate remote state.
+
+`scripts/check-platform-release-recipe.mjs` checks recorded Platform Release Recipes. It rejects production actions assigned to Codex, secret requests, missing rollback, missing monitoring, missing release owner, provider assumptions stated as certainty, and draft recipes in strict mode.
 
 `scripts/check-conversation-drift.mjs` checks Conversation Turn Classification reports and Scope Change Reports so discussion, new scope, direct follow-ups, and risk decisions do not silently continue the current task.
 

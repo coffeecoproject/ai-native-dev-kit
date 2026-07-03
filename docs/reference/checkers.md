@@ -49,6 +49,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-release-adapter.mjs` | Release Adapter Profile beginner card, boundary, secret, and high-risk action checks |
 | `resolve-release-guide.mjs` | Read-only unified release guide that routes launch intent through adapter, launch review, structured approval, and release execution planning |
 | `check-release-guide.mjs` | Release Guide Card structured approval, assist level, command risk, evidence quality, and no-release-authority checks |
+| `resolve-platform-release-recipe.mjs` | Read-only platform release recipe selector with confidence, safe target, and no-execution boundaries |
+| `check-platform-release-recipe.mjs` | Platform Release Recipe owner, rollback, monitoring, strict/draft, secret, and Codex-boundary checks |
 | `resolve-release-execution.mjs` | Read-only release execution planner after Launch Review View and Human Release Approval |
 | `check-release-execution.mjs` | Release Execution Plan preconditions, approval, step ownership, evidence, and no-auto-production checks |
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
@@ -153,6 +155,7 @@ Product and claim checks:
 - `check-launch-review-view.mjs` allows empty projects, but rejects Launch Review Views that miss Unified Closure input, invent launch states, claim release review readiness without DONE closure, omit rollback/monitoring/release-owner/post-launch-smoke evidence for `READY_FOR_RELEASE_REVIEW`, approve release/production, claim deployment/publishing/submission happened, modify CI/hooks/production config/secrets/DNS/app-store/payment/permissions/migrations, or replace Unified Closure, Safe Launch, or project release SOPs.
 - `check-release-adapter.mjs` allows empty projects, but rejects Release Adapter Profiles that miss the Beginner Release Card, include secret-like values or requests, assign high-risk release actions to Codex, approve release/production, mutate release infrastructure, or treat beginner confirmation as production approval.
 - `check-release-guide.mjs` allows empty projects, but rejects Release Guide Cards that use unstructured approval for execution readiness, assign production handoff to Codex, classify remote-side-effect commands as local-safe, mark weak evidence as PASS, approve release/production, mutate release infrastructure, or treat free-form approval text as release approval.
+- `check-platform-release-recipe.mjs` allows empty projects, but rejects Platform Release Recipes that assign production or remote-side-effect release actions to Codex, ask for secrets, omit rollback/monitoring/release owner, present provider assumptions as certainty, or pass draft recipes under `--strict`.
 - `check-release-execution.mjs` allows empty projects, but rejects Release Execution Plans that miss Launch Review input, allow real execution without scoped Human Release Approval, mark high-risk production deploy/publish/submit/migration/secrets/DNS/payment/permissions/config steps as Codex-executed, approve release/production, treat Launch Review View as release approval, or make Codex the release owner.
 - `check-conversation-drift.mjs` allows empty projects, but rejects discussion-only writes, scope changes without human decision, and risk decisions that auto-continue.
 - `check-conversation-native-ask.mjs` allows empty projects, but rejects Conversation Ask Cards that make users run CLI commands before Codex can route work, ask too many questions, claim target-project writes, authorize apply, approve implementation, approve release/production, modify CI/hooks, delete/archive/rewrite documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
@@ -217,6 +220,8 @@ node scripts/resolve-release-adapter.mjs . --intent "<release adapter goal>"
 node scripts/check-release-adapter.mjs .
 node scripts/resolve-release-guide.mjs . --intent "help me launch"
 node scripts/check-release-guide.mjs .
+node scripts/resolve-platform-release-recipe.mjs . --intent "help me launch"
+node scripts/check-platform-release-recipe.mjs .
 node scripts/resolve-release-execution.mjs . --intent "<release execution goal>"
 node scripts/check-release-execution.mjs .
 node scripts/check-conversation-drift.mjs .

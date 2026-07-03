@@ -14,6 +14,8 @@ const knownFlags = new Set([
   "format",
   "intent",
   "release-target",
+  "platform",
+  "recipe-id",
   "release-owner",
   "approval-ref",
   "approval-status",
@@ -49,6 +51,8 @@ if (!new Set(["human", "json"]).has(outputFormat)) {
 const context = {
   intent: stringArg("intent") || args._[1] || "help me launch",
   releaseTarget: normalizeTarget(stringArg("release-target")),
+  platform: stringArg("platform"),
+  recipeId: stringArg("recipe-id"),
   releaseOwner: stringArg("release-owner"),
   approvalRef: stringArg("approval-ref"),
   approvalStatus: normalizeApprovalStatus(stringArg("approval-status")),
@@ -74,6 +78,7 @@ else printHuman(report);
 
 function buildReleaseGuide(root, options) {
   const adapter = resolveAdapter(root, options);
+  const recipe = resolveRecipe(root, options);
   const launchReview = resolveLaunchReview(root, options);
   const approval = resolveStructuredApproval(root, options);
   const evidenceQuality = buildEvidenceQuality(options, launchReview, approval);
@@ -96,14 +101,16 @@ function buildReleaseGuide(root, options) {
       assistLevel,
       safeNextStep,
     },
-    beginnerReleaseGuideCard: beginnerCard(route, adapter, launchReview, approval, evidenceQuality, safeNextStep),
-    releaseGuideRouting: routingRows(adapter, launchReview, approval, route),
+    beginnerReleaseGuideCard: beginnerCard(route, adapter, recipe, launchReview, approval, evidenceQuality, safeNextStep),
+    releaseGuideRouting: routingRows(adapter, recipe, launchReview, approval, route),
+    platformReleaseRecipe: recipeRows(recipe),
     structuredReleaseApprovalGate: approvalRows(approval),
     assistLevelClassification: assistLevelRows(assistLevel),
     commandRiskClassification: commandRisk,
     evidenceQualityMap: evidenceQuality,
     internalRouting: [
       { input: "Release Adapter", ref: adapter.ref },
+      { input: "Platform Release Recipe", ref: recipe.ref },
       { input: "Launch Review View", ref: launchReview.ref },
       { input: "Release Execution", ref: "scripts/resolve-release-execution.mjs" },
     ],
@@ -121,6 +128,57 @@ function buildReleaseGuide(root, options) {
     },
     outcome: route.outcome,
   };
+}
+
+function resolveRecipe(root, options) {
+  const command = [
+    path.join(scriptDir, "resolve-platform-release-recipe.mjs"),
+    root,
+    "--intent",
+    options.intent,
+    "--json",
+  ];
+  if (options.platform) command.push("--platform", options.platform);
+  if (options.recipeId) command.push("--recipe-id", options.recipeId);
+  if (options.releaseTarget) command.push("--release-target", options.releaseTarget);
+  const result = spawnSync(process.execPath, command, { encoding: "utf8" });
+  if (result.status !== 0) {
+    return {
+      status: "MISSING",
+      selectedRecipeId: "N/A",
+      recipeStatus: "N/A",
+      platformFamily: "N/A",
+      selectionConfidence: "LOW",
+      safeFirstTarget: "N/A",
+      ref: "scripts/resolve-platform-release-recipe.mjs",
+      reason: result.stderr || result.stdout || "Platform Release Recipe could not be resolved.",
+    };
+  }
+  try {
+    const parsed = JSON.parse(result.stdout);
+    const summary = parsed.humanSummary || {};
+    return {
+      status: summary.recipeStatus === "STRICT" ? "PASS" : "NEEDS_CONFIRMATION",
+      selectedRecipeId: summary.selectedRecipeId || "N/A",
+      recipeStatus: summary.recipeStatus || "N/A",
+      platformFamily: summary.platformFamily || "N/A",
+      selectionConfidence: summary.selectionConfidence || "LOW",
+      safeFirstTarget: summary.safeFirstTarget || "N/A",
+      ref: "generated:resolve-platform-release-recipe",
+      reason: summary.why || "Platform Release Recipe generated.",
+    };
+  } catch (error) {
+    return {
+      status: "MISSING",
+      selectedRecipeId: "N/A",
+      recipeStatus: "N/A",
+      platformFamily: "N/A",
+      selectionConfidence: "LOW",
+      safeFirstTarget: "N/A",
+      ref: "scripts/resolve-platform-release-recipe.mjs",
+      reason: `Platform Release Recipe JSON could not be parsed: ${error.message}`,
+    };
+  }
 }
 
 function resolveAdapter(root, options) {
@@ -358,9 +416,10 @@ function nextStepFor(routeValue, adapter, launchReview, approval, evidenceQualit
   return adapter.reason || "Release path is blocked until project release inputs are clarified.";
 }
 
-function beginnerCard(routeValue, adapter, launchReview, approval, evidenceQuality, safeNextStep) {
+function beginnerCard(routeValue, adapter, recipe, launchReview, approval, evidenceQuality, safeNextStep) {
   const questions = [];
   if (adapter.status !== "PASS") questions.push("Confirm the safest first release target: preview/test, staging, or production review.");
+  if (recipe.status !== "PASS") questions.push("Confirm which platform release recipe matches this project.");
   if (launchReview.status !== "PASS") questions.push("Confirm where rollback, monitoring, release owner, and post-launch smoke evidence live.");
   if (approval.structured !== "Yes") questions.push("Who can approve release risk, for which target and scope, and until when?");
   if (questions.length === 0) questions.push("Confirm whether Codex may prepare a PLAN_ONLY release execution record.");
@@ -369,6 +428,7 @@ function beginnerCard(routeValue, adapter, launchReview, approval, evidenceQuali
     recommendedSafeNextStep: safeNextStep,
     whatIFound: [
       `Release Adapter state: ${adapter.adapterState}.`,
+      `Platform recipe: ${recipe.selectedRecipeId} (${recipe.recipeStatus}, confidence ${recipe.selectionConfidence}).`,
       `Launch Review label: ${launchReview.safeLaunchLabel}.`,
       `Structured approval: ${approval.structured}.`,
       `Missing evidence quality: ${evidenceQuality.filter((item) => item.status !== "PASS").map((item) => item.evidence).join(", ") || "none"}.`,
@@ -376,6 +436,7 @@ function beginnerCard(routeValue, adapter, launchReview, approval, evidenceQuali
     questions: questions.slice(0, 3),
     codexCanPrepare: [
       "Release Adapter review.",
+      "Platform Release Recipe selection.",
       "Launch Review gap summary.",
       "Structured release approval template.",
       "PLAN_ONLY Release Execution bridge.",
@@ -388,12 +449,25 @@ function beginnerCard(routeValue, adapter, launchReview, approval, evidenceQuali
   };
 }
 
-function routingRows(adapter, launchReview, approval, routeValue) {
+function routingRows(adapter, recipe, launchReview, approval, routeValue) {
   return [
     stage("Release Adapter", adapter.status, adapter.ref, adapter.reason),
+    stage("Platform Release Recipe", recipe.status, recipe.ref, recipe.reason),
     stage("Launch Review View", launchReview.status, launchReview.ref, launchReview.reason),
     stage("Structured Release Approval", approval.structured === "Yes" ? "PASS" : "MISSING", approval.ref, approval.structured === "Yes" ? "Structured approval is complete." : "Structured target/scope/owner/actions/evidence/expiry required."),
     stage("Release Execution Protocol", routeValue.state === "READY_FOR_RELEASE_EXECUTION_PLAN" ? "READY" : "PLAN_ONLY", "scripts/resolve-release-execution.mjs", "No real release action is approved by Release Guide."),
+  ];
+}
+
+function recipeRows(recipe) {
+  return [
+    field("Selected Recipe", code(recipe.selectedRecipeId)),
+    field("Recipe Status", code(recipe.recipeStatus)),
+    field("Platform Family", code(recipe.platformFamily)),
+    field("Selection Confidence", code(recipe.selectionConfidence)),
+    field("Safe First Target", code(recipe.safeFirstTarget)),
+    field("Ref", recipe.ref),
+    field("Notes", recipe.reason),
   ];
 }
 
@@ -494,6 +568,10 @@ function printHuman(report) {
 
   console.log("## Release Guide Routing");
   printTable(["Stage", "Status", "Ref", "Notes"], report.releaseGuideRouting.map((item) => [item.stage, code(item.status), item.ref, item.notes]));
+  console.log("");
+
+  console.log("## Platform Release Recipe");
+  printTable(["Field", "Value"], report.platformReleaseRecipe.map((item) => [item.field, item.value]));
   console.log("");
 
   console.log("## Structured Release Approval Gate");

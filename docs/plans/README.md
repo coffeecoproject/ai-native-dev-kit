@@ -12,6 +12,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 - [Release Path Consolidation 1.58](release-path-consolidation-1.58-plan.md)
 - [Release Path Consolidation 1.58-1.60](release-path-consolidation-1.58-1.60-plan.md)
+- [Platform Release Recipes 1.59](platform-release-recipes-1.59-plan.md)
 - [Guided Release Adapter 1.57](guided-release-adapter-1.57-plan.md)
 - [Release Execution Protocol 1.56](release-execution-protocol-1.56-plan.md)
 - [Launch Review View 1.55](launch-review-view-1.55-plan.md)

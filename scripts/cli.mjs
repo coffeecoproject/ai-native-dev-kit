@@ -307,6 +307,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "release-recipe": {
+    description: "Select or inspect a platform release recipe without executing release commands.",
+    script: "scripts/resolve-platform-release-recipe.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-recipe-check": {
+    description: "Check recorded Platform Release Recipes.",
+    script: "scripts/check-platform-release-recipe.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "conversation-drift": {
     description: "Check conversation turn routing and scope-change governance.",
     script: "scripts/check-conversation-drift.mjs",
@@ -606,6 +618,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs release-adapter-check .");
   console.log("  node scripts/cli.mjs release-guide . --intent 'help me launch'");
   console.log("  node scripts/cli.mjs release-guide-check .");
+  console.log("  node scripts/cli.mjs release-recipe . --intent 'help me launch'");
+  console.log("  node scripts/cli.mjs release-recipe-check .");
   console.log("  node scripts/cli.mjs release-execution . --intent 'prepare release execution'");
   console.log("  node scripts/cli.mjs release-execution-check .");
   console.log("  node scripts/cli.mjs conversation-drift .");

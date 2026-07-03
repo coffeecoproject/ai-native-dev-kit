@@ -4,13 +4,13 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.58.0`.
+Current release: `1.59.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.58.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, and bounded release execution planning after human approval.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.59.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, and bounded release execution planning after human approval.
 
-1.58.0 adds Release Guide Consolidation: users can say "help me launch" and Codex routes through release adapter, launch review, structured approval, and release execution planning without making users choose internal release commands. It does not approve release, deploy production, run provider commands, or ask users for secrets.
+1.59.0 adds Platform Release Recipes: Release Guide can now map a launch request to platform-specific release prerequisites such as hosted web preview, backend/API handoff, or mini-program review handoff. Recipes are read-only maps; they do not approve release, deploy production, run provider commands, upload packages, or ask users for secrets.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
@@ -118,6 +118,7 @@ IntentOS 当前包含这些核心能力：
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |
 | Guided Release Adapter | 用户想上线但不懂发布流程时，Codex 自动发现项目发布方式并生成小白可读的发布适配卡 |
 | Release Guide | 用户说“帮我上线”时，Codex 用一个入口判断应该走发布适配、上线评审、结构化审批还是发布执行计划 |
+| Platform Release Recipes | 根据 Web、后端、小程序等平台给出发布前通常需要的准备清单，但不执行发布 |
 | Release Execution | 用户确认发布后，把执行步骤、负责人、停止条件和证据要求整理成受控发布执行计划 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
@@ -171,6 +172,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查发布适配卡 | `node scripts/cli.mjs release-adapter-check ../my-project` |
 | 生成统一发布引导 | `node scripts/cli.mjs release-guide ../my-project --intent "帮我上线"` |
 | 检查统一发布引导 | `node scripts/cli.mjs release-guide-check ../my-project` |
+| 选择平台发布配方 | `node scripts/cli.mjs release-recipe ../my-project --intent "帮我上线"` |
+| 检查平台发布配方 | `node scripts/cli.mjs release-recipe-check ../my-project` |
 | 生成发布执行计划 | `node scripts/cli.mjs release-execution ../my-project --intent "准备发布执行" --mode PLAN_ONLY` |
 | 检查发布执行计划 | `node scripts/cli.mjs release-execution-check ../my-project` |
 | 生成变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage ../my-project --intent "新增合同录入限制"` |
@@ -249,6 +252,7 @@ node scripts/check-guided-closure.mjs .
 node scripts/check-launch-review-view.mjs .
 node scripts/check-release-adapter.mjs .
 node scripts/check-release-guide.mjs .
+node scripts/check-platform-release-recipe.mjs .
 node scripts/check-release-execution.mjs .
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs .
@@ -274,6 +278,7 @@ Start here:
 - [Launch Review View](docs/launch-review-view.md)
 - [Guided Release Adapter](docs/release-adapter.md)
 - [Release Guide](docs/release-guide.md)
+- [Platform Release Recipes](docs/platform-release-recipes.md)
 - [Release Execution Protocol](docs/release-execution-protocol.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
@@ -337,6 +342,7 @@ Reference:
 
 Current release:
 
+- [1.59.0 Release Record](releases/1.59.0/release-record.md)
 - [1.58.0 Release Record](releases/1.58.0/release-record.md)
 - [1.57.0 Release Record](releases/1.57.0/release-record.md)
 - [1.56.0 Release Record](releases/1.56.0/release-record.md)

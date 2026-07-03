@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.58.0`
+Current version: `1.59.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.58.0`
 
 ## Current Release
 
-`1.58.0`
+`1.59.0`
 
 Includes:
 
+- Platform Release Recipes phase `1.59.0`: adds `release-recipe` / `release-recipe-check` so Release Guide can map a launch request to platform-specific release prerequisites without requiring provider command execution
+- `1.59.0` ships strict recipes for `web-hosted-preview`, `backend-api-handoff`, and `mini-program-review-handoff`, plus draft recipes for iOS, Android, internal admin, and web container/server release paths
+- `1.59.0` does not approve release, deploy, publish, upload, submit, migrate, call provider APIs, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production data/production config, or make Codex the release owner
 - Release Guide Consolidation phase `1.58.0`: adds `release-guide` / `release-guide-check` so users can say "help me launch" and Codex can route through Release Adapter, Launch Review View, Structured Release Approval, and Release Execution without exposing internal command choice
 - `1.58.0` requires structured release approval before execution readiness, adds explicit assist levels, adds command risk classes, distinguishes evidence visibility from evidence quality, and keeps unknown or remote-side-effect commands away from Codex execution by default
 - `1.58.0` does not approve release, deploy production, publish previews by itself, run provider API commands, ask for or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production config, make Codex the release owner, or treat free-form approval text as release approval

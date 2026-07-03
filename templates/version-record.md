@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.58.0`
+`1.59.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.59.0` adds Platform Release Recipes: Release Guide can select or suggest a platform release recipe before release execution planning.
+- `1.59.0` ships strict recipes for web hosted preview, backend/API handoff, and mini-program review handoff; draft recipes remain non-strict.
+- `1.59.0` keeps recipes read-only: no release approval, provider API calls, deploys, uploads, submissions, migrations, secret handling, production mutation, or Codex release ownership.
 - `1.58.0` adds Release Guide Consolidation: users can ask for launch help through one `release-guide` entry that routes across release adapter, launch review, structured approval, and release execution planning.
 - `1.58.0` requires structured release approval before execution readiness, classifies assist levels and command risk, and distinguishes release evidence visibility from evidence quality.
 - `1.58.0` does not approve release, deploy production, publish previews by itself, run provider API commands, request or store secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production config, make Codex the release owner, or treat free-form approval text as release approval.

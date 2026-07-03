@@ -32,6 +32,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `launch-review-views/` | Read-only launch review view built from Unified Closure, Safe Launch labels, launch surface gaps, and human release decisions |
 | `release-adapters/` | Beginner-readable project release adapter profiles |
 | `release-guides/` | Unified beginner-facing release guide cards that route adapter, launch review, structured approval, and release execution planning |
+| `release-recipes/` | Platform release recipes that map platform-specific release prerequisites without executing release actions |
 | `release-execution-plans/` | Bounded release execution plans after launch review and human release approval |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |

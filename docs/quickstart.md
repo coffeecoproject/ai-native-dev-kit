@@ -88,11 +88,13 @@ node scripts/cli.mjs release-guide ../my-project \
 ```
 
 `release-guide` returns one Release Guide Card. It routes internally across release adapter, launch review, structured release approval, and release execution planning. It does not approve release, deploy production, run provider API commands, ask for secrets, or mutate release infrastructure.
+From 1.59 onward, it can also select or suggest a Platform Release Recipe so Codex can explain what this platform usually needs before release execution planning.
 
 Maintainers can still call lower-level release evidence commands directly:
 
 ```bash
 node scripts/cli.mjs release-adapter ../my-project --intent "准备发布适配"
+node scripts/cli.mjs release-recipe ../my-project --intent "帮我上线"
 node scripts/cli.mjs release-execution ../my-project --intent "准备发布执行" --mode PLAN_ONLY
 ```
 
