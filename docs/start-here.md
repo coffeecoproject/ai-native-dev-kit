@@ -49,6 +49,7 @@ When command evidence is useful, start with these:
 | Understand the project and adoption path | `node scripts/cli.mjs start <project>` |
 | See the next safe workflow action | `node scripts/cli.mjs next <project>` |
 | Check the current workflow health | `node scripts/cli.mjs doctor <project>` |
+| Check whether an old project really adopted IntentOS | `node scripts/cli.mjs adoption-assurance <project>` |
 
 These commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
 

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.70.1`
+`1.71.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.71.0` adds Adoption Execution Assurance: old-project adoption claims must be checked from required surfaces, evidence refs, and a read-only simulated task before Codex can say IntentOS is fully adopted.
+- `1.71.0` keeps assurance non-authorizing: it does not write target files, approve implementation, approve release or production, mutate CI/hooks, replace release SOPs, transfer project authority, or prove product correctness.
 - `1.70.1` hardens Governance Convergence evidence consistency: strict reports now require all 9 machine-readable dimensions, structured upstream source status, upstream blocked/input states as blocking reasons, and Human Summary / Markdown / JSON / Outcome alignment.
 - `1.70.0` adds Existing Project Governance Convergence: old projects can converge toward IntentOS daily workflow through read-only comparison of workflow, baseline, audit, release, CI/hooks, documents, work queue, AI log policy, and protected authority.
 - `1.70.0` keeps convergence non-authorizing: it does not write target files, replace existing governance, rewrite history, mutate CI/hooks, approve production, or maximize migration.

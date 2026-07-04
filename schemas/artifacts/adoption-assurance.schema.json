@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/adoption-assurance.schema.json",
+  "title": "Adoption Assurance Report Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "target_project_profile",
+    "assurance_state",
+    "intent_os_operating_mode",
+    "can_claim_full_adoption",
+    "can_codex_write_now",
+    "surfaces",
+    "evidence_refs",
+    "simulation",
+    "pending_decisions",
+    "forbidden_claims",
+    "boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.71.0" },
+    "artifact_type": { "const": "adoption_assurance_report" },
+    "target_project_profile": { "type": "string", "minLength": 1 },
+    "assurance_state": { "$ref": "#/$defs/assuranceState" },
+    "intent_os_operating_mode": { "enum": ["ACTIVE", "READ_ONLY_DIAGNOSIS", "NOT_ACTIVE"] },
+    "can_claim_full_adoption": { "enum": ["Yes", "No"] },
+    "can_codex_write_now": { "const": "No" },
+    "surfaces": {
+      "type": "array",
+      "minItems": 12,
+      "allOf": [
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "workflow_entry" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "ai_rules_agents" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "engineering_baseline" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "environment_baseline" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "release_rollback" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "ci_hooks" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "documents" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "work_queue" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "ai_logs_audit" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "risk_authority" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "apply_chain" } } } },
+        { "contains": { "type": "object", "required": ["surface"], "properties": { "surface": { "const": "simulation_task" } } } }
+      ],
+      "items": { "$ref": "#/$defs/surface" }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "simulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "state", "task", "writes_target_files", "route"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "state": {
+          "enum": [
+            "SIMULATION_NOT_RUN",
+            "SIMULATION_PASSED",
+            "SIMULATION_PARTIAL",
+            "SIMULATION_FAILED",
+            "SIMULATION_BLOCKED"
+          ]
+        },
+        "task": { "type": "string", "minLength": 1 },
+        "writes_target_files": { "const": "No" },
+        "route": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "pending_decisions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "forbidden_claims": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "authorizes_target_file_writes",
+        "approves_implementation",
+        "approves_release_or_production",
+        "mutates_ci_or_hooks",
+        "replaces_release_sop",
+        "transfers_project_authority_to_intentos",
+        "proves_product_correctness"
+      ],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "authorizes_target_file_writes": { "const": "No" },
+        "approves_implementation": { "const": "No" },
+        "approves_release_or_production": { "const": "No" },
+        "mutates_ci_or_hooks": { "const": "No" },
+        "replaces_release_sop": { "const": "No" },
+        "transfers_project_authority_to_intentos": { "const": "No" },
+        "proves_product_correctness": { "const": "No" }
+      }
+    },
+    "outcome": { "$ref": "#/$defs/assuranceState" }
+  },
+  "$defs": {
+    "assuranceState": {
+      "enum": [
+        "NOT_ADOPTED",
+        "READ_ONLY_DIAGNOSIS_ONLY",
+        "PLAN_READY",
+        "APPLY_READY",
+        "APPLIED_PENDING_VERIFICATION",
+        "PARTIAL_ADOPTION",
+        "VERIFIED_ACTIVE",
+        "BLOCKED_BY_DIRTY_WORKTREE",
+        "BLOCKED_BY_PROJECT_AUTHORITY",
+        "FAILED_ASSURANCE"
+      ]
+    },
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface", "status", "evidence", "notes"],
+      "properties": {
+        "surface": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "MAPPED",
+            "PROJECT_OWNED",
+            "PENDING_APPLY",
+            "PENDING_HUMAN_DECISION",
+            "BLOCKED",
+            "MISSING",
+            "NOT_APPLICABLE_WITH_REASON"
+          ]
+        },
+        "evidence": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.70.1",
+  "devKitVersion": "1.71.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.70.1"
+    "phase": "1.71.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2162,7 +2162,34 @@
       "test-fixtures/bad/bad-governance-convergence-upstream-ready/governance-convergence-reports/001-bad.md",
       "test-fixtures/bad/bad-governance-convergence-summary-json-state-mismatch/governance-convergence-reports/001-bad.md",
       "test-fixtures/bad/bad-governance-convergence-dimensions-mismatch/governance-convergence-reports/001-bad.md",
-      "test-fixtures/bad/bad-governance-convergence-schema-one-dimension/governance-convergence-reports/001-bad.md"
+      "test-fixtures/bad/bad-governance-convergence-schema-one-dimension/governance-convergence-reports/001-bad.md",
+      "core/adoption-execution-assurance.md",
+      "docs/adoption-execution-assurance.md",
+      "templates/adoption-assurance-report.md",
+      "schemas/artifacts/adoption-assurance.schema.json",
+      "checklists/adoption-assurance-review.md",
+      "prompts/adoption-assurance-agent.md",
+      "adoption-assurance-reports/.gitkeep",
+      "scripts/resolve-adoption-assurance.mjs",
+      "scripts/check-adoption-assurance.mjs",
+      "examples/1.71-adoption-execution-assurance/README.md",
+      "examples/1.71-adoption-execution-assurance/verified-existing-project/adoption-assurance-reports/001-verified.md",
+      "examples/1.71-adoption-execution-assurance/partial-existing-project/adoption-assurance-reports/001-partial.md",
+      "examples/1.71-adoption-execution-assurance/blocked-production-project/adoption-assurance-reports/001-blocked.md",
+      "examples/1.71-adoption-execution-assurance/failed-assurance/adoption-assurance-reports/001-failed.md",
+      "test-fixtures/bad/bad-adoption-assurance-full-without-simulation/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-missing-rule-coverage/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-unresolved-evidence/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-authorizes-write/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-claims-production-approval/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-mutates-ci-hooks/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-replaces-release-sop/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-stale-diff/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-ai-log-spam/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-empty-na-reason/adoption-assurance-reports/001-bad.md",
+      "releases/1.71.0/release-record.md",
+      "releases/1.71.0/known-limitations.md",
+      "releases/1.71.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -3275,7 +3302,16 @@
       ".ai-native/schemas/artifacts/governance-convergence.schema.json",
       "governance-convergence-reports",
       "scripts/resolve-governance-convergence.mjs",
-      "scripts/check-governance-convergence.mjs"
+      "scripts/check-governance-convergence.mjs",
+      ".ai-native/checklists/adoption-assurance-review.md",
+      ".ai-native/core/adoption-execution-assurance.md",
+      ".ai-native/docs/adoption-execution-assurance.md",
+      ".ai-native/prompts/adoption-assurance-agent.md",
+      ".ai-native/templates/adoption-assurance-report.md",
+      ".ai-native/schemas/artifacts/adoption-assurance.schema.json",
+      "adoption-assurance-reports",
+      "scripts/resolve-adoption-assurance.mjs",
+      "scripts/check-adoption-assurance.mjs"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3397,7 +3433,13 @@
       "docs/existing-project-governance-convergence.md",
       "prompts/governance-convergence-agent.md",
       "templates/governance-convergence-report.md",
-      "schemas/artifacts/governance-convergence.schema.json"
+      "schemas/artifacts/governance-convergence.schema.json",
+      "checklists/adoption-assurance-review.md",
+      "core/adoption-execution-assurance.md",
+      "docs/adoption-execution-assurance.md",
+      "prompts/adoption-assurance-agent.md",
+      "templates/adoption-assurance-report.md",
+      "schemas/artifacts/adoption-assurance.schema.json"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3509,7 +3551,8 @@
       "templates/native-migration-plan.md",
       "templates/existing-rule-reconciliation-report.md",
       "templates/release-plan.md",
-      "templates/governance-convergence-report.md"
+      "templates/governance-convergence-report.md",
+      "templates/adoption-assurance-report.md"
     ],
     "prompts": [
       ".ai-native/prompts/change-impact-coverage-agent.md",
@@ -3572,7 +3615,8 @@
       "prompts/native-migration-agent.md",
       "prompts/existing-rule-reconciliation-agent.md",
       "prompts/release-plan-agent.md",
-      "prompts/governance-convergence-agent.md"
+      "prompts/governance-convergence-agent.md",
+      "prompts/adoption-assurance-agent.md"
     ],
     "checklists": [
       ".ai-native/checklists/change-impact-coverage-review.md",
@@ -3647,7 +3691,8 @@
       "checklists/native-migration-review.md",
       "checklists/existing-rule-reconciliation-review.md",
       "checklists/release-plan-review.md",
-      "checklists/governance-convergence-review.md"
+      "checklists/governance-convergence-review.md",
+      "checklists/adoption-assurance-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -3751,7 +3796,8 @@
       "native-migration-plans",
       "existing-rule-reconciliations",
       "release-plans",
-      "governance-convergence-reports"
+      "governance-convergence-reports",
+      "adoption-assurance-reports"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -3873,7 +3919,9 @@
       "scripts/resolve-release-plan.mjs",
       "scripts/check-release-plan.mjs",
       "scripts/resolve-governance-convergence.mjs",
-      "scripts/check-governance-convergence.mjs"
+      "scripts/check-governance-convergence.mjs",
+      "scripts/resolve-adoption-assurance.mjs",
+      "scripts/check-adoption-assurance.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -4209,7 +4257,12 @@
       "examples/1.70-existing-project-governance-convergence/README.md",
       "examples/1.70-existing-project-governance-convergence/governed-web-admin/governance-convergence-reports/001-governed-web-admin.md",
       "examples/1.70-existing-project-governance-convergence/production-multiplatform/governance-convergence-reports/001-production-multiplatform.md",
-      "examples/1.70-existing-project-governance-convergence/dirty-worktree-blocked/governance-convergence-reports/001-dirty-worktree.md"
+      "examples/1.70-existing-project-governance-convergence/dirty-worktree-blocked/governance-convergence-reports/001-dirty-worktree.md",
+      "examples/1.71-adoption-execution-assurance/README.md",
+      "examples/1.71-adoption-execution-assurance/verified-existing-project/adoption-assurance-reports/001-verified.md",
+      "examples/1.71-adoption-execution-assurance/partial-existing-project/adoption-assurance-reports/001-partial.md",
+      "examples/1.71-adoption-execution-assurance/blocked-production-project/adoption-assurance-reports/001-blocked.md",
+      "examples/1.71-adoption-execution-assurance/failed-assurance/adoption-assurance-reports/001-failed.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4594,7 +4647,17 @@
       "test-fixtures/bad/bad-governance-convergence-upstream-ready/governance-convergence-reports/001-bad.md",
       "test-fixtures/bad/bad-governance-convergence-summary-json-state-mismatch/governance-convergence-reports/001-bad.md",
       "test-fixtures/bad/bad-governance-convergence-dimensions-mismatch/governance-convergence-reports/001-bad.md",
-      "test-fixtures/bad/bad-governance-convergence-schema-one-dimension/governance-convergence-reports/001-bad.md"
+      "test-fixtures/bad/bad-governance-convergence-schema-one-dimension/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-full-without-simulation/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-missing-rule-coverage/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-unresolved-evidence/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-authorizes-write/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-claims-production-approval/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-mutates-ci-hooks/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-replaces-release-sop/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-stale-diff/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-ai-log-spam/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-empty-na-reason/adoption-assurance-reports/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -5063,7 +5126,16 @@
       ".ai-native/schemas/artifacts/governance-convergence.schema.json",
       "governance-convergence-reports",
       "scripts/resolve-governance-convergence.mjs",
-      "scripts/check-governance-convergence.mjs"
+      "scripts/check-governance-convergence.mjs",
+      ".ai-native/checklists/adoption-assurance-review.md",
+      ".ai-native/core/adoption-execution-assurance.md",
+      ".ai-native/docs/adoption-execution-assurance.md",
+      ".ai-native/prompts/adoption-assurance-agent.md",
+      ".ai-native/templates/adoption-assurance-report.md",
+      ".ai-native/schemas/artifacts/adoption-assurance.schema.json",
+      "adoption-assurance-reports",
+      "scripts/resolve-adoption-assurance.mjs",
+      "scripts/check-adoption-assurance.mjs"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -5714,6 +5786,10 @@
       {
         "source": "governance-convergence-reports",
         "target": "governance-convergence-reports"
+      },
+      {
+        "source": "adoption-assurance-reports",
+        "target": "adoption-assurance-reports"
       }
     ],
     "files": [
@@ -7004,6 +7080,38 @@
       {
         "source": "scripts/check-governance-convergence.mjs",
         "target": "scripts/check-governance-convergence.mjs"
+      },
+      {
+        "source": "checklists/adoption-assurance-review.md",
+        "target": ".ai-native/checklists/adoption-assurance-review.md"
+      },
+      {
+        "source": "core/adoption-execution-assurance.md",
+        "target": ".ai-native/core/adoption-execution-assurance.md"
+      },
+      {
+        "source": "docs/adoption-execution-assurance.md",
+        "target": ".ai-native/docs/adoption-execution-assurance.md"
+      },
+      {
+        "source": "prompts/adoption-assurance-agent.md",
+        "target": ".ai-native/prompts/adoption-assurance-agent.md"
+      },
+      {
+        "source": "templates/adoption-assurance-report.md",
+        "target": ".ai-native/templates/adoption-assurance-report.md"
+      },
+      {
+        "source": "schemas/artifacts/adoption-assurance.schema.json",
+        "target": ".ai-native/schemas/artifacts/adoption-assurance.schema.json"
+      },
+      {
+        "source": "scripts/resolve-adoption-assurance.mjs",
+        "target": "scripts/resolve-adoption-assurance.mjs"
+      },
+      {
+        "source": "scripts/check-adoption-assurance.mjs",
+        "target": "scripts/check-adoption-assurance.mjs"
       }
     ]
   },

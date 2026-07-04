@@ -415,6 +415,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "adoption-assurance": {
+    description: "Verify whether an existing project has actually adopted IntentOS from evidence and read-only simulation.",
+    script: "scripts/resolve-adoption-assurance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "adoption-assurance-check": {
+    description: "Check recorded Adoption Assurance reports for evidence-bound adoption claims.",
+    script: "scripts/check-adoption-assurance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "doc-lifecycle": {
     description: "Recommend document lifecycle state without deleting, moving, or archiving files.",
     script: "scripts/resolve-document-lifecycle.mjs",

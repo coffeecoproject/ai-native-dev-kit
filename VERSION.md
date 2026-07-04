@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.70.1`
+Current version: `1.71.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.70.1`
 
 ## Current Release
 
-`1.70.1`
+`1.71.0`
 
 Includes:
 
+- Adoption Execution Assurance phase `1.71.0`: adds `adoption-assurance` / `adoption-assurance-check` so old-project IntentOS adoption claims are verified from real surfaces, evidence refs, and read-only simulated task behavior.
+- `1.71.0` makes full old-project adoption claimable only as `VERIFIED_ACTIVE`; partial, blocked, missing, or unsupported evidence states must stay plan-first and cannot authorize writes, production, CI/hook mutation, release SOP replacement, or project authority transfer.
 - Existing Project Governance Convergence Evidence Consistency patch `1.70.1`: strict convergence reports now require all 9 convergence dimensions in machine-readable evidence, structured upstream source status for Workflow Next / Native Migration / Existing Rule Reconciliation / Release Plan, and cross-checks between Human Summary, Markdown dimensions, Machine-Readable Evidence, and Outcome.
 - `1.70.1` treats upstream `BLOCKED` or `NEEDS_INPUT` source systems as blocking evidence, rejects ready/partial convergence claims when upstream source input is unresolved, and adds bad fixtures for upstream-blocked-ready claims, Markdown/JSON state mismatch, Markdown/JSON dimension mismatch, and one-dimension schema drift.
 - Existing Project Governance Convergence phase `1.70.0`: adds `convergence` / `convergence-check` so old, governed, production-sensitive, or dirty projects can be summarized against the new-project IntentOS daily workflow target without writing target files.

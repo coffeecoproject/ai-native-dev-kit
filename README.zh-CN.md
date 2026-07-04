@@ -4,9 +4,9 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.70.1`。
+当前版本：`1.71.0`。
 
-发布记录：[releases/1.70.1/release-record.md](releases/1.70.1/release-record.md)。
+发布记录：[releases/1.71.0/release-record.md](releases/1.71.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -41,6 +41,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 和 `ai-native-dev-kit` 继续作为兼容别名保留。
+
+1.71.0 新增老项目接入执行验收：老项目不能只靠 Codex 说“已接入”，必须检查关键接入面、有证据引用，并通过只读模拟任务证明 Codex 会按 IntentOS 工作流走。
 
 1.70.1 加严老项目治理收敛证据：严格检查会同时核对人工摘要、Markdown 维度、机器可读证据、上游来源状态和最终 outcome，避免报告写了但证据不一致。
 

@@ -91,6 +91,25 @@ This is still a derived read-only view. It helps Codex summarize:
 
 Governance Convergence should make the professional recommendation for the user. The user should not need to decide whether a project CI guard is stricter than an IntentOS reference rule.
 
+## Adoption Execution Assurance
+
+After a project has migration, reconciliation, and convergence evidence, use Adoption Execution Assurance to check whether the project has actually adopted IntentOS:
+
+```bash
+node scripts/cli.mjs adoption-assurance <project>
+node scripts/cli.mjs adoption-assurance-check <project>
+```
+
+This answers the user-facing question:
+
+```text
+Can Codex claim this old project has fully adopted IntentOS?
+```
+
+The answer is `Yes` only when the state is `VERIFIED_ACTIVE`.
+
+If the state is partial or blocked, Codex can still work in IntentOS mode, but it must stay plan-first and list the missing surfaces. Assurance does not write project files, approve release, mutate CI/hooks, replace release SOPs, or transfer project authority to IntentOS.
+
 ## AI Recommendation, Human Confirmation
 
 For old projects, Codex should provide the professional recommendation first:

@@ -298,6 +298,11 @@ jobs:
           convergence_report="$tmp/governance-convergence.md"
           node "$tmp/project/scripts/resolve-governance-convergence.mjs" "$tmp/project" > "$convergence_report"
           node "$tmp/project/scripts/check-governance-convergence.mjs" "$tmp/project" --report "$convergence_report" --require-structured-evidence
+          node "$tmp/project/scripts/cli.mjs" adoption-assurance "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" adoption-assurance-check "$tmp/project"
+          adoption_report="$tmp/adoption-assurance.md"
+          node "$tmp/project/scripts/resolve-adoption-assurance.mjs" "$tmp/project" > "$adoption_report"
+          node "$tmp/project/scripts/check-adoption-assurance.mjs" "$tmp/project" --report "$adoption_report" --require-structured-evidence
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" archive-apply "$tmp/project"

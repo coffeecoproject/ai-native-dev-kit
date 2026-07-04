@@ -1,0 +1,509 @@
+#!/usr/bin/env node
+
+import fs from "node:fs";
+import path from "node:path";
+import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
+
+const args = parseArgs(process.argv.slice(2));
+const knownFlags = new Set(["json", "require-structured-evidence", "require-simulation", "report"]);
+const unknown = unknownOptions(args, knownFlags);
+const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const requireSimulation = Boolean(args["require-simulation"]);
+const explicitReport = args.report ? path.resolve(process.cwd(), String(args.report)) : "";
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+  && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
+const shouldRequireAssets = isSourceRepo
+  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+
+if (unknown.length > 0) {
+  console.error(`FAIL unknown option: --${unknown.join(", --")}`);
+  process.exit(1);
+}
+
+const requiredAssets = [
+  "core/adoption-execution-assurance.md",
+  "docs/adoption-execution-assurance.md",
+  "templates/adoption-assurance-report.md",
+  "schemas/artifacts/adoption-assurance.schema.json",
+  "checklists/adoption-assurance-review.md",
+  "prompts/adoption-assurance-agent.md",
+  "scripts/resolve-adoption-assurance.mjs",
+  "scripts/check-adoption-assurance.mjs",
+];
+const requiredDirectories = ["adoption-assurance-reports"];
+const requiredSections = [
+  "Adoption Summary",
+  "Assurance State",
+  "Target Project State",
+  "Adoption Surface Coverage",
+  "Evidence Resolution",
+  "Actual Diff / File State Check",
+  "Existing Rule Coverage",
+  "Governance Convergence Coverage",
+  "Simulation Task Result",
+  "Pending Human Decisions",
+  "Forbidden Claims",
+];
+const allowedStates = new Set([
+  "NOT_ADOPTED",
+  "READ_ONLY_DIAGNOSIS_ONLY",
+  "PLAN_READY",
+  "APPLY_READY",
+  "APPLIED_PENDING_VERIFICATION",
+  "PARTIAL_ADOPTION",
+  "VERIFIED_ACTIVE",
+  "BLOCKED_BY_DIRTY_WORKTREE",
+  "BLOCKED_BY_PROJECT_AUTHORITY",
+  "FAILED_ASSURANCE",
+]);
+const allowedSurfaceStatuses = new Set([
+  "VERIFIED",
+  "MAPPED",
+  "PROJECT_OWNED",
+  "PENDING_APPLY",
+  "PENDING_HUMAN_DECISION",
+  "BLOCKED",
+  "MISSING",
+  "NOT_APPLICABLE_WITH_REASON",
+]);
+const requiredSurfaces = new Set([
+  "workflow_entry",
+  "ai_rules_agents",
+  "engineering_baseline",
+  "environment_baseline",
+  "release_rollback",
+  "ci_hooks",
+  "documents",
+  "work_queue",
+  "ai_logs_audit",
+  "risk_authority",
+  "apply_chain",
+  "simulation_task",
+]);
+const forbiddenClaims = [
+  /\bhas fully adopted\b/i,
+  /\bis fully adopted\b/i,
+  /\bproduction approved\b/i,
+  /\bdeploy production\b/i,
+  /\bIntentOS owns production\b/i,
+  /\bIntentOS owns business\b/i,
+  /\bai-logs for every command\b/i,
+  /批准生产发布/i,
+  /自动写入目标项目/i,
+  /替代发布流程/i,
+];
+
+let failed = false;
+const checks = [];
+
+if (!outputJson) {
+  console.log("# Adoption Assurance Check");
+  console.log("");
+}
+
+if (shouldRequireAssets) {
+  for (const file of requiredAssets) {
+    const resolved = resolveAsset(file);
+    if (resolved) pass(`${displayAsset(file, resolved)} exists`);
+    else fail(`missing ${file}`);
+  }
+  for (const dir of requiredDirectories) {
+    const resolved = resolveDirectory(dir);
+    if (resolved) pass(`${displayAsset(dir, resolved)} exists`);
+    else fail(`missing ${dir}`);
+  }
+} else {
+  pass("asset completeness check skipped for standalone example or fixture");
+}
+
+checkCoreContent();
+checkReports();
+emitAndExit();
+
+function checkCoreContent() {
+  const combined = [
+    readResolved("core/adoption-execution-assurance.md"),
+    readResolved("docs/adoption-execution-assurance.md"),
+    readResolved("templates/adoption-assurance-report.md"),
+    readResolved("schemas/artifacts/adoption-assurance.schema.json"),
+  ].join("\n");
+  if (!combined.trim()) return;
+  for (const marker of [
+    "Adoption Execution Assurance",
+    "Adoption Assurance Report",
+    "adoption_assurance_report",
+    "VERIFIED_ACTIVE",
+    "PARTIAL_ADOPTION",
+    "SIMULATION_PASSED",
+    "does not write target files",
+    "does not approve release or production",
+    "does not replace project-owned release SOP",
+  ]) {
+    if (combined.includes(marker)) pass(`adoption assurance docs include ${marker}`);
+    else fail(`adoption assurance docs missing ${marker}`);
+  }
+}
+
+function checkReports() {
+  const files = explicitReport ? [explicitReport] : markdownFiles("adoption-assurance-reports");
+  if (files.length === 0) {
+    pass("adoption assurance check skipped: no reports");
+    return;
+  }
+  for (const file of files) {
+    if (!fs.existsSync(file)) {
+      fail(`missing explicit adoption assurance report ${file}`);
+      continue;
+    }
+    const content = fs.readFileSync(file, "utf8");
+    const label = rel(file);
+    if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
+    if (!content.includes("read-only evidence-bound verification view")) {
+      fail(`${label} must state read-only evidence-bound verification boundary`);
+    } else {
+      pass(`${label} states read-only evidence-bound verification boundary`);
+    }
+    for (const section of requiredSections) requireSection(content, section, label);
+    if (requireStructuredEvidence) requireSection(content, "Machine-Readable Evidence", label);
+    const summary = checkSummary(content, label);
+    const surfaces = checkSurfaceTable(content, label);
+    checkBoundaries(content, label);
+    const evidence = checkStructuredEvidence(content, label);
+    checkStateRules(content, label, summary, surfaces, evidence);
+  }
+}
+
+function checkSummary(content, label) {
+  const body = sectionBody(content, "Adoption Summary") || "";
+  const state = tableValue(body, "Assurance State");
+  const operatingMode = tableValue(body, "IntentOS Operating Mode");
+  const canClaim = tableValue(body, "Can Claim Full Adoption");
+  const canWrite = tableValue(body, "Can Codex Write Now");
+  if (allowedStates.has(state)) pass(`${label} summary assurance state is allowed`);
+  else fail(`${label} summary assurance state invalid: ${state || "<empty>"}`);
+  if (["ACTIVE", "READ_ONLY_DIAGNOSIS", "NOT_ACTIVE"].includes(operatingMode)) pass(`${label} summary operating mode is allowed`);
+  else fail(`${label} summary operating mode invalid: ${operatingMode || "<empty>"}`);
+  if (["Yes", "No"].includes(canClaim)) pass(`${label} summary full adoption claim flag is bounded`);
+  else fail(`${label} summary full adoption claim flag invalid: ${canClaim || "<empty>"}`);
+  if (canWrite === "No") pass(`${label} summary can codex write now is No`);
+  else fail(`${label} summary can codex write now must be No`);
+  return { state, operatingMode, canClaim, canWrite };
+}
+
+function checkSurfaceTable(content, label) {
+  const body = sectionBody(content, "Adoption Surface Coverage") || "";
+  const rows = tableRows(body);
+  const seen = new Map();
+  for (const row of rows) {
+    const surface = stripMarkdown(row[0] || "");
+    const status = stripMarkdown(row[1] || "");
+    const evidence = stripMarkdown(row[2] || "");
+    const notes = stripMarkdown(row[3] || "");
+    if (!surface) continue;
+    seen.set(surface, { surface, status, evidence, notes });
+    if (allowedSurfaceStatuses.has(status)) pass(`${label} ${surface} surface status is allowed`);
+    else fail(`${label} ${surface} surface status invalid: ${status || "<empty>"}`);
+    if (!evidence || /^(yes|n\/a|na)$/i.test(evidence)) fail(`${label} ${surface} surface evidence is not specific`);
+    else pass(`${label} ${surface} surface evidence is specific`);
+    if (status === "NOT_APPLICABLE_WITH_REASON" && !notes.trim()) {
+      fail(`${label} ${surface} NOT_APPLICABLE_WITH_REASON must include reason`);
+    }
+  }
+  for (const surface of requiredSurfaces) {
+    if (seen.has(surface)) pass(`${label} includes ${surface} surface`);
+    else fail(`${label} missing ${surface} surface`);
+  }
+  return seen;
+}
+
+function checkBoundaries(content, label) {
+  const body = sectionBody(content, "Forbidden Claims") || "";
+  const expected = [
+    "This report writes target files: No",
+    "This report authorizes target-file writes: No",
+    "This report approves implementation: No",
+    "This report approves release or production: No",
+    "This report mutates CI or hooks: No",
+    "This report replaces release SOP: No",
+    "This report transfers project authority to IntentOS: No",
+    "This report proves product correctness: No",
+  ];
+  for (const marker of expected) {
+    if (body.includes(marker)) pass(`${label} boundary ${marker}`);
+    else fail(`${label} missing boundary ${marker}`);
+  }
+}
+
+function checkStructuredEvidence(content, label) {
+  const body = sectionBody(content, "Machine-Readable Evidence", { fallback: "" }) || "";
+  if (!body.trim()) {
+    if (requireStructuredEvidence) fail(`${label} must include Machine-Readable Evidence in strict mode`);
+    return null;
+  }
+  const jsonText = fencedJson(body);
+  if (!jsonText) {
+    fail(`${label} Machine-Readable Evidence must contain a fenced json block`);
+    return null;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+    pass(`${label} Machine-Readable Evidence parses as JSON`);
+  } catch (error) {
+    fail(`${label} Machine-Readable Evidence JSON invalid: ${error.message}`);
+    return null;
+  }
+  const required = [
+    "schema_version",
+    "artifact_type",
+    "target_project_profile",
+    "assurance_state",
+    "intent_os_operating_mode",
+    "can_claim_full_adoption",
+    "can_codex_write_now",
+    "surfaces",
+    "evidence_refs",
+    "simulation",
+    "pending_decisions",
+    "forbidden_claims",
+    "boundary",
+    "outcome",
+  ];
+  for (const field of required) {
+    if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} evidence includes ${field}`);
+    else fail(`${label} evidence missing ${field}`);
+  }
+  if (parsed.schema_version === "1.71.0") pass(`${label} evidence schema_version is 1.71.0`);
+  else fail(`${label} evidence schema_version must be 1.71.0`);
+  if (parsed.artifact_type === "adoption_assurance_report") pass(`${label} evidence artifact_type is adoption_assurance_report`);
+  else fail(`${label} evidence artifact_type invalid`);
+  if (allowedStates.has(parsed.assurance_state)) pass(`${label} evidence assurance_state is allowed`);
+  else fail(`${label} evidence assurance_state invalid: ${parsed.assurance_state || "<empty>"}`);
+  if (parsed.outcome === parsed.assurance_state) pass(`${label} evidence outcome matches assurance_state`);
+  else fail(`${label} evidence outcome must match assurance_state`);
+  if (parsed.can_codex_write_now === "No") pass(`${label} evidence can_codex_write_now is No`);
+  else fail(`${label} evidence can_codex_write_now must be No`);
+  checkStructuredSurfaces(parsed, label);
+  checkStructuredSimulation(parsed, label);
+  checkStructuredBoundary(parsed, label);
+  checkEvidenceRefs(parsed, label);
+  return parsed;
+}
+
+function checkStructuredSurfaces(parsed, label) {
+  const surfaces = Array.isArray(parsed.surfaces) ? parsed.surfaces : [];
+  const seen = new Set();
+  for (const item of surfaces) {
+    if (!item || typeof item !== "object") continue;
+    seen.add(item.surface);
+    if (allowedSurfaceStatuses.has(item.status)) pass(`${label} evidence ${item.surface} status is allowed`);
+    else fail(`${label} evidence ${item.surface || "<unknown>"} status invalid`);
+    if (item.status === "NOT_APPLICABLE_WITH_REASON" && !String(item.notes || "").trim()) {
+      fail(`${label} evidence ${item.surface} NOT_APPLICABLE_WITH_REASON must include reason`);
+    }
+    if (!String(item.evidence || "").trim() || /^(yes|n\/a|na)$/i.test(String(item.evidence || "").trim())) {
+      fail(`${label} evidence ${item.surface} must include a specific evidence ref`);
+    }
+  }
+  for (const surface of requiredSurfaces) {
+    if (seen.has(surface)) pass(`${label} evidence includes ${surface} surface`);
+    else fail(`${label} evidence missing ${surface} surface`);
+  }
+}
+
+function checkStructuredSimulation(parsed, label) {
+  const simulation = parsed.simulation || {};
+  const allowed = new Set([
+    "SIMULATION_NOT_RUN",
+    "SIMULATION_PASSED",
+    "SIMULATION_PARTIAL",
+    "SIMULATION_FAILED",
+    "SIMULATION_BLOCKED",
+  ]);
+  if (allowed.has(simulation.state)) pass(`${label} simulation state is allowed`);
+  else fail(`${label} simulation state invalid: ${simulation.state || "<empty>"}`);
+  if (simulation.writes_target_files === "No") pass(`${label} simulation is read-only`);
+  else fail(`${label} simulation must not write target files`);
+  if (requireSimulation && simulation.state !== "SIMULATION_PASSED") {
+    fail(`${label} strict simulation mode requires SIMULATION_PASSED`);
+  }
+}
+
+function checkStructuredBoundary(parsed, label) {
+  const boundary = parsed.boundary || {};
+  for (const field of [
+    "writes_target_files",
+    "authorizes_target_file_writes",
+    "approves_implementation",
+    "approves_release_or_production",
+    "mutates_ci_or_hooks",
+    "replaces_release_sop",
+    "transfers_project_authority_to_intentos",
+    "proves_product_correctness",
+  ]) {
+    if (boundary[field] === "No") pass(`${label} boundary ${field} is No`);
+    else fail(`${label} boundary ${field} must be No`);
+  }
+}
+
+function checkEvidenceRefs(parsed, label) {
+  const refs = Array.isArray(parsed.evidence_refs) ? parsed.evidence_refs : [];
+  if (refs.length > 0) pass(`${label} evidence refs are present`);
+  else fail(`${label} evidence refs must not be empty`);
+  for (const ref of refs) {
+    const value = String(ref || "");
+    if (!value.trim()) fail(`${label} evidence ref is empty`);
+    if (/TODO|TBD|placeholder|<.*>|evidence:\s*yes/i.test(value)) fail(`${label} evidence ref is placeholder: ${value}`);
+    if (/git-diff:stale|stale-diff|old unrelated/i.test(value)) fail(`${label} evidence ref is stale or unrelated: ${value}`);
+    if (requireStructuredEvidence && value.startsWith("file:")) {
+      const filePath = value.slice("file:".length);
+      if (!filePath || path.isAbsolute(filePath) || filePath.includes("..")) {
+        fail(`${label} file evidence ref must be relative and safe: ${value}`);
+      } else if (fs.existsSync(path.join(projectRoot, filePath))) {
+        pass(`${label} resolves file evidence ${value}`);
+      } else {
+        fail(`${label} unresolved file evidence ${value}`);
+      }
+    }
+  }
+}
+
+function checkStateRules(content, label, summary, surfaces, evidence) {
+  const state = evidence?.assurance_state || summary.state;
+  const fullClaim = evidence?.can_claim_full_adoption || summary.canClaim;
+  const surfaceValues = evidence?.surfaces || Array.from(surfaces.values());
+  const hasBlockingSurface = surfaceValues.some((item) => [
+    "MISSING",
+    "PENDING_APPLY",
+    "PENDING_HUMAN_DECISION",
+    "BLOCKED",
+  ].includes(item.status));
+  const simulationState = evidence?.simulation?.state || "";
+  const claimsFullInText = /\|\s*Can Claim Full Adoption\s*\|\s*`?Yes`?\s*\|/i.test(content)
+    || /\bhas fully adopted\b/i.test(content)
+    || /\bis fully adopted\b/i.test(content);
+
+  if (state === "VERIFIED_ACTIVE") {
+    if (fullClaim === "Yes") pass(`${label} verified active can claim full adoption`);
+    else fail(`${label} VERIFIED_ACTIVE must set can_claim_full_adoption to Yes`);
+    if (simulationState === "SIMULATION_PASSED") pass(`${label} verified active has passed simulation`);
+    else fail(`${label} VERIFIED_ACTIVE requires SIMULATION_PASSED`);
+    if (!hasBlockingSurface) pass(`${label} verified active has no blocking surfaces`);
+    else fail(`${label} VERIFIED_ACTIVE cannot include missing, pending, or blocked surfaces`);
+  } else if (fullClaim === "Yes" || claimsFullInText) {
+    fail(`${label} cannot claim full adoption unless state is VERIFIED_ACTIVE`);
+  }
+
+  if (hasBlockingSurface && state === "VERIFIED_ACTIVE") {
+    fail(`${label} cannot be VERIFIED_ACTIVE with blocking surfaces`);
+  }
+
+  if (simulationState !== "SIMULATION_PASSED" && state === "VERIFIED_ACTIVE") {
+    fail(`${label} cannot be VERIFIED_ACTIVE without simulation pass`);
+  }
+
+  for (const pattern of forbiddenClaims) {
+    if (pattern.test(content) && state !== "VERIFIED_ACTIVE") {
+      fail(`${label} contains forbidden adoption claim: ${pattern.source}`);
+    }
+  }
+}
+
+function requireSection(content, section, label) {
+  if (sectionBody(content, section) !== null) pass(`${label} includes ${section}`);
+  else fail(`${label} missing ${section}`);
+}
+
+function tableRows(body) {
+  return body
+    .split(/\r?\n/)
+    .filter((line) => /^\s*\|/.test(line) && !/^\s*\|\s*-+/.test(line))
+    .slice(1)
+    .map(splitMarkdownRow);
+}
+
+function tableValue(body, field) {
+  for (const row of tableRows(body)) {
+    if (stripMarkdown(row[0] || "") === field) return stripMarkdown(row[1] || "");
+  }
+  return "";
+}
+
+function fencedJson(body) {
+  const match = body.match(/```json\s*([\s\S]*?)```/i);
+  return match ? match[1].trim() : "";
+}
+
+function markdownFiles(relativeDir) {
+  const dir = path.join(projectRoot, relativeDir);
+  if (!fs.existsSync(dir)) return [];
+  const result = [];
+  walk(dir, result);
+  return result.filter((file) => file.endsWith(".md")).sort();
+}
+
+function walk(dir, result) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(full, result);
+    else result.push(full);
+  }
+}
+
+function resolveAsset(relativePath) {
+  const direct = path.join(projectRoot, relativePath);
+  if (fs.existsSync(direct)) return direct;
+  const nested = path.join(projectRoot, ".ai-native", relativePath);
+  if (fs.existsSync(nested)) return nested;
+  return null;
+}
+
+function resolveDirectory(relativePath) {
+  const direct = path.join(projectRoot, relativePath);
+  if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
+  const nested = path.join(projectRoot, ".ai-native", relativePath);
+  if (fs.existsSync(nested) && fs.statSync(nested).isDirectory()) return nested;
+  return null;
+}
+
+function readResolved(relativePath) {
+  const resolved = resolveAsset(relativePath);
+  return resolved ? fs.readFileSync(resolved, "utf8") : "";
+}
+
+function displayAsset(relativePath, resolved) {
+  return path.relative(projectRoot, resolved) || relativePath;
+}
+
+function rel(file) {
+  return path.relative(projectRoot, file) || ".";
+}
+
+function pass(message) {
+  checks.push({ status: "PASS", message });
+  if (!outputJson) console.log(`PASS ${message}`);
+}
+
+function fail(message) {
+  failed = true;
+  checks.push({ status: "FAIL", message });
+  if (!outputJson) console.error(`FAIL ${message}`);
+}
+
+function emitAndExit() {
+  if (outputJson) {
+    console.log(JSON.stringify({
+      ok: !failed,
+      checks,
+    }, null, 2));
+  } else if (!failed) {
+    console.log("");
+    console.log("Adoption Assurance check passed.");
+  }
+  process.exit(failed ? 1 : 0);
+}

@@ -5291,6 +5291,217 @@ function hasCompleteGovernanceConvergenceEvidence(parsed) {
   return hasAllDimensions && hasAllSources && (!needsUpstreamBlock || recordsUpstreamBlock);
 }
 
+function checkAdoptionExecutionAssuranceProtocol() {
+  const badFixtures = [
+    "bad-adoption-assurance-full-without-simulation",
+    "bad-adoption-assurance-missing-rule-coverage",
+    "bad-adoption-assurance-unresolved-evidence",
+    "bad-adoption-assurance-authorizes-write",
+    "bad-adoption-assurance-claims-production-approval",
+    "bad-adoption-assurance-mutates-ci-hooks",
+    "bad-adoption-assurance-replaces-release-sop",
+    "bad-adoption-assurance-stale-diff",
+    "bad-adoption-assurance-ai-log-spam",
+    "bad-adoption-assurance-empty-na-reason",
+  ];
+  const required = [
+    "docs/plans/adoption-execution-assurance-1.71-plan.md",
+    "core/adoption-execution-assurance.md",
+    "docs/adoption-execution-assurance.md",
+    "templates/adoption-assurance-report.md",
+    "schemas/artifacts/adoption-assurance.schema.json",
+    "checklists/adoption-assurance-review.md",
+    "prompts/adoption-assurance-agent.md",
+    "adoption-assurance-reports/.gitkeep",
+    "scripts/resolve-adoption-assurance.mjs",
+    "scripts/check-adoption-assurance.mjs",
+    "examples/1.71-adoption-execution-assurance/README.md",
+    "examples/1.71-adoption-execution-assurance/verified-existing-project/adoption-assurance-reports/001-verified.md",
+    "examples/1.71-adoption-execution-assurance/partial-existing-project/adoption-assurance-reports/001-partial.md",
+    "examples/1.71-adoption-execution-assurance/blocked-production-project/adoption-assurance-reports/001-blocked.md",
+    "examples/1.71-adoption-execution-assurance/failed-assurance/adoption-assurance-reports/001-failed.md",
+    "releases/1.71.0/release-record.md",
+    "releases/1.71.0/known-limitations.md",
+    "releases/1.71.0/self-check-report.md",
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/adoption-assurance-reports/001-bad.md`),
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.71 adoption assurance asset exists ${file}`);
+    else fail(`1.71 adoption assurance asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/adoption-execution-assurance-1.71-plan.md"),
+    read("core/adoption-execution-assurance.md"),
+    read("docs/adoption-execution-assurance.md"),
+    read("templates/adoption-assurance-report.md"),
+    read("schemas/artifacts/adoption-assurance.schema.json"),
+    read("scripts/resolve-adoption-assurance.mjs"),
+    read("scripts/check-adoption-assurance.mjs"),
+    read("releases/1.71.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Adoption Execution Assurance",
+    "Adoption Assurance Report",
+    "adoption_assurance_report",
+    "VERIFIED_ACTIVE",
+    "PARTIAL_ADOPTION",
+    "BLOCKED_BY_PROJECT_AUTHORITY",
+    "SIMULATION_PASSED",
+    "read-only simulated task",
+    "does not write target files",
+    "does not approve release or production",
+    "does not replace project-owned release SOP",
+    "can_claim_full_adoption",
+    "can_codex_write_now",
+    "workflow_entry",
+    "ai_rules_agents",
+    "engineering_baseline",
+    "environment_baseline",
+    "release_rollback",
+    "ci_hooks",
+    "documents",
+    "work_queue",
+    "ai_logs_audit",
+    "risk_authority",
+    "apply_chain",
+    "simulation_task",
+  ]) {
+    if (combined.includes(marker)) pass(`1.71 adoption assurance includes ${marker}`);
+    else fail(`1.71 adoption assurance missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-adoption-assurance.mjs",
+    "node --check scripts/check-adoption-assurance.mjs",
+    "node scripts/cli.mjs adoption-assurance .",
+    "node scripts/cli.mjs adoption-assurance-check .",
+    "node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/verified-existing-project --require-structured-evidence --require-simulation",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.71 package verify surface includes ${marker}`);
+    else fail(`1.71 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-adoption-assurance.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Adoption Assurance Report")
+    && resolver.stdout.includes("read-only evidence-bound verification view")
+    && resolver.stdout.includes("## Adoption Surface Coverage")
+    && resolver.stdout.includes("## Simulation Task Result")) {
+    pass("1.71 adoption assurance resolver prints safe report");
+  } else {
+    fail(`1.71 adoption assurance resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-adoption-assurance.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "ADOPTION_ASSURANCE_REPORT"
+        && parsed.readOnly === true
+        && parsed.schemaVersion === "1.71.0"
+        && parsed.humanSummary?.canCodexWriteNow === "No"
+        && parsed.structuredEvidence?.artifact_type === "adoption_assurance_report"
+        && parsed.structuredEvidence?.can_codex_write_now === "No"
+        && hasCompleteAdoptionAssuranceEvidence(parsed)) {
+        pass("1.71 adoption assurance resolver JSON includes safe evidence fields");
+      } else {
+        fail(`1.71 adoption assurance resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.71 adoption assurance resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.71 adoption assurance resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-adoption-assurance.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Adoption Assurance check passed")) {
+    pass("1.71 adoption assurance checker passes source repo");
+  } else {
+    fail(`1.71 adoption assurance checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const explicitReportDir = fs.mkdtempSync(path.join(os.tmpdir(), "adoption-assurance-report-"));
+  const explicitReportPath = path.join(explicitReportDir, "generated.md");
+  fs.writeFileSync(explicitReportPath, resolver.stdout);
+  const explicitReport = runNode([
+    "scripts/check-adoption-assurance.mjs",
+    ".",
+    "--report",
+    explicitReportPath,
+    "--require-structured-evidence",
+  ]);
+  if (explicitReport.status === 0 && explicitReport.stdout.includes("Adoption Assurance check passed")) {
+    pass("1.71 adoption assurance checker validates generated explicit report");
+  } else {
+    fail(`1.71 adoption assurance explicit report check failed: ${explicitReport.stderr || explicitReport.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "adoption-assurance", "."]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Adoption Assurance Report")) {
+    pass("CLI adoption-assurance delegates to resolver");
+  } else {
+    fail(`CLI adoption-assurance failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "adoption-assurance-check", "."]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("Adoption Assurance check passed")) {
+    pass("CLI adoption-assurance-check delegates to checker");
+  } else {
+    fail(`CLI adoption-assurance-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const [target, extraFlags] of [
+    ["examples/1.71-adoption-execution-assurance/verified-existing-project", ["--require-simulation"]],
+    ["examples/1.71-adoption-execution-assurance/partial-existing-project", []],
+    ["examples/1.71-adoption-execution-assurance/blocked-production-project", []],
+  ]) {
+    const example = runNode(["scripts/check-adoption-assurance.mjs", target, "--require-structured-evidence", ...extraFlags]);
+    if (example.status === 0) pass(`1.71 adoption assurance example passes strict checker ${target}`);
+    else fail(`1.71 adoption assurance example failed ${target}: ${example.stderr || example.stdout}`);
+  }
+
+  for (const target of badFixtures) {
+    const result = runNode(["scripts/check-adoption-assurance.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.71 adoption assurance rejects ${target}`);
+    else fail(`1.71 adoption assurance must reject ${target}`);
+  }
+}
+
+function hasCompleteAdoptionAssuranceEvidence(parsed) {
+  const requiredSurfaces = [
+    "workflow_entry",
+    "ai_rules_agents",
+    "engineering_baseline",
+    "environment_baseline",
+    "release_rollback",
+    "ci_hooks",
+    "documents",
+    "work_queue",
+    "ai_logs_audit",
+    "risk_authority",
+    "apply_chain",
+    "simulation_task",
+  ];
+  const surfaces = parsed.structuredEvidence?.surfaces;
+  const surfaceNames = new Set(Array.isArray(surfaces) ? surfaces.map((surface) => surface.surface) : []);
+  const hasAllSurfaces = requiredSurfaces.every((surface) => surfaceNames.has(surface));
+  const simulation = parsed.structuredEvidence?.simulation || {};
+  const boundary = parsed.structuredEvidence?.boundary || {};
+  return hasAllSurfaces
+    && typeof simulation.state === "string"
+    && boundary.writes_target_files === "No"
+    && boundary.approves_release_or_production === "No"
+    && boundary.replaces_release_sop === "No";
+}
+
 function checkDocumentLifecycleProtocol() {
   const required = [
     "core/document-lifecycle.md",
@@ -12397,6 +12608,7 @@ checkExistingProjectWorkflowAdapterProtocol();
 checkNativeFirstMigrationProtocol();
 checkExistingRuleReconciliationProtocol();
 checkGovernanceConvergenceProtocol();
+checkAdoptionExecutionAssuranceProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();
