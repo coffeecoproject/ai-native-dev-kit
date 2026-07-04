@@ -6,6 +6,10 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 
 ## Start Here
 
+- [Start Here](start-here.md)
+- [Minimal Adoption](minimal-adoption.md)
+- [For Existing Projects](for-existing-projects.md)
+- [For Maintainers](for-maintainers.md)
 - [Quickstart](quickstart.md)
 - [First Hour](first-hour.md)
 - [Operator Manual](operator-manual.md)
@@ -27,6 +31,8 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 
 ## Project Adoption
 
+- [Minimal Adoption](minimal-adoption.md)
+- [For Existing Projects](for-existing-projects.md)
 - [Baseline Setup](baseline-setup.md)
 - [Existing Project Workflow Adapter](existing-project-workflow-adapter.md)
 - [Native-First Existing Project Migration](native-first-existing-project-migration.md)

@@ -4,33 +4,44 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.67.2`.
+Current release: `1.68.0`.
 
-Release record: [releases/1.67.2/release-record.md](releases/1.67.2/release-record.md).
+Release record: [releases/1.68.0/release-record.md](releases/1.68.0/release-record.md).
 
-Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
+IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.67.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, calibrated old-project migration, existing-rule reconciliation, and one pure-view Release Plan that summarizes release source systems without becoming release authority.
-
-1.67.2 hardens Release Plan evidence without adding a new workflow layer: structured evidence now rejects unsupported extra fields, Chinese unsafe release-plan claims are blocked, the review checklist includes `release_plan_digest`, and private governed-project smoke checks are documented as optional local calibration rather than public required verification.
-
-1.67.1 calibrates Release Plan evidence and existing-project entry: strict Release Plan checks now verify the `release_plan_digest`, cover Web preview, mini-program review, backend API handoff, and governed existing-project examples, and reject more unsafe release-plan claims. `start` / `next` also make the old-project expectation clearer: Codex can work in IntentOS Operating Mode now, while governance assets still require Native Migration, Existing Rule Reconciliation, apply plan, approval, and readiness checks before writes.
-
-1.67.0 adds Release Core Model: when users say “help me launch”, IntentOS can summarize Release Adapter, Release Guide, Platform Recipe, Launch Review, Handoff, Release Execution, Native Migration, and Existing Rule Reconciliation into one Release Plan. For old projects, Codex can work in IntentOS Operating Mode immediately, but baselines, release rules, CI, hooks, and governance files still require detailed comparison, migration-depth recommendation, apply plan, approval, and readiness checks before changes.
-
-1.66.0 adds Existing Rule Reconciliation: after Native Migration identifies old project rules, Codex can compare them with IntentOS references and recommend `KEEP_EXISTING`, `ADOPT_INTENTOS`, `MERGE`, `GAP_SUGGESTION`, or human decision paths. It does not let IntentOS replace business rules, production controls, release SOPs, permissions, compliance, data, payment, tax, finance, HR, legal, secrets, hooks, CI, or provider state.
-
-1.65.0 calibrates Native Migration classification: mixed business + engineering rules are no longer downgraded to plain engineering rules, Chinese business/production/permission text is handled more conservatively, simple Markdown tables can be extracted with line evidence, complex tables stay human-review bound, and Markdown proposed actions must match Machine-Readable Evidence.
-
-1.64.0 hardens Native Migration parser calibration and evidence consistency: strict checks compare Markdown rule rows against Machine-Readable Evidence by `rule_id`, report skipped tables, long paragraphs, and low-signal governance text, and reject structured proposed actions that try to write target files. Workflow-map output is also clearer: it is diagnostic, and adoption moves through Native Migration Plan.
-
-1.63.0 hardens Native-First Existing Project Migration: when an old or governed project should adopt IntentOS, Codex now extracts old rules with source line ranges, records rule extraction coverage and parser warnings, and can require machine-readable migration evidence before any real governance replacement plan. It still does not overwrite `AGENTS.md`, CI, hooks, release SOPs, production config, business logic, or secrets.
+It is not a prompt collection, code template, framework starter, or deploy tool. It is a workflow and governance layer for Codex and other AI coding agents.
 
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
-IntentOS is not a prompt collection, a code template, or a framework starter. It is a workflow and governance layer for Codex and other AI coding agents.
+## Start In 30 Seconds
 
-It helps AI avoid the most common failure mode in software projects: changing code before it understands the project, the risk, the current task, and the human decision boundary.
+Most users should start with natural language:
+
+```text
+I want to build a booking app. Start this project for me.
+```
+
+When command evidence is useful, use only these first:
+
+```bash
+node scripts/cli.mjs start <project>
+node scripts/cli.mjs next <project>
+node scripts/cli.mjs doctor <project>
+```
+
+Those commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
+
+Start here:
+
+- [Start Here](docs/start-here.md)
+- [Minimal Adoption](docs/minimal-adoption.md)
+- [For Existing Projects](docs/for-existing-projects.md)
+- [For Maintainers](docs/for-maintainers.md)
+
+Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
+
+1.68.0 consolidates the public entry surface: README, docs, and CLI help now lead with `start`, `next`, and `doctor`, while advanced workflow commands remain available for maintainers and CI.
 
 ## 3 分钟理解
 

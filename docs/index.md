@@ -4,6 +4,10 @@ This index separates current operating documents from reference material, histor
 
 ## Product And Operator Docs
 
+- [Start Here](start-here.md)
+- [Minimal Adoption](minimal-adoption.md)
+- [For Existing Projects](for-existing-projects.md)
+- [For Maintainers](for-maintainers.md)
 - [Quickstart](quickstart.md)
 - [First Hour](first-hour.md)
 - [Operator Manual](operator-manual.md)
@@ -95,6 +99,8 @@ This index separates current operating documents from reference material, histor
 
 ## Project Adoption Playbooks
 
+- [Minimal Adoption](minimal-adoption.md)
+- [For Existing Projects](for-existing-projects.md)
 - [New Project Playbook](adoption-playbooks/new-project.md)
 - [Existing Light Project Playbook](adoption-playbooks/existing-light-project.md)
 - [Governed Read-Only Playbook](adoption-playbooks/governed-project-read-only.md)

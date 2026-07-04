@@ -47,6 +47,10 @@ function checkRequiredFiles() {
     "LICENSE.md",
     "VERSION.md",
     "package.json",
+    "docs/start-here.md",
+    "docs/minimal-adoption.md",
+    "docs/for-existing-projects.md",
+    "docs/for-maintainers.md",
     "docs/quickstart.md",
     "docs/codex-usage.md",
     "docs/mental-model.md",
@@ -60,6 +64,7 @@ function checkRequiredFiles() {
     "docs/roadmaps/governance-hardening-roadmap.md",
     "docs/roadmaps/README.md",
     "docs/plans/productization-hardcut-1.0-plan.md",
+    "docs/plans/product-adoption-simplification-1.68-plan.md",
     "dev-kit-manifest.json",
     "schemas/dev-kit-manifest.schema.json",
     ".github/workflows/dev-kit-pr-checks.yml",
@@ -1539,6 +1544,13 @@ function checkCliFrontDoor() {
     "Compatibility alias: ai-native",
     currentVersion(),
     "Manifest: dev-kit-manifest.json",
+    "Primary entry commands",
+    "Common user-facing decisions",
+    "Advanced commands remain available",
+    "docs/start-here.md",
+    "docs/minimal-adoption.md",
+    "docs/for-existing-projects.md",
+    "docs/for-maintainers.md",
     "guide",
     "guide-check",
     "ask",
@@ -2077,10 +2089,26 @@ function checkCliFrontDoor() {
   const doctorDryRun = runNode(["scripts/cli.mjs", "--dry-run", "doctor", "."]);
   if (doctorDryRun.status === 0
     && doctorDryRun.stdout.includes("node scripts/workflow-next.mjs .")
-    && doctorDryRun.stdout.includes("node scripts/check-ai-workflow.mjs . --mode core")) {
-    pass("CLI doctor dry-run shows workflow-next and core check sequence");
+    && doctorDryRun.stdout.includes("node scripts/check-dev-kit.mjs")) {
+    pass("CLI doctor dry-run routes dev-kit source to self-check sequence");
   } else {
-    fail(`CLI doctor dry-run missing sequence: ${doctorDryRun.stderr || doctorDryRun.stdout}`);
+    fail(`CLI doctor dry-run missing dev-kit source sequence: ${doctorDryRun.stderr || doctorDryRun.stdout}`);
+  }
+
+  const doctorTargetRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-doctor-target-"));
+  try {
+    const doctorTarget = path.join(doctorTargetRoot, "project");
+    fs.mkdirSync(doctorTarget, { recursive: true });
+    const doctorTargetDryRun = runNode(["scripts/cli.mjs", "--dry-run", "doctor", doctorTarget]);
+    if (doctorTargetDryRun.status === 0
+      && doctorTargetDryRun.stdout.includes(`node scripts/workflow-next.mjs ${doctorTarget}`)
+      && doctorTargetDryRun.stdout.includes(`node scripts/check-ai-workflow.mjs ${doctorTarget} --mode core`)) {
+      pass("CLI doctor dry-run routes target project to workflow-next and core check sequence");
+    } else {
+      fail(`CLI doctor dry-run missing target project sequence: ${doctorTargetDryRun.stderr || doctorTargetDryRun.stdout}`);
+    }
+  } finally {
+    fs.rmSync(doctorTargetRoot, { recursive: true, force: true });
   }
 
   const migrateRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-migrate-"));
@@ -9211,7 +9239,12 @@ function checkReadmePointers() {
     "IntentOS",
     "AI Native Dev Kit",
     "An AI-native system for guided software delivery",
+    "Start In 30 Seconds",
     "You describe the goal",
+    "docs/start-here.md",
+    "docs/minimal-adoption.md",
+    "docs/for-existing-projects.md",
+    "docs/for-maintainers.md",
     "3 分钟理解",
     "新项目",
     "已有项目",
@@ -9339,8 +9372,12 @@ function checkReadmePointers() {
   for (const pointer of [
     "IntentOS 中文说明",
     "面向 AI 协作开发的项目交付系统",
-    "一句话开始",
+    "30 秒开始",
     "Conversation-Native Ask",
+    "docs/start-here.md",
+    "docs/minimal-adoption.md",
+    "docs/for-existing-projects.md",
+    "docs/for-maintainers.md",
     "适合什么场景",
     "项目分级",
     "Artifact Lifecycle Map",
@@ -9441,6 +9478,10 @@ function checkReadmePointers() {
   }
 
   const requiredDocs = [
+    "docs/start-here.md",
+    "docs/minimal-adoption.md",
+    "docs/for-existing-projects.md",
+    "docs/for-maintainers.md",
     "docs/README.md",
     "docs/index.md",
     "docs/repository-structure.md",
@@ -9450,6 +9491,7 @@ function checkReadmePointers() {
     "docs/o0-bl0-lightweight-path.md",
     "docs/plans/README.md",
     "docs/plans/repository-information-architecture-1.36-plan.md",
+    "docs/plans/product-adoption-simplification-1.68-plan.md",
     "docs/plans/conversation-native-ask-1.37-plan.md",
     "docs/roadmaps/README.md",
     "docs/operator-manual.md",
@@ -9569,6 +9611,11 @@ function checkReadmePointers() {
     read("docs/roadmaps/governance-hardening-roadmap.md"),
   ].join("\n");
   const requiredReferencePointers = [
+    "Start Here",
+    "Minimal Adoption",
+    "For Existing Projects",
+    "For Maintainers",
+    "Primary Public Entry",
     "generic-project",
     "codex-ios-app",
     "codex-android-app",

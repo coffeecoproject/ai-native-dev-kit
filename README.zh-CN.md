@@ -4,33 +4,44 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.67.2`。
+当前版本：`1.68.0`。
 
-发布记录：[releases/1.67.2/release-record.md](releases/1.67.2/release-record.md)。
+发布记录：[releases/1.68.0/release-record.md](releases/1.68.0/release-record.md)。
 
-命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
+IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
-版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.67.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包、人工批准后的受控发布执行计划、老项目原生迁移、旧规则对齐，以及一个只读的 Release Plan 统一发布视图。
-
-1.67.2 只做 Release Plan 证据加固，不增加新流程：结构化证据会拒绝不支持的额外字段，中文危险发布表述会被拦截，审查清单补上 `release_plan_digest`，私有老项目 smoke 检查也改成“可选本地校准”，不再当成公开必备验证。
-
-1.67.1 校准 Release Plan 证据和老项目入口：严格检查会校验 `release_plan_digest`，覆盖 Web 预览、小程序提审、后端 API 交接、强治理老项目四类样例，并拒绝更多不安全发布视图表述。`start` / `next` 也会更清楚地说明：Codex 可以立即按 IntentOS 工作模式推进规划、路由、复查和对比，但治理资产写入仍必须先经过 Native Migration、Existing Rule Reconciliation、apply plan、人工批准和 readiness 检查。
-
-1.67.0 加入 Release Core Model：用户说“帮我上线”时，IntentOS 可以把 Release Adapter、Release Guide、平台配方、上线评审、发布交接、发布执行、Native Migration 和 Existing Rule Reconciliation 汇总成一张 Release Plan。对于老项目，Codex 可以直接按 IntentOS 工作，但基线、发布规则、CI、hook 和治理文件仍要先细致对比，再经过迁移深度建议、apply plan、人工批准和 readiness 检查后才能改。
-
-1.66.0 加入 Existing Rule Reconciliation：在 Native Migration 识别旧项目规则后，Codex 可以把旧规则和 IntentOS 参考规则做对比，并建议 `KEEP_EXISTING`、`ADOPT_INTENTOS`、`MERGE`、`GAP_SUGGESTION` 或交给人决策。它不会让 IntentOS 直接替换业务规则、生产控制、发布 SOP、权限、合规、数据、支付、税务、财务、人资、法务、密钥、hook、CI 或外部平台状态。
-
-1.65.0 继续校准 Native Migration 分类：业务和工程混在一起的规则不会再被简单当成工程规范；中文业务、生产、权限规则会更保守地识别；简单 Markdown 表格可以带行号提取，复杂表格仍交给人复核；Markdown proposed action 也必须和机器证据一致。
-
-1.64.0 继续加固 Native Migration：严格检查会按 `rule_id` 对齐 Markdown 规则表和机器证据，记录被跳过的表格、长段落和低信号治理文本，并拒绝机器证据里试图写目标文件的 proposed action。workflow-map 也更明确：它只是诊断入口，真正接入要进入 Native Migration Plan。
-
-1.63.0 强化 Native-First Existing Project Migration：老项目或强治理项目要接入 IntentOS 时，Codex 不只判断文件，还会按行抽取旧规则，记录抽取覆盖、未分类块和 parser warnings；真正要替换治理文件前，可以要求机器可读迁移证据。它仍然不会直接覆盖 `AGENTS.md`、CI、hook、发布 SOP、生产配置、业务逻辑或密钥。
+它不是提示词合集，也不是代码模板、框架脚手架或部署工具。它是一套给 Codex 和其他 AI 编程助手使用的工作流与治理底座。
 
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
-IntentOS 不是提示词合集，也不是代码模板。它是一套给 Codex 和其他 AI 编程助手使用的工作流与治理底座。
+## 30 秒开始
 
-它解决的问题是：AI 进入项目后，不能一上来就改代码，而应该先读项目、判断状态、确认边界、写下计划，再执行、验证、复查和收口。
+多数用户直接用自然语言开始：
+
+```text
+我想做一个预约 App，你帮我开始。
+```
+
+需要命令行证据时，先只用这三个：
+
+```bash
+node scripts/cli.mjs start <project>
+node scripts/cli.mjs next <project>
+node scripts/cli.mjs doctor <project>
+```
+
+这些命令都是只读入口，不批准实现、发布、生产、CI、hook、密钥、迁移、支付、权限或治理替换。
+
+先读这几页：
+
+- [Start Here](docs/start-here.md)
+- [Minimal Adoption](docs/minimal-adoption.md)
+- [For Existing Projects](docs/for-existing-projects.md)
+- [For Maintainers](docs/for-maintainers.md)
+
+命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
+
+1.68.0 收敛公共入口：README、docs 和 CLI help 优先展示 `start`、`next`、`doctor`，高级 workflow 命令继续保留给维护者和 CI 使用。
 
 ## 3 分钟理解
 

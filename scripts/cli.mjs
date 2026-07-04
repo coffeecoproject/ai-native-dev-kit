@@ -506,10 +506,16 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultMode(withDefaultTarget(args), "core"),
   },
   doctor: {
-    description: "Run workflow-next followed by core workflow checks.",
+    description: "Run the right diagnosis for the current path.",
     writes: false,
     sequence: (args) => {
       const target = firstPositional(args, new Set()) || ".";
+      if (isDevKitSourceTarget(target)) {
+        return [
+          { script: "scripts/workflow-next.mjs", args: [target] },
+          { script: "scripts/check-dev-kit.mjs", args: [] },
+        ];
+      }
       return [
         { script: "scripts/workflow-next.mjs", args: [target] },
         { script: "scripts/check-ai-workflow.mjs", args: [target, "--mode", "core"] },
@@ -597,6 +603,13 @@ function readVersionFile() {
   return match ? match[1] : "0.0.0";
 }
 
+function isDevKitSourceTarget(target) {
+  const targetRoot = path.resolve(process.cwd(), target);
+  if (targetRoot !== kitRoot) return false;
+  const targetPackage = readJsonIfExists(path.join(targetRoot, "package.json"));
+  return targetPackage?.name === "ai-native-dev-kit" && fs.existsSync(path.join(targetRoot, "dev-kit-manifest.json"));
+}
+
 function printShortUsage() {
   console.error("Run `node scripts/cli.mjs --help` for usage.");
 }
@@ -604,6 +617,8 @@ function printShortUsage() {
 function printHelp() {
   console.log(`IntentOS CLI ${version}`);
   console.log("Compatibility alias: ai-native / ai-native-dev-kit");
+  console.log("");
+  console.log("IntentOS helps AI coding agents work through a project without bypassing human decisions.");
   console.log("");
   console.log("Usage:");
   console.log("  node scripts/cli.mjs <command> [args]");
@@ -615,98 +630,48 @@ function printHelp() {
   console.log("");
   console.log(`Manifest: ${manifest ? `dev-kit-manifest.json (${manifest.mode}, ${manifest.devKitVersion})` : "not found"}`);
   console.log("");
-  console.log("Commands:");
-  for (const [name, command] of Object.entries(commandRegistry)) {
-    console.log(`  ${name.padEnd(18)} ${command.description}`);
-  }
+  console.log("Primary entry commands:");
+  printCommandGroup(["start", "next", "doctor"]);
+  console.log("");
+  console.log("Common user-facing decisions:");
+  printCommandGroup(["ask", "guide", "finish", "release-guide", "release-plan", "apply-plan"]);
+  console.log("");
+  console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
+  printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
+    "start",
+    "next",
+    "doctor",
+    "ask",
+    "guide",
+    "finish",
+    "release-guide",
+    "release-plan",
+    "apply-plan",
+  ].includes(name)));
   console.log("");
   console.log("Examples:");
-  console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
-  console.log("  node scripts/cli.mjs ask '我想把当前项目接入 IntentOS'");
-  console.log("  node scripts/cli.mjs ask-check .");
-  console.log("  node scripts/cli.mjs conversation-ask-check .");
-  console.log("  node scripts/cli.mjs guide ../my-project");
-  console.log("  node scripts/cli.mjs guide ../my-project --deep");
-  console.log("  node scripts/cli.mjs guide ../my-project --deep --intent '我要加支付预约'");
-  console.log("  node scripts/cli.mjs guide-check .");
-  console.log("  node scripts/cli.mjs delivery-path ../my-project");
-  console.log("  node scripts/cli.mjs delivery-path-check .");
-  console.log("  node scripts/cli.mjs first-slice ../my-project '我想做一个预约 App'");
-  console.log("  node scripts/cli.mjs first-slice-check .");
-  console.log("  node scripts/cli.mjs product-completeness .");
-  console.log("  node scripts/cli.mjs product-completeness-check .");
-  console.log("  node scripts/cli.mjs mvp-example-check");
-  console.log("  node scripts/cli.mjs apply-candidate . --intent 'update local demo copy' --path examples/mvp-booking-web-app/src/app.js");
-  console.log("  node scripts/cli.mjs apply-candidate-check .");
-  console.log("  node scripts/cli.mjs debt-handoff .");
-  console.log("  node scripts/cli.mjs debt-handoff-check .");
-  console.log("  node scripts/cli.mjs finish . --intent 'finish booking validation' --verification 'npm run verify passed'");
-  console.log("  node scripts/cli.mjs finish-check .");
-  console.log("  node scripts/cli.mjs closure . --intent 'finish booking validation'");
-  console.log("  node scripts/cli.mjs closure-check .");
-  console.log("  node scripts/cli.mjs apply-plan . --intent '接入 IntentOS 工作流' --action workflow-assets");
-  console.log("  node scripts/cli.mjs apply-plan-check .");
-  console.log("  node scripts/cli.mjs apply-readiness . --plan apply-plans/001-example.md");
-  console.log("  node scripts/cli.mjs apply-readiness-check .");
-  console.log("  node scripts/cli.mjs approval-record-check .");
   console.log("  node scripts/cli.mjs start ../my-project");
-  console.log("  node scripts/cli.mjs baseline ../my-project");
-  console.log("  node scripts/cli.mjs baseline-decision ../my-project");
-  console.log("  node scripts/cli.mjs standard-baseline ../my-project");
-  console.log("  node scripts/cli.mjs standard-baseline-selection .");
-  console.log("  node scripts/cli.mjs baseline-packs ../my-project");
-  console.log("  node scripts/cli.mjs baseline-pack-selection .");
-  console.log("  node scripts/cli.mjs product-baseline .");
-  console.log("  node scripts/cli.mjs claim-control .");
-  console.log("  node scripts/cli.mjs context-governance .");
-  console.log("  node scripts/cli.mjs launch-readiness .");
-  console.log("  node scripts/cli.mjs launch-view . --intent 'prepare release review' --verification 'npm run verify passed'");
-  console.log("  node scripts/cli.mjs launch-view-check .");
-  console.log("  node scripts/cli.mjs release-adapter . --intent 'prepare release adapter'");
-  console.log("  node scripts/cli.mjs release-adapter-check .");
-  console.log("  node scripts/cli.mjs release-guide . --intent 'help me launch'");
-  console.log("  node scripts/cli.mjs release-guide-check .");
-  console.log("  node scripts/cli.mjs release-recipe . --intent 'help me launch'");
-  console.log("  node scripts/cli.mjs release-recipe-check .");
-  console.log("  node scripts/cli.mjs release-handoff . --intent 'help me launch'");
-  console.log("  node scripts/cli.mjs release-handoff-check .");
-  console.log("  node scripts/cli.mjs release-execution . --intent 'prepare release execution'");
-  console.log("  node scripts/cli.mjs release-execution-check .");
-  console.log("  node scripts/cli.mjs release-plan . --intent 'help me launch'");
-  console.log("  node scripts/cli.mjs release-check .");
-  console.log("  node scripts/cli.mjs conversation-drift .");
-  console.log("  node scripts/cli.mjs first-delivery .");
-  console.log("  node scripts/cli.mjs real-adoption .");
-  console.log("  node scripts/cli.mjs patch-classification .");
-  console.log("  node scripts/cli.mjs impact-coverage . --intent 'add contract input restriction'");
-  console.log("  node scripts/cli.mjs impact-coverage-check .");
-  console.log("  node scripts/cli.mjs workflow-map ../existing-project");
-  console.log("  node scripts/cli.mjs workflow-map-check .");
-  console.log("  node scripts/cli.mjs native-migration ../existing-project");
-  console.log("  node scripts/cli.mjs native-migration-check .");
-  console.log("  node scripts/cli.mjs reconcile-rules ../existing-project");
-  console.log("  node scripts/cli.mjs reconcile-rules-check .");
-  console.log("  node scripts/cli.mjs doc-lifecycle .");
-  console.log("  node scripts/cli.mjs doc-lifecycle-check .");
-  console.log("  node scripts/cli.mjs archive-apply .");
-  console.log("  node scripts/cli.mjs archive-apply-check .");
-  console.log("  node scripts/cli.mjs work-queue .");
-  console.log("  node scripts/cli.mjs work-queue-check .");
-  console.log("  node scripts/cli.mjs hook-plan .");
-  console.log("  node scripts/cli.mjs hook-plan-check .");
-  console.log("  node scripts/cli.mjs hook-policy .");
-  console.log("  node scripts/cli.mjs hook-policy-check .");
-  console.log("  node scripts/cli.mjs guided-delivery .");
-  console.log("  node scripts/cli.mjs change-boundary . --report change-boundary-reports/001-task.md");
-  console.log("  node scripts/cli.mjs baseline-state . --report baseline-state-reports/001-baseline.md");
-  console.log("  node scripts/cli.mjs init --starter generic-project --target ../my-project");
-  console.log("  node scripts/cli.mjs update --target ../my-project");
   console.log("  node scripts/cli.mjs next ../my-project");
-  console.log("  node scripts/cli.mjs check ../my-project --mode core");
-  console.log("  node scripts/cli.mjs migrate --target ../my-project --from 0.33.0 --to 1.0.0 --dry-run");
-  console.log("  node scripts/cli.mjs self-check");
+  console.log("  node scripts/cli.mjs doctor ../my-project");
+  console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
+  console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");
+  console.log("  node scripts/cli.mjs apply-plan ../my-project --intent '接入 IntentOS 工作流' --action workflow-assets");
+  console.log("");
+  console.log("Docs:");
+  console.log("  docs/start-here.md");
+  console.log("  docs/minimal-adoption.md");
+  console.log("  docs/for-existing-projects.md");
+  console.log("  docs/for-maintainers.md");
   console.log("");
   console.log("Lower-level scripts remain supported for debugging and exact CI references.");
+}
+
+function printCommandGroup(names) {
+  for (const name of names) {
+    const command = commandRegistry[name];
+    if (!command) continue;
+    console.log(`  ${name.padEnd(24)} ${command.description}`);
+  }
 }
 
 function printCommandHelp(name, command) {

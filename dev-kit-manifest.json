@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.67.2",
+  "devKitVersion": "1.68.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.67.2"
+    "phase": "1.68.0"
   },
   "groups": {
     "sourceRequired": [
@@ -229,6 +229,8 @@
       "docs/execution-review-closure.md",
       "docs/existing-project-workflow-adapter.md",
       "docs/faq.md",
+      "docs/for-existing-projects.md",
+      "docs/for-maintainers.md",
       "docs/first-delivery-walkthrough.md",
       "docs/first-hour.md",
       "docs/git-boundary.md",
@@ -243,6 +245,7 @@
       "docs/launch-review-view.md",
       "docs/low-risk-controlled-apply-candidate.md",
       "docs/mental-model.md",
+      "docs/minimal-adoption.md",
       "docs/migrations/0.33-to-1.0.md",
       "docs/migrations/index.md",
       "docs/minimal-commit-set.md",
@@ -281,6 +284,7 @@
       "docs/plans/platform-release-recipes-1.59-plan.md",
       "docs/plans/platform-standard-baseline-packs-1.15-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
+      "docs/plans/product-adoption-simplification-1.68-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
       "docs/plans/release-execution-protocol-1.56-plan.md",
@@ -313,6 +317,7 @@
       "docs/release-execution-protocol.md",
       "docs/release-guide.md",
       "docs/repository-structure.md",
+      "docs/start-here.md",
       "docs/review-surface-governance.md",
       "docs/roadmaps/README.md",
       "docs/roadmaps/controlled-apply-execution-roadmap-1.40-1.42.md",
@@ -2099,7 +2104,10 @@
       "releases/1.67.1/self-check-report.md",
       "releases/1.67.2/release-record.md",
       "releases/1.67.2/known-limitations.md",
-      "releases/1.67.2/self-check-report.md"
+      "releases/1.67.2/self-check-report.md",
+      "releases/1.68.0/release-record.md",
+      "releases/1.68.0/known-limitations.md",
+      "releases/1.68.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -7051,7 +7059,10 @@
       "releases/1.67.1/self-check-report.md",
       "releases/1.67.2/release-record.md",
       "releases/1.67.2/known-limitations.md",
-      "releases/1.67.2/self-check-report.md"
+      "releases/1.67.2/self-check-report.md",
+      "releases/1.68.0/release-record.md",
+      "releases/1.68.0/known-limitations.md",
+      "releases/1.68.0/self-check-report.md"
     ]
   }
 }
