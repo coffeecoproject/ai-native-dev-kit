@@ -4847,6 +4847,161 @@ function checkNativeFirstMigrationProtocol() {
   }
 }
 
+function checkExistingRuleReconciliationProtocol() {
+  const badFixtures = [
+    "bad-rule-reconciliation-replaces-release-sop",
+    "bad-rule-reconciliation-business-as-engineering",
+    "bad-rule-reconciliation-approves-target-write",
+    "bad-rule-reconciliation-skips-approval-chain",
+    "bad-rule-reconciliation-production-intentos-wins",
+    "bad-rule-reconciliation-missing-protected-owner",
+    "bad-rule-reconciliation-fake-gap-evidence",
+    "bad-rule-reconciliation-release-adopt-intentos",
+    "bad-rule-reconciliation-merge-without-preserved-terms",
+    "bad-rule-reconciliation-gap-suggestion-as-approval",
+  ];
+  const required = [
+    "docs/plans/existing-rule-reconciliation-calibration-1.66-plan.md",
+    "core/existing-rule-reconciliation.md",
+    "docs/existing-rule-reconciliation.md",
+    "templates/existing-rule-reconciliation-report.md",
+    "schemas/artifacts/existing-rule-reconciliation.schema.json",
+    "checklists/existing-rule-reconciliation-review.md",
+    "prompts/existing-rule-reconciliation-agent.md",
+    "existing-rule-reconciliations/.gitkeep",
+    "rule-reconciliation-calibration-reports/.gitkeep",
+    "rule-reconciliation-calibration-reports/2026-07-04-anonymized-existing-project.md",
+    "scripts/resolve-existing-rule-reconciliation.mjs",
+    "scripts/check-existing-rule-reconciliation.mjs",
+    "examples/1.66-existing-rule-reconciliation/README.md",
+    "examples/1.66-existing-rule-reconciliation/governed-web-admin/README.md",
+    "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md",
+    "releases/1.66.0/release-record.md",
+    "releases/1.66.0/known-limitations.md",
+    "releases/1.66.0/self-check-report.md",
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/existing-rule-reconciliations/001-bad.md`),
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.66 existing rule reconciliation asset exists ${file}`);
+    else fail(`1.66 existing rule reconciliation asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/existing-rule-reconciliation-calibration-1.66-plan.md"),
+    read("core/existing-rule-reconciliation.md"),
+    read("docs/existing-rule-reconciliation.md"),
+    read("templates/existing-rule-reconciliation-report.md"),
+    read("schemas/artifacts/existing-rule-reconciliation.schema.json"),
+    read("scripts/resolve-existing-rule-reconciliation.mjs"),
+    read("scripts/check-existing-rule-reconciliation.mjs"),
+    exists("releases/1.66.0/release-record.md") ? read("releases/1.66.0/release-record.md") : "",
+  ].join("\n");
+
+  for (const marker of [
+    "Existing Rule Reconciliation",
+    "recommendation report, not permission to change files",
+    "RECOMMENDATION_ONLY",
+    "PROJECT_OWNED",
+    "HUMAN_OR_EXTERNAL_SYSTEM",
+    "ADOPT_INTENTOS",
+    "GAP_SUGGESTION",
+    "MERGE means",
+    "release / production surfaces cannot use",
+    "Native Migration Plan",
+    "Unified Apply Plan",
+    "Controlled Apply Readiness",
+    "Approval Record",
+    "Machine-Readable Evidence",
+    "existing_rule_reconciliation_report",
+    "can_codex_write_now",
+    "protected_constraints",
+    "release_production_gaps",
+    "false positive",
+    "false negative",
+  ]) {
+    if (combined.includes(marker)) pass(`1.66 existing rule reconciliation includes ${marker}`);
+    else fail(`1.66 existing rule reconciliation missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-existing-rule-reconciliation.mjs",
+    "node --check scripts/check-existing-rule-reconciliation.mjs",
+    "node scripts/cli.mjs reconcile-rules .",
+    "node scripts/cli.mjs reconcile-rules-check .",
+    "node scripts/check-existing-rule-reconciliation.mjs examples/1.66-existing-rule-reconciliation/governed-web-admin --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.66 package verify surface includes ${marker}`);
+    else fail(`1.66 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-existing-rule-reconciliation.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Existing Rule Reconciliation Report")
+    && resolver.stdout.includes("This is a recommendation report, not permission to change files.")
+    && resolver.stdout.includes("Unified Apply Plan")) {
+    pass("1.66 existing rule reconciliation resolver prints safe report");
+  } else {
+    fail(`1.66 existing rule reconciliation resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-existing-rule-reconciliation.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "EXISTING_RULE_RECONCILIATION"
+        && parsed.canCodexWriteNow === "No"
+        && parsed.reconciliationAuthority === "RECOMMENDATION_ONLY"
+        && parsed.businessAuthority === "PROJECT_OWNED"
+        && parsed.productionAuthority === "HUMAN_OR_EXTERNAL_SYSTEM"
+        && parsed.boundary?.writesTargetFiles === "No") {
+        pass("1.66 existing rule reconciliation resolver JSON includes safe authority fields");
+      } else {
+        fail(`1.66 existing rule reconciliation resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.66 existing rule reconciliation resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.66 existing rule reconciliation resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-existing-rule-reconciliation.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Existing Rule Reconciliation check passed")) {
+    pass("1.66 existing rule reconciliation checker passes source repo");
+  } else {
+    fail(`1.66 existing rule reconciliation checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "reconcile-rules", "."]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Existing Rule Reconciliation Report")) {
+    pass("CLI reconcile-rules delegates to existing rule reconciliation resolver");
+  } else {
+    fail(`CLI reconcile-rules failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "reconcile-rules-check", "."]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("Existing Rule Reconciliation check passed")) {
+    pass("CLI reconcile-rules-check delegates to existing rule reconciliation checker");
+  } else {
+    fail(`CLI reconcile-rules-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  const strictExample = runNode(["scripts/check-existing-rule-reconciliation.mjs", "examples/1.66-existing-rule-reconciliation/governed-web-admin", "--require-structured-evidence"]);
+  if (strictExample.status === 0) pass("1.66 existing rule reconciliation example passes strict checker");
+  else fail(`1.66 existing rule reconciliation example failed: ${strictExample.stderr || strictExample.stdout}`);
+
+  for (const target of badFixtures) {
+    const result = runNode(["scripts/check-existing-rule-reconciliation.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.66 existing rule reconciliation rejects ${target}`);
+    else fail(`1.66 existing rule reconciliation must reject ${target}`);
+  }
+}
+
 function checkDocumentLifecycleProtocol() {
   const required = [
     "core/document-lifecycle.md",
@@ -11631,6 +11786,7 @@ checkFirstDeliveryWalkthroughProtocol();
 checkRealAdoptionAndPatchClassificationProtocol();
 checkExistingProjectWorkflowAdapterProtocol();
 checkNativeFirstMigrationProtocol();
+checkExistingRuleReconciliationProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();

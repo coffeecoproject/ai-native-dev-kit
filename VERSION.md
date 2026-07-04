@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.65.0`
+Current version: `1.66.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.65.0`
 
 ## Current Release
 
-`1.65.0`
+`1.66.0`
 
 Includes:
 
+- Existing Rule Reconciliation Calibration phase `1.66.0`: adds recommendation-only comparison between existing project rules and IntentOS reference rules after Native Migration planning
+- `1.66.0` introduces `existing-rule-reconciliations/`, `reconcile-rules`, `reconcile-rules-check`, structured reconciliation evidence, a governed web-admin positive example, anonymous calibration evidence, and bad fixtures for release SOP replacement, business-rule downgrades, unauthorized writes, skipped approval chains, and gap suggestions treated as approval
+- `1.66.0` does not replace business rules, production controls, release SOPs, permissions, compliance, data, payment, tax, finance, HR, legal, secrets, hooks, CI, provider state, or target-project governance files; any future wording change must still go through Unified Apply Plan -> Controlled Apply Readiness -> Approval Record
 - Native Migration Classification Calibration phase `1.65.0`: calibrates mixed business + engineering rules, Chinese business/production/permission text, conservative simple table extraction, and Markdown/JSON proposed-action consistency
 - `1.65.0` keeps complex or high-risk tables skipped or human-review bound, keeps 1.63 and 1.64 structured records compatible, and does not authorize target-project writes or governance replacement
 - `1.65.0` adds a mixed-domain bilingual positive example plus bad fixtures for mixed rule misclassification, Chinese production misclassification, missing table line range, missing complex-table warning, and proposed-action mismatch

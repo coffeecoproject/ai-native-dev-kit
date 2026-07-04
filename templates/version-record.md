@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.65.0`
+`1.66.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.66.0` adds Existing Rule Reconciliation after Native Migration: Codex can compare existing project rules with IntentOS references and output recommendation-only outcomes.
+- `1.66.0` keeps existing project business, production, release, permission, compliance, data, payment, tax, finance, HR, legal, secrets, hooks, CI, provider state, and governance-file authority outside automatic replacement.
+- `1.66.0` routes any future wording change through Native Migration Plan -> Existing Rule Reconciliation -> Unified Apply Plan -> Controlled Apply Readiness -> Approval Record.
 - `1.65.0` calibrates Native Migration classification for mixed business + engineering rules, Chinese business/production/permission rules, conservative simple table extraction, and Markdown/JSON proposed-action consistency.
 - `1.65.0` keeps complex or high-risk tables human-review bound and does not authorize target-project writes, governance replacement, implementation, release, production, CI, hooks, secrets, payment, permission, data, or business-rule changes.
 - `1.64.0` hardens Native Migration parser calibration and evidence consistency with skipped-block reporting, low-signal block reporting, rule-id Markdown/JSON consistency, and structured proposed-action validation.

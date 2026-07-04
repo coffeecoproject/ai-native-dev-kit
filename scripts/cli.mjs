@@ -379,6 +379,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "reconcile-rules": {
+    description: "Compare existing project rules with IntentOS expectations without writing target files.",
+    script: "scripts/resolve-existing-rule-reconciliation.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "reconcile-rules-check": {
+    description: "Check recorded Existing Rule Reconciliation reports.",
+    script: "scripts/check-existing-rule-reconciliation.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "doc-lifecycle": {
     description: "Recommend document lifecycle state without deleting, moving, or archiving files.",
     script: "scripts/resolve-document-lifecycle.mjs",
@@ -656,6 +668,10 @@ function printHelp() {
   console.log("  node scripts/cli.mjs impact-coverage-check .");
   console.log("  node scripts/cli.mjs workflow-map ../existing-project");
   console.log("  node scripts/cli.mjs workflow-map-check .");
+  console.log("  node scripts/cli.mjs native-migration ../existing-project");
+  console.log("  node scripts/cli.mjs native-migration-check .");
+  console.log("  node scripts/cli.mjs reconcile-rules ../existing-project");
+  console.log("  node scripts/cli.mjs reconcile-rules-check .");
   console.log("  node scripts/cli.mjs doc-lifecycle .");
   console.log("  node scripts/cli.mjs doc-lifecycle-check .");
   console.log("  node scripts/cli.mjs archive-apply .");

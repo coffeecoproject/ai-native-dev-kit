@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.65.0",
+  "devKitVersion": "1.66.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.65.0"
+    "phase": "1.66.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2025,7 +2025,35 @@
       "releases/1.65.0/self-check-report.md",
       "releases/1.63.0/release-record.md",
       "releases/1.63.0/known-limitations.md",
-      "releases/1.63.0/self-check-report.md"
+      "releases/1.63.0/self-check-report.md",
+      "docs/plans/existing-rule-reconciliation-calibration-1.66-plan.md",
+      "core/existing-rule-reconciliation.md",
+      "docs/existing-rule-reconciliation.md",
+      "templates/existing-rule-reconciliation-report.md",
+      "schemas/artifacts/existing-rule-reconciliation.schema.json",
+      "checklists/existing-rule-reconciliation-review.md",
+      "prompts/existing-rule-reconciliation-agent.md",
+      "existing-rule-reconciliations/.gitkeep",
+      "rule-reconciliation-calibration-reports/.gitkeep",
+      "rule-reconciliation-calibration-reports/2026-07-04-anonymized-existing-project.md",
+      "scripts/resolve-existing-rule-reconciliation.mjs",
+      "scripts/check-existing-rule-reconciliation.mjs",
+      "examples/1.66-existing-rule-reconciliation/README.md",
+      "examples/1.66-existing-rule-reconciliation/governed-web-admin/README.md",
+      "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md",
+      "test-fixtures/bad/bad-rule-reconciliation-replaces-release-sop/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-business-as-engineering/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-approves-target-write/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-skips-approval-chain/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-production-intentos-wins/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-missing-protected-owner/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-fake-gap-evidence/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-release-adopt-intentos/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-merge-without-preserved-terms/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-gap-suggestion-as-approval/existing-rule-reconciliations/001-bad.md",
+      "releases/1.66.0/release-record.md",
+      "releases/1.66.0/known-limitations.md",
+      "releases/1.66.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2539,7 +2567,16 @@
       "scripts/resolve-native-migration.mjs",
       "scripts/check-native-migration.mjs",
       ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
-      "scripts/lib/native-rule-extraction.mjs"
+      "scripts/lib/native-rule-extraction.mjs",
+      ".ai-native/checklists/existing-rule-reconciliation-review.md",
+      ".ai-native/core/existing-rule-reconciliation.md",
+      ".ai-native/docs/existing-rule-reconciliation.md",
+      ".ai-native/prompts/existing-rule-reconciliation-agent.md",
+      ".ai-native/templates/existing-rule-reconciliation-report.md",
+      "existing-rule-reconciliations",
+      "scripts/resolve-existing-rule-reconciliation.mjs",
+      "scripts/check-existing-rule-reconciliation.mjs",
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -3102,7 +3139,16 @@
       "scripts/resolve-native-migration.mjs",
       "scripts/check-native-migration.mjs",
       ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
-      "scripts/lib/native-rule-extraction.mjs"
+      "scripts/lib/native-rule-extraction.mjs",
+      ".ai-native/checklists/existing-rule-reconciliation-review.md",
+      ".ai-native/core/existing-rule-reconciliation.md",
+      ".ai-native/docs/existing-rule-reconciliation.md",
+      ".ai-native/prompts/existing-rule-reconciliation-agent.md",
+      ".ai-native/templates/existing-rule-reconciliation-report.md",
+      "existing-rule-reconciliations",
+      "scripts/resolve-existing-rule-reconciliation.mjs",
+      "scripts/check-existing-rule-reconciliation.mjs",
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3209,7 +3255,13 @@
       "docs/native-first-existing-project-migration.md",
       "prompts/native-migration-agent.md",
       "templates/native-migration-plan.md",
-      "schemas/artifacts/native-migration-plan.schema.json"
+      "schemas/artifacts/native-migration-plan.schema.json",
+      "checklists/existing-rule-reconciliation-review.md",
+      "core/existing-rule-reconciliation.md",
+      "docs/existing-rule-reconciliation.md",
+      "prompts/existing-rule-reconciliation-agent.md",
+      "templates/existing-rule-reconciliation-report.md",
+      "schemas/artifacts/existing-rule-reconciliation.schema.json"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3318,7 +3370,8 @@
       "templates/workflow-retro.md",
       "templates/workflow-version.json",
       "templates/release-handoff-pack.md",
-      "templates/native-migration-plan.md"
+      "templates/native-migration-plan.md",
+      "templates/existing-rule-reconciliation-report.md"
     ],
     "prompts": [
       ".ai-native/prompts/change-impact-coverage-agent.md",
@@ -3378,7 +3431,8 @@
       "prompts/workflow-adapter-agent.md",
       "prompts/workflow-concierge-agent.md",
       "prompts/release-handoff-pack-agent.md",
-      "prompts/native-migration-agent.md"
+      "prompts/native-migration-agent.md",
+      "prompts/existing-rule-reconciliation-agent.md"
     ],
     "checklists": [
       ".ai-native/checklists/change-impact-coverage-review.md",
@@ -3450,7 +3504,8 @@
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md",
       "checklists/release-handoff-pack-review.md",
-      "checklists/native-migration-review.md"
+      "checklists/native-migration-review.md",
+      "checklists/existing-rule-reconciliation-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -3551,7 +3606,8 @@
       "workflow-improvements",
       "workflow-retros",
       "release-handoff-packs",
-      "native-migration-plans"
+      "native-migration-plans",
+      "existing-rule-reconciliations"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -3667,7 +3723,9 @@
       "scripts/check-release-handoff-pack.mjs",
       "scripts/resolve-native-migration.mjs",
       "scripts/check-native-migration.mjs",
-      "scripts/lib/native-rule-extraction.mjs"
+      "scripts/lib/native-rule-extraction.mjs",
+      "scripts/resolve-existing-rule-reconciliation.mjs",
+      "scripts/check-existing-rule-reconciliation.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -3983,7 +4041,10 @@
       "examples/1.64-native-migration-parser-calibration/README.md",
       "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
       "examples/1.65-native-migration-classification-calibration/README.md",
-      "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md"
+      "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md",
+      "examples/1.66-existing-rule-reconciliation/README.md",
+      "examples/1.66-existing-rule-reconciliation/governed-web-admin/README.md",
+      "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4333,7 +4394,17 @@
       "test-fixtures/bad/bad-native-migration-chinese-production-as-business/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-simple-table-no-line-range/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-complex-table-no-warning/native-migration-plans/001-bad.md",
-      "test-fixtures/bad/bad-native-migration-proposed-action-mismatch/native-migration-plans/001-bad.md"
+      "test-fixtures/bad/bad-native-migration-proposed-action-mismatch/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-replaces-release-sop/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-business-as-engineering/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-approves-target-write/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-skips-approval-chain/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-production-intentos-wins/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-missing-protected-owner/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-fake-gap-evidence/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-release-adopt-intentos/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-merge-without-preserved-terms/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-rule-reconciliation-gap-suggestion-as-approval/existing-rule-reconciliations/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -4775,7 +4846,16 @@
       "scripts/resolve-native-migration.mjs",
       "scripts/check-native-migration.mjs",
       ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
-      "scripts/lib/native-rule-extraction.mjs"
+      "scripts/lib/native-rule-extraction.mjs",
+      ".ai-native/checklists/existing-rule-reconciliation-review.md",
+      ".ai-native/core/existing-rule-reconciliation.md",
+      ".ai-native/docs/existing-rule-reconciliation.md",
+      ".ai-native/prompts/existing-rule-reconciliation-agent.md",
+      ".ai-native/templates/existing-rule-reconciliation-report.md",
+      "existing-rule-reconciliations",
+      "scripts/resolve-existing-rule-reconciliation.mjs",
+      "scripts/check-existing-rule-reconciliation.mjs",
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -5224,7 +5304,16 @@
       ".ai-native/templates/native-migration-plan.md",
       "native-migration-plans",
       "scripts/resolve-native-migration.mjs",
-      "scripts/check-native-migration.mjs"
+      "scripts/check-native-migration.mjs",
+      ".ai-native/checklists/existing-rule-reconciliation-review.md",
+      ".ai-native/core/existing-rule-reconciliation.md",
+      ".ai-native/docs/existing-rule-reconciliation.md",
+      ".ai-native/prompts/existing-rule-reconciliation-agent.md",
+      ".ai-native/templates/existing-rule-reconciliation-report.md",
+      "existing-rule-reconciliations",
+      "scripts/resolve-existing-rule-reconciliation.mjs",
+      "scripts/check-existing-rule-reconciliation.mjs",
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
     ]
   },
   "copyRules": {
@@ -5396,6 +5485,10 @@
       {
         "source": "native-migration-plans",
         "target": "native-migration-plans"
+      },
+      {
+        "source": "existing-rule-reconciliations",
+        "target": "existing-rule-reconciliations"
       }
     ],
     "files": [
@@ -6610,6 +6703,38 @@
       {
         "source": "scripts/lib/native-rule-extraction.mjs",
         "target": "scripts/lib/native-rule-extraction.mjs"
+      },
+      {
+        "source": "core/existing-rule-reconciliation.md",
+        "target": ".ai-native/core/existing-rule-reconciliation.md"
+      },
+      {
+        "source": "docs/existing-rule-reconciliation.md",
+        "target": ".ai-native/docs/existing-rule-reconciliation.md"
+      },
+      {
+        "source": "templates/existing-rule-reconciliation-report.md",
+        "target": ".ai-native/templates/existing-rule-reconciliation-report.md"
+      },
+      {
+        "source": "checklists/existing-rule-reconciliation-review.md",
+        "target": ".ai-native/checklists/existing-rule-reconciliation-review.md"
+      },
+      {
+        "source": "prompts/existing-rule-reconciliation-agent.md",
+        "target": ".ai-native/prompts/existing-rule-reconciliation-agent.md"
+      },
+      {
+        "source": "scripts/resolve-existing-rule-reconciliation.mjs",
+        "target": "scripts/resolve-existing-rule-reconciliation.mjs"
+      },
+      {
+        "source": "scripts/check-existing-rule-reconciliation.mjs",
+        "target": "scripts/check-existing-rule-reconciliation.mjs"
+      },
+      {
+        "source": "schemas/artifacts/existing-rule-reconciliation.schema.json",
+        "target": ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
       }
     ]
   },

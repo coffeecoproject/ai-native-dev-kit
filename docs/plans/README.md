@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Existing Rule Reconciliation Calibration 1.66](existing-rule-reconciliation-calibration-1.66-plan.md)
 - [Native Migration Classification Calibration 1.65](native-migration-classification-calibration-1.65-plan.md)
 - [Native Migration Parser Calibration 1.64](native-migration-parser-calibration-1.64-plan.md)
 - [Native Migration Precision Hardening 1.63](native-migration-precision-hardening-1.63-plan.md)

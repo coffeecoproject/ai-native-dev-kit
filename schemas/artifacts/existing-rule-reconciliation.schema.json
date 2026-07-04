@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "1.66.0",
+  "artifactType": "existing_rule_reconciliation_report",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "report_type",
+    "project_state",
+    "can_codex_write_now",
+    "can_recommend_apply_plan",
+    "reconciliation_authority",
+    "business_authority",
+    "production_authority",
+    "requires_human_approval_before_apply",
+    "existing_rule_source",
+    "intentos_reference_source",
+    "reconciliation_items",
+    "protected_constraints",
+    "release_production_gaps",
+    "conflicts",
+    "proposed_next_steps",
+    "boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.66.0"] },
+    "artifact_type": { "type": "string", "enum": ["existing_rule_reconciliation_report"] },
+    "report_type": { "type": "string", "enum": ["EXISTING_RULE_RECONCILIATION"] },
+    "project_state": { "type": "string" },
+    "can_codex_write_now": { "type": "string", "enum": ["No"] },
+    "can_recommend_apply_plan": { "type": "string", "enum": ["Yes"] },
+    "reconciliation_authority": { "type": "string", "enum": ["RECOMMENDATION_ONLY"] },
+    "business_authority": { "type": "string", "enum": ["PROJECT_OWNED"] },
+    "production_authority": { "type": "string", "enum": ["HUMAN_OR_EXTERNAL_SYSTEM"] },
+    "requires_human_approval_before_apply": { "type": "string", "enum": ["Yes"] },
+    "existing_rule_source": { "type": "array" },
+    "intentos_reference_source": { "type": "array" },
+    "reconciliation_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_id",
+          "existing_rule_ref",
+          "intentos_reference_ref",
+          "surface",
+          "surface_authority",
+          "allowed_outcomes",
+          "outcome",
+          "reason",
+          "risk_surfaces",
+          "human_decision_required",
+          "requires_apply_chain",
+          "can_replace_existing_rule",
+          "target_action"
+        ],
+        "properties": {
+          "item_id": { "type": "string" },
+          "existing_rule_ref": { "type": "string" },
+          "intentos_reference_ref": { "type": "string" },
+          "surface": {
+            "type": "string",
+            "enum": [
+              "ENGINEERING_BASELINE",
+              "RELEASE_PRODUCTION",
+              "PRODUCTION_CONTROL",
+              "PROTECTED_CONSTRAINT",
+              "WORKFLOW_RULE",
+              "UNKNOWN_AUTHORITY"
+            ]
+          },
+          "surface_authority": {
+            "type": "string",
+            "enum": ["PROJECT_OWNED", "INTENTOS_REFERENCE", "HUMAN_OR_EXTERNAL"]
+          },
+          "allowed_outcomes": { "type": "array" },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "KEEP_EXISTING",
+              "ADOPT_INTENTOS",
+              "MERGE",
+              "NEEDS_HUMAN_DECISION",
+              "NO_INTENTOS_MATCH",
+              "NO_EXISTING_RULE",
+              "CONFLICT_HIGH_RISK",
+              "UNKNOWN_AUTHORITY",
+              "GAP_SUGGESTION"
+            ]
+          },
+          "reason": { "type": "string" },
+          "merge_reason": { "type": "string" },
+          "preserved_existing_terms": { "type": "array" },
+          "added_intentos_terms": { "type": "array" },
+          "risk_surfaces": { "type": "array" },
+          "human_decision_required": { "type": "string", "enum": ["Yes"] },
+          "requires_apply_chain": { "type": "string", "enum": ["Yes"] },
+          "can_replace_existing_rule": { "type": "string", "enum": ["No"] },
+          "target_action": { "type": "string" }
+        }
+      }
+    },
+    "protected_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_id", "surface", "owner", "authority", "human_decision_required", "handling"],
+        "properties": {
+          "item_id": { "type": "string" },
+          "surface": { "type": "string" },
+          "owner": { "type": "string" },
+          "authority": { "type": "string" },
+          "human_decision_required": { "type": "string", "enum": ["Yes"] },
+          "handling": { "type": "string" }
+        }
+      }
+    },
+    "release_production_gaps": { "type": "array" },
+    "conflicts": { "type": "array" },
+    "proposed_next_steps": { "type": "array" },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "writesTargetFiles",
+        "authorizesTargetFileWrites",
+        "approvesGovernanceReplacement",
+        "approvesImplementation",
+        "approvesReleaseOrProduction",
+        "modifiesCiOrHooks"
+      ],
+      "properties": {
+        "writesTargetFiles": { "type": "string", "enum": ["No"] },
+        "authorizesTargetFileWrites": { "type": "string", "enum": ["No"] },
+        "approvesGovernanceReplacement": { "type": "string", "enum": ["No"] },
+        "approvesImplementation": { "type": "string", "enum": ["No"] },
+        "approvesReleaseOrProduction": { "type": "string", "enum": ["No"] },
+        "modifiesCiOrHooks": { "type": "string", "enum": ["No"] }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["RECONCILIATION_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"]
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.65.0",
+  "devKitVersion": "1.66.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -443,6 +443,15 @@
     "scripts/resolve-native-migration.mjs",
     "scripts/check-native-migration.mjs",
     ".ai-native/schemas/artifacts/native-migration-plan.schema.json",
-    "scripts/lib/native-rule-extraction.mjs"
+    "scripts/lib/native-rule-extraction.mjs",
+    ".ai-native/checklists/existing-rule-reconciliation-review.md",
+    ".ai-native/core/existing-rule-reconciliation.md",
+    ".ai-native/docs/existing-rule-reconciliation.md",
+    ".ai-native/prompts/existing-rule-reconciliation-agent.md",
+    ".ai-native/templates/existing-rule-reconciliation-report.md",
+    "existing-rule-reconciliations",
+    "scripts/resolve-existing-rule-reconciliation.mjs",
+    "scripts/check-existing-rule-reconciliation.mjs",
+    ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
   ]
 }

@@ -4,11 +4,15 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.65.0`.
+Current release: `1.66.0`.
+
+Release record: [releases/1.66.0/release-record.md](releases/1.66.0/release-record.md).
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.65.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, and calibrated rule-level native migration planning for existing projects.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.66.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, calibrated rule-level native migration planning for existing projects, and recommendation-only reconciliation between existing project rules and IntentOS references.
+
+1.66.0 adds Existing Rule Reconciliation: after Native Migration identifies old project rules, Codex can compare them with IntentOS references and recommend `KEEP_EXISTING`, `ADOPT_INTENTOS`, `MERGE`, `GAP_SUGGESTION`, or human decision paths. It does not let IntentOS replace business rules, production controls, release SOPs, permissions, compliance, data, payment, tax, finance, HR, legal, secrets, hooks, CI, or provider state.
 
 1.65.0 calibrates Native Migration classification: mixed business + engineering rules are no longer downgraded to plain engineering rules, Chinese business/production/permission text is handled more conservatively, simple Markdown tables can be extracted with line evidence, complex tables stay human-review bound, and Markdown proposed actions must match Machine-Readable Evidence.
 
@@ -110,6 +114,7 @@ IntentOS 当前包含这些核心能力：
 | Beginner Entry | 用户只说目标，AI 给出可确认的下一步 |
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
+| Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 规则，只输出建议，不直接替换旧治理 |
 | Baseline Decision | 用白话确认 BL0 / BL1 / BL2、平台和风险 |
 | Ordinary First Slice | 把普通用户的一句话目标整理成第一版范围、问题、延期项和验证方式 |
 | Product Completeness | 判断现在是想法、第一版范围、可本地运行 MVP、内测候选还是阻塞 |
@@ -169,6 +174,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 老项目先映射现有治理 | `node scripts/cli.mjs workflow-map ../my-project` |
 | 老项目生成原生迁移计划 | `node scripts/cli.mjs native-migration ../my-project` |
 | 检查原生迁移计划 | `node scripts/cli.mjs native-migration-check ../my-project` |
+| 对齐旧规则和 IntentOS 参考规则 | `node scripts/cli.mjs reconcile-rules ../my-project` |
+| 检查规则对齐报告 | `node scripts/cli.mjs reconcile-rules-check ../my-project` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |
 | 检查人工批准记录 | `node scripts/cli.mjs approval-record-check ../my-project` |
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
@@ -225,6 +232,7 @@ node scripts/cli.mjs ask ../new-project "我想做一个中小企业管理中台
 node scripts/cli.mjs start ../existing-project
 node scripts/cli.mjs workflow-map ../existing-project
 node scripts/cli.mjs native-migration ../existing-project
+node scripts/cli.mjs reconcile-rules ../existing-project
 ```
 
 已上线或强治理项目默认只读：
@@ -232,6 +240,7 @@ node scripts/cli.mjs native-migration ../existing-project
 ```bash
 node scripts/cli.mjs guide ../production-project --deep --intent "接入 IntentOS"
 node scripts/cli.mjs native-migration ../production-project
+node scripts/cli.mjs reconcile-rules ../production-project
 ```
 
 如果后续确实需要写入，先生成计划：

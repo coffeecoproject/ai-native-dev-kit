@@ -65,6 +65,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `real-adoption-trials/` | Real-project read-only adoption trial reports |
 | `governance-maps/` | Maps AI Native concepts to existing project authority |
 | `native-migration-plans/` | Plan-only IntentOS-native migration records for old projects; extract and classify old rules before any governance replacement |
+| `existing-rule-reconciliations/` | Recommendation-only comparison between existing project rules and IntentOS references after Native Migration |
 | `patch-classifications/` | Repair-scale classification before non-trivial fixes |
 | `patch-classification-false-positives/` | Reviewed calibration records for conservative patch classification triggers |
 | `doc-lifecycle-reports/` | Source-of-truth, stale, duplicate, archive, and deprecation candidate reports |
@@ -89,7 +90,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, and Change Impact Coverage artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Change Impact Coverage, Native Migration, and Existing Rule Reconciliation artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
 ## Reporting Artifacts
 
@@ -218,6 +219,7 @@ Short rule:
 - need to change approved scope: scope change report
 - need to inspect a real governed project without writing: real adoption trial report
 - need to map existing governance instead of copying templates: governance map
+- need to compare old project rules with IntentOS references after Native Migration: existing rule reconciliation report
 - need to decide whether a fix can be local or must be structural/human-owned: patch classification
 - need to keep one current work thread visible: active work thread
 - need to translate a technical choice into a user-owned decision: guided decision summary
