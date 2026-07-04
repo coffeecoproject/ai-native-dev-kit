@@ -705,12 +705,15 @@ function workflowArtifactCount() {
   return workflowArtifactDirs.reduce((count, dir) => count + listMarkdownFiles(dir).length, 0);
 }
 
-function commandFor(action, kitRoot) {
+function commandFor(action, kitRoot, context = {}) {
   const initProject = kitRoot ? `node ${path.join(kitRoot, "scripts", "init-project.mjs")}` : "node ai-native-dev-kit/scripts/init-project.mjs";
   if (action === "INIT_WITH_STARTER") {
     return `${initProject} --starter generic-project --target ${projectRoot}`;
   }
   if (action === "RUN_WORKFLOW_ASSET_UPDATE") {
+    if (workflowAssetUpdateNeedsPlan(context)) {
+      return `${initProject} --target ${projectRoot} --update-workflow-assets --write-plan ./intentos-workflow-update-plan.json`;
+    }
     return `${initProject} --target ${projectRoot} --update-workflow-assets`;
   }
   if (action === "RUN_PROJECT_ONBOARDING") {
@@ -747,6 +750,17 @@ function commandFor(action, kitRoot) {
     return "node scripts/check-dev-kit.mjs";
   }
   return "Select or create a valid project root.";
+}
+
+function workflowAssetUpdateNeedsPlan(context) {
+  return context.projectState === "EXISTING_PROJECT"
+    || context.projectState === "PARTIALLY_BOOTSTRAPPED_PROJECT"
+    || context.versionState === "NO_VERSION_FILE"
+    || context.versionState === "MISMATCH"
+    || context.existingRuleComparisonRequired === "yes"
+    || Boolean(context.governanceSignals?.isDirtyWorktree)
+    || Boolean(context.governanceSignals?.isGovernedExisting)
+    || Boolean(context.governanceSignals?.isProductionGoverned);
 }
 
 function buildResult() {
@@ -892,17 +906,17 @@ function buildResult() {
     nextAction = "READY_FOR_TASK_EXECUTION";
   }
 
+  if (signals.isDirtyWorktree
+    && ["READY_FOR_FIRST_REQUEST", "READY_FOR_TASK_EXECUTION", "RUN_WORKFLOW_ASSET_UPDATE"].includes(nextAction)) {
+    nextAction = "REVIEW_DIRTY_WORKTREE";
+  }
+
   const governedProtectionApplies = projectState !== "NEW_PROJECT"
     && projectState !== "DEV_KIT_REPOSITORY"
     && (signals.isProductionGoverned || signals.isDirtyWorktree || (signals.isGovernedExisting && !version));
   if (governedProtectionApplies
     && ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction)) {
     nextAction = "RUN_ADOPTION_ASSESSMENT";
-  }
-  if (signals.isDirtyWorktree
-    && signals.isProductionGoverned
-    && ["READY_FOR_FIRST_REQUEST", "READY_FOR_TASK_EXECUTION"].includes(nextAction)) {
-    nextAction = "REVIEW_DIRTY_WORKTREE";
   }
   const adoptionMode = nextAction === "RUN_ADOPTION_ASSESSMENT"
     ? "READ_ONLY"
@@ -945,7 +959,7 @@ function buildResult() {
   if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("Governed, production-sensitive, or dirty project protection is active; execution intent does not allow workflow writes yet.");
   if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("IntentOS Operating Mode is active for planning, routing, review, and comparison; project asset migration remains adapter-only until existing rules are reconciled and an apply plan is approved.");
   if (existingRuleComparisonRequired) notes.push("Existing baselines, release rules, CI, hooks, guard scripts, and governance files must be compared against IntentOS before any replacement or merge.");
-  if (nextAction === "REVIEW_DIRTY_WORKTREE") notes.push("Dirty production-governed project execution guard is active; confirm current changes before creating artifacts or executing a task.");
+  if (nextAction === "REVIEW_DIRTY_WORKTREE") notes.push("Dirty worktree guard is active; confirm current changes before updating workflow assets, creating artifacts, or executing a task.");
   if (notes.length === 0) notes.push("No blocking workflow issue detected.");
 
   const humanStopActions = new Set(["SELECT_OR_CREATE_TARGET", "REVIEW_GOVERNANCE_MIGRATION", "RUN_ADOPTION_ASSESSMENT", "REVIEW_DIRTY_WORKTREE", "REVIEW_EXISTING_GOVERNANCE_MAP", "WAIT_FOR_ADAPTER_CONFIRMATION", "READY_FOR_FIRST_REQUEST"]);
@@ -975,7 +989,12 @@ function buildResult() {
     missingWorkflowAssets,
     missingAgentSections: agentMissing,
     notes,
-    suggestedCommand: commandFor(nextAction, kitRoot),
+    suggestedCommand: commandFor(nextAction, kitRoot, {
+      projectState,
+      versionState,
+      existingRuleComparisonRequired: existingRuleComparisonRequired ? "yes" : "no",
+      governanceSignals: signals,
+    }),
   };
 }
 
@@ -1133,7 +1152,7 @@ function buildHumanDecisionSummary(result, human) {
       options: [
         option("A", "Inspect git status only", "List changed files and risk signals", "No", "low", "Choose when you only need visibility"),
         option("B", "Review existing changes first", "Prepare a review packet or ownership summary", "Report only", "medium", "Choose when the changes may affect the next task"),
-        option("C", "Human cleans worktree", "Wait until owner commits, stashes, splits, or discards changes", "No", "low", "Choose for production-governed projects"),
+        option("C", "Human cleans worktree", "Wait until owner commits, stashes, splits, or discards changes", "No", "low", "Choose when ownership of current changes is unclear"),
         option("D", "Proceed after explicit approval", "Continue only inside approved scope", "Approved task files only", "high", "Choose only when the owner accepts the risk"),
       ],
       reason: "Starting new work on top of unknown changes can mix ownership and hide regressions.",
@@ -1324,7 +1343,7 @@ function enforceReasons(result) {
   if (result.nextAction === "RUN_PLATFORM_BASELINE_SETUP") reasons.push("platform baseline is not ready");
   if (result.nextAction === "RUN_INDUSTRIAL_BASELINE_SETUP") reasons.push("industrial baseline is not ready");
   if (result.nextAction === "RUN_ADOPTION_ASSESSMENT") reasons.push("read-only adoption assessment is required before workflow writes");
-  if (result.nextAction === "REVIEW_DIRTY_WORKTREE") reasons.push("dirty production-governed worktree needs human confirmation before task execution");
+  if (result.nextAction === "REVIEW_DIRTY_WORKTREE") reasons.push("dirty worktree needs human confirmation before workflow update or task execution");
   return [...new Set(reasons)];
 }
 
@@ -1395,9 +1414,9 @@ function buildHumanOutput(result) {
 
   if (action === "REVIEW_DIRTY_WORKTREE") {
     return {
-      summary: "This project is already bootstrapped and production-governed, but the worktree has existing changes. AI should stop before starting a new task.",
+      summary: "This project has existing worktree changes. AI should stop before updating workflow assets or starting a new task.",
       status: "Must stop",
-      reason: "Dirty production-governed worktree protection is active.",
+      reason: "Dirty worktree protection is active.",
       riskLevel: "high",
       canAiContinue: "no",
       decisions: [

@@ -4,9 +4,9 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.68.0`.
+Current release: `1.68.1`.
 
-Release record: [releases/1.68.0/release-record.md](releases/1.68.0/release-record.md).
+Release record: [releases/1.68.1/release-record.md](releases/1.68.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -36,12 +36,13 @@ Start here:
 
 - [Start Here](docs/start-here.md)
 - [Minimal Adoption](docs/minimal-adoption.md)
+- [Source-Only Adoption](docs/source-only-adoption.md)
 - [For Existing Projects](docs/for-existing-projects.md)
 - [For Maintainers](docs/for-maintainers.md)
 
-Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
+Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
 
-1.68.0 consolidates the public entry surface: README, docs, and CLI help now lead with `start`, `next`, and `doctor`, while advanced workflow commands remain available for maintainers and CI.
+1.68.1 hardens the public entry surface: README, docs, and CLI help still lead with `start`, `next`, and `doctor`, while existing or dirty projects are routed toward plan-first workflow updates.
 
 ## 3 分钟理解
 

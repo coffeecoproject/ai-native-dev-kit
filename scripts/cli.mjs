@@ -660,6 +660,7 @@ function printHelp() {
   console.log("Docs:");
   console.log("  docs/start-here.md");
   console.log("  docs/minimal-adoption.md");
+  console.log("  docs/source-only-adoption.md");
   console.log("  docs/for-existing-projects.md");
   console.log("  docs/for-maintainers.md");
   console.log("");
@@ -676,7 +677,7 @@ function printCommandGroup(names) {
 
 function printCommandHelp(name, command) {
   console.log(`IntentOS command: ${name}`);
-  console.log("Compatibility alias: ai-native");
+  console.log("Compatibility alias: ai-native / ai-native-dev-kit");
   console.log("");
   console.log(command.description);
   console.log("");

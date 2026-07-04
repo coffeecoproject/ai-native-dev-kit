@@ -6,6 +6,7 @@ This index separates current operating documents from reference material, histor
 
 - [Start Here](start-here.md)
 - [Minimal Adoption](minimal-adoption.md)
+- [Source-Only Adoption](source-only-adoption.md)
 - [For Existing Projects](for-existing-projects.md)
 - [For Maintainers](for-maintainers.md)
 - [Quickstart](quickstart.md)
@@ -100,6 +101,7 @@ This index separates current operating documents from reference material, histor
 ## Project Adoption Playbooks
 
 - [Minimal Adoption](minimal-adoption.md)
+- [Source-Only Adoption](source-only-adoption.md)
 - [For Existing Projects](for-existing-projects.md)
 - [New Project Playbook](adoption-playbooks/new-project.md)
 - [Existing Light Project Playbook](adoption-playbooks/existing-light-project.md)

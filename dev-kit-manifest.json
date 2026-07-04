@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.68.0",
+  "devKitVersion": "1.68.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.68.0"
+    "phase": "1.68.1"
   },
   "groups": {
     "sourceRequired": [
@@ -284,6 +284,7 @@
       "docs/plans/platform-release-recipes-1.59-plan.md",
       "docs/plans/platform-standard-baseline-packs-1.15-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
+      "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/product-adoption-simplification-1.68-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
@@ -327,6 +328,7 @@
       "docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md",
       "docs/safe-launch.md",
       "docs/standard-baseline-pack-registry.md",
+      "docs/source-only-adoption.md",
       "docs/structured-evidence-schema.md",
       "docs/subagent-dispatch-hygiene.md",
       "docs/troubleshooting.md",
@@ -2107,7 +2109,10 @@
       "releases/1.67.2/self-check-report.md",
       "releases/1.68.0/release-record.md",
       "releases/1.68.0/known-limitations.md",
-      "releases/1.68.0/self-check-report.md"
+      "releases/1.68.0/self-check-report.md",
+      "releases/1.68.1/release-record.md",
+      "releases/1.68.1/known-limitations.md",
+      "releases/1.68.1/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -7062,7 +7067,10 @@
       "releases/1.67.2/self-check-report.md",
       "releases/1.68.0/release-record.md",
       "releases/1.68.0/known-limitations.md",
-      "releases/1.68.0/self-check-report.md"
+      "releases/1.68.0/self-check-report.md",
+      "releases/1.68.1/release-record.md",
+      "releases/1.68.1/known-limitations.md",
+      "releases/1.68.1/self-check-report.md"
     ]
   }
 }

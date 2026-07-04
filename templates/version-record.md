@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.68.0`
+`1.68.1`
 
 ## Project Version File
 
@@ -19,6 +19,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.68.1` hardens public adoption: dirty worktrees stop before workflow updates or task execution, existing/partial projects default to plan-first workflow update recommendations, source-only adoption is documented, CLI aliases match package metadata, and private security reporting guidance is clearer.
 - `1.68.0` simplifies public adoption: README, docs, and CLI help now lead with `start`, `next`, and `doctor`, while advanced workflow commands remain available for maintainers, CI, release evidence, and debugging.
 - `1.67.2` hardens Release Plan evidence: unsupported extra structured fields are rejected, Chinese unsafe release-plan claims are blocked, `release_plan_digest` is included in the review checklist, and private governed-project smoke checks are optional local calibration rather than public required verification.
 - `1.67.1` calibrates Release Plan evidence strictness: `release_plan_digest` is validated, four release-plan examples are covered, and unsafe release-plan claims around secrets, Codex release ownership, provider execution, skipped migration, lower-level system replacement, and governed-project migration maximization are rejected.

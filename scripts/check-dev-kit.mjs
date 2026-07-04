@@ -49,6 +49,7 @@ function checkRequiredFiles() {
     "package.json",
     "docs/start-here.md",
     "docs/minimal-adoption.md",
+    "docs/source-only-adoption.md",
     "docs/for-existing-projects.md",
     "docs/for-maintainers.md",
     "docs/quickstart.md",
@@ -64,6 +65,7 @@ function checkRequiredFiles() {
     "docs/roadmaps/governance-hardening-roadmap.md",
     "docs/roadmaps/README.md",
     "docs/plans/productization-hardcut-1.0-plan.md",
+    "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
     "docs/plans/product-adoption-simplification-1.68-plan.md",
     "dev-kit-manifest.json",
     "schemas/dev-kit-manifest.schema.json",
@@ -1399,6 +1401,9 @@ function checkCliFrontDoor() {
   if (pkg.bin?.["ai-native"] === "./scripts/cli.mjs") pass("package.json exposes ai-native compatibility bin");
   else fail("package.json must expose ai-native bin at ./scripts/cli.mjs");
 
+  if (pkg.bin?.["ai-native-dev-kit"] === "./scripts/cli.mjs") pass("package.json exposes ai-native-dev-kit compatibility bin");
+  else fail("package.json must expose ai-native-dev-kit bin at ./scripts/cli.mjs");
+
   if (pkg.engines?.node === ">=22") pass("package.json declares Node >=22 engine");
   else fail("package.json must declare Node >=22 engine");
 
@@ -1549,6 +1554,7 @@ function checkCliFrontDoor() {
     "Advanced commands remain available",
     "docs/start-here.md",
     "docs/minimal-adoption.md",
+    "docs/source-only-adoption.md",
     "docs/for-existing-projects.md",
     "docs/for-maintainers.md",
     "guide",
@@ -9243,6 +9249,7 @@ function checkReadmePointers() {
     "You describe the goal",
     "docs/start-here.md",
     "docs/minimal-adoption.md",
+    "docs/source-only-adoption.md",
     "docs/for-existing-projects.md",
     "docs/for-maintainers.md",
     "3 分钟理解",
@@ -9376,6 +9383,7 @@ function checkReadmePointers() {
     "Conversation-Native Ask",
     "docs/start-here.md",
     "docs/minimal-adoption.md",
+    "docs/source-only-adoption.md",
     "docs/for-existing-projects.md",
     "docs/for-maintainers.md",
     "适合什么场景",
@@ -9480,6 +9488,7 @@ function checkReadmePointers() {
   const requiredDocs = [
     "docs/start-here.md",
     "docs/minimal-adoption.md",
+    "docs/source-only-adoption.md",
     "docs/for-existing-projects.md",
     "docs/for-maintainers.md",
     "docs/README.md",
@@ -9491,6 +9500,7 @@ function checkReadmePointers() {
     "docs/o0-bl0-lightweight-path.md",
     "docs/plans/README.md",
     "docs/plans/repository-information-architecture-1.36-plan.md",
+    "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
     "docs/plans/product-adoption-simplification-1.68-plan.md",
     "docs/plans/conversation-native-ask-1.37-plan.md",
     "docs/roadmaps/README.md",
@@ -9613,6 +9623,7 @@ function checkReadmePointers() {
   const requiredReferencePointers = [
     "Start Here",
     "Minimal Adoption",
+    "Source-Only Adoption",
     "For Existing Projects",
     "For Maintainers",
     "Primary Public Entry",
@@ -10686,7 +10697,6 @@ function checkGeneratedProjectE2E() {
   fs.writeFileSync(path.join(governedExistingTarget, "docs", "baselines", "web-baseline.md"), "# Existing Web Baseline\n");
   fs.writeFileSync(path.join(governedExistingTarget, "docs", "WEB_RELEASE_ROLLBACK_BASELINE.md"), "# Existing Release Baseline\n");
   fs.writeFileSync(path.join(governedExistingTarget, "docs", "evidence", ".gitkeep"), "");
-  spawnSync("git", ["init"], { cwd: governedExistingTarget, encoding: "utf8" });
 
   const governedNext = runNode([
     path.join(kitRoot, "scripts", "workflow-next.mjs"),
@@ -10697,8 +10707,7 @@ function checkGeneratedProjectE2E() {
     || !governedNext.stdout.includes("ADOPTION_MODE: READ_ONLY")
     || !governedNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
     || !governedNext.stdout.includes("GOVERNED_EXISTING_PROJECT")
-    || !governedNext.stdout.includes("PRODUCTION_GOVERNED_PROJECT")
-    || !governedNext.stdout.includes("DIRTY_WORKTREE_PROJECT")) {
+    || !governedNext.stdout.includes("PRODUCTION_GOVERNED_PROJECT")) {
     fail(`governed existing project should require read-only adoption assessment: ${governedNext.stderr || governedNext.stdout}`);
     return;
   }
@@ -10750,10 +10759,51 @@ function checkGeneratedProjectE2E() {
     || !dirtyReadyNext.stdout.includes("MUST_STOP_FOR_HUMAN: yes")
     || !dirtyReadyNext.stdout.includes("PRODUCTION_GOVERNED_PROJECT")
     || !dirtyReadyNext.stdout.includes("DIRTY_WORKTREE_PROJECT")) {
-    fail(`dirty production-governed ready project should stop before task execution: ${dirtyReadyNext.stderr || dirtyReadyNext.stdout}`);
+    fail(`dirty ready project should stop before task execution: ${dirtyReadyNext.stderr || dirtyReadyNext.stdout}`);
     return;
   }
-  pass("dirty production-governed ready project workflow-next stops before task execution");
+  pass("dirty ready project workflow-next stops before task execution");
+
+  const dirtyUpdateTarget = path.join(tempRoot, "dirty-workflow-update-project");
+  const dirtyUpdateInit = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    dirtyUpdateTarget,
+  ]);
+  if (dirtyUpdateInit.status !== 0) {
+    fail(`dirty workflow update project init failed: ${dirtyUpdateInit.stderr || dirtyUpdateInit.stdout}`);
+    return;
+  }
+  fs.rmSync(path.join(dirtyUpdateTarget, "scripts", "check-ai-workflow.mjs"), { force: true });
+  spawnSync("git", ["init"], { cwd: dirtyUpdateTarget, encoding: "utf8" });
+  const dirtyUpdateNext = runNode([
+    path.join(kitRoot, "scripts", "workflow-next.mjs"),
+    dirtyUpdateTarget,
+  ]);
+  if (dirtyUpdateNext.status !== 0
+    || !dirtyUpdateNext.stdout.includes("NEXT_ACTION: REVIEW_DIRTY_WORKTREE")
+    || !dirtyUpdateNext.stdout.includes("CAN_WRITE_WORKFLOW_ASSETS: no")
+    || !dirtyUpdateNext.stdout.includes("MUST_STOP_FOR_HUMAN: yes")
+    || !dirtyUpdateNext.stdout.includes("DIRTY_WORKTREE_PROJECT")) {
+    fail(`dirty workflow update project should stop before recommending update: ${dirtyUpdateNext.stderr || dirtyUpdateNext.stdout}`);
+    return;
+  }
+  pass("dirty workflow update project stops before workflow asset update");
+
+  const partialExistingTarget = path.join(tempRoot, "partial-existing-project");
+  fs.mkdirSync(path.join(partialExistingTarget, ".ai-native"), { recursive: true });
+  fs.writeFileSync(path.join(partialExistingTarget, "package.json"), JSON.stringify({ name: "partial-existing-project", private: true }, null, 2));
+  const partialExistingNext = runNode([
+    path.join(kitRoot, "scripts", "workflow-next.mjs"),
+    partialExistingTarget,
+  ]);
+  if (partialExistingNext.status !== 0
+    || !partialExistingNext.stdout.includes("NEXT_ACTION: RUN_WORKFLOW_ASSET_UPDATE")
+    || !partialExistingNext.stdout.includes("--update-workflow-assets --write-plan ./intentos-workflow-update-plan.json")) {
+    fail(`partial existing workflow update should recommend plan-first command: ${partialExistingNext.stderr || partialExistingNext.stdout}`);
+    return;
+  }
+  pass("partial existing project workflow-next recommends plan-first workflow update");
 
   const onboardingO0Check = runNode([
     path.join(target, "scripts", "check-project-onboarding.mjs"),

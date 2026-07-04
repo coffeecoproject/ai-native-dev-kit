@@ -60,6 +60,8 @@ These commands are read-only. They do not approve implementation, release, produ
 
 For the shortest setup path, see [Minimal Adoption](minimal-adoption.md).
 
+For the current GitHub clone path, see [Source-Only Adoption](source-only-adoption.md).
+
 For old projects, see [For Existing Projects](for-existing-projects.md).
 
 For maintainers and CI, see [For Maintainers](for-maintainers.md).

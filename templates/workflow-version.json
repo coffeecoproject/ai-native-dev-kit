@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.68.0",
+  "devKitVersion": "1.68.1",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",

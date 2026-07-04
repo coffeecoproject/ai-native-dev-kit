@@ -8,6 +8,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 
 - [Start Here](start-here.md)
 - [Minimal Adoption](minimal-adoption.md)
+- [Source-Only Adoption](source-only-adoption.md)
 - [For Existing Projects](for-existing-projects.md)
 - [For Maintainers](for-maintainers.md)
 - [Quickstart](quickstart.md)
@@ -32,6 +33,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 ## Project Adoption
 
 - [Minimal Adoption](minimal-adoption.md)
+- [Source-Only Adoption](source-only-adoption.md)
 - [For Existing Projects](for-existing-projects.md)
 - [Baseline Setup](baseline-setup.md)
 - [Existing Project Workflow Adapter](existing-project-workflow-adapter.md)

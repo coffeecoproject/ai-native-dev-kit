@@ -4,9 +4,9 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.68.0`。
+当前版本：`1.68.1`。
 
-发布记录：[releases/1.68.0/release-record.md](releases/1.68.0/release-record.md)。
+发布记录：[releases/1.68.1/release-record.md](releases/1.68.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -36,12 +36,13 @@ node scripts/cli.mjs doctor <project>
 
 - [Start Here](docs/start-here.md)
 - [Minimal Adoption](docs/minimal-adoption.md)
+- [Source-Only Adoption](docs/source-only-adoption.md)
 - [For Existing Projects](docs/for-existing-projects.md)
 - [For Maintainers](docs/for-maintainers.md)
 
-命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
+命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 和 `ai-native-dev-kit` 继续作为兼容别名保留。
 
-1.68.0 收敛公共入口：README、docs 和 CLI help 优先展示 `start`、`next`、`doctor`，高级 workflow 命令继续保留给维护者和 CI 使用。
+1.68.1 加固公共入口：README、docs 和 CLI help 继续优先展示 `start`、`next`、`doctor`，已有项目或 dirty 项目会更保守地进入 plan-first 工作流更新路径。
 
 ## 3 分钟理解
 

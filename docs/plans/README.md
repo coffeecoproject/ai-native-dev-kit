@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Product Adoption Trust Hardening 1.68.1](product-adoption-trust-hardening-1.68.1-plan.md)
 - [Product Adoption Simplification 1.68](product-adoption-simplification-1.68-plan.md)
 - [Release Core Model Consolidation 1.67](release-core-model-consolidation-1.67-plan.md)
 - [Existing Rule Reconciliation Calibration 1.66](existing-rule-reconciliation-calibration-1.66-plan.md)
