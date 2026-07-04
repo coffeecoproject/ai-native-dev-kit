@@ -110,6 +110,37 @@ for owner review before any apply plan is prepared.
 
 Strict structured evidence must include `native_adoption_decision`.
 
+For current strict reports, the structured evidence must use:
+
+```text
+schema_version: 1.69.2
+evidence_profile: existing-rule-reconciliation-1.69.2
+```
+
+Every reconciliation item must be traceable:
+
+```text
+reconciliation_items[].existing_rule_ref
+  -> existing_rule_source[].rule_ref
+
+reconciliation_items[].intentos_reference_ref
+  -> intentos_reference_source[].reference_ref
+```
+
+The human-readable report must include `AI Native Adoption Recommendation` so
+the user can see the recommended path without reading JSON. It must say:
+
+```text
+Recommendation
+Migration Depth
+Can Codex write now
+Human Confirmation
+Preserve
+Merge
+Replace After Approval
+Blocked
+```
+
 That decision must keep:
 
 ```text

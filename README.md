@@ -4,9 +4,9 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.69.1`.
+Current release: `1.69.2`.
 
-Release record: [releases/1.69.1/release-record.md](releases/1.69.1/release-record.md).
+Release record: [releases/1.69.2/release-record.md](releases/1.69.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -42,7 +42,7 @@ Start here:
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
 
-1.69.1 hardens existing-project adoption evidence: rule reconciliation now records total, reconciled, and omitted extracted rules; omitted rules block selected native adoption until reviewed; `doctor --dry-run` now shows the old-project diagnostic branch instead of a generic missing-asset path.
+1.69.2 hardens old-project rule reconciliation evidence: strict reports now require a 1.69.2 evidence profile, every reconciliation item must resolve to source rule/reference records, and the human-facing AI Native Adoption Recommendation must be complete.
 
 ## 3 分钟理解
 
@@ -390,6 +390,7 @@ Reference:
 
 Current release:
 
+- [1.69.2 Release Record](releases/1.69.2/release-record.md)
 - [1.69.1 Release Record](releases/1.69.1/release-record.md)
 - [1.69.0 Release Record](releases/1.69.0/release-record.md)
 - [1.68.2 Release Record](releases/1.68.2/release-record.md)

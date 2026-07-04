@@ -628,7 +628,7 @@ function printHelp() {
   console.log("Global options:");
   console.log("  --help       Show help");
   console.log("  --version    Print dev-kit version");
-  console.log("  --dry-run    Print the underlying command without running it");
+  console.log("  --dry-run    Preview routing; doctor may run read-only workflow-next before printing checks");
   console.log("");
   console.log(`Manifest: ${manifest ? `dev-kit-manifest.json (${manifest.mode}, ${manifest.devKitVersion})` : "not found"}`);
   console.log("");

@@ -89,6 +89,24 @@ This is a recommendation report, not permission to change files.
 | --- | --- | --- | --- |
 | `C-001` | Confirm merge wording before any apply plan. | human | Pending |
 
+## AI Native Adoption Recommendation
+
+| Field | Value |
+| --- | --- |
+| Recommendation | `SELECTED_NATIVE_ADOPTION` |
+| Migration Depth | `DOCS_BRIDGE_THEN_SELECTED_ASSETS` |
+| Confidence | `MEDIUM` |
+| Can Codex write now | `No` |
+| Default Path | prepare apply plan after review |
+| Human Confirmation | Allow Codex to prepare a reviewable apply plan for the recommended migration path. |
+
+| Decision Part | Items |
+| --- | --- |
+| Preserve | release / rollback SOP, production CI / hooks / guard scripts, business rules, permissions / data / compliance controls |
+| Merge | engineering baseline, environment baseline |
+| Replace After Approval | old AI workflow routing after approval |
+| Blocked | production execution, secrets, CI/hook mutation without approval |
+
 ## False Positive / False Negative Notes
 
 | Type | Note |
@@ -122,7 +140,8 @@ approved governance-file edits only
 
 ```json
 {
-  "schema_version": "1.66.0",
+  "schema_version": "1.69.2",
+  "evidence_profile": "existing-rule-reconciliation-1.69.2",
   "artifact_type": "existing_rule_reconciliation_report",
   "report_type": "EXISTING_RULE_RECONCILIATION",
   "project_state": "EXISTING_GOVERNED_PROJECT",
@@ -137,13 +156,53 @@ approved governance-file edits only
   "existing_rule_source": [
     {
       "rule_ref": "native-migration:R-001",
-      "surface": "ENGINEERING_BASELINE"
+      "surface": "ENGINEERING_BASELINE",
+      "summary": "Status values use project enums.",
+      "authority": "project baseline"
+    },
+    {
+      "rule_ref": "native-migration:R-002",
+      "surface": "ENGINEERING_BASELINE",
+      "summary": "API contract evidence is missing.",
+      "authority": "project baseline"
+    },
+    {
+      "rule_ref": "native-migration:R-003",
+      "surface": "ENGINEERING_BASELINE",
+      "summary": "Component tests require owner evidence.",
+      "authority": "project baseline"
+    },
+    {
+      "rule_ref": "native-migration:R-004",
+      "surface": "RELEASE_PRODUCTION",
+      "summary": "Release SOP requires rollback owner.",
+      "authority": "release owner"
+    },
+    {
+      "rule_ref": "native-migration:R-005",
+      "surface": "PROTECTED_CONSTRAINT",
+      "summary": "Admin permission changes require privacy owner approval.",
+      "authority": "project owner"
     }
   ],
   "intentos_reference_source": [
     {
       "reference_ref": "standard-baseline:web-runtime-standard",
-      "surface": "ENGINEERING_BASELINE"
+      "surface": "ENGINEERING_BASELINE",
+      "summary": "Web runtime engineering baseline expectation.",
+      "authority": "IntentOS reference only"
+    },
+    {
+      "reference_ref": "release-recipe:web-hosted-preview",
+      "surface": "RELEASE_PRODUCTION",
+      "summary": "Release recipe safety evidence expectation.",
+      "authority": "IntentOS reference only"
+    },
+    {
+      "reference_ref": "protected-constraint:project-owned",
+      "surface": "PROTECTED_CONSTRAINT",
+      "summary": "Protected constraints stay project-owned.",
+      "authority": "IntentOS reference only"
     }
   ],
   "rule_reconciliation_coverage": {

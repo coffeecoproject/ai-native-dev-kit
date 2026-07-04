@@ -155,11 +155,30 @@ Existing Rule Reconciliation must record coverage for extracted rules.
 Machine-readable evidence must include:
 
 ```text
+schema_version: 1.69.2
+evidence_profile: existing-rule-reconciliation-1.69.2
 rule_reconciliation_coverage
+existing_rule_source
+intentos_reference_source
 native_adoption_decision
 can_recommend_apply_plan_now
 can_recommend_apply_plan_after_human_review
 ```
+
+Every `reconciliation_items[].existing_rule_ref` must resolve to
+`existing_rule_source[].rule_ref`.
+
+Every `reconciliation_items[].intentos_reference_ref` must resolve to
+`intentos_reference_source[].reference_ref`.
+
+The human-readable report must also include an
+`AI Native Adoption Recommendation` section with:
+
+- Recommendation
+- Migration Depth
+- Can Codex write now
+- Human Confirmation
+- Preserve / Merge / Replace After Approval / Blocked
 
 If only part of the extracted rule set is reconciled, the report must say so.
 

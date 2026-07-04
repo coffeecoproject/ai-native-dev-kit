@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.69.1`
+Current version: `1.69.2`
 
 ## Versioning Policy
 
@@ -10,10 +10,11 @@ Current version: `1.69.1`
 
 ## Current Release
 
-`1.69.1`
+`1.69.2`
 
 Includes:
 
+- Existing Rule Reconciliation Evidence Consistency patch `1.69.2`: strict reconciliation reports now require `schema_version: 1.69.2`, `evidence_profile: existing-rule-reconciliation-1.69.2`, complete source coverage for every reconciliation item reference, and a complete human-readable AI Native Adoption Recommendation section
 - Existing Project Native Adoption Evidence Hardening patch `1.69.1`: Existing Rule Reconciliation now records rule coverage, blocks selected native adoption when extracted rules are omitted, separates "recommend apply plan now" from "after human review", and makes `doctor --dry-run` show the old-project adoption diagnosis branch instead of the generic missing-asset path
 - Existing Project Native Adoption Decision phase `1.69.0`: old-project `doctor` now stops at adoption diagnosis instead of flooding missing workflow assets, and `reconcile-rules --auto-native` can generate temporary read-only Native Migration input so Codex can recommend the safest IntentOS-native adoption path without asking non-technical users to judge technical rules
 - Product Adoption Trust Finalization patch `1.68.2`: source-only adoption now documents Node/npm/git prerequisites, CLI help shows all command aliases consistently, dirty-project wording matches stop-first behavior, and release evidence is prepared for GitHub Release publication

@@ -64,7 +64,7 @@ function buildReport(root, options) {
     : conflicts.length > 0 ? "NEEDS_HUMAN_DECISION" : "RECONCILIATION_RECORDED";
   const report = {
     reportType: "EXISTING_RULE_RECONCILIATION",
-    schemaVersion: "1.66.0",
+    schemaVersion: "1.69.2",
     generatedBy: "scripts/resolve-existing-rule-reconciliation.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -500,7 +500,8 @@ function referenceSummary(item) {
 
 function structuredEvidenceFor(report) {
   return {
-    schema_version: "1.66.0",
+    schema_version: "1.69.2",
+    evidence_profile: "existing-rule-reconciliation-1.69.2",
     artifact_type: "existing_rule_reconciliation_report",
     report_type: report.reportType,
     project_state: report.projectState,

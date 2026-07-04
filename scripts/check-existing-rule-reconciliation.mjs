@@ -45,6 +45,7 @@ const requiredSections = [
   "Release / Production Recommendations",
   "Protected Constraint Handling",
   "Conflicts And Human Decisions",
+  "AI Native Adoption Recommendation",
   "False Positive / False Negative Notes",
   "Proposed Next Step",
   "Boundaries",
@@ -163,6 +164,7 @@ function checkReports() {
 
     const summary = sectionBody(content, "Human Summary") || "";
     checkSummary(summary, label);
+    checkAiNativeAdoptionRecommendation(content, label);
     checkBoundaries(content, label);
     checkProposedNextStep(content, label);
     const evidence = checkStructuredEvidence(content, label);
@@ -192,6 +194,29 @@ function checkSummary(summary, label) {
     const actual = tableValue(summary, field);
     if (actual === value) pass(`${label} summary ${field} is ${value}`);
     else fail(`${label} summary ${field} must be ${value}`);
+  }
+}
+
+function checkAiNativeAdoptionRecommendation(content, label) {
+  const body = sectionBody(content, "AI Native Adoption Recommendation") || "";
+  const requiredFieldRows = [
+    "Recommendation",
+    "Migration Depth",
+    "Can Codex write now",
+    "Human Confirmation",
+  ];
+  for (const field of requiredFieldRows) {
+    const actual = tableValue(body, field);
+    if (isConcrete(actual)) pass(`${label} AI Native Adoption Recommendation includes ${field}`);
+    else fail(`${label} AI Native Adoption Recommendation missing ${field}`);
+  }
+  const canWrite = tableValue(body, "Can Codex write now");
+  if (canWrite === "No") pass(`${label} AI Native Adoption Recommendation keeps write authority off`);
+  else fail(`${label} AI Native Adoption Recommendation Can Codex write now must be No`);
+  for (const part of ["Preserve", "Merge", "Replace After Approval", "Blocked"]) {
+    const actual = tableValue(body, part);
+    if (isConcrete(actual)) pass(`${label} AI Native Adoption Recommendation includes ${part}`);
+    else fail(`${label} AI Native Adoption Recommendation missing ${part}`);
   }
 }
 
@@ -281,6 +306,7 @@ function checkStructuredEvidence(content, label) {
   }
   const required = [
     "schema_version",
+    "evidence_profile",
     "artifact_type",
     "report_type",
     "project_state",
@@ -308,8 +334,10 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} structured evidence includes ${field}`);
     else fail(`${label} structured evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.66.0") pass(`${label} structured evidence schema version is 1.66.0`);
-  else fail(`${label} structured evidence schema version must be 1.66.0`);
+  if (parsed.schema_version === "1.69.2") pass(`${label} structured evidence schema version is 1.69.2`);
+  else fail(`${label} structured evidence schema version must be 1.69.2`);
+  if (parsed.evidence_profile === "existing-rule-reconciliation-1.69.2") pass(`${label} structured evidence profile is 1.69.2`);
+  else fail(`${label} structured evidence profile must be existing-rule-reconciliation-1.69.2`);
   if (parsed.artifact_type === "existing_rule_reconciliation_report") pass(`${label} structured artifact type is valid`);
   else fail(`${label} structured artifact type invalid`);
   if (parsed.report_type === "EXISTING_RULE_RECONCILIATION") pass(`${label} structured report type is valid`);
@@ -338,6 +366,7 @@ function checkStructuredEvidence(content, label) {
   } else {
     for (const item of parsed.reconciliation_items) validateStructuredItem(item, label);
   }
+  validateStructuredSourceCoverage(parsed, label);
   validateRuleReconciliationCoverage(parsed.rule_reconciliation_coverage, label, parsed);
   if (Array.isArray(parsed.protected_constraints)) {
     for (const item of parsed.protected_constraints) validateProtectedConstraint(item, label);
@@ -502,6 +531,38 @@ function validateStructuredItem(item, label) {
   else fail(`${rowLabel} must not replace existing rule`);
   if (item?.outcome === "GAP_SUGGESTION" && /\b(approve|approval|deploy|release now)\b/i.test(item?.target_action || "")) {
     fail(`${rowLabel} GAP_SUGGESTION must not imply approval`);
+  }
+}
+
+function validateStructuredSourceCoverage(evidence, label) {
+  const existingSources = Array.isArray(evidence.existing_rule_source) ? evidence.existing_rule_source : [];
+  const intentosSources = Array.isArray(evidence.intentos_reference_source) ? evidence.intentos_reference_source : [];
+  const existingRefs = new Set(existingSources.map((item) => item?.rule_ref).filter(Boolean));
+  const intentosRefs = new Set(intentosSources.map((item) => item?.reference_ref).filter(Boolean));
+  if (existingRefs.size === existingSources.length) pass(`${label} existing rule sources have unique refs`);
+  else fail(`${label} existing rule sources must have unique rule_ref values`);
+  if (intentosRefs.size === intentosSources.length) pass(`${label} IntentOS reference sources have unique refs`);
+  else fail(`${label} IntentOS reference sources must have unique reference_ref values`);
+  for (const source of existingSources) {
+    const sourceLabel = `${label} existing rule source ${source?.rule_ref || "source"}`;
+    for (const field of ["rule_ref", "surface", "summary", "authority"]) {
+      if (isConcrete(source?.[field])) pass(`${sourceLabel} includes ${field}`);
+      else fail(`${sourceLabel} missing ${field}`);
+    }
+  }
+  for (const source of intentosSources) {
+    const sourceLabel = `${label} IntentOS reference source ${source?.reference_ref || "source"}`;
+    for (const field of ["reference_ref", "surface", "summary", "authority"]) {
+      if (isConcrete(source?.[field])) pass(`${sourceLabel} includes ${field}`);
+      else fail(`${sourceLabel} missing ${field}`);
+    }
+  }
+  for (const item of evidence.reconciliation_items || []) {
+    const rowLabel = `${label} structured item ${item?.item_id || "item"}`;
+    if (existingRefs.has(item?.existing_rule_ref)) pass(`${rowLabel} existing_rule_ref resolves to source`);
+    else fail(`${rowLabel} existing_rule_ref ${item?.existing_rule_ref || "<empty>"} missing from existing_rule_source`);
+    if (intentosRefs.has(item?.intentos_reference_ref)) pass(`${rowLabel} intentos_reference_ref resolves to source`);
+    else fail(`${rowLabel} intentos_reference_ref ${item?.intentos_reference_ref || "<empty>"} missing from intentos_reference_source`);
   }
 }
 

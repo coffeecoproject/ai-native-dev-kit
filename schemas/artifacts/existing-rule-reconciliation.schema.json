@@ -1,8 +1,9 @@
 {
-  "schemaVersion": "1.66.0",
+  "schemaVersion": "1.69.2",
   "artifactType": "existing_rule_reconciliation_report",
   "required": [
     "schema_version",
+    "evidence_profile",
     "artifact_type",
     "report_type",
     "project_state",
@@ -27,7 +28,8 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.66.0"] },
+    "schema_version": { "type": "string", "enum": ["1.69.2"] },
+    "evidence_profile": { "type": "string", "enum": ["existing-rule-reconciliation-1.69.2"] },
     "artifact_type": { "type": "string", "enum": ["existing_rule_reconciliation_report"] },
     "report_type": { "type": "string", "enum": ["EXISTING_RULE_RECONCILIATION"] },
     "project_state": { "type": "string" },
@@ -39,8 +41,32 @@
     "business_authority": { "type": "string", "enum": ["PROJECT_OWNED"] },
     "production_authority": { "type": "string", "enum": ["HUMAN_OR_EXTERNAL_SYSTEM"] },
     "requires_human_approval_before_apply": { "type": "string", "enum": ["Yes"] },
-    "existing_rule_source": { "type": "array" },
-    "intentos_reference_source": { "type": "array" },
+    "existing_rule_source": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_ref", "surface", "summary", "authority"],
+        "properties": {
+          "rule_ref": { "type": "string" },
+          "surface": { "type": "string" },
+          "summary": { "type": "string" },
+          "authority": { "type": "string" }
+        }
+      }
+    },
+    "intentos_reference_source": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["reference_ref", "surface", "summary", "authority"],
+        "properties": {
+          "reference_ref": { "type": "string" },
+          "surface": { "type": "string" },
+          "summary": { "type": "string" },
+          "authority": { "type": "string" }
+        }
+      }
+    },
     "rule_reconciliation_coverage": {
       "type": "object",
       "required": [

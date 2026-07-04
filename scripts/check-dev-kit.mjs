@@ -4900,6 +4900,7 @@ function checkExistingRuleReconciliationProtocol() {
     "bad-rule-reconciliation-release-adopt-intentos",
     "bad-rule-reconciliation-merge-without-preserved-terms",
     "bad-rule-reconciliation-gap-suggestion-as-approval",
+    "bad-rule-reconciliation-missing-source-ref",
   ];
   const required = [
     "docs/plans/existing-rule-reconciliation-calibration-1.66-plan.md",
@@ -4961,6 +4962,10 @@ function checkExistingRuleReconciliationProtocol() {
     "native_adoption_decision",
     "can_recommend_apply_plan_now",
     "NoUntilBlockResolved",
+    "evidence_profile",
+    "existing_rule_source",
+    "intentos_reference_source",
+    "AI Native Adoption Recommendation",
     "false positive",
     "false negative",
   ]) {
