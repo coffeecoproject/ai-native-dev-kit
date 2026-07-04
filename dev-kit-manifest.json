@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.67.0",
+  "devKitVersion": "1.67.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.67.0"
+    "phase": "1.67.1"
   },
   "groups": {
     "sourceRequired": [
@@ -2067,6 +2067,10 @@
       "examples/1.67-release-core-model/README.md",
       "examples/1.67-release-core-model/web-preview/README.md",
       "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.67-release-core-model/mini-program-review/README.md",
+      "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
+      "examples/1.67-release-core-model/backend-api-handoff/README.md",
+      "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
@@ -2074,13 +2078,23 @@
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
       "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-codex-owner/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-secret-request/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-provider-exec/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-skips-native-migration/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-replaces-lower-level-system/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-trace-controls-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
       "releases/1.67.0/release-record.md",
       "releases/1.67.0/known-limitations.md",
-      "releases/1.67.0/self-check-report.md"
+      "releases/1.67.0/self-check-report.md",
+      "releases/1.67.1/release-record.md",
+      "releases/1.67.1/known-limitations.md",
+      "releases/1.67.1/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -4093,6 +4107,10 @@
       "examples/1.67-release-core-model/README.md",
       "examples/1.67-release-core-model/web-preview/README.md",
       "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.67-release-core-model/mini-program-review/README.md",
+      "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
+      "examples/1.67-release-core-model/backend-api-handoff/README.md",
+      "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
@@ -4460,7 +4478,14 @@
       "test-fixtures/bad/bad-rule-reconciliation-merge-without-preserved-terms/existing-rule-reconciliations/001-bad.md",
       "test-fixtures/bad/bad-rule-reconciliation-gap-suggestion-as-approval/existing-rule-reconciliations/001-bad.md",
       "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-codex-owner/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-secret-request/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-provider-exec/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-skips-native-migration/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-replaces-lower-level-system/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-trace-controls-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md"
@@ -6989,6 +7014,10 @@
       "examples/1.67-release-core-model/README.md",
       "examples/1.67-release-core-model/web-preview/README.md",
       "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.67-release-core-model/mini-program-review/README.md",
+      "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
+      "examples/1.67-release-core-model/backend-api-handoff/README.md",
+      "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
@@ -6996,13 +7025,23 @@
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
       "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-codex-owner/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-secret-request/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-provider-exec/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-skips-native-migration/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-replaces-lower-level-system/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-trace-controls-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
       "releases/1.67.0/release-record.md",
       "releases/1.67.0/known-limitations.md",
-      "releases/1.67.0/self-check-report.md"
+      "releases/1.67.0/self-check-report.md",
+      "releases/1.67.1/release-record.md",
+      "releases/1.67.1/known-limitations.md",
+      "releases/1.67.1/self-check-report.md"
     ]
   }
 }

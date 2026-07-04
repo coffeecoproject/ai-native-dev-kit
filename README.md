@@ -4,13 +4,15 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.67.0`.
+Current release: `1.67.1`.
 
-Release record: [releases/1.67.0/release-record.md](releases/1.67.0/release-record.md).
+Release record: [releases/1.67.1/release-record.md](releases/1.67.1/release-record.md).
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
 Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.67.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, calibrated old-project migration, existing-rule reconciliation, and one pure-view Release Plan that summarizes release source systems without becoming release authority.
+
+1.67.1 calibrates Release Plan evidence and existing-project entry: strict Release Plan checks now verify the `release_plan_digest`, cover Web preview, mini-program review, backend API handoff, and governed existing-project examples, and reject more unsafe release-plan claims. `start` / `next` also make the old-project expectation clearer: Codex can work in IntentOS Operating Mode now, while governance assets still require Native Migration, Existing Rule Reconciliation, apply plan, approval, and readiness checks before writes.
 
 1.67.0 adds Release Core Model: when users say “help me launch”, IntentOS can summarize Release Adapter, Release Guide, Platform Recipe, Launch Review, Handoff, Release Execution, Native Migration, and Existing Rule Reconciliation into one Release Plan. For old projects, Codex can work in IntentOS Operating Mode immediately, but baselines, release rules, CI, hooks, and governance files still require detailed comparison, migration-depth recommendation, apply plan, approval, and readiness checks before changes.
 

@@ -7418,6 +7418,10 @@ function checkReleasePlanProtocol() {
     "examples/1.67-release-core-model/README.md",
     "examples/1.67-release-core-model/web-preview/README.md",
     "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+    "examples/1.67-release-core-model/mini-program-review/README.md",
+    "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
+    "examples/1.67-release-core-model/backend-api-handoff/README.md",
+    "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
     "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
     "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
     "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
@@ -7425,13 +7429,23 @@ function checkReleasePlanProtocol() {
     "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
     "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
     "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-codex-owner/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-secret-request/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-provider-exec/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-skips-native-migration/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-replaces-lower-level-system/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-trace-controls-execution/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
     "releases/1.67.0/release-record.md",
     "releases/1.67.0/known-limitations.md",
     "releases/1.67.0/self-check-report.md",
+    "releases/1.67.1/release-record.md",
+    "releases/1.67.1/known-limitations.md",
+    "releases/1.67.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.67 release plan asset exists ${file}`);
@@ -7447,6 +7461,7 @@ function checkReleasePlanProtocol() {
     read("scripts/check-release-plan.mjs"),
     read("docs/plans/release-core-model-consolidation-1.67-plan.md"),
     read("releases/1.67.0/release-record.md"),
+    read("releases/1.67.1/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -7510,6 +7525,8 @@ function checkReleasePlanProtocol() {
 
   for (const target of [
     "examples/1.67-release-core-model/web-preview",
+    "examples/1.67-release-core-model/mini-program-review",
+    "examples/1.67-release-core-model/backend-api-handoff",
     "examples/1.67-release-core-model/governed-existing-project-readonly",
   ]) {
     const example = runNode(["scripts/check-release-plan.mjs", target, "--require-structured-evidence"]);
@@ -7522,7 +7539,14 @@ function checkReleasePlanProtocol() {
 
   for (const [name, target, expected] of [
     ["approves production", "test-fixtures/bad/bad-release-plan-approves-production", "forbidden release plan claim"],
+    ["codex owner", "test-fixtures/bad/bad-release-plan-codex-owner", "forbidden release plan claim"],
+    ["secret request", "test-fixtures/bad/bad-release-plan-secret-request", "forbidden release plan claim"],
+    ["provider execution", "test-fixtures/bad/bad-release-plan-provider-exec", "forbidden release plan claim"],
+    ["skips native migration", "test-fixtures/bad/bad-release-plan-skips-native-migration", "forbidden release plan claim"],
     ["missing trace", "test-fixtures/bad/bad-release-plan-missing-trace", "at least three trace rows"],
+    ["replaces lower-level system", "test-fixtures/bad/bad-release-plan-replaces-lower-level-system", "forbidden release plan claim"],
+    ["asset migration maximize", "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project", "must not maximize"],
+    ["trace controls execution", "test-fixtures/bad/bad-release-plan-trace-controls-execution", "forbidden release plan claim"],
     ["state drives execution", "test-fixtures/bad/bad-release-plan-state-drives-execution", "forbidden release plan claim"],
     ["operating mode writes files", "test-fixtures/bad/bad-release-plan-operating-mode-writes-files", "forbidden release plan claim"],
     ["ignores existing rules", "test-fixtures/bad/bad-release-plan-ignores-existing-rules", "forbidden release plan claim"],

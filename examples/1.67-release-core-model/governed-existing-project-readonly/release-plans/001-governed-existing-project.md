@@ -132,7 +132,7 @@
   "schema_version": "1.67.0",
   "artifact_type": "release_plan_evidence",
   "artifact_id": "governed-existing-project-release-plan",
-  "release_plan_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "release_plan_digest": "sha256:9e822d5a31062bab2edadf5a1c7d9e047abf2cc95c237b29a70c2b662a7ef3db",
   "release_plan": {
     "state": "BLOCKED_BY_PROJECT_AUTHORITY",
     "summary_state_kind": "SUMMARY_ONLY",
@@ -206,4 +206,3 @@
 ## Outcome
 
 `BLOCKED_BY_PROJECT_AUTHORITY`
-

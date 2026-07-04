@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.67.0`
+Current version: `1.67.1`
 
 ## Versioning Policy
 
@@ -10,10 +10,12 @@ Current version: `1.67.0`
 
 ## Current Release
 
-`1.67.0`
+`1.67.1`
 
 Includes:
 
+- Release Plan Evidence and Existing-Project Entry Calibration phase `1.67.1`: strict Release Plan checks now validate `release_plan_digest`, cover Web preview, mini-program review, backend API handoff, and governed existing-project examples, and reject unsafe release-plan claims around secrets, Codex release ownership, provider execution, skipped migration, lower-level system replacement, and maximizing governed-project asset migration
+- `1.67.1` clarifies `start` / `next` output for old, governed, dirty, or production-sensitive projects: IntentOS Operating Mode is active for planning, routing, review, and comparison, but project asset changes still require Native Migration, Existing Rule Reconciliation, Unified Apply Plan, approval, and Controlled Apply Readiness
 - Release Core Model Consolidation phase `1.67.0`: adds `release-plan` / `release-check` so Release Adapter, Release Guide, Platform Release Recipe, Launch Review View, Release Handoff Pack, Release Execution, Native Migration, and Existing Rule Reconciliation can be summarized into one user-facing Release Plan
 - `1.67.0` defines Release Plan as a pure view model: it is derived only, source systems remain authoritative, trace explains but does not control execution, and summary state does not drive workflow behavior
 - `1.67.0` clarifies existing-project behavior: Codex can work in IntentOS Operating Mode immediately, while baselines, release rules, CI, hooks, and governance files require Existing Rule Reconciliation, migration-depth recommendation, Unified Apply Plan, approval, and Controlled Apply Readiness before changes

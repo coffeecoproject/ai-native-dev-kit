@@ -723,7 +723,7 @@ function commandFor(action, kitRoot) {
     return "For BL2 work, read .ai-native/industrial-packs/selection-guide.md, draft docs/baseline-selection.md and docs/baseline-evidence.md from .ai-native/templates, install selected packs with init-project --industrial-packs <pack-id>, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.";
   }
   if (action === "RUN_ADOPTION_ASSESSMENT") {
-    return "Produce a read-only adoption assessment from templates/adoption-assessment.md and templates/existing-governance-map.md. Do not run init-project, update workflow assets, create migration reports, or modify project files until a human approves adapter setup.";
+    return "Keep Codex in IntentOS Operating Mode for planning, routing, review, and comparison. Prepare Native Migration and Existing Rule Reconciliation before any governance asset change; do not run init-project, update workflow assets, or modify project files until a reviewed apply plan is approved.";
   }
   if (action === "REVIEW_DIRTY_WORKTREE") {
     return "Stop before task execution. Review git status, identify ownership of existing changes, and ask the human whether to continue, split, stash, commit, or create a review packet first.";
@@ -907,6 +907,14 @@ function buildResult() {
   const adoptionMode = nextAction === "RUN_ADOPTION_ASSESSMENT"
     ? "READ_ONLY"
     : nextAction === "REVIEW_DIRTY_WORKTREE" ? "GUARDED" : "STANDARD";
+  const intentosOperatingMode = projectState !== "TARGET_MISSING" && projectState !== "DEV_KIT_REPOSITORY"
+    ? "ACTIVE"
+    : "NOT_APPLICABLE";
+  const projectAssetMigrationDepth = nextAction === "RUN_ADOPTION_ASSESSMENT"
+    ? "ADAPTER_ONLY"
+    : nextAction === "REVIEW_DIRTY_WORKTREE" ? "PLAN_REQUIRED"
+      : version ? "PROJECT_SELECTED" : projectState === "NEW_PROJECT" ? "FULL_INTENTOS_NATIVE_CANDIDATE" : "RECOMMEND_ONLY";
+  const existingRuleComparisonRequired = signals.isGovernedExisting || signals.isProductionGoverned || signals.isDirtyWorktree;
 
   const notes = [];
   if (version?.devKitVersion) notes.push(`Project dev-kit version: ${version.devKitVersion}`);
@@ -935,6 +943,8 @@ function buildResult() {
   if (signals.isProductionGoverned) notes.push(`${signals.productionSignals.length} production governance signal(s) detected.`);
   if (signals.isDirtyWorktree) notes.push(`Git worktree has ${signals.git.changedFileCount} changed or untracked file(s).`);
   if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("Governed, production-sensitive, or dirty project protection is active; execution intent does not allow workflow writes yet.");
+  if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("IntentOS Operating Mode is active for planning, routing, review, and comparison; project asset migration remains adapter-only until existing rules are reconciled and an apply plan is approved.");
+  if (existingRuleComparisonRequired) notes.push("Existing baselines, release rules, CI, hooks, guard scripts, and governance files must be compared against IntentOS before any replacement or merge.");
   if (nextAction === "REVIEW_DIRTY_WORKTREE") notes.push("Dirty production-governed project execution guard is active; confirm current changes before creating artifacts or executing a task.");
   if (notes.length === 0) notes.push("No blocking workflow issue detected.");
 
@@ -952,6 +962,9 @@ function buildResult() {
     selectedIndustrialPacks: industrialBaseline.selectedIndustrialPacks,
     versionState,
     adoptionMode,
+    intentosOperatingMode,
+    projectAssetMigrationDepth,
+    existingRuleComparisonRequired: existingRuleComparisonRequired ? "yes" : "no",
     governanceSignals: signals,
     nextAction,
     canWriteWorkflowAssets: ["RUN_ADOPTION_ASSESSMENT", "REVIEW_DIRTY_WORKTREE"].includes(nextAction)
@@ -1101,15 +1114,15 @@ function buildHumanDecisionSummary(result, human) {
   if (action === "RUN_ADOPTION_ASSESSMENT") {
     return {
       ...defaultSummary,
-      recommendedChoice: "B - Docs-only adapter assessment",
+      recommendedChoice: "B - IntentOS mode with rule comparison",
       options: [
         option("A", "Inspect only in chat", "Read and summarize adoption risk", "No", "low", "Choose when you only want a diagnosis"),
-        option("B", "Docs-only adapter assessment", "Draft adoption assessment and governance map without replacing existing governance", "Report/docs only, if approved", "low/medium", "Choose for existing governed or production-sensitive projects"),
-        option("C", "Controlled setup after review", "Prepare workflow setup only after adapter assessment is approved", "Yes, approved workflow assets only", "medium/high", "Choose only after reviewing the assessment"),
+        option("B", "IntentOS mode with rule comparison", "Work under IntentOS planning/review rules while comparing existing governance before any asset change", "No project writes", "low/medium", "Choose for existing governed or production-sensitive projects"),
+        option("C", "Controlled setup after review", "Prepare workflow setup only after Native Migration, Existing Rule Reconciliation, apply plan, and approval", "Yes, approved workflow assets only", "medium/high", "Choose only after reviewing the comparison and plan"),
         option("D", "Pause", "Stop and wait", "No", "low", "Choose when project ownership or risk is unclear"),
       ],
-      reason: "Governed, production-sensitive, or dirty projects should not receive a full workflow install before mapping existing rules.",
-      ifNothing: "Codex should remain read-only and avoid workflow writes.",
+      reason: "Codex can work in IntentOS Operating Mode, but existing baselines, release rules, CI, hooks, guard scripts, and governance files must be compared before migration or replacement.",
+      ifNothing: "Codex should keep using IntentOS for read-only planning and review, but avoid workflow or project-asset writes.",
     };
   }
 
@@ -1262,6 +1275,9 @@ function printTechnicalOutput(result, enforceFailures) {
   console.log(`BASELINE_LEVEL: ${result.baselineLevel || "none"}`);
   console.log(`VERSION_STATE: ${result.versionState}`);
   console.log(`ADOPTION_MODE: ${result.adoptionMode || "unknown"}`);
+  console.log(`INTENTOS_OPERATING_MODE: ${result.intentosOperatingMode || "unknown"}`);
+  console.log(`PROJECT_ASSET_MIGRATION_DEPTH: ${result.projectAssetMigrationDepth || "unknown"}`);
+  console.log(`EXISTING_RULE_COMPARISON_REQUIRED: ${result.existingRuleComparisonRequired || "no"}`);
   console.log(`NEXT_ACTION: ${result.nextAction}`);
   console.log(`CAN_WRITE_WORKFLOW_ASSETS: ${result.canWriteWorkflowAssets}`);
   console.log(`MUST_STOP_FOR_HUMAN: ${result.mustStopForHuman}`);
@@ -1352,24 +1368,26 @@ function buildHumanOutput(result) {
 
   if (action === "RUN_ADOPTION_ASSESSMENT") {
     return {
-      summary: "This looks like an existing governed, production-sensitive, or dirty project. AI should first perform a read-only adoption assessment instead of writing workflow assets.",
+      summary: "This looks like an existing governed, production-sensitive, or dirty project. Codex can work in IntentOS Operating Mode, but project asset migration must stay adapter-only until existing rules are compared and approved.",
       status: "Needs confirmation",
-      reason: "Existing governance or worktree risk was detected.",
+      reason: "Existing governance or worktree risk was detected; working mode and write permission are separated.",
       riskLevel: "high",
       canAiContinue: "limited",
       decisions: [
-        "Confirm whether the adoption assessment should stay in chat or be written to an approved file location.",
-        "Confirm whether adapter setup is allowed after the assessment is reviewed.",
+        "Confirm whether Native Migration and Existing Rule Reconciliation should stay in chat or be written to approved report locations.",
+        "Confirm whether any adapter setup or governance asset change is allowed after the comparison is reviewed.",
       ],
-      nextStep: "Create a read-only adoption assessment and existing governance map, then wait for approval before any setup writes.",
+      nextStep: "Keep Codex in IntentOS Operating Mode, prepare Native Migration and Existing Rule Reconciliation, then wait for an approved apply plan before setup writes.",
       aiCanDo: [
         "Read existing governance files.",
-        "Draft adoption assessment and governance mapping.",
-        "Summarize gaps and conflicts.",
+        "Work under IntentOS planning, task-routing, review, and comparison rules.",
+        "Draft Native Migration and Existing Rule Reconciliation reports.",
+        "Compare existing baselines, release rules, CI, hooks, guard scripts, and governance files against IntentOS.",
       ],
       aiMustNotDo: [
         "Do not run init-project or update workflow assets.",
         "Do not create migration reports or modify project files without approval.",
+        "Do not treat IntentOS Operating Mode as write permission.",
         "Do not change business code, CI, release, production config, or agent rules.",
       ],
     };

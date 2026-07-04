@@ -130,7 +130,7 @@
   "schema_version": "1.67.0",
   "artifact_type": "release_plan_evidence",
   "artifact_id": "web-preview-release-plan",
-  "release_plan_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "release_plan_digest": "sha256:800cc6faa427b3cb9ebe54db753d9f32e4a3f4ef5e7a32212bff36c9e2e42998",
   "release_plan": {
     "state": "NEEDS_LAUNCH_REVIEW",
     "summary_state_kind": "SUMMARY_ONLY",
@@ -204,4 +204,3 @@
 ## Outcome
 
 `NEEDS_LAUNCH_REVIEW`
-

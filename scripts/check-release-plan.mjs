@@ -53,7 +53,7 @@ const requiredSections = [
   "Boundaries",
   "Outcome",
 ];
-const allowedOutcomes = new Set([
+const allowedPlanStates = new Set([
   "NEEDS_RELEASE_SHAPE",
   "NEEDS_PLATFORM_RECIPE",
   "NEEDS_LAUNCH_REVIEW",
@@ -67,6 +67,9 @@ const allowedOutcomes = new Set([
   "BLOCKED_BY_EXTERNAL_SYSTEM",
   "BLOCKED_BY_HIGH_RISK_SURFACE",
   "BLOCKED_BY_PROJECT_AUTHORITY",
+]);
+const allowedOutcomes = new Set([
+  ...allowedPlanStates,
   "RELEASE_PLAN_RECORDED",
 ]);
 const allowedRecommendations = new Set([
@@ -86,12 +89,22 @@ const forbiddenClaims = [
   /\bCodex deploys\b/i,
   /\bCodex will publish\b/i,
   /\bCodex will submit\b/i,
+  /\bCodex is the release owner\b/i,
+  /\bCodex becomes the release owner\b/i,
+  /\bCodex will (change|update|modify) DNS\b/i,
+  /\bCodex will (change|update|modify) payment\b/i,
+  /\bCodex will (change|update|modify) provider state\b/i,
+  /\bCodex will run production migration\b/i,
+  /\bask(s|ed)? for secrets?\b/i,
+  /\benter (the )?(secret|token|password)\b/i,
   /\bautomatically deploy(s|ed)?\b/i,
   /\bautomatically publish(es|ed)?\b/i,
   /\bRelease Plan is the source of truth\b/i,
   /\bRelease Plan replaces\b/i,
+  /\bRelease Plan overrides\b/i,
   /\btrace controls execution\b/i,
   /\bstate drives execution\b/i,
+  /\bskip Native Migration\b/i,
   /\bignore existing rules\b/i,
   /\bskip existing rule comparison\b/i,
   /\bThis plan approves release:\s*Yes\b/i,
@@ -194,7 +207,7 @@ function checkSummary(content, label) {
   const pureView = tableValue(summary, "Release Plan Is Pure View");
   const operatingMode = tableValue(summary, "IntentOS Operating Mode");
   const migrationDepth = tableValue(summary, "Project Asset Migration Depth");
-  if (allowedOutcomes.has(state)) pass(`${label} records valid Release Plan State`);
+  if (allowedPlanStates.has(state)) pass(`${label} records valid Release Plan State`);
   else fail(`${label} invalid Release Plan State: ${state || "<empty>"}`);
   if (summaryKind === "SUMMARY_ONLY") pass(`${label} records SUMMARY_ONLY state kind`);
   else fail(`${label} must record Summary State Kind as SUMMARY_ONLY`);
@@ -289,6 +302,7 @@ function checkOutcome(content, label) {
 function checkStructuredEvidence(content, label) {
   const block = validateEvidenceBlock(content, schema, label, {
     require: requireStructuredEvidence,
+    digestField: "release_plan_digest",
   });
   if (!block.ok) {
     for (const error of block.errors) fail(error);
@@ -350,15 +364,29 @@ function checkSourceEvidence() {
     "scripts/resolve-release-plan.mjs",
     "scripts/check-release-plan.mjs",
     "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+    "examples/1.67-release-core-model/mini-program-review/README.md",
+    "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
+    "examples/1.67-release-core-model/backend-api-handoff/README.md",
+    "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
     "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
     "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-codex-owner/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-secret-request/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-provider-exec/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-skips-native-migration/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-replaces-lower-level-system/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-trace-controls-execution/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
     "releases/1.67.0/release-record.md",
     "releases/1.67.0/known-limitations.md",
     "releases/1.67.0/self-check-report.md",
+    "releases/1.67.1/release-record.md",
+    "releases/1.67.1/known-limitations.md",
+    "releases/1.67.1/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.67 release plan source evidence exists ${file}`);
     else fail(`1.67 release plan source evidence missing ${file}`);
@@ -400,6 +428,8 @@ function checkSourceEvidence() {
 
   const exampleTargets = [
     "examples/1.67-release-core-model/web-preview",
+    "examples/1.67-release-core-model/mini-program-review",
+    "examples/1.67-release-core-model/backend-api-handoff",
     "examples/1.67-release-core-model/governed-existing-project-readonly",
   ];
   for (const target of exampleTargets) {
@@ -413,7 +443,14 @@ function checkSourceEvidence() {
 
   for (const [name, target, expected] of [
     ["approves production", "test-fixtures/bad/bad-release-plan-approves-production", "forbidden release plan claim"],
+    ["codex owner", "test-fixtures/bad/bad-release-plan-codex-owner", "forbidden release plan claim"],
+    ["secret request", "test-fixtures/bad/bad-release-plan-secret-request", "forbidden release plan claim"],
+    ["provider execution", "test-fixtures/bad/bad-release-plan-provider-exec", "forbidden release plan claim"],
+    ["skips native migration", "test-fixtures/bad/bad-release-plan-skips-native-migration", "forbidden release plan claim"],
     ["missing trace", "test-fixtures/bad/bad-release-plan-missing-trace", "at least three trace rows"],
+    ["replaces lower-level system", "test-fixtures/bad/bad-release-plan-replaces-lower-level-system", "forbidden release plan claim"],
+    ["asset migration maximize", "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project", "must not maximize"],
+    ["trace controls execution", "test-fixtures/bad/bad-release-plan-trace-controls-execution", "forbidden release plan claim"],
     ["state drives execution", "test-fixtures/bad/bad-release-plan-state-drives-execution", "forbidden release plan claim"],
     ["operating mode writes files", "test-fixtures/bad/bad-release-plan-operating-mode-writes-files", "forbidden release plan claim"],
     ["ignores existing rules", "test-fixtures/bad/bad-release-plan-ignores-existing-rules", "forbidden release plan claim"],

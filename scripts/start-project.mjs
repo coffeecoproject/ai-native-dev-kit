@@ -398,6 +398,9 @@ function governedPath(classification, workflow, reason) {
       blLevel: "Do not change baseline until existing governance is mapped",
       profiles: "Infer only; confirm with human before writing",
       industrialPacks: "None by default; BL2 requires explicit human confirmation",
+      intentosOperatingMode: "ACTIVE",
+      projectAssetMigrationDepth: "ADAPTER_ONLY",
+      existingRuleComparisonRequired: true,
       goalMode: "ADOPTION_READ_ONLY",
       planFirstRequired: true,
       adoptionMode: "read-only-first",
@@ -405,7 +408,8 @@ function governedPath(classification, workflow, reason) {
     },
     why: [
       reason,
-      "The safe path is assessment first, then a reviewable plan, then optional apply.",
+      "Codex can work under IntentOS planning, task-routing, review, and comparison rules immediately.",
+      "Project asset migration remains adapter-only until existing rules are reconciled and an apply plan is approved.",
     ],
     decisionsNeededFromHuman: [
       "Confirm who owns the existing governance rules and current changes.",
@@ -413,11 +417,11 @@ function governedPath(classification, workflow, reason) {
       "Confirm whether any workflow write plan is allowed after assessment.",
     ],
     safeNextActions: [
-      action("Read-only assessment", `node scripts/cli.mjs next ${shellQuote(workflow.projectRoot)}`, "No", "No"),
-      action("Check real adoption report", `node scripts/cli.mjs real-adoption ${shellQuote(workflow.projectRoot)}`, "No", "No"),
+      action("IntentOS mode status", `node scripts/cli.mjs next ${shellQuote(workflow.projectRoot)}`, "No", "No"),
+      action("Prepare Native Migration Plan", `node scripts/cli.mjs native-migration ${shellQuote(workflow.projectRoot)}`, "Report only", "Yes"),
+      action("Prepare Existing Rule Reconciliation", `node scripts/cli.mjs reconcile-rules ${shellQuote(workflow.projectRoot)}`, "Report only", "Yes"),
+      action("View unified release plan", `node scripts/cli.mjs release-plan ${shellQuote(workflow.projectRoot)} --intent "continue existing project under IntentOS"`, "No", "No"),
       action("Read baseline recommendation", `node scripts/cli.mjs baseline ${shellQuote(workflow.projectRoot)}`, "No", "No"),
-      action("Prepare real adoption report", "Use templates/real-adoption-trial-report.md or new-workflow-item --type real-adoption-trial-report after assets are available.", "Report only", "Yes"),
-      action("Prepare patch classification", "Use templates/patch-classification-report.md or new-workflow-item --type patch-classification before proposing non-trivial fixes.", "Report only", "Yes"),
       action("Write adoption plan later", `node scripts/init-project.mjs --target ${shellQuote(workflow.projectRoot)} --update-workflow-assets --write-plan adoption-plan.json`, "Plan file only", "Yes"),
     ],
     actionsAiMustNotTakeYet: [
@@ -435,7 +439,7 @@ function governedPath(classification, workflow, reason) {
       ".ai-native/templates/patch-classification-report.md",
       "docs/first-hour.md",
     ],
-    finalRecommendation: "Stay read-only. Produce a real adoption report, governance map, and patch classification before any write plan.",
+    finalRecommendation: "Use IntentOS Operating Mode now for planning, routing, review, and comparison. Do not change project assets until Native Migration, Existing Rule Reconciliation, apply plan, and approval are complete.",
   };
 }
 
@@ -483,6 +487,9 @@ function printRecommendation(report) {
   console.log(`| Project type | ${report.classification.projectType} |`);
   console.log(`| Risk level | ${report.classification.riskLevel} |`);
   console.log(`| Adoption mode | ${report.classification.adoptionMode} |`);
+  if (report.recommendedPath.intentosOperatingMode) console.log(`| IntentOS Operating Mode | ${report.recommendedPath.intentosOperatingMode} |`);
+  if (report.recommendedPath.projectAssetMigrationDepth) console.log(`| Project Asset Migration Depth | ${report.recommendedPath.projectAssetMigrationDepth} |`);
+  if (report.recommendedPath.existingRuleComparisonRequired !== undefined) console.log(`| Existing Rule Comparison Required | ${report.recommendedPath.existingRuleComparisonRequired ? "Yes" : "No"} |`);
   console.log(`| Can AI write now | ${report.classification.canAiWriteNow} |`);
   console.log(`| Confidence | ${report.classification.confidence} |`);
   console.log("");
@@ -573,7 +580,7 @@ function buildStartDecisionSummary(report) {
 
 function chooseRecommendedStartAction(report, actions) {
   if (report.classification.projectType === "PRODUCTION_SENSITIVE_PROJECT" || report.classification.projectType === "GOVERNED_EXISTING_PROJECT") {
-    return actions.find((item) => item.label.includes("Prepare real adoption")) || actions.find((item) => item.label.includes("Read-only")) || actions[0];
+    return actions.find((item) => item.label.includes("Existing Rule Reconciliation")) || actions.find((item) => item.label.includes("Native Migration")) || actions[0];
   }
   if (report.classification.projectType === "DIRTY_WORKTREE_PROJECT") {
     return actions.find((item) => item.label.includes("Read-only")) || actions[0];
