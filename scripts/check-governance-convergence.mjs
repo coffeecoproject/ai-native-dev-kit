@@ -7,11 +7,12 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "require-structured-evidence"]);
+const knownFlags = new Set(["json", "require-structured-evidence", "report"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const explicitReport = args.report ? path.resolve(process.cwd(), String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -51,9 +52,11 @@ const allowedStates = new Set([
   "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE",
   "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY",
   "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
+  "CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE",
   "CONVERGENCE_READ_ONLY_ONLY",
   "CONVERGENCE_PARTIAL",
 ]);
+const allowedSourceStatuses = new Set(["RECORDED", "NEEDS_INPUT", "BLOCKED"]);
 const allowedRecommendations = new Set([
   "KEEP_EXISTING_STRICTER",
   "KEEP_PROJECT_OWNED",
@@ -146,12 +149,16 @@ function checkCoreContent() {
 }
 
 function checkReports() {
-  const files = markdownFiles("governance-convergence-reports");
+  const files = explicitReport ? [explicitReport] : markdownFiles("governance-convergence-reports");
   if (files.length === 0) {
     pass("governance convergence check skipped: no reports");
     return;
   }
   for (const file of files) {
+    if (!fs.existsSync(file)) {
+      fail(`missing explicit governance convergence report ${file}`);
+      continue;
+    }
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
     if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
@@ -167,13 +174,13 @@ function checkReports() {
     if (requireStructuredEvidence) {
       for (const section of requiredStructuredSections) requireSection(content, section, label);
     }
-    checkSummary(content, label);
-    checkDimensions(content, label);
+    const summary = checkSummary(content, label);
+    const dimensions = checkDimensions(content, label);
     checkAuditBridge(content, label);
     checkAiLogPolicy(content, label);
     checkBoundaries(content, label);
     const evidence = checkStructuredEvidence(content, label);
-    checkStateAndOutcome(content, label, evidence);
+    checkStateAndOutcome(content, label, evidence, summary, dimensions);
   }
 }
 
@@ -196,19 +203,31 @@ function checkSummary(content, label) {
   const state = tableValue(body, "Convergence State");
   if (allowedStates.has(state)) pass(`${label} summary convergence state is allowed`);
   else fail(`${label} summary convergence state invalid: ${state || "<empty>"}`);
+  return { state };
 }
 
 function checkDimensions(content, label) {
   const body = sectionBody(content, "Convergence Dimensions") || "";
   const rows = tableRows(body);
   const seen = new Set();
+  const byDimension = new Map();
   for (const row of rows) {
     const dimension = stripMarkdown(row[0] || "");
+    const currentState = stripMarkdown(row[1] || "");
+    const targetState = stripMarkdown(row[2] || "");
     const recommendation = stripMarkdown(row[3] || "");
     const humanDecision = stripMarkdown(row[4] || "");
     const applyPlan = stripMarkdown(row[5] || "");
     if (!dimension) continue;
     seen.add(dimension);
+    byDimension.set(dimension, {
+      dimension,
+      current_state: currentState,
+      target_state: targetState,
+      recommendation,
+      human_decision_required: humanDecision,
+      write_requires_apply_plan: applyPlan,
+    });
     if (allowedRecommendations.has(recommendation)) pass(`${label} ${dimension} recommendation is allowed`);
     else fail(`${label} ${dimension} recommendation invalid: ${recommendation || "<empty>"}`);
     if (humanDecision === "Yes") pass(`${label} ${dimension} requires human decision`);
@@ -220,6 +239,7 @@ function checkDimensions(content, label) {
     if (seen.has(dimension)) pass(`${label} includes ${dimension} dimension`);
     else fail(`${label} missing ${dimension} dimension`);
   }
+  return byDimension;
 }
 
 function checkAuditBridge(content, label) {
@@ -311,8 +331,8 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} structured evidence includes ${field}`);
     else fail(`${label} structured evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.70.0") pass(`${label} structured evidence schema version is 1.70.0`);
-  else fail(`${label} structured evidence schema version must be 1.70.0`);
+  if (parsed.schema_version === "1.70.1") pass(`${label} structured evidence schema version is 1.70.1`);
+  else fail(`${label} structured evidence schema version must be 1.70.1`);
   if (parsed.artifact_type === "governance_convergence_report") pass(`${label} structured artifact type is valid`);
   else fail(`${label} structured artifact type invalid`);
   if (parsed.intentos_operating_mode === "ACTIVE") pass(`${label} structured operating mode is active`);
@@ -323,10 +343,36 @@ function checkStructuredEvidence(content, label) {
   else fail(`${label} structured can_codex_write_now must be No`);
   if (allowedStates.has(parsed.convergence_state)) pass(`${label} structured convergence state is allowed`);
   else fail(`${label} structured convergence state invalid`);
+  validateStructuredSourceSystems(parsed, label);
   validateStructuredDimensions(parsed, label);
   validateStructuredBridge(parsed, label);
   validateStructuredBoundary(parsed, label);
   return parsed;
+}
+
+function validateStructuredSourceSystems(parsed, label) {
+  const sources = parsed.source_systems || {};
+  const required = [
+    "workflow_next",
+    "native_migration",
+    "existing_rule_reconciliation",
+    "release_plan",
+  ];
+  for (const source of required) {
+    const item = sources[source];
+    if (item && typeof item === "object" && !Array.isArray(item)) {
+      pass(`${label} source system ${source} is structured`);
+    } else {
+      fail(`${label} source system ${source} must be structured`);
+      continue;
+    }
+    if (allowedSourceStatuses.has(item.status)) pass(`${label} source system ${source} status is allowed`);
+    else fail(`${label} source system ${source} status invalid`);
+    if (isConcrete(item.ref)) pass(`${label} source system ${source} includes ref`);
+    else fail(`${label} source system ${source} missing ref`);
+    if (isConcrete(item.contribution)) pass(`${label} source system ${source} includes contribution`);
+    else fail(`${label} source system ${source} missing contribution`);
+  }
 }
 
 function validateStructuredDimensions(parsed, label) {
@@ -396,13 +442,18 @@ function validateStructuredBoundary(parsed, label) {
   }
 }
 
-function checkStateAndOutcome(content, label, evidence) {
+function checkStateAndOutcome(content, label, evidence, summary, markdownDimensions) {
   const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
   if (allowedStates.has(outcome)) pass(`${label} has valid Outcome`);
   else fail(`${label} invalid Outcome: ${outcome || "<empty>"}`);
   if (evidence) {
     if (evidence.outcome === evidence.convergence_state) pass(`${label} structured outcome matches state`);
     else fail(`${label} structured outcome must match convergence_state`);
+    if (summary?.state === evidence.convergence_state) pass(`${label} human summary state matches structured state`);
+    else fail(`${label} human summary state must match structured state`);
+    if (outcome === evidence.outcome) pass(`${label} markdown outcome matches structured outcome`);
+    else fail(`${label} markdown outcome must match structured outcome`);
+    checkMarkdownStructuredDimensionConsistency(label, markdownDimensions, evidence);
     const blockedText = Array.isArray(evidence.blocked) ? evidence.blocked.join(" ") : "";
     if (/omitted extracted rules/i.test(blockedText)) {
       if (evidence.convergence_state === "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE") {
@@ -416,6 +467,39 @@ function checkStateAndOutcome(content, label, evidence) {
         pass(`${label} dirty worktree blocks convergence readiness`);
       } else {
         fail(`${label} dirty worktree must set CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE`);
+      }
+    }
+    const sourceSystems = evidence.source_systems || {};
+    const upstreamNeedsInput = Object.values(sourceSystems)
+      .some((source) => source?.status === "NEEDS_INPUT" || source?.status === "BLOCKED");
+    if (upstreamNeedsInput) {
+      if (/upstream source requires input/i.test(blockedText)) {
+        pass(`${label} upstream source input requirement is recorded`);
+      } else {
+        fail(`${label} upstream source input requirement must be recorded in blocked reasons`);
+      }
+      if (["CONVERGENCE_READY_FOR_PLAN", "CONVERGENCE_PARTIAL"].includes(evidence.convergence_state)) {
+        fail(`${label} upstream source input must not allow ready or partial convergence state`);
+      } else {
+        pass(`${label} upstream source input blocks ready convergence state`);
+      }
+    }
+  }
+}
+
+function checkMarkdownStructuredDimensionConsistency(label, markdownDimensions, evidence) {
+  if (!markdownDimensions || !(markdownDimensions instanceof Map)) return;
+  const structured = new Map((Array.isArray(evidence.dimensions) ? evidence.dimensions : [])
+    .map((item) => [item.dimension, item]));
+  for (const dimension of requiredDimensions) {
+    const markdown = markdownDimensions.get(dimension);
+    const item = structured.get(dimension);
+    if (!markdown || !item) continue;
+    for (const field of ["current_state", "target_state", "recommendation", "human_decision_required", "write_requires_apply_plan"]) {
+      if (stripMarkdown(markdown[field]) === stripMarkdown(item[field])) {
+        pass(`${label} ${dimension} ${field} matches structured evidence`);
+      } else {
+        fail(`${label} ${dimension} ${field} must match structured evidence`);
       }
     }
   }

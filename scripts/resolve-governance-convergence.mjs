@@ -45,25 +45,20 @@ function buildReport(root, options) {
   const omittedRules = Number.isInteger(coverage.omitted_rules) ? coverage.omitted_rules : 0;
   const dirty = projectState === "DIRTY_WORKTREE_PROJECT" || hasDirtySignal(workflowNext.data);
   const sourceSystems = [workflowNext, nativeMigration, ruleReconciliation, releasePlan];
-  const blocked = blockedReasons({ dirty, omittedRules, releaseEvidence, reconciliationEvidence });
+  const blocked = blockedReasons({ dirty, omittedRules, releaseEvidence, reconciliationEvidence, sourceSystems });
   const convergenceState = convergenceStateFor({ dirty, omittedRules, blocked, projectState });
   const dimensions = dimensionsFor({ dirty, omittedRules, projectState, reconciliationEvidence, releaseEvidence });
   const nextSafeStep = nextSafeStepFor(convergenceState);
 
   const structuredEvidence = {
-    schema_version: "1.70.0",
+    schema_version: "1.70.1",
     artifact_type: "governance_convergence_report",
     project_state: projectState,
     intentos_operating_mode: "ACTIVE",
     operating_mode_grants_write_permission: "No",
     can_codex_write_now: "No",
     convergence_state: convergenceState,
-    source_systems: {
-      workflow_next: workflowNext.ref,
-      native_migration: nativeMigration.ref,
-      existing_rule_reconciliation: ruleReconciliation.ref,
-      release_plan: releasePlan.ref,
-    },
+    source_systems: sourceSystemsEvidence({ workflowNext, nativeMigration, ruleReconciliation, releasePlan }),
     dimensions,
     audit_bridge: {
       historical_evidence_status: "preserve",
@@ -94,7 +89,7 @@ function buildReport(root, options) {
 
   return {
     reportType: "GOVERNANCE_CONVERGENCE_REPORT",
-    schemaVersion: "1.70.0",
+    schemaVersion: "1.70.1",
     generatedBy: "scripts/resolve-governance-convergence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -187,10 +182,32 @@ function hasOldProjectSignals(root) {
   ].some((marker) => fs.existsSync(path.join(root, marker)));
 }
 
+function sourceSystemsEvidence({ workflowNext, nativeMigration, ruleReconciliation, releasePlan }) {
+  return {
+    workflow_next: sourceEvidence(workflowNext),
+    native_migration: sourceEvidence(nativeMigration),
+    existing_rule_reconciliation: sourceEvidence(ruleReconciliation),
+    release_plan: sourceEvidence(releasePlan),
+  };
+}
+
+function sourceEvidence(source) {
+  return {
+    status: source.status,
+    ref: source.ref,
+    contribution: source.contribution,
+  };
+}
+
 function blockedReasons(context) {
   const blocked = [];
   if (context.dirty) blocked.push("dirty worktree");
   if (context.omittedRules > 0) blocked.push("omitted extracted rules");
+  for (const source of context.sourceSystems || []) {
+    if (source.status === "BLOCKED" || source.status === "NEEDS_INPUT") {
+      blocked.push(`upstream source requires input: ${source.name}`);
+    }
+  }
   const releaseText = JSON.stringify(context.releaseEvidence || {});
   if (/release owner.*missing|rollback.*missing|monitoring.*missing/i.test(releaseText)) {
     blocked.push("release owner / rollback / monitoring mapping incomplete");
@@ -204,6 +221,7 @@ function convergenceStateFor({ dirty, omittedRules, blocked, projectState }) {
   if (dirty || projectState === "DIRTY_WORKTREE_PROJECT") return "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE";
   if (omittedRules > 0) return "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE";
   if (blocked.some((item) => /owner|authority|BLOCKED_NEEDS_OWNER/i.test(item))) return "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY";
+  if (blocked.some((item) => /upstream source requires input/i.test(item))) return "CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE";
   if (/EXISTING_GOVERNED_PROJECT|EXISTING_PRODUCTION_PROJECT/.test(projectState)) return "CONVERGENCE_READY_FOR_PLAN";
   return "CONVERGENCE_PARTIAL";
 }
@@ -246,6 +264,9 @@ function nextSafeStepFor(state) {
   }
   if (state === "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY") {
     return "confirm project owners for protected authority before apply planning";
+  }
+  if (state === "CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE") {
+    return "resolve upstream source-system evidence before convergence apply planning";
   }
   return "review convergence report before Unified Apply Plan";
 }

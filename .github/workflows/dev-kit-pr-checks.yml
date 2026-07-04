@@ -299,6 +299,11 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" baseline-decision-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" workflow-map "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" workflow-map-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" convergence "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" convergence-check "$tmp/project"
+          convergence_report="$tmp/governance-convergence.md"
+          node "$tmp/project/scripts/resolve-governance-convergence.mjs" "$tmp/project" > "$convergence_report"
+          node "$tmp/project/scripts/check-governance-convergence.mjs" "$tmp/project" --report "$convergence_report" --require-structured-evidence
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" doc-lifecycle-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" archive-apply "$tmp/project"

@@ -4,9 +4,9 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.70.0`.
+Current release: `1.70.1`.
 
-Release record: [releases/1.70.0/release-record.md](releases/1.70.0/release-record.md).
+Release record: [releases/1.70.1/release-record.md](releases/1.70.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -41,6 +41,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
+
+1.70.1 hardens Existing Project Governance Convergence evidence: reports now cross-check the human summary, Markdown dimensions, machine-readable evidence, upstream source status, and final outcome before a convergence claim can pass strict checks.
 
 1.70.0 adds Existing Project Governance Convergence: old projects can move closer to the new-project IntentOS daily workflow through read-only comparison of workflow, baseline, audit, release, CI/hooks, documents, work queue, AI log policy, and protected authority. It does not write target files, replace project rules, rewrite history, or approve production.
 

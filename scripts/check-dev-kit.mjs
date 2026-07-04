@@ -5063,6 +5063,10 @@ function checkGovernanceConvergenceProtocol() {
     "bad-governance-convergence-claims-production-approval",
     "bad-governance-convergence-maximizes-migration",
     "bad-governance-convergence-ignores-omitted-rules",
+    "bad-governance-convergence-upstream-ready",
+    "bad-governance-convergence-summary-json-state-mismatch",
+    "bad-governance-convergence-dimensions-mismatch",
+    "bad-governance-convergence-schema-one-dimension",
   ];
   const required = [
     "docs/plans/existing-project-governance-convergence-1.70-plan.md",
@@ -5082,6 +5086,9 @@ function checkGovernanceConvergenceProtocol() {
     "releases/1.70.0/release-record.md",
     "releases/1.70.0/known-limitations.md",
     "releases/1.70.0/self-check-report.md",
+    "releases/1.70.1/release-record.md",
+    "releases/1.70.1/known-limitations.md",
+    "releases/1.70.1/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/governance-convergence-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5098,6 +5105,7 @@ function checkGovernanceConvergenceProtocol() {
     read("scripts/resolve-governance-convergence.mjs"),
     read("scripts/check-governance-convergence.mjs"),
     exists("releases/1.70.0/release-record.md") ? read("releases/1.70.0/release-record.md") : "",
+    exists("releases/1.70.1/release-record.md") ? read("releases/1.70.1/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -5119,9 +5127,18 @@ function checkGovernanceConvergenceProtocol() {
     "AI Log Boundary",
     "CONVERGENCE_READY_FOR_PLAN",
     "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE",
+    "CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE",
+    "upstream source requires input",
     "KEEP_EXISTING_STRICTER",
     "MERGE_AFTER_REVIEW",
     "MAP_TO_INTENTOS_ARTIFACT",
+    "source_systems",
+    "workflow_next",
+    "native_migration",
+    "existing_rule_reconciliation",
+    "release_plan",
+    "Human Summary",
+    "Machine-Readable Evidence",
     "Unified Apply Plan",
     "Approval Record",
     "Controlled Apply Readiness",
@@ -5165,13 +5182,14 @@ function checkGovernanceConvergenceProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "GOVERNANCE_CONVERGENCE_REPORT"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.70.0"
+        && parsed.schemaVersion === "1.70.1"
         && parsed.humanSummary?.intentosOperatingMode === "ACTIVE"
         && parsed.humanSummary?.canCodexWriteNow === "No"
         && parsed.humanSummary?.convergenceAuthority === "DERIVED_READ_ONLY"
         && parsed.boundaries?.writes_target_files === "No"
         && parsed.structuredEvidence?.artifact_type === "governance_convergence_report"
-        && parsed.structuredEvidence?.boundary?.maximizes_migration === "No") {
+        && parsed.structuredEvidence?.boundary?.maximizes_migration === "No"
+        && hasCompleteGovernanceConvergenceEvidence(parsed)) {
         pass("1.70 governance convergence resolver JSON includes safe authority fields");
       } else {
         fail(`1.70 governance convergence resolver JSON missing expected fields: ${resolverJson.stdout}`);
@@ -5188,6 +5206,22 @@ function checkGovernanceConvergenceProtocol() {
     pass("1.70 governance convergence checker passes source repo");
   } else {
     fail(`1.70 governance convergence checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const explicitReportDir = fs.mkdtempSync(path.join(os.tmpdir(), "governance-convergence-report-"));
+  const explicitReportPath = path.join(explicitReportDir, "generated.md");
+  fs.writeFileSync(explicitReportPath, resolver.stdout);
+  const explicitReport = runNode([
+    "scripts/check-governance-convergence.mjs",
+    ".",
+    "--report",
+    explicitReportPath,
+    "--require-structured-evidence",
+  ]);
+  if (explicitReport.status === 0 && explicitReport.stdout.includes("Governance Convergence check passed")) {
+    pass("1.70 governance convergence checker validates generated explicit report");
+  } else {
+    fail(`1.70 governance convergence explicit report check failed: ${explicitReport.stderr || explicitReport.stdout}`);
   }
 
   const cliResolver = runNode(["scripts/cli.mjs", "convergence", "."]);
@@ -5219,6 +5253,42 @@ function checkGovernanceConvergenceProtocol() {
     if (result.status !== 0) pass(`1.70 governance convergence rejects ${target}`);
     else fail(`1.70 governance convergence must reject ${target}`);
   }
+}
+
+function hasCompleteGovernanceConvergenceEvidence(parsed) {
+  const requiredDimensions = [
+    "workflow",
+    "baseline",
+    "audit",
+    "release",
+    "ci_hooks",
+    "documents",
+    "work_queue",
+    "ai_logs",
+    "risk_authority",
+  ];
+  const dimensions = parsed.structuredEvidence?.dimensions;
+  const dimensionNames = new Set(Array.isArray(dimensions) ? dimensions.map((dimension) => dimension.dimension) : []);
+  const hasAllDimensions = requiredDimensions.every((dimension) => dimensionNames.has(dimension));
+  const sourceSystems = parsed.structuredEvidence?.source_systems || {};
+  const requiredSources = [
+    "workflow_next",
+    "native_migration",
+    "existing_rule_reconciliation",
+    "release_plan",
+  ];
+  const hasAllSources = requiredSources.every((source) => {
+    const evidence = sourceSystems[source];
+    return evidence
+      && typeof evidence.status === "string"
+      && typeof evidence.ref === "string"
+      && typeof evidence.contribution === "string";
+  });
+  const blocked = Array.isArray(parsed.structuredEvidence?.blocked) ? parsed.structuredEvidence.blocked : [];
+  const sourceStatuses = requiredSources.map((source) => sourceSystems[source]?.status);
+  const needsUpstreamBlock = sourceStatuses.some((status) => status === "BLOCKED" || status === "NEEDS_INPUT");
+  const recordsUpstreamBlock = blocked.some((reason) => reason.includes("upstream source requires input"));
+  return hasAllDimensions && hasAllSources && (!needsUpstreamBlock || recordsUpstreamBlock);
 }
 
 function checkDocumentLifecycleProtocol() {

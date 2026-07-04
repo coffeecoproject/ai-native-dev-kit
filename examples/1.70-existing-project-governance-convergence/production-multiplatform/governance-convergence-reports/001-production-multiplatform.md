@@ -85,7 +85,7 @@ Confirm project owners for release, rollback, monitoring, and platform authority
 
 ```json
 {
-  "schema_version": "1.70.0",
+  "schema_version": "1.70.1",
   "artifact_type": "governance_convergence_report",
   "project_state": "EXISTING_PRODUCTION_PROJECT",
   "intentos_operating_mode": "ACTIVE",
@@ -93,10 +93,26 @@ Confirm project owners for release, rollback, monitoring, and platform authority
   "can_codex_write_now": "No",
   "convergence_state": "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY",
   "source_systems": {
-    "workflow_next": "generated:workflow-next",
-    "native_migration": "generated:native-migration",
-    "existing_rule_reconciliation": "generated:existing-rule-reconciliation",
-    "release_plan": "generated:release-plan"
+    "workflow_next": {
+      "status": "RECORDED",
+      "ref": "generated:workflow-next",
+      "contribution": "Current workflow routing."
+    },
+    "native_migration": {
+      "status": "RECORDED",
+      "ref": "generated:native-migration",
+      "contribution": "Existing rule extraction and authority."
+    },
+    "existing_rule_reconciliation": {
+      "status": "RECORDED",
+      "ref": "generated:existing-rule-reconciliation",
+      "contribution": "Rule comparison and migration depth."
+    },
+    "release_plan": {
+      "status": "RECORDED",
+      "ref": "generated:release-plan",
+      "contribution": "Release source system summary."
+    }
   },
   "dimensions": [
     { "dimension": "workflow", "current_state": "Multiple platform workflow notes present", "target_state": "IntentOS daily workflow", "recommendation": "MERGE_AFTER_REVIEW", "human_decision_required": "Yes", "write_requires_apply_plan": "Yes" },

@@ -86,6 +86,20 @@ Until that chain exists, the correct state is:
 Can Codex write now: No
 ```
 
+## Evidence Consistency
+
+The report must be internally consistent:
+
+- Human Summary state must match the machine-readable `convergence_state`.
+- Markdown `Outcome` must match the machine-readable `outcome`.
+- Each Markdown convergence dimension must match the machine-readable dimension
+  with the same key.
+- Source-system evidence must include status, ref, and contribution for
+  `workflow_next`, `native_migration`, `existing_rule_reconciliation`, and
+  `release_plan`.
+- If any source system is `BLOCKED` or `NEEDS_INPUT`, the report must record an
+  upstream blocked reason and must not claim ready convergence.
+
 ## Relationship To New Projects
 
 New projects can start with IntentOS assets and baseline choices from the

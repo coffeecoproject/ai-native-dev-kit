@@ -14,6 +14,10 @@
   compliance, and business rules stay protected.
 - [ ] Dirty worktrees block convergence writes.
 - [ ] Omitted extracted rules block convergence readiness.
+- [ ] Upstream `BLOCKED` / `NEEDS_INPUT` source systems block ready or partial
+  convergence claims.
+- [ ] Human Summary, Markdown dimensions, Machine-Readable Evidence, and
+  Outcome agree with each other.
 - [ ] Proposed next step goes through Unified Apply Plan, Approval Record, and
   Controlled Apply Readiness.
 - [ ] Public UX does not require users to learn this internal command first.

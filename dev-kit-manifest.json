@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.70.0",
+  "devKitVersion": "1.70.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.70.0"
+    "phase": "1.70.1"
   },
   "groups": {
     "sourceRequired": [
@@ -2154,7 +2154,15 @@
       "test-fixtures/bad/bad-governance-convergence-ignores-omitted-rules/governance-convergence-reports/001-bad.md",
       "releases/1.70.0/release-record.md",
       "releases/1.70.0/known-limitations.md",
-      "releases/1.70.0/self-check-report.md"
+      "releases/1.70.0/self-check-report.md",
+      "docs/plans/adoption-execution-assurance-1.71-plan.md",
+      "releases/1.70.1/release-record.md",
+      "releases/1.70.1/known-limitations.md",
+      "releases/1.70.1/self-check-report.md",
+      "test-fixtures/bad/bad-governance-convergence-upstream-ready/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-governance-convergence-summary-json-state-mismatch/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-governance-convergence-dimensions-mismatch/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-governance-convergence-schema-one-dimension/governance-convergence-reports/001-bad.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -4582,7 +4590,11 @@
       "test-fixtures/bad/bad-governance-convergence-ai-log-spam/governance-convergence-reports/001-bad.md",
       "test-fixtures/bad/bad-governance-convergence-claims-production-approval/governance-convergence-reports/001-bad.md",
       "test-fixtures/bad/bad-governance-convergence-maximizes-migration/governance-convergence-reports/001-bad.md",
-      "test-fixtures/bad/bad-governance-convergence-ignores-omitted-rules/governance-convergence-reports/001-bad.md"
+      "test-fixtures/bad/bad-governance-convergence-ignores-omitted-rules/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-governance-convergence-upstream-ready/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-governance-convergence-summary-json-state-mismatch/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-governance-convergence-dimensions-mismatch/governance-convergence-reports/001-bad.md",
+      "test-fixtures/bad/bad-governance-convergence-schema-one-dimension/governance-convergence-reports/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",

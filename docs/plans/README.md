@@ -10,6 +10,8 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Adoption Execution Assurance 1.71](adoption-execution-assurance-1.71-plan.md)
+- [Existing Project Governance Convergence 1.70](existing-project-governance-convergence-1.70-plan.md)
 - [Existing Project Native Adoption Decision 1.69](existing-project-native-adoption-decision-1.69-plan.md)
 - [Product Adoption Trust Finalization 1.68.2](product-adoption-trust-finalization-1.68.2-plan.md)
 - [Product Adoption Trust Hardening 1.68.1](product-adoption-trust-hardening-1.68.1-plan.md)

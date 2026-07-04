@@ -64,10 +64,23 @@ Allowed convergence states:
 - `CONVERGENCE_BLOCKED_BY_RULE_COVERAGE`
 - `CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY`
 - `CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE`
+- `CONVERGENCE_BLOCKED_BY_UPSTREAM_EVIDENCE`
 - `CONVERGENCE_READ_ONLY_ONLY`
 - `CONVERGENCE_PARTIAL`
 
 These are summary states only. They must not drive writes by themselves.
+
+## Evidence Consistency
+
+The human-readable summary, Markdown convergence dimension table, structured
+machine-readable evidence, and outcome must match. A report is not valid if one
+layer says the project is ready while another layer says it is blocked.
+
+The source-system evidence must record `workflow_next`, `native_migration`,
+`existing_rule_reconciliation`, and `release_plan` with status, ref, and
+contribution. If any source system is `BLOCKED` or `NEEDS_INPUT`, convergence
+must record that upstream input requirement and must not claim ready or partial
+convergence.
 
 ## Audit Bridge
 
