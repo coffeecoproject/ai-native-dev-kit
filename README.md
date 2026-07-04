@@ -4,9 +4,9 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.69.2`.
+Current release: `1.70.0`.
 
-Release record: [releases/1.69.2/release-record.md](releases/1.69.2/release-record.md).
+Release record: [releases/1.70.0/release-record.md](releases/1.70.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -42,7 +42,7 @@ Start here:
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
 
-1.69.2 hardens old-project rule reconciliation evidence: strict reports now require a 1.69.2 evidence profile, every reconciliation item must resolve to source rule/reference records, and the human-facing AI Native Adoption Recommendation must be complete.
+1.70.0 adds Existing Project Governance Convergence: old projects can move closer to the new-project IntentOS daily workflow through read-only comparison of workflow, baseline, audit, release, CI/hooks, documents, work queue, AI log policy, and protected authority. It does not write target files, replace project rules, rewrite history, or approve production.
 
 ## 3 分钟理解
 
@@ -133,6 +133,7 @@ IntentOS 当前包含这些核心能力：
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
 | Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 规则，只输出建议，不直接替换旧治理 |
+| Governance Convergence | 老项目可以按 IntentOS 日常工作方式收敛，但基线、发布、CI、hook、历史证据和旧规则必须先比较再计划 |
 | Baseline Decision | 用白话确认 BL0 / BL1 / BL2、平台和风险 |
 | Ordinary First Slice | 把普通用户的一句话目标整理成第一版范围、问题、延期项和验证方式 |
 | Product Completeness | 判断现在是想法、第一版范围、可本地运行 MVP、内测候选还是阻塞 |
@@ -196,6 +197,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查原生迁移计划 | `node scripts/cli.mjs native-migration-check ../my-project` |
 | 对齐旧规则和 IntentOS 参考规则 | `node scripts/cli.mjs reconcile-rules ../my-project` |
 | 检查规则对齐报告 | `node scripts/cli.mjs reconcile-rules-check ../my-project` |
+| 汇总老项目如何向 IntentOS 日常治理收敛 | `node scripts/cli.mjs convergence ../my-project` |
+| 检查治理收敛报告 | `node scripts/cli.mjs convergence-check ../my-project` |
 | 汇总发布源系统为统一视图 | `node scripts/cli.mjs release-plan ../my-project --intent "帮我上线"` |
 | 检查统一发布视图 | `node scripts/cli.mjs release-check ../my-project` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |

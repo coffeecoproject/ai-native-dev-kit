@@ -403,6 +403,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  convergence: {
+    description: "Summarize how an existing project can converge toward IntentOS daily governance without writing target files.",
+    script: "scripts/resolve-governance-convergence.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "convergence-check": {
+    description: "Check recorded Existing Project Governance Convergence reports.",
+    script: "scripts/check-governance-convergence.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "doc-lifecycle": {
     description: "Recommend document lifecycle state without deleting, moving, or archiving files.",
     script: "scripts/resolve-document-lifecycle.mjs",

@@ -5053,6 +5053,174 @@ function checkExistingRuleReconciliationProtocol() {
   }
 }
 
+function checkGovernanceConvergenceProtocol() {
+  const badFixtures = [
+    "bad-governance-convergence-writes-target-files",
+    "bad-governance-convergence-rewrites-history",
+    "bad-governance-convergence-replaces-release-sop",
+    "bad-governance-convergence-mutates-ci-hooks",
+    "bad-governance-convergence-ai-log-spam",
+    "bad-governance-convergence-claims-production-approval",
+    "bad-governance-convergence-maximizes-migration",
+    "bad-governance-convergence-ignores-omitted-rules",
+  ];
+  const required = [
+    "docs/plans/existing-project-governance-convergence-1.70-plan.md",
+    "core/existing-project-governance-convergence.md",
+    "docs/existing-project-governance-convergence.md",
+    "templates/governance-convergence-report.md",
+    "schemas/artifacts/governance-convergence.schema.json",
+    "checklists/governance-convergence-review.md",
+    "prompts/governance-convergence-agent.md",
+    "governance-convergence-reports/.gitkeep",
+    "scripts/resolve-governance-convergence.mjs",
+    "scripts/check-governance-convergence.mjs",
+    "examples/1.70-existing-project-governance-convergence/README.md",
+    "examples/1.70-existing-project-governance-convergence/governed-web-admin/governance-convergence-reports/001-governed-web-admin.md",
+    "examples/1.70-existing-project-governance-convergence/production-multiplatform/governance-convergence-reports/001-production-multiplatform.md",
+    "examples/1.70-existing-project-governance-convergence/dirty-worktree-blocked/governance-convergence-reports/001-dirty-worktree.md",
+    "releases/1.70.0/release-record.md",
+    "releases/1.70.0/known-limitations.md",
+    "releases/1.70.0/self-check-report.md",
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/governance-convergence-reports/001-bad.md`),
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.70 governance convergence asset exists ${file}`);
+    else fail(`1.70 governance convergence asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/existing-project-governance-convergence-1.70-plan.md"),
+    read("core/existing-project-governance-convergence.md"),
+    read("docs/existing-project-governance-convergence.md"),
+    read("templates/governance-convergence-report.md"),
+    read("schemas/artifacts/governance-convergence.schema.json"),
+    read("scripts/resolve-governance-convergence.mjs"),
+    read("scripts/check-governance-convergence.mjs"),
+    exists("releases/1.70.0/release-record.md") ? read("releases/1.70.0/release-record.md") : "",
+  ].join("\n");
+
+  for (const marker of [
+    "Existing Project Governance Convergence",
+    "IntentOS Operating Mode",
+    "does not mean Codex can write project assets",
+    "Governance Convergence Report",
+    "governance_convergence_report",
+    "workflow",
+    "baseline",
+    "audit",
+    "release",
+    "ci_hooks",
+    "documents",
+    "work_queue",
+    "ai_logs",
+    "risk_authority",
+    "Audit Bridge",
+    "AI Log Boundary",
+    "CONVERGENCE_READY_FOR_PLAN",
+    "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE",
+    "KEEP_EXISTING_STRICTER",
+    "MERGE_AFTER_REVIEW",
+    "MAP_TO_INTENTOS_ARTIFACT",
+    "Unified Apply Plan",
+    "Approval Record",
+    "Controlled Apply Readiness",
+    "This report is a derived read-only view",
+    "This report maximizes migration: No",
+  ]) {
+    if (combined.includes(marker)) pass(`1.70 governance convergence includes ${marker}`);
+    else fail(`1.70 governance convergence missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-governance-convergence.mjs",
+    "node --check scripts/check-governance-convergence.mjs",
+    "node scripts/cli.mjs convergence .",
+    "node scripts/cli.mjs convergence-check .",
+    "node scripts/check-governance-convergence.mjs examples/1.70-existing-project-governance-convergence/governed-web-admin --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.70 package verify surface includes ${marker}`);
+    else fail(`1.70 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-governance-convergence.mjs", "."]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Governance Convergence Report")
+    && resolver.stdout.includes("This report is a derived read-only view")
+    && resolver.stdout.includes("## Convergence Dimensions")
+    && resolver.stdout.includes("## AI Log Policy")) {
+    pass("1.70 governance convergence resolver prints safe report");
+  } else {
+    fail(`1.70 governance convergence resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-governance-convergence.mjs", ".", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "GOVERNANCE_CONVERGENCE_REPORT"
+        && parsed.readOnly === true
+        && parsed.schemaVersion === "1.70.0"
+        && parsed.humanSummary?.intentosOperatingMode === "ACTIVE"
+        && parsed.humanSummary?.canCodexWriteNow === "No"
+        && parsed.humanSummary?.convergenceAuthority === "DERIVED_READ_ONLY"
+        && parsed.boundaries?.writes_target_files === "No"
+        && parsed.structuredEvidence?.artifact_type === "governance_convergence_report"
+        && parsed.structuredEvidence?.boundary?.maximizes_migration === "No") {
+        pass("1.70 governance convergence resolver JSON includes safe authority fields");
+      } else {
+        fail(`1.70 governance convergence resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.70 governance convergence resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.70 governance convergence resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-governance-convergence.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Governance Convergence check passed")) {
+    pass("1.70 governance convergence checker passes source repo");
+  } else {
+    fail(`1.70 governance convergence checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "convergence", "."]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Governance Convergence Report")) {
+    pass("CLI convergence delegates to governance convergence resolver");
+  } else {
+    fail(`CLI convergence failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "convergence-check", "."]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("Governance Convergence check passed")) {
+    pass("CLI convergence-check delegates to governance convergence checker");
+  } else {
+    fail(`CLI convergence-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const target of [
+    "examples/1.70-existing-project-governance-convergence/governed-web-admin",
+    "examples/1.70-existing-project-governance-convergence/production-multiplatform",
+    "examples/1.70-existing-project-governance-convergence/dirty-worktree-blocked",
+  ]) {
+    const example = runNode(["scripts/check-governance-convergence.mjs", target, "--require-structured-evidence"]);
+    if (example.status === 0) pass(`1.70 governance convergence example passes strict checker ${target}`);
+    else fail(`1.70 governance convergence example failed ${target}: ${example.stderr || example.stdout}`);
+  }
+
+  for (const target of badFixtures) {
+    const result = runNode(["scripts/check-governance-convergence.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.70 governance convergence rejects ${target}`);
+    else fail(`1.70 governance convergence must reject ${target}`);
+  }
+}
+
 function checkDocumentLifecycleProtocol() {
   const required = [
     "core/document-lifecycle.md",
@@ -12158,6 +12326,7 @@ checkRealAdoptionAndPatchClassificationProtocol();
 checkExistingProjectWorkflowAdapterProtocol();
 checkNativeFirstMigrationProtocol();
 checkExistingRuleReconciliationProtocol();
+checkGovernanceConvergenceProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
 checkUnifiedApplyPlanProtocol();

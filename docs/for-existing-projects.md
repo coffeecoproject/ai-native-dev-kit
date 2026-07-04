@@ -72,6 +72,25 @@ These are still plan and comparison steps. They do not write target files by the
 
 `--auto-native` lets Codex generate a temporary read-only Native Migration input for comparison when no `native-migration-plans/` report has been written yet. This supports continuous read-only diagnosis without asking the user to manage intermediate files.
 
+## Governance Convergence
+
+After Native Migration and Existing Rule Reconciliation, use Governance Convergence to show how an old project can work more like a new IntentOS project:
+
+```bash
+node scripts/cli.mjs convergence <project>
+node scripts/cli.mjs convergence-check <project>
+```
+
+This is still a derived read-only view. It helps Codex summarize:
+
+- which daily workflow behaviors can converge toward IntentOS;
+- which baseline, release, CI, hook, document, work queue, and audit rules should be kept, merged, or reviewed;
+- where old history becomes historical evidence instead of something to rewrite;
+- when `ai-logs` are appropriate and when they would become noise;
+- why every target-project write still requires a Unified Apply Plan and approval.
+
+Governance Convergence should make the professional recommendation for the user. The user should not need to decide whether a project CI guard is stricter than an IntentOS reference rule.
+
 ## AI Recommendation, Human Confirmation
 
 For old projects, Codex should provide the professional recommendation first:

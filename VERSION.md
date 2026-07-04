@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.69.2`
+Current version: `1.70.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.69.2`
 
 ## Current Release
 
-`1.69.2`
+`1.70.0`
 
 Includes:
 
+- Existing Project Governance Convergence phase `1.70.0`: adds `convergence` / `convergence-check` so old, governed, production-sensitive, or dirty projects can be summarized against the new-project IntentOS daily workflow target without writing target files.
+- `1.70.0` compares workflow, baseline, audit, release, CI/hooks, documents, work queue, AI log policy, and protected authority as convergence dimensions; every dimension still requires human decision and Unified Apply Plan before any target-project write.
+- `1.70.0` defines an audit bridge for old projects: pre-IntentOS history is preserved, the adoption point becomes a convergence anchor, and post-adoption evidence should use IntentOS artifacts without rewriting old history or creating routine AI log spam.
 - Existing Rule Reconciliation Evidence Consistency patch `1.69.2`: strict reconciliation reports now require `schema_version: 1.69.2`, `evidence_profile: existing-rule-reconciliation-1.69.2`, complete source coverage for every reconciliation item reference, and a complete human-readable AI Native Adoption Recommendation section
 - Existing Project Native Adoption Evidence Hardening patch `1.69.1`: Existing Rule Reconciliation now records rule coverage, blocks selected native adoption when extracted rules are omitted, separates "recommend apply plan now" from "after human review", and makes `doctor --dry-run` show the old-project adoption diagnosis branch instead of the generic missing-asset path
 - Existing Project Native Adoption Decision phase `1.69.0`: old-project `doctor` now stops at adoption diagnosis instead of flooding missing workflow assets, and `reconcile-rules --auto-native` can generate temporary read-only Native Migration input so Codex can recommend the safest IntentOS-native adoption path without asking non-technical users to judge technical rules

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/governance-convergence.schema.json",
+  "title": "Governance Convergence Report Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "project_state",
+    "intentos_operating_mode",
+    "operating_mode_grants_write_permission",
+    "can_codex_write_now",
+    "convergence_state",
+    "source_systems",
+    "dimensions",
+    "audit_bridge",
+    "ai_log_policy",
+    "blocked",
+    "next_safe_step",
+    "boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.70.0" },
+    "artifact_type": { "const": "governance_convergence_report" },
+    "project_state": { "type": "string", "minLength": 1 },
+    "intentos_operating_mode": { "const": "ACTIVE" },
+    "operating_mode_grants_write_permission": { "const": "No" },
+    "can_codex_write_now": { "const": "No" },
+    "convergence_state": {
+      "enum": [
+        "CONVERGENCE_READY_FOR_PLAN",
+        "CONVERGENCE_BLOCKED_BY_RULE_COVERAGE",
+        "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY",
+        "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
+        "CONVERGENCE_READ_ONLY_ONLY",
+        "CONVERGENCE_PARTIAL"
+      ]
+    },
+    "source_systems": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "dimensions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "current_state",
+          "target_state",
+          "recommendation",
+          "human_decision_required",
+          "write_requires_apply_plan"
+        ],
+        "properties": {
+          "dimension": { "type": "string", "minLength": 1 },
+          "current_state": { "type": "string", "minLength": 1 },
+          "target_state": { "type": "string", "minLength": 1 },
+          "recommendation": {
+            "enum": [
+              "KEEP_EXISTING_STRICTER",
+              "KEEP_PROJECT_OWNED",
+              "ADOPT_INTENTOS_GAP_AFTER_REVIEW",
+              "MERGE_AFTER_REVIEW",
+              "REPLACE_OBSOLETE_WORKFLOW_AFTER_APPROVAL",
+              "MAP_TO_INTENTOS_ARTIFACT",
+              "BLOCKED_NEEDS_OWNER",
+              "BLOCKED_BY_RULE_COVERAGE",
+              "NO_ACTION"
+            ]
+          },
+          "human_decision_required": { "const": "Yes" },
+          "write_requires_apply_plan": { "const": "Yes" }
+        }
+      }
+    },
+    "audit_bridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "historical_evidence_status",
+        "convergence_anchor_required",
+        "post_adoption_evidence_model",
+        "rewrite_history"
+      ],
+      "properties": {
+        "historical_evidence_status": { "const": "preserve" },
+        "convergence_anchor_required": { "const": "Yes" },
+        "post_adoption_evidence_model": { "const": "IntentOS artifacts" },
+        "rewrite_history": { "const": "No" }
+      }
+    },
+    "ai_log_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "write_ai_logs_by_default",
+        "allowed_for_governance_decisions",
+        "routine_task_logging",
+        "routine_command_logging"
+      ],
+      "properties": {
+        "write_ai_logs_by_default": { "const": "No" },
+        "allowed_for_governance_decisions": { "const": "Yes" },
+        "routine_task_logging": { "const": "No" },
+        "routine_command_logging": { "const": "No" }
+      }
+    },
+    "blocked": { "type": "array", "items": { "type": "string" } },
+    "next_safe_step": { "type": "string", "minLength": 1 },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "authorizes_target_file_writes",
+        "approves_governance_replacement",
+        "approves_release_or_production",
+        "modifies_ci_or_hooks",
+        "rewrites_history",
+        "routine_ai_log_spam",
+        "maximizes_migration"
+      ],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "authorizes_target_file_writes": { "const": "No" },
+        "approves_governance_replacement": { "const": "No" },
+        "approves_release_or_production": { "const": "No" },
+        "modifies_ci_or_hooks": { "const": "No" },
+        "rewrites_history": { "const": "No" },
+        "routine_ai_log_spam": { "const": "No" },
+        "maximizes_migration": { "const": "No" }
+      }
+    },
+    "outcome": { "type": "string", "minLength": 1 }
+  }
+}

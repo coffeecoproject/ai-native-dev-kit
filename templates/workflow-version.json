@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.69.2",
+  "devKitVersion": "1.70.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -461,6 +461,15 @@
     ".ai-native/schemas/artifacts/release-plan.schema.json",
     "release-plans",
     "scripts/check-release-plan.mjs",
-    "scripts/resolve-release-plan.mjs"
+    "scripts/resolve-release-plan.mjs",
+    ".ai-native/checklists/governance-convergence-review.md",
+    ".ai-native/core/existing-project-governance-convergence.md",
+    ".ai-native/docs/existing-project-governance-convergence.md",
+    ".ai-native/prompts/governance-convergence-agent.md",
+    ".ai-native/templates/governance-convergence-report.md",
+    ".ai-native/schemas/artifacts/governance-convergence.schema.json",
+    "governance-convergence-reports",
+    "scripts/resolve-governance-convergence.mjs",
+    "scripts/check-governance-convergence.mjs"
   ]
 }

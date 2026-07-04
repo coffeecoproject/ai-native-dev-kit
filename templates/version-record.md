@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.69.2`
+`1.70.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.70.0` adds Existing Project Governance Convergence: old projects can converge toward IntentOS daily workflow through read-only comparison of workflow, baseline, audit, release, CI/hooks, documents, work queue, AI log policy, and protected authority.
+- `1.70.0` keeps convergence non-authorizing: it does not write target files, replace existing governance, rewrite history, mutate CI/hooks, approve production, or maximize migration.
 - `1.69.2` hardens Existing Rule Reconciliation evidence consistency: strict reports now require a 1.69.2 evidence profile, complete source references for every reconciliation item, and a human-readable AI Native Adoption Recommendation section.
 - `1.69.1` hardens existing-project native adoption evidence: omitted extracted rules now block selected native adoption until reviewed, apply-plan recommendation is split into "now" and "after review", and `doctor --dry-run` shows the old-project diagnosis branch.
 - `1.69.0` improves existing-project native adoption: `doctor` stops at diagnosis for old projects, and `reconcile-rules --auto-native` can generate temporary read-only Native Migration input before recommending a safe migration depth.
