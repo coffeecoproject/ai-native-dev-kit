@@ -508,7 +508,7 @@ const commandRegistry = {
   doctor: {
     description: "Run the right diagnosis for the current path.",
     writes: false,
-    sequence: (args) => {
+    displaySequence: (args) => {
       const target = firstPositional(args, new Set()) || ".";
       if (isDevKitSourceTarget(target)) {
         return [
@@ -521,6 +521,7 @@ const commandRegistry = {
         { script: "scripts/check-ai-workflow.mjs", args: [target, "--mode", "core"] },
       ];
     },
+    run: (args) => runDoctor(args),
   },
   new: {
     description: "Create a new workflow artifact using the existing generator.",
@@ -681,14 +682,24 @@ function printCommandHelp(name, command) {
   console.log("");
   console.log(command.description);
   console.log("");
-  if (command.sequence) {
-    for (const entry of command.sequence([])) printDisplayCommand(entry.script, entry.args);
+  if (command.displaySequence || command.sequence) {
+    const sequence = command.displaySequence ? command.displaySequence([]) : command.sequence([]);
+    for (const entry of sequence) printDisplayCommand(entry.script, entry.args);
     return;
   }
   printDisplayCommand(command.script, command.buildArgs([]));
 }
 
 function runCommand(name, command, args, options) {
+  if (command.run) {
+    if (options.dryRun) {
+      const sequence = command.displaySequence ? command.displaySequence(args) : [];
+      for (const entry of sequence) printDisplayCommand(entry.script, entry.args);
+      return { status: 0 };
+    }
+    return command.run(args, options);
+  }
+
   if (command.sequence) {
     const sequence = command.sequence(args);
     if (options.dryRun) {
@@ -719,6 +730,60 @@ function runScript(script, args) {
     encoding: "utf8",
     stdio: "inherit",
   });
+}
+
+function runScriptCapture(script, args) {
+  return spawnSync(process.execPath, [path.join(kitRoot, script), ...args], {
+    cwd: kitRoot,
+    encoding: "utf8",
+  });
+}
+
+function runDoctor(args) {
+  const target = firstPositional(args, new Set(["--format", "--intent", "--mode"])) || ".";
+  if (isDevKitSourceTarget(target)) {
+    const next = runScript("scripts/workflow-next.mjs", [target]);
+    if (next.status !== 0) return next;
+    return runScript("scripts/check-dev-kit.mjs", []);
+  }
+
+  const next = runScript("scripts/workflow-next.mjs", [target]);
+  if (next.status !== 0) return next;
+
+  const diagnosis = runScriptCapture("scripts/workflow-next.mjs", [target, "--format", "json"]);
+  const report = parseJsonOrNull(diagnosis.stdout);
+  if (diagnosis.status === 0 && shouldStopDoctorAtExistingProjectDiagnosis(report)) {
+    console.log("");
+    console.log("Doctor old-project mode: skipped full workflow asset checks.");
+    console.log("Reason: IntentOS is active for Codex work, but project asset migration is plan-first.");
+    console.log("Next safe step: run native-migration and reconcile-rules --auto-native, then prepare a reviewed apply plan only if approved.");
+    return { status: 0 };
+  }
+
+  return runScript("scripts/check-ai-workflow.mjs", [target, "--mode", "core"]);
+}
+
+function shouldStopDoctorAtExistingProjectDiagnosis(report) {
+  if (!report || typeof report !== "object") return false;
+  const tags = new Set(Array.isArray(report.projectStateTags) ? report.projectStateTags : []);
+  const governedExisting = tags.has("GOVERNED_EXISTING_PROJECT")
+    || tags.has("PRODUCTION_GOVERNED_PROJECT")
+    || report.projectState === "PRODUCTION_SENSITIVE_PROJECT";
+  const migrationDepth = String(report.projectAssetMigrationDepth || "");
+  const adoptionMode = String(report.adoptionMode || "");
+  return report.intentosOperatingMode === "ACTIVE"
+    && report.existingRuleComparisonRequired === "yes"
+    && governedExisting
+    && (adoptionMode === "READ_ONLY" || adoptionMode === "GUARDED")
+    && (migrationDepth === "ADAPTER_ONLY" || migrationDepth === "PLAN_REQUIRED");
+}
+
+function parseJsonOrNull(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 function printDisplayCommand(script, args) {

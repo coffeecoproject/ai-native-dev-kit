@@ -39,9 +39,12 @@ Codex must not automatically replace:
 ```bash
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs next <project>
+node scripts/cli.mjs doctor <project>
 ```
 
 If the project is governed, dirty, already online, or production-sensitive, these commands should keep writes blocked and recommend migration or reconciliation work.
+
+For governed or production-sensitive old projects, `doctor` should stop at the adoption diagnosis layer. It should not flood the user with missing `.ai-native` asset errors before a migration plan exists.
 
 ## Rule Comparison
 
@@ -62,10 +65,28 @@ Use Native Migration when the project should move from adapter-style reading int
 
 ```bash
 node scripts/cli.mjs native-migration <project>
-node scripts/cli.mjs reconcile-rules <project>
+node scripts/cli.mjs reconcile-rules <project> --auto-native
 ```
 
 These are still plan and comparison steps. They do not write target files by themselves.
+
+`--auto-native` lets Codex generate a temporary read-only Native Migration input for comparison when no `native-migration-plans/` report has been written yet. This supports continuous read-only diagnosis without asking the user to manage intermediate files.
+
+## AI Recommendation, Human Confirmation
+
+For old projects, Codex should provide the professional recommendation first:
+
+```text
+READ_ONLY_DIAGNOSIS
+DOCS_BRIDGE
+SELECTED_NATIVE_ADOPTION
+BLOCKED_NEEDS_OWNER
+BLOCKED_BY_DIRTY_WORKTREE
+```
+
+The recommendation should say what to preserve, merge, replace after approval, or block.
+
+The human should confirm the goal, authority, and risk acceptance. The human should not be asked to decide technical details such as whether a CI rule is stricter than an IntentOS baseline.
 
 ## When Writes Become Possible
 

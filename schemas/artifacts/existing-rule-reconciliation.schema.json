@@ -117,6 +117,42 @@
     },
     "release_production_gaps": { "type": "array" },
     "conflicts": { "type": "array" },
+    "native_adoption_decision": {
+      "type": "object",
+      "required": [
+        "recommendation",
+        "migration_depth",
+        "confidence",
+        "can_codex_write_now",
+        "default_path",
+        "preserve",
+        "merge",
+        "replace",
+        "blocked",
+        "human_confirmation"
+      ],
+      "properties": {
+        "recommendation": {
+          "type": "string",
+          "enum": [
+            "READ_ONLY_DIAGNOSIS",
+            "DOCS_BRIDGE",
+            "SELECTED_NATIVE_ADOPTION",
+            "BLOCKED_NEEDS_OWNER",
+            "BLOCKED_BY_DIRTY_WORKTREE"
+          ]
+        },
+        "migration_depth": { "type": "string" },
+        "confidence": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+        "can_codex_write_now": { "type": "string", "enum": ["No"] },
+        "default_path": { "type": "string" },
+        "preserve": { "type": "array" },
+        "merge": { "type": "array" },
+        "replace": { "type": "array" },
+        "blocked": { "type": "array" },
+        "human_confirmation": { "type": "string" }
+      }
+    },
     "proposed_next_steps": { "type": "array" },
     "boundary": {
       "type": "object",

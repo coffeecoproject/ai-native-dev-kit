@@ -77,6 +77,17 @@ Controlled Apply Readiness
 Approval Record
 ```
 
+For pure read-only diagnosis, Codex may generate a temporary Native Migration
+input without writing target files:
+
+```bash
+node scripts/cli.mjs reconcile-rules <project> --auto-native
+```
+
+This produces an AI Native Adoption Recommendation. It tells the user whether
+the safest path is read-only diagnosis, docs bridge, selected native adoption,
+owner clarification, or dirty-worktree block.
+
 ## Safe Interpretation
 
 - `KEEP_EXISTING`: the old project rule remains the source of truth.
@@ -85,3 +96,11 @@ Approval Record
 - `MERGE`: prepare a reviewed wording proposal later; do not merge files now.
 - `GAP_SUGGESTION`: documentation or evidence gap only; not release approval.
 - `NEEDS_HUMAN_DECISION`: stop and ask the owner.
+
+## Human Confirmation Boundary
+
+The AI should recommend the technical path. The human confirms whether Codex may
+prepare a reviewable apply plan for that recommendation.
+
+The report must not ask a non-technical user to personally decide whether a
+release gate, CI guard, baseline rule, or hook policy is technically stricter.

@@ -2,13 +2,17 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent"]);
+const knownFlags = new Set(["json", "format", "intent", "auto-native"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -20,7 +24,10 @@ if (!new Set(["human", "json"]).has(outputFormat)) {
   process.exit(1);
 }
 
-const report = buildReport(projectRoot, { intent: String(args.intent || "") });
+const report = buildReport(projectRoot, {
+  intent: String(args.intent || ""),
+  autoNative: Boolean(args["auto-native"]),
+});
 
 if (outputFormat === "json") {
   console.log(JSON.stringify(report, null, 2));
@@ -29,7 +36,10 @@ if (outputFormat === "json") {
 }
 
 function buildReport(root, options) {
-  const nativePlans = readNativeMigrationPlans(root);
+  let nativePlans = readNativeMigrationPlans(root);
+  if (nativePlans.length === 0 && options.autoNative) {
+    nativePlans = generateNativeMigrationPlans(root);
+  }
   const rules = nativePlans.flatMap((plan) => plan.rules.map((rule) => ({ ...rule, planPath: plan.path })));
   const items = buildReconciliationItems(rules);
   const protectedConstraints = buildProtectedConstraints(items);
@@ -42,8 +52,11 @@ function buildReport(root, options) {
     "Record Approval Record",
     "Apply approved governance-file edits only",
   ];
-  const projectState = rules.length > 0 ? "EXISTING_GOVERNED_PROJECT" : "EXISTING_PROJECT_NEEDS_NATIVE_MIGRATION_PLAN";
-  const outcome = conflicts.length > 0 ? "NEEDS_HUMAN_DECISION" : "RECONCILIATION_RECORDED";
+  const nativeAdoptionDecision = nativeAdoptionDecisionFor(nativePlans, rules, items);
+  const projectState = projectStateFor(nativePlans, rules);
+  const outcome = nativeAdoptionDecision.recommendation.startsWith("BLOCKED")
+    ? "BLOCKED"
+    : conflicts.length > 0 ? "NEEDS_HUMAN_DECISION" : "RECONCILIATION_RECORDED";
   const report = {
     reportType: "EXISTING_RULE_RECONCILIATION",
     schemaVersion: "1.66.0",
@@ -62,7 +75,7 @@ function buildReport(root, options) {
     inputEvidence: nativePlans.map((plan) => ({
       evidence: "Native Migration Plan",
       path: plan.path,
-      status: "read-only input",
+      status: plan.generated ? "generated read-only input" : "read-only input",
     })),
     existingRuleSet: rules.map((rule) => ({
       ruleRef: `native-migration:${rule.rule_id}`,
@@ -75,6 +88,7 @@ function buildReport(root, options) {
     protectedConstraints,
     releaseProductionGaps,
     conflicts,
+    nativeAdoptionDecision,
     proposedNextSteps,
     boundary: {
       writesTargetFiles: "No",
@@ -105,6 +119,136 @@ function readNativeMigrationPlans(root) {
       };
     })
     .filter((plan) => plan.evidence);
+}
+
+function generateNativeMigrationPlans(root) {
+  const result = spawnSync(process.execPath, [
+    path.join(__dirname, "resolve-native-migration.mjs"),
+    root,
+    "--json",
+  ], {
+    cwd: path.resolve(__dirname, ".."),
+    encoding: "utf8",
+  });
+  if (result.status !== 0) return [];
+  const parsed = parseJson(result.stdout);
+  const evidence = parsed?.structuredEvidence;
+  if (!evidence) return [];
+  return [{
+    path: "generated:native-migration",
+    generated: true,
+    evidence,
+    nativeReport: parsed,
+    rules: Array.isArray(evidence.rule_classifications) ? evidence.rule_classifications : [],
+  }];
+}
+
+function parseJson(content) {
+  try {
+    return JSON.parse(content);
+  } catch {
+    return null;
+  }
+}
+
+function projectStateFor(nativePlans, rules) {
+  const nativeProjectState = nativePlans.find((plan) => plan.evidence?.project_state)?.evidence.project_state;
+  if (nativeProjectState === "DIRTY_WORKTREE_PROJECT") return "DIRTY_WORKTREE_PROJECT";
+  if (nativeProjectState === "EXISTING_PRODUCTION_PROJECT") return "EXISTING_PRODUCTION_PROJECT";
+  if (nativeProjectState === "EXISTING_GOVERNED_PROJECT") return "EXISTING_GOVERNED_PROJECT";
+  if (nativeProjectState === "EXISTING_LIGHT_PROJECT") return "EXISTING_LIGHT_PROJECT";
+  return rules.length > 0 ? "EXISTING_GOVERNED_PROJECT" : "EXISTING_PROJECT_NEEDS_NATIVE_MIGRATION_PLAN";
+}
+
+function nativeAdoptionDecisionFor(nativePlans, rules, items) {
+  const generatedState = nativePlans.find((plan) => plan.evidence?.project_state)?.evidence?.project_state || "";
+  const hasRelease = items.some((item) => item.surface === "RELEASE_PRODUCTION" || item.surface === "PRODUCTION_CONTROL");
+  const hasEngineering = items.some((item) => item.surface === "ENGINEERING_BASELINE");
+  const hasProtected = items.some((item) => item.surface === "PROTECTED_CONSTRAINT");
+  const hasActionableUnknown = rules
+    .filter((rule) => surfaceForRule(rule) === "UNKNOWN_AUTHORITY")
+    .some((rule) => !isLowSignalGeneratedUnknown(rule));
+
+  if (generatedState === "DIRTY_WORKTREE_PROJECT") {
+    return nativeDecision({
+      recommendation: "BLOCKED_BY_DIRTY_WORKTREE",
+      migrationDepth: "READ_ONLY_DIAGNOSIS",
+      confidence: "HIGH",
+      defaultPath: "stop and classify existing worktree changes before migration planning",
+      preserve: ["current uncommitted work", "existing project rules"],
+      merge: [],
+      replace: [],
+      blocked: ["workflow asset writes", "governance replacement", "task execution"],
+      humanConfirmation: "Confirm how to handle the current worktree before Codex prepares any apply plan.",
+    });
+  }
+
+  if (rules.length === 0) {
+    return nativeDecision({
+      recommendation: nativePlans.length > 0 ? "BLOCKED_NEEDS_OWNER" : "READ_ONLY_DIAGNOSIS",
+      migrationDepth: "READ_ONLY_DIAGNOSIS",
+      confidence: "LOW",
+      defaultPath: "record or generate native migration evidence before reconciliation",
+      preserve: ["existing project rules"],
+      merge: [],
+      replace: [],
+      blocked: ["native adoption apply plan"],
+      humanConfirmation: "Allow Codex to generate native migration evidence in read-only mode first.",
+    });
+  }
+
+  if (hasActionableUnknown) {
+    return nativeDecision({
+      recommendation: "BLOCKED_NEEDS_OWNER",
+      migrationDepth: "DOCS_BRIDGE",
+      confidence: "LOW",
+      defaultPath: "classify unknown rule authority before selected native adoption",
+      preserve: ["unknown-authority project rules", "business and production rules"],
+      merge: hasEngineering ? ["engineering baseline"] : [],
+      replace: [],
+      blocked: ["governance replacement for unknown-authority rules"],
+      humanConfirmation: "Confirm the owner for unknown-authority rules before Codex prepares an apply plan.",
+    });
+  }
+
+  const recommendation = generatedState === "EXISTING_GOVERNED_PROJECT" && !hasRelease
+    ? "DOCS_BRIDGE"
+    : "SELECTED_NATIVE_ADOPTION";
+  return nativeDecision({
+    recommendation,
+    migrationDepth: recommendation === "DOCS_BRIDGE" ? "DOCS_BRIDGE" : "DOCS_BRIDGE_THEN_SELECTED_ASSETS",
+    confidence: hasRelease || hasEngineering || hasProtected ? "MEDIUM" : "LOW",
+    defaultPath: "prepare apply plan after review",
+    preserve: [
+      ...(hasRelease ? ["release / rollback SOP", "production CI / hooks / guard scripts"] : []),
+      ...(hasProtected ? ["business rules", "permissions / data / compliance controls"] : []),
+    ],
+    merge: hasEngineering ? ["engineering baseline", "environment baseline"] : ["project context docs"],
+    replace: ["old AI workflow routing after approval"],
+    blocked: ["production execution", "secrets", "CI/hook mutation without approval"],
+    humanConfirmation: "Allow Codex to prepare a reviewable apply plan for the recommended migration path.",
+  });
+}
+
+function isLowSignalGeneratedUnknown(rule) {
+  const excerpt = String(rule.source_excerpt || "").trim();
+  return /^No rule-like lines extracted from /i.test(excerpt)
+    || /^[A-Za-z0-9_./-]+$/.test(excerpt);
+}
+
+function nativeDecision(input) {
+  return {
+    recommendation: input.recommendation,
+    migrationDepth: input.migrationDepth,
+    confidence: input.confidence,
+    canCodexWriteNow: "No",
+    defaultPath: input.defaultPath,
+    preserve: input.preserve,
+    merge: input.merge,
+    replace: input.replace,
+    blocked: input.blocked,
+    humanConfirmation: input.humanConfirmation,
+  };
 }
 
 function walkMarkdown(dir) {
@@ -362,6 +506,18 @@ function structuredEvidenceFor(report) {
     protected_constraints: report.protectedConstraints,
     release_production_gaps: report.releaseProductionGaps,
     conflicts: report.conflicts,
+    native_adoption_decision: {
+      recommendation: report.nativeAdoptionDecision.recommendation,
+      migration_depth: report.nativeAdoptionDecision.migrationDepth,
+      confidence: report.nativeAdoptionDecision.confidence,
+      can_codex_write_now: report.nativeAdoptionDecision.canCodexWriteNow,
+      default_path: report.nativeAdoptionDecision.defaultPath,
+      preserve: report.nativeAdoptionDecision.preserve,
+      merge: report.nativeAdoptionDecision.merge,
+      replace: report.nativeAdoptionDecision.replace,
+      blocked: report.nativeAdoptionDecision.blocked,
+      human_confirmation: report.nativeAdoptionDecision.humanConfirmation,
+    },
     proposed_next_steps: report.proposedNextSteps,
     boundary: report.boundary,
     outcome: report.outcome,
@@ -431,6 +587,24 @@ function printHuman(report) {
   printTable(["Conflict ID", "Decision Needed", "Owner", "Status"], report.conflicts.length
     ? report.conflicts.map((item) => [code(item.conflict_id), item.decision_needed, item.owner, item.status])
     : [["None", "No conflict recorded", "human", "N/A"]]);
+  console.log("");
+  console.log("## AI Native Adoption Recommendation");
+  console.log("");
+  printTable(["Field", "Value"], [
+    ["Recommendation", code(report.nativeAdoptionDecision.recommendation)],
+    ["Migration Depth", code(report.nativeAdoptionDecision.migrationDepth)],
+    ["Confidence", code(report.nativeAdoptionDecision.confidence)],
+    ["Can Codex write now", code(report.nativeAdoptionDecision.canCodexWriteNow)],
+    ["Default Path", report.nativeAdoptionDecision.defaultPath],
+    ["Human Confirmation", report.nativeAdoptionDecision.humanConfirmation],
+  ]);
+  console.log("");
+  printTable(["Decision Part", "Items"], [
+    ["Preserve", report.nativeAdoptionDecision.preserve.join(", ") || "None"],
+    ["Merge", report.nativeAdoptionDecision.merge.join(", ") || "None"],
+    ["Replace After Approval", report.nativeAdoptionDecision.replace.join(", ") || "None"],
+    ["Blocked", report.nativeAdoptionDecision.blocked.join(", ") || "None"],
+  ]);
   console.log("");
   console.log("## False Positive / False Negative Notes");
   console.log("");

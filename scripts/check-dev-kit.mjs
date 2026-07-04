@@ -4973,6 +4973,7 @@ function checkExistingRuleReconciliationProtocol() {
     "node --check scripts/resolve-existing-rule-reconciliation.mjs",
     "node --check scripts/check-existing-rule-reconciliation.mjs",
     "node scripts/cli.mjs reconcile-rules .",
+    "node scripts/cli.mjs reconcile-rules . --auto-native",
     "node scripts/cli.mjs reconcile-rules-check .",
     "node scripts/check-existing-rule-reconciliation.mjs examples/1.66-existing-rule-reconciliation/governed-web-admin --require-structured-evidence",
   ]) {
@@ -10716,6 +10717,36 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("governed existing project workflow-next requires read-only adoption assessment");
+
+  const governedDoctor = runNode([
+    path.join(kitRoot, "scripts", "cli.mjs"),
+    "doctor",
+    governedExistingTarget,
+  ]);
+  if (governedDoctor.status !== 0
+    || !governedDoctor.stdout.includes("Doctor old-project mode: skipped full workflow asset checks.")
+    || !governedDoctor.stdout.includes("Next safe step: run native-migration and reconcile-rules --auto-native")
+    || governedDoctor.stdout.includes("FAIL missing")) {
+    fail(`governed existing project doctor should stop at old-project diagnosis without asset flood: ${governedDoctor.stderr || governedDoctor.stdout}`);
+    return;
+  }
+  pass("governed existing project doctor avoids missing-asset flood");
+
+  const governedReconcileAuto = runNode([
+    path.join(kitRoot, "scripts", "cli.mjs"),
+    "reconcile-rules",
+    governedExistingTarget,
+    "--auto-native",
+  ]);
+  if (governedReconcileAuto.status !== 0
+    || !governedReconcileAuto.stdout.includes("AI Native Adoption Recommendation")
+    || !governedReconcileAuto.stdout.includes("generated:native-migration")
+    || !governedReconcileAuto.stdout.includes("SELECTED_NATIVE_ADOPTION")
+    || fs.existsSync(path.join(governedExistingTarget, "native-migration-plans"))) {
+    fail(`governed existing project reconcile-rules --auto-native should produce read-only native adoption decision: ${governedReconcileAuto.stderr || governedReconcileAuto.stdout}`);
+    return;
+  }
+  pass("governed existing project reconcile-rules --auto-native produces read-only native adoption decision");
 
   const dirtyReadyTarget = path.join(tempRoot, "dirty-ready-production-project");
   const dirtyReadyInit = runNode([

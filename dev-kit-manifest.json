@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.68.2",
+  "devKitVersion": "1.69.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.68.2"
+    "phase": "1.69.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2117,7 +2117,10 @@
       "releases/1.68.2/self-check-report.md",
       "releases/1.68.1/release-record.md",
       "releases/1.68.1/known-limitations.md",
-      "releases/1.68.1/self-check-report.md"
+      "releases/1.68.1/self-check-report.md",
+      "releases/1.69.0/release-record.md",
+      "releases/1.69.0/known-limitations.md",
+      "releases/1.69.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",

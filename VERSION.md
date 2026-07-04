@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.68.2`
+Current version: `1.69.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,11 @@ Current version: `1.68.2`
 
 ## Current Release
 
-`1.68.2`
+`1.69.0`
 
 Includes:
 
+- Existing Project Native Adoption Decision phase `1.69.0`: old-project `doctor` now stops at adoption diagnosis instead of flooding missing workflow assets, and `reconcile-rules --auto-native` can generate temporary read-only Native Migration input so Codex can recommend the safest IntentOS-native adoption path without asking non-technical users to judge technical rules
 - Product Adoption Trust Finalization patch `1.68.2`: source-only adoption now documents Node/npm/git prerequisites, CLI help shows all command aliases consistently, dirty-project wording matches stop-first behavior, and release evidence is prepared for GitHub Release publication
 - Product Adoption Trust Hardening patch `1.68.1`: workflow-next now recommends plan-first workflow asset updates for existing, governed, unbootstrapped, or version-mismatch projects; dirty worktrees stop before workflow updates or task execution; after human review any workflow asset update remains plan-first; source-only adoption and private security reporting are documented; and CLI aliases now match package bin declarations
 - Product Adoption Simplification / Public Entry Consolidation phase `1.68.0`: README, docs, and CLI help now lead with the public entry path `start`, `next`, and `doctor`; new front-door docs explain minimal adoption, existing-project adoption, and maintainer commands without adding workflow authority or changing command behavior
