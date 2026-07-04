@@ -25,7 +25,8 @@ The verification confirmed:
 - version entry points report `1.68.1`;
 - source-only adoption is listed in CLI help and public docs;
 - `workflow-next` stops dirty projects before workflow asset update or task execution;
-- existing, partially bootstrapped, governed, unbootstrapped, version-mismatch, or dirty projects receive a plan-first workflow update recommendation;
+- dirty projects stop before workflow update or task execution, and after human review any workflow asset update remains plan-first;
+- existing, partially bootstrapped, governed, unbootstrapped, or version-mismatch projects receive a plan-first workflow update recommendation;
 - package bin aliases include `intentos`, `ai-native`, and `ai-native-dev-kit`;
 - release evidence, manifest records, and documentation pointers are present;
 - governance checks remain compatible with the existing workflow suite.

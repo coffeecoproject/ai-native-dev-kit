@@ -616,7 +616,7 @@ function printShortUsage() {
 
 function printHelp() {
   console.log(`IntentOS CLI ${version}`);
-  console.log("Compatibility alias: ai-native / ai-native-dev-kit");
+  console.log("Command aliases: intentos / ai-native / ai-native-dev-kit");
   console.log("");
   console.log("IntentOS helps AI coding agents work through a project without bypassing human decisions.");
   console.log("");
@@ -677,7 +677,7 @@ function printCommandGroup(names) {
 
 function printCommandHelp(name, command) {
   console.log(`IntentOS command: ${name}`);
-  console.log("Compatibility alias: ai-native / ai-native-dev-kit");
+  console.log("Command aliases: intentos / ai-native / ai-native-dev-kit");
   console.log("");
   console.log(command.description);
   console.log("");

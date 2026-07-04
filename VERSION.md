@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.68.1`
+Current version: `1.68.2`
 
 ## Versioning Policy
 
@@ -10,11 +10,12 @@ Current version: `1.68.1`
 
 ## Current Release
 
-`1.68.1`
+`1.68.2`
 
 Includes:
 
-- Product Adoption Trust Hardening patch `1.68.1`: workflow-next now recommends plan-first workflow asset updates for existing, governed, dirty, unbootstrapped, or version-mismatch projects; dirty worktrees stop before workflow updates or task execution; source-only adoption and private security reporting are documented; and CLI aliases now match package bin declarations
+- Product Adoption Trust Finalization patch `1.68.2`: source-only adoption now documents Node/npm/git prerequisites, CLI help shows all command aliases consistently, dirty-project wording matches stop-first behavior, and release evidence is prepared for GitHub Release publication
+- Product Adoption Trust Hardening patch `1.68.1`: workflow-next now recommends plan-first workflow asset updates for existing, governed, unbootstrapped, or version-mismatch projects; dirty worktrees stop before workflow updates or task execution; after human review any workflow asset update remains plan-first; source-only adoption and private security reporting are documented; and CLI aliases now match package bin declarations
 - Product Adoption Simplification / Public Entry Consolidation phase `1.68.0`: README, docs, and CLI help now lead with the public entry path `start`, `next`, and `doctor`; new front-door docs explain minimal adoption, existing-project adoption, and maintainer commands without adding workflow authority or changing command behavior
 - Release Plan Evidence Hardening phase `1.67.2`: strict Release Plan evidence rejects unsupported extra fields, Chinese unsafe release-plan claims are blocked, the review checklist includes `release_plan_digest`, and private governed-project smoke checks are documented as optional local calibration rather than public required verification
 - Release Plan Evidence and Existing-Project Entry Calibration phase `1.67.1`: strict Release Plan checks now validate `release_plan_digest`, cover Web preview, mini-program review, backend API handoff, and governed existing-project examples, and reject unsafe release-plan claims around secrets, Codex release ownership, provider execution, skipped migration, lower-level system replacement, and maximizing governed-project asset migration

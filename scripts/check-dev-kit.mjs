@@ -65,6 +65,8 @@ function checkRequiredFiles() {
     "docs/roadmaps/governance-hardening-roadmap.md",
     "docs/roadmaps/README.md",
     "docs/plans/productization-hardcut-1.0-plan.md",
+    "docs/plans/existing-project-native-adoption-decision-1.69-plan.md",
+    "docs/plans/product-adoption-trust-finalization-1.68.2-plan.md",
     "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
     "docs/plans/product-adoption-simplification-1.68-plan.md",
     "dev-kit-manifest.json",
@@ -1546,7 +1548,7 @@ function checkCliFrontDoor() {
   }
   for (const marker of [
     "IntentOS CLI",
-    "Compatibility alias: ai-native",
+    "Command aliases: intentos / ai-native / ai-native-dev-kit",
     currentVersion(),
     "Manifest: dev-kit-manifest.json",
     "Primary entry commands",
@@ -9500,6 +9502,8 @@ function checkReadmePointers() {
     "docs/o0-bl0-lightweight-path.md",
     "docs/plans/README.md",
     "docs/plans/repository-information-architecture-1.36-plan.md",
+    "docs/plans/existing-project-native-adoption-decision-1.69-plan.md",
+    "docs/plans/product-adoption-trust-finalization-1.68.2-plan.md",
     "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
     "docs/plans/product-adoption-simplification-1.68-plan.md",
     "docs/plans/conversation-native-ask-1.37-plan.md",

@@ -10,6 +10,8 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Existing Project Native Adoption Decision 1.69](existing-project-native-adoption-decision-1.69-plan.md)
+- [Product Adoption Trust Finalization 1.68.2](product-adoption-trust-finalization-1.68.2-plan.md)
 - [Product Adoption Trust Hardening 1.68.1](product-adoption-trust-hardening-1.68.1-plan.md)
 - [Product Adoption Simplification 1.68](product-adoption-simplification-1.68-plan.md)
 - [Release Core Model Consolidation 1.67](release-core-model-consolidation-1.67-plan.md)

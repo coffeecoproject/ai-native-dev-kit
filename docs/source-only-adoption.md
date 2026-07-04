@@ -4,6 +4,24 @@ IntentOS is currently adopted from the source repository.
 
 This means users should not assume there is a published npm package, hosted service, installer, dashboard, or one-command production setup.
 
+## Before You Start
+
+Source-only adoption expects local command-line tools:
+
+```bash
+node --version
+npm --version
+git --version
+```
+
+Required baseline:
+
+- Node.js `>=22`
+- npm available with the local Node install
+- git available for clone, status, tag, and repository checks
+
+If Node is older than `22`, upgrade Node before running IntentOS scripts.
+
 ## Basic Path
 
 Clone the repository, then run the public entry commands against the project you want Codex to work on:
@@ -58,4 +76,3 @@ Source-only adoption does not:
 - approve release or production;
 - replace existing project governance;
 - change CI, hooks, secrets, deployment, or rollback rules without a reviewed plan and explicit approval.
-

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.68.1",
+  "devKitVersion": "1.68.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.68.1"
+    "phase": "1.68.2"
   },
   "groups": {
     "sourceRequired": [
@@ -284,6 +284,8 @@
       "docs/plans/platform-release-recipes-1.59-plan.md",
       "docs/plans/platform-standard-baseline-packs-1.15-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
+      "docs/plans/existing-project-native-adoption-decision-1.69-plan.md",
+      "docs/plans/product-adoption-trust-finalization-1.68.2-plan.md",
       "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/product-adoption-simplification-1.68-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
@@ -2110,6 +2112,9 @@
       "releases/1.68.0/release-record.md",
       "releases/1.68.0/known-limitations.md",
       "releases/1.68.0/self-check-report.md",
+      "releases/1.68.2/release-record.md",
+      "releases/1.68.2/known-limitations.md",
+      "releases/1.68.2/self-check-report.md",
       "releases/1.68.1/release-record.md",
       "releases/1.68.1/known-limitations.md",
       "releases/1.68.1/self-check-report.md"
@@ -7068,6 +7073,9 @@
       "releases/1.68.0/release-record.md",
       "releases/1.68.0/known-limitations.md",
       "releases/1.68.0/self-check-report.md",
+      "releases/1.68.2/release-record.md",
+      "releases/1.68.2/known-limitations.md",
+      "releases/1.68.2/self-check-report.md",
       "releases/1.68.1/release-record.md",
       "releases/1.68.1/known-limitations.md",
       "releases/1.68.1/self-check-report.md"
