@@ -32,6 +32,10 @@ Then Codex should explain:
 - which project constraints must be preserved
 - which conflicts block apply
 - which parser warnings, unclassified blocks, skipped blocks, or low-signal blocks need human review
+- whether mixed business + engineering rules were classified by semantic risk instead of incidental technical words
+- whether Chinese business, production, permission, compliance, and workflow text was classified conservatively
+- whether simple Markdown table rows include exact line evidence and complex tables remain human-review bound
+- whether Markdown proposed actions match Machine-Readable Evidence
 - what the human needs to decide
 
 ## What It Does Not Do
@@ -69,6 +73,7 @@ Native Migration Plan
 Rule Extraction Coverage
 Machine-Readable Evidence
 Markdown / JSON rule consistency
+Markdown / JSON proposed-action consistency
 Unified Apply Plan
 Controlled Apply Readiness
 Approval Record

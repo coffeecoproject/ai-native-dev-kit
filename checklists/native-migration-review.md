@@ -7,11 +7,16 @@
 - Does every extracted rule include source file, line range, context heading, excerpt, class, handling, target action, reason, and confidence?
 - Does the plan include Rule Extraction Coverage with lines scanned, rules extracted, unclassified blocks, skipped blocks, low-signal blocks, and parser warnings?
 - If unclassified, skipped, or low-signal blocks exist, are parser warnings visible to the human reviewer?
+- Are mixed business + engineering rules classified by business, data, payment, permission, finance, tax, or contract meaning instead of incidental `schema`, `api`, `database`, `enum`, or `type` words?
+- Are Chinese production, release, permission, finance, tax, compliance, and workflow rules classified conservatively or marked for human review?
+- Are simple Markdown table rows extracted only when the table shape is clear and line ranges are exact?
+- Do complex or high-risk Markdown tables remain skipped or human-review bound with parser warnings?
 - If the plan may drive real governance replacement, does it pass `check-native-migration --require-structured-evidence`?
 - Does the Machine-Readable Evidence JSON match the Human Summary?
 - Does each Markdown rule row match its Machine-Readable Evidence rule by `rule_id`?
 - Does the coverage extracted-rule count match the structured rule classifications?
 - Do structured `proposed_actions` stay plan-only and require human approval?
+- Do Markdown proposed actions match structured `proposed_actions` for action, exact target path, write status, approval status, and status?
 - Does any `AGENTS.md` replacement include extracted-rule classification, replacement shape, and restore plan?
 - Are exact target paths listed?
 - Are broad paths such as `docs/**`, repository root, or all workflow files absent?

@@ -243,6 +243,38 @@ Change Impact Coverage / Review Loop / Finish
       "writesTargetFiles": "No",
       "requiresHumanApproval": "Yes",
       "status": "Proposed"
+    },
+    {
+      "step": 2,
+      "action": "Prepare Unified Apply Plan for approved governance assets only",
+      "exactTargetPath": "apply-plans/001-native-governance.md",
+      "writesTargetFiles": "No",
+      "requiresHumanApproval": "Yes",
+      "status": "Proposed"
+    },
+    {
+      "step": 3,
+      "action": "Record Controlled Apply Readiness before any apply",
+      "exactTargetPath": "apply-readiness-reports/001-native-governance.md",
+      "writesTargetFiles": "No",
+      "requiresHumanApproval": "Yes",
+      "status": "Proposed"
+    },
+    {
+      "step": 4,
+      "action": "Record human Approval Record for exact governance action IDs",
+      "exactTargetPath": "approval-records/001-native-governance.md",
+      "writesTargetFiles": "No",
+      "requiresHumanApproval": "Yes",
+      "status": "Proposed"
+    },
+    {
+      "step": 5,
+      "action": "Plan IntentOS-native AGENTS.md replacement after classification",
+      "exactTargetPath": "AGENTS.md",
+      "writesTargetFiles": "No",
+      "requiresHumanApproval": "Yes",
+      "status": "Proposed"
     }
   ],
   "authority_transition": {

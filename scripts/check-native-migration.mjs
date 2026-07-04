@@ -71,7 +71,7 @@ const allowedRuleClasses = new Set([
   "UNKNOWN_AUTHORITY",
 ]);
 const allowedConfidence = new Set(["HIGH", "MEDIUM", "LOW"]);
-const allowedSchemaVersions = new Set(["1.63.0", "1.64.0"]);
+const allowedSchemaVersions = new Set(["1.63.0", "1.64.0", "1.65.0"]);
 const forbiddenClaims = [
   /\bfully migrated\b/i,
   /\balready fully migrated\b/i,
@@ -211,7 +211,7 @@ function checkNativeMigrationPlans() {
 
     checkRuleExtractionCoverage(content, label, structuredEvidence);
     checkRuleClassification(content, label, structuredEvidence);
-    checkProposedActions(content, label);
+    checkProposedActions(content, label, structuredEvidence);
     checkAgentsHandling(content, label);
     checkRestorePlan(content, label);
     checkAuthorityTransition(content, label);
@@ -256,7 +256,7 @@ function checkRuleExtractionCoverage(content, label, structuredEvidence) {
       else fail(`${rowLabel} missing skipped block count`);
       if (/^\d+$/.test(lowSignalBlocks)) pass(`${rowLabel} records low-signal block count`);
       else fail(`${rowLabel} missing low-signal block count`);
-    } else if (structuredEvidence?.schema_version === "1.64.0") {
+    } else if (["1.64.0", "1.65.0"].includes(structuredEvidence?.schema_version)) {
       fail(`${rowLabel} must record skipped and low-signal block counts for 1.64 evidence`);
     }
     if (isConcrete(parserWarnings) || parserWarnings === "None") pass(`${rowLabel} records parser warning status`);
@@ -345,6 +345,20 @@ function checkRuleClassification(content, label, structuredEvidence) {
     if (ruleClass === "ENGINEERING_BASELINE"
       && /\b(release|rollback|deploy|production|secret|migration|incident|provider)\b/i.test(sourceExcerpt)) {
       fail(`${rowLabel} misclassifies production control as engineering baseline`);
+    }
+    if (ruleClass === "ENGINEERING_BASELINE"
+      && /\b(invoice|tax|finance|payment|contract|customer data|data meaning|tax meaning|approval limit|role changes?)\b/i.test(sourceExcerpt)
+      && /\b(schema|api|database|enum|type|string|dto)\b/i.test(sourceExcerpt)) {
+      fail(`${rowLabel} misclassifies mixed business + engineering rule as plain engineering baseline`);
+    }
+    if (ruleClass === "ENGINEERING_BASELINE"
+      && /(客户|合同|协议|订单|发票|税务|结算|财务|审批|权限|角色|客户数据|隐私|合规)/.test(sourceExcerpt)
+      && /(数据库|接口|枚举|schema|api|database|enum)/i.test(sourceExcerpt)) {
+      fail(`${rowLabel} misclassifies Chinese business + engineering rule as plain engineering baseline`);
+    }
+    if (ruleClass !== "PRODUCTION_CONTROL"
+      && /(生产|上线|发布|回滚|事故|密钥|生产配置)/.test(sourceExcerpt)) {
+      fail(`${rowLabel} misclassifies Chinese production or release rule`);
     }
     if (ruleClass === "UNKNOWN_AUTHORITY" && !/\b(stop|classify|owner|confirm)\b/i.test(targetAction)) {
       fail(`${rowLabel} unknown authority must stop for classification`);
@@ -509,7 +523,7 @@ function validateStructuredCoverage(item, label, schemaVersion) {
   else fail(`${rowLabel} missing numeric rules extracted`);
   if (Array.isArray(item?.unclassified_blocks)) pass(`${rowLabel} has unclassified block list`);
   else fail(`${rowLabel} missing unclassified block list`);
-  if (schemaVersion === "1.64.0") {
+  if (["1.64.0", "1.65.0"].includes(schemaVersion)) {
     if (Array.isArray(item?.skipped_blocks)) pass(`${rowLabel} has skipped block list`);
     else fail(`${rowLabel} missing skipped block list`);
     if (Array.isArray(item?.low_signal_blocks)) pass(`${rowLabel} has low-signal block list`);
@@ -635,18 +649,21 @@ function fencedJson(body) {
   return match?.[1]?.trim() || "";
 }
 
-function checkProposedActions(content, label) {
+function checkProposedActions(content, label, structuredEvidence) {
   const body = sectionBody(content, "Proposed Native Migration Plan") || "";
   const rows = tableRows(body);
   if (rows.length === 0) {
     fail(`${label} must include proposed native migration actions`);
     return;
   }
+  const structuredByStep = new Map((structuredEvidence?.proposed_actions || []).map((action) => [String(action.step), action]));
   for (const row of rows) {
+    const step = stripMarkdown(row[0] || "");
     const action = stripMarkdown(row[1] || "");
     const targetPath = stripMarkdown(row[2] || "");
     const writes = stripMarkdown(row[3] || "");
     const approval = stripMarkdown(row[4] || "");
+    const status = stripMarkdown(row[5] || "");
     if (!isConcrete(targetPath)) fail(`${label} proposed action missing exact target path: ${action}`);
     else pass(`${label} proposed action has exact target path: ${targetPath}`);
     if (broadPathPattern.test(` ${targetPath} `)) fail(`${label} uses broad target path: ${targetPath}`);
@@ -654,7 +671,27 @@ function checkProposedActions(content, label) {
     else pass(`${label} proposed action stays plan-only: ${action}`);
     if (approval === "Yes") pass(`${label} proposed action requires approval: ${action}`);
     else fail(`${label} proposed action must require human approval: ${action}`);
+    if (structuredEvidence && requireStructuredEvidence) {
+      const structured = structuredByStep.get(step);
+      const rowLabel = `${label} proposed action ${step || action} Markdown/JSON`;
+      if (!structured) {
+        fail(`${rowLabel} missing structured proposed action`);
+      } else {
+        compareProposedActionField(rowLabel, "action", action, structured.action);
+        compareProposedActionField(rowLabel, "exactTargetPath", targetPath, structured.exactTargetPath);
+        compareProposedActionField(rowLabel, "writesTargetFiles", writes, structured.writesTargetFiles);
+        compareProposedActionField(rowLabel, "requiresHumanApproval", approval, structured.requiresHumanApproval);
+        compareProposedActionField(rowLabel, "status", status, structured.status);
+      }
+    }
   }
+}
+
+function compareProposedActionField(label, field, markdownValue, structuredValue) {
+  const md = normalizeComparable(markdownValue);
+  const json = normalizeComparable(structuredValue);
+  if (md === json) pass(`${label} ${field} matches`);
+  else fail(`${label} ${field} mismatch: markdown=${md || "<empty>"} json=${json || "<empty>"}`);
 }
 
 function checkAgentsHandling(content, label) {
@@ -722,6 +759,7 @@ function checkSourceEvidence() {
     "docs/plans/native-first-existing-project-migration-1.62-plan.md",
     "docs/plans/native-migration-precision-hardening-1.63-plan.md",
     "docs/plans/native-migration-parser-calibration-1.64-plan.md",
+    "docs/plans/native-migration-classification-calibration-1.65-plan.md",
     "core/native-first-existing-project-migration.md",
     "docs/native-first-existing-project-migration.md",
     "templates/native-migration-plan.md",
@@ -741,12 +779,17 @@ function checkSourceEvidence() {
     "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
     "examples/1.64-native-migration-parser-calibration/README.md",
     "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
+    "examples/1.65-native-migration-classification-calibration/README.md",
+    "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md",
     "releases/1.62.0/release-record.md",
     "releases/1.62.0/known-limitations.md",
     "releases/1.62.0/self-check-report.md",
     "releases/1.64.0/release-record.md",
     "releases/1.64.0/known-limitations.md",
     "releases/1.64.0/self-check-report.md",
+    "releases/1.65.0/release-record.md",
+    "releases/1.65.0/known-limitations.md",
+    "releases/1.65.0/self-check-report.md",
   ]) {
     if (exists(file)) pass(`native migration source evidence exists ${file}`);
     else fail(`native migration source evidence missing ${file}`);
@@ -800,6 +843,10 @@ function checkSourceEvidence() {
   if (strictCalibrationExample.status === 0) pass("1.64 native migration parser calibration example passes strict checker");
   else fail(`1.64 native migration parser calibration example failed: ${strictCalibrationExample.stderr || strictCalibrationExample.stdout}`);
 
+  const strictClassificationExample = runNode(["scripts/check-native-migration.mjs", "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual", "--require-structured-evidence"]);
+  if (strictClassificationExample.status === 0) pass("1.65 native migration classification calibration example passes strict checker");
+  else fail(`1.65 native migration classification calibration example failed: ${strictClassificationExample.stderr || strictClassificationExample.stdout}`);
+
   for (const target of [
     "bad-native-migration-drops-business-rule",
     "bad-native-migration-direct-agents-overwrite",
@@ -841,6 +888,18 @@ function checkSourceEvidence() {
     const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
     if (result.status !== 0) pass(`1.64 native migration rejects ${target}`);
     else fail(`1.64 native migration should reject ${target}`);
+  }
+
+  for (const target of [
+    "bad-native-migration-mixed-business-engineering-as-baseline",
+    "bad-native-migration-chinese-production-as-business",
+    "bad-native-migration-simple-table-no-line-range",
+    "bad-native-migration-complex-table-no-warning",
+    "bad-native-migration-proposed-action-mismatch",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.65 native migration rejects ${target}`);
+    else fail(`1.65 native migration should reject ${target}`);
   }
 }
 

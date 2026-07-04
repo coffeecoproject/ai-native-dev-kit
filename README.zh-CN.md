@@ -4,11 +4,13 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.64.0`。
+当前版本：`1.65.0`。
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
 
-版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.64.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包、人工批准后的受控发布执行计划，以及老项目的规则级原生迁移规划与证据校准。
+版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.65.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包、人工批准后的受控发布执行计划，以及老项目的规则级原生迁移规划与证据校准。
+
+1.65.0 继续校准 Native Migration 分类：业务和工程混在一起的规则不会再被简单当成工程规范；中文业务、生产、权限规则会更保守地识别；简单 Markdown 表格可以带行号提取，复杂表格仍交给人复核；Markdown proposed action 也必须和机器证据一致。
 
 1.64.0 继续加固 Native Migration：严格检查会按 `rule_id` 对齐 Markdown 规则表和机器证据，记录被跳过的表格、长段落和低信号治理文本，并拒绝机器证据里试图写目标文件的 proposed action。workflow-map 也更明确：它只是诊断入口，真正接入要进入 Native Migration Plan。
 
@@ -353,6 +355,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.65.0 Release Record](releases/1.65.0/release-record.md)
 - [1.64.0 Release Record](releases/1.64.0/release-record.md)
 - [1.63.0 Release Record](releases/1.63.0/release-record.md)
 - [1.62.0 Release Record](releases/1.62.0/release-record.md)

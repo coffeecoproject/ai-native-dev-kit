@@ -91,6 +91,9 @@ The JSON must match the human-readable summary. It must keep:
 - `production_authority` as `HUMAN_OR_EXTERNAL_SYSTEM`
 - exact source line ranges for each extracted rule
 - skipped and low-signal block arrays for 1.64+ evidence
+- classification calibration for mixed business + engineering rules and
+  Chinese governance text for 1.65+ evidence
+- Markdown / JSON proposed-action consistency for 1.65+ evidence
 - parser warnings when unclassified, skipped, or low-signal blocks exist
 - the same extracted-rule count as the coverage summary
 - `proposed_actions` where every action is plan-only and requires human approval

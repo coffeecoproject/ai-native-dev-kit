@@ -4,13 +4,15 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.64.0`.
+Current release: `1.65.0`.
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.64.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, and calibrated rule-level native migration planning for existing projects.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.65.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, and calibrated rule-level native migration planning for existing projects.
 
-1.64.0 hardens Native Migration parser calibration and evidence consistency: strict checks now compare Markdown rule rows against Machine-Readable Evidence by `rule_id`, report skipped tables, long paragraphs, and low-signal governance text, and reject structured proposed actions that try to write target files. Workflow-map output is also clearer: it is diagnostic, and adoption moves through Native Migration Plan.
+1.65.0 calibrates Native Migration classification: mixed business + engineering rules are no longer downgraded to plain engineering rules, Chinese business/production/permission text is handled more conservatively, simple Markdown tables can be extracted with line evidence, complex tables stay human-review bound, and Markdown proposed actions must match Machine-Readable Evidence.
+
+1.64.0 hardens Native Migration parser calibration and evidence consistency: strict checks compare Markdown rule rows against Machine-Readable Evidence by `rule_id`, report skipped tables, long paragraphs, and low-signal governance text, and reject structured proposed actions that try to write target files. Workflow-map output is also clearer: it is diagnostic, and adoption moves through Native Migration Plan.
 
 1.63.0 hardens Native-First Existing Project Migration: when an old or governed project should adopt IntentOS, Codex now extracts old rules with source line ranges, records rule extraction coverage and parser warnings, and can require machine-readable migration evidence before any real governance replacement plan. It still does not overwrite `AGENTS.md`, CI, hooks, release SOPs, production config, business logic, or secrets.
 
@@ -355,6 +357,7 @@ Reference:
 
 Current release:
 
+- [1.65.0 Release Record](releases/1.65.0/release-record.md)
 - [1.64.0 Release Record](releases/1.64.0/release-record.md)
 - [1.63.0 Release Record](releases/1.63.0/release-record.md)
 - [1.62.0 Release Record](releases/1.62.0/release-record.md)

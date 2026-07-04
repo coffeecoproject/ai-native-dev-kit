@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.64.0",
+  "devKitVersion": "1.65.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.64.0"
+    "phase": "1.65.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2010,6 +2010,19 @@
       "releases/1.64.0/release-record.md",
       "releases/1.64.0/known-limitations.md",
       "releases/1.64.0/self-check-report.md",
+      "docs/plans/native-migration-classification-calibration-1.65-plan.md",
+      "examples/1.65-native-migration-classification-calibration/README.md",
+      "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/AGENTS.md",
+      "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/docs/GOVERNANCE.md",
+      "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md",
+      "test-fixtures/bad/bad-native-migration-mixed-business-engineering-as-baseline/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-chinese-production-as-business/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-simple-table-no-line-range/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-complex-table-no-warning/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-proposed-action-mismatch/native-migration-plans/001-bad.md",
+      "releases/1.65.0/release-record.md",
+      "releases/1.65.0/known-limitations.md",
+      "releases/1.65.0/self-check-report.md",
       "releases/1.63.0/release-record.md",
       "releases/1.63.0/known-limitations.md",
       "releases/1.63.0/self-check-report.md"
@@ -3968,7 +3981,9 @@
       "examples/1.63-native-migration-precision/README.md",
       "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
       "examples/1.64-native-migration-parser-calibration/README.md",
-      "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md"
+      "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
+      "examples/1.65-native-migration-classification-calibration/README.md",
+      "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4313,7 +4328,12 @@
       "test-fixtures/bad/bad-native-migration-rule-json-mismatch/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-line-range-mismatch/native-migration-plans/001-bad.md",
       "test-fixtures/bad/bad-native-migration-missing-skipped-block-reporting/native-migration-plans/001-bad.md",
-      "test-fixtures/bad/bad-native-migration-structured-action-writes/native-migration-plans/001-bad.md"
+      "test-fixtures/bad/bad-native-migration-structured-action-writes/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-mixed-business-engineering-as-baseline/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-chinese-production-as-business/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-simple-table-no-line-range/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-complex-table-no-warning/native-migration-plans/001-bad.md",
+      "test-fixtures/bad/bad-native-migration-proposed-action-mismatch/native-migration-plans/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",

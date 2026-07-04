@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.64.0",
+  "schemaVersion": "1.65.0",
   "artifactType": "native_migration_plan",
   "required": [
     "schema_version",
@@ -21,7 +21,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.63.0", "1.64.0"] },
+    "schema_version": { "type": "string", "enum": ["1.63.0", "1.64.0", "1.65.0"] },
     "artifact_type": { "type": "string", "enum": ["native_migration_plan"] },
     "report_type": { "type": "string", "enum": ["NATIVE_FIRST_EXISTING_PROJECT_MIGRATION"] },
     "project_state": { "type": "string" },

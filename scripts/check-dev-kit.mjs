@@ -4607,6 +4607,7 @@ function checkNativeFirstMigrationProtocol() {
     "docs/plans/native-first-existing-project-migration-1.62-plan.md",
     "docs/plans/native-migration-precision-hardening-1.63-plan.md",
     "docs/plans/native-migration-parser-calibration-1.64-plan.md",
+    "docs/plans/native-migration-classification-calibration-1.65-plan.md",
     "core/native-first-existing-project-migration.md",
     "docs/native-first-existing-project-migration.md",
     "templates/native-migration-plan.md",
@@ -4628,6 +4629,10 @@ function checkNativeFirstMigrationProtocol() {
     "examples/1.64-native-migration-parser-calibration/table-long-bilingual/AGENTS.md",
     "examples/1.64-native-migration-parser-calibration/table-long-bilingual/docs/GOVERNANCE.md",
     "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
+    "examples/1.65-native-migration-classification-calibration/README.md",
+    "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/AGENTS.md",
+    "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/docs/GOVERNANCE.md",
+    "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md",
     "releases/1.62.0/release-record.md",
     "releases/1.62.0/known-limitations.md",
     "releases/1.62.0/self-check-report.md",
@@ -4653,6 +4658,14 @@ function checkNativeFirstMigrationProtocol() {
     "test-fixtures/bad/bad-native-migration-line-range-mismatch/native-migration-plans/001-bad.md",
     "test-fixtures/bad/bad-native-migration-missing-skipped-block-reporting/native-migration-plans/001-bad.md",
     "test-fixtures/bad/bad-native-migration-structured-action-writes/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-mixed-business-engineering-as-baseline/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-chinese-production-as-business/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-simple-table-no-line-range/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-complex-table-no-warning/native-migration-plans/001-bad.md",
+    "test-fixtures/bad/bad-native-migration-proposed-action-mismatch/native-migration-plans/001-bad.md",
+    "releases/1.65.0/release-record.md",
+    "releases/1.65.0/known-limitations.md",
+    "releases/1.65.0/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.62 native migration asset exists ${file}`);
@@ -4670,6 +4683,7 @@ function checkNativeFirstMigrationProtocol() {
     read("releases/1.62.0/release-record.md"),
     read("releases/1.63.0/release-record.md"),
     read("releases/1.64.0/release-record.md"),
+    read("releases/1.65.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -4693,6 +4707,11 @@ function checkNativeFirstMigrationProtocol() {
     "low_signal_blocks",
     "proposed_actions",
     "Markdown/JSON",
+    "classification calibration",
+    "mixed business + engineering",
+    "Chinese",
+    "simple Markdown table",
+    "proposed-action",
   ]) {
     if (combined.includes(marker)) pass(`native migration includes ${marker}`);
     else fail(`native migration missing ${marker}`);
@@ -4768,6 +4787,10 @@ function checkNativeFirstMigrationProtocol() {
   if (strictCalibrationExample.status === 0) pass("1.64 native migration parser calibration example passes strict checker");
   else fail(`1.64 native migration parser calibration example failed: ${strictCalibrationExample.stderr || strictCalibrationExample.stdout}`);
 
+  const strictClassificationExample = runNode(["scripts/check-native-migration.mjs", "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual", "--require-structured-evidence"]);
+  if (strictClassificationExample.status === 0) pass("1.65 native migration classification calibration example passes strict checker");
+  else fail(`1.65 native migration classification calibration example failed: ${strictClassificationExample.stderr || strictClassificationExample.stdout}`);
+
   for (const target of [
     "bad-native-migration-drops-business-rule",
     "bad-native-migration-direct-agents-overwrite",
@@ -4809,6 +4832,18 @@ function checkNativeFirstMigrationProtocol() {
     const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
     if (result.status !== 0) pass(`1.64 native migration rejects ${target}`);
     else fail(`1.64 native migration must reject ${target}`);
+  }
+
+  for (const target of [
+    "bad-native-migration-mixed-business-engineering-as-baseline",
+    "bad-native-migration-chinese-production-as-business",
+    "bad-native-migration-simple-table-no-line-range",
+    "bad-native-migration-complex-table-no-warning",
+    "bad-native-migration-proposed-action-mismatch",
+  ]) {
+    const result = runNode(["scripts/check-native-migration.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.65 native migration rejects ${target}`);
+    else fail(`1.65 native migration must reject ${target}`);
   }
 }
 

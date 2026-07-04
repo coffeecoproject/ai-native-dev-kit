@@ -28,14 +28,53 @@ const ruleKeywords = [
   "data",
   "hook",
   "CI",
+  "客户",
+  "合同",
+  "协议",
+  "订单",
+  "发票",
+  "税务",
+  "结算",
+  "财务",
+  "门店",
+  "审批",
+  "权限",
+  "角色",
+  "数据",
+  "隐私",
+  "合规",
+  "生产",
+  "上线",
+  "发布",
+  "回滚",
+  "事故",
+  "密钥",
+  "任务",
+  "审查",
+  "证据",
+  "复盘",
+  "计划",
+  "执行",
+  "验收",
 ];
 
-const productionPattern = /\b(release|rollback|deploy|deployment|production|prod|incident|secret|migration|provider|staging|backup|restore|app store|mini program|review)\b/i;
-const businessPattern = /\b(customer|user-visible|business|contract|invoice|tax|finance|hr|payment|permission|data meaning|domain|legal|compliance)\b/i;
-const engineeringPattern = /\b(enum|string|schema|dto|type|architecture|build|test|lint|package|database|api|folder|structure|dependency|frontend|backend)\b/i;
-const workflowPattern = /\b(codex|ai|agent|workflow|review|approval|apply|task|commit|pr|pull request|prompt|subagent|finish|queue)\b/i;
-const historicalPattern = /\b(historical|legacy|old note|deprecated|stale|archive|todo|temporary)\b/i;
+const productionPattern = /\b(release|rollback|deploy|deployment|production|prod|incident|secret|migration|provider|staging|backup|restore|app store review|mini program review)\b|生产|上线|发布|回滚|事故|密钥|生产配置/i;
+const businessPattern = /\b(customer|user-visible|business|contract|invoice|tax|finance|hr|payment|permission|data meaning|contract meaning|tax meaning|legal|compliance|approval limit|role changes?)\b|客户|合同|协议|订单|发票|税务|结算|财务|门店|审批|权限|角色|客户数据|隐私|合规/i;
+const engineeringPattern = /\b(enum|string|schema|dto|type|architecture|build|test|lint|package|database|api|folder|structure|dependency|frontend|backend|component)\b|枚举|数据库|接口|组件|构建|测试|目录|依赖/i;
+const workflowPattern = /\b(codex|ai|agent|workflow|review|approval|apply|task|commit|pr|pull request|prompt|subagent|finish|queue|evidence|plan)\b|任务|审查|证据|复盘|计划|执行|验收|工作流/i;
+const historicalPattern = /\b(historical|legacy|old note|deprecated|stale|archive|todo|temporary)\b|历史|废弃|过期|归档|临时/i;
 const governanceHeadingPattern = /\b(rule|rules|governance|policy|policies|constraint|constraints|baseline|release|permission|approval|workflow|agent|codex|业务|规则|治理|基线|发布|权限|审批|流程)\b/i;
+const tableRuleHeaders = new Set([
+  "rule",
+  "requirement",
+  "handling",
+  "policy",
+  "constraint",
+  "规则",
+  "要求",
+  "处理",
+  "治理",
+]);
 
 export function extractNativeRulesFromMarkdown(content, sourceFile) {
   const lines = content.split(/\r?\n/);
@@ -56,7 +95,7 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
     const raw = lines[index];
     const trimmed = raw.trim();
     if (tableBlock && !looksLikeMarkdownTable(trimmed)) {
-      flushTableBlock(tableBlock, skippedBlocks, parserWarnings, sourceFile);
+      flushTableBlock(tableBlock, rules, skippedBlocks, lowSignalBlocks, parserWarnings, sourceFile);
       tableBlock = null;
     }
     const fence = trimmed.match(/^```([A-Za-z0-9_-]*)/);
@@ -106,7 +145,7 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
         };
       }
       tableBlock.end = lineNumber;
-      tableBlock.lines.push(trimmed);
+      tableBlock.lines.push({ lineNumber, text: trimmed });
       continue;
     }
 
@@ -156,7 +195,7 @@ export function extractNativeRulesFromMarkdown(content, sourceFile) {
     });
   }
 
-  if (tableBlock) flushTableBlock(tableBlock, skippedBlocks, parserWarnings, sourceFile);
+  if (tableBlock) flushTableBlock(tableBlock, rules, skippedBlocks, lowSignalBlocks, parserWarnings, sourceFile);
 
   if (fenced) {
     unclassifiedBlocks.push({
@@ -189,11 +228,11 @@ export function classifyNativeRule({ sourceFile, text, contextHeading = "" }) {
   if (productionPattern.test(value)) {
     return ruleClass("PRODUCTION_CONTROL", "project/release owner", "preserve and escalate", "preserve", "Release and production controls remain external to IntentOS workflow convenience.", "release, production", "map to Release Guide / Recipe / Handoff without replacement", "Yes", confidence(value, productionPattern));
   }
-  if (engineeringPattern.test(value)) {
-    return ruleClass("ENGINEERING_BASELINE", "project baseline", "migrate into IntentOS baseline after review", "map", "Engineering rules can become baseline evidence after review.", "engineering", "map to engineering/environment baseline", "Yes", confidence(value, engineeringPattern));
-  }
   if (businessPattern.test(value)) {
     return ruleClass("BUSINESS_FACT", "project owner", "preserve or escalate", "preserve", "Business facts are project-owned and cannot be replaced by workflow migration.", "business, data", "preserve as project constraint", "Yes", confidence(value, businessPattern));
+  }
+  if (engineeringPattern.test(value)) {
+    return ruleClass("ENGINEERING_BASELINE", "project baseline", "migrate into IntentOS baseline after review", "map", "Engineering rules can become baseline evidence after review.", "engineering", "map to engineering/environment baseline", "Yes", confidence(value, engineeringPattern));
   }
   if (workflowPattern.test(value)) {
     return ruleClass("WORKFLOW_RULE", "old workflow source", "replace after reviewed plan and approval", "replace", "Old AI workflow guidance can move under IntentOS workflow authority after approval.", "workflow", "replace with IntentOS workflow rule through apply-plan", "Yes", confidence(value, workflowPattern));
@@ -216,12 +255,12 @@ function currentHeading(stack) {
 }
 
 function hasRuleSignal(value) {
-  return ruleKeywords.some((keyword) => new RegExp(`\\b${escapeRegExp(keyword)}\\b`, "i").test(value));
+  return ruleKeywords.some((keyword) => keywordMatches(value, keyword));
 }
 
 function detectedTerms(text, heading) {
   const value = `${heading} ${text}`;
-  return ruleKeywords.filter((keyword) => new RegExp(`\\b${escapeRegExp(keyword)}\\b`, "i").test(value));
+  return ruleKeywords.filter((keyword) => keywordMatches(value, keyword));
 }
 
 function ruleClass(ruleClassValue, authority, defaultHandling, preserveOrReplace, reason, riskSurfaces, targetAction, humanDecisionRequired, confidenceValue) {
@@ -247,9 +286,43 @@ function looksLikeMarkdownTable(value) {
   return value.startsWith("|") || /^:?-{3,}:?$/.test(value);
 }
 
-function flushTableBlock(block, skippedBlocks, parserWarnings, sourceFile) {
+function flushTableBlock(block, rules, skippedBlocks, lowSignalBlocks, parserWarnings, sourceFile) {
   if (!block || block.lines.length === 0) return;
-  const excerpt = normalizeExcerpt(block.lines.join(" "));
+  const table = parseSimpleTable(block);
+  if (table) {
+    for (const row of table.rows) {
+      const candidate = normalizeText(row.cells.map((cell, index) => `${table.headers[index]}: ${cell}`).join(" "));
+      if (!hasRuleSignal(candidate) && !hasRuleSignal(block.contextHeading)) {
+        lowSignalBlocks.push({
+          source_file: sourceFile,
+          source_start_line: row.lineNumber,
+          source_end_line: row.lineNumber,
+          context_heading: block.contextHeading,
+          excerpt: normalizeExcerpt(candidate),
+          reason: "Low-signal row in a simple Markdown table was not classified automatically.",
+        });
+        parserWarnings.push(`${sourceFile}:${row.lineNumber}-${row.lineNumber} low-signal markdown table row needs manual review`);
+        continue;
+      }
+      const classification = classifyNativeRule({
+        sourceFile,
+        text: candidate,
+        contextHeading: block.contextHeading,
+      });
+      rules.push({
+        source_file: sourceFile,
+        source_start_line: row.lineNumber,
+        source_end_line: row.lineNumber,
+        source_excerpt: normalizeExcerpt(row.raw),
+        context_heading: block.contextHeading,
+        detected_terms: detectedTerms(candidate, block.contextHeading),
+        ...classification,
+      });
+    }
+    return;
+  }
+
+  const excerpt = normalizeExcerpt(block.lines.map((line) => line.text).join(" "));
   skippedBlocks.push({
     source_file: sourceFile,
     source_start_line: block.start,
@@ -259,6 +332,33 @@ function flushTableBlock(block, skippedBlocks, parserWarnings, sourceFile) {
     reason: "Markdown table skipped by deterministic extractor; classify table rules manually before migration.",
   });
   parserWarnings.push(`${sourceFile}:${block.start}-${block.end} markdown table skipped by deterministic extractor`);
+}
+
+function parseSimpleTable(block) {
+  const contentLines = block.lines
+    .filter((line) => line.text.trim().startsWith("|"))
+    .map((line) => ({
+      lineNumber: line.lineNumber,
+      raw: line.text,
+      cells: splitTableRow(line.text).map(normalizeText),
+    }));
+  if (contentLines.length < 3) return null;
+  const [header, separator, ...rows] = contentLines;
+  if (!separator.cells.every((cell) => /^:?-{3,}:?$/.test(cell))) return null;
+  const headers = header.cells.map((cell) => cell.toLowerCase());
+  const hasRuleColumn = headers.some((cell) => tableRuleHeaders.has(cell));
+  if (!hasRuleColumn || headers.length > 3) return null;
+  const dataRows = rows.filter((row) => row.cells.length === headers.length && row.cells.some(Boolean));
+  if (dataRows.length === 0) return null;
+  return {
+    headers: header.cells,
+    rows: dataRows,
+  };
+}
+
+function splitTableRow(row) {
+  const trimmed = row.trim().replace(/^\|/, "").replace(/\|$/, "");
+  return trimmed.split("|").map((cell) => cell.trim());
 }
 
 function normalizeText(value) {
@@ -271,4 +371,12 @@ function normalizeExcerpt(value) {
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function keywordMatches(value, keyword) {
+  const text = String(value || "");
+  if (/^[A-Za-z0-9_-]+$/.test(keyword)) {
+    return new RegExp(`\\b${escapeRegExp(keyword)}\\b`, "i").test(text);
+  }
+  return text.includes(keyword);
 }

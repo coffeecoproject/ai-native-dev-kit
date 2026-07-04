@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.64.0`
+Current version: `1.65.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.64.0`
 
 ## Current Release
 
-`1.64.0`
+`1.65.0`
 
 Includes:
 
+- Native Migration Classification Calibration phase `1.65.0`: calibrates mixed business + engineering rules, Chinese business/production/permission text, conservative simple table extraction, and Markdown/JSON proposed-action consistency
+- `1.65.0` keeps complex or high-risk tables skipped or human-review bound, keeps 1.63 and 1.64 structured records compatible, and does not authorize target-project writes or governance replacement
+- `1.65.0` adds a mixed-domain bilingual positive example plus bad fixtures for mixed rule misclassification, Chinese production misclassification, missing table line range, missing complex-table warning, and proposed-action mismatch
 - Native Migration Parser Calibration phase `1.64.0`: adds skipped-block and low-signal block visibility for tables, long paragraphs, and ambiguous governance text, and tightens strict Markdown/JSON rule consistency by `rule_id`
 - `1.64.0` validates structured `proposed_actions` as plan-only and human-approved, keeps 1.63 structured records compatible, and clarifies workflow-map output as diagnostic before Native Migration Plan
 - `1.64.0` adds a table/long-paragraph/bilingual positive example plus bad fixtures for rule JSON mismatch, line-range mismatch, missing skipped-block reporting, and structured action writes

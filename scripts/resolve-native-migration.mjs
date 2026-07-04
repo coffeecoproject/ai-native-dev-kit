@@ -60,7 +60,7 @@ function buildNativeMigration(root, options) {
 
   const report = {
     reportType: "NATIVE_FIRST_EXISTING_PROJECT_MIGRATION",
-    schemaVersion: "1.64.0",
+    schemaVersion: "1.65.0",
     generatedBy: "scripts/resolve-native-migration.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -475,7 +475,7 @@ function toCoverage(coverage) {
 
 function structuredEvidenceFor(report) {
   return {
-    schema_version: "1.64.0",
+    schema_version: "1.65.0",
     artifact_type: "native_migration_plan",
     report_type: report.reportType,
     project_state: report.projectState.state,
