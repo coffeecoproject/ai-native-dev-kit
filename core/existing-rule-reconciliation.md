@@ -148,6 +148,35 @@ Approves release or production: No
 Requires apply plan before file change: Yes
 ```
 
+## Rule Coverage And Native Adoption Decision
+
+Existing Rule Reconciliation must record coverage for extracted rules.
+
+Machine-readable evidence must include:
+
+```text
+rule_reconciliation_coverage
+native_adoption_decision
+can_recommend_apply_plan_now
+can_recommend_apply_plan_after_human_review
+```
+
+If only part of the extracted rule set is reconciled, the report must say so.
+
+When omitted rules exist:
+
+```text
+blocks_selected_native_adoption: Yes
+native_adoption_decision.recommendation: BLOCKED_NEEDS_OWNER
+outcome: BLOCKED
+```
+
+Selected native adoption is not allowed until omitted rules are reviewed.
+
+If native adoption is blocked, `can_recommend_apply_plan_now` must be `No`.
+Codex may only recommend an apply plan after the block is resolved and a human
+confirms the reviewed path.
+
 ## Human Role
 
 The human decides whether a recommendation is acceptable. Codex may prepare a

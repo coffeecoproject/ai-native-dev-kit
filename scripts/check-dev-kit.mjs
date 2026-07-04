@@ -4957,6 +4957,10 @@ function checkExistingRuleReconciliationProtocol() {
     "can_codex_write_now",
     "protected_constraints",
     "release_production_gaps",
+    "rule_reconciliation_coverage",
+    "native_adoption_decision",
+    "can_recommend_apply_plan_now",
+    "NoUntilBlockResolved",
     "false positive",
     "false negative",
   ]) {
@@ -10747,6 +10751,55 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("governed existing project reconcile-rules --auto-native produces read-only native adoption decision");
+
+  const truncatedRuleTarget = path.join(tempRoot, "truncated-rule-project");
+  fs.mkdirSync(path.join(truncatedRuleTarget, "native-migration-plans"), { recursive: true });
+  const truncatedRules = Array.from({ length: 21 }, (_, index) => ({
+    rule_id: `R-${String(index + 1).padStart(3, "0")}`,
+    rule_class: "ENGINEERING_BASELINE",
+    source_excerpt: `Project enum rule ${index + 1}`,
+    authority: "project baseline",
+    risk_surfaces: ["engineering"],
+  }));
+  fs.writeFileSync(path.join(truncatedRuleTarget, "native-migration-plans", "001-many-rules.md"), [
+    "# Native Migration Plan",
+    "",
+    "```json",
+    JSON.stringify({
+      schema_version: "1.62.0",
+      artifact_type: "native_migration_plan",
+      project_state: "EXISTING_GOVERNED_PROJECT",
+      rule_classifications: truncatedRules,
+    }, null, 2),
+    "```",
+    "",
+  ].join("\n"));
+  const truncatedReconcile = runNode([
+    path.join(kitRoot, "scripts", "resolve-existing-rule-reconciliation.mjs"),
+    truncatedRuleTarget,
+    "--json",
+  ]);
+  if (truncatedReconcile.status !== 0) {
+    fail(`truncated existing rule reconciliation should resolve: ${truncatedReconcile.stderr || truncatedReconcile.stdout}`);
+    return;
+  }
+  try {
+    const parsed = JSON.parse(truncatedReconcile.stdout);
+    if (parsed.ruleReconciliationCoverage?.omittedRules === 1
+      && parsed.ruleReconciliationCoverage?.blocksSelectedNativeAdoption === "Yes"
+      && parsed.nativeAdoptionDecision?.recommendation === "BLOCKED_NEEDS_OWNER"
+      && parsed.canRecommendApplyPlan === "NoUntilBlockResolved"
+      && parsed.canRecommendApplyPlanNow === "No"
+      && parsed.outcome === "BLOCKED") {
+      pass("truncated existing rule reconciliation blocks selected native adoption");
+    } else {
+      fail(`truncated existing rule reconciliation missing block evidence: ${truncatedReconcile.stdout}`);
+      return;
+    }
+  } catch (error) {
+    fail(`truncated existing rule reconciliation JSON invalid: ${error.message}`);
+    return;
+  }
 
   const dirtyReadyTarget = path.join(tempRoot, "dirty-ready-production-project");
   const dirtyReadyInit = runNode([

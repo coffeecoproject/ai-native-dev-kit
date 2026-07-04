@@ -8,16 +8,20 @@
     "project_state",
     "can_codex_write_now",
     "can_recommend_apply_plan",
+    "can_recommend_apply_plan_now",
+    "can_recommend_apply_plan_after_human_review",
     "reconciliation_authority",
     "business_authority",
     "production_authority",
     "requires_human_approval_before_apply",
     "existing_rule_source",
     "intentos_reference_source",
+    "rule_reconciliation_coverage",
     "reconciliation_items",
     "protected_constraints",
     "release_production_gaps",
     "conflicts",
+    "native_adoption_decision",
     "proposed_next_steps",
     "boundary",
     "outcome"
@@ -28,13 +32,32 @@
     "report_type": { "type": "string", "enum": ["EXISTING_RULE_RECONCILIATION"] },
     "project_state": { "type": "string" },
     "can_codex_write_now": { "type": "string", "enum": ["No"] },
-    "can_recommend_apply_plan": { "type": "string", "enum": ["Yes"] },
+    "can_recommend_apply_plan": { "type": "string", "enum": ["Yes", "NoUntilBlockResolved"] },
+    "can_recommend_apply_plan_now": { "type": "string", "enum": ["Yes", "No"] },
+    "can_recommend_apply_plan_after_human_review": { "type": "string", "enum": ["Yes"] },
     "reconciliation_authority": { "type": "string", "enum": ["RECOMMENDATION_ONLY"] },
     "business_authority": { "type": "string", "enum": ["PROJECT_OWNED"] },
     "production_authority": { "type": "string", "enum": ["HUMAN_OR_EXTERNAL_SYSTEM"] },
     "requires_human_approval_before_apply": { "type": "string", "enum": ["Yes"] },
     "existing_rule_source": { "type": "array" },
     "intentos_reference_source": { "type": "array" },
+    "rule_reconciliation_coverage": {
+      "type": "object",
+      "required": [
+        "total_extracted_rules",
+        "reconciled_rules",
+        "omitted_rules",
+        "truncation_warning",
+        "blocks_selected_native_adoption"
+      ],
+      "properties": {
+        "total_extracted_rules": { "type": "integer" },
+        "reconciled_rules": { "type": "integer" },
+        "omitted_rules": { "type": "integer" },
+        "truncation_warning": { "type": "string" },
+        "blocks_selected_native_adoption": { "type": "string", "enum": ["Yes", "No"] }
+      }
+    },
     "reconciliation_items": {
       "type": "array",
       "items": {

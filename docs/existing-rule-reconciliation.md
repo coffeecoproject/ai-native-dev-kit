@@ -88,6 +88,40 @@ This produces an AI Native Adoption Recommendation. It tells the user whether
 the safest path is read-only diagnosis, docs bridge, selected native adoption,
 owner clarification, or dirty-worktree block.
 
+## Coverage And Truncation
+
+Reconciliation must say how many extracted rules were reviewed.
+
+If more rules exist than the report can compare, the report must show:
+
+```text
+total_extracted_rules
+reconciled_rules
+omitted_rules
+truncation_warning
+blocks_selected_native_adoption
+```
+
+If any rules are omitted, Codex must not recommend `SELECTED_NATIVE_ADOPTION`.
+The safe result is to stop, explain that the rule set was truncated, and ask
+for owner review before any apply plan is prepared.
+
+## Native Adoption Decision Evidence
+
+Strict structured evidence must include `native_adoption_decision`.
+
+That decision must keep:
+
+```text
+can_codex_write_now: No
+```
+
+Blocked recommendations must also keep:
+
+```text
+can_recommend_apply_plan_now: No
+```
+
 ## Safe Interpretation
 
 - `KEEP_EXISTING`: the old project rule remains the source of truth.

@@ -23,6 +23,16 @@ This is a recommendation report, not permission to change files.
 | --- | --- | --- |
 | Native Migration Plan | `native-migration-plans/001-example.md` | Reviewed input |
 
+## Rule Reconciliation Coverage
+
+| Field | Value |
+| --- | --- |
+| Total Extracted Rules | `1` |
+| Reconciled Rules | `1` |
+| Omitted Rules | `0` |
+| Truncation Warning | None |
+| Blocks Selected Native Adoption | `No` |
+
 ## Existing Rule Set
 
 | Rule Ref | Surface | Existing Rule Summary | Authority |
@@ -103,16 +113,37 @@ approved governance-file edits only
   "project_state": "EXISTING_GOVERNED_PROJECT",
   "can_codex_write_now": "No",
   "can_recommend_apply_plan": "Yes",
+  "can_recommend_apply_plan_now": "Yes",
+  "can_recommend_apply_plan_after_human_review": "Yes",
   "reconciliation_authority": "RECOMMENDATION_ONLY",
   "business_authority": "PROJECT_OWNED",
   "production_authority": "HUMAN_OR_EXTERNAL_SYSTEM",
   "requires_human_approval_before_apply": "Yes",
   "existing_rule_source": [],
   "intentos_reference_source": [],
+  "rule_reconciliation_coverage": {
+    "total_extracted_rules": 1,
+    "reconciled_rules": 1,
+    "omitted_rules": 0,
+    "truncation_warning": "None",
+    "blocks_selected_native_adoption": "No"
+  },
   "reconciliation_items": [],
   "protected_constraints": [],
   "release_production_gaps": [],
   "conflicts": [],
+  "native_adoption_decision": {
+    "recommendation": "DOCS_BRIDGE",
+    "migration_depth": "DOCS_BRIDGE",
+    "confidence": "LOW",
+    "can_codex_write_now": "No",
+    "default_path": "prepare apply plan after review",
+    "preserve": ["existing project rules"],
+    "merge": ["project context docs"],
+    "replace": ["old AI workflow routing after approval"],
+    "blocked": ["production execution", "secrets", "CI/hook mutation without approval"],
+    "human_confirmation": "Allow Codex to prepare a reviewable apply plan for the recommended migration path."
+  },
   "proposed_next_steps": [],
   "boundary": {
     "writesTargetFiles": "No",

@@ -521,6 +521,7 @@ const commandRegistry = {
         { script: "scripts/check-ai-workflow.mjs", args: [target, "--mode", "core"] },
       ];
     },
+    dryRun: (args) => dryRunDoctor(args),
     run: (args) => runDoctor(args),
   },
   new: {
@@ -693,6 +694,7 @@ function printCommandHelp(name, command) {
 function runCommand(name, command, args, options) {
   if (command.run) {
     if (options.dryRun) {
+      if (command.dryRun) return command.dryRun(args, options);
       const sequence = command.displaySequence ? command.displaySequence(args) : [];
       for (const entry of sequence) printDisplayCommand(entry.script, entry.args);
       return { status: 0 };
@@ -761,6 +763,26 @@ function runDoctor(args) {
   }
 
   return runScript("scripts/check-ai-workflow.mjs", [target, "--mode", "core"]);
+}
+
+function dryRunDoctor(args) {
+  const target = firstPositional(args, new Set(["--format", "--intent", "--mode"])) || ".";
+  printDisplayCommand("scripts/workflow-next.mjs", [target]);
+  if (isDevKitSourceTarget(target)) {
+    printDisplayCommand("scripts/check-dev-kit.mjs", []);
+    return { status: 0 };
+  }
+
+  const diagnosis = runScriptCapture("scripts/workflow-next.mjs", [target, "--format", "json"]);
+  const report = parseJsonOrNull(diagnosis.stdout);
+  if (diagnosis.status === 0 && shouldStopDoctorAtExistingProjectDiagnosis(report)) {
+    console.log("# then: old governed/production project stops at adoption diagnosis");
+    console.log("# next safe step: native-migration + reconcile-rules --auto-native, then reviewed apply plan if approved");
+    return { status: 0 };
+  }
+  console.log("# then: target is not in old-project diagnosis stop path");
+  printDisplayCommand("scripts/check-ai-workflow.mjs", [target, "--mode", "core"]);
+  return { status: 0 };
 }
 
 function shouldStopDoctorAtExistingProjectDiagnosis(report) {

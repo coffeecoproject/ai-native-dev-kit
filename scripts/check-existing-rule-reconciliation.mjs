@@ -37,6 +37,7 @@ const requiredDirectories = ["existing-rule-reconciliations"];
 const requiredSections = [
   "Human Summary",
   "Input Evidence",
+  "Rule Reconciliation Coverage",
   "Existing Rule Set",
   "IntentOS Reference Set",
   "Reconciliation Matrix",
@@ -62,6 +63,13 @@ const generalOutcomes = new Set([
   "GAP_SUGGESTION",
 ]);
 const releaseOutcomes = new Set(["KEEP_EXISTING", "GAP_SUGGESTION", "NEEDS_HUMAN_DECISION", "CONFLICT_HIGH_RISK", "UNKNOWN_AUTHORITY"]);
+const nativeRecommendations = new Set([
+  "READ_ONLY_DIAGNOSIS",
+  "DOCS_BRIDGE",
+  "SELECTED_NATIVE_ADOPTION",
+  "BLOCKED_NEEDS_OWNER",
+  "BLOCKED_BY_DIRTY_WORKTREE",
+]);
 const protectedTerms = /\b(business|contract|invoice|tax|finance|payment|permission|privacy|security|compliance|customer|legal|HR|data|provider|migration)\b|客户|合同|发票|税务|财务|权限|隐私|合规|数据/i;
 const forbiddenClaims = [
   /\bsafe to apply\b/i,
@@ -278,16 +286,20 @@ function checkStructuredEvidence(content, label) {
     "project_state",
     "can_codex_write_now",
     "can_recommend_apply_plan",
+    "can_recommend_apply_plan_now",
+    "can_recommend_apply_plan_after_human_review",
     "reconciliation_authority",
     "business_authority",
     "production_authority",
     "requires_human_approval_before_apply",
     "existing_rule_source",
     "intentos_reference_source",
+    "rule_reconciliation_coverage",
     "reconciliation_items",
     "protected_constraints",
     "release_production_gaps",
     "conflicts",
+    "native_adoption_decision",
     "proposed_next_steps",
     "boundary",
     "outcome",
@@ -304,8 +316,15 @@ function checkStructuredEvidence(content, label) {
   else fail(`${label} structured report type invalid`);
   if (parsed.can_codex_write_now === "No") pass(`${label} structured write authority is off`);
   else fail(`${label} structured can_codex_write_now must be No`);
-  if (parsed.can_recommend_apply_plan === "Yes") pass(`${label} structured can recommend apply plan`);
-  else fail(`${label} structured can_recommend_apply_plan must be Yes`);
+  const nativeDecision = parsed.native_adoption_decision || {};
+  const blockedNativeDecision = String(nativeDecision.recommendation || "").startsWith("BLOCKED");
+  const expectedApplyPlan = blockedNativeDecision ? "NoUntilBlockResolved" : "Yes";
+  if (parsed.can_recommend_apply_plan === expectedApplyPlan) pass(`${label} structured can_recommend_apply_plan is ${expectedApplyPlan}`);
+  else fail(`${label} structured can_recommend_apply_plan must be ${expectedApplyPlan}`);
+  if (parsed.can_recommend_apply_plan_now === (blockedNativeDecision ? "No" : "Yes")) pass(`${label} structured can_recommend_apply_plan_now is bounded`);
+  else fail(`${label} structured can_recommend_apply_plan_now does not match native adoption decision`);
+  if (parsed.can_recommend_apply_plan_after_human_review === "Yes") pass(`${label} structured can_recommend_apply_plan_after_human_review is Yes`);
+  else fail(`${label} structured can_recommend_apply_plan_after_human_review must be Yes`);
   if (parsed.reconciliation_authority === "RECOMMENDATION_ONLY") pass(`${label} structured reconciliation authority is recommendation-only`);
   else fail(`${label} structured reconciliation authority must be RECOMMENDATION_ONLY`);
   if (parsed.business_authority === "PROJECT_OWNED") pass(`${label} structured business authority is project-owned`);
@@ -319,6 +338,7 @@ function checkStructuredEvidence(content, label) {
   } else {
     for (const item of parsed.reconciliation_items) validateStructuredItem(item, label);
   }
+  validateRuleReconciliationCoverage(parsed.rule_reconciliation_coverage, label, parsed);
   if (Array.isArray(parsed.protected_constraints)) {
     for (const item of parsed.protected_constraints) validateProtectedConstraint(item, label);
   } else {
@@ -342,7 +362,90 @@ function checkStructuredEvidence(content, label) {
     if (boundary[field] === "No") pass(`${label} boundary ${field} is No`);
     else fail(`${label} boundary ${field} must be No`);
   }
+  validateNativeAdoptionDecision(parsed.native_adoption_decision, label, parsed);
   return parsed;
+}
+
+function validateRuleReconciliationCoverage(coverage, label, evidence) {
+  if (!coverage || typeof coverage !== "object") {
+    fail(`${label} structured evidence missing rule_reconciliation_coverage`);
+    return;
+  }
+  for (const field of ["total_extracted_rules", "reconciled_rules", "omitted_rules"]) {
+    if (Number.isInteger(coverage[field]) && coverage[field] >= 0) pass(`${label} rule reconciliation coverage includes ${field}`);
+    else fail(`${label} rule reconciliation coverage ${field} must be a non-negative integer`);
+  }
+  const total = coverage.total_extracted_rules;
+  const reconciled = coverage.reconciled_rules;
+  const omitted = coverage.omitted_rules;
+  if (Number.isInteger(total) && Number.isInteger(reconciled) && Number.isInteger(omitted) && total - reconciled === omitted) {
+    pass(`${label} rule reconciliation coverage counts reconcile`);
+  } else {
+    fail(`${label} rule reconciliation coverage counts must satisfy total - reconciled = omitted`);
+  }
+  if (omitted > 0) {
+    if (coverage.blocks_selected_native_adoption === "Yes") pass(`${label} truncated coverage blocks selected native adoption`);
+    else fail(`${label} truncated coverage must block selected native adoption`);
+    if (/Only first .* extracted rules were reconciled/i.test(String(coverage.truncation_warning || ""))) {
+      pass(`${label} truncated coverage includes explicit warning`);
+    } else {
+      fail(`${label} truncated coverage must include explicit warning`);
+    }
+    if (evidence.native_adoption_decision?.recommendation === "SELECTED_NATIVE_ADOPTION") {
+      fail(`${label} selected native adoption is not allowed with omitted rules`);
+    } else {
+      pass(`${label} selected native adoption is blocked when rules are omitted`);
+    }
+    if (evidence.outcome === "BLOCKED") pass(`${label} truncated coverage blocks reconciliation outcome`);
+    else fail(`${label} truncated coverage must set outcome to BLOCKED`);
+  } else {
+    if (coverage.blocks_selected_native_adoption === "No") pass(`${label} full coverage does not block selected native adoption`);
+    else fail(`${label} full coverage must not set selected native adoption block`);
+  }
+}
+
+function validateNativeAdoptionDecision(decision, label, evidence) {
+  if (!decision || typeof decision !== "object") {
+    fail(`${label} structured evidence missing native_adoption_decision`);
+    return;
+  }
+  for (const field of [
+    "recommendation",
+    "migration_depth",
+    "confidence",
+    "can_codex_write_now",
+    "default_path",
+    "preserve",
+    "merge",
+    "replace",
+    "blocked",
+    "human_confirmation",
+  ]) {
+    if (Array.isArray(decision[field]) ? decision[field].length >= 0 : isConcrete(decision[field])) {
+      pass(`${label} native adoption decision includes ${field}`);
+    } else {
+      fail(`${label} native adoption decision missing ${field}`);
+    }
+  }
+  if (nativeRecommendations.has(decision.recommendation)) pass(`${label} native adoption recommendation is allowed`);
+  else fail(`${label} native adoption recommendation invalid: ${decision.recommendation || "<empty>"}`);
+  if (["LOW", "MEDIUM", "HIGH"].includes(decision.confidence)) pass(`${label} native adoption confidence is allowed`);
+  else fail(`${label} native adoption confidence invalid`);
+  if (decision.can_codex_write_now === "No") pass(`${label} native adoption decision keeps write authority off`);
+  else fail(`${label} native adoption decision can_codex_write_now must be No`);
+  if (String(decision.recommendation || "").startsWith("BLOCKED") && evidence.can_recommend_apply_plan_now !== "No") {
+    fail(`${label} blocked native adoption decision must not recommend apply plan now`);
+  }
+  if (decision.recommendation === "SELECTED_NATIVE_ADOPTION"
+    && evidence.rule_reconciliation_coverage?.blocks_selected_native_adoption === "Yes") {
+    fail(`${label} selected native adoption cannot override coverage block`);
+  }
+  const authorityText = `${decision.default_path || ""} ${decision.human_confirmation || ""}`;
+  if (/\b(auto[- ]?apply|write target files now|approve release|approve production|deploy production|commit now|push now)\b/i.test(authorityText)) {
+    fail(`${label} native adoption decision must not imply apply, commit, push, release, or production approval`);
+  } else {
+    pass(`${label} native adoption decision does not imply execution approval`);
+  }
 }
 
 function validateStructuredItem(item, label) {

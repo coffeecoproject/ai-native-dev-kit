@@ -13,6 +13,7 @@ const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const MAX_RECONCILED_RULES = 20;
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -41,6 +42,7 @@ function buildReport(root, options) {
     nativePlans = generateNativeMigrationPlans(root);
   }
   const rules = nativePlans.flatMap((plan) => plan.rules.map((rule) => ({ ...rule, planPath: plan.path })));
+  const ruleReconciliationCoverage = buildRuleReconciliationCoverage(rules);
   const items = buildReconciliationItems(rules);
   const protectedConstraints = buildProtectedConstraints(items);
   const releaseProductionGaps = buildReleaseProductionGaps(items);
@@ -52,7 +54,10 @@ function buildReport(root, options) {
     "Record Approval Record",
     "Apply approved governance-file edits only",
   ];
-  const nativeAdoptionDecision = nativeAdoptionDecisionFor(nativePlans, rules, items);
+  const nativeAdoptionDecision = nativeAdoptionDecisionFor(nativePlans, rules, items, ruleReconciliationCoverage);
+  const canRecommendApplyPlan = nativeAdoptionDecision.recommendation.startsWith("BLOCKED")
+    ? "NoUntilBlockResolved"
+    : "Yes";
   const projectState = projectStateFor(nativePlans, rules);
   const outcome = nativeAdoptionDecision.recommendation.startsWith("BLOCKED")
     ? "BLOCKED"
@@ -67,7 +72,9 @@ function buildReport(root, options) {
     readOnly: true,
     projectState,
     canCodexWriteNow: "No",
-    canRecommendApplyPlan: "Yes",
+    canRecommendApplyPlan,
+    canRecommendApplyPlanNow: canRecommendApplyPlan === "Yes" ? "Yes" : "No",
+    canRecommendApplyPlanAfterHumanReview: "Yes",
     reconciliationAuthority: "RECOMMENDATION_ONLY",
     businessAuthority: "PROJECT_OWNED",
     productionAuthority: "HUMAN_OR_EXTERNAL_SYSTEM",
@@ -84,6 +91,7 @@ function buildReport(root, options) {
       authority: rule.authority || "project-owned",
     })),
     intentOsReferenceSet: referenceSetFor(items),
+    ruleReconciliationCoverage,
     reconciliationItems: items,
     protectedConstraints,
     releaseProductionGaps,
@@ -160,7 +168,7 @@ function projectStateFor(nativePlans, rules) {
   return rules.length > 0 ? "EXISTING_GOVERNED_PROJECT" : "EXISTING_PROJECT_NEEDS_NATIVE_MIGRATION_PLAN";
 }
 
-function nativeAdoptionDecisionFor(nativePlans, rules, items) {
+function nativeAdoptionDecisionFor(nativePlans, rules, items, coverage) {
   const generatedState = nativePlans.find((plan) => plan.evidence?.project_state)?.evidence?.project_state || "";
   const hasRelease = items.some((item) => item.surface === "RELEASE_PRODUCTION" || item.surface === "PRODUCTION_CONTROL");
   const hasEngineering = items.some((item) => item.surface === "ENGINEERING_BASELINE");
@@ -194,6 +202,20 @@ function nativeAdoptionDecisionFor(nativePlans, rules, items) {
       replace: [],
       blocked: ["native adoption apply plan"],
       humanConfirmation: "Allow Codex to generate native migration evidence in read-only mode first.",
+    });
+  }
+
+  if (coverage.omittedRules > 0) {
+    return nativeDecision({
+      recommendation: "BLOCKED_NEEDS_OWNER",
+      migrationDepth: "READ_ONLY_DIAGNOSIS",
+      confidence: "HIGH",
+      defaultPath: "review omitted extracted rules before selected native adoption",
+      preserve: ["all omitted existing project rules", "existing release / production and protected constraints"],
+      merge: [],
+      replace: [],
+      blocked: ["selected native adoption", "governance apply plan until omitted rules are reviewed"],
+      humanConfirmation: "Confirm review of omitted extracted rules before Codex prepares any selected native adoption apply plan.",
     });
   }
 
@@ -272,6 +294,21 @@ function parseFencedJson(content) {
   }
 }
 
+function buildRuleReconciliationCoverage(rules) {
+  const totalExtractedRules = rules.length;
+  const reconciledRules = totalExtractedRules === 0 ? 0 : Math.min(totalExtractedRules, MAX_RECONCILED_RULES);
+  const omittedRules = Math.max(0, totalExtractedRules - reconciledRules);
+  return {
+    totalExtractedRules,
+    reconciledRules,
+    omittedRules,
+    truncationWarning: omittedRules > 0
+      ? `Only first ${MAX_RECONCILED_RULES} extracted rules were reconciled; ${omittedRules} rule(s) were omitted.`
+      : "None",
+    blocksSelectedNativeAdoption: omittedRules > 0 ? "Yes" : "No",
+  };
+}
+
 function buildReconciliationItems(rules) {
   if (rules.length === 0) {
     return [
@@ -293,7 +330,7 @@ function buildReconciliationItems(rules) {
     ];
   }
 
-  return rules.slice(0, 20).map((rule, index) => {
+  return rules.slice(0, MAX_RECONCILED_RULES).map((rule, index) => {
     const itemId = `RR-${String(index + 1).padStart(3, "0")}`;
     const surface = surfaceForRule(rule);
     if (surface === "RELEASE_PRODUCTION" || surface === "PRODUCTION_CONTROL") {
@@ -469,6 +506,8 @@ function structuredEvidenceFor(report) {
     project_state: report.projectState,
     can_codex_write_now: report.canCodexWriteNow,
     can_recommend_apply_plan: report.canRecommendApplyPlan,
+    can_recommend_apply_plan_now: report.canRecommendApplyPlanNow,
+    can_recommend_apply_plan_after_human_review: report.canRecommendApplyPlanAfterHumanReview,
     reconciliation_authority: report.reconciliationAuthority,
     business_authority: report.businessAuthority,
     production_authority: report.productionAuthority,
@@ -485,6 +524,13 @@ function structuredEvidenceFor(report) {
       summary: item.summary,
       authority: item.authority,
     })),
+    rule_reconciliation_coverage: {
+      total_extracted_rules: report.ruleReconciliationCoverage.totalExtractedRules,
+      reconciled_rules: report.ruleReconciliationCoverage.reconciledRules,
+      omitted_rules: report.ruleReconciliationCoverage.omittedRules,
+      truncation_warning: report.ruleReconciliationCoverage.truncationWarning,
+      blocks_selected_native_adoption: report.ruleReconciliationCoverage.blocksSelectedNativeAdoption,
+    },
     reconciliation_items: report.reconciliationItems.map((item) => ({
       item_id: item.itemId,
       existing_rule_ref: item.existingRuleRef,
@@ -549,6 +595,16 @@ function printHuman(report) {
   printTable(["Evidence", "Path", "Status"], report.inputEvidence.length
     ? report.inputEvidence.map((item) => [item.evidence, code(item.path), item.status])
     : [["Native Migration Plan", "not found", "prepare Native Migration Plan first"]]);
+  console.log("");
+  console.log("## Rule Reconciliation Coverage");
+  console.log("");
+  printTable(["Field", "Value"], [
+    ["Total Extracted Rules", code(String(report.ruleReconciliationCoverage.totalExtractedRules))],
+    ["Reconciled Rules", code(String(report.ruleReconciliationCoverage.reconciledRules))],
+    ["Omitted Rules", code(String(report.ruleReconciliationCoverage.omittedRules))],
+    ["Truncation Warning", report.ruleReconciliationCoverage.truncationWarning],
+    ["Blocks Selected Native Adoption", code(report.ruleReconciliationCoverage.blocksSelectedNativeAdoption)],
+  ]);
   console.log("");
   console.log("## Existing Rule Set");
   console.log("");

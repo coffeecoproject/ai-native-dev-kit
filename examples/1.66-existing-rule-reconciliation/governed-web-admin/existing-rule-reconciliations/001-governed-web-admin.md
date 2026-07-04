@@ -23,6 +23,16 @@ This is a recommendation report, not permission to change files.
 | --- | --- | --- |
 | Native Migration Plan | `native-migration-plans/001-governed-web-admin.md` | Reviewed input |
 
+## Rule Reconciliation Coverage
+
+| Field | Value |
+| --- | --- |
+| Total Extracted Rules | `5` |
+| Reconciled Rules | `5` |
+| Omitted Rules | `0` |
+| Truncation Warning | None |
+| Blocks Selected Native Adoption | `No` |
+
 ## Existing Rule Set
 
 | Rule Ref | Surface | Existing Rule Summary | Authority |
@@ -118,6 +128,8 @@ approved governance-file edits only
   "project_state": "EXISTING_GOVERNED_PROJECT",
   "can_codex_write_now": "No",
   "can_recommend_apply_plan": "Yes",
+  "can_recommend_apply_plan_now": "Yes",
+  "can_recommend_apply_plan_after_human_review": "Yes",
   "reconciliation_authority": "RECOMMENDATION_ONLY",
   "business_authority": "PROJECT_OWNED",
   "production_authority": "HUMAN_OR_EXTERNAL_SYSTEM",
@@ -134,6 +146,13 @@ approved governance-file edits only
       "surface": "ENGINEERING_BASELINE"
     }
   ],
+  "rule_reconciliation_coverage": {
+    "total_extracted_rules": 5,
+    "reconciled_rules": 5,
+    "omitted_rules": 0,
+    "truncation_warning": "None",
+    "blocks_selected_native_adoption": "No"
+  },
   "reconciliation_items": [
     {
       "item_id": "RR-001",
@@ -256,6 +275,32 @@ approved governance-file edits only
       "status": "Pending"
     }
   ],
+  "native_adoption_decision": {
+    "recommendation": "SELECTED_NATIVE_ADOPTION",
+    "migration_depth": "DOCS_BRIDGE_THEN_SELECTED_ASSETS",
+    "confidence": "MEDIUM",
+    "can_codex_write_now": "No",
+    "default_path": "prepare apply plan after review",
+    "preserve": [
+      "release / rollback SOP",
+      "production CI / hooks / guard scripts",
+      "business rules",
+      "permissions / data / compliance controls"
+    ],
+    "merge": [
+      "engineering baseline",
+      "environment baseline"
+    ],
+    "replace": [
+      "old AI workflow routing after approval"
+    ],
+    "blocked": [
+      "production execution",
+      "secrets",
+      "CI/hook mutation without approval"
+    ],
+    "human_confirmation": "Allow Codex to prepare a reviewable apply plan for the recommended migration path."
+  },
   "proposed_next_steps": [
     "Native Migration Plan",
     "Existing Rule Reconciliation",

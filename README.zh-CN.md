@@ -4,9 +4,9 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.69.0`。
+当前版本：`1.69.1`。
 
-发布记录：[releases/1.69.0/release-record.md](releases/1.69.0/release-record.md)。
+发布记录：[releases/1.69.1/release-record.md](releases/1.69.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -42,7 +42,7 @@ node scripts/cli.mjs doctor <project>
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 和 `ai-native-dev-kit` 继续作为兼容别名保留。
 
-1.69.0 强化老项目接入：`doctor` 会停在清晰的老项目诊断层，不再刷一堆缺失资产；`reconcile-rules --auto-native` 可以让 Codex 只读生成迁移判断，直接推荐安全的 IntentOS 原生接入路径。
+1.69.1 继续强化老项目接入证据：规则对账会记录抽取规则总数、已对账数和遗漏数；只要有遗漏规则，就先阻断原生接入推荐；`doctor --dry-run` 也会展示老项目诊断路径，而不是普通缺失资产路径。
 
 ## 3 分钟理解
 
@@ -388,6 +388,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.69.1 Release Record](releases/1.69.1/release-record.md)
 - [1.69.0 Release Record](releases/1.69.0/release-record.md)
 - [1.68.2 Release Record](releases/1.68.2/release-record.md)
 - [1.68.1 Release Record](releases/1.68.1/release-record.md)

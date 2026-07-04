@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.69.0`
+`1.69.1`
 
 ## Project Version File
 
@@ -19,6 +19,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.69.1` hardens existing-project native adoption evidence: omitted extracted rules now block selected native adoption until reviewed, apply-plan recommendation is split into "now" and "after review", and `doctor --dry-run` shows the old-project diagnosis branch.
 - `1.69.0` improves existing-project native adoption: `doctor` stops at diagnosis for old projects, and `reconcile-rules --auto-native` can generate temporary read-only Native Migration input before recommending a safe migration depth.
 - `1.68.2` finalizes public adoption trust: source-only prerequisites are explicit, command aliases are shown consistently, dirty wording matches stop-first behavior, and release evidence is ready for GitHub Release publication.
 - `1.68.1` hardens public adoption: dirty worktrees stop before workflow updates or task execution, existing/partial projects default to plan-first workflow update recommendations after review, source-only adoption is documented, CLI aliases match package metadata, and private security reporting guidance is clearer.
