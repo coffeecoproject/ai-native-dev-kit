@@ -7440,12 +7440,17 @@ function checkReleasePlanProtocol() {
     "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-extra-dangerous-field/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim/release-plans/001-bad.md",
     "releases/1.67.0/release-record.md",
     "releases/1.67.0/known-limitations.md",
     "releases/1.67.0/self-check-report.md",
     "releases/1.67.1/release-record.md",
     "releases/1.67.1/known-limitations.md",
     "releases/1.67.1/self-check-report.md",
+    "releases/1.67.2/release-record.md",
+    "releases/1.67.2/known-limitations.md",
+    "releases/1.67.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.67 release plan asset exists ${file}`);
@@ -7462,6 +7467,7 @@ function checkReleasePlanProtocol() {
     read("docs/plans/release-core-model-consolidation-1.67-plan.md"),
     read("releases/1.67.0/release-record.md"),
     read("releases/1.67.1/release-record.md"),
+    read("releases/1.67.2/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -7477,6 +7483,8 @@ function checkReleasePlanProtocol() {
     "trace_controls_execution",
     "summary_state_drives_execution",
     "release_plan_evidence",
+    "release_plan_digest",
+    "additionalProperties",
   ]) {
     if (combined.includes(marker)) pass(`1.67 release plan includes ${marker}`);
     else fail(`1.67 release plan missing ${marker}`);
@@ -7550,6 +7558,8 @@ function checkReleasePlanProtocol() {
     ["state drives execution", "test-fixtures/bad/bad-release-plan-state-drives-execution", "forbidden release plan claim"],
     ["operating mode writes files", "test-fixtures/bad/bad-release-plan-operating-mode-writes-files", "forbidden release plan claim"],
     ["ignores existing rules", "test-fixtures/bad/bad-release-plan-ignores-existing-rules", "forbidden release plan claim"],
+    ["extra dangerous field", "test-fixtures/bad/bad-release-plan-extra-dangerous-field", "is not allowed"],
+    ["Chinese forbidden claim", "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim", "forbidden release plan claim"],
   ]) {
     const result = runNode(["scripts/check-release-plan.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;

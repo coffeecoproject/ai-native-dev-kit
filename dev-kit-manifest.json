@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.67.1",
+  "devKitVersion": "1.67.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.67.1"
+    "phase": "1.67.2"
   },
   "groups": {
     "sourceRequired": [
@@ -2089,12 +2089,17 @@
       "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-extra-dangerous-field/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim/release-plans/001-bad.md",
       "releases/1.67.0/release-record.md",
       "releases/1.67.0/known-limitations.md",
       "releases/1.67.0/self-check-report.md",
       "releases/1.67.1/release-record.md",
       "releases/1.67.1/known-limitations.md",
-      "releases/1.67.1/self-check-report.md"
+      "releases/1.67.1/self-check-report.md",
+      "releases/1.67.2/release-record.md",
+      "releases/1.67.2/known-limitations.md",
+      "releases/1.67.2/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -7036,12 +7041,17 @@
       "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-extra-dangerous-field/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim/release-plans/001-bad.md",
       "releases/1.67.0/release-record.md",
       "releases/1.67.0/known-limitations.md",
       "releases/1.67.0/self-check-report.md",
       "releases/1.67.1/release-record.md",
       "releases/1.67.1/known-limitations.md",
-      "releases/1.67.1/self-check-report.md"
+      "releases/1.67.1/self-check-report.md",
+      "releases/1.67.2/release-record.md",
+      "releases/1.67.2/known-limitations.md",
+      "releases/1.67.2/self-check-report.md"
     ]
   }
 }

@@ -4,13 +4,15 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.67.1`。
+当前版本：`1.67.2`。
 
-发布记录：[releases/1.67.1/release-record.md](releases/1.67.1/release-record.md)。
+发布记录：[releases/1.67.2/release-record.md](releases/1.67.2/release-record.md)。
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 继续作为兼容别名保留。
 
 版本说明：`1.4.0` 是历史上的 Project Memory 阶段；当前主线是 `1.67.x`，重点是统一任务收口判断、上线评审、小白可用的发布引导、平台发布配方、发布交接包、人工批准后的受控发布执行计划、老项目原生迁移、旧规则对齐，以及一个只读的 Release Plan 统一发布视图。
+
+1.67.2 只做 Release Plan 证据加固，不增加新流程：结构化证据会拒绝不支持的额外字段，中文危险发布表述会被拦截，审查清单补上 `release_plan_digest`，私有老项目 smoke 检查也改成“可选本地校准”，不再当成公开必备验证。
 
 1.67.1 校准 Release Plan 证据和老项目入口：严格检查会校验 `release_plan_digest`，覆盖 Web 预览、小程序提审、后端 API 交接、强治理老项目四类样例，并拒绝更多不安全发布视图表述。`start` / `next` 也会更清楚地说明：Codex 可以立即按 IntentOS 工作模式推进规划、路由、复查和对比，但治理资产写入仍必须先经过 Native Migration、Existing Rule Reconciliation、apply plan、人工批准和 readiness 检查。
 

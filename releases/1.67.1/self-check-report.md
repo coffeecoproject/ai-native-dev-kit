@@ -18,8 +18,7 @@ Passed.
 - `npm --silent run verify:examples`
 - `npm --silent run verify:governance`
 - `node scripts/check-dev-kit.mjs`
-- `node scripts/cli.mjs start /Users/liushan/Developer/WorkControl`
-- `node scripts/cli.mjs next /Users/liushan/Developer/WorkControl`
+- Optional local governed-project smoke: `start` / `next` against a private production-sensitive project checkout. This was local calibration evidence only, with the private path omitted from public required verification.
 - `node scripts/cli.mjs claim-control .`
 - `node scripts/cli.mjs product-baseline .`
 - `node scripts/check-claim-control.mjs .`
@@ -27,4 +26,4 @@ Passed.
 
 ## Result
 
-Pass. The 1.67.1 release plan hardening rejects the expanded unsafe cases, the positive examples pass strict structured evidence checks, and the WorkControl read-only smoke check now reports IntentOS Operating Mode as active while keeping project asset migration adapter-only until Native Migration and Existing Rule Reconciliation are reviewed and approved.
+Pass. The 1.67.1 release plan hardening rejects the expanded unsafe cases, the positive examples pass strict structured evidence checks, and the optional local governed-project smoke check reports IntentOS Operating Mode as active while keeping project asset migration adapter-only until Native Migration and Existing Rule Reconciliation are reviewed and approved.

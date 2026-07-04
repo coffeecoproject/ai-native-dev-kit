@@ -1,6 +1,7 @@
 {
   "schemaVersion": "1.67.0",
   "artifactType": "release_plan_evidence",
+  "additionalProperties": false,
   "required": [
     "schema_version",
     "artifact_type",
@@ -20,6 +21,7 @@
     "release_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "release_plan": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["state", "summary_state_kind", "release_target", "project_asset_migration_depth", "safe_next_step"],
       "properties": {
         "state": {
@@ -58,6 +60,7 @@
     },
     "release_plan_boundary": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "pure_view_model",
         "approves_release",
@@ -89,6 +92,7 @@
     },
     "existing_project_intentos_mode": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["operating_mode_active", "operating_mode_grants_write_permission", "migration_depth", "rule_comparison_required"],
       "properties": {
         "operating_mode_active": { "type": "boolean" },
@@ -102,6 +106,7 @@
       "minItems": 3,
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": ["source_system", "status", "ref", "contribution", "control_authority"],
         "properties": {
           "source_system": { "type": "string" },
@@ -117,6 +122,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": ["surface", "existing_ref", "intentos_ref", "recommendation", "human_decision_required"],
         "properties": {
           "surface": { "type": "string" },

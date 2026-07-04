@@ -118,6 +118,17 @@ const forbiddenClaims = [
   /\bThis plan replaces existing governance:\s*Yes\b/i,
   /\bThis plan modifies CI or hooks:\s*Yes\b/i,
   /\bThis plan asks for or stores secrets:\s*Yes\b/i,
+  /批准(发布|生产|上线)/,
+  /允许(发布|生产|上线)/,
+  /(Codex|AI|IntentOS|本计划|系统).{0,16}(自动)?(发布|上线|部署)/,
+  /(Codex|AI|IntentOS|本计划|系统).{0,16}(提交审核|提交提审|提交小程序审核)/,
+  /(Codex|AI|IntentOS|本计划|系统).{0,16}(发布负责人|上线负责人)/,
+  /(Codex|AI|IntentOS|本计划|系统).{0,16}(修改|变更|更新).{0,8}(DNS|支付|付款|生产迁移|生产数据|provider state|供应商状态)/i,
+  /(请求|索要|填写|录入|保存).{0,8}(密钥|密码|token|Token|secret|Secret)/,
+  /(跳过|绕过).{0,8}(Native Migration|现有规则对比|Existing Rule Reconciliation)/i,
+  /(替换|覆盖).{0,8}(现有治理|已有治理|现有规则|已有规则)/,
+  /trace.{0,8}(控制|驱动).{0,8}(执行|发布)/i,
+  /(状态|state).{0,8}(控制|驱动).{0,8}(执行|发布)/i,
 ];
 
 let failed = false;
@@ -381,12 +392,17 @@ function checkSourceEvidence() {
     "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
     "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-extra-dangerous-field/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim/release-plans/001-bad.md",
     "releases/1.67.0/release-record.md",
     "releases/1.67.0/known-limitations.md",
     "releases/1.67.0/self-check-report.md",
     "releases/1.67.1/release-record.md",
     "releases/1.67.1/known-limitations.md",
     "releases/1.67.1/self-check-report.md",
+    "releases/1.67.2/release-record.md",
+    "releases/1.67.2/known-limitations.md",
+    "releases/1.67.2/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.67 release plan source evidence exists ${file}`);
     else fail(`1.67 release plan source evidence missing ${file}`);
@@ -454,6 +470,8 @@ function checkSourceEvidence() {
     ["state drives execution", "test-fixtures/bad/bad-release-plan-state-drives-execution", "forbidden release plan claim"],
     ["operating mode writes files", "test-fixtures/bad/bad-release-plan-operating-mode-writes-files", "forbidden release plan claim"],
     ["ignores existing rules", "test-fixtures/bad/bad-release-plan-ignores-existing-rules", "forbidden release plan claim"],
+    ["extra dangerous field", "test-fixtures/bad/bad-release-plan-extra-dangerous-field", "is not allowed"],
+    ["Chinese forbidden claim", "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim", "forbidden release plan claim"],
   ]) {
     const result = runNode(["scripts/check-release-plan.mjs", target]);
     const output = `${result.stdout}\n${result.stderr}`;

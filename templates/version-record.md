@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.67.1`
+`1.67.2`
 
 ## Project Version File
 
@@ -19,6 +19,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.67.2` hardens Release Plan evidence: unsupported extra structured fields are rejected, Chinese unsafe release-plan claims are blocked, `release_plan_digest` is included in the review checklist, and private governed-project smoke checks are optional local calibration rather than public required verification.
 - `1.67.1` calibrates Release Plan evidence strictness: `release_plan_digest` is validated, four release-plan examples are covered, and unsafe release-plan claims around secrets, Codex release ownership, provider execution, skipped migration, lower-level system replacement, and governed-project migration maximization are rejected.
 - `1.67.1` clarifies old-project entry: Codex can work in IntentOS Operating Mode immediately for planning, routing, review, and comparison, while project asset writes remain blocked until Native Migration, Existing Rule Reconciliation, Unified Apply Plan, Approval Record, and Controlled Apply Readiness are complete.
 - `1.67.0` adds Release Core Model and Release Plan: multiple release source systems can be summarized into one pure view without becoming release authority.

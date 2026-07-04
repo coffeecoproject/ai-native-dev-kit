@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.67.1`
+Current version: `1.67.2`
 
 ## Versioning Policy
 
@@ -10,10 +10,11 @@ Current version: `1.67.1`
 
 ## Current Release
 
-`1.67.1`
+`1.67.2`
 
 Includes:
 
+- Release Plan Evidence Hardening phase `1.67.2`: strict Release Plan evidence rejects unsupported extra fields, Chinese unsafe release-plan claims are blocked, the review checklist includes `release_plan_digest`, and private governed-project smoke checks are documented as optional local calibration rather than public required verification
 - Release Plan Evidence and Existing-Project Entry Calibration phase `1.67.1`: strict Release Plan checks now validate `release_plan_digest`, cover Web preview, mini-program review, backend API handoff, and governed existing-project examples, and reject unsafe release-plan claims around secrets, Codex release ownership, provider execution, skipped migration, lower-level system replacement, and maximizing governed-project asset migration
 - `1.67.1` clarifies `start` / `next` output for old, governed, dirty, or production-sensitive projects: IntentOS Operating Mode is active for planning, routing, review, and comparison, but project asset changes still require Native Migration, Existing Rule Reconciliation, Unified Apply Plan, approval, and Controlled Apply Readiness
 - Release Core Model Consolidation phase `1.67.0`: adds `release-plan` / `release-check` so Release Adapter, Release Guide, Platform Release Recipe, Launch Review View, Release Handoff Pack, Release Execution, Native Migration, and Existing Rule Reconciliation can be summarized into one user-facing Release Plan
