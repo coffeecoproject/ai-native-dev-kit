@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "1.67.0",
+  "artifactType": "release_plan_evidence",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "release_plan_digest",
+    "release_plan",
+    "release_plan_boundary",
+    "existing_project_intentos_mode",
+    "trace",
+    "existing_rule_comparison",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.67.0"] },
+    "artifact_type": { "type": "string", "enum": ["release_plan_evidence"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "release_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "release_plan": {
+      "type": "object",
+      "required": ["state", "summary_state_kind", "release_target", "project_asset_migration_depth", "safe_next_step"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NEEDS_RELEASE_SHAPE",
+            "NEEDS_PLATFORM_RECIPE",
+            "NEEDS_LAUNCH_REVIEW",
+            "NEEDS_STRUCTURED_APPROVAL",
+            "READY_FOR_HANDOFF_REVIEW",
+            "READY_FOR_LOCAL_ASSIST",
+            "READY_FOR_PREVIEW_HANDOFF",
+            "READY_FOR_STAGING_HANDOFF",
+            "READY_FOR_PRODUCTION_HANDOFF",
+            "BLOCKED_BY_HUMAN_DECISION",
+            "BLOCKED_BY_EXTERNAL_SYSTEM",
+            "BLOCKED_BY_HIGH_RISK_SURFACE",
+            "BLOCKED_BY_PROJECT_AUTHORITY"
+          ]
+        },
+        "summary_state_kind": { "type": "string", "enum": ["SUMMARY_ONLY"] },
+        "release_target": { "type": "string" },
+        "project_asset_migration_depth": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "RECOMMEND_ONLY",
+            "ADAPTER_ONLY",
+            "SELECTIVE_INTENTOS_NATIVE",
+            "FULL_INTENTOS_NATIVE_CANDIDATE",
+            "BLOCKED"
+          ]
+        },
+        "safe_next_step": { "type": "string" }
+      }
+    },
+    "release_plan_boundary": {
+      "type": "object",
+      "required": [
+        "pure_view_model",
+        "approves_release",
+        "approves_production",
+        "writes_target_files",
+        "changes_command_behavior",
+        "trace_controls_execution",
+        "summary_state_drives_execution",
+        "operating_mode_grants_write_permission",
+        "codex_release_owner",
+        "replaces_existing_governance",
+        "modifies_ci_or_hooks",
+        "asks_for_or_stores_secrets"
+      ],
+      "properties": {
+        "pure_view_model": { "type": "boolean" },
+        "approves_release": { "type": "boolean" },
+        "approves_production": { "type": "boolean" },
+        "writes_target_files": { "type": "boolean" },
+        "changes_command_behavior": { "type": "boolean" },
+        "trace_controls_execution": { "type": "boolean" },
+        "summary_state_drives_execution": { "type": "boolean" },
+        "operating_mode_grants_write_permission": { "type": "boolean" },
+        "codex_release_owner": { "type": "boolean" },
+        "replaces_existing_governance": { "type": "boolean" },
+        "modifies_ci_or_hooks": { "type": "boolean" },
+        "asks_for_or_stores_secrets": { "type": "boolean" }
+      }
+    },
+    "existing_project_intentos_mode": {
+      "type": "object",
+      "required": ["operating_mode_active", "operating_mode_grants_write_permission", "migration_depth", "rule_comparison_required"],
+      "properties": {
+        "operating_mode_active": { "type": "boolean" },
+        "operating_mode_grants_write_permission": { "type": "boolean" },
+        "migration_depth": { "type": "string" },
+        "rule_comparison_required": { "type": "boolean" }
+      }
+    },
+    "trace": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["source_system", "status", "ref", "contribution", "control_authority"],
+        "properties": {
+          "source_system": { "type": "string" },
+          "status": { "type": "string" },
+          "ref": { "type": "string" },
+          "contribution": { "type": "string" },
+          "control_authority": { "type": "boolean" }
+        }
+      }
+    },
+    "existing_rule_comparison": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["surface", "existing_ref", "intentos_ref", "recommendation", "human_decision_required"],
+        "properties": {
+          "surface": { "type": "string" },
+          "existing_ref": { "type": "string" },
+          "intentos_ref": { "type": "string" },
+          "recommendation": {
+            "type": "string",
+            "enum": [
+              "KEEP_EXISTING",
+              "KEEP_EXISTING_AS_STRICTER",
+              "ADOPT_INTENTOS_GAP",
+              "MERGE_AFTER_REVIEW",
+              "GAP_SUGGESTION",
+              "NEEDS_HUMAN_DECISION",
+              "BLOCKED_BY_PROJECT_AUTHORITY"
+            ]
+          },
+          "human_decision_required": { "type": "boolean" }
+        }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "NEEDS_RELEASE_SHAPE",
+        "NEEDS_PLATFORM_RECIPE",
+        "NEEDS_LAUNCH_REVIEW",
+        "NEEDS_STRUCTURED_APPROVAL",
+        "READY_FOR_HANDOFF_REVIEW",
+        "READY_FOR_LOCAL_ASSIST",
+        "READY_FOR_PREVIEW_HANDOFF",
+        "READY_FOR_STAGING_HANDOFF",
+        "READY_FOR_PRODUCTION_HANDOFF",
+        "BLOCKED_BY_HUMAN_DECISION",
+        "BLOCKED_BY_EXTERNAL_SYSTEM",
+        "BLOCKED_BY_HIGH_RISK_SURFACE",
+        "BLOCKED_BY_PROJECT_AUTHORITY",
+        "RELEASE_PLAN_RECORDED"
+      ]
+    }
+  }
+}

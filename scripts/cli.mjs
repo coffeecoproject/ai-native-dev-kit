@@ -331,6 +331,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "release-plan": {
+    description: "Summarize release source systems into one pure-view Release Plan without approving or executing release.",
+    script: "scripts/resolve-release-plan.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-check": {
+    description: "Check recorded Release Plans for pure-view, trace, and existing-project rule-comparison boundaries.",
+    script: "scripts/check-release-plan.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "conversation-drift": {
     description: "Check conversation turn routing and scope-change governance.",
     script: "scripts/check-conversation-drift.mjs",
@@ -660,6 +672,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs release-handoff-check .");
   console.log("  node scripts/cli.mjs release-execution . --intent 'prepare release execution'");
   console.log("  node scripts/cli.mjs release-execution-check .");
+  console.log("  node scripts/cli.mjs release-plan . --intent 'help me launch'");
+  console.log("  node scripts/cli.mjs release-check .");
   console.log("  node scripts/cli.mjs conversation-drift .");
   console.log("  node scripts/cli.mjs first-delivery .");
   console.log("  node scripts/cli.mjs real-adoption .");

@@ -1509,6 +1509,11 @@ function checkCliFrontDoor() {
     "node scripts/cli.mjs release-handoff .",
     "node scripts/cli.mjs release-handoff-check .",
     "node scripts/check-release-handoff-pack.mjs .",
+    "node --check scripts/resolve-release-plan.mjs",
+    "node --check scripts/check-release-plan.mjs",
+    "node scripts/cli.mjs release-plan .",
+    "node scripts/cli.mjs release-check .",
+    "node scripts/check-release-plan.mjs .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -7398,6 +7403,140 @@ function checkReleaseExecutionProtocol() {
   }
 }
 
+function checkReleasePlanProtocol() {
+  const required = [
+    "core/release-core-model.md",
+    "docs/release-core-model.md",
+    "templates/release-plan.md",
+    "schemas/artifacts/release-plan.schema.json",
+    "checklists/release-plan-review.md",
+    "prompts/release-plan-agent.md",
+    "release-plans/.gitkeep",
+    "scripts/resolve-release-plan.mjs",
+    "scripts/check-release-plan.mjs",
+    "docs/plans/release-core-model-consolidation-1.67-plan.md",
+    "examples/1.67-release-core-model/README.md",
+    "examples/1.67-release-core-model/web-preview/README.md",
+    "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+    "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
+    "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
+    "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
+    "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENVIRONMENT_BASELINE.md",
+    "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
+    "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
+    "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
+    "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+    "releases/1.67.0/release-record.md",
+    "releases/1.67.0/known-limitations.md",
+    "releases/1.67.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.67 release plan asset exists ${file}`);
+    else fail(`1.67 release plan asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/release-core-model.md"),
+    read("docs/release-core-model.md"),
+    read("templates/release-plan.md"),
+    read("schemas/artifacts/release-plan.schema.json"),
+    read("scripts/resolve-release-plan.mjs"),
+    read("scripts/check-release-plan.mjs"),
+    read("docs/plans/release-core-model-consolidation-1.67-plan.md"),
+    read("releases/1.67.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Release Core Model",
+    "Release Plan",
+    "pure view model",
+    "Source Systems Stay Authoritative",
+    "IntentOS Operating Mode",
+    "Project Asset Migration Depth",
+    "Existing Rule Comparison Contract",
+    "This plan approves release: No",
+    "This plan treats IntentOS Operating Mode as write permission: No",
+    "trace_controls_execution",
+    "summary_state_drives_execution",
+    "release_plan_evidence",
+  ]) {
+    if (combined.includes(marker)) pass(`1.67 release plan includes ${marker}`);
+    else fail(`1.67 release plan missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-release-plan.mjs", ".", "--intent", "help me launch"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Release Plan")
+    && resolver.stdout.includes("## Release Plan Trace")
+    && resolver.stdout.includes("## Existing Project Rule Comparison")
+    && resolver.stdout.includes("This plan approves release: No")
+    && resolver.stdout.includes("This plan treats IntentOS Operating Mode as write permission: No")) {
+    pass("1.67 release plan resolver prints pure-view release plan");
+  } else {
+    fail(`1.67 release plan resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-release-plan.mjs", ".", "--intent", "help me launch", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "RELEASE_PLAN"
+        && parsed.humanSummary?.summaryStateKind === "SUMMARY_ONLY"
+        && parsed.humanSummary?.intentosOperatingMode === "ACTIVE"
+        && parsed.boundaries?.approvesRelease === "No"
+        && parsed.boundaries?.treatsIntentosOperatingModeAsWritePermission === "No"
+        && parsed.releasePlanTrace?.every((item) => item.controlAuthority === "No")
+        && parsed.existingProjectRuleComparison?.length > 0) {
+        pass("1.67 release plan resolver JSON includes pure view, trace, and rule comparison");
+      } else {
+        fail(`1.67 release plan resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.67 release plan resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.67 release plan resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const source = runNode(["scripts/check-release-plan.mjs", "."]);
+  if (source.status === 0 && source.stdout.includes("Release Plan check passed")) {
+    pass("1.67 release plan checker passes source repo");
+  } else {
+    fail(`1.67 release plan checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  for (const target of [
+    "examples/1.67-release-core-model/web-preview",
+    "examples/1.67-release-core-model/governed-existing-project-readonly",
+  ]) {
+    const example = runNode(["scripts/check-release-plan.mjs", target, "--require-structured-evidence"]);
+    if (example.status === 0 && example.stdout.includes("Release Plan check passed")) {
+      pass(`1.67 release plan example passes checker ${target}`);
+    } else {
+      fail(`1.67 release plan example failed ${target}: ${example.stderr || example.stdout}`);
+    }
+  }
+
+  for (const [name, target, expected] of [
+    ["approves production", "test-fixtures/bad/bad-release-plan-approves-production", "forbidden release plan claim"],
+    ["missing trace", "test-fixtures/bad/bad-release-plan-missing-trace", "at least three trace rows"],
+    ["state drives execution", "test-fixtures/bad/bad-release-plan-state-drives-execution", "forbidden release plan claim"],
+    ["operating mode writes files", "test-fixtures/bad/bad-release-plan-operating-mode-writes-files", "forbidden release plan claim"],
+    ["ignores existing rules", "test-fixtures/bad/bad-release-plan-ignores-existing-rules", "forbidden release plan claim"],
+  ]) {
+    const result = runNode(["scripts/check-release-plan.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.67 release plan rejects ${name}`);
+    } else {
+      fail(`1.67 release plan must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkReleaseAdapterProtocol() {
   const required = [
     "core/release-adapter.md",
@@ -9060,6 +9199,7 @@ function checkReadmePointers() {
     "Platform Release Recipes",
     "Release Handoff Packs",
     "Release Execution",
+    "Release Plan",
     "Structured Evidence Schema",
     "Artifact Lifecycle Map",
     "O0 / BL0 Lightweight Path",
@@ -9079,6 +9219,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs release-recipe",
     "node scripts/cli.mjs release-handoff",
     "node scripts/cli.mjs release-execution",
+    "node scripts/cli.mjs release-plan",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -9098,6 +9239,7 @@ function checkReadmePointers() {
     "node scripts/check-platform-release-recipe.mjs",
     "node scripts/check-release-handoff-pack.mjs",
     "node scripts/check-release-execution.mjs",
+    "node scripts/check-release-plan.mjs",
     "不因为一句话就写文件",
     "不把建议当成执行授权",
     "不自动改 CI、hook、发布流程或生产配置",
@@ -9113,6 +9255,7 @@ function checkReadmePointers() {
     "docs/platform-release-recipes.md",
     "docs/release-handoff-packs.md",
     "docs/release-execution-protocol.md",
+    "docs/release-core-model.md",
     "docs/beginner-entry.md",
     "docs/conversation-native-ask.md",
     "docs/existing-project-workflow-adapter.md",
@@ -9174,6 +9317,7 @@ function checkReadmePointers() {
     "Release Guide",
     "Platform Release Recipes",
     "Release Execution",
+    "Release Plan",
     "O0 / BL0 Lightweight Path",
     "安全边界",
     "node scripts/cli.mjs guide",
@@ -9188,6 +9332,7 @@ function checkReadmePointers() {
     "node scripts/cli.mjs release-guide",
     "node scripts/cli.mjs release-recipe",
     "node scripts/cli.mjs release-execution",
+    "node scripts/cli.mjs release-plan",
     "node scripts/cli.mjs work-queue",
     "node scripts/cli.mjs doc-lifecycle",
     "node scripts/cli.mjs hook-policy",
@@ -9203,6 +9348,7 @@ function checkReadmePointers() {
     "node scripts/check-release-guide.mjs",
     "node scripts/check-platform-release-recipe.mjs",
     "node scripts/check-release-execution.mjs",
+    "node scripts/check-release-plan.mjs",
     "docs/operator-manual.md",
     "docs/natural-language-orchestrator.md",
     "docs/unified-closure-model.md",
@@ -9213,6 +9359,7 @@ function checkReadmePointers() {
     "docs/release-guide.md",
     "docs/platform-release-recipes.md",
     "docs/release-execution-protocol.md",
+    "docs/release-core-model.md",
     "docs/review-surface-governance.md",
     "docs/change-impact-coverage.md",
     "docs/delivery-path-governance.md",
@@ -11810,6 +11957,7 @@ checkReleaseGuideProtocol();
 checkPlatformReleaseRecipeProtocol();
 checkReleaseHandoffPackProtocol();
 checkReleaseExecutionProtocol();
+checkReleasePlanProtocol();
 checkGuidedClosureExperienceProtocol();
 checkExecutionReviewClosureProtocol();
 checkOrdinaryUserProductLoopProtocol();

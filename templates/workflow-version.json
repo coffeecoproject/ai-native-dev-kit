@@ -1,5 +1,5 @@
 {
-  "devKitVersion": "1.66.0",
+  "devKitVersion": "1.67.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -452,6 +452,15 @@
     "existing-rule-reconciliations",
     "scripts/resolve-existing-rule-reconciliation.mjs",
     "scripts/check-existing-rule-reconciliation.mjs",
-    ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
+    ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json",
+    ".ai-native/checklists/release-plan-review.md",
+    ".ai-native/core/release-core-model.md",
+    ".ai-native/docs/release-core-model.md",
+    ".ai-native/prompts/release-plan-agent.md",
+    ".ai-native/templates/release-plan.md",
+    ".ai-native/schemas/artifacts/release-plan.schema.json",
+    "release-plans",
+    "scripts/check-release-plan.mjs",
+    "scripts/resolve-release-plan.mjs"
   ]
 }

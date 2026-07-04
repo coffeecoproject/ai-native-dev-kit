@@ -349,6 +349,7 @@ const workflowInternalProductionSignalPaths = new Set([
   "release-handoff-packs",
   "release-guides",
   "release-execution-plans",
+  "release-plans",
   "scripts/check-native-migration.mjs",
   "scripts/resolve-native-migration.mjs",
   "scripts/check-release-adapter.mjs",
@@ -356,11 +357,13 @@ const workflowInternalProductionSignalPaths = new Set([
   "scripts/check-release-handoff-pack.mjs",
   "scripts/check-release-guide.mjs",
   "scripts/check-release-execution.mjs",
+  "scripts/check-release-plan.mjs",
   "scripts/resolve-release-adapter.mjs",
   "scripts/resolve-platform-release-recipe.mjs",
   "scripts/resolve-release-handoff-pack.mjs",
   "scripts/resolve-release-guide.mjs",
   "scripts/resolve-release-execution.mjs",
+  "scripts/resolve-release-plan.mjs",
 ]);
 const productionPathPattern = /\b(prod|production|staging|release|deploy|deployment|rollback|recovery|incident|runbook|monitoring|observability|migration|backup|restore)\b/i;
 const ignoredSignalDirs = defaultIgnoredDirs;
@@ -427,7 +430,8 @@ function isWorkflowInternalProductionSignal(rel) {
     || rel.startsWith("release-recipes/")
     || rel.startsWith("release-handoff-packs/")
     || rel.startsWith("release-guides/")
-    || rel.startsWith("release-execution-plans/");
+    || rel.startsWith("release-execution-plans/")
+    || rel.startsWith("release-plans/");
 }
 
 function governanceSignals() {

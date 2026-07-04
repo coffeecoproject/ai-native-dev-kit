@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.66.0",
+  "devKitVersion": "1.67.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.66.0"
+    "phase": "1.67.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2053,7 +2053,34 @@
       "test-fixtures/bad/bad-rule-reconciliation-gap-suggestion-as-approval/existing-rule-reconciliations/001-bad.md",
       "releases/1.66.0/release-record.md",
       "releases/1.66.0/known-limitations.md",
-      "releases/1.66.0/self-check-report.md"
+      "releases/1.66.0/self-check-report.md",
+      "core/release-core-model.md",
+      "docs/release-core-model.md",
+      "templates/release-plan.md",
+      "schemas/artifacts/release-plan.schema.json",
+      "checklists/release-plan-review.md",
+      "prompts/release-plan-agent.md",
+      "release-plans/.gitkeep",
+      "scripts/resolve-release-plan.mjs",
+      "scripts/check-release-plan.mjs",
+      "docs/plans/release-core-model-consolidation-1.67-plan.md",
+      "examples/1.67-release-core-model/README.md",
+      "examples/1.67-release-core-model/web-preview/README.md",
+      "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENVIRONMENT_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
+      "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+      "releases/1.67.0/release-record.md",
+      "releases/1.67.0/known-limitations.md",
+      "releases/1.67.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -3148,7 +3175,16 @@
       "existing-rule-reconciliations",
       "scripts/resolve-existing-rule-reconciliation.mjs",
       "scripts/check-existing-rule-reconciliation.mjs",
-      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".ai-native/checklists/release-plan-review.md",
+      ".ai-native/core/release-core-model.md",
+      ".ai-native/docs/release-core-model.md",
+      ".ai-native/prompts/release-plan-agent.md",
+      ".ai-native/templates/release-plan.md",
+      ".ai-native/schemas/artifacts/release-plan.schema.json",
+      "release-plans",
+      "scripts/resolve-release-plan.mjs",
+      "scripts/check-release-plan.mjs"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3261,7 +3297,10 @@
       "docs/existing-rule-reconciliation.md",
       "prompts/existing-rule-reconciliation-agent.md",
       "templates/existing-rule-reconciliation-report.md",
-      "schemas/artifacts/existing-rule-reconciliation.schema.json"
+      "schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".ai-native/core/release-core-model.md",
+      ".ai-native/docs/release-core-model.md",
+      ".ai-native/schemas/artifacts/release-plan.schema.json"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3371,7 +3410,8 @@
       "templates/workflow-version.json",
       "templates/release-handoff-pack.md",
       "templates/native-migration-plan.md",
-      "templates/existing-rule-reconciliation-report.md"
+      "templates/existing-rule-reconciliation-report.md",
+      "templates/release-plan.md"
     ],
     "prompts": [
       ".ai-native/prompts/change-impact-coverage-agent.md",
@@ -3432,7 +3472,8 @@
       "prompts/workflow-concierge-agent.md",
       "prompts/release-handoff-pack-agent.md",
       "prompts/native-migration-agent.md",
-      "prompts/existing-rule-reconciliation-agent.md"
+      "prompts/existing-rule-reconciliation-agent.md",
+      "prompts/release-plan-agent.md"
     ],
     "checklists": [
       ".ai-native/checklists/change-impact-coverage-review.md",
@@ -3505,7 +3546,8 @@
       "checklists/workflow-guidance-review.md",
       "checklists/release-handoff-pack-review.md",
       "checklists/native-migration-review.md",
-      "checklists/existing-rule-reconciliation-review.md"
+      "checklists/existing-rule-reconciliation-review.md",
+      "checklists/release-plan-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -3607,7 +3649,8 @@
       "workflow-retros",
       "release-handoff-packs",
       "native-migration-plans",
-      "existing-rule-reconciliations"
+      "existing-rule-reconciliations",
+      "release-plans"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -3725,7 +3768,9 @@
       "scripts/check-native-migration.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/resolve-existing-rule-reconciliation.mjs",
-      "scripts/check-existing-rule-reconciliation.mjs"
+      "scripts/check-existing-rule-reconciliation.mjs",
+      "scripts/resolve-release-plan.mjs",
+      "scripts/check-release-plan.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -4044,7 +4089,16 @@
       "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md",
       "examples/1.66-existing-rule-reconciliation/README.md",
       "examples/1.66-existing-rule-reconciliation/governed-web-admin/README.md",
-      "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md"
+      "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md",
+      "examples/1.67-release-core-model/README.md",
+      "examples/1.67-release-core-model/web-preview/README.md",
+      "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENVIRONMENT_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -4404,7 +4458,12 @@
       "test-fixtures/bad/bad-rule-reconciliation-fake-gap-evidence/existing-rule-reconciliations/001-bad.md",
       "test-fixtures/bad/bad-rule-reconciliation-release-adopt-intentos/existing-rule-reconciliations/001-bad.md",
       "test-fixtures/bad/bad-rule-reconciliation-merge-without-preserved-terms/existing-rule-reconciliations/001-bad.md",
-      "test-fixtures/bad/bad-rule-reconciliation-gap-suggestion-as-approval/existing-rule-reconciliations/001-bad.md"
+      "test-fixtures/bad/bad-rule-reconciliation-gap-suggestion-as-approval/existing-rule-reconciliations/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".ai-native/checklists",
@@ -4855,7 +4914,16 @@
       "existing-rule-reconciliations",
       "scripts/resolve-existing-rule-reconciliation.mjs",
       "scripts/check-existing-rule-reconciliation.mjs",
-      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".ai-native/checklists/release-plan-review.md",
+      ".ai-native/core/release-core-model.md",
+      ".ai-native/docs/release-core-model.md",
+      ".ai-native/prompts/release-plan-agent.md",
+      ".ai-native/templates/release-plan.md",
+      ".ai-native/schemas/artifacts/release-plan.schema.json",
+      "release-plans",
+      "scripts/resolve-release-plan.mjs",
+      "scripts/check-release-plan.mjs"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -5313,7 +5381,16 @@
       "existing-rule-reconciliations",
       "scripts/resolve-existing-rule-reconciliation.mjs",
       "scripts/check-existing-rule-reconciliation.mjs",
-      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".ai-native/checklists/release-plan-review.md",
+      ".ai-native/core/release-core-model.md",
+      ".ai-native/docs/release-core-model.md",
+      ".ai-native/prompts/release-plan-agent.md",
+      ".ai-native/templates/release-plan.md",
+      ".ai-native/schemas/artifacts/release-plan.schema.json",
+      "release-plans",
+      "scripts/resolve-release-plan.mjs",
+      "scripts/check-release-plan.mjs"
     ]
   },
   "copyRules": {
@@ -5445,6 +5522,10 @@
       {
         "source": "release-recipes",
         "target": "release-recipes"
+      },
+      {
+        "source": "release-plans",
+        "target": "release-plans"
       },
       {
         "source": "review-surface-cards",
@@ -6735,6 +6816,18 @@
       {
         "source": "schemas/artifacts/existing-rule-reconciliation.schema.json",
         "target": ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
+      },
+      {
+        "source": "docs/release-core-model.md",
+        "target": ".ai-native/docs/release-core-model.md"
+      },
+      {
+        "source": "scripts/resolve-release-plan.mjs",
+        "target": "scripts/resolve-release-plan.mjs"
+      },
+      {
+        "source": "scripts/check-release-plan.mjs",
+        "target": "scripts/check-release-plan.mjs"
       }
     ]
   },
@@ -6882,7 +6975,34 @@
       "test-fixtures/bad/bad-release-recipe-missing-owner/release-recipes/001-bad.md",
       "test-fixtures/bad/bad-release-recipe-missing-rollback/release-recipes/001-bad.md",
       "test-fixtures/bad/bad-release-recipe-provider-certainty/release-recipes/001-bad.md",
-      "test-fixtures/bad/bad-release-recipe-secret-request/release-recipes/001-bad.md"
+      "test-fixtures/bad/bad-release-recipe-secret-request/release-recipes/001-bad.md",
+      "core/release-core-model.md",
+      "docs/release-core-model.md",
+      "templates/release-plan.md",
+      "schemas/artifacts/release-plan.schema.json",
+      "checklists/release-plan-review.md",
+      "prompts/release-plan-agent.md",
+      "release-plans/.gitkeep",
+      "scripts/resolve-release-plan.mjs",
+      "scripts/check-release-plan.mjs",
+      "docs/plans/release-core-model-consolidation-1.67-plan.md",
+      "examples/1.67-release-core-model/README.md",
+      "examples/1.67-release-core-model/web-preview/README.md",
+      "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENVIRONMENT_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
+      "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+      "releases/1.67.0/release-record.md",
+      "releases/1.67.0/known-limitations.md",
+      "releases/1.67.0/self-check-report.md"
     ]
   }
 }

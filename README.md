@@ -4,13 +4,15 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.66.0`.
+Current release: `1.67.0`.
 
-Release record: [releases/1.66.0/release-record.md](releases/1.66.0/release-record.md).
+Release record: [releases/1.67.0/release-record.md](releases/1.67.0/release-record.md).
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` remains as a compatibility alias.
 
-Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.66.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, calibrated rule-level native migration planning for existing projects, and recommendation-only reconciliation between existing project rules and IntentOS references.
+Version note: `1.4.0` was the historical Project Memory phase. The current line is `1.67.x`, focused on one final close-out decision, launch review, beginner-friendly release guidance, platform release recipes, release handoff packs, bounded release execution planning after human approval, calibrated old-project migration, existing-rule reconciliation, and one pure-view Release Plan that summarizes release source systems without becoming release authority.
+
+1.67.0 adds Release Core Model: when users say “help me launch”, IntentOS can summarize Release Adapter, Release Guide, Platform Recipe, Launch Review, Handoff, Release Execution, Native Migration, and Existing Rule Reconciliation into one Release Plan. For old projects, Codex can work in IntentOS Operating Mode immediately, but baselines, release rules, CI, hooks, and governance files still require detailed comparison, migration-depth recommendation, apply plan, approval, and readiness checks before changes.
 
 1.66.0 adds Existing Rule Reconciliation: after Native Migration identifies old project rules, Codex can compare them with IntentOS references and recommend `KEEP_EXISTING`, `ADOPT_INTENTOS`, `MERGE`, `GAP_SUGGESTION`, or human decision paths. It does not let IntentOS replace business rules, production controls, release SOPs, permissions, compliance, data, payment, tax, finance, HR, legal, secrets, hooks, CI, or provider state.
 
@@ -132,6 +134,7 @@ IntentOS 当前包含这些核心能力：
 | Release Handoff Packs | 把平台配方和结构化审批变成可交接的发布包，明确 Codex、人和外部系统各自负责什么 |
 | Release Path Hardening | 防止上线交接包过早生成，并用结构化证据证明交接包不是发布批准 |
 | Release Execution | 用户确认发布后，把执行步骤、负责人、停止条件和证据要求整理成受控发布执行计划 |
+| Release Plan | 把多条发布相关结果汇总成一个只读视图；老项目默认按 IntentOS 工作，但资产迁移必须先做规则对比和审批 |
 | Unified Apply Plan | 所有写入动作先进入一张可审查计划 |
 | Controlled Apply Readiness | 判断计划是否具备未来“人工批准后受控执行”的条件 |
 | Low-Risk Apply Candidate | 判断一个小改动是否足够窄、可回滚、可验证，能否进入后续人工批准计划 |
@@ -159,6 +162,7 @@ For durable command-line evidence, use:
 | 看更完整的下一步建议 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` |
 | 判断任务能不能收口 | `node scripts/cli.mjs finish ../my-project --intent "新增合同录入限制" --verification "npm run verify passed"` |
 | 准备发布路径 | `node scripts/cli.mjs release-guide ../my-project --intent "帮我上线"` |
+| 看统一发布视图 | `node scripts/cli.mjs release-plan ../my-project --intent "帮我上线"` |
 | 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
 
 You do not need to choose internal workflow commands before starting.
@@ -176,6 +180,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查原生迁移计划 | `node scripts/cli.mjs native-migration-check ../my-project` |
 | 对齐旧规则和 IntentOS 参考规则 | `node scripts/cli.mjs reconcile-rules ../my-project` |
 | 检查规则对齐报告 | `node scripts/cli.mjs reconcile-rules-check ../my-project` |
+| 汇总发布源系统为统一视图 | `node scripts/cli.mjs release-plan ../my-project --intent "帮我上线"` |
+| 检查统一发布视图 | `node scripts/cli.mjs release-check ../my-project` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |
 | 检查人工批准记录 | `node scripts/cli.mjs approval-record-check ../my-project` |
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
@@ -277,6 +283,7 @@ node scripts/check-release-guide.mjs .
 node scripts/check-platform-release-recipe.mjs .
 node scripts/check-release-handoff-pack.mjs .
 node scripts/check-release-execution.mjs .
+node scripts/check-release-plan.mjs .
 node scripts/check-low-risk-apply-candidate.mjs . --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs .
 node scripts/check-change-impact-coverage.mjs examples/1.49-structured-impact-coverage/contract-input-rule --report change-impact-coverage-reports/001-contract-input-rule.md --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs --require-precise-evidence
@@ -304,6 +311,7 @@ Start here:
 - [Platform Release Recipes](docs/platform-release-recipes.md)
 - [Release Handoff Packs](docs/release-handoff-packs.md)
 - [Release Execution Protocol](docs/release-execution-protocol.md)
+- [Release Core Model](docs/release-core-model.md)
 - [Existing Project Workflow Adapter](docs/existing-project-workflow-adapter.md)
 
 Core workflow:

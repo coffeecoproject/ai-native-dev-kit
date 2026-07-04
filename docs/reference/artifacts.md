@@ -35,6 +35,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `release-recipes/` | Platform release recipes that map platform-specific release prerequisites without executing release actions |
 | `release-handoff-packs/` | Bounded release handoff packages that separate Codex, human, and external-system release responsibilities |
 | `release-execution-plans/` | Bounded release execution plans after launch review and human release approval |
+| `release-plans/` | Pure-view Release Plans that summarize release source systems and existing-project rule comparison without becoming release authority |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
 | `review-loop-reports/` | Findings, AUTO_FIX rounds, verification, and remaining decisions |

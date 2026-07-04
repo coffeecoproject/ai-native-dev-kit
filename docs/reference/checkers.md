@@ -55,6 +55,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-release-handoff-pack.mjs` | Release Handoff Pack approval, owner, evidence, Codex-boundary, structured evidence, and no-execution checks |
 | `resolve-release-execution.mjs` | Read-only release execution planner after Launch Review View and Human Release Approval |
 | `check-release-execution.mjs` | Release Execution Plan preconditions, approval, step ownership, evidence, and no-auto-production checks |
+| `resolve-release-plan.mjs` | Read-only Release Plan resolver that turns release source systems into one pure view with trace and rule comparison |
+| `check-release-plan.mjs` | Release Plan pure-view, trace, no-authority, existing-project IntentOS mode, and rule-comparison checker |
 | `check-conversation-drift.mjs` | Conversation turn classification and scope-change routing |
 | `check-conversation-native-ask.mjs` | Conversation Ask Card boundary, no-CLI-burden, question-count, and overclaim checks |
 | `check-guided-delivery-loop.mjs` | Active work thread, parking lot, and guided decision boundaries |

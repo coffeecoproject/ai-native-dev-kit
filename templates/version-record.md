@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.66.0`
+`1.67.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.67.0` adds Release Core Model and Release Plan: multiple release source systems can be summarized into one pure view without becoming release authority.
+- `1.67.0` lets Codex work in IntentOS Operating Mode for old projects while keeping project asset migration controlled by Native Migration, Existing Rule Reconciliation, Unified Apply Plan, Controlled Apply Readiness, and Approval Record.
+- `1.67.0` requires existing baselines, environment rules, release rules, CI, hooks, and source-of-truth documents to be compared against IntentOS before changes; stricter or proven project rules are kept or escalated.
 - `1.66.0` adds Existing Rule Reconciliation after Native Migration: Codex can compare existing project rules with IntentOS references and output recommendation-only outcomes.
 - `1.66.0` keeps existing project business, production, release, permission, compliance, data, payment, tax, finance, HR, legal, secrets, hooks, CI, provider state, and governance-file authority outside automatic replacement.
 - `1.66.0` routes any future wording change through Native Migration Plan -> Existing Rule Reconciliation -> Unified Apply Plan -> Controlled Apply Readiness -> Approval Record.

@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.66.0`
+Current version: `1.67.0`
 
 ## Versioning Policy
 
@@ -10,10 +10,13 @@ Current version: `1.66.0`
 
 ## Current Release
 
-`1.66.0`
+`1.67.0`
 
 Includes:
 
+- Release Core Model Consolidation phase `1.67.0`: adds `release-plan` / `release-check` so Release Adapter, Release Guide, Platform Release Recipe, Launch Review View, Release Handoff Pack, Release Execution, Native Migration, and Existing Rule Reconciliation can be summarized into one user-facing Release Plan
+- `1.67.0` defines Release Plan as a pure view model: it is derived only, source systems remain authoritative, trace explains but does not control execution, and summary state does not drive workflow behavior
+- `1.67.0` clarifies existing-project behavior: Codex can work in IntentOS Operating Mode immediately, while baselines, release rules, CI, hooks, and governance files require Existing Rule Reconciliation, migration-depth recommendation, Unified Apply Plan, approval, and Controlled Apply Readiness before changes
 - Existing Rule Reconciliation Calibration phase `1.66.0`: adds recommendation-only comparison between existing project rules and IntentOS reference rules after Native Migration planning
 - `1.66.0` introduces `existing-rule-reconciliations/`, `reconcile-rules`, `reconcile-rules-check`, structured reconciliation evidence, a governed web-admin positive example, anonymous calibration evidence, and bad fixtures for release SOP replacement, business-rule downgrades, unauthorized writes, skipped approval chains, and gap suggestions treated as approval
 - `1.66.0` does not replace business rules, production controls, release SOPs, permissions, compliance, data, payment, tax, finance, HR, legal, secrets, hooks, CI, provider state, or target-project governance files; any future wording change must still go through Unified Apply Plan -> Controlled Apply Readiness -> Approval Record
