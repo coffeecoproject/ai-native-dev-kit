@@ -28,8 +28,8 @@ The implementation must stay inside phase `0.37.0`. It must not introduce init/u
 
 - Confirm manifest mode is `authoritative`.
 - Confirm copyRules include manifest and loader copy targets.
-- Confirm `check-ai-workflow`, `workflow-next`, `check-dev-kit`, and `init-project` consume manifest helpers.
-- Confirm generated projects include `.ai-native/dev-kit-manifest.json`.
+- Confirm `check-ai-workflow`, `workflow-next`, `check-intentos`, and `init-project` consume manifest helpers.
+- Confirm generated projects include `.intentos/intentos-manifest.json`.
 - Confirm generated projects include `scripts/lib/manifest.mjs`.
 - Confirm migration reports for PR template and AGENTS remain unchanged.
 
@@ -45,6 +45,6 @@ The implementation must stay inside phase `0.37.0`. It must not introduce init/u
 
 Workflow evidence: `tasks/037-manifest-authoritative.md`, `decision-briefs/037-manifest-authoritative.md`, `review-packets/037-manifest-authoritative.md`, and `review-loop-reports/037-manifest-authoritative.md`.
 
-Manifest evidence: `dev-kit-manifest.json`, `schemas/dev-kit-manifest.schema.json`, `scripts/lib/manifest.mjs`, `scripts/check-manifest.mjs`, `scripts/init-project.mjs`, `scripts/check-ai-workflow.mjs`, `scripts/workflow-next.mjs`, and `scripts/check-dev-kit.mjs`.
+Manifest evidence: `intentos-manifest.json`, `schemas/intentos-manifest.schema.json`, `scripts/lib/manifest.mjs`, `scripts/check-manifest.mjs`, `scripts/init-project.mjs`, `scripts/check-ai-workflow.mjs`, `scripts/workflow-next.mjs`, and `scripts/check-intentos.mjs`.
 
 Final evidence: `final-reports/037-manifest-authoritative.md` and `releases/0.37.0/phase-report.md`.

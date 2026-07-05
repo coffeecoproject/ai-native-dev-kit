@@ -9,12 +9,12 @@ Productization Hardcut phase `0.42.0`: Docs Information Architecture + Migration
 - Slimmed README and README.zh-CN into short entry pages.
 - Added operator manual, references, adoption playbooks, migration docs, FAQ, and troubleshooting.
 - Added `scripts/migrate-project.mjs`.
-- Routed `ai-native migrate` through the CLI front door.
+- Routed `intentos migrate` through the CLI front door.
 - Kept migration plan-only:
   - `--dry-run` prints a plan and writes nothing.
   - `--write-plan <file>` writes only the requested JSON plan.
   - direct migrate without either flag fails.
-- Updated dev-kit self-check coverage for migrate safety and docs IA pointers.
+- Updated intentos self-check coverage for migrate safety and docs IA pointers.
 - Updated manifest, workflow version template, package version, VERSION, and roadmap phase status.
 
 ## Verification

@@ -1,6 +1,6 @@
 # Natural Language Workflow Orchestrator
 
-This is the user-facing front door for AI Native Dev Kit.
+This is the user-facing front door for IntentOS.
 
 It lets Codex receive a natural-language goal, read the project in read-only mode, and return one plain Workflow Guidance Card.
 
@@ -23,7 +23,7 @@ The docs are confusing. Tell me which docs look current and which may be stale.
 
 ## What Codex Does Internally
 
-Codex can route to existing Dev Kit capabilities:
+Codex can route to existing IntentOS capabilities:
 
 - project start / workflow-next
 - baseline decision
@@ -113,7 +113,7 @@ The card must use one of these states:
 |---|---|---|
 | `plain` | ordinary user | no internal workflow jargon |
 | `developer` | developer user | short technical detail allowed |
-| `maintainer` | Dev Kit maintainer | commands, checkers, and file paths allowed |
+| `maintainer` | IntentOS maintainer | commands, checkers, and file paths allowed |
 
 Default mode is `plain`.
 

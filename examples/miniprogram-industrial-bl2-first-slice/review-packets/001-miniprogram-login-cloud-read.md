@@ -6,7 +6,7 @@ Use this file as the stable review input for the Mini Program BL2 example slice.
 
 Status: REVIEWED
 
-Prepared by: dev-kit-example
+Prepared by: intentos-example
 
 Prepared at: 2026-06-26T00:00:00.000Z
 
@@ -159,7 +159,7 @@ Evidence refs:
 
 Skipped evidence and reason:
 
-- Real WeChat Developer Tool screenshots and cloud logs are not included because this is a provider-neutral dev-kit example.
+- Real WeChat Developer Tool screenshots and cloud logs are not included because this is a provider-neutral intentos example.
 
 ## Files Changed
 

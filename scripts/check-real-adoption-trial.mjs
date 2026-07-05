@@ -11,11 +11,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -96,7 +96,7 @@ const forbiddenClaims = [
   /\blegal approved\b/i,
   /\bfully safe\b/i,
   /\bguaranteed compliant\b/i,
-  /\bvalidated by AI Native Dev Kit\b/i,
+  /\bvalidated by IntentOS\b/i,
 ];
 
 let failed = false;
@@ -345,8 +345,8 @@ function readResolved(relativePath) {
 function assetCandidates(relativePath) {
   const normalized = relativePath.replace(/^\.\//, "");
   const candidates = [path.join(projectRoot, normalized)];
-  if (!isSourceRepo && !normalized.startsWith(".ai-native/")) {
-    candidates.push(path.join(projectRoot, ".ai-native", normalized));
+  if (!isSourceRepo && !normalized.startsWith(".intentos/")) {
+    candidates.push(path.join(projectRoot, ".intentos", normalized));
   }
   return candidates;
 }

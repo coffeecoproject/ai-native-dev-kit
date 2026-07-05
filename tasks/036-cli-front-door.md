@@ -14,7 +14,7 @@ Eval: `evals/036-cli-front-door.md`
 
 ## Goal
 
-Execute Productization Hardcut phase `0.36.0` by adding a thin `ai-native` CLI front door, package metadata, README guidance, self-check coverage, and phase evidence.
+Execute Productization Hardcut phase `0.36.0` by adding a thin `intentos` CLI front door, package metadata, README guidance, self-check coverage, and phase evidence.
 
 ## Scope
 
@@ -24,7 +24,7 @@ Allowed:
 - Add `scripts/cli.mjs`.
 - Add help, version, dry-run, command routing, write-command display, and planned-only `migrate`.
 - Update README and README.zh-CN CLI usage guidance.
-- Update `scripts/check-dev-kit.mjs` with CLI smoke checks.
+- Update `scripts/check-intentos.mjs` with CLI smoke checks.
 - Update version metadata to `0.36.0`.
 - Add `0.36.0` workflow artifacts and release evidence.
 
@@ -42,7 +42,7 @@ Not allowed:
 ## Acceptance Criteria
 
 - CLI help, version, next, fixtures, self-check dry-run, update dry-run, doctor dry-run, and init smoke pass.
-- `node scripts/check-dev-kit.mjs` passes and includes CLI checks.
+- `node scripts/check-intentos.mjs` passes and includes CLI checks.
 - CLI write commands print underlying commands.
 - `migrate` is planned-only.
 - README explains CLI as the recommended human entry point.
@@ -58,10 +58,10 @@ node scripts/cli.mjs --version
 node scripts/cli.mjs next .
 node scripts/cli.mjs fixtures
 node scripts/cli.mjs self-check --dry-run
-node scripts/cli.mjs update --target /tmp/ai-native-cli-dry-run --dry-run
+node scripts/cli.mjs update --target /tmp/intentos-cli-dry-run --dry-run
 node scripts/cli.mjs doctor . --dry-run
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-cli-test
-node /tmp/ai-native-cli-test/scripts/check-ai-workflow.mjs /tmp/ai-native-cli-test --mode core
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-cli-test
+node /tmp/intentos-cli-test/scripts/check-ai-workflow.mjs /tmp/intentos-cli-test --mode core
 node scripts/check-manifest.mjs
 node scripts/check-goal-mode.mjs . --goal-card goal-cards/036-cli-front-door.md
 node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/036-cli-front-door.md
@@ -70,7 +70,7 @@ node scripts/check-review-loop.mjs . --task tasks/036-cli-front-door.md
 node scripts/check-next-step-boundary.mjs . --task tasks/036-cli-front-door.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## AI Budget

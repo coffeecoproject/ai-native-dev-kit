@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-1.12.0 makes the dev kit easier to judge in real use: Codex must show what it was allowed to change, what it actually changed, and whether a baseline is only proposed or truly evidenced.
+1.12.0 makes the IntentOS easier to judge in real use: Codex must show what it was allowed to change, what it actually changed, and whether a baseline is only proposed or truly evidenced.
 
 ## Scope
 
@@ -14,9 +14,9 @@
 
 ## Allowed Claims
 
-- The dev kit can now check recorded Change Boundary reports.
-- The dev kit can now check recorded Baseline State reports.
-- The dev kit can now check Guided Delivery Loop artifacts directly.
+- The IntentOS can now check recorded Change Boundary reports.
+- The IntentOS can now check recorded Baseline State reports.
+- The IntentOS can now check Guided Delivery Loop artifacts directly.
 - The generated project asset set can include these new docs, prompts, templates, report directories, and checkers.
 - CI and `npm run verify` include the 1.12 checks.
 
@@ -48,7 +48,7 @@ node scripts/check-guided-delivery-loop.mjs examples/1.12-change-boundary-baseli
 node scripts/check-change-boundary.mjs examples/1.12-change-boundary-baseline-state --report change-boundary-reports/001-appointment-first-slice.md
 node scripts/check-baseline-state.mjs examples/1.12-change-boundary-baseline-state --report baseline-state-reports/001-no-code-baseline.md
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

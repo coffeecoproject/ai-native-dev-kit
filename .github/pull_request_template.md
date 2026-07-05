@@ -47,7 +47,7 @@ Explain what changed in plain language and why the change is safe to review.
 List commands run and results.
 
 ```bash
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-fixtures.mjs
 node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .

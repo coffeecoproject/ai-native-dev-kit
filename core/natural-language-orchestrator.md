@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Natural Language Workflow Orchestrator is the plain-language front door for AI Native Dev Kit.
+Natural Language Workflow Orchestrator is the plain-language front door for IntentOS.
 
 It does not add a new governance layer. It routes a user's natural-language goal to existing workflow capabilities and returns one human-readable Workflow Guidance Card.
 

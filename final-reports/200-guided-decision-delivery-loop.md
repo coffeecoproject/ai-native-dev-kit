@@ -19,9 +19,9 @@
 |---|---|---|
 | Syntax | `node --check scripts/new-workflow-item.mjs` | PASS |
 | Syntax | `node --check scripts/init-project.mjs` | PASS |
-| Syntax | `node --check scripts/check-dev-kit.mjs` | PASS |
+| Syntax | `node --check scripts/check-intentos.mjs` | PASS |
 | Manifest | `node scripts/check-manifest.mjs` | PASS |
-| Full self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| Full self-check | `node scripts/check-intentos.mjs` | PASS |
 | Diff hygiene | `git diff --check` | PASS |
 
 ## Not Changed

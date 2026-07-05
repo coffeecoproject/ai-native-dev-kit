@@ -14,14 +14,14 @@ Review requested for: Productization Hardcut phase `0.34.0`
 
 ## Human Summary
 
-Review whether phase `0.34.0` correctly freezes the `0.33.0` baseline, adds dev-kit-owned CI, records release evidence, and avoids drifting into later CLI, manifest, schema, or init/update safety work.
+Review whether phase `0.34.0` correctly freezes the `0.33.0` baseline, adds intentos-owned CI, records release evidence, and avoids drifting into later CLI, manifest, schema, or init/update safety work.
 
 ## Review Scope
 
 Included:
 
-- `.github/workflows/dev-kit-pr-checks.yml`
-- `.github/workflows/dev-kit-release-checks.yml`
+- `.github/workflows/intentos-pr-checks.yml`
+- `.github/workflows/intentos-release-checks.yml`
 - `.github/pull_request_template.md`
 - `.github/CODEOWNERS`
 - `CONTRIBUTING.md`
@@ -32,7 +32,7 @@ Included:
 - `VERSION.md`
 - `templates/version-record.md`
 - `templates/workflow-version.json`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - task-scoped workflow artifacts for `034-baseline-freeze-self-ci`
 
 Excluded:
@@ -54,8 +54,8 @@ Excluded:
 | Baseline freeze | `releases/0.33.0/baseline-freeze.md` |
 | Self-check report | `releases/0.33.0/self-check-report.md` |
 | Phase report | `releases/0.34.0/phase-report.md` |
-| PR CI | `.github/workflows/dev-kit-pr-checks.yml` |
-| Release CI | `.github/workflows/dev-kit-release-checks.yml` |
+| PR CI | `.github/workflows/intentos-pr-checks.yml` |
+| Release CI | `.github/workflows/intentos-release-checks.yml` |
 | Final report | `final-reports/034-baseline-freeze-self-ci.md` |
 
 ## Reviewer Instructions
@@ -69,9 +69,9 @@ Excluded:
 
 ## Expected Review Questions
 
-- Does CI cover dev-kit self-check, fixtures, recursive script syntax, output quality, glossary usage, and generated-project smoke?
+- Does CI cover intentos self-check, fixtures, recursive script syntax, output quality, glossary usage, and generated-project smoke?
 - Does release evidence clearly state that local smoke is not real project adoption proof?
-- Does `check-dev-kit` validate the new CI and repository governance assets?
+- Does `check-intentos` validate the new CI and repository governance assets?
 - Does the final report include verification evidence and bounded next-step suggestions?
 - Does the change avoid implementing 0.35 or later phases?
 

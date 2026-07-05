@@ -14,7 +14,7 @@ Native Migration Classification Calibration.
 - 1.65 positive fixture strict check: passed.
 - 1.65 bad fixtures: rejected for intended reasons.
 - Manifest check: passed.
-- Dev Kit check: passed.
+- IntentOS check: passed.
 - Full verify: passed.
 - Git whitespace check: passed.
 
@@ -40,7 +40,7 @@ node scripts/check-native-migration.mjs examples/1.63-native-migration-precision
 node scripts/check-native-migration.mjs examples/1.64-native-migration-parser-calibration/table-long-bilingual --require-structured-evidence
 node scripts/check-native-migration.mjs examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -36,7 +36,7 @@ created_at: 2026-06-27
 - [x] `node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/180-real-project-adoption-trial.md`
 - [x] `node scripts/check-review-loop.mjs . --task tasks/180-real-project-adoption-trial.md`
 - [x] `node scripts/check-next-step-boundary.mjs . --task tasks/180-real-project-adoption-trial.md`
-- [x] `node scripts/check-dev-kit.mjs`
+- [x] `node scripts/check-intentos.mjs`
 - [x] `git diff --check`
 
 ## Spec Alignment

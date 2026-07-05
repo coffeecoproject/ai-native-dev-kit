@@ -25,15 +25,15 @@ for (const key of Object.keys(args)) {
 }
 
 const supportPaths = [
-  ".ai-native/core/project-onboarding.md",
-  ".ai-native/templates/project-onboarding.md",
-  ".ai-native/templates/project-profile.md",
-  ".ai-native/templates/tech-stack-strategy.md",
-  ".ai-native/templates/business-spec-index.md",
-  ".ai-native/templates/sample-policy.md",
-  ".ai-native/templates/onboarding-decisions.md",
-  ".ai-native/prompts/project-onboarding-agent.md",
-  ".ai-native/checklists/project-onboarding-review.md",
+  ".intentos/core/project-onboarding.md",
+  ".intentos/templates/project-onboarding.md",
+  ".intentos/templates/project-profile.md",
+  ".intentos/templates/tech-stack-strategy.md",
+  ".intentos/templates/business-spec-index.md",
+  ".intentos/templates/sample-policy.md",
+  ".intentos/templates/onboarding-decisions.md",
+  ".intentos/prompts/project-onboarding-agent.md",
+  ".intentos/checklists/project-onboarding-review.md",
 ];
 
 const docsByLevel = {

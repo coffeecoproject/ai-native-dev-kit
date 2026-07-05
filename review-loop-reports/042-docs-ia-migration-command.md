@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: done
 created_at: 2026-06-27
-devkit_version: 0.42.0
+intentos_version: 0.42.0
 task: tasks/042-docs-ia-migration-command.md
 spec: specs/042-docs-ia-migration-command.md
 eval: evals/042-docs-ia-migration-command.md
@@ -85,7 +85,7 @@ node --check scripts/cli.mjs
 node --check scripts/migrate-project.mjs
 node scripts/check-manifest.mjs .
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --dry-run
-node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/ai-native-042-migration-plan.json
+node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/intentos-042-migration-plan.json
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0
 ```
 

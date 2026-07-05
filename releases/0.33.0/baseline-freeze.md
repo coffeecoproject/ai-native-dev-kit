@@ -37,7 +37,7 @@ This file freezes the `0.33.0` baseline before Productization Hardcut phase `0.3
 
 ## Baseline Checkers
 
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `scripts/check-fixtures.mjs`
 - `scripts/check-ai-workflow.mjs`
 - `scripts/check-workflow-artifacts.mjs`
@@ -55,7 +55,7 @@ This file freezes the `0.33.0` baseline before Productization Hardcut phase `0.3
 
 ## Generated-Project Asset Boundary
 
-The `0.33.0` generated-project surface includes `.ai-native/` assets, workflow check scripts, onboarding docs, engineering baseline docs, review-loop directories, goal cards, subagent run plans, final reports, status reports, decision briefs, review summaries, customer handoffs, and GitHub workflow governance templates.
+The `0.33.0` generated-project surface includes `.intentos/` assets, workflow check scripts, onboarding docs, engineering baseline docs, review-loop directories, goal cards, subagent run plans, final reports, status reports, decision briefs, review summaries, customer handoffs, and GitHub workflow governance templates.
 
 ## License Statement
 

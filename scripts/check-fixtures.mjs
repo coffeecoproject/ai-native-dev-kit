@@ -62,19 +62,19 @@ function includesAll(output, expected) {
 }
 
 function createRunContext(testCase) {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-fixture-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-fixture-"));
   const context = {
     tempRoot,
-    manifest: path.join(tempRoot, "dev-kit-manifest.mismatch.json"),
+    manifest: path.join(tempRoot, "intentos-manifest.mismatch.json"),
     project: path.join(tempRoot, "project"),
   };
   const setup = testCase.setup || {};
   if (setup.manifestVersionMismatch) {
-    const manifestPath = path.join(kitRoot, "dev-kit-manifest.json");
+    const manifestPath = path.join(kitRoot, "intentos-manifest.json");
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-    manifest.devKitVersion = setup.manifestVersionMismatch.version || "0.0.0";
+    manifest.intentOSVersion = setup.manifestVersionMismatch.version || "0.0.0";
     if (manifest.compatibilityPolicy) {
-      manifest.compatibilityPolicy.phase = manifest.devKitVersion;
+      manifest.compatibilityPolicy.phase = manifest.intentOSVersion;
     }
     fs.writeFileSync(context.manifest, `${JSON.stringify(manifest, null, 2)}\n`);
   }

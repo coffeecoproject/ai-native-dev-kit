@@ -20,14 +20,14 @@ Review whether manifest is authoritative for asset groups and safe static copy r
 
 Included:
 
-- `dev-kit-manifest.json`
-- `schemas/dev-kit-manifest.schema.json`
+- `intentos-manifest.json`
+- `schemas/intentos-manifest.schema.json`
 - `scripts/lib/manifest.mjs`
 - `scripts/check-manifest.mjs`
 - `scripts/init-project.mjs`
 - `scripts/check-ai-workflow.mjs`
 - `scripts/workflow-next.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - version metadata
 - phase workflow artifacts for `037-manifest-authoritative`
 
@@ -45,14 +45,14 @@ Excluded:
 
 | Evidence | Ref |
 |---|---|
-| Manifest | `dev-kit-manifest.json` |
-| Manifest schema | `schemas/dev-kit-manifest.schema.json` |
+| Manifest | `intentos-manifest.json` |
+| Manifest schema | `schemas/intentos-manifest.schema.json` |
 | Manifest loader | `scripts/lib/manifest.mjs` |
 | Manifest checker | `scripts/check-manifest.mjs` |
 | Init/update static copy consumption | `scripts/init-project.mjs` |
 | Target required path consumption | `scripts/check-ai-workflow.mjs` |
 | Workflow readiness path consumption | `scripts/workflow-next.mjs` |
-| Source required path consumption | `scripts/check-dev-kit.mjs` |
+| Source required path consumption | `scripts/check-intentos.mjs` |
 | Final report | `final-reports/037-manifest-authoritative.md` |
 
 ## Reviewer Instructions
@@ -67,9 +67,9 @@ Excluded:
 ## Expected Review Questions
 
 - Does `check-manifest` validate copyRules and script consumption?
-- Do generated projects include `.ai-native/dev-kit-manifest.json`?
+- Do generated projects include `.intentos/intentos-manifest.json`?
 - Do generated projects include `scripts/lib/manifest.mjs`?
-- Does `check-dev-kit` use manifest for source required files?
+- Does `check-intentos` use manifest for source required files?
 - Does `init-project` keep approval-sensitive behavior outside copyRules?
 
 ## Known Boundaries

@@ -1,4 +1,4 @@
-# Subagent Run Plan: Read-only Dev Kit Manifest
+# Subagent Run Plan: Read-only IntentOS Manifest
 
 ## Human Summary
 
@@ -19,8 +19,8 @@ Reason: The main risk is authority drift, so helper roles should inspect and rev
 | Agent ID | Role | Authority | Status | Write Scope | Close Condition | Closure Evidence |
 |---|---|---|---|---|---|---|
 | A1 | Goal Planner | READ_ONLY | CLOSED | none | Baseline decision route selected | Handoff recorded in `goal-cards/035-readonly-manifest.md` |
-| A2 | Manifest Research | READ_ONLY | CLOSED | none | Existing script lists inspected | Findings reflected in `dev-kit-manifest.json` groups |
-| A3 | Schema Reviewer | READ_ONLY | CLOSED | none | Manifest shape reviewed | Rules recorded in `schemas/dev-kit-manifest.schema.json` |
+| A2 | Manifest Research | READ_ONLY | CLOSED | none | Existing script lists inspected | Findings reflected in `intentos-manifest.json` groups |
+| A3 | Schema Reviewer | READ_ONLY | CLOSED | none | Manifest shape reviewed | Rules recorded in `schemas/intentos-manifest.schema.json` |
 | A4 | Drift Reviewer | READ_ONLY | CLOSED | none | Drift behavior reviewed | Findings recorded in `review-loop-reports/035-readonly-manifest.md` |
 | A5 | Reporter | READ_ONLY_DRAFT | CLOSED | `final-reports/` and `releases/0.35.0/` evidence files | Human-facing report drafted | Output recorded in `final-reports/035-readonly-manifest.md` |
 
@@ -92,7 +92,7 @@ Recovery notes: Historical run plan updated to record that no helper should be r
 | Finding | Owner | Result |
 |---|---|---|
 | Manifest must remain read-only | Main thread | Enforced in decision brief, manifest policy, and checker |
-| Drift checker must fail invalid structure before drift | Main thread | Covered by `check-dev-kit` negative manifest test |
+| Drift checker must fail invalid structure before drift | Main thread | Covered by `check-intentos` negative manifest test |
 | Existing scripts must keep current behavior | Main thread | No init/update/check runtime behavior changed |
 
 ## Human Decisions Needed

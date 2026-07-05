@@ -13,7 +13,7 @@
 | Environment overclaim bad fixture | PASS | `test-fixtures/bad/bad-standard-pack-environment-overclaims` |
 | Index mismatch bad fixture | PASS | `test-fixtures/bad/bad-standard-pack-index-entry-mismatch` |
 | Fixture suite | PASS | `node scripts/check-fixtures.mjs` |
-| Dev kit self-check | PASS | `node scripts/check-dev-kit.mjs` |
+| IntentOS self-check | PASS | `node scripts/check-intentos.mjs` |
 | Full verification | PASS | `npm run verify` |
 
 ## Boundary

@@ -22,7 +22,7 @@ Done
 
 ## Problem
 
-AI Native Dev Kit can correctly classify adoption and governance paths, but the human-facing output may still feel like a technical recommendation instead of a decision brief.
+IntentOS can correctly classify adoption and governance paths, but the human-facing output may still feel like a technical recommendation instead of a decision brief.
 
 ## User Story
 
@@ -39,7 +39,7 @@ Included:
 - Decision/status/review/adoption/baseline/template updates.
 - `workflow-next`, `start`, `baseline`, and governance migration report output updates.
 - Docs and README usage expectation updates.
-- Output quality and dev-kit checker calibration.
+- Output quality and intentos checker calibration.
 - 1.9.0 version and release evidence.
 
 ## Non-goals
@@ -86,7 +86,7 @@ Not applicable.
 
 ## Observability
 
-- `scripts/check-dev-kit.mjs` checks protocol and script markers.
+- `scripts/check-intentos.mjs` checks protocol and script markers.
 - `scripts/score-output-quality.mjs` scores report outputs for decision clarity.
 - Release evidence records known limitations.
 
@@ -97,7 +97,7 @@ Not applicable.
 - Reporter and workflow prompts instruct agents to start decision-heavy output with the summary.
 - `workflow-next`, `start`, `baseline`, and migration reports show recommended option tables.
 - Docs explain that users choose options and do not need to read internal status codes first.
-- Full dev-kit checks pass.
+- Full intentos checks pass.
 
 ## Test Plan
 
@@ -110,7 +110,7 @@ Not applicable.
 - `node scripts/check-claim-control.mjs .`
 - `node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/190-human-decision-summary.md`
 - `node scripts/check-next-step-boundary.mjs . --task tasks/190-human-decision-summary.md`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Rollback Notes

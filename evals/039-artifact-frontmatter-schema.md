@@ -43,6 +43,6 @@ Implementation must stay inside `0.39.0`. It must not migrate all examples, make
 
 Workflow evidence: `tasks/039-artifact-frontmatter-schema.md`, `review-packets/039-artifact-frontmatter-schema.md`, and `review-loop-reports/039-artifact-frontmatter-schema.md`.
 
-Implementation evidence: `schemas/artifacts/`, `scripts/lib/frontmatter.mjs`, `scripts/new-workflow-item.mjs`, `scripts/check-workflow-artifacts.mjs`, and `scripts/check-dev-kit.mjs`.
+Implementation evidence: `schemas/artifacts/`, `scripts/lib/frontmatter.mjs`, `scripts/new-workflow-item.mjs`, `scripts/check-workflow-artifacts.mjs`, and `scripts/check-intentos.mjs`.
 
 Final evidence: `final-reports/039-artifact-frontmatter-schema.md` and `releases/0.39.0/phase-report.md`.

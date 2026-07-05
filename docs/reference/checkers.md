@@ -112,7 +112,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 
 | Checker | Purpose |
 |---|---|
-| `check-dev-kit.mjs` | Full repository self-check |
+| `check-intentos.mjs` | Full repository self-check |
 | `check-fixtures.mjs` | Golden, bad, migration, CLI, init/update, and output-quality fixture matrix |
 | `check-manifest.mjs` | Manifest shape, required assets, copy rules, workflow-version sync |
 | `check-industrial-pack.mjs` | Industrial pack structure, maturity metadata, draft overclaim scan |
@@ -155,14 +155,14 @@ Product and claim checks:
 - `check-change-impact-coverage.mjs` allows empty projects, but rejects Change Impact Coverage Reports that authorize implementation or release, omit affected-surface rows, mark `DONE` without evidence, mark high-risk surfaces `NOT_APPLICABLE` without concrete reasons, complete backend-only or frontend-only rule changes without closing related surfaces, or complete API contract changes without test evidence. Use `--mode closure` to reject required surfaces left `NOT_STARTED`; use `--require-structured-evidence` for new structured records; use `--strict-evidence` to reject placeholder `DONE` evidence; use `--resolve-evidence-refs` to require project-local files or accepted recorded refs for `DONE` evidence; use `--report <path> --require-precise-evidence` when only one exact report should close the task.
 - `check-delivery-path.mjs` allows empty projects, but rejects Delivery Path Reports that omit valid current/next states, evidence, blockers, next safe action, boundaries, or outcome, or claim target-project writes, CI/hook changes, task-state changes, implementation approval, release/production approval, Safe Launch replacement, or real-user-use proof.
 - `check-first-slice.mjs` allows empty projects, but rejects First-Slice Cards that expose internal jargon, ask more than 3 questions, omit backlog, omit verification, approve target-project writes, approve implementation, approve release/production, change CI/hooks, touch payment/secrets/production/migration/permission surfaces, or enable BL2/industrial packs.
-- `check-product-completeness.mjs` allows empty projects, but rejects Product Completeness Reports that omit product state, core checklist surfaces, local run/demo instructions, verification evidence, boundaries, or outcome, or claim implementation/release/production approval. New Dev Kit examples should use structured JSON product evidence.
+- `check-product-completeness.mjs` allows empty projects, but rejects Product Completeness Reports that omit product state, core checklist surfaces, local run/demo instructions, verification evidence, boundaries, or outcome, or claim implementation/release/production approval. New IntentOS examples should use structured JSON product evidence.
 - `check-mvp-example.mjs` checks bundled local MVP examples across Web and CLI shapes. It proves the example is coherent and locally testable; it does not prove any target project is production-ready.
 - `check-low-risk-apply-candidate.mjs` allows empty projects, but rejects candidate records that authorize apply, claim writes now, use wildcard/parent/absolute/home/backslash/generated/ignored/symlink/CI/hook target paths, omit rollback or verification, approve implementation, approve release/production, change CI/hooks, or touch high-risk surfaces without no-authority boundaries. Use `--require-structured-evidence` for new strict records.
 - `check-debt-handoff.mjs` allows empty projects, but rejects Debt & Knowledge Handoff Reports that omit debt levels, handoff subsections, boundaries, or valid outcomes, or claim debt forgiveness, implementation approval, release/production approval, task-state/source-of-truth changes, Review Loop replacement, or Safe Launch replacement.
 - `check-closure-decision.mjs` allows empty projects, but rejects Unified Closure Decisions that use non-unified final sources, miss Decision Trace / Dominant Reason / Conflict Summary, miss the single-source rule, claim `DONE` without verification or execution closure evidence, claim `DONE` while impact coverage or human decision is missing, authorize writes/apply/implementation/commit/push/release/production/CI/hooks, replace Review Loop, replace Safe Launch, or approve high-risk decisions.
 - `check-guided-closure.mjs` allows empty projects, but rejects Guided Closure Cards that expose low-level strict close-out commands or flags on the user surface, ask too many human decisions, omit checked areas or technical detail, approve target-project writes, authorize apply, approve implementation, approve commit/push, approve release/production, modify CI/hooks, change task state, forgive debt, replace Review Loop, replace Safe Launch, or approve high-risk decisions.
 - `check-execution-assurance.mjs` allows empty projects, but rejects execution completion claims without a completion contract, planned impact, actual diff, evidence refs, independent review when required, source-system trace, and safe patch classification. Use `--require-structured-evidence`, `--require-evidence-refs`, `--require-review`, `--require-actual-diff`, and `--require-precise-evidence` when Codex is claiming execution-class work is complete.
-- `check-product-baseline.mjs` is source-strict for Dev Kit maintenance and target-safe for generated projects.
+- `check-product-baseline.mjs` is source-strict for IntentOS maintenance and target-safe for generated projects.
 - `check-claim-control.mjs` checks public wording and reports; it does not make claim reports mandatory for every task.
 - Assumption Register is required only when reports rely on inferred or unconfirmed facts.
 - `check-context-governance.mjs` is candidate/audit focused; it does not approve project facts or require learning candidates for every task.
@@ -291,7 +291,7 @@ node scripts/resolve-baseline-packs.mjs .
 node scripts/check-baseline-pack-selection.mjs .
 ```
 
-For dev-kit changes:
+For intentos changes:
 
 ```bash
 node scripts/check-manifest.mjs .
@@ -315,7 +315,7 @@ node scripts/check-guided-baseline-selection.mjs .
 node scripts/resolve-baseline-packs.mjs .
 node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

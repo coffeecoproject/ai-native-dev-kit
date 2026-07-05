@@ -8,9 +8,9 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
-const manifest = readJsonIfExists(path.join(kitRoot, "dev-kit-manifest.json"));
+const manifest = readJsonIfExists(path.join(kitRoot, "intentos-manifest.json"));
 const packageJson = readJsonIfExists(path.join(kitRoot, "package.json"));
-const version = manifest?.devKitVersion || packageJson?.version || readVersionFile();
+const version = manifest?.intentOSVersion || packageJson?.version || readVersionFile();
 
 const commandRegistry = {
   ask: {
@@ -558,10 +558,10 @@ const commandRegistry = {
     writes: false,
     displaySequence: (args) => {
       const target = firstPositional(args, new Set()) || ".";
-      if (isDevKitSourceTarget(target)) {
+      if (isIntentOSSourceTarget(target)) {
         return [
           { script: "scripts/workflow-next.mjs", args: [target] },
-          { script: "scripts/check-dev-kit.mjs", args: [] },
+          { script: "scripts/check-intentos.mjs", args: [] },
         ];
       }
       return [
@@ -585,14 +585,14 @@ const commandRegistry = {
     buildArgs: (args) => args,
   },
   fixtures: {
-    description: "Run dev-kit fixture checks.",
+    description: "Run intentos fixture checks.",
     script: "scripts/check-fixtures.mjs",
     writes: false,
     buildArgs: (args) => args,
   },
   "self-check": {
-    description: "Run full dev-kit self-check.",
-    script: "scripts/check-dev-kit.mjs",
+    description: "Run full intentos self-check.",
+    script: "scripts/check-intentos.mjs",
     writes: false,
     buildArgs: (args) => args,
   },
@@ -653,11 +653,11 @@ function readVersionFile() {
   return match ? match[1] : "0.0.0";
 }
 
-function isDevKitSourceTarget(target) {
+function isIntentOSSourceTarget(target) {
   const targetRoot = path.resolve(process.cwd(), target);
   if (targetRoot !== kitRoot) return false;
   const targetPackage = readJsonIfExists(path.join(targetRoot, "package.json"));
-  return targetPackage?.name === "ai-native-dev-kit" && fs.existsSync(path.join(targetRoot, "dev-kit-manifest.json"));
+  return targetPackage?.name === "intentos" && fs.existsSync(path.join(targetRoot, "intentos-manifest.json"));
 }
 
 function printShortUsage() {
@@ -666,7 +666,7 @@ function printShortUsage() {
 
 function printHelp() {
   console.log(`IntentOS CLI ${version}`);
-  console.log("Command aliases: intentos / ai-native / ai-native-dev-kit");
+  console.log("Command: intentos");
   console.log("");
   console.log("IntentOS helps AI coding agents work through a project without bypassing human decisions.");
   console.log("");
@@ -675,10 +675,10 @@ function printHelp() {
   console.log("");
   console.log("Global options:");
   console.log("  --help       Show help");
-  console.log("  --version    Print dev-kit version");
+  console.log("  --version    Print intentos version");
   console.log("  --dry-run    Preview routing; doctor may run read-only workflow-next before printing checks");
   console.log("");
-  console.log(`Manifest: ${manifest ? `dev-kit-manifest.json (${manifest.mode}, ${manifest.devKitVersion})` : "not found"}`);
+  console.log(`Manifest: ${manifest ? `intentos-manifest.json (${manifest.mode}, ${manifest.intentOSVersion})` : "not found"}`);
   console.log("");
   console.log("Primary entry commands:");
   printCommandGroup(["start", "next", "doctor"]);
@@ -730,7 +730,7 @@ function printCommandGroup(names) {
 
 function printCommandHelp(name, command) {
   console.log(`IntentOS command: ${name}`);
-  console.log("Command aliases: intentos / ai-native / ai-native-dev-kit");
+  console.log("Command: intentos");
   console.log("");
   console.log(command.description);
   console.log("");
@@ -794,10 +794,10 @@ function runScriptCapture(script, args) {
 
 function runDoctor(args) {
   const target = firstPositional(args, new Set(["--format", "--intent", "--mode"])) || ".";
-  if (isDevKitSourceTarget(target)) {
+  if (isIntentOSSourceTarget(target)) {
     const next = runScript("scripts/workflow-next.mjs", [target]);
     if (next.status !== 0) return next;
-    return runScript("scripts/check-dev-kit.mjs", []);
+    return runScript("scripts/check-intentos.mjs", []);
   }
 
   const next = runScript("scripts/workflow-next.mjs", [target]);
@@ -819,8 +819,8 @@ function runDoctor(args) {
 function dryRunDoctor(args) {
   const target = firstPositional(args, new Set(["--format", "--intent", "--mode"])) || ".";
   printDisplayCommand("scripts/workflow-next.mjs", [target]);
-  if (isDevKitSourceTarget(target)) {
-    printDisplayCommand("scripts/check-dev-kit.mjs", []);
+  if (isIntentOSSourceTarget(target)) {
+    printDisplayCommand("scripts/check-intentos.mjs", []);
     return { status: 0 };
   }
 

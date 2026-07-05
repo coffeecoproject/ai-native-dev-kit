@@ -174,7 +174,7 @@ Required subagent governance:
 2. Add 1.5 safe launch rules, templates, checker, examples, fixtures, and CLI entry.
 3. Add 1.6 conversation drift rules, templates, checker, examples, fixtures, and CLI entry.
 4. Update manifest, workflow version, docs, platform adapters, CI, PR templates, and generated-project checks.
-5. Run syntax, fixture, manifest, and full dev-kit self-checks.
+5. Run syntax, fixture, manifest, and full intentos self-checks.
 6. Commit and push only after checks pass.
 
 ## Evidence Required For This Upgrade
@@ -189,10 +189,10 @@ Required subagent governance:
 
 This upgrade is complete when:
 
-- `VERSION.md`, `package.json`, `dev-kit-manifest.json`, `templates/workflow-version.json`, and `templates/version-record.md` all agree on `1.6.0`
+- `VERSION.md`, `package.json`, `intentos-manifest.json`, `templates/workflow-version.json`, and `templates/version-record.md` all agree on `1.6.0`
 - `node scripts/check-launch-readiness.mjs .` passes
 - `node scripts/check-conversation-drift.mjs .` passes
 - `node scripts/check-manifest.mjs` passes
 - `node scripts/check-fixtures.mjs` passes
-- `node scripts/check-dev-kit.mjs` passes
+- `node scripts/check-intentos.mjs` passes
 - the commit excludes local scratch and `.DS_Store`

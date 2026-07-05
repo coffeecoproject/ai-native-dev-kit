@@ -1,6 +1,6 @@
 # Unified Apply Plan Governance
 
-Unified Apply Plan Governance is the single review layer for any AI Native action that may write project files.
+Unified Apply Plan Governance is the single review layer for any IntentOS action that may write project files.
 
 It does not execute writes. It turns proposed writes into a clear, reviewable plan so humans decide before Codex applies anything.
 

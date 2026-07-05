@@ -690,7 +690,7 @@ Expected deliverables:
 - CLI entries:
   - `release-plan`
   - `release-check`
-- `scripts/check-dev-kit.mjs` coverage
+- `scripts/check-intentos.mjs` coverage
 - `scripts/new-workflow-item.mjs` type for `release-plan`
 
 Resolver behavior:
@@ -789,7 +789,7 @@ Expected deliverables:
 - README / README.zh-CN current release section
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `templates/version-record.md`
 - `templates/workflow-version.json`
 - `docs/reference/scripts.md`
@@ -958,7 +958,7 @@ npm run verify:governance
 npm run verify:examples
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

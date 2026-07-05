@@ -23,7 +23,7 @@ The manifest should become the single place to update asset inventories and safe
 - Static asset copy rules can safely move into manifest.
 - PR template and AGENTS handling must stay in code because they have human-approval migration logic.
 - Industrial pack concrete pack selection must stay in code because it depends on explicit selection and installed packs.
-- Generated projects can receive `.ai-native/dev-kit-manifest.json` and `scripts/lib/manifest.mjs`.
+- Generated projects can receive `.intentos/intentos-manifest.json` and `scripts/lib/manifest.mjs`.
 
 ## Direction Risks
 
@@ -54,7 +54,7 @@ Make manifest authoritative for required path groups, workflow version assets, w
 ## Domain Model Draft
 
 - Authoritative manifest: source of asset groups and safe copy rules.
-- Source required files: files that must exist in the dev-kit repository.
+- Source required files: files that must exist in the intentos repository.
 - Target required paths: files and directories required in generated projects.
 - Workflow readiness paths: target core paths used by `workflow-next`.
 - Copy rules: static source-to-target mappings that do not require human approval.
@@ -65,7 +65,7 @@ No secrets, auth, permissions, production configuration, data migration, destruc
 
 ## First Vertical Slice
 
-Make generated projects receive `.ai-native/dev-kit-manifest.json` and `scripts/lib/manifest.mjs`, then verify `check-ai-workflow` and `workflow-next` both report a manifest-added target path without script edits.
+Make generated projects receive `.intentos/intentos-manifest.json` and `scripts/lib/manifest.mjs`, then verify `check-ai-workflow` and `workflow-next` both report a manifest-added target path without script edits.
 
 ## Suggested Specs
 

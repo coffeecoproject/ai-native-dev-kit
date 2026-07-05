@@ -2,7 +2,7 @@
 
 ## Summary
 
-Phase `0.36.0` adds the first product-style command entry point for `ai-native-dev-kit`: `scripts/cli.mjs`, exposed as `ai-native` through local package metadata.
+Phase `0.36.0` adds the first product-style command entry point for `intentos`: `scripts/cli.mjs`, exposed as `intentos` through local package metadata.
 
 The CLI is intentionally thin. It delegates to existing scripts and does not replace their behavior.
 
@@ -14,7 +14,7 @@ The CLI is intentionally thin. It delegates to existing scripts and does not rep
 - Added planned-only `migrate` command behavior.
 - Added package scripts: `check`, `self-check`, `fixtures`, and `smoke:init`.
 - Updated README and README.zh-CN CLI guidance.
-- Added CLI checks to `scripts/check-dev-kit.mjs`.
+- Added CLI checks to `scripts/check-intentos.mjs`.
 - Updated version metadata to `0.36.0`.
 - Added phase workflow artifacts.
 
@@ -30,13 +30,13 @@ node scripts/cli.mjs --version
 node scripts/cli.mjs next .
 node scripts/cli.mjs fixtures
 node scripts/cli.mjs self-check --dry-run
-node scripts/cli.mjs update --target /tmp/ai-native-cli-dry-run --dry-run
+node scripts/cli.mjs update --target /tmp/intentos-cli-dry-run --dry-run
 node scripts/cli.mjs doctor . --dry-run
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-cli-test
-node /tmp/ai-native-cli-test/scripts/check-ai-workflow.mjs /tmp/ai-native-cli-test --mode core
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-cli-test
+node /tmp/intentos-cli-test/scripts/check-ai-workflow.mjs /tmp/intentos-cli-test --mode core
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.

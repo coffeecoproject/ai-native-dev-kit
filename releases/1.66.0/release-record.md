@@ -146,7 +146,7 @@ npm run verify:syntax
 npm run verify:governance
 npm run verify:examples
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

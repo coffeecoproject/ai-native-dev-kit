@@ -45,4 +45,4 @@
 
 - `node scripts/check-product-completeness.mjs examples/1.43-product-completeness-gate`
 - `node scripts/check-fixtures.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`

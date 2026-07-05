@@ -18,7 +18,7 @@ Reason: The phase has a defined request, preflight, spec, eval, task, and accept
 
 Project state: DEV_KIT_PRODUCTIZATION
 
-Adoption mode: Not applicable because this work changes the dev-kit repository itself, not a target project.
+Adoption mode: Not applicable because this work changes the intentos repository itself, not a target project.
 
 Workflow state: Phase `0.35.0` is committed; phase `0.36.0` has request, preflight, spec, eval, task, decision brief, review packet, and review loop evidence.
 

@@ -82,6 +82,6 @@ BL2 selection is not:
 node scripts/check-industrial-pack.mjs .
 node scripts/check-industrial-baseline.mjs <project> --strict
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 ```

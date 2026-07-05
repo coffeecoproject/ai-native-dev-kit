@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 spec: specs/042-docs-ia-migration-command.md
 eval: evals/042-docs-ia-migration-command.md
 task_level: L3
@@ -37,7 +37,7 @@ Allowed:
 - Add roadmap target docs under `docs/`.
 - Slim README and README.zh-CN while preserving complete reference links.
 - Add `scripts/migrate-project.mjs` and wire `scripts/cli.mjs migrate`.
-- Add dev-kit self-check coverage for migration safety.
+- Add intentos self-check coverage for migration safety.
 - Update manifest, VERSION, package version, workflow version templates, release evidence, and
   workflow artifacts.
 
@@ -67,7 +67,7 @@ Run:
 node --check scripts/cli.mjs
 node --check scripts/migrate-project.mjs
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --dry-run
-node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/ai-native-migration-plan.json
+node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/intentos-migration-plan.json
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0
 node scripts/check-manifest.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/042-docs-ia-migration-command.md
@@ -75,7 +75,7 @@ node scripts/check-review-loop.mjs . --task tasks/042-docs-ia-migration-command.
 node scripts/check-goal-mode.mjs .
 node scripts/check-subagent-orchestration.mjs .
 node scripts/check-next-step-boundary.mjs . --task tasks/042-docs-ia-migration-command.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

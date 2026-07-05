@@ -48,7 +48,7 @@ This keeps the user decision simple while preventing the AI from hiding technica
 1.69.1 does not:
 
 - write target-project files;
-- install `.ai-native`;
+- install `.intentos`;
 - replace `AGENTS.md`;
 - change CI, hooks, release SOPs, baselines, production config, secrets, migrations, payment, permissions, data, provider state, legal, tax, finance, HR, security, privacy, or compliance behavior;
 - approve implementation;
@@ -65,7 +65,7 @@ This keeps the user decision simple while preventing the AI from hiding technica
 ## Forbidden Claims
 
 - Do not claim 1.69.1 automatically migrates existing projects.
-- Do not claim 1.69.1 installs `.ai-native` into old projects.
+- Do not claim 1.69.1 installs `.intentos` into old projects.
 - Do not claim 1.69.1 replaces existing `AGENTS.md`, CI, hooks, release SOPs, baselines, or production controls.
 - Do not claim omitted rules can be ignored.
 - Do not claim an apply plan is approved because it may be recommended after review.
@@ -80,7 +80,7 @@ The release must be verified with:
 - strict Existing Rule Reconciliation example validation;
 - repository-level `reconcile-rules --auto-native` validation;
 - governance verification;
-- full `node scripts/check-dev-kit.mjs`;
+- full `node scripts/check-intentos.mjs`;
 - `git diff --check`.
 
 ## Evidence Status
@@ -88,7 +88,7 @@ The release must be verified with:
 - Version metadata points to `1.69.1`.
 - CLI version prints `1.69.1`.
 - Strict Existing Rule Reconciliation example validation passed.
-- Truncated extracted-rule reconciliation is covered in dev-kit self-check.
+- Truncated extracted-rule reconciliation is covered in intentos self-check.
 - `doctor --dry-run` has project-aware old-project branch behavior.
 - Source verification evidence is recorded in [self-check-report.md](self-check-report.md).
 - GitHub Release publication is outside source verification.
@@ -98,14 +98,14 @@ The release must be verified with:
 - `node --check scripts/cli.mjs`
 - `node --check scripts/resolve-existing-rule-reconciliation.mjs`
 - `node --check scripts/check-existing-rule-reconciliation.mjs`
-- `node --check scripts/check-dev-kit.mjs`
+- `node --check scripts/check-intentos.mjs`
 - `node scripts/cli.mjs --version`
 - `node scripts/check-manifest.mjs`
 - `node scripts/check-existing-rule-reconciliation.mjs examples/1.66-existing-rule-reconciliation/governed-web-admin --require-structured-evidence`
 - `node scripts/cli.mjs reconcile-rules . --auto-native`
 - `node scripts/check-existing-rule-reconciliation.mjs .`
 - `npm --silent run verify:governance`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Known Limitations

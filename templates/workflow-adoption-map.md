@@ -1,6 +1,6 @@
 # Workflow Adoption Map: <project-name>
 
-Use this report to map an existing project's workflow to recommended AI Native
+Use this report to map an existing project's workflow to recommended IntentOS
 workflow usage.
 
 This report is read-only by default. It does not install workflow assets,
@@ -56,7 +56,7 @@ One-sentence conclusion for the existing project workflow adapter.
 | Release / rollback |  | Covered / Partial / Missing | Keep / Map / Gap |  |
 | Hooks / automation |  | Covered / Partial / Missing | Keep / Map / Gap |  |
 
-## Recommended AI Native Workflow Use
+## Recommended IntentOS Workflow Use
 
 | Situation | Recommended workflow | Use now? | How to connect | Human decision needed |
 |---|---|---|---|---|
@@ -97,7 +97,7 @@ One-sentence conclusion for the existing project workflow adapter.
 
 ## Conflicts / Duplicates
 
-| Existing asset | Potential AI Native overlap | Conflict | Recommended handling |
+| Existing asset | Potential IntentOS overlap | Conflict | Recommended handling |
 |---|---|---|---|
 |  |  | none / possible / blocking | Keep / Map / Needs owner decision |
 
@@ -106,7 +106,7 @@ One-sentence conclusion for the existing project workflow adapter.
 | Step | Action | Writes target files? | Requires human approval | Status |
 |---|---|---|---|---|
 | 1 | Keep current project workflow authoritative | No | No | PROPOSED |
-| 2 | Use this map for AI Native workflow routing | No | No | PROPOSED |
+| 2 | Use this map for IntentOS workflow routing | No | No | PROPOSED |
 | 3 | Prepare docs-only bridge only if approved | Docs only | Yes | PENDING |
 
 ## Human Decisions Needed

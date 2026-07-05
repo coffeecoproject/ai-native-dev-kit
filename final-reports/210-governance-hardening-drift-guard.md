@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-1.11.0 hardens the dev kit against version drift, unsafe direct init, unmanifested important files, and release records that only look compliant.
+1.11.0 hardens the IntentOS against version drift, unsafe direct init, unmanifested important files, and release records that only look compliant.
 
 ## Completed
 
@@ -22,9 +22,9 @@
 | Syntax | `node --check scripts/check-manifest.mjs` | PASS |
 | Syntax | `node --check scripts/check-claim-control.mjs` | PASS |
 | Syntax | `node --check scripts/check-product-baseline.mjs` | PASS |
-| Syntax | `node --check scripts/check-dev-kit.mjs` | PASS |
+| Syntax | `node --check scripts/check-intentos.mjs` | PASS |
 | Manifest | `node scripts/check-manifest.mjs` | PASS |
-| Full self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| Full self-check | `node scripts/check-intentos.mjs` | PASS |
 | Release verify | `npm run verify` | PASS |
 | Diff hygiene | `git diff --check` | PASS |
 

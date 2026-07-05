@@ -1,13 +1,13 @@
 # Existing Project Workflow Adapter
 
-This page explains how to use AI Native Dev Kit in existing projects without
+This page explains how to use IntentOS in existing projects without
 copying a second workflow system over the project.
 
 ## Human Summary
 
 For an existing project, Codex should first map the project's current workflow:
 agent rules, docs, gates, release process, evidence, hooks, and task flow. Then
-it should recommend which AI Native workflow pieces to use, which existing
+it should recommend which IntentOS workflow pieces to use, which existing
 assets stay authoritative, and what must not be touched.
 
 The user should only make decisions such as "keep read-only", "allow a docs-only
@@ -59,7 +59,7 @@ workflow-map
 |---|---|
 | What project state is this? | new, light existing, governed, production-sensitive, dirty, or blocked |
 | What workflow already exists? | agent rules, docs, gates, release process, evidence, hooks |
-| What AI Native workflows should be used? | request/spec/task, baseline decision, change boundary, patch classification, review loop, launch readiness |
+| What IntentOS workflows should be used? | request/spec/task, baseline decision, change boundary, patch classification, review loop, launch readiness |
 | What should be reused? | existing authority and project-specific process |
 | What can be added later? | only approved docs or selected bridge assets |
 | What must not be touched? | CI, hooks, release, AGENTS, business code, data, secrets, production |
@@ -80,7 +80,7 @@ workflow-map
 
 It does not:
 
-- install `.ai-native`
+- install `.intentos`
 - install target-project workflow assets
 - change `AGENTS.md`
 - change PR templates

@@ -1,6 +1,6 @@
 # Adoption Evidence Report
 
-Use this template to record real project adoption evidence for the AI Native Dev Kit.
+Use this template to record real project adoption evidence for the IntentOS.
 
 This report is evidence, not marketing. It should make failure modes, false positives, and human decisions visible.
 

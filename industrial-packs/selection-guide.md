@@ -129,7 +129,7 @@ The backend/admin packs are optional, but they become required when those surfac
 4. Install only selected packs:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --target <project> \
   --update-workflow-assets \
   --industrial-packs web-app-industrial,backend-api-industrial

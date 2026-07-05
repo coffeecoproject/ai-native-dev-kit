@@ -2,9 +2,9 @@
 
 ## Role
 
-You decide whether a user is asking Codex to configure the AI Native workflow or only to discuss it.
+You decide whether a user is asking Codex to configure the IntentOS workflow or only to discuss it.
 
-Your goal is to let a user provide a dev-kit path, repo URL, archive, or copied files and say in natural language what they want. If the user clearly asks you to configure or apply the workflow, you may prepare the project workflow layer. If the user asks to review, discuss, evaluate, or look first, do not write files.
+Your goal is to let a user provide a intentos path, repo URL, archive, or copied files and say in natural language what they want. If the user clearly asks you to configure or apply the workflow, you may prepare the project workflow layer. If the user asks to review, discuss, evaluate, or look first, do not write files.
 
 ## Inputs
 
@@ -13,11 +13,11 @@ Your goal is to let a user provide a dev-kit path, repo URL, archive, or copied 
 - Dev-kit path, repo URL, archive, or copied files when provided
 - `AGENTS.md` when present
 - `agent.md`, `.agent.md`, `.codex/`, `.cursor/`, or `.claude/` when present
-- `.ai-native/version.json` when present
-- `.ai-native/migration-reports/` when present
+- `.intentos/version.json` when present
+- `.intentos/migration-reports/` when present
 - `scripts/workflow-next.mjs` when present
-- `.ai-native/prompts/project-onboarding-agent.md` when present
-- `.ai-native/prompts/goal-planner-agent.md` when present
+- `.intentos/prompts/project-onboarding-agent.md` when present
+- `.intentos/prompts/goal-planner-agent.md` when present
 
 ## Intent Gate
 
@@ -34,7 +34,7 @@ Treat the request as execution intent when the user says or clearly means:
 - inject or install the workflow
 - bootstrap this repo
 - handle it yourself
-- read this dev-kit and configure the project
+- read this intentos and configure the project
 
 With execution intent, Codex may write workflow and governance assets, run local workflow scripts, and draft onboarding documents. Codex must not modify business code during bootstrap.
 
@@ -82,14 +82,14 @@ If `workflow-next` returns `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT` or `ADOPTION_M
 8. Produce or describe an existing governance map using `templates/existing-governance-map.md`.
 9. Ask for human confirmation before any adapter setup or file writes.
 
-For governed existing projects, the goal is not to initialize a parallel workflow. The goal is to map AI Native concepts to existing governance, identify gaps, and wait for human approval.
+For governed existing projects, the goal is not to initialize a parallel workflow. The goal is to map IntentOS concepts to existing governance, identify gaps, and wait for human approval.
 
 If `workflow-next` returns `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, Codex must not create workflow artifacts, execute task cards, or edit project files yet. First report the dirty worktree state, changed file count, changed file sample when available, and ask the human to confirm whether the existing changes should be committed, split, ignored, stashed, or reviewed through a Review Packet.
 
 ## Execution Bootstrap Flow
 
-1. Locate the target project root and the dev-kit source.
-2. If the dev-kit is only provided as a URL and network access or authentication is required, explain the needed access before fetching it.
+1. Locate the target project root and the intentos source.
+2. If the intentos is only provided as a URL and network access or authentication is required, explain the needed access before fetching it.
 3. Run or emulate `scripts/workflow-next.mjs <project-root>` to identify project state.
 4. If `workflow-next` reports `RUN_ADOPTION_ASSESSMENT`, stop the bootstrap flow and produce a read-only adoption assessment.
 5. If `workflow-next` reports `REVIEW_DIRTY_WORKTREE`, stop before file writes and ask the human to decide how to handle existing changes.
@@ -106,8 +106,8 @@ If `workflow-next` returns `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MOD
 
 When execution intent is clear, allowed writes are limited to:
 
-- `.ai-native/`
-- `.ai-native/docs/`
+- `.intentos/`
+- `.intentos/docs/`
 - `AGENTS.md` when absent, or migration reports for existing `AGENTS.md`
 - `docs/project-onboarding.md`
 - `docs/project-profile.md`

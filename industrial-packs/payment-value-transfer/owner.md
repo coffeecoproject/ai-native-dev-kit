@@ -2,7 +2,7 @@
 
 ## Owner
 
-Owner: AI Native Dev Kit maintainers
+Owner: IntentOS maintainers
 
 ## Review Responsibility
 

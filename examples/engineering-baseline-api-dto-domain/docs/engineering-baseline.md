@@ -14,7 +14,7 @@ Baseline status: CONFIRMED
 
 Human decision status: APPROVED
 
-Owner: dev-kit example owner
+Owner: intentos example owner
 
 Last reviewed: 2026-06-26
 

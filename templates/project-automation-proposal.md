@@ -32,7 +32,7 @@ Absolute path:
 
 Required files:
 
-- [ ] `.ai-native/version.json`
+- [ ] `.intentos/version.json`
 - [ ] `scripts/workflow-daily-summary.mjs`
 
 ## Schedule
@@ -49,7 +49,7 @@ Local / Worktree:
 
 ## Prompt
 
-Use `.ai-native/templates/daily-automation-prompt.md` or define a project-specific prompt here:
+Use `.intentos/templates/daily-automation-prompt.md` or define a project-specific prompt here:
 
 ```text
 
@@ -62,14 +62,14 @@ Use `.ai-native/templates/daily-automation-prompt.md` or define a project-specif
 - `workflow-retros/`
 - `workflow-improvements/`
 - `skill-candidates/`
-- `dev-kit-proposals/`
+- `intentos-proposals/`
 
 ## Allowed Writes
 
 - `workflow-retros/`
 - `workflow-improvements/`
 - `skill-candidates/`
-- `.ai-native/daily-summary-state.json`
+- `.intentos/daily-summary-state.json`
 
 ## Forbidden Actions
 
@@ -80,7 +80,7 @@ Use `.ai-native/templates/daily-automation-prompt.md` or define a project-specif
 - [ ] no secrets or credential handling
 - [ ] no `.codex/skills/` writes
 - [ ] no active Skill creation, update, installation, or enablement
-- [ ] no shared dev-kit changes
+- [ ] no shared intentos changes
 
 ## No-action Behavior
 

@@ -45,4 +45,4 @@ Codex and CI should additionally see:
 - Templates include a machine-readable evidence block.
 - Good 1.41 example passes all three checkers.
 - Bad structured examples are rejected.
-- `check-dev-kit`, `check-fixtures`, and governance verification pass.
+- `check-intentos`, `check-fixtures`, and governance verification pass.

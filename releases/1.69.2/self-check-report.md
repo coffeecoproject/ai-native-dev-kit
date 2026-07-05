@@ -44,7 +44,7 @@ npm run verify
 - Governed web-admin example now records all existing rule sources and IntentOS
   reference sources used by reconciliation items.
 - Strict checker now rejects unresolved source references.
-- Human-readable AI Native Adoption Recommendation is required.
+- Human-readable IntentOS Adoption Recommendation is required.
 
 ## Outcome
 

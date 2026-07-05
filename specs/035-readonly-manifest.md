@@ -1,4 +1,4 @@
-# Spec: Read-only Dev Kit Manifest
+# Spec: Read-only IntentOS Manifest
 
 ## Status
 
@@ -16,7 +16,7 @@ Decision brief: `decision-briefs/035-readonly-manifest.md`
 
 ## Problem
 
-The dev kit needs a central product inventory before later phases can safely introduce CLI, manifest authority, init/update safety, and schema-backed artifacts.
+The IntentOS needs a central product inventory before later phases can safely introduce CLI, manifest authority, init/update safety, and schema-backed artifacts.
 
 ## User Story
 
@@ -26,15 +26,15 @@ As a maintainer, I want a read-only manifest and drift checker so I can see when
 
 Included:
 
-- Add `dev-kit-manifest.json`.
-- Add `schemas/dev-kit-manifest.schema.json`.
+- Add `intentos-manifest.json`.
+- Add `schemas/intentos-manifest.schema.json`.
 - Add `scripts/lib/manifest.mjs`.
 - Add `scripts/check-manifest.mjs`.
 - Add task-scoped workflow artifacts for phase `0.35.0`.
 - Add decision brief for the read-only authority boundary.
-- Update `scripts/check-dev-kit.mjs` to run manifest checks and negative manifest cases.
+- Update `scripts/check-intentos.mjs` to run manifest checks and negative manifest cases.
 - Update version metadata to `0.35.0`.
-- Update dev-kit CI workflows to run `node scripts/check-manifest.mjs`.
+- Update intentos CI workflows to run `node scripts/check-manifest.mjs`.
 - Add `releases/0.35.0/phase-report.md`.
 
 Excluded:
@@ -53,7 +53,7 @@ This phase does not remove duplicate asset lists. It creates a safe comparison p
 
 ## Data Model Impact
 
-Adds a repository-level JSON manifest with `schemaVersion`, `devKitVersion`, `mode`, `compatibilityPolicy`, and grouped asset lists.
+Adds a repository-level JSON manifest with `schemaVersion`, `intentOSVersion`, `mode`, `compatibilityPolicy`, and grouped asset lists.
 
 ## API / Interface Contract
 
@@ -80,7 +80,7 @@ Manifest checker output and `releases/0.35.0/phase-report.md` provide observabil
 ## Acceptance Criteria
 
 - `node scripts/check-manifest.mjs` passes.
-- `node scripts/check-dev-kit.mjs` runs manifest validation.
+- `node scripts/check-intentos.mjs` runs manifest validation.
 - Invalid manifest structure fails before drift checking.
 - Extra or missing manifest assets produce a clear drift report.
 - CI includes explicit manifest check steps.
@@ -93,8 +93,8 @@ Manifest checker output and `releases/0.35.0/phase-report.md` provide observabil
 - Run `node scripts/check-manifest.mjs`.
 - Run task-scoped workflow artifact, goal mode, subagent orchestration, review loop, next-step boundary, and output quality checks for this phase.
 - Run `node scripts/check-fixtures.mjs`.
-- Run `node scripts/check-dev-kit.mjs`.
+- Run `node scripts/check-intentos.mjs`.
 
 ## Rollback Notes
 
-Remove `dev-kit-manifest.json`, `schemas/dev-kit-manifest.schema.json`, `scripts/lib/manifest.mjs`, `scripts/check-manifest.mjs`, the `0.35.0` phase artifacts, the CI manifest-check steps, and revert version metadata from `0.35.0` to `0.34.0`.
+Remove `intentos-manifest.json`, `schemas/intentos-manifest.schema.json`, `scripts/lib/manifest.mjs`, `scripts/check-manifest.mjs`, the `0.35.0` phase artifacts, the CI manifest-check steps, and revert version metadata from `0.35.0` to `0.34.0`.

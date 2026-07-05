@@ -6,7 +6,7 @@ slug: release-evidence-adoption-entry
 title: "release evidence adoption entry"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.42.0
+intentos_version: 0.42.0
 request: requests/100-release-evidence-adoption-entry.md
 preflight: preflight/100-release-evidence-adoption-entry.md
 ---
@@ -23,7 +23,7 @@ Ready
 
 ## Problem
 
-The dev kit needs formal 1.0 release evidence and adoption entry criteria. Without those files and
+The IntentOS needs formal 1.0 release evidence and adoption entry criteria. Without those files and
 checks, 1.0 would be only a version bump.
 
 ## User Story
@@ -75,7 +75,7 @@ Version metadata changes:
 
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `templates/workflow-version.json`
 - `templates/version-record.md`
 
@@ -88,9 +88,9 @@ Release evidence must make these command surfaces visible:
 ```text
 node scripts/cli.mjs self-check
 node scripts/cli.mjs fixtures
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test
-node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run
-node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-1-test
+node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run
+node scripts/cli.mjs migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run
 ```
 
 ## UI States
@@ -116,7 +116,7 @@ node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1
 
 ## Acceptance Criteria
 
-- `VERSION.md`, `package.json`, `dev-kit-manifest.json`, and `templates/workflow-version.json` show `1.0.0`.
+- `VERSION.md`, `package.json`, `intentos-manifest.json`, and `templates/workflow-version.json` show `1.0.0`.
 - Release evidence files exist and state the 1.0 minimum boundary.
 - Adoption evidence file says 10/10 real-project evidence is not achieved.
 - Known limitations state industrial packs remain draft and migration apply is absent.
@@ -126,13 +126,13 @@ node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1
 
 ## Test Plan
 
-- Syntax: `node --check scripts/check-dev-kit.mjs`.
+- Syntax: `node --check scripts/check-intentos.mjs`.
 - Manifest: `node scripts/check-manifest.mjs .`.
 - Fixtures: `node scripts/check-fixtures.mjs`.
-- Self-check: `node scripts/check-dev-kit.mjs`.
-- Generated smoke: init `/tmp/ai-native-1-test` and run generated core check.
-- Update smoke: `node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run`.
-- Migration smoke: `node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run`.
+- Self-check: `node scripts/check-intentos.mjs`.
+- Generated smoke: init `/tmp/intentos-1-test` and run generated core check.
+- Update smoke: `node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run`.
+- Migration smoke: `node scripts/cli.mjs migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run`.
 - Workflow: task-scoped workflow artifact, review loop, next-step, goal, and subagent checks.
 
 ## Rollback Notes

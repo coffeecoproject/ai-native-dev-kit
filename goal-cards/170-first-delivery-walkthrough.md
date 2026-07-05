@@ -105,7 +105,7 @@ Related files:
 Commands run:
 
 ```text
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Audit Notes

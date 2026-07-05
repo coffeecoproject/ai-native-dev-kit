@@ -43,7 +43,7 @@ Project type: GOVERNED_EXISTING_PROJECT. Recommended mode: read-only-first. star
 | Action | Command | Writes | Requires human confirmation |
 | --- | --- | --- | --- |
 | Read-only assessment | `node scripts/cli.mjs next <project>` | No | No |
-| Prepare adoption assessment | `Use .ai-native/templates/adoption-assessment.md after assets are available, or draft the same structure manually.` | Report only | Yes |
+| Prepare adoption assessment | `Use .intentos/templates/adoption-assessment.md after assets are available, or draft the same structure manually.` | Report only | Yes |
 | Write adoption plan later | `node scripts/init-project.mjs --target <project> --update-workflow-assets --write-plan adoption-plan.json` | Plan file only | Yes |
 
 ## Actions AI Must Not Take Yet
@@ -57,8 +57,8 @@ Project type: GOVERNED_EXISTING_PROJECT. Recommended mode: read-only-first. star
 ## Generated Plan / Report Refs
 
 - adoption-recommendations/001-guided-start.md
-- .ai-native/templates/adoption-assessment.md
-- .ai-native/templates/existing-governance-map.md
+- .intentos/templates/adoption-assessment.md
+- .intentos/templates/existing-governance-map.md
 - docs/first-hour.md
 
 ## Technical Evidence

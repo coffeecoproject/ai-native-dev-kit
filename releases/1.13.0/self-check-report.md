@@ -12,7 +12,7 @@ node --check scripts/check-baseline-pack-selection.mjs
 node scripts/cli.mjs baseline-packs .
 node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
@@ -23,7 +23,7 @@ Status: PASS
 
 ## Notes
 
-- `node scripts/check-dev-kit.mjs` passed.
+- `node scripts/check-intentos.mjs` passed.
 - `npm run verify` passed.
 - `git diff --check` passed.
 - This release does not promote industrial packs, make BL2 default, select all packs by default, approve target-project writes, or prove production readiness.

@@ -2,11 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Formerly: **AI Native Dev Kit**.
+Current release: `1.73.0`.
 
-Current release: `1.72.1`.
-
-Release record: [releases/1.72.1/release-record.md](releases/1.72.1/release-record.md).
+Release record: [releases/1.73.0/release-record.md](releases/1.73.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -40,7 +38,9 @@ Start here:
 - [For Existing Projects](docs/for-existing-projects.md)
 - [For Maintainers](docs/for-maintainers.md)
 
-Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
+Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.73.0 completes the IntentOS naming hardcut: public docs, package metadata, CLI help, manifests, generated workflow assets, CI workflow names, templates, and active checks now use the IntentOS identity. Existing projects with old workflow assets must go through an explicit migration plan before any target-project file is moved or rewritten.
 
 1.72.1 hardens Execution Assurance: completion checks now fail when no recorded Execution Assurance Report exists, unless maintainers explicitly pass `--allow-empty` for asset-only checks. The public first-step README no longer asks users to choose internal proof-chain commands.
 
@@ -408,6 +408,7 @@ Reference:
 
 Current release:
 
+- [1.73.0 Release Record](releases/1.73.0/release-record.md)
 - [1.72.1 Release Record](releases/1.72.1/release-record.md)
 - [1.72.0 Release Record](releases/1.72.0/release-record.md)
 - [1.71.3 Release Record](releases/1.71.3/release-record.md)

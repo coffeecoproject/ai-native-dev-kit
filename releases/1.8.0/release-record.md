@@ -24,9 +24,9 @@
 
 ## Allowed Claims
 
-- The dev kit can record and check a sanitized read-only adoption trial.
-- The dev kit can distinguish no-write mapping, docs-only bridge, thin operational bridge, and blocked routes.
-- The dev kit can reject recorded patch classifications that overstate safe local fixes or authorize implementation.
+- The IntentOS can record and check a sanitized read-only adoption trial.
+- The IntentOS can distinguish no-write mapping, docs-only bridge, thin operational bridge, and blocked routes.
+- The IntentOS can reject recorded patch classifications that overstate safe local fixes or authorize implementation.
 
 ## Forbidden Claims
 

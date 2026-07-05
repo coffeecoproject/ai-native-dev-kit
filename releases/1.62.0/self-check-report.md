@@ -10,7 +10,7 @@ PASS
 node --check scripts/resolve-native-migration.mjs
 node --check scripts/check-native-migration.mjs
 node --check scripts/workflow-next.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/cli.mjs native-migration . --json
 node scripts/check-native-migration.mjs .
 node scripts/check-native-migration.mjs examples/1.62-native-first-existing-project/light-web
@@ -20,7 +20,7 @@ node scripts/check-native-migration.mjs examples/1.62-native-first-existing-proj
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -16,11 +16,11 @@ Passed.
 - PASS expected-failure fixture: `test-fixtures/bad/bad-release-execution-assisted-without-approval`
 - PASS expected-failure fixture: `test-fixtures/bad/bad-release-execution-auto-production-deploy`
 - PASS `node scripts/check-manifest.mjs`
-- PASS `node scripts/check-dev-kit.mjs`
+- PASS `node scripts/check-intentos.mjs`
 - PASS `npm run verify`
 - PASS `git diff --check`
 
 ## Notes
 
-- `workflow-next` was calibrated so Dev Kit internal `release-execution-plans` assets do not make a newly generated project look like an existing production-governed project.
+- `workflow-next` was calibrated so IntentOS internal `release-execution-plans` assets do not make a newly generated project look like an existing production-governed project.
 - Real production release signals such as release workflows, rollback baselines, production infra, runbooks, and incident/monitoring assets remain protected.

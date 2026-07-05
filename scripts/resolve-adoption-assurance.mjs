@@ -106,13 +106,13 @@ function collectSignals(root) {
   const exists = fs.existsSync(root);
   const has = (relativePath) => exists && fs.existsSync(path.join(root, relativePath));
   const hasAny = (items) => items.some((item) => has(item));
-  const isSourceRepo = has("dev-kit-manifest.json") && has("core/workflow.md");
-  const hasAiNativeAssets = has(".ai-native/version.json") || has(".ai-native/dev-kit-manifest.json") || isSourceRepo;
+  const isSourceRepo = has("intentos-manifest.json") && has("core/workflow.md");
+  const hasIntentOSAssets = has(".intentos/version.json") || has(".intentos/intentos-manifest.json") || isSourceRepo;
   return {
     exists: exists ? "Yes" : "No",
     dirtyWorktree: isDirty(root) ? "Yes" : "No",
     isSourceRepo: isSourceRepo ? "Yes" : "No",
-    intentOsOperatingMode: hasAiNativeAssets || has("native-migration-plans") || has("governance-convergence-reports")
+    intentOsOperatingMode: hasIntentOSAssets || has("native-migration-plans") || has("governance-convergence-reports")
       ? "ACTIVE"
       : "READ_ONLY_DIAGNOSIS",
     hasAiRules: hasAny(["AGENTS.md", ".codex", ".cursor", ".claude"]),

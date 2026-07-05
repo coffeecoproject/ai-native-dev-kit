@@ -10,7 +10,7 @@ This report records the local check set used to protect the `0.33.0` baseline wh
 git diff --check
 find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-goal-mode.mjs . --goal-card goal-cards/034-baseline-freeze-self-ci.md
 node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/034-baseline-freeze-self-ci.md
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/034-baseline-freeze-self-ci.md

@@ -66,7 +66,7 @@ One-sentence read-only conclusion.
 | Bridge layer mode | NO_WRITE_MAP |
 | AGENTS.md proposed | No |
 | Existing agent.md considered | Yes / Existing agent.md absent |
-| .ai-native proposed | No |
+| .intentos proposed | No |
 | Human approval required before bridge writes | Yes |
 
 ## Governance Map

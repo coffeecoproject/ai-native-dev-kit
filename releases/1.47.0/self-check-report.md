@@ -9,7 +9,7 @@ node scripts/resolve-product-completeness.mjs examples/mvp-cli-note-tool --evide
 node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
 node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
 node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

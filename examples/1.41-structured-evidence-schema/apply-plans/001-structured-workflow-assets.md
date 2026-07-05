@@ -40,7 +40,7 @@ If nothing is approved: Keep this as plan evidence only.
   "schema_version": "1.41.0",
   "artifact_type": "unified_apply_plan",
   "artifact_id": "001-structured-workflow-assets",
-  "plan_digest": "sha256:ce2c9eb1f1e2731c7098680fa1f96dcf804dd39cc7e2c55ed9edca460cf3e965",
+  "plan_digest": "sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96",
   "intent": "Add schema-backed evidence for write-control artifacts.",
   "state": "PLAN_ONLY",
   "can_apply_now": false,
@@ -72,7 +72,7 @@ If nothing is approved: Keep this as plan evidence only.
     "required": true,
     "path": "git diff -- docs/structured-evidence-schema.md schemas/artifacts scripts/lib/artifact-schema.mjs",
     "step": "Revert only the listed workflow governance files if validation fails.",
-    "verification": "node scripts/check-dev-kit.mjs"
+    "verification": "node scripts/check-intentos.mjs"
   },
   "verification": [
     {
@@ -119,14 +119,14 @@ If nothing is approved: Keep this as plan evidence only.
 
 | Action | Backup required | Backup path | Rollback step | Rollback verification |
 |---|---|---|---|---|
-| A-001 | Yes | `git diff -- docs/structured-evidence-schema.md schemas/artifacts scripts/lib/artifact-schema.mjs` | Revert only listed workflow governance files if validation fails | `node scripts/check-dev-kit.mjs` |
+| A-001 | Yes | `git diff -- docs/structured-evidence-schema.md schemas/artifacts scripts/lib/artifact-schema.mjs` | Revert only listed workflow governance files if validation fails | `node scripts/check-intentos.mjs` |
 
 ## Verification Plan
 
 | Step | Command or method | Required before apply | Required after apply | Evidence path | Owner |
 |---|---|---|---|---|---|
 | Pre-apply check | `node scripts/check-apply-plan.mjs examples/1.41-structured-evidence-schema` | Yes | No | `releases/1.41.0/self-check-report.md` | Codex |
-| Post-apply check | `node scripts/check-dev-kit.mjs` | No | Yes | `releases/1.41.0/self-check-report.md` | Codex |
+| Post-apply check | `node scripts/check-intentos.mjs` | No | Yes | `releases/1.41.0/self-check-report.md` | Codex |
 
 ## Human Decisions Needed
 

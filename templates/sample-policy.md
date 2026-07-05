@@ -16,7 +16,7 @@ Samples must be generated only after the project profile, technology strategy, a
 
 - Do not create business-specific samples before project onboarding is confirmed.
 - Do not treat samples as production requirements.
-- Do not promote one-project samples into shared dev-kit examples.
+- Do not promote one-project samples into shared intentos examples.
 - Keep samples small, reviewable, and clearly marked as examples.
 - Samples must use fake data and avoid secrets, credentials, private data, or production identifiers.
 

@@ -1,4 +1,4 @@
-# AI Native Dev Kit Productization Hardcut 1.0 Plan
+# IntentOS Productization Hardcut 1.0 Plan
 
 ## Status
 
@@ -22,7 +22,7 @@ Reason:
 
 ## Human Summary
 
-The goal is to hardcut `ai-native-dev-kit` from a strong workflow-asset repository into a product-grade kit.
+The goal is to hardcut `intentos` from a strong workflow-asset repository into a product-grade kit.
 
 Product-grade means:
 
@@ -58,7 +58,7 @@ The remaining gap is productization:
 - init/update lacks full dry-run and apply-plan safety
 - checker logic still depends heavily on Markdown section parsing
 - artifact machine fields are not yet schema-backed
-- dev-kit itself needs stronger first-party CI and release evidence
+- intentos itself needs stronger first-party CI and release evidence
 - license and commercial boundary need clearer product-level wording
 - industrial packs need lifecycle maturity states
 
@@ -67,7 +67,7 @@ The remaining gap is productization:
 1. Do not add new workflow concepts unless they are required for productization.
 2. Preserve current working behavior while introducing safer product surfaces.
 3. Every phase must have its own checks, review loop, and rollback notes.
-4. No phase may silently weaken existing `check-dev-kit` coverage.
+4. No phase may silently weaken existing `check-intentos` coverage.
 5. No phase may make draft industrial packs look stable.
 6. No phase may auto-modify governed, production, or dirty projects without explicit approval.
 7. Every helper agent must be `CLOSED` or `SKIPPED` before final response, commit, or handoff.
@@ -187,13 +187,13 @@ Subagent mode: `REVIEW_LOOP`
 Objective:
 
 ```text
-Freeze current 0.33.0 behavior and make dev-kit itself run first-party CI.
+Freeze current 0.33.0 behavior and make intentos itself run first-party CI.
 ```
 
 Scope:
 
-- Add `.github/workflows/dev-kit-pr-checks.yml`.
-- Add `.github/workflows/dev-kit-release-checks.yml`.
+- Add `.github/workflows/intentos-pr-checks.yml`.
+- Add `.github/workflows/intentos-release-checks.yml`.
 - Add `.github/pull_request_template.md`.
 - Add `CODEOWNERS`.
 - Add `CONTRIBUTING.md`.
@@ -204,7 +204,7 @@ Scope:
 Required PR CI:
 
 ```bash
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-fixtures.mjs
 find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80
@@ -226,7 +226,7 @@ node "$tmp/project/scripts/check-workflow-version.mjs" "$tmp/project"
 Required release CI:
 
 ```bash
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-fixtures.mjs
 find . -name '*.mjs' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
 node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80
@@ -259,10 +259,10 @@ Acceptance criteria:
 
 - Dev-kit CI exists and runs self-checks.
 - CI is split into PR and release tiers, even if release tier initially runs the same checks plus broader syntax coverage.
-- Local `node scripts/check-dev-kit.mjs` passes.
+- Local `node scripts/check-intentos.mjs` passes.
 - Local generated-project smoke passes.
 - PR template requires workflow evidence.
-- No target-project bootstrap behavior changes except CI and repo governance files in dev-kit itself.
+- No target-project bootstrap behavior changes except CI and repo governance files in intentos itself.
 
 Stop conditions:
 
@@ -284,12 +284,12 @@ Introduce central manifest without making it authoritative yet.
 
 Scope:
 
-- Add `dev-kit-manifest.json`.
-- Add `schemas/dev-kit-manifest.schema.json`.
+- Add `intentos-manifest.json`.
+- Add `schemas/intentos-manifest.schema.json`.
 - Add `scripts/lib/manifest.mjs`.
 - Add `scripts/check-manifest.mjs`.
 - Manifest mirrors current asset lists from:
-  - `check-dev-kit.mjs`
+  - `check-intentos.mjs`
   - `check-ai-workflow.mjs`
   - `workflow-next.mjs`
   - `init-project.mjs`
@@ -304,7 +304,7 @@ Manifest groups:
 sourceRequired
 targetCore
 targetFull
-aiNativeCore
+intentOSCore
 templates
 prompts
 checklists
@@ -321,7 +321,7 @@ Manifest compatibility policy:
 
 ```text
 manifest.schemaVersion = 1.0
-manifest.devKitVersion must match VERSION.md current version during release
+manifest.intentOSVersion must match VERSION.md current version during release
 check-manifest validates schema before drift detection
 read-only manifest must not change init/update/check behavior
 ```
@@ -329,7 +329,7 @@ read-only manifest must not change init/update/check behavior
 Acceptance criteria:
 
 - `node scripts/check-manifest.mjs` passes.
-- `node scripts/check-dev-kit.mjs` runs `check-manifest`.
+- `node scripts/check-intentos.mjs` runs `check-manifest`.
 - Adding a new manifest asset produces a clear drift report until scripts are aligned.
 - Invalid manifest schema fails before drift checking.
 
@@ -348,7 +348,7 @@ Subagent mode: `PLAN_THEN_BUILD`
 Objective:
 
 ```text
-Create a stable `ai-native` CLI facade while preserving existing scripts as lower-level commands.
+Create a stable `intentos` CLI facade while preserving existing scripts as lower-level commands.
 ```
 
 Scope:
@@ -363,34 +363,34 @@ Scope:
   - `smoke:init`
 - Update README to prefer CLI for human usage.
 - Keep direct `scripts/*.mjs` paths documented as lower-level reference.
-- Let CLI read basic manifest metadata when available, such as dev-kit version and command registry.
+- Let CLI read basic manifest metadata when available, such as intentos version and command registry.
 
 Target commands:
 
 ```bash
-ai-native init
-ai-native update
-ai-native next
-ai-native check
-ai-native doctor
-ai-native new
-ai-native migrate
-ai-native fixtures
-ai-native self-check
+intentos init
+intentos update
+intentos next
+intentos check
+intentos doctor
+intentos new
+intentos migrate
+intentos fixtures
+intentos self-check
 ```
 
 Initial CLI mapping:
 
 | CLI | Underlying script |
 |---|---|
-| `ai-native init` | `scripts/init-project.mjs` |
-| `ai-native update` | `scripts/init-project.mjs --update-workflow-assets` |
-| `ai-native next` | `scripts/workflow-next.mjs` |
-| `ai-native check` | `scripts/check-ai-workflow.mjs` |
-| `ai-native doctor` | `workflow-next` + core checks |
-| `ai-native new` | `scripts/new-workflow-item.mjs` |
-| `ai-native fixtures` | `scripts/check-fixtures.mjs` |
-| `ai-native self-check` | `scripts/check-dev-kit.mjs` |
+| `intentos init` | `scripts/init-project.mjs` |
+| `intentos update` | `scripts/init-project.mjs --update-workflow-assets` |
+| `intentos next` | `scripts/workflow-next.mjs` |
+| `intentos check` | `scripts/check-ai-workflow.mjs` |
+| `intentos doctor` | `workflow-next` + core checks |
+| `intentos new` | `scripts/new-workflow-item.mjs` |
+| `intentos fixtures` | `scripts/check-fixtures.mjs` |
+| `intentos self-check` | `scripts/check-intentos.mjs` |
 
 Acceptance criteria:
 
@@ -399,7 +399,7 @@ node scripts/cli.mjs --help
 node scripts/cli.mjs next .
 node scripts/cli.mjs self-check
 node scripts/cli.mjs fixtures
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-cli-test
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-cli-test
 ```
 
 Additional acceptance:
@@ -430,7 +430,7 @@ Scope:
 
 - Update `check-ai-workflow.mjs` to read target required paths from manifest.
 - Update `workflow-next.mjs` to read workflow asset readiness from manifest.
-- Update `check-dev-kit.mjs` to read source required files from manifest.
+- Update `check-intentos.mjs` to read source required files from manifest.
 - Update `init-project.mjs` to read copy rules from manifest where safe.
 - Keep migration reports for PR template and AGENTS governance behavior unchanged.
 
@@ -438,7 +438,7 @@ Acceptance criteria:
 
 - Removing a manifest-required asset causes all relevant checkers to report the same missing path.
 - Adding a manifest-required target asset does not require editing four scripts.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - Generated-project smoke passes.
 
 Stop conditions:
@@ -471,11 +471,11 @@ Scope:
 Target commands:
 
 ```bash
-ai-native init --target ../project --starter generic-project --dry-run
-ai-native update --target ../project --dry-run
-ai-native update --target ../project --write-plan update-plan.json
-ai-native update --target ../project --apply-plan update-plan.json
-ai-native update --target ../project --backup-dir .ai-native-backups/2026-06-26
+intentos init --target ../project --starter generic-project --dry-run
+intentos update --target ../project --dry-run
+intentos update --target ../project --write-plan update-plan.json
+intentos update --target ../project --apply-plan update-plan.json
+intentos update --target ../project --backup-dir .intentos-backups/2026-06-26
 ```
 
 Plan action types:
@@ -495,7 +495,7 @@ FORBIDDEN
 Every write-plan must include:
 
 - plan version
-- dev-kit version
+- intentos version
 - manifest version
 - target root
 - target git branch and HEAD when available
@@ -510,7 +510,7 @@ Example shape:
 ```json
 {
   "planVersion": "1.0",
-  "devKitVersion": "1.0.0",
+  "intentOSVersion": "1.0.0",
   "manifestVersion": "1.0",
   "targetRoot": "../project",
   "targetFingerprint": {
@@ -589,11 +589,11 @@ Frontmatter becomes the primary machine-readable source for new artifacts.
 Compatibility must be time-boxed:
 
 - `0.39.x`: old artifacts without frontmatter produce migration warnings by default and fail only in `--strict-schema`.
-- `0.40.x`: dev-kit generated examples are migrated or covered by migration fixtures.
+- `0.40.x`: intentos generated examples are migrated or covered by migration fixtures.
 - `1.0.0`: new generated artifacts must include valid frontmatter; old artifacts require migration report before being treated as ready.
-- `1.1.0`: strict schema may become default for dev-kit internal examples after migration evidence exists.
+- `1.1.0`: strict schema may become default for intentos internal examples after migration evidence exists.
 
-No silent compatibility is allowed for migrated dev-kit internal examples.
+No silent compatibility is allowed for migrated intentos internal examples.
 
 Acceptance criteria:
 
@@ -682,7 +682,7 @@ Scope:
 Acceptance criteria:
 
 - Fixture matrix passes before and after each refactor step.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - No script has a newly copied `parseArgs`, `sectionBody`, or `walkFiles` helper when a shared helper exists.
 - Refactor PR contains behavior-drift evidence.
 
@@ -810,8 +810,8 @@ docs/faq.md
 Target command:
 
 ```bash
-ai-native migrate --target ../project --from 0.33.0 --to 1.0.0 --dry-run
-ai-native migrate --target ../project --from 0.33.0 --to 1.0.0 --write-plan migration-plan.json
+intentos migrate --target ../project --from 0.33.0 --to 1.0.0 --dry-run
+intentos migrate --target ../project --from 0.33.0 --to 1.0.0 --write-plan migration-plan.json
 ```
 
 Acceptance criteria:
@@ -874,16 +874,16 @@ templates/productization-trial-report.md
 Required checks:
 
 ```bash
-ai-native self-check
-ai-native fixtures
-ai-native init --starter generic-project --target /tmp/ai-native-1-test
-ai-native update --target /tmp/ai-native-1-test --dry-run
-ai-native migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run
+intentos self-check
+intentos fixtures
+intentos init --starter generic-project --target /tmp/intentos-1-test
+intentos update --target /tmp/intentos-1-test --dry-run
+intentos migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run
 ```
 
 1.0 minimum entry criteria:
 
-- dev-kit first-party CI is green
+- intentos first-party CI is green
 - CLI is stable
 - manifest is authoritative
 - init/update has dry-run, plan, apply-plan, and backup
@@ -950,7 +950,7 @@ If the same class of failure appears in two consecutive phases, pause productiza
 |---|---|---|---|---|---|
 | 0.34.0 | Baseline Freeze + Self CI | `IMPLEMENT_TASK` | `REVIEW_LOOP` | first-party CI and baseline evidence | CI green and smoke pass |
 | 0.35.0 | Manifest Introduction | `BASELINE_DECISION` | `READ_ONLY_RESEARCH` | read-only manifest and drift check | manifest schema and drift check pass |
-| 0.36.0 | CLI Front Door | `IMPLEMENT_TASK` | `PLAN_THEN_BUILD` | `ai-native` CLI | CLI smoke pass |
+| 0.36.0 | CLI Front Door | `IMPLEMENT_TASK` | `PLAN_THEN_BUILD` | `intentos` CLI | CLI smoke pass |
 | 0.37.0 | Manifest Authoritative | `IMPLEMENT_TASK` | `PLAN_THEN_BUILD` | manifest-driven required assets | generated project smoke pass |
 | 0.38.0 | Init/Update Safety | `IMPLEMENT_TASK` | `PLAN_THEN_BUILD` | dry-run, plan, backup | no-write dry-run proof |
 | 0.39.0 | Artifact Schema | `BASELINE_DECISION` + `IMPLEMENT_TASK` | `PLAN_THEN_BUILD` | frontmatter and schemas | schema fixture pass |
@@ -964,7 +964,7 @@ If the same class of failure appears in two consecutive phases, pause productiza
 
 | Decision | Needed Before | Reason |
 |---|---|---|
-| Whether to publish package under `@coffeecoproject/ai-native-dev-kit` | 0.36.0 | package naming and distribution ownership |
+| Whether to publish package under `@coffeecoproject/intentos` | 0.36.0 | package naming and distribution ownership |
 | Whether manifest can become authoritative | 0.37.0 | affects all install/update/check flows |
 | Whether old artifacts without frontmatter are warnings or failures | 0.39.0 | migration compatibility policy |
 | License wording for company internal use and commercial project use | 0.41.0 | legal/commercial boundary |

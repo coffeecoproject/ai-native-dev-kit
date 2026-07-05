@@ -1,4 +1,4 @@
-# Review Packet: Read-only Dev Kit Manifest
+# Review Packet: Read-only IntentOS Manifest
 
 ## Status
 
@@ -14,19 +14,19 @@ Review requested for: Productization Hardcut phase `0.35.0`
 
 ## Human Summary
 
-Review whether the new manifest is read-only, schema-checked, drift-checked, and safely wired into dev-kit self-check without changing existing init/update/check behavior.
+Review whether the new manifest is read-only, schema-checked, drift-checked, and safely wired into intentos self-check without changing existing init/update/check behavior.
 
 ## Review Scope
 
 Included:
 
-- `dev-kit-manifest.json`
-- `schemas/dev-kit-manifest.schema.json`
+- `intentos-manifest.json`
+- `schemas/intentos-manifest.schema.json`
 - `scripts/lib/manifest.mjs`
 - `scripts/check-manifest.mjs`
-- `scripts/check-dev-kit.mjs`
-- `.github/workflows/dev-kit-pr-checks.yml`
-- `.github/workflows/dev-kit-release-checks.yml`
+- `scripts/check-intentos.mjs`
+- `.github/workflows/intentos-pr-checks.yml`
+- `.github/workflows/intentos-release-checks.yml`
 - `decision-briefs/035-readonly-manifest.md`
 - phase workflow artifacts for `035-readonly-manifest`
 
@@ -43,8 +43,8 @@ Excluded:
 
 | Evidence | Ref |
 |---|---|
-| Manifest | `dev-kit-manifest.json` |
-| Manifest schema | `schemas/dev-kit-manifest.schema.json` |
+| Manifest | `intentos-manifest.json` |
+| Manifest schema | `schemas/intentos-manifest.schema.json` |
 | Manifest checker | `scripts/check-manifest.mjs` |
 | Manifest loader | `scripts/lib/manifest.mjs` |
 | Decision brief | `decision-briefs/035-readonly-manifest.md` |
@@ -64,7 +64,7 @@ Excluded:
 
 - Does `check-manifest` fail invalid shape before drift checking?
 - Does `check-manifest` detect sourceRequired drift?
-- Does `check-dev-kit` run `check-manifest`?
+- Does `check-intentos` run `check-manifest`?
 - Does CI run `node scripts/check-manifest.mjs`?
 - Does version metadata match manifest version?
 

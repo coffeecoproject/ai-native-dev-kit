@@ -6,7 +6,7 @@ The phase is allowed as a governance-layer upgrade, not as AI self-learning or a
 
 ## Project State
 
-- Current Dev Kit version before this phase: 1.3.0.
+- Current IntentOS version before this phase: 1.3.0.
 - Working tree before implementation: only local `.DS_Store` untracked.
 - Existing source-of-truth pattern: manifest-driven assets, deterministic checks, release evidence, and workflow artifacts.
 

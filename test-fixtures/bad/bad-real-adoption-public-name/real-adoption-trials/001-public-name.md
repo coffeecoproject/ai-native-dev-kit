@@ -41,7 +41,7 @@ A local-only real adoption report includes a concrete target name.
 | Bridge layer mode | NO_WRITE_MAP |
 | AGENTS.md proposed | No |
 | Existing agent.md considered | Yes |
-| .ai-native proposed | No |
+| .intentos proposed | No |
 | Human approval required before bridge writes | Yes |
 
 ## Governance Map

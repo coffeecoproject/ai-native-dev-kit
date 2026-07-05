@@ -48,7 +48,7 @@ node --check scripts/check-guided-closure.mjs
 node scripts/cli.mjs finish . --intent "维护 IntentOS 收口体验" --verification "npm run verify passed"
 node scripts/check-guided-closure.mjs .
 node scripts/check-guided-closure.mjs examples/1.52-guided-closure-experience
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -23,6 +23,6 @@ Run local verification before release:
 node scripts/check-approval-record.mjs .
 node scripts/check-approval-record.mjs examples/1.40-approval-record-governance
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```

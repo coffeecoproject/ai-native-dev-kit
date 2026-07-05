@@ -7,7 +7,7 @@ The decision for phase `0.38.0` is to make init/update reviewable and safer with
 ## Current Status
 
 - Decision: add dry-run, write-plan, apply-plan, backup-dir, stale-plan validation, and direct-update blocking for risky targets.
-- Evidence: `scripts/init-project.mjs`, `scripts/cli.mjs`, `scripts/check-dev-kit.mjs`, and `releases/0.38.0/phase-report.md`.
+- Evidence: `scripts/init-project.mjs`, `scripts/cli.mjs`, `scripts/check-intentos.mjs`, and `releases/0.38.0/phase-report.md`.
 - Risk level: medium, because init/update writes workflow assets into target projects.
 
 ## What I Need From You
@@ -16,7 +16,7 @@ No additional decision is needed to close this phase. A future human decision is
 
 ## Recommended Next Step
 
-Close `0.38.0` after safety checks and dev-kit self-check pass, then start `0.39.0` artifact frontmatter and schema from a new task card.
+Close `0.38.0` after safety checks and intentos self-check pass, then start `0.39.0` artifact frontmatter and schema from a new task card.
 
 ## What AI Can Do Safely
 

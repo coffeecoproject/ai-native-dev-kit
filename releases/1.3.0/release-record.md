@@ -6,7 +6,7 @@ Guided Delivery Baseline release.
 
 ## Human Summary
 
-1.3.0 fixes the product direction, claim boundary, and assumption handling for AI Native Dev Kit.
+1.3.0 fixes the product direction, claim boundary, and assumption handling for IntentOS.
 
 ## Theme
 
@@ -43,7 +43,7 @@ Guided Delivery Baseline.
 | Evidence | Status | Notes |
 |---|---|---|
 | Simulated dogfood | Present | 1.3 workflow artifacts exercise the phase. |
-| Generated-project smoke | Expected | Covered by dev-kit self-check. |
+| Generated-project smoke | Expected | Covered by intentos self-check. |
 | Controlled real-project trial | Not present | Requires later trial. |
 | Production adoption evidence | Not present | Not claimed. |
 
@@ -62,7 +62,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Related Artifacts

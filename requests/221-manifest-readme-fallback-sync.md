@@ -16,8 +16,8 @@ Resolve review findings from the 1.12.0 audit without adding a new product layer
 
 ## Scope
 
-- Align `dev-kit-manifest.json` `compatibilityPolicy.phase` with `devKitVersion`.
-- Teach `check-manifest.mjs` and `check-dev-kit.mjs` to fail future phase drift.
+- Align `intentos-manifest.json` `compatibilityPolicy.phase` with `intentOSVersion`.
+- Teach `check-manifest.mjs` and `check-intentos.mjs` to fail future phase drift.
 - Add 1.12 checks and `npm run verify` to README self-check commands.
 - Sync `check-ai-workflow.mjs` fallback required paths with 1.12 assets.
 - Update version metadata and 1.12.1 release evidence.
@@ -35,4 +35,4 @@ Resolve review findings from the 1.12.0 audit without adding a new product layer
 
 Status: Approved
 
-Approval scope: dev-kit metadata and self-check calibration only.
+Approval scope: intentos metadata and self-check calibration only.

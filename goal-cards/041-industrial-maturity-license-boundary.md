@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 goal_mode: BASELINE_DECISION
 task_level: L3
 ---
@@ -58,7 +58,7 @@ MUST_STOP_FOR_HUMAN: no for conservative docs/checks; yes before granting commer
 
 Task level: L3
 
-Baseline level: not selected for this dev-kit repository task
+Baseline level: not selected for this intentos repository task
 
 Risk reason:
 

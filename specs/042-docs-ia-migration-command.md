@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 request: requests/042-docs-ia-migration-command.md
 preflight: preflight/042-docs-ia-migration-command.md
 ---
@@ -23,7 +23,7 @@ Ready
 
 ## Problem
 
-The dev kit needs a shorter first-entry path and a safe migration command. Users should not need to
+The IntentOS needs a shorter first-entry path and a safe migration command. Users should not need to
 read a long README before choosing new project, existing light project, governed read-only project,
 or production adapter adoption. The migrate command must be useful without being dangerous.
 
@@ -33,7 +33,7 @@ As a user, I want a short README and clear playbooks so that I can choose the ri
 
 As a maintainer, I want complete references outside README so that product depth is preserved.
 
-As a Codex operator, I want `ai-native migrate` to generate a dry-run or migration plan so that old
+As a Codex operator, I want `intentos migrate` to generate a dry-run or migration plan so that old
 projects can be assessed without mutating them.
 
 ## Scope
@@ -74,7 +74,7 @@ New or changed entities:
 
 ## API / Interface Contract
 
-### `ai-native migrate`
+### `intentos migrate`
 
 Input:
 
@@ -130,9 +130,9 @@ Errors:
 - Target docs listed in the roadmap exist.
 - Migration docs list added assets, removed assets, renamed assets, CI impact, AGENTS impact, PR
   template impact, human approvals, and rollback.
-- `ai-native migrate --dry-run` prints a migration plan without writing.
-- `ai-native migrate --write-plan <file>` writes a migration plan JSON and does not mutate target.
-- `ai-native migrate` without dry-run or write-plan fails.
+- `intentos migrate --dry-run` prints a migration plan without writing.
+- `intentos migrate --write-plan <file>` writes a migration plan JSON and does not mutate target.
+- `intentos migrate` without dry-run or write-plan fails.
 - Existing self-check passes.
 
 ## Test Plan
@@ -142,7 +142,7 @@ Errors:
 - CLI: migrate dry-run succeeds and prints JSON.
 - CLI: migrate write-plan creates a JSON plan.
 - Integration: `node scripts/check-manifest.mjs .`.
-- Integration: `node scripts/check-dev-kit.mjs`.
+- Integration: `node scripts/check-intentos.mjs`.
 - Workflow: implementation artifact, review loop, goal, subagent, and next-step checks.
 
 ## Rollback Notes

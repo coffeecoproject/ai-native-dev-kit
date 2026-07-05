@@ -44,7 +44,7 @@ L1
 
 Reason:
 
-- The change affects dev-kit docs, examples, fixtures, target-project usage docs, and self-check scripts.
+- The change affects intentos docs, examples, fixtures, target-project usage docs, and self-check scripts.
 - It may add lightweight workflow usage docs to target-project bootstrap assets.
 - It does not introduce source-code scanning gates.
 - It does not introduce automated external reviewer calls.
@@ -94,7 +94,7 @@ Required behavior:
 - Good examples must pass their targeted checkers.
 - Bad fixtures must fail their targeted checkers.
 - Failure assertions must check the reason, not just the exit code.
-- Fixture checks must be run by `scripts/check-dev-kit.mjs`.
+- Fixture checks must be run by `scripts/check-intentos.mjs`.
 - Fixture checks must not scan real project source code.
 - Fixture checks must not become target-project required workflow assets.
 
@@ -269,7 +269,7 @@ Required behavior:
 - The Review Loop must include one bounded `AUTO_FIX` item and one `NEEDS_HUMAN_DECISION` item.
 - The Subagent Run Plan must close or skip every helper agent.
 - The follow-up proposal must prevent out-of-scope future work from becoming current-task execution.
-- `scripts/check-dev-kit.mjs` must run the example through Goal Mode, Subagent Orchestration, Engineering Baseline, workflow artifact, Review Loop, Next-Step Boundary, and Output Quality checks.
+- `scripts/check-intentos.mjs` must run the example through Goal Mode, Subagent Orchestration, Engineering Baseline, workflow artifact, Review Loop, Next-Step Boundary, and Output Quality checks.
 
 ## Acceptance Criteria For This Phase
 
@@ -277,7 +277,7 @@ Required behavior:
 - Fixture cases are machine-readable.
 - At least three golden example checks pass.
 - At least three negative fixture checks fail for the expected reason.
-- `scripts/check-dev-kit.mjs` runs the fixture runner.
+- `scripts/check-intentos.mjs` runs the fixture runner.
 - README and version docs point to the roadmap and fixture runner.
 - No external GPT/API reviewer automation is introduced.
 - No active Skill or automation is created.

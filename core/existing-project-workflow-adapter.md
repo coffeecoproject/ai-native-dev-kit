@@ -1,10 +1,10 @@
 # Existing Project Workflow Adapter
 
-Existing Project Workflow Adapter defines how Codex should connect AI Native
+Existing Project Workflow Adapter defines how Codex should connect IntentOS
 workflow concepts to an existing project that already has its own rules,
 documents, gates, release flow, or production sensitivity.
 
-It is not a bootstrap protocol. It does not install AI Native workflow assets,
+It is not a bootstrap protocol. It does not install IntentOS workflow assets,
 change CI, modify hooks, overwrite agent rules, or approve code changes.
 
 From 1.62 onward, this adapter is a diagnostic safety layer, not the preferred
@@ -29,7 +29,7 @@ The goal is to answer:
 
 ```text
 What workflow already exists?
-Which AI Native workflow pieces should be used?
+Which IntentOS workflow pieces should be used?
 Which existing project assets remain authoritative?
 What can be added only after human approval?
 What must not be touched?
@@ -51,7 +51,7 @@ approved governance-file edits only
 ```
 
 The Workflow Adoption Map is read-only by default. It maps existing workflow to
-recommended AI Native usage. It does not authorize:
+recommended IntentOS usage. It does not authorize:
 
 - target-project writes
 - direct `init-project` or `--update-workflow-assets`
@@ -67,7 +67,7 @@ recommended AI Native usage. It does not authorize:
 | `DOCS_ONLY_BRIDGE` | Add an approved adapter document without changing gates or code | docs only, after approval |
 | `THIN_OPERATIONAL_BRIDGE` | Add selected workflow references or scripts that point to existing authority | approved assets only |
 | `BLOCKED_NEEDS_OWNER` | Ownership, risk, dirty worktree, or conflicting governance blocks adoption | none |
-| `NOT_APPLICABLE` | The target is new, not a project, or is the dev-kit source repo | none |
+| `NOT_APPLICABLE` | The target is new, not a project, or is the intentos source repo | none |
 
 ## Existing Workflow Inventory
 
@@ -85,11 +85,11 @@ Codex should inventory existing assets before making recommendations:
 
 Inventory is evidence. It does not mean Codex may modify those assets.
 
-## Recommended AI Native Workflow Use
+## Recommended IntentOS Workflow Use
 
-The adapter should map common situations to AI Native workflow pieces:
+The adapter should map common situations to IntentOS workflow pieces:
 
-| Situation | Recommended AI Native workflow |
+| Situation | Recommended IntentOS workflow |
 |---|---|
 | New request or feature | Request / Spec / Task Card |
 | Baseline or risk choice | Baseline Decision Card |
@@ -155,7 +155,7 @@ Human approval is required before:
 - changing hooks, CI, gates, PR templates, or release process
 - converting a recommendation into an implementation task
 - using real project names in public evidence
-- resolving conflicts between existing governance and AI Native governance
+- resolving conflicts between existing governance and IntentOS governance
 
 ## Claims
 
@@ -163,12 +163,12 @@ Allowed:
 
 - Existing workflow was inspected read-only.
 - Existing assets were inventoried.
-- A recommended AI Native workflow usage map was produced.
+- A recommended IntentOS workflow usage map was produced.
 - Writes remain blocked until human approval.
 
 Forbidden:
 
-- The project is now AI Native configured.
+- The project is now IntentOS configured.
 - The adapter installed workflow assets.
 - The adapter approved implementation, release, hooks, CI, or production.
 - The adapter replaced the project's existing governance.

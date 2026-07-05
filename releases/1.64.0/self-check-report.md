@@ -18,7 +18,7 @@ node scripts/check-native-migration.mjs test-fixtures/bad/bad-native-migration-m
 node scripts/check-native-migration.mjs test-fixtures/bad/bad-native-migration-structured-action-writes --require-structured-evidence
 node scripts/check-workflow-adoption-map.mjs examples/1.20-existing-project-workflow-adapter
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

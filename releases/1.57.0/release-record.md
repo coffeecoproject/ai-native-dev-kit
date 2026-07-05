@@ -69,7 +69,7 @@ node --check scripts/check-release-adapter.mjs
 node scripts/cli.mjs release-adapter . --intent "prepare release adapter"
 node scripts/check-release-adapter.mjs .
 node scripts/check-release-adapter.mjs examples/1.57-guided-release-adapter/web-vercel-preview
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

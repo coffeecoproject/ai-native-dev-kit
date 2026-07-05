@@ -30,11 +30,11 @@ What should the reviewer ignore?
 
 ## Project State
 
-Project root: `/Users/liushan/Developer/CodingFlow/ai-native-dev-kit`
+Project root: `/Users/liushan/Developer/CodingFlow/intentos`
 
 Branch: `main`
 
-Project state tags: dev-kit source repository
+Project state tags: intentos source repository
 
 Adoption mode: repository maintenance
 
@@ -120,7 +120,7 @@ Approved at: Not Required
 
 ## Baseline State
 
-Onboarding state: not applicable for dev-kit source repository
+Onboarding state: not applicable for intentos source repository
 
 Engineering baseline checked: Not applicable
 
@@ -150,7 +150,7 @@ node scripts/check-manifest.mjs
 node scripts/check-goal-mode.mjs . --goal-card goal-cards/040-checker-library-refactor.md
 node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/040-checker-library-refactor.md
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-checker-library-refactor.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Verification results:
@@ -161,7 +161,7 @@ Verification results:
 - PASS: Goal Mode check
 - PASS: Subagent Orchestration check
 - PASS: workflow artifact task graph check
-- PASS: full dev-kit self-check
+- PASS: full intentos self-check
 
 Evidence refs:
 
@@ -179,7 +179,7 @@ Skipped evidence and reason:
 |---|---|---|---|
 | `scripts/lib/*.mjs` | Added | shared helper libraries | internal utility risk |
 | `scripts/check-*.mjs`, `scripts/resolve-*.mjs`, `scripts/workflow-next.mjs`, `scripts/score-output-quality.mjs` | Updated | use shared helpers | behavior drift risk covered by fixtures |
-| `dev-kit-manifest.json`, `templates/workflow-version.json`, `templates/version-record.md` | Updated | generated projects receive required helper assets | target copy completeness |
+| `intentos-manifest.json`, `templates/workflow-version.json`, `templates/version-record.md` | Updated | generated projects receive required helper assets | target copy completeness |
 | `VERSION.md`, `package.json`, README files, roadmap | Updated | version and human-facing notes | documentation drift |
 | `requests/`, `preflight/`, `specs/`, `evals/`, `tasks/`, `goal-cards/`, `subagent-run-plans/`, `review-*`, `final-reports/`, `decision-briefs/`, `releases/0.40.1/` | Added | phase evidence | process evidence only |
 
@@ -194,7 +194,7 @@ Skipped evidence and reason:
 ## Known Risks
 
 - Some scripts still have local helpers by design because their behavior is not identical to generic checker plumbing.
-- The refactor is behavior-preserving only to the extent covered by the fixture matrix and dev-kit self-check.
+- The refactor is behavior-preserving only to the extent covered by the fixture matrix and intentos self-check.
 
 ## Open Questions
 

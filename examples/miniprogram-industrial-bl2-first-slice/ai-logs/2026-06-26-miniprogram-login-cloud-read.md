@@ -47,7 +47,7 @@ Repair runs: 0
 
 - Mini Program BL2 should select the smallest pack combination: runtime first, backend/admin/cloud/auth/data/payment only when real scope exists.
 
-## Dev Kit Updates Needed
+## IntentOS Updates Needed
 
 - Continue dogfooding Mini Program BL2 with real projects before stable promotion.
 

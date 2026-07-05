@@ -22,7 +22,7 @@ created_at: 2026-06-27
 - [x] `node scripts/check-manifest.mjs`
 - [x] `node scripts/check-product-baseline.mjs .`
 - [x] `node scripts/check-claim-control.mjs .`
-- [x] `node scripts/check-dev-kit.mjs`
+- [x] `node scripts/check-intentos.mjs`
 - [x] `git diff --check`
 
 ## Spec Alignment

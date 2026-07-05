@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 spec: specs/041-industrial-maturity-license-boundary.md
 ---
 # Eval: industrial maturity license boundary
@@ -20,7 +20,7 @@ spec: specs/041-industrial-maturity-license-boundary.md
 - [ ] script syntax checks pass
 - [ ] industrial pack check passes
 - [ ] manifest check passes
-- [ ] dev kit self-check passes
+- [ ] IntentOS self-check passes
 - [ ] workflow artifact checks pass
 - [ ] no unrelated files changed
 - [ ] no unapproved dependency added
@@ -61,6 +61,6 @@ Reject if:
 
 ## Required Evidence
 
-- Command output summary: record final syntax, manifest, industrial pack, workflow, review-loop, and dev-kit check results.
+- Command output summary: record final syntax, manifest, industrial pack, workflow, review-loop, and intentos check results.
 - Screenshots / traces if UI: not applicable; no UI changed.
 - Review notes: record self-review findings in `review-loop-reports/041-industrial-maturity-license-boundary.md`.

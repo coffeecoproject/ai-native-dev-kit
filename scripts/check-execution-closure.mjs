@@ -17,11 +17,11 @@ const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireImpactCoverage = Boolean(args["require-impact-coverage"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -271,7 +271,7 @@ function checkSourceEvidence() {
     else fail(`execution closure source evidence missing ${file}`);
   }
 
-  const resolver = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish Dev Kit closure", "--verification", "npm run verify passed"]);
+  const resolver = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish IntentOS closure", "--verification", "npm run verify passed"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Execution Closure Report")
     && resolver.stdout.includes("Commit Readiness")
@@ -281,7 +281,7 @@ function checkSourceEvidence() {
     fail(`1.32 execution closure resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
-  const resolverJson = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish Dev Kit closure", "--verification", "npm run verify passed", "--json"]);
+  const resolverJson = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish IntentOS closure", "--verification", "npm run verify passed", "--json"]);
   if (resolverJson.status === 0) {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
@@ -566,7 +566,7 @@ function walk(dir, files) {
 function resolveAsset(relativePath) {
   const candidates = [
     path.join(projectRoot, relativePath),
-    path.join(projectRoot, ".ai-native", relativePath),
+    path.join(projectRoot, ".intentos", relativePath),
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;

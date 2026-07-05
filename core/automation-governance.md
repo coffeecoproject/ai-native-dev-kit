@@ -71,12 +71,12 @@ Default automation scope is one project root.
 
 The automation `cwd` must point to the project root that contains:
 
-- `.ai-native/version.json`
+- `.intentos/version.json`
 - `scripts/workflow-daily-summary.mjs` for daily workflow summary automation
 
 Do not attach a project automation to:
 
-- the shared dev-kit directory
+- the shared intentos directory
 - a broad parent directory
 - a directory containing unrelated projects
 

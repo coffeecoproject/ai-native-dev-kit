@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 request: requests/041-industrial-maturity-license-boundary.md
 preflight: preflight/041-industrial-maturity-license-boundary.md
 ---
@@ -31,7 +31,7 @@ prior written permission under the current policy.
 
 ## User Story
 
-As a dev kit user, I want each industrial pack to state its maturity, evidence, owner, promotion
+As a IntentOS user, I want each industrial pack to state its maturity, evidence, owner, promotion
 criteria, dogfood status, false-positive history, and changelog so that I can decide whether it is
 safe to apply to a project.
 
@@ -140,7 +140,7 @@ Errors:
 - Unit: `node --check` for changed scripts.
 - Integration: `node scripts/check-industrial-pack.mjs . --json`.
 - Integration: `node scripts/check-manifest.mjs .`.
-- Integration: `node scripts/check-dev-kit.mjs`.
+- Integration: `node scripts/check-intentos.mjs`.
 - Workflow: `node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/041-industrial-maturity-license-boundary.md`.
 - Review: `node scripts/check-review-loop.mjs .`.
 - Manual: inspect license docs against `LICENSE.md` wording.

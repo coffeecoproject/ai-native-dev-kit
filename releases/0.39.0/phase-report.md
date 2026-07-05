@@ -27,7 +27,7 @@ node scripts/check-manifest.mjs
 git diff --check
 find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.

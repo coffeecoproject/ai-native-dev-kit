@@ -79,5 +79,5 @@ Codex can answer with one read-only view instead of asking the user to choose in
 - `node --check scripts/check-launch-review-view.mjs`
 - `node scripts/check-launch-review-view.mjs .`
 - `node scripts/check-launch-review-view.mjs examples/1.55-launch-review-view/web-internal-handoff`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`

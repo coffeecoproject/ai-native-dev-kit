@@ -14,7 +14,7 @@ Release 1.22.0 Work Queue / Todo Governance.
 | Work Queue example | PASS | `node scripts/check-work-queue.mjs examples/1.22-work-queue` |
 | Bad fixture: multiple current | PASS | `test-fixtures/bad/bad-work-queue-multiple-current` rejected |
 | Bad fixture: resume without review | PASS | `test-fixtures/bad/bad-work-queue-resume-without-review` rejected |
-| Dev Kit self-check | PASS | `node scripts/check-dev-kit.mjs` |
+| IntentOS self-check | PASS | `node scripts/check-intentos.mjs` |
 | Full verify | PASS | `npm run verify` |
 | Release verify | PASS | `npm run verify:release` |
 

@@ -6,7 +6,7 @@ Status: PASS
 
 ```bash
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify:release
 git diff --check
 ```

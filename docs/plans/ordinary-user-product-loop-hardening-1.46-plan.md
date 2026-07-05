@@ -76,7 +76,7 @@ plain user goal
 - Run:
 
 ```bash
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs

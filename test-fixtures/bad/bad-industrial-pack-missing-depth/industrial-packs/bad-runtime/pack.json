@@ -1,7 +1,7 @@
 {
   "schemaVersion": "0.2",
   "packVersion": "0.1.0",
-  "minimumDevKitVersion": "1.16.0",
+  "minimumIntentOSVersion": "1.16.0",
   "lastReviewedAt": "2026-06-28",
   "stabilityNotes": "Bad fixture only.",
   "id": "bad-runtime-industrial",

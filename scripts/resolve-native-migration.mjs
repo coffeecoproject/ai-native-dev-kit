@@ -157,8 +157,8 @@ function collectSignals(root, pathSet) {
       /pre-push/i,
       /automation/i,
     ]),
-    aiNativeAssets: matching([
-      /^\.ai-native(\/|$)/i,
+    intentOSAssets: matching([
+      /^\.intentos(\/|$)/i,
       /^workflow-adoption-maps(\/|$)/i,
       /^native-migration-plans(\/|$)/i,
       /^apply-plans(\/|$)/i,
@@ -176,7 +176,7 @@ function emptySignals() {
     ciGates: [],
     releaseRollback: [],
     hooksAutomation: [],
-    aiNativeAssets: [],
+    intentOSAssets: [],
     productionSignals: [],
   };
 }
@@ -193,12 +193,12 @@ function classifyProject(root, exists, git, signals) {
     };
   }
 
-  const isDevKit = fs.existsSync(path.join(root, "dev-kit-manifest.json"))
+  const isIntentOS = fs.existsSync(path.join(root, "intentos-manifest.json"))
     && fs.existsSync(path.join(root, "core", "workflow.md"));
-  if (isDevKit) {
+  if (isIntentOS) {
     return {
       state: "DEV_KIT_REPOSITORY",
-      reason: "This is the IntentOS / AI Native Dev Kit source repository.",
+      reason: "This is the IntentOS / IntentOS source repository.",
       confidence: "high",
       dirtyWorktree: git?.isDirty ? "Yes" : "No",
       governed: "Yes",
@@ -264,7 +264,7 @@ function hasGovernance(signals) {
   return signals.agentRules.length > 0
     || signals.governanceDocs.length > 0
     || signals.ciGates.length > 0
-    || signals.aiNativeAssets.length > 0
+    || signals.intentOSAssets.length > 0
     || signals.workIntake.length > 0;
 }
 
@@ -300,7 +300,7 @@ function inventoryFor(signals) {
     inventoryRow("CI / gates", signals.ciGates, signals.ciGates.length ? "preserve as verification evidence" : "do not invent gates"),
     inventoryRow("Release / rollback", signals.releaseRollback, signals.releaseRollback.length ? "preserve and map to release guide/handoff" : "not detected"),
     inventoryRow("Hooks / automation", signals.hooksAutomation, signals.hooksAutomation.length ? "hook policy first; never auto-install" : "not detected"),
-    inventoryRow("IntentOS assets", signals.aiNativeAssets, signals.aiNativeAssets.length ? "reuse and update through apply-plan" : "candidate only"),
+    inventoryRow("IntentOS assets", signals.intentOSAssets, signals.intentOSAssets.length ? "reuse and update through apply-plan" : "candidate only"),
   ];
 }
 
@@ -714,7 +714,7 @@ function printHuman(report) {
   console.log("");
   console.log("| Field | Value |");
   console.log("| --- | --- |");
-  console.log("| Backup path | `.ai-native/backups/native-migration/<timestamp>/` |");
+  console.log("| Backup path | `.intentos/backups/native-migration/<timestamp>/` |");
   console.log("| Restore method | Restore approved backup or keep old governance unchanged if approval is rejected |");
   console.log("| Restore owner | human owner |");
   console.log("| If owner rejects migration | Keep adapter-only / read-only mapping |");

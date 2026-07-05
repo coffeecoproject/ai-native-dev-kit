@@ -35,7 +35,7 @@ status: approved
 
 - All syntax checks pass.
 - `node scripts/check-manifest.mjs` passes.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - `npm run verify` passes.
 - `git diff --check` passes.
 

@@ -10,11 +10,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -224,7 +224,7 @@ function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct)) return direct;
   if (relativePath.startsWith("core/") || relativePath.startsWith("templates/") || relativePath.startsWith("checklists/") || relativePath.startsWith("prompts/") || relativePath.startsWith("docs/")) {
-    const nested = path.join(projectRoot, ".ai-native", relativePath);
+    const nested = path.join(projectRoot, ".intentos", relativePath);
     if (fs.existsSync(nested)) return nested;
   }
   return null;

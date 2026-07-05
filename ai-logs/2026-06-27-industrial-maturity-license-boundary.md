@@ -5,7 +5,7 @@
 One-sentence conclusion:
 
 0.41.0 was implemented with maturity docs, license boundary docs, checker coverage, and passing
-dev-kit self-check.
+intentos self-check.
 
 ## Decision Needed
 
@@ -48,7 +48,7 @@ High
 ## What Worked
 
 - The existing industrial pack checker was a good place to enforce maturity metadata.
-- The full dev-kit self-check caught stale workflow version templates.
+- The full intentos self-check caught stale workflow version templates.
 - The review loop caught a real checker false positive before finalization.
 
 ## Problems
@@ -74,7 +74,7 @@ High
 - Maturity claim checks should distinguish positive claims from conservative negative disclaimers.
 - Version template updates should be part of every productization release checklist.
 
-## Dev Kit Updates Needed
+## IntentOS Updates Needed
 
 - [ ] template
 - [ ] prompt
@@ -89,7 +89,7 @@ High
 - [ ] repeated issue, create `workflow-improvements/`
 - [ ] high-impact issue, create `workflow-improvements/`
 - [ ] repeated execution pattern, evaluate `skill-candidates/`
-- [ ] candidate for `dev-kit-proposals/`
+- [ ] candidate for `intentos-proposals/`
 
 ## Related Follow-up
 

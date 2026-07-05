@@ -112,6 +112,6 @@ Observation window:
 
 ## Decision
 
-Keep as-is / Tune workflow / Tune profile / Tune industrial pack / Add example / Create dev-kit proposal:
+Keep as-is / Tune workflow / Tune profile / Tune industrial pack / Add example / Create intentos proposal:
 
 Rationale:

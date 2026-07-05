@@ -84,7 +84,7 @@ input without writing target files:
 node scripts/cli.mjs reconcile-rules <project> --auto-native
 ```
 
-This produces an AI Native Adoption Recommendation. It tells the user whether
+This produces an IntentOS Adoption Recommendation. It tells the user whether
 the safest path is read-only diagnosis, docs bridge, selected native adoption,
 owner clarification, or dirty-worktree block.
 
@@ -127,7 +127,7 @@ reconciliation_items[].intentos_reference_ref
   -> intentos_reference_source[].reference_ref
 ```
 
-The human-readable report must include `AI Native Adoption Recommendation` so
+The human-readable report must include `IntentOS Adoption Recommendation` so
 the user can see the recommended path without reading JSON. It must say:
 
 ```text

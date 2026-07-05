@@ -224,15 +224,15 @@ function normalizeActionType(value) {
 
 function defaultTargetsFor(type) {
   const defaults = {
-    WORKFLOW_ASSET_UPDATE: [".ai-native", "scripts/*", ".github/workflows/ai-workflow-checks.yml"],
+    WORKFLOW_ASSET_UPDATE: [".intentos", "scripts/*", ".github/workflows/ai-workflow-checks.yml"],
     BASELINE_DOC_WRITE: ["docs/engineering-baseline.md", "docs/environment-baseline.md"],
     AGENTS_GOVERNANCE: ["AGENTS.md"],
     PR_TEMPLATE_GOVERNANCE: [".github/pull_request_template.md"],
     DOCUMENT_ARCHIVE_APPLY: ["docs/archive/*", "docs/archive/index.md"],
     HOOK_OR_CI_CHANGE: [".github/workflows/*", "hooks/*"],
-    INDUSTRIAL_PACK_ENABLE: ["docs/baseline-selection.md", ".ai-native/industrial-packs/*"],
+    INDUSTRIAL_PACK_ENABLE: ["docs/baseline-selection.md", ".intentos/industrial-packs/*"],
     BUSINESS_CODE_CHANGE: ["src/*"],
-    EXISTING_PROJECT_BRIDGE_DOC: ["docs/governance/ai-native-dev-kit-adoption-v1.md"],
+    EXISTING_PROJECT_BRIDGE_DOC: ["docs/governance/intentos-adoption-v1.md"],
     AUTOMATION_CHANGE: ["automation-proposals/*"],
     DATA_OR_MIGRATION_CHANGE: ["migrations/*", "schema/*"],
     SECRET_OR_ENV_CHANGE: [".env*", "docs/environment-baseline.md"],
@@ -247,7 +247,7 @@ function defaultTargetsFor(type) {
 
 function reasonFor(type) {
   const reasons = {
-    WORKFLOW_ASSET_UPDATE: "Install or update AI Native workflow assets.",
+    WORKFLOW_ASSET_UPDATE: "Install or update IntentOS workflow assets.",
     BASELINE_DOC_WRITE: "Record engineering or environment baseline decisions.",
     AGENTS_GOVERNANCE: "Apply agent governance text after review.",
     PR_TEMPLATE_GOVERNANCE: "Apply PR template governance text after review.",
@@ -255,7 +255,7 @@ function reasonFor(type) {
     HOOK_OR_CI_CHANGE: "Change automatic triggers, CI, gates, or hook behavior.",
     INDUSTRIAL_PACK_ENABLE: "Enable optional high-risk / industrial baseline overlays.",
     BUSINESS_CODE_CHANGE: "Modify product or implementation code.",
-    EXISTING_PROJECT_BRIDGE_DOC: "Bridge AI Native workflow to an existing governed project without replacing it.",
+    EXISTING_PROJECT_BRIDGE_DOC: "Bridge IntentOS workflow to an existing governed project without replacing it.",
     AUTOMATION_CHANGE: "Create or update automation proposal files before any automation is enabled.",
   };
   return reasons[type] || "Apply-related change requested by user or inferred from intent.";
@@ -334,7 +334,7 @@ function backupRollbackPlan(actions) {
   return actions.map((action) => ({
     action: action.id,
     backupRequired: action.rollbackRequired === "Yes" ? "Yes" : "No",
-    backupPath: action.rollbackRequired === "Yes" ? ".ai-native/backups/<approved-apply-id>/" : "N/A",
+    backupPath: action.rollbackRequired === "Yes" ? ".intentos/backups/<approved-apply-id>/" : "N/A",
     rollbackStep: action.rollbackRequired === "Yes"
       ? `Restore ${action.targetPaths.join(", ")} from backup or version control.`
       : "No write action planned.",

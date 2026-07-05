@@ -52,7 +52,7 @@ node scripts/check-approval-record.mjs <project> --require-structured-evidence
 - Strict mode rejects artifacts without `Machine-Readable Evidence`.
 - Strict readiness and approval checks reject missing local plan references.
 - Structured readiness rejects empty actions unless `readiness_state` is `NO_APPLY_PLAN`.
-- `check-dev-kit`, `check-fixtures`, governance checks, syntax checks, and diff checks pass.
+- `check-intentos`, `check-fixtures`, governance checks, syntax checks, and diff checks pass.
 
 ## Boundary
 

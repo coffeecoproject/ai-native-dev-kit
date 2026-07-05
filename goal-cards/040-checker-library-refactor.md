@@ -6,7 +6,7 @@ slug: checker-library-refactor
 title: Checker Library Refactor
 status: ready
 created_at: "2026-06-27"
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 goal_mode: IMPLEMENT_TASK
 task_level: L2
 ---
@@ -32,7 +32,7 @@ Why: The roadmap entry is approved, the user asked to start, and the phase requi
 
 ## Project State
 
-Project state: dev-kit repository
+Project state: intentos repository
 
 Workflow state: productization hardcut active
 
@@ -62,7 +62,7 @@ If yes, related decision area:
 
 - none
 
-Engineering baseline status: not applicable for internal dev-kit checker refactor
+Engineering baseline status: not applicable for internal intentos checker refactor
 
 Decision Brief needed: Yes, as boundary evidence that this phase is not a semantic checker change.
 
@@ -102,7 +102,7 @@ Decision Brief needed: Yes, as boundary evidence that this phase is not a semant
 
 ## Next Safe Step
 
-Implement shared helper libraries and migrate covered checker scripts in small steps, then run fixture and dev-kit checks.
+Implement shared helper libraries and migrate covered checker scripts in small steps, then run fixture and intentos checks.
 
 ## Technical Details
 

@@ -212,11 +212,11 @@ function classifyProject(workflow, git, signals) {
   const tags = new Set(workflow.projectStateTags || []);
   if (workflow.projectState === "DEV_KIT_REPOSITORY" || tags.has("DEV_KIT_REPOSITORY")) {
     return {
-      label: "Dev Kit source repository",
+      label: "IntentOS source repository",
       internal: "DEV_KIT_REPOSITORY",
-      defaultAdoptionMode: "dev-kit-maintenance",
+      defaultAdoptionMode: "intentos-maintenance",
       canCodexWriteNow: "No",
-      why: "This directory is the AI Native Dev Kit source repository.",
+      why: "This directory is the IntentOS source repository.",
     };
   }
   if (git.isDirty || tags.has("DIRTY_WORKTREE_PROJECT")) {
@@ -319,7 +319,7 @@ function recommendBaselineLevel(projectState, profiles, risk, workflow) {
     return {
       level: "NOT_APPLICABLE",
       userLabel: "Not applicable",
-      why: "This is the dev-kit source repository, not a target project adoption.",
+      why: "This is the intentos source repository, not a target project adoption.",
       currentSelectedLevel: current || "not applicable",
       bl2Status: "not selected",
     };
@@ -506,7 +506,7 @@ function buildNotSelected(projectRoot, standardPacks, industrialCandidates, prof
 
 function loadPackIds(projectRoot, registryName) {
   const candidates = [
-    path.join(projectRoot, ".ai-native", registryName, "index.json"),
+    path.join(projectRoot, ".intentos", registryName, "index.json"),
     path.join(projectRoot, registryName, "index.json"),
     path.join(kitRoot, registryName, "index.json"),
   ];
@@ -574,8 +574,8 @@ function backendScope(profiles, signals) {
 function humanDecisions(projectState, profiles, risk, baselineLevel) {
   if (projectState.internal === "DEV_KIT_REPOSITORY") {
     return [
-      "Is this work maintaining the dev-kit itself rather than adopting a target project?",
-      "Should Codex run dev-kit verification before any code change?",
+      "Is this work maintaining the intentos itself rather than adopting a target project?",
+      "Should Codex run intentos verification before any code change?",
     ];
   }
   if (projectState.internal === "DIRTY_WORKTREE_PROJECT") {
@@ -602,7 +602,7 @@ function humanDecisions(projectState, profiles, risk, baselineLevel) {
 function safeNextActions(projectState, baselineLevel, standardPacks, industrialCandidates) {
   if (projectState.internal === "DEV_KIT_REPOSITORY") {
     return [
-      "Codex can run dev-kit self-checks for repository maintenance.",
+      "Codex can run intentos self-checks for repository maintenance.",
       "Run baseline-decision against a target project when the goal is project adoption.",
     ];
   }

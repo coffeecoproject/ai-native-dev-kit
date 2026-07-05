@@ -71,7 +71,7 @@ It adds optional strict structured evidence checks for:
 - `node scripts/check-controlled-apply-readiness.mjs examples/1.41-structured-evidence-schema --require-structured-evidence`
 - `node scripts/check-approval-record.mjs examples/1.41-structured-evidence-schema --require-structured-evidence`
 - `node scripts/check-fixtures.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify:governance`
 - `npm run verify:syntax`
 - `git diff --check`

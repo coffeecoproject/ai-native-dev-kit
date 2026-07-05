@@ -49,6 +49,6 @@ Codex should answer:
 
 - `node scripts/check-controlled-apply-readiness.mjs .`
 - `node scripts/check-controlled-apply-readiness.mjs examples/1.38-controlled-apply-readiness`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify:release`
 - `git diff --check`

@@ -30,7 +30,7 @@ Reviewer: local read-only review pass
 
 | ID | Severity | Category | Finding | Evidence | Proposed action | Owner | Status |
 |---|---|---|---|---|---|---|
-| F1 | P2 | NO_ACTION | No blocking review finding because manifest authority is limited to asset groups and safe static copy rules, and guarded operations remain unchanged | `dev-kit-manifest.json`, `scripts/init-project.mjs`, and `scripts/check-dev-kit.mjs` | No change needed because verification covers generated-project manifest consumption | Codex | DONE |
+| F1 | P2 | NO_ACTION | No blocking review finding because manifest authority is limited to asset groups and safe static copy rules, and guarded operations remain unchanged | `intentos-manifest.json`, `scripts/init-project.mjs`, and `scripts/check-intentos.mjs` | No change needed because verification covers generated-project manifest consumption | Codex | DONE |
 
 ## Human Decision Queue
 

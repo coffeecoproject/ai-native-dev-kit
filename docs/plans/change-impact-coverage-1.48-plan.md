@@ -231,7 +231,7 @@ node --check scripts/check-change-impact-coverage.mjs
 node scripts/cli.mjs impact-coverage examples/mvp-booking-web-app --intent "add contract input restriction"
 node scripts/check-change-impact-coverage.mjs examples/1.48-change-impact-coverage/contract-input-rule
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

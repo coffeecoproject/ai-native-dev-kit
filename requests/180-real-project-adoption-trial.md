@@ -13,15 +13,15 @@ created_at: 2026-06-27
 
 ## Raw Request
 
-Run the next dev-kit upgrade after a governed production-sensitive Web project was inspected in read-only mode. Convert the finding into a reusable 1.8 capability without naming or modifying the target project.
+Run the next intentos upgrade after a governed production-sensitive Web project was inspected in read-only mode. Convert the finding into a reusable 1.8 capability without naming or modifying the target project.
 
 ## User / Customer
 
-AI Native Dev Kit users who want Codex to inspect an existing project, decide whether it can be initialized, and route safely without requiring the user to understand every workflow file.
+IntentOS users who want Codex to inspect an existing project, decide whether it can be initialized, and route safely without requiring the user to understand every workflow file.
 
 ## Problem
 
-The dev kit can already guide new projects and simulated first deliveries. Real governed projects expose a different need: Codex must recognize existing governance, avoid template overwrite, map concepts to local assets, and classify whether a requested fix is safe-local work, structural remediation, or a human decision.
+The IntentOS can already guide new projects and simulated first deliveries. Real governed projects expose a different need: Codex must recognize existing governance, avoid template overwrite, map concepts to local assets, and classify whether a requested fix is safe-local work, structural remediation, or a human decision.
 
 ## Current Workflow
 
@@ -42,7 +42,7 @@ Add a 1.8 Real Project Read-only Adoption Trial and Patch Classification Governa
 - Do not modify the inspected real project.
 - Do not publish private project names, paths, secrets, or internal business data.
 - Do not claim production validation, release approval, compliance approval, or security approval.
-- Do not make the dev kit a parallel governance system for already governed projects.
+- Do not make the IntentOS a parallel governance system for already governed projects.
 - Do not treat patch classification as authorization to implement.
 
 ## Priority

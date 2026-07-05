@@ -6,7 +6,7 @@ slug: checker-library-refactor
 title: Checker Library Refactor
 status: ready
 created_at: "2026-06-27"
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 spec: specs/040-checker-library-refactor.md
 eval: evals/040-checker-library-refactor.md
 task_level: L2
@@ -50,7 +50,7 @@ Not allowed:
 
 - Shared checker libraries exist and are used by migrated scripts.
 - Fixture matrix passes.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - Existing CLI output remains stable unless reviewed and documented.
 - No new package dependency is added.
 - 0.40.1 evidence files, manifest, version metadata, and release report are complete.
@@ -73,7 +73,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-checke
 node scripts/check-review-loop.mjs . --task tasks/040-checker-library-refactor.md
 node scripts/check-next-step-boundary.mjs . --task tasks/040-checker-library-refactor.md
 node scripts/score-output-quality.mjs . --min-score 80
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## AI Budget

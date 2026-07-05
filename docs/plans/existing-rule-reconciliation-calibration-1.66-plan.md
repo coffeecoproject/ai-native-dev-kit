@@ -553,7 +553,7 @@ Acceptance:
 2. Add checker.
 3. Add CLI aliases.
 4. Validate strict structured evidence against the schema.
-5. Update `scripts/check-dev-kit.mjs`.
+5. Update `scripts/check-intentos.mjs`.
 6. Update `package.json` verification if needed.
 
 Acceptance:
@@ -589,7 +589,7 @@ Update:
 - README / README.zh-CN
 - VERSION
 - package version
-- dev-kit manifest
+- intentos manifest
 - workflow version template
 - template version record
 - release record
@@ -648,7 +648,7 @@ node scripts/check-native-migration.mjs examples/1.63-native-migration-precision
 node scripts/check-native-migration.mjs examples/1.64-native-migration-parser-calibration/table-long-bilingual --require-structured-evidence
 node scripts/check-native-migration.mjs examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

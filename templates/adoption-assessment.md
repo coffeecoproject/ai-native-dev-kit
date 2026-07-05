@@ -102,7 +102,7 @@ Changed file sample:
 
 Impact:
 
-## AI Native Concept Mapping
+## IntentOS Concept Mapping
 
 Link or summarize `existing-governance-map.md` here.
 
@@ -121,8 +121,8 @@ Primary gaps:
 | Option | Writes Allowed | When Safe | Human Approval Required |
 |---|---|---|---|
 | Read-only assessment only | None | Before understanding existing governance | No |
-| Adapter docs only | `docs/ai-native-adoption.md`, `docs/existing-governance-map.md`, or approved equivalent | After human approves mapping destination | Yes |
-| Workflow asset update | `.ai-native/`, workflow scripts, migration reports | Only after governance owner accepts adapter plan | Yes |
+| Adapter docs only | `docs/intentos-adoption.md`, `docs/existing-governance-map.md`, or approved equivalent | After human approves mapping destination | Yes |
+| Workflow asset update | `.intentos/`, workflow scripts, migration reports | Only after governance owner accepts adapter plan | Yes |
 | Full workflow bootstrap | Standard workflow assets | Usually not appropriate for strong governed production projects | Yes, exceptional |
 
 ## Recommended Adoption Path
@@ -152,7 +152,7 @@ Files that must not be changed without separate approval:
 | Decision | Options | Recommended | Owner | Status |
 |---|---|---|---|---|
 | Adoption mode | read-only / adapter docs / workflow assets |  |  | PENDING |
-| Mapping destination | chat only / docs / `.ai-native/adoption` |  |  | PENDING |
+| Mapping destination | chat only / docs / `.intentos/adoption` |  |  | PENDING |
 | Agent rule handling | keep / append with migration report / manual merge |  |  | PENDING |
 | PR template handling | keep / migration report / manual merge |  |  | PENDING |
 | BL level | BL0 / BL1 / BL2 |  |  | PENDING |

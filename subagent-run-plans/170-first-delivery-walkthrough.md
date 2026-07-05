@@ -129,7 +129,7 @@ Next action: rerun targeted governance checks and final self-check.
 Commands run:
 
 ```text
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Related files:

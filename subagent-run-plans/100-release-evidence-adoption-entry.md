@@ -6,7 +6,7 @@ slug: release-evidence-adoption-entry
 title: "release evidence adoption entry"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.42.0
+intentos_version: 0.42.0
 subagent_mode: REPORTING
 ---
 # Subagent Run Plan: 100-release-evidence-adoption-entry

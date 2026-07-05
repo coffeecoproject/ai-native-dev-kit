@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 subagent_mode: PLAN_THEN_BUILD
 ---
 # Subagent Run Plan: 041-industrial-maturity-license-boundary

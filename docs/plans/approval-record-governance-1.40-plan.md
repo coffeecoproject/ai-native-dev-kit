@@ -59,5 +59,5 @@ Then Codex should generate or update one approval record, run the checker, and s
 - `node scripts/check-approval-record.mjs examples/1.40-approval-record-governance`
 - `node scripts/check-fixtures.mjs`
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`

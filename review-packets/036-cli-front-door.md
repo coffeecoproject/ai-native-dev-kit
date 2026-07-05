@@ -22,7 +22,7 @@ Included:
 
 - `package.json`
 - `scripts/cli.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `README.md`
 - `README.zh-CN.md`
 - version metadata
@@ -44,7 +44,7 @@ Excluded:
 |---|---|
 | CLI facade | `scripts/cli.mjs` |
 | Package metadata | `package.json` |
-| CLI self-check coverage | `scripts/check-dev-kit.mjs` |
+| CLI self-check coverage | `scripts/check-intentos.mjs` |
 | CLI human guidance | `README.md`, `README.zh-CN.md` |
 | Decision brief | `decision-briefs/036-cli-front-door.md` |
 | Task card | `tasks/036-cli-front-door.md` |
@@ -64,7 +64,7 @@ Excluded:
 - Does CLI help list the intended commands?
 - Does CLI version match `VERSION.md`?
 - Does CLI init generate a valid core workflow project?
-- Does CLI avoid recursive self-check inside `check-dev-kit`?
+- Does CLI avoid recursive self-check inside `check-intentos`?
 - Does README explain both CLI and lower-level scripts?
 
 ## Known Boundaries

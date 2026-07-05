@@ -26,5 +26,5 @@ Passed:
 - `node scripts/check-claim-control.mjs .`
 - `node scripts/check-manifest.mjs`
 - `node scripts/check-fixtures.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`

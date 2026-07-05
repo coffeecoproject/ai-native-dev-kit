@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "AI Native Standard Baseline Pack",
+  "title": "IntentOS Standard Baseline Pack",
   "type": "object",
   "required": [
     "id",

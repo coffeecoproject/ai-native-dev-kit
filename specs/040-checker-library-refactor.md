@@ -6,7 +6,7 @@ slug: checker-library-refactor
 title: Checker Library Refactor
 status: ready
 created_at: "2026-06-27"
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 request: requests/040-checker-library-refactor.md
 preflight: preflight/040-checker-library-refactor.md
 ---
@@ -27,7 +27,7 @@ Checker scripts duplicate basic plumbing for CLI args, Markdown sections, file w
 
 ## User Story
 
-As a dev-kit maintainer, I want repeated checker plumbing moved into shared libraries, so future checker changes are smaller, easier to review, and protected by the existing fixture matrix.
+As a intentos maintainer, I want repeated checker plumbing moved into shared libraries, so future checker changes are smaller, easier to review, and protected by the existing fixture matrix.
 
 ## Scope
 
@@ -148,7 +148,7 @@ No UI is introduced. Human-facing CLI output must remain readable and stable.
 
 - Unit: `node --check` for all `.mjs` scripts.
 - Integration: `node scripts/check-fixtures.mjs`.
-- E2E: `node scripts/check-dev-kit.mjs`.
+- E2E: `node scripts/check-intentos.mjs`.
 - Manual: inspect git diff for helper scope, output drift, dependency changes, and manifest coverage.
 
 ## Rollback Notes

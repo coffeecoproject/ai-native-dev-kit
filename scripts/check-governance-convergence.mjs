@@ -13,11 +13,11 @@ const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const explicitReport = args.report ? path.resolve(process.cwd(), String(args.report)) : "";
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -559,7 +559,7 @@ function walk(dir, files) {
 function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed) && fs.statSync(managed).isFile()) return managed;
   return null;
 }
@@ -567,7 +567,7 @@ function resolveAsset(relativePath) {
 function resolveDirectory(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed) && fs.statSync(managed).isDirectory()) return managed;
   return null;
 }

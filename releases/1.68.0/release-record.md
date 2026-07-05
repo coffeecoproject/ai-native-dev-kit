@@ -57,8 +57,8 @@ Advanced workflow commands remain available for maintainers, CI, release evidenc
 - README and README.zh-CN point to the 1.68.0 release record.
 - `docs/README.md` and `docs/index.md` link the new front-door docs first.
 - CLI help prints primary, common, and advanced command groups.
-- `scripts/check-dev-kit.mjs` checks the new docs and CLI help markers.
-- `dev-kit-manifest.json` includes the new public-entry docs and release evidence.
+- `scripts/check-intentos.mjs` checks the new docs and CLI help markers.
+- `intentos-manifest.json` includes the new public-entry docs and release evidence.
 
 ## Compatibility
 
@@ -75,7 +75,7 @@ Advanced workflow commands remain available for maintainers, CI, release evidenc
 
 - `node --check scripts/cli.mjs` verifies the CLI remains syntactically valid.
 - `node scripts/cli.mjs --help` verifies the public entry is grouped into primary, common, and advanced commands.
-- `node scripts/cli.mjs start .` and `node scripts/cli.mjs next .` verify the Dev Kit source repository is still recognized as the source repository, not a target project.
-- `node scripts/cli.mjs doctor .` verifies public diagnosis routes Dev Kit source work to `check-dev-kit` instead of target-project bootstrap checks.
-- `node scripts/check-manifest.mjs`, `npm --silent run verify:governance`, `node scripts/check-dev-kit.mjs`, and `git diff --check` verify the release record, manifest, governance checks, and formatting boundaries.
+- `node scripts/cli.mjs start .` and `node scripts/cli.mjs next .` verify the IntentOS source repository is still recognized as the source repository, not a target project.
+- `node scripts/cli.mjs doctor .` verifies public diagnosis routes IntentOS source work to `check-intentos` instead of target-project bootstrap checks.
+- `node scripts/check-manifest.mjs`, `npm --silent run verify:governance`, `node scripts/check-intentos.mjs`, and `git diff --check` verify the release record, manifest, governance checks, and formatting boundaries.
 - The detailed command outcome is recorded in [self-check-report.md](self-check-report.md).

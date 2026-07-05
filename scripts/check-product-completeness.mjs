@@ -10,8 +10,8 @@ const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json")) && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
-const shouldRequireAssets = isSourceRepo || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"));
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json")) && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
+const shouldRequireAssets = isSourceRepo || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"));
 let failed = false;
 const checks = [];
 
@@ -140,7 +140,7 @@ function walk(dir) {
 }
 
 function resolveDirectory(dir) {
-  for (const candidate of [path.join(projectRoot, dir), path.join(projectRoot, ".ai-native", dir)]) {
+  for (const candidate of [path.join(projectRoot, dir), path.join(projectRoot, ".intentos", dir)]) {
     if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) return candidate;
   }
   return null;
@@ -151,7 +151,7 @@ function runNode(argv) {
 }
 
 function exists(file) {
-  return fs.existsSync(path.join(projectRoot, file)) || fs.existsSync(path.join(projectRoot, ".ai-native", file));
+  return fs.existsSync(path.join(projectRoot, file)) || fs.existsSync(path.join(projectRoot, ".intentos", file));
 }
 
 function rel(file) {

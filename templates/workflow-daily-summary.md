@@ -62,7 +62,7 @@ ACTION_REQUIRED / NO_ACTION
 - [ ] Created / updated workflow improvement
 - [ ] Created / updated Skill candidate draft
 - [ ] Flagged Skill candidate for human review
-- [ ] Flagged dev-kit proposal for human review
+- [ ] Flagged intentos proposal for human review
 
 ## Skill Governance
 

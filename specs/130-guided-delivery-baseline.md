@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-1.3.0 fixes the product direction and evidence language for AI Native Dev Kit.
+1.3.0 fixes the product direction and evidence language for IntentOS.
 
 ## Functional Requirements
 

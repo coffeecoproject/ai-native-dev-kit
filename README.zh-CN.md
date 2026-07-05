@@ -2,11 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-原名：**AI Native Dev Kit**。
+当前版本：`1.73.0`。
 
-当前版本：`1.72.1`。
-
-发布记录：[releases/1.72.1/release-record.md](releases/1.72.1/release-record.md)。
+发布记录：[releases/1.73.0/release-record.md](releases/1.73.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -40,7 +38,9 @@ node scripts/cli.mjs doctor <project>
 - [For Existing Projects](docs/for-existing-projects.md)
 - [For Maintainers](docs/for-maintainers.md)
 
-命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 和 `ai-native-dev-kit` 继续作为兼容别名保留。
+命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.73.0 完成 IntentOS 命名硬切：公开文档、包信息、CLI 帮助、manifest、生成工作流资产、CI workflow、模板和 active checks 都统一使用 IntentOS。已有项目如果还存在旧工作流资产，必须先生成明确迁移计划，再经确认后移动或改写目标项目文件。
 
 1.72.1 加严 Execution Assurance：没有已记录的 Execution Assurance Report 时，完成校验会失败；只有维护者明确传入 `--allow-empty` 做资产级检查时才允许跳过。README 首屏也不再要求普通用户选择内部证明链命令。
 
@@ -406,6 +406,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.73.0 Release Record](releases/1.73.0/release-record.md)
 - [1.72.1 Release Record](releases/1.72.1/release-record.md)
 - [1.72.0 Release Record](releases/1.72.0/release-record.md)
 - [1.71.3 Release Record](releases/1.71.3/release-record.md)

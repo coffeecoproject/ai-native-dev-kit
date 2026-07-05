@@ -105,5 +105,5 @@ Boundary:
 - Run fixture matrix.
 - Run manifest check.
 - Run product baseline and claim control.
-- Run full dev-kit self-check.
+- Run full intentos self-check.
 - Run `npm run verify:governance`, `npm run verify:syntax`, and `git diff --check`.

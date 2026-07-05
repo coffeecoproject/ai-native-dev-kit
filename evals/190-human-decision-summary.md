@@ -25,7 +25,7 @@ created_at: 2026-06-28
 - [x] `node scripts/check-claim-control.mjs .`
 - [x] `node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/190-human-decision-summary.md`
 - [x] `node scripts/check-next-step-boundary.mjs . --task tasks/190-human-decision-summary.md`
-- [x] `node scripts/check-dev-kit.mjs`
+- [x] `node scripts/check-intentos.mjs`
 - [x] `git diff --check`
 
 ## Spec Alignment

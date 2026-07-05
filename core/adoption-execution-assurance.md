@@ -119,6 +119,6 @@ It proves workflow behavior, not product correctness.
 Adoption assurance has two asset classes:
 
 - target workflow assets: copied into target projects when full workflow assets are intentionally installed or updated;
-- source-only maintainer assets: examples, bad fixtures, release records, and calibration evidence used to validate the Dev Kit itself.
+- source-only maintainer assets: examples, bad fixtures, release records, and calibration evidence used to validate the IntentOS itself.
 
-If an asset is source-only, it can support Dev Kit validation but must not be presented as proof that a target project has adopted IntentOS.
+If an asset is source-only, it can support IntentOS validation but must not be presented as proof that a target project has adopted IntentOS.

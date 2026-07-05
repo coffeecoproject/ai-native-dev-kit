@@ -43,7 +43,7 @@ node scripts/cli.mjs baseline-packs <target>
 ## Calibration Judgment
 
 This behavior matches the expected adoption boundary for a production governed
-project. The Dev Kit should not initialize, overwrite governance files, modify
+project. The IntentOS should not initialize, overwrite governance files, modify
 CI, or add release gates. It should prepare a governance map and only later
 propose a reviewed bridge if the human approves.
 
@@ -64,7 +64,7 @@ part is that candidates remain inactive until narrowed and approved.
 ## Non-Goals
 
 - Do not run `init-project` against the target.
-- Do not copy `.ai-native` assets into the target.
+- Do not copy `.intentos` assets into the target.
 - Do not change `AGENTS.md`, CI, release, rollback, secret, database, or
   production files.
 

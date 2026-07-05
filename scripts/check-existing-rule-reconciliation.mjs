@@ -12,11 +12,11 @@ const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -45,7 +45,7 @@ const requiredSections = [
   "Release / Production Recommendations",
   "Protected Constraint Handling",
   "Conflicts And Human Decisions",
-  "AI Native Adoption Recommendation",
+  "IntentOS Adoption Recommendation",
   "False Positive / False Negative Notes",
   "Proposed Next Step",
   "Boundaries",
@@ -164,7 +164,7 @@ function checkReports() {
 
     const summary = sectionBody(content, "Human Summary") || "";
     checkSummary(summary, label);
-    checkAiNativeAdoptionRecommendation(content, label);
+    checkIntentOSAdoptionRecommendation(content, label);
     checkBoundaries(content, label);
     checkProposedNextStep(content, label);
     const evidence = checkStructuredEvidence(content, label);
@@ -197,8 +197,8 @@ function checkSummary(summary, label) {
   }
 }
 
-function checkAiNativeAdoptionRecommendation(content, label) {
-  const body = sectionBody(content, "AI Native Adoption Recommendation") || "";
+function checkIntentOSAdoptionRecommendation(content, label) {
+  const body = sectionBody(content, "IntentOS Adoption Recommendation") || "";
   const requiredFieldRows = [
     "Recommendation",
     "Migration Depth",
@@ -207,16 +207,16 @@ function checkAiNativeAdoptionRecommendation(content, label) {
   ];
   for (const field of requiredFieldRows) {
     const actual = tableValue(body, field);
-    if (isConcrete(actual)) pass(`${label} AI Native Adoption Recommendation includes ${field}`);
-    else fail(`${label} AI Native Adoption Recommendation missing ${field}`);
+    if (isConcrete(actual)) pass(`${label} IntentOS Adoption Recommendation includes ${field}`);
+    else fail(`${label} IntentOS Adoption Recommendation missing ${field}`);
   }
   const canWrite = tableValue(body, "Can Codex write now");
-  if (canWrite === "No") pass(`${label} AI Native Adoption Recommendation keeps write authority off`);
-  else fail(`${label} AI Native Adoption Recommendation Can Codex write now must be No`);
+  if (canWrite === "No") pass(`${label} IntentOS Adoption Recommendation keeps write authority off`);
+  else fail(`${label} IntentOS Adoption Recommendation Can Codex write now must be No`);
   for (const part of ["Preserve", "Merge", "Replace After Approval", "Blocked"]) {
     const actual = tableValue(body, part);
-    if (isConcrete(actual)) pass(`${label} AI Native Adoption Recommendation includes ${part}`);
-    else fail(`${label} AI Native Adoption Recommendation missing ${part}`);
+    if (isConcrete(actual)) pass(`${label} IntentOS Adoption Recommendation includes ${part}`);
+    else fail(`${label} IntentOS Adoption Recommendation missing ${part}`);
   }
 }
 
@@ -693,7 +693,7 @@ function walk(dir, files) {
 function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed) && fs.statSync(managed).isFile()) return managed;
   return null;
 }
@@ -701,7 +701,7 @@ function resolveAsset(relativePath) {
 function resolveDirectory(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed) && fs.statSync(managed).isDirectory()) return managed;
   return null;
 }

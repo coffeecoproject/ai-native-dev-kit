@@ -18,7 +18,7 @@ It hardens the ordinary-user product loop from 1.42-1.46 by making local product
 - Updated `check-low-risk-apply-candidate` source evidence wording and required schema coverage.
 - Calibrated shared risk surfaces so benign `workflow`, `key metric`, and `package display text` wording does not trigger high risk by itself.
 - Added `baseline-calibration-reports/risk-surface-false-positives.md`.
-- Added the `intentos` CLI alias while keeping `ai-native` as compatibility alias.
+- Added the `intentos` CLI alias while keeping `intentos` as compatibility alias.
 
 ## Allowed Claims
 
@@ -38,7 +38,7 @@ node scripts/resolve-product-completeness.mjs examples/mvp-cli-note-tool --evide
 node scripts/check-mvp-example.mjs examples/mvp-booking-web-app
 node scripts/check-mvp-example.mjs examples/mvp-dashboard-web-app
 node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
@@ -70,7 +70,7 @@ git diff --check
 - `node scripts/check-product-completeness.mjs .`
 - `node scripts/check-manifest.mjs`
 - `node scripts/check-fixtures.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`
 - `git diff --check`
 

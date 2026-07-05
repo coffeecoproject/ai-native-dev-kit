@@ -35,7 +35,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can produce a read-only Document Archive Apply Plan through `archive-apply`.
+- IntentOS can produce a read-only Document Archive Apply Plan through `archive-apply`.
 - Archive Apply Plans can map source documents to proposed archive paths, link-check steps, archive index entries, and rollback steps.
 - The checker validates recorded plans for archive-approval overclaims, missing Archive Index, missing link checks, missing rollback, and cleanup-completion claims.
 - Generated projects receive the 1.28 archive apply scripts, template, prompt, checklist, protocol, documentation, and plan directory through manifest-managed workflow assets.
@@ -49,9 +49,9 @@ This release does not:
 
 ## Evidence Status
 
-- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `dev-kit-manifest.json`.
+- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `intentos-manifest.json`.
 - `scripts/check-document-archive-apply.mjs` validates source and generated Archive Apply Plans and rejects 1.28 bad fixtures for archive-authorization and missing archive index.
-- Full release evidence is recorded in `releases/1.28.0/self-check-report.md`; `node scripts/check-dev-kit.mjs`, `npm run verify`, and `git diff --check` passed.
+- Full release evidence is recorded in `releases/1.28.0/self-check-report.md`; `node scripts/check-intentos.mjs`, `npm run verify`, and `git diff --check` passed.
 
 ## Known Limitations
 

@@ -220,7 +220,7 @@ Inputs:
 - `docs/baseline-evidence.md`
 - `docs/engineering-baseline.md`
 - `docs/environment-baseline.md`
-- `.ai-native/version.json`
+- `.intentos/version.json`
 - `standard-baseline-packs/index.json`
 - `industrial-packs/index.json`
 - `profiles/`
@@ -551,7 +551,7 @@ Rules:
 - examples show the intended user experience
 - bad fixtures prove unsafe shortcuts fail
 - `node scripts/check-fixtures.mjs` passes
-- `node scripts/check-dev-kit.mjs` passes
+- `node scripts/check-intentos.mjs` passes
 - `npm run verify` passes
 
 ## Output Quality Rules

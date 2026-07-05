@@ -16,7 +16,7 @@ Passed.
 - PASS expected-failure fixture: `test-fixtures/bad/bad-release-adapter-codex-auto-production`
 - PASS expected-failure fixture: `test-fixtures/bad/bad-release-adapter-secret-request`
 - PASS `node scripts/check-manifest.mjs`
-- PASS `node scripts/check-dev-kit.mjs`
+- PASS `node scripts/check-intentos.mjs`
 - PASS `npm run verify`
 - PASS `git diff --check`
 

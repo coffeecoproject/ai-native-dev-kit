@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Support backend services and APIs while preserving the core AI Native workflow.
+Support backend services and APIs while preserving the core IntentOS workflow.
 
 ## Applies To
 

@@ -5,13 +5,13 @@
 Initialize a new project from a starter.
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --starter generic-project --target ../my-project
+node intentos/scripts/init-project.mjs --starter generic-project --target ../my-project
 ```
 
 Update workflow assets in an existing project without overwriting existing project docs or business work:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-workflow-assets
+node intentos/scripts/init-project.mjs --target ../my-project --update-workflow-assets
 ```
 
 Update mode may add missing onboarding docs, missing workflow directories, missing `AGENTS.md`, and refresh injected workflow scripts/CI. It must not overwrite existing project docs, specs, tasks, logs, business code, an existing `AGENTS.md`, or an existing `.github/pull_request_template.md`.
@@ -19,25 +19,25 @@ Update mode may add missing onboarding docs, missing workflow directories, missi
 If `AGENTS.md` is missing, update mode creates it from the Codex platform template. If an existing `AGENTS.md` is missing workflow governance markers, update mode writes:
 
 ```text
-.ai-native/migration-reports/agents-governance.md
+.intentos/migration-reports/agents-governance.md
 ```
 
 Apply the proposed appendix only after human review:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance
+node intentos/scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance
 ```
 
 If an existing PR template is missing workflow governance markers, update mode writes:
 
 ```text
-.ai-native/migration-reports/pr-template-governance.md
+.intentos/migration-reports/pr-template-governance.md
 ```
 
 Apply the proposed appendix only after human review:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance
+node intentos/scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance
 ```
 
 Injected workflow scripts:
@@ -81,12 +81,12 @@ Injected workflow scripts:
 
 ## check-ai-workflow.mjs
 
-Check whether a project contains the minimum AI Native workflow assets.
+Check whether a project contains the minimum IntentOS workflow assets.
 
 ```bash
-node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project
-node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project --mode core
-node ai-native-dev-kit/scripts/check-ai-workflow.mjs ../my-project --mode full
+node intentos/scripts/check-ai-workflow.mjs ../my-project
+node intentos/scripts/check-ai-workflow.mjs ../my-project --mode core
+node intentos/scripts/check-ai-workflow.mjs ../my-project --mode full
 ```
 
 Modes:
@@ -99,7 +99,7 @@ Modes:
 Detect whether a target is a new project, existing project, or bootstrapped project, then print the next safe workflow action.
 
 ```bash
-node ai-native-dev-kit/scripts/workflow-next.mjs ../my-project
+node intentos/scripts/workflow-next.mjs ../my-project
 node scripts/workflow-next.mjs .
 node scripts/workflow-next.mjs . --format human
 node scripts/workflow-next.mjs . --format technical
@@ -108,7 +108,7 @@ node scripts/workflow-next.mjs . --json
 node scripts/workflow-next.mjs . --enforce
 ```
 
-This script does not interpret natural language and does not write files. Codex should use `.ai-native/prompts/bootstrap-agent.md` for execution-vs-discussion intent, then use `workflow-next.mjs` for project state.
+This script does not interpret natural language and does not write files. Codex should use `.intentos/prompts/bootstrap-agent.md` for execution-vs-discussion intent, then use `workflow-next.mjs` for project state.
 
 Default output is `--format human`: a human summary first, followed by technical state fields. Use `--format technical` for raw field-first output and `--format json` or `--json` for machine-readable output.
 
@@ -122,21 +122,21 @@ Return one plain-language next-step card from a natural-language project entry.
 node scripts/resolve-beginner-entry.mjs . --goal "我想做一个预约 App"
 node scripts/check-beginner-entry.mjs .
 node scripts/cli.mjs ask . "我想做一个预约 App"
-node scripts/cli.mjs ask "我想把当前项目接入 AI Native"
+node scripts/cli.mjs ask "我想把当前项目接入 IntentOS"
 node scripts/cli.mjs ask-check .
 node scripts/resolve-workflow-guidance.mjs .
 node scripts/resolve-workflow-guidance.mjs . --deep
 node scripts/resolve-workflow-guidance.mjs . --deep --intent "我要加支付预约"
 node scripts/resolve-execution-closure.mjs . --intent "完成预约校验" --verification "npm run verify passed"
 node scripts/resolve-execution-closure.mjs . --intent "完成预约校验" --review-surface-ref review-surface-cards/001.md --review-loop-ref review-loop-reports/001.md --change-boundary-ref change-boundary-reports/001.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001.md
-node scripts/resolve-apply-plan.mjs . --intent "接入 AI Native 工作流" --action workflow-assets
+node scripts/resolve-apply-plan.mjs . --intent "接入 IntentOS 工作流" --action workflow-assets
 node scripts/check-apply-plan.mjs .
 node scripts/check-execution-closure.mjs .
 node scripts/check-workflow-guidance.mjs .
 node scripts/cli.mjs guide .
 node scripts/cli.mjs guide . --deep
-node scripts/cli.mjs guide . --deep --intent "维护 Dev Kit 自然语言入口"
-node scripts/cli.mjs closure . --intent "维护 Dev Kit 执行收口" --verification "npm run verify passed"
+node scripts/cli.mjs guide . --deep --intent "维护 IntentOS 自然语言入口"
+node scripts/cli.mjs closure . --intent "维护 IntentOS 执行收口" --verification "npm run verify passed"
 node scripts/cli.mjs closure-check .
 node scripts/cli.mjs guide-check .
 ```
@@ -254,7 +254,7 @@ approve target-project writes or prove production readiness.
 
 ## resolve-platform-baseline.mjs
 
-Resolve `docs/project-profile.md` `Selected Profiles` into an effective platform baseline from `.ai-native/profiles/*/baseline.json`, including required docs, escalation rules, risk mappings, verification, release checks, and AI boundaries.
+Resolve `docs/project-profile.md` `Selected Profiles` into an effective platform baseline from `.intentos/profiles/*/baseline.json`, including required docs, escalation rules, risk mappings, verification, release checks, and AI boundaries.
 
 ```bash
 node scripts/resolve-platform-baseline.mjs .
@@ -275,7 +275,7 @@ Default mode allows pending profile decisions and reports incomplete coverage as
 
 ## check-industrial-pack.mjs
 
-Check AI Native industrial pack structure, metadata, references, required files, and basic purity rules. This validates the dev-kit pack itself or the `.ai-native/industrial-packs` assets injected into a project; it does not certify that a real project is industrial-ready.
+Check IntentOS industrial pack structure, metadata, references, required files, and basic purity rules. This validates the intentos pack itself or the `.intentos/industrial-packs` assets injected into a project; it does not certify that a real project is industrial-ready.
 
 ```bash
 node scripts/check-industrial-pack.mjs .
@@ -283,9 +283,9 @@ node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/check-industrial-pack.mjs . --json
 ```
 
-Use full mode for the dev-kit repository. Use `--selected-only` in target projects so only packs selected in `docs/baseline-selection.md` are required.
+Use full mode for the intentos repository. Use `--selected-only` in target projects so only packs selected in `docs/baseline-selection.md` are required.
 
-Target projects include `.ai-native/industrial-packs/selection-guide.md` by default. Use it before selecting packs; concrete pack files are still installed only when selected or explicitly requested.
+Target projects include `.intentos/industrial-packs/selection-guide.md` by default. Use it before selecting packs; concrete pack files are still installed only when selected or explicitly requested.
 
 If a selected pack is missing from the target project, the checker prints a repair command that installs the selected pack through `init-project --update-workflow-assets --industrial-packs <pack-id>`.
 
@@ -420,7 +420,7 @@ node scripts/check-next-step-boundary.mjs . --mode implementation --task tasks/0
 
 ## check-fixtures.mjs
 
-Run dev-kit fixture checks. This is for the dev-kit repository itself; it is not injected into target projects.
+Run intentos fixture checks. This is for the intentos repository itself; it is not injected into target projects.
 
 ```bash
 node scripts/check-fixtures.mjs
@@ -436,7 +436,7 @@ When a fixture fails, the runner prints the command, the failed expectation, act
 
 ## score-output-quality.mjs
 
-Score durable human-facing reports for output quality. This is a dev-kit hardening checker and is not injected into target projects by default.
+Score durable human-facing reports for output quality. This is a intentos hardening checker and is not injected into target projects by default.
 
 ```bash
 node scripts/score-output-quality.mjs examples/next-step-boundary-suggestions --min-score 80
@@ -452,18 +452,18 @@ node scripts/check-glossary-usage.mjs .
 node scripts/check-glossary-usage.mjs . --json
 ```
 
-## check-dev-kit.mjs
+## check-intentos.mjs
 
-Check whether the dev kit itself is internally complete and extension-safe.
+Check whether the IntentOS itself is internally complete and extension-safe.
 This also runs fixture checks, initializes a temporary project, runs its workflow check, runs AI log summarization, and verifies workflow asset update mode.
 
 ```bash
-node ai-native-dev-kit/scripts/check-dev-kit.mjs
+node intentos/scripts/check-intentos.mjs
 ```
 
 ## summarize-ai-logs.mjs
 
-Summarize project-level AI task logs, workflow improvement signals, Skill candidates, and dev-kit proposal counts.
+Summarize project-level AI task logs, workflow improvement signals, Skill candidates, and intentos proposal counts.
 
 ```bash
 node scripts/summarize-ai-logs.mjs .
@@ -471,7 +471,7 @@ node scripts/summarize-ai-logs.mjs .
 
 ## workflow-daily-summary.mjs
 
-Run a daily workflow signal check. It reports `NO_ACTION` when no new evidence or pending decision exists, and `ACTION_REQUIRED` when a daily retro, workflow improvement, Skill candidate review, or dev-kit proposal review should be considered.
+Run a daily workflow signal check. It reports `NO_ACTION` when no new evidence or pending decision exists, and `ACTION_REQUIRED` when a daily retro, workflow improvement, Skill candidate review, or intentos proposal review should be considered.
 
 ```bash
 node scripts/workflow-daily-summary.mjs .
@@ -482,7 +482,7 @@ This script does not change business code and does not create or enable active S
 
 For Codex App automation, create one automation per project and set the automation `cwd` to that project root. Avoid broad parent-directory scanning unless the user explicitly wants a multi-project monitor.
 
-Before creating or updating an automation, write an `automation-proposals/` entry from `.ai-native/templates/project-automation-proposal.md` and review it with `.ai-native/checklists/automation-review.md`.
+Before creating or updating an automation, write an `automation-proposals/` entry from `.intentos/templates/project-automation-proposal.md` and review it with `.intentos/checklists/automation-review.md`.
 
 ## check-project-onboarding.mjs
 
@@ -512,7 +512,7 @@ Default mode is advisory and exits successfully with `PENDING` when decisions st
 
 ## check-workflow-version.mjs
 
-Check the generated project's `.ai-native/version.json`.
+Check the generated project's `.intentos/version.json`.
 
 From inside a generated project:
 
@@ -520,15 +520,15 @@ From inside a generated project:
 node scripts/check-workflow-version.mjs .
 ```
 
-From the dev-kit checkout, this also compares against the local dev-kit version:
+From the intentos checkout, this also compares against the local intentos version:
 
 ```bash
-node ai-native-dev-kit/scripts/check-workflow-version.mjs ../my-project
+node intentos/scripts/check-workflow-version.mjs ../my-project
 ```
 
 ## resolve-existing-workflow.mjs
 
-Recommend how AI Native workflow should map to an existing project before
+Recommend how IntentOS workflow should map to an existing project before
 target-project writes.
 
 ```bash
@@ -538,7 +538,7 @@ node scripts/cli.mjs workflow-map .
 ```
 
 This command is read-only. It inventories existing workflow signals and
-recommends which AI Native workflows to use, reuse, add later, or avoid.
+recommends which IntentOS workflows to use, reuse, add later, or avoid.
 
 ## check-workflow-adoption-map.mjs
 

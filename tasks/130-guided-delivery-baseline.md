@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Implement 1.3.0 as a complete Dev Kit governance phase, not a patch.
+Implement 1.3.0 as a complete IntentOS governance phase, not a patch.
 
 ## Task Level
 
@@ -38,7 +38,7 @@ Baseline refs:
 
 Baseline decisions introduced:
 
-- Add Product Baseline as Dev Kit upgrade governance.
+- Add Product Baseline as IntentOS upgrade governance.
 - Add Claim Control as release/report wording governance.
 - Add Assumption Register as uncertainty visibility governance.
 
@@ -60,4 +60,4 @@ Approval scope: implement 1.3.0 guided delivery baseline without Safe Launch sco
 - Claim control check
 - Manifest check
 - Fixture suite
-- Dev Kit self-check
+- IntentOS self-check

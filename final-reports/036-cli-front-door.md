@@ -2,16 +2,16 @@
 
 ## Human Summary
 
-Phase `0.36.0` adds a simple CLI front door for the dev kit. The CLI gives people one place to start, but it still delegates to the existing scripts that already own init, update, next-step detection, checks, fixtures, and self-checks.
+Phase `0.36.0` adds a simple CLI front door for the IntentOS. The CLI gives people one place to start, but it still delegates to the existing scripts that already own init, update, next-step detection, checks, fixtures, and self-checks.
 
 ## Completed
 
-- Added `package.json` with private package metadata, `ai-native` bin mapping, and local scripts.
+- Added `package.json` with private package metadata, `intentos` bin mapping, and local scripts.
 - Added `scripts/cli.mjs`.
 - Added CLI help, version, dry-run, command routing, write-command display, and planned-only `migrate`.
 - Updated README and README.zh-CN to prefer CLI for human usage.
 - Kept lower-level scripts documented for CI, debugging, and exact evidence.
-- Updated `scripts/check-dev-kit.mjs` with CLI smoke coverage.
+- Updated `scripts/check-intentos.mjs` with CLI smoke coverage.
 - Updated version metadata to `0.36.0`.
 - Added phase Goal Card, Subagent Run Plan, Decision Brief, Review Packet, Review Loop Report, Final Report, and release phase evidence.
 
@@ -27,10 +27,10 @@ node scripts/cli.mjs --version
 node scripts/cli.mjs next .
 node scripts/cli.mjs fixtures
 node scripts/cli.mjs self-check --dry-run
-node scripts/cli.mjs update --target /tmp/ai-native-cli-dry-run --dry-run
+node scripts/cli.mjs update --target /tmp/intentos-cli-dry-run --dry-run
 node scripts/cli.mjs doctor . --dry-run
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-cli-test
-node /tmp/ai-native-cli-test/scripts/check-ai-workflow.mjs /tmp/ai-native-cli-test --mode core
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-cli-test
+node /tmp/intentos-cli-test/scripts/check-ai-workflow.mjs /tmp/intentos-cli-test --mode core
 node scripts/check-manifest.mjs
 node scripts/check-goal-mode.mjs . --goal-card goal-cards/036-cli-front-door.md
 node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/036-cli-front-door.md
@@ -39,12 +39,12 @@ node scripts/check-review-loop.mjs . --task tasks/036-cli-front-door.md
 node scripts/check-next-step-boundary.mjs . --task tasks/036-cli-front-door.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.
 
-Evidence refs: `scripts/cli.mjs`, `package.json`, `scripts/check-dev-kit.mjs`, `decision-briefs/036-cli-front-door.md`, and `review-loop-reports/036-cli-front-door.md`.
+Evidence refs: `scripts/cli.mjs`, `package.json`, `scripts/check-intentos.mjs`, `decision-briefs/036-cli-front-door.md`, and `review-loop-reports/036-cli-front-door.md`.
 
 ## Not Changed
 

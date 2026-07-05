@@ -53,7 +53,7 @@ Current assets include:
 
 - standard pack metadata fields are explicit
 - custom metadata must go under `extensions`
-- selected profile ids must resolve to `profiles/` or `.ai-native/profiles/`
+- selected profile ids must resolve to `profiles/` or `.intentos/profiles/`
 - public documentation URLs have a narrow allowlist
 - `scripts/resolve-baseline-packs.mjs` is a lower-level industrial resolver, not the preferred human entry
 
@@ -605,7 +605,7 @@ Rules:
 - no AGENTS overwrite
 - no CI overwrite
 - no PR template overwrite
-- no full `.ai-native` copy unless project state allows it and the human confirms it
+- no full `.intentos` copy unless project state allows it and the human confirms it
 - use mapping and gap-review language, not replacement language
 
 ## Resolver Updates
@@ -758,7 +758,7 @@ docs/reference/artifacts.md
 README message:
 
 ```text
-The dev kit first identifies the project platform, then recommends ordinary standard baselines. Industrial baselines are only added when risk requires them and the human confirms.
+The IntentOS first identifies the project platform, then recommends ordinary standard baselines. Industrial baselines are only added when risk requires them and the human confirms.
 ```
 
 ## Starter / Platform Adapter Updates
@@ -789,7 +789,7 @@ Rules:
 Update:
 
 ```text
-dev-kit-manifest.json
+intentos-manifest.json
 templates/workflow-version.json
 templates/version-record.md
 package.json
@@ -949,7 +949,7 @@ node scripts/check-standard-baseline-pack.mjs .
 node scripts/check-standard-baseline-selection.mjs .
 node scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

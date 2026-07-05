@@ -10,7 +10,7 @@ Maintainers and project users who want to give Codex a repository path and say "
 
 ## Problem
 
-The dev kit has strong scripts and safeguards, but first-time adoption still expects users to know whether to run `next`, `doctor`, `init`, `update`, `dry-run`, or `write-plan`. That creates unnecessary operational burden and can lead to the wrong command being used on governed or production-sensitive projects.
+The IntentOS has strong scripts and safeguards, but first-time adoption still expects users to know whether to run `next`, `doctor`, `init`, `update`, `dry-run`, or `write-plan`. That creates unnecessary operational burden and can lead to the wrong command being used on governed or production-sensitive projects.
 
 ## Current Workflow
 

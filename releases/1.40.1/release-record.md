@@ -10,8 +10,8 @@ It does not add a new governance module. It stabilizes the current `1.40.x` line
 
 - Clarified naming:
   - `IntentOS` is the product and workflow-system name.
-  - `AI Native Dev Kit` is the historical repository/package lineage.
-  - `ai-native` remains a compatibility CLI/package alias.
+  - `IntentOS` is the historical repository/package lineage.
+  - `intentos` remains a compatibility CLI/package alias.
 - Clarified that `1.4.0` was the historical Project Memory phase and the current line is `1.40.x`.
 - Added `docs/artifact-lifecycle.md`.
 - Added `docs/o0-bl0-lightweight-path.md`.
@@ -47,7 +47,7 @@ node scripts/check-approval-record.mjs .
 node scripts/check-approval-record.mjs examples/1.40-approval-record-governance
 node scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

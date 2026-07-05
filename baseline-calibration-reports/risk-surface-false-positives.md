@@ -19,7 +19,7 @@ These should stay low risk unless paired with actual risky paths or security-sen
 These should remain high risk:
 
 - `API key and secret token handling`
-- `.github/workflows/dev-kit-release-checks.yml`
+- `.github/workflows/intentos-release-checks.yml`
 - `database migration for payment permissions`
 
 ## Boundary

@@ -21,7 +21,7 @@ This is a simulated example of bounded release wording.
 | Evidence | Status | Notes |
 |---|---|---|
 | Simulated dogfood | Present | Example only. |
-| Generated-project smoke | Not included | Use dev-kit self-check. |
+| Generated-project smoke | Not included | Use intentos self-check. |
 | Controlled real-project trial | Not present | Not claimed. |
 | Production adoption evidence | Not present | Not claimed. |
 

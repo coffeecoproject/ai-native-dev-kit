@@ -13,9 +13,9 @@ Use this checklist before creating, updating, resuming, or deleting any project 
 ## Scope
 
 - [ ] Automation is scoped to one project root
-- [ ] Project root contains `.ai-native/version.json`
+- [ ] Project root contains `.intentos/version.json`
 - [ ] Project root contains required workflow scripts
-- [ ] Automation is not attached to the shared dev-kit directory
+- [ ] Automation is not attached to the shared intentos directory
 - [ ] Automation is not attached to a broad parent directory unless explicitly approved as multi-project monitor
 
 ## Schedule
@@ -42,7 +42,7 @@ Use this checklist before creating, updating, resuming, or deleting any project 
 - [ ] No secrets or credentials
 - [ ] No `.codex/skills/` writes
 - [ ] No active Skill creation, update, installation, or enablement
-- [ ] No shared dev-kit mutation
+- [ ] No shared intentos mutation
 
 ## Decision
 

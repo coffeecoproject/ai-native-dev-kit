@@ -45,7 +45,7 @@ Repair runs: 0
 
 - Web BL2 should require evidence categories, while checklists hold detailed subchecks.
 
-## Dev Kit Updates Needed
+## IntentOS Updates Needed
 
 - Consider turning repeated Web BL2 adoption steps into a future helper after dogfooding.
 

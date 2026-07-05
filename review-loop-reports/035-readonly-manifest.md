@@ -1,4 +1,4 @@
-# Review Loop Report: Read-only Dev Kit Manifest
+# Review Loop Report: Read-only IntentOS Manifest
 
 ## Status
 
@@ -30,7 +30,7 @@ Reviewer: local read-only review pass
 
 | ID | Severity | Category | Finding | Evidence | Proposed action | Owner | Status |
 |---|---|---|---|---|---|---|---|
-| F1 | P2 | NO_ACTION | No blocking review finding because manifest is read-only and checker coverage includes schema and drift cases | `dev-kit-manifest.json`, `scripts/check-manifest.mjs`, and `scripts/check-dev-kit.mjs` | No change needed because verification covers manifest shape and drift | Codex | DONE |
+| F1 | P2 | NO_ACTION | No blocking review finding because manifest is read-only and checker coverage includes schema and drift cases | `intentos-manifest.json`, `scripts/check-manifest.mjs`, and `scripts/check-intentos.mjs` | No change needed because verification covers manifest shape and drift | Codex | DONE |
 
 ## Human Decision Queue
 

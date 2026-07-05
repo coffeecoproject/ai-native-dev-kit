@@ -2,7 +2,7 @@
 
 Guided Delivery Loop defines how Codex should move a user from a natural-language idea to a bounded delivery result without forcing the user to manage workflow mechanics.
 
-It is an experience layer over existing AI Native workflow assets. It does not create new approval authority, does not auto-scan real projects, and does not make every task create new artifacts.
+It is an experience layer over existing IntentOS workflow assets. It does not create new approval authority, does not auto-scan real projects, and does not make every task create new artifacts.
 
 ## Core Rule
 

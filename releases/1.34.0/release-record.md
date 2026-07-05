@@ -44,7 +44,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can produce a Unified Apply Plan.
+- IntentOS can produce a Unified Apply Plan.
 - The plan can list proposed writes, evidence, human-only actions, backup, rollback, and verification requirements.
 - The plan can explain why an apply path is blocked or needs human approval.
 

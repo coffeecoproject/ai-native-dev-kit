@@ -37,7 +37,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can classify a provided user intent and use it to improve deep guide routing.
+- IntentOS can classify a provided user intent and use it to improve deep guide routing.
 - Payment, auth, data, release, document, task-switch, bug-fix, and automation intents can raise relevant review focus and risk questions.
 - Intent-aware guide stays read-only and compresses selected resolver output into one guidance card.
 
@@ -51,7 +51,7 @@ This release does not:
 ## Evidence Status
 
 - Release evidence is recorded in `releases/1.31.0/self-check-report.md`.
-- `node scripts/check-dev-kit.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
+- `node scripts/check-intentos.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
 
 ## Known Limitations
 

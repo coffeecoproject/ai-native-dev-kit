@@ -19,7 +19,7 @@ node scripts/check-release-handoff-pack.mjs examples/1.60-release-handoff-packs/
 node scripts/check-release-handoff-pack.mjs test-fixtures/bad/bad-release-handoff-missing-structured-evidence --require-structured-evidence
 node scripts/check-release-handoff-pack.mjs test-fixtures/bad/bad-release-handoff-execution-redefines-evidence --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 ```
 
@@ -27,4 +27,4 @@ npm run verify
 
 - Handoff readiness remains review readiness, not release approval.
 - Release Execution consumes handoff facts instead of redefining release owner/evidence.
-- Bad fixture checks failed for the expected reasons and were accepted by `check-dev-kit`.
+- Bad fixture checks failed for the expected reasons and were accepted by `check-intentos`.

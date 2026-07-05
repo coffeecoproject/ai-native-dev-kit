@@ -12,7 +12,7 @@ The review loop checks that 1.4 remains a source-of-truth governance layer and d
 
 | Round | Reviewer | Findings | Action |
 |---|---|---|---|
-| 1 | Main thread deterministic review | Pending final local checks | Run context, product, claim, manifest, fixture, dev-kit, and diff checks |
+| 1 | Main thread deterministic review | Pending final local checks | Run context, product, claim, manifest, fixture, intentos, and diff checks |
 
 ## Findings
 

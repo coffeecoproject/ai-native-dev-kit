@@ -16,7 +16,7 @@ The main behavior change is:
 
 - `doctor` stops at old-project adoption diagnosis instead of running full missing-asset checks.
 - `reconcile-rules --auto-native` can generate temporary read-only Native Migration input when no `native-migration-plans/` report has been written.
-- Existing Rule Reconciliation now includes an AI Native Adoption Recommendation so the AI recommends the technical migration path and the human confirms authority/risk acceptance.
+- Existing Rule Reconciliation now includes an IntentOS Adoption Recommendation so the AI recommends the technical migration path and the human confirms authority/risk acceptance.
 
 ## What Changed
 
@@ -44,7 +44,7 @@ Users should not be asked to judge low-level technical details such as whether a
 1.69.0 does not:
 
 - write target-project files;
-- install `.ai-native`;
+- install `.intentos`;
 - replace `AGENTS.md`;
 - change CI, hooks, release SOPs, production config, secrets, migrations, payment, permissions, data, provider state, legal, tax, finance, HR, security, privacy, or compliance behavior;
 - approve implementation;
@@ -55,13 +55,13 @@ Users should not be asked to judge low-level technical details such as whether a
 - 1.69.0 improves old-project adoption diagnosis.
 - `doctor` can stop at old-project adoption diagnosis instead of running full missing-asset checks.
 - `reconcile-rules --auto-native` can generate temporary read-only Native Migration input for recommendation.
-- Existing Rule Reconciliation can include an AI Native Adoption Recommendation.
+- Existing Rule Reconciliation can include an IntentOS Adoption Recommendation.
 - The recommendation is read-only and does not authorize target-project writes.
 
 ## Forbidden Claims
 
 - Do not claim 1.69.0 automatically migrates existing projects.
-- Do not claim 1.69.0 installs `.ai-native` into old projects.
+- Do not claim 1.69.0 installs `.intentos` into old projects.
 - Do not claim 1.69.0 replaces existing `AGENTS.md`, CI, hooks, release SOPs, baselines, or production controls.
 - Do not claim 1.69.0 lets Codex approve implementation, commit, release, production, secrets, migrations, payment, permissions, or provider changes.
 - Do not claim `--auto-native` writes a Native Migration Plan to the target project.
@@ -74,7 +74,7 @@ The release must be verified with:
 - manifest validation;
 - `doctor` governed-existing-project calibration;
 - `reconcile-rules --auto-native` governed-existing-project calibration;
-- full `node scripts/check-dev-kit.mjs`;
+- full `node scripts/check-intentos.mjs`;
 - `git diff --check`.
 
 ## Evidence Status
@@ -82,8 +82,8 @@ The release must be verified with:
 - Version metadata points to `1.69.0`.
 - CLI help prints `1.69.0`.
 - `doctor` governed existing-project calibration passed without full missing-asset noise.
-- `reconcile-rules --auto-native` governed existing-project calibration passed with a read-only AI Native Adoption Recommendation.
-- Full dev-kit self-check passed.
+- `reconcile-rules --auto-native` governed existing-project calibration passed with a read-only IntentOS Adoption Recommendation.
+- Full intentos self-check passed.
 - Source verification evidence is recorded in [self-check-report.md](self-check-report.md).
 - GitHub Release publication is outside source verification.
 
@@ -91,10 +91,10 @@ The release must be verified with:
 
 - `node --check scripts/cli.mjs`
 - `node --check scripts/resolve-existing-rule-reconciliation.mjs`
-- `node --check scripts/check-dev-kit.mjs`
+- `node --check scripts/check-intentos.mjs`
 - `node scripts/cli.mjs --version`
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Known Limitations

@@ -17,7 +17,7 @@ Passed.
 - `node scripts/check-manifest.mjs`
 - `npm --silent run verify:examples`
 - `npm --silent run verify:governance`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - Optional local governed-project smoke: `start` / `next` against a private production-sensitive project checkout. This was local calibration evidence only, with the private path omitted from public required verification.
 - `node scripts/cli.mjs claim-control .`
 - `node scripts/cli.mjs product-baseline .`

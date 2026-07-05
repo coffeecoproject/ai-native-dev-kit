@@ -22,7 +22,7 @@ Use `learning-candidates/` when the observation may become durable context but i
 
 Use `context-corrections/` when existing context appears wrong or outdated.
 
-Use `git-boundary-reports/` when deciding which AI Native or context artifacts should enter Git.
+Use `git-boundary-reports/` when deciding which IntentOS or context artifacts should enter Git.
 
 ## Human Decision
 

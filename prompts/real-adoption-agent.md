@@ -23,5 +23,5 @@ Rules:
 - Do not start runtime services.
 - Do not run migrations, seeds, release, rollback, deployment, or external service commands.
 - Do not read or print secrets.
-- Do not replace existing governance with generic AI Native templates.
+- Do not replace existing governance with generic IntentOS templates.
 - If a project is governed or production-sensitive, recommend read-only mapping first.

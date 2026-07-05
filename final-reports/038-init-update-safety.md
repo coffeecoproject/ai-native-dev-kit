@@ -14,7 +14,7 @@ Phase `0.38.0` makes init/update safer. Codex can now show what it will do, save
 - Added direct-update blocking for dirty or unbootstrapped existing projects.
 - Preserved direct update for already bootstrapped generated projects.
 - Updated `scripts/cli.mjs` so global dry-run prints commands and command-level init/update dry-run emits plan preview.
-- Updated `scripts/check-dev-kit.mjs` with init/update safety coverage.
+- Updated `scripts/check-intentos.mjs` with init/update safety coverage.
 - Updated version metadata, manifest, roadmap status, and phase evidence to `0.38.0`.
 
 ## Verified
@@ -34,7 +34,7 @@ node scripts/check-review-loop.mjs . --task tasks/038-init-update-safety.md
 node scripts/check-next-step-boundary.mjs . --task tasks/038-init-update-safety.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS after final verification.

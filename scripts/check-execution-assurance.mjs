@@ -28,11 +28,11 @@ const requireActualDiff = Boolean(args["require-actual-diff"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const allowEmptyReports = Boolean(args["allow-empty"]);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -119,7 +119,7 @@ const knownCheckerRefs = new Set([
   "checker:baseline-decision",
   "checker:apply-candidate",
   "checker:apply-readiness",
-  "checker:check-dev-kit",
+  "checker:check-intentos",
   "checker:source-system-review",
 ]);
 
@@ -536,7 +536,7 @@ function evidenceRefExists(ref) {
   if (!isFileOrArtifactRef(value)) return false;
   const filePath = value.replace(/^(file|artifact):/, "");
   if (!filePath || path.isAbsolute(filePath) || filePath.includes("..")) return false;
-  return fs.existsSync(path.join(projectRoot, filePath)) || fs.existsSync(path.join(projectRoot, ".ai-native", filePath));
+  return fs.existsSync(path.join(projectRoot, filePath)) || fs.existsSync(path.join(projectRoot, ".intentos", filePath));
 }
 
 function collectEvidenceRefs(parsed) {
@@ -581,7 +581,7 @@ function firstCodeValue(body) {
 function markdownFiles(dir) {
   const roots = [
     path.join(projectRoot, dir),
-    path.join(projectRoot, ".ai-native", dir),
+    path.join(projectRoot, ".intentos", dir),
   ];
   const files = [];
   for (const root of roots) collectMarkdown(root, files);
@@ -600,7 +600,7 @@ function collectMarkdown(dir, files) {
 function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct)) return direct;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed)) return managed;
   return "";
 }
@@ -608,7 +608,7 @@ function resolveAsset(relativePath) {
 function resolveDirectory(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed) && fs.statSync(managed).isDirectory()) return managed;
   return "";
 }
@@ -619,7 +619,7 @@ function readResolved(relativePath) {
 }
 
 function displayAsset(relativePath, resolved) {
-  return resolved.includes(`${path.sep}.ai-native${path.sep}`) ? `.ai-native/${relativePath}` : relativePath;
+  return resolved.includes(`${path.sep}.intentos${path.sep}`) ? `.intentos/${relativePath}` : relativePath;
 }
 
 function rel(fullPath) {

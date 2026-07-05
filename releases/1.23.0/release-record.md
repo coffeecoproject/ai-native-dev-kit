@@ -61,7 +61,7 @@ node scripts/resolve-hook-orchestration.mjs .
 node scripts/resolve-hook-orchestration.mjs . --json
 node scripts/check-hook-orchestration.mjs .
 node scripts/check-hook-orchestration.mjs examples/1.23-hook-orchestration
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify:release
 npm run verify
 git diff --check

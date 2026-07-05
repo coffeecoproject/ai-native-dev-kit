@@ -20,7 +20,7 @@ Reason: The phase changes execution behavior and needs bounded implementation af
 |---|---|---|---|---|---|---|
 | A1 | Goal Planner | READ_ONLY | CLOSED | none | Implementation route selected | Handoff recorded in `goal-cards/038-init-update-safety.md` |
 | A2 | Init/Update Safety Architect | READ_ONLY_DRAFT | CLOSED | none | Plan-first safety rules drafted | Findings reflected in `specs/038-init-update-safety.md` |
-| A3 | CLI Writer | WRITER_LIMITED | CLOSED | `scripts/init-project.mjs`, `scripts/cli.mjs`, `scripts/check-dev-kit.mjs`, version metadata, and phase artifacts | Safety checks pass | Evidence recorded in `final-reports/038-init-update-safety.md` |
+| A3 | CLI Writer | WRITER_LIMITED | CLOSED | `scripts/init-project.mjs`, `scripts/cli.mjs`, `scripts/check-intentos.mjs`, version metadata, and phase artifacts | Safety checks pass | Evidence recorded in `final-reports/038-init-update-safety.md` |
 | A4 | Reviewer | READ_ONLY | CLOSED | none | Safety behavior reviewed against scope | Findings recorded in `review-loop-reports/038-init-update-safety.md` |
 | A5 | Reporter | READ_ONLY_DRAFT | CLOSED | `final-reports/` and `releases/0.38.0/` evidence files | Human-facing report drafted | Output recorded in `final-reports/038-init-update-safety.md` |
 

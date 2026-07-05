@@ -51,7 +51,7 @@ function hint(message) {
 
 function installSelectedPacksCommand(packIds) {
   return [
-    "node <ai-native-dev-kit>/scripts/init-project.mjs",
+    "node <intentos>/scripts/init-project.mjs",
     `--target ${projectRoot}`,
     "--update-workflow-assets",
     `--industrial-packs ${[...new Set(packIds)].sort().join(",")}`,

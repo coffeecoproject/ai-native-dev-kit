@@ -67,7 +67,7 @@ I have switched to IntentOS Native-First Migration Planning mode.
 
 | Field | Value |
 | --- | --- |
-| Backup path | `.ai-native/backups/native-migration/dirty-worktree/AGENTS.md` |
+| Backup path | `.intentos/backups/native-migration/dirty-worktree/AGENTS.md` |
 | Restore method | Restore approved backup or leave old AGENTS unchanged |
 | Restore owner | human owner |
 | If owner rejects migration | Keep adapter-only / read-only mapping |

@@ -16,7 +16,7 @@
 - [x] `node scripts/check-fixtures.mjs`
 - [x] `node scripts/check-product-baseline.mjs .`
 - [x] `node scripts/check-claim-control.mjs .`
-- [x] `node scripts/check-dev-kit.mjs`
+- [x] `node scripts/check-intentos.mjs`
 
 ## Spec Alignment
 

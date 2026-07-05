@@ -10,7 +10,7 @@ READY
 
 ## Problem Summary
 
-Phase 0.34.0 is the first executable productization hardcut phase. It should freeze the current `0.33.0` state and add dev-kit first-party CI without touching higher-risk productization work.
+Phase 0.34.0 is the first executable productization hardcut phase. It should freeze the current `0.33.0` state and add intentos first-party CI without touching higher-risk productization work.
 
 ## Missing Information
 
@@ -20,13 +20,13 @@ No blocking information is missing. GitHub CI will be added as repository files;
 
 - The current baseline commit is `1acd7440f4ffc295cba9abd8324e943d06eb8099`.
 - Node.js 22 is the intended runtime for productized CI.
-- Existing dev-kit checks are the source of truth for this phase.
+- Existing intentos checks are the source of truth for this phase.
 - CI files can be added before branch protection is configured.
 
 ## Direction Risks
 
 - Adding CI that is too broad may slow routine PRs.
-- Adding CI that is too narrow may miss dev-kit regressions.
+- Adding CI that is too narrow may miss intentos regressions.
 - Repository governance files may imply review ownership before maintainers finalize owners.
 - This phase could accidentally drift into CLI or manifest implementation if scope is not enforced.
 
@@ -64,7 +64,7 @@ Security policy text must be clear but must not imply a managed vulnerability re
 One repository-level CI slice:
 
 - syntax check for scripts
-- dev-kit self-check
+- intentos self-check
 - fixture suite
 - output quality score
 - glossary usage check

@@ -6,7 +6,7 @@ Stage: draft dogfood only
 
 ## Recorded Dogfood
 
-- `examples/web-industrial-bl2-first-slice/` records a dev-kit dogfood slice.
+- `examples/web-industrial-bl2-first-slice/` records a intentos dogfood slice.
 - Real project dogfood is still required before candidate or stable promotion.
 
 ## Required Next Dogfood

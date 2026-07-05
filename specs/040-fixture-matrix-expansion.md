@@ -6,7 +6,7 @@ slug: fixture-matrix-expansion
 title: Fixture Matrix Expansion
 status: ready
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 request: requests/040-fixture-matrix-expansion.md
 preflight: preflight/040-fixture-matrix-expansion.md
 ---
@@ -24,11 +24,11 @@ Preflight: `preflight/040-fixture-matrix-expansion.md`
 
 ## Problem
 
-The dev-kit has many checkers, but fixture coverage is still harder to reason about than the product surface. Before checker internals are refactored, fixture coverage needs to be explicit, typed, and easier to diagnose.
+The intentos has many checkers, but fixture coverage is still harder to reason about than the product surface. Before checker internals are refactored, fixture coverage needs to be explicit, typed, and easier to diagnose.
 
 ## User Story
 
-As a dev-kit maintainer, I want fixture cases grouped by purpose and reported with clear expectations so I can refactor checker internals later without accidentally changing behavior.
+As a intentos maintainer, I want fixture cases grouped by purpose and reported with clear expectations so I can refactor checker internals later without accidentally changing behavior.
 
 ## Scope
 
@@ -101,14 +101,14 @@ Verification evidence is captured in `final-reports/040-fixture-matrix-expansion
 - Migration cases cover frontmatter warning, workflow version mismatch, manifest version mismatch, and BL2 skip behavior.
 - CLI/init-update cases cover user-facing command entry points.
 - `node scripts/check-fixtures.mjs` passes.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 
 ## Test Plan
 
 - Syntax-check changed scripts.
 - Run fixture suite.
 - Run manifest check.
-- Run workflow artifact, Goal Mode, Subagent Orchestration, Review Loop, Next-Step, output quality, and full dev-kit checks.
+- Run workflow artifact, Goal Mode, Subagent Orchestration, Review Loop, Next-Step, output quality, and full intentos checks.
 
 ## Rollback Notes
 

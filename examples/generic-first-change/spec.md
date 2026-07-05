@@ -11,7 +11,7 @@ Ready
 
 ## Problem
 
-The project needs one minimal capability to validate the implementation path and AI Native workflow.
+The project needs one minimal capability to validate the implementation path and IntentOS workflow.
 
 ## User Story
 

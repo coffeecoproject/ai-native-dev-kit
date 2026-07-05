@@ -1,6 +1,6 @@
 # Document Lifecycle
 
-This page explains how AI Native Dev Kit handles old, duplicated, or unclear
+This page explains how IntentOS handles old, duplicated, or unclear
 project documents.
 
 ## Human Summary

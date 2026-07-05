@@ -2,7 +2,7 @@
 
 Migration support is conservative.
 
-`ai-native migrate` is plan-only in 0.42.0. It helps inspect a target project and produce a reviewable plan. It does not apply changes.
+`intentos migrate` is plan-only in 0.42.0. It helps inspect a target project and produce a reviewable plan. It does not apply changes.
 
 ## Supported Ranges
 

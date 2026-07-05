@@ -10,7 +10,7 @@ import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "./lib/m
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
-const currentDevKitVersion = readCurrentVersion();
+const currentIntentOSVersion = readCurrentVersion();
 const requiredPullRequestTemplateMarkers = [
   "Human Summary",
   "Bootstrap state",
@@ -144,7 +144,7 @@ function copyFile(src, dest, options = {}) {
 }
 
 function readExistingStarter(targetPath) {
-  const versionPath = path.join(targetPath, ".ai-native", "version.json");
+  const versionPath = path.join(targetPath, ".intentos", "version.json");
   if (!fs.existsSync(versionPath)) return null;
   try {
     const version = JSON.parse(fs.readFileSync(versionPath, "utf8"));
@@ -193,7 +193,7 @@ function selectedIndustrialPackIdsFromProject(targetPath) {
 }
 
 function installedIndustrialPackIds(targetPath, sourceIndex) {
-  const destRoot = path.join(targetPath, ".ai-native", "industrial-packs");
+  const destRoot = path.join(targetPath, ".intentos", "industrial-packs");
   if (!fs.existsSync(destRoot) || !sourceIndex?.packs) return [];
   return sourceIndex.packs
     .filter((entry) => entry?.status !== "planned" && entry.path && fs.existsSync(path.join(destRoot, entry.path, "pack.json")))
@@ -265,11 +265,11 @@ function pullRequestTemplateGovernanceAppendix() {
 }
 
 function pullRequestTemplateMigrationReportPath(targetPath) {
-  return path.join(targetPath, ".ai-native", "migration-reports", "pr-template-governance.md");
+  return path.join(targetPath, ".intentos", "migration-reports", "pr-template-governance.md");
 }
 
 function agentsGovernanceMigrationReportPath(targetPath) {
-  return path.join(targetPath, ".ai-native", "migration-reports", "agents-governance.md");
+  return path.join(targetPath, ".intentos", "migration-reports", "agents-governance.md");
 }
 
 function migrationHumanDecisionSummary({ status, targetLabel, applyCommand }) {
@@ -317,12 +317,12 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
   };
   const reasonLines = status === "RESOLVED_MANUALLY"
     ? [
-        "The project PR template now contains all required AI Native workflow governance markers.",
+        "The project PR template now contains all required IntentOS workflow governance markers.",
         "",
         "A previous pending migration report was resolved after the template was updated manually or by another approved process.",
       ]
     : [
-        "The project already has a pull request template, but it is missing AI Native workflow governance markers.",
+        "The project already has a pull request template, but it is missing IntentOS workflow governance markers.",
         "",
         "The update command does not modify an existing project PR template unless the human explicitly approves that migration.",
       ];
@@ -332,7 +332,7 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
         "After human review, either merge the proposed appendix manually or run:",
         "",
         "```bash",
-        "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
+        "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
         "```",
       ]
     : ["No apply command is needed for this report status."];
@@ -340,12 +340,12 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
     "# Migration Report: PR Template Governance",
     "",
     `Status: ${status}`,
-    `Dev kit version: ${currentDevKitVersion}`,
+    `IntentOS version: ${currentIntentOSVersion}`,
     "",
     ...migrationHumanDecisionSummary({
       status,
       targetLabel: "PR template",
-      applyCommand: "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
+      applyCommand: "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
     }),
     "## Status Notes",
     "",
@@ -408,7 +408,7 @@ function ensurePullRequestTemplate(targetPath, starter, options = {}) {
 
   if (!applyPrTemplateGovernance) {
     writePullRequestTemplateMigrationReport(targetPath, missingMarkers, options);
-    console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .ai-native/migration-reports/pr-template-governance.md`);
+    console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .intentos/migration-reports/pr-template-governance.md`);
     return;
   }
 
@@ -445,13 +445,13 @@ function agentGovernanceSectionContent() {
     ["Bootstrap Entry", [
       "## Bootstrap Entry",
       "",
-      "When the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat that as execution bootstrap intent.",
+      "When the user asks to configure, apply, initialize, inject, install, or bootstrap the IntentOS workflow, treat that as execution bootstrap intent.",
       "",
       "Execution bootstrap intent allows workflow and governance asset setup only. Do not modify business code during bootstrap.",
       "",
       "When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.",
       "",
-      "For bootstrap work, first use `.ai-native/prompts/bootstrap-agent.md` when present, then run:",
+      "For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when present, then run:",
       "",
       "```bash",
       "node scripts/workflow-next.mjs .",
@@ -463,7 +463,7 @@ function agentGovernanceSectionContent() {
     ["Beginner Entry", [
       "## Beginner Entry",
       "",
-      "Use `.ai-native/core/beginner-entry.md` and `.ai-native/docs/beginner-entry.md` when the user gives one natural-language goal or should not need to choose internal workflow commands.",
+      "Use `.intentos/core/beginner-entry.md` and `.intentos/docs/beginner-entry.md` when the user gives one natural-language goal or should not need to choose internal workflow commands.",
       "",
       "Run:",
       "",
@@ -478,7 +478,7 @@ function agentGovernanceSectionContent() {
     ["Conversation-Native Ask", [
       "## Conversation-Native Ask",
       "",
-      "Use `.ai-native/core/conversation-native-ask.md` and `.ai-native/docs/conversation-native-ask.md` when the user gives a plain project goal in conversation, unless they clearly ask only to discuss, review, compare, inspect, pause, or stop.",
+      "Use `.intentos/core/conversation-native-ask.md` and `.intentos/docs/conversation-native-ask.md` when the user gives a plain project goal in conversation, unless they clearly ask only to discuss, review, compare, inspect, pause, or stop.",
       "",
       "The user should not need to know or run workflow commands before Codex can route the work. Internally, treat the turn as Beginner Entry behavior and keep the output plain.",
       "",
@@ -509,7 +509,7 @@ function agentGovernanceSectionContent() {
     ["Delivery Path Governance", [
       "## Delivery Path Governance",
       "",
-      "Use `.ai-native/core/delivery-path-governance.md` whenever Codex needs to explain how far the project or task is from useful use.",
+      "Use `.intentos/core/delivery-path-governance.md` whenever Codex needs to explain how far the project or task is from useful use.",
       "",
       "Run:",
       "",
@@ -526,7 +526,7 @@ function agentGovernanceSectionContent() {
     ["Debt & Knowledge Handoff", [
       "## Debt & Knowledge Handoff",
       "",
-      "Use `.ai-native/core/debt-knowledge-handoff.md` when a task is interrupted, paused, has known debt, or needs a reliable next-run handoff.",
+      "Use `.intentos/core/debt-knowledge-handoff.md` when a task is interrupted, paused, has known debt, or needs a reliable next-run handoff.",
       "",
       "Run:",
       "",
@@ -543,7 +543,7 @@ function agentGovernanceSectionContent() {
       "",
       "Before the first non-trivial implementation, run project onboarding.",
       "",
-      "Use `.ai-native/prompts/project-onboarding-agent.md` and `.ai-native/core/project-onboarding.md` to draft project onboarding docs. AI drafts; humans decide.",
+      "Use `.intentos/prompts/project-onboarding-agent.md` and `.intentos/core/project-onboarding.md` to draft project onboarding docs. AI drafts; humans decide.",
       "",
       "Run:",
       "",
@@ -556,7 +556,7 @@ function agentGovernanceSectionContent() {
     ["Engineering Baseline", [
       "## Engineering Baseline",
       "",
-      "Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.ai-native/core/engineering-baseline.md` when present.",
+      "Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.intentos/core/engineering-baseline.md` when present.",
       "",
       "Run:",
       "",
@@ -570,7 +570,7 @@ function agentGovernanceSectionContent() {
     ["Environment Baseline", [
       "## Environment Baseline",
       "",
-      "Before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.ai-native/core/environment-baseline.md` when present.",
+      "Before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.intentos/core/environment-baseline.md` when present.",
       "",
       "Run:",
       "",
@@ -609,13 +609,13 @@ function agentGovernanceSectionContent() {
       "node scripts/check-industrial-baseline.mjs . --bl2-only",
       "```",
       "",
-      "Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.",
+      "Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` as project docs only after that decision.",
       "",
     ].join("\n")],
     ["Standard Baseline Packs", [
       "## Standard Baseline Packs",
       "",
-      "Use `.ai-native/core/standard-baseline-pack-registry.md`, `.ai-native/docs/standard-baseline-pack-registry.md`, and `.ai-native/docs/platform-standard-baseline-packs.md` when platform standard packs need to be selected before considering BL2 industrial overlays.",
+      "Use `.intentos/core/standard-baseline-pack-registry.md`, `.intentos/docs/standard-baseline-pack-registry.md`, and `.intentos/docs/platform-standard-baseline-packs.md` when platform standard packs need to be selected before considering BL2 industrial overlays.",
       "",
       "Run:",
       "",
@@ -652,7 +652,7 @@ function agentGovernanceSectionContent() {
     ["Goal Mode", [
       "## Goal Mode",
       "",
-      "Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.",
+      "Use `.intentos/core/goal-mode.md` and `.intentos/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.",
       "",
       "Goal Mode chooses one of: `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`.",
       "",
@@ -669,7 +669,7 @@ function agentGovernanceSectionContent() {
     ["Subagent Orchestration", [
       "## Subagent Orchestration",
       "",
-      "Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.",
+      "Use `.intentos/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.",
       "",
       "The default rule is: many readers, one writer. Subagent output is input, not authority. The main thread remains responsible for writes, verification, and final reporting.",
       "",
@@ -688,7 +688,7 @@ function agentGovernanceSectionContent() {
     ["Safe Launch", [
       "## Safe Launch",
       "",
-      "Use `.ai-native/core/safe-launch.md` when completed work needs a demo, internal handoff, release-review, blocked, or not-ready classification.",
+      "Use `.intentos/core/safe-launch.md` when completed work needs a demo, internal handoff, release-review, blocked, or not-ready classification.",
       "",
       "Run:",
       "",
@@ -702,7 +702,7 @@ function agentGovernanceSectionContent() {
     ["Conversation Drift", [
       "## Conversation Drift",
       "",
-      "Use `.ai-native/core/conversation-drift-control.md` when a user message may be discussion-only, review-only, a pause/stop request, a scope change, a new task, a direct follow-up, or a risk decision.",
+      "Use `.intentos/core/conversation-drift-control.md` when a user message may be discussion-only, review-only, a pause/stop request, a scope change, a new task, a direct follow-up, or a risk decision.",
       "",
       "Run:",
       "",
@@ -716,7 +716,7 @@ function agentGovernanceSectionContent() {
     ["First Delivery Walkthrough", [
       "## First Delivery Walkthrough",
       "",
-      "Use `.ai-native/core/first-delivery-walkthrough.md` when a broad new idea needs a complete first-slice walkthrough from human idea to demo, handoff, or not-ready recommendation.",
+      "Use `.intentos/core/first-delivery-walkthrough.md` when a broad new idea needs a complete first-slice walkthrough from human idea to demo, handoff, or not-ready recommendation.",
       "",
       "Run:",
       "",
@@ -730,7 +730,7 @@ function agentGovernanceSectionContent() {
     ["Review Surface Governance", [
       "## Review Surface Governance",
       "",
-      "Use `.ai-native/core/review-surface-governance.md` before non-trivial implementation, repair, or review work to decide what must be reviewed before and after execution.",
+      "Use `.intentos/core/review-surface-governance.md` before non-trivial implementation, repair, or review work to decide what must be reviewed before and after execution.",
       "",
       "Run:",
       "",
@@ -749,7 +749,7 @@ function agentGovernanceSectionContent() {
     ["Review Loop", [
       "## Review Loop",
       "",
-      "Use `.ai-native/core/review-loop.md` for L2/L3 work or whenever review findings need closure.",
+      "Use `.intentos/core/review-loop.md` for L2/L3 work or whenever review findings need closure.",
       "",
       "Review Packet is the input. GPT Review Prompt is read-only reviewer instruction. Review Loop Report records review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items.",
       "",
@@ -759,7 +759,7 @@ function agentGovernanceSectionContent() {
     ["Bounded Next-Step", [
       "## Bounded Next-Step",
       "",
-      "Use `.ai-native/core/next-step-boundary.md` for every task final report, review summary, and follow-up suggestion.",
+      "Use `.intentos/core/next-step-boundary.md` for every task final report, review summary, and follow-up suggestion.",
       "",
       "Codex may suggest next steps, but suggestions must be bounded, classified, and actionable. Suggestions must use one of: `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED`.",
       "",
@@ -769,17 +769,17 @@ function agentGovernanceSectionContent() {
     ["Output Experience", [
       "## Output Experience",
       "",
-      "Use `.ai-native/core/output-protocol.md` and `.ai-native/prompts/reporter-agent.md` when reporting workflow, baseline, adoption, review, release, or automation status.",
+      "Use `.intentos/core/output-protocol.md` and `.intentos/prompts/reporter-agent.md` when reporting workflow, baseline, adoption, review, release, or automation status.",
       "",
       "Human-facing output must explain status, risk, decision needed, next safe step, what AI can do, and what AI must not do before technical details. Do not hide technical details; move them under `Technical Details` or `Audit Notes`.",
       "",
-      "Use `.ai-native/core/glossary.md` to translate internal workflow terms when the user may not know them.",
+      "Use `.intentos/core/glossary.md` to translate internal workflow terms when the user may not know them.",
       "",
     ].join("\n")],
     ["Guided Decision & Delivery Loop", [
       "## Guided Decision & Delivery Loop",
       "",
-      "Use `.ai-native/core/decision-delegation-boundary.md`, `.ai-native/core/guided-delivery-loop.md`, and `.ai-native/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices.",
+      "Use `.intentos/core/decision-delegation-boundary.md`, `.intentos/core/guided-delivery-loop.md`, and `.intentos/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices.",
       "",
       "Codex should recommend the smallest safe path, explain what is out of scope, ask for one user-owned confirmation, and park side ideas instead of executing them.",
       "",
@@ -798,7 +798,7 @@ function agentGovernanceSectionContent() {
     ["Change Boundary And Baseline State", [
       "## Change Boundary And Baseline State",
       "",
-      "Use `.ai-native/core/change-boundary.md` and `.ai-native/core/baseline-state.md` when a task needs explicit diff-boundary proof or when baselines are drafted before code/evidence exists.",
+      "Use `.intentos/core/change-boundary.md` and `.intentos/core/baseline-state.md` when a task needs explicit diff-boundary proof or when baselines are drafted before code/evidence exists.",
       "",
       "Change Boundary compares approved task scope with actual changed files. It is not hard sandbox enforcement.",
       "",
@@ -817,9 +817,9 @@ function agentGovernanceSectionContent() {
     ["Baseline Pack System", [
       "## Baseline Pack System",
       "",
-      "Use `.ai-native/core/baseline-pack-system.md` and `.ai-native/docs/baseline-pack-system.md` when project profile, BL level, standard packs, industrial packs, or risk overlays need to be selected.",
+      "Use `.intentos/core/baseline-pack-system.md` and `.intentos/docs/baseline-pack-system.md` when project profile, BL level, standard packs, industrial packs, or risk overlays need to be selected.",
       "",
-      "Use `.ai-native/core/guided-baseline-selection.md` and `.ai-native/docs/guided-baseline-selection-entry.md` first when the user needs a plain-language baseline decision instead of internal pack details.",
+      "Use `.intentos/core/guided-baseline-selection.md` and `.intentos/docs/guided-baseline-selection-entry.md` first when the user needs a plain-language baseline decision instead of internal pack details.",
       "",
       "Codex may recommend candidate packs, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without explicit human decision. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays.",
       "",
@@ -837,7 +837,7 @@ function agentGovernanceSectionContent() {
     ["Document Lifecycle", [
       "## Document Lifecycle",
       "",
-      "Use `.ai-native/core/document-lifecycle.md` and `.ai-native/docs/document-lifecycle.md` when project docs appear stale, duplicated, deprecated, unclear, or when source of truth is disputed.",
+      "Use `.intentos/core/document-lifecycle.md` and `.intentos/docs/document-lifecycle.md` when project docs appear stale, duplicated, deprecated, unclear, or when source of truth is disputed.",
       "",
       "Default to archive suggestions before deletion. A Document Lifecycle Report is read-only: it does not delete files, authorize deletion, move files, archive files, change source of truth, or approve cleanup work.",
       "",
@@ -853,7 +853,7 @@ function agentGovernanceSectionContent() {
     ["Document Archive Apply", [
       "## Document Archive Apply",
       "",
-      "Use `.ai-native/core/document-archive-apply.md` and `.ai-native/docs/document-archive-apply.md` only after Document Lifecycle has produced archive suggestions that may be ready for controlled execution.",
+      "Use `.intentos/core/document-archive-apply.md` and `.intentos/docs/document-archive-apply.md` only after Document Lifecycle has produced archive suggestions that may be ready for controlled execution.",
       "",
       "Archive Apply is plan-first. It creates an apply plan, link-check plan, archive index preview, rollback plan, and human decision list. It does not delete files, move/archive files, rewrite links, change source of truth, replace Document Lifecycle, approve cleanup completion, or authorize archive apply by itself.",
       "",
@@ -869,7 +869,7 @@ function agentGovernanceSectionContent() {
     ["Unified Apply Plan", [
       "## Unified Apply Plan",
       "",
-      "Use `.ai-native/core/unified-apply-plan.md` and `.ai-native/docs/unified-apply-plan.md` before applying any recommendation that may write target-project files.",
+      "Use `.intentos/core/unified-apply-plan.md` and `.intentos/docs/unified-apply-plan.md` before applying any recommendation that may write target-project files.",
       "",
       "Unified Apply Plan turns proposed writes into one reviewable plan with source evidence, planned actions, human-only or blocked actions, backup, rollback, verification, and boundaries. It does not write files, authorize apply, approve implementation, approve release/production, modify CI/hooks, delete/archive files, change source of truth, or grant permission to continue beyond scope.",
       "",
@@ -885,7 +885,7 @@ function agentGovernanceSectionContent() {
     ["Controlled Apply Readiness", [
       "## Controlled Apply Readiness",
       "",
-      "Use `.ai-native/core/controlled-apply-readiness.md` and `.ai-native/docs/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future controlled apply is considered.",
+      "Use `.intentos/core/controlled-apply-readiness.md` and `.intentos/docs/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future controlled apply is considered.",
       "",
       "Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversible, verifiable, and still requires explicit human approval. It does not execute writes, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.",
       "",
@@ -901,7 +901,7 @@ function agentGovernanceSectionContent() {
     ["Approval Record Governance", [
       "## Approval Record Governance",
       "",
-      "Use `.ai-native/core/approval-record-governance.md` and `.ai-native/docs/approval-record-governance.md` only after a Unified Apply Plan and readiness report exist and a human gives explicit approval for exact action IDs.",
+      "Use `.intentos/core/approval-record-governance.md` and `.intentos/docs/approval-record-governance.md` only after a Unified Apply Plan and readiness report exist and a human gives explicit approval for exact action IDs.",
       "",
       "Approval records capture who approved, which plan and hash were approved, exact action IDs, target paths, expiry, rollback acknowledgement, verification acknowledgement, and non-authorizations. They do not execute writes, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, or enable high-risk actions.",
       "",
@@ -917,7 +917,7 @@ function agentGovernanceSectionContent() {
     ["Work Queue", [
       "## Work Queue",
       "",
-      "Use `.ai-native/core/work-queue.md` and `.ai-native/docs/work-queue.md` when work is interrupted, long-running, paused, resumed, or parked for later.",
+      "Use `.intentos/core/work-queue.md` and `.intentos/docs/work-queue.md` when work is interrupted, long-running, paused, resumed, or parked for later.",
       "",
       "Keep at most one task as `CURRENT`. Paused work requires resume review before execution, and backlog items are parking only, not permission to implement.",
       "",
@@ -933,7 +933,7 @@ function agentGovernanceSectionContent() {
     ["Hook Orchestration", [
       "## Hook Orchestration",
       "",
-      "Use `.ai-native/core/hook-orchestration.md` and `.ai-native/docs/hook-orchestration.md` when the project needs automatic trigger planning.",
+      "Use `.intentos/core/hook-orchestration.md` and `.intentos/docs/hook-orchestration.md` when the project needs automatic trigger planning.",
       "",
       "Codex may run H0 read-only checks and create H1 suggestions, but must not install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, or change release behavior without human approval.",
       "",
@@ -949,7 +949,7 @@ function agentGovernanceSectionContent() {
     ["Project Hook Policy", [
       "## Project Hook Policy",
       "",
-      "Use `.ai-native/core/hook-policy.md` and `.ai-native/docs/hook-policy.md` before turning hook ideas into project policy or implementation.",
+      "Use `.intentos/core/hook-policy.md` and `.intentos/docs/hook-policy.md` before turning hook ideas into project policy or implementation.",
       "",
       "Project Hook Policy defines which H0/H1/H2/H3 hooks this project allows, who approves them, and how they are disabled or rolled back. It does not install hooks, modify CI, add blocking gates, call external APIs, store tokens, enable auto-fix, approve implementation/release/production, or replace Hook Orchestration.",
       "",
@@ -985,7 +985,7 @@ function agentGovernanceSectionContent() {
     ["Skill Governance", [
       "## Skill Governance",
       "",
-      "Use `.ai-native/templates/skill-candidate.md` for candidate drafts and `.ai-native/checklists/skill-review.md` before any Skill generation or update. Do not write to `.codex/skills/` unless the user explicitly approves that exact Skill.",
+      "Use `.intentos/templates/skill-candidate.md` for candidate drafts and `.intentos/checklists/skill-review.md` before any Skill generation or update. Do not write to `.codex/skills/` unless the user explicitly approves that exact Skill.",
       "",
     ].join("\n")],
     ["Automation Governance", [
@@ -993,7 +993,7 @@ function agentGovernanceSectionContent() {
       "",
       "Codex may propose project-scoped automations during setup, release preparation, or workflow review.",
       "",
-      "Use `automation-proposals/` and `.ai-native/templates/project-automation-proposal.md` before creating or updating any Codex App automation. Do not create, update, resume, delete, or enable automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.",
+      "Use `automation-proposals/` and `.intentos/templates/project-automation-proposal.md` before creating or updating any Codex App automation. Do not create, update, resume, delete, or enable automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.",
       "",
     ].join("\n")],
     ["Final Report", [
@@ -1020,7 +1020,7 @@ function agentGovernanceAppendix(missingMarkers) {
     .filter(Boolean);
   return [
     "",
-    "# AI Native Workflow Governance Appendix",
+    "# IntentOS Workflow Governance Appendix",
     "",
     ...selected,
   ].join("\n");
@@ -1038,12 +1038,12 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
   };
   const reasonLines = status === "RESOLVED_MANUALLY"
     ? [
-        "The project AGENTS.md now contains all required AI Native workflow governance markers.",
+        "The project AGENTS.md now contains all required IntentOS workflow governance markers.",
         "",
         "A previous pending migration report was resolved after AGENTS.md was updated manually or by another approved process.",
       ]
     : [
-        "The project already has AGENTS.md, but it is missing AI Native workflow governance markers.",
+        "The project already has AGENTS.md, but it is missing IntentOS workflow governance markers.",
         "",
         "The update command does not modify an existing project AGENTS.md unless the human explicitly approves that migration.",
       ];
@@ -1053,7 +1053,7 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
         "After human review, either merge the proposed appendix manually or run:",
         "",
         "```bash",
-        "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
+        "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
         "```",
       ]
     : ["No apply command is needed for this report status."];
@@ -1061,12 +1061,12 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
     "# Migration Report: AGENTS.md Governance",
     "",
     `Status: ${status}`,
-    `Dev kit version: ${currentDevKitVersion}`,
+    `IntentOS version: ${currentIntentOSVersion}`,
     "",
     ...migrationHumanDecisionSummary({
       status,
       targetLabel: "AGENTS.md",
-      applyCommand: "node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
+      applyCommand: "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
     }),
     "## Status Notes",
     "",
@@ -1127,7 +1127,7 @@ function ensureAgentsGovernance(targetPath, options = {}) {
 
   if (!applyAgentGovernance) {
     writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, options);
-    console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .ai-native/migration-reports/agents-governance.md`);
+    console.log(`left existing ${path.relative(process.cwd(), dest)} unchanged; review .intentos/migration-reports/agents-governance.md`);
     return;
   }
 
@@ -1165,7 +1165,7 @@ function ensureProjectOnboardingDocs(targetPath) {
 
 function copyIndustrialAssets(targetPath, options = {}) {
   const sourceRoot = path.join(kitRoot, "industrial-packs");
-  const destRoot = path.join(targetPath, ".ai-native", "industrial-packs");
+  const destRoot = path.join(targetPath, ".intentos", "industrial-packs");
   fs.mkdirSync(destRoot, { recursive: true });
 
   if (options.withIndustrialPacks) {
@@ -1222,115 +1222,115 @@ function copySharedAssets(targetPath, options = {}) {
 function fallbackCopyRules() {
   return {
     directories: [
-      { source: "core", target: ".ai-native/core" },
-      { source: "templates", target: ".ai-native/templates" },
-      { source: "prompts", target: ".ai-native/prompts" },
-      { source: "checklists", target: ".ai-native/checklists" },
-      { source: "profiles", target: ".ai-native/profiles" },
-      { source: "standard-baseline-packs", target: ".ai-native/standard-baseline-packs" },
-      { source: "schemas/artifacts", target: ".ai-native/schemas/artifacts" },
+      { source: "core", target: ".intentos/core" },
+      { source: "templates", target: ".intentos/templates" },
+      { source: "prompts", target: ".intentos/prompts" },
+      { source: "checklists", target: ".intentos/checklists" },
+      { source: "profiles", target: ".intentos/profiles" },
+      { source: "standard-baseline-packs", target: ".intentos/standard-baseline-packs" },
+      { source: "schemas/artifacts", target: ".intentos/schemas/artifacts" },
     ],
     files: [
-      { source: "dev-kit-manifest.json", target: ".ai-native/dev-kit-manifest.json" },
-      { source: "docs/artifact-decision-tree.md", target: ".ai-native/docs/artifact-decision-tree.md" },
-      { source: "docs/artifact-lifecycle.md", target: ".ai-native/docs/artifact-lifecycle.md" },
-      { source: "docs/o0-bl0-lightweight-path.md", target: ".ai-native/docs/o0-bl0-lightweight-path.md" },
-      { source: "docs/goal-subagent-usage.md", target: ".ai-native/docs/goal-subagent-usage.md" },
-      { source: "docs/subagent-dispatch-hygiene.md", target: ".ai-native/docs/subagent-dispatch-hygiene.md" },
-      { source: "docs/baseline-setup.md", target: ".ai-native/docs/baseline-setup.md" },
-      { source: "docs/guided-delivery-baseline.md", target: ".ai-native/docs/guided-delivery-baseline.md" },
-      { source: "docs/guided-decision-delivery-loop.md", target: ".ai-native/docs/guided-decision-delivery-loop.md" },
-      { source: "docs/change-boundary.md", target: ".ai-native/docs/change-boundary.md" },
-      { source: "docs/baseline-state.md", target: ".ai-native/docs/baseline-state.md" },
-      { source: "docs/guided-delivery-check.md", target: ".ai-native/docs/guided-delivery-check.md" },
-      { source: "docs/baseline-pack-system.md", target: ".ai-native/docs/baseline-pack-system.md" },
-      { source: "docs/standard-baseline-pack-registry.md", target: ".ai-native/docs/standard-baseline-pack-registry.md" },
-      { source: "docs/structured-evidence-schema.md", target: ".ai-native/docs/structured-evidence-schema.md" },
-      { source: "docs/platform-standard-baseline-packs.md", target: ".ai-native/docs/platform-standard-baseline-packs.md" },
-      { source: "docs/existing-project-workflow-adapter.md", target: ".ai-native/docs/existing-project-workflow-adapter.md" },
-      { source: "docs/document-lifecycle.md", target: ".ai-native/docs/document-lifecycle.md" },
-      { source: "docs/document-archive-apply.md", target: ".ai-native/docs/document-archive-apply.md" },
-      { source: "docs/unified-apply-plan.md", target: ".ai-native/docs/unified-apply-plan.md" },
-      { source: "docs/controlled-apply-readiness.md", target: ".ai-native/docs/controlled-apply-readiness.md" },
-      { source: "docs/approval-record-governance.md", target: ".ai-native/docs/approval-record-governance.md" },
-      { source: "docs/beginner-entry.md", target: ".ai-native/docs/beginner-entry.md" },
-      { source: "docs/conversation-native-ask.md", target: ".ai-native/docs/conversation-native-ask.md" },
-      { source: "docs/work-queue.md", target: ".ai-native/docs/work-queue.md" },
-      { source: "docs/hook-orchestration.md", target: ".ai-native/docs/hook-orchestration.md" },
-      { source: "docs/hook-policy.md", target: ".ai-native/docs/hook-policy.md" },
-      { source: "docs/review-surface-governance.md", target: ".ai-native/docs/review-surface-governance.md" },
-      { source: "docs/delivery-path-governance.md", target: ".ai-native/docs/delivery-path-governance.md" },
-      { source: "docs/debt-knowledge-handoff.md", target: ".ai-native/docs/debt-knowledge-handoff.md" },
-      { source: "docs/product-baseline.md", target: ".ai-native/docs/product-baseline.md" },
-      { source: "docs/claim-control.md", target: ".ai-native/docs/claim-control.md" },
-      { source: "core/decision-delegation-boundary.md", target: ".ai-native/core/decision-delegation-boundary.md" },
-      { source: "core/guided-delivery-loop.md", target: ".ai-native/core/guided-delivery-loop.md" },
-      { source: "core/change-boundary.md", target: ".ai-native/core/change-boundary.md" },
-      { source: "core/baseline-state.md", target: ".ai-native/core/baseline-state.md" },
-      { source: "core/baseline-pack-system.md", target: ".ai-native/core/baseline-pack-system.md" },
-      { source: "core/standard-baseline-pack-registry.md", target: ".ai-native/core/standard-baseline-pack-registry.md" },
-      { source: "core/existing-project-workflow-adapter.md", target: ".ai-native/core/existing-project-workflow-adapter.md" },
-      { source: "core/document-lifecycle.md", target: ".ai-native/core/document-lifecycle.md" },
-      { source: "core/document-archive-apply.md", target: ".ai-native/core/document-archive-apply.md" },
-      { source: "core/unified-apply-plan.md", target: ".ai-native/core/unified-apply-plan.md" },
-      { source: "core/controlled-apply-readiness.md", target: ".ai-native/core/controlled-apply-readiness.md" },
-      { source: "core/beginner-entry.md", target: ".ai-native/core/beginner-entry.md" },
-      { source: "core/conversation-native-ask.md", target: ".ai-native/core/conversation-native-ask.md" },
-      { source: "core/work-queue.md", target: ".ai-native/core/work-queue.md" },
-      { source: "core/hook-orchestration.md", target: ".ai-native/core/hook-orchestration.md" },
-      { source: "core/hook-policy.md", target: ".ai-native/core/hook-policy.md" },
-      { source: "core/review-surface-governance.md", target: ".ai-native/core/review-surface-governance.md" },
-      { source: "core/delivery-path-governance.md", target: ".ai-native/core/delivery-path-governance.md" },
-      { source: "core/debt-knowledge-handoff.md", target: ".ai-native/core/debt-knowledge-handoff.md" },
-      { source: "core/subagent-dispatch-hygiene.md", target: ".ai-native/core/subagent-dispatch-hygiene.md" },
-      { source: "prompts/delivery-coach-agent.md", target: ".ai-native/prompts/delivery-coach-agent.md" },
-      { source: "prompts/guided-delivery-check-agent.md", target: ".ai-native/prompts/guided-delivery-check-agent.md" },
-      { source: "prompts/change-boundary-agent.md", target: ".ai-native/prompts/change-boundary-agent.md" },
-      { source: "prompts/baseline-state-agent.md", target: ".ai-native/prompts/baseline-state-agent.md" },
-      { source: "prompts/baseline-pack-router-agent.md", target: ".ai-native/prompts/baseline-pack-router-agent.md" },
-      { source: "prompts/standard-baseline-router-agent.md", target: ".ai-native/prompts/standard-baseline-router-agent.md" },
-      { source: "prompts/workflow-adapter-agent.md", target: ".ai-native/prompts/workflow-adapter-agent.md" },
-      { source: "prompts/document-lifecycle-agent.md", target: ".ai-native/prompts/document-lifecycle-agent.md" },
-      { source: "prompts/document-archive-agent.md", target: ".ai-native/prompts/document-archive-agent.md" },
-      { source: "prompts/apply-plan-agent.md", target: ".ai-native/prompts/apply-plan-agent.md" },
-      { source: "prompts/controlled-apply-readiness-agent.md", target: ".ai-native/prompts/controlled-apply-readiness-agent.md" },
-      { source: "prompts/beginner-entry-agent.md", target: ".ai-native/prompts/beginner-entry-agent.md" },
-      { source: "prompts/conversation-native-ask-agent.md", target: ".ai-native/prompts/conversation-native-ask-agent.md" },
-      { source: "prompts/work-queue-agent.md", target: ".ai-native/prompts/work-queue-agent.md" },
-      { source: "prompts/hook-orchestration-agent.md", target: ".ai-native/prompts/hook-orchestration-agent.md" },
-      { source: "prompts/hook-policy-agent.md", target: ".ai-native/prompts/hook-policy-agent.md" },
-      { source: "prompts/review-surface-agent.md", target: ".ai-native/prompts/review-surface-agent.md" },
-      { source: "prompts/delivery-path-agent.md", target: ".ai-native/prompts/delivery-path-agent.md" },
-      { source: "prompts/debt-handoff-agent.md", target: ".ai-native/prompts/debt-handoff-agent.md" },
-      { source: "templates/active-work-thread.md", target: ".ai-native/templates/active-work-thread.md" },
-      { source: "templates/guided-decision-summary.md", target: ".ai-native/templates/guided-decision-summary.md" },
-      { source: "templates/change-boundary-report.md", target: ".ai-native/templates/change-boundary-report.md" },
-      { source: "templates/baseline-state-report.md", target: ".ai-native/templates/baseline-state-report.md" },
-      { source: "templates/baseline-pack-selection-report.md", target: ".ai-native/templates/baseline-pack-selection-report.md" },
-      { source: "templates/standard-baseline-selection-report.md", target: ".ai-native/templates/standard-baseline-selection-report.md" },
-      { source: "templates/workflow-adoption-map.md", target: ".ai-native/templates/workflow-adoption-map.md" },
-      { source: "templates/document-lifecycle-report.md", target: ".ai-native/templates/document-lifecycle-report.md" },
-      { source: "templates/document-archive-apply-plan.md", target: ".ai-native/templates/document-archive-apply-plan.md" },
-      { source: "templates/unified-apply-plan.md", target: ".ai-native/templates/unified-apply-plan.md" },
-      { source: "templates/controlled-apply-readiness-report.md", target: ".ai-native/templates/controlled-apply-readiness-report.md" },
-      { source: "templates/beginner-entry-card.md", target: ".ai-native/templates/beginner-entry-card.md" },
-      { source: "templates/conversation-ask-card.md", target: ".ai-native/templates/conversation-ask-card.md" },
-      { source: "templates/archive-index.md", target: ".ai-native/templates/archive-index.md" },
-      { source: "templates/work-queue-report.md", target: ".ai-native/templates/work-queue-report.md" },
-      { source: "templates/hook-orchestration-plan.md", target: ".ai-native/templates/hook-orchestration-plan.md" },
-      { source: "templates/project-hook-policy.md", target: ".ai-native/templates/project-hook-policy.md" },
-      { source: "templates/review-surface-card.md", target: ".ai-native/templates/review-surface-card.md" },
-      { source: "templates/delivery-path-report.md", target: ".ai-native/templates/delivery-path-report.md" },
-      { source: "templates/debt-knowledge-handoff-report.md", target: ".ai-native/templates/debt-knowledge-handoff-report.md" },
-      { source: "checklists/review-surface-review.md", target: ".ai-native/checklists/review-surface-review.md" },
-      { source: "checklists/delivery-path-review.md", target: ".ai-native/checklists/delivery-path-review.md" },
-      { source: "checklists/debt-knowledge-handoff-review.md", target: ".ai-native/checklists/debt-knowledge-handoff-review.md" },
-      { source: "checklists/document-archive-apply-review.md", target: ".ai-native/checklists/document-archive-apply-review.md" },
-      { source: "checklists/unified-apply-plan-review.md", target: ".ai-native/checklists/unified-apply-plan-review.md" },
-      { source: "checklists/controlled-apply-readiness-review.md", target: ".ai-native/checklists/controlled-apply-readiness-review.md" },
-      { source: "checklists/beginner-entry-review.md", target: ".ai-native/checklists/beginner-entry-review.md" },
-      { source: "checklists/conversation-native-ask-review.md", target: ".ai-native/checklists/conversation-native-ask-review.md" },
-      { source: "checklists/hook-policy-review.md", target: ".ai-native/checklists/hook-policy-review.md" },
+      { source: "intentos-manifest.json", target: ".intentos/intentos-manifest.json" },
+      { source: "docs/artifact-decision-tree.md", target: ".intentos/docs/artifact-decision-tree.md" },
+      { source: "docs/artifact-lifecycle.md", target: ".intentos/docs/artifact-lifecycle.md" },
+      { source: "docs/o0-bl0-lightweight-path.md", target: ".intentos/docs/o0-bl0-lightweight-path.md" },
+      { source: "docs/goal-subagent-usage.md", target: ".intentos/docs/goal-subagent-usage.md" },
+      { source: "docs/subagent-dispatch-hygiene.md", target: ".intentos/docs/subagent-dispatch-hygiene.md" },
+      { source: "docs/baseline-setup.md", target: ".intentos/docs/baseline-setup.md" },
+      { source: "docs/guided-delivery-baseline.md", target: ".intentos/docs/guided-delivery-baseline.md" },
+      { source: "docs/guided-decision-delivery-loop.md", target: ".intentos/docs/guided-decision-delivery-loop.md" },
+      { source: "docs/change-boundary.md", target: ".intentos/docs/change-boundary.md" },
+      { source: "docs/baseline-state.md", target: ".intentos/docs/baseline-state.md" },
+      { source: "docs/guided-delivery-check.md", target: ".intentos/docs/guided-delivery-check.md" },
+      { source: "docs/baseline-pack-system.md", target: ".intentos/docs/baseline-pack-system.md" },
+      { source: "docs/standard-baseline-pack-registry.md", target: ".intentos/docs/standard-baseline-pack-registry.md" },
+      { source: "docs/structured-evidence-schema.md", target: ".intentos/docs/structured-evidence-schema.md" },
+      { source: "docs/platform-standard-baseline-packs.md", target: ".intentos/docs/platform-standard-baseline-packs.md" },
+      { source: "docs/existing-project-workflow-adapter.md", target: ".intentos/docs/existing-project-workflow-adapter.md" },
+      { source: "docs/document-lifecycle.md", target: ".intentos/docs/document-lifecycle.md" },
+      { source: "docs/document-archive-apply.md", target: ".intentos/docs/document-archive-apply.md" },
+      { source: "docs/unified-apply-plan.md", target: ".intentos/docs/unified-apply-plan.md" },
+      { source: "docs/controlled-apply-readiness.md", target: ".intentos/docs/controlled-apply-readiness.md" },
+      { source: "docs/approval-record-governance.md", target: ".intentos/docs/approval-record-governance.md" },
+      { source: "docs/beginner-entry.md", target: ".intentos/docs/beginner-entry.md" },
+      { source: "docs/conversation-native-ask.md", target: ".intentos/docs/conversation-native-ask.md" },
+      { source: "docs/work-queue.md", target: ".intentos/docs/work-queue.md" },
+      { source: "docs/hook-orchestration.md", target: ".intentos/docs/hook-orchestration.md" },
+      { source: "docs/hook-policy.md", target: ".intentos/docs/hook-policy.md" },
+      { source: "docs/review-surface-governance.md", target: ".intentos/docs/review-surface-governance.md" },
+      { source: "docs/delivery-path-governance.md", target: ".intentos/docs/delivery-path-governance.md" },
+      { source: "docs/debt-knowledge-handoff.md", target: ".intentos/docs/debt-knowledge-handoff.md" },
+      { source: "docs/product-baseline.md", target: ".intentos/docs/product-baseline.md" },
+      { source: "docs/claim-control.md", target: ".intentos/docs/claim-control.md" },
+      { source: "core/decision-delegation-boundary.md", target: ".intentos/core/decision-delegation-boundary.md" },
+      { source: "core/guided-delivery-loop.md", target: ".intentos/core/guided-delivery-loop.md" },
+      { source: "core/change-boundary.md", target: ".intentos/core/change-boundary.md" },
+      { source: "core/baseline-state.md", target: ".intentos/core/baseline-state.md" },
+      { source: "core/baseline-pack-system.md", target: ".intentos/core/baseline-pack-system.md" },
+      { source: "core/standard-baseline-pack-registry.md", target: ".intentos/core/standard-baseline-pack-registry.md" },
+      { source: "core/existing-project-workflow-adapter.md", target: ".intentos/core/existing-project-workflow-adapter.md" },
+      { source: "core/document-lifecycle.md", target: ".intentos/core/document-lifecycle.md" },
+      { source: "core/document-archive-apply.md", target: ".intentos/core/document-archive-apply.md" },
+      { source: "core/unified-apply-plan.md", target: ".intentos/core/unified-apply-plan.md" },
+      { source: "core/controlled-apply-readiness.md", target: ".intentos/core/controlled-apply-readiness.md" },
+      { source: "core/beginner-entry.md", target: ".intentos/core/beginner-entry.md" },
+      { source: "core/conversation-native-ask.md", target: ".intentos/core/conversation-native-ask.md" },
+      { source: "core/work-queue.md", target: ".intentos/core/work-queue.md" },
+      { source: "core/hook-orchestration.md", target: ".intentos/core/hook-orchestration.md" },
+      { source: "core/hook-policy.md", target: ".intentos/core/hook-policy.md" },
+      { source: "core/review-surface-governance.md", target: ".intentos/core/review-surface-governance.md" },
+      { source: "core/delivery-path-governance.md", target: ".intentos/core/delivery-path-governance.md" },
+      { source: "core/debt-knowledge-handoff.md", target: ".intentos/core/debt-knowledge-handoff.md" },
+      { source: "core/subagent-dispatch-hygiene.md", target: ".intentos/core/subagent-dispatch-hygiene.md" },
+      { source: "prompts/delivery-coach-agent.md", target: ".intentos/prompts/delivery-coach-agent.md" },
+      { source: "prompts/guided-delivery-check-agent.md", target: ".intentos/prompts/guided-delivery-check-agent.md" },
+      { source: "prompts/change-boundary-agent.md", target: ".intentos/prompts/change-boundary-agent.md" },
+      { source: "prompts/baseline-state-agent.md", target: ".intentos/prompts/baseline-state-agent.md" },
+      { source: "prompts/baseline-pack-router-agent.md", target: ".intentos/prompts/baseline-pack-router-agent.md" },
+      { source: "prompts/standard-baseline-router-agent.md", target: ".intentos/prompts/standard-baseline-router-agent.md" },
+      { source: "prompts/workflow-adapter-agent.md", target: ".intentos/prompts/workflow-adapter-agent.md" },
+      { source: "prompts/document-lifecycle-agent.md", target: ".intentos/prompts/document-lifecycle-agent.md" },
+      { source: "prompts/document-archive-agent.md", target: ".intentos/prompts/document-archive-agent.md" },
+      { source: "prompts/apply-plan-agent.md", target: ".intentos/prompts/apply-plan-agent.md" },
+      { source: "prompts/controlled-apply-readiness-agent.md", target: ".intentos/prompts/controlled-apply-readiness-agent.md" },
+      { source: "prompts/beginner-entry-agent.md", target: ".intentos/prompts/beginner-entry-agent.md" },
+      { source: "prompts/conversation-native-ask-agent.md", target: ".intentos/prompts/conversation-native-ask-agent.md" },
+      { source: "prompts/work-queue-agent.md", target: ".intentos/prompts/work-queue-agent.md" },
+      { source: "prompts/hook-orchestration-agent.md", target: ".intentos/prompts/hook-orchestration-agent.md" },
+      { source: "prompts/hook-policy-agent.md", target: ".intentos/prompts/hook-policy-agent.md" },
+      { source: "prompts/review-surface-agent.md", target: ".intentos/prompts/review-surface-agent.md" },
+      { source: "prompts/delivery-path-agent.md", target: ".intentos/prompts/delivery-path-agent.md" },
+      { source: "prompts/debt-handoff-agent.md", target: ".intentos/prompts/debt-handoff-agent.md" },
+      { source: "templates/active-work-thread.md", target: ".intentos/templates/active-work-thread.md" },
+      { source: "templates/guided-decision-summary.md", target: ".intentos/templates/guided-decision-summary.md" },
+      { source: "templates/change-boundary-report.md", target: ".intentos/templates/change-boundary-report.md" },
+      { source: "templates/baseline-state-report.md", target: ".intentos/templates/baseline-state-report.md" },
+      { source: "templates/baseline-pack-selection-report.md", target: ".intentos/templates/baseline-pack-selection-report.md" },
+      { source: "templates/standard-baseline-selection-report.md", target: ".intentos/templates/standard-baseline-selection-report.md" },
+      { source: "templates/workflow-adoption-map.md", target: ".intentos/templates/workflow-adoption-map.md" },
+      { source: "templates/document-lifecycle-report.md", target: ".intentos/templates/document-lifecycle-report.md" },
+      { source: "templates/document-archive-apply-plan.md", target: ".intentos/templates/document-archive-apply-plan.md" },
+      { source: "templates/unified-apply-plan.md", target: ".intentos/templates/unified-apply-plan.md" },
+      { source: "templates/controlled-apply-readiness-report.md", target: ".intentos/templates/controlled-apply-readiness-report.md" },
+      { source: "templates/beginner-entry-card.md", target: ".intentos/templates/beginner-entry-card.md" },
+      { source: "templates/conversation-ask-card.md", target: ".intentos/templates/conversation-ask-card.md" },
+      { source: "templates/archive-index.md", target: ".intentos/templates/archive-index.md" },
+      { source: "templates/work-queue-report.md", target: ".intentos/templates/work-queue-report.md" },
+      { source: "templates/hook-orchestration-plan.md", target: ".intentos/templates/hook-orchestration-plan.md" },
+      { source: "templates/project-hook-policy.md", target: ".intentos/templates/project-hook-policy.md" },
+      { source: "templates/review-surface-card.md", target: ".intentos/templates/review-surface-card.md" },
+      { source: "templates/delivery-path-report.md", target: ".intentos/templates/delivery-path-report.md" },
+      { source: "templates/debt-knowledge-handoff-report.md", target: ".intentos/templates/debt-knowledge-handoff-report.md" },
+      { source: "checklists/review-surface-review.md", target: ".intentos/checklists/review-surface-review.md" },
+      { source: "checklists/delivery-path-review.md", target: ".intentos/checklists/delivery-path-review.md" },
+      { source: "checklists/debt-knowledge-handoff-review.md", target: ".intentos/checklists/debt-knowledge-handoff-review.md" },
+      { source: "checklists/document-archive-apply-review.md", target: ".intentos/checklists/document-archive-apply-review.md" },
+      { source: "checklists/unified-apply-plan-review.md", target: ".intentos/checklists/unified-apply-plan-review.md" },
+      { source: "checklists/controlled-apply-readiness-review.md", target: ".intentos/checklists/controlled-apply-readiness-review.md" },
+      { source: "checklists/beginner-entry-review.md", target: ".intentos/checklists/beginner-entry-review.md" },
+      { source: "checklists/conversation-native-ask-review.md", target: ".intentos/checklists/conversation-native-ask-review.md" },
+      { source: "checklists/hook-policy-review.md", target: ".intentos/checklists/hook-policy-review.md" },
       { source: "scripts/check-ai-workflow.mjs", target: "scripts/check-ai-workflow.mjs" },
       { source: "scripts/baseline-project.mjs", target: "scripts/baseline-project.mjs" },
       { source: "scripts/check-product-baseline.mjs", target: "scripts/check-product-baseline.mjs" },
@@ -1407,7 +1407,7 @@ function ensureWorkflowDirs(targetPath) {
     "workflow-improvements",
     "skill-candidates",
     "automation-proposals",
-    "dev-kit-proposals",
+    "intentos-proposals",
     "baseline-recommendations",
     "baseline-gap-reports",
     "review-packets",
@@ -1457,7 +1457,7 @@ function ensureWorkflowDirs(targetPath) {
 
 function writeVersionFile(targetPath, starter, options = {}) {
   options = { ...options, targetPath };
-  const versionDir = path.join(targetPath, ".ai-native");
+  const versionDir = path.join(targetPath, ".intentos");
   fs.mkdirSync(versionDir, { recursive: true });
   const versionPath = path.join(versionDir, "version.json");
   const now = new Date().toISOString();
@@ -1471,44 +1471,44 @@ function writeVersionFile(targetPath, starter, options = {}) {
     }
   }
   const version = {
-    devKitVersion: currentDevKitVersion,
+    intentOSVersion: currentIntentOSVersion,
     starter: existing.starter || starter,
     initializedAt: existing.initializedAt || now,
     lastWorkflowAssetUpdateAt: options.update ? now : existing.lastWorkflowAssetUpdateAt || now,
     workflowAssets: workflowVersionAssets(kitRoot, { fallback: [
-      ".ai-native/core",
-      ".ai-native/templates",
-      ".ai-native/prompts",
-      ".ai-native/checklists",
-      ".ai-native/profiles",
-      ".ai-native/industrial-packs",
-      ".ai-native/standard-baseline-packs",
-      ".ai-native/schemas/artifacts",
-      ".ai-native/docs/artifact-decision-tree.md",
-      ".ai-native/docs/artifact-lifecycle.md",
-      ".ai-native/docs/o0-bl0-lightweight-path.md",
-      ".ai-native/docs/goal-subagent-usage.md",
-      ".ai-native/docs/baseline-setup.md",
-      ".ai-native/docs/guided-delivery-baseline.md",
-      ".ai-native/docs/baseline-pack-system.md",
-      ".ai-native/docs/standard-baseline-pack-registry.md",
-      ".ai-native/docs/structured-evidence-schema.md",
-      ".ai-native/docs/platform-standard-baseline-packs.md",
-      ".ai-native/docs/existing-project-workflow-adapter.md",
-      ".ai-native/docs/document-lifecycle.md",
-      ".ai-native/docs/document-archive-apply.md",
-      ".ai-native/docs/unified-apply-plan.md",
-      ".ai-native/docs/beginner-entry.md",
-      ".ai-native/docs/conversation-native-ask.md",
-      ".ai-native/docs/work-queue.md",
-      ".ai-native/docs/hook-orchestration.md",
-      ".ai-native/docs/hook-policy.md",
-      ".ai-native/docs/review-surface-governance.md",
-      ".ai-native/docs/delivery-path-governance.md",
-      ".ai-native/docs/debt-knowledge-handoff.md",
-      ".ai-native/docs/execution-review-closure.md",
-      ".ai-native/docs/product-baseline.md",
-      ".ai-native/docs/claim-control.md",
+      ".intentos/core",
+      ".intentos/templates",
+      ".intentos/prompts",
+      ".intentos/checklists",
+      ".intentos/profiles",
+      ".intentos/industrial-packs",
+      ".intentos/standard-baseline-packs",
+      ".intentos/schemas/artifacts",
+      ".intentos/docs/artifact-decision-tree.md",
+      ".intentos/docs/artifact-lifecycle.md",
+      ".intentos/docs/o0-bl0-lightweight-path.md",
+      ".intentos/docs/goal-subagent-usage.md",
+      ".intentos/docs/baseline-setup.md",
+      ".intentos/docs/guided-delivery-baseline.md",
+      ".intentos/docs/baseline-pack-system.md",
+      ".intentos/docs/standard-baseline-pack-registry.md",
+      ".intentos/docs/structured-evidence-schema.md",
+      ".intentos/docs/platform-standard-baseline-packs.md",
+      ".intentos/docs/existing-project-workflow-adapter.md",
+      ".intentos/docs/document-lifecycle.md",
+      ".intentos/docs/document-archive-apply.md",
+      ".intentos/docs/unified-apply-plan.md",
+      ".intentos/docs/beginner-entry.md",
+      ".intentos/docs/conversation-native-ask.md",
+      ".intentos/docs/work-queue.md",
+      ".intentos/docs/hook-orchestration.md",
+      ".intentos/docs/hook-policy.md",
+      ".intentos/docs/review-surface-governance.md",
+      ".intentos/docs/delivery-path-governance.md",
+      ".intentos/docs/debt-knowledge-handoff.md",
+      ".intentos/docs/execution-review-closure.md",
+      ".intentos/docs/product-baseline.md",
+      ".intentos/docs/claim-control.md",
       "AGENTS.md",
       "scripts/check-ai-workflow.mjs",
       "scripts/baseline-project.mjs",
@@ -1728,7 +1728,7 @@ function addOnboardingDocPlanActions(actions, targetPath) {
 
 function addIndustrialPlanActions(actions, targetPath, options = {}) {
   const sourceRoot = path.join(kitRoot, "industrial-packs");
-  const addRegistry = (source, target) => addFilePlanAction(actions, targetPath, path.join(sourceRoot, source), `.ai-native/industrial-packs/${target}`, {
+  const addRegistry = (source, target) => addFilePlanAction(actions, targetPath, path.join(sourceRoot, source), `.intentos/industrial-packs/${target}`, {
     overwrite: options.update,
     backupDir: options.backupDir,
     reason: "industrial pack registry asset",
@@ -1736,13 +1736,13 @@ function addIndustrialPlanActions(actions, targetPath, options = {}) {
   addRegistry("README.md", "README.md");
   addRegistry("selection-guide.md", "selection-guide.md");
   addRegistry("index.json", "index.json");
-  addDirectoryPlanActions(actions, targetPath, path.join(sourceRoot, "schema"), ".ai-native/industrial-packs/schema", {
+  addDirectoryPlanActions(actions, targetPath, path.join(sourceRoot, "schema"), ".intentos/industrial-packs/schema", {
     overwrite: options.update,
     backupDir: options.backupDir,
     reason: "industrial pack schema asset",
   });
   if (options.withIndustrialPacks) {
-    addDirectoryPlanActions(actions, targetPath, sourceRoot, ".ai-native/industrial-packs", {
+    addDirectoryPlanActions(actions, targetPath, sourceRoot, ".intentos/industrial-packs", {
       overwrite: options.update,
       backupDir: options.backupDir,
       reason: "explicit full industrial pack install",
@@ -1760,7 +1760,7 @@ function addIndustrialPlanActions(actions, targetPath, options = {}) {
     if (!entry || entry.status === "planned" || !entry.path) {
       actions.push({
         type: "FORBIDDEN",
-        path: `.ai-native/industrial-packs/${packId}`,
+        path: `.intentos/industrial-packs/${packId}`,
         source: null,
         reason: `industrial pack is not executable: ${packId}`,
         willWrite: false,
@@ -1768,7 +1768,7 @@ function addIndustrialPlanActions(actions, targetPath, options = {}) {
       });
       continue;
     }
-    addDirectoryPlanActions(actions, targetPath, path.join(sourceRoot, entry.path), `.ai-native/industrial-packs/${entry.path}`, {
+    addDirectoryPlanActions(actions, targetPath, path.join(sourceRoot, entry.path), `.intentos/industrial-packs/${entry.path}`, {
       overwrite: options.update,
       backupDir: options.backupDir,
       reason: `selected industrial pack: ${packId}`,
@@ -1792,7 +1792,7 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
       actions.push({ type: options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED", path: "AGENTS.md", source: null, reason: "explicit AGENTS.md governance apply", willWrite: true, hashBefore: sha256File(agentsPath) });
     } else {
       actions.push({ type: "NEEDS_HUMAN_APPROVAL", path: "AGENTS.md", source: null, reason: `missing markers: ${missingMarkers.join(", ")}`, willWrite: false, hashBefore: sha256File(agentsPath) });
-      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".ai-native/migration-reports/agents-governance.md", source: null, reason: "AGENTS.md governance migration report", willWrite: true, hashBefore: sha256File(agentsGovernanceMigrationReportPath(targetPath)) });
+      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".intentos/migration-reports/agents-governance.md", source: null, reason: "AGENTS.md governance migration report", willWrite: true, hashBefore: sha256File(agentsGovernanceMigrationReportPath(targetPath)) });
     }
   }
 
@@ -1811,7 +1811,7 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
       actions.push({ type: options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED", path: ".github/pull_request_template.md", source: null, reason: "explicit PR template governance apply", willWrite: true, hashBefore: sha256File(prPath) });
     } else {
       actions.push({ type: "NEEDS_HUMAN_APPROVAL", path: ".github/pull_request_template.md", source: null, reason: `missing markers: ${missingMarkers.join(", ")}`, willWrite: false, hashBefore: sha256File(prPath) });
-      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".ai-native/migration-reports/pr-template-governance.md", source: null, reason: "PR template governance migration report", willWrite: true, hashBefore: sha256File(pullRequestTemplateMigrationReportPath(targetPath)) });
+      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".intentos/migration-reports/pr-template-governance.md", source: null, reason: "PR template governance migration report", willWrite: true, hashBefore: sha256File(pullRequestTemplateMigrationReportPath(targetPath)) });
     }
   }
 }
@@ -1845,21 +1845,21 @@ function buildPlan(targetPath, options = {}) {
   addGovernancePlanActions(actions, targetPath, options.starter, options);
   addWorkflowDirPlanActions(actions, targetPath);
   actions.push({
-    type: fs.existsSync(path.join(targetPath, ".ai-native", "version.json"))
+    type: fs.existsSync(path.join(targetPath, ".intentos", "version.json"))
       ? (options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED")
       : "CREATE",
-    path: ".ai-native/version.json",
+    path: ".intentos/version.json",
     source: null,
     reason: "workflow version record",
     willWrite: true,
-    hashBefore: sha256File(path.join(targetPath, ".ai-native", "version.json")),
+    hashBefore: sha256File(path.join(targetPath, ".intentos", "version.json")),
   });
 
   const targetFingerprint = createTargetFingerprint(targetPath, actions);
   return {
     planVersion: "1.0",
-    devKitVersion: currentDevKitVersion,
-    manifestVersion: readJsonIfExists(path.join(kitRoot, "dev-kit-manifest.json"))?.devKitVersion || currentDevKitVersion,
+    intentOSVersion: currentIntentOSVersion,
+    manifestVersion: readJsonIfExists(path.join(kitRoot, "intentos-manifest.json"))?.intentOSVersion || currentIntentOSVersion,
     operation,
     targetRoot: targetPath,
     createdAt: new Date().toISOString(),
@@ -1905,8 +1905,8 @@ function validatePlanForApply(plan, backupDirOverride = null) {
   if (!["INIT_PROJECT", "UPDATE_WORKFLOW_ASSETS"].includes(plan.operation)) {
     throw new Error(`Invalid plan operation: ${plan.operation}`);
   }
-  if (plan.devKitVersion !== currentDevKitVersion) {
-    throw new Error(`Plan devKitVersion ${plan.devKitVersion} does not match current ${currentDevKitVersion}`);
+  if (plan.intentOSVersion !== currentIntentOSVersion) {
+    throw new Error(`Plan intentOSVersion ${plan.intentOSVersion} does not match current ${currentIntentOSVersion}`);
   }
   if (!Array.isArray(plan.actions) || plan.actions.length === 0) {
     throw new Error("Invalid plan: actions must be a non-empty array");
@@ -1961,7 +1961,7 @@ function workflowNextGate(targetPath) {
     return { allowed: false, reason: `workflow-next JSON parse failed: ${error.message}` };
   }
   const tags = new Set(parsed.projectStateTags || []);
-  const hasVersion = fs.existsSync(path.join(targetPath, ".ai-native", "version.json"));
+  const hasVersion = fs.existsSync(path.join(targetPath, ".intentos", "version.json"));
   const isBootstrapped = hasVersion || tags.has("AI_NATIVE_BOOTSTRAPPED_PROJECT") || tags.has("BOOTSTRAPPED_PROJECT");
   const blocked = parsed.nextAction === "REVIEW_DIRTY_WORKTREE"
     || tags.has("DIRTY_WORKTREE_PROJECT")
@@ -1988,9 +1988,9 @@ function executeUpdate(targetPath, starter, options = {}) {
   writeVersionFile(targetPath, starter, { update: true, backupDir: options.backupDir });
   console.log("");
   console.log(`Updated workflow assets at ${targetPath}`);
-  console.log("Updated .ai-native/, workflow scripts, workflow CI, missing onboarding docs, missing AGENTS.md, and missing workflow directories.");
+  console.log("Updated .intentos/, workflow scripts, workflow CI, missing onboarding docs, missing AGENTS.md, and missing workflow directories.");
   console.log("Industrial pack registry and schemas are updated by default; concrete packs are updated only when already installed, selected, or explicitly requested.");
-  console.log("Existing PR templates and AGENTS.md files are left unchanged unless an explicit apply flag is passed; review .ai-native/migration-reports/ when present.");
+  console.log("Existing PR templates and AGENTS.md files are left unchanged unless an explicit apply flag is passed; review .intentos/migration-reports/ when present.");
 }
 
 function executeInit(targetPath, starter, options = {}) {
@@ -2009,7 +2009,7 @@ function executeInit(targetPath, starter, options = {}) {
 
 function printNextSteps() {
   console.log("Next steps:");
-  console.log("1. Run project onboarding by using .ai-native/prompts/project-onboarding-agent.md.");
+  console.log("1. Run project onboarding by using .intentos/prompts/project-onboarding-agent.md.");
   console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
   console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
   console.log("4. Draft docs/engineering-baseline.md before structural, schema, contract, permission, migration, dependency, or cross-module state decisions.");
@@ -2076,7 +2076,7 @@ if (!target && !applyPlanPath) {
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --dry-run");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan ./init-update-plan.json");
   console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json");
-  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --backup-dir .ai-native/backups/phase-001");
+  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --backup-dir .intentos/backups/phase-001");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --industrial-packs web-app-industrial,backend-api-industrial");
   console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");

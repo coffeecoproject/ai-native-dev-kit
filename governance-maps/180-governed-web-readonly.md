@@ -1,6 +1,6 @@
 # Existing Governance Map: governed production-sensitive Web project
 
-Use this file to map AI Native Dev Kit concepts to governance assets that already exist in a project.
+Use this file to map IntentOS concepts to governance assets that already exist in a project.
 
 This public map is sanitized. It intentionally omits the target project name, local path, private release details, endpoints, accounts, and production data.
 
@@ -18,28 +18,28 @@ Project type: existing governed Web project
 
 Production status: production-sensitive / already launched
 
-Existing governance summary: The target already has project-specific agent instructions, Web engineering/environment/release baseline docs, guard scripts, release readiness records, and task/session evidence. AI Native Dev Kit should map to these assets rather than overwrite them.
+Existing governance summary: The target already has project-specific agent instructions, Web engineering/environment/release baseline docs, guard scripts, release readiness records, and task/session evidence. IntentOS should map to these assets rather than overwrite them.
 
 ## Concept Map
 
-| AI Native Concept | Existing Project Asset | Current Coverage | Gap / Conflict | Decision |
+| IntentOS Concept | Existing Project Asset | Current Coverage | Gap / Conflict | Decision |
 |---|---|---|---|---|
-| Agent rules / `AGENTS.md` | existing project agent instruction file | Covered | AI Native should not create a competing entry by default | Keep / Map |
-| Request | existing work/session records | Partial | naming differs from AI Native | Map |
-| Preflight | existing release and risk checks | Partial | structure differs from AI Native | Map |
+| Agent rules / `AGENTS.md` | existing project agent instruction file | Covered | IntentOS should not create a competing entry by default | Keep / Map |
+| Request | existing work/session records | Partial | naming differs from IntentOS | Map |
+| Preflight | existing release and risk checks | Partial | structure differs from IntentOS | Map |
 | Spec | existing project docs and task notes | Partial | no duplicate template needed yet | Map |
 | Eval / acceptance | existing guard scripts and quality gates | Covered | none | Keep |
-| Task card | existing session/task record | Partial | no direct AI Native task card yet | Map |
+| Task card | existing session/task record | Partial | no direct IntentOS task card yet | Map |
 | AI task log | existing session/evidence records | Partial | optional bridge only | Map |
 | Workflow retro | existing review/evidence notes | Partial | optional bridge only | Map |
 | Workflow improvement | existing governance notes | Partial | optional bridge only | Map |
 | Dogfood observation | local read-only trial notes | Partial | keep sanitized in public repo | Map |
 | Project onboarding | existing README/governance docs | Covered | no duplicate onboarding needed | Keep |
 | Project profile | existing platform and stack docs | Partial | formal profile can be adapter-only | Map |
-| Platform baseline | existing Web baseline docs | Covered | path naming differs from Dev Kit defaults | Map |
+| Platform baseline | existing Web baseline docs | Covered | path naming differs from IntentOS defaults | Map |
 | Industrial baseline | existing guard/release baseline docs | Partial | select-only, no default BL2 enablement | Map |
 | Risk Gate | existing guard scripts and release rules | Covered | do not weaken | Keep |
-| Human Approval | existing owner approval process | Covered | AI Native reports are not approvals | Keep |
+| Human Approval | existing owner approval process | Covered | IntentOS reports are not approvals | Keep |
 | Evidence refs | existing evidence/session records | Covered | keep private unless sanitized | Map |
 | Release evidence | existing release/readiness docs | Covered | no production validation claim | Map |
 | Skill candidates | not adopted | Missing | not needed for read-only trial | Gap |
@@ -48,7 +48,7 @@ Existing governance summary: The target already has project-specific agent instr
 
 ## Existing Authority
 
-| Area | Existing Authority | AI Native Adapter Rule |
+| Area | Existing Authority | IntentOS Adapter Rule |
 |---|---|---|
 | Agent rules | existing project agent instruction file | Do not overwrite |
 | CI / gates | existing guard and quality scripts | Do not replace |
@@ -100,7 +100,7 @@ Allowed writes after approval:
 Forbidden writes without separate approval:
 
 - `AGENTS.md`
-- `.ai-native/`
+- `.intentos/`
 - CI workflows
 - release workflow
 - guard scripts

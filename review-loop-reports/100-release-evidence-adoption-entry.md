@@ -6,7 +6,7 @@ slug: release-evidence-adoption-entry
 title: "release evidence adoption entry"
 status: closed
 created_at: 2026-06-27
-devkit_version: 1.0.0
+intentos_version: 1.0.0
 task: tasks/100-release-evidence-adoption-entry.md
 spec: specs/100-release-evidence-adoption-entry.md
 eval: evals/100-release-evidence-adoption-entry.md
@@ -81,15 +81,15 @@ Changed files: current task files plus unrelated untracked `.DS_Store`.
 Commands run:
 
 ```text
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/check-manifest.mjs .
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/cli.mjs self-check
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test
-node /tmp/ai-native-1-test/scripts/check-ai-workflow.mjs /tmp/ai-native-1-test --mode core
-node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run
-node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-1-test
+node /tmp/intentos-1-test/scripts/check-ai-workflow.mjs /tmp/intentos-1-test --mode core
+node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run
+node scripts/cli.mjs migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/100-release-evidence-adoption-entry.md
 node scripts/check-review-loop.mjs . --task tasks/100-release-evidence-adoption-entry.md
 node scripts/check-next-step-boundary.mjs . --task tasks/100-release-evidence-adoption-entry.md

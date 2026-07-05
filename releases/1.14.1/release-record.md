@@ -9,7 +9,7 @@
 - `scripts/resolve-baseline-packs.mjs` is marked as a deprecated lower-level industrial resolver for human entry; `node scripts/cli.mjs baseline-packs <project>` is the standard-first umbrella command.
 - `standard-baseline-packs/schema/standard-pack.schema.json` now rejects unknown root metadata fields. Future extra fields must live under `extensions`.
 - `scripts/check-standard-baseline-pack.mjs` rejects unknown pack metadata fields.
-- `scripts/check-standard-baseline-selection.mjs` validates selected profile ids against `profiles/` and `.ai-native/profiles/`.
+- `scripts/check-standard-baseline-selection.mjs` validates selected profile ids against `profiles/` and `.intentos/profiles/`.
 - Public documentation URL handling was calibrated so public docs do not trigger private URL or bundle-id false positives.
 - 1.14 release verification now lists standard baseline commands explicitly.
 
@@ -66,7 +66,7 @@ node scripts/check-standard-baseline-pack.mjs test-fixtures/bad/bad-standard-pac
 node scripts/check-standard-baseline-selection.mjs test-fixtures/bad/bad-standard-selection-unknown-profile
 node scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

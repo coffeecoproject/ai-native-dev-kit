@@ -14,7 +14,7 @@ Read available evidence before recommending:
 - `docs/baseline-evidence.md`
 - `docs/engineering-baseline.md`
 - `docs/environment-baseline.md`
-- `.ai-native/version.json`
+- `.intentos/version.json`
 - standard baseline pack registry
 - industrial pack registry
 - platform/profile signals

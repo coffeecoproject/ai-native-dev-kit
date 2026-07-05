@@ -7,12 +7,12 @@ Status: PASS
 ```bash
 node --check scripts/resolve-execution-closure.mjs
 node --check scripts/check-execution-closure.mjs
-node scripts/resolve-execution-closure.mjs . --intent "finish Dev Kit closure" --verification "npm run verify passed"
-node scripts/resolve-execution-closure.mjs . --intent "finish Dev Kit closure" --verification "npm run verify passed" --json
+node scripts/resolve-execution-closure.mjs . --intent "finish IntentOS closure" --verification "npm run verify passed"
+node scripts/resolve-execution-closure.mjs . --intent "finish IntentOS closure" --verification "npm run verify passed" --json
 node scripts/check-execution-closure.mjs examples/1.32-execution-review-closure
 node scripts/check-execution-closure.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -32,7 +32,7 @@ node scripts/check-review-loop.mjs . --task tasks/039-artifact-frontmatter-schem
 node scripts/check-next-step-boundary.mjs . --task tasks/039-artifact-frontmatter-schema.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS after final verification.

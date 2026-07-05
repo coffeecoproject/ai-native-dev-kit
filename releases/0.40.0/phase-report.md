@@ -2,7 +2,7 @@
 
 ## Summary
 
-Phase `0.40.0` expands the dev-kit fixture matrix so checker behavior is better protected before internal checker refactoring begins.
+Phase `0.40.0` expands the intentos fixture matrix so checker behavior is better protected before internal checker refactoring begins.
 
 ## Completed
 
@@ -23,7 +23,7 @@ node scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
 git diff --check
 find scripts -name '*.mjs' -exec node --check {} \;
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.

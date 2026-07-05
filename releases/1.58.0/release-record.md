@@ -74,7 +74,7 @@ node --check scripts/check-release-guide.mjs
 node scripts/cli.mjs release-guide . --intent "help me launch"
 node scripts/check-release-guide.mjs .
 node scripts/check-release-guide.mjs examples/1.58-release-guide-consolidation/web-preview-release-guide
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

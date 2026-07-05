@@ -11,11 +11,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -41,7 +41,7 @@ const reportSections = [
   "Human Summary",
   "Existing Project Signals",
   "Existing Workflow Inventory",
-  "Recommended AI Native Workflow Use",
+  "Recommended IntentOS Workflow Use",
   "What To Reuse",
   "What To Add",
   "What Not To Touch",
@@ -185,7 +185,7 @@ function checkWorkflowMaps() {
     requireBoundaryNo(content, label, "This report approves release or production");
     requireBoundaryNo(content, label, "This report approves security, privacy, compliance, payment, finance, tax, HR, migration, permission, or data decisions");
 
-    const recommendedUse = sectionBody(content, "Recommended AI Native Workflow Use");
+    const recommendedUse = sectionBody(content, "Recommended IntentOS Workflow Use");
     for (const marker of [
       "Request / Spec / Task Card",
       "Baseline Decision Card",
@@ -276,7 +276,7 @@ function checkSourceEvidence() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "WORKFLOW_ADOPTION_MAP_RECOMMENDATION"
         && parsed.boundary?.authorizesTargetProjectWrites === "No"
-        && Array.isArray(parsed.recommendedAiNativeWorkflowUse)) {
+        && Array.isArray(parsed.recommendedIntentOSWorkflowUse)) {
         pass("1.20 workflow-map resolver JSON includes boundary and workflow use");
       } else {
         fail(`1.20 workflow-map resolver JSON missing required fields: ${resolverJson.stdout}`);
@@ -338,7 +338,7 @@ function emitAndExit() {
 function resolveAsset(relativePath) {
   const candidates = [
     path.join(projectRoot, relativePath),
-    path.join(projectRoot, ".ai-native", relativePath),
+    path.join(projectRoot, ".intentos", relativePath),
   ];
   return candidates.find((candidate) => fs.existsSync(candidate)) || null;
 }
@@ -346,7 +346,7 @@ function resolveAsset(relativePath) {
 function resolveDirectory(relativePath) {
   const candidates = [
     path.join(projectRoot, relativePath),
-    path.join(projectRoot, ".ai-native", relativePath),
+    path.join(projectRoot, ".intentos", relativePath),
   ];
   return candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) || null;
 }
@@ -363,14 +363,14 @@ function exists(relativePath) {
 function displayAsset(requestedPath, resolvedPath) {
   const normalized = resolvedPath.split(path.sep).join("/");
   const rootPrefix = projectRoot.split(path.sep).join("/");
-  if (normalized.startsWith(`${rootPrefix}/.ai-native/`)) return `.ai-native/${requestedPath}`;
+  if (normalized.startsWith(`${rootPrefix}/.intentos/`)) return `.intentos/${requestedPath}`;
   return requestedPath;
 }
 
 function markdownFiles(relativeDir) {
   const dirs = [
     path.join(projectRoot, relativeDir),
-    path.join(projectRoot, ".ai-native", relativeDir),
+    path.join(projectRoot, ".intentos", relativeDir),
   ];
   const files = [];
   for (const dir of dirs) {

@@ -37,8 +37,8 @@ If nothing is approved: No project files are written, no hooks or CI are changed
 
 | ID | Action type | Target paths | Reason | Status | Will write now | Approval required | Rollback required |
 |---|---|---|---|---|---|---|---|
-| A-001 | EXISTING_PROJECT_BRIDGE_DOC | docs/governance/ai-native-dev-kit-adoption-v1.md | Connect AI Native workflow to existing governance without replacing it. | PLAN_ONLY | No | Yes | Yes |
-| A-002 | BASELINE_DOC_WRITE | docs/ai-native-baseline-gap-review-v1.md | Record baseline gaps instead of overwriting current baseline files. | PLAN_ONLY | No | Yes | Yes |
+| A-001 | EXISTING_PROJECT_BRIDGE_DOC | docs/governance/intentos-adoption-v1.md | Connect IntentOS workflow to existing governance without replacing it. | PLAN_ONLY | No | Yes | Yes |
+| A-002 | BASELINE_DOC_WRITE | docs/intentos-baseline-gap-review-v1.md | Record baseline gaps instead of overwriting current baseline files. | PLAN_ONLY | No | Yes | Yes |
 
 ## Human-Only / Blocked Actions
 
@@ -61,15 +61,15 @@ If nothing is approved: No project files are written, no hooks or CI are changed
 
 | Action | Backup required | Backup path | Rollback step | Rollback verification |
 |---|---|---|---|---|
-| A-001 | Yes | .ai-native/backups/apply-001/ | Restore or remove docs/governance/ai-native-dev-kit-adoption-v1.md after approval. | Run project workflow checks and link search. |
-| A-002 | Yes | .ai-native/backups/apply-001/ | Restore or remove docs/ai-native-baseline-gap-review-v1.md after approval. | Run project workflow checks and baseline review. |
+| A-001 | Yes | .intentos/backups/apply-001/ | Restore or remove docs/governance/intentos-adoption-v1.md after approval. | Run project workflow checks and link search. |
+| A-002 | Yes | .intentos/backups/apply-001/ | Restore or remove docs/intentos-baseline-gap-review-v1.md after approval. | Run project workflow checks and baseline review. |
 
 ## Verification Plan
 
 | Step | Command or method | Required before apply | Required after apply | Evidence path | Owner |
 |---|---|---|---|---|---|
 | Pre-apply project state check | node scripts/cli.mjs next . | Yes | No | apply-plans/001-existing-project.md | Codex |
-| Bridge doc link check | rg "ai-native-dev-kit-adoption-v1" docs .ai-native | No | Yes | final-reports/001-existing-project.md | Codex |
+| Bridge doc link check | rg "intentos-adoption-v1" docs .intentos | No | Yes | final-reports/001-existing-project.md | Codex |
 | Workflow check | node scripts/check-ai-workflow.mjs . --mode core | No | Yes | final-reports/001-existing-project.md | Codex |
 
 ## Human Decisions Needed

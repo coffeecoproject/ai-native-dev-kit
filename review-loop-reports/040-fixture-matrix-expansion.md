@@ -26,7 +26,7 @@ Task Level: L2
 
 Review required: Yes
 
-Reason: fixture runner and source inventory changes affect dev-kit quality gates.
+Reason: fixture runner and source inventory changes affect intentos quality gates.
 
 Current round: 1
 
@@ -72,7 +72,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-fixtur
 node scripts/check-review-loop.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/check-next-step-boundary.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/score-output-quality.mjs . --min-score 80
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Evidence refs: `final-reports/040-fixture-matrix-expansion.md`
@@ -89,7 +89,7 @@ Findings are current-task review issues. Future work must be listed under `Next-
 
 | ID | Severity | Category | Finding | Evidence | Proposed action | Owner | Status |
 |---|---|---|---|---|---|---|---|
-| F1 | P2 | AUTO_FIX | Old bad fixture paths needed source inventory updates | `dev-kit-manifest.json`, `scripts/check-dev-kit.mjs` | Update inventory to new typed fixture paths | Codex | DONE |
+| F1 | P2 | AUTO_FIX | Old bad fixture paths needed source inventory updates | `intentos-manifest.json`, `scripts/check-intentos.mjs` | Update inventory to new typed fixture paths | Codex | DONE |
 | F2 | P2 | AUTO_FIX | Generated-project fixture cases needed bounded temporary setup | `scripts/check-fixtures.mjs` | Add generated-project setup and cleanup | Codex | DONE |
 
 ## Next-Step Suggestions
@@ -105,7 +105,7 @@ Suggestions are bounded follow-up items after the current task. They are not rev
 
 | Round | Finding IDs | Fix summary | Commands run | Result | New issues |
 |---|---|---|---|---|---|
-| 1 | F1, F2 | updated fixture paths and setup plumbing | `node scripts/check-fixtures.mjs`; `node scripts/check-dev-kit.mjs` | PASS | none |
+| 1 | F1, F2 | updated fixture paths and setup plumbing | `node scripts/check-fixtures.mjs`; `node scripts/check-intentos.mjs` | PASS | none |
 
 ## Verification After Fix
 
@@ -123,12 +123,12 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-fixtur
 node scripts/check-review-loop.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/check-next-step-boundary.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/score-output-quality.mjs . --min-score 80
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.
 
-Evidence: fixture matrix passed with 43 cases; dev-kit self-check passed.
+Evidence: fixture matrix passed with 43 cases; intentos self-check passed.
 
 Failures: none.
 

@@ -69,7 +69,7 @@ Changed files: workflow assets, docs, scripts, examples, fixtures, release evide
 Commands run:
 
 ```text
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Evidence refs:
@@ -101,7 +101,7 @@ Findings are current-task review issues. Future work must be listed under `Next-
 |---|---|---|---|---|---|---|---|
 | F1 | P2 | AUTO_FIX | evidence record missing Known Limitations | claim-control failure | add section | main thread | DONE |
 | F2 | P1 | AUTO_FIX | subagent run plan still showed final reviewer as running | final reviewer report | close agent and update run plan | main thread | DONE |
-| F3 | P1 | AUTO_FIX | dev-kit self-check did not cover 170 targeted governance checks | final reviewer report | add targeted checks to check-dev-kit | main thread | DONE |
+| F3 | P1 | AUTO_FIX | intentos self-check did not cover 170 targeted governance checks | final reviewer report | add targeted checks to check-intentos | main thread | DONE |
 
 ## Next-Step Suggestions
 
@@ -132,7 +132,7 @@ node scripts/check-context-governance.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/170-first-delivery-walkthrough.md
 node scripts/check-review-loop.mjs . --task tasks/170-first-delivery-walkthrough.md
 node scripts/check-next-step-boundary.mjs . --task tasks/170-first-delivery-walkthrough.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

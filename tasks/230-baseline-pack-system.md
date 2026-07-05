@@ -35,7 +35,7 @@ Allowed paths:
 - `templates/version-record.md`
 - `templates/workflow-version.json`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `requests/`
 - `preflight/`
 - `specs/`
@@ -64,5 +64,5 @@ Forbidden paths:
 
 Status: Approved
 
-Approval scope: dev-kit baseline pack selection governance only.
+Approval scope: intentos baseline pack selection governance only.
 

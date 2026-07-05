@@ -77,11 +77,11 @@ Codex must not:
 ## Evidence Status
 
 - `scripts/check-release-plan.mjs` validates strict Release Plan evidence, summary state, forbidden release-plan claims, and source evidence.
-- `scripts/check-dev-kit.mjs` includes expanded Release Plan example and bad-fixture coverage.
+- `scripts/check-intentos.mjs` includes expanded Release Plan example and bad-fixture coverage.
 - `scripts/start-project.mjs` and `scripts/workflow-next.mjs` expose IntentOS Operating Mode, Project Asset Migration Depth, and Existing Rule Comparison Required for old-project entry.
 - `examples/1.67-release-core-model/*` provides four positive Release Plan examples.
 - `test-fixtures/bad/bad-release-plan-*` covers unsafe release-plan claims.
-- `dev-kit-manifest.json`, `VERSION.md`, `package.json`, README, and workflow version templates are updated to `1.67.1`.
+- `intentos-manifest.json`, `VERSION.md`, `package.json`, README, and workflow version templates are updated to `1.67.1`.
 
 ## Compatibility
 
@@ -111,6 +111,6 @@ The patch is verified by:
 - manifest drift checks;
 - example verification through `npm --silent run verify:examples`;
 - governance verification through `npm --silent run verify:governance`;
-- full Dev Kit verification through `node scripts/check-dev-kit.mjs`;
+- full IntentOS verification through `node scripts/check-intentos.mjs`;
 - WorkControl read-only `start` / `next` smoke checks showing IntentOS Operating Mode active and project asset migration adapter-only;
 - whitespace and patch integrity check through `git diff --check`.

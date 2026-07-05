@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 subagent_mode: PLAN_THEN_BUILD
 ---
 # Subagent Run Plan: 042-docs-ia-migration-command
@@ -127,7 +127,7 @@ Next action: Main thread implements bounded changes; no subagent remains running
 Related files:
 
 - `scripts/cli.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `docs/plans/productization-hardcut-1.0-plan.md`
 
 Commands run:

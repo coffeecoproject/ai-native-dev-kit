@@ -114,8 +114,8 @@ function collectSignals(root, exists, pathSet, userIntent) {
     pathCount: paths.length,
     hasProjectSignals: exists ? hasProjectSignals(root) : false,
     isEmptyish: exists && paths.filter((item) => !item.startsWith(".git/")).length <= 3,
-    isDevKit: has("dev-kit-manifest.json") && hasPrefix("core"),
-    hasAiNativeAssets: hasPrefix(".ai-native") || hasPrefix("workflow-guidance-cards") || hasPrefix("delivery-path-reports"),
+    isIntentOS: has("intentos-manifest.json") && hasPrefix("core"),
+    hasIntentOSAssets: hasPrefix(".intentos") || hasPrefix("workflow-guidance-cards") || hasPrefix("delivery-path-reports"),
     hasGovernance: has("AGENTS.md") || hasPrefix("docs") || hasPrefix(".github/workflows") || hasPrefix("scripts/guard"),
     hasPackage: Boolean(packageJson),
     hasBuildScript: /\b(build|compile|typecheck)\b/i.test(scriptText),
@@ -140,10 +140,10 @@ function classifyProject(root, exists, git, signals) {
     };
   }
 
-  if (signals.isDevKit) {
+  if (signals.isIntentOS) {
     return {
       state: "DEV_KIT_REPOSITORY",
-      reason: "This is the AI Native Dev Kit source repository.",
+      reason: "This is the IntentOS source repository.",
       riskLevel: git?.isDirty ? "medium" : "low",
       existingUsersAssumed: "No",
       dirty: git?.isDirty ? "Yes" : "No",
@@ -180,10 +180,10 @@ function classifyProject(root, exists, git, signals) {
     };
   }
 
-  if (signals.hasGovernance || signals.hasAiNativeAssets) {
+  if (signals.hasGovernance || signals.hasIntentOSAssets) {
     return {
       state: "EXISTING_GOVERNED_PROJECT",
-      reason: "Existing docs, rules, CI, or AI Native assets were detected.",
+      reason: "Existing docs, rules, CI, or IntentOS assets were detected.",
       riskLevel: "medium",
       existingUsersAssumed: "Unknown treated as Yes",
       dirty: "No",

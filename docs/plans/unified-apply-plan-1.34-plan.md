@@ -17,7 +17,7 @@ read-only guidance
 
 ## Problem
 
-AI Native Dev Kit already has several plan-first flows:
+IntentOS already has several plan-first flows:
 
 - init/update write plan
 - baseline write plan
@@ -159,10 +159,10 @@ The technical report remains available underneath, but the decision is one surfa
 
 1. `node --check scripts/resolve-apply-plan.mjs`
 2. `node --check scripts/check-apply-plan.mjs`
-3. `node scripts/resolve-apply-plan.mjs . --intent "maintain Dev Kit apply plan" --action workflow-assets`
+3. `node scripts/resolve-apply-plan.mjs . --intent "maintain IntentOS apply plan" --action workflow-assets`
 4. `node scripts/check-apply-plan.mjs examples/1.34-unified-apply-plan`
 5. bad fixtures reject apply authorization and write-now claims
 6. `node scripts/check-apply-plan.mjs .`
-7. `node scripts/check-dev-kit.mjs`
+7. `node scripts/check-intentos.mjs`
 8. `npm run verify`
 9. `git diff --check`

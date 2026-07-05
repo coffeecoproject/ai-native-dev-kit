@@ -10,7 +10,7 @@ It is for situations where the next step may change the project:
 - turning document archive suggestions into real file moves later
 - proposing hook or CI changes
 - enabling BL2 / industrial overlays
-- connecting AI Native Dev Kit to an existing governed project
+- connecting IntentOS to an existing governed project
 
 ## Plain Meaning
 
@@ -31,7 +31,7 @@ The user should not need to inspect many separate technical reports just to deci
 Generate a read-only apply plan:
 
 ```bash
-node scripts/cli.mjs apply-plan ../my-project --intent "接入 AI Native 工作流"
+node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS 工作流"
 ```
 
 Generate a more specific plan:
@@ -40,7 +40,7 @@ Generate a more specific plan:
 node scripts/cli.mjs apply-plan ../my-project \
   --intent "接入已有强治理项目" \
   --action workflow-assets,agents-governance,pr-template-governance \
-  --targets ".ai-native,AGENTS.md,.github/pull_request_template.md" \
+  --targets ".intentos,AGENTS.md,.github/pull_request_template.md" \
   --from-workflow-map workflow-adoption-maps/001-existing-project.md
 ```
 

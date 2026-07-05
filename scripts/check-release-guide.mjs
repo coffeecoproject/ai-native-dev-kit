@@ -12,11 +12,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -408,13 +408,13 @@ function walk(dir, out) {
 
 function resolveAsset(file) {
   if (fs.existsSync(path.join(projectRoot, file))) return file;
-  if (fs.existsSync(path.join(projectRoot, ".ai-native", file))) return `.ai-native/${file}`;
+  if (fs.existsSync(path.join(projectRoot, ".intentos", file))) return `.intentos/${file}`;
   return "";
 }
 
 function resolveDirectory(dir) {
   if (fs.existsSync(path.join(projectRoot, dir))) return dir;
-  if (fs.existsSync(path.join(projectRoot, ".ai-native", dir))) return `.ai-native/${dir}`;
+  if (fs.existsSync(path.join(projectRoot, ".intentos", dir))) return `.intentos/${dir}`;
   return "";
 }
 

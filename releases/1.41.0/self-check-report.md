@@ -17,7 +17,7 @@ Structured evidence schema hardening for Unified Apply Plan, Controlled Apply Re
 - `node scripts/check-fixtures.mjs`: passed, 123 fixture cases
 - `node scripts/check-product-baseline.mjs .`: passed
 - `node scripts/check-claim-control.mjs .`: passed
-- `node scripts/check-dev-kit.mjs`: passed
+- `node scripts/check-intentos.mjs`: passed
 - `npm run verify:governance`: passed
 
 ## Negative Fixtures

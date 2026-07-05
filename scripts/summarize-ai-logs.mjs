@@ -57,7 +57,7 @@ const files = listMarkdownFiles("ai-logs");
 const improvements = listMarkdownFiles("workflow-improvements");
 const skillCandidates = listMarkdownFiles("skill-candidates");
 const automationProposals = listMarkdownFiles("automation-proposals");
-const proposals = listMarkdownFiles("dev-kit-proposals");
+const proposals = listMarkdownFiles("intentos-proposals");
 
 const summary = {
   total: files.length,
@@ -108,7 +108,7 @@ console.log(`- AI task logs: ${summary.total}`);
 console.log(`- Workflow improvements: ${improvements.length}`);
 console.log(`- Skill candidates: ${skillCandidates.length}`);
 console.log(`- Automation proposals: ${automationProposals.length}`);
-console.log(`- Dev kit proposals: ${proposals.length}`);
+console.log(`- IntentOS proposals: ${proposals.length}`);
 console.log(`- AI runs: ${summary.aiRuns}`);
 console.log(`- Repair runs: ${summary.repairRuns}`);
 console.log(`- Rework count: ${summary.rework}`);

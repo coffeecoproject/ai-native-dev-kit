@@ -68,7 +68,7 @@ node --check scripts/check-release-execution.mjs
 node scripts/cli.mjs release-execution . --intent "prepare release execution"
 node scripts/check-release-execution.mjs .
 node scripts/check-release-execution.mjs examples/1.56-release-execution/web-assisted-handoff
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

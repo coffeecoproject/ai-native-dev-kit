@@ -22,7 +22,7 @@ Implement the 1.12.1 calibration patch and verify the release.
 
 Allowed paths:
 
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `package.json`
 - `templates/workflow-version.json`
 - `templates/version-record.md`
@@ -31,7 +31,7 @@ Allowed paths:
 - `README.zh-CN.md`
 - `scripts/check-manifest.mjs`
 - `scripts/check-ai-workflow.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `scripts/check-fixtures.mjs`
 - `requests/`
 - `preflight/`
@@ -61,4 +61,4 @@ Forbidden paths:
 
 Status: Approved
 
-Approval scope: dev-kit calibration patch only.
+Approval scope: intentos calibration patch only.

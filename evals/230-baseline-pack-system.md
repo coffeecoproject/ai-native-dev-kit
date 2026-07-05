@@ -22,7 +22,7 @@ node --check scripts/check-baseline-pack-selection.mjs
 node scripts/cli.mjs baseline-packs .
 node scripts/check-baseline-pack-selection.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

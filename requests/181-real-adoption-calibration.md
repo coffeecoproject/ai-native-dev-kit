@@ -17,7 +17,7 @@ Apply the 1.8 review findings without adding a new large governance layer.
 
 ## User / Customer
 
-AI Native Dev Kit users applying 1.8 to real existing projects.
+IntentOS users applying 1.8 to real existing projects.
 
 ## Problem
 

@@ -44,7 +44,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can accept a user goal through `ask`.
+- IntentOS can accept a user goal through `ask`.
 - Codex can choose internal workflow routing without making the user select workflow commands.
 - Beginner Entry can summarize the safest next path and required human decisions.
 

@@ -24,7 +24,7 @@ Before implementation, Codex must re-read:
 - `README.zh-CN.md`
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `docs/for-existing-projects.md`
 - `docs/existing-project-workflow-adapter.md`
 - `docs/native-first-existing-project-migration.md`
@@ -42,7 +42,7 @@ Before implementation, Codex must re-read:
 - `scripts/resolve-native-migration.mjs`
 - `scripts/resolve-existing-rule-reconciliation.mjs`
 - `scripts/resolve-release-plan.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 WorkControl and AiCoffeeCo observations may be used only as anonymized calibration evidence. They must not become hard-coded project rules.
 
@@ -171,7 +171,7 @@ It should cover:
 1.70 does not include:
 
 - automatic target-project writes;
-- automatic `.ai-native` installation;
+- automatic `.intentos` installation;
 - automatic `AGENTS.md`, CI, hook, release SOP, baseline, or PR template replacement;
 - automatic historical log import;
 - automatic deletion, archive, or rewriting of old documents;
@@ -487,7 +487,7 @@ Tasks:
 Acceptance:
 
 - Resolver writes nothing unless an explicit future write flag exists and is separately approved.
-- Resolver can run on an existing governed project without requiring `.ai-native`.
+- Resolver can run on an existing governed project without requiring `.intentos`.
 - Resolver uses `reconcile-rules --auto-native` behavior when no written reconciliation exists.
 - Omitted extracted rules produce convergence block.
 - Dirty worktree produces convergence block.
@@ -577,9 +577,9 @@ Acceptance:
 
 Tasks:
 
-1. Register new source files in `dev-kit-manifest.json`.
+1. Register new source files in `intentos-manifest.json`.
 2. Add generated-project asset coverage only if the report is intended to be copied into projects.
-3. Update `scripts/check-dev-kit.mjs`.
+3. Update `scripts/check-intentos.mjs`.
 4. Add release evidence under `releases/1.70.0/`.
 5. Update version metadata only during implementation.
 
@@ -587,7 +587,7 @@ Acceptance:
 
 - Manifest passes.
 - Generated project checks pass.
-- Full `node scripts/check-dev-kit.mjs` passes.
+- Full `node scripts/check-intentos.mjs` passes.
 - `npm --silent run verify:governance` passes if CLI integration touches governance scripts.
 
 ## Goal + Subagent Execution Model
@@ -630,7 +630,7 @@ Minimum implementation verification:
 - `node scripts/check-governance-convergence.mjs test-fixtures/bad/bad-governance-convergence-ignores-omitted-rules`
 - `node scripts/check-manifest.mjs`
 - `npm --silent run verify:governance`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 Optional private calibration after public checks:
@@ -696,7 +696,7 @@ but daily AI collaboration becomes close to a new IntentOS project.
 ## Open Questions For Review
 
 1. Should 1.70 expose a new maintainer command, or should convergence remain summarized through `doctor` / `next`?
-2. Should Governance Convergence Reports be copied into generated projects by default, or only available in the Dev Kit source?
+2. Should Governance Convergence Reports be copied into generated projects by default, or only available in the IntentOS source?
 3. Should strict structured evidence be required immediately, or optional for one release like earlier evidence transitions?
 4. Should the audit bridge be a section inside Governance Convergence Report, or a separate artifact later?
 5. Should private WorkControl / AiCoffeeCo calibration be recorded as anonymized evidence in source releases, or kept only in conversation/review notes?

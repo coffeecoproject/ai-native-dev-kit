@@ -12,7 +12,7 @@ This review loop records the implementation checks for 1.8 Real Project Read-onl
 
 Does this review require human decision before AI continues: No
 
-Decision: Not required for dev-kit source changes. Future target-project writes require a separate human decision.
+Decision: Not required for intentos source changes. Future target-project writes require a separate human decision.
 
 ## Next Safe Step
 
@@ -69,7 +69,7 @@ Changed files: workflow assets, docs, scripts, examples, fixtures, release evide
 Commands run:
 
 ```text
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Evidence refs:
@@ -89,7 +89,7 @@ Use this section when review or repair decisions depend on inferred or unconfirm
 | Round | Reviewer | Mode | Result | Notes |
 |---|---|---|---|---|
 | 1 | attached external review | read-only | AUTO_FIXED | clarified 1.8 should be sanitized read-only adoption, not direct target initialization |
-| 2 | local targeted checks | self | PASS | real adoption, patch classification, workflow artifact, review loop, next-step, and full dev-kit checks passed |
+| 2 | local targeted checks | self | PASS | real adoption, patch classification, workflow artifact, review loop, next-step, and full intentos checks passed |
 
 ## Findings
 
@@ -116,7 +116,7 @@ Suggestions are bounded follow-up items after the current task. They are not rev
 | Round | Finding IDs | Fix summary | Commands run | Result | New issues |
 |---|---|---|---|---|---|
 | 1 | F1, F2, F3 | added sanitized trial protocol, patch classifier, and equivalent baseline detection | `node scripts/check-real-adoption-trial.mjs .`; `node scripts/check-patch-classification.mjs .` | PASS | none |
-| 2 | none | final full-check pass | `node scripts/check-dev-kit.mjs` | PASS | none |
+| 2 | none | final full-check pass | `node scripts/check-intentos.mjs` | PASS | none |
 
 ## Verification After Fix
 
@@ -137,7 +137,7 @@ node scripts/check-context-governance.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/180-real-project-adoption-trial.md
 node scripts/check-review-loop.mjs . --task tasks/180-real-project-adoption-trial.md
 node scripts/check-next-step-boundary.mjs . --task tasks/180-real-project-adoption-trial.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -191,7 +191,7 @@ node scripts/check-baseline-enforcement.mjs . --mode implementation
 
 | Decision | Reason | Options | Recommended | Owner | Status |
 |---|---|---|---|---|---|
-| None for dev-kit source update | no human decision needed for scoped repo update | Not applicable | Not applicable | human | NOT_REQUIRED |
+| None for intentos source update | no human decision needed for scoped repo update | Not applicable | Not applicable | human | NOT_REQUIRED |
 | Future target project write | docs-only bridge or thin operational bridge would write to target | approve / reject / ask for plan | ask for reviewed plan first | human | DEFERRED |
 
 ## Final Summary

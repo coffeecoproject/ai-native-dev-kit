@@ -519,7 +519,7 @@ function normalizeRef(ref) {
 function schemaPathForType(artifactType) {
   const fileName = `${artifactType}.schema.json`;
   const candidates = [
-    path.join(projectRoot, ".ai-native", "schemas", "artifacts", fileName),
+    path.join(projectRoot, ".intentos", "schemas", "artifacts", fileName),
     path.resolve(__dirname, "..", "schemas", "artifacts", fileName),
   ];
   return candidates.find((candidate) => fs.existsSync(candidate)) || null;
@@ -803,7 +803,7 @@ function checkLog(file, content) {
     "Cost / Usage",
     "Issues Caught By Review",
     "Lessons",
-    "Dev Kit Updates Needed",
+    "IntentOS Updates Needed",
     "Workflow Improvement Trigger",
     "Related Follow-up",
   ]);

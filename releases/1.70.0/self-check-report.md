@@ -15,14 +15,14 @@ Passed.
 - `node scripts/check-governance-convergence.mjs examples/1.70-existing-project-governance-convergence/dirty-worktree-blocked --require-structured-evidence`
 - bad governance convergence fixtures reject unsafe claims
 - `node scripts/check-manifest.mjs` - passed
-- `node scripts/check-dev-kit.mjs` - passed
+- `node scripts/check-intentos.mjs` - passed
 - segmented verification - passed:
   - `npm --silent run verify:syntax`
   - `npm --silent run verify:baseline`
   - `npm --silent run verify:governance`
   - `npm --silent run verify:industrial`
   - `npm --silent run verify:examples`
-  - release checks via `node scripts/check-manifest.mjs`, `node scripts/check-dev-kit.mjs`, and `git diff --check`
+  - release checks via `node scripts/check-manifest.mjs`, `node scripts/check-intentos.mjs`, and `git diff --check`
 - `git diff --check` - passed
 
 ## Notes

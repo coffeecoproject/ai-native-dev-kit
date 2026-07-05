@@ -76,7 +76,7 @@ node --check scripts/check-closure-decision.mjs
 node scripts/cli.mjs finish . --intent "维护 IntentOS 收口模型" --verification "npm run verify passed"
 node scripts/check-closure-decision.mjs .
 node scripts/check-closure-decision.mjs examples/1.53-unified-closure-model
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

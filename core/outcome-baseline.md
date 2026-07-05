@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-AI Native Dev Kit exists to help users turn an idea into software that is understandable, maintainable, reviewable, and ready for risk-matched delivery.
+IntentOS exists to help users turn an idea into software that is understandable, maintainable, reviewable, and ready for risk-matched delivery.
 
 ## North Star
 
@@ -82,6 +82,6 @@ Delivery does not mean production approval unless a human explicitly approves pr
 - `core/decision-delegation-boundary.md` routes decision ownership.
 - `core/guided-delivery-loop.md` keeps the current delivery thread moving without losing side ideas.
 - `core/engineering-baseline.md` and `core/environment-baseline.md` define project rules and facts.
-- `core/product-baseline.md` constrains Dev Kit upgrades.
+- `core/product-baseline.md` constrains IntentOS upgrades.
 - `core/claim-control.md` constrains what the kit may claim.
 - `core/assumption-register.md` prevents inferred facts from becoming hidden rules.

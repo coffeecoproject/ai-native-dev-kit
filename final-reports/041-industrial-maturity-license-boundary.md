@@ -26,7 +26,7 @@ all packs draft and keeping `LICENSE.md` unchanged.
 | Industrial pack full check | `node scripts/check-industrial-pack.mjs . --json` | PASS |
 | Industrial pack selected-only check | `node scripts/check-industrial-pack.mjs . --selected-only` | PASS |
 | Manifest check | `node scripts/check-manifest.mjs .` | PASS |
-| Dev-kit self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| Dev-kit self-check | `node scripts/check-intentos.mjs` | PASS |
 
 ## Not Changed
 
@@ -80,7 +80,7 @@ node --check scripts/check-industrial-pack.mjs
 node scripts/check-industrial-pack.mjs . --json
 node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/check-manifest.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Changed files:
@@ -91,7 +91,7 @@ Evidence refs:
 
 - `releases/0.41.0/phase-report.md`
 - `review-loop-reports/041-industrial-maturity-license-boundary.md`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `industrial-packs/schema/pack.schema.json`
 
 ## Audit Notes

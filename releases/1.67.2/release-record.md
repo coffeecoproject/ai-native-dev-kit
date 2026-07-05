@@ -40,7 +40,7 @@ Release Plan Evidence Hardening.
 ## Evidence Status
 
 - `scripts/check-release-plan.mjs` includes Chinese forbidden-claim checks and source evidence for the new bad fixtures.
-- `scripts/check-dev-kit.mjs` includes the 1.67.2 release files and new Release Plan bad fixtures.
+- `scripts/check-intentos.mjs` includes the 1.67.2 release files and new Release Plan bad fixtures.
 - `schemas/artifacts/release-plan.schema.json` rejects unknown structured evidence fields on key Release Plan objects.
 - `checklists/release-plan-review.md` includes `release_plan_digest` and extra authority-field review checks.
 - `releases/1.67.1/self-check-report.md` no longer publishes a private local path as required verification.
@@ -71,5 +71,5 @@ The patch is verified by:
 - manifest drift checks;
 - example verification;
 - governance verification;
-- full Dev Kit verification;
+- full IntentOS verification;
 - whitespace and patch integrity check.

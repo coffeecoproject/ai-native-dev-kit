@@ -136,9 +136,9 @@ The script should run:
 ```bash
 node --check scripts/init-project.mjs
 node --check scripts/new-workflow-item.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -173,7 +173,7 @@ For target projects:
 4. Strengthen release section validation.
 5. Add `verify` script and Node engine metadata.
 6. Add 1.11 release evidence and version updates.
-7. Extend dev-kit self-check coverage.
+7. Extend intentos self-check coverage.
 8. Run full verification.
 
 ## Acceptance Criteria
@@ -186,7 +186,7 @@ The release is complete when:
 - `check-manifest` catches an intentionally unmanifested important source asset in self-check coverage;
 - release records with empty required sections fail structured validation;
 - `npm run verify` passes;
-- `node scripts/check-dev-kit.mjs` passes;
+- `node scripts/check-intentos.mjs` passes;
 - `git diff --check` passes;
 - release evidence states limitations and does not claim production validation.
 

@@ -25,7 +25,7 @@ Starters must be validated through `scripts/init-project.mjs`; direct copying a 
 - [ ] `workflow-improvements/.gitkeep`
 - [ ] `skill-candidates/.gitkeep`
 - [ ] `automation-proposals/.gitkeep`
-- [ ] `dev-kit-proposals/.gitkeep`
+- [ ] `intentos-proposals/.gitkeep`
 - [ ] `releases/.gitkeep`
 - [ ] `scripts/verify.sh`
 - [ ] `.github/pull_request_template.md`
@@ -37,7 +37,7 @@ Starters must be validated through `scripts/init-project.mjs`; direct copying a 
 - [ ] Does not include concrete project facts
 - [ ] Does not weaken high-risk boundaries
 - [ ] `scripts/verify.sh` is executable by `bash`
-- [ ] Generated project can receive `.ai-native` assets
+- [ ] Generated project can receive `.intentos` assets
 - [ ] Generated project can receive `scripts/check-ai-workflow.mjs`
 - [ ] Generated project can receive injected workflow scripts
 - [ ] Generated project can receive GitHub workflow checks

@@ -6,7 +6,7 @@ Claim Control protects the project from saying more than the evidence proves.
 
 ## Why It Exists
 
-AI Native Dev Kit uses simulations, generated-project smoke tests, examples, and dogfood. These are useful evidence, but they are not the same as production adoption evidence.
+IntentOS uses simulations, generated-project smoke tests, examples, and dogfood. These are useful evidence, but they are not the same as production adoption evidence.
 
 ## Before Publishing
 

@@ -22,11 +22,11 @@ PASS.
   - `node <tmp>/project/scripts/cli.mjs delivery-path <tmp>/project`
   - `node <tmp>/project/scripts/cli.mjs delivery-path-check <tmp>/project`
   - `node <tmp>/project/scripts/check-ai-workflow.mjs <tmp>/project --mode core`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 
 ## Result
 
-Delivery Path Governance passed source, example, bad-fixture, generated-project, manifest, syntax, governance, and full dev-kit self-check coverage.
+Delivery Path Governance passed source, example, bad-fixture, generated-project, manifest, syntax, governance, and full intentos self-check coverage.
 
 ## Final Verification
 

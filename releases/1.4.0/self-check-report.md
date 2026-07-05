@@ -16,7 +16,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -31,4 +31,4 @@ This report does not approve release, risk, scope expansion, or future work.
 - `check-claim-control` passed current release wording.
 - `check-manifest` passed manifest and workflow-version sync.
 - `check-fixtures` passed 51 fixture cases.
-- `check-dev-kit` passed full repository self-check.
+- `check-intentos` passed full repository self-check.

@@ -4,7 +4,7 @@ Use this checklist before generating, updating, or enabling any active Skill fro
 
 ## Evidence
 
-- [ ] Candidate references AI task logs, retros, improvements, dev-kit proposals, or explicit user request
+- [ ] Candidate references AI task logs, retros, improvements, intentos proposals, or explicit user request
 - [ ] Pattern is repeated or high-impact enough to justify a Skill
 - [ ] Candidate explains why existing docs, prompts, templates, checklists, scripts, or profiles are insufficient
 - [ ] Candidate is not based only on one temporary workaround

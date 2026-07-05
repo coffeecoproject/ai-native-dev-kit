@@ -1,4 +1,4 @@
-name: Dev Kit Release Checks
+name: IntentOS Release Checks
 
 on:
   push:
@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  dev-kit-release-checks:
-    name: Dev Kit Release Checks
+  intentos-release-checks:
+    name: IntentOS Release Checks
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,7 @@ jobs:
           node-version: 22
 
       - name: Dev-kit self-check
-        run: node scripts/check-dev-kit.mjs
+        run: node scripts/check-intentos.mjs
 
       - name: Release verify
         run: npm run verify
@@ -78,7 +78,7 @@ jobs:
         run: node scripts/check-apply-plan.mjs .
 
       - name: Unified apply plan smoke
-        run: node scripts/cli.mjs apply-plan . --intent "maintain Dev Kit apply plan" --action workflow-assets
+        run: node scripts/cli.mjs apply-plan . --intent "maintain IntentOS apply plan" --action workflow-assets
 
       - name: Controlled apply readiness check
         run: node scripts/check-controlled-apply-readiness.mjs .
@@ -96,10 +96,10 @@ jobs:
         run: node scripts/check-beginner-entry.mjs .
 
       - name: Beginner entry resolver smoke
-        run: node scripts/resolve-beginner-entry.mjs . --goal "maintain Dev Kit beginner entry"
+        run: node scripts/resolve-beginner-entry.mjs . --goal "maintain IntentOS beginner entry"
 
       - name: Beginner entry smoke
-        run: node scripts/cli.mjs ask . "maintain Dev Kit beginner entry"
+        run: node scripts/cli.mjs ask . "maintain IntentOS beginner entry"
 
       - name: Conversation-native ask check
         run: node scripts/check-conversation-native-ask.mjs .
@@ -132,7 +132,7 @@ jobs:
         run: node scripts/cli.mjs guide . --deep
 
       - name: Intent-aware deep workflow guidance smoke
-        run: node scripts/cli.mjs guide . --deep --intent "maintain Dev Kit guidance"
+        run: node scripts/cli.mjs guide . --deep --intent "maintain IntentOS guidance"
 
       - name: Review surface check
         run: node scripts/check-review-surface.mjs .
@@ -150,7 +150,7 @@ jobs:
         run: node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverage/contract-input-rule --require-impact-coverage
 
       - name: Change impact coverage smoke
-        run: node scripts/cli.mjs impact-coverage . --intent "maintain Dev Kit change impact coverage"
+        run: node scripts/cli.mjs impact-coverage . --intent "maintain IntentOS change impact coverage"
 
       - name: Delivery path check
         run: node scripts/check-delivery-path.mjs .
@@ -168,7 +168,7 @@ jobs:
         run: node scripts/check-execution-closure.mjs .
 
       - name: Execution closure smoke
-        run: node scripts/cli.mjs closure . --intent "maintain Dev Kit closure" --verification "npm run verify passed"
+        run: node scripts/cli.mjs closure . --intent "maintain IntentOS closure" --verification "npm run verify passed"
 
       - name: Evidence-linked execution closure smoke
         run: node scripts/cli.mjs closure examples/1.33-evidence-linked-closure --intent "finish booking validation" --review-surface-ref review-surface-cards/001-booking.md --review-loop-ref review-loop-reports/001-booking.md --change-boundary-ref change-boundary-reports/001-booking.md --verification-file reports/verify-output.txt --debt-handoff-ref debt-handoff-reports/001-booking.md --delivery-path-ref delivery-path-reports/001-booking.md

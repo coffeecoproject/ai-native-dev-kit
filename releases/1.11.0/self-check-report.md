@@ -11,9 +11,9 @@ node --check scripts/init-project.mjs
 node --check scripts/check-manifest.mjs
 node --check scripts/check-claim-control.mjs
 node --check scripts/check-product-baseline.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
@@ -28,8 +28,8 @@ PASS
 - `node --check scripts/check-manifest.mjs`: PASS
 - `node --check scripts/check-claim-control.mjs`: PASS
 - `node --check scripts/check-product-baseline.mjs`: PASS
-- `node --check scripts/check-dev-kit.mjs`: PASS
+- `node --check scripts/check-intentos.mjs`: PASS
 - `node scripts/check-manifest.mjs`: PASS
-- `node scripts/check-dev-kit.mjs`: PASS
+- `node scripts/check-intentos.mjs`: PASS
 - `npm run verify`: PASS
 - `git diff --check`: PASS

@@ -20,7 +20,7 @@
 ```bash
 node --check scripts/new-workflow-item.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

@@ -43,7 +43,7 @@ node scripts/cli.mjs start ../my-project
 | `GOVERNED_EXISTING_PROJECT` | Existing governance detected | Read-only assessment first |
 | `PRODUCTION_SENSITIVE_PROJECT` | Production-sensitive signals detected | Read-only assessment first |
 | `DIRTY_WORKTREE_PROJECT` | Existing git changes detected | Stop for worktree decision |
-| `ALREADY_BOOTSTRAPPED_PROJECT` | AI Native assets already installed | Doctor, then next task |
+| `ALREADY_BOOTSTRAPPED_PROJECT` | IntentOS assets already installed | Doctor, then next task |
 | `UNKNOWN_NEEDS_DISCUSSION` | Not enough signal | Discuss before setup |
 
 ## Safe Progression

@@ -130,7 +130,7 @@ Stop condition reason: No repeated finding appeared; remaining issue is already 
 
 | Decision | Reason | Options | Recommended | Owner | Status |
 |---|---|---|---|---|---|
-| Decide whether to design a shared reviewer runner | F2 requires dependency or hook automation judgment | Do nothing / open preflight / create dev-kit proposal | Open preflight only after more dogfood evidence | human | PENDING |
+| Decide whether to design a shared reviewer runner | F2 requires dependency or hook automation judgment | Do nothing / open preflight / create intentos proposal | Open preflight only after more dogfood evidence | human | PENDING |
 
 ## Final Summary
 

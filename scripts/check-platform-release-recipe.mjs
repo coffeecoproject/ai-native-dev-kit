@@ -13,11 +13,11 @@ const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const strictMode = Boolean(args.strict);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -331,18 +331,18 @@ function checkSourceEvidence() {
 function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct)) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relativePath);
-  if (fs.existsSync(aiNative)) return aiNative;
-  const aiNativeBasename = path.join(projectRoot, ".ai-native", path.basename(path.dirname(relativePath)), path.basename(relativePath));
-  if (fs.existsSync(aiNativeBasename)) return aiNativeBasename;
+  const intentOS = path.join(projectRoot, ".intentos", relativePath);
+  if (fs.existsSync(intentOS)) return intentOS;
+  const intentOSBasename = path.join(projectRoot, ".intentos", path.basename(path.dirname(relativePath)), path.basename(relativePath));
+  if (fs.existsSync(intentOSBasename)) return intentOSBasename;
   return null;
 }
 
 function resolveDirectory(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relativePath);
-  if (fs.existsSync(aiNative) && fs.statSync(aiNative).isDirectory()) return aiNative;
+  const intentOS = path.join(projectRoot, ".intentos", relativePath);
+  if (fs.existsSync(intentOS) && fs.statSync(intentOS).isDirectory()) return intentOS;
   return null;
 }
 
@@ -431,7 +431,7 @@ function isConcrete(value) {
 
 function displayAsset(expected, resolved) {
   const normalized = resolved.split(path.sep).join("/");
-  if (normalized.includes("/.ai-native/")) return `.ai-native/${expected}`;
+  if (normalized.includes("/.intentos/")) return `.intentos/${expected}`;
   return expected;
 }
 

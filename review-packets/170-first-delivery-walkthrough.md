@@ -27,7 +27,7 @@ What should the reviewer ignore?
 
 ## Project State
 
-Project root: `/Users/liushan/Developer/CodingFlow/ai-native-dev-kit`
+Project root: `/Users/liushan/Developer/CodingFlow/intentos`
 
 Branch: main
 
@@ -76,7 +76,7 @@ Non-goals:
 - First delivery checker passes.
 - Example passes.
 - Bad fixtures fail as expected.
-- Full dev-kit self-check passes.
+- Full intentos self-check passes.
 - Claims remain bounded.
 
 ## Risk Gate
@@ -143,7 +143,7 @@ node scripts/check-fixtures.mjs
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -167,8 +167,8 @@ Skipped evidence and reason:
 | `core/first-delivery-walkthrough.md` | add | first delivery protocol | low |
 | `scripts/check-first-delivery-walkthrough.mjs` | add | checker | medium |
 | `examples/1.7-first-delivery-walkthrough/` | add | complete simulation | low |
-| `dev-kit-manifest.json` | update | asset registry | medium |
-| `scripts/check-dev-kit.mjs` | update | self-check integration | medium |
+| `intentos-manifest.json` | update | asset registry | medium |
+| `scripts/check-intentos.mjs` | update | self-check integration | medium |
 
 ## Diff Summary
 

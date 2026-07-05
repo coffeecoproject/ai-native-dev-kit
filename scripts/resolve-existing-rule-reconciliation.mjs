@@ -645,7 +645,7 @@ function printHuman(report) {
     ? report.conflicts.map((item) => [code(item.conflict_id), item.decision_needed, item.owner, item.status])
     : [["None", "No conflict recorded", "human", "N/A"]]);
   console.log("");
-  console.log("## AI Native Adoption Recommendation");
+  console.log("## IntentOS Adoption Recommendation");
   console.log("");
   printTable(["Field", "Value"], [
     ["Recommendation", code(report.nativeAdoptionDecision.recommendation)],

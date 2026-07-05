@@ -327,7 +327,7 @@ Update:
 - README / README.zh-CN
 - docs index and references
 - release evidence
-- check-dev-kit protocol
+- check-intentos protocol
 
 Acceptance:
 
@@ -345,7 +345,7 @@ node --check scripts/check-launch-review-view.mjs
 node scripts/cli.mjs launch-view . --intent "prepare release review" --verification "npm run verify passed"
 node scripts/check-launch-review-view.mjs .
 node scripts/check-launch-review-view.mjs examples/1.55-launch-review-view/web-internal-handoff
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

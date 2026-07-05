@@ -49,7 +49,7 @@ This is routing and explanation only. It does not approve execution.
 
 ```bash
 node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
-node scripts/cli.mjs ask ../my-project --goal "帮我把这个老项目接入 AI Native"
+node scripts/cli.mjs ask ../my-project --goal "帮我把这个老项目接入 IntentOS"
 node scripts/cli.mjs ask-check ../my-project
 ```
 

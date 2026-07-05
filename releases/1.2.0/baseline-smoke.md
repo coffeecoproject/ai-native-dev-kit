@@ -9,7 +9,7 @@ Simulated baseline guided setup smoke.
 ```bash
 node scripts/cli.mjs baseline .
 node scripts/cli.mjs baseline . --json
-node scripts/baseline-project.mjs . --write-plan /tmp/ai-native-baseline-plan.json
+node scripts/baseline-project.mjs . --write-plan /tmp/intentos-baseline-plan.json
 node scripts/check-environment-baseline.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode ready
 ```

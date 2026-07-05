@@ -45,7 +45,7 @@ One governed production-sensitive Web project was inspected in read-only mode; t
 | Bridge layer mode | NO_WRITE_MAP |
 | AGENTS.md proposed | No |
 | Existing agent.md considered | Yes |
-| .ai-native proposed | No |
+| .intentos proposed | No |
 | Human approval required before bridge writes | Yes |
 
 ## Governance Map

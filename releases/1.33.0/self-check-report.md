@@ -11,7 +11,7 @@ node scripts/resolve-execution-closure.mjs examples/1.33-evidence-linked-closure
 node scripts/check-execution-closure.mjs examples/1.33-evidence-linked-closure
 node scripts/check-execution-closure.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

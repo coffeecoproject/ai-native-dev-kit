@@ -18,7 +18,7 @@
 | Risk overlay no evidence bad fixture | PASS | `test-fixtures/bad/bad-industrial-risk-overlay-no-evidence` |
 | Fixture suite | PASS | `node scripts/check-fixtures.mjs` |
 | Manifest check | PASS | `node scripts/check-manifest.mjs` |
-| Dev kit self-check | PASS | `node scripts/check-dev-kit.mjs` |
+| IntentOS self-check | PASS | `node scripts/check-intentos.mjs` |
 | Full verification | PASS | `npm run verify` |
 
 ## Boundary

@@ -21,11 +21,11 @@ Evaluate whether 1.11.0 prevents the specific drift and misuse risks identified 
   - `node --check scripts/check-manifest.mjs`
   - `node --check scripts/check-claim-control.mjs`
   - `node --check scripts/check-product-baseline.mjs`
-  - `node --check scripts/check-dev-kit.mjs`
+  - `node --check scripts/check-intentos.mjs`
 - Manifest:
   - `node scripts/check-manifest.mjs`
 - Full self-check:
-  - `node scripts/check-dev-kit.mjs`
+  - `node scripts/check-intentos.mjs`
 - Release-level verify:
   - `npm run verify`
 - Diff hygiene:

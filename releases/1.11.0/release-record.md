@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-1.11.0 makes the dev kit harder to drift and harder to misuse. It synchronizes release pointers, protects direct init on non-empty directories, adds manifest reverse drift checking, strengthens release section validation, and adds `npm run verify`.
+1.11.0 makes the IntentOS harder to drift and harder to misuse. It synchronizes release pointers, protects direct init on non-empty directories, adds manifest reverse drift checking, strengthens release section validation, and adds `npm run verify`.
 
 ## Scope
 
@@ -15,7 +15,7 @@
 
 ## Allowed Claims
 
-- The dev kit now refuses direct init into non-empty targets unless `--force-new-project` is explicitly passed.
+- The IntentOS now refuses direct init into non-empty targets unless `--force-new-project` is explicitly passed.
 - The manifest checker now reports important source assets that are not covered by manifest source inventory or copy rules.
 - Release claim checks now require meaningful section bodies for required release sections.
 - `npm run verify` provides a single local release verification command.
@@ -44,9 +44,9 @@ node --check scripts/init-project.mjs
 node --check scripts/check-manifest.mjs
 node --check scripts/check-claim-control.mjs
 node --check scripts/check-product-baseline.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

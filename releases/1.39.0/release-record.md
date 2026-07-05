@@ -36,7 +36,7 @@ Subagent Dispatch Hygiene.
 ## Evidence Status
 
 - Source evidence: protocol, docs, template, checker, generated defaults, manifest copy rules, examples, bad fixtures, and release evidence are present in the repository.
-- Verification evidence: local checks should include `check-subagent-orchestration`, `check-manifest`, `check-dev-kit`, and `git diff --check`.
+- Verification evidence: local checks should include `check-subagent-orchestration`, `check-manifest`, `check-intentos`, and `git diff --check`.
 - Real-project evidence: not claimed by this release.
 
 ## Known Limitations
@@ -59,6 +59,6 @@ node scripts/check-subagent-orchestration.mjs examples/1.39-subagent-dispatch-hy
 node scripts/check-subagent-orchestration.mjs test-fixtures/bad/bad-subagent-dispatch-idle-running
 node scripts/check-subagent-orchestration.mjs test-fixtures/bad/bad-subagent-dispatch-multiple-writers
 node scripts/check-subagent-orchestration.mjs test-fixtures/bad/bad-subagent-dispatch-task-drift
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```

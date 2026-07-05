@@ -1,6 +1,6 @@
 # Productization Trial Report
 
-Use this template to record a trial of the dev-kit product surface without claiming full real-project adoption.
+Use this template to record a trial of the intentos product surface without claiming full real-project adoption.
 
 ## Trial Summary
 

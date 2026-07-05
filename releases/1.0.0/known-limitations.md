@@ -8,7 +8,7 @@
 
 - 10/10 real-project evidence has not been achieved.
 - No migration apply command exists.
-- `ai-native migrate` is dry-run/write-plan only.
+- `intentos migrate` is dry-run/write-plan only.
 - Industrial packs remain `draft`.
 - No industrial pack is promoted to `candidate` or `stable`.
 - License explanation docs are not legal advice.

@@ -17,7 +17,7 @@ Project-specific / Profile-specific / Shared workflow
 - AI task logs:
 - Workflow retros:
 - Workflow improvements:
-- Dev kit proposals:
+- IntentOS proposals:
 - User request:
 
 ## Repeated Pattern

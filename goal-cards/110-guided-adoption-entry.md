@@ -70,7 +70,7 @@ If yes, related decision area:
 
 - structure / module boundary
 
-Engineering baseline status: This is dev-kit product-surface tooling; no target-project engineering baseline is changed.
+Engineering baseline status: This is intentos product-surface tooling; no target-project engineering baseline is changed.
 
 Decision Brief needed: No
 

@@ -22,7 +22,7 @@ Allowed:
 
 - Update `scripts/init-project.mjs` for plan generation, validation, application, backup, and guarded direct update.
 - Update `scripts/cli.mjs` so global dry-run and command-level init/update dry-run have distinct behavior.
-- Update `scripts/check-dev-kit.mjs` with safety smoke tests.
+- Update `scripts/check-intentos.mjs` with safety smoke tests.
 - Update version metadata, manifest, roadmap status, and phase evidence.
 - Keep existing generated-project direct update behavior when the target is already bootstrapped and low-risk.
 
@@ -61,7 +61,7 @@ node scripts/check-review-loop.mjs . --task tasks/038-init-update-safety.md
 node scripts/check-next-step-boundary.mjs . --task tasks/038-init-update-safety.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## AI Budget

@@ -62,7 +62,7 @@ Evidence refs:
 
 Approvals:
 
-- Not required; this is a dev-kit example.
+- Not required; this is a intentos example.
 
 Exceptions:
 

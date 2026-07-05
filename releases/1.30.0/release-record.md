@@ -17,7 +17,7 @@ The `guide` command remains the plain-language front door. With `--deep`, it sel
 ## Changed
 
 - Workflow guidance docs now explain lightweight guide vs deep guide.
-- `verify:governance`, CI smoke checks, and dev-kit self-check now exercise deep guide.
+- `verify:governance`, CI smoke checks, and intentos self-check now exercise deep guide.
 - README and script references now show `node scripts/cli.mjs guide <project> --deep`.
 
 ## Boundary
@@ -36,7 +36,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can run `guide --deep` to selectively summarize relevant read-only workflow checks into one guidance card.
+- IntentOS can run `guide --deep` to selectively summarize relevant read-only workflow checks into one guidance card.
 - Deep guide can include review surface and delivery path by default, then add baseline decision, workflow map, work queue, document lifecycle, or hook policy only when signals justify them.
 - Deep guide keeps plain mode user-facing and hides command selection from ordinary users.
 
@@ -49,7 +49,7 @@ This release does not:
 ## Evidence Status
 
 - Release evidence is recorded in `self-check-report.md`.
-- `node scripts/check-dev-kit.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
+- `node scripts/check-intentos.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
 
 ## Known Limitations
 

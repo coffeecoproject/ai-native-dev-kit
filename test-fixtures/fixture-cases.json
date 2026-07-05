@@ -17,7 +17,7 @@
     "expectStatus": 0,
     "expectStdoutIncludes": [
       "PASS AGENTS.md",
-      "PASS .ai-native/version.json"
+      "PASS .intentos/version.json"
     ],
     "howToFix": "Generated generic projects must keep passing the core workflow asset check."
   },
@@ -406,7 +406,7 @@
     ],
     "expectStatus": "nonzero",
     "expectStderrIncludes": [
-      "missing .ai-native/core/project-onboarding.md"
+      "missing .intentos/core/project-onboarding.md"
     ],
     "howToFix": "The onboarding checker must keep rejecting projects without onboarding support assets."
   },
@@ -427,7 +427,7 @@
     "expectStdoutIncludes": [
       "Workflow version is current."
     ],
-    "howToFix": "Generated projects must keep receiving a current .ai-native/version.json file."
+    "howToFix": "Generated projects must keep receiving a current .intentos/version.json file."
   },
   {
     "name": "migration workflow version mismatch",
@@ -1276,7 +1276,7 @@
     "expectStderrIncludes": [
       "unknown selected profile"
     ],
-    "howToFix": "Selected Profiles must use profile ids that exist in profiles/ or .ai-native/profiles/."
+    "howToFix": "Selected Profiles must use profile ids that exist in profiles/ or .intentos/profiles/."
   },
   {
     "name": "bad standard selection resolver mismatch",

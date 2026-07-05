@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Implement 1.4.0 as a complete Dev Kit governance phase, not a patch.
+Implement 1.4.0 as a complete IntentOS governance phase, not a patch.
 
 ## Task Level
 
@@ -65,5 +65,5 @@ Approval scope: implement 1.4.0 project memory and context governance without Sa
 - Claim control check
 - Manifest check
 - Fixture suite
-- Dev Kit self-check
+- IntentOS self-check
 

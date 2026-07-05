@@ -7,12 +7,12 @@ Status: PASS
 ```bash
 node --check scripts/resolve-apply-plan.mjs
 node --check scripts/check-apply-plan.mjs
-node scripts/resolve-apply-plan.mjs . --intent "maintain Dev Kit apply plan" --action workflow-assets
-node scripts/resolve-apply-plan.mjs . --intent "maintain Dev Kit apply plan" --action workflow-assets --json
+node scripts/resolve-apply-plan.mjs . --intent "maintain IntentOS apply plan" --action workflow-assets
+node scripts/resolve-apply-plan.mjs . --intent "maintain IntentOS apply plan" --action workflow-assets --json
 node scripts/check-apply-plan.mjs examples/1.34-unified-apply-plan
 node scripts/check-apply-plan.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

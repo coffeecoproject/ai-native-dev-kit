@@ -6,7 +6,7 @@ slug: checker-library-refactor
 title: Checker Library Refactor
 status: ready
 created_at: "2026-06-27"
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 spec: specs/040-checker-library-refactor.md
 ---
 # Eval: Checker Library Refactor
@@ -59,7 +59,7 @@ Reject if:
 
 ## Required Evidence
 
-Command output summary: syntax check, fixture matrix, manifest check, workflow artifact check, review loop check, next-step boundary check, output quality score, and full dev-kit self-check.
+Command output summary: syntax check, fixture matrix, manifest check, workflow artifact check, review loop check, next-step boundary check, output quality score, and full intentos self-check.
 
 Screenshots / traces if UI: not applicable because no UI is changed.
 

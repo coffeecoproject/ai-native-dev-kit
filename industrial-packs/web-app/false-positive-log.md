@@ -8,7 +8,7 @@ No false-positive entries are recorded for this pack yet.
 
 | Date | Check / Gate | False-positive summary | Project context | Resolution | Owner |
 |---|---|---|---|---|---|
-| 2026-06-27 | none | No entries yet | not applicable | not applicable | AI Native Dev Kit maintainers |
+| 2026-06-27 | none | No entries yet | not applicable | not applicable | IntentOS maintainers |
 
 ## Rule
 

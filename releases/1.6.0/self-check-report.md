@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Conversation Drift Control assets, checker, example, and bad fixtures are present. Full dev-kit verification is run before commit.
+Conversation Drift Control assets, checker, example, and bad fixtures are present. Full intentos verification is run before commit.
 
 ## Checks
 
@@ -16,7 +16,7 @@ Conversation Drift Control assets, checker, example, and bad fixtures are presen
 | Bad risk auto-continue | `test-fixtures/bad/bad-conversation-risk-auto-continue` | FAIL as expected |
 | Manifest | `node scripts/check-manifest.mjs` | PASS after final run |
 | Fixture suite | `node scripts/check-fixtures.mjs` | PASS after final run |
-| Full dev-kit | `node scripts/check-dev-kit.mjs` | PASS after final run |
+| Full intentos | `node scripts/check-intentos.mjs` | PASS after final run |
 
 ## Remaining Risk
 

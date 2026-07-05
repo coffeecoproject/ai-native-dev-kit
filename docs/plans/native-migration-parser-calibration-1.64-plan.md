@@ -141,7 +141,7 @@ Update:
 - README / README.zh-CN
 - VERSION
 - package version and example verification
-- dev-kit manifest and workflow version template
+- intentos manifest and workflow version template
 - native migration schema
 - release record, limitations, and self-check report
 

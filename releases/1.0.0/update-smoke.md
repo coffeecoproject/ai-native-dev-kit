@@ -7,7 +7,7 @@ Status: PASS
 ## Command
 
 ```text
-node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run
+node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run
 ```
 
 ## Expected Result
@@ -25,10 +25,10 @@ Plan markers:
 ```json
 {
   "planVersion": "1.0",
-  "devKitVersion": "1.0.0",
+  "intentOSVersion": "1.0.0",
   "manifestVersion": "1.0.0",
   "operation": "UPDATE_WORKFLOW_ASSETS",
-  "targetRoot": "/tmp/ai-native-1-test"
+  "targetRoot": "/tmp/intentos-1-test"
 }
 ```
 

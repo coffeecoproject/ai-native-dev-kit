@@ -1,24 +1,27 @@
 # Workflow Version Record
 
-## Current Dev Kit Version
+## Current IntentOS Version
 
-`1.72.1`
+`1.73.0`
 
 ## Project Version File
 
-`.ai-native/version.json`
+`.intentos/version.json`
 
 ## Last Update
 
 ## Update Command
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-workflow-assets
+node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets
 ```
 
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.73.0` completes the IntentOS naming hardcut: public docs, package metadata, CLI help, manifests, generated workflow assets, CI workflow names, templates, and active checks use the IntentOS identity.
+- `1.73.0` uses `.intentos/`, `intentos-manifest.json`, and `intentOSVersion` for generated workflow assets and version metadata.
+- `1.73.0` keeps old-project asset migration plan-first; older generated workflow assets must be detected, planned, approved, and verified before files are moved or rewritten.
 - `1.72.1` hardens Execution Assurance completion checks: no recorded report means no pass by default; `--allow-empty` is explicit and only for asset-only maintenance checks.
 - `1.72.1` keeps public entry light by moving proof-chain commands out of the first-step README command list.
 - `1.72.0` adds Execution Assurance Chain: execution-class work cannot be claimed complete until intent, completion contract, impact, actual diff, evidence, review, patch assessment, and source-system trace are bound into a checkable report.
@@ -31,7 +34,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - `1.70.1` hardens Governance Convergence evidence consistency: strict reports now require all 9 machine-readable dimensions, structured upstream source status, upstream blocked/input states as blocking reasons, and Human Summary / Markdown / JSON / Outcome alignment.
 - `1.70.0` adds Existing Project Governance Convergence: old projects can converge toward IntentOS daily workflow through read-only comparison of workflow, baseline, audit, release, CI/hooks, documents, work queue, AI log policy, and protected authority.
 - `1.70.0` keeps convergence non-authorizing: it does not write target files, replace existing governance, rewrite history, mutate CI/hooks, approve production, or maximize migration.
-- `1.69.2` hardens Existing Rule Reconciliation evidence consistency: strict reports now require a 1.69.2 evidence profile, complete source references for every reconciliation item, and a human-readable AI Native Adoption Recommendation section.
+- `1.69.2` hardens Existing Rule Reconciliation evidence consistency: strict reports now require a 1.69.2 evidence profile, complete source references for every reconciliation item, and a human-readable IntentOS Adoption Recommendation section.
 - `1.69.1` hardens existing-project native adoption evidence: omitted extracted rules now block selected native adoption until reviewed, apply-plan recommendation is split into "now" and "after review", and `doctor --dry-run` shows the old-project diagnosis branch.
 - `1.69.0` improves existing-project native adoption: `doctor` stops at diagnosis for old projects, and `reconcile-rules --auto-native` can generate temporary read-only Native Migration input before recommending a safe migration depth.
 - `1.68.2` finalizes public adoption trust: source-only prerequisites are explicit, command aliases are shown consistently, dirty wording matches stop-first behavior, and release evidence is ready for GitHub Release publication.
@@ -182,8 +185,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - Legacy artifacts without frontmatter produce migration warnings by default and fail only when `check-workflow-artifacts.mjs --strict-schema` is used.
 - Dev-kit fixture checks use a typed matrix covering golden, bad, migration, CLI, init/update, and output-quality cases.
 - Checker scripts use shared helper libraries under `scripts/lib/`; generated projects must keep those helper files with copied checker scripts.
-- Industrial pack maturity metadata and license boundary docs are part of the dev-kit update surface.
-- `ai-native migrate` is plan-only in 0.42.0: use `--dry-run` or `--write-plan <file>`; it does not apply changes to target projects.
+- Industrial pack maturity metadata and license boundary docs are part of the intentos update surface.
+- `intentos migrate` is plan-only in 0.42.0: use `--dry-run` or `--write-plan <file>`; it does not apply changes to target projects.
 - `1.6.0` adds Conversation Drift Control assets: Conversation Drift Control, Conversation Turn Classification, Scope Change Report, conversation router prompt, and conversation drift checks.
 - `1.6.0` keeps discussion-only, review-only, direct follow-up, scope-change, new-task, and risk-decision turns from becoming automatic current-task execution.
 - `1.5.0` adds Safe Launch / Delivery Readiness assets: Safe Launch, Launch Readiness Report, launch readiness prompt, and launch readiness checks.
@@ -193,16 +196,16 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 - `1.3.0` keeps reports, review packets, goal cards, and subagent outputs from becoming approvals; simulated dogfood is not production evidence.
 - `1.4.0` adds Project Memory & Context Governance assets: Context Governance, Git Boundary, Learning Candidate, Context Correction Report, Git Boundary Report, and context governance checks.
 - `1.4.0` keeps project memory candidate-first: Codex may propose context updates, but humans confirm before source-of-truth changes.
-- `1.2.0` adds `ai-native baseline` / `node scripts/cli.mjs baseline <project>` as a read-only baseline recommendation entry after `start`.
+- `1.2.0` adds `intentos baseline` / `node scripts/cli.mjs baseline <project>` as a read-only baseline recommendation entry after `start`.
 - `baseline` keeps `Can AI write now: No`; writes require `baseline-project --write-plan` and reviewed `--apply-plan`.
 - Generated projects include Environment Baseline assets, baseline recommendation folders, and artifact-level baseline enforcement checks.
-- `1.1.0` adds `ai-native start` / `node scripts/cli.mjs start <project>` as a read-only guided adoption entry.
+- `1.1.0` adds `intentos start` / `node scripts/cli.mjs start <project>` as a read-only guided adoption entry.
 - `start` classifies the project, recommends a safe adoption path, and keeps target project writes behind dry-run, write-plan, and human confirmation.
 - `1.0.0` is a minimum productization release; 10/10 real-project evidence is not yet claimed.
 - Workflow asset updates must not overwrite project docs, specs, tasks, logs, or business code.
 - Workflow asset updates may add missing onboarding docs and missing workflow directories.
-- Existing `.github/pull_request_template.md` files are not modified unless `--apply-pr-template-governance` is explicitly used after reviewing `.ai-native/migration-reports/pr-template-governance.md`.
-- Existing `AGENTS.md` files are not modified unless `--apply-agent-governance` is explicitly used after reviewing `.ai-native/migration-reports/agents-governance.md`.
+- Existing `.github/pull_request_template.md` files are not modified unless `--apply-pr-template-governance` is explicitly used after reviewing `.intentos/migration-reports/pr-template-governance.md`.
+- Existing `AGENTS.md` files are not modified unless `--apply-agent-governance` is explicitly used after reviewing `.intentos/migration-reports/agents-governance.md`.
 - Version mismatch means the project may not have the latest workflow assets.
 - `1.7.0` adds First Delivery Walkthrough assets: First Delivery Walkthrough, Adoption Trial Report, walkthrough agent prompt, and first delivery checks.
 - `1.7.0` records first-slice walkthrough and adoption trial evidence, but it does not claim production validation or approve release, payment, privacy, security, legal, compliance, migration, or customer promises.

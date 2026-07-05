@@ -33,7 +33,7 @@ What I need from you: Explicit approval for the referenced low-risk workflow ass
 
 | Action type | Target paths | Classification | Reason |
 |---|---|---|---|
-| `WORKFLOW_ASSET_UPDATE` | `.ai-native`, `scripts/check-ai-workflow.mjs` | LOW_RISK_CANDIDATE | Workflow assets are bounded and reversible, but still need explicit approval. |
+| `WORKFLOW_ASSET_UPDATE` | `.intentos`, `scripts/check-ai-workflow.mjs` | LOW_RISK_CANDIDATE | Workflow assets are bounded and reversible, but still need explicit approval. |
 
 ## Preconditions
 
@@ -41,7 +41,7 @@ What I need from you: Explicit approval for the referenced low-risk workflow ass
 |---|---|---|
 | Apply plan exists | pass | `apply-plans/001-workflow-assets.md` |
 | Git state safe | pass | clean worktree recorded before apply |
-| Target paths bounded | pass | `.ai-native`, `scripts/check-ai-workflow.mjs` |
+| Target paths bounded | pass | `.intentos`, `scripts/check-ai-workflow.mjs` |
 | Backup plan exists | pass | backup path listed below |
 | Rollback plan exists | pass | rollback step listed below |
 | Verification plan exists | pass | verification listed below |
@@ -58,7 +58,7 @@ What I need from you: Explicit approval for the referenced low-risk workflow ass
 | Field | Value |
 |---|---|
 | Backup required | Yes |
-| Backup path | `.ai-native/backups/<timestamp>` |
+| Backup path | `.intentos/backups/<timestamp>` |
 | Rollback step | Restore backed up workflow assets and rerun workflow checks |
 | Rollback verification | `node scripts/check-ai-workflow.mjs . --mode core` |
 

@@ -40,7 +40,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can produce and check an Execution Closure Report.
+- IntentOS can produce and check an Execution Closure Report.
 - Execution Closure can identify whether closure is blocked, limited, needs human decision, or ready for commit review.
 - Execution Closure keeps commit/push/release authority outside the report.
 
@@ -53,7 +53,7 @@ This release does not:
 ## Evidence Status
 
 - Release evidence is recorded in `releases/1.32.0/self-check-report.md`.
-- `node scripts/check-dev-kit.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
+- `node scripts/check-intentos.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
 
 ## Known Limitations
 

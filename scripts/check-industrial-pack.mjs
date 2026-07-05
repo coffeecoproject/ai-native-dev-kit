@@ -69,7 +69,7 @@ function hint(message) {
 
 function installSelectedPacksCommand(packIds) {
   return [
-    "node <ai-native-dev-kit>/scripts/init-project.mjs",
+    "node <intentos>/scripts/init-project.mjs",
     `--target ${projectRoot}`,
     "--update-workflow-assets",
     `--industrial-packs ${[...new Set(packIds)].sort().join(",")}`,
@@ -97,7 +97,7 @@ function selectedPackIds(root) {
 function findIndustrialRoot(root) {
   const candidates = [
     path.join(root, "industrial-packs"),
-    path.join(root, ".ai-native", "industrial-packs"),
+    path.join(root, ".intentos", "industrial-packs"),
   ];
   return candidates.find((candidate) => fs.existsSync(path.join(candidate, "index.json"))) || candidates[0];
 }
@@ -105,7 +105,7 @@ function findIndustrialRoot(root) {
 function findProfilesRoot(root) {
   const candidates = [
     path.join(root, "profiles"),
-    path.join(root, ".ai-native", "profiles"),
+    path.join(root, ".intentos", "profiles"),
   ];
   return candidates.find((candidate) => fs.existsSync(candidate)) || candidates[0];
 }
@@ -328,7 +328,7 @@ function validatePackJson(pack, context, packRoot) {
   const requiredKeys = [
     "schemaVersion",
     "packVersion",
-    "minimumDevKitVersion",
+    "minimumIntentOSVersion",
     "lastReviewedAt",
     "stabilityNotes",
     "id",
@@ -365,8 +365,8 @@ function validatePackJson(pack, context, packRoot) {
   if (!/^\d+\.\d+\.\d+$/.test(pack.packVersion || "")) {
     fail(`${context} packVersion must use semantic version format x.y.z`);
   }
-  if (!/^\d+\.\d+\.\d+$/.test(pack.minimumDevKitVersion || "")) {
-    fail(`${context} minimumDevKitVersion must use semantic version format x.y.z`);
+  if (!/^\d+\.\d+\.\d+$/.test(pack.minimumIntentOSVersion || "")) {
+    fail(`${context} minimumIntentOSVersion must use semantic version format x.y.z`);
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(pack.lastReviewedAt || "")) {
     fail(`${context} lastReviewedAt must use YYYY-MM-DD`);

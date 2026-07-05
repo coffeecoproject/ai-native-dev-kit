@@ -8,7 +8,7 @@ Passed.
 
 - PASS: `node --check scripts/resolve-launch-review-view.mjs`
 - PASS: `node --check scripts/check-launch-review-view.mjs`
-- PASS: `node --check scripts/check-dev-kit.mjs`
+- PASS: `node --check scripts/check-intentos.mjs`
 - PASS: `node --check scripts/cli.mjs`
 - PASS: `node --check scripts/new-workflow-item.mjs`
 - PASS: `node scripts/check-manifest.mjs`
@@ -18,7 +18,7 @@ Passed.
 - PASS: `node scripts/check-launch-review-view.mjs test-fixtures/bad/bad-launch-view-missing-closure`
 - PASS: `node scripts/check-launch-review-view.mjs test-fixtures/bad/bad-launch-view-release-review-missing-rollback`
 - PASS: `node scripts/check-launch-review-view.mjs test-fixtures/bad/bad-launch-view-claims-production-approval`
-- PASS: `node scripts/check-dev-kit.mjs`
+- PASS: `node scripts/check-intentos.mjs`
 - PASS: `npm run verify`
 
 ## Notes

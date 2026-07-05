@@ -32,7 +32,7 @@ function intersects(left, right) {
 
 function registryRoot(root, registryName) {
   const candidates = [
-    path.join(root, ".ai-native", registryName),
+    path.join(root, ".intentos", registryName),
     path.join(root, registryName),
     path.join(kitRoot, registryName),
   ];

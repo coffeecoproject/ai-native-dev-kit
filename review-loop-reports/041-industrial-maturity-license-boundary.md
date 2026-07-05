@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: done
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 task: tasks/041-industrial-maturity-license-boundary.md
 spec: specs/041-industrial-maturity-license-boundary.md
 eval: evals/041-industrial-maturity-license-boundary.md
@@ -70,7 +70,7 @@ in the task card.
 
 Human Approval: not required for this bounded docs/schema/checker change.
 
-Baseline state: dev-kit source task, no project BL selected.
+Baseline state: intentos source task, no project BL selected.
 
 Industrial baseline state: source registry and pack checks pass.
 
@@ -83,7 +83,7 @@ node --check scripts/check-industrial-pack.mjs
 node scripts/check-industrial-pack.mjs . --json
 node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/check-manifest.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Evidence refs:
@@ -130,12 +130,12 @@ node --check scripts/check-industrial-pack.mjs
 node scripts/check-industrial-pack.mjs . --json
 node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/check-manifest.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS
 
-Evidence: `check-dev-kit.mjs` ended with "AI Native Dev Kit self-check passed."
+Evidence: `check-intentos.mjs` ended with "IntentOS self-check passed."
 
 Failures: none after AUTO_FIX.
 

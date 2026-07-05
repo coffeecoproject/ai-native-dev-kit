@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Git Boundary defines what AI Native governance artifacts should enter Git, what may stay local, and what must never be committed.
+Git Boundary defines what IntentOS governance artifacts should enter Git, what may stay local, and what must never be committed.
 
 ## Principle
 
@@ -12,14 +12,14 @@ Git stores confirmed project facts, collaboration rules, task evidence, and revi
 
 These are normally committed:
 
-- `.ai-native/version.json`
-- `.ai-native/dev-kit-manifest.json`
-- `.ai-native/core/`
-- `.ai-native/templates/`
-- `.ai-native/checklists/`
-- `.ai-native/prompts/`
-- `.ai-native/profiles/`
-- `.ai-native/docs/`
+- `.intentos/version.json`
+- `.intentos/intentos-manifest.json`
+- `.intentos/core/`
+- `.intentos/templates/`
+- `.intentos/checklists/`
+- `.intentos/prompts/`
+- `.intentos/profiles/`
+- `.intentos/docs/`
 - `scripts/check-*.mjs`
 - `scripts/workflow-next.mjs`
 - `scripts/new-workflow-item.mjs`
@@ -56,7 +56,7 @@ These may enter Git when they support team review or audit:
 - `baseline-recommendations/`
 - `baseline-gap-reports/`
 - launch-readiness evidence
-- `.ai-native/migration-reports/`
+- `.intentos/migration-reports/`
 
 If the artifact is only local scratch work, keep it out of Git.
 
@@ -64,9 +64,9 @@ If the artifact is only local scratch work, keep it out of Git.
 
 These should normally stay local:
 
-- `.ai-native/backups/`
-- `.ai-native/tmp/`
-- `.ai-native/cache/`
+- `.intentos/backups/`
+- `.intentos/tmp/`
+- `.intentos/cache/`
 - raw local plan JSON
 - raw conversation dumps
 - unreviewed scratch notes

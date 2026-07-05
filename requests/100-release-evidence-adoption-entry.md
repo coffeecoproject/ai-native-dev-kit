@@ -6,7 +6,7 @@ slug: release-evidence-adoption-entry
 title: "release evidence adoption entry"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.42.0
+intentos_version: 0.42.0
 priority: P0
 task_level: L3
 ---
@@ -18,7 +18,7 @@ Continue from Productization Hardcut `0.42.0` into `1.0.0`: Release Evidence + A
 
 ## User / Customer
 
-Dev kit users, maintainers, and Codex operators who need a clear 1.0 release boundary and adoption evidence standard.
+IntentOS users, maintainers, and Codex operators who need a clear 1.0 release boundary and adoption evidence standard.
 
 ## Problem
 

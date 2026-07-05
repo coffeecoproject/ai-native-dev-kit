@@ -34,7 +34,7 @@ npm run verify:examples
 node scripts/check-manifest.mjs
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

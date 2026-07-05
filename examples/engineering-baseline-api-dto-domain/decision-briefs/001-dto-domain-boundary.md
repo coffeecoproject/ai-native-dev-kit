@@ -24,4 +24,4 @@ Use DTO-to-domain mapping for behavior and UI view models for rendering.
 
 Status: APPROVED
 
-Owner: dev-kit example owner
+Owner: intentos example owner

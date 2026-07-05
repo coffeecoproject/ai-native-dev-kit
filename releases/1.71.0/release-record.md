@@ -52,7 +52,7 @@ Planned and run for this release:
 - strict example checks
 - bad fixture rejection checks
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`
 - `git diff --check`
 

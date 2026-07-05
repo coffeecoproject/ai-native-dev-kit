@@ -41,7 +41,7 @@ Approval Record Governance.
 ## Evidence Status
 
 - Source evidence: protocol, docs, template, checker, CLI entry, generator entry, manifest copy rules, examples, bad fixtures, and release evidence are present in the repository.
-- Verification evidence: local checks should include `check-approval-record`, `check-fixtures`, `check-manifest`, `check-dev-kit`, and `git diff --check`.
+- Verification evidence: local checks should include `check-approval-record`, `check-fixtures`, `check-manifest`, `check-intentos`, and `git diff --check`.
 - Real-project evidence: not claimed by this release.
 
 ## Known Limitations
@@ -62,6 +62,6 @@ Expected checks:
 node scripts/check-approval-record.mjs .
 node scripts/check-approval-record.mjs examples/1.40-approval-record-governance
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```

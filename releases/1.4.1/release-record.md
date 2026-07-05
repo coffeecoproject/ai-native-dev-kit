@@ -25,7 +25,7 @@ It improves how users and Codex understand project memory, context correction, a
 ```text
 node scripts/check-context-governance.mjs .
 node scripts/check-product-baseline.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Allowed Claims

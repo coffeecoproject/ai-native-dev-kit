@@ -6,7 +6,7 @@ Start Productization Hardcut phase `0.34.0` by freezing the current `0.33.0` bas
 
 ## Goal
 
-Implement `tasks/034-baseline-freeze-self-ci.md` so the dev kit has baseline release evidence, PR and release CI, repository governance files, and self-check coverage for the new assets.
+Implement `tasks/034-baseline-freeze-self-ci.md` so the IntentOS has baseline release evidence, PR and release CI, repository governance files, and self-check coverage for the new assets.
 
 ## Goal Mode
 
@@ -18,7 +18,7 @@ Reason: The request, preflight, spec, eval, and task card exist and define a bou
 
 Project state: DEV_KIT_PRODUCTIZATION
 
-Adoption mode: Not applicable because this work changes the dev-kit repository itself, not a target project.
+Adoption mode: Not applicable because this work changes the intentos repository itself, not a target project.
 
 Workflow state: Request, preflight, spec, eval, task, and phase plan exist for `0.34.0`.
 
@@ -52,8 +52,8 @@ Impact: This phase adds repository governance and checker coverage only. It does
 ## Allowed Actions
 
 - Add and update files that are listed in `tasks/034-baseline-freeze-self-ci.md`.
-- Run local dev-kit checks and generated-project smoke checks.
-- Extend `scripts/check-dev-kit.mjs` to validate the new productization CI and governance assets.
+- Run local intentos checks and generated-project smoke checks.
+- Extend `scripts/check-intentos.mjs` to validate the new productization CI and governance assets.
 - Update version metadata from `0.33.0` to `0.34.0`.
 - Record baseline and phase evidence under `releases/`.
 
@@ -75,7 +75,7 @@ Impact: This phase adds repository governance and checker coverage only. It does
 
 ## Next Safe Step
 
-Complete the task-scoped artifacts and run `node scripts/check-dev-kit.mjs` plus the phase-specific checks listed in `tasks/034-baseline-freeze-self-ci.md`.
+Complete the task-scoped artifacts and run `node scripts/check-intentos.mjs` plus the phase-specific checks listed in `tasks/034-baseline-freeze-self-ci.md`.
 
 ## Technical Details
 
@@ -85,6 +85,6 @@ The main thread owns file edits and verification. Helper-agent roles are represe
 
 ## Audit Notes
 
-- This is dev-kit productization work, not real target-project adoption evidence.
+- This is intentos productization work, not real target-project adoption evidence.
 - L2 review artifacts are required because the phase changes CI and release evidence.
 - Later 0.35 and 0.36 work remains out of scope.

@@ -1,4 +1,4 @@
-# Task: Read-only Dev Kit Manifest
+# Task: Read-only IntentOS Manifest
 
 ## Task Level
 
@@ -14,19 +14,19 @@ Eval: `evals/035-readonly-manifest.md`
 
 ## Goal
 
-Execute Productization Hardcut phase `0.35.0` by adding a read-only dev-kit manifest, schema, loader, drift checker, and self-check coverage.
+Execute Productization Hardcut phase `0.35.0` by adding a read-only intentos manifest, schema, loader, drift checker, and self-check coverage.
 
 ## Scope
 
 Allowed:
 
-- Add `dev-kit-manifest.json`.
-- Add `schemas/dev-kit-manifest.schema.json`.
+- Add `intentos-manifest.json`.
+- Add `schemas/intentos-manifest.schema.json`.
 - Add `scripts/lib/manifest.mjs`.
 - Add `scripts/check-manifest.mjs`.
 - Add `0.35.0` workflow artifacts and release evidence.
-- Update `scripts/check-dev-kit.mjs` to check manifest behavior.
-- Update dev-kit CI workflows to run `node scripts/check-manifest.mjs`.
+- Update `scripts/check-intentos.mjs` to check manifest behavior.
+- Update intentos CI workflows to run `node scripts/check-manifest.mjs`.
 - Update version metadata to `0.35.0`.
 
 Not allowed:
@@ -42,7 +42,7 @@ Not allowed:
 ## Acceptance Criteria
 
 - `node scripts/check-manifest.mjs` passes.
-- `node scripts/check-dev-kit.mjs` passes and includes manifest checks.
+- `node scripts/check-intentos.mjs` passes and includes manifest checks.
 - Manifest invalid structure fails before drift checking.
 - Manifest sourceRequired drift is reported clearly.
 - CI includes manifest check steps.
@@ -61,7 +61,7 @@ node scripts/check-review-loop.mjs . --task tasks/035-readonly-manifest.md
 node scripts/check-next-step-boundary.mjs . --task tasks/035-readonly-manifest.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## AI Budget

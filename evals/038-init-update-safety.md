@@ -35,7 +35,7 @@ The implementation must stay inside phase `0.38.0`. It must not introduce migrat
 - Confirm `FORBIDDEN` actions cannot be applied.
 - Confirm direct update uses `workflow-next` gate.
 - Confirm `scripts/cli.mjs` separates global dry-run from command-level dry-run.
-- Confirm `scripts/check-dev-kit.mjs` includes safety smoke tests.
+- Confirm `scripts/check-intentos.mjs` includes safety smoke tests.
 
 ## Reject Conditions
 
@@ -49,6 +49,6 @@ The implementation must stay inside phase `0.38.0`. It must not introduce migrat
 
 Workflow evidence: `tasks/038-init-update-safety.md`, `decision-briefs/038-init-update-safety.md`, `review-packets/038-init-update-safety.md`, and `review-loop-reports/038-init-update-safety.md`.
 
-Implementation evidence: `scripts/init-project.mjs`, `scripts/cli.mjs`, and `scripts/check-dev-kit.mjs`.
+Implementation evidence: `scripts/init-project.mjs`, `scripts/cli.mjs`, and `scripts/check-intentos.mjs`.
 
 Final evidence: `final-reports/038-init-update-safety.md` and `releases/0.38.0/phase-report.md`.

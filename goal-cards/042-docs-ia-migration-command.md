@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 goal_mode: IMPLEMENT_TASK
 task_level: L3
 ---
@@ -58,7 +58,7 @@ MUST_STOP_FOR_HUMAN: no, within approved plan-only migration scope
 
 Task level: L3
 
-Baseline level: not selected for this dev-kit repository task
+Baseline level: not selected for this intentos repository task
 
 Risk reason:
 
@@ -122,7 +122,7 @@ Related files:
 
 - `docs/plans/productization-hardcut-1.0-plan.md`
 - `scripts/cli.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 Commands run:
 

@@ -46,7 +46,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can produce an evidence-linked Execution Closure Report.
+- IntentOS can produce an evidence-linked Execution Closure Report.
 - Execution Closure can use recorded evidence refs to decide whether a task can enter commit review.
 - Changed files are treated as scope evidence, not proof of functional or code-review correctness.
 
@@ -60,7 +60,7 @@ This release does not:
 
 - Release evidence recorded in `releases/1.33.0/self-check-report.md`.
 - Final verification passed on 2026-06-30:
-  - `node scripts/check-dev-kit.mjs`
+  - `node scripts/check-intentos.mjs`
   - `npm run verify`
   - `git diff --check`
 

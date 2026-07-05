@@ -10,7 +10,7 @@
 - `start --json` returns structured classification and recommendation data.
 - Empty target projects classify as `NEW_PROJECT`.
 - Saved recommendation examples pass `check-guided-adoption`.
-- Generated projects receive `scripts/start-project.mjs`, `scripts/check-guided-adoption.mjs`, `adoption-recommendations/`, and `.ai-native/templates/adoption-recommendation-report.md`.
+- Generated projects receive `scripts/start-project.mjs`, `scripts/check-guided-adoption.mjs`, `adoption-recommendations/`, and `.intentos/templates/adoption-recommendation-report.md`.
 - Manifest and workflow-version assets include the new generated-project surface.
 - Dev-kit self-check passes.
 
@@ -26,7 +26,7 @@ node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/new-project
 node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/existing-light-project
 node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/governed-readonly
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Failure Cases

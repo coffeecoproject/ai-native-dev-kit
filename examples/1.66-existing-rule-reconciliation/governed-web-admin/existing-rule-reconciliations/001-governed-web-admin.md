@@ -89,7 +89,7 @@ This is a recommendation report, not permission to change files.
 | --- | --- | --- | --- |
 | `C-001` | Confirm merge wording before any apply plan. | human | Pending |
 
-## AI Native Adoption Recommendation
+## IntentOS Adoption Recommendation
 
 | Field | Value |
 | --- | --- |

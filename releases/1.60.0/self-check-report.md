@@ -10,7 +10,7 @@ Passed.
 node --check scripts/resolve-release-handoff-pack.mjs
 node --check scripts/check-release-handoff-pack.mjs
 node --check scripts/resolve-release-guide.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/resolve-release-handoff-pack.mjs . --intent "help me launch"
 node scripts/resolve-release-handoff-pack.mjs . --intent "help me launch" --json
 node scripts/check-release-handoff-pack.mjs .
@@ -22,7 +22,7 @@ node scripts/cli.mjs release-handoff-check .
 node scripts/cli.mjs release-guide . --intent "help me launch"
 node scripts/resolve-release-guide.mjs . --intent "help me launch" --json
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The workflow must learn from real project execution without letting one project's special case pollute the shared dev kit.
+The workflow must learn from real project execution without letting one project's special case pollute the shared IntentOS.
 
 ## Loop
 
@@ -13,10 +13,10 @@ AI Task Log
   -> Workflow Improvement
   -> Skill Candidate
   -> Automation Proposal when recurring execution is needed
-  -> Dev Kit Change Proposal
-  -> Dev Kit Review
-  -> check-dev-kit
-  -> Dev Kit Update
+  -> IntentOS Change Proposal
+  -> IntentOS Review
+  -> check-intentos
+  -> IntentOS Update
 ```
 
 ## Project-level Assets
@@ -28,7 +28,7 @@ Generated projects must keep:
 - `workflow-improvements/` for concrete workflow improvement candidates
 - `skill-candidates/` for proposed Skills that are not active until human approval
 - `automation-proposals/` for proposed project automations that require human approval
-- `dev-kit-proposals/` for changes proposed back to the shared dev kit
+- `intentos-proposals/` for changes proposed back to the shared IntentOS
 
 ## Rules
 
@@ -41,13 +41,13 @@ Generated projects must keep:
 7. A Skill candidate may be created when repeated workflow evidence suggests a reusable execution wrapper.
 8. A Skill candidate must not create, update, install, enable, or rely on an active Skill without explicit human approval.
 9. A project automation proposal may be created when recurring execution is useful, but Codex must not create, update, resume, delete, or enable the automation without explicit human approval.
-10. A dev-kit change proposal must reference a workflow improvement, Skill candidate, automation proposal, or explicit platform expansion need.
+10. A intentos change proposal must reference a workflow improvement, Skill candidate, automation proposal, or explicit platform expansion need.
 11. Project-specific fixes should stay in project docs or project `AGENTS.md`.
 12. Profile-specific fixes should stay in the relevant profile.
 13. Core changes require a core purity review.
-14. No project should automatically mutate the shared dev kit without review.
+14. No project should automatically mutate the shared IntentOS without review.
 
-## Escalation From Project To Dev Kit
+## Escalation From Project To IntentOS
 
 Use the narrowest layer that solves the repeated problem:
 
@@ -70,8 +70,8 @@ Core is the last resort.
 - Updating core because one project had a unique edge case.
 - Turning a business rule into a generic workflow rule.
 - Turning a platform rule into a core rule.
-- Letting AI change the dev kit without proposal and review.
+- Letting AI change the IntentOS without proposal and review.
 - Letting AI create or enable active Skills from candidates without human approval.
 - Letting AI create, update, resume, delete, or enable recurring automations without human approval.
-- Attaching daily automation to the shared dev kit or a broad parent directory when the intended scope is one project.
+- Attaching daily automation to the shared IntentOS or a broad parent directory when the intended scope is one project.
 - Counting template existence as implementation evidence.

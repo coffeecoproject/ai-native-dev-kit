@@ -6,7 +6,7 @@ slug: fixture-matrix-expansion
 title: Fixture Matrix Expansion
 status: ready
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 spec: specs/040-fixture-matrix-expansion.md
 ---
 # Eval: Fixture Matrix Expansion
@@ -38,12 +38,12 @@ Spec: `specs/040-fixture-matrix-expansion.md`
 
 - Verify the fixture matrix did not become harder to read.
 - Verify generated-project setup does not commit generated project snapshots.
-- Verify `check-dev-kit.mjs` is not used as a fixture case.
+- Verify `check-intentos.mjs` is not used as a fixture case.
 
 ## Reject Conditions
 
 - Production checker behavior changes just to satisfy new fixtures.
-- Fixture runner recursively runs the full dev-kit self-check.
+- Fixture runner recursively runs the full intentos self-check.
 - Generated target project files are committed as fixture snapshots.
 
 ## Required Evidence
@@ -54,4 +54,4 @@ Fixture matrix: `node scripts/check-fixtures.mjs`
 
 Manifest: `node scripts/check-manifest.mjs`
 
-Self-check: `node scripts/check-dev-kit.mjs`
+Self-check: `node scripts/check-intentos.mjs`

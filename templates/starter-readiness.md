@@ -4,7 +4,7 @@
 
 What kind of new project does this starter initialize?
 
-Starters are not standalone deliverables. They are copied through `scripts/init-project.mjs`, which also injects shared `.ai-native/` workflow assets, workflow scripts, and CI workflow files.
+Starters are not standalone deliverables. They are copied through `scripts/init-project.mjs`, which also injects shared `.intentos/` workflow assets, workflow scripts, and CI workflow files.
 
 ## Applies To
 
@@ -47,7 +47,7 @@ Starters are not standalone deliverables. They are copied through `scripts/init-
 - [ ] `workflow-improvements/.gitkeep`
 - [ ] `skill-candidates/.gitkeep`
 - [ ] `automation-proposals/.gitkeep`
-- [ ] `dev-kit-proposals/.gitkeep`
+- [ ] `intentos-proposals/.gitkeep`
 - [ ] `releases/.gitkeep`
 - [ ] `scripts/verify.sh`
 - [ ] `.github/pull_request_template.md`
@@ -82,7 +82,7 @@ What high-risk areas must remain explicitly gated?
 
 - [ ] Initializer can copy this starter
 - [ ] Generated project passes `check-ai-workflow.mjs`
-- [ ] Generated project includes injected `.ai-native/` assets
+- [ ] Generated project includes injected `.intentos/` assets
 - [ ] Generated project includes injected `scripts/check-ai-workflow.mjs`
 - [ ] Generated project includes injected workflow scripts
 - [ ] Generated project includes injected workflow CI

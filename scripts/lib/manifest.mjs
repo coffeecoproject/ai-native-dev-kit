@@ -11,7 +11,7 @@ export const manifestGroupNames = [
   "sourceRequired",
   "targetCore",
   "targetFull",
-  "aiNativeCore",
+  "intentOSCore",
   "templates",
   "prompts",
   "checklists",
@@ -46,9 +46,9 @@ export function manifestPathForRoot(root = kitRoot, manifestPath = null) {
   if (manifestPath) {
     return path.isAbsolute(manifestPath) ? manifestPath : path.join(root, manifestPath);
   }
-  const sourceManifest = path.join(root, "dev-kit-manifest.json");
+  const sourceManifest = path.join(root, "intentos-manifest.json");
   if (fs.existsSync(sourceManifest)) return sourceManifest;
-  return path.join(root, ".ai-native", "dev-kit-manifest.json");
+  return path.join(root, ".intentos", "intentos-manifest.json");
 }
 
 export function loadManifest(root = kitRoot, manifestPath = null) {
@@ -96,7 +96,7 @@ export function manifestCopyRules(root = kitRoot, options = {}) {
   return manifest.copyRules || {};
 }
 
-export function currentDevKitVersion(root = kitRoot) {
+export function currentIntentOSVersion(root = kitRoot) {
   const content = readText(root, "VERSION.md");
   const match = content.match(/Current version:\s*`([^`]+)`/);
   return match ? match[1] : null;

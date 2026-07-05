@@ -63,7 +63,7 @@ node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/new-project
 node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/existing-light-project
 node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/governed-readonly
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## AI Budget

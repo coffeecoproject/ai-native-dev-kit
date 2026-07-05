@@ -18,7 +18,7 @@ Reason: The phase has a defined request, preflight, spec, eval, task, and produc
 
 Project state: DEV_KIT_PRODUCTIZATION
 
-Adoption mode: Not applicable because this work changes the dev-kit repository itself, not a target project.
+Adoption mode: Not applicable because this work changes the intentos repository itself, not a target project.
 
 Workflow state: Phase `0.37.0` is committed; phase `0.38.0` has request, preflight, spec, eval, task, review packet, review loop, and final report assets.
 
@@ -34,7 +34,7 @@ Engineering baseline checked: Yes
 
 Baseline ref: `core/engineering-baseline.md`
 
-Impact: This is dev-kit tooling behavior. It does not define project-specific coding conventions or source-code scanning.
+Impact: This is intentos tooling behavior. It does not define project-specific coding conventions or source-code scanning.
 
 ## Required Artifacts
 
@@ -53,7 +53,7 @@ Impact: This is dev-kit tooling behavior. It does not define project-specific co
 
 - Add dry-run, write-plan, apply-plan, backup-dir, and plan validation.
 - Update CLI dry-run routing.
-- Update dev-kit self-check scenarios.
+- Update intentos self-check scenarios.
 - Update version metadata and release evidence to `0.38.0`.
 
 ## Forbidden Actions

@@ -22,7 +22,7 @@ The answer is no.
 - `templates/governance-convergence-report.md` now includes complete machine-readable dimension evidence by default.
 - `scripts/resolve-governance-convergence.mjs` now emits schema `1.70.1`, structured upstream source evidence, and a blocked state for unresolved upstream source input.
 - `scripts/check-governance-convergence.mjs` now cross-checks Human Summary, Markdown dimensions, Machine-Readable Evidence, source-system status, and Outcome.
-- `scripts/check-dev-kit.mjs` now checks generated strict Governance Convergence reports with explicit `--report` input.
+- `scripts/check-intentos.mjs` now checks generated strict Governance Convergence reports with explicit `--report` input.
 - PR and release generated-project smoke checks now exercise `convergence`, `convergence-check`, resolver output, and explicit report checking.
 
 ## Added Fixtures
@@ -60,7 +60,7 @@ node scripts/check-governance-convergence.mjs examples/1.70-existing-project-gov
 node scripts/resolve-governance-convergence.mjs . > /tmp/governance-convergence.md
 node scripts/check-governance-convergence.mjs . --report /tmp/governance-convergence.md --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

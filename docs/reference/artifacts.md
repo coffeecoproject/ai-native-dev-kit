@@ -59,13 +59,13 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `follow-up-proposals/` | Suggestions outside the current task |
 | `learning-candidates/` | Proposed project memory that is not confirmed yet |
 | `context-corrections/` | Evidence-backed correction records for stale or wrong context |
-| `git-boundary-reports/` | Commit/PR boundary evidence for AI Native and context artifacts |
+| `git-boundary-reports/` | Commit/PR boundary evidence for IntentOS and context artifacts |
 | `launch-readiness/` | Safe Launch / Delivery Readiness reports |
 | `conversation-turns/` | Conversation Turn Classification reports |
 | `scope-change-reports/` | Scope Change Reports for proposed scope changes |
 | `adoption-trial-reports/` | First Delivery Walkthrough and real/simulated adoption trial evidence |
 | `real-adoption-trials/` | Real-project read-only adoption trial reports |
-| `governance-maps/` | Maps AI Native concepts to existing project authority |
+| `governance-maps/` | Maps IntentOS concepts to existing project authority |
 | `native-migration-plans/` | Plan-only IntentOS-native migration records for old projects; extract and classify old rules before any governance replacement |
 | `existing-rule-reconciliations/` | Recommendation-only comparison between existing project rules and IntentOS references after Native Migration |
 | `governance-convergence-reports/` | Read-only convergence records that compare old-project workflow, baseline, release, audit, documents, work queue, AI logs, and protected authority against IntentOS daily governance |
@@ -105,7 +105,7 @@ Structured evidence blocks are not separate artifact directories. Use `docs/stru
 | `customer-handoffs/` | Delivery or milestone handoff |
 | `releases/` | Release and evidence records |
 
-Release records for meaningful Dev Kit phases should include allowed claims, forbidden claims, evidence status, known limitations, and verification.
+Release records for meaningful IntentOS phases should include allowed claims, forbidden claims, evidence status, known limitations, and verification.
 
 ## Self-Iteration Artifacts
 
@@ -115,7 +115,7 @@ Release records for meaningful Dev Kit phases should include allowed claims, for
 | `workflow-improvements/` | Process improvement proposal |
 | `skill-candidates/` | Candidate repeatable Skill |
 | `automation-proposals/` | Candidate automation |
-| `dev-kit-proposals/` | Proposed dev-kit change |
+| `intentos-proposals/` | Proposed intentos change |
 
 These artifacts should not be treated as automatic permission to extend scope.
 
@@ -137,55 +137,55 @@ Engineering Baseline covers decisions such as enum vs string vs lookup, DTO/doma
 
 Environment Baseline covers local runtime, package manager, environment variable inventory, secret boundary, external services, test environment, CI/CD, preview/staging/production status, release, rollback, logs, monitoring, and alerts. It records facts and pending decisions; secret values must never be written into it.
 
-Product Baseline and Claim Control live under `.ai-native/core/` in generated projects. They constrain workflow changes, release wording, public summaries, final reports, and handoffs; they do not add approval authority to AI.
+Product Baseline and Claim Control live under `.intentos/core/` in generated projects. They constrain workflow changes, release wording, public summaries, final reports, and handoffs; they do not add approval authority to AI.
 
-Context Governance and Git Boundary live under `.ai-native/core/` in generated projects. They constrain how Codex proposes project memory, corrects stale context, and decides what belongs in Git. Learning candidates and context corrections are not project facts until approved.
+Context Governance and Git Boundary live under `.intentos/core/` in generated projects. They constrain how Codex proposes project memory, corrects stale context, and decides what belongs in Git. Learning candidates and context corrections are not project facts until approved.
 
-Safe Launch lives under `.ai-native/core/` in generated projects. It constrains readiness wording and keeps demo, internal handoff, release review, blocked, and not-ready states separate from production approval.
+Safe Launch lives under `.intentos/core/` in generated projects. It constrains readiness wording and keeps demo, internal handoff, release review, blocked, and not-ready states separate from production approval.
 
-Launch Review View lives under `.ai-native/core/` in generated projects. It answers whether closed work can enter launch review by reusing Unified Closure and Safe Launch labels. It does not approve release, deploy, submit review, change production configuration, or replace the project release SOP.
+Launch Review View lives under `.intentos/core/` in generated projects. It answers whether closed work can enter launch review by reusing Unified Closure and Safe Launch labels. It does not approve release, deploy, submit review, change production configuration, or replace the project release SOP.
 
-Release Execution Protocol lives under `.ai-native/core/` in generated projects. It turns ready launch review plus explicit human release approval into a bounded release execution plan. It does not approve release, deploy by itself, submit app review, run migrations, change production configuration, or make Codex the release owner.
+Release Execution Protocol lives under `.intentos/core/` in generated projects. It turns ready launch review plus explicit human release approval into a bounded release execution plan. It does not approve release, deploy by itself, submit app review, run migrations, change production configuration, or make Codex the release owner.
 
 Release Handoff Packs live under `release-handoff-packs/` in generated projects. They turn selected platform recipes and structured release approvals into bounded handoff packages. From 1.61 onward, strict handoff evidence uses `schemas/artifacts/release-handoff-evidence.schema.json` so recipe, approval, owner, rollback, monitoring, post-release smoke, and handoff/execution boundaries are machine-checkable. They do not approve release, execute release commands, call provider APIs, upload packages, submit review, run migrations, change production configuration, or make Codex the release owner.
 
-Guided Release Adapter lives under `.ai-native/core/` in generated projects. It discovers a project-specific release path, recommends a safe beginner target, records missing release inputs, and bridges into Release Execution. It does not approve release, deploy production, request/store secrets, mutate release infrastructure, or make Codex the release owner.
+Guided Release Adapter lives under `.intentos/core/` in generated projects. It discovers a project-specific release path, recommends a safe beginner target, records missing release inputs, and bridges into Release Execution. It does not approve release, deploy production, request/store secrets, mutate release infrastructure, or make Codex the release owner.
 
-Conversation Drift Control lives under `.ai-native/core/` in generated projects. It constrains how Codex handles discussion-only turns, scope changes, new tasks, direct follow-ups, and risk decisions during active work.
+Conversation Drift Control lives under `.intentos/core/` in generated projects. It constrains how Codex handles discussion-only turns, scope changes, new tasks, direct follow-ups, and risk decisions during active work.
 
-Real Project Read-only Adoption Trial and Patch Classification Governance live under `.ai-native/core/` in generated projects. They constrain how Codex enters governed or production-sensitive projects and prevent unsafe symptom patches from being treated as safe local fixes.
+Real Project Read-only Adoption Trial and Patch Classification Governance live under `.intentos/core/` in generated projects. They constrain how Codex enters governed or production-sensitive projects and prevent unsafe symptom patches from being treated as safe local fixes.
 
-Decision Delegation Boundary and Guided Delivery Loop live under `.ai-native/core/` in generated projects. They constrain how Codex recommends the next safe path, keeps one current mainline, parks side ideas, and avoids pushing raw technical decisions onto non-expert users.
+Decision Delegation Boundary and Guided Delivery Loop live under `.intentos/core/` in generated projects. They constrain how Codex recommends the next safe path, keeps one current mainline, parks side ideas, and avoids pushing raw technical decisions onto non-expert users.
 
-Change Boundary and Baseline State Guard live under `.ai-native/core/` in generated projects. They constrain how Codex proves edits stayed inside scope and how no-code baselines are described before evidence exists.
+Change Boundary and Baseline State Guard live under `.intentos/core/` in generated projects. They constrain how Codex proves edits stayed inside scope and how no-code baselines are described before evidence exists.
 
-Baseline Pack System lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends BL0/BL1/BL2, platform packs, capability packs, and risk overlays without silently approving BL2, draft packs, target-project writes, release, or production readiness.
+Baseline Pack System lives under `.intentos/core/` in generated projects. It constrains how Codex recommends BL0/BL1/BL2, platform packs, capability packs, and risk overlays without silently approving BL2, draft packs, target-project writes, release, or production readiness.
 
-Standard Baseline Pack Registry lives under `.ai-native/core/` in generated projects. It constrains how Codex recommends ordinary engineering baseline packs before optional BL2 industrial overlays, and keeps standard selection separate from implementation approval. Platform standard baseline packs add Web, Mini Program, iOS, Android, internal admin, and environment guidance without making backend, release, or industrial overlays default.
+Standard Baseline Pack Registry lives under `.intentos/core/` in generated projects. It constrains how Codex recommends ordinary engineering baseline packs before optional BL2 industrial overlays, and keeps standard selection separate from implementation approval. Platform standard baseline packs add Web, Mini Program, iOS, Android, internal admin, and environment guidance without making backend, release, or industrial overlays default.
 
-Guided Baseline Selection lives under `.ai-native/core/` in generated projects. It turns baseline choice into a Baseline Decision Card so the user confirms project state, risk, BL level, and write permission without needing to understand internal resolver names.
+Guided Baseline Selection lives under `.intentos/core/` in generated projects. It turns baseline choice into a Baseline Decision Card so the user confirms project state, risk, BL level, and write permission without needing to understand internal resolver names.
 
-Natural Language Workflow Orchestrator lives under `.ai-native/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
+Natural Language Workflow Orchestrator lives under `.intentos/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
 
-Conversation-Native Ask lives under `.ai-native/core/` in generated projects. It makes a plain user goal equivalent to Beginner Entry behavior in conversation, without requiring the user to know or run CLI commands first.
+Conversation-Native Ask lives under `.intentos/core/` in generated projects. It makes a plain user goal equivalent to Beginner Entry behavior in conversation, without requiring the user to know or run CLI commands first.
 
-Controlled Apply Readiness lives under `.ai-native/core/` in generated projects. It checks whether a Unified Apply Plan is eligible for a future human-approved controlled apply step, while keeping actual apply, implementation, release, production, hooks, CI, archive, and high-risk decisions unauthorized.
+Controlled Apply Readiness lives under `.intentos/core/` in generated projects. It checks whether a Unified Apply Plan is eligible for a future human-approved controlled apply step, while keeping actual apply, implementation, release, production, hooks, CI, archive, and high-risk decisions unauthorized.
 
-Approval Record Governance lives under `.ai-native/core/` in generated projects. It records what a human explicitly approved after readiness: exact action IDs, target paths, plan hash, expiry, rollback acknowledgement, and verification acknowledgement. It does not execute writes, authorize automatic apply, approve implementation, approve release/production, install hooks, change CI, or enable high-risk actions.
+Approval Record Governance lives under `.intentos/core/` in generated projects. It records what a human explicitly approved after readiness: exact action IDs, target paths, plan hash, expiry, rollback acknowledgement, and verification acknowledgement. It does not execute writes, authorize automatic apply, approve implementation, approve release/production, install hooks, change CI, or enable high-risk actions.
 
-Review Surface Governance lives under `.ai-native/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
+Review Surface Governance lives under `.intentos/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
 
-Change Impact Coverage lives under `.ai-native/core/` in generated projects. It helps Codex avoid partial implementation by recording affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete.
+Change Impact Coverage lives under `.intentos/core/` in generated projects. It helps Codex avoid partial implementation by recording affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete.
 
-Delivery Path Governance lives under `.ai-native/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
+Delivery Path Governance lives under `.intentos/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
 
-Debt & Knowledge Handoff lives under `.ai-native/core/` in generated projects. It records what remains unfinished, how to verify it, which files or areas to revisit, and where to resume next time. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
+Debt & Knowledge Handoff lives under `.intentos/core/` in generated projects. It records what remains unfinished, how to verify it, which files or areas to revisit, and where to resume next time. It does not forgive debt, approve implementation, approve release or production, change task state, change source of truth, replace Review Loop, or replace Safe Launch.
 
-Unified Closure Model lives under `.ai-native/core/` in generated projects. It makes one task close-out resolve to one final Closure Decision. Decision Explain Trace explains why that result was selected. Change Impact Coverage, Execution Closure, Guided Closure, and precise evidence checks are inputs, not competing final truth.
+Unified Closure Model lives under `.intentos/core/` in generated projects. It makes one task close-out resolve to one final Closure Decision. Decision Explain Trace explains why that result was selected. Change Impact Coverage, Execution Closure, Guided Closure, and precise evidence checks are inputs, not competing final truth.
 
-Guided Closure Experience lives under `.ai-native/core/` in generated projects. It answers "can this task be treated as done?" with one read-only Guided Closure Card, while keeping strict Change Impact Coverage, Execution Closure, and precise evidence checks available for maintainers and CI.
+Guided Closure Experience lives under `.intentos/core/` in generated projects. It answers "can this task be treated as done?" with one read-only Guided Closure Card, while keeping strict Change Impact Coverage, Execution Closure, and precise evidence checks available for maintainers and CI.
 
-Execution Assurance Chain lives under `.ai-native/core/` in generated projects. It prevents Codex from claiming execution-class work is complete unless the completion contract, actual diff, evidence refs, review result, patch classification, and source-system trace are recorded in `execution-assurance-reports/`. It does not write target-project files, approve implementation beyond the recorded scope, approve commit or push, approve release or production, mutate CI/hooks, touch secrets, run migrations, or replace source systems.
+Execution Assurance Chain lives under `.intentos/core/` in generated projects. It prevents Codex from claiming execution-class work is complete unless the completion contract, actual diff, evidence refs, review result, patch classification, and source-system trace are recorded in `execution-assurance-reports/`. It does not write target-project files, approve implementation beyond the recorded scope, approve commit or push, approve release or production, mutate CI/hooks, touch secrets, run migrations, or replace source systems.
 
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 

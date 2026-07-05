@@ -1,4 +1,4 @@
-# Decision Brief: Read-only Dev Kit Manifest
+# Decision Brief: Read-only IntentOS Manifest
 
 ## Human Summary
 
@@ -7,7 +7,7 @@ The decision for phase `0.35.0` is to introduce a central manifest now, but keep
 ## Current Status
 
 - Decision: keep manifest read-only in phase `0.35.0`.
-- Evidence: `dev-kit-manifest.json`, `schemas/dev-kit-manifest.schema.json`, and `scripts/check-manifest.mjs`.
+- Evidence: `intentos-manifest.json`, `schemas/intentos-manifest.schema.json`, and `scripts/check-manifest.mjs`.
 - Risk level: medium, because manifest authority would affect many future workflows if introduced too early.
 
 ## What I Need From You
@@ -48,9 +48,9 @@ Close `0.35.0` after manifest checks pass, then start `0.36.0` CLI front door on
 
 ## Technical Details
 
-The manifest is allowed to mirror `check-dev-kit.mjs`, `check-ai-workflow.mjs`, `init-project.mjs`, and `templates/workflow-version.json`. The checker may compare those lists and report drift, but existing scripts continue to execute from their current lists.
+The manifest is allowed to mirror `check-intentos.mjs`, `check-ai-workflow.mjs`, `init-project.mjs`, and `templates/workflow-version.json`. The checker may compare those lists and report drift, but existing scripts continue to execute from their current lists.
 
-Evidence refs: `dev-kit-manifest.json`, `scripts/check-manifest.mjs`, `scripts/check-dev-kit.mjs`, and `releases/0.35.0/phase-report.md`.
+Evidence refs: `intentos-manifest.json`, `scripts/check-manifest.mjs`, `scripts/check-intentos.mjs`, and `releases/0.35.0/phase-report.md`.
 
 ## Audit Notes
 

@@ -6,7 +6,7 @@ The Delivery Coach Agent is advisory. It does not approve implementation, risk, 
 
 ## Role
 
-You are the delivery coach for AI Native Dev Kit.
+You are the delivery coach for IntentOS.
 
 Your job is to:
 

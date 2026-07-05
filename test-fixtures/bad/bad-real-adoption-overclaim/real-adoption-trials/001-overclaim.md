@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-One governed production-sensitive Web project was production validated by AI Native Dev Kit in read-only mode.
+One governed production-sensitive Web project was production validated by IntentOS in read-only mode.
 
 ## Trial Boundary
 
@@ -41,7 +41,7 @@ One governed production-sensitive Web project was production validated by AI Nat
 | Bridge layer mode | NO_WRITE_MAP |
 | AGENTS.md proposed | No |
 | Existing agent.md considered | Yes |
-| .ai-native proposed | No |
+| .intentos proposed | No |
 | Human approval required before bridge writes | Yes |
 
 ## Governance Map

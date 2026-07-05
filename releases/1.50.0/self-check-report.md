@@ -27,7 +27,7 @@ Passed in local release verification.
 - `node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverage/contract-input-rule --require-impact-coverage`
 - `node scripts/check-manifest.mjs`
 - `node scripts/check-fixtures.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 
 ## Boundaries
 

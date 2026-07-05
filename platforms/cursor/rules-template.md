@@ -19,17 +19,17 @@ This project uses an AI-native, spec-first workflow.
 Before non-trivial work, read:
 
 - `AGENTS.md`
-- `.ai-native/core/project-onboarding.md`
-- `.ai-native/core/workflow.md`
+- `.intentos/core/project-onboarding.md`
+- `.intentos/core/workflow.md`
 - the linked request, preflight, spec, eval, and task card when they exist
 - project docs that define architecture, permissions, risks, and verification
 
 ## Bootstrap Entry
 
-- When the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat that as execution bootstrap intent.
+- When the user asks to configure, apply, initialize, inject, install, or bootstrap the IntentOS workflow, treat that as execution bootstrap intent.
 - Execution bootstrap intent may write workflow and governance assets only; do not modify business code during bootstrap.
 - When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
-- For bootstrap work, use `.ai-native/prompts/bootstrap-agent.md` when present, then run `node scripts/start-project.mjs .`.
+- For bootstrap work, use `.intentos/prompts/bootstrap-agent.md` when present, then run `node scripts/start-project.mjs .`.
 - After adoption classification, run `node scripts/cli.mjs baseline .` when engineering or environment rules are unclear.
 - Treat `baseline` as read-only by default. It must report `Can AI write now: No`; writes require reviewed `baseline-project --write-plan` and `--apply-plan`.
 - Use `workflow-next` as the lower-level state detector when needed.
@@ -89,7 +89,7 @@ Before non-trivial work, read:
 ## Project Onboarding
 
 - Before the first non-trivial implementation, run project onboarding.
-- Use `.ai-native/prompts/project-onboarding-agent.md`.
+- Use `.intentos/prompts/project-onboarding-agent.md`.
 - AI drafts project onboarding docs from conversation; humans confirm decisions.
 - Do not ask the human to manually fill all onboarding files.
 - Ask focused questions, propose options, record assumptions, and request confirmation.
@@ -97,7 +97,7 @@ Before non-trivial work, read:
 
 ## Engineering Baseline
 
-- Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.ai-native/core/engineering-baseline.md` when present.
+- Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.intentos/core/engineering-baseline.md` when present.
 - Run `node scripts/check-engineering-baseline.mjs .` for advisory baseline status.
 - Cursor may follow existing local patterns for low-risk local changes.
 - Cursor must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval.
@@ -105,7 +105,7 @@ Before non-trivial work, read:
 
 ## Environment Baseline
 
-- Before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.ai-native/core/environment-baseline.md` when present.
+- Before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.intentos/core/environment-baseline.md` when present.
 - Run `node scripts/check-environment-baseline.mjs .` for advisory environment baseline status.
 - Run `node scripts/check-baseline-enforcement.mjs . --mode ready` when task cards exist.
 - Cursor may draft missing facts as `PENDING_CONFIRMATION` and irrelevant items as `NOT_APPLICABLE`.
@@ -130,7 +130,7 @@ Before non-trivial work, read:
 - Run `node scripts/check-standard-baseline-selection.mjs .` when Standard Baseline Selection Reports exist.
 - Run `node scripts/check-industrial-pack.mjs . --selected-only` to validate selected industrial pack assets.
 - Run `node scripts/resolve-industrial-baseline.mjs .` and `node scripts/check-industrial-baseline.mjs . --bl2-only` to inspect project-level BL2 readiness when BL2 is selected.
-- Read `.ai-native/industrial-packs/selection-guide.md` before recommending pack combinations.
+- Read `.intentos/industrial-packs/selection-guide.md` before recommending pack combinations.
 - Do not select all baseline packs by default; separate standard packs from industrial overlays.
 - Do not treat BL2 or selected industrial packs as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and project-level industrial baseline status.
 
@@ -187,7 +187,7 @@ For baseline pack selection:
 
 For guided delivery:
 
-- Use `.ai-native/core/decision-delegation-boundary.md`, `.ai-native/core/guided-delivery-loop.md`, and `.ai-native/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices.
+- Use `.intentos/core/decision-delegation-boundary.md`, `.intentos/core/guided-delivery-loop.md`, and `.intentos/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices.
 - Recommend the smallest safe path first, explain what is out of scope, ask for one user-owned confirmation, and park side ideas instead of executing them.
 - Use `node scripts/new-workflow-item.mjs --type active-work-thread --name <current-mainline>` only when broad conversation or drift makes the mainline unclear.
 - Use `node scripts/new-workflow-item.mjs --type guided-decision-summary --name <decision-name>` when a technical choice needs to become a human-owned product or risk decision.
@@ -196,13 +196,13 @@ For guided delivery:
 
 ## Goal Mode
 
-- Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` before creating artifacts or writing code when the route is unclear.
+- Use `.intentos/core/goal-mode.md` and `.intentos/prompts/goal-planner-agent.md` before creating artifacts or writing code when the route is unclear.
 - Select one of `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`.
 - A Goal Card is route selection only. It is not permission to implement, approve risk, approve release, change Human Approval, or activate subagent orchestration.
 
 ## Subagent Orchestration
 
-- Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.
+- Use `.intentos/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.
 - Use `node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>` to record helper-agent roles, authority, handoff, and closure.
 - Follow many readers, one writer. Subagent output is input, not authority.
 - Apply Subagent Dispatch Hygiene before opening or reusing helpers: recover before dispatch, close or skip stale helpers, check task drift, and keep at most one active writer.
@@ -212,14 +212,14 @@ For guided delivery:
 
 ## Safe Launch
 
-- Use `.ai-native/core/safe-launch.md` when finished work needs a demo, internal handoff, release-review, blocked, or not-ready classification.
+- Use `.intentos/core/safe-launch.md` when finished work needs a demo, internal handoff, release-review, blocked, or not-ready classification.
 - Run `node scripts/check-launch-readiness.mjs .` when Launch Readiness Reports exist or delivery readiness is being claimed.
 - Treat `READY_FOR_DEMO`, `READY_FOR_INTERNAL_HANDOFF`, and `READY_FOR_RELEASE_REVIEW` as recommendations only.
 - Do not treat Safe Launch as production, legal, compliance, payment, privacy, security, migration, or release approval.
 
 ## Conversation Drift
 
-- Use `.ai-native/core/conversation-drift-control.md` when the user message may be discussion-only, review-only, a pause/stop request, a scope change, a new task, a direct follow-up, or a risk decision.
+- Use `.intentos/core/conversation-drift-control.md` when the user message may be discussion-only, review-only, a pause/stop request, a scope change, a new task, a direct follow-up, or a risk decision.
 - Run `node scripts/check-conversation-drift.mjs .` when conversation turn classifications or scope change reports exist.
 - Classify before acting.
 - Do not write files for `DISCUSS_ONLY`, `REVIEW_ONLY`, or `PAUSE_OR_STOP` turns.
@@ -227,7 +227,7 @@ For guided delivery:
 
 ## First Delivery Walkthrough
 
-- Use `.ai-native/core/first-delivery-walkthrough.md` when a broad new idea needs a complete first-slice walkthrough from human idea to demo, handoff, or not-ready recommendation.
+- Use `.intentos/core/first-delivery-walkthrough.md` when a broad new idea needs a complete first-slice walkthrough from human idea to demo, handoff, or not-ready recommendation.
 - Run `node scripts/check-first-delivery-walkthrough.mjs .` when Adoption Trial Reports exist or first-delivery evidence is being claimed.
 - Start with the smallest safe path: start, baseline, request, spec, eval, task, verify, final report, launch readiness.
 - Add heavier artifacts only when risk, ambiguity, helper agents, independent review, or scope drift appears.
@@ -235,7 +235,7 @@ For guided delivery:
 
 ## Bounded Next-Step
 
-- Use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions.
+- Use `.intentos/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions.
 - Codex/Cursor may suggest next steps, but suggestions must be bounded, classified, and actionable.
 - Use only `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED`.
 - Only `IN_SCOPE_NEXT_STEP` may be handled inside the current task when no new approval is needed.
@@ -246,14 +246,14 @@ For guided delivery:
 
 ## Output Experience
 
-- Use `.ai-native/core/output-protocol.md` and `.ai-native/prompts/reporter-agent.md` for workflow, baseline, adoption, review, release, and automation status.
+- Use `.intentos/core/output-protocol.md` and `.intentos/prompts/reporter-agent.md` for workflow, baseline, adoption, review, release, and automation status.
 - Human-facing output starts with a human summary, current status, decision needed, next safe step, what AI can do, and what AI must not do.
 - Put technical fields, paths, commands, and audit notes after the plain-language status.
-- Use `.ai-native/core/glossary.md` when internal terms need translation.
+- Use `.intentos/core/glossary.md` when internal terms need translation.
 
 ## Product Baseline And Claim Control
 
-- Use `.ai-native/core/outcome-baseline.md`, `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when workflow behavior, release wording, public summaries, reports, or handoffs change.
+- Use `.intentos/core/outcome-baseline.md`, `.intentos/core/product-baseline.md`, `.intentos/core/claim-control.md`, and `.intentos/core/assumption-register.md` when workflow behavior, release wording, public summaries, reports, or handoffs change.
 - Run `node scripts/check-product-baseline.mjs .`, `node scripts/check-claim-control.mjs .`, and `node scripts/check-context-governance.mjs .` when available.
 - Do not treat reports, Review Packets, Goal Cards, or subagent output as approval.
 - Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence.
@@ -261,7 +261,7 @@ For guided delivery:
 
 ## Project Memory And Context Governance
 
-- Use `.ai-native/core/context-governance.md` and `.ai-native/core/git-boundary.md` when observations may become project memory, context appears stale, or artifact Git boundary is unclear.
+- Use `.intentos/core/context-governance.md` and `.intentos/core/git-boundary.md` when observations may become project memory, context appears stale, or artifact Git boundary is unclear.
 - Codex may draft Learning Candidates, Context Correction Reports, and Git Boundary Reports.
 - Humans confirm before source-of-truth changes.
 - Model memory must not override Git-backed source of truth.
@@ -271,12 +271,12 @@ For guided delivery:
 - Repeated execution patterns may become `skill-candidates/` entries.
 - Do not create, update, install, enable, or run an active Skill unless the user has explicitly approved it.
 - Do not promote one-project behavior into shared workflow rules.
-- Use `.ai-native/templates/skill-candidate.md` and `.ai-native/checklists/skill-review.md` for Skill proposals.
+- Use `.intentos/templates/skill-candidate.md` and `.intentos/checklists/skill-review.md` for Skill proposals.
 
 ## Automation Governance
 
 - Codex/Cursor may propose project-scoped automations, but must not create, update, resume, delete, or enable them without explicit human approval.
-- Automation proposals belong in `automation-proposals/` and must use `.ai-native/templates/project-automation-proposal.md`.
+- Automation proposals belong in `automation-proposals/` and must use `.intentos/templates/project-automation-proposal.md`.
 - A valid automation approval must include exact project root, schedule, prompt, allowed writes, forbidden actions, and initial status.
 - Do not attach automation to a parent directory unless the user explicitly approves a multi-project monitor.
 
@@ -284,5 +284,5 @@ For guided delivery:
 
 - `scripts/workflow-daily-summary.mjs .` is a signal check, not an implementation step.
 - `NO_ACTION` means no workflow draft is needed.
-- `ACTION_REQUIRED` means draft retros, improvements, Skill candidates, automation proposals, or dev-kit proposals may be needed.
+- `ACTION_REQUIRED` means draft retros, improvements, Skill candidates, automation proposals, or intentos proposals may be needed.
 - Daily summary must not modify business code, production config, secrets, or active Skills.

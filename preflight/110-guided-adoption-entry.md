@@ -31,7 +31,7 @@ This change modifies workflow tooling, generated-project required assets, docs, 
 
 ## Project State
 
-This is dev-kit source maintenance.
+This is intentos source maintenance.
 
 ## Evidence Needed
 

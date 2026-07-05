@@ -82,7 +82,7 @@ node scripts/check-industrial-baseline.mjs examples/1.16-bl2-industrial-deepenin
 node scripts/check-industrial-baseline.mjs examples/1.16-bl2-industrial-deepening/payment-risk-overlay --strict
 node scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

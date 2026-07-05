@@ -22,7 +22,7 @@ Evaluate whether 1.12.0 makes change scope, guided delivery, and baseline state 
   - `node --check scripts/check-baseline-state.mjs`
   - `node --check scripts/init-project.mjs`
   - `node --check scripts/new-workflow-item.mjs`
-  - `node --check scripts/check-dev-kit.mjs`
+  - `node --check scripts/check-intentos.mjs`
 - Positive examples:
   - `node scripts/check-guided-delivery-loop.mjs examples/1.12-change-boundary-baseline-state`
   - `node scripts/check-change-boundary.mjs examples/1.12-change-boundary-baseline-state --report change-boundary-reports/001-appointment-first-slice.md`
@@ -34,10 +34,10 @@ Evaluate whether 1.12.0 makes change scope, guided delivery, and baseline state 
   - Confirmed no-code baseline without evidence must fail.
 - Full checks:
   - `node scripts/check-manifest.mjs`
-  - `node scripts/check-dev-kit.mjs`
+  - `node scripts/check-intentos.mjs`
   - `npm run verify`
   - `git diff --check`
 
 ## Claim Boundary
 
-Passing this eval proves dev-kit source and workflow hardening only. It does not prove production adoption, platform industrial completeness, real customer delivery, or external reviewer automation.
+Passing this eval proves intentos source and workflow hardening only. It does not prove production adoption, platform industrial completeness, real customer delivery, or external reviewer automation.

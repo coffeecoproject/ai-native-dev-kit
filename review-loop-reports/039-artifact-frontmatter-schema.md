@@ -30,7 +30,7 @@ Reviewer: local read-only review pass
 
 | ID | Severity | Category | Finding | Evidence | Proposed action | Owner | Status |
 |---|---|---|---|---|---|---|
-| F1 | P2 | AUTO_FIX | Target project copy rules needed schemas and frontmatter helper | `dev-kit-manifest.json`, `scripts/init-project.mjs` | Add schema directory and helper script to manifest and fallback copy/version assets | Codex | DONE |
+| F1 | P2 | AUTO_FIX | Target project copy rules needed schemas and frontmatter helper | `intentos-manifest.json`, `scripts/init-project.mjs` | Add schema directory and helper script to manifest and fallback copy/version assets | Codex | DONE |
 | F2 | P2 | AUTO_FIX | Task graph validation should parse frontmatter before checking refs | `scripts/check-workflow-artifacts.mjs` | Pre-parse selected files before running semantic checks | Codex | DONE |
 
 ## Human Decision Queue
@@ -64,12 +64,12 @@ node scripts/check-review-loop.mjs . --task tasks/039-artifact-frontmatter-schem
 node scripts/check-next-step-boundary.mjs . --task tasks/039-artifact-frontmatter-schema.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.
 
-Evidence: `scripts/check-dev-kit.mjs` includes generated, invalid, legacy, and strict-schema frontmatter checks.
+Evidence: `scripts/check-intentos.mjs` includes generated, invalid, legacy, and strict-schema frontmatter checks.
 
 ## Re-review Result
 

@@ -19,7 +19,7 @@ Passed.
   - one-dimension structured evidence
 - generated source-repository Governance Convergence report passes explicit `--report` strict checking
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Notes
@@ -28,8 +28,8 @@ This patch must keep Governance Convergence non-authorizing. Passing checks does
 
 Final verification confirmed:
 
-- syntax checks for Governance Convergence resolver, checker, and dev-kit self-check script passed;
+- syntax checks for Governance Convergence resolver, checker, and intentos self-check script passed;
 - strict positive examples passed;
 - new bad fixtures failed as expected;
 - generated explicit Governance Convergence report passed strict `--report` checking;
-- manifest, product-baseline, claim-control, and full dev-kit self-check passed.
+- manifest, product-baseline, claim-control, and full intentos self-check passed.

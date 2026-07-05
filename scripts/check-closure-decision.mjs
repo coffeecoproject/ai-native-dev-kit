@@ -12,11 +12,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -354,16 +354,16 @@ function exists(relativePath) {
 function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relativePath);
-  if (fs.existsSync(aiNative) && fs.statSync(aiNative).isFile()) return aiNative;
+  const intentOS = path.join(projectRoot, ".intentos", relativePath);
+  if (fs.existsSync(intentOS) && fs.statSync(intentOS).isFile()) return intentOS;
   return null;
 }
 
 function resolveDirectory(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relativePath);
-  if (fs.existsSync(aiNative) && fs.statSync(aiNative).isDirectory()) return aiNative;
+  const intentOS = path.join(projectRoot, ".intentos", relativePath);
+  if (fs.existsSync(intentOS) && fs.statSync(intentOS).isDirectory()) return intentOS;
   return null;
 }
 
@@ -379,7 +379,7 @@ function displayAsset(relativePath, resolved) {
 }
 
 function markdownFiles(relativeDir) {
-  const dirs = [path.join(projectRoot, relativeDir), path.join(projectRoot, ".ai-native", relativeDir)]
+  const dirs = [path.join(projectRoot, relativeDir), path.join(projectRoot, ".intentos", relativeDir)]
     .filter((dir) => fs.existsSync(dir) && fs.statSync(dir).isDirectory());
   const files = [];
   for (const dir of dirs) walk(dir, files);

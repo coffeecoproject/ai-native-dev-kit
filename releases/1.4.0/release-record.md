@@ -44,7 +44,7 @@ Project Memory & Context Governance.
 |---|---|---|
 | Simulated dogfood | Present | 1.4 workflow artifacts exercise the phase. |
 | Bad fixtures | Present | Approved-without-evidence, missing correction evidence, and secret-like Git boundary misuse. |
-| Generated-project smoke | Expected | Covered by dev-kit self-check. |
+| Generated-project smoke | Expected | Covered by intentos self-check. |
 | Controlled real-project trial | Not present | Requires later trial. |
 | Production adoption evidence | Not present | Not claimed. |
 
@@ -64,7 +64,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

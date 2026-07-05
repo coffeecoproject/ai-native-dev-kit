@@ -68,34 +68,34 @@ if (outputJson) {
 }
 
 function buildPlan(target, from, to) {
-  const versionFile = readJson(path.join(target, ".ai-native", "version.json"));
-  const hasAiNative = fs.existsSync(path.join(target, ".ai-native"));
+  const versionFile = readJson(path.join(target, ".intentos", "version.json"));
+  const hasIntentOS = fs.existsSync(path.join(target, ".intentos"));
   const hasAgents = fs.existsSync(path.join(target, "AGENTS.md"));
   const hasLegacyAgent = fs.existsSync(path.join(target, "agent.md"));
   const hasPrTemplate = fs.existsSync(path.join(target, ".github", "pull_request_template.md"));
   const hasWorkflowCi = fs.existsSync(path.join(target, ".github", "workflows", "ai-workflow-checks.yml"));
   const hasPackage = fs.existsSync(path.join(target, "package.json"));
   const hasGit = fs.existsSync(path.join(target, ".git"));
-  const migrationReportsDir = path.join(target, ".ai-native", "migration-reports");
+  const migrationReportsDir = path.join(target, ".intentos", "migration-reports");
   const pendingMigrationReports = fs.existsSync(migrationReportsDir)
     ? fs.readdirSync(migrationReportsDir).filter((name) => name.endsWith(".md")).sort()
     : [];
 
-  const detectedVersion = versionFile?.devKitVersion || versionFile?.workflowVersion || null;
+  const detectedVersion = versionFile?.intentOSVersion || versionFile?.workflowVersion || null;
   const actions = [];
   const humanDecisions = [];
 
-  if (!hasAiNative) {
+  if (!hasIntentOS) {
     actions.push(planAction(
       "INIT_PLAN_REQUIRED",
-      "Project has no .ai-native directory.",
+      "Project has no .intentos directory.",
       "Run init/update with --dry-run or --write-plan before applying workflow assets.",
       false,
     ));
   } else {
     actions.push(planAction(
       "UPDATE_WORKFLOW_ASSETS_PLAN_REQUIRED",
-      ".ai-native directory exists.",
+      ".intentos directory exists.",
       "Generate an init-project update plan; review before applying.",
       false,
     ));
@@ -151,8 +151,8 @@ function buildPlan(target, from, to) {
     generatedAt: new Date().toISOString(),
     target: target,
     state: {
-      detectedDevKitVersion: detectedVersion,
-      hasAiNative,
+      detectedIntentOSVersion: detectedVersion,
+      hasIntentOS,
       hasGit,
       hasPackage,
       hasAgents,
@@ -162,7 +162,7 @@ function buildPlan(target, from, to) {
       pendingMigrationReports,
     },
     signals: [
-      signal("workflow-assets", hasAiNative ? "present" : "missing"),
+      signal("workflow-assets", hasIntentOS ? "present" : "missing"),
       signal("agent-instructions", hasAgents ? "AGENTS.md" : hasLegacyAgent ? "agent.md" : "missing"),
       signal("pr-template", hasPrTemplate ? "present" : "missing"),
       signal("workflow-ci", hasWorkflowCi ? "present" : "missing"),
@@ -175,7 +175,7 @@ function buildPlan(target, from, to) {
       "node scripts/init-project.mjs",
       "--target",
       target,
-      hasAiNative ? "--update-workflow-assets" : "--starter generic-project",
+      hasIntentOS ? "--update-workflow-assets" : "--starter generic-project",
       "--write-plan",
       "<reviewed-plan.json>",
     ].join(" "),
@@ -216,12 +216,12 @@ function printPlan(plan, json) {
     console.log(JSON.stringify(plan, null, 2));
     return;
   }
-  console.log("# AI Native Migration Plan");
+  console.log("# IntentOS Migration Plan");
   console.log("");
   console.log(`From: ${plan.fromVersion}`);
   console.log(`To: ${plan.toVersion}`);
   console.log(`Target: ${plan.target}`);
-  console.log(`Detected dev-kit version: ${plan.state.detectedDevKitVersion || "none"}`);
+  console.log(`Detected intentos version: ${plan.state.detectedIntentOSVersion || "none"}`);
   console.log(`Blocked apply: ${plan.blockedApply ? "Yes" : "No"}`);
   console.log("");
   console.log("Planned actions:");

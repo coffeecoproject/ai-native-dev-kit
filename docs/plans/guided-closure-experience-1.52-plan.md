@@ -142,7 +142,7 @@ The card can include technical details, but the main user sections must stay pla
    - Syntax checks.
    - Guided Closure checker.
    - Example and bad fixture checks.
-   - Dev Kit self-check.
+   - IntentOS self-check.
    - Full `npm run verify`.
 
 ## Acceptance Plan

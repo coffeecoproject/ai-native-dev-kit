@@ -1,6 +1,6 @@
 # Test Fixtures
 
-This directory contains the fixture case registry and typed fixtures for the dev-kit's governance checkers.
+This directory contains the fixture case registry and typed fixtures for the intentos's governance checkers.
 
 The matrix is organized by purpose:
 
@@ -28,4 +28,4 @@ Rules:
 - Each case must declare `type`, `checker`, expected output, and `howToFix`.
 - Fixtures must not scan real project source code.
 - Each case should include repair guidance so checker failures are understandable without reading the whole repository.
-- Output quality and glossary fixtures are dev-kit hardening assets; they are not target-project gates.
+- Output quality and glossary fixtures are intentos hardening assets; they are not target-project gates.

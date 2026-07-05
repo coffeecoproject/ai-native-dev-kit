@@ -6,7 +6,7 @@ Add 1.4.0 project memory governance while preserving human decision authority.
 
 ## Goal
 
-Establish Project Memory & Context Governance for AI Native Dev Kit.
+Establish Project Memory & Context Governance for IntentOS.
 
 ## Selected Mode
 

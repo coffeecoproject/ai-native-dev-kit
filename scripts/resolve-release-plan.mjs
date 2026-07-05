@@ -281,11 +281,11 @@ function classifyProject(root) {
     "native-migration-plans",
     "existing-rule-reconciliations",
   ].filter((item) => fs.existsSync(path.join(root, item)));
-  const isDevKit = fs.existsSync(path.join(root, "dev-kit-manifest.json")) && fs.existsSync(path.join(root, "core", "workflow.md"));
+  const isIntentOS = fs.existsSync(path.join(root, "intentos-manifest.json")) && fs.existsSync(path.join(root, "core", "workflow.md"));
   const hasGit = fs.existsSync(path.join(root, ".git"));
   const hasPackage = fs.existsSync(path.join(root, "package.json"));
   const hasStrictGovernance = markers.some((item) => /WEB_|release|guard|AGENTS|workflows/.test(item));
-  if (isDevKit) {
+  if (isIntentOS) {
     return {
       projectState: "INTENTOS_SOURCE_REPOSITORY",
       existingGovernance: "Yes",

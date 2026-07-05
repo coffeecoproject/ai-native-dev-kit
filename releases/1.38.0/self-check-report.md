@@ -15,7 +15,7 @@ git diff --check
 
 All listed checks passed in the final 1.38.0 verification run.
 
-`npm run verify:release` passed and covered manifest consistency, full dev-kit self-check, generated-project workflow checks, and `git diff --check`.
+`npm run verify:release` passed and covered manifest consistency, full intentos self-check, generated-project workflow checks, and `git diff --check`.
 
 ## Notes
 

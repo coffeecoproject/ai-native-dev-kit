@@ -12,11 +12,11 @@ const unknown = unknownOptions(args, new Set(["json", "require-structured-eviden
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/unified-apply-plan.schema.json");
 
 if (unknown.length > 0) {
@@ -276,7 +276,7 @@ function checkSourceEvidence() {
     else fail(`unified apply plan source evidence missing ${file}`);
   }
 
-  const resolver = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets"]);
+  const resolver = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain IntentOS apply plan", "--action", "workflow-assets"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Unified Apply Plan")
     && resolver.stdout.includes("This plan authorizes apply: No")
@@ -286,7 +286,7 @@ function checkSourceEvidence() {
     fail(`1.34 unified apply plan resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
-  const resolverJson = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets", "--json"]);
+  const resolverJson = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain IntentOS apply plan", "--action", "workflow-assets", "--json"]);
   if (resolverJson.status === 0) {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
@@ -419,16 +419,16 @@ function walk(dir, files) {
 function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct)) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relativePath);
-  if (fs.existsSync(aiNative)) return aiNative;
+  const intentOS = path.join(projectRoot, ".intentos", relativePath);
+  if (fs.existsSync(intentOS)) return intentOS;
   return null;
 }
 
 function resolveDirectory(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relativePath);
-  if (fs.existsSync(aiNative) && fs.statSync(aiNative).isDirectory()) return aiNative;
+  const intentOS = path.join(projectRoot, ".intentos", relativePath);
+  if (fs.existsSync(intentOS) && fs.statSync(intentOS).isDirectory()) return intentOS;
   return null;
 }
 
@@ -447,7 +447,7 @@ function rel(fullPath) {
 
 function displayAsset(relativePath, resolved) {
   const direct = path.join(projectRoot, relativePath);
-  return path.resolve(resolved) === path.resolve(direct) ? relativePath : `.ai-native/${relativePath}`;
+  return path.resolve(resolved) === path.resolve(direct) ? relativePath : `.intentos/${relativePath}`;
 }
 
 function runNode(nodeArgs) {

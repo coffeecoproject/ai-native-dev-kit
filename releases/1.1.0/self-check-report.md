@@ -8,7 +8,7 @@ PASS.
 
 ```bash
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Result

@@ -71,7 +71,7 @@ node scripts/cli.mjs baseline .
 node scripts/cli.mjs baseline-decision-check .
 node scripts/check-guided-baseline-selection.mjs examples/1.17-guided-baseline-selection/new-miniprogram --strict
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

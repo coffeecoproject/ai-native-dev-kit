@@ -18,7 +18,7 @@ The repository needs its own productization safety net before larger hardcuts su
 
 ## User Story
 
-As a maintainer, I want first-party CI and baseline evidence so that every future productization change is checked against the current green dev-kit behavior.
+As a maintainer, I want first-party CI and baseline evidence so that every future productization change is checked against the current green intentos behavior.
 
 ## Scope
 
@@ -31,7 +31,7 @@ Included:
 - Record `0.33.0` baseline freeze evidence.
 - Record `0.34.0` phase evidence and final report.
 - Update version records to `0.34.0`.
-- Extend `check-dev-kit` so required productization phase assets and dev-kit CI are checked.
+- Extend `check-intentos` so required productization phase assets and intentos CI are checked.
 
 Excluded:
 
@@ -44,7 +44,7 @@ Excluded:
 
 ## Non-goals
 
-This phase does not make the dev kit installable. It creates the safety gate for later installability work.
+This phase does not make the IntentOS installable. It creates the safety gate for later installability work.
 
 ## Data Model Impact
 
@@ -57,7 +57,7 @@ No public CLI, package, or target-project API contract changes in this phase.
 Repository CI contract:
 
 ```text
-PR CI checks dev-kit self-check, fixture suite, recursive script syntax, output quality, glossary usage, and generated-project smoke.
+PR CI checks intentos self-check, fixture suite, recursive script syntax, output quality, glossary usage, and generated-project smoke.
 Release CI checks the same base plus broader recursive syntax coverage.
 ```
 
@@ -75,18 +75,18 @@ CI logs and release evidence files provide observability for this phase.
 
 ## Acceptance Criteria
 
-- `.github/workflows/dev-kit-pr-checks.yml` exists and includes the required PR CI commands.
-- `.github/workflows/dev-kit-release-checks.yml` exists and includes release-tier checks.
+- `.github/workflows/intentos-pr-checks.yml` exists and includes the required PR CI commands.
+- `.github/workflows/intentos-release-checks.yml` exists and includes release-tier checks.
 - `.github/pull_request_template.md`, `.github/CODEOWNERS`, `CONTRIBUTING.md`, and `SECURITY.md` exist.
 - `releases/0.33.0/baseline-freeze.md` and `releases/0.33.0/self-check-report.md` exist.
 - `VERSION.md`, `templates/version-record.md`, and `templates/workflow-version.json` show `0.34.0`.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - `git diff --check` passes.
 
 ## Test Plan
 
 - Run `git diff --check`.
-- Run `node scripts/check-dev-kit.mjs`.
+- Run `node scripts/check-intentos.mjs`.
 - Run `node scripts/check-fixtures.mjs`.
 - Run recursive script syntax check with `find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check`.
 - Run generated-project smoke locally.

@@ -10,7 +10,7 @@ One-sentence explanation of the decision:
 
 ## Decision Needed
 
-Question: Can the dev kit publish explanatory license boundary docs now while keeping `LICENSE.md` as the source of truth and recording legal review as pending before 1.0?
+Question: Can the IntentOS publish explanatory license boundary docs now while keeping `LICENSE.md` as the source of truth and recording legal review as pending before 1.0?
 
 Owner: human
 
@@ -67,7 +67,7 @@ Related files:
 - `LICENSE-FAQ.md`
 - `LICENSE-COMMERCIAL.md`
 - `NOTICE.md`
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-manifest.mjs .
 Related checks:
 Task: `tasks/041-industrial-maturity-license-boundary.md`

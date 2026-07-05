@@ -6,8 +6,8 @@
 
 ## Scope
 
-- Align `compatibilityPolicy.phase` with `devKitVersion`.
-- Add manifest phase equality checks to `check-manifest` and dev-kit self-check.
+- Align `compatibilityPolicy.phase` with `intentOSVersion`.
+- Add manifest phase equality checks to `check-manifest` and intentos self-check.
 - Add `npm run verify` and 1.12 checkers to README self-check blocks.
 - Sync `check-ai-workflow` fallback required paths with 1.12 assets.
 - Update version metadata and release evidence.
@@ -17,7 +17,7 @@
 - Manifest phase drift is now checked.
 - README self-check guidance now includes the 1.12 checks and `npm run verify`.
 - `check-ai-workflow` fallback paths now include 1.12 assets.
-- Full dev-kit verification passes after this patch.
+- Full intentos verification passes after this patch.
 
 ## Forbidden Claims
 
@@ -41,11 +41,11 @@
 ```bash
 node --check scripts/check-manifest.mjs
 node --check scripts/check-ai-workflow.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node --check scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs --case "migration manifest version mismatch"
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

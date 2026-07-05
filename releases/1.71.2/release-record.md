@@ -59,4 +59,4 @@
 - `node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/partial-existing-project --require-structured-evidence`
 - `node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/blocked-production-project --require-structured-evidence`
 - `node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/failed-assurance --require-structured-evidence`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`

@@ -85,7 +85,7 @@ I have switched to IntentOS Native-First Migration Planning mode.
 
 | Field | Value |
 | --- | --- |
-| Backup path | `.ai-native/backups/native-migration/<timestamp>/` |
+| Backup path | `.intentos/backups/native-migration/<timestamp>/` |
 | Restore method | Restore approved backup or keep old governance unchanged if approval is rejected |
 | Restore owner | human owner |
 | If owner rejects migration | Keep adapter-only / read-only mapping |

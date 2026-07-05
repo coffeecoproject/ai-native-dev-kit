@@ -2,11 +2,11 @@
 
 ## Human Summary
 
-Establish the product and claim boundaries for AI Native guided delivery.
+Establish the product and claim boundaries for IntentOS guided delivery.
 
 ## Goal
 
-Establish Guided Delivery Baseline for AI Native Dev Kit.
+Establish Guided Delivery Baseline for IntentOS.
 
 ## Goal Mode
 
@@ -14,7 +14,7 @@ IMPLEMENT_TASK
 
 ## Why This Mode
 
-The request has been discussed and approved. The task is to implement a bounded Dev Kit governance phase.
+The request has been discussed and approved. The task is to implement a bounded IntentOS governance phase.
 
 ## Scope
 

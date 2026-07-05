@@ -54,7 +54,7 @@ Use this checklist before starting the first non-trivial implementation task.
 - [ ] Samples are not created before project context is clear enough
 - [ ] Samples use fake data
 - [ ] Samples are marked non-production
-- [ ] Samples are not promoted into shared dev-kit examples
+- [ ] Samples are not promoted into shared intentos examples
 
 ## Decision
 

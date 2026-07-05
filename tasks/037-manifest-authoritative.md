@@ -14,7 +14,7 @@ Eval: `evals/037-manifest-authoritative.md`
 
 ## Goal
 
-Execute Productization Hardcut phase `0.37.0` by making `dev-kit-manifest.json` authoritative for asset groups and safe static copy rules while preserving governance protections.
+Execute Productization Hardcut phase `0.37.0` by making `intentos-manifest.json` authoritative for asset groups and safe static copy rules while preserving governance protections.
 
 ## Scope
 
@@ -23,7 +23,7 @@ Allowed:
 - Change manifest mode and compatibility policy to authoritative.
 - Add manifest copy rules.
 - Make source required files, target required paths, workflow readiness paths, workflow version assets, workflow directories, and safe static copy rules read from manifest.
-- Copy `.ai-native/dev-kit-manifest.json` and `scripts/lib/manifest.mjs` into generated projects.
+- Copy `.intentos/intentos-manifest.json` and `scripts/lib/manifest.mjs` into generated projects.
 - Update manifest schema and manifest checker.
 - Update version metadata to `0.37.0`.
 - Add `0.37.0` workflow artifacts and release evidence.
@@ -42,7 +42,7 @@ Not allowed:
 ## Acceptance Criteria
 
 - `node scripts/check-manifest.mjs` passes.
-- `node scripts/check-dev-kit.mjs` passes and includes authoritative manifest checks.
+- `node scripts/check-intentos.mjs` passes and includes authoritative manifest checks.
 - Generated-project smoke passes.
 - Manifest-added target path is reported by both generated-project `check-ai-workflow` and `workflow-next`.
 - Final report records verification results.
@@ -53,8 +53,8 @@ Not allowed:
 git diff --check
 find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 node scripts/check-manifest.mjs
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-manifest-authoritative-test
-node /tmp/ai-native-manifest-authoritative-test/scripts/check-ai-workflow.mjs /tmp/ai-native-manifest-authoritative-test --mode core
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-manifest-authoritative-test
+node /tmp/intentos-manifest-authoritative-test/scripts/check-ai-workflow.mjs /tmp/intentos-manifest-authoritative-test --mode core
 node scripts/check-goal-mode.mjs . --goal-card goal-cards/037-manifest-authoritative.md
 node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/037-manifest-authoritative.md
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/037-manifest-authoritative.md
@@ -62,7 +62,7 @@ node scripts/check-review-loop.mjs . --task tasks/037-manifest-authoritative.md
 node scripts/check-next-step-boundary.mjs . --task tasks/037-manifest-authoritative.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## AI Budget

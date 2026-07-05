@@ -29,7 +29,7 @@ What should the reviewer ignore?
 
 ## Project State
 
-Project root: `/Users/liushan/Developer/CodingFlow/ai-native-dev-kit`
+Project root: `/Users/liushan/Developer/CodingFlow/intentos`
 
 Branch: main
 
@@ -80,7 +80,7 @@ Non-goals:
 - Real adoption and patch classification checkers pass.
 - Example passes.
 - Bad fixtures fail as expected.
-- Full dev-kit self-check passes.
+- Full intentos self-check passes.
 - Claims remain bounded and sanitized.
 
 ## Risk Gate
@@ -153,7 +153,7 @@ node scripts/check-context-governance.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/180-real-project-adoption-trial.md
 node scripts/check-review-loop.mjs . --task tasks/180-real-project-adoption-trial.md
 node scripts/check-next-step-boundary.mjs . --task tasks/180-real-project-adoption-trial.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -180,8 +180,8 @@ Skipped evidence and reason:
 | `scripts/check-real-adoption-trial.mjs` | add | checker | medium |
 | `scripts/check-patch-classification.mjs` | add | checker | medium |
 | `examples/1.8-real-project-readonly/` | add | sanitized example | low |
-| `dev-kit-manifest.json` | update | asset registry | medium |
-| `scripts/check-dev-kit.mjs` | update | self-check integration | medium |
+| `intentos-manifest.json` | update | asset registry | medium |
+| `scripts/check-intentos.mjs` | update | self-check integration | medium |
 
 ## Diff Summary
 

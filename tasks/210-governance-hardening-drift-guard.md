@@ -33,5 +33,5 @@ Implement the 1.11.0 hardening plan and verify it through self-check.
 
 Status: Approved
 
-Approval scope: dev-kit workflow/source hardening only.
+Approval scope: intentos workflow/source hardening only.
 

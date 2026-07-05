@@ -70,4 +70,4 @@ Current operating docs stay directly under `docs/`. Historical implementation pl
 - Do not move generated-project output paths as part of documentation cleanup.
 - Do not delete historical plans; move them under `docs/plans/`.
 - Do not delete roadmap documents; move them under `docs/roadmaps/`.
-- Update `dev-kit-manifest.json`, README links, and self-checks whenever documentation source paths move.
+- Update `intentos-manifest.json`, README links, and self-checks whenever documentation source paths move.

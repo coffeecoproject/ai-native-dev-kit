@@ -34,5 +34,5 @@ Make baseline pack selection clear, read-only by default, and bounded by human d
 
 Status: Approved
 
-Approval scope: dev-kit baseline pack selection system only.
+Approval scope: intentos baseline pack selection system only.
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/ai-native-dev-kit/baseline-selection.schema.json",
-  "title": "AI Native Project Baseline Selection",
+  "$id": "https://example.invalid/intentos/baseline-selection.schema.json",
+  "title": "IntentOS Project Baseline Selection",
   "type": "object",
   "required": [
     "baselineLevel",

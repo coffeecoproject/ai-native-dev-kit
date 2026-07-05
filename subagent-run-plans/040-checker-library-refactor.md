@@ -6,7 +6,7 @@ slug: checker-library-refactor
 title: Checker Library Refactor
 status: ready
 created_at: "2026-06-27"
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 subagent_mode: REVIEW_LOOP
 ---
 # Subagent Run Plan: Checker Library Refactor

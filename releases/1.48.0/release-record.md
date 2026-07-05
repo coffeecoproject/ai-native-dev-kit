@@ -49,6 +49,6 @@ node --check scripts/check-change-impact-coverage.mjs
 node scripts/cli.mjs impact-coverage . --intent "add contract input restriction"
 node scripts/check-change-impact-coverage.mjs .
 node scripts/check-change-impact-coverage.mjs examples/1.48-change-impact-coverage/contract-input-rule
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 ```

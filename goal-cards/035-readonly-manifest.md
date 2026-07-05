@@ -1,4 +1,4 @@
-# Goal Card: Read-only Dev Kit Manifest
+# Goal Card: Read-only IntentOS Manifest
 
 ## Human Summary
 
@@ -18,7 +18,7 @@ Reason: The phase defines a new productization baseline asset and its authority 
 
 Project state: DEV_KIT_PRODUCTIZATION
 
-Adoption mode: Not applicable because this work changes the dev-kit repository itself, not a target project.
+Adoption mode: Not applicable because this work changes the intentos repository itself, not a target project.
 
 Workflow state: Phase `0.34.0` is committed; phase `0.35.0` has request, preflight, spec, eval, task, and decision brief.
 
@@ -53,7 +53,7 @@ Impact: The manifest is a repository inventory contract. It does not create plat
 ## Allowed Actions
 
 - Add and validate read-only manifest assets.
-- Run local manifest and dev-kit checks.
+- Run local manifest and intentos checks.
 - Update CI to include explicit manifest checks.
 - Update version metadata from `0.34.0` to `0.35.0`.
 - Record phase evidence under `releases/0.35.0/`.

@@ -40,7 +40,7 @@ Only `F1` is automatically fixed. `F2` is routed to a follow-up proposal and is 
 
 ## Checks
 
-Run these from the dev-kit root:
+Run these from the intentos root:
 
 ```bash
 node scripts/check-goal-mode.mjs examples/goal-subagent-l2-feature

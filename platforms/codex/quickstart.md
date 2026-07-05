@@ -4,16 +4,16 @@ This adapter is for projects where Codex is the daily coding agent.
 
 ## Install Into A Project
 
-If you want Codex to choose the setup path, provide the dev-kit path or repo URL and say:
+If you want Codex to choose the setup path, provide the intentos path or repo URL and say:
 
 ```text
-Read this AI Native Dev Kit and configure the current project yourself.
+Read this IntentOS and configure the current project yourself.
 ```
 
-Codex should use `.ai-native/prompts/bootstrap-agent.md` or `prompts/bootstrap-agent.md` to classify intent, then run:
+Codex should use `.intentos/prompts/bootstrap-agent.md` or `prompts/bootstrap-agent.md` to classify intent, then run:
 
 ```bash
-node ai-native-dev-kit/scripts/start-project.mjs .
+node intentos/scripts/start-project.mjs .
 ```
 
 `start-project.mjs` is read-only by default. It recommends the adoption path before any init, update, or write-plan action.
@@ -21,7 +21,7 @@ node ai-native-dev-kit/scripts/start-project.mjs .
 Then ask for baseline recommendation:
 
 ```bash
-node ai-native-dev-kit/scripts/cli.mjs baseline .
+node intentos/scripts/cli.mjs baseline .
 ```
 
 `baseline` is also read-only. It tells you which engineering and environment decisions need confirmation before tasks.
@@ -31,7 +31,7 @@ If you ask Codex to review or discuss first, it should not write files.
 From the parent directory:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --starter generic-project \
   --target ../my-project
 ```
@@ -39,9 +39,9 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 For a platform-specific project:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --starter codex-web-app --target ../my-web-app
-node ai-native-dev-kit/scripts/init-project.mjs --starter codex-ios-app --target ../my-ios-app
-node ai-native-dev-kit/scripts/init-project.mjs --starter codex-android-app --target ../my-android-app
+node intentos/scripts/init-project.mjs --starter codex-web-app --target ../my-web-app
+node intentos/scripts/init-project.mjs --starter codex-ios-app --target ../my-ios-app
+node intentos/scripts/init-project.mjs --starter codex-android-app --target ../my-android-app
 ```
 
 ## First Codex Conversation
@@ -49,7 +49,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --starter codex-android-app --ta
 Use this instruction:
 
 ```text
-Use AGENTS.md and the .ai-native workflow.
+Use AGENTS.md and the .intentos workflow.
 Start with project onboarding.
 Draft the project profile, technology strategy, business spec index, sample policy, onboarding decisions, and first vertical slice.
 Do not implement code yet.

@@ -68,7 +68,7 @@ High
 
 - Release evidence should be machine-checked so version bumps cannot skip evidence.
 
-## Dev Kit Updates Needed
+## IntentOS Updates Needed
 
 - [ ] template
 - [ ] prompt
@@ -83,7 +83,7 @@ High
 - [ ] repeated issue, create `workflow-improvements/`
 - [ ] high-impact issue, create `workflow-improvements/`
 - [ ] repeated execution pattern, evaluate `skill-candidates/`
-- [ ] candidate for `dev-kit-proposals/`
+- [ ] candidate for `intentos-proposals/`
 
 ## Related Follow-up
 

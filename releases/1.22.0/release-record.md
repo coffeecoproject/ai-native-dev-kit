@@ -63,7 +63,7 @@ They did not yet give Codex a durable task-state ledger for:
 - `node scripts/resolve-work-queue.mjs .`
 - `node scripts/check-work-queue.mjs .`
 - `node scripts/check-work-queue.mjs examples/1.22-work-queue`
-- bad fixture checks in `scripts/check-dev-kit.mjs`
+- bad fixture checks in `scripts/check-intentos.mjs`
 - `npm run verify`
 - `npm run verify:release`
 
@@ -89,7 +89,7 @@ node scripts/resolve-work-queue.mjs .
 node scripts/resolve-work-queue.mjs . --json
 node scripts/check-work-queue.mjs .
 node scripts/check-work-queue.mjs examples/1.22-work-queue
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify:release
 npm run verify
 git diff --check

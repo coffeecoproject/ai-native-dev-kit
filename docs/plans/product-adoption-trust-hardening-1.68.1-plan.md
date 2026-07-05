@@ -22,7 +22,7 @@ It does not add a new governance layer. It makes the existing entry safer, more 
    - continuation requires explicit human review or approval.
 
 4. Align CLI aliases:
-   - `intentos`, `ai-native`, and `ai-native-dev-kit` should match the package bin declarations and help text.
+   - `intentos`, `intentos`, and `intentos` should match the package bin declarations and help text.
 
 5. Clarify source-only adoption:
    - document the current GitHub clone usage path;
@@ -48,5 +48,5 @@ It does not add a new governance layer. It makes the existing entry safer, more 
 - CLI help aliases match package bin declarations.
 - source-only adoption is documented and linked from front-door docs.
 - SECURITY.md has concrete private-reporting guidance without promising an SLA.
-- `node scripts/check-manifest.mjs`, `npm --silent run verify:governance`, `node scripts/check-dev-kit.mjs`, and `git diff --check` pass.
+- `node scripts/check-manifest.mjs`, `npm --silent run verify:governance`, `node scripts/check-intentos.mjs`, and `git diff --check` pass.
 

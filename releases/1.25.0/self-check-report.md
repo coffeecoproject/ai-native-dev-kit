@@ -22,11 +22,11 @@ PASS.
   - `node <tmp>/project/scripts/cli.mjs review-surface <tmp>/project`
   - `node <tmp>/project/scripts/cli.mjs review-surface-check <tmp>/project`
   - `node <tmp>/project/scripts/check-ai-workflow.mjs <tmp>/project --mode core`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 
 ## Result
 
-Review Surface Governance passed source, example, bad-fixture, generated-project, manifest, syntax, governance, and full dev-kit self-check coverage.
+Review Surface Governance passed source, example, bad-fixture, generated-project, manifest, syntax, governance, and full intentos self-check coverage.
 
 ## Final Verification
 

@@ -36,7 +36,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/190-human-decision-summary.md
 node scripts/check-next-step-boundary.mjs . --task tasks/190-human-decision-summary.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

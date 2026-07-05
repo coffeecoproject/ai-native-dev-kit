@@ -23,7 +23,7 @@ node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assur
 node scripts/check-adoption-assurance.mjs test-fixtures/bad/bad-adoption-assurance-unknown-evidence-prefix --require-structured-evidence
 node scripts/check-adoption-assurance.mjs test-fixtures/bad/bad-adoption-assurance-surface-evidence-not-in-evidence-refs --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Expected Result
@@ -31,5 +31,5 @@ node scripts/check-dev-kit.mjs
 - Positive examples pass strict checks.
 - Bad fixtures fail strict checks.
 - The resolver-generated `--out` report can be checked as the same artifact.
-- `check-manifest` and `check-dev-kit` pass.
+- `check-manifest` and `check-intentos` pass.
 

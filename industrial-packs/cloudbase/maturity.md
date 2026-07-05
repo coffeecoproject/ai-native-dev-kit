@@ -37,4 +37,4 @@ Draft pack; requires real project dogfood, false-positive review, and strict BL2
 
 Reviewed at: 2026-06-27
 
-Reviewer: AI Native Dev Kit maintainers
+Reviewer: IntentOS maintainers

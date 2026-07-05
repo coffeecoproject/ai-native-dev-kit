@@ -8,7 +8,7 @@
 - Local run or demo instructions exist.
 - Verification evidence exists or is marked missing.
 - Explicit smoke or demo evidence is cited when available.
-- New Dev Kit examples prefer structured JSON evidence with non-authorizing authority fields.
+- New IntentOS examples prefer structured JSON evidence with non-authorizing authority fields.
 - Trial or handoff instructions exist.
 - Feedback or issue capture path exists.
 - Next version backlog is present.

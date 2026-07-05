@@ -6,7 +6,7 @@ import { parseArgs } from "./lib/args.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
-const statePath = path.join(projectRoot, ".ai-native", "daily-summary-state.json");
+const statePath = path.join(projectRoot, ".intentos", "daily-summary-state.json");
 const now = new Date();
 const sinceDays = Number(args["since-days"] || 1);
 const writeState = Boolean(args["write-state"]);
@@ -103,7 +103,7 @@ const retros = listMarkdownFiles("workflow-retros");
 const improvements = listMarkdownFiles("workflow-improvements");
 const skillCandidates = listMarkdownFiles("skill-candidates");
 const automationProposals = listMarkdownFiles("automation-proposals");
-const proposals = listMarkdownFiles("dev-kit-proposals");
+const proposals = listMarkdownFiles("intentos-proposals");
 const reviewPackets = listMarkdownFiles("review-packets");
 const reviewLoopReports = listMarkdownFiles("review-loop-reports");
 
@@ -161,14 +161,14 @@ if (recentRetros.length > 0) signals.push(`${recentRetros.length} updated workfl
 if (recentImprovements.length > 0) signals.push(`${recentImprovements.length} updated workflow improvement(s)`);
 if (recentSkillCandidates.length > 0) signals.push(`${recentSkillCandidates.length} updated Skill candidate(s)`);
 if (recentAutomationProposals.length > 0) signals.push(`${recentAutomationProposals.length} updated automation proposal(s)`);
-if (recentProposals.length > 0) signals.push(`${recentProposals.length} updated dev-kit proposal(s)`);
+if (recentProposals.length > 0) signals.push(`${recentProposals.length} updated intentos proposal(s)`);
 if (recentReviewPackets.length > 0) signals.push(`${recentReviewPackets.length} updated review packet(s)`);
 if (recentReviewLoopReports.length > 0) signals.push(`${recentReviewLoopReports.length} updated review loop report(s)`);
 if (repeatedRecentProblems.length > 0) signals.push(`${repeatedRecentProblems.length} repeated problem(s) in recent logs`);
 if (recentTriggers.length > 0) signals.push(`${recentTriggers.length} checked workflow trigger(s) in recent logs`);
 if (pendingSkillCandidates.length > 0) signals.push(`${pendingSkillCandidates.length} Skill candidate(s) need human review or disposition`);
 if (pendingAutomationProposals.length > 0) signals.push(`${pendingAutomationProposals.length} automation proposal(s) need human review or disposition`);
-if (pendingProposals.length > 0) signals.push(`${pendingProposals.length} dev-kit proposal(s) need review or disposition`);
+if (pendingProposals.length > 0) signals.push(`${pendingProposals.length} intentos proposal(s) need review or disposition`);
 if (pendingReviewPackets.length > 0) signals.push(`${pendingReviewPackets.length} review packet(s) need independent review or disposition`);
 if (pendingReviewLoopReports.length > 0) signals.push(`${pendingReviewLoopReports.length} review loop report(s) need final disposition`);
 
@@ -252,7 +252,7 @@ console.log("");
 if (!hasAction) {
   console.log("- No summary file needed today.");
 } else {
-  console.log(`- Create or update \`${summaryPath}\` using \`.ai-native/templates/workflow-daily-summary.md\`.`);
+  console.log(`- Create or update \`${summaryPath}\` using \`.intentos/templates/workflow-daily-summary.md\`.`);
   if (repeatedProblems.length > 0) {
     console.log("- Create or update `workflow-improvements/` for repeated problems that are not already handled.");
   }
@@ -260,10 +260,10 @@ if (!hasAction) {
     console.log("- Evaluate whether a `skill-candidates/` draft is justified.");
   }
   if (pendingSkillCandidates.length > 0) {
-    console.log("- Review pending Skill candidates with `.ai-native/checklists/skill-review.md`.");
+    console.log("- Review pending Skill candidates with `.intentos/checklists/skill-review.md`.");
   }
   if (pendingAutomationProposals.length > 0) {
-    console.log("- Review pending automation proposals with `.ai-native/checklists/automation-review.md`.");
+    console.log("- Review pending automation proposals with `.intentos/checklists/automation-review.md`.");
   }
   if (pendingReviewPackets.length > 0) {
     console.log("- Review pending `review-packets/` entries or mark their outcome.");

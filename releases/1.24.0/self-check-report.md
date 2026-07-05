@@ -18,9 +18,9 @@ PASS
 - `node scripts/check-product-baseline.mjs .`
 - `node scripts/check-claim-control.mjs .`
 - generated-project `guide` / `guide-check` smoke
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`
 
 ## Result
 
-1.24 natural-language workflow guidance assets, CLI routing, examples, bad fixtures, manifest coverage, generated-project smoke, and full Dev Kit self-check passed.
+1.24 natural-language workflow guidance assets, CLI routing, examples, bad fixtures, manifest coverage, generated-project smoke, and full IntentOS self-check passed.

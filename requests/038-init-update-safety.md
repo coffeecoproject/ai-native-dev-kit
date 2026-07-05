@@ -6,7 +6,7 @@ Execute Productization Hardcut phase `0.38.0`: make init and update safer throug
 
 ## User / Customer
 
-Maintainers of `ai-native-dev-kit` and real-project adopters who need Codex to configure workflow assets without silently writing into production, governed, or dirty projects.
+Maintainers of `intentos` and real-project adopters who need Codex to configure workflow assets without silently writing into production, governed, or dirty projects.
 
 ## Problem
 

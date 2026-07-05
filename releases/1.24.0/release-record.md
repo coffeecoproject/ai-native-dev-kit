@@ -2,7 +2,7 @@
 
 ## Summary
 
-`1.24.0` adds Natural Language Workflow Orchestrator as the plain-language front door for AI Native Dev Kit.
+`1.24.0` adds Natural Language Workflow Orchestrator as the plain-language front door for IntentOS.
 
 It lets Codex read a project and return one Workflow Guidance Card without requiring the user to choose internal commands.
 
@@ -34,7 +34,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit has a plain-language workflow guidance entry through `guide`.
+- IntentOS has a plain-language workflow guidance entry through `guide`.
 - Workflow Guidance Cards can recommend the next safe workflow path without writing target files.
 - The guidance checker validates recorded cards for question limits, plain-language boundaries, and overclaim protection.
 - Generated projects receive the 1.24 guidance scripts, templates, prompt, checklist, and guidance directory through manifest-managed workflow assets.
@@ -48,7 +48,7 @@ This release does not:
 
 ## Evidence Status
 
-- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `dev-kit-manifest.json`.
+- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `intentos-manifest.json`.
 - `scripts/check-workflow-guidance.mjs` validates source evidence and rejects the 1.24 bad fixtures.
 - Full release evidence is pending until `npm run verify` completes and `self-check-report.md` is updated from `PENDING` to `PASS`.
 

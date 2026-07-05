@@ -454,7 +454,7 @@ Rules:
 - all packs remain draft unless real evidence justifies otherwise
 - `node scripts/check-industrial-pack.mjs .` passes
 - `node scripts/check-fixtures.mjs` passes
-- `node scripts/check-dev-kit.mjs` passes
+- `node scripts/check-intentos.mjs` passes
 - `npm run verify` passes
 
 ## Explicit Boundaries

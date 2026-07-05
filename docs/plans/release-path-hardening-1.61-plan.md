@@ -94,7 +94,7 @@ The human-facing text must not imply that a release is approved or ready to run.
 - Update `release-guide` lazy routing and output language.
 - Update examples and bad fixtures.
 - Update README, VERSION, package, manifest, and release evidence.
-- Update `check-dev-kit` coverage.
+- Update `check-intentos` coverage.
 
 ## Acceptance
 

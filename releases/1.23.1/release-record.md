@@ -49,7 +49,7 @@ Required checks:
 npm run verify:governance
 npm run verify:syntax
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify:release
 npm run verify
 git diff --check

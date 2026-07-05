@@ -1,4 +1,4 @@
-# Dev Kit Change Proposal: <id>-<short-name>
+# IntentOS Change Proposal: <id>-<short-name>
 
 ## Source Improvement
 
@@ -30,7 +30,7 @@ Minimum expected evidence:
 - linked workflow retro
 - repeated failure or high-impact one-off
 
-## Proposed Dev Kit Change
+## Proposed IntentOS Change
 
 ## Files To Change
 
@@ -38,7 +38,7 @@ Minimum expected evidence:
 
 ## Layering Justification
 
-Why this belongs in the selected dev-kit layer:
+Why this belongs in the selected intentos layer:
 
 ## Core Purity Review
 
@@ -56,7 +56,7 @@ Impact on existing starters/profiles:
 Required:
 
 ```bash
-node ai-native-dev-kit/scripts/check-dev-kit.mjs
+node intentos/scripts/check-intentos.mjs
 ```
 
 Additional checks:

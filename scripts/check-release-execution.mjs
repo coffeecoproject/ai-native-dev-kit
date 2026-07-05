@@ -12,11 +12,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -335,16 +335,16 @@ function readResolved(file) {
 function resolveAsset(file) {
   const direct = path.join(projectRoot, file);
   if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return file;
-  const installed = path.join(projectRoot, ".ai-native", file);
-  if (fs.existsSync(installed) && fs.statSync(installed).isFile()) return path.join(".ai-native", file);
+  const installed = path.join(projectRoot, ".intentos", file);
+  if (fs.existsSync(installed) && fs.statSync(installed).isFile()) return path.join(".intentos", file);
   return "";
 }
 
 function resolveDirectory(dir) {
   const direct = path.join(projectRoot, dir);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return dir;
-  const installed = path.join(projectRoot, ".ai-native", dir);
-  if (fs.existsSync(installed) && fs.statSync(installed).isDirectory()) return path.join(".ai-native", dir);
+  const installed = path.join(projectRoot, ".intentos", dir);
+  if (fs.existsSync(installed) && fs.statSync(installed).isDirectory()) return path.join(".intentos", dir);
   return "";
 }
 

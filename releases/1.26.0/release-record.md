@@ -34,7 +34,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can produce a read-only Delivery Path Report through `delivery-path`.
+- IntentOS can produce a read-only Delivery Path Report through `delivery-path`.
 - Delivery Path Reports can describe the current delivery state, next target state, missing evidence, blockers, and next safe action.
 - The checker validates recorded reports for valid states, evidence, blockers, boundaries, and release-overclaim protection.
 - Generated projects receive the 1.26 delivery path scripts, template, prompt, checklist, protocol, documentation, and report directory through manifest-managed workflow assets.
@@ -48,7 +48,7 @@ This release does not:
 
 ## Evidence Status
 
-- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `dev-kit-manifest.json`.
+- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `intentos-manifest.json`.
 - `scripts/check-delivery-path.mjs` validates source and generated Delivery Path Reports and rejects 1.26 bad fixtures for release overclaim and missing state.
 - Full release evidence is pending until `npm run verify` completes and `self-check-report.md` is updated from `PENDING` to `PASS`.
 

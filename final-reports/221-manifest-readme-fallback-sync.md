@@ -22,7 +22,7 @@ Intended scope:
 
 Actual changed files:
 
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `package.json`
 - `templates/workflow-version.json`
 - `VERSION.md`
@@ -30,7 +30,7 @@ Actual changed files:
 - `README.md`
 - `README.zh-CN.md`
 - `scripts/check-manifest.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `scripts/check-ai-workflow.mjs`
 - `scripts/check-fixtures.mjs`
 - `requests/221-manifest-readme-fallback-sync.md`
@@ -59,11 +59,11 @@ PASS:
 ```bash
 node --check scripts/check-manifest.mjs
 node --check scripts/check-ai-workflow.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node --check scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs --case "migration manifest version mismatch"
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
@@ -71,7 +71,7 @@ git diff --check
 ## Residual Risk
 
 - The checkers still validate recorded reports and repository assets; they do not scan or approve real target-project changes.
-- `check-ai-workflow` fallback coverage is still a fallback only. Authoritative generated projects should use `.ai-native/dev-kit-manifest.json`.
+- `check-ai-workflow` fallback coverage is still a fallback only. Authoritative generated projects should use `.intentos/intentos-manifest.json`.
 - CODEOWNERS and standard baseline packs remain out of scope.
 
 ## Next Safe Action

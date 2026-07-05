@@ -18,7 +18,7 @@ Decision: no open human decision remains before local verification and commit.
 
 ## Next Safe Step
 
-Next action: run full dev-kit checks, repair deterministic failures, then commit and push.
+Next action: run full intentos checks, repair deterministic failures, then commit and push.
 
 ## Status
 
@@ -58,7 +58,7 @@ Risk Gate Exclusions: production launch, legal approval, compliance approval, GP
 
 Human Approval: user requested execution and push.
 
-Baseline state: dev-kit source baseline.
+Baseline state: intentos source baseline.
 
 Industrial baseline state: not changed.
 
@@ -125,7 +125,7 @@ node scripts/check-launch-readiness.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -158,7 +158,7 @@ Stop condition reason: no repeated blocker.
 
 Did implementation follow Engineering Baseline: Yes
 
-Engineering baseline ref: existing dev-kit manifest and checker structure.
+Engineering baseline ref: existing intentos manifest and checker structure.
 
 Did implementation follow Environment Baseline: Not applicable
 

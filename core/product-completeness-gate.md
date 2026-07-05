@@ -18,7 +18,7 @@ It complements Delivery Path. Delivery Path explains project progress; Product C
 - local run or demo instructions;
 - verification evidence;
 - explicit smoke or demo evidence when available;
-- structured JSON smoke or demo evidence for new Dev Kit examples;
+- structured JSON smoke or demo evidence for new IntentOS examples;
 - trial or handoff instructions;
 - feedback, logging, or issue capture path;
 - next version backlog.

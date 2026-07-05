@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 request: requests/042-docs-ia-migration-command.md
 task_level: L3
 ---
@@ -77,7 +77,7 @@ updates, release evidence, and self-check coverage.
 ## First Vertical Slice
 
 ```text
-user runs ai-native migrate --target project --from 0.33.0 --to 1.0.0 --dry-run
+user runs intentos migrate --target project --from 0.33.0 --to 1.0.0 --dry-run
 -> command inspects project state
 -> prints structured migration plan summary
 -> writes nothing

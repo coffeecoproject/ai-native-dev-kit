@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-This plan calibrates AI Native Dev Kit after the 1.9 Human Decision Summary upgrade. 1.9 makes recommendations easier to read. 1.10 should make Codex better at guiding non-expert users through delivery without pushing professional technical judgment back onto them.
+This plan calibrates IntentOS after the 1.9 Human Decision Summary upgrade. 1.9 makes recommendations easier to read. 1.10 should make Codex better at guiding non-expert users through delivery without pushing professional technical judgment back onto them.
 
 The theme is:
 
@@ -680,7 +680,7 @@ Preferred first implementation:
 - extend `new-workflow-item.mjs` with optional item types:
   - `active-work-thread`
   - `guided-decision-summary`
-- extend `check-dev-kit.mjs` to verify required assets exist and prompts include key terms
+- extend `check-intentos.mjs` to verify required assets exist and prompts include key terms
 - do not require every project to create active-work-thread artifacts
 
 ### Docs
@@ -894,8 +894,8 @@ Give Codex concrete language and artifacts for the new behavior.
 Files:
 
 - `scripts/new-workflow-item.mjs`
-- `scripts/check-dev-kit.mjs`
-- `dev-kit-manifest.json`
+- `scripts/check-intentos.mjs`
+- `intentos-manifest.json`
 
 Optional:
 
@@ -950,7 +950,7 @@ Record the upgrade as formal product behavior, not ad hoc wording.
 7. Delivery Coach prompt exists and does not implement directly.
 8. Optional active-work-thread and guided-decision-summary templates exist.
 9. Existing safety boundaries remain intact.
-10. Full dev-kit self-check passes after implementation.
+10. Full intentos self-check passes after implementation.
 
 ## Verification Plan
 
@@ -963,7 +963,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-conversation-drift.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -1040,4 +1040,4 @@ Codex executes only confirmed work.
 Codex verifies, reviews, updates, and continues.
 ```
 
-This is the next logical productization layer for AI Native Dev Kit.
+This is the next logical productization layer for IntentOS.

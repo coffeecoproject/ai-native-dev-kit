@@ -35,7 +35,7 @@ Why: the user approved implementation after prior discussion and asked for execu
 
 ## Project State
 
-Project state: source dev-kit repository.
+Project state: source intentos repository.
 
 Workflow state: 1.4.0 baseline with Project Memory and Context Governance already present.
 
@@ -44,7 +44,7 @@ Adoption mode: not applicable to source repo.
 Current `workflow-next` result:
 
 ```text
-NEXT_ACTION: implement approved dev-kit upgrade batch
+NEXT_ACTION: implement approved intentos upgrade batch
 CAN_WRITE_WORKFLOW_ASSETS: Yes
 MUST_STOP_FOR_HUMAN: No
 ```
@@ -69,7 +69,7 @@ If yes, related decision area:
 - API contract / generated type
 - permission / migration / dependency / cross-module state
 
-Engineering baseline status: follows existing dev-kit checker, manifest, fixture, and generated-project patterns.
+Engineering baseline status: follows existing intentos checker, manifest, fixture, and generated-project patterns.
 
 Decision Brief needed: No
 
@@ -89,7 +89,7 @@ Decision Brief needed: No
 
 ## Allowed Actions
 
-- Modify approved dev-kit docs, core rules, templates, prompts, checklists, scripts, examples, fixtures, manifest, CI, README, and version files.
+- Modify approved intentos docs, core rules, templates, prompts, checklists, scripts, examples, fixtures, manifest, CI, README, and version files.
 - Run non-destructive local checks.
 - Commit and push after verification passes.
 

@@ -31,7 +31,7 @@
 - [ ] Product baseline was checked when this change touched workflow behavior, release wording, public summaries, or generated-project behavior
 - [ ] Claim control was checked when this change touched README, release records, final reports, handoffs, or public-facing summaries
 - [ ] Context governance was checked when this change touched project memory, baselines, AGENTS, context corrections, or source-of-truth docs
-- [ ] Git Boundary was reviewed when this change added AI Native artifacts, learning candidates, context corrections, or local/generated evidence
+- [ ] Git Boundary was reviewed when this change added IntentOS artifacts, learning candidates, context corrections, or local/generated evidence
 - [ ] Safe Launch / Delivery Readiness was checked when this change claimed demo, internal handoff, release-review, blocked, or not-ready status
 - [ ] Conversation Drift was checked when user messages changed scope, added a new task, asked for discussion-only handling, raised a risk decision, or paused work
 - [ ] Guided Decision / Active Work Thread is linked or marked not applicable when the user request was broad, non-expert, or mixed side ideas into current work

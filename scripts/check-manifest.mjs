@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "./lib/args.mjs";
 import {
-  currentDevKitVersion,
+  currentIntentOSVersion,
   diffLists,
   kitRoot,
   manifestGroupNames,
@@ -16,8 +16,8 @@ import {
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
-const manifestPath = args.manifest ? normalizePath(String(args.manifest)) : "dev-kit-manifest.json";
-const schemaPath = args.schema ? normalizePath(String(args.schema)) : "schemas/dev-kit-manifest.schema.json";
+const manifestPath = args.manifest ? normalizePath(String(args.manifest)) : "intentos-manifest.json";
+const schemaPath = args.schema ? normalizePath(String(args.schema)) : "schemas/intentos-manifest.schema.json";
 const outputJson = Boolean(args.json);
 const knownFlags = new Set(["manifest", "schema", "json"]);
 
@@ -94,8 +94,8 @@ function validateManifestShape(manifest) {
   if (manifest.schemaVersion !== "1.0") {
     fail("manifest schema validation: schemaVersion must be 1.0");
   }
-  if (typeof manifest.devKitVersion !== "string" || manifest.devKitVersion.length === 0) {
-    fail("manifest schema validation: devKitVersion must be a non-empty string");
+  if (typeof manifest.intentOSVersion !== "string" || manifest.intentOSVersion.length === 0) {
+    fail("manifest schema validation: intentOSVersion must be a non-empty string");
   }
   if (manifest.mode !== "authoritative") {
     fail("manifest schema validation: mode must be authoritative for phase 0.37.0");
@@ -109,8 +109,8 @@ function validateManifestShape(manifest) {
   if (manifest.compatibilityPolicy?.changesRuntimeBehavior !== true) {
     fail("manifest schema validation: compatibilityPolicy.changesRuntimeBehavior must be true");
   }
-  if (manifest.compatibilityPolicy?.phase !== manifest.devKitVersion) {
-    fail(`manifest schema validation: compatibilityPolicy.phase ${manifest.compatibilityPolicy?.phase || "<missing>"} must match devKitVersion ${manifest.devKitVersion}`);
+  if (manifest.compatibilityPolicy?.phase !== manifest.intentOSVersion) {
+    fail(`manifest schema validation: compatibilityPolicy.phase ${manifest.compatibilityPolicy?.phase || "<missing>"} must match intentOSVersion ${manifest.intentOSVersion}`);
   }
   if (!manifest.groups || typeof manifest.groups !== "object" || Array.isArray(manifest.groups)) {
     fail("manifest schema validation: groups must be an object");
@@ -173,11 +173,11 @@ function validateRuleList(rules, label) {
 }
 
 function checkVersion(manifest) {
-  const currentVersion = currentDevKitVersion(projectRoot);
-  if (manifest.devKitVersion === currentVersion) {
-    pass(`manifest devKitVersion matches VERSION.md (${currentVersion})`);
+  const currentVersion = currentIntentOSVersion(projectRoot);
+  if (manifest.intentOSVersion === currentVersion) {
+    pass(`manifest intentOSVersion matches VERSION.md (${currentVersion})`);
   } else {
-    fail(`manifest devKitVersion ${manifest.devKitVersion} does not match VERSION.md ${currentVersion}`);
+    fail(`manifest intentOSVersion ${manifest.intentOSVersion} does not match VERSION.md ${currentVersion}`);
   }
 }
 
@@ -211,7 +211,7 @@ function checkCopyRules(manifest) {
     ...(manifest.copyRules.files || []).map((rule) => rule.target),
   ]);
   for (const requiredTarget of [
-    ".ai-native/dev-kit-manifest.json",
+    ".intentos/intentos-manifest.json",
     "scripts/lib/manifest.mjs",
     "scripts/check-ai-workflow.mjs",
     "scripts/workflow-next.mjs",
@@ -236,7 +236,7 @@ function checkTargetGroups(manifest) {
     fail(`manifest targetFull missing targetCore path(s): ${missingFromFull.join(", ")}`);
   }
 
-  for (const requiredTarget of [".ai-native/dev-kit-manifest.json", "scripts/lib/manifest.mjs"]) {
+  for (const requiredTarget of [".intentos/intentos-manifest.json", "scripts/lib/manifest.mjs"]) {
     if (targetCore.includes(requiredTarget) && targetFull.includes(requiredTarget)) {
       pass(`manifest target groups include ${requiredTarget}`);
     } else {
@@ -347,7 +347,7 @@ function checkScriptConsumption() {
   const consumers = [
     ["scripts/check-ai-workflow.mjs", "targetRequiredPaths(projectRoot, workflowMode"],
     ["scripts/workflow-next.mjs", "manifestWorkflowRequiredPaths(projectRoot"],
-    ["scripts/check-dev-kit.mjs", "sourceRequiredPaths(kitRoot"],
+    ["scripts/check-intentos.mjs", "sourceRequiredPaths(kitRoot"],
     ["scripts/init-project.mjs", "manifestCopyRules(kitRoot"],
     ["scripts/init-project.mjs", "workflowVersionAssets(kitRoot"],
     ["scripts/init-project.mjs", "manifestGroup(kitRoot, \"workflowDirs\""],
@@ -362,8 +362,8 @@ function checkScriptConsumption() {
   }
 }
 
-if (projectRoot !== kitRoot && !fs.existsSync(path.join(projectRoot, "scripts", "check-dev-kit.mjs"))) {
-  fail("check-manifest must run at the dev-kit repository root");
+if (projectRoot !== kitRoot && !fs.existsSync(path.join(projectRoot, "scripts", "check-intentos.mjs"))) {
+  fail("check-manifest must run at the intentos repository root");
   exitIfFailed();
 }
 

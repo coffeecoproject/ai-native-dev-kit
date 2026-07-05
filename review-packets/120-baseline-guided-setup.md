@@ -22,7 +22,7 @@ Platform baseline state: topic lists only
 
 Industrial baseline state: opt-in, selected-only
 
-Baseline level: dev-kit release governance
+Baseline level: intentos release governance
 
 ## Reviewer Focus
 

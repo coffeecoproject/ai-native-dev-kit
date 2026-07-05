@@ -4,7 +4,7 @@
 
 1.20.0 adds a read-only workflow adapter path for existing projects.
 
-It helps Codex explain how AI Native workflow should connect to a project that
+It helps Codex explain how IntentOS workflow should connect to a project that
 already has its own rules, docs, gates, release process, evidence, or hooks,
 without copying a second workflow system over it.
 
@@ -24,7 +24,7 @@ without copying a second workflow system over it.
 ## Allowed Claims
 
 - 1.20.0 helps Codex recommend workflow use for existing projects before writes.
-- 1.20.0 maps existing workflow assets to AI Native workflow concepts.
+- 1.20.0 maps existing workflow assets to IntentOS workflow concepts.
 - 1.20.0 keeps adapter recommendations read-only by default.
 - 1.20.0 checks recorded maps for write authorization and overclaim risks.
 

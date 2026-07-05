@@ -21,7 +21,7 @@ This release makes IntentOS easier to understand from the repository itself. REA
 - `README.md` and `README.zh-CN.md` now present IntentOS as the product name and keep the homepage focused on positioning, starting paths, common commands, safety boundaries, and documentation entry points.
 - Historical `docs/*-1.*-plan.md` files now live under `docs/plans/`.
 - Roadmap documents now live under `docs/roadmaps/`.
-- `dev-kit-manifest.json`, version metadata, and self-check paths are aligned with the new documentation structure.
+- `intentos-manifest.json`, version metadata, and self-check paths are aligned with the new documentation structure.
 
 ## Boundary
 

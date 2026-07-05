@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-This plan turns AI Native Dev Kit output from technical status reports into decision-ready guidance for humans. The goal is not to add a new governance layer. The goal is to make every important adoption, baseline, review, launch, and migration result answer: what is the conclusion, what can the human choose, what happens after each choice, what is recommended, and what AI must not do yet.
+This plan turns IntentOS output from technical status reports into decision-ready guidance for humans. The goal is not to add a new governance layer. The goal is to make every important adoption, baseline, review, launch, and migration result answer: what is the conclusion, what can the human choose, what happens after each choice, what is recommended, and what AI must not do yet.
 
 ## Problem
 
@@ -55,7 +55,7 @@ This upgrade must not:
 - weaken patch classification defaults
 - change Risk Gate or Human Approval semantics
 - make every task use heavier artifacts
-- bind the dev kit to a specific private project
+- bind the IntentOS to a specific private project
 - replace existing governed project rules
 - add external GPT/API automation
 - force every project to install all workflow assets
@@ -283,7 +283,7 @@ Required change:
 
 These files keep the behavior from drifting:
 
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `scripts/score-output-quality.mjs`
 - `test-fixtures/output-quality/`
 - `examples/1.1-guided-adoption/`
@@ -320,7 +320,7 @@ Work:
 
 Validation:
 
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ### Phase 2: Upgrade Project Entry Outputs
@@ -341,7 +341,7 @@ Work:
 
 Validation:
 
-- generated project smoke in `check-dev-kit`
+- generated project smoke in `check-intentos`
 - `node scripts/cli.mjs start <fixture>`
 - `node scripts/cli.mjs baseline <fixture>`
 - `node scripts/workflow-next.mjs <fixture>`
@@ -400,14 +400,14 @@ Prevent future output drift back into technical-only feedback.
 
 Work:
 
-- extend `check-dev-kit.mjs`
+- extend `check-intentos.mjs`
 - extend `score-output-quality.mjs` if needed
 - add golden / bad fixture coverage
 - add release evidence under `releases/1.9.0/`
 
 Validation:
 
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `node scripts/check-fixtures.mjs`
 - `git diff --check`
 
@@ -460,7 +460,7 @@ Recommended choice: B
 
 Can AI continue now: limited
 
-What I need from you: Confirm whether AI may write one adapter document that maps AI Native concepts to the existing project rules.
+What I need from you: Confirm whether AI may write one adapter document that maps IntentOS concepts to the existing project rules.
 
 Options:
 
@@ -559,7 +559,7 @@ Before implementation, decide:
 1. Should `Human Decision Summary` be required in every template, or only decision-heavy templates?
 2. Should `workflow-next --format human` include option tables by default, or only when blocked / guarded?
 3. Should `start-project` and `baseline-project` share a common renderer to prevent drift?
-4. Should `score-output-quality.mjs` enforce option tables, or should `check-dev-kit.mjs` only check markers?
+4. Should `score-output-quality.mjs` enforce option tables, or should `check-intentos.mjs` only check markers?
 5. Should this release be `1.9.0` or `1.8.2`?
 
 Recommended answers:
@@ -567,7 +567,7 @@ Recommended answers:
 1. Require it for decision-heavy templates first.
 2. Include option tables when blocked, guarded, pending migration, or multiple paths are valid.
 3. Yes, but only if the shared renderer stays small.
-4. Start with `check-dev-kit.mjs` markers and add stricter output-quality fixtures later.
+4. Start with `check-intentos.mjs` markers and add stricter output-quality fixtures later.
 5. Use `1.9.0` because it changes the human-facing output contract across multiple entry points.
 
 ## Final Recommendation

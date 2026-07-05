@@ -1,6 +1,6 @@
 # Git Boundary Review Checklist
 
-Use this checklist before committing AI Native workflow, context, or review artifacts.
+Use this checklist before committing IntentOS workflow, context, or review artifacts.
 
 ## Include
 

@@ -6,7 +6,7 @@ slug: fixture-matrix-expansion
 title: Fixture Matrix Expansion
 status: ready
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 request: requests/040-fixture-matrix-expansion.md
 task_level: L2
 ---
@@ -32,7 +32,7 @@ The fixture system needs a matrix shape and clearer diagnostics so checker behav
 
 - Existing checker behavior is the source of truth.
 - Generated-project fixture setup is acceptable as runner plumbing.
-- `check-dev-kit.mjs` remains the full self-check and is not invoked as a fixture case to avoid recursion.
+- `check-intentos.mjs` remains the full self-check and is not invoked as a fixture case to avoid recursion.
 
 ## Direction Risks
 

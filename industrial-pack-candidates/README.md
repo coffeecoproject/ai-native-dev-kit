@@ -13,5 +13,5 @@ Candidate material may be incomplete, duplicated, or still coupled to older nami
 - purity review for project-specific facts
 - at least one dogfood pass with a real or representative project
 
-Do not treat candidate packs as official AI Native Dev Kit workflow assets.
+Do not treat candidate packs as official IntentOS workflow assets.
 

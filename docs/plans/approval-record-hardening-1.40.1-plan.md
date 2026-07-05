@@ -17,7 +17,7 @@ Unified Apply Plan -> Controlled Apply Readiness -> Approval Record
 The next risk is not missing capability. The next risk is complexity drift:
 
 - user-facing entry points can become too technical;
-- `IntentOS`, `AI Native Dev Kit`, and `ai-native` naming can look inconsistent;
+- `IntentOS`, `IntentOS`, and `intentos` naming can look inconsistent;
 - artifact directories can feel flat without a lifecycle map;
 - O0 / BL0 users can be exposed to heavy governance concepts too early;
 - Approval Record path and expiry boundaries need stronger bad-fixture coverage.
@@ -28,8 +28,8 @@ The next risk is not missing capability. The next risk is complexity drift:
 
 1. Clarify the naming contract:
    - `IntentOS` is the product/workflow-system name.
-   - `AI Native Dev Kit` is the historical repository/package lineage.
-   - `ai-native` remains a compatibility CLI/package alias for now.
+   - `IntentOS` is the historical repository/package lineage.
+   - `intentos` remains a compatibility CLI/package alias for now.
 2. Clarify that `1.4.0` was a historical Project Memory phase and the current line is `1.40.x`.
 3. Add an artifact lifecycle map so maintainers know when each artifact class appears.
 4. Add an O0 / BL0 lightweight path so small projects do not see heavy governance by default.
@@ -67,7 +67,7 @@ The next risk is not missing capability. The next risk is complexity drift:
 3. Evidence and examples:
    - add new bad fixtures;
    - update `test-fixtures/fixture-cases.json`;
-   - update `scripts/check-dev-kit.mjs` source-evidence checks.
+   - update `scripts/check-intentos.mjs` source-evidence checks.
 4. Version and release:
    - bump package, manifest, workflow version, and version docs to `1.40.1`;
    - add release evidence under `releases/1.40.1`.
@@ -76,7 +76,7 @@ The next risk is not missing capability. The next risk is complexity drift:
    - run Approval Record checker on source, example, and bad fixtures;
    - run fixture matrix;
    - run manifest check;
-   - run full Dev Kit self-check;
+   - run full IntentOS self-check;
    - run `git diff --check`.
 
 ## Success Criteria

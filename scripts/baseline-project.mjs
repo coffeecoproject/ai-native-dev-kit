@@ -229,7 +229,7 @@ function recommendBaselineLevel(classification, profiles) {
   if (classification === "DEV_KIT_REPOSITORY") {
     return {
       level: "Not applicable for target-project adoption",
-      reason: "This is the AI Native Dev Kit source repository. Run dev-kit self-check for maintenance, or run baseline against a target project.",
+      reason: "This is the IntentOS source repository. Run intentos self-check for maintenance, or run baseline against a target project.",
       industrialPacks: "Not applicable",
     };
   }

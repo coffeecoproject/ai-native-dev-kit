@@ -94,7 +94,7 @@ Self-check covers generated frontmatter, invalid frontmatter, legacy warning, an
 - Run `node scripts/check-manifest.mjs`.
 - Run task-scoped workflow artifact, goal mode, subagent orchestration, review loop, next-step boundary, and output quality checks.
 - Run `node scripts/check-fixtures.mjs`.
-- Run `node scripts/check-dev-kit.mjs`.
+- Run `node scripts/check-intentos.mjs`.
 
 ## Rollback Notes
 

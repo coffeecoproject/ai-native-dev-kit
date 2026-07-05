@@ -13,7 +13,7 @@ It does not add a new governance layer. It clarifies how source-only users start
 ## Changes
 
 - Source-only adoption now lists required local tools: Node.js `>=22`, npm, and git.
-- CLI help and command help now show `Command aliases: intentos / ai-native / ai-native-dev-kit`.
+- CLI help and command help now show `Command: intentos`.
 - 1.68.1 self-check wording now matches actual dirty-project behavior: dirty projects stop first; after human review, workflow asset updates remain plan-first.
 - Added `docs/plans/product-adoption-trust-finalization-1.68.2-plan.md`.
 - Recorded the future `docs/plans/existing-project-native-adoption-decision-1.69-plan.md` so 1.69 execution can start from a fixed plan instead of conversation memory.
@@ -42,7 +42,7 @@ It does not add a new governance layer. It clarifies how source-only users start
 ## Evidence Status
 
 - Version metadata points to `1.68.2`.
-- CLI help prints `Command aliases: intentos / ai-native / ai-native-dev-kit`.
+- CLI help prints `Command: intentos`.
 - Source-only adoption documents Node.js `>=22`, npm, and git prerequisites.
 - 1.68.1 dirty-project self-check wording has been corrected to match stop-first behavior.
 - 1.69 planning is recorded as future execution guidance only; no 1.69 behavior is active in this release.
@@ -59,11 +59,11 @@ It does not add a new governance layer. It clarifies how source-only users start
 ## Verification
 
 - `node --check scripts/cli.mjs`
-- `node --check scripts/check-dev-kit.mjs`
+- `node --check scripts/check-intentos.mjs`
 - `node scripts/cli.mjs --version`
 - `node scripts/cli.mjs --help`
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 Detailed results are recorded in [self-check-report.md](self-check-report.md).

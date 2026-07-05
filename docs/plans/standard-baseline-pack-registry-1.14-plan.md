@@ -464,7 +464,7 @@ Update:
 - `docs/reference/checkers.md`
 - `docs/reference/industrial-packs.md`
 - `docs/reference/standard-baseline-packs.md`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `VERSION.md`
 
 Add:
@@ -484,11 +484,11 @@ Avoid making README a dense technical index.
 
 Add explicit checks to:
 
-- `.github/workflows/dev-kit-pr-checks.yml`
-- `.github/workflows/dev-kit-release-checks.yml`
+- `.github/workflows/intentos-pr-checks.yml`
+- `.github/workflows/intentos-release-checks.yml`
 - `platforms/github/ci-ai-workflow.yml`
 - `package.json` `verify`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 Minimum CI commands:
 
@@ -608,7 +608,7 @@ Verification:
 
 - `npm run verify`
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ### Phase 5: Full Review

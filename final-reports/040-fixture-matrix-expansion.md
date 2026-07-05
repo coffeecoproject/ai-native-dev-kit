@@ -30,7 +30,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-fixtur
 node scripts/check-review-loop.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/check-next-step-boundary.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/score-output-quality.mjs . --min-score 80
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.
@@ -45,7 +45,7 @@ Result: PASS.
 
 ## Risks Remaining
 
-Fixture runtime is higher because generated-project setup is now used in selected cases. This is acceptable for dev-kit self-check but should be watched before adding many more generated-project cases.
+Fixture runtime is higher because generated-project setup is now used in selected cases. This is acceptable for intentos self-check but should be watched before adding many more generated-project cases.
 
 ## Next-Step Suggestions
 

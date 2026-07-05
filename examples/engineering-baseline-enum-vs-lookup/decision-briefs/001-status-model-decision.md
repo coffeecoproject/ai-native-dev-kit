@@ -26,4 +26,4 @@ Use a state machine for transition-controlled status values. Keep external raw s
 
 Status: APPROVED
 
-Owner: dev-kit example owner
+Owner: intentos example owner

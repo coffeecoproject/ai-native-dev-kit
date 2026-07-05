@@ -30,7 +30,7 @@ Reviewer: local read-only review pass
 
 | ID | Severity | Category | Finding | Evidence | Proposed action | Owner | Status |
 |---|---|---|---|---|---|---|---|
-| F1 | P2 | NO_ACTION | No blocking review finding because CLI is a thin facade, package remains private, and self-check covers command routing | `scripts/cli.mjs`, `package.json`, and `scripts/check-dev-kit.mjs` | No change needed because verification covers CLI smoke behavior | Codex | DONE |
+| F1 | P2 | NO_ACTION | No blocking review finding because CLI is a thin facade, package remains private, and self-check covers command routing | `scripts/cli.mjs`, `package.json`, and `scripts/check-intentos.mjs` | No change needed because verification covers CLI smoke behavior | Codex | DONE |
 
 ## Human Decision Queue
 

@@ -91,7 +91,7 @@ Run:
 ```bash
 node scripts/check-conversation-native-ask.mjs .
 node scripts/check-conversation-native-ask.mjs examples/1.37-conversation-native-ask
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify:release
 git diff --check
 ```

@@ -126,7 +126,7 @@ function readJson(filePath, label) {
 
 function registryRoot(root) {
   const candidates = [
-    path.join(root, ".ai-native", "standard-baseline-packs"),
+    path.join(root, ".intentos", "standard-baseline-packs"),
     path.join(root, "standard-baseline-packs"),
     path.join(kitRoot, "standard-baseline-packs"),
   ];

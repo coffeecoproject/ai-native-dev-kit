@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-The phase is successful if Dev Kit can prove its product boundary and claim boundary with deterministic checks.
+The phase is successful if IntentOS can prove its product boundary and claim boundary with deterministic checks.
 
 ## Acceptance Checks
 
@@ -12,7 +12,7 @@ The phase is successful if Dev Kit can prove its product boundary and claim boun
 | Claim control | `node scripts/check-claim-control.mjs .` | PASS |
 | Manifest | `node scripts/check-manifest.mjs` | PASS |
 | Fixtures | `node scripts/check-fixtures.mjs` | PASS |
-| Dev Kit self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| IntentOS self-check | `node scripts/check-intentos.mjs` | PASS |
 | Syntax | `node --check scripts/check-product-baseline.mjs` and `node --check scripts/check-claim-control.mjs` | PASS |
 
 ## Negative Checks

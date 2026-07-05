@@ -39,7 +39,7 @@ Before implementation, Codex must re-read:
 - `README.zh-CN.md`
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `core/change-impact-coverage.md`
 - `core/execution-review-closure.md`
 - `core/unified-closure-model.md`
@@ -61,7 +61,7 @@ Before implementation, Codex must re-read:
 - `scripts/check-closure-decision.mjs`
 - `scripts/check-adoption-assurance.mjs`
 - `scripts/check-release-plan.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 Private project observations may be used only as anonymized calibration. They must not become hard-coded project rules.
 
@@ -229,7 +229,7 @@ The first version should support these execution kinds:
 | `BASELINE_SETUP` | Engineering/environment/baseline setup | baseline selection, baseline checks, rule comparison |
 | `DOCUMENT_GOVERNANCE` | Document source-of-truth, archive, lifecycle work | document lifecycle, archive apply |
 | `RELEASE_PREPARATION` | Launch/release readiness planning | launch view, release plan, handoff, release execution plan |
-| `WORKFLOW_CAPABILITY` | IntentOS feature or governance capability change | dev-kit self-check, fixtures, release evidence |
+| `WORKFLOW_CAPABILITY` | IntentOS feature or governance capability change | intentos self-check, fixtures, release evidence |
 
 Unknown execution kinds must default to `NEEDS_HUMAN_DECISION` or `PARTIAL_DONE`, not `VERIFIED_DONE`.
 
@@ -745,14 +745,14 @@ node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-cha
 node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/old-project-intentos-adoption --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence
 node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/safe-copy-patch --require-structured-evidence --require-evidence-refs --require-actual-diff
 node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/patch-smell-backend-only --require-structured-evidence
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
 
 Bad fixtures must fail for the expected reasons.
 
-If any full command is blocked by local environment limits, record the exact failure and run the nearest safe subset. Do not mark 1.72 complete if the resolver, checker, strict examples, bad fixtures, manifest, or dev-kit self-check fail.
+If any full command is blocked by local environment limits, record the exact failure and run the nearest safe subset. Do not mark 1.72 complete if the resolver, checker, strict examples, bad fixtures, manifest, or intentos self-check fail.
 
 ## Review Checklist
 

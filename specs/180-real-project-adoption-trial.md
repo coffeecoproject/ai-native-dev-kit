@@ -22,11 +22,11 @@ Done
 
 ## Problem
 
-The dev kit must support existing governed projects without treating them like greenfield projects. It also needs a governance mechanism for patch-like work so Codex does not keep escalating issues through small local fixes when the change is structural or requires human judgment.
+The IntentOS must support existing governed projects without treating them like greenfield projects. It also needs a governance mechanism for patch-like work so Codex does not keep escalating issues through small local fixes when the change is structural or requires human judgment.
 
 ## User Story
 
-As a user applying the dev kit to an existing project,
+As a user applying the IntentOS to an existing project,
 I want Codex to inspect the project, decide whether it can write workflow assets, and classify the scale of any repair,
 so that I only need to make meaningful decisions instead of operating the workflow manually.
 
@@ -146,8 +146,8 @@ Not applicable.
 - Bad fixtures fail with expected reasons.
 - README and usage docs explain the user-facing behavior in non-specialist language.
 - Existing governed projects are routed to mapping/adapter decisions instead of direct initialization.
-- Equivalent baseline files can be detected when canonical dev-kit baseline names are not present.
-- Full dev-kit self-check passes.
+- Equivalent baseline files can be detected when canonical intentos baseline names are not present.
+- Full intentos self-check passes.
 
 ## Test Plan
 

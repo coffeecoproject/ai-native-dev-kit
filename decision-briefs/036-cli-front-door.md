@@ -2,12 +2,12 @@
 
 ## Human Summary
 
-The decision for phase `0.36.0` is to add a local CLI front door now, but keep package distribution and migration behavior deferred. The CLI can make the dev kit easier to use, but it must stay a facade over existing scripts and must not become a second workflow engine.
+The decision for phase `0.36.0` is to add a local CLI front door now, but keep package distribution and migration behavior deferred. The CLI can make the IntentOS easier to use, but it must stay a facade over existing scripts and must not become a second workflow engine.
 
 ## Current Status
 
 - Decision: add private package metadata and a local CLI facade in phase `0.36.0`.
-- Evidence: `package.json`, `scripts/cli.mjs`, README CLI guidance, and `scripts/check-dev-kit.mjs` CLI smoke checks.
+- Evidence: `package.json`, `scripts/cli.mjs`, README CLI guidance, and `scripts/check-intentos.mjs` CLI smoke checks.
 - Risk level: medium, because package metadata can be mistaken for approval to publish and a CLI can accidentally hide lower-level script behavior.
 
 ## What I Need From You
@@ -16,7 +16,7 @@ No additional decision is needed to close this phase. A future human decision is
 
 ## Recommended Next Step
 
-Close `0.36.0` after CLI smoke checks and dev-kit self-check pass, then start `0.37.0` manifest authoritative asset source only from a new request and task card.
+Close `0.36.0` after CLI smoke checks and intentos self-check pass, then start `0.37.0` manifest authoritative asset source only from a new request and task card.
 
 ## What AI Can Do Safely
 
@@ -55,9 +55,9 @@ Close `0.36.0` after CLI smoke checks and dev-kit self-check pass, then start `0
 
 ## Technical Details
 
-The CLI command registry may map commands to existing scripts and read manifest metadata for display. It must not read manifest groups as an authoritative asset source in this phase. Write commands must print their underlying command before execution, and recursive commands such as `self-check` must be covered through dry-run inside dev-kit self-check.
+The CLI command registry may map commands to existing scripts and read manifest metadata for display. It must not read manifest groups as an authoritative asset source in this phase. Write commands must print their underlying command before execution, and recursive commands such as `self-check` must be covered through dry-run inside intentos self-check.
 
-Evidence refs: `package.json`, `scripts/cli.mjs`, `scripts/check-dev-kit.mjs`, `README.md`, `README.zh-CN.md`, and `releases/0.36.0/phase-report.md`.
+Evidence refs: `package.json`, `scripts/cli.mjs`, `scripts/check-intentos.mjs`, `README.md`, `README.zh-CN.md`, and `releases/0.36.0/phase-report.md`.
 
 ## Audit Notes
 

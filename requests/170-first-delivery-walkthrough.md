@@ -2,11 +2,11 @@
 
 ## Raw Request
 
-原始需求：完整模拟一个基础用户从“想做预约 App”开始，如何被 AI Native Dev Kit 引导到可交付的第一版；过程中使用 subagent 编排，并避免主线漂移。
+原始需求：完整模拟一个基础用户从“想做预约 App”开始，如何被 IntentOS 引导到可交付的第一版；过程中使用 subagent 编排，并避免主线漂移。
 
 ## User / Customer
 
-AI Native Dev Kit 的使用者，尤其是技术基础较弱、希望用自然语言让 Codex 协助开发项目的人。
+IntentOS 的使用者，尤其是技术基础较弱、希望用自然语言让 Codex 协助开发项目的人。
 
 ## Problem
 

@@ -1,4 +1,4 @@
-# AI Native Glossary
+# IntentOS Glossary
 
 ## Core Terms
 

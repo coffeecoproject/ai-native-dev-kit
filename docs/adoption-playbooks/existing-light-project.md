@@ -4,7 +4,7 @@ Use this playbook when a project already exists but does not have strong governa
 
 ## Goal
 
-Add AI Native governance without rewriting the project.
+Add IntentOS governance without rewriting the project.
 
 ## Rule
 

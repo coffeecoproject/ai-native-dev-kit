@@ -12,11 +12,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -255,7 +255,7 @@ function exists(relativePath) {
 function readResolved(relativePath) {
   const sourcePath = path.join(projectRoot, relativePath);
   if (fs.existsSync(sourcePath)) return fs.readFileSync(sourcePath, "utf8");
-  const targetPath = path.join(projectRoot, ".ai-native", relativePath);
+  const targetPath = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(targetPath)) return fs.readFileSync(targetPath, "utf8");
   return "";
 }
@@ -263,7 +263,7 @@ function readResolved(relativePath) {
 function resolveAsset(relativePath) {
   const sourcePath = path.join(projectRoot, relativePath);
   if (fs.existsSync(sourcePath)) return sourcePath;
-  const targetPath = path.join(projectRoot, ".ai-native", relativePath);
+  const targetPath = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(targetPath)) return targetPath;
   return "";
 }
@@ -284,7 +284,7 @@ function displayAsset(requested, resolved) {
 function markdownFiles(relativeDir) {
   const dirs = [
     path.join(projectRoot, relativeDir),
-    path.join(projectRoot, ".ai-native", relativeDir),
+    path.join(projectRoot, ".intentos", relativeDir),
   ];
   const files = [];
   for (const dir of dirs) {

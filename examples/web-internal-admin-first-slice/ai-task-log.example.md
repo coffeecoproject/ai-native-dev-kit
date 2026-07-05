@@ -51,7 +51,7 @@ High
 
 - First slices should name the forbidden state when permission or tenant scope is involved.
 
-## Dev Kit Updates Needed
+## IntentOS Updates Needed
 
 - [ ] template
 - [ ] prompt
@@ -66,10 +66,10 @@ High
 - [ ] repeated issue, create `workflow-improvements/`
 - [ ] high-impact issue, create `workflow-improvements/`
 - [ ] repeated execution pattern, evaluate `skill-candidates/`
-- [ ] candidate for `dev-kit-proposals/`
+- [ ] candidate for `intentos-proposals/`
 
 ## Related Follow-up
 
 - Workflow improvement: none
 - Skill candidate: none
-- Dev kit proposal: none
+- IntentOS proposal: none

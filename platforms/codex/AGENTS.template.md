@@ -26,13 +26,13 @@ Do not implement vague requests directly.
 
 ## Bootstrap Entry
 
-When the user asks to configure, apply, initialize, inject, install, or bootstrap the AI Native workflow, treat that as execution bootstrap intent.
+When the user asks to configure, apply, initialize, inject, install, or bootstrap the IntentOS workflow, treat that as execution bootstrap intent.
 
 Execution bootstrap intent allows workflow and governance asset setup only. Do not modify business code during bootstrap.
 
 When the user asks to look, review, evaluate, discuss, or not execute yet, treat that as discussion-only intent and do not write files.
 
-For bootstrap work, first use `.ai-native/prompts/bootstrap-agent.md` when present, then run:
+For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when present, then run:
 
 ```bash
 node scripts/start-project.mjs .
@@ -47,7 +47,7 @@ node scripts/new-workflow-item.mjs --type real-adoption-trial-report --name gove
 node scripts/check-real-adoption-trial.mjs .
 ```
 
-Real adoption reports are not permission to run `init-project`, update workflow assets, edit `AGENTS.md`, or add `.ai-native/`.
+Real adoption reports are not permission to run `init-project`, update workflow assets, edit `AGENTS.md`, or add `.intentos/`.
 
 After adoption classification, use baseline setup when project-specific engineering or environment rules are not clear:
 
@@ -80,7 +80,7 @@ Use the result to decide the next safe workflow path. Do not treat guidance as p
 
 ## Delivery Path Governance
 
-Use `.ai-native/core/delivery-path-governance.md` when Codex needs to say whether the project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked.
+Use `.intentos/core/delivery-path-governance.md` when Codex needs to say whether the project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked.
 
 Run:
 
@@ -93,7 +93,7 @@ A Delivery Path Report is read-only. It does not write files, approve implementa
 
 ## Debt & Knowledge Handoff
 
-Use `.ai-native/core/debt-knowledge-handoff.md` when work is paused, interrupted, leaves known debt, or needs reliable next-run context.
+Use `.intentos/core/debt-knowledge-handoff.md` when work is paused, interrupted, leaves known debt, or needs reliable next-run context.
 
 Run:
 
@@ -106,7 +106,7 @@ A Debt & Knowledge Handoff Report records debt level, verification notes, files 
 
 ## Document Archive Apply
 
-Use `.ai-native/core/document-archive-apply.md` only after Document Lifecycle has produced archive suggestions that may be ready for controlled execution.
+Use `.intentos/core/document-archive-apply.md` only after Document Lifecycle has produced archive suggestions that may be ready for controlled execution.
 
 Run:
 
@@ -119,7 +119,7 @@ An Archive Apply Plan records the planned archive actions, link-check plan, arch
 
 ## Unified Apply Plan
 
-Use `.ai-native/core/unified-apply-plan.md` before applying any recommendation that may write target-project files.
+Use `.intentos/core/unified-apply-plan.md` before applying any recommendation that may write target-project files.
 
 Run:
 
@@ -132,7 +132,7 @@ A Unified Apply Plan records proposed writes, source evidence, human-only or blo
 
 ## Controlled Apply Readiness
 
-Use `.ai-native/core/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future human-approved controlled apply step.
+Use `.intentos/core/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future human-approved controlled apply step.
 
 Run:
 
@@ -145,7 +145,7 @@ Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversi
 
 ## Project Hook Policy
 
-Use `.ai-native/core/hook-policy.md` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks.
+Use `.intentos/core/hook-policy.md` before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks.
 
 Run:
 
@@ -184,7 +184,7 @@ When a task card exists:
 
 ## Project Onboarding
 
-Before the first non-trivial implementation, use `.ai-native/prompts/project-onboarding-agent.md` to draft project onboarding documents from conversation.
+Before the first non-trivial implementation, use `.intentos/prompts/project-onboarding-agent.md` to draft project onboarding documents from conversation.
 
 AI drafts. Humans decide.
 
@@ -209,7 +209,7 @@ Use `--strict` only after the human confirms onboarding decisions.
 
 ## Engineering Baseline
 
-Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.ai-native/core/engineering-baseline.md` when present.
+Before structural, typing, schema, API, domain, permission, migration, dependency, or state-model changes, read `docs/engineering-baseline.md` and `.intentos/core/engineering-baseline.md` when present.
 
 Run:
 
@@ -225,7 +225,7 @@ If the engineering baseline is missing or ambiguous, record the gap and create a
 
 ## Environment Baseline
 
-Before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.ai-native/core/environment-baseline.md` when present.
+Before build, CI, environment variable, deployment, production config, release, rollback, secret, log, monitoring, or alert changes, read `docs/environment-baseline.md` and `.intentos/core/environment-baseline.md` when present.
 
 Run:
 
@@ -262,13 +262,13 @@ node scripts/resolve-industrial-baseline.mjs .
 node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
-Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.ai-native/templates/baseline-selection.md` and `.ai-native/templates/baseline-evidence.md` as project docs only after that decision.
+Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` as project docs only after that decision.
 
 ## Standard Baseline Packs
 
-Use `.ai-native/core/standard-baseline-pack-registry.md` and `.ai-native/docs/standard-baseline-pack-registry.md` when normal engineering baseline packs need to be selected before considering BL2 industrial overlays.
+Use `.intentos/core/standard-baseline-pack-registry.md` and `.intentos/docs/standard-baseline-pack-registry.md` when normal engineering baseline packs need to be selected before considering BL2 industrial overlays.
 
-Use `.ai-native/core/guided-baseline-selection.md` and `.ai-native/docs/guided-baseline-selection-entry.md` first when the user needs a plain-language BL0/BL1/BL2 decision card instead of internal pack details.
+Use `.intentos/core/guided-baseline-selection.md` and `.intentos/docs/guided-baseline-selection-entry.md` first when the user needs a plain-language BL0/BL1/BL2 decision card instead of internal pack details.
 
 Run:
 
@@ -281,7 +281,7 @@ node scripts/check-standard-baseline-selection.mjs .
 
 Codex may recommend standard packs, but it must not treat recommendations as pack activation, target-project write approval, implementation approval, release approval, or compliance/security/privacy approval.
 
-Before recommending standard packs, read `.ai-native/standard-baseline-packs/selection-guide.md` when present. Select the smallest relevant pack set by platform and BL level; do not select backend, release, industrial overlays, or all packs by default. For Mini Program, iOS, Android, Web, and internal admin work, recommend platform packs first and keep backend/release conditional.
+Before recommending standard packs, read `.intentos/standard-baseline-packs/selection-guide.md` when present. Select the smallest relevant pack set by platform and BL level; do not select backend, release, industrial overlays, or all packs by default. For Mini Program, iOS, Android, Web, and internal admin work, recommend platform packs first and keep backend/release conditional.
 
 ## Workflow Artifact Generation
 
@@ -307,7 +307,7 @@ When independent review is needed, run `node scripts/new-workflow-item.mjs --typ
 
 ## Guided Decision & Delivery Loop
 
-Use `.ai-native/core/decision-delegation-boundary.md`, `.ai-native/core/guided-delivery-loop.md`, and `.ai-native/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices.
+Use `.intentos/core/decision-delegation-boundary.md`, `.intentos/core/guided-delivery-loop.md`, and `.intentos/prompts/delivery-coach-agent.md` when the user gives a broad idea, mixes side ideas into current work, or should not be asked to answer raw technical choices.
 
 Recommend the smallest safe path first, explain what is out of scope, ask for one user-owned confirmation, and park side ideas instead of executing them.
 
@@ -324,9 +324,9 @@ Run `node scripts/check-guided-delivery-loop.mjs .` when Active Work Thread or G
 
 ## Change Boundary And Baseline State
 
-Use `.ai-native/core/change-boundary.md` when a task needs proof that actual changed files stayed inside the approved task scope. Create `change-boundary-report` for non-trivial edits, governed-project edits, dirty-worktree work, or any task where changed files are not obviously local.
+Use `.intentos/core/change-boundary.md` when a task needs proof that actual changed files stayed inside the approved task scope. Create `change-boundary-report` for non-trivial edits, governed-project edits, dirty-worktree work, or any task where changed files are not obviously local.
 
-Use `.ai-native/core/baseline-state.md` when Codex drafts or reviews baselines before implementation evidence exists. Keep `PROPOSED`, `PENDING_CONFIRMATION`, `EVIDENCE_REQUIRED`, and `CONFIRMED` separate.
+Use `.intentos/core/baseline-state.md` when Codex drafts or reviews baselines before implementation evidence exists. Keep `PROPOSED`, `PENDING_CONFIRMATION`, `EVIDENCE_REQUIRED`, and `CONFIRMED` separate.
 
 ```bash
 node scripts/new-workflow-item.mjs --type change-boundary-report --name <task-scope>
@@ -339,7 +339,7 @@ Do not claim a no-code or new-project baseline is implemented, verified, product
 
 ## Goal Mode
 
-Use `.ai-native/core/goal-mode.md` and `.ai-native/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.
+Use `.intentos/core/goal-mode.md` and `.intentos/prompts/goal-planner-agent.md` when the human request is broad, ambiguous, high-risk, or can route into multiple workflows.
 
 Goal Mode chooses one of:
 
@@ -363,7 +363,7 @@ A Goal Card is route selection only. It does not approve implementation, risk ac
 
 ## Subagent Orchestration
 
-Use `.ai-native/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.
+Use `.intentos/core/subagent-orchestration.md` when helper agents are used for planning, read-only research, review, repair analysis, or reporting.
 
 The default rule is: many readers, one writer. Subagent output is input, not authority. The main thread remains responsible for writes, verification, and final reporting.
 
@@ -380,7 +380,7 @@ Close or skip every subagent after handoff. Do not send a final response, commit
 
 ## Safe Launch
 
-Use `.ai-native/core/safe-launch.md` when a task is complete and the user needs to know whether it can be demonstrated, handed off internally, sent to release review, or must stop.
+Use `.intentos/core/safe-launch.md` when a task is complete and the user needs to know whether it can be demonstrated, handed off internally, sent to release review, or must stop.
 
 Run:
 
@@ -392,7 +392,7 @@ Safe Launch is a readiness recommendation. It is not production approval, legal 
 
 ## Conversation Drift
 
-Use `.ai-native/core/conversation-drift-control.md` when a user message during active work may be discussion-only, a scope change, a new task, a direct follow-up, a risk decision, review-only, or a pause/stop request.
+Use `.intentos/core/conversation-drift-control.md` when a user message during active work may be discussion-only, a scope change, a new task, a direct follow-up, a risk decision, review-only, or a pause/stop request.
 
 Run:
 
@@ -404,7 +404,7 @@ Classify before acting. Do not treat discussion, direct follow-up, scope change,
 
 ## First Delivery Walkthrough
 
-Use `.ai-native/core/first-delivery-walkthrough.md` when a broad new idea needs a complete first-slice walkthrough from human idea to demo, handoff, or not-ready recommendation.
+Use `.intentos/core/first-delivery-walkthrough.md` when a broad new idea needs a complete first-slice walkthrough from human idea to demo, handoff, or not-ready recommendation.
 
 Run:
 
@@ -416,9 +416,9 @@ First Delivery Walkthrough records the route, baseline path, artifacts, human de
 
 ## Real Project Adoption And Patch Classification
 
-Use `.ai-native/core/real-project-adoption-trial.md` before writing to an existing governed or production-sensitive project. Map existing authority first; do not overwrite local agent rules, CI, release flows, baseline docs, or evidence records.
+Use `.intentos/core/real-project-adoption-trial.md` before writing to an existing governed or production-sensitive project. Map existing authority first; do not overwrite local agent rules, CI, release flows, baseline docs, or evidence records.
 
-Use `.ai-native/core/patch-classification.md` before proposing or applying a non-trivial fix in a governed project.
+Use `.intentos/core/patch-classification.md` before proposing or applying a non-trivial fix in a governed project.
 
 Run:
 
@@ -431,7 +431,7 @@ Patch classification routes repair scale. It does not authorize implementation.
 
 ## Review Surface Governance
 
-Use `.ai-native/core/review-surface-governance.md` before non-trivial implementation, repair, or review work to decide what must be reviewed before and after execution.
+Use `.intentos/core/review-surface-governance.md` before non-trivial implementation, repair, or review work to decide what must be reviewed before and after execution.
 
 Run:
 
@@ -458,7 +458,7 @@ When a Review Loop Report exists, run `node scripts/check-review-loop.mjs . --ta
 
 ## Bounded Next-Step
 
-Use `.ai-native/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions.
+Use `.intentos/core/next-step-boundary.md` before reporting suggestions, review follow-ups, or final next actions.
 
 Codex may suggest next steps, but suggestions must be bounded, classified, and actionable.
 
@@ -476,15 +476,15 @@ When next-step suggestions are recorded, run `node scripts/check-next-step-bound
 
 ## Output Experience
 
-Use `.ai-native/core/output-protocol.md` and `.ai-native/prompts/reporter-agent.md` when reporting workflow, baseline, adoption, review, release, or automation status.
+Use `.intentos/core/output-protocol.md` and `.intentos/prompts/reporter-agent.md` when reporting workflow, baseline, adoption, review, release, or automation status.
 
 Human-facing output must lead with a human summary, current status, decision needed, next safe step, what AI can do, and what AI must not do. Keep technical fields, paths, commands, and audit notes after that.
 
-Use `.ai-native/core/glossary.md` to translate internal workflow terms when the user may not know them.
+Use `.intentos/core/glossary.md` to translate internal workflow terms when the user may not know them.
 
 ## Product Baseline And Claim Control
 
-Use `.ai-native/core/outcome-baseline.md`, `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when changing workflow behavior, release wording, public summaries, final reports, or handoffs.
+Use `.intentos/core/outcome-baseline.md`, `.intentos/core/product-baseline.md`, `.intentos/core/claim-control.md`, and `.intentos/core/assumption-register.md` when changing workflow behavior, release wording, public summaries, final reports, or handoffs.
 
 Run these checks when available:
 
@@ -498,7 +498,7 @@ Do not treat reports, Review Packets, Goal Cards, or subagent output as approval
 
 ## Project Memory And Context Governance
 
-Use `.ai-native/core/context-governance.md` and `.ai-native/core/git-boundary.md` when Codex observes reusable project context, finds stale context, or decides whether AI Native artifacts should enter Git.
+Use `.intentos/core/context-governance.md` and `.intentos/core/git-boundary.md` when Codex observes reusable project context, finds stale context, or decides whether IntentOS artifacts should enter Git.
 
 Codex may draft Learning Candidates, Context Correction Reports, and Git Boundary Reports. Humans confirm before project source of truth changes. Model memory must not override Git-backed source of truth.
 
@@ -535,18 +535,18 @@ For dirty production-governed projects, respect `workflow-next` when it returns 
 
 - L1/L2/L3 work should create an AI task log.
 - Daily automation should be scoped to this project root and may run `scripts/workflow-daily-summary.mjs`, but should only create draft workflow files when it reports `ACTION_REQUIRED`.
-- Repeated workflow problems should become workflow improvements before dev-kit changes.
+- Repeated workflow problems should become workflow improvements before intentos changes.
 - Repeated execution patterns may become Skill candidates, but active Skills must not be created, updated, installed, or enabled without explicit human approval.
-- Proposed dev-kit changes must pass proposal review and `check-dev-kit.mjs`.
+- Proposed intentos changes must pass proposal review and `check-intentos.mjs`.
 
 ## Skill Governance
 
-Use `.ai-native/templates/skill-candidate.md` for candidate drafts and `.ai-native/checklists/skill-review.md` before any Skill generation or update. Do not write to `.codex/skills/` unless the user explicitly approves that exact Skill.
+Use `.intentos/templates/skill-candidate.md` for candidate drafts and `.intentos/checklists/skill-review.md` before any Skill generation or update. Do not write to `.codex/skills/` unless the user explicitly approves that exact Skill.
 
 ## Automation Governance
 
 - Codex may propose project-scoped automations during setup, release preparation, or workflow review.
-- Proposals must be written in `automation-proposals/` using `.ai-native/templates/project-automation-proposal.md`.
+- Proposals must be written in `automation-proposals/` using `.intentos/templates/project-automation-proposal.md`.
 - Do not create, update, resume, delete, or enable Codex App automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.
 - Do not attach project automation to a parent directory unless the user explicitly approves a multi-project monitor.
 

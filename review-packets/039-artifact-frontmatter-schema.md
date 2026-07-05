@@ -37,8 +37,8 @@ Task level: L2
 - `scripts/lib/frontmatter.mjs`
 - `scripts/new-workflow-item.mjs`
 - `scripts/check-workflow-artifacts.mjs`
-- `scripts/check-dev-kit.mjs`
-- `dev-kit-manifest.json`
+- `scripts/check-intentos.mjs`
+- `intentos-manifest.json`
 
 ## Known Boundaries
 

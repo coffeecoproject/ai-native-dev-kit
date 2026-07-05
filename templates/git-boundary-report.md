@@ -23,7 +23,7 @@ What happens if you do nothing:
 
 ## Human Summary
 
-This report explains which AI Native and project context artifacts should enter Git for a specific change.
+This report explains which IntentOS and project context artifacts should enter Git for a specific change.
 
 ## Change Scope
 

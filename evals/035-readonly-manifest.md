@@ -1,4 +1,4 @@
-# Eval: Read-only Dev Kit Manifest
+# Eval: Read-only IntentOS Manifest
 
 ## Related Spec
 
@@ -26,10 +26,10 @@ The implementation must stay inside phase `0.35.0`. It must not introduce CLI, m
 
 ## Manual Review Checklist
 
-- Confirm `dev-kit-manifest.json` has `mode: read-only`.
+- Confirm `intentos-manifest.json` has `mode: read-only`.
 - Confirm `compatibilityPolicy.authoritative` is false.
 - Confirm `check-manifest` validates structure before drift.
-- Confirm `check-dev-kit` includes a positive manifest check and negative manifest checks.
+- Confirm `check-intentos` includes a positive manifest check and negative manifest checks.
 - Confirm CI runs `node scripts/check-manifest.mjs`.
 
 ## Reject Conditions
@@ -44,6 +44,6 @@ The implementation must stay inside phase `0.35.0`. It must not introduce CLI, m
 
 Workflow evidence: `tasks/035-readonly-manifest.md`, `decision-briefs/035-readonly-manifest.md`, `review-packets/035-readonly-manifest.md`, and `review-loop-reports/035-readonly-manifest.md`.
 
-Manifest evidence: `dev-kit-manifest.json`, `schemas/dev-kit-manifest.schema.json`, `scripts/lib/manifest.mjs`, and `scripts/check-manifest.mjs`.
+Manifest evidence: `intentos-manifest.json`, `schemas/intentos-manifest.schema.json`, `scripts/lib/manifest.mjs`, and `scripts/check-manifest.mjs`.
 
 Final evidence: `final-reports/035-readonly-manifest.md` and `releases/0.35.0/phase-report.md`.

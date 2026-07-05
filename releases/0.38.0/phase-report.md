@@ -29,7 +29,7 @@ node scripts/check-manifest.mjs
 git diff --check
 find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.
@@ -55,4 +55,4 @@ Final Report: `final-reports/038-init-update-safety.md`
 
 ## Rollback
 
-Rollback requires reverting `scripts/init-project.mjs`, `scripts/cli.mjs`, `scripts/check-dev-kit.mjs`, version metadata, manifest source-required entries, roadmap current phase, and `0.38.0` phase artifacts.
+Rollback requires reverting `scripts/init-project.mjs`, `scripts/cli.mjs`, `scripts/check-intentos.mjs`, version metadata, manifest source-required entries, roadmap current phase, and `0.38.0` phase artifacts.

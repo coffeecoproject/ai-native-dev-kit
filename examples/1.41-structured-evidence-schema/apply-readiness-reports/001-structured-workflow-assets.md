@@ -48,7 +48,7 @@ What I need from you: Explicit approval or rejection of A-001.
   "can_proceed_without_new_approval": false,
   "apply_plan": {
     "path": "apply-plans/001-structured-workflow-assets.md",
-    "plan_digest": "sha256:ce2c9eb1f1e2731c7098680fa1f96dcf804dd39cc7e2c55ed9edca460cf3e965"
+    "plan_digest": "sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96"
   },
   "actions": [
     {
@@ -76,11 +76,11 @@ What I need from you: Explicit approval or rejection of A-001.
     "required": true,
     "path": "git diff -- docs/structured-evidence-schema.md schemas/artifacts scripts/lib/artifact-schema.mjs",
     "step": "Revert only listed workflow governance files if validation fails.",
-    "verification": "node scripts/check-dev-kit.mjs"
+    "verification": "node scripts/check-intentos.mjs"
   },
   "verification": {
     "pre_apply": "node scripts/check-apply-plan.mjs examples/1.41-structured-evidence-schema",
-    "post_apply": "node scripts/check-dev-kit.mjs",
+    "post_apply": "node scripts/check-intentos.mjs",
     "evidence_path": "releases/1.41.0/self-check-report.md"
   },
   "boundary": {
@@ -120,14 +120,14 @@ What I need from you: Explicit approval or rejection of A-001.
 | Backup required | Yes |
 | Backup path | `git diff -- docs/structured-evidence-schema.md schemas/artifacts scripts/lib/artifact-schema.mjs` |
 | Rollback step | Revert only listed workflow governance files if validation fails |
-| Rollback verification | `node scripts/check-dev-kit.mjs` |
+| Rollback verification | `node scripts/check-intentos.mjs` |
 
 ## Verification Readiness
 
 | Field | Value |
 |---|---|
 | Pre-apply verification | `node scripts/check-apply-plan.mjs examples/1.41-structured-evidence-schema` |
-| Post-apply verification | `node scripts/check-dev-kit.mjs` |
+| Post-apply verification | `node scripts/check-intentos.mjs` |
 | Evidence path | `releases/1.41.0/self-check-report.md` |
 | Missing verification | No |
 

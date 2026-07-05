@@ -21,7 +21,7 @@ Reviewers should focus on:
 
 ## Background
 
-`1.0.0` productized the dev kit with CLI, manifest, generated-project assets, init/update safety, migration planning, checks, docs, and release evidence.
+`1.0.0` productized the IntentOS with CLI, manifest, generated-project assets, init/update safety, migration planning, checks, docs, and release evidence.
 
 `1.1.0` added Guided Adoption Entry. Codex can now run a read-only first-hour command, classify a project, recommend an adoption path, and list the decisions a human must make before setup or execution.
 

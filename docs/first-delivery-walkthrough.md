@@ -1,6 +1,6 @@
 # First Delivery Walkthrough
 
-First Delivery Walkthrough shows how the AI Native workflow behaves from the first user sentence to a bounded delivery recommendation.
+First Delivery Walkthrough shows how the IntentOS workflow behaves from the first user sentence to a bounded delivery recommendation.
 
 Use it when a user says something like:
 

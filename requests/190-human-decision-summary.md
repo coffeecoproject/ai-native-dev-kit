@@ -13,11 +13,11 @@ created_at: 2026-06-28
 
 ## Raw Request
 
-Make AI Native Dev Kit recommendations easier for non-technical users to judge after real project feedback showed that adoption and migration suggestions were correct but hard to decide on.
+Make IntentOS recommendations easier for non-technical users to judge after real project feedback showed that adoption and migration suggestions were correct but hard to decide on.
 
 ## User / Customer
 
-AI Native Dev Kit users who want Codex to handle project setup, adoption, baseline setup, migration reports, review loops, and delivery reports while humans only make choices and confirmations.
+IntentOS users who want Codex to handle project setup, adoption, baseline setup, migration reports, review loops, and delivery reports while humans only make choices and confirmations.
 
 ## Problem
 

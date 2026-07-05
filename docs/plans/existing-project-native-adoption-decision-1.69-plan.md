@@ -20,12 +20,12 @@ Before implementation, Codex must re-read:
 
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `scripts/cli.mjs`
 - `scripts/workflow-next.mjs`
 - `scripts/resolve-native-migration.mjs`
 - `scripts/resolve-existing-rule-reconciliation.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - current release records under `releases/`
 
 WorkControl observations may be used only as calibration evidence. They must not become hard-coded project rules.
@@ -78,7 +78,7 @@ PROJECT_ASSET_MIGRATION_DEPTH=ADAPTER_ONLY
 EXISTING_RULE_COMPARISON_REQUIRED=yes
 ```
 
-`doctor` should not continue into full missing-asset checks and emit a large list of missing `.ai-native` files.
+`doctor` should not continue into full missing-asset checks and emit a large list of missing `.intentos` files.
 
 Expected behavior:
 
@@ -119,7 +119,7 @@ or equivalent behavior where the resolver can internally generate a temporary na
 - installer or global CLI packaging;
 - GitHub Release publication;
 - automatic write/apply runner;
-- automatic `.ai-native` installation into governed projects;
+- automatic `.intentos` installation into governed projects;
 - automatic AGENTS / CI / hook / PR template replacement;
 - production release execution;
 - any project-specific WorkControl hardcoding.
@@ -236,7 +236,7 @@ Update `doctor` in `scripts/cli.mjs`:
    - do not run `check-ai-workflow`;
    - print or rely on `workflow-next` output;
    - exit 0.
-3. For bootstrapped projects and dev-kit source, retain existing checks.
+3. For bootstrapped projects and intentos source, retain existing checks.
 
 The detection may use `workflow-next --json` internally or a lightweight helper.
 
@@ -271,7 +271,7 @@ Plain-language docs should say old projects can start using IntentOS mode before
 - `node --check scripts/cli.mjs`
 - `node --check scripts/resolve-existing-rule-reconciliation.mjs`
 - `node --check scripts/resolve-native-migration.mjs`
-- `node --check scripts/check-dev-kit.mjs`
+- `node --check scripts/check-intentos.mjs`
 
 ### Behavior Checks
 
@@ -307,7 +307,7 @@ Required cases:
 ### Full Verification
 
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm --silent run verify:governance`
 - `git diff --check`
 
@@ -325,7 +325,7 @@ node scripts/cli.mjs release-plan /Users/liushan/Developer/WorkControl --intent 
 Expected:
 
 - WorkControl remains unmodified.
-- `doctor` no longer emits missing `.ai-native` asset failures as the public old-project diagnosis.
+- `doctor` no longer emits missing `.intentos` asset failures as the public old-project diagnosis.
 - `reconcile-rules --auto-native` gives a real recommendation without requiring a written native migration plan.
 
 ## Release Evidence
@@ -340,7 +340,7 @@ Update:
 
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `templates/version-record.md`
 - `templates/workflow-version.json`
 - public docs / README only where needed.

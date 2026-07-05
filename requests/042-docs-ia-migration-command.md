@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 priority: P1
 task_level: L3
 ---
@@ -20,7 +20,7 @@ front door that cannot directly mutate target projects.
 
 ## User / Customer
 
-Dev kit users, Codex operators, and maintainers who need a shorter first-read README, complete
+IntentOS users, Codex operators, and maintainers who need a shorter first-read README, complete
 reference docs, adoption playbooks, and a safe migration command.
 
 ## Problem
@@ -31,7 +31,7 @@ command that can inspect and produce a plan without writing project files.
 
 ## Current Workflow
 
-Users read a long README, jump between multiple docs, and cannot use `ai-native migrate` except to
+Users read a long README, jump between multiple docs, and cannot use `intentos migrate` except to
 learn that it is not implemented yet.
 
 ## Desired Outcome
@@ -39,7 +39,7 @@ learn that it is not implemented yet.
 - README becomes a 3-minute entry.
 - Full detail moves into operator manual, references, playbooks, migration docs, FAQ, and
   troubleshooting.
-- `ai-native migrate` supports `--dry-run` and `--write-plan`.
+- `intentos migrate` supports `--dry-run` and `--write-plan`.
 - Migration command refuses to mutate target projects directly.
 
 ## Constraints

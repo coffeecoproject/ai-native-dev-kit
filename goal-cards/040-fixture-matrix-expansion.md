@@ -6,7 +6,7 @@ slug: fixture-matrix-expansion
 title: Fixture Matrix Expansion
 status: ready
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 goal_mode: IMPLEMENT_TASK
 task_level: L2
 ---
@@ -32,7 +32,7 @@ Why: The phase has an approved roadmap entry and needs concrete file changes plu
 
 ## Project State
 
-Project state: dev-kit repository
+Project state: intentos repository
 
 Workflow state: productization hardcut active
 

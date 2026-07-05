@@ -7,7 +7,7 @@ The decision for phase `0.37.0` is to let manifest become authoritative for asse
 ## Current Status
 
 - Decision: manifest may become authoritative for asset groups and safe static copy rules in phase `0.37.0`.
-- Evidence: `dev-kit-manifest.json`, `schemas/dev-kit-manifest.schema.json`, `scripts/check-manifest.mjs`, `scripts/init-project.mjs`, `scripts/check-ai-workflow.mjs`, `scripts/workflow-next.mjs`, and `scripts/check-dev-kit.mjs`.
+- Evidence: `intentos-manifest.json`, `schemas/intentos-manifest.schema.json`, `scripts/check-manifest.mjs`, `scripts/init-project.mjs`, `scripts/check-ai-workflow.mjs`, `scripts/workflow-next.mjs`, and `scripts/check-intentos.mjs`.
 - Risk level: medium, because manifest authority changes internal behavior used by generated projects.
 
 ## What I Need From You
@@ -55,7 +55,7 @@ Close `0.37.0` after authoritative manifest checks and generated-project smoke p
 
 Manifest authority covers `groups.sourceRequired`, `groups.targetCore`, `groups.targetFull`, `groups.workflowDirs`, `groups.workflowVersionAssets`, and `copyRules`. Existing approval-sensitive functions remain in code and are verified by generated-project smoke and self-check.
 
-Evidence refs: `dev-kit-manifest.json`, `scripts/check-manifest.mjs`, `scripts/check-dev-kit.mjs`, `scripts/init-project.mjs`, and `releases/0.37.0/phase-report.md`.
+Evidence refs: `intentos-manifest.json`, `scripts/check-manifest.mjs`, `scripts/check-intentos.mjs`, `scripts/init-project.mjs`, and `releases/0.37.0/phase-report.md`.
 
 ## Audit Notes
 

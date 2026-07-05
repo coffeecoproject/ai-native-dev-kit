@@ -21,14 +21,14 @@ READY
 
 ## Problem Summary
 
-The dev kit needs to handle real governed projects without defaulting to init, overwrite, or patch-style repair. The result should be a reusable read-only adoption and patch-classification workflow.
+The IntentOS needs to handle real governed projects without defaulting to init, overwrite, or patch-style repair. The result should be a reusable read-only adoption and patch-classification workflow.
 
 ## Missing Information
 
 - No permission to write to the inspected real project.
 - No approval to disclose target project identity.
 - No approval to change target CI, release, baseline, or production gates.
-- No human decision yet on which mapped dev-kit capabilities should later be adopted by the target project.
+- No human decision yet on which mapped intentos capabilities should later be adopted by the target project.
 
 ## Assumptions
 
@@ -41,13 +41,13 @@ The dev kit needs to handle real governed projects without defaulting to init, o
 
 - Accidentally turning read-only assessment into target project writes.
 - Publishing private project names, local paths, or internal details.
-- Treating missing canonical dev-kit paths as missing governance when the target project has equivalent assets.
+- Treating missing canonical intentos paths as missing governance when the target project has equivalent assets.
 - Treating patch classification as permission to implement.
 
 ## Over-design Risks
 
 - Adding a new heavy governance layer for every project.
-- Requiring all existing projects to copy `.ai-native`.
+- Requiring all existing projects to copy `.intentos`.
 - Turning one real trial into a universal production validation claim.
 - Creating another release gate instead of a bridge-layer decision.
 
@@ -66,7 +66,7 @@ Implement 1.8 as a bounded workflow upgrade: real adoption trial reports, existi
 ## Domain Model Draft
 
 - `Real Adoption Trial`: recorded read-only inspection of a real project.
-- `Existing Governance Map`: mapping from dev-kit concepts to target project assets.
+- `Existing Governance Map`: mapping from intentos concepts to target project assets.
 - `Bridge Layer Decision`: whether to use no-write mapping, docs-only bridge, thin operational bridge, or stop.
 - `Patch Classification`: pre-implementation classification of repair scale and risk.
 - `Public Evidence Status`: whether evidence is local only, sanitized, or explicitly public approved.
@@ -102,4 +102,4 @@ READY_FOR_SPEC
 
 ## Rationale
 
-The problem is clear and has concrete evidence from a read-only governed-project trial. The implementation can stay inside the dev-kit source repository while avoiding target project writes.
+The problem is clear and has concrete evidence from a read-only governed-project trial. The implementation can stay inside the intentos source repository while avoiding target project writes.

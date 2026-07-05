@@ -12,11 +12,11 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -107,7 +107,7 @@ function checkCoreContent() {
   if (!core) return;
   for (const marker of [
     "Beginner Entry Governance",
-    "users who should not need to know AI Native workflow commands",
+    "users who should not need to know IntentOS workflow commands",
     "Codex should not ask the user to choose between",
     "ask at most 3 human questions by default",
     "A Beginner Entry Card does not",
@@ -186,7 +186,7 @@ function checkSourceEvidence() {
     else fail(`1.35 beginner entry source evidence missing ${file}`);
   }
 
-  const resolver = runNode(["scripts/resolve-beginner-entry.mjs", ".", "我要维护 Dev Kit 自然语言入口"]);
+  const resolver = runNode(["scripts/resolve-beginner-entry.mjs", ".", "我要维护 IntentOS 自然语言入口"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Beginner Entry Card")
     && resolver.stdout.includes("This entry writes target files: No")) {
@@ -195,7 +195,7 @@ function checkSourceEvidence() {
     fail(`1.35 beginner entry resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
-  const resolverJson = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "我要维护 Dev Kit 自然语言入口", "--json"]);
+  const resolverJson = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "我要维护 IntentOS 自然语言入口", "--json"]);
   if (resolverJson.status === 0) {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
@@ -263,7 +263,7 @@ function resolveAsset(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct;
   if (relativePath.startsWith("core/") || relativePath.startsWith("docs/") || relativePath.startsWith("templates/") || relativePath.startsWith("checklists/") || relativePath.startsWith("prompts/")) {
-    const managed = path.join(projectRoot, ".ai-native", relativePath);
+    const managed = path.join(projectRoot, ".intentos", relativePath);
     if (fs.existsSync(managed) && fs.statSync(managed).isFile()) return managed;
   }
   return null;

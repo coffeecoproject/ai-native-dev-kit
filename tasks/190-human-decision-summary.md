@@ -26,7 +26,7 @@ L1
 
 ## Goal
 
-Upgrade AI Native Dev Kit output so users can judge Codex recommendations through clear options rather than internal status fields.
+Upgrade IntentOS output so users can judge Codex recommendations through clear options rather than internal status fields.
 
 ## Scope
 
@@ -53,7 +53,7 @@ Not allowed:
 - `workflow-next --format human`, `start`, `baseline`, and migration reports print option tables.
 - Options state file-write impact and risk.
 - Docs explain that users choose and confirm; Codex handles drafting/checking.
-- Full dev-kit checks pass.
+- Full intentos checks pass.
 
 ## Commands
 
@@ -69,7 +69,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/190-human-decision-summary.md
 node scripts/check-next-step-boundary.mjs . --task tasks/190-human-decision-summary.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

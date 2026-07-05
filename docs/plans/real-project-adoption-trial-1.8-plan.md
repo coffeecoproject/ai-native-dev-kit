@@ -4,7 +4,7 @@ Status: accepted for implementation
 
 This document defines the `1.8.0` upgrade after `1.7.0 First Delivery Walkthrough`.
 
-The goal is not to add another generic governance layer. The goal is to prove that AI Native Dev Kit can enter a real governed project in read-only mode, understand existing authority, avoid template overwrite, and classify future repair work before Codex proposes or applies a fix.
+The goal is not to add another generic governance layer. The goal is to prove that IntentOS can enter a real governed project in read-only mode, understand existing authority, avoid template overwrite, and classify future repair work before Codex proposes or applies a fix.
 
 ## 1. Theme
 
@@ -45,7 +45,7 @@ This is also where unsafe patch behavior appears. Codex may read the project cor
 
 ## 3. Trial Target Boundary
 
-The first real target is a private local candidate project. Public dev-kit evidence must describe it only as:
+The first real target is a private local candidate project. Public intentos evidence must describe it only as:
 
 ```text
 one governed production-sensitive Web project
@@ -69,9 +69,9 @@ The target is useful because it is not a blank project. It has existing governan
 - run production, deployment, migration, seed, secret, runtime, DB, SSH, release, rollback, or external-service commands
 - read raw `.env*`, secrets, private keys, tokens, credentials, certificates, or credential stores
 - run commands that may modify local DB, cache, generated files, lockfiles, or production-like state
-- copy private target details into public dev-kit evidence without explicit approval
-- overwrite existing project governance with generic AI Native templates
-- force every existing project to adopt all AI Native artifacts
+- copy private target details into public intentos evidence without explicit approval
+- overwrite existing project governance with generic IntentOS templates
+- force every existing project to adopt all IntentOS artifacts
 - claim production validation
 - claim the target project is safer merely because it was read
 - treat a read-only adoption report as implementation approval
@@ -83,7 +83,7 @@ The target is useful because it is not a blank project. It has existing governan
 The user should be able to say:
 
 ```text
-Here is a project path. Configure yourself according to AI Native Dev Kit.
+Here is a project path. Configure yourself according to IntentOS.
 ```
 
 Codex should then:
@@ -122,7 +122,7 @@ Allowed primary modes:
 
 ## 7. Bridge Layer Modes
 
-For existing governed projects, AI Native Dev Kit must not install a full duplicate governance stack by default.
+For existing governed projects, IntentOS must not install a full duplicate governance stack by default.
 
 Bridge layer modes:
 
@@ -133,7 +133,7 @@ Bridge layer modes:
 | `THIN_OPERATIONAL_BRIDGE` | write approved agent/manifest adapter that points to existing authority | adapter only, after approval |
 | `NOT_PROPOSED` | no bridge proposed yet | none |
 
-Any `AGENTS.md` or `.ai-native/` proposal must reference the target project's existing authority, such as its current agent instruction file, baseline docs, guard scripts, release process, and evidence records. The bridge is not allowed to weaken, replace, or hide target-project rules.
+Any `AGENTS.md` or `.intentos/` proposal must reference the target project's existing authority, such as its current agent instruction file, baseline docs, guard scripts, release process, and evidence records. The bridge is not allowed to weaken, replace, or hide target-project rules.
 
 ## 8. Patch Classification Governance
 
@@ -222,7 +222,7 @@ Codex produced a patch classification policy for future tasks
 Forbidden public phrasing:
 
 ```text
-<private project name> production validated by AI Native Dev Kit
+<private project name> production validated by IntentOS
 <private project name> release approved
 <private project name> security/privacy/compliance approved
 ```
@@ -391,7 +391,7 @@ node scripts/check-fixtures.mjs
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -403,7 +403,7 @@ Before any real target write:
 
 - approve exact files
 - approve whether `AGENTS.md` should be created or whether existing agent authority remains the only entry
-- approve whether `.ai-native/` should be added
+- approve whether `.intentos/` should be added
 - approve validation commands
 - approve whether public release notes may mention the target project by name
 
@@ -413,7 +413,7 @@ Default answer for public target naming is `No`.
 
 `1.8.0` is a productization and reality-check release.
 
-It should prove that AI Native Dev Kit can:
+It should prove that IntentOS can:
 
 - enter a real existing project
 - avoid replacing existing governance

@@ -49,5 +49,5 @@ Update:
 - JSON output contains `decisionTrace`, `dominantReason`, and `conflictSummary`.
 - Good examples pass `check-closure-decision`.
 - Bad fixtures fail when a decision lacks explain trace.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - `npm run verify` passes.

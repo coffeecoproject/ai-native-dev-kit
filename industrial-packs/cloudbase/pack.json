@@ -1,7 +1,7 @@
 {
   "schemaVersion": "0.2",
   "packVersion": "0.2.0",
-  "minimumDevKitVersion": "0.41.0",
+  "minimumIntentOSVersion": "0.41.0",
   "lastReviewedAt": "2026-06-27",
   "stabilityNotes": "Draft pack; requires real project dogfood, false-positive review, and strict BL2 evidence before promotion.",
   "id": "cloudbase-industrial",
@@ -105,7 +105,7 @@
     "stage": "draft",
     "stageReason": "Draft pack; requires real project dogfood, false-positive review, and strict BL2 evidence before promotion.",
     "lastMaturityReviewAt": "2026-06-27",
-    "reviewedBy": "AI Native Dev Kit maintainers",
+    "reviewedBy": "IntentOS maintainers",
     "evidenceDocs": [
       "maturity.md",
       "evidence.md",

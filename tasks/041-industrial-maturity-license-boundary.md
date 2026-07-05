@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 spec: specs/041-industrial-maturity-license-boundary.md
 eval: evals/041-industrial-maturity-license-boundary.md
 task_level: L3
@@ -71,7 +71,7 @@ node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/0
 node scripts/check-goal-mode.mjs .
 node scripts/check-subagent-orchestration.mjs .
 node scripts/check-review-loop.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -119,7 +119,7 @@ If more than three exclusions are accepted, implementation requires Human Approv
 |---|---|---|
 | permission | Only license permission wording and docs are touched; no application permission model changes. | Yes |
 | production config | The word production can appear only in claim-prevention language; no production config is touched. | Yes |
-| release | Only dev-kit phase documentation is updated; no app signing, deployment, rollback, or platform release path is touched. | Yes |
+| release | Only intentos phase documentation is updated; no app signing, deployment, rollback, or platform release path is touched. | Yes |
 
 ## Human Approval
 

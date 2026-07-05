@@ -6,7 +6,7 @@ Use this file as the stable review input for the Review Loop L2 dogfood example.
 
 Status: READY_FOR_REVIEW
 
-Prepared by: dev-kit-example
+Prepared by: intentos-example
 
 Prepared at: 2026-06-26T00:00:00.000Z
 

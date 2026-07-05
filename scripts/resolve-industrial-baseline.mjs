@@ -131,7 +131,7 @@ function readBaselineSelection(projectRoot) {
 
 function industrialPacksRoot(projectRoot) {
   const candidates = [
-    path.join(projectRoot, ".ai-native", "industrial-packs"),
+    path.join(projectRoot, ".intentos", "industrial-packs"),
     path.join(projectRoot, "industrial-packs"),
     path.resolve(__dirname, "..", "industrial-packs"),
   ];
@@ -207,7 +207,7 @@ function loadPack(projectRoot, packRoot, entry) {
 function projectRelPackDoc(pack, relPath) {
   const prefix = pack.manifestPath
     ? path.dirname(pack.manifestPath)
-    : path.join(".ai-native", "industrial-packs", pack.path || "");
+    : path.join(".intentos", "industrial-packs", pack.path || "");
   return path.join(prefix, relPath).replaceAll(path.sep, "/");
 }
 

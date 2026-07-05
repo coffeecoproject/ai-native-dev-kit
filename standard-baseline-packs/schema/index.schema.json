@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/ai-native-dev-kit/standard-baseline-pack-index.schema.json",
+  "$id": "https://example.invalid/intentos/standard-baseline-pack-index.schema.json",
   "title": "Standard Baseline Pack Index",
   "type": "object",
   "additionalProperties": false,

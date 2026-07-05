@@ -93,7 +93,7 @@ Recovery notes: Historical run plan updated to record that no helper should be r
 
 - Open only the subagents listed in the Role Roster if needed.
 - Keep reviewer, planner, and baseline agents read-only.
-- Allow only the current writer to modify approved dev-kit source paths.
+- Allow only the current writer to modify approved intentos source paths.
 - Close or mark each subagent `CLOSED` or `SKIPPED` immediately after handoff.
 
 ## Forbidden Actions
@@ -118,7 +118,7 @@ Recovery notes: Historical run plan updated to record that no helper should be r
 
 | Decision | Reason | Owner | Needed Before | Status |
 |---|---|---|---|---|
-| None for dev-kit source update | repository change already scoped | human | final response | Not needed |
+| None for intentos source update | repository change already scoped | human | final response | Not needed |
 | Target project write approval | any future bridge application to a real project | human | before target write | Deferred |
 
 ## Next Safe Step
@@ -130,7 +130,7 @@ Next action: rerun targeted governance checks and final self-check.
 Commands run:
 
 ```text
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Related files:

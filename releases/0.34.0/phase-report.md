@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Phase `0.34.0` adds first-party dev-kit CI, repository governance files, baseline freeze evidence, and self-check coverage for those assets. The phase keeps later productization work out of scope.
+Phase `0.34.0` adds first-party intentos CI, repository governance files, baseline freeze evidence, and self-check coverage for those assets. The phase keeps later productization work out of scope.
 
 ## Scope Closed
 
@@ -13,7 +13,7 @@ Phase `0.34.0` adds first-party dev-kit CI, repository governance files, baselin
 - CONTRIBUTING and SECURITY files added.
 - `0.33.0` baseline evidence added.
 - Version metadata moved to `0.34.0`.
-- `check-dev-kit` extended to validate first-party CI and governance files.
+- `check-intentos` extended to validate first-party CI and governance files.
 
 ## Verification
 
@@ -29,7 +29,7 @@ node scripts/check-review-loop.mjs . --task tasks/034-baseline-freeze-self-ci.md
 node scripts/check-next-step-boundary.mjs . --task tasks/034-baseline-freeze-self-ci.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Generated-project smoke:

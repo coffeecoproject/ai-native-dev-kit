@@ -9,7 +9,7 @@ Self-check for Engineering and Environment Baseline Guided Setup.
 ```bash
 git diff --check
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Baseline-specific Checks
@@ -33,7 +33,7 @@ Passed.
 
 - `git diff --check` passed.
 - `node scripts/check-manifest.mjs` passed.
-- `node scripts/check-dev-kit.mjs` passed.
+- `node scripts/check-intentos.mjs` passed.
 - Baseline CLI read-only entry and JSON output were verified.
 - Environment baseline checker detects obvious secret misuse.
 - Baseline enforcement checker catches missing task baseline references and missing BL2 review loop evidence.

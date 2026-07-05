@@ -35,7 +35,7 @@ Goal Mode must choose one route:
 | Mode | Use when | What Codex may do |
 |---|---|---|
 | `DISCUSS_ONLY` | The user asks to talk, review, or evaluate without execution | Read and explain only |
-| `ADOPT_PROJECT` | A new or existing project needs AI Native workflow setup | Assess or bootstrap workflow assets according to project state |
+| `ADOPT_PROJECT` | A new or existing project needs IntentOS workflow setup | Assess or bootstrap workflow assets according to project state |
 | `DEFINE_WORK` | The request is not yet ready for implementation | Create request, preflight, spec, eval, and task assets |
 | `IMPLEMENT_TASK` | A selected task card exists and is ready | Implement inside approved scope only |
 | `REVIEW_TASK` | A task needs independent review | Create or use Review Packet and review-only instructions |

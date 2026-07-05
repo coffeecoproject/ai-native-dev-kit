@@ -6,7 +6,7 @@ slug: checker-library-refactor
 title: Checker Library Refactor
 status: ready
 created_at: "2026-06-27"
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 request: requests/040-checker-library-refactor.md
 task_level: L2
 ---
@@ -22,7 +22,7 @@ READY
 
 ## Problem Summary
 
-The dev-kit has enough fixture coverage to begin reducing repeated checker utility code. The work is internal and should preserve external behavior.
+The intentos has enough fixture coverage to begin reducing repeated checker utility code. The work is internal and should preserve external behavior.
 
 ## Missing Information
 
@@ -56,7 +56,7 @@ Implement the shared libraries listed in the 0.40.1 roadmap and migrate repeated
 
 - Do not change checker semantics.
 - Do not add package dependencies.
-- Do not implement `ai-native migrate`.
+- Do not implement `intentos migrate`.
 - Do not rewrite the CLI front door.
 - Do not change platform or industrial baseline policy.
 

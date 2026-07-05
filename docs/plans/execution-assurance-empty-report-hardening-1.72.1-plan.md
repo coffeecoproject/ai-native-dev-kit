@@ -56,7 +56,7 @@ Out of scope:
    - Run no-report negative check.
    - Run strict positive examples.
    - Run bad fixtures.
-   - Run `check-manifest`, `check-dev-kit`, and `npm run verify`.
+   - Run `check-manifest`, `check-intentos`, and `npm run verify`.
 
 ## Acceptance Criteria
 
@@ -64,7 +64,7 @@ Out of scope:
 - `node scripts/cli.mjs verify-execution <empty-project>` fails.
 - `node scripts/check-execution-assurance.mjs <empty-project>` fails.
 - `node scripts/check-execution-assurance.mjs <empty-project> --allow-empty` passes for asset-only maintenance checks.
-- `node scripts/check-dev-kit.mjs` verifies the default no-report failure.
+- `node scripts/check-intentos.mjs` verifies the default no-report failure.
 - `npm run verify` passes without relying on no-report success.
 - README first-step commands do not require ordinary users to choose proof-chain commands.
 

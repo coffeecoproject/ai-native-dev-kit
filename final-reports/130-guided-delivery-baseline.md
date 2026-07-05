@@ -4,7 +4,7 @@ This report does not approve release, risk, scope expansion, or future work.
 
 ## Human Summary
 
-1.3.0 establishes product direction, claim control, and assumption visibility for AI Native Dev Kit.
+1.3.0 establishes product direction, claim control, and assumption visibility for IntentOS.
 
 ## Completed
 
@@ -24,7 +24,7 @@ This report does not approve release, risk, scope expansion, or future work.
 | Claim control | `node scripts/check-claim-control.mjs .` | PASS |
 | Manifest | `node scripts/check-manifest.mjs` | PASS |
 | Fixtures | `node scripts/check-fixtures.mjs` | PASS |
-| Dev Kit self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| IntentOS self-check | `node scripts/check-intentos.mjs` | PASS |
 | Diff whitespace | `git diff --check` | PASS |
 
 ## Not Changed

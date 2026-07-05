@@ -202,7 +202,7 @@ When implementation begins, update:
 - README / README.zh-CN
 - VERSION
 - package version and example verification
-- dev-kit manifest and workflow version template
+- intentos manifest and workflow version template
 - native migration schema if evidence shape changes
 - native migration docs, templates, checklist, and reviewer prompt
 - release record, limitations, and self-check report
@@ -239,7 +239,7 @@ node scripts/check-native-migration.mjs examples/1.64-native-migration-parser-ca
 node scripts/check-native-migration.mjs examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual --require-structured-evidence
 node scripts/check-workflow-adoption-map.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -25,7 +25,7 @@ function readCurrentVersion(kitRoot) {
 const projectRoot = path.resolve(process.cwd(), process.argv[2] || ".");
 const kitRoot = findKitRoot();
 const currentVersion = readCurrentVersion(kitRoot);
-const versionPath = path.join(projectRoot, ".ai-native", "version.json");
+const versionPath = path.join(projectRoot, ".intentos", "version.json");
 
 if (!fs.existsSync(versionPath)) {
   console.error(`Missing workflow version file: ${versionPath}`);
@@ -43,14 +43,14 @@ try {
 console.log("# Workflow Version");
 console.log("");
 console.log(`Project: ${projectRoot}`);
-console.log(`Project devKitVersion: ${projectVersion.devKitVersion || "missing"}`);
+console.log(`Project intentOSVersion: ${projectVersion.intentOSVersion || "missing"}`);
 console.log(`Starter: ${projectVersion.starter || "missing"}`);
 console.log(`Initialized at: ${projectVersion.initializedAt || "missing"}`);
 console.log(`Last workflow asset update: ${projectVersion.lastWorkflowAssetUpdateAt || "missing"}`);
 
 if (currentVersion) {
-  console.log(`Current local dev-kit version: ${currentVersion}`);
-  if (projectVersion.devKitVersion !== currentVersion) {
+  console.log(`Current local intentos version: ${currentVersion}`);
+  if (projectVersion.intentOSVersion !== currentVersion) {
     console.log("");
     console.log("Version mismatch. Run:");
     console.log("");
@@ -58,10 +58,10 @@ if (currentVersion) {
     process.exit(2);
   }
 } else {
-  console.log("Current local dev-kit version: unavailable from this script location");
+  console.log("Current local intentos version: unavailable from this script location");
 }
 
-if (!projectVersion.devKitVersion || !projectVersion.starter) {
+if (!projectVersion.intentOSVersion || !projectVersion.starter) {
   console.error("Workflow version file is missing required fields.");
   process.exit(1);
 }

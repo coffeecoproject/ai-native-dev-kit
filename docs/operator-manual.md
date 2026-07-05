@@ -1,6 +1,6 @@
 # Operator Manual
 
-This manual explains how to operate the AI Native Dev Kit after the first three-minute README entry.
+This manual explains how to operate the IntentOS after the first three-minute README entry.
 
 Use this document when you need the full route for Codex, CI, migration, review, and project adoption decisions.
 
@@ -242,7 +242,7 @@ Do not use baseline setup to edit `.env`, CI/CD, deploy files, production config
 
 ## Product Baseline And Claim Control
 
-Use this layer when changing workflow behavior, release wording, public summaries, final reports, handoffs, or Dev Kit release evidence.
+Use this layer when changing workflow behavior, release wording, public summaries, final reports, handoffs, or IntentOS release evidence.
 
 ```bash
 node scripts/check-product-baseline.mjs .
@@ -268,7 +268,7 @@ Rules:
 
 ## Project Memory And Context Governance
 
-Use this layer when Codex observes context that may need to become project memory, when existing context appears stale, or when deciding which AI Native artifacts should enter Git.
+Use this layer when Codex observes context that may need to become project memory, when existing context appears stale, or when deciding which IntentOS artifacts should enter Git.
 
 ```bash
 node scripts/check-context-governance.mjs .
@@ -301,7 +301,7 @@ Discussion-only, review-only, pause/stop, direct follow-up, scope change, new ta
 
 ## Migration
 
-`ai-native migrate` is plan-only in 0.42.0.
+`intentos migrate` is plan-only in 0.42.0.
 
 It can inspect a target and write a reviewable plan file. It cannot apply changes to the target project.
 
@@ -314,7 +314,7 @@ See `docs/migrations/0.33-to-1.0.md`.
 
 ## Evidence
 
-For dev-kit changes, record:
+For intentos changes, record:
 
 - request
 - preflight
@@ -330,14 +330,14 @@ For generated or adopted projects, record only the artifacts required by the pro
 
 ## Standard Checks
 
-For dev-kit development:
+For intentos development:
 
 ```bash
 node scripts/check-manifest.mjs .
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

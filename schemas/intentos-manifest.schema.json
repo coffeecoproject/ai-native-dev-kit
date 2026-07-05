@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/ai-native-dev-kit/dev-kit-manifest.schema.json",
-  "title": "AI Native Dev Kit Manifest",
+  "$id": "https://example.invalid/intentos/intentos-manifest.schema.json",
+  "title": "IntentOS Manifest",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schemaVersion",
-    "devKitVersion",
+    "intentOSVersion",
     "mode",
     "compatibilityPolicy",
     "groups",
@@ -17,7 +17,7 @@
       "type": "string",
       "const": "1.0"
     },
-    "devKitVersion": {
+    "intentOSVersion": {
       "type": "string"
     },
     "mode": {
@@ -58,7 +58,7 @@
         "sourceRequired",
         "targetCore",
         "targetFull",
-        "aiNativeCore",
+        "intentOSCore",
         "templates",
         "prompts",
         "checklists",
@@ -82,7 +82,7 @@
         "targetFull": {
           "$ref": "#/$defs/pathList"
         },
-        "aiNativeCore": {
+        "intentOSCore": {
           "$ref": "#/$defs/pathList"
         },
         "templates": {

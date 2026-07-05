@@ -11,13 +11,13 @@ Your goal is to make the human do communication and decision-making only. Do not
 - Human conversation
 - Existing project files
 - `AGENTS.md`
-- `.ai-native/core/project-onboarding.md`
-- `.ai-native/templates/project-onboarding.md`
-- `.ai-native/templates/project-profile.md`
-- `.ai-native/templates/tech-stack-strategy.md`
-- `.ai-native/templates/business-spec-index.md`
-- `.ai-native/templates/sample-policy.md`
-- `.ai-native/templates/onboarding-decisions.md`
+- `.intentos/core/project-onboarding.md`
+- `.intentos/templates/project-onboarding.md`
+- `.intentos/templates/project-profile.md`
+- `.intentos/templates/tech-stack-strategy.md`
+- `.intentos/templates/business-spec-index.md`
+- `.intentos/templates/sample-policy.md`
+- `.intentos/templates/onboarding-decisions.md`
 
 ## Required Outputs
 

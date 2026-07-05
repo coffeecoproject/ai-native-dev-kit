@@ -4,7 +4,7 @@ Use this playbook for live, customer-facing, regulated, or release-sensitive pro
 
 ## Goal
 
-Use AI Native as an adapter layer around the existing production process, not as a replacement.
+Use IntentOS as an adapter layer around the existing production process, not as a replacement.
 
 ## Rule
 
@@ -46,7 +46,7 @@ node scripts/cli.mjs next ../project
 | Approach | Meaning |
 |---|---|
 | read-only only | AI uses existing docs and creates no workflow files |
-| docs-only adapter | AI Native docs describe how to use existing process |
+| docs-only adapter | IntentOS docs describe how to use existing process |
 | selected assets | Only approved templates/checkers are added |
 | full adoption later | Separate project with explicit approval |
 
@@ -82,4 +82,4 @@ Production adapter work must record:
 
 ## Rollback
 
-Rollback must be a project-owned decision. The dev kit can record rollback notes, but it does not replace the production rollback process.
+Rollback must be a project-owned decision. The IntentOS can record rollback notes, but it does not replace the production rollback process.

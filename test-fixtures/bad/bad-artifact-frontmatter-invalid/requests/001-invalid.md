@@ -5,7 +5,7 @@ slug: invalid-frontmatter
 title: Invalid Frontmatter
 status: draft
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 ---
 # Request Card: Invalid Frontmatter
 

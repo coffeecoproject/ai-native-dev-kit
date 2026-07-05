@@ -42,7 +42,7 @@ read-only inspect
 | Situation | Artifact | Why |
 |---|---|---|
 | Codex has inspected a real project without writing to it | `real-adoption-trials/` | records project state, read-only boundary, and adoption mode |
-| The project already has strong rules, docs, CI, release, or evidence | `governance-maps/` | maps AI Native concepts to existing authority instead of copying templates |
+| The project already has strong rules, docs, CI, release, or evidence | `governance-maps/` | maps IntentOS concepts to existing authority instead of copying templates |
 | A future fix may touch API, data, permissions, CI, release, environment, baseline, gate, or architecture | `patch-classifications/` | classifies repair scale before a patch-style change |
 | A high-risk keyword appears but review says it is only background context | `patch-classification-false-positives/` | records the calibration decision without weakening default checks |
 

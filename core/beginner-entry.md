@@ -1,6 +1,6 @@
 # Beginner Entry Governance
 
-Beginner Entry is the plain-language front door for users who should not need to know AI Native workflow commands.
+Beginner Entry is the plain-language front door for users who should not need to know IntentOS workflow commands.
 
 It receives one user goal, reads the project in read-only mode, calls existing guidance logic, and returns one Beginner Entry Card.
 
@@ -20,7 +20,7 @@ The user may say something like:
 
 ```text
 我想做一个预约 App
-帮我把这个老项目接入 AI Native
+帮我把这个老项目接入 IntentOS
 这个任务做到一半，我先切到另一个
 我做完了，帮我收口
 ```

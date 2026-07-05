@@ -172,7 +172,7 @@ Every `reconciliation_items[].intentos_reference_ref` must resolve to
 `intentos_reference_source[].reference_ref`.
 
 The human-readable report must also include an
-`AI Native Adoption Recommendation` section with:
+`IntentOS Adoption Recommendation` section with:
 
 - Recommendation
 - Migration Depth

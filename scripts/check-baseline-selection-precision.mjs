@@ -336,7 +336,7 @@ function compactDecision(decision) {
 }
 
 function runSyntheticFixtures() {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-precision-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-precision-"));
   try {
     const miniprogram = path.join(tempRoot, "precision-miniprogram-cloudfunctions");
     write(path.join(miniprogram, "project.config.json"), "{\"miniprogramRoot\":\"miniprogram\",\"cloudfunctionRoot\":\"cloudfunctions\"}\n");

@@ -21,7 +21,7 @@ Applied the 1.8 review calibration: separated profile and risk-pack wording, add
 - `node scripts/check-manifest.mjs`
 - `node scripts/check-product-baseline.mjs .`
 - `node scripts/check-claim-control.mjs .`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Not Changed
@@ -45,7 +45,7 @@ Applied the 1.8 review calibration: separated profile and risk-pack wording, add
 
 ## Human Decisions Needed
 
-None for this dev-kit calibration.
+None for this intentos calibration.
 
 ## Next Safe Action
 

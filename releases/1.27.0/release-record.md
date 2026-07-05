@@ -22,7 +22,7 @@
 
 ## Allowed Claims
 
-- AI Native Dev Kit can produce a read-only Debt & Knowledge Handoff Report through `debt-handoff`.
+- IntentOS can produce a read-only Debt & Knowledge Handoff Report through `debt-handoff`.
 - Debt & Knowledge Handoff Reports can record debt level, verification notes, files to revisit, human decisions, and the next safe resume point.
 - The checker validates recorded reports for debt-forgiveness overclaims, required verification handoff, release-boundary claims, and missing handoff context.
 - Generated projects receive the 1.27 debt handoff scripts, template, prompt, checklist, protocol, documentation, and report directory through manifest-managed workflow assets.
@@ -36,7 +36,7 @@
 
 ## Evidence Status
 
-- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `dev-kit-manifest.json`.
+- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `intentos-manifest.json`.
 - `scripts/check-debt-handoff.mjs` validates source and generated Debt & Knowledge Handoff Reports and rejects 1.27 bad fixtures for debt forgiveness and missing verification handoff.
 - Full release evidence is pending until `npm run verify` completes and `self-check-report.md` is updated from `PENDING` to `PASS`.
 

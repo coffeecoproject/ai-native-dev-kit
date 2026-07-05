@@ -46,7 +46,7 @@ Not allowed:
 - Governance map separates profiles from risk/capability packs.
 - Patch false-positive records are available and checked.
 - Usage docs clarify recorded-report behavior.
-- Full dev-kit checks pass.
+- Full intentos checks pass.
 
 ## Commands
 
@@ -61,7 +61,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/181-real-adoption-calibration.md
 node scripts/check-next-step-boundary.mjs . --task tasks/181-real-adoption-calibration.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

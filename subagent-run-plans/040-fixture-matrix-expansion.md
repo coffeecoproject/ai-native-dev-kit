@@ -6,7 +6,7 @@ slug: fixture-matrix-expansion
 title: Fixture Matrix Expansion
 status: ready
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 subagent_mode: REVIEW_LOOP
 ---
 # Subagent Run Plan: Fixture Matrix Expansion
@@ -39,7 +39,7 @@ Why a single main thread alone is not enough: independent review reduces the ris
 |---|---|---|---|---|---|---|
 | A1 | Goal Planner | READ_ONLY | CLOSED | none | Route selected | `goal-cards/040-fixture-matrix-expansion.md` |
 | A2 | Fixture Agent | WRITER_LIMITED | CLOSED | `test-fixtures/`, `scripts/check-fixtures.mjs` | fixture suite passes | `final-reports/040-fixture-matrix-expansion.md` |
-| A3 | Manifest Agent | WRITER_LIMITED | CLOSED | `dev-kit-manifest.json`, version metadata | manifest check passes | `releases/0.40.0/phase-report.md` |
+| A3 | Manifest Agent | WRITER_LIMITED | CLOSED | `intentos-manifest.json`, version metadata | manifest check passes | `releases/0.40.0/phase-report.md` |
 | A4 | Reviewer | READ_ONLY | CLOSED | none | findings recorded | `review-loop-reports/040-fixture-matrix-expansion.md` |
 | A5 | Reporter | READ_ONLY_DRAFT | CLOSED | reports and release evidence | final report complete | `final-reports/040-fixture-matrix-expansion.md` |
 

@@ -28,7 +28,7 @@ Build one Web BL2 example slice that proves runtime quality evidence can be atta
 
 ## Over-design Risks
 
-- Adding a full UI test framework to the dev kit example.
+- Adding a full UI test framework to the IntentOS example.
 - Requiring all Web projects to use the same hosting provider or rendering model.
 
 ## MVP Recommendation
@@ -71,4 +71,4 @@ READY_FOR_SPEC
 
 ## Rationale
 
-The request is narrow and can validate BL2 evidence without binding the dev kit to a framework.
+The request is narrow and can validate BL2 evidence without binding the IntentOS to a framework.

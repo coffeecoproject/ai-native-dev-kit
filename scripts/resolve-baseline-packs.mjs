@@ -41,7 +41,7 @@ function intersects(left, right) {
 
 function packIndexRoot(root) {
   const candidates = [
-    path.join(root, ".ai-native", "industrial-packs"),
+    path.join(root, ".intentos", "industrial-packs"),
     path.join(root, "industrial-packs"),
     path.join(kitRoot, "industrial-packs"),
   ];

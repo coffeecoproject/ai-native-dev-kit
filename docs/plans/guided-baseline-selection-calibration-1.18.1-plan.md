@@ -23,7 +23,7 @@ scattered narrative-only notes.
 - `scripts/check-guided-baseline-selection.mjs`
 - guided baseline example cards
 - guided baseline bad fixtures
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `package.json` verify scripts
 - `baseline-calibration-reports/scoreboard.md`
 - version and release evidence files

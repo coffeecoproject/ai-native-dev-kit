@@ -29,7 +29,7 @@ What should the reviewer ignore?
 
 ## Project State
 
-Project root: dev-kit repository
+Project root: intentos repository
 
 Branch: main
 
@@ -146,7 +146,7 @@ node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/governed-rea
 node scripts/cli.mjs start .
 node scripts/cli.mjs start . --json
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Verification results:
@@ -169,7 +169,7 @@ Skipped evidence and reason:
 | `scripts/start-project.mjs` | Add | Read-only adoption entry | Medium |
 | `scripts/check-guided-adoption.mjs` | Add | Validate saved recommendations | Medium |
 | `scripts/cli.mjs` | Update | Expose start | Medium |
-| `dev-kit-manifest.json` | Update | Include generated assets | Medium |
+| `intentos-manifest.json` | Update | Include generated assets | Medium |
 | docs/examples/releases | Add/update | Productized usage and evidence | Low |
 
 ## Diff Summary

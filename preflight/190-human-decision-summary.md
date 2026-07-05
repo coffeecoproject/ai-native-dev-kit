@@ -21,7 +21,7 @@ READY
 
 ## Problem Summary
 
-Real project use showed that technically correct AI Native suggestions can still feel hard to act on when the user must infer which path is recommended and what each path changes.
+Real project use showed that technically correct IntentOS suggestions can still feel hard to act on when the user must infer which path is recommended and what each path changes.
 
 ## Missing Information
 
@@ -96,4 +96,4 @@ READY_FOR_SPEC
 
 ## Rationale
 
-The scope is bounded to dev-kit workflow assets and scripts. It improves user decision clarity without changing approval authority.
+The scope is bounded to intentos workflow assets and scripts. It improves user decision clarity without changing approval authority.

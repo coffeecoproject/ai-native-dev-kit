@@ -55,7 +55,7 @@ Proceed with behavior-preserving helper refactor and stop if fixture expectation
 
 - Add dependency-free shared helpers.
 - Migrate repeated plumbing where output and exit behavior stay stable.
-- Run fixture and dev-kit checks.
+- Run fixture and intentos checks.
 - Record any behavior-drift pressure in the review loop.
 
 ## What AI Must Not Do Before Decision
@@ -69,7 +69,7 @@ Proceed with behavior-preserving helper refactor and stop if fixture expectation
 
 - `0.40.0` fixture matrix exists to protect checker behavior before refactor.
 - `0.40.1` task card marks checker semantic changes as not allowed.
-- Final verification uses fixture matrix and full dev-kit self-check.
+- Final verification uses fixture matrix and full intentos self-check.
 
 ## Technical Details
 
@@ -83,7 +83,7 @@ Related checks:
 
 ```text
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Related workflow fields:

@@ -38,7 +38,7 @@ Not in 0.42.0. `migrate` only produces a dry-run or JSON plan. Direct apply need
 
 ## What about enum vs string, DTO/domain boundaries, and code structure?
 
-Those belong in Engineering Baseline. The dev kit provides the governance file and checker; each platform/project supplies the concrete source of truth.
+Those belong in Engineering Baseline. The IntentOS provides the governance file and checker; each platform/project supplies the concrete source of truth.
 
 ## Are industrial packs production-ready?
 

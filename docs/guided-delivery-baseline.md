@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Guided Delivery Baseline is the product boundary for using AI Native Dev Kit as an end-to-end delivery helper, not just a code-writing workflow.
+Guided Delivery Baseline is the product boundary for using IntentOS as an end-to-end delivery helper, not just a code-writing workflow.
 
 ## What It Means
 
@@ -34,7 +34,7 @@ node scripts/cli.mjs start ../project
 node scripts/cli.mjs baseline ../project
 ```
 
-For Dev Kit maintenance:
+For IntentOS maintenance:
 
 ```bash
 node scripts/check-product-baseline.mjs .

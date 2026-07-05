@@ -26,7 +26,7 @@ Done
 
 ## User Story
 
-As a Dev Kit user applying 1.8 to real projects,
+As a IntentOS user applying 1.8 to real projects,
 I want profile recommendations, risk packs, and patch false positives to be clearly separated,
 so Codex does not confuse project setup, risk overlays, or implementation approval.
 
@@ -92,14 +92,14 @@ Not applicable.
 - `high-risk-change` is no longer mixed into source-level Recommended Profiles.
 - False-positive reports are checked and cannot accept real high-risk impact.
 - Docs state `real-adoption` checks recorded reports, not auto-generated reports.
-- Full dev-kit self-check passes.
+- Full intentos self-check passes.
 
 ## Test Plan
 
 - `node scripts/check-patch-classification.mjs .`
 - `node scripts/check-fixtures.mjs`
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Rollback Notes

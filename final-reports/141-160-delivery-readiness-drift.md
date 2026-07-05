@@ -8,7 +8,7 @@ This report does not approve release, risk, scope expansion, or future work. Nex
 
 One-sentence conclusion:
 
-The dev kit now has the planned context polish, Safe Launch readiness, and Conversation Drift Control layers with checkers, examples, fixtures, docs, CLI entries, and release evidence.
+The IntentOS now has the planned context polish, Safe Launch readiness, and Conversation Drift Control layers with checkers, examples, fixtures, docs, CLI entries, and release evidence.
 
 ## Completed
 

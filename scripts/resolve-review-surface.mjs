@@ -123,15 +123,15 @@ function collectSignals(root, exists, pathSet, userIntent) {
     exists,
     hasProjectSignals: exists ? hasProjectSignals(root) : false,
     isEmptyish: exists && paths.filter((item) => !item.startsWith(".git/")).length <= 3,
-    isDevKit: has("dev-kit-manifest.json") && hasPrefix("core"),
-    hasAiNativeAssets: hasPrefix(".ai-native") || hasPrefix("workflow-adoption-maps") || hasPrefix("review-surface-cards"),
+    isIntentOS: has("intentos-manifest.json") && hasPrefix("core"),
+    hasIntentOSAssets: hasPrefix(".intentos") || hasPrefix("workflow-adoption-maps") || hasPrefix("review-surface-cards"),
     hasGovernance: has("AGENTS.md") || hasPrefix("docs") || hasPrefix(".github/workflows") || hasPrefix("scripts/guard"),
     hasDataSignals: /\b(database|schema|migration|migrations|db|sql|prisma|supabase|model|storage|api|data|order|payment|invoice|finance|tax)\b/i.test(allText),
     hasPermissionSignals: /\b(auth|login|rbac|permission|role|admin|session|jwt|oauth|tenant|owner)\b/i.test(allText),
     hasUxSignals: /\b(frontend|ui|component|components|page|pages|route|routes|wxml|wxss|swiftui|compose|android|css|tailwind|storybook|view|views)\b/i.test(allText),
     hasDocsSignals: hasPrefix("docs") || paths.some((item) => /(^|\/)(README|AGENTS|CONTRIBUTING|SECURITY|CHANGELOG|NOTICE)\.md$/i.test(item)),
     hasReleaseSignals: /\b(prod|production|deploy|deployment|release|rollback|staging|incident|runbook|ci|workflow|github\/workflows)\b/i.test(allText),
-    hasExistingGovernanceSignals: has("AGENTS.md") || hasPrefix(".ai-native") || hasPrefix("scripts/guard") || hasPrefix(".github/workflows") || hasPrefix("docs/governance"),
+    hasExistingGovernanceSignals: has("AGENTS.md") || hasPrefix(".intentos") || hasPrefix("scripts/guard") || hasPrefix(".github/workflows") || hasPrefix("docs/governance"),
     hasSecurityPrivacySignals: /\b(security|privacy|compliance|secret|token|env|credential|payment|billing|finance|tax|pii|personal)\b/i.test(allText),
     hasRiskSignals: /\b(auth|login|permission|rbac|payment|billing|finance|tax|migration|database|schema|privacy|security|compliance|production|release)\b/i.test(allText),
     pathCount: paths.length,
@@ -149,10 +149,10 @@ function classifyProject(root, exists, git, signals) {
     };
   }
 
-  if (signals.isDevKit) {
+  if (signals.isIntentOS) {
     return {
       state: "DEV_KIT_REPOSITORY",
-      reason: "This is the AI Native Dev Kit source repository.",
+      reason: "This is the IntentOS source repository.",
       riskLevel: git?.isDirty ? "medium" : "low",
       existingUsersAssumed: "No",
       dirty: git?.isDirty ? "Yes" : "No",
@@ -189,10 +189,10 @@ function classifyProject(root, exists, git, signals) {
     };
   }
 
-  if (signals.hasGovernance || signals.hasAiNativeAssets) {
+  if (signals.hasGovernance || signals.hasIntentOSAssets) {
     return {
       state: "EXISTING_GOVERNED_PROJECT",
-      reason: "Existing docs, rules, CI, or AI Native assets were detected.",
+      reason: "Existing docs, rules, CI, or IntentOS assets were detected.",
       riskLevel: "medium",
       existingUsersAssumed: "Unknown treated as Yes",
       dirty: "No",
@@ -252,7 +252,7 @@ function questionsFor(project, signals) {
   if (project.existingUsersAssumed !== "No") questions.push("这个项目现在是否已经有人在用？");
   if (project.riskLevel === "high" || signals.hasRiskSignals) questions.push("这次是否涉及登录、支付、数据、发布或迁移？");
   questions.push("是否允许我先生成审查面和执行计划，不直接改文件？");
-  if (signals.hasExistingGovernanceSignals) questions.push("是否以项目现有规则为准，只把 Dev Kit 作为辅助审查层？");
+  if (signals.hasExistingGovernanceSignals) questions.push("是否以项目现有规则为准，只把 IntentOS 作为辅助审查层？");
   if (project.state === "DIRTY_WORKTREE_PROJECT") questions.push("当前未完成改动是继续、暂停，还是先切换到新任务？");
   const maxQuestions = project.riskLevel === "high" ? 5 : 3;
   return questions.slice(0, maxQuestions);
@@ -293,7 +293,7 @@ function plainProjectState(state) {
     EXISTING_GOVERNED_PROJECT: "an existing project with rules already present",
     PRODUCTION_SENSITIVE_PROJECT: "a risk-sensitive existing project",
     DIRTY_WORKTREE_PROJECT: "a project with unfinished changes",
-    DEV_KIT_REPOSITORY: "the Dev Kit repository",
+    DEV_KIT_REPOSITORY: "the IntentOS repository",
     UNKNOWN_PROJECT: "an unreadable or missing project",
   };
   return labels[state] || state;

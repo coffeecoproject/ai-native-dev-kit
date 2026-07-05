@@ -17,7 +17,7 @@ Passed.
 - `node scripts/check-manifest.mjs`
 - `npm --silent run verify:examples`
 - `npm --silent run verify:governance`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Result

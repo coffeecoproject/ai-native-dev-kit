@@ -8,11 +8,11 @@ No live helper subagent was needed for this batch; the run plan records `SKIPPED
 
 ## Goal
 
-Goal: implement and verify the 1.4.1, 1.5.0, and 1.6.0 dev-kit upgrade batch.
+Goal: implement and verify the 1.4.1, 1.5.0, and 1.6.0 intentos upgrade batch.
 
 Related Goal Card: `goal-cards/141-160-delivery-readiness-drift.md`
 
-Related Task: source dev-kit upgrade batch.
+Related Task: source intentos upgrade batch.
 
 Non-goals: no external GPT/API reviewer, no background automation, no production decision.
 

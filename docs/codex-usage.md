@@ -27,7 +27,7 @@ Humans decide:
 Use this when you want Codex to configure a new, existing, or already bootstrapped project without hand-running the steps yourself:
 
 ```text
-Read this AI Native Dev Kit and configure the current project yourself.
+Read this IntentOS and configure the current project yourself.
 Detect whether this is a new project, existing project, or already bootstrapped project.
 Do not modify business code during bootstrap.
 Stop for any migration report that needs my approval.
@@ -49,7 +49,7 @@ Expected Codex behavior:
 - When the user is non-expert or the request is broad, use Guided Decision & Delivery Loop. Recommend the smallest safe path before asking for confirmation, keep one current mainline, park side ideas, and avoid raw technical questions such as enum-vs-lookup unless they are translated into product choices.
 - Follow `NEXT_ACTION`.
 - Use `init-project.mjs` for initialization or workflow asset updates.
-- Summarize `.ai-native/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
+- Summarize `.intentos/migration-reports/` and stop before applying `AGENTS.md` or PR template migrations.
 - Run baseline checks after setup when scripts are available.
 - Run `node scripts/check-product-baseline.mjs .` and `node scripts/check-claim-control.mjs .` when workflow behavior, release wording, README/public summaries, final reports, or handoffs change.
 - Run `node scripts/check-context-governance.mjs .` when learning candidates, context corrections, Git boundary reports, baselines, AGENTS, or project source-of-truth docs change.
@@ -63,7 +63,7 @@ Expected Codex behavior:
 - Run `node scripts/check-baseline-state.mjs . --report <report>` when baseline docs are drafted or reviewed before implementation/evidence exists.
 - Remember that `real-adoption` and `patch-classification` check recorded artifacts. They do not automatically generate target-project reports or approve implementation.
 - Record inferred or unconfirmed facts in an Assumption Register when they affect decisions, claims, release, environment, rollback, monitoring, or risk.
-- Use `.ai-native/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
+- Use `.intentos/prompts/goal-planner-agent.md` and create a Goal Card when the next goal is broad, ambiguous, high-risk, or can route into more than one workflow.
 
 Optional project-state gate:
 
@@ -75,7 +75,7 @@ node scripts/workflow-next.mjs . --enforce
 ## New Project Prompt
 
 ```text
-Use this repo's AI Native workflow.
+Use this repo's IntentOS workflow.
 First run project onboarding.
 Draft the required project docs from our conversation.
 Do not implement code until I approve the first request/spec/eval/task chain.
@@ -84,10 +84,10 @@ Do not implement code until I approve the first request/spec/eval/task chain.
 Expected Codex behavior:
 
 - Read `AGENTS.md`.
-- Use `.ai-native/prompts/bootstrap-agent.md` if the project setup state is unclear.
+- Use `.intentos/prompts/bootstrap-agent.md` if the project setup state is unclear.
 - Run `node scripts/workflow-next.mjs .` after initialization.
 - Use `node scripts/check-ai-workflow.mjs . --mode core` for routine project checks. Use `--mode full` only after installing or updating the complete workflow asset set.
-- Use `.ai-native/prompts/project-onboarding-agent.md`.
+- Use `.intentos/prompts/project-onboarding-agent.md`.
 - Draft `docs/project-onboarding.md`, `docs/project-profile.md`, `docs/tech-stack-strategy.md`, `docs/business-spec-index.md`, `docs/sample-policy.md`, and `docs/onboarding-decisions.md`.
 - Draft `docs/engineering-baseline.md` before structural, contract, schema, permission, migration, dependency, generated type, or cross-module state decisions.
 - Run `node scripts/check-engineering-baseline.mjs .`; default mode is advisory and reports pending decisions without blocking low-risk local work.
@@ -115,8 +115,8 @@ Do not treat the Goal Card as permission to implement.
 
 Expected Codex behavior:
 
-- Read `.ai-native/core/goal-mode.md`.
-- Use `.ai-native/prompts/goal-planner-agent.md` when present.
+- Read `.intentos/core/goal-mode.md`.
+- Use `.intentos/prompts/goal-planner-agent.md` when present.
 - Choose one mode: `DISCUSS_ONLY`, `ADOPT_PROJECT`, `DEFINE_WORK`, `IMPLEMENT_TASK`, `REVIEW_TASK`, `REPAIR_TASK`, `BASELINE_DECISION`, or `HANDOFF_OR_REPORT`.
 - Generate `node scripts/new-workflow-item.mjs --type goal-card --name <goal-name>` when route evidence is useful.
 - Run `node scripts/check-goal-mode.mjs .` when Goal Cards exist.
@@ -136,7 +136,7 @@ Do not leave helper agents occupying slots after their output is consumed.
 
 Expected Codex behavior:
 
-- Read `.ai-native/core/subagent-orchestration.md`.
+- Read `.intentos/core/subagent-orchestration.md`.
 - Generate `node scripts/new-workflow-item.mjs --type subagent-run-plan --name <goal-name>` when helper-agent usage is non-trivial or needs a durable record.
 - Record each subagent role, authority, status, write scope, close condition, and closure evidence.
 - Treat subagent output as input, not authority.
@@ -204,23 +204,23 @@ GPT Pro or second-model review should stay semi-automatic unless an approved aut
 Use this when Codex needs to explain workflow state, baseline readiness, adoption results, review loop results, or handoff status to a human:
 
 ```text
-Summarize this using the AI Native Output Experience Protocol.
+Summarize this using the IntentOS Output Experience Protocol.
 Start with Human Decision Summary: recommended option, alternatives, whether each option writes files, risk, whether AI can continue, what I need to decide, and what happens if I do nothing.
 Keep technical fields and audit notes after the human summary.
 ```
 
 Expected Codex behavior:
 
-- Read `.ai-native/core/output-protocol.md`.
-- Use `.ai-native/core/glossary.md` when internal terms need plain-language explanation.
-- Use `.ai-native/core/next-step-boundary.md` when reporting suggested next steps.
-- Use `.ai-native/core/product-baseline.md`, `.ai-native/core/claim-control.md`, and `.ai-native/core/assumption-register.md` when reporting release wording, public claims, final reports, or handoffs.
-- Use `.ai-native/core/context-governance.md` and `.ai-native/core/git-boundary.md` when deciding whether an observation should become project memory or enter Git.
-- Use `.ai-native/core/safe-launch.md` before claiming delivery readiness.
-- Use `.ai-native/core/conversation-drift-control.md` before acting on a user message that might change scope or risk.
-- Use `.ai-native/core/real-project-adoption-trial.md` before writing to a real governed or production-sensitive project.
-- Use `.ai-native/core/patch-classification.md` before treating a non-trivial failure as a local patch.
-- Use `.ai-native/prompts/reporter-agent.md` when converting technical state into a report.
+- Read `.intentos/core/output-protocol.md`.
+- Use `.intentos/core/glossary.md` when internal terms need plain-language explanation.
+- Use `.intentos/core/next-step-boundary.md` when reporting suggested next steps.
+- Use `.intentos/core/product-baseline.md`, `.intentos/core/claim-control.md`, and `.intentos/core/assumption-register.md` when reporting release wording, public claims, final reports, or handoffs.
+- Use `.intentos/core/context-governance.md` and `.intentos/core/git-boundary.md` when deciding whether an observation should become project memory or enter Git.
+- Use `.intentos/core/safe-launch.md` before claiming delivery readiness.
+- Use `.intentos/core/conversation-drift-control.md` before acting on a user message that might change scope or risk.
+- Use `.intentos/core/real-project-adoption-trial.md` before writing to a real governed or production-sensitive project.
+- Use `.intentos/core/patch-classification.md` before treating a non-trivial failure as a local patch.
+- Use `.intentos/prompts/reporter-agent.md` when converting technical state into a report.
 - Generate `human-status-report`, `decision-brief`, `plain-review-summary`, or `customer-handoff` only when a file record is useful.
 - Do not treat any report as Human Approval, release approval, risk acceptance, or permission to apply migrations.
 - Include Assumption Register when the report relies on inferred or unconfirmed facts.
@@ -228,7 +228,7 @@ Expected Codex behavior:
 ## Existing Project Prompt
 
 ```text
-Inject the AI Native workflow into this existing project.
+Inject the IntentOS workflow into this existing project.
 Use update-workflow-assets only.
 Do not overwrite existing project docs, specs, tasks, logs, or business code.
 After that, run the baseline checks and tell me what decisions remain.
@@ -237,9 +237,9 @@ After that, run the baseline checks and tell me what decisions remain.
 Expected Codex command:
 
 ```bash
-node ai-native-dev-kit/scripts/workflow-next.mjs .
-node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets --backup-dir .ai-native/backups/first-adoption --write-plan /tmp/ai-native-update-plan.json
-node ai-native-dev-kit/scripts/init-project.mjs --apply-plan /tmp/ai-native-update-plan.json
+node intentos/scripts/workflow-next.mjs .
+node intentos/scripts/init-project.mjs --target . --update-workflow-assets --backup-dir .intentos/backups/first-adoption --write-plan /tmp/intentos-update-plan.json
+node intentos/scripts/init-project.mjs --apply-plan /tmp/intentos-update-plan.json
 ```
 
 For governed, production-sensitive, or dirty projects, the first command may return:
@@ -249,12 +249,12 @@ ADOPTION_MODE: READ_ONLY
 NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
 ```
 
-When that happens, Codex must not run `init-project`. It should use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to explain how AI Native concepts map to existing project governance, then wait for approval before adapter setup.
+When that happens, Codex must not run `init-project`. It should use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to explain how IntentOS concepts map to existing project governance, then wait for approval before adapter setup.
 
 For an already bootstrapped low-risk project, Codex may run direct update:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets
+node intentos/scripts/init-project.mjs --target . --update-workflow-assets
 ```
 
 For a strong governed project that is already bootstrapped, `workflow-next` may instead return:
@@ -266,16 +266,16 @@ NEXT_ACTION: REVIEW_DIRTY_WORKTREE
 
 When that happens, Codex should summarize the dirty worktree state and ask the human whether to continue, split, stash, commit, or generate a Review Packet before task execution.
 
-If `.ai-native/migration-reports/agents-governance.md` is created, Codex should summarize it and wait for human approval before applying the AGENTS.md governance appendix:
+If `.intentos/migration-reports/agents-governance.md` is created, Codex should summarize it and wait for human approval before applying the AGENTS.md governance appendix:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets --apply-agent-governance
+node intentos/scripts/init-project.mjs --target . --update-workflow-assets --apply-agent-governance
 ```
 
-If `.ai-native/migration-reports/pr-template-governance.md` is created, Codex should summarize it and wait for human approval before applying the PR template governance appendix:
+If `.intentos/migration-reports/pr-template-governance.md` is created, Codex should summarize it and wait for human approval before applying the PR template governance appendix:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-assets --apply-pr-template-governance
+node intentos/scripts/init-project.mjs --target . --update-workflow-assets --apply-pr-template-governance
 ```
 
 ## Daily Summary Prompt
@@ -284,7 +284,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target . --update-workflow-ass
 Run the workflow daily summary for this project.
 If there is no new evidence, report NO_ACTION.
 If there is a signal, summarize the decision needed.
-Do not create Skills, automations, or dev-kit changes without approval.
+Do not create Skills, automations, or intentos changes without approval.
 ```
 
 Expected Codex command:

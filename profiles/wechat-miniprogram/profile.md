@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Support WeChat Mini Program development while preserving the core AI Native workflow.
+Support WeChat Mini Program development while preserving the core IntentOS workflow.
 
 ## Applies To
 

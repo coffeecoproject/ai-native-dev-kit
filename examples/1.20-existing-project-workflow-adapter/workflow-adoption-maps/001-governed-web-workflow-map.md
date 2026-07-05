@@ -1,6 +1,6 @@
 # Workflow Adoption Map: governed web project
 
-Use this report to map an existing project's workflow to recommended AI Native
+Use this report to map an existing project's workflow to recommended IntentOS
 workflow usage.
 
 This report is read-only by default. It does not install workflow assets,
@@ -9,7 +9,7 @@ implementation.
 
 ## Human Decision Summary
 
-Conclusion: This governed web project already has its own workflow. AI Native
+Conclusion: This governed web project already has its own workflow. IntentOS
 should map onto the existing rules first, without changing files.
 
 Recommended choice: A
@@ -34,7 +34,7 @@ using read-only mapping before task work.
 
 ## Human Summary
 
-Use AI Native as a workflow routing layer; do not replace this project's
+Use IntentOS as a workflow routing layer; do not replace this project's
 existing governance.
 
 ## Existing Project Signals
@@ -54,14 +54,14 @@ existing governance.
 | Area | Existing asset / signal | Coverage | Keep / Map / Gap | Notes |
 |---|---|---|---|---|
 | Agent rules | AGENTS.md | Covered | Keep | Existing authority remains primary |
-| Project docs | docs/governance, docs/baselines | Covered | Keep / Map | Map AI Native terms to existing docs |
+| Project docs | docs/governance, docs/baselines | Covered | Keep / Map | Map IntentOS terms to existing docs |
 | Work intake | PR template, issue labels | Partial | Map | Use Request / Spec / Task only after task boundary is approved |
 | Review / evidence | docs/evidence, releases | Covered | Keep | Evidence remains project-owned |
 | CI / gates | .github/workflows, scripts/guard | Covered | Keep | Do not change CI from this report |
 | Release / rollback | docs/release, docs/rollback | Covered | Keep | Safe Launch can wrap evidence but not approve release |
 | Hooks / automation | pre-push gate | Partial | Keep / Map | Hook changes need a later hook plan |
 
-## Recommended AI Native Workflow Use
+## Recommended IntentOS Workflow Use
 
 | Situation | Recommended workflow | Use now? | How to connect | Human decision needed |
 |---|---|---|---|---|
@@ -92,7 +92,7 @@ existing governance.
 
 | Proposed addition | Why | Writes? | Approval needed | Status |
 |---|---|---|---|---|
-| Workflow Adoption Map report | Record how AI Native should route future work | No | No | PROPOSED |
+| Workflow Adoption Map report | Record how IntentOS should route future work | No | No | PROPOSED |
 | Docs-only bridge | Give the team a shared adapter page later | Docs only | Yes | PENDING |
 
 ## What Not To Touch
@@ -104,10 +104,10 @@ existing governance.
 
 ## Conflicts / Duplicates
 
-| Existing asset | Potential AI Native overlap | Conflict | Recommended handling |
+| Existing asset | Potential IntentOS overlap | Conflict | Recommended handling |
 |---|---|---|---|
-| AGENTS.md | AI Native agent governance | possible | Keep existing authority; add adapter only after owner approval |
-| .github/workflows | AI Native workflow checks | possible | Map first; do not add blocking gates from this report |
+| AGENTS.md | IntentOS agent governance | possible | Keep existing authority; add adapter only after owner approval |
+| .github/workflows | IntentOS workflow checks | possible | Map first; do not add blocking gates from this report |
 | docs/release | Safe Launch / Launch Readiness | possible | Use launch readiness as evidence wrapper, not release approval |
 
 ## Migration / Adapter Plan
@@ -115,7 +115,7 @@ existing governance.
 | Step | Action | Writes target files? | Requires human approval | Status |
 |---|---|---|---|---|
 | 1 | Keep existing project workflow authoritative | No | No | PROPOSED |
-| 2 | Use this map for AI Native workflow routing | No | No | PROPOSED |
+| 2 | Use this map for IntentOS workflow routing | No | No | PROPOSED |
 | 3 | Prepare docs-only bridge only if approved | Docs only | Yes | PENDING |
 
 ## Human Decisions Needed

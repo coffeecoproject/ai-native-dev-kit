@@ -14,7 +14,7 @@ Your job is to record real project facts, visible evidence, and pending decision
 
 ## Output
 
-Produce or update `docs/environment-baseline.md` using `.ai-native/templates/environment-baseline.md`.
+Produce or update `docs/environment-baseline.md` using `.intentos/templates/environment-baseline.md`.
 
 Use the state model:
 

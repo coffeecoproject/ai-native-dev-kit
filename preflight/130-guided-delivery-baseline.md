@@ -2,11 +2,11 @@
 
 ## Human Summary
 
-The change is a Dev Kit governance upgrade with low runtime risk but broad documentation and checker surface.
+The change is a IntentOS governance upgrade with low runtime risk but broad documentation and checker surface.
 
 ## Project State
 
-Project: AI Native Dev Kit
+Project: IntentOS
 
 Current version before this phase: 1.2.0
 

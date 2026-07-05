@@ -10,7 +10,7 @@ const knownFlags = new Set(["json"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 
 if (unknown.length > 0) {
@@ -381,8 +381,8 @@ function resolveAsset(file) {
   const direct = path.join(projectRoot, file);
   if (fs.existsSync(direct)) return direct;
   if (/^(core|templates|prompts|checklists|docs)\//.test(file)) {
-    const aiNative = path.join(projectRoot, ".ai-native", file);
-    if (fs.existsSync(aiNative)) return aiNative;
+    const intentOS = path.join(projectRoot, ".intentos", file);
+    if (fs.existsSync(intentOS)) return intentOS;
   }
   return null;
 }

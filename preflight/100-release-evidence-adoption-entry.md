@@ -6,7 +6,7 @@ slug: release-evidence-adoption-entry
 title: "release evidence adoption entry"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.42.0
+intentos_version: 0.42.0
 request: requests/100-release-evidence-adoption-entry.md
 task_level: L3
 ---
@@ -22,7 +22,7 @@ READY
 
 ## Problem Summary
 
-The dev kit has completed productization phases through 0.42.0, but 1.0 needs durable release
+The IntentOS has completed productization phases through 0.42.0, but 1.0 needs durable release
 evidence, adoption entry criteria, and explicit limitation wording before the version can honestly
 move to 1.0.0.
 
@@ -36,7 +36,7 @@ move to 1.0.0.
 
 - 1.0.0 can be a minimum productization release if it explicitly says 10/10 evidence is not achieved.
 - Existing license boundary docs remain explanatory and are not changed.
-- `ai-native migrate` remains plan-only.
+- `intentos migrate` remains plan-only.
 - All concrete industrial packs remain draft.
 
 ## Direction Risks

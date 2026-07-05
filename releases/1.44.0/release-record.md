@@ -44,4 +44,4 @@
 
 - `node scripts/check-mvp-example.mjs examples/mvp-booking-web-app`
 - `npm test --prefix examples/mvp-booking-web-app`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`

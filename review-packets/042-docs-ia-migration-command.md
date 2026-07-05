@@ -33,11 +33,11 @@ What should the reviewer ignore?
 
 ## Project State
 
-Project root: `/Users/liushan/Developer/CodingFlow/ai-native-dev-kit`
+Project root: `/Users/liushan/Developer/CodingFlow/intentos`
 
 Branch: `main`
 
-Project state tags: dev-kit productization phase
+Project state tags: intentos productization phase
 
 Adoption mode: not a target-project adoption
 
@@ -130,7 +130,7 @@ Approved at: 2026-06-27
 
 ## Baseline State
 
-Onboarding state: not applicable for dev-kit source task
+Onboarding state: not applicable for intentos source task
 
 Engineering baseline checked: Yes
 
@@ -144,7 +144,7 @@ Selected profiles: none
 
 Industrial baseline state: not changed
 
-Baseline level: L3 dev-kit productization task
+Baseline level: L3 intentos productization task
 
 Selected industrial packs: none
 
@@ -157,7 +157,7 @@ node --check scripts/cli.mjs
 node --check scripts/migrate-project.mjs
 node scripts/check-manifest.mjs .
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --dry-run
-node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/ai-native-042-migration-plan.json
+node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/intentos-042-migration-plan.json
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0
 ```
 
@@ -166,7 +166,7 @@ Verification results:
 - syntax checks passed
 - manifest check passed
 - migrate dry-run printed plan and reported no target writes
-- migrate write-plan wrote `/tmp/ai-native-042-migration-plan.json`
+- migrate write-plan wrote `/tmp/intentos-042-migration-plan.json`
 - migrate without safe output flag failed with status 2 as expected
 
 Evidence refs:
@@ -189,8 +189,8 @@ Skipped evidence and reason:
 | `docs/` | add | operator, reference, playbook, migration, FAQ, troubleshooting | low |
 | `scripts/cli.mjs` | update | route migrate command | medium |
 | `scripts/migrate-project.mjs` | add | plan-only migration command | medium |
-| `scripts/check-dev-kit.mjs` | update | self-check migrate and docs IA | medium |
-| `dev-kit-manifest.json` | update | source asset inventory | medium |
+| `scripts/check-intentos.mjs` | update | self-check migrate and docs IA | medium |
+| `intentos-manifest.json` | update | source asset inventory | medium |
 | `VERSION.md`, `package.json`, `templates/*` | update | version metadata | low |
 | `releases/0.42.0/phase-report.md` | add | release evidence | low |
 | workflow artifacts | add/update | task evidence | low |

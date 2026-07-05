@@ -54,11 +54,11 @@ Use `templates/productization-trial-report.md` for generated-project, update, mi
 Allowed claim:
 
 ```text
-AI Native Dev Kit 1.0.0 is a productized workflow kit ready for controlled real-project adoption.
+IntentOS 1.0.0 is a productized workflow kit ready for controlled real-project adoption.
 ```
 
 Forbidden claim:
 
 ```text
-AI Native Dev Kit 1.0.0 is fully validated across real production projects and all industrial packs are stable.
+IntentOS 1.0.0 is fully validated across real production projects and all industrial packs are stable.
 ```

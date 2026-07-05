@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 priority: P1
 task_level: L3
 ---
@@ -24,7 +24,7 @@ requirements, and add conservative license boundary documentation that stays con
 
 谁需要这个功能？
 
-Dev kit maintainers and project users who need to understand whether an industrial pack is draft,
+IntentOS maintainers and project users who need to understand whether an industrial pack is draft,
 candidate, stable, deprecated, or retired before applying it to a real project.
 
 ## Problem

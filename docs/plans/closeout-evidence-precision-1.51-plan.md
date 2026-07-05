@@ -133,7 +133,7 @@ When `--require-precise-evidence` is enabled:
    - Update VERSION, package, manifest, and release records.
    - Add 1.51 release record, known limitations, and self-check report.
 
-5. Extend Dev Kit self-check.
+5. Extend IntentOS self-check.
    - Assert 1.51 assets exist.
    - Assert strict precision examples pass.
    - Assert bad fixtures fail for the expected reasons.
@@ -157,7 +157,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
   --require-impact-coverage \
   --require-precise-evidence
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

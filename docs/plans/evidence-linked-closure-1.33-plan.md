@@ -258,7 +258,7 @@ node scripts/cli.mjs closure . \
 - Check bad fixture where ready-for-commit has no evidence links.
 - Check resolver JSON with evidence refs.
 - Check manifest.
-- Check Dev Kit.
+- Check IntentOS.
 - Run `npm run verify`.
 - Run `git diff --check`.
 

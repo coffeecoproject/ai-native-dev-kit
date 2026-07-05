@@ -32,7 +32,7 @@ This patch focuses on the evidence closure path:
 - Checker syntax is covered by `node --check scripts/check-adoption-assurance.mjs`.
 - Positive Adoption Assurance examples cover verified, partial, blocked, and failed assurance states.
 - Bad fixtures cover unknown evidence prefixes and surface evidence missing from `evidence_refs`.
-- `check-dev-kit` verifies an explicit `--out` generated Adoption Assurance report and checks that same file.
+- `check-intentos` verifies an explicit `--out` generated Adoption Assurance report and checks that same file.
 
 ## Known Limitations
 
@@ -56,5 +56,5 @@ node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assur
 node scripts/check-adoption-assurance.mjs test-fixtures/bad/bad-adoption-assurance-unknown-evidence-prefix --require-structured-evidence
 node scripts/check-adoption-assurance.mjs test-fixtures/bad/bad-adoption-assurance-surface-evidence-not-in-evidence-refs --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```

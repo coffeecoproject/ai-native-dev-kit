@@ -4,7 +4,7 @@
 
 Can AI write now: No
 
-Recommendation: Map existing governance first. Do not apply baseline docs until the human confirms how AI Native docs should coexist with current rules.
+Recommendation: Map existing governance first. Do not apply baseline docs until the human confirms how IntentOS docs should coexist with current rules.
 
 ## Existing Governance Signals
 

@@ -1,19 +1,19 @@
-# Final Report: Read-only Dev Kit Manifest
+# Final Report: Read-only IntentOS Manifest
 
 ## Human Summary
 
-Phase `0.35.0` adds a central dev-kit manifest, schema, loader, and drift checker. The manifest is intentionally read-only: it can describe current assets and report drift, but it does not drive init, update, workflow checks, CLI behavior, or generated-project behavior.
+Phase `0.35.0` adds a central intentos manifest, schema, loader, and drift checker. The manifest is intentionally read-only: it can describe current assets and report drift, but it does not drive init, update, workflow checks, CLI behavior, or generated-project behavior.
 
 ## Completed
 
-- Added `dev-kit-manifest.json`.
-- Added `schemas/dev-kit-manifest.schema.json`.
+- Added `intentos-manifest.json`.
+- Added `schemas/intentos-manifest.schema.json`.
 - Added `scripts/lib/manifest.mjs`.
 - Added `scripts/check-manifest.mjs`.
 - Added decision brief for the manifest authority boundary.
 - Added phase Goal Card, Subagent Run Plan, Review Packet, Review Loop Report, and Final Report.
 - Updated CI workflows to run `node scripts/check-manifest.mjs`.
-- Updated `scripts/check-dev-kit.mjs` to run manifest checks and negative manifest cases.
+- Updated `scripts/check-intentos.mjs` to run manifest checks and negative manifest cases.
 - Updated version metadata to `0.35.0`.
 
 ## Verified
@@ -31,12 +31,12 @@ node scripts/check-review-loop.mjs . --task tasks/035-readonly-manifest.md
 node scripts/check-next-step-boundary.mjs . --task tasks/035-readonly-manifest.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.
 
-Evidence refs: `dev-kit-manifest.json`, `scripts/check-manifest.mjs`, `decision-briefs/035-readonly-manifest.md`, and `review-loop-reports/035-readonly-manifest.md`.
+Evidence refs: `intentos-manifest.json`, `scripts/check-manifest.mjs`, `decision-briefs/035-readonly-manifest.md`, and `review-loop-reports/035-readonly-manifest.md`.
 
 ## Not Changed
 
@@ -72,7 +72,7 @@ Review the `0.35.0` phase evidence and only then start `0.36.0` from a new task 
 
 ## Technical Details
 
-The manifest checker validates manifest shape, checks `devKitVersion` against `VERSION.md`, compares manifest groups to current script and template lists, and verifies that init-project workflow assets still match `templates/workflow-version.json`.
+The manifest checker validates manifest shape, checks `intentOSVersion` against `VERSION.md`, compares manifest groups to current script and template lists, and verifies that init-project workflow assets still match `templates/workflow-version.json`.
 
 ## Audit Notes
 

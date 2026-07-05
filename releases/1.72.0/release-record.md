@@ -92,7 +92,7 @@ An Execution Assurance Report binds:
   - safe copy patch
   - backend-only patch smell
 - Bad fixtures cover missing completion contract, missing actual diff, unresolved evidence, stale evidence, patch-smell verified completion, unexpected CI/hook diff, broad safe patch, controlled patch without debt, missing review, adoption without source assurance, and release overclaim.
-- Package verify and `check-dev-kit` include the 1.72 assets and strict example checks.
+- Package verify and `check-intentos` include the 1.72 assets and strict example checks.
 
 ## Verification
 
@@ -106,6 +106,6 @@ node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-cha
 node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/safe-copy-patch --require-structured-evidence --require-evidence-refs --require-actual-diff
 node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/patch-smell-backend-only --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```

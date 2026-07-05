@@ -20,7 +20,7 @@ This report records the expected self-check surface for First Delivery Walkthrou
 | Manifest | `node scripts/check-manifest.mjs` | PASS |
 | Fixtures | `node scripts/check-fixtures.mjs` | PASS |
 | Claim control | `node scripts/check-claim-control.mjs .` | PASS |
-| Full dev kit | `node scripts/check-dev-kit.mjs` | PASS |
+| Full IntentOS | `node scripts/check-intentos.mjs` | PASS |
 
 ## Notes
 

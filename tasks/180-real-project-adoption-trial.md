@@ -52,7 +52,7 @@ Not allowed:
 - Bad fixtures fail as expected.
 - Existing governed projects are routed to mapping/adapter decisions instead of direct initialization.
 - Equivalent non-canonical baseline files can be recognized.
-- Manifest, fixture, claim, context, product, workflow, review-loop, next-step, and full dev-kit checks pass.
+- Manifest, fixture, claim, context, product, workflow, review-loop, next-step, and full intentos checks pass.
 
 ## Commands
 
@@ -73,7 +73,7 @@ node scripts/check-context-governance.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/180-real-project-adoption-trial.md
 node scripts/check-review-loop.mjs . --task tasks/180-real-project-adoption-trial.md
 node scripts/check-next-step-boundary.mjs . --task tasks/180-real-project-adoption-trial.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -120,7 +120,7 @@ If more than three exclusions are accepted, implementation requires Human Approv
 | Mentioned term | Not checked because | Human accepted |
 |---|---|---|
 | production / release / security / privacy / compliance / migration / payment | these are claim-control and stop-boundary terms, not implemented behavior | Yes |
-| real project | this task records sanitized read-only dev-kit evidence only; it does not modify a target project | Yes |
+| real project | this task records sanitized read-only intentos evidence only; it does not modify a target project | Yes |
 
 ## Baseline References
 

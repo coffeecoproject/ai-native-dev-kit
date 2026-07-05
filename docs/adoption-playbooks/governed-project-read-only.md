@@ -1,10 +1,10 @@
 # Governed Project Read-Only Playbook
 
-Use this playbook when a project already has governance that the dev kit must not overwrite.
+Use this playbook when a project already has governance that the IntentOS must not overwrite.
 
 ## Goal
 
-Map AI Native concepts onto existing project rules without writing files first.
+Map IntentOS concepts onto existing project rules without writing files first.
 
 ## Signals
 
@@ -38,7 +38,7 @@ CAN_WRITE_WORKFLOW_ASSETS: no
 
 3. Map existing assets:
 
-| Existing project asset | AI Native concept |
+| Existing project asset | IntentOS concept |
 |---|---|
 | issue template or product brief | Request |
 | technical design doc | Spec |
@@ -58,7 +58,7 @@ CAN_WRITE_WORKFLOW_ASSETS: no
 Humans decide:
 
 - keep existing governance only
-- add AI Native as adapter docs
+- add IntentOS as adapter docs
 - add selected workflow assets
 - migrate gradually through reviewed plan
 - do not adopt

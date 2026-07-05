@@ -6,7 +6,7 @@ slug: fixture-matrix-expansion
 title: Fixture Matrix Expansion
 status: ready
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 spec: specs/040-fixture-matrix-expansion.md
 eval: evals/040-fixture-matrix-expansion.md
 task_level: L2
@@ -54,7 +54,7 @@ Not allowed:
 - Runner reports command, expected output, actual output, and repair guidance on failure.
 - Runner reports coverage by type and checker on success.
 - `node scripts/check-fixtures.mjs` passes.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 
 ## Commands
 
@@ -70,7 +70,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-fixtur
 node scripts/check-review-loop.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/check-next-step-boundary.mjs . --task tasks/040-fixture-matrix-expansion.md
 node scripts/score-output-quality.mjs . --min-score 80
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## AI Budget
@@ -109,7 +109,7 @@ Approved at:
 - Stop if checker semantics need to change.
 - Stop if fixture runner setup writes outside temp directories.
 - Stop if generated target project snapshots are added.
-- Stop if `check-dev-kit.mjs` is added as a fixture case.
+- Stop if `check-intentos.mjs` is added as a fixture case.
 
 ## Final Report Required
 

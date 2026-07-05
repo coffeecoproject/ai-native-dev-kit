@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Support browser-based applications and interfaces while preserving the core AI Native workflow.
+Support browser-based applications and interfaces while preserving the core IntentOS workflow.
 
 ## Applies To
 

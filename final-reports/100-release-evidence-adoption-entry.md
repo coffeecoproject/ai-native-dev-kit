@@ -22,15 +22,15 @@ One-sentence conclusion:
 
 | Check | Command / Evidence | Result |
 |---|---|---|
-| syntax | `node --check scripts/check-dev-kit.mjs` | PASS |
+| syntax | `node --check scripts/check-intentos.mjs` | PASS |
 | manifest | `node scripts/check-manifest.mjs .` | PASS |
 | fixtures | `node scripts/check-fixtures.mjs` | PASS, 43 cases |
-| self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| self-check | `node scripts/check-intentos.mjs` | PASS |
 | CLI self-check | `node scripts/cli.mjs self-check` | PASS |
-| generated project | `node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test` | PASS |
-| generated core check | `node /tmp/ai-native-1-test/scripts/check-ai-workflow.mjs /tmp/ai-native-1-test --mode core` | PASS |
-| update dry-run | `node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run` | PASS |
-| migration dry-run | `node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run` | PASS |
+| generated project | `node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-1-test` | PASS |
+| generated core check | `node /tmp/intentos-1-test/scripts/check-ai-workflow.mjs /tmp/intentos-1-test --mode core` | PASS |
+| update dry-run | `node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run` | PASS |
+| migration dry-run | `node scripts/cli.mjs migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run` | PASS |
 | workflow artifacts | `node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/100-release-evidence-adoption-entry.md` | PASS |
 | review loop | `node scripts/check-review-loop.mjs . --task tasks/100-release-evidence-adoption-entry.md` | PASS |
 | next-step boundary | `node scripts/check-next-step-boundary.mjs . --task tasks/100-release-evidence-adoption-entry.md` | PASS |
@@ -84,15 +84,15 @@ Review Loop Report: `review-loop-reports/100-release-evidence-adoption-entry.md`
 Commands run:
 
 ```text
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/check-manifest.mjs .
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/cli.mjs self-check
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test
-node /tmp/ai-native-1-test/scripts/check-ai-workflow.mjs /tmp/ai-native-1-test --mode core
-node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run
-node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-1-test
+node /tmp/intentos-1-test/scripts/check-ai-workflow.mjs /tmp/intentos-1-test --mode core
+node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run
+node scripts/cli.mjs migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/100-release-evidence-adoption-entry.md
 node scripts/check-review-loop.mjs . --task tasks/100-release-evidence-adoption-entry.md
 node scripts/check-next-step-boundary.mjs . --task tasks/100-release-evidence-adoption-entry.md

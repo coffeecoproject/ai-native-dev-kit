@@ -1,6 +1,6 @@
 # Example: Generic First Change
 
-This example shows the shape of the first AI Native workflow package without binding to any business domain.
+This example shows the shape of the first IntentOS workflow package without binding to any business domain.
 
 Example goal:
 

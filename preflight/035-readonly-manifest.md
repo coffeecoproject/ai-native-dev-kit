@@ -1,4 +1,4 @@
-# Preflight: Read-only Dev Kit Manifest
+# Preflight: Read-only IntentOS Manifest
 
 ## Source Request
 
@@ -49,7 +49,7 @@ Add a read-only manifest, a schema file, a small loader, and a drift checker. Ke
 
 ## Domain Model Draft
 
-- Manifest: central inventory of current dev-kit assets.
+- Manifest: central inventory of current intentos assets.
 - Manifest schema: structure rule for required fields and groups.
 - Drift check: comparison between manifest groups and existing script/template lists.
 - Authority boundary: manifest is observable but not executable.
@@ -60,7 +60,7 @@ No secrets, auth, permissions, production configuration, data migration, destruc
 
 ## First Vertical Slice
 
-Create `dev-kit-manifest.json`, validate it with `scripts/check-manifest.mjs`, and call that checker from `scripts/check-dev-kit.mjs`.
+Create `intentos-manifest.json`, validate it with `scripts/check-manifest.mjs`, and call that checker from `scripts/check-intentos.mjs`.
 
 ## Suggested Specs
 

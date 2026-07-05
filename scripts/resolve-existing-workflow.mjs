@@ -76,7 +76,7 @@ function buildWorkflowMap(root) {
       signals,
     },
     existingWorkflowInventory: inventory(signals),
-    recommendedAiNativeWorkflowUse: recommendedWorkflowUse(classification),
+    recommendedIntentOSWorkflowUse: recommendedWorkflowUse(classification),
     nativeMigrationRecommendation,
     whatToReuse: reuseList(signals, classification),
     whatToAdd: additionsFor(adapterMode, classification),
@@ -173,8 +173,8 @@ function collectSignals(root, pathSet) {
       /scheduled/i,
       /automation/i,
     ]),
-    aiNativeAssets: matching([
-      /^\.ai-native(\/|$)/i,
+    intentOSAssets: matching([
+      /^\.intentos(\/|$)/i,
       /^workflow-adoption-maps(\/|$)/i,
       /^real-adoption-trials(\/|$)/i,
       /^governance-maps(\/|$)/i,
@@ -194,7 +194,7 @@ function emptySignals() {
     ciGates: [],
     releaseRollback: [],
     hooksAutomation: [],
-    aiNativeAssets: [],
+    intentOSAssets: [],
     productionSignals: [],
   };
 }
@@ -216,12 +216,12 @@ function classify(root, exists, git, signals) {
     };
   }
 
-  const isDevKit = fs.existsSync(path.join(root, "dev-kit-manifest.json"))
+  const isIntentOS = fs.existsSync(path.join(root, "intentos-manifest.json"))
     && fs.existsSync(path.join(root, "core", "workflow.md"));
-  if (isDevKit) {
+  if (isIntentOS) {
     return {
       projectState: "DEV_KIT_REPOSITORY",
-      reason: "The target is the AI Native Dev Kit source repository.",
+      reason: "The target is the IntentOS source repository.",
       riskLevel: "low",
       confidence: "high",
       dirtyWorktree: git?.isDirty ? "Yes" : "No",
@@ -257,7 +257,7 @@ function classify(root, exists, git, signals) {
   if (hasGovernance(signals)) {
     return {
       projectState: "EXISTING_GOVERNED_PROJECT",
-      reason: "Existing agent rules, governance docs, gates, or AI Native assets were detected.",
+      reason: "Existing agent rules, governance docs, gates, or IntentOS assets were detected.",
       riskLevel: "medium-high",
       confidence: "medium",
       dirtyWorktree: git?.isDirty ? "Yes" : "No",
@@ -293,7 +293,7 @@ function hasGovernance(signals) {
   return signals.agentRules.length > 0
     || signals.governanceDocs.length > 0
     || signals.ciGates.length > 0
-    || signals.aiNativeAssets.length > 0
+    || signals.intentOSAssets.length > 0
     || signals.reviewEvidence.length > 0;
 }
 
@@ -421,7 +421,7 @@ function inventory(signals) {
     row("CI / gates", signals.ciGates),
     row("Release / rollback", signals.releaseRollback),
     row("Hooks / automation", signals.hooksAutomation),
-    row("AI Native assets", signals.aiNativeAssets),
+    row("IntentOS assets", signals.intentOSAssets),
   ];
 }
 
@@ -468,7 +468,7 @@ function reuseList(signals, classification) {
   if (signals.reviewEvidence.length > 0) items.push(`Existing review / evidence process: ${signals.reviewEvidence.slice(0, 5).join(", ")}`);
   if (items.length === 0) items.push("No strong workflow authority detected; keep project files unchanged until the human confirms adoption intent.");
   if (classification.projectState === "EXISTING_PRODUCTION_PROJECT") {
-    items.push("Production or release process stays authoritative; AI Native can only map to it.");
+    items.push("Production or release process stays authoritative; IntentOS can only map to it.");
   }
   return items;
 }
@@ -476,7 +476,7 @@ function reuseList(signals, classification) {
 function additionsFor(adapterMode) {
   if (adapterMode === "READ_ONLY_MAP") {
     return [
-      addition("Workflow Adoption Map report", "Record how AI Native should route future work.", "No", "No", "Recommended"),
+      addition("Workflow Adoption Map report", "Record how IntentOS should route future work.", "No", "No", "Recommended"),
       addition("Native Migration Plan", "Move from adapter mapping into IntentOS-native planning after the user asks to adopt.", "No", "Yes", "Recommended"),
       addition("Docs-only bridge", "Optional shared adapter document after review.", "Docs only", "Yes", "Later"),
     ];
@@ -514,10 +514,10 @@ function forbiddenTouchList(classification) {
 function conflictsFor(signals) {
   const conflicts = [];
   if (signals.agentRules.length > 0) {
-    conflicts.push(conflict("Agent rules", "AI Native AGENTS/governance appendix", "possible", "Keep existing authority; add adapter only after owner approval."));
+    conflicts.push(conflict("Agent rules", "IntentOS AGENTS/governance appendix", "possible", "Keep existing authority; add adapter only after owner approval."));
   }
   if (signals.ciGates.length > 0) {
-    conflicts.push(conflict("CI / gates", "AI Native workflow checks", "possible", "Map first; do not add blocking gates from this report."));
+    conflicts.push(conflict("CI / gates", "IntentOS workflow checks", "possible", "Map first; do not add blocking gates from this report."));
   }
   if (signals.hooksAutomation.length > 0) {
     conflicts.push(conflict("Hooks / automation", "future hook orchestration", "possible", "Plan-only; do not install hooks."));
@@ -526,7 +526,7 @@ function conflictsFor(signals) {
     conflicts.push(conflict("Release / rollback", "Safe Launch / Launch Readiness", "possible", "Use launch readiness as evidence wrapper, not release approval."));
   }
   if (conflicts.length === 0) {
-    conflicts.push(conflict("No strong duplicate detected", "AI Native workflow", "none", "Keep read-only until adoption intent is confirmed."));
+    conflicts.push(conflict("No strong duplicate detected", "IntentOS workflow", "none", "Keep read-only until adoption intent is confirmed."));
   }
   return conflicts;
 }
@@ -612,11 +612,11 @@ function printHuman(report) {
     console.log(`| ${item.area} | ${item.assets.length ? item.assets.join("<br>") : "none detected"} | ${item.coverage} | ${item.handling} |`);
   }
   console.log("");
-  console.log("## Recommended AI Native Workflow Use");
+  console.log("## Recommended IntentOS Workflow Use");
   console.log("");
   console.log("| Situation | Recommended workflow | Use now? | How to connect | Human decision needed |");
   console.log("|---|---|---|---|---|");
-  for (const item of report.recommendedAiNativeWorkflowUse) {
+  for (const item of report.recommendedIntentOSWorkflowUse) {
     console.log(`| ${item.situation} | ${item.workflow} | ${item.useNow} | ${item.howToConnect} | ${item.humanDecisionNeeded} |`);
   }
   console.log("");
@@ -649,7 +649,7 @@ function printHuman(report) {
   console.log("");
   console.log("## Conflicts / Duplicates");
   console.log("");
-  console.log("| Existing asset | Potential AI Native overlap | Conflict | Recommended handling |");
+  console.log("| Existing asset | Potential IntentOS overlap | Conflict | Recommended handling |");
   console.log("|---|---|---|---|");
   for (const item of report.conflictsOrDuplicates) {
     console.log(`| ${item.existingAsset} | ${item.overlap} | ${item.conflict} | ${item.recommendedHandling} |`);

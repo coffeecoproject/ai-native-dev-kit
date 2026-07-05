@@ -11,7 +11,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -31,7 +31,7 @@ Passed.
 | `node scripts/check-claim-control.mjs .` | PASS |
 | `node scripts/check-manifest.mjs` | PASS |
 | `node scripts/check-fixtures.mjs` | PASS |
-| `node scripts/check-dev-kit.mjs` | PASS |
+| `node scripts/check-intentos.mjs` | PASS |
 | `git diff --check` | PASS |
 
 ## Notes

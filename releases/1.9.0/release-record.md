@@ -22,7 +22,7 @@ What happens if you do nothing: Existing protections remain, but users may still
 
 ## Human Summary
 
-1.9.0 makes AI Native Dev Kit output easier to judge. Adoption, baseline, migration, review, and handoff outputs now start with a clear decision summary before technical details.
+1.9.0 makes IntentOS output easier to judge. Adoption, baseline, migration, review, and handoff outputs now start with a clear decision summary before technical details.
 
 ## Scope
 
@@ -34,7 +34,7 @@ What happens if you do nothing: Existing protections remain, but users may still
 
 ## Allowed Claims
 
-- The dev kit can present decision-heavy output with a recommended option, alternatives, file-write impact, risk, and no-decision outcome.
+- The IntentOS can present decision-heavy output with a recommended option, alternatives, file-write impact, risk, and no-decision outcome.
 - `start`, `baseline`, `workflow-next --format human`, and governance migration reports now expose clearer human decision summaries.
 - Reports still do not approve risk, release, migration, production change, or target-project writes.
 
@@ -52,7 +52,7 @@ Status: SOURCE_EVIDENCE
 
 Evidence basis:
 
-- dev-kit source checks
+- intentos source checks
 - output protocol and template checks
 - workflow artifact checks
 - product/claim checks

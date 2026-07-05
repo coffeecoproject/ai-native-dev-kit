@@ -8,7 +8,7 @@ This report does not approve release, risk, scope expansion, or future work. Nex
 
 One-sentence conclusion:
 
-0.42.0 made the dev kit easier to enter and added a safe plan-only migration command.
+0.42.0 made the IntentOS easier to enter and added a safe plan-only migration command.
 
 ## Completed
 
@@ -27,7 +27,7 @@ One-sentence conclusion:
 | migrate syntax | `node --check scripts/migrate-project.mjs` | PASS |
 | manifest | `node scripts/check-manifest.mjs .` | PASS |
 | migrate dry-run | `node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --dry-run` | PASS |
-| migrate write-plan | `node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/ai-native-042-migration-plan.json` | PASS |
+| migrate write-plan | `node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/intentos-042-migration-plan.json` | PASS |
 | migrate unsafe path | `node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0` | PASS, failed with status 2 as expected |
 | workflow artifacts | `node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/042-docs-ia-migration-command.md` | PASS |
 | review loop | `node scripts/check-review-loop.mjs . --task tasks/042-docs-ia-migration-command.md` | PASS |
@@ -35,7 +35,7 @@ One-sentence conclusion:
 | goal mode | `node scripts/check-goal-mode.mjs .` | PASS |
 | subagent orchestration | `node scripts/check-subagent-orchestration.mjs .` | PASS |
 | fixtures | `node scripts/check-fixtures.mjs` | PASS |
-| dev-kit self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| intentos self-check | `node scripts/check-intentos.mjs` | PASS |
 
 ## Not Changed
 
@@ -87,7 +87,7 @@ node --check scripts/cli.mjs
 node --check scripts/migrate-project.mjs
 node scripts/check-manifest.mjs .
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --dry-run
-node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/ai-native-042-migration-plan.json
+node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0 --write-plan /tmp/intentos-042-migration-plan.json
 node scripts/cli.mjs migrate --target . --from 0.33.0 --to 1.0.0
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/042-docs-ia-migration-command.md
 node scripts/check-review-loop.mjs . --task tasks/042-docs-ia-migration-command.md
@@ -95,7 +95,7 @@ node scripts/check-next-step-boundary.mjs . --task tasks/042-docs-ia-migration-c
 node scripts/check-goal-mode.mjs .
 node scripts/check-subagent-orchestration.mjs .
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Changed files:
@@ -110,8 +110,8 @@ Changed files:
 - `docs/faq.md`
 - `scripts/cli.mjs`
 - `scripts/migrate-project.mjs`
-- `scripts/check-dev-kit.mjs`
-- `dev-kit-manifest.json`
+- `scripts/check-intentos.mjs`
+- `intentos-manifest.json`
 - `VERSION.md`
 - `package.json`
 - `templates/workflow-version.json`

@@ -35,7 +35,7 @@ This release does not:
 
 ## Allowed Claims
 
-- AI Native Dev Kit can produce a read-only Project Hook Policy through `hook-policy`.
+- IntentOS can produce a read-only Project Hook Policy through `hook-policy`.
 - A Project Hook Policy can define allowed hook classes, approval owners, and rollback / disable requirements.
 - The checker validates recorded policies for hook-installation overclaims, missing H0-H3 classes, missing approval matrix, missing rollback / disable policy, and release/production overclaims.
 
@@ -48,12 +48,12 @@ This release does not:
 ## Evidence Status
 
 - Release evidence is recorded in `self-check-report.md`.
-- `node scripts/check-dev-kit.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
+- `node scripts/check-intentos.mjs`, `npm run verify`, and `git diff --check` passed on 2026-06-29.
 
 ## Known Limitations
 
 - Project Hook Policy is plan-first and does not install hooks, modify CI, add blocking gates, call external APIs, store tokens/secrets, or enable auto-fix.
-- Existing organization hook policy outside the repository cannot be inferred from this dev kit.
+- Existing organization hook policy outside the repository cannot be inferred from this IntentOS.
 - H2 and H3 hook approval still requires human decision, named owner, rollback evidence, and project-specific context.
 - A recorded policy does not replace Hook Orchestration, Review Loop, Safe Launch, release policy, or human approval.
 

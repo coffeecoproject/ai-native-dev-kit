@@ -6,7 +6,7 @@ slug: docs-ia-migration-command
 title: "docs ia migration command"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.41.0
+intentos_version: 0.41.0
 spec: specs/042-docs-ia-migration-command.md
 ---
 # Eval: docs ia migration command
@@ -20,7 +20,7 @@ spec: specs/042-docs-ia-migration-command.md
 - [ ] script syntax checks pass
 - [ ] migrate safety checks pass
 - [ ] manifest check passes
-- [ ] dev-kit self-check passes
+- [ ] intentos self-check passes
 - [ ] workflow artifact checks pass
 - [ ] no unrelated files changed
 - [ ] no unapproved dependency added
@@ -60,6 +60,6 @@ Reject if:
 
 ## Required Evidence
 
-- Command output summary: record syntax, migrate dry-run, migrate write-plan, manifest, workflow, review-loop, and dev-kit check results.
+- Command output summary: record syntax, migrate dry-run, migrate write-plan, manifest, workflow, review-loop, and intentos check results.
 - Screenshots / traces if UI: not applicable; no UI changed.
 - Review notes: record self-review findings in `review-loop-reports/042-docs-ia-migration-command.md`.

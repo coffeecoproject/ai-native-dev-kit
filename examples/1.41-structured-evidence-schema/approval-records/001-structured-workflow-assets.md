@@ -26,7 +26,7 @@ What I need from you: `No additional approval is recorded by this example. Futur
 |---|---|
 | Unified Apply Plan | `apply-plans/001-structured-workflow-assets.md` |
 | Controlled Apply Readiness Report | `apply-readiness-reports/001-structured-workflow-assets.md` |
-| Plan hash | `sha256:ce2c9eb1f1e2731c7098680fa1f96dcf804dd39cc7e2c55ed9edca460cf3e965` |
+| Plan hash | `sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96` |
 | Plan version/date | 2026-06-30 |
 | Plan changed after approval | No |
 
@@ -48,7 +48,7 @@ What I need from you: `No additional approval is recorded by this example. Futur
   "approval_owner_type": "HUMAN",
   "approved_plan": {
     "path": "apply-plans/001-structured-workflow-assets.md",
-    "plan_digest": "sha256:ce2c9eb1f1e2731c7098680fa1f96dcf804dd39cc7e2c55ed9edca460cf3e965"
+    "plan_digest": "sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96"
   },
   "approved_action_ids": ["A-001"],
   "approved_action_paths": [
@@ -122,7 +122,7 @@ What I need from you: `No additional approval is recorded by this example. Futur
 | Field | Value |
 |---|---|
 | Verification plan reviewed | Yes |
-| Required post-apply verification | `node scripts/check-dev-kit.mjs` |
+| Required post-apply verification | `node scripts/check-intentos.mjs` |
 | Evidence path | `releases/1.41.0/self-check-report.md` |
 
 ## Human Approval Statement

@@ -1,6 +1,6 @@
-# AI Native Dev Kit Version
+# IntentOS Version
 
-Current version: `1.72.1`
+Current version: `1.73.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,13 @@ Current version: `1.72.1`
 
 ## Current Release
 
-`1.72.1`
+`1.73.0`
 
 Includes:
+
+- IntentOS Naming Hardcut phase `1.73.0`: makes IntentOS the only active public product, workflow, CLI, manifest, and generated-asset identity.
+- `1.73.0` removes historical CLI aliases from the public package surface, renames generated workflow assets to `.intentos/`, moves the authoritative manifest to `intentos-manifest.json`, and changes manifest version metadata to `intentOSVersion`.
+- `1.73.0` keeps old-project asset migration plan-first: existing projects with older generated workflow assets must be detected, planned, approved, and verified before target files are moved or rewritten.
 
 - Execution Assurance empty-report hardening patch `1.72.1`: `execution-assurance-check`, `done-check`, and `verify-execution` now fail when no recorded Execution Assurance Report exists.
 - `1.72.1` adds explicit `--allow-empty` only for asset-only maintenance checks, and keeps completion claims bound to saved reports generated with `--out`.
@@ -38,7 +42,7 @@ Includes:
 - Existing Project Governance Convergence phase `1.70.0`: adds `convergence` / `convergence-check` so old, governed, production-sensitive, or dirty projects can be summarized against the new-project IntentOS daily workflow target without writing target files.
 - `1.70.0` compares workflow, baseline, audit, release, CI/hooks, documents, work queue, AI log policy, and protected authority as convergence dimensions; every dimension still requires human decision and Unified Apply Plan before any target-project write.
 - `1.70.0` defines an audit bridge for old projects: pre-IntentOS history is preserved, the adoption point becomes a convergence anchor, and post-adoption evidence should use IntentOS artifacts without rewriting old history or creating routine AI log spam.
-- Existing Rule Reconciliation Evidence Consistency patch `1.69.2`: strict reconciliation reports now require `schema_version: 1.69.2`, `evidence_profile: existing-rule-reconciliation-1.69.2`, complete source coverage for every reconciliation item reference, and a complete human-readable AI Native Adoption Recommendation section
+- Existing Rule Reconciliation Evidence Consistency patch `1.69.2`: strict reconciliation reports now require `schema_version: 1.69.2`, `evidence_profile: existing-rule-reconciliation-1.69.2`, complete source coverage for every reconciliation item reference, and a complete human-readable IntentOS Adoption Recommendation section
 - Existing Project Native Adoption Evidence Hardening patch `1.69.1`: Existing Rule Reconciliation now records rule coverage, blocks selected native adoption when extracted rules are omitted, separates "recommend apply plan now" from "after human review", and makes `doctor --dry-run` show the old-project adoption diagnosis branch instead of the generic missing-asset path
 - Existing Project Native Adoption Decision phase `1.69.0`: old-project `doctor` now stops at adoption diagnosis instead of flooding missing workflow assets, and `reconcile-rules --auto-native` can generate temporary read-only Native Migration input so Codex can recommend the safest IntentOS-native adoption path without asking non-technical users to judge technical rules
 - Product Adoption Trust Finalization patch `1.68.2`: source-only adoption now documents Node/npm/git prerequisites, CLI help shows all command aliases consistently, dirty-project wording matches stop-first behavior, and release evidence is prepared for GitHub Release publication
@@ -123,7 +127,7 @@ Includes:
 - Structured Evidence Schema phase `1.41.0`: adds machine-readable JSON evidence schemas for Unified Apply Plan, Controlled Apply Readiness, and Approval Record, with canonical apply plan digest validation and digest cross-checks from readiness/approval records back to the referenced apply plan
 - Added `schemas/artifacts/unified-apply-plan.schema.json`, `schemas/artifacts/controlled-apply-readiness.schema.json`, `schemas/artifacts/approval-record.schema.json`, `scripts/lib/artifact-schema.mjs`, `docs/structured-evidence-schema.md`, templates with `Machine-Readable Evidence` blocks, examples, bad fixtures, manifest/generated-project coverage, and release evidence
 - `1.41.0` does not add a controlled apply runner, write target files, validate real human identity, authorize automatic apply, approve implementation, approve release/production, install hooks, modify CI, change source of truth, enable BL2, or enable industrial packs
-- Approval Record hardening patch `1.40.1`: clarifies IntentOS / AI Native Dev Kit / `ai-native` naming, adds artifact lifecycle and O0 / BL0 lightweight path docs, and strengthens Approval Record boundaries for wildcard paths, parent traversal, symlink aliases, expired approvals, ambiguous human owners, mismatched action IDs, and plan-changed-after-approval records
+- Approval Record hardening patch `1.40.1`: clarifies IntentOS / IntentOS / `intentos` naming, adds artifact lifecycle and O0 / BL0 lightweight path docs, and strengthens Approval Record boundaries for wildcard paths, parent traversal, symlink aliases, expired approvals, ambiguous human owners, mismatched action IDs, and plan-changed-after-approval records
 - `1.40.1` remains a stabilization release: it does not add machine-readable apply schemas, controlled apply runner behavior, target-project writes, automatic apply, CI/hook changes, release/production approval, BL2 activation, or industrial pack enablement
 - Approval Record Governance phase `1.40.0`: adds a human approval evidence layer after Controlled Apply Readiness so Codex records exactly which action IDs, target paths, plan hash, expiry, rollback, and verification a human approved
 - Added `core/approval-record-governance.md`, `docs/approval-record-governance.md`, `templates/approval-record.md`, `approval-records/`, `approval-record-check`, `scripts/check-approval-record.mjs`, `approval-record` artifact generation, examples, bad fixtures, manifest/generated-project coverage, and release evidence
@@ -186,7 +190,7 @@ Includes:
 - Added `core/work-queue.md`, `docs/work-queue.md`, `templates/work-queue-report.md`, `checklists/work-queue-review.md`, `prompts/work-queue-agent.md`, `work-queue/`, `scripts/resolve-work-queue.mjs`, and `scripts/check-work-queue.mjs`
 - `1.22.0` does not approve implementation, target-project writes, scope expansion, release/production, hook execution, document cleanup, or stale-work resume without review
 - Document Lifecycle Governance phase `1.21.0`: adds read-only `doc-lifecycle` and `doc-lifecycle-check` so Codex can identify source-of-truth docs, stale docs, duplicate docs, archive suggestions, and deprecation suggestions before cleanup
-- Existing Project Workflow Adapter phase `1.20.0`: adds read-only `workflow-map` and `workflow-map-check` so Codex can map AI Native workflow onto existing governed projects before recommending writes
+- Existing Project Workflow Adapter phase `1.20.0`: adds read-only `workflow-map` and `workflow-map-check` so Codex can map IntentOS workflow onto existing governed projects before recommending writes
 - Added `core/existing-project-workflow-adapter.md`, `docs/existing-project-workflow-adapter.md`, `templates/workflow-adoption-map.md`, `checklists/workflow-adoption-map-review.md`, `prompts/workflow-adapter-agent.md`, `workflow-adoption-maps/`, `scripts/resolve-existing-workflow.mjs`, and `scripts/check-workflow-adoption-map.mjs`
 - `1.20.0` does not install target-project workflow assets, change hooks or CI, approve implementation, approve production/release, or solve doc lifecycle, work queue, or hook orchestration phases
 - Baseline Selection Precision Metrics patch `1.19.1`: adds scoreboard summary metrics with checker validation, externalizes synthetic fixture case ids to `precision-fixtures.json`, emits precision checker JSON summaries, and exposes the precision check as an explicit PR/release CI step
@@ -213,7 +217,7 @@ Includes:
 - `1.14.0` does not make standard packs active by default, promote draft packs to stable, make BL2 default, approve target-project writes, approve implementation, approve release/production, or claim real-project production validation
 - Baseline Pack System phase `1.13.0`: read-only baseline pack recommendation, Baseline Pack Selection Report, pack selection checker, CLI commands, generated-project asset coverage, and release evidence
 - `1.13.0` does not promote industrial packs to stable, make BL2 default, select all packs by default, approve target-project writes, or prove real-project production readiness
-- Manifest, README & Fallback Sync patch `1.12.1`: manifest `compatibilityPolicy.phase` now matches `devKitVersion`, phase drift is checked, README self-check guidance includes 1.12 checks and `npm run verify`, and `check-ai-workflow` fallback paths include 1.12 assets
+- Manifest, README & Fallback Sync patch `1.12.1`: manifest `compatibilityPolicy.phase` now matches `intentOSVersion`, phase drift is checked, README self-check guidance includes 1.12 checks and `npm run verify`, and `check-ai-workflow` fallback paths include 1.12 assets
 - `1.12.1` does not add standard baseline packs, assign real CODEOWNERS, add automatic GPT/API review, automatically scan real projects, approve target-project writes, or prove production/commercial readiness
 - Change Boundary, Guided Delivery Check & Baseline State Guard phase `1.12.0`: recorded change scope proof, standalone guided delivery checks, no-code baseline state protection, and CI/verify integration
 - Added `core/change-boundary.md`, `core/baseline-state.md`, `docs/change-boundary.md`, `docs/baseline-state.md`, `docs/guided-delivery-check.md`, Change Boundary and Baseline State report templates, prompts, checklists, examples, bad fixtures, and dedicated checkers
@@ -297,10 +301,10 @@ Includes:
 - Productization Hardcut phase `0.42.0`: docs information architecture and migration command
 - README and README.zh-CN are now short entry pages that link to complete operator, reference, playbook, migration, FAQ, and troubleshooting docs
 - Added `docs/operator-manual.md`, `docs/reference/`, `docs/adoption-playbooks/`, `docs/migrations/`, `docs/troubleshooting.md`, and `docs/faq.md`
-- `scripts/migrate-project.mjs` powers `ai-native migrate` as a plan-only command for `0.33.0 -> 1.0.0`
-- `ai-native migrate --dry-run` prints a migration plan without writing target project files
-- `ai-native migrate --write-plan <file>` writes only the requested JSON plan
-- `ai-native migrate` without `--dry-run` or `--write-plan` fails instead of applying changes
+- `scripts/migrate-project.mjs` powers `intentos migrate` as a plan-only command for `0.33.0 -> 1.0.0`
+- `intentos migrate --dry-run` prints a migration plan without writing target project files
+- `intentos migrate --write-plan <file>` writes only the requested JSON plan
+- `intentos migrate` without `--dry-run` or `--write-plan` fails instead of applying changes
 - Dev-kit self-check now covers migrate safety and docs IA pointers
 - Productization Hardcut phase `0.41.0`: industrial pack maturity and license boundary
 - Industrial packs now expose maturity metadata with stage, evidence docs, dogfood, false-positive log, owner, changelog, promotion criteria, demotion triggers, and known limitations
@@ -333,34 +337,34 @@ Includes:
 - `--backup-dir <dir>` preserves overwritten managed workflow assets during apply/update
 - direct workflow asset update now requires plan-first flow for governed, production, dirty, or unbootstrapped existing projects
 - `scripts/cli.mjs` now separates global dry-run command preview from command-level init/update plan preview
-- dev-kit self-check now covers dry-run, write-plan, apply-plan, stale-plan rejection, backup, and legacy plan-first adoption
+- intentos self-check now covers dry-run, write-plan, apply-plan, stale-plan rejection, backup, and legacy plan-first adoption
 - Productization Hardcut phase `0.37.0`: manifest authoritative asset source
-- `dev-kit-manifest.json` is now the authoritative source for source required files, target required paths, workflow readiness paths, workflow version assets, and safe static copy rules
-- `check-ai-workflow.mjs`, `workflow-next.mjs`, `check-dev-kit.mjs`, and `init-project.mjs` now consume manifest data for their asset lists
-- generated projects now receive `.ai-native/dev-kit-manifest.json` and `scripts/lib/manifest.mjs`
+- `intentos-manifest.json` is now the authoritative source for source required files, target required paths, workflow readiness paths, workflow version assets, and safe static copy rules
+- `check-ai-workflow.mjs`, `workflow-next.mjs`, `check-intentos.mjs`, and `init-project.mjs` now consume manifest data for their asset lists
+- generated projects now receive `.intentos/intentos-manifest.json` and `scripts/lib/manifest.mjs`
 - `scripts/check-manifest.mjs` now validates authoritative manifest shape, copy rule sources, target group coverage, workflow version asset sync, and script consumption markers
 - Productization Hardcut phase `0.36.0`: CLI Front Door
-- `package.json` with private package metadata, `ai-native` bin mapping, and productization scripts
+- `package.json` with private package metadata, `intentos` bin mapping, and productization scripts
 - `scripts/cli.mjs` as a thin CLI facade for init, update, next, check, doctor, new, fixtures, and self-check
-- planned-only `ai-native migrate` placeholder that does not pretend migration is implemented before its approved phase
-- CLI smoke coverage in `scripts/check-dev-kit.mjs`, including help, version, dry-run routing, fixture delegation, and generated-project init smoke
+- planned-only `intentos migrate` placeholder that does not pretend migration is implemented before its approved phase
+- CLI smoke coverage in `scripts/check-intentos.mjs`, including help, version, dry-run routing, fixture delegation, and generated-project init smoke
 - README guidance that prefers CLI for human usage while keeping lower-level scripts for CI, debugging, and exact evidence
-- Productization Hardcut phase `0.35.0`: read-only dev-kit manifest introduction
-- `dev-kit-manifest.json` with grouped source and generated-project asset inventory
-- manifest schema, loader, and drift checker through `schemas/dev-kit-manifest.schema.json`, `scripts/lib/manifest.mjs`, and `scripts/check-manifest.mjs`
-- dev-kit self-check and CI coverage for manifest validation, invalid manifest rejection, and drift reporting
+- Productization Hardcut phase `0.35.0`: read-only intentos manifest introduction
+- `intentos-manifest.json` with grouped source and generated-project asset inventory
+- manifest schema, loader, and drift checker through `schemas/intentos-manifest.schema.json`, `scripts/lib/manifest.mjs`, and `scripts/check-manifest.mjs`
+- intentos self-check and CI coverage for manifest validation, invalid manifest rejection, and drift reporting
 - decision brief and phase evidence for keeping manifest read-only and non-authoritative
 - Productization Hardcut phase `0.34.0`: Baseline Freeze + Self CI
-- first-party dev-kit PR and release CI under `.github/workflows/`
+- first-party intentos PR and release CI under `.github/workflows/`
 - repository PR template, CODEOWNERS draft guidance, CONTRIBUTING, and SECURITY docs
 - `0.33.0` baseline freeze evidence and `0.34.0` phase evidence under `releases/`
 - task-scoped Goal Card, Subagent Run Plan, Review Packet, Review Loop Report, and Final Report for the phase
-- dev-kit self-check coverage for first-party CI and repository governance assets
+- intentos self-check coverage for first-party CI and repository governance assets
 - Simulated Goal + Subagent L2 feature dogfood for rehearsing a full task closure without requiring a real project
 - `docs/goal-subagent-usage.md` for plain-language Goal Card and Subagent Run Plan usage
 - `examples/goal-subagent-l2-feature/` with Goal Card, Subagent Run Plan, Engineering Baseline, request, preflight, spec, eval, task, Review Packet, GPT review prompt, Review Loop Report, final report, follow-up proposal, and review summary
-- dev-kit self-check now validates the Goal + Subagent L2 feature example through Goal Mode, Subagent Orchestration, Engineering Baseline strict mode, workflow artifacts, Review Loop, Bounded Next-Step, and output quality gates
-- target-project bootstrap now installs `.ai-native/docs/goal-subagent-usage.md` as a usage guide, not as a business workflow artifact
+- intentos self-check now validates the Goal + Subagent L2 feature example through Goal Mode, Subagent Orchestration, Engineering Baseline strict mode, workflow artifacts, Review Loop, Bounded Next-Step, and output quality gates
+- target-project bootstrap now installs `.intentos/docs/goal-subagent-usage.md` as a usage guide, not as a business workflow artifact
 - Subagent Orchestration Protocol for goal-oriented helper-agent planning, read-only research, review, repair analysis, and reporting
 - `core/subagent-orchestration.md`, `templates/subagent-run-plan.md`, `checklists/subagent-orchestration-review.md`, and `prompts/engineering-baseline-agent.md`
 - `scripts/check-subagent-orchestration.mjs` for enforcing many readers / one writer, role authority, handoff, lifecycle closure, and no lingering `RUNNING` subagents
@@ -374,8 +378,8 @@ Includes:
 - `new-workflow-item --type goal-card`
 - generated projects and workflow asset updates now include `goal-cards/` and Goal Mode assets
 - Goal Mode golden example and bad fixtures for invalid mode and read-only adoption write attempts
-- CI and dev-kit self-check now include Goal Mode semantics without requiring every target project to create Goal Cards by default
-- Output Quality and Glossary checks for dev-kit human-facing report quality
+- CI and intentos self-check now include Goal Mode semantics without requiring every target project to create Goal Cards by default
+- Output Quality and Glossary checks for intentos human-facing report quality
 - `scripts/score-output-quality.mjs` for scoring final reports, status reports, decision briefs, review summaries, and customer handoffs
 - `scripts/check-glossary-usage.mjs` for required plain-language explanations of important workflow terms
 - `templates/output-quality-report.md`
@@ -385,10 +389,10 @@ Includes:
 - fixture cases now include repair guidance for stable checker maintenance
 - Governance Hardening roadmap for 0.30 fixture-driven checks, 0.31 Goal Mode, and 0.32 Subagent Orchestration
 - `docs/roadmaps/governance-hardening-roadmap.md`
-- `scripts/check-fixtures.mjs` for dev-kit-only golden example and negative fixture validation
+- `scripts/check-fixtures.mjs` for intentos-only golden example and negative fixture validation
 - `test-fixtures/` with bad Engineering Baseline, Review Loop, and Next-Step Boundary cases
 - golden examples for Engineering Baseline enum-vs-lookup, DTO/domain boundary, and Next-Step Boundary suggestions
-- dev-kit self-check now runs the fixture suite and asserts that bad fixtures fail for expected reasons
+- intentos self-check now runs the fixture suite and asserts that bad fixtures fail for expected reasons
 - Engineering Baseline Entry for pre-coding engineering decision governance
 - `core/engineering-baseline.md`, `templates/engineering-baseline.md`, `checklists/engineering-baseline-review.md`, and `scripts/check-engineering-baseline.mjs`
 - generated projects and workflow asset updates now include `docs/engineering-baseline.md`
@@ -396,15 +400,15 @@ Includes:
 - Review Packet now records Engineering Baseline checked/ref/gaps
 - dedicated Review Loop L2 dogfood example with request, preflight, spec, eval, task, review packet, GPT review prompt, review loop report, final report, follow-up proposal, and plain review summary
 - Review Loop L2 dogfood coverage for `AUTO_FIX`, `NEEDS_HUMAN_DECISION`, `DIRECT_FOLLOW_UP`, and `DO_NOT_PROCEED`
-- dev-kit self-check now validates the dedicated Review Loop L2 dogfood example with workflow artifact, review loop, and next-step semantic gates
+- intentos self-check now validates the dedicated Review Loop L2 dogfood example with workflow artifact, review loop, and next-step semantic gates
 - Codex usage guide now documents the GPT Pro semi-automatic review handoff path
 - Review Loop semantic checker with task/spec/eval/review-packet reference checks, finding category validation, AUTO_FIX bounds, human-decision routing, and verification-after-fix requirements
 - Bounded Next-Step semantic checker with suggestion type validation, Can AI do now consistency, required entry checks, human-decision routing, and DO_NOT_PROCEED guardrails
 - Artifact Decision Tree for choosing the right workflow artifact without creating every template by default
-- target-project bootstrap now installs `.ai-native/docs/artifact-decision-tree.md`
+- target-project bootstrap now installs `.intentos/docs/artifact-decision-tree.md`
 - workflow artifact implementation gate now expects Review Packet and Review Loop Report for L2/L3 tasks
 - GitHub Actions workflow includes Review Loop and Next-Step semantic checks
-- dev-kit self-check covers generated-project Review Loop and Next-Step semantic failures
+- intentos self-check covers generated-project Review Loop and Next-Step semantic failures
 - existing Web and Mini Program BL2 dogfood examples now include Review Packet / Review Loop Report assets and semantic self-check coverage
 - Bounded Next-Step Protocol for classifying Codex follow-up suggestions without treating them as execution approval
 - `core/next-step-boundary.md` and `checklists/next-step-boundary-review.md`
@@ -417,7 +421,7 @@ Includes:
 - generic workflow starter
 - self-iteration loop
 - workflow asset update mode
-- dev-kit end-to-end self-check
+- intentos end-to-end self-check
 - Web/backend/internal-admin/high-risk profiles
 - iOS and Android profiles/starters
 - workflow version records
@@ -496,10 +500,10 @@ Includes:
 - Review Loop Report template and `new-workflow-item --type review-loop-report`
 - `new-workflow-item --type gpt-review-prompt`
 - review loop directories for generated projects and starter projects
-- review loop protocol self-checks in `check-dev-kit.mjs`
+- review loop protocol self-checks in `check-intentos.mjs`
 - adoption assessment and governance map generation entries
 - Output Experience Protocol for human-first workflow, baseline, adoption, review, release, and audit reporting
-- plain-language glossary for AI Native workflow terms
+- plain-language glossary for IntentOS workflow terms
 - reporter agent prompt for converting technical workflow state into human-readable status
 - human status report, decision brief, plain review summary, and customer handoff templates
 - `workflow-next --format human|technical|json` with human summary before technical fields by default

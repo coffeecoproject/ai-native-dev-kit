@@ -14,7 +14,7 @@ It is not a coding style guide, platform best-practice catalog, or directory con
 
 ```text
 Before coding: Engineering Baseline
-During work: AI Native Workflow
+During work: IntentOS Workflow
 After work: Review Loop
 Final reporting: Bounded Next-Step and Output Experience
 ```

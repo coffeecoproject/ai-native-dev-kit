@@ -18,7 +18,7 @@ Include files that are part of the approved task and should remain in the projec
 - approved docs
 - release evidence
 - reviewed examples
-- generated project assets that are intentionally managed by the dev kit
+- generated project assets that are intentionally managed by the IntentOS
 
 ## Include Only After Human Approval
 

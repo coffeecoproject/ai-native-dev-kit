@@ -1,6 +1,6 @@
 # Existing Governance Map: <project-name>
 
-Use this file to map AI Native Dev Kit concepts to governance assets that already exist in a project.
+Use this file to map IntentOS concepts to governance assets that already exist in a project.
 
 This map prevents duplicate workflow systems. It should preserve existing authority unless the human explicitly approves an adapter change.
 
@@ -16,7 +16,7 @@ What I need from you:
 
 | Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
 |---|---|---|---|---|---|
-| A | Keep existing governance | Map AI Native concepts to current rules only | No, unless this report is being saved | low | Choose when the project already has strong governance |
+| A | Keep existing governance | Map IntentOS concepts to current rules only | No, unless this report is being saved | low | Choose when the project already has strong governance |
 | B | Docs-only bridge | Add adapter docs without changing gates or code | Docs only | low/medium | Choose when the team needs a shared bridge layer |
 | C | Thin operational bridge | Add selected scripts or references after review | Yes, approved workflow assets only | medium/high | Choose after confirming no conflict with existing gates |
 | D | Pause | Stop mapping and wait | No | low | Choose when authority or ownership is unclear |
@@ -43,7 +43,7 @@ Existing governance summary:
 
 ## Concept Map
 
-| AI Native Concept | Existing Project Asset | Current Coverage | Gap / Conflict | Decision |
+| IntentOS Concept | Existing Project Asset | Current Coverage | Gap / Conflict | Decision |
 |---|---|---|---|---|
 | Agent rules / `AGENTS.md` |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Request |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
@@ -69,7 +69,7 @@ Existing governance summary:
 
 ## Existing Authority
 
-| Area | Existing Authority | AI Native Adapter Rule |
+| Area | Existing Authority | IntentOS Adapter Rule |
 |---|---|---|
 | Agent rules |  | Do not overwrite |
 | CI / gates |  | Do not replace |

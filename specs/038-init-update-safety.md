@@ -20,7 +20,7 @@ Init/update can write many workflow assets into target projects, but old or gove
 
 ## User Story
 
-As a maintainer or adopter, I want Codex to preview, save, validate, and apply workflow setup plans so existing projects can adopt AI Native governance without silent mutation.
+As a maintainer or adopter, I want Codex to preview, save, validate, and apply workflow setup plans so existing projects can adopt IntentOS governance without silent mutation.
 
 ## Scope
 
@@ -33,7 +33,7 @@ Included:
 - Add plan fingerprint validation for target existence, git state, dirty summary, and relevant file hashes.
 - Block direct update for dirty or unbootstrapped existing projects.
 - Update CLI dry-run behavior so command-level `init/update --dry-run` reaches init/update plan preview.
-- Add dev-kit self-check coverage.
+- Add intentos self-check coverage.
 - Update version metadata to `0.38.0`.
 - Add `0.38.0` workflow artifacts and release evidence.
 
@@ -54,7 +54,7 @@ This phase does not create a migration product. It only makes init/update previe
 
 ## Data Model Impact
 
-Init/update plan JSON is introduced with `planVersion`, `devKitVersion`, `manifestVersion`, `operation`, `targetRoot`, `arguments`, `targetFingerprint`, `expectedPreconditions`, and `actions`.
+Init/update plan JSON is introduced with `planVersion`, `intentOSVersion`, `manifestVersion`, `operation`, `targetRoot`, `arguments`, `targetFingerprint`, `expectedPreconditions`, and `actions`.
 
 ## API / Interface Contract
 
@@ -94,7 +94,7 @@ Not applicable as a visual interface. CLI/script states are plan preview, plan w
 
 ## Observability
 
-`scripts/check-dev-kit.mjs`, generated target files, plan JSON, backup files, and `releases/0.38.0/phase-report.md` provide observability.
+`scripts/check-intentos.mjs`, generated target files, plan JSON, backup files, and `releases/0.38.0/phase-report.md` provide observability.
 
 ## Acceptance Criteria
 
@@ -114,8 +114,8 @@ Not applicable as a visual interface. CLI/script states are plan preview, plan w
 - Run `node scripts/check-manifest.mjs`.
 - Run task-scoped workflow artifact, goal mode, subagent orchestration, review loop, next-step boundary, and output quality checks.
 - Run `node scripts/check-fixtures.mjs`.
-- Run `node scripts/check-dev-kit.mjs`.
+- Run `node scripts/check-intentos.mjs`.
 
 ## Rollback Notes
 
-Revert `scripts/init-project.mjs`, `scripts/cli.mjs`, and `scripts/check-dev-kit.mjs` to the `0.37.0` direct init/update behavior, remove `0.38.0` phase artifacts, and revert version metadata to `0.37.0`.
+Revert `scripts/init-project.mjs`, `scripts/cli.mjs`, and `scripts/check-intentos.mjs` to the `0.37.0` direct init/update behavior, remove `0.38.0` phase artifacts, and revert version metadata to `0.37.0`.

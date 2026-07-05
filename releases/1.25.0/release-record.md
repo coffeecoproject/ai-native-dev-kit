@@ -26,7 +26,7 @@ Review Surface Cards do not approve implementation, release, production, securit
 
 ## Allowed Claims
 
-- AI Native Dev Kit can generate a read-only Review Surface Card through `review-surface`.
+- IntentOS can generate a read-only Review Surface Card through `review-surface`.
 - Review Surface Cards help Codex decide which review surfaces are required for a task before execution and close them out after execution.
 - Review Surface Governance always requires functional review, code review, verification review, and debt review.
 - The review-surface checker validates recorded cards for required surfaces, forbidden approval claims, unverified-surface disclosure, debt result, and next delivery state.
@@ -41,7 +41,7 @@ Review Surface Cards do not approve implementation, release, production, securit
 
 ## Evidence Status
 
-- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `dev-kit-manifest.json`.
+- Source assets, examples, bad fixtures, CLI commands, generated-project copy rules, and workflow-version assets are recorded in `intentos-manifest.json`.
 - `scripts/check-review-surface.mjs` validates source and generated Review Surface Cards and rejects 1.25 bad fixtures for forbidden approval claims and missing debt review.
 - Full release evidence is pending until `npm run verify` completes and `self-check-report.md` is updated from `PENDING` to `PASS`.
 

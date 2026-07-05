@@ -57,7 +57,7 @@ High
 ## Cost / Usage
 
 - AI runs: 1 main run
-- Heavy context reads: roadmap, manifest, check-dev-kit, CLI, migrate script, workflow artifacts
+- Heavy context reads: roadmap, manifest, check-intentos, CLI, migrate script, workflow artifacts
 - Repair runs: 0
 - Rework: corrected apply_patch path prefix and removed duplicate manifest entry
 
@@ -70,7 +70,7 @@ High
 - README should stay as entry documentation; deep coverage belongs in references.
 - Migration commands should be proven unsafe-by-default before any future apply behavior is considered.
 
-## Dev Kit Updates Needed
+## IntentOS Updates Needed
 
 - [ ] template
 - [ ] prompt
@@ -85,7 +85,7 @@ High
 - [ ] repeated issue, create `workflow-improvements/`
 - [ ] high-impact issue, create `workflow-improvements/`
 - [ ] repeated execution pattern, evaluate `skill-candidates/`
-- [ ] candidate for `dev-kit-proposals/`
+- [ ] candidate for `intentos-proposals/`
 
 ## Related Follow-up
 

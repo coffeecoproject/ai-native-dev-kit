@@ -76,14 +76,14 @@ Lower authority must not override higher authority. Inferred context must not ov
 Main goal:
 
 ```text
-Establish Project Memory & Context Governance for AI Native Dev Kit.
+Establish Project Memory & Context Governance for IntentOS.
 ```
 
 Modes:
 
 - `DEFINE_WORK`: document the bounded 1.4 plan.
 - `IMPLEMENT_TASK`: add core files, templates, script, examples, and metadata.
-- `REVIEW_TASK`: run context, product, claim, manifest, fixture, and dev-kit checks.
+- `REVIEW_TASK`: run context, product, claim, manifest, fixture, and intentos checks.
 - `REPAIR_TASK`: repair deterministic checker failures only.
 - `HANDOFF_OR_REPORT`: record evidence and summarize remaining boundaries.
 
@@ -169,5 +169,5 @@ The checker is deterministic. It does not call external models and does not deci
 - Generated projects receive context governance assets and checker.
 - Bad fixtures fail for approved-without-evidence, correction-without-evidence, and secret misuse.
 - CLI, CI, manifest, workflow-version, docs, and self-check include context governance.
-- `check-context-governance`, product baseline check, claim control check, manifest check, fixture suite, dev-kit self-check, and `git diff --check` pass.
+- `check-context-governance`, product baseline check, claim control check, manifest check, fixture suite, intentos self-check, and `git diff --check` pass.
 

@@ -1,12 +1,12 @@
 # 1.20 Existing Project Workflow Adapter Example
 
 This example shows how to record a workflow adoption map for a governed existing
-project without claiming that AI Native workflow assets were installed.
+project without claiming that IntentOS workflow assets were installed.
 
 Use it to verify that the adapter:
 
 - inventories existing project workflow,
-- recommends AI Native workflow usage,
+- recommends IntentOS workflow usage,
 - preserves existing authority,
 - blocks target writes, CI changes, hook changes, implementation, release, and
   high-risk decisions.

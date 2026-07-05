@@ -43,7 +43,7 @@ Required: No
 
 Status: Not Required
 
-Approval scope: Dev Kit workflow assets only. No target project writes.
+Approval scope: IntentOS workflow assets only. No target project writes.
 
 ## Verification
 

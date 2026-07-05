@@ -8,8 +8,8 @@ Ready for 1.0 minimum release.
 
 | From | To | Command | Apply support | Status |
 |---|---|---|---|---|
-| `0.33.0` | `1.0.0` | `ai-native migrate --target <project> --from 0.33.0 --to 1.0.0 --dry-run` | No | Plan-only |
-| `0.33.0` | `1.0.0` | `ai-native migrate --target <project> --from 0.33.0 --to 1.0.0 --write-plan <file>` | No | Writes JSON plan only |
+| `0.33.0` | `1.0.0` | `intentos migrate --target <project> --from 0.33.0 --to 1.0.0 --dry-run` | No | Plan-only |
+| `0.33.0` | `1.0.0` | `intentos migrate --target <project> --from 0.33.0 --to 1.0.0 --write-plan <file>` | No | Writes JSON plan only |
 
 ## Added Assets
 
@@ -18,7 +18,7 @@ Ready for 1.0 minimum release.
 - Review Loop and Bounded Next-Step semantics
 - Engineering Baseline governance
 - Output Quality and glossary checks
-- authoritative dev-kit manifest
+- authoritative intentos manifest
 - CLI front door
 - init/update dry-run, write-plan, apply-plan, and backup support
 - artifact frontmatter and schemas
@@ -32,11 +32,11 @@ Ready for 1.0 minimum release.
 
 ## Removed Assets
 
-None removed by `ai-native migrate`.
+None removed by `intentos migrate`.
 
 ## Renamed Assets
 
-No automatic renames are applied by `ai-native migrate`.
+No automatic renames are applied by `intentos migrate`.
 
 Conceptual moves:
 
@@ -53,13 +53,13 @@ CI must not be overwritten in governed or production projects without review.
 
 Existing `AGENTS.md` or `agent.md` files are project-owned.
 
-The dev kit may generate migration reports, but it must not overwrite agent instructions without explicit `--apply-agent-governance`.
+The IntentOS may generate migration reports, but it must not overwrite agent instructions without explicit `--apply-agent-governance`.
 
 ## PR Template Impact
 
 Existing `.github/pull_request_template.md` files are project-owned.
 
-The dev kit may generate migration reports, but it must not overwrite the template without explicit `--apply-pr-template-governance`.
+The IntentOS may generate migration reports, but it must not overwrite the template without explicit `--apply-pr-template-governance`.
 
 ## Human Approval Requirements
 

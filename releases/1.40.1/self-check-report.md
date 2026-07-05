@@ -12,7 +12,7 @@ Approval Record hardening, naming clarification, artifact lifecycle documentatio
 - `node scripts/check-approval-record.mjs examples/1.40-approval-record-governance`
 - `node scripts/check-fixtures.mjs`
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Result
@@ -21,6 +21,6 @@ Passed during implementation close-out.
 
 ## Notes
 
-- Full Dev Kit self-check completed with `AI Native Dev Kit self-check passed.`
+- Full IntentOS self-check completed with `IntentOS self-check passed.`
 - Fixture matrix completed with 120 cases.
 - Approval Record checker rejects the new 1.40.1 bad fixtures for wildcard paths, parent traversal, symlink aliases, expired approval, ambiguous owner, mismatched action IDs, and plan-changed-after-approval records.

@@ -8,7 +8,7 @@ This is not a 10/10 real-project evidence release.
 
 ## Human Summary
 
-The dev kit has a productized CLI, authoritative manifest, safe init/update plan flow, plan-only migration command, docs IA, checker suite, fixture matrix, and release evidence.
+The IntentOS has a productized CLI, authoritative manifest, safe init/update plan flow, plan-only migration command, docs IA, checker suite, fixture matrix, and release evidence.
 
 The release is suitable for controlled real-project adoption, not for claiming that every industrial pack is stable or production-proven.
 
@@ -33,7 +33,7 @@ Not included:
 - No package publishing
 - SaaS or hosted service
 - external GPT/API reviewer automation
-- No migration apply from `ai-native migrate`
+- No migration apply from `intentos migrate`
 - 10/10 real-project evidence
 - industrial pack promotion from draft to candidate
 - legal advice
@@ -42,11 +42,11 @@ Not included:
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| dev-kit first-party CI exists | PASS | `.github/workflows/dev-kit-pr-checks.yml`, `.github/workflows/dev-kit-release-checks.yml` |
+| intentos first-party CI exists | PASS | `.github/workflows/intentos-pr-checks.yml`, `.github/workflows/intentos-release-checks.yml` |
 | CLI is stable | PASS | `scripts/cli.mjs`, `releases/1.0.0/self-check-report.md` |
-| manifest is authoritative | PASS | `dev-kit-manifest.json`, `scripts/check-manifest.mjs` |
+| manifest is authoritative | PASS | `intentos-manifest.json`, `scripts/check-manifest.mjs` |
 | init/update safety exists | PASS | `releases/1.0.0/update-smoke.md` |
-| governed/production/dirty protection exists | PASS | `scripts/workflow-next.mjs`, `scripts/check-dev-kit.mjs` |
+| governed/production/dirty protection exists | PASS | `scripts/workflow-next.mjs`, `scripts/check-intentos.mjs` |
 | new artifacts have frontmatter/schema support | PASS | `schemas/artifacts/`, `scripts/new-workflow-item.mjs` |
 | fixture matrix covers checkers | PASS | `releases/1.0.0/self-check-report.md` |
 | migration matrix exists | PASS | `releases/1.0.0/migration-matrix.md` |
@@ -74,7 +74,7 @@ Missing before a 10/10 evidence release:
 | Release as 1.0 minimum without 10/10 real adoption evidence | ACCEPTED | Allowed only with explicit limitation wording |
 | Treat license wording as final legal advice | REJECTED | Existing docs remain explanatory and not legal advice |
 | Promote any industrial pack to candidate | REJECTED | All concrete packs remain draft |
-| Implement migration apply | REJECTED | `ai-native migrate` remains plan-only |
+| Implement migration apply | REJECTED | `intentos migrate` remains plan-only |
 
 ## Rollback
 

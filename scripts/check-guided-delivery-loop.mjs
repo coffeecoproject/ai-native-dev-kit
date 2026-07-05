@@ -114,7 +114,7 @@ function checkFinalReports() {
 }
 
 function checkSourceAssets() {
-  if (!exists("dev-kit-manifest.json")) return;
+  if (!exists("intentos-manifest.json")) return;
   for (const file of [
     "core/guided-delivery-loop.md",
     "core/decision-delegation-boundary.md",

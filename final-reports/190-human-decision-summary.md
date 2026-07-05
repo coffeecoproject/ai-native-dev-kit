@@ -32,7 +32,7 @@ Implemented the Human Decision Summary upgrade so users see recommended options,
 - Updated key prompts so agents start decision-heavy reports with a decision summary.
 - Updated `workflow-next`, `start`, `baseline`, and governance migration report outputs.
 - Updated README and usage docs.
-- Updated output-quality and dev-kit checks.
+- Updated output-quality and intentos checks.
 - Added 1.9.0 workflow and release evidence.
 
 ## Verified
@@ -49,7 +49,7 @@ Implemented the Human Decision Summary upgrade so users see recommended options,
 | Workflow artifacts | `node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/190-human-decision-summary.md` | PASS |
 | Next-step boundary | `node scripts/check-next-step-boundary.mjs . --task tasks/190-human-decision-summary.md` | PASS |
 | Fixture matrix | `node scripts/check-fixtures.mjs` | PASS |
-| Dev-kit self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| Dev-kit self-check | `node scripts/check-intentos.mjs` | PASS |
 | Diff hygiene | `git diff --check` | PASS |
 
 ## Not Changed
@@ -90,7 +90,7 @@ Spec: `specs/190-human-decision-summary.md`
 
 Eval: `evals/190-human-decision-summary.md`
 
-Review Packet: Not required for this L1 dev-kit task.
+Review Packet: Not required for this L1 intentos task.
 
 Review Loop Report: Not required unless verification finds repair issues.
 
@@ -107,7 +107,7 @@ node scripts/check-claim-control.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/190-human-decision-summary.md
 node scripts/check-next-step-boundary.mjs . --task tasks/190-human-decision-summary.md
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 
@@ -125,7 +125,7 @@ Evidence refs:
 
 Approvals:
 
-- Human Approval not required for this L1 dev-kit source change.
+- Human Approval not required for this L1 intentos source change.
 
 Exceptions:
 

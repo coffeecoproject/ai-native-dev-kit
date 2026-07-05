@@ -2,14 +2,14 @@
 
 ## Human Summary
 
-Changes to this repository should keep the dev kit installable, checkable, and safe for real project adoption. Small documentation fixes can stay lightweight. Productization, workflow, checker, CI, or template changes need workflow evidence and local verification.
+Changes to this repository should keep IntentOS installable, checkable, and safe for real project adoption. Small documentation fixes can stay lightweight. Productization, workflow, checker, CI, or template changes need workflow evidence and local verification.
 
 ## Required Checks
 
 Run the core checks before opening a pull request:
 
 ```bash
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-fixtures.mjs
 find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 node scripts/score-output-quality.mjs examples/goal-subagent-l2-feature --min-score 80

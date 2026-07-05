@@ -60,11 +60,11 @@ If a bridge proposes `AGENTS.md`, it must mention the existing agent authority s
 
 ## Existing Authority Mapping
 
-Map AI Native concepts to the target project's own source of truth.
+Map IntentOS concepts to the target project's own source of truth.
 
 Examples:
 
-| AI Native Concept | Existing Project Authority |
+| IntentOS Concept | Existing Project Authority |
 |---|---|
 | Agent rules | `agent.md`, `AGENTS.md`, platform instruction file |
 | Engineering baseline | existing engineering baseline docs and guard scripts |
@@ -116,7 +116,7 @@ Rules:
 Human approval is required before:
 
 - writing adapter docs
-- writing `AGENTS.md`, `.ai-native/`, PR template, CI, release workflow, or governance scripts
+- writing `AGENTS.md`, `.intentos/`, PR template, CI, release workflow, or governance scripts
 - applying any bridge layer
 - using a real project name in public evidence
 - touching production, release, rollback, DB, secrets, permissions, security, privacy, payments, or regulated data

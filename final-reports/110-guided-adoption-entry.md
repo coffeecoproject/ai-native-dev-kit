@@ -30,7 +30,7 @@ node scripts/check-guided-adoption.mjs examples/1.1-guided-adoption/governed-rea
 node scripts/cli.mjs start .
 node scripts/cli.mjs start . --json
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.

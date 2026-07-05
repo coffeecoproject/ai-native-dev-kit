@@ -35,7 +35,7 @@ Before implementation, Codex must re-read:
 - `README.zh-CN.md`
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `docs/for-existing-projects.md`
 - `docs/existing-project-workflow-adapter.md`
 - `docs/native-first-existing-project-migration.md`
@@ -53,7 +53,7 @@ Before implementation, Codex must re-read:
 - `scripts/resolve-governance-convergence.mjs`
 - `scripts/resolve-apply-plan.mjs`
 - `scripts/check-controlled-apply-readiness.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 WorkControl, AiCoffeeCo, or any local real-project observations may be used only as anonymized calibration evidence. They must not become hard-coded rules, required public fixtures, or source-repository assumptions.
 
@@ -168,7 +168,7 @@ The technical detail should exist for audit, but the user-facing answer must be 
 
 - automatic target-project writes;
 - a generic apply runner;
-- automatic `.ai-native` installation;
+- automatic `.intentos` installation;
 - automatic `AGENTS.md`, CI, hook, release SOP, baseline, or PR template replacement;
 - production deployment or release execution;
 - secrets, DNS, payment, permission, migration, provider-state, compliance, legal, tax, finance, HR, privacy, security, or production approval;
@@ -420,7 +420,7 @@ Default behavior:
 - read-only;
 - no target writes;
 - summarize the best available adoption state;
-- do not flood old projects with missing `.ai-native` assets;
+- do not flood old projects with missing `.intentos` assets;
 - use existing reports when present;
 - clearly mark missing or unresolved evidence.
 
@@ -596,8 +596,8 @@ Wire into:
 
 - `scripts/cli.mjs`
 - `package.json`
-- `scripts/check-dev-kit.mjs`
-- `dev-kit-manifest.json`
+- `scripts/check-intentos.mjs`
+- `intentos-manifest.json`
 - `templates/workflow-version.json`
 
 ### Step 4: Add Examples And Bad Fixtures
@@ -648,7 +648,7 @@ node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assur
 node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/partial-existing-project --require-structured-evidence
 node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/blocked-production-project --require-structured-evidence
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

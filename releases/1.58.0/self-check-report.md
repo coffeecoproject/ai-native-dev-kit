@@ -11,7 +11,7 @@ node --check scripts/resolve-release-guide.mjs
 node --check scripts/check-release-guide.mjs
 node scripts/check-release-guide.mjs examples/1.58-release-guide-consolidation/web-preview-release-guide
 node scripts/check-release-guide.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

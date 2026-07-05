@@ -18,8 +18,8 @@ const typeMap = {
   "review-packet": { dir: "review-packets", template: "review-packet.md", defaultName: "review-packet" },
   "review-loop-report": { dir: "review-loop-reports", template: "review-loop-report.md", defaultName: "review-loop-report" },
   "gpt-review-prompt": { dir: "gpt-review-prompts", template: "gpt-review-prompt.md", defaultName: "gpt-review-prompt" },
-  "adoption-assessment": { dir: ".ai-native/adoption", template: "adoption-assessment.md", defaultName: "adoption-assessment" },
-  "governance-map": { dir: ".ai-native/adoption", template: "existing-governance-map.md", defaultName: "existing-governance-map" },
+  "adoption-assessment": { dir: ".intentos/adoption", template: "adoption-assessment.md", defaultName: "adoption-assessment" },
+  "governance-map": { dir: ".intentos/adoption", template: "existing-governance-map.md", defaultName: "existing-governance-map" },
   "human-status-report": { dir: "status-reports", template: "human-status-report.md", defaultName: "status-report" },
   "decision-brief": { dir: "decision-briefs", template: "decision-brief.md", defaultName: "decision-brief" },
   "plain-review-summary": { dir: "review-summaries", template: "plain-review-summary.md", defaultName: "review-summary" },
@@ -425,7 +425,7 @@ function resolveRef(root, value, label) {
 
 function templatePath(root, templateName) {
   const candidates = [
-    path.join(root, ".ai-native", "templates", templateName),
+    path.join(root, ".intentos", "templates", templateName),
     path.join(root, "templates", templateName),
     path.resolve(__dirname, "..", "templates", templateName),
   ];
@@ -439,9 +439,9 @@ function readTemplate(root, templateName) {
   return fs.readFileSync(templatePath(root, templateName), "utf8");
 }
 
-function readCurrentDevKitVersion(root) {
+function readCurrentIntentOSVersion(root) {
   const candidates = [
-    path.join(root, ".ai-native", "version.json"),
+    path.join(root, ".intentos", "version.json"),
     path.resolve(__dirname, "..", "VERSION.md"),
   ];
   for (const candidate of candidates) {
@@ -450,7 +450,7 @@ function readCurrentDevKitVersion(root) {
     if (candidate.endsWith(".json")) {
       try {
         const parsed = JSON.parse(content);
-        if (parsed.devKitVersion) return parsed.devKitVersion;
+        if (parsed.intentOSVersion) return parsed.intentOSVersion;
       } catch {
         continue;
       }
@@ -1910,7 +1910,7 @@ function frontmatterFor(type, context) {
     title: context.title,
     status: "draft",
     created_at: context.date,
-    devkit_version: context.devKitVersion,
+    intentos_version: context.intentOSVersion,
   };
   if (type === "request") {
     return { ...common, priority: context.priority || "P1", task_level: context.level || "L1" };
@@ -2044,7 +2044,7 @@ const finalReportRef = resolveRef(projectRoot, args["final-report"], "final repo
   || siblingArtifactRef(projectRoot, "final-reports", number, slug);
 const baseContext = {
   date,
-  devKitVersion: readCurrentDevKitVersion(projectRoot),
+  intentOSVersion: readCurrentIntentOSVersion(projectRoot),
   evalRef,
   level,
   number,

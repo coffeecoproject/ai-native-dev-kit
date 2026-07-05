@@ -26,11 +26,11 @@ What should the reviewer ignore?
 
 ## Project State
 
-Project root: `/Users/liushan/Developer/CodingFlow/ai-native-dev-kit`
+Project root: `/Users/liushan/Developer/CodingFlow/intentos`
 
 Branch: main
 
-Project state tags: dev-kit, productization-hardcut
+Project state tags: intentos, productization-hardcut
 
 Adoption mode: repository maintenance
 
@@ -135,7 +135,7 @@ Commands run:
 
 ```text
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Verification results:
@@ -156,7 +156,7 @@ Skipped evidence and reason:
 |---|---|---|---|
 | `test-fixtures/` | update | typed fixture matrix | low |
 | `scripts/check-fixtures.mjs` | update | setup and reporting | medium |
-| `dev-kit-manifest.json` | update | source inventory | medium |
+| `intentos-manifest.json` | update | source inventory | medium |
 | version/evidence files | update | release tracking | low |
 
 ## Diff Summary

@@ -10,11 +10,11 @@ const args = parseArgs(process.argv.slice(2));
 const unknown = unknownOptions(args, new Set(["json"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -328,16 +328,16 @@ function walk(dir, files) {
 function resolveAsset(relPath) {
   const direct = path.join(projectRoot, relPath);
   if (fs.existsSync(direct)) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relPath);
-  if (fs.existsSync(aiNative)) return aiNative;
+  const intentOS = path.join(projectRoot, ".intentos", relPath);
+  if (fs.existsSync(intentOS)) return intentOS;
   return null;
 }
 
 function resolveDirectory(relPath) {
   const direct = path.join(projectRoot, relPath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const aiNative = path.join(projectRoot, ".ai-native", relPath);
-  if (fs.existsSync(aiNative) && fs.statSync(aiNative).isDirectory()) return aiNative;
+  const intentOS = path.join(projectRoot, ".intentos", relPath);
+  if (fs.existsSync(intentOS) && fs.statSync(intentOS).isDirectory()) return intentOS;
   return null;
 }
 
@@ -356,7 +356,7 @@ function rel(fullPath) {
 
 function displayAsset(relPath, resolved) {
   const direct = path.join(projectRoot, relPath);
-  return path.resolve(resolved) === path.resolve(direct) ? relPath : `.ai-native/${relPath}`;
+  return path.resolve(resolved) === path.resolve(direct) ? relPath : `.intentos/${relPath}`;
 }
 
 function runNode(argv) {

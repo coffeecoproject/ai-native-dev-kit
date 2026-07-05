@@ -6,7 +6,7 @@ slug: industrial-maturity-license-boundary
 title: "industrial maturity license boundary"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 request: requests/041-industrial-maturity-license-boundary.md
 task_level: L3
 ---
@@ -22,7 +22,7 @@ READY
 
 ## Problem Summary
 
-The dev kit needs an explicit maturity model for industrial packs and a conservative license
+The IntentOS needs an explicit maturity model for industrial packs and a conservative license
 boundary layer. The change must make maturity inspectable and checkable while keeping commercial
 usage language subordinate to `LICENSE.md`.
 

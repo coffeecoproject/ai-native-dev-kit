@@ -28,7 +28,7 @@ Added a complete 1.7 First Delivery Walkthrough simulation so a plain user idea 
 - `node scripts/check-product-baseline.mjs .`
 - `node scripts/check-claim-control.mjs .`
 - `node scripts/check-context-governance.mjs .`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Not Changed

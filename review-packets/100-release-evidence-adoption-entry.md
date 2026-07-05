@@ -32,11 +32,11 @@ What should the reviewer ignore?
 
 ## Project State
 
-Project root: `/Users/liushan/Developer/CodingFlow/ai-native-dev-kit`
+Project root: `/Users/liushan/Developer/CodingFlow/intentos`
 
 Branch: `main`
 
-Project state tags: dev-kit 1.0 release evidence
+Project state tags: intentos 1.0 release evidence
 
 Adoption mode: not a target-project adoption
 
@@ -140,7 +140,7 @@ Selected profiles: none
 
 Industrial baseline state: not changed
 
-Baseline level: L3 dev-kit productization release evidence
+Baseline level: L3 intentos productization release evidence
 
 Selected industrial packs: none
 
@@ -149,13 +149,13 @@ Selected industrial packs: none
 Commands run:
 
 ```text
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/check-manifest.mjs .
 node scripts/check-fixtures.mjs
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test
-node /tmp/ai-native-1-test/scripts/check-ai-workflow.mjs /tmp/ai-native-1-test --mode core
-node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run
-node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-1-test
+node /tmp/intentos-1-test/scripts/check-ai-workflow.mjs /tmp/intentos-1-test --mode core
+node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run
+node scripts/cli.mjs migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/100-release-evidence-adoption-entry.md
 node scripts/check-review-loop.mjs . --task tasks/100-release-evidence-adoption-entry.md
 node scripts/check-next-step-boundary.mjs . --task tasks/100-release-evidence-adoption-entry.md
@@ -165,7 +165,7 @@ node scripts/check-subagent-orchestration.mjs .
 
 Verification results:
 
-- PASS. Final `node scripts/check-dev-kit.mjs`, `node scripts/cli.mjs self-check`, and `git diff --check` passed.
+- PASS. Final `node scripts/check-intentos.mjs`, `node scripts/cli.mjs self-check`, and `git diff --check` passed.
 
 Evidence refs:
 
@@ -188,7 +188,7 @@ Skipped evidence and reason:
 | `releases/1.0.0/` | add | release evidence | medium |
 | `templates/adoption-evidence-report.md` | add | real adoption evidence template | low |
 | `templates/productization-trial-report.md` | add | trial report template | low |
-| `scripts/check-dev-kit.mjs` | update | enforce release evidence | medium |
+| `scripts/check-intentos.mjs` | update | enforce release evidence | medium |
 | version/manifest files | update | 1.0 metadata | medium |
 | workflow artifacts | add | task evidence | low |
 

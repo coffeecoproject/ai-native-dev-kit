@@ -44,7 +44,7 @@ node scripts/cli.mjs doctor <project>
 
 If the project is governed, dirty, already online, or production-sensitive, these commands should keep writes blocked and recommend migration or reconciliation work.
 
-For governed or production-sensitive old projects, `doctor` should stop at the adoption diagnosis layer. It should not flood the user with missing `.ai-native` asset errors before a migration plan exists.
+For governed or production-sensitive old projects, `doctor` should stop at the adoption diagnosis layer. It should not flood the user with missing `.intentos` asset errors before a migration plan exists.
 
 ## Rule Comparison
 

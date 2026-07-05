@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Phase `0.34.0` turns the dev-kit repository itself into a checked productization target. It freezes the `0.33.0` baseline, adds PR and release CI, records release evidence, and updates self-check coverage for these assets. It does not implement CLI, manifest authority, schema/frontmatter, init/update safety changes, or target-project behavior changes.
+Phase `0.34.0` turns the intentos repository itself into a checked productization target. It freezes the `0.33.0` baseline, adds PR and release CI, records release evidence, and updates self-check coverage for these assets. It does not implement CLI, manifest authority, schema/frontmatter, init/update safety changes, or target-project behavior changes.
 
 ## Completed
 
@@ -12,7 +12,7 @@ Phase `0.34.0` turns the dev-kit repository itself into a checked productization
 - Added `0.33.0` baseline freeze and self-check evidence under `releases/0.33.0/`.
 - Added `0.34.0` phase report under `releases/0.34.0/`.
 - Updated version metadata to `0.34.0`.
-- Extended `scripts/check-dev-kit.mjs` so first-party CI and repository governance assets are checked.
+- Extended `scripts/check-intentos.mjs` so first-party CI and repository governance assets are checked.
 
 ## Verified
 
@@ -28,7 +28,7 @@ node scripts/check-review-loop.mjs . --task tasks/034-baseline-freeze-self-ci.md
 node scripts/check-next-step-boundary.mjs . --task tasks/034-baseline-freeze-self-ci.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Generated-project smoke also passed with `scripts/init-project.mjs --starter generic-project` and the generated project's core workflow, onboarding, engineering baseline, workflow-next, and workflow-version checks.
@@ -71,7 +71,7 @@ Review the `0.34.0` phase evidence and only then start `0.35.0` from a new task 
 
 ## Technical Details
 
-The phase adds a first-party CI layer for dev-kit maintenance and extends `check-dev-kit` to assert the new CI and governance files exist and include expected commands. The CI does not require secrets and runs local Node scripts only.
+The phase adds a first-party CI layer for intentos maintenance and extends `check-intentos` to assert the new CI and governance files exist and include expected commands. The CI does not require secrets and runs local Node scripts only.
 
 ## Audit Notes
 

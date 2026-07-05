@@ -89,7 +89,7 @@ The CLI must not remove or rename commands in 1.68.
 - Existing `node scripts/cli.mjs <command> --help` behavior still works.
 - `node scripts/check-manifest.mjs` passes.
 - `npm --silent run verify:governance` passes.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - `git diff --check` passes.
 
 ## Non-Goals

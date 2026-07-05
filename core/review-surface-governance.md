@@ -60,7 +60,7 @@ Additional surfaces are selected when project or intent signals require them:
 | `UX_REVIEW` | UI, routes, frontend pages, miniprogram views, mobile screens |
 | `DOCUMENTATION_REVIEW` | README, AGENTS, docs, SOP, governance documents |
 | `RELEASE_IMPACT_REVIEW` | CI, deploy, staging, production, rollback, runbook |
-| `EXISTING_GOVERNANCE_REVIEW` | AGENTS, `.ai-native`, scripts/guard, existing workflows, strong docs |
+| `EXISTING_GOVERNANCE_REVIEW` | AGENTS, `.intentos`, scripts/guard, existing workflows, strong docs |
 | `SECURITY_PRIVACY_REVIEW` | secrets, tokens, privacy, compliance, payment, billing, finance, personal data |
 
 ## Human Decision Boundary

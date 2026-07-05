@@ -1,8 +1,8 @@
-# Phase Report: 0.35.0 Read-only Dev Kit Manifest
+# Phase Report: 0.35.0 Read-only IntentOS Manifest
 
 ## Human Summary
 
-Phase `0.35.0` introduces a central manifest for the dev-kit repository while keeping existing behavior unchanged. The manifest is a read-only inventory and drift-check target, not an authority source.
+Phase `0.35.0` introduces a central manifest for the intentos repository while keeping existing behavior unchanged. The manifest is a read-only inventory and drift-check target, not an authority source.
 
 ## Scope Closed
 
@@ -30,7 +30,7 @@ node scripts/check-review-loop.mjs . --task tasks/035-readonly-manifest.md
 node scripts/check-next-step-boundary.mjs . --task tasks/035-readonly-manifest.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.

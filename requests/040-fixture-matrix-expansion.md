@@ -6,7 +6,7 @@ slug: fixture-matrix-expansion
 title: Fixture Matrix Expansion
 status: ready
 created_at: "2026-06-26"
-devkit_version: 0.40.0
+intentos_version: 0.40.0
 priority: P1
 task_level: L2
 ---
@@ -14,11 +14,11 @@ task_level: L2
 
 ## Raw Request
 
-Execute Productization Hardcut phase `0.40.0` by expanding the dev-kit fixture matrix before checker refactoring.
+Execute Productization Hardcut phase `0.40.0` by expanding the intentos fixture matrix before checker refactoring.
 
 ## User / Customer
 
-AI Native Dev Kit maintainers and future project adopters.
+IntentOS maintainers and future project adopters.
 
 ## Problem
 

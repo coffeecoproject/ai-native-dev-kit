@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Product Baseline keeps AI Native Dev Kit from growing into an over-automated system that asks less from humans but also hides risk.
+Product Baseline keeps IntentOS from growing into an over-automated system that asks less from humans but also hides risk.
 
 ## When To Use
 

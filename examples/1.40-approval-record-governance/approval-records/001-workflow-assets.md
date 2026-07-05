@@ -34,14 +34,14 @@ What I need from you: `No additional approval is recorded by this file. Future a
 
 | Action ID | Action type | Target paths | Approved? | Notes |
 |---|---|---|---|---|
-| A001 | WORKFLOW_ASSET_UPDATE | `.ai-native/version.json` | Yes | Update workflow asset version evidence |
+| A001 | WORKFLOW_ASSET_UPDATE | `.intentos/version.json` | Yes | Update workflow asset version evidence |
 | A002 | WORKFLOW_ASSET_UPDATE | `scripts/check-ai-workflow.mjs` | Yes | Keep workflow checker aligned |
 
 ## Approval Scope
 
 | Field | Value |
 |---|---|
-| Included target paths | `.ai-native/version.json`, `scripts/check-ai-workflow.mjs` |
+| Included target paths | `.intentos/version.json`, `scripts/check-ai-workflow.mjs` |
 | Excluded target paths | business source files, production config, CI, hooks |
 | Max change size | 2 files |
 | Timebox | 2026-06-30 only |
@@ -81,7 +81,7 @@ What I need from you: `No additional approval is recorded by this file. Future a
 
 ## Human Approval Statement
 
-Project owner approves A001 and A002 for `.ai-native/version.json` and `scripts/check-ai-workflow.mjs` only.
+Project owner approves A001 and A002 for `.intentos/version.json` and `scripts/check-ai-workflow.mjs` only.
 
 ## Non-Authorizations
 

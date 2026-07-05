@@ -29,8 +29,8 @@ If Node is older than `22`, upgrade Node before running IntentOS scripts.
 Clone the repository, then run the public entry commands against the project you want Codex to work on:
 
 ```bash
-git clone https://github.com/coffeecoproject/ai-native-dev-kit.git
-cd ai-native-dev-kit
+git clone https://github.com/coffeecoproject/intentos.git
+cd intentos
 
 node scripts/cli.mjs start ../my-project
 node scripts/cli.mjs next ../my-project

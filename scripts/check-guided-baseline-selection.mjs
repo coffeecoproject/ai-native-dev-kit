@@ -90,7 +90,7 @@ function readJsonIfExists(filePath) {
 
 function registryRoot(root, registryName) {
   const candidates = [
-    path.join(root, ".ai-native", registryName),
+    path.join(root, ".intentos", registryName),
     path.join(root, registryName),
     path.resolve(process.cwd(), registryName),
   ];
@@ -356,7 +356,7 @@ function validateProjectStateBoundaries(content, rel) {
     /\boverwrite AGENTS\b/i,
     /\boverwrite CI\b/i,
     /\breplace existing governance\b/i,
-    /\bfull \.ai-native copy\b/i,
+    /\bfull \.intentos copy\b/i,
     /全量覆盖/,
     /直接覆盖/,
   ])) {

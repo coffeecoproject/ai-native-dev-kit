@@ -7,7 +7,7 @@ Use this checklist before treating a Workflow Adoption Map as ready.
 - Human Decision Summary is present.
 - Existing Project Signals are concrete.
 - Existing Workflow Inventory names actual assets or explicitly says missing.
-- Recommended AI Native Workflow Use covers request/spec/task, baseline
+- Recommended IntentOS Workflow Use covers request/spec/task, baseline
   decision, change boundary, patch classification, review loop, launch
   readiness, drift, context correction, doc lifecycle, work queue, and hook plan
   routing.

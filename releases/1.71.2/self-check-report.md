@@ -28,7 +28,7 @@ node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assur
 node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/partial-existing-project --require-structured-evidence
 node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/blocked-production-project --require-structured-evidence
 node scripts/check-adoption-assurance.mjs examples/1.71-adoption-execution-assurance/failed-assurance --require-structured-evidence
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Expected Rejections
@@ -45,4 +45,4 @@ Passed local verification in this implementation turn.
 
 - Positive Adoption Assurance examples passed structured evidence checks.
 - Bad fixtures were rejected for missing simulation exit code evidence, target file write / changed target diff, and unresolved generated evidence references.
-- `check-dev-kit` passed, including generated-project smoke checks, existing governed project read-only behavior, source-only adoption documentation, and 1.71.2 bad-fixture coverage.
+- `check-intentos` passed, including generated-project smoke checks, existing governed project read-only behavior, source-only adoption documentation, and 1.71.2 bad-fixture coverage.

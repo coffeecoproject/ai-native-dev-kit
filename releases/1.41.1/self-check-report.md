@@ -29,7 +29,7 @@ Structured evidence hardening for strict checker mode, local plan reference reso
 
 ## Final Commands
 
-- `node scripts/check-dev-kit.mjs`: passed
+- `node scripts/check-intentos.mjs`: passed
 - `npm run verify:governance`: passed
 - `npm run verify:syntax`: passed
 - `git diff --check`: passed

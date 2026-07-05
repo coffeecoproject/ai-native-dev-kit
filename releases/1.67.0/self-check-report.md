@@ -20,7 +20,7 @@ Release Core Model, Release Plan resolver/checker, examples, bad fixtures, and e
 - `npm run verify:governance`
 - `npm run verify:examples`
 - `npm run verify:release`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Result

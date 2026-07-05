@@ -18,7 +18,7 @@ node --check scripts/check-execution-assurance.mjs
 node scripts/check-execution-assurance.mjs /private/tmp/intentos-empty-review
 node scripts/check-execution-assurance.mjs /private/tmp/intentos-empty-review --allow-empty
 node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/feature-contract-validation --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-manifest.mjs
 npm run verify
 git diff --check

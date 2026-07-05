@@ -15,7 +15,7 @@ node scripts/check-document-archive-apply.mjs test-fixtures/bad/bad-archive-appl
 node scripts/check-manifest.mjs
 npm run verify:syntax
 npm run verify:governance
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

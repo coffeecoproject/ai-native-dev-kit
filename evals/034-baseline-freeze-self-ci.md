@@ -47,6 +47,6 @@ Workflow evidence: `tasks/034-baseline-freeze-self-ci.md`, `review-packets/034-b
 
 Baseline evidence: `releases/0.33.0/baseline-freeze.md` and `releases/0.33.0/self-check-report.md`.
 
-CI evidence: `.github/workflows/dev-kit-pr-checks.yml` and `.github/workflows/dev-kit-release-checks.yml`.
+CI evidence: `.github/workflows/intentos-pr-checks.yml` and `.github/workflows/intentos-release-checks.yml`.
 
 Final evidence: `final-reports/034-baseline-freeze-self-ci.md` and `releases/0.34.0/phase-report.md`.

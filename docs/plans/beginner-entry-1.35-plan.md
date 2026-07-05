@@ -68,4 +68,4 @@ This release does not:
 - Technical routing is still available for Codex/reviewer evidence.
 - Bad fixtures reject write authorization and jargon leakage.
 - Generated projects include the new assets.
-- Full dev-kit verification passes.
+- Full intentos verification passes.

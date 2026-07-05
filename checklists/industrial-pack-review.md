@@ -44,5 +44,5 @@ Use this checklist before adding, promoting, or materially changing an industria
 - [ ] `node scripts/check-industrial-pack.mjs .` passes.
 - [ ] `node scripts/resolve-industrial-baseline.mjs .` produces machine-readable project selection output when dogfooding.
 - [ ] `node scripts/check-industrial-baseline.mjs . --strict` passes in at least one approved dogfood project before marking a pack stable.
-- [ ] `node scripts/check-dev-kit.mjs` passes.
+- [ ] `node scripts/check-intentos.mjs` passes.
 - [ ] Any project dogfood evidence is recorded outside the pack.

@@ -1,6 +1,6 @@
 # Self-iteration Review Checklist
 
-Use this checklist before accepting workflow improvements or dev-kit change proposals.
+Use this checklist before accepting workflow improvements or intentos change proposals.
 
 ## Evidence
 

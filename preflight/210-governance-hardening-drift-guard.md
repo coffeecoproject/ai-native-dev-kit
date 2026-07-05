@@ -8,7 +8,7 @@ status: approved
 
 ## Human Summary
 
-1.11.0 is a governance hardening pass. It changes dev-kit behavior and checks, but does not change target-project authority.
+1.11.0 is a governance hardening pass. It changes intentos behavior and checks, but does not change target-project authority.
 
 ## Request Ref
 

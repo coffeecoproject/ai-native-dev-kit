@@ -18,7 +18,7 @@ The release is complete only if the new entry is readable for users and bounded 
 | bad fixtures | PASS: unsafe cards fail for expected reasons |
 | `node scripts/check-fixtures.mjs` | PASS |
 | `node scripts/check-manifest.mjs` | PASS |
-| `node scripts/check-dev-kit.mjs` | PASS |
+| `node scripts/check-intentos.mjs` | PASS |
 | `npm run verify` | PASS |
 | `git diff --check` | PASS |
 

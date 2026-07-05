@@ -31,7 +31,7 @@ Codex can now recommend ordinary draft standard packs for Web, Mini Program, iOS
 
 ## Allowed Claims
 
-- The dev kit now has draft standard packs for common platforms and project shapes.
+- The IntentOS now has draft standard packs for common platforms and project shapes.
 - The resolver can recommend platform standard packs before optional industrial overlays.
 - Backend and release packs remain conditional.
 - Existing governed projects stay on read-only mapping and gap-review language.
@@ -75,7 +75,7 @@ node scripts/check-standard-baseline-selection.mjs examples/1.15-platform-standa
 node scripts/check-standard-baseline-selection.mjs examples/1.15-platform-standard-baselines/existing-governed-project-gap-review --strict --compare-resolver
 node scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

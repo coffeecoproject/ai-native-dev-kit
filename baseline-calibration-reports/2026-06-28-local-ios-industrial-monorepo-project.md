@@ -91,7 +91,7 @@ not detected
 ## Non-Goals
 
 - Do not write baseline files into the target.
-- Do not initialize `.ai-native` in the target.
+- Do not initialize `.intentos` in the target.
 - Do not replace existing `AGENTS.md`, governance docs, CI, release, rollback,
   database, permission, or production authority.
 - Do not treat all platforms in a monorepo as active for the current task.

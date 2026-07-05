@@ -30,7 +30,7 @@ This is a patch calibration after 1.12.0. It should make existing guarantees har
 
 ## Baseline References
 
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `scripts/check-manifest.mjs`
 - `scripts/check-ai-workflow.mjs`
 - `README.md`

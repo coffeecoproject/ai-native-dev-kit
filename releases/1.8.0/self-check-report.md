@@ -9,7 +9,7 @@ Full 1.8.0 verification passed after adding real-project read-only adoption, exi
 ```text
 node --check scripts/check-real-adoption-trial.mjs
 node --check scripts/check-patch-classification.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
 node scripts/check-real-adoption-trial.mjs examples/1.8-real-project-readonly
@@ -22,7 +22,7 @@ node scripts/check-context-governance.mjs .
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/180-real-project-adoption-trial.md
 node scripts/check-review-loop.mjs . --task tasks/180-real-project-adoption-trial.md
 node scripts/check-next-step-boundary.mjs . --task tasks/180-real-project-adoption-trial.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

@@ -13,7 +13,7 @@
 | `node scripts/check-guided-baseline-selection.mjs examples/1.17-guided-baseline-selection/new-miniprogram --strict` | PASS |
 | `node scripts/check-fixtures.mjs` | PASS |
 | `node scripts/check-manifest.mjs` | PASS |
-| `node scripts/check-dev-kit.mjs` | PASS |
+| `node scripts/check-intentos.mjs` | PASS |
 | `npm run verify` | PASS |
 | `git diff --check` | PASS |
 

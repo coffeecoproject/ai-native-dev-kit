@@ -322,12 +322,12 @@ scripts/resolve-native-migration.mjs
 scripts/check-native-migration.mjs
 scripts/resolve-existing-workflow.mjs
 scripts/check-workflow-adoption-map.mjs
-scripts/check-dev-kit.mjs
+scripts/check-intentos.mjs
 README.md
 README.zh-CN.md
 VERSION.md
 package.json
-dev-kit-manifest.json
+intentos-manifest.json
 templates/workflow-version.json
 templates/version-record.md
 docs/reference/scripts.md
@@ -480,7 +480,7 @@ Acceptance for Phase 4:
 Acceptance for Phase 5:
 
 - Version metadata is synchronized.
-- `check-dev-kit` validates 1.63 assets.
+- `check-intentos` validates 1.63 assets.
 - `npm run verify` passes.
 - Release record includes allowed claims, forbidden claims, evidence status,
   known limitations, and verification.
@@ -581,7 +581,7 @@ node scripts/check-native-migration.mjs examples/1.62-native-first-existing-proj
 node scripts/check-native-migration.mjs examples/1.63-native-migration-precision/mixed-agent-rules --require-structured-evidence
 node scripts/check-workflow-adoption-map.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

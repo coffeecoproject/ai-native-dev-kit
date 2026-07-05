@@ -127,16 +127,16 @@ node scripts/check-mvp-example.mjs examples/mvp-cli-note-tool
 
 ## Maintainer Bootstrap And Adoption
 
-When using Codex, you can provide the dev-kit path, repo URL, archive, or copied files and say:
+When using Codex, you can provide the intentos path, repo URL, archive, or copied files and say:
 
 ```text
-Read this IntentOS / AI Native Dev Kit and configure the current project yourself.
+Read this IntentOS / IntentOS and configure the current project yourself.
 ```
 
 Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to review or discuss first, it should not write files. If you ask it to configure, it should run `start` first so the human sees a guided adoption recommendation:
 
 ```bash
-node ai-native-dev-kit/scripts/start-project.mjs .
+node intentos/scripts/start-project.mjs .
 ```
 
 `start` is read-only by default. It calls `workflow-next`, classifies the project, lists the decisions needed from the human, and recommends safe next actions.
@@ -146,7 +146,7 @@ The first section should be `Human Decision Summary`: it gives the recommended o
 After `start`, use `baseline` to recommend the project's engineering and environment rules:
 
 ```bash
-node ai-native-dev-kit/scripts/cli.mjs baseline .
+node intentos/scripts/cli.mjs baseline .
 ```
 
 `baseline` is also read-only by default. It reports profile candidates, recommended BL level, Engineering Baseline state, Environment Baseline state, missing decisions, and safe next actions. It must include:
@@ -158,8 +158,8 @@ Can AI write now: No
 Writing baseline docs requires plan-first flow:
 
 ```bash
-node ai-native-dev-kit/scripts/baseline-project.mjs . --write-plan baseline-plan.json
-node ai-native-dev-kit/scripts/baseline-project.mjs --apply-plan baseline-plan.json
+node intentos/scripts/baseline-project.mjs . --write-plan baseline-plan.json
+node intentos/scripts/baseline-project.mjs --apply-plan baseline-plan.json
 ```
 
 Apply scope is limited to baseline docs and baseline reports.
@@ -169,7 +169,7 @@ Baseline output follows the same decision format. Codex may recommend a baseline
 For a plain-language baseline decision:
 
 ```bash
-node ai-native-dev-kit/scripts/cli.mjs baseline-decision .
+node intentos/scripts/cli.mjs baseline-decision .
 ```
 
 `baseline-decision` turns the project state into a Baseline Decision Card. It explains the recommended BL0/BL1/BL2 level, standard packs, industrial candidates, missing human decisions, and safe next actions. It does not authorize project writes, implementation, release, production, BL2 activation, or high-risk domain decisions.
@@ -179,7 +179,7 @@ This command prints the card only. To save a reviewed record, ask Codex to creat
 For platform standard baseline packs:
 
 ```bash
-node ai-native-dev-kit/scripts/cli.mjs standard-baseline .
+node intentos/scripts/cli.mjs standard-baseline .
 ```
 
 Use the recommendation as a decision summary. It can recommend Web, Mini Program, iOS, Android, internal admin, backend, environment, or release standard packs, but backend and release remain conditional and the output does not approve project writes.
@@ -187,16 +187,16 @@ Use the recommendation as a decision summary. It can recommend Web, Mini Program
 Use `workflow-next` directly only when you need the lower-level technical state:
 
 ```bash
-node ai-native-dev-kit/scripts/workflow-next.mjs .
+node intentos/scripts/workflow-next.mjs .
 ```
 
 If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, stop setup. This means the project appears governed, production-sensitive, or dirty. Codex should produce a read-only real adoption report, an existing governance map, and a patch classification report instead of running `init-project`.
 
 ```bash
-node ai-native-dev-kit/scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-project-readonly
-node ai-native-dev-kit/scripts/new-workflow-item.mjs --type patch-classification --name governed-project-repair-scale
-node ai-native-dev-kit/scripts/check-real-adoption-trial.mjs .
-node ai-native-dev-kit/scripts/check-patch-classification.mjs .
+node intentos/scripts/new-workflow-item.mjs --type real-adoption-trial-report --name governed-project-readonly
+node intentos/scripts/new-workflow-item.mjs --type patch-classification --name governed-project-repair-scale
+node intentos/scripts/check-real-adoption-trial.mjs .
+node intentos/scripts/check-patch-classification.mjs .
 ```
 
 These commands check recorded reports. They do not automatically inspect a real target project, write a bridge, or approve a fix. See `docs/real-adoption-usage.md`.
@@ -210,7 +210,7 @@ If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MOD
 Initialize from a starter:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --starter generic-project \
   --target ../my-new-project
 ```
@@ -218,9 +218,9 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 Use a platform starter when the target is already clear:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs --starter codex-web-app --target ../my-web-app
-node ai-native-dev-kit/scripts/init-project.mjs --starter codex-ios-app --target ../my-ios-app
-node ai-native-dev-kit/scripts/init-project.mjs --starter codex-android-app --target ../my-android-app
+node intentos/scripts/init-project.mjs --starter codex-web-app --target ../my-web-app
+node intentos/scripts/init-project.mjs --starter codex-ios-app --target ../my-ios-app
+node intentos/scripts/init-project.mjs --starter codex-android-app --target ../my-android-app
 ```
 
 Then enter the generated project and check the baseline:
@@ -311,7 +311,7 @@ Use `--strict` only after the project expects pending environment decisions to b
 
 Product Baseline and Claim Control keep reports, release records, public summaries, and handoffs from becoming approval or overclaiming evidence.
 
-Use them when a change touches workflow behavior, release wording, README/public summaries, final reports, customer handoffs, or Dev Kit maintenance:
+Use them when a change touches workflow behavior, release wording, README/public summaries, final reports, customer handoffs, or IntentOS maintenance:
 
 ```bash
 node scripts/check-product-baseline.mjs .
@@ -427,7 +427,7 @@ Profiles do not change the workflow. They define platform-specific task levels, 
 Use baseline levels for project governance strength:
 
 ```text
-BL0_LIGHTWEIGHT = AI Native workflow only
+BL0_LIGHTWEIGHT = IntentOS workflow only
 BL1_STANDARD = workflow plus platform profiles
 BL2_INDUSTRIAL = workflow plus profiles, selected standard packs, and selected industrial overlays
 ```
@@ -442,14 +442,14 @@ node scripts/resolve-industrial-baseline.mjs .
 node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
-For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.ai-native/templates/`, then use `check-industrial-baseline.mjs --strict` only after the human has approved baseline level, selected packs, exceptions, and residual risks.
+For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.intentos/templates/`, then use `check-industrial-baseline.mjs --strict` only after the human has approved baseline level, selected packs, exceptions, and residual risks.
 
 `baseline-evidence.md` must reference real project evidence. Rows with `Status: Done` need an existing `Evidence Ref`; rows marked `Not applicable` need a reason.
 
 Default bootstrap keeps standard packs available for read-only recommendation and industrial packs lightweight. Install concrete industrial packs only after selection:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --target ../my-project \
   --update-workflow-assets \
   --industrial-packs web-app-industrial
@@ -465,7 +465,7 @@ For WeChat Mini Program BL2 projects, use `wechat-miniprogram-industrial` for th
 
 See `examples/miniprogram-industrial-bl2-first-slice` for a Mini Program dogfood package covering login state, cloud read boundary, permission and failure states, release readiness, and AI task logging.
 
-For a real project trial, copy `.ai-native/templates/dogfood-observation.md` into `workflow-retros/<date>-dogfood-observation.md` or another agreed project observation location. Use it to track workflow cost, evidence effort, Risk Gate false positives or false negatives, and AI collaboration quality. It is an observation record, not a replacement for task artifacts or release evidence.
+For a real project trial, copy `.intentos/templates/dogfood-observation.md` into `workflow-retros/<date>-dogfood-observation.md` or another agreed project observation location. Use it to track workflow cost, evidence effort, Risk Gate false positives or false negatives, and AI collaboration quality. It is an observation record, not a replacement for task artifacts or release evidence.
 
 ## First Workflow Package
 
@@ -565,29 +565,29 @@ node scripts/check-next-step-boundary.mjs . --task tasks/001-first-slice.md
 Inject or refresh workflow assets for a low-risk project that is already understood:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --target ../existing-project \
   --update-workflow-assets
 ```
 
-This updates `.ai-native/`, workflow scripts, CI, missing onboarding docs, and missing workflow directories. It does not overwrite existing product docs, specs, tasks, logs, or business code.
+This updates `.intentos/`, workflow scripts, CI, missing onboarding docs, and missing workflow directories. It does not overwrite existing product docs, specs, tasks, logs, or business code.
 
 For an existing governed, already-online, dirty, or first-adoption project, inspect state first:
 
 ```bash
-node ai-native-dev-kit/scripts/workflow-next.mjs ../existing-project
+node intentos/scripts/workflow-next.mjs ../existing-project
 ```
 
 If the result allows guarded setup, generate and apply a reviewed plan:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --target ../existing-project \
   --update-workflow-assets \
-  --backup-dir .ai-native/backups/first-adoption \
-  --write-plan /tmp/ai-native-update-plan.json
-node ai-native-dev-kit/scripts/init-project.mjs \
-  --apply-plan /tmp/ai-native-update-plan.json
+  --backup-dir .intentos/backups/first-adoption \
+  --write-plan /tmp/intentos-update-plan.json
+node intentos/scripts/init-project.mjs \
+  --apply-plan /tmp/intentos-update-plan.json
 ```
 
 If the result is `RUN_ADOPTION_ASSESSMENT`, keep the first pass read-only. Map existing agent rules, CI, baselines, evidence, release/rollback controls, and dirty worktree state before asking for adapter approval.
@@ -597,9 +597,9 @@ IntentOS instead of staying adapter-only, generate a native migration plan
 before any workflow asset write:
 
 ```bash
-node ai-native-dev-kit/scripts/cli.mjs workflow-map ../existing-project
-node ai-native-dev-kit/scripts/cli.mjs native-migration ../existing-project
-node ai-native-dev-kit/scripts/cli.mjs native-migration-check ../existing-project
+node intentos/scripts/cli.mjs workflow-map ../existing-project
+node intentos/scripts/cli.mjs native-migration ../existing-project
+node intentos/scripts/cli.mjs native-migration-check ../existing-project
 ```
 
 The native migration plan is still plan-only. It can classify old rules and
@@ -611,13 +611,13 @@ Plan, Controlled Apply Readiness, and Approval Record.
 It creates `AGENTS.md` when missing. If the project already has `AGENTS.md` and it is missing workflow governance markers, the update command writes a migration report instead of modifying the file:
 
 ```text
-.ai-native/migration-reports/agents-governance.md
+.intentos/migration-reports/agents-governance.md
 ```
 
 After human review, apply the proposed appendix explicitly:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --target ../existing-project \
   --update-workflow-assets \
   --apply-agent-governance
@@ -626,13 +626,13 @@ node ai-native-dev-kit/scripts/init-project.mjs \
 If the project already has `.github/pull_request_template.md` and it is missing workflow governance markers, the update command writes a migration report instead of modifying the template:
 
 ```text
-.ai-native/migration-reports/pr-template-governance.md
+.intentos/migration-reports/pr-template-governance.md
 ```
 
 After human review, apply the proposed appendix explicitly:
 
 ```bash
-node ai-native-dev-kit/scripts/init-project.mjs \
+node intentos/scripts/init-project.mjs \
   --target ../existing-project \
   --update-workflow-assets \
   --apply-pr-template-governance

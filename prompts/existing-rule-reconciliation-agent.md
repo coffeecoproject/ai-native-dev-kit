@@ -29,7 +29,7 @@ Use these rules:
 - Every reconciliation item must resolve its `existing_rule_ref` to
   `existing_rule_source[].rule_ref` and its `intentos_reference_ref` to
   `intentos_reference_source[].reference_ref`.
-- Include `AI Native Adoption Recommendation` for the human reader with
+- Include `IntentOS Adoption Recommendation` for the human reader with
   Recommendation, Migration Depth, Can Codex write now, Human Confirmation,
   Preserve, Merge, Replace After Approval, and Blocked.
 

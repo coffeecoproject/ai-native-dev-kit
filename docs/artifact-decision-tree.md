@@ -1,6 +1,6 @@
 # Artifact Decision Tree
 
-Use this guide when deciding which AI Native artifact to create.
+Use this guide when deciding which IntentOS artifact to create.
 
 The goal is not to create every file for every task. Create the smallest artifact set that makes the work understandable, reviewable, and safe.
 
@@ -45,10 +45,10 @@ What is happening now?
 | Review results need a plain-language summary | `review-summaries/` | detailed Review Loop Report |
 | Customer or stakeholder needs delivery context | `customer-handoffs/` | release gate |
 | Release or delivery needs evidence | `releases/` | approval by itself |
-| Repeated project workflow issue appears | `workflow-improvements/` | immediate dev-kit change |
+| Repeated project workflow issue appears | `workflow-improvements/` | immediate intentos change |
 | Repeated execution pattern appears | `skill-candidates/` | active Skill |
 | Recurring project process may be automated | `automation-proposals/` | enabled automation |
-| Shared dev-kit change is proposed | `dev-kit-proposals/` | direct core change |
+| Shared intentos change is proposed | `intentos-proposals/` | direct core change |
 
 ## Task Flow
 

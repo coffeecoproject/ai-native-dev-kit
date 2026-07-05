@@ -124,7 +124,7 @@ if (!fs.existsSync(baselinePath)) {
   state = "MISSING";
   const message = `missing ${baselineRef}`;
   if (strict) fail(message);
-  else warn(`${message}; create it from .ai-native/templates/engineering-baseline.md before structural or schema work`);
+  else warn(`${message}; create it from .intentos/templates/engineering-baseline.md before structural or schema work`);
 } else {
   const content = fs.readFileSync(baselinePath, "utf8");
   pass(`${baselineRef} exists`);

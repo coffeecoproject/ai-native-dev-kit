@@ -29,7 +29,7 @@ Added a 1.8 read-only real-project adoption layer and patch classification layer
 - `node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/180-real-project-adoption-trial.md`
 - `node scripts/check-review-loop.mjs . --task tasks/180-real-project-adoption-trial.md`
 - `node scripts/check-next-step-boundary.mjs . --task tasks/180-real-project-adoption-trial.md`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
 ## Not Changed
@@ -54,7 +54,7 @@ Added a 1.8 read-only real-project adoption layer and patch classification layer
 |---|---|---|---|---|---|---|
 | N1 | `DIRECT_FOLLOW_UP` | Run additional private read-only trials on Mini Program, iOS, Android, and lightly governed Web projects | Future evidence coverage after this first real read-only trial | No | New request | Human must choose the project and approve read-only inspection |
 | N2 | `DIRECT_FOLLOW_UP` | For a selected target project, generate a reviewed docs-only bridge plan before any write | Future target adoption | No | New request | Human decision and target write approval required |
-| N3 | `DO_NOT_PROCEED` | Overwrite an existing governed production project with dev-kit assets | Outside current evidence and forbidden by 1.8 | No | Do not proceed | High risk |
+| N3 | `DO_NOT_PROCEED` | Overwrite an existing governed production project with intentos assets | Outside current evidence and forbidden by 1.8 | No | Do not proceed | High risk |
 
 ## Human Decisions Needed
 

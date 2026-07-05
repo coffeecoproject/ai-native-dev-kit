@@ -95,7 +95,7 @@ Required before release:
 - `node scripts/check-native-migration.mjs examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual --require-structured-evidence`
 - 1.65 bad fixtures fail for their intended reasons
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`
 - `git diff --check`
 

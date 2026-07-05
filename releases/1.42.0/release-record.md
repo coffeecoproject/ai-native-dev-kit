@@ -46,4 +46,4 @@
 
 - `node scripts/check-first-slice.mjs examples/1.42-ordinary-user-first-slice`
 - `node scripts/check-fixtures.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`

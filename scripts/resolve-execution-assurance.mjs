@@ -140,7 +140,7 @@ function classifyExecutionKind(root, options) {
   if (/release|launch|上线|发布/.test(text)) return "RELEASE_PREPARATION";
   if (/bug|fix|repair|修复/.test(text)) return "BUG_FIX";
   if (/patch|copy|typo|文案/.test(text)) return "SAFE_PATCH";
-  if (fs.existsSync(path.join(root, "dev-kit-manifest.json")) && fs.existsSync(path.join(root, "core", "workflow.md"))) {
+  if (fs.existsSync(path.join(root, "intentos-manifest.json")) && fs.existsSync(path.join(root, "core", "workflow.md"))) {
     return "WORKFLOW_CAPABILITY";
   }
   if (/feature|add|新增|实现/.test(text)) return "FEATURE_IMPLEMENTATION";
@@ -315,7 +315,7 @@ function scopeFor(executionKind) {
     BASELINE_SETUP: ["baseline selection", "engineering baseline", "environment baseline"],
     DOCUMENT_GOVERNANCE: ["source of truth", "archive/deprecation suggestion", "link check"],
     RELEASE_PREPARATION: ["launch view", "release plan", "owner", "rollback", "monitoring"],
-    WORKFLOW_CAPABILITY: ["dev-kit code", "fixtures", "docs", "release record", "self-check"],
+    WORKFLOW_CAPABILITY: ["intentos code", "fixtures", "docs", "release record", "self-check"],
     UNKNOWN: ["needs classification"],
   };
   return map[executionKind] || map.UNKNOWN;
@@ -338,7 +338,7 @@ function sourceCheckerFor(executionKind) {
     BASELINE_SETUP: "baseline-decision",
     SAFE_PATCH: "apply-candidate",
     CONTROLLED_PATCH: "apply-readiness",
-    WORKFLOW_CAPABILITY: "check-dev-kit",
+    WORKFLOW_CAPABILITY: "check-intentos",
   };
   return map[executionKind] || "impact-coverage";
 }

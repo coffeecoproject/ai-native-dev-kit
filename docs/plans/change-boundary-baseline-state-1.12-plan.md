@@ -8,11 +8,11 @@
 2. New-project or no-code baselines may be drafted too confidently before evidence exists.
 3. Guided Delivery behavior currently has docs/templates/prompts, but no standalone checker.
 
-This release should add explicit change-boundary governance, a lightweight Guided Delivery checker, and baseline state separation. It stays inside the dev kit's purpose: helping AI understand, plan, execute, verify, and report safely. It must not claim system-level write interception or evidence-free production readiness.
+This release should add explicit change-boundary governance, a lightweight Guided Delivery checker, and baseline state separation. It stays inside the IntentOS's purpose: helping AI understand, plan, execute, verify, and report safely. It must not claim system-level write interception or evidence-free production readiness.
 
 ## Boundary Check Before Doing This Work
 
-This phase is inside the project boundary because AI Native Dev Kit already governs:
+This phase is inside the project boundary because IntentOS already governs:
 
 - request, spec, eval, task, review, and final reporting;
 - adoption mode and target-project write permission;
@@ -553,7 +553,7 @@ Safe Launch / Delivery Readiness should not claim ready states when:
 5. `check-guided-delivery-loop.mjs` passes good examples and fails D3/D4 execution or parking-lot approval fixtures.
 6. `check-change-boundary.mjs` passes good examples and fails forbidden-path fixtures.
 7. `check-baseline-state.mjs` passes proposed no-code baselines and fails evidence-free confirmed baselines.
-8. `check-dev-kit.mjs` covers all three protocols and negative fixtures.
+8. `check-intentos.mjs` covers all three protocols and negative fixtures.
 9. GitHub PR checks run on `push` to `main` and include `npm run verify`.
 10. Manifest and workflow-version assets include new files and directories.
 11. `npm run verify` passes.
@@ -598,5 +598,5 @@ Reports approve release or risk.
 The correct claim is:
 
 ```text
-AI Native Dev Kit can record intended boundaries, compare them with actual changed files, and prevent evidence-free baseline states from being presented as confirmed.
+IntentOS can record intended boundaries, compare them with actual changed files, and prevent evidence-free baseline states from being presented as confirmed.
 ```

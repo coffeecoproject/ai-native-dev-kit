@@ -11,7 +11,7 @@
 - `node scripts/cli.mjs standard-baseline .`
 - `node scripts/cli.mjs baseline-packs .`
 - `node scripts/check-manifest.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`
 - `git diff --check`
 

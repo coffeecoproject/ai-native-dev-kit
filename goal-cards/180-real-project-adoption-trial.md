@@ -16,7 +16,7 @@ Non-goals: do not modify target projects, disclose private target identity, or c
 
 Selected: IMPLEMENT_TASK
 
-Why: The user asked to execute the reviewed 1.8 upgrade plan in the dev-kit source repository.
+Why: The user asked to execute the reviewed 1.8 upgrade plan in the intentos source repository.
 
 ## Project State
 
@@ -69,7 +69,7 @@ Decision Brief needed: No
 | Task | Yes | `tasks/180-real-project-adoption-trial.md` | execution boundary |
 | Review Packet | Yes | `review-packets/180-real-project-adoption-trial.md` | L2 review input |
 | Review Loop Report | Yes | `review-loop-reports/180-real-project-adoption-trial.md` | L2 review closure |
-| Decision Brief | No | Not applicable | no human decision needed for dev-kit repo change |
+| Decision Brief | No | Not applicable | no human decision needed for intentos repo change |
 | Final Report / Handoff | Yes | `final-reports/180-real-project-adoption-trial.md` | closure |
 
 ## Allowed Actions
@@ -77,7 +77,7 @@ Decision Brief needed: No
 - Read project and workflow files needed to route the goal.
 - Create or update only the artifacts listed as required after the selected mode permits writes.
 - Run non-destructive local checks referenced by the selected route.
-- Update dev-kit source repository documentation, checkers, examples, fixtures, CI, manifest, and release evidence.
+- Update intentos source repository documentation, checkers, examples, fixtures, CI, manifest, and release evidence.
 
 ## Forbidden Actions
 
@@ -90,12 +90,12 @@ Decision Brief needed: No
 
 | Decision | Owner | Needed Before | Current Status |
 |---|---|---|---|
-| None for dev-kit source update | human | not applicable | Not needed |
+| None for intentos source update | human | not applicable | Not needed |
 | Future target-project bridge application | human | before any target write | Deferred |
 
 ## Next Safe Step
 
-Next action: complete review loop and run full dev-kit self-checks.
+Next action: complete review loop and run full intentos self-checks.
 
 ## Technical Details
 
@@ -108,7 +108,7 @@ Related files:
 Commands run:
 
 ```text
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 ## Audit Notes

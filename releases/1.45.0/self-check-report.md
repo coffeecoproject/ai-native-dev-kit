@@ -14,7 +14,7 @@
 - `node scripts/check-low-risk-apply-candidate.mjs test-fixtures/bad/bad-apply-candidate-high-risk`
 - `node scripts/check-low-risk-apply-candidate.mjs .`
 - `node scripts/check-fixtures.mjs`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`
 
 ## Result

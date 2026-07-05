@@ -37,7 +37,7 @@ Not allowed:
 - First Delivery Walkthrough assets exist.
 - Booking mini app walkthrough passes the first-delivery checker.
 - Bad fixtures fail as expected.
-- Manifest, fixture, claim, product, and full dev-kit checks pass.
+- Manifest, fixture, claim, product, and full intentos checks pass.
 - Subagents are closed after handoff.
 
 ## Commands
@@ -51,7 +51,7 @@ node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 git diff --check
 ```
 

@@ -645,7 +645,7 @@ Each version should run:
 
 ```bash
 node --check <new scripts>
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -19,11 +19,11 @@ Verify that the 1.12.1 patch catches the exact drift reported in the 1.12.0 revi
 ```bash
 node --check scripts/check-manifest.mjs
 node --check scripts/check-ai-workflow.mjs
-node --check scripts/check-dev-kit.mjs
+node --check scripts/check-intentos.mjs
 node --check scripts/check-fixtures.mjs
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs --case "migration manifest version mismatch"
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
@@ -32,7 +32,7 @@ git diff --check
 
 - Manifest phase mismatch should fail `check-manifest`.
 - Pure manifest version mismatch should still fail with the existing VERSION drift message.
-- README self-check drift should fail `check-dev-kit`.
+- README self-check drift should fail `check-intentos`.
 
 ## Claim Boundary
 

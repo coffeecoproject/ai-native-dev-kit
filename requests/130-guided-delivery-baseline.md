@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Add a guided delivery baseline so Dev Kit upgrades stay aligned with human judgment, bounded AI authority, honest claims, and visible assumptions.
+Add a guided delivery baseline so IntentOS upgrades stay aligned with human judgment, bounded AI authority, honest claims, and visible assumptions.
 
 ## Request
 

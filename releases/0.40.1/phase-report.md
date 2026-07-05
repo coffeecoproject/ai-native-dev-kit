@@ -35,7 +35,7 @@ node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-checke
 node scripts/check-review-loop.mjs . --task tasks/040-checker-library-refactor.md
 node scripts/check-next-step-boundary.mjs . --task tasks/040-checker-library-refactor.md
 node scripts/score-output-quality.mjs . --min-score 80
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.

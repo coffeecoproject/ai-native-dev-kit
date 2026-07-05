@@ -1,6 +1,6 @@
-# AI Native Dev Kit Mental Model
+# IntentOS Mental Model
 
-This document explains when to use each layer of the dev kit.
+This document explains when to use each layer of the IntentOS.
 
 It is intentionally short. Use it when a project owner or agent is unsure whether a project needs only the workflow, a platform profile, or BL2 industrial governance.
 
@@ -170,11 +170,11 @@ An industrial pack answers:
 
 Industrial packs should not be selected just because they exist. Select them when the project actually needs that runtime, capability, or risk overlay.
 
-The dev kit keeps the industrial pack registry and schemas available by default, but concrete pack files should be installed only when selected. This keeps BL0 and BL1 projects light while preserving a clear path to BL2.
+The IntentOS keeps the industrial pack registry and schemas available by default, but concrete pack files should be installed only when selected. This keeps BL0 and BL1 projects light while preserving a clear path to BL2.
 
 Use `industrial-packs/selection-guide.md` when deciding pack combinations. Web remains the most dogfooded draft pack, and WeChat Mini Program now has a deeper BL2 draft with its own dogfood example. Backend, Auth/Permission, Data Storage, Internal Admin, iOS, Android, CloudBase, Payment/Value Transfer, and High-risk Change packs are also available as BL2 inputs when relevant.
 
-When dogfooding the workflow on a real project, use `.ai-native/templates/dogfood-observation.md` as a separate observation record. It measures whether the workflow is affordable and accurate in practice: setup time, evidence effort, Risk Gate misses, false positives, false negatives, AI drift, and follow-up improvements. It should inform retros and dev-kit proposals, but it should not become another required task gate.
+When dogfooding the workflow on a real project, use `.intentos/templates/dogfood-observation.md` as a separate observation record. It measures whether the workflow is affordable and accurate in practice: setup time, evidence effort, Risk Gate misses, false positives, false negatives, AI drift, and follow-up improvements. It should inform retros and intentos proposals, but it should not become another required task gate.
 
 ## Existing Governed Project Adoption
 
@@ -197,7 +197,7 @@ ADOPTION_MODE: READ_ONLY
 NEXT_ACTION: RUN_ADOPTION_ASSESSMENT
 ```
 
-In this mode, AI Native Dev Kit should map to existing governance instead of replacing it. Use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to decide whether adapter docs, workflow assets, or no project writes are appropriate.
+In this mode, IntentOS should map to existing governance instead of replacing it. Use `templates/adoption-assessment.md` and `templates/existing-governance-map.md` to decide whether adapter docs, workflow assets, or no project writes are appropriate.
 
 If the project is already bootstrapped but is both production-governed and dirty, `workflow-next` can return:
 

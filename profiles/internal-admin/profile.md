@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Support internal administrative tools and operation consoles while preserving the core AI Native workflow.
+Support internal administrative tools and operation consoles while preserving the core IntentOS workflow.
 
 ## Applies To
 

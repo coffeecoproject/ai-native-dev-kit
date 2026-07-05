@@ -40,6 +40,70 @@ function walkSourceFiles(dir) {
   return walkProjectFiles(path.join(kitRoot, dir));
 }
 
+function checkIntentOSNamingHardcut() {
+  const scanRoots = [
+    "README.md",
+    "README.zh-CN.md",
+    "VERSION.md",
+    "package.json",
+    "intentos-manifest.json",
+    "schemas",
+    "scripts",
+    "templates",
+    "core",
+    "platforms",
+    "docs",
+    ".github",
+  ];
+  const allowedExceptions = new Set([
+    "docs/plans/intentos-naming-hardcut-1.73-plan.md",
+  ]);
+  const extensions = [".md", ".mjs", ".json", ".yml", ".yaml"];
+  const files = [];
+  for (const item of scanRoots) {
+    const fullPath = path.join(kitRoot, item);
+    if (!fs.existsSync(fullPath)) continue;
+    if (fs.statSync(fullPath).isDirectory()) {
+      files.push(...walkProjectFiles(fullPath, { extensions }));
+    } else {
+      files.push(fullPath);
+    }
+  }
+
+  const forbidden = [
+    ["AI", "Native", "Dev", "Kit"].join(" "),
+    ["AI", "Native"].join(" "),
+    ["ai", "native", "dev", "kit"].join("-"),
+    ["ai", "native"].join("-"),
+    ["Dev", "Kit"].join(" "),
+    ["dev", "kit"].join("-"),
+    ["dev", "Kit"].join(""),
+    `.${["ai", "native"].join("-")}`,
+    ["Command", "aliases:"].join(" "),
+    ["dev", "kit"].join(" "),
+  ];
+  const findings = [];
+  for (const file of files) {
+    const relativePath = rel(file);
+    if (allowedExceptions.has(relativePath)) continue;
+    let content = "";
+    try {
+      content = fs.readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    for (const term of forbidden) {
+      if (content.includes(term)) findings.push(`${relativePath}: ${term}`);
+    }
+  }
+
+  if (findings.length > 0) {
+    fail(`IntentOS naming hardcut drift found: ${findings.slice(0, 20).join("; ")}`);
+    return;
+  }
+  pass("IntentOS naming hardcut active surfaces are clean");
+}
+
 function checkRequiredFiles() {
   const required = sourceRequiredPaths(kitRoot, { fallback: [
     "README.md",
@@ -69,10 +133,10 @@ function checkRequiredFiles() {
     "docs/plans/product-adoption-trust-finalization-1.68.2-plan.md",
     "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
     "docs/plans/product-adoption-simplification-1.68-plan.md",
-    "dev-kit-manifest.json",
-    "schemas/dev-kit-manifest.schema.json",
-    ".github/workflows/dev-kit-pr-checks.yml",
-    ".github/workflows/dev-kit-release-checks.yml",
+    "intentos-manifest.json",
+    "schemas/intentos-manifest.schema.json",
+    ".github/workflows/intentos-pr-checks.yml",
+    ".github/workflows/intentos-release-checks.yml",
     ".github/pull_request_template.md",
     ".github/CODEOWNERS",
     "CONTRIBUTING.md",
@@ -154,7 +218,7 @@ function checkRequiredFiles() {
     "templates/plain-review-summary.md",
     "templates/customer-handoff.md",
     "templates/output-quality-report.md",
-    "templates/dev-kit-change-proposal.md",
+    "templates/intentos-change-proposal.md",
     "templates/skill-candidate.md",
     "templates/project-automation-proposal.md",
     "templates/daily-automation-prompt.md",
@@ -199,7 +263,7 @@ function checkRequiredFiles() {
     "prompts/reporter-agent.md",
     "scripts/init-project.mjs",
     "scripts/check-ai-workflow.mjs",
-    "scripts/check-dev-kit.mjs",
+    "scripts/check-intentos.mjs",
     "scripts/summarize-ai-logs.mjs",
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
@@ -416,10 +480,10 @@ function checkVersionMetadata() {
   }
 
   const workflowVersion = JSON.parse(read("templates/workflow-version.json"));
-  if (workflowVersion.devKitVersion === version) {
+  if (workflowVersion.intentOSVersion === version) {
     pass("templates/workflow-version.json matches current version");
   } else {
-    fail(`templates/workflow-version.json version ${workflowVersion.devKitVersion} does not match ${version}`);
+    fail(`templates/workflow-version.json version ${workflowVersion.intentOSVersion} does not match ${version}`);
   }
 
   const packageVersion = JSON.parse(read("package.json")).version;
@@ -429,11 +493,11 @@ function checkVersionMetadata() {
     fail(`package.json version ${packageVersion} does not match ${version}`);
   }
 
-  const manifestVersion = JSON.parse(read("dev-kit-manifest.json")).devKitVersion;
+  const manifestVersion = JSON.parse(read("intentos-manifest.json")).intentOSVersion;
   if (manifestVersion === version) {
-    pass("dev-kit-manifest.json matches current version");
+    pass("intentos-manifest.json matches current version");
   } else {
-    fail(`dev-kit-manifest.json version ${manifestVersion} does not match ${version}`);
+    fail(`intentos-manifest.json version ${manifestVersion} does not match ${version}`);
   }
 
   const readme = read("README.md");
@@ -540,131 +604,131 @@ function checkVersionMetadata() {
     "decision-briefs",
     "review-summaries",
     "customer-handoffs",
-    ".ai-native/profiles",
-    ".ai-native/industrial-packs",
-    ".ai-native/standard-baseline-packs",
-    ".ai-native/dev-kit-manifest.json",
-    ".ai-native/docs/artifact-decision-tree.md",
-    ".ai-native/docs/first-hour.md",
-    ".ai-native/docs/goal-subagent-usage.md",
-    ".ai-native/docs/baseline-setup.md",
-    ".ai-native/docs/guided-delivery-baseline.md",
-    ".ai-native/docs/product-baseline.md",
-    ".ai-native/docs/claim-control.md",
-    ".ai-native/docs/project-memory.md",
-    ".ai-native/docs/git-boundary.md",
-    ".ai-native/docs/context-governance-usage.md",
-    ".ai-native/docs/minimal-commit-set.md",
-    ".ai-native/docs/safe-launch.md",
-    ".ai-native/docs/conversation-drift-control.md",
-    ".ai-native/docs/first-delivery-walkthrough.md",
-    ".ai-native/docs/change-boundary.md",
-    ".ai-native/docs/baseline-state.md",
-    ".ai-native/docs/guided-delivery-check.md",
-    ".ai-native/docs/standard-baseline-pack-registry.md",
-    ".ai-native/docs/existing-project-workflow-adapter.md",
-    ".ai-native/docs/document-lifecycle.md",
-    ".ai-native/docs/beginner-entry.md",
-    ".ai-native/docs/work-queue.md",
-    ".ai-native/docs/hook-orchestration.md",
-    ".ai-native/docs/hook-policy.md",
-    ".ai-native/docs/natural-language-orchestrator.md",
-    ".ai-native/docs/change-impact-coverage.md",
-    ".ai-native/docs/context-governance-usage.md",
-    ".ai-native/docs/minimal-commit-set.md",
-    ".ai-native/docs/safe-launch.md",
-    ".ai-native/docs/conversation-drift-control.md",
-    ".ai-native/core/outcome-baseline.md",
-    ".ai-native/core/product-baseline.md",
-    ".ai-native/core/claim-control.md",
-    ".ai-native/core/assumption-register.md",
-    ".ai-native/core/context-governance.md",
-    ".ai-native/core/git-boundary.md",
-    ".ai-native/core/safe-launch.md",
-    ".ai-native/core/conversation-drift-control.md",
-    ".ai-native/core/first-delivery-walkthrough.md",
-    ".ai-native/core/real-project-adoption-trial.md",
-    ".ai-native/core/patch-classification.md",
-    ".ai-native/core/existing-project-workflow-adapter.md",
-    ".ai-native/core/document-lifecycle.md",
-    ".ai-native/core/beginner-entry.md",
-    ".ai-native/core/work-queue.md",
-    ".ai-native/core/hook-orchestration.md",
-    ".ai-native/core/natural-language-orchestrator.md",
-    ".ai-native/core/unified-closure-model.md",
-    ".ai-native/core/review-surface-governance.md",
-    ".ai-native/core/change-impact-coverage.md",
-    ".ai-native/core/change-boundary.md",
-    ".ai-native/core/baseline-state.md",
-    ".ai-native/core/standard-baseline-pack-registry.md",
-    ".ai-native/core/safe-launch.md",
-    ".ai-native/core/conversation-drift-control.md",
-    ".ai-native/templates/learning-candidate.md",
-    ".ai-native/templates/context-correction-report.md",
-    ".ai-native/templates/git-boundary-report.md",
-    ".ai-native/templates/launch-readiness-report.md",
-    ".ai-native/templates/conversation-turn-classification.md",
-    ".ai-native/templates/scope-change-report.md",
-    ".ai-native/templates/adoption-trial-report.md",
-    ".ai-native/templates/real-adoption-trial-report.md",
-    ".ai-native/templates/patch-classification-report.md",
-    ".ai-native/templates/workflow-adoption-map.md",
-    ".ai-native/templates/document-lifecycle-report.md",
-    ".ai-native/templates/beginner-entry-card.md",
-    ".ai-native/templates/work-queue-report.md",
-    ".ai-native/templates/hook-orchestration-plan.md",
-    ".ai-native/templates/workflow-guidance-card.md",
-    ".ai-native/templates/closure-decision.md",
-    ".ai-native/templates/review-surface-card.md",
-    ".ai-native/templates/change-impact-coverage-report.md",
-    ".ai-native/templates/user-decision-card.md",
-    ".ai-native/templates/change-boundary-report.md",
-    ".ai-native/templates/baseline-state-report.md",
-    ".ai-native/templates/standard-baseline-selection-report.md",
-    ".ai-native/templates/launch-readiness-report.md",
-    ".ai-native/templates/conversation-turn-classification.md",
-    ".ai-native/templates/scope-change-report.md",
-    ".ai-native/prompts/context-governance-agent.md",
-    ".ai-native/prompts/launch-readiness-agent.md",
-    ".ai-native/prompts/conversation-router-agent.md",
-    ".ai-native/prompts/walkthrough-agent.md",
-    ".ai-native/prompts/real-adoption-agent.md",
-    ".ai-native/prompts/patch-classifier-agent.md",
-    ".ai-native/prompts/workflow-adapter-agent.md",
-    ".ai-native/prompts/document-lifecycle-agent.md",
-    ".ai-native/prompts/beginner-entry-agent.md",
-    ".ai-native/prompts/work-queue-agent.md",
-    ".ai-native/prompts/hook-orchestration-agent.md",
-    ".ai-native/prompts/workflow-concierge-agent.md",
-    ".ai-native/prompts/review-surface-agent.md",
-    ".ai-native/prompts/change-impact-coverage-agent.md",
-    ".ai-native/prompts/guided-delivery-check-agent.md",
-    ".ai-native/prompts/change-boundary-agent.md",
-    ".ai-native/prompts/baseline-state-agent.md",
-    ".ai-native/prompts/standard-baseline-router-agent.md",
-    ".ai-native/prompts/launch-readiness-agent.md",
-    ".ai-native/prompts/conversation-router-agent.md",
-    ".ai-native/checklists/context-governance-review.md",
-    ".ai-native/checklists/git-boundary-review.md",
-    ".ai-native/checklists/launch-readiness-review.md",
-    ".ai-native/checklists/conversation-drift-review.md",
-    ".ai-native/checklists/first-delivery-walkthrough-review.md",
-    ".ai-native/checklists/real-adoption-trial-review.md",
-    ".ai-native/checklists/patch-classification-review.md",
-    ".ai-native/checklists/workflow-adoption-map-review.md",
-    ".ai-native/checklists/document-lifecycle-review.md",
-    ".ai-native/checklists/beginner-entry-review.md",
-    ".ai-native/checklists/work-queue-review.md",
-    ".ai-native/checklists/hook-orchestration-review.md",
-    ".ai-native/checklists/workflow-guidance-review.md",
-    ".ai-native/checklists/review-surface-review.md",
-    ".ai-native/checklists/change-impact-coverage-review.md",
-    ".ai-native/checklists/standard-baseline-selection-review.md",
-    ".ai-native/checklists/guided-delivery-loop-review.md",
-    ".ai-native/checklists/change-boundary-review.md",
-    ".ai-native/checklists/baseline-state-review.md",
-    ".ai-native/checklists/launch-readiness-review.md",
-    ".ai-native/checklists/conversation-drift-review.md",
+    ".intentos/profiles",
+    ".intentos/industrial-packs",
+    ".intentos/standard-baseline-packs",
+    ".intentos/intentos-manifest.json",
+    ".intentos/docs/artifact-decision-tree.md",
+    ".intentos/docs/first-hour.md",
+    ".intentos/docs/goal-subagent-usage.md",
+    ".intentos/docs/baseline-setup.md",
+    ".intentos/docs/guided-delivery-baseline.md",
+    ".intentos/docs/product-baseline.md",
+    ".intentos/docs/claim-control.md",
+    ".intentos/docs/project-memory.md",
+    ".intentos/docs/git-boundary.md",
+    ".intentos/docs/context-governance-usage.md",
+    ".intentos/docs/minimal-commit-set.md",
+    ".intentos/docs/safe-launch.md",
+    ".intentos/docs/conversation-drift-control.md",
+    ".intentos/docs/first-delivery-walkthrough.md",
+    ".intentos/docs/change-boundary.md",
+    ".intentos/docs/baseline-state.md",
+    ".intentos/docs/guided-delivery-check.md",
+    ".intentos/docs/standard-baseline-pack-registry.md",
+    ".intentos/docs/existing-project-workflow-adapter.md",
+    ".intentos/docs/document-lifecycle.md",
+    ".intentos/docs/beginner-entry.md",
+    ".intentos/docs/work-queue.md",
+    ".intentos/docs/hook-orchestration.md",
+    ".intentos/docs/hook-policy.md",
+    ".intentos/docs/natural-language-orchestrator.md",
+    ".intentos/docs/change-impact-coverage.md",
+    ".intentos/docs/context-governance-usage.md",
+    ".intentos/docs/minimal-commit-set.md",
+    ".intentos/docs/safe-launch.md",
+    ".intentos/docs/conversation-drift-control.md",
+    ".intentos/core/outcome-baseline.md",
+    ".intentos/core/product-baseline.md",
+    ".intentos/core/claim-control.md",
+    ".intentos/core/assumption-register.md",
+    ".intentos/core/context-governance.md",
+    ".intentos/core/git-boundary.md",
+    ".intentos/core/safe-launch.md",
+    ".intentos/core/conversation-drift-control.md",
+    ".intentos/core/first-delivery-walkthrough.md",
+    ".intentos/core/real-project-adoption-trial.md",
+    ".intentos/core/patch-classification.md",
+    ".intentos/core/existing-project-workflow-adapter.md",
+    ".intentos/core/document-lifecycle.md",
+    ".intentos/core/beginner-entry.md",
+    ".intentos/core/work-queue.md",
+    ".intentos/core/hook-orchestration.md",
+    ".intentos/core/natural-language-orchestrator.md",
+    ".intentos/core/unified-closure-model.md",
+    ".intentos/core/review-surface-governance.md",
+    ".intentos/core/change-impact-coverage.md",
+    ".intentos/core/change-boundary.md",
+    ".intentos/core/baseline-state.md",
+    ".intentos/core/standard-baseline-pack-registry.md",
+    ".intentos/core/safe-launch.md",
+    ".intentos/core/conversation-drift-control.md",
+    ".intentos/templates/learning-candidate.md",
+    ".intentos/templates/context-correction-report.md",
+    ".intentos/templates/git-boundary-report.md",
+    ".intentos/templates/launch-readiness-report.md",
+    ".intentos/templates/conversation-turn-classification.md",
+    ".intentos/templates/scope-change-report.md",
+    ".intentos/templates/adoption-trial-report.md",
+    ".intentos/templates/real-adoption-trial-report.md",
+    ".intentos/templates/patch-classification-report.md",
+    ".intentos/templates/workflow-adoption-map.md",
+    ".intentos/templates/document-lifecycle-report.md",
+    ".intentos/templates/beginner-entry-card.md",
+    ".intentos/templates/work-queue-report.md",
+    ".intentos/templates/hook-orchestration-plan.md",
+    ".intentos/templates/workflow-guidance-card.md",
+    ".intentos/templates/closure-decision.md",
+    ".intentos/templates/review-surface-card.md",
+    ".intentos/templates/change-impact-coverage-report.md",
+    ".intentos/templates/user-decision-card.md",
+    ".intentos/templates/change-boundary-report.md",
+    ".intentos/templates/baseline-state-report.md",
+    ".intentos/templates/standard-baseline-selection-report.md",
+    ".intentos/templates/launch-readiness-report.md",
+    ".intentos/templates/conversation-turn-classification.md",
+    ".intentos/templates/scope-change-report.md",
+    ".intentos/prompts/context-governance-agent.md",
+    ".intentos/prompts/launch-readiness-agent.md",
+    ".intentos/prompts/conversation-router-agent.md",
+    ".intentos/prompts/walkthrough-agent.md",
+    ".intentos/prompts/real-adoption-agent.md",
+    ".intentos/prompts/patch-classifier-agent.md",
+    ".intentos/prompts/workflow-adapter-agent.md",
+    ".intentos/prompts/document-lifecycle-agent.md",
+    ".intentos/prompts/beginner-entry-agent.md",
+    ".intentos/prompts/work-queue-agent.md",
+    ".intentos/prompts/hook-orchestration-agent.md",
+    ".intentos/prompts/workflow-concierge-agent.md",
+    ".intentos/prompts/review-surface-agent.md",
+    ".intentos/prompts/change-impact-coverage-agent.md",
+    ".intentos/prompts/guided-delivery-check-agent.md",
+    ".intentos/prompts/change-boundary-agent.md",
+    ".intentos/prompts/baseline-state-agent.md",
+    ".intentos/prompts/standard-baseline-router-agent.md",
+    ".intentos/prompts/launch-readiness-agent.md",
+    ".intentos/prompts/conversation-router-agent.md",
+    ".intentos/checklists/context-governance-review.md",
+    ".intentos/checklists/git-boundary-review.md",
+    ".intentos/checklists/launch-readiness-review.md",
+    ".intentos/checklists/conversation-drift-review.md",
+    ".intentos/checklists/first-delivery-walkthrough-review.md",
+    ".intentos/checklists/real-adoption-trial-review.md",
+    ".intentos/checklists/patch-classification-review.md",
+    ".intentos/checklists/workflow-adoption-map-review.md",
+    ".intentos/checklists/document-lifecycle-review.md",
+    ".intentos/checklists/beginner-entry-review.md",
+    ".intentos/checklists/work-queue-review.md",
+    ".intentos/checklists/hook-orchestration-review.md",
+    ".intentos/checklists/workflow-guidance-review.md",
+    ".intentos/checklists/review-surface-review.md",
+    ".intentos/checklists/change-impact-coverage-review.md",
+    ".intentos/checklists/standard-baseline-selection-review.md",
+    ".intentos/checklists/guided-delivery-loop-review.md",
+    ".intentos/checklists/change-boundary-review.md",
+    ".intentos/checklists/baseline-state-review.md",
+    ".intentos/checklists/launch-readiness-review.md",
+    ".intentos/checklists/conversation-drift-review.md",
     "learning-candidates",
     "context-corrections",
     "git-boundary-reports",
@@ -700,9 +764,9 @@ function checkVersionMetadata() {
   }
 }
 
-function checkDevKitFirstPartyCi() {
-  const prCi = read(".github/workflows/dev-kit-pr-checks.yml");
-  const releaseCi = read(".github/workflows/dev-kit-release-checks.yml");
+function checkIntentOSFirstPartyCi() {
+  const prCi = read(".github/workflows/intentos-pr-checks.yml");
+  const releaseCi = read(".github/workflows/intentos-release-checks.yml");
   const prTemplate = read(".github/pull_request_template.md");
   const codeowners = read(".github/CODEOWNERS");
   const contributing = read("CONTRIBUTING.md");
@@ -715,7 +779,7 @@ function checkDevKitFirstPartyCi() {
     "node-version: 22",
     "branches:",
     "- main",
-    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-intentos.mjs",
     "npm run verify",
     "node scripts/check-manifest.mjs",
     "node scripts/check-product-baseline.mjs .",
@@ -847,8 +911,8 @@ function checkDevKitFirstPartyCi() {
     "contents: read",
   ];
   for (const marker of prMarkers) {
-    if (prCi.includes(marker)) pass(`dev-kit PR CI includes ${marker}`);
-    else fail(`dev-kit PR CI missing ${marker}`);
+    if (prCi.includes(marker)) pass(`intentos PR CI includes ${marker}`);
+    else fail(`intentos PR CI missing ${marker}`);
   }
 
   const releaseMarkers = [
@@ -856,7 +920,7 @@ function checkDevKitFirstPartyCi() {
     "tags:",
     "actions/setup-node",
     "node-version: 22",
-    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-intentos.mjs",
     "npm run verify",
     "node scripts/check-manifest.mjs",
     "node scripts/check-product-baseline.mjs .",
@@ -980,8 +1044,8 @@ function checkDevKitFirstPartyCi() {
     "contents: read",
   ];
   for (const marker of releaseMarkers) {
-    if (releaseCi.includes(marker)) pass(`dev-kit release CI includes ${marker}`);
-    else fail(`dev-kit release CI missing ${marker}`);
+    if (releaseCi.includes(marker)) pass(`intentos release CI includes ${marker}`);
+    else fail(`intentos release CI missing ${marker}`);
   }
 
   for (const marker of [
@@ -1009,8 +1073,8 @@ function checkDevKitFirstPartyCi() {
     "Baseline State Report",
     "Change Impact Coverage Report",
   ]) {
-    if (prTemplate.includes(marker)) pass(`dev-kit PR template includes ${marker}`);
-    else fail(`dev-kit PR template missing ${marker}`);
+    if (prTemplate.includes(marker)) pass(`intentos PR template includes ${marker}`);
+    else fail(`intentos PR template missing ${marker}`);
   }
 
   const activeCodeownerLines = codeowners
@@ -1030,7 +1094,7 @@ function checkDevKitFirstPartyCi() {
   }
 
   for (const marker of [
-    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-intentos.mjs",
     "node scripts/check-fixtures.mjs",
     "phase artifacts",
     "Generated-Project Smoke",
@@ -1068,7 +1132,7 @@ function checkDevKitFirstPartyCi() {
     "0.34.0",
     "PR CI workflow added",
     "Release CI workflow added",
-    "check-dev-kit",
+    "check-intentos",
     "No target-project bootstrap semantics were changed",
     "No license wording was changed",
   ]) {
@@ -1112,7 +1176,7 @@ function checkOneDotZeroReleaseEvidence() {
   const selfCheck = read("releases/1.0.0/self-check-report.md");
   for (const marker of [
     "Status: PASS",
-    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-intentos.mjs",
     "node scripts/check-fixtures.mjs",
     "git diff --check",
   ]) {
@@ -1123,8 +1187,8 @@ function checkOneDotZeroReleaseEvidence() {
   const generatedSmoke = read("releases/1.0.0/generated-project-smoke.md");
   for (const marker of [
     "Status: PASS",
-    "node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test",
-    "node /tmp/ai-native-1-test/scripts/check-ai-workflow.mjs /tmp/ai-native-1-test --mode core",
+    "node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-1-test",
+    "node /tmp/intentos-1-test/scripts/check-ai-workflow.mjs /tmp/intentos-1-test --mode core",
   ]) {
     if (generatedSmoke.includes(marker)) pass(`1.0 generated smoke includes ${marker}`);
     else fail(`1.0 generated smoke missing ${marker}`);
@@ -1133,7 +1197,7 @@ function checkOneDotZeroReleaseEvidence() {
   const updateSmoke = read("releases/1.0.0/update-smoke.md");
   for (const marker of [
     "Status: PASS",
-    "node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run",
+    "node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run",
     "\"operation\": \"UPDATE_WORKFLOW_ASSETS\"",
   ]) {
     if (updateSmoke.includes(marker)) pass(`1.0 update smoke includes ${marker}`);
@@ -1161,7 +1225,7 @@ function checkOneDotZeroReleaseEvidence() {
   const limitations = read("releases/1.0.0/known-limitations.md");
   for (const marker of [
     "10/10 real-project evidence has not been achieved",
-    "`ai-native migrate` is dry-run/write-plan only",
+    "`intentos migrate` is dry-run/write-plan only",
     "Industrial packs remain `draft`",
     "License explanation docs are not legal advice",
   ]) {
@@ -1206,7 +1270,7 @@ function checkOneDotZeroReleaseEvidence() {
 }
 
 function checkManifestProtocol() {
-  const manifest = JSON.parse(read("dev-kit-manifest.json"));
+  const manifest = JSON.parse(read("intentos-manifest.json"));
   if (manifest.schemaVersion === "1.0") pass("manifest schemaVersion is 1.0");
   else fail("manifest schemaVersion must be 1.0");
   if (manifest.mode === "authoritative") pass("manifest mode is authoritative");
@@ -1218,17 +1282,17 @@ function checkManifestProtocol() {
   } else {
     fail("manifest compatibility policy must be authoritative for phase 0.37.0");
   }
-  if (manifest.compatibilityPolicy?.phase === manifest.devKitVersion) {
-    pass("manifest compatibilityPolicy.phase matches devKitVersion");
+  if (manifest.compatibilityPolicy?.phase === manifest.intentOSVersion) {
+    pass("manifest compatibilityPolicy.phase matches intentOSVersion");
   } else {
-    fail(`manifest compatibilityPolicy.phase ${manifest.compatibilityPolicy?.phase || "<missing>"} must match devKitVersion ${manifest.devKitVersion}`);
+    fail(`manifest compatibilityPolicy.phase ${manifest.compatibilityPolicy?.phase || "<missing>"} must match intentOSVersion ${manifest.intentOSVersion}`);
   }
 
   for (const group of [
     "sourceRequired",
     "targetCore",
     "targetFull",
-    "aiNativeCore",
+    "intentOSCore",
     "templates",
     "prompts",
     "checklists",
@@ -1251,7 +1315,7 @@ function checkManifestProtocol() {
     fail("manifest must contain copyRules.directories and copyRules.files");
   }
   for (const marker of [
-    ".ai-native/dev-kit-manifest.json",
+    ".intentos/intentos-manifest.json",
     "scripts/lib/args.mjs",
     "scripts/lib/check-result.mjs",
     "scripts/lib/git.mjs",
@@ -1260,7 +1324,7 @@ function checkManifestProtocol() {
     "scripts/lib/manifest.mjs",
     "scripts/start-project.mjs",
     "scripts/check-guided-adoption.mjs",
-    ".ai-native/docs/first-hour.md",
+    ".intentos/docs/first-hour.md",
     "adoption-recommendations",
   ]) {
     if (manifest.groups.targetCore.includes(marker) && manifest.groups.targetFull.includes(marker)) {
@@ -1282,12 +1346,12 @@ function checkManifestProtocol() {
     fail(`manifest check failed: ${manifestCheck.stderr || manifestCheck.stdout}`);
   }
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-manifest-check-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-manifest-check-"));
   try {
     const invalidManifest = path.join(tempRoot, "invalid-manifest.json");
     fs.writeFileSync(invalidManifest, JSON.stringify({
       schemaVersion: "1.0",
-      devKitVersion: currentVersion(),
+      intentOSVersion: currentVersion(),
       mode: "authoritative",
       compatibilityPolicy: {
         readOnly: false,
@@ -1315,7 +1379,7 @@ function checkManifestProtocol() {
     const phaseDriftOutput = `${phaseDriftResult.stdout}\n${phaseDriftResult.stderr}`;
     if (phaseDriftResult.status !== 0
       && phaseDriftOutput.includes("compatibilityPolicy.phase")
-      && phaseDriftOutput.includes("must match devKitVersion")) {
+      && phaseDriftOutput.includes("must match intentOSVersion")) {
       pass("manifest check rejects compatibilityPolicy phase drift");
     } else {
       fail(`manifest check must reject compatibilityPolicy phase drift: ${phaseDriftOutput}`);
@@ -1355,7 +1419,7 @@ function checkManifestProtocol() {
       fail(`manifest authoritative generated target init failed: ${init.stderr || init.stdout}`);
       return;
     }
-    const targetManifestPath = path.join(target, ".ai-native", "dev-kit-manifest.json");
+    const targetManifestPath = path.join(target, ".intentos", "intentos-manifest.json");
     const targetManifest = JSON.parse(fs.readFileSync(targetManifestPath, "utf8"));
     targetManifest.groups.targetCore.push("fake/manifest-target-required.md");
     targetManifest.groups.targetFull.push("fake/manifest-target-required.md");
@@ -1400,12 +1464,6 @@ function checkCliFrontDoor() {
   if (pkg.bin?.["intentos"] === "./scripts/cli.mjs") pass("package.json exposes intentos bin");
   else fail("package.json must expose intentos bin at ./scripts/cli.mjs");
 
-  if (pkg.bin?.["ai-native"] === "./scripts/cli.mjs") pass("package.json exposes ai-native compatibility bin");
-  else fail("package.json must expose ai-native bin at ./scripts/cli.mjs");
-
-  if (pkg.bin?.["ai-native-dev-kit"] === "./scripts/cli.mjs") pass("package.json exposes ai-native-dev-kit compatibility bin");
-  else fail("package.json must expose ai-native-dev-kit bin at ./scripts/cli.mjs");
-
   if (pkg.engines?.node === ">=22") pass("package.json declares Node >=22 engine");
   else fail("package.json must declare Node >=22 engine");
 
@@ -1430,7 +1488,7 @@ function checkCliFrontDoor() {
     .join("\n");
   for (const marker of [
     "node scripts/check-manifest.mjs",
-    "node scripts/check-dev-kit.mjs",
+    "node scripts/check-intentos.mjs",
     "node --check scripts/check-guided-delivery-loop.mjs",
     "node --check scripts/check-change-boundary.mjs",
     "node --check scripts/check-baseline-state.mjs",
@@ -1548,9 +1606,9 @@ function checkCliFrontDoor() {
   }
   for (const marker of [
     "IntentOS CLI",
-    "Command aliases: intentos / ai-native / ai-native-dev-kit",
+    "Command: intentos",
     currentVersion(),
-    "Manifest: dev-kit-manifest.json",
+    "Manifest: intentos-manifest.json",
     "Primary entry commands",
     "Common user-facing decisions",
     "Advanced commands remain available",
@@ -1647,7 +1705,7 @@ function checkCliFrontDoor() {
     fail(`CLI guide-check failed: ${guideCheck.stderr || guideCheck.stdout}`);
   }
 
-  const beginnerEntry = runNode(["scripts/cli.mjs", "ask", ".", "maintain Dev Kit beginner entry"]);
+  const beginnerEntry = runNode(["scripts/cli.mjs", "ask", ".", "maintain IntentOS beginner entry"]);
   if (beginnerEntry.status === 0
     && beginnerEntry.stdout.includes("Beginner Entry Card")
     && beginnerEntry.stdout.includes("This entry writes target files: No")) {
@@ -1663,7 +1721,7 @@ function checkCliFrontDoor() {
     fail(`CLI ask-check failed: ${beginnerEntryCheck.stderr || beginnerEntryCheck.stdout}`);
   }
 
-  const guidedClosure = runNode(["scripts/cli.mjs", "finish", ".", "--intent", "maintain Dev Kit close-out experience", "--verification", "npm run verify passed"]);
+  const guidedClosure = runNode(["scripts/cli.mjs", "finish", ".", "--intent", "maintain IntentOS close-out experience", "--verification", "npm run verify passed"]);
   if (guidedClosure.status === 0
     && guidedClosure.stdout.includes("Unified Closure Decision")
     && guidedClosure.stdout.includes("This decision writes target files: No")) {
@@ -1759,7 +1817,7 @@ function checkCliFrontDoor() {
     fail(`CLI archive-apply-check failed: ${archiveApplyCheck.stderr || archiveApplyCheck.stdout}`);
   }
 
-  const applyPlan = runNode(["scripts/cli.mjs", "apply-plan", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets"]);
+  const applyPlan = runNode(["scripts/cli.mjs", "apply-plan", ".", "--intent", "maintain IntentOS apply plan", "--action", "workflow-assets"]);
   if (applyPlan.status === 0
     && applyPlan.stdout.includes("Unified Apply Plan")
     && applyPlan.stdout.includes("This plan authorizes apply: No")
@@ -2037,7 +2095,7 @@ function checkCliFrontDoor() {
     fail(`CLI start --json returned invalid JSON: ${error.message}`);
   }
 
-  const startTempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-start-"));
+  const startTempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-cli-start-"));
   try {
     const newTarget = path.join(startTempRoot, "new-project");
     fs.mkdirSync(newTarget, { recursive: true });
@@ -2063,13 +2121,13 @@ function checkCliFrontDoor() {
   }
 
   const selfCheckDryRun = runNode(["scripts/cli.mjs", "--dry-run", "self-check"]);
-  if (selfCheckDryRun.status === 0 && selfCheckDryRun.stdout.includes("node scripts/check-dev-kit.mjs")) {
-    pass("CLI self-check dry-run delegates to check-dev-kit");
+  if (selfCheckDryRun.status === 0 && selfCheckDryRun.stdout.includes("node scripts/check-intentos.mjs")) {
+    pass("CLI self-check dry-run delegates to check-intentos");
   } else {
-    fail(`CLI self-check dry-run missing check-dev-kit mapping: ${selfCheckDryRun.stderr || selfCheckDryRun.stdout}`);
+    fail(`CLI self-check dry-run missing check-intentos mapping: ${selfCheckDryRun.stderr || selfCheckDryRun.stdout}`);
   }
 
-  const updateDryRun = runNode(["scripts/cli.mjs", "--dry-run", "update", "--target", "/tmp/ai-native-cli-dry-run"]);
+  const updateDryRun = runNode(["scripts/cli.mjs", "--dry-run", "update", "--target", "/tmp/intentos-cli-dry-run"]);
   if (updateDryRun.status === 0
     && updateDryRun.stdout.includes("node scripts/init-project.mjs")
     && updateDryRun.stdout.includes("--update-workflow-assets")) {
@@ -2078,14 +2136,14 @@ function checkCliFrontDoor() {
     fail(`CLI update dry-run missing underlying update command: ${updateDryRun.stderr || updateDryRun.stdout}`);
   }
 
-  const cliCommandDryRunRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-command-dry-run-"));
+  const cliCommandDryRunRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-cli-command-dry-run-"));
   try {
     const commandDryRunTarget = path.join(cliCommandDryRunRoot, "project");
     fs.mkdirSync(commandDryRunTarget, { recursive: true });
     const updateCommandDryRun = runNode(["scripts/cli.mjs", "update", "--target", commandDryRunTarget, "--dry-run"]);
     if (updateCommandDryRun.status === 0
       && updateCommandDryRun.stdout.includes('"operation": "UPDATE_WORKFLOW_ASSETS"')
-      && !fs.existsSync(path.join(commandDryRunTarget, ".ai-native", "version.json"))) {
+      && !fs.existsSync(path.join(commandDryRunTarget, ".intentos", "version.json"))) {
       pass("CLI command-level update dry-run delegates to init/update plan preview");
     } else {
       fail(`CLI command-level update dry-run failed: ${updateCommandDryRun.stderr || updateCommandDryRun.stdout}`);
@@ -2097,13 +2155,13 @@ function checkCliFrontDoor() {
   const doctorDryRun = runNode(["scripts/cli.mjs", "--dry-run", "doctor", "."]);
   if (doctorDryRun.status === 0
     && doctorDryRun.stdout.includes("node scripts/workflow-next.mjs .")
-    && doctorDryRun.stdout.includes("node scripts/check-dev-kit.mjs")) {
-    pass("CLI doctor dry-run routes dev-kit source to self-check sequence");
+    && doctorDryRun.stdout.includes("node scripts/check-intentos.mjs")) {
+    pass("CLI doctor dry-run routes intentos source to self-check sequence");
   } else {
-    fail(`CLI doctor dry-run missing dev-kit source sequence: ${doctorDryRun.stderr || doctorDryRun.stdout}`);
+    fail(`CLI doctor dry-run missing intentos source sequence: ${doctorDryRun.stderr || doctorDryRun.stdout}`);
   }
 
-  const doctorTargetRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-doctor-target-"));
+  const doctorTargetRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-cli-doctor-target-"));
   try {
     const doctorTarget = path.join(doctorTargetRoot, "project");
     fs.mkdirSync(doctorTarget, { recursive: true });
@@ -2119,7 +2177,7 @@ function checkCliFrontDoor() {
     fs.rmSync(doctorTargetRoot, { recursive: true, force: true });
   }
 
-  const migrateRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-migrate-"));
+  const migrateRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-cli-migrate-"));
   try {
     const migrateTarget = path.join(migrateRoot, "project");
     fs.mkdirSync(migrateTarget, { recursive: true });
@@ -2153,9 +2211,9 @@ function checkCliFrontDoor() {
       "--dry-run",
     ]);
     if (migrateDryRun.status === 0
-      && migrateDryRun.stdout.includes("AI Native Migration Plan")
+      && migrateDryRun.stdout.includes("IntentOS Migration Plan")
       && migrateDryRun.stdout.includes("No target project files were modified.")
-      && !fs.existsSync(path.join(migrateTarget, ".ai-native"))) {
+      && !fs.existsSync(path.join(migrateTarget, ".intentos"))) {
       pass("CLI migrate dry-run prints plan and does not mutate target");
     } else {
       fail(`CLI migrate dry-run failed or mutated target: ${migrateDryRun.stderr || migrateDryRun.stdout}`);
@@ -2179,7 +2237,7 @@ function checkCliFrontDoor() {
       && wrotePlan?.blockedApply === true
       && Array.isArray(wrotePlan.actions)
       && wrotePlan.actions.length > 0
-      && !fs.existsSync(path.join(migrateTarget, ".ai-native"))) {
+      && !fs.existsSync(path.join(migrateTarget, ".intentos"))) {
       pass("CLI migrate write-plan writes reviewable plan only");
     } else {
       fail(`CLI migrate write-plan failed safety check: ${migrateWritePlan.stderr || migrateWritePlan.stdout}`);
@@ -2188,7 +2246,7 @@ function checkCliFrontDoor() {
     fs.rmSync(migrateRoot, { recursive: true, force: true });
   }
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-cli-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-cli-"));
   try {
     const target = path.join(tempRoot, "project");
     const init = runNode(["scripts/cli.mjs", "init", "--starter", "generic-project", "--target", target]);
@@ -2962,8 +3020,8 @@ function checkChangeBoundaryBaselineStateProtocol() {
     "scripts/check-baseline-state.mjs",
     "change-boundary-reports",
     "baseline-state-reports",
-    ".ai-native/core/change-boundary.md",
-    ".ai-native/core/baseline-state.md",
+    ".intentos/core/change-boundary.md",
+    ".intentos/core/baseline-state.md",
   ]) {
     if (initProject.includes(marker)) pass(`init-project includes 1.12 marker ${marker}`);
     else fail(`init-project missing 1.12 marker ${marker}`);
@@ -2999,8 +3057,8 @@ function checkChangeBoundaryBaselineStateProtocol() {
     }
   }
 
-  const prCi = read(".github/workflows/dev-kit-pr-checks.yml");
-  const releaseCi = read(".github/workflows/dev-kit-release-checks.yml");
+  const prCi = read(".github/workflows/intentos-pr-checks.yml");
+  const releaseCi = read(".github/workflows/intentos-release-checks.yml");
   for (const [label, content] of [["PR CI", prCi], ["release CI", releaseCi]]) {
     for (const marker of [
       "npm run verify",
@@ -3096,7 +3154,7 @@ function checkBaselinePackSystemProtocol() {
     "scripts/resolve-baseline-packs.mjs",
     "scripts/check-baseline-pack-selection.mjs",
     "baseline-pack-selections",
-    ".ai-native/core/baseline-pack-system.md",
+    ".intentos/core/baseline-pack-system.md",
   ]) {
     if (initProject.includes(marker)) pass(`init-project includes baseline pack marker ${marker}`);
     else fail(`init-project missing baseline pack marker ${marker}`);
@@ -3116,7 +3174,7 @@ function checkBaselinePackSystemProtocol() {
     fail(`baseline pack selection checker should allow no reports: ${emptyCheck.stderr || emptyCheck.stdout}`);
   }
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-baseline-pack-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-baseline-pack-"));
   try {
     fs.mkdirSync(path.join(tempRoot, "baseline-pack-selections"), { recursive: true });
     const goodReport = path.join(tempRoot, "baseline-pack-selections", "001-good.md");
@@ -3401,7 +3459,7 @@ function checkStandardBaselinePackRegistryProtocol() {
   const initProject = read("scripts/init-project.mjs");
   for (const marker of [
     "Standard Baseline Packs",
-    ".ai-native/standard-baseline-packs",
+    ".intentos/standard-baseline-packs",
     "scripts/resolve-standard-baseline.mjs",
     "scripts/check-standard-baseline-selection.mjs",
     "standard-baseline-selections",
@@ -3733,7 +3791,7 @@ function checkGuidedBaselineSelectionCalibrationProtocol() {
     else fail(`1.18 guided baseline calibration missing ${marker}`);
   }
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-baseline-calibration-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-baseline-calibration-"));
   try {
     const miniprogram = path.join(tempRoot, "miniprogram-cloud");
     fs.mkdirSync(path.join(miniprogram, "cloudfunctions", "login"), { recursive: true });
@@ -3841,8 +3899,8 @@ function checkBaselineSelectionPrecisionCalibrationProtocol() {
     read("scripts/check-baseline-selection-precision.mjs"),
     read("releases/1.19.0/release-record.md"),
     read("releases/1.19.1/release-record.md"),
-    read(".github/workflows/dev-kit-pr-checks.yml"),
-    read(".github/workflows/dev-kit-release-checks.yml"),
+    read(".github/workflows/intentos-pr-checks.yml"),
+    read(".github/workflows/intentos-release-checks.yml"),
   ].join("\n");
 
   for (const marker of [
@@ -4007,7 +4065,7 @@ function checkGuidedDeliveryBaselineProtocol() {
     }
   }
 
-  const emptyReleaseRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-empty-release-"));
+  const emptyReleaseRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-empty-release-"));
   fs.mkdirSync(path.join(emptyReleaseRoot, "releases", "9.9.9"), { recursive: true });
   fs.writeFileSync(path.join(emptyReleaseRoot, "VERSION.md"), "Current version: `9.9.9`\n");
   fs.writeFileSync(path.join(emptyReleaseRoot, "releases", "9.9.9", "release-record.md"), [
@@ -4572,7 +4630,7 @@ function checkExistingProjectWorkflowAdapterProtocol() {
     "THIN_OPERATIONAL_BRIDGE",
     "BLOCKED_NEEDS_OWNER",
     "For existing projects, Codex must recommend a workflow adapter path before recommending file writes",
-    "Recommended AI Native Workflow Use",
+    "Recommended IntentOS Workflow Use",
     "Native Migration Plan",
     "What Not To Touch",
     "does not install target-project workflow assets",
@@ -4599,7 +4657,7 @@ function checkExistingProjectWorkflowAdapterProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "WORKFLOW_ADOPTION_MAP_RECOMMENDATION"
         && parsed.boundary?.authorizesTargetProjectWrites === "No"
-        && Array.isArray(parsed.recommendedAiNativeWorkflowUse)
+        && Array.isArray(parsed.recommendedIntentOSWorkflowUse)
         && parsed.nativeMigrationRecommendation?.nextStep
         && parsed.nativeMigrationRecommendation?.posture
         && parsed.nativeMigrationRecommendation?.writes === "No") {
@@ -4965,7 +5023,7 @@ function checkExistingRuleReconciliationProtocol() {
     "evidence_profile",
     "existing_rule_source",
     "intentos_reference_source",
-    "AI Native Adoption Recommendation",
+    "IntentOS Adoption Recommendation",
     "false positive",
     "false negative",
   ]) {
@@ -6030,7 +6088,7 @@ function checkUnifiedApplyPlanProtocol() {
     else fail(`1.34 unified apply plan missing ${marker}`);
   }
 
-  const resolver = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets"]);
+  const resolver = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain IntentOS apply plan", "--action", "workflow-assets"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Unified Apply Plan")
     && resolver.stdout.includes("This plan authorizes apply: No")
@@ -6040,7 +6098,7 @@ function checkUnifiedApplyPlanProtocol() {
     fail(`1.34 unified apply plan resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
-  const resolverJson = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain Dev Kit apply plan", "--action", "workflow-assets", "--json"]);
+  const resolverJson = runNode(["scripts/resolve-apply-plan.mjs", ".", "--intent", "maintain IntentOS apply plan", "--action", "workflow-assets", "--json"]);
   if (resolverJson.status === 0) {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
@@ -6124,7 +6182,7 @@ function checkBeginnerEntryProtocol() {
 
   for (const marker of [
     "Beginner Entry Governance",
-    "users who should not need to know AI Native workflow commands",
+    "users who should not need to know IntentOS workflow commands",
     "ask at most 3 human questions by default",
     "Beginner Entry Card",
     "What Codex Must Not Do Yet",
@@ -6158,7 +6216,7 @@ function checkBeginnerEntryProtocol() {
     else fail(`new-workflow-item missing beginner entry marker ${marker}`);
   }
 
-  const resolver = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "维护 Dev Kit 小白入口"]);
+  const resolver = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "维护 IntentOS 小白入口"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Beginner Entry Card")
     && resolver.stdout.includes("This entry writes target files: No")
@@ -6168,7 +6226,7 @@ function checkBeginnerEntryProtocol() {
     fail(`1.35 beginner entry resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
-  const positionalResolver = runNode(["scripts/resolve-beginner-entry.mjs", "我想把当前项目接入 AI Native"]);
+  const positionalResolver = runNode(["scripts/resolve-beginner-entry.mjs", "我想把当前项目接入 IntentOS"]);
   if (positionalResolver.status === 0
     && positionalResolver.stdout.includes("Beginner Entry Card")
     && positionalResolver.stdout.includes("This entry writes target files: No")) {
@@ -6177,7 +6235,7 @@ function checkBeginnerEntryProtocol() {
     fail(`1.35 beginner entry one-sentence goal failed: ${positionalResolver.stderr || positionalResolver.stdout}`);
   }
 
-  const resolverJson = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "维护 Dev Kit 小白入口", "--json"]);
+  const resolverJson = runNode(["scripts/resolve-beginner-entry.mjs", ".", "--goal", "维护 IntentOS 小白入口", "--json"]);
   if (resolverJson.status === 0) {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
@@ -9033,7 +9091,7 @@ function checkExecutionReviewClosureProtocol() {
     else fail(`1.32 execution closure missing ${marker}`);
   }
 
-  const resolver = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish Dev Kit closure", "--verification", "npm run verify passed"]);
+  const resolver = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish IntentOS closure", "--verification", "npm run verify passed"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Execution Closure Report")
     && resolver.stdout.includes("Commit Readiness")
@@ -9043,7 +9101,7 @@ function checkExecutionReviewClosureProtocol() {
     fail(`1.32 execution closure resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
-  const resolverJson = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish Dev Kit closure", "--verification", "npm run verify passed", "--json"]);
+  const resolverJson = runNode(["scripts/resolve-execution-closure.mjs", ".", "--intent", "finish IntentOS closure", "--verification", "npm run verify passed", "--json"]);
   if (resolverJson.status === 0) {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
@@ -9437,7 +9495,7 @@ function checkRiskSurfaceCalibration() {
 
   const ciWorkflow = analyzeRiskSurfaces({
     intent: "update GitHub workflow file",
-    paths: [".github/workflows/dev-kit-release-checks.yml"],
+    paths: [".github/workflows/intentos-release-checks.yml"],
   });
   if (ciWorkflow.high && ciWorkflow.reasons.some((reason) => reason.includes("CI workflow path") || reason.includes("ci-hook-automation"))) pass("1.47 risk calibration detects CI workflow context");
   else fail("1.47 risk calibration must detect CI workflow context");
@@ -9665,7 +9723,7 @@ function checkIndustrialBaselineResolver() {
     return;
   }
   if (parsed.checkStatus !== "PENDING" || parsed.state !== "NOT_SELECTED") {
-    fail(`dev-kit source industrial baseline should be pending/not selected, got ${parsed.checkStatus}/${parsed.state}`);
+    fail(`intentos source industrial baseline should be pending/not selected, got ${parsed.checkStatus}/${parsed.state}`);
     return;
   }
   pass("industrial baseline resolver checked");
@@ -9695,7 +9753,7 @@ function checkStarters() {
     "workflow-improvements/.gitkeep",
     "skill-candidates/.gitkeep",
     "automation-proposals/.gitkeep",
-    "dev-kit-proposals/.gitkeep",
+    "intentos-proposals/.gitkeep",
     "review-packets/.gitkeep",
     "review-surface-cards/.gitkeep",
     "change-impact-coverage-reports/.gitkeep",
@@ -9867,7 +9925,7 @@ function checkScriptSyntax() {
     "scripts/init-project.mjs",
     "scripts/check-ai-workflow.mjs",
     "scripts/check-guided-adoption.mjs",
-    "scripts/check-dev-kit.mjs",
+    "scripts/check-intentos.mjs",
     "scripts/summarize-ai-logs.mjs",
     "scripts/check-workflow-version.mjs",
     "scripts/workflow-daily-summary.mjs",
@@ -9968,7 +10026,7 @@ function checkReadmePointers() {
   const zhReadme = read("README.zh-CN.md");
   const requiredReadmePointers = [
     "IntentOS",
-    "AI Native Dev Kit",
+    "IntentOS",
     "An AI-native system for guided software delivery",
     "Start In 30 Seconds",
     "You describe the goal",
@@ -10732,7 +10790,7 @@ function checkMiniProgramBl2ExampleArtifacts() {
 }
 
 function checkGeneratedProjectE2E() {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-native-dev-kit-e2e-"));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-e2e-"));
   const target = path.join(tempRoot, "generated-project");
 
   const initResult = runNode([
@@ -10888,80 +10946,80 @@ function checkGeneratedProjectE2E() {
     "scripts/check-guided-delivery-loop.mjs",
     "scripts/check-change-boundary.mjs",
     "scripts/check-baseline-state.mjs",
-    ".ai-native/profiles/web-app/baseline.json",
-    ".ai-native/profiles/wechat-miniprogram/baseline.json",
-    ".ai-native/industrial-packs/index.json",
-    ".ai-native/industrial-packs/selection-guide.md",
-    ".ai-native/industrial-packs/schema/pack.schema.json",
-    ".ai-native/industrial-packs/schema/baseline-selection.schema.json",
-    ".ai-native/templates/baseline-selection.md",
-    ".ai-native/templates/baseline-evidence.md",
-    ".ai-native/docs/artifact-decision-tree.md",
-    ".ai-native/docs/goal-subagent-usage.md",
-    ".ai-native/docs/guided-delivery-baseline.md",
-    ".ai-native/docs/product-baseline.md",
-    ".ai-native/docs/claim-control.md",
-    ".ai-native/docs/project-memory.md",
-    ".ai-native/docs/git-boundary.md",
-    ".ai-native/docs/change-boundary.md",
-    ".ai-native/docs/baseline-state.md",
-    ".ai-native/docs/guided-delivery-check.md",
-    ".ai-native/docs/beginner-entry.md",
-    ".ai-native/core/engineering-baseline.md",
-    ".ai-native/core/outcome-baseline.md",
-    ".ai-native/core/product-baseline.md",
-    ".ai-native/core/claim-control.md",
-    ".ai-native/core/assumption-register.md",
-    ".ai-native/core/context-governance.md",
-    ".ai-native/core/git-boundary.md",
-    ".ai-native/core/change-boundary.md",
-    ".ai-native/core/baseline-state.md",
-    ".ai-native/core/beginner-entry.md",
-    ".ai-native/templates/engineering-baseline.md",
-    ".ai-native/templates/product-baseline-review.md",
-    ".ai-native/templates/claim-control-report.md",
-    ".ai-native/templates/assumption-register.md",
-    ".ai-native/templates/learning-candidate.md",
-    ".ai-native/templates/context-correction-report.md",
-    ".ai-native/templates/git-boundary-report.md",
-    ".ai-native/templates/change-boundary-report.md",
-    ".ai-native/templates/baseline-state-report.md",
-    ".ai-native/templates/beginner-entry-card.md",
-    ".ai-native/checklists/engineering-baseline-review.md",
-    ".ai-native/checklists/product-baseline-review.md",
-    ".ai-native/checklists/claim-control-review.md",
-    ".ai-native/checklists/context-governance-review.md",
-    ".ai-native/checklists/git-boundary-review.md",
-    ".ai-native/checklists/guided-delivery-loop-review.md",
-    ".ai-native/checklists/change-boundary-review.md",
-    ".ai-native/checklists/baseline-state-review.md",
-    ".ai-native/checklists/beginner-entry-review.md",
-    ".ai-native/core/next-step-boundary.md",
-    ".ai-native/core/goal-mode.md",
-    ".ai-native/core/subagent-orchestration.md",
-    ".ai-native/templates/follow-up-proposal.md",
-    ".ai-native/templates/final-report.md",
-    ".ai-native/templates/goal-card.md",
-    ".ai-native/templates/subagent-run-plan.md",
-    ".ai-native/checklists/next-step-boundary-review.md",
-    ".ai-native/checklists/goal-mode-review.md",
-    ".ai-native/checklists/subagent-orchestration-review.md",
-    ".ai-native/prompts/goal-planner-agent.md",
-    ".ai-native/prompts/engineering-baseline-agent.md",
-    ".ai-native/prompts/product-baseline-agent.md",
-    ".ai-native/prompts/claim-control-agent.md",
-    ".ai-native/prompts/context-governance-agent.md",
-    ".ai-native/prompts/guided-delivery-check-agent.md",
-    ".ai-native/prompts/change-boundary-agent.md",
-    ".ai-native/prompts/baseline-state-agent.md",
-    ".ai-native/prompts/beginner-entry-agent.md",
-    ".ai-native/core/output-protocol.md",
-    ".ai-native/core/glossary.md",
-    ".ai-native/prompts/reporter-agent.md",
-    ".ai-native/templates/human-status-report.md",
-    ".ai-native/templates/decision-brief.md",
-    ".ai-native/templates/plain-review-summary.md",
-    ".ai-native/templates/customer-handoff.md",
+    ".intentos/profiles/web-app/baseline.json",
+    ".intentos/profiles/wechat-miniprogram/baseline.json",
+    ".intentos/industrial-packs/index.json",
+    ".intentos/industrial-packs/selection-guide.md",
+    ".intentos/industrial-packs/schema/pack.schema.json",
+    ".intentos/industrial-packs/schema/baseline-selection.schema.json",
+    ".intentos/templates/baseline-selection.md",
+    ".intentos/templates/baseline-evidence.md",
+    ".intentos/docs/artifact-decision-tree.md",
+    ".intentos/docs/goal-subagent-usage.md",
+    ".intentos/docs/guided-delivery-baseline.md",
+    ".intentos/docs/product-baseline.md",
+    ".intentos/docs/claim-control.md",
+    ".intentos/docs/project-memory.md",
+    ".intentos/docs/git-boundary.md",
+    ".intentos/docs/change-boundary.md",
+    ".intentos/docs/baseline-state.md",
+    ".intentos/docs/guided-delivery-check.md",
+    ".intentos/docs/beginner-entry.md",
+    ".intentos/core/engineering-baseline.md",
+    ".intentos/core/outcome-baseline.md",
+    ".intentos/core/product-baseline.md",
+    ".intentos/core/claim-control.md",
+    ".intentos/core/assumption-register.md",
+    ".intentos/core/context-governance.md",
+    ".intentos/core/git-boundary.md",
+    ".intentos/core/change-boundary.md",
+    ".intentos/core/baseline-state.md",
+    ".intentos/core/beginner-entry.md",
+    ".intentos/templates/engineering-baseline.md",
+    ".intentos/templates/product-baseline-review.md",
+    ".intentos/templates/claim-control-report.md",
+    ".intentos/templates/assumption-register.md",
+    ".intentos/templates/learning-candidate.md",
+    ".intentos/templates/context-correction-report.md",
+    ".intentos/templates/git-boundary-report.md",
+    ".intentos/templates/change-boundary-report.md",
+    ".intentos/templates/baseline-state-report.md",
+    ".intentos/templates/beginner-entry-card.md",
+    ".intentos/checklists/engineering-baseline-review.md",
+    ".intentos/checklists/product-baseline-review.md",
+    ".intentos/checklists/claim-control-review.md",
+    ".intentos/checklists/context-governance-review.md",
+    ".intentos/checklists/git-boundary-review.md",
+    ".intentos/checklists/guided-delivery-loop-review.md",
+    ".intentos/checklists/change-boundary-review.md",
+    ".intentos/checklists/baseline-state-review.md",
+    ".intentos/checklists/beginner-entry-review.md",
+    ".intentos/core/next-step-boundary.md",
+    ".intentos/core/goal-mode.md",
+    ".intentos/core/subagent-orchestration.md",
+    ".intentos/templates/follow-up-proposal.md",
+    ".intentos/templates/final-report.md",
+    ".intentos/templates/goal-card.md",
+    ".intentos/templates/subagent-run-plan.md",
+    ".intentos/checklists/next-step-boundary-review.md",
+    ".intentos/checklists/goal-mode-review.md",
+    ".intentos/checklists/subagent-orchestration-review.md",
+    ".intentos/prompts/goal-planner-agent.md",
+    ".intentos/prompts/engineering-baseline-agent.md",
+    ".intentos/prompts/product-baseline-agent.md",
+    ".intentos/prompts/claim-control-agent.md",
+    ".intentos/prompts/context-governance-agent.md",
+    ".intentos/prompts/guided-delivery-check-agent.md",
+    ".intentos/prompts/change-boundary-agent.md",
+    ".intentos/prompts/baseline-state-agent.md",
+    ".intentos/prompts/beginner-entry-agent.md",
+    ".intentos/core/output-protocol.md",
+    ".intentos/core/glossary.md",
+    ".intentos/prompts/reporter-agent.md",
+    ".intentos/templates/human-status-report.md",
+    ".intentos/templates/decision-brief.md",
+    ".intentos/templates/plain-review-summary.md",
+    ".intentos/templates/customer-handoff.md",
     "status-reports/.gitkeep",
     "goal-cards/.gitkeep",
     "subagent-run-plans/.gitkeep",
@@ -11106,7 +11164,7 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project first delivery walkthrough check");
 
-  if (fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
+  if (fs.existsSync(path.join(target, ".intentos", "industrial-packs", "web-app", "pack.json"))) {
     fail("generated project default bootstrap should not install concrete web-app industrial pack");
     return;
   }
@@ -11196,11 +11254,11 @@ function checkGeneratedProjectE2E() {
   pass("generated project platform baseline JSON is machine-readable");
 
   fs.copyFileSync(
-    path.join(target, ".ai-native", "templates", "baseline-selection.md"),
+    path.join(target, ".intentos", "templates", "baseline-selection.md"),
     path.join(target, "docs", "baseline-selection.md"),
   );
   fs.copyFileSync(
-    path.join(target, ".ai-native", "templates", "baseline-evidence.md"),
+    path.join(target, ".intentos", "templates", "baseline-evidence.md"),
     path.join(target, "docs", "baseline-evidence.md"),
   );
   const baselineSelectionPath = path.join(target, "docs", "baseline-selection.md");
@@ -11251,7 +11309,7 @@ function checkGeneratedProjectE2E() {
     "--industrial-packs",
     "web-app-industrial",
   ]);
-  if (installSelectedPack.status !== 0 || !fs.existsSync(path.join(target, ".ai-native", "industrial-packs", "web-app", "pack.json"))) {
+  if (installSelectedPack.status !== 0 || !fs.existsSync(path.join(target, ".intentos", "industrial-packs", "web-app", "pack.json"))) {
     fail(`generated project selected industrial pack install failed: ${installSelectedPack.stderr || installSelectedPack.stdout}`);
     return;
   }
@@ -11262,7 +11320,7 @@ function checkGeneratedProjectE2E() {
   fs.writeFileSync(evidenceRecordPath, [
     "# Generated BL2 Evidence",
     "",
-    "This generated file is used by the dev-kit self-check to prove that structured baseline evidence refs are validated.",
+    "This generated file is used by the intentos self-check to prove that structured baseline evidence refs are validated.",
     "",
   ].join("\n"));
   const evidenceRows = [
@@ -11467,7 +11525,7 @@ function checkGeneratedProjectE2E() {
     "--auto-native",
   ]);
   if (governedReconcileAuto.status !== 0
-    || !governedReconcileAuto.stdout.includes("AI Native Adoption Recommendation")
+    || !governedReconcileAuto.stdout.includes("IntentOS Adoption Recommendation")
     || !governedReconcileAuto.stdout.includes("generated:native-migration")
     || !governedReconcileAuto.stdout.includes("SELECTED_NATIVE_ADOPTION")
     || fs.existsSync(path.join(governedExistingTarget, "native-migration-plans"))) {
@@ -11603,7 +11661,7 @@ function checkGeneratedProjectE2E() {
   pass("dirty workflow update project stops before workflow asset update");
 
   const partialExistingTarget = path.join(tempRoot, "partial-existing-project");
-  fs.mkdirSync(path.join(partialExistingTarget, ".ai-native"), { recursive: true });
+  fs.mkdirSync(path.join(partialExistingTarget, ".intentos"), { recursive: true });
   fs.writeFileSync(path.join(partialExistingTarget, "package.json"), JSON.stringify({ name: "partial-existing-project", private: true }, null, 2));
   const partialExistingNext = runNode([
     path.join(kitRoot, "scripts", "workflow-next.mjs"),
@@ -11749,7 +11807,7 @@ function checkGeneratedProjectE2E() {
     "governed-existing-project",
   ]);
   if (generatedAdoptionAssessment.status !== 0
-    || !fs.existsSync(path.join(target, ".ai-native", "adoption", "001-governed-existing-project.md"))) {
+    || !fs.existsSync(path.join(target, ".intentos", "adoption", "001-governed-existing-project.md"))) {
     fail(`generated project adoption assessment item failed: ${generatedAdoptionAssessment.stderr || generatedAdoptionAssessment.stdout}`);
     return;
   }
@@ -11765,7 +11823,7 @@ function checkGeneratedProjectE2E() {
     "governed-existing-project",
   ]);
   if (generatedGovernanceMap.status !== 0
-    || !fs.existsSync(path.join(target, ".ai-native", "adoption", "002-governed-existing-project.md"))) {
+    || !fs.existsSync(path.join(target, ".intentos", "adoption", "002-governed-existing-project.md"))) {
     fail(`generated project governance map item failed: ${generatedGovernanceMap.stderr || generatedGovernanceMap.stdout}`);
     return;
   }
@@ -12418,7 +12476,7 @@ function checkGeneratedProjectE2E() {
   ]);
   if (directNonEmptyInit.status !== 2
     || !`${directNonEmptyInit.stdout}\n${directNonEmptyInit.stderr}`.includes("Direct init refused")
-    || fs.existsSync(path.join(nonEmptyInitTarget, ".ai-native", "version.json"))) {
+    || fs.existsSync(path.join(nonEmptyInitTarget, ".intentos", "version.json"))) {
     fail(`direct init must reject non-empty targets: ${directNonEmptyInit.stderr || directNonEmptyInit.stdout}`);
     return;
   }
@@ -12430,7 +12488,7 @@ function checkGeneratedProjectE2E() {
     nonEmptyInitTarget,
     "--force-new-project",
   ]);
-  if (forceInit.status !== 0 || !fs.existsSync(path.join(nonEmptyInitTarget, ".ai-native", "version.json"))) {
+  if (forceInit.status !== 0 || !fs.existsSync(path.join(nonEmptyInitTarget, ".intentos", "version.json"))) {
     fail(`direct init force flag should initialize intentionally non-empty new target: ${forceInit.stderr || forceInit.stdout}`);
     return;
   }
@@ -12474,7 +12532,7 @@ function checkGeneratedProjectE2E() {
     "--apply-plan",
     planOnlyPath,
   ]);
-  if (applyInitPlan.status !== 0 || !fs.existsSync(path.join(planOnlyTarget, ".ai-native", "version.json"))) {
+  if (applyInitPlan.status !== 0 || !fs.existsSync(path.join(planOnlyTarget, ".intentos", "version.json"))) {
     fail(`init apply-plan failed: ${applyInitPlan.stderr || applyInitPlan.stdout}`);
     return;
   }
@@ -12520,7 +12578,7 @@ function checkGeneratedProjectE2E() {
   }
   fs.appendFileSync(path.join(backupTarget, "scripts", "check-ai-workflow.mjs"), "\n// local backup sentinel\n");
   const backupPlanPath = path.join(tempRoot, "backup-update-plan.json");
-  const backupDir = ".ai-native/backups/0.38-test";
+  const backupDir = ".intentos/backups/0.38-test";
   const backupPlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
@@ -12578,7 +12636,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy project write-plan failed: ${legacyWritePlan.stderr || legacyWritePlan.stdout}`);
     return;
   }
-  if (fs.existsSync(path.join(legacyTarget, ".ai-native", "version.json"))) {
+  if (fs.existsSync(path.join(legacyTarget, ".intentos", "version.json"))) {
     fail("legacy project write-plan wrote workflow version before apply-plan");
     return;
   }
@@ -12624,7 +12682,7 @@ function checkGeneratedProjectE2E() {
     fail("legacy project AGENTS.md was modified without explicit approval");
     return;
   }
-  const legacyAgentsReport = path.join(legacyTarget, ".ai-native", "migration-reports", "agents-governance.md");
+  const legacyAgentsReport = path.join(legacyTarget, ".intentos", "migration-reports", "agents-governance.md");
   if (!fs.existsSync(legacyAgentsReport)) {
     fail("legacy project update missing AGENTS.md governance migration report");
     return;
@@ -12756,7 +12814,7 @@ function checkGeneratedProjectE2E() {
     fail("legacy custom PR template was modified without explicit approval");
     return;
   }
-  const migrationReport = path.join(legacyCustomPrTarget, ".ai-native", "migration-reports", "pr-template-governance.md");
+  const migrationReport = path.join(legacyCustomPrTarget, ".intentos", "migration-reports", "pr-template-governance.md");
   if (!fs.existsSync(migrationReport)) {
     fail("legacy custom PR template update missing migration report");
     return;
@@ -12794,7 +12852,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy manual PR template apply-plan workflow update failed: ${legacyManualPrUpdate.stderr || legacyManualPrUpdate.stdout}`);
     return;
   }
-  const manualMigrationReport = path.join(legacyManualPrTarget, ".ai-native", "migration-reports", "pr-template-governance.md");
+  const manualMigrationReport = path.join(legacyManualPrTarget, ".intentos", "migration-reports", "pr-template-governance.md");
   const manualMigrationReportContent = fs.readFileSync(manualMigrationReport, "utf8");
   const proposedAppendixMatch = manualMigrationReportContent.match(/```md\n([\s\S]*?)\n```/);
   if (!proposedAppendixMatch) {
@@ -12848,9 +12906,10 @@ function checkGeneratedProjectE2E() {
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
-checkDevKitFirstPartyCi();
+checkIntentOSFirstPartyCi();
 checkOneDotZeroReleaseEvidence();
 checkManifestProtocol();
+checkIntentOSNamingHardcut();
 checkCliFrontDoor();
 checkCorePurity();
 checkGuidedAdoptionEntry();
@@ -12926,4 +12985,4 @@ if (failed) {
 }
 
 console.log("");
-console.log("AI Native Dev Kit self-check passed.");
+console.log("IntentOS self-check passed.");

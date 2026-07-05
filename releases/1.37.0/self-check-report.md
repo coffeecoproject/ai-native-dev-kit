@@ -5,7 +5,7 @@
 ```bash
 node scripts/check-conversation-native-ask.mjs .
 node scripts/check-conversation-native-ask.mjs examples/1.37-conversation-native-ask
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify:release
 git diff --check
 ```
@@ -14,7 +14,7 @@ git diff --check
 
 All listed checks passed in the final 1.37.0 verification run.
 
-`npm run verify:release` passed and covered manifest consistency, full dev-kit self-check, generated-project workflow checks, and `git diff --check`.
+`npm run verify:release` passed and covered manifest consistency, full intentos self-check, generated-project workflow checks, and `git diff --check`.
 
 ## Notes
 

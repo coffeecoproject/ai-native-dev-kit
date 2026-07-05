@@ -1,9 +1,9 @@
 ---
-name: ai-native-spec-first-development
+name: intentos-spec-first-development
 description: Use when turning vague product requests into spec-first, eval-first, task-scoped software changes before Codex implementation.
 ---
 
-# AI Native Spec-first Development
+# IntentOS Spec-first Development
 
 ## Purpose
 

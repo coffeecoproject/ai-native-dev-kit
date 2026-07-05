@@ -89,7 +89,7 @@ If nothing is approved:
 
 | ID | Action type | Target paths | Reason | Status | Will write now | Approval required | Rollback required |
 |---|---|---|---|---|---|---|---|
-| A-001 | WORKFLOW_ASSET_UPDATE | `.ai-native`, `scripts/*` |  | PLAN_ONLY | No | Yes | Yes |
+| A-001 | WORKFLOW_ASSET_UPDATE | `.intentos`, `scripts/*` |  | PLAN_ONLY | No | Yes | Yes |
 
 ## Human-Only / Blocked Actions
 

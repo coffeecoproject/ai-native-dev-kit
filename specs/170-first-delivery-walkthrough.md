@@ -11,7 +11,7 @@ Done
 
 ## Problem
 
-The dev kit has strong governance layers, but needs a complete first-delivery walkthrough showing how a basic user can start from one idea and reach a bounded demo recommendation.
+The IntentOS has strong governance layers, but needs a complete first-delivery walkthrough showing how a basic user can start from one idea and reach a bounded demo recommendation.
 
 ## User Story
 
@@ -104,7 +104,7 @@ Errors:
 
 - Unit: `node --check scripts/check-first-delivery-walkthrough.mjs`
 - Integration: example and bad fixture checks
-- E2E: `node scripts/check-dev-kit.mjs`
+- E2E: `node scripts/check-intentos.mjs`
 - Manual: review release wording and README boundary
 
 ## Rollback Notes

@@ -1,6 +1,6 @@
 # Notice
 
-AI Native Dev Kit is provided under the license stated in [LICENSE.md](LICENSE.md).
+IntentOS is provided under the license stated in [LICENSE.md](LICENSE.md).
 
 Copyright and attribution notices must be preserved when the material is copied, adapted, or shared
 for permitted personal, educational, or non-commercial purposes.

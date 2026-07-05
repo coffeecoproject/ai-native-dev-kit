@@ -31,7 +31,7 @@ Reviewer: local read-only review pass
 | ID | Severity | Category | Finding | Evidence | Proposed action | Owner | Status |
 |---|---|---|---|---|---|---|
 | F1 | P2 | AUTO_FIX | Initial implementation added plan helpers before the CLI entrypoint used them | `scripts/init-project.mjs` bottom execution block | Wire dry-run, write-plan, apply-plan, backup-dir, and direct-update gate into the actual entrypoint | Codex | DONE |
-| F2 | P2 | AUTO_FIX | Existing self-check still expected direct legacy updates | `scripts/check-dev-kit.mjs` legacy project scenario | Update self-check to assert direct update blocking and plan-first apply | Codex | DONE |
+| F2 | P2 | AUTO_FIX | Existing self-check still expected direct legacy updates | `scripts/check-intentos.mjs` legacy project scenario | Update self-check to assert direct update blocking and plan-first apply | Codex | DONE |
 
 ## Human Decision Queue
 
@@ -63,12 +63,12 @@ node scripts/check-review-loop.mjs . --task tasks/038-init-update-safety.md
 node scripts/check-next-step-boundary.mjs . --task tasks/038-init-update-safety.md
 node scripts/score-output-quality.mjs . --min-score 80
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS.
 
-Evidence: `scripts/check-dev-kit.mjs` now includes direct safety coverage for `0.38.0`.
+Evidence: `scripts/check-intentos.mjs` now includes direct safety coverage for `0.38.0`.
 
 ## Re-review Result
 

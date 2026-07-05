@@ -17,11 +17,11 @@ const unknown = unknownOptions(args, new Set(["json", "require-structured-eviden
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/controlled-apply-readiness.schema.json");
 
 if (unknown.length > 0) {
@@ -371,11 +371,11 @@ function checkSourceEvidence() {
 function resolveAsset(relativePath) {
   const source = path.join(projectRoot, relativePath);
   if (fs.existsSync(source) && fs.statSync(source).isFile()) return source;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed) && fs.statSync(managed).isFile()) return managed;
   const generated = relativePath.startsWith("scripts/")
     ? path.join(projectRoot, relativePath)
-    : path.join(projectRoot, ".ai-native", relativePath);
+    : path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(generated) && fs.statSync(generated).isFile()) return generated;
   return null;
 }
@@ -383,7 +383,7 @@ function resolveAsset(relativePath) {
 function resolveDirectory(relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct) && fs.statSync(direct).isDirectory()) return direct;
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed) && fs.statSync(managed).isDirectory()) return managed;
   return null;
 }

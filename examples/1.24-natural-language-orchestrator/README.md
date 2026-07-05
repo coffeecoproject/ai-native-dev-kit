@@ -1,6 +1,6 @@
 # 1.24 Natural Language Orchestrator Example
 
-This example shows the default user-facing entry for AI Native Dev Kit.
+This example shows the default user-facing entry for IntentOS.
 
 The user does not need to choose `workflow-map`, `doc-lifecycle`, `work-queue`, or `hook-plan`.
 Codex reads the project in read-only mode, chooses the safe internal route, and returns one Workflow Guidance Card.

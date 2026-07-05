@@ -130,7 +130,7 @@ function classifyProject(workflow) {
     return {
       projectType: "DEV_KIT_REPOSITORY",
       riskLevel: "low",
-      adoptionMode: "dev-kit-maintenance",
+      adoptionMode: "intentos-maintenance",
       canAiWriteNow: "No",
       confidence: "high",
     };
@@ -312,7 +312,7 @@ function pathForClassification(classification, workflow) {
         riskLevel: classification.riskLevel,
       },
       why: [
-        "The project already has AI Native workflow assets.",
+        "The project already has IntentOS workflow assets.",
         "The next safe step should follow workflow-next and the current task goal, not reinstall the kit.",
       ],
       decisionsNeededFromHuman: [
@@ -339,25 +339,25 @@ function pathForClassification(classification, workflow) {
         industrialPacks: "Not applicable",
         goalMode: "DEV_KIT_MAINTENANCE",
         planFirstRequired: false,
-        adoptionMode: "dev-kit-maintenance",
+        adoptionMode: "intentos-maintenance",
         riskLevel: classification.riskLevel,
       },
       why: [
-        "The current directory is the AI Native Dev Kit source repository.",
+        "The current directory is the IntentOS source repository.",
         "Project adoption commands should target another project directory.",
       ],
       decisionsNeededFromHuman: [
-        "Confirm whether the request is to change the dev-kit itself or adopt a separate project.",
+        "Confirm whether the request is to change the intentos itself or adopt a separate project.",
       ],
       safeNextActions: [
-        action("Run dev-kit self-check", "node scripts/cli.mjs self-check", "No", "No"),
+        action("Run intentos self-check", "node scripts/cli.mjs self-check", "No", "No"),
       ],
       actionsAiMustNotTakeYet: [
         "Do not treat this repository as a generated target project.",
         ...commonMustNot,
       ],
       generatedPlanReportRefs: baseRefs,
-      finalRecommendation: "Continue only if the requested work is dev-kit maintenance; otherwise ask for a target project path.",
+      finalRecommendation: "Continue only if the requested work is intentos maintenance; otherwise ask for a target project path.",
     };
   }
 
@@ -433,10 +433,10 @@ function governedPath(classification, workflow, reason) {
     ],
     generatedPlanReportRefs: [
       "adoption-recommendations/<date>-guided-start.md",
-      ".ai-native/templates/adoption-assessment.md",
-      ".ai-native/templates/existing-governance-map.md",
-      ".ai-native/templates/real-adoption-trial-report.md",
-      ".ai-native/templates/patch-classification-report.md",
+      ".intentos/templates/adoption-assessment.md",
+      ".intentos/templates/existing-governance-map.md",
+      ".intentos/templates/real-adoption-trial-report.md",
+      ".intentos/templates/patch-classification-report.md",
       "docs/first-hour.md",
     ],
     finalRecommendation: "Use IntentOS Operating Mode now for planning, routing, review, and comparison. Do not change project assets until Native Migration, Existing Rule Reconciliation, apply plan, and approval are complete.",

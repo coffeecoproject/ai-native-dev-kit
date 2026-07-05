@@ -5,7 +5,7 @@ Industrial Baseline Packs define evidence-backed engineering standards for proje
 BL2 and industrial pack selection do not mean a pack is production-ready. Pack maturity is tracked
 separately from pack availability.
 
-They do not replace the AI Native core workflow. They sit above platform profiles:
+They do not replace the IntentOS core workflow. They sit above platform profiles:
 
 ```text
 Core Workflow
@@ -21,9 +21,9 @@ Use baseline levels to describe project governance strength.
 
 | Level | Name | Meaning |
 |---|---|---|
-| BL0 | lightweight | AI Native workflow only. Suitable for experiments, demos, and low-risk tools. |
-| BL1 | standard | AI Native workflow plus platform profiles and baseline checks. Suitable for normal projects. |
-| BL2 | industrial | AI Native workflow plus platform profiles and selected industrial packs. Suitable for real users, production risk, customer delivery, long-lived systems, or regulated/high-risk work. |
+| BL0 | lightweight | IntentOS workflow only. Suitable for experiments, demos, and low-risk tools. |
+| BL1 | standard | IntentOS workflow plus platform profiles and baseline checks. Suitable for normal projects. |
+| BL2 | industrial | IntentOS workflow plus platform profiles and selected industrial packs. Suitable for real users, production risk, customer delivery, long-lived systems, or regulated/high-risk work. |
 
 Do not use BL0/BL1/BL2 for task risk. Task risk remains `L0` / `L1` / `L2` / `L3`.
 

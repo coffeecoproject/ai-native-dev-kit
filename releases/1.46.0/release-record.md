@@ -57,11 +57,11 @@ plain goal
 
 ## Evidence Status
 
-- Source assets are present in the repository and listed in `dev-kit-manifest.json`.
+- Source assets are present in the repository and listed in `intentos-manifest.json`.
 - Booking and dashboard MVP examples include local smoke evidence.
 - Low-risk apply candidate example passes strict structured evidence validation.
 - Product Completeness resolver can cite explicit local evidence through `--evidence`.
-- This evidence is Dev Kit governance and local-demo evidence only; it is not production validation for a target project.
+- This evidence is IntentOS governance and local-demo evidence only; it is not production validation for a target project.
 
 ## Known Limitations
 
@@ -73,7 +73,7 @@ plain goal
 
 ## Verification
 
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `npm run verify`
 - `node scripts/check-manifest.mjs`
 - `node scripts/check-fixtures.mjs`

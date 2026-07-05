@@ -14,7 +14,7 @@ Eval: `evals/034-baseline-freeze-self-ci.md`
 
 ## Goal
 
-Execute Productization Hardcut Phase 0.34.0 by freezing the current `0.33.0` baseline and adding first-party dev-kit CI and repository governance files.
+Execute Productization Hardcut Phase 0.34.0 by freezing the current `0.33.0` baseline and adding first-party intentos CI and repository governance files.
 
 ## Scope
 
@@ -25,7 +25,7 @@ Allowed:
 - Add baseline and phase evidence under `releases/`.
 - Add task-scoped workflow artifacts for this phase.
 - Update version metadata to `0.34.0`.
-- Extend dev-kit self-check coverage for the new productization CI assets.
+- Extend intentos self-check coverage for the new productization CI assets.
 
 Not allowed:
 
@@ -52,7 +52,7 @@ Not allowed:
 git diff --check
 find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-goal-mode.mjs . --goal-card goal-cards/034-baseline-freeze-self-ci.md
 node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/034-baseline-freeze-self-ci.md
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/034-baseline-freeze-self-ci.md
@@ -96,7 +96,7 @@ Approved at:
 
 - Stop if any new CI command requires secrets.
 - Stop if generated-project smoke fails.
-- Stop if `check-dev-kit` fails after adding CI files.
+- Stop if `check-intentos` fails after adding CI files.
 - Stop if work drifts into 0.35 or later phases.
 
 ## Final Report Required

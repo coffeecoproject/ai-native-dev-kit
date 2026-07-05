@@ -16,11 +16,11 @@ Before implementation, Codex must re-read:
 
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `scripts/cli.mjs`
 - `scripts/resolve-existing-rule-reconciliation.mjs`
 - `scripts/check-existing-rule-reconciliation.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `schemas/artifacts/existing-rule-reconciliation.schema.json`
 - `core/existing-rule-reconciliation.md`
 - `docs/existing-rule-reconciliation.md`
@@ -84,7 +84,7 @@ doctor --dry-run <existing-project>
 1.69.1 does not include:
 
 - automatic target-project writes;
-- automatic `.ai-native` installation;
+- automatic `.intentos` installation;
 - automatic AGENTS, CI, hook, baseline, release SOP, or PR template replacement;
 - automatic approval, commit, push, release, production, provider, secret, migration, payment, permission, data, legal, tax, finance, HR, security, privacy, or compliance changes;
 - full migration execution for any private project.
@@ -141,7 +141,7 @@ The decision must remain recommendation-only. It must not authorize writes, rele
 
 `doctor --dry-run` must be project-aware:
 
-- source dev-kit projects may still show source self-check behavior;
+- source intentos projects may still show source self-check behavior;
 - old governed or production-sensitive projects should show the adoption diagnosis branch;
 - generic missing-asset checks should not be the default dry-run explanation for that branch.
 
@@ -152,17 +152,17 @@ Run at least:
 - `node --check scripts/cli.mjs`
 - `node --check scripts/resolve-existing-rule-reconciliation.mjs`
 - `node --check scripts/check-existing-rule-reconciliation.mjs`
-- `node --check scripts/check-dev-kit.mjs`
+- `node --check scripts/check-intentos.mjs`
 - `node scripts/cli.mjs --version`
 - `node scripts/check-manifest.mjs`
 - `node scripts/check-existing-rule-reconciliation.mjs examples/1.66-existing-rule-reconciliation/governed-web-admin --require-structured-evidence`
 - `node scripts/cli.mjs reconcile-rules . --auto-native`
 - `node scripts/check-existing-rule-reconciliation.mjs .`
 - `npm --silent run verify:governance`
-- `node scripts/check-dev-kit.mjs`
+- `node scripts/check-intentos.mjs`
 - `git diff --check`
 
-If a full command is blocked by local environment limits, record the exact failure and run the nearest safe subset. Do not mark 1.69.1 complete if core rule coverage, strict example evidence, manifest, or dev-kit self-check fails.
+If a full command is blocked by local environment limits, record the exact failure and run the nearest safe subset. Do not mark 1.69.1 complete if core rule coverage, strict example evidence, manifest, or intentos self-check fails.
 
 ## Review Checklist
 

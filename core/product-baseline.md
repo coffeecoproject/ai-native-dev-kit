@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-Product Baseline constrains how AI Native Dev Kit itself may evolve. It keeps upgrades aligned with guided delivery instead of letting the system grow heavier, louder, or less controlled.
+Product Baseline constrains how IntentOS itself may evolve. It keeps upgrades aligned with guided delivery instead of letting the system grow heavier, louder, or less controlled.
 
 ## Product Principles
 
@@ -22,7 +22,7 @@ Product Baseline constrains how AI Native Dev Kit itself may evolve. It keeps up
 
 ## Upgrade Rules
 
-Every meaningful Dev Kit upgrade must declare:
+Every meaningful IntentOS upgrade must declare:
 
 - what outcome it improves
 - what user burden it reduces

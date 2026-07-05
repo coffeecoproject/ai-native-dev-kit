@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Support native iOS application development while preserving the core AI Native workflow.
+Support native iOS application development while preserving the core IntentOS workflow.
 
 ## Applies To
 

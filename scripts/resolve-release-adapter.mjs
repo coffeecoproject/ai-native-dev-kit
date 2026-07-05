@@ -259,7 +259,7 @@ function nextStepFor(adapterState, recommendation, missingInputs) {
 
 function detectPlatform(files, packageInfo) {
   const deps = packageInfo.dependencyNames.join("\n");
-  if (files.includes("dev-kit-manifest.json") && files.includes("core/workflow.md")) return "workflow-toolkit";
+  if (files.includes("intentos-manifest.json") && files.includes("core/workflow.md")) return "workflow-toolkit";
   if (files.some((file) => /\.xcodeproj\b|Package\.swift|\.xcworkspace\b/.test(file))) return "ios-app";
   if (files.some((file) => /(^|\/)(build\.gradle|settings\.gradle|AndroidManifest\.xml)$/.test(file))) return "android-app";
   if (files.some((file) => /(^|\/)(project\.config\.json|app\.json|app\.js|app\.ts)$/.test(file)) && /miniprogram|wechat|wx/i.test(files.join("\n"))) return "wechat-miniprogram";
@@ -308,7 +308,7 @@ function platformEvidence(platform, files) {
     "ios-app": ["Package.swift"],
     "android-app": ["build.gradle", "settings.gradle"],
     "wechat-miniprogram": ["project.config.json", "miniprogram/project.config.json"],
-    "workflow-toolkit": ["dev-kit-manifest.json", "core/workflow.md"],
+    "workflow-toolkit": ["intentos-manifest.json", "core/workflow.md"],
   };
   return findFirst(files, markers[platform] || ["package.json"]) || "N/A";
 }

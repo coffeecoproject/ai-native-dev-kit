@@ -99,7 +99,7 @@ function selectedProfilesFromProjectProfile(projectRoot) {
 
 function kitProfilesRoot(projectRoot) {
   const candidates = [
-    path.join(projectRoot, ".ai-native", "profiles"),
+    path.join(projectRoot, ".intentos", "profiles"),
     path.join(projectRoot, "profiles"),
     path.resolve(__dirname, "..", "profiles"),
   ];
@@ -108,7 +108,7 @@ function kitProfilesRoot(projectRoot) {
 
 function loadBaseline(projectRoot, profileId) {
   const roots = [
-    path.join(projectRoot, ".ai-native", "profiles"),
+    path.join(projectRoot, ".intentos", "profiles"),
     path.join(projectRoot, "profiles"),
     path.resolve(__dirname, "..", "profiles"),
   ];
@@ -122,7 +122,7 @@ function loadBaseline(projectRoot, profileId) {
 }
 
 function readProjectVersion(projectRoot) {
-  const full = path.join(projectRoot, ".ai-native", "version.json");
+  const full = path.join(projectRoot, ".intentos", "version.json");
   if (!fs.existsSync(full)) return {};
   const json = readJson(full);
   return json.error ? {} : json;

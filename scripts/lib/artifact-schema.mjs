@@ -10,7 +10,7 @@ const kitRoot = path.resolve(__dirname, "..", "..");
 export function loadSchema(projectRoot, relativePath) {
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct)) return JSON.parse(fs.readFileSync(direct, "utf8"));
-  const managed = path.join(projectRoot, ".ai-native", relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed)) return JSON.parse(fs.readFileSync(managed, "utf8"));
   const source = path.join(kitRoot, relativePath);
   if (fs.existsSync(source)) return JSON.parse(fs.readFileSync(source, "utf8"));

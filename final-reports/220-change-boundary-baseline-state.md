@@ -26,7 +26,7 @@ Actual changed files:
 
 Boundary result:
 
-- PASS. Changes stayed inside dev-kit workflow/source hardening scope.
+- PASS. Changes stayed inside intentos workflow/source hardening scope.
 
 ## Baseline State
 
@@ -45,7 +45,7 @@ node scripts/check-guided-delivery-loop.mjs examples/1.12-change-boundary-baseli
 node scripts/check-change-boundary.mjs examples/1.12-change-boundary-baseline-state --report change-boundary-reports/001-appointment-first-slice.md
 node scripts/check-baseline-state.mjs examples/1.12-change-boundary-baseline-state --report baseline-state-reports/001-no-code-baseline.md
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

@@ -43,7 +43,7 @@ Allowed paths:
 - `README.zh-CN.md`
 - `VERSION.md`
 - `package.json`
-- `dev-kit-manifest.json`
+- `intentos-manifest.json`
 - `templates/workflow-version.json`
 - `templates/version-record.md`
 
@@ -73,4 +73,4 @@ Forbidden paths:
 
 Status: Approved
 
-Approval scope: dev-kit workflow/source hardening only.
+Approval scope: intentos workflow/source hardening only.

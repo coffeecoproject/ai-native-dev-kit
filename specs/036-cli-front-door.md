@@ -16,11 +16,11 @@ Decision brief: `decision-briefs/036-cli-front-door.md`
 
 ## Problem
 
-The dev kit needs a stable human-facing CLI before later phases make manifest assets authoritative, add safer init/update plans, and introduce migration behavior.
+The IntentOS needs a stable human-facing CLI before later phases make manifest assets authoritative, add safer init/update plans, and introduce migration behavior.
 
 ## User Story
 
-As a maintainer or project adopter, I want one `ai-native` entry point so I can initialize, update, inspect, check, and self-check the workflow without memorizing every lower-level script.
+As a maintainer or project adopter, I want one `intentos` entry point so I can initialize, update, inspect, check, and self-check the workflow without memorizing every lower-level script.
 
 ## Scope
 
@@ -32,7 +32,7 @@ Included:
 - Add package scripts for `check`, `self-check`, `fixtures`, and `smoke:init`.
 - Update README guidance to prefer CLI for human usage.
 - Keep direct `scripts/*.mjs` references documented as lower-level commands.
-- Add CLI behavior checks to `scripts/check-dev-kit.mjs`.
+- Add CLI behavior checks to `scripts/check-intentos.mjs`.
 - Update version metadata to `0.36.0`.
 - Add `0.36.0` workflow artifacts and phase release evidence.
 
@@ -95,9 +95,9 @@ CLI help, dry-run output, self-check output, and `releases/0.36.0/phase-report.m
 - `node scripts/cli.mjs --version` matches `VERSION.md`.
 - `node scripts/cli.mjs next .` delegates to `workflow-next`.
 - `node scripts/cli.mjs fixtures` delegates to fixture checks.
-- `node scripts/cli.mjs self-check --dry-run` maps to `scripts/check-dev-kit.mjs`.
-- `node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-cli-test` initializes a project that passes core workflow check.
-- `scripts/check-dev-kit.mjs` covers CLI behavior.
+- `node scripts/cli.mjs self-check --dry-run` maps to `scripts/check-intentos.mjs`.
+- `node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-cli-test` initializes a project that passes core workflow check.
+- `scripts/check-intentos.mjs` covers CLI behavior.
 - README and Chinese README explain the CLI in plain language.
 
 ## Test Plan
@@ -108,8 +108,8 @@ CLI help, dry-run output, self-check output, and `releases/0.36.0/phase-report.m
 - Run task-scoped workflow artifact, goal mode, subagent orchestration, review loop, next-step boundary, and output quality checks.
 - Run `node scripts/check-manifest.mjs`.
 - Run `node scripts/check-fixtures.mjs`.
-- Run `node scripts/check-dev-kit.mjs`.
+- Run `node scripts/check-intentos.mjs`.
 
 ## Rollback Notes
 
-Remove `package.json`, `scripts/cli.mjs`, `0.36.0` phase artifacts, README CLI guidance, CLI checks in `scripts/check-dev-kit.mjs`, and revert version metadata from `0.36.0` to `0.35.0`.
+Remove `package.json`, `scripts/cli.mjs`, `0.36.0` phase artifacts, README CLI guidance, CLI checks in `scripts/check-intentos.mjs`, and revert version metadata from `0.36.0` to `0.35.0`.

@@ -18,7 +18,7 @@ Existing governance summary: Existing agent rules, baseline docs, guard scripts,
 
 ## Concept Map
 
-| AI Native Concept | Existing Project Asset | Current Coverage | Gap / Conflict | Decision |
+| IntentOS Concept | Existing Project Asset | Current Coverage | Gap / Conflict | Decision |
 |---|---|---|---|---|
 | Agent rules / `AGENTS.md` | existing local agent instruction file | Covered | do not create a competing entry | Keep / Map |
 | Engineering baseline | existing Web engineering baseline | Covered | path naming differs | Map |
@@ -29,7 +29,7 @@ Existing governance summary: Existing agent rules, baseline docs, guard scripts,
 
 ## Existing Authority
 
-| Area | Existing Authority | AI Native Adapter Rule |
+| Area | Existing Authority | IntentOS Adapter Rule |
 |---|---|---|
 | Agent rules | existing local agent instruction file | Do not overwrite |
 | CI / gates | existing guard scripts | Do not replace |
@@ -71,7 +71,7 @@ Allowed writes after approval:
 Forbidden writes without separate approval:
 
 - `AGENTS.md`
-- `.ai-native/`
+- `.intentos/`
 - CI workflows
 - release workflow
 - business code

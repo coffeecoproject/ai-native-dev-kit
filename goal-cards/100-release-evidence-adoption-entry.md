@@ -6,7 +6,7 @@ slug: release-evidence-adoption-entry
 title: "release evidence adoption entry"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.42.0
+intentos_version: 0.42.0
 goal_mode: HANDOFF_OR_REPORT
 task_level: L3
 ---
@@ -120,18 +120,18 @@ Related files:
 
 - `docs/plans/productization-hardcut-1.0-plan.md`
 - `releases/1.0.0/`
-- `scripts/check-dev-kit.mjs`
-- `dev-kit-manifest.json`
+- `scripts/check-intentos.mjs`
+- `intentos-manifest.json`
 
 Commands to run:
 
 ```text
 node scripts/check-manifest.mjs .
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
-node scripts/cli.mjs init --starter generic-project --target /tmp/ai-native-1-test
-node scripts/cli.mjs update --target /tmp/ai-native-1-test --dry-run
-node scripts/cli.mjs migrate --target /tmp/ai-native-1-test --from 0.33.0 --to 1.0.0 --dry-run
+node scripts/check-intentos.mjs
+node scripts/cli.mjs init --starter generic-project --target /tmp/intentos-1-test
+node scripts/cli.mjs update --target /tmp/intentos-1-test --dry-run
+node scripts/cli.mjs migrate --target /tmp/intentos-1-test --from 0.33.0 --to 1.0.0 --dry-run
 ```
 
 ## Audit Notes

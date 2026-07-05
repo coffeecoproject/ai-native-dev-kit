@@ -13,9 +13,9 @@
 
 ## Allowed Claims
 
-- The dev kit can record reviewed false positives for conservative patch classification triggers.
-- The dev kit can reject false-positive records that accept real high-risk impact as safe.
-- The dev kit docs now state that `real-adoption` checks recorded reports and does not auto-generate target-project reports.
+- The IntentOS can record reviewed false positives for conservative patch classification triggers.
+- The IntentOS can reject false-positive records that accept real high-risk impact as safe.
+- The IntentOS docs now state that `real-adoption` checks recorded reports and does not auto-generate target-project reports.
 
 ## Forbidden Claims
 
@@ -31,7 +31,7 @@ Status: SOURCE_EVIDENCE
 Evidence basis:
 
 - local checker and fixture verification
-- dev-kit self-check report
+- intentos self-check report
 
 Not included:
 

@@ -10,7 +10,7 @@
 
 - `git diff --check` passed.
 - `node scripts/check-manifest.mjs` passed.
-- `node scripts/check-dev-kit.mjs` passed.
+- `node scripts/check-intentos.mjs` passed.
 - Baseline-specific positive and negative checks passed.
 
 ## Not Changed

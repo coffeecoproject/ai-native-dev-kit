@@ -58,7 +58,7 @@ function readJsonIfExists(filePath) {
 
 function registryRoot(root, registryName) {
   const candidates = [
-    path.join(root, ".ai-native", registryName),
+    path.join(root, ".intentos", registryName),
     path.join(root, registryName),
     path.resolve(process.cwd(), registryName),
   ];
@@ -72,7 +72,7 @@ function loadPackIds(root, registryName) {
 
 function profileRoots(root) {
   return [
-    path.join(root, ".ai-native", "profiles"),
+    path.join(root, ".intentos", "profiles"),
     path.join(root, "profiles"),
     path.join(process.cwd(), "profiles"),
   ];
@@ -310,8 +310,8 @@ function validateExistingProjectBoundary(content, rel) {
     /\boverwrite CI\b/i,
     /\boverwrite PR template\b/i,
     /\breplace existing governance\b/i,
-    /\bfull \.ai-native copy\b/i,
-    /\bcopy full \.ai-native\b/i,
+    /\bfull \.intentos copy\b/i,
+    /\bcopy full \.intentos\b/i,
     /全量覆盖/,
     /直接覆盖/,
   ];

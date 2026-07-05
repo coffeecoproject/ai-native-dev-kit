@@ -8,7 +8,7 @@ status: approved
 
 ## Human Summary
 
-Harden the dev kit after 1.10 so release pointers, init behavior, manifest coverage, and release section checks are harder to drift or misuse.
+Harden the IntentOS after 1.10 so release pointers, init behavior, manifest coverage, and release section checks are harder to drift or misuse.
 
 ## Goal
 
@@ -36,5 +36,5 @@ Implement 1.11.0 Governance Hardening & Drift Guard according to `docs/plans/gov
 
 Status: Approved
 
-Approval scope: dev-kit source hardening only.
+Approval scope: intentos source hardening only.
 

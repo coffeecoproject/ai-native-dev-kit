@@ -18,7 +18,7 @@ Task level: L2
 
 - `scripts/init-project.mjs` adds dry-run, write-plan, apply-plan, backup-dir, plan JSON, fingerprint validation, and direct-update gate.
 - `scripts/cli.mjs` separates global dry-run from command-level init/update dry-run.
-- `scripts/check-dev-kit.mjs` adds safety smoke tests for no-write preview, plan-only write, apply-plan, stale plan rejection, backup, and legacy plan-first adoption.
+- `scripts/check-intentos.mjs` adds safety smoke tests for no-write preview, plan-only write, apply-plan, stale plan rejection, backup, and legacy plan-first adoption.
 - Version, manifest, roadmap, and phase evidence move to `0.38.0`.
 
 ## Review Focus
@@ -34,7 +34,7 @@ Task level: L2
 
 - `scripts/init-project.mjs`
 - `scripts/cli.mjs`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `tasks/038-init-update-safety.md`
 - `evals/038-init-update-safety.md`
 - `final-reports/038-init-update-safety.md`

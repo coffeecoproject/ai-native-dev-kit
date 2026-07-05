@@ -21,7 +21,7 @@ Reason: The phase requires implementation, self-review, deterministic repair if 
 | A1 | Goal Planner | READ_ONLY | CLOSED | none | Goal route selected | Handoff recorded in `goal-cards/034-baseline-freeze-self-ci.md` |
 | A2 | Productization Architect | READ_ONLY_DRAFT | CLOSED | phase artifacts only | Scope mapped to phase `0.34.0` | Boundaries recorded in `specs/034-baseline-freeze-self-ci.md` |
 | A3 | CI Reviewer | READ_ONLY | CLOSED | none | CI commands reviewed for phase alignment | Findings recorded in `review-packets/034-baseline-freeze-self-ci.md` |
-| A4 | Main Builder | WRITER | CLOSED | `.github/`, `releases/`, version files, phase artifacts, `scripts/check-dev-kit.mjs` | Files updated and checks executed | Verification recorded in `final-reports/034-baseline-freeze-self-ci.md` |
+| A4 | Main Builder | WRITER | CLOSED | `.github/`, `releases/`, version files, phase artifacts, `scripts/check-intentos.mjs` | Files updated and checks executed | Verification recorded in `final-reports/034-baseline-freeze-self-ci.md` |
 | A5 | Reviewer | READ_ONLY | CLOSED | none | Review loop findings handed off | Findings recorded in `review-loop-reports/034-baseline-freeze-self-ci.md` |
 | A6 | Repair | WRITER_LIMITED | SKIPPED | phase artifacts and checker wording only | No bounded auto-fix finding required before final report | Skip evidence recorded in `review-loop-reports/034-baseline-freeze-self-ci.md` |
 | A7 | Reporter | READ_ONLY_DRAFT | CLOSED | `final-reports/` and `releases/0.34.0/` evidence files | Human-facing report written | Output recorded in `final-reports/034-baseline-freeze-self-ci.md` |
@@ -111,7 +111,7 @@ Run `node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-pla
 
 ## Technical Details
 
-This plan demonstrates many-reader, one-writer coordination for the dev-kit repository. It does not launch external GPT/API automation and does not create persistent agents.
+This plan demonstrates many-reader, one-writer coordination for the intentos repository. It does not launch external GPT/API automation and does not create persistent agents.
 
 ## Audit Notes
 

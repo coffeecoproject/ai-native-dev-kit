@@ -22,11 +22,11 @@ project safety, or checker behavior.
 
 ## Project State
 
-Project root: `/Users/liushan/Developer/CodingFlow/ai-native-dev-kit`
+Project root: `/Users/liushan/Developer/CodingFlow/intentos`
 
 Branch: main
 
-Project state tags: dev-kit source, productization phase, governed workflow assets
+Project state tags: intentos source, productization phase, governed workflow assets
 
 Adoption mode: not a target-project adoption
 
@@ -112,7 +112,7 @@ Approved at: not applicable
 
 ## Baseline State
 
-Onboarding state: dev-kit source task, not a product project
+Onboarding state: intentos source task, not a product project
 
 Engineering baseline checked: Yes
 
@@ -140,7 +140,7 @@ node --check scripts/check-industrial-pack.mjs
 node scripts/check-industrial-pack.mjs . --json
 node scripts/check-industrial-pack.mjs . --selected-only
 node scripts/check-manifest.mjs .
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Verification results:
@@ -148,7 +148,7 @@ Verification results:
 - `check-industrial-pack.mjs . --json`: PASS, 11 concrete packs checked.
 - `check-industrial-pack.mjs . --selected-only`: PASS, no selected packs and default remains light.
 - `check-manifest.mjs .`: PASS.
-- `check-dev-kit.mjs`: PASS.
+- `check-intentos.mjs`: PASS.
 
 Evidence refs:
 
@@ -173,7 +173,7 @@ Skipped evidence and reason:
 | `scripts/check-industrial-pack.mjs` | checker | enforce maturity metadata/docs and draft overclaim scan | medium |
 | `LICENSE-FAQ.md`, `LICENSE-COMMERCIAL.md`, `NOTICE.md` | new docs | explain license boundary without changing license | medium |
 | `README.md`, `README.zh-CN.md`, `VERSION.md`, roadmap, release report | docs | expose 0.41.0 behavior | low |
-| `dev-kit-manifest.json`, version templates | manifest/version | include new assets and version | medium |
+| `intentos-manifest.json`, version templates | manifest/version | include new assets and version | medium |
 | workflow artifacts for 041 | evidence | record request, spec, task, review, and final state | low |
 
 ## Diff Summary

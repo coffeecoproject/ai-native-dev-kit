@@ -32,7 +32,7 @@
 
 ## Allowed Claims
 
-- The dev kit now has a separate standard baseline pack registry.
+- The IntentOS now has a separate standard baseline pack registry.
 - Standard packs are draft ordinary engineering guardrails.
 - Industrial packs remain optional BL2 overlays.
 - Recommendations are read-only.
@@ -68,7 +68,7 @@ node scripts/check-standard-baseline-pack.mjs .
 node scripts/check-standard-baseline-selection.mjs .
 node scripts/cli.mjs baseline-packs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

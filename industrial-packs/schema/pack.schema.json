@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/ai-native-dev-kit/industrial-pack.schema.json",
-  "title": "AI Native Industrial Pack",
+  "$id": "https://example.invalid/intentos/industrial-pack.schema.json",
+  "title": "IntentOS Industrial Pack",
   "type": "object",
   "required": [
     "schemaVersion",
     "packVersion",
-    "minimumDevKitVersion",
+    "minimumIntentOSVersion",
     "lastReviewedAt",
     "stabilityNotes",
     "id",
@@ -35,7 +35,7 @@
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
-    "minimumDevKitVersion": {
+    "minimumIntentOSVersion": {
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },

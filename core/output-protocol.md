@@ -1,6 +1,6 @@
 # Output Experience Protocol
 
-Output Experience Protocol defines how AI Native Dev Kit results should be explained to humans before technical or machine-readable details.
+Output Experience Protocol defines how IntentOS results should be explained to humans before technical or machine-readable details.
 
 It does not change workflow gates, task levels, baseline rules, review rules, or approval authority. It changes output order and wording so humans can understand status, decisions, risk, and next steps without first decoding internal fields.
 

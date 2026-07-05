@@ -72,7 +72,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
 | `node scripts/cli.mjs real-adoption <project>` | Check recorded real-project read-only adoption trial evidence; does not auto-generate a report | No |
 | `node scripts/cli.mjs patch-classification <project>` | Check recorded repair-scale classification and false-positive calibration reports before non-trivial fixes | No |
-| `node scripts/cli.mjs workflow-map <project>` | Recommend how AI Native workflow should map to an existing project before writes | No |
+| `node scripts/cli.mjs workflow-map <project>` | Recommend how IntentOS workflow should map to an existing project before writes | No |
 | `node scripts/cli.mjs workflow-map-check <project>` | Check recorded Workflow Adoption Maps | No |
 | `node scripts/cli.mjs native-migration <project>` | Switch an existing project into IntentOS Native-First Migration Planning mode without writing target files | No |
 | `node scripts/cli.mjs native-migration-check <project>` | Check recorded Native Migration Plans for authority, approval, restore, no-write boundaries, and optional strict structured evidence | No |
@@ -108,7 +108,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs migrate --target <project> --from 0.33.0 --to 1.0.0 --dry-run` | Preview migration plan | No |
 | `node scripts/cli.mjs migrate --target <project> --from 0.33.0 --to 1.0.0 --write-plan <file>` | Write migration plan JSON only | Plan file only |
 | `node scripts/cli.mjs fixtures` | Run fixture suite | No |
-| `node scripts/cli.mjs self-check` | Run dev-kit self-check | No |
+| `node scripts/cli.mjs self-check` | Run intentos self-check | No |
 
 Global `--dry-run` prints the underlying command without running it.
 
@@ -258,7 +258,7 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/check-patch-classification.mjs` checks patch classification reports so non-trivial fixes are routed as safe local fixes, baseline-aligned hardcuts, structural remediation, human decisions, or do-not-patch stops before implementation. It also checks `patch-classification-false-positives/` when present. False-positive records are calibration evidence only; they do not approve implementation.
 
-`scripts/resolve-existing-workflow.mjs` prints a read-only Workflow Adoption Map recommendation for existing projects. It inventories agent rules, docs, work intake, review/evidence, CI/gates, release/rollback, hooks/automation, and existing AI Native assets, then recommends which AI Native workflow pieces to use before any target-project writes.
+`scripts/resolve-existing-workflow.mjs` prints a read-only Workflow Adoption Map recommendation for existing projects. It inventories agent rules, docs, work intake, review/evidence, CI/gates, release/rollback, hooks/automation, and existing IntentOS assets, then recommends which IntentOS workflow pieces to use before any target-project writes.
 
 `scripts/resolve-native-migration.mjs` is the old-project native migration entry. It switches Codex into IntentOS Native-First Migration Planning mode, extracts existing rules with source line ranges, records coverage and parser warnings, preserves business and production constraints, and proposes a Native Migration Plan. It does not write target-project files, approve implementation, approve release, overwrite `AGENTS.md`, edit CI/hooks, change production config, or replace business authority.
 
@@ -410,7 +410,7 @@ node scripts/check-industrial-pack.mjs .
 
 These are primarily for maintaining this repository:
 
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 - `scripts/check-fixtures.mjs`
 - `scripts/check-manifest.mjs`
 - `scripts/check-product-baseline.mjs`
@@ -435,4 +435,4 @@ These are primarily for maintaining this repository:
 - `scripts/check-glossary-usage.mjs`
 - `scripts/score-output-quality.mjs`
 
-Target projects normally do not need to run dev-kit-only checks.
+Target projects normally do not need to run intentos-only checks.

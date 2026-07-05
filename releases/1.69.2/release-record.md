@@ -26,7 +26,7 @@ semantics, release authority, CI, hooks, or target-project behavior.
     `existing_rule_source[].rule_ref`;
   - `reconciliation_items[].intentos_reference_ref` resolving to
     `intentos_reference_source[].reference_ref`;
-  - required human-readable `AI Native Adoption Recommendation` content.
+  - required human-readable `IntentOS Adoption Recommendation` content.
 - Updated schema, core docs, user docs, checklist, and agent prompt.
 - Calibrated CLI help so `--dry-run` explains read-only doctor routing preview.
 
@@ -47,7 +47,7 @@ semantics, release authority, CI, hooks, or target-project behavior.
   `evidence_profile: existing-rule-reconciliation-1.69.2`.
 - Strict checks verify that every reconciliation item resolves its existing
   rule reference and IntentOS reference to recorded source records.
-- The human-facing AI Native Adoption Recommendation section is required.
+- The human-facing IntentOS Adoption Recommendation section is required.
 - `doctor --dry-run` help now explains that old-project diagnosis may run
   read-only workflow routing preview.
 - The release remains recommendation-only and does not authorize target-project
@@ -56,7 +56,7 @@ semantics, release authority, CI, hooks, or target-project behavior.
 ## Forbidden Claims
 
 - Do not claim 1.69.2 automatically migrates old projects.
-- Do not claim 1.69.2 installs `.ai-native` into existing projects.
+- Do not claim 1.69.2 installs `.intentos` into existing projects.
 - Do not claim source reference coverage proves business correctness.
 - Do not claim a recommendation is approval to write, commit, push, release, or
   deploy.

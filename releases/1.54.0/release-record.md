@@ -69,7 +69,7 @@ node --check scripts/check-closure-decision.mjs
 node scripts/cli.mjs finish . --intent "维护 IntentOS 收口解释链" --verification "npm run verify passed"
 node scripts/check-closure-decision.mjs .
 node scripts/check-closure-decision.mjs examples/1.54-decision-explain-trace
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```

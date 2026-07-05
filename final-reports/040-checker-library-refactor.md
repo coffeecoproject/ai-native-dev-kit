@@ -6,7 +6,7 @@ This report does not approve release, risk, scope expansion, or future work. Nex
 
 ## Human Summary
 
-0.40.1 is complete locally: checker scripts now share common helper libraries, generated projects receive those helpers, and the full dev-kit self-check passes.
+0.40.1 is complete locally: checker scripts now share common helper libraries, generated projects receive those helpers, and the full intentos self-check passes.
 
 ## Completed
 
@@ -26,7 +26,7 @@ This report does not approve release, risk, scope expansion, or future work. Nex
 | Goal Mode | `node scripts/check-goal-mode.mjs . --goal-card goal-cards/040-checker-library-refactor.md` | PASS |
 | Subagent Orchestration | `node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/040-checker-library-refactor.md` | PASS |
 | Workflow artifacts | `node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-checker-library-refactor.md` | PASS |
-| Dev-kit self-check | `node scripts/check-dev-kit.mjs` | PASS |
+| Dev-kit self-check | `node scripts/check-intentos.mjs` | PASS |
 
 ## Not Changed
 
@@ -81,7 +81,7 @@ node scripts/check-manifest.mjs
 node scripts/check-goal-mode.mjs . --goal-card goal-cards/040-checker-library-refactor.md
 node scripts/check-subagent-orchestration.mjs . --run-plan subagent-run-plans/040-checker-library-refactor.md
 node scripts/check-workflow-artifacts.mjs . --mode ready --task tasks/040-checker-library-refactor.md
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Changed files:

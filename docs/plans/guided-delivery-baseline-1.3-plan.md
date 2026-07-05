@@ -2,11 +2,11 @@
 
 ## Human Summary
 
-This phase turns the existing AI Native workflow kit into a bounded guided delivery system. It fixes the product direction, claim boundary, and assumption handling before adding any larger launch-readiness layer.
+This phase turns the existing IntentOS workflow kit into a bounded guided delivery system. It fixes the product direction, claim boundary, and assumption handling before adding any larger launch-readiness layer.
 
 ## Outcome
 
-AI Native Dev Kit should help users move from an idea to software that is understandable, reviewable, maintainable, and ready for risk-matched delivery.
+IntentOS should help users move from an idea to software that is understandable, reviewable, maintainable, and ready for risk-matched delivery.
 
 Codex may read, judge, draft, decompose, execute approved tasks, verify, repair deterministic issues, record evidence, and report.
 
@@ -50,7 +50,7 @@ Idea
   -> Project Classification
   -> Engineering / Environment Baseline Setup
   -> Goal Mode
-  -> AI Native Workflow
+  -> IntentOS Workflow
   -> Subagent Orchestration if useful
   -> Task Execution
   -> Review Loop
@@ -64,14 +64,14 @@ Idea
 Main goal:
 
 ```text
-Establish Guided Delivery Baseline for AI Native Dev Kit.
+Establish Guided Delivery Baseline for IntentOS.
 ```
 
 Modes:
 
 - `DEFINE_WORK`: document the bounded 1.3 plan.
 - `IMPLEMENT_TASK`: add core files, templates, scripts, examples, and metadata.
-- `REVIEW_TASK`: run product baseline, claim control, manifest, fixture, and dev-kit checks.
+- `REVIEW_TASK`: run product baseline, claim control, manifest, fixture, and intentos checks.
 - `REPAIR_TASK`: repair deterministic checker failures only.
 - `HANDOFF_OR_REPORT`: record evidence and summarize remaining boundaries.
 
@@ -144,14 +144,14 @@ Both checkers are deterministic and conservative. They do not call external mode
 
 ## Acceptance Criteria
 
-- Dev Kit outcome is written as a durable baseline.
-- Dev Kit upgrade behavior is constrained by product baseline.
+- IntentOS outcome is written as a durable baseline.
+- IntentOS upgrade behavior is constrained by product baseline.
 - Release records declare allowed claims, forbidden claims, known limitations, and evidence status.
 - Final reports state that they do not approve risk, scope, release, or future work.
 - Assumptions are recorded with evidence, confidence, and human-confirmation status.
 - Bad fixtures fail for overclaiming, unmarked assumptions, and report-as-approval language.
 - Generated projects receive the new core assets, templates, prompts, checklists, and check scripts.
-- `check-dev-kit`, `check-manifest`, product baseline check, claim control check, and fixture checks pass.
+- `check-intentos`, `check-manifest`, product baseline check, claim control check, and fixture checks pass.
 
 ## Non-goals
 

@@ -15,7 +15,7 @@ node scripts/check-debt-handoff.mjs test-fixtures/bad/bad-debt-handoff-missing-h
 node scripts/check-manifest.mjs
 npm run verify:syntax
 npm run verify:governance
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
@@ -25,5 +25,5 @@ git diff --check
 PASS. Local release verification completed for Debt & Knowledge Handoff.
 
 Full verification included source protocol checks, example checks, bad-fixture
-rejections, manifest checks, generated-project coverage through `check-dev-kit`,
+rejections, manifest checks, generated-project coverage through `check-intentos`,
 and the full `npm run verify` suite.

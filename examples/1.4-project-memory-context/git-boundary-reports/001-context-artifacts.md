@@ -2,7 +2,7 @@
 
 ## Human Summary
 
-This report keeps the example learning and correction records in Git because they are part of public Dev Kit example evidence.
+This report keeps the example learning and correction records in Git because they are part of public IntentOS example evidence.
 
 ## Change Scope
 

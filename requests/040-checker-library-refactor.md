@@ -6,7 +6,7 @@ slug: checker-library-refactor
 title: Checker Library Refactor
 status: ready
 created_at: "2026-06-27"
-devkit_version: 0.40.1
+intentos_version: 0.40.1
 priority: P1
 task_level: L2
 ---
@@ -18,7 +18,7 @@ Start Productization Hardcut phase `0.40.1` after `0.40.0` fixture matrix expans
 
 ## User / Customer
 
-Repository maintainer and future Codex users who need the dev-kit scripts to stay maintainable as the checker count grows.
+Repository maintainer and future Codex users who need the intentos scripts to stay maintainable as the checker count grows.
 
 ## Problem
 
@@ -34,7 +34,7 @@ Add shared checker libraries and migrate covered scripts so duplicated plumbing 
 
 ## Constraints
 
-- Keep all changes inside dev-kit source, docs, scripts, manifests, and phase evidence.
+- Keep all changes inside intentos source, docs, scripts, manifests, and phase evidence.
 - Do not add runtime dependencies.
 - Do not change checker pass/fail semantics unless explicitly documented and covered by fixture expectation changes.
 - Do not implement migration command behavior.

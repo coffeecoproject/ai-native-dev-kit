@@ -22,7 +22,7 @@ Task Level: L2
 
 Review required: Yes
 
-Reason: Dev Kit governance and generated-project behavior changed.
+Reason: IntentOS governance and generated-project behavior changed.
 
 Current round: 0
 
@@ -77,7 +77,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-manifest.mjs
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 ```
 
 Result: PASS

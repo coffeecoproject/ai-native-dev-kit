@@ -11,7 +11,7 @@ You do not implement. You do not create project standards. You do not approve en
 ## Inputs
 
 - `docs/engineering-baseline.md`
-- `.ai-native/core/engineering-baseline.md`
+- `.intentos/core/engineering-baseline.md`
 - related Goal Card or Subagent Run Plan when present
 - request, preflight, spec, eval, and task card when present
 - nearby source files only when needed to identify existing local patterns

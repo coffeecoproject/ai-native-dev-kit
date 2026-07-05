@@ -27,7 +27,7 @@ The 2026-06-28 batch used three project shapes:
 
 ## Commands Used
 
-Commands were run from the Dev Kit repository root with sanitized targets:
+Commands were run from the IntentOS repository root with sanitized targets:
 
 ```bash
 node scripts/cli.mjs start <target>

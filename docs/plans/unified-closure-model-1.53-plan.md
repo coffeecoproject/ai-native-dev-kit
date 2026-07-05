@@ -51,5 +51,5 @@ Update:
 - `node scripts/cli.mjs finish . --intent "maintain close-out model" --verification "npm run verify passed"` prints a Unified Closure Decision.
 - `node scripts/check-closure-decision.mjs examples/1.53-unified-closure-model` passes.
 - Bad fixtures fail for split closure truth and DONE without evidence.
-- `node scripts/check-dev-kit.mjs` passes.
+- `node scripts/check-intentos.mjs` passes.
 - `npm run verify` passes.

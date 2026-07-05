@@ -18,7 +18,7 @@ omitted, but the reconciliation evidence still had two weak spots:
   `existing_rule_source` or `intentos_reference_source`;
 - the template could show one reconciliation item while the machine-readable
   JSON contained empty source and item arrays;
-- the user-facing AI Native Adoption Recommendation was not required by the
+- the user-facing IntentOS Adoption Recommendation was not required by the
   checker;
 - `doctor --dry-run` help wording implied command printing only, even though
   old-project diagnosis may run a read-only workflow routing preview.
@@ -67,7 +67,7 @@ reconciliation_items[].intentos_reference_ref
 The human report requires:
 
 ```text
-AI Native Adoption Recommendation
+IntentOS Adoption Recommendation
 - Recommendation
 - Migration Depth
 - Can Codex write now
@@ -86,7 +86,7 @@ AI Native Adoption Recommendation
 3. Add `evidence_profile` and 1.69.2 schema version requirements.
 4. Add source reference coverage checks to
    `scripts/check-existing-rule-reconciliation.mjs`.
-5. Require `AI Native Adoption Recommendation` in the checker.
+5. Require `IntentOS Adoption Recommendation` in the checker.
 6. Calibrate CLI help for `doctor --dry-run`.
 7. Update version, manifest, release record, and self-check evidence.
 

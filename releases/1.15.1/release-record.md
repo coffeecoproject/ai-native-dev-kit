@@ -114,7 +114,7 @@ Required checks:
 ```bash
 node scripts/check-standard-baseline-pack.mjs .
 node scripts/check-fixtures.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 ```
 

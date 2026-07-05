@@ -270,8 +270,8 @@ function collectSignals(root, exists, pathSet, intent) {
     exists,
     hasProjectSignals: exists ? hasProjectSignals(root) : false,
     isEmptyish: exists && paths.filter((item) => !item.startsWith(".git/")).length <= 3,
-    isDevKit: has("dev-kit-manifest.json") && hasPrefix("core"),
-    hasAiNativeAssets: hasPrefix(".ai-native") || hasPrefix("workflow-adoption-maps") || hasPrefix("baseline-decision-cards"),
+    isIntentOS: has("intentos-manifest.json") && hasPrefix("core"),
+    hasIntentOSAssets: hasPrefix(".intentos") || hasPrefix("workflow-adoption-maps") || hasPrefix("baseline-decision-cards"),
     hasGovernance: has("AGENTS.md") || hasPrefix("docs") || hasPrefix(".github/workflows") || hasPrefix("scripts/guard"),
     hasDocs: hasPrefix("docs") || paths.some((item) => /\.md$/i.test(item)),
     hasWorkQueueSignals: hasPrefix("work-queue") || hasPrefix("active-work-threads") || hasPrefix("tasks"),
@@ -307,10 +307,10 @@ function classifyProject(root, exists, git, signals) {
     };
   }
 
-  if (signals.isDevKit) {
+  if (signals.isIntentOS) {
     return {
       state: "DEV_KIT_REPOSITORY",
-      reason: "This is the AI Native Dev Kit source repository.",
+      reason: "This is the IntentOS source repository.",
       riskLevel: git?.isDirty ? "medium" : "low",
       existingUsersAssumed: "No",
       dirty: git?.isDirty ? "Yes" : "No",
@@ -347,10 +347,10 @@ function classifyProject(root, exists, git, signals) {
     };
   }
 
-  if (signals.hasGovernance || signals.hasAiNativeAssets) {
+  if (signals.hasGovernance || signals.hasIntentOSAssets) {
     return {
       state: "EXISTING_GOVERNED_PROJECT",
-      reason: "Existing docs, rules, CI, or AI Native assets were detected.",
+      reason: "Existing docs, rules, CI, or IntentOS assets were detected.",
       riskLevel: "medium",
       existingUsersAssumed: "Unknown treated as Yes",
       dirty: "No",
@@ -798,7 +798,7 @@ function plainSummary(project, delivery, intent) {
     return `${intentPrefix}这是一个适合从小目标开始的新项目。下一步应先确定第一版要给谁用、解决什么问题、如何验证。`;
   }
   if (project.state === "DEV_KIT_REPOSITORY") {
-    return `${intentPrefix}这是 Dev Kit 自身仓库。下一步应按维护流程做计划、验证和记录。`;
+    return `${intentPrefix}这是 IntentOS 自身仓库。下一步应按维护流程做计划、验证和记录。`;
   }
   return `${intentPrefix}这个项目可以先进入计划阶段。当前状态是 ${delivery.current}，下一步不要直接写文件，先确认目标和风险。`;
 }
@@ -838,7 +838,7 @@ function plainProjectState(state) {
     EXISTING_GOVERNED_PROJECT: "an existing project with rules already present",
     PRODUCTION_SENSITIVE_PROJECT: "a risk-sensitive existing project",
     DIRTY_WORKTREE_PROJECT: "a project with unfinished changes",
-    DEV_KIT_REPOSITORY: "the Dev Kit repository",
+    DEV_KIT_REPOSITORY: "the IntentOS repository",
     UNKNOWN_PROJECT: "an unreadable or missing project",
   };
   return labels[state] || state;

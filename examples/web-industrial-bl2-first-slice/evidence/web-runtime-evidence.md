@@ -51,7 +51,7 @@
 
 ## Exceptions
 
-- Production evidence is not included because this is a dev-kit example.
+- Production evidence is not included because this is a intentos example.
 
 ## Residual Risks
 

@@ -14,7 +14,7 @@ It does not add a new governance layer. It improves release trust, old-project r
 
 - `workflow-next` now recommends `--write-plan` for workflow asset updates in existing, partially bootstrapped, governed, dirty, unbootstrapped, or version-mismatch projects.
 - Dirty projects now stop before workflow asset updates, first-request creation, or task execution.
-- `ai-native-dev-kit` is now declared as a package bin alias, matching CLI help.
+- `intentos` is now declared as a package bin alias, matching CLI help.
 - Added `docs/source-only-adoption.md` for the current GitHub clone usage path.
 - Updated SECURITY.md with preferred private vulnerability reporting channels and security impact areas.
 - Added `docs/plans/product-adoption-trust-hardening-1.68.1-plan.md`.
@@ -61,10 +61,10 @@ It does not add a new governance layer. It improves release trust, old-project r
 
 ## Verification
 
-- `node --check scripts/workflow-next.mjs`, `node --check scripts/cli.mjs`, and `node --check scripts/check-dev-kit.mjs` verify changed scripts remain syntactically valid.
+- `node --check scripts/workflow-next.mjs`, `node --check scripts/cli.mjs`, and `node --check scripts/check-intentos.mjs` verify changed scripts remain syntactically valid.
 - `node scripts/cli.mjs --version` and `node scripts/cli.mjs --help` verify the public CLI reports 1.68.1 and includes the source-only adoption entry.
 - `node scripts/check-manifest.mjs` verifies manifest version and required source assets.
 - `npm --silent run verify:governance` verifies the governance-facing public entries still run.
-- `node scripts/check-dev-kit.mjs` verifies plan-first workflow update recommendation, dirty worktree guard behavior, package bin aliases, README/docs pointers, and release evidence.
+- `node scripts/check-intentos.mjs` verifies plan-first workflow update recommendation, dirty worktree guard behavior, package bin aliases, README/docs pointers, and release evidence.
 - `git diff --check` verifies whitespace boundaries.
 - The detailed command outcome is recorded in [self-check-report.md](self-check-report.md).

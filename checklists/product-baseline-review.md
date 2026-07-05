@@ -1,6 +1,6 @@
 # Product Baseline Review Checklist
 
-Use this checklist when changing Dev Kit workflow, docs, release wording, automation, generated-project behavior, or industrial pack maturity.
+Use this checklist when changing IntentOS workflow, docs, release wording, automation, generated-project behavior, or industrial pack maturity.
 
 ## Outcome
 

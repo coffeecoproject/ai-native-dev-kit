@@ -6,7 +6,7 @@ slug: release-evidence-adoption-entry
 title: "release evidence adoption entry"
 status: ready
 created_at: 2026-06-27
-devkit_version: 0.42.0
+intentos_version: 0.42.0
 spec: specs/100-release-evidence-adoption-entry.md
 ---
 # Eval: release evidence adoption entry
@@ -39,7 +39,7 @@ spec: specs/100-release-evidence-adoption-entry.md
 
 ## Permission / Data Checks
 
-- [ ] generated smoke writes only `/tmp/ai-native-1-test`
+- [ ] generated smoke writes only `/tmp/intentos-1-test`
 - [ ] update smoke uses dry-run only
 - [ ] migration smoke uses dry-run only
 - [ ] no production config is changed

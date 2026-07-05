@@ -1,8 +1,8 @@
-# Dev Kit Extension Policy
+# IntentOS Extension Policy
 
 ## Purpose
 
-This policy controls how the AI Native Dev Kit may be extended without diluting the workflow or binding the core layer to a specific platform, product, business domain, or tool.
+This policy controls how the IntentOS may be extended without diluting the workflow or binding the core layer to a specific platform, product, business domain, or tool.
 
 ## Layer Rules
 
@@ -44,7 +44,7 @@ Allowed:
 - workflow retro
 - workflow improvement
 - workflow daily summary
-- dev kit change proposal
+- IntentOS change proposal
 - skill candidate
 - project automation proposal
 - daily automation prompt
@@ -131,11 +131,11 @@ Not allowed:
 
 `starters/<starter-name>/` contains files copied into a new project.
 
-Starters may be platform-oriented, but must still preserve the AI Native workflow structure.
+Starters may be platform-oriented, but must still preserve the IntentOS workflow structure.
 
-Starters are not complete when copied manually. Complete initialization must go through `scripts/init-project.mjs`, which injects shared `.ai-native/` workflow assets, workflow scripts, and CI workflow files.
+Starters are not complete when copied manually. Complete initialization must go through `scripts/init-project.mjs`, which injects shared `.intentos/` workflow assets, workflow scripts, and CI workflow files.
 
-Starters should keep project-specific `scripts/verify.sh`, but must not duplicate shared workflow scripts such as `check-ai-workflow.mjs`, `summarize-ai-logs.mjs`, or `check-workflow-version.mjs`. Those scripts are injected from the current dev-kit version during initialization.
+Starters should keep project-specific `scripts/verify.sh`, but must not duplicate shared workflow scripts such as `check-ai-workflow.mjs`, `summarize-ai-logs.mjs`, or `check-workflow-version.mjs`. Those scripts are injected from the current intentos version during initialization.
 
 Starter examples:
 
@@ -173,7 +173,7 @@ Concrete project facts belong only in the generated project:
 - `workflow-improvements/`
 - `skill-candidates/`
 - `automation-proposals/`
-- `dev-kit-proposals/`
+- `intentos-proposals/`
 
 ## Extension Admission Rules
 
@@ -181,13 +181,13 @@ Any new profile must pass:
 
 - `templates/profile.md`
 - `checklists/profile-review.md`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 Any new starter must pass:
 
 - `templates/starter-readiness.md`
 - `checklists/starter-review.md`
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 Any new industrial pack must pass:
 
@@ -195,12 +195,12 @@ Any new industrial pack must pass:
 - `checklists/industrial-pack-review.md`
 - `scripts/check-industrial-pack.mjs`
 - `scripts/check-industrial-baseline.mjs` in at least one approved dogfood project before marking the pack stable
-- `scripts/check-dev-kit.mjs`
+- `scripts/check-intentos.mjs`
 
 Any change to `core/`, `templates/`, `prompts/`, or default starter must pass:
 
 - `checklists/core-purity-review.md`
-- business/platform coupling scan in `scripts/check-dev-kit.mjs`
+- business/platform coupling scan in `scripts/check-intentos.mjs`
 
 Any proposed shared workflow change should come from one of:
 

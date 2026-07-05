@@ -20,11 +20,11 @@ const strictEvidence = Boolean(args["strict-evidence"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"] || requirePreciseEvidence);
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
-const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
+const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "dev-kit-manifest.json"))
-  || fs.existsSync(path.join(projectRoot, ".ai-native", "version.json"));
+  || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
+  || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -888,7 +888,7 @@ function walk(dir, files) {
 function resolveAsset(file) {
   const targetAsset = path.join(projectRoot, file);
   if (fs.existsSync(targetAsset)) return targetAsset;
-  const nativeAsset = path.join(projectRoot, ".ai-native", file);
+  const nativeAsset = path.join(projectRoot, ".intentos", file);
   if (fs.existsSync(nativeAsset)) return nativeAsset;
   return null;
 }

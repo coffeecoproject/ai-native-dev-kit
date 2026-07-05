@@ -17,7 +17,7 @@ No recorded Execution Assurance Report, no verified execution check.
 - `check-execution-assurance.mjs` now fails by default when no recorded `execution-assurance-reports/*.md` files exist.
 - `execution-assurance-check`, `done-check`, and `verify-execution` inherit the stricter default behavior.
 - `--allow-empty` is available only for explicit asset-only maintenance checks.
-- `check-dev-kit` now verifies that no-report targets fail by default.
+- `check-intentos` now verifies that no-report targets fail by default.
 - CLI alias checks now run against a target with recorded reports instead of relying on source-root empty checks.
 - Public README first-step commands now stay focused on `start`, `next`, and `doctor`.
 
@@ -39,7 +39,7 @@ No recorded Execution Assurance Report, no verified execution check.
 - Checker behavior now distinguishes default completion verification from explicit asset-only checks.
 - No-report targets fail by default in `check-execution-assurance.mjs`, `execution-assurance-check`, `done-check`, and `verify-execution`.
 - `--allow-empty` remains explicit so source maintenance checks can verify installed assets without implying execution completion.
-- `check-dev-kit` includes a negative no-report check and validates CLI aliases against an example that has a recorded Execution Assurance Report.
+- `check-intentos` includes a negative no-report check and validates CLI aliases against an example that has a recorded Execution Assurance Report.
 - `npm run verify` uses explicit `--allow-empty` only for source asset maintenance and relies on strict examples plus self-checks for completion evidence.
 
 ## Known Limitations
@@ -58,7 +58,7 @@ node --check scripts/check-execution-assurance.mjs
 node scripts/check-execution-assurance.mjs /private/tmp/intentos-empty-review
 node scripts/check-execution-assurance.mjs /private/tmp/intentos-empty-review --allow-empty
 node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/feature-contract-validation --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 node scripts/check-manifest.mjs
 npm run verify
 git diff --check

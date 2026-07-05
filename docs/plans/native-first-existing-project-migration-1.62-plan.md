@@ -448,14 +448,14 @@ scripts/resolve-existing-workflow.mjs
 scripts/check-workflow-adoption-map.mjs
 scripts/resolve-apply-plan.mjs
 scripts/check-apply-plan.mjs
-scripts/check-dev-kit.mjs
+scripts/check-intentos.mjs
 scripts/cli.mjs
 scripts/new-workflow-item.mjs
 README.md
 README.zh-CN.md
 VERSION.md
 package.json
-dev-kit-manifest.json
+intentos-manifest.json
 templates/workflow-version.json
 templates/version-record.md
 docs/reference/scripts.md
@@ -741,7 +741,7 @@ node scripts/cli.mjs native-migration . --json
 node scripts/check-native-migration.mjs .
 node scripts/check-workflow-adoption-map.mjs .
 node scripts/check-manifest.mjs
-node scripts/check-dev-kit.mjs
+node scripts/check-intentos.mjs
 npm run verify
 git diff --check
 ```
@@ -820,7 +820,7 @@ The release record must explicitly say:
 ### Phase 4: Manifest And Verification
 
 - Update manifest, workflow version assets, package scripts, README, reference
-  docs, and check-dev-kit.
+  docs, and check-intentos.
 - Run full verification.
 
 ## Success Criteria
