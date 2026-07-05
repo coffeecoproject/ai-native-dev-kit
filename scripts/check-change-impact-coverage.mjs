@@ -37,6 +37,7 @@ const strictEvidence = Boolean(args["strict-evidence"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const requireBusinessRuleRef = Boolean(args["require-business-rule-ref"] || args["require-business-rule-ready"]);
 const requireBusinessRuleReady = Boolean(args["require-business-rule-ready"]);
+const effectiveRequireStructuredEvidence = requireStructuredEvidence || requireBusinessRuleRef || requireBusinessRuleReady;
 const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"] || requirePreciseEvidence);
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
 const businessRuleClosureSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
@@ -388,10 +389,10 @@ function closedOrPendingDecision(row, allowNotStarted = false) {
 
 function checkMachineReadableEvidence(content, label, markdown) {
   const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, {
-    require: requireStructuredEvidence,
+    require: effectiveRequireStructuredEvidence,
     digestField: "impact_digest",
   });
-  if (!result.present && !requireStructuredEvidence) {
+  if (!result.present && !effectiveRequireStructuredEvidence) {
     pass(`${label} structured evidence optional and not present`);
     return null;
   }

@@ -7462,6 +7462,9 @@ function checkBusinessRuleClosureProtocol() {
     "releases/1.75.1/release-record.md",
     "releases/1.75.1/known-limitations.md",
     "releases/1.75.1/self-check-report.md",
+    "releases/1.75.2/release-record.md",
+    "releases/1.75.2/known-limitations.md",
+    "releases/1.75.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.75 business rule closure asset exists ${file}`);
@@ -7481,6 +7484,7 @@ function checkBusinessRuleClosureProtocol() {
     read("docs/plans/business-rule-closure-1.75-plan.md"),
     read("releases/1.75.0/release-record.md"),
     read("releases/1.75.1/release-record.md"),
+    read("releases/1.75.2/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -7503,6 +7507,8 @@ function checkBusinessRuleClosureProtocol() {
     "contract, tax, finance, HR, legal",
     "generic task-communication layer",
     "require-business-rule-ready",
+    "now require Change Impact Coverage machine-readable evidence",
+    "generated-project smoke now write a Business Rule",
   ]) {
     if (combined.includes(marker)) pass(`1.75 business rule closure includes ${marker}`);
     else fail(`1.75 business rule closure missing ${marker}`);
@@ -11383,6 +11389,68 @@ function checkGeneratedProjectE2E() {
     }
   }
   pass("generated project platform baseline assets");
+
+  const generatedBusinessRuleReport = "business-rule-closures/001-generated-service-time.md";
+  const generatedBusinessRuleRef = `artifact:${generatedBusinessRuleReport}`;
+  const generatedBusinessRuleResolve = runNode([
+    path.join(target, "scripts", "resolve-business-rule-closure.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--out",
+    generatedBusinessRuleReport,
+  ]);
+  if (generatedBusinessRuleResolve.status !== 0
+    || !fs.existsSync(path.join(target, generatedBusinessRuleReport))
+    || !generatedBusinessRuleResolve.stdout.includes(generatedBusinessRuleRef)) {
+    fail(`generated project business rule resolver should write a self-referencing report: ${generatedBusinessRuleResolve.stderr || generatedBusinessRuleResolve.stdout}`);
+    return;
+  }
+  const generatedBusinessRuleStrictCheck = runNode([
+    path.join(target, "scripts", "check-business-rule-closure.mjs"),
+    target,
+    "--report",
+    generatedBusinessRuleReport,
+    "--require-structured-evidence",
+  ]);
+  if (generatedBusinessRuleStrictCheck.status !== 0
+    || !generatedBusinessRuleStrictCheck.stdout.includes("Business Rule Closure check passed")
+    || !generatedBusinessRuleStrictCheck.stdout.includes("business_rule_ref points to this report")) {
+    fail(`generated project business rule strict same-report check failed: ${generatedBusinessRuleStrictCheck.stderr || generatedBusinessRuleStrictCheck.stdout}`);
+    return;
+  }
+  const generatedImpactReport = "change-impact-coverage-reports/001-generated-service-time.md";
+  const generatedImpactResolve = runNode([
+    path.join(target, "scripts", "resolve-change-impact-coverage.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    generatedBusinessRuleRef,
+  ]);
+  if (generatedImpactResolve.status !== 0
+    || !generatedImpactResolve.stdout.includes(generatedBusinessRuleRef)
+    || !generatedImpactResolve.stdout.includes("Business rule state: READY_FOR_IMPACT_COVERAGE")) {
+    fail(`generated project change impact resolver should consume the saved Business Rule Closure report: ${generatedImpactResolve.stderr || generatedImpactResolve.stdout}`);
+    return;
+  }
+  fs.writeFileSync(path.join(target, generatedImpactReport), generatedImpactResolve.stdout);
+  const generatedImpactStrictCheck = runNode([
+    path.join(target, "scripts", "check-change-impact-coverage.mjs"),
+    target,
+    "--report",
+    generatedImpactReport,
+    "--require-business-rule-ready",
+  ]);
+  if (generatedImpactStrictCheck.status !== 0
+    || !generatedImpactStrictCheck.stdout.includes("has valid structured evidence")
+    || !generatedImpactStrictCheck.stdout.includes("business_rule_digest matches referenced Business Rule Closure")
+    || !generatedImpactStrictCheck.stdout.includes("referenced Business Rule Closure is READY_FOR_IMPACT_COVERAGE")
+    || !generatedImpactStrictCheck.stdout.includes("Change Impact Coverage check passed")) {
+    fail(`generated project Change Impact Coverage strict ready binding failed: ${generatedImpactStrictCheck.stderr || generatedImpactStrictCheck.stdout}`);
+    return;
+  }
+  pass("generated project strict Business Rule Closure to Change Impact Coverage binding");
 
   const emptyGoalModeCheck = runNode([
     path.join(target, "scripts", "check-goal-mode.mjs"),

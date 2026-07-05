@@ -56,6 +56,11 @@ Business Rule Closure creates a bindable rule record with a digest so later
 Impact Coverage and Execution Assurance can prove they are working from the
 same business interpretation.
 
+Project documents can provide source-rule context, but they should not
+automatically turn an unrelated ordinary rule into a high-risk domain-owner
+decision. High-risk, permission, status, integration, tax, and appointment rule
+classification starts from the current user request.
+
 ## Binding Into Change Impact Coverage
 
 The `business_rule_ref` in a Business Rule Closure report must point to that
@@ -69,10 +74,17 @@ machine-readable evidence. For rule-heavy tasks, strict review should require:
 ```bash
 node scripts/check-change-impact-coverage.mjs <project> \
   --report <change-impact-report> \
-  --require-structured-evidence \
-  --require-business-rule-ref \
   --require-business-rule-ready
 ```
 
 This proves the impact map consumed a `READY_FOR_IMPACT_COVERAGE` Business Rule
 Closure. It still does not authorize implementation or release.
+
+`--require-business-rule-ready` automatically requires Change Impact Coverage
+machine-readable evidence. If the report does not contain structured evidence,
+the strict business-rule binding check fails instead of silently skipping the
+binding.
+
+When Codex writes a Business Rule Closure Card with `--out <relative-path>`, the
+generated `business_rule_ref` must point to that same output path so the report
+can immediately pass self-reference checks.

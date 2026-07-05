@@ -44,6 +44,19 @@ For strict close-out, use:
 node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence
 ```
 
+For rule-heavy work that has a saved Business Rule Closure Card, strict binding
+can require the impact report to consume that same READY rule:
+
+```bash
+node scripts/check-change-impact-coverage.mjs . \
+  --report change-impact-coverage-reports/001-example.md \
+  --require-business-rule-ready
+```
+
+This automatically requires machine-readable evidence and checks that
+`business_rule_ref`, `business_rule_digest`, and `business_rule_state` match the
+referenced Business Rule Closure report.
+
 For stricter close-out where evidence paths must really resolve, use:
 
 ```bash

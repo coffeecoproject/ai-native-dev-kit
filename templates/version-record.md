@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.75.1`
+`1.75.2`
 
 ## Project Version File
 
@@ -19,6 +19,7 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.75.2` tightens Business Rule Closure binding enforcement: strict business-rule flags require Change Impact Coverage machine-readable evidence, BRC `--out` reports self-reference their actual output path, and generated projects prove saved BRC -> CIC strict binding.
 - `1.75.1` tightens Business Rule Closure binding: `business_rule_ref` must point to the current Business Rule Closure report, and Change Impact Coverage strict mode can require that the referenced rule is READY with matching digest and state.
 - `1.75.0` adds Business Rule Closure: Codex can turn a user request into a read-only rule-closure card before implementation, with limited user questions, safe defaults, structured evidence, and a `business_rule_ref` that can be carried into Change Impact Coverage.
 - `1.75.0` keeps this layer generic. Contract, tax, finance, HR, legal, payment, privacy, compliance, migration, production, and customer-data wording is treated as example or risk signal, not as the default business scope or Codex approval authority.

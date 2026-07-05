@@ -43,7 +43,7 @@ function buildReport(root, userIntent) {
   const taskSlug = slugify(userIntent);
   const taskRef = `tasks/001-${taskSlug}.md`;
   const businessRuleId = `business-rule:${taskSlug}`;
-  const businessRuleRef = `artifact:business-rule-closures/001-${taskSlug}.md`;
+  const businessRuleRef = businessRuleRefForOutput(root, outputPath, taskSlug);
   const sourceRuleRefs = sourceRuleRefsFor(root);
   const conflicts = conflictsFor(userIntent, sourceRuleRefs);
   const dimensions = dimensionsFor(userIntent, classification, signals, conflicts);
@@ -153,17 +153,19 @@ function buildReport(root, userIntent) {
 }
 
 function collectSignals(root, userIntent) {
-  const text = `${userIntent}\n${projectTextSignals(root)}`.toLowerCase();
+  const intentText = String(userIntent || "").toLowerCase();
+  const projectText = projectTextSignals(root).toLowerCase();
+  const text = `${intentText}\n${projectText}`;
   return {
     hasProject: fs.existsSync(root),
     hasMultipleClients: /\b(web|frontend|react|vue|next|mini-program|小程序|ios|android|mobile|api)\b/i.test(text)
       && /\b(api|backend|server|service)\b/i.test(text),
-    hasHighRiskDomain: /\b(finance|invoice|tax|legal|hr|payment|privacy|compliance|migration|production|customer data|发票|税|付款|支付|隐私|合规)\b/i.test(text),
-    hasTaxField: /\b(tax id|tax number|taxpayer|invoice|税号|纳税)\b/i.test(text),
-    hasPermission: /\b(permission|role|rbac|approval|approve|visibility|admin|权限|审批|角色)\b/i.test(text),
-    hasStatus: /\b(status|state|transition|submit|approve|reject|状态|提交|审批|驳回)\b/i.test(text),
-    hasIntegration: /\b(webhook|callback|sync|integration|import|export|scheduled|cron|导入|导出|同步|回调)\b/i.test(text),
-    hasAppointment: /\b(appointment|booking|schedule|reschedule|预约|排期)\b/i.test(text),
+    hasHighRiskDomain: /\b(finance|invoice|tax|legal|hr|payment|privacy|compliance|migration|production|customer data|发票|税|付款|支付|隐私|合规)\b/i.test(intentText),
+    hasTaxField: /\b(tax id|tax number|taxpayer|invoice|税号|纳税)\b/i.test(intentText),
+    hasPermission: /\b(permission|role|rbac|approval|approve|visibility|admin|权限|审批|角色)\b/i.test(intentText),
+    hasStatus: /\b(status|state|transition|submit|approve|reject|状态|提交|审批|驳回)\b/i.test(intentText),
+    hasIntegration: /\b(webhook|callback|sync|integration|import|export|scheduled|cron|导入|导出|同步|回调)\b/i.test(intentText),
+    hasAppointment: /\b(appointment|booking|schedule|reschedule|预约|排期)\b/i.test(intentText),
   };
 }
 
@@ -546,6 +548,15 @@ function resolveOutputPath(root, requestedPath) {
     process.exit(1);
   }
   return resolved;
+}
+
+function businessRuleRefForOutput(root, requestedOutputPath, taskSlug) {
+  if (!requestedOutputPath) return `artifact:business-rule-closures/001-${taskSlug}.md`;
+  const relative = path.relative(root, requestedOutputPath);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    return `artifact:business-rule-closures/001-${taskSlug}.md`;
+  }
+  return `artifact:${relative.split(path.sep).join("/")}`;
 }
 
 function writeOutputIfRequested(output) {

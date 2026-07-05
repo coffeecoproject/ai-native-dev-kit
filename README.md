@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.75.1`.
+Current release: `1.75.2`.
 
-Release record: [releases/1.75.1/release-record.md](releases/1.75.1/release-record.md).
+Release record: [releases/1.75.2/release-record.md](releases/1.75.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.75.2 closes the Business Rule Closure binding gap: strict business-rule flags now require machine-readable Change Impact Coverage evidence, generated Business Rule Closure reports self-reference their actual `--out` path, and generated-project smoke proves the saved BRC -> CIC strict binding chain.
 
 1.75.1 tightens Business Rule Closure binding: a closure report must self-reference the current report, and Change Impact Coverage strict mode can verify that `business_rule_ref` resolves to a READY Business Rule Closure with matching digest and state.
 

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.75.1`
+Current version: `1.75.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.75.1`
 
 ## Current Release
 
-`1.75.1`
+`1.75.2`
 
 Includes:
+
+- Business Rule Binding Enforcement patch `1.75.2`: strict
+  `--require-business-rule-ref` / `--require-business-rule-ready` checks now
+  require Change Impact Coverage machine-readable evidence, Business Rule
+  Closure `--out` reports self-reference the actual output path, and
+  generated-project smoke proves a saved Business Rule Closure can be strictly
+  consumed by a saved Change Impact Coverage report.
+- `1.75.2` keeps 1.75.0/1.75.1 artifact schemas compatible. It tightens
+  enforcement under explicit strict flags and does not add a new workflow
+  layer.
 
 - Business Rule Closure Binding patch `1.75.1`: Business Rule Closure reports
   now validate that `business_rule_ref` points to the current report, and

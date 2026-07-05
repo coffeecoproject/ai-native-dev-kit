@@ -43,6 +43,10 @@ Coverage:
   --require-business-rule-ready` verifies that the referenced Business Rule
   Closure resolves, is `READY_FOR_IMPACT_COVERAGE`, and matches the recorded
   digest and state.
+- 1.75.2 makes strict business-rule flags require Change Impact Coverage
+  machine-readable evidence even when `--require-structured-evidence` is not
+  passed separately. It also makes Business Rule Closure reports generated with
+  `--out <relative-report-path>` self-reference the actual output path.
 
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
