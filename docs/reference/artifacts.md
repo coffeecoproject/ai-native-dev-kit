@@ -20,6 +20,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | Directory | Purpose |
 |---|---|
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
+| `business-rule-closures/` | Business Rule Closure cards that close rule dimensions, safe defaults, limited user decisions, and real-environment validation expectations before impact coverage |
 | `change-impact-coverage-reports/` | Affected-surface coverage for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
 | `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
 | `ordinary-first-slices/` | First useful version scope for ordinary user goals |
@@ -94,7 +95,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Change Impact Coverage, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
 ## Reporting Artifacts
 
@@ -174,6 +175,8 @@ Controlled Apply Readiness lives under `.intentos/core/` in generated projects. 
 Approval Record Governance lives under `.intentos/core/` in generated projects. It records what a human explicitly approved after readiness: exact action IDs, target paths, plan hash, expiry, rollback acknowledgement, and verification acknowledgement. It does not execute writes, authorize automatic apply, approve implementation, approve release/production, install hooks, change CI, or enable high-risk actions.
 
 Review Surface Governance lives under `.intentos/core/` in generated projects. It lets Codex select the surfaces that must be reviewed before and after execution, while keeping Review Surface Cards read-only and non-approving.
+
+Business Rule Closure lives under `.intentos/core/` in generated projects. It lets Codex close the meaning of a user-requested business rule before writing code: actor, trigger, success path, failure path, feedback, enforcement, data behavior, safe defaults, pending decisions, and real-environment validation expectations. It reduces user decision burden, but it does not authorize implementation, release, production, finance, tax, HR, legal, payment, privacy, compliance, migration, or customer-data decisions.
 
 Change Impact Coverage lives under `.intentos/core/` in generated projects. It helps Codex avoid partial implementation by recording affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete.
 

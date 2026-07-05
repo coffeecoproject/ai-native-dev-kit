@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Business Rule Closure 1.75](business-rule-closure-1.75-plan.md)
 - [Execution Assurance Log And Markdown Consistency 1.74.3](execution-assurance-log-markdown-consistency-1.74.3-plan.md)
 - [Execution Assurance Runtime Plan Ref Binding 1.74.2](execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md)
 - [Execution Assurance Vocabulary And Docs Sync 1.74.1](execution-assurance-vocabulary-docs-sync-1.74.1-plan.md)

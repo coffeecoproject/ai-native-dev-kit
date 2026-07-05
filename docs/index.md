@@ -52,6 +52,7 @@ This index separates current operating documents from reference material, histor
 - [Change Boundary](change-boundary.md)
 - [Baseline State](baseline-state.md)
 - [Review Surface Governance](review-surface-governance.md)
+- [Business Rule Closure](business-rule-closure.md)
 - [Change Impact Coverage](change-impact-coverage.md)
 - [Delivery Path Governance](delivery-path-governance.md)
 - [Ordinary User First Slice](ordinary-user-first-slice.md)

@@ -20,6 +20,18 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 
 - Change Impact Coverage
 
+1.75.0 adds structured Markdown evidence before Change Impact Coverage:
+
+- Business Rule Closure
+
+Business Rule Closure records the task-bound business rule, required dimensions,
+safe defaults, limited user questions, source-rule conflicts, real-environment
+validation expectations, `business_rule_digest`, and `closure_digest` before
+Codex maps implementation surfaces. It is generic task-communication evidence:
+contract, tax, finance, HR, legal, payment, privacy, compliance, migration,
+production, and customer-data wording is treated as a risk signal or example,
+not as the default business domain.
+
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
 - `--resolve-evidence-refs` requires `DONE` evidence references to resolve
@@ -83,7 +95,7 @@ The Markdown sections remain the human-readable record. The `Machine-Readable Ev
 - Boundary fields must stay false unless a future controlled runner explicitly supports a safe mode.
 - Approval evidence still does not authorize automatic apply.
 - Product completeness evidence still does not approve release, production, or real-user adoption.
-- Change impact coverage and execution assurance evidence still do not authorize implementation, apply, release, production, commit/push, target writes, CI/hook mutation, secrets, migrations, provider actions, or high-risk decisions.
+- Business rule closure, change impact coverage, and execution assurance evidence still do not authorize implementation, apply, release, production, commit/push, target writes, CI/hook mutation, secrets, migrations, provider actions, or high-risk decisions.
 
 ## Strict Mode
 
@@ -94,6 +106,7 @@ node scripts/check-apply-plan.mjs <project> --require-structured-evidence
 node scripts/check-controlled-apply-readiness.mjs <project> --require-structured-evidence
 node scripts/check-approval-record.mjs <project> --require-structured-evidence
 node scripts/check-low-risk-apply-candidate.mjs <project> --require-structured-evidence
+node scripts/check-business-rule-closure.mjs <project> --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence
 node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs
 node scripts/check-native-migration.mjs <project> --require-structured-evidence
@@ -110,6 +123,12 @@ Strict mode requires `Machine-Readable Evidence`. For readiness and approval rec
 Structured readiness evidence must include at least one action unless `readiness_state` is `NO_APPLY_PLAN`.
 
 Low-risk apply candidate strict mode requires a valid `candidate_digest`, exact target paths, path safety evidence, rollback, verification, and authority fields that all remain non-authorizing.
+
+Business Rule Closure strict mode requires a valid `business_rule_digest`,
+`closure_digest`, task-bound rule identity, required dimensions for the detected
+rule type, no unresolved decisions in `READY_FOR_IMPACT_COVERAGE`, Markdown/JSON
+consistency, and non-authorizing boundaries. Use `--require-business-rule-closure`
+when a task must not proceed to impact coverage until a saved rule closure exists.
 
 Change impact coverage strict closure mode requires a valid `impact_digest`, matching Markdown and JSON surface statuses, non-placeholder `DONE` evidence, and required surfaces closed instead of left `NOT_STARTED`.
 

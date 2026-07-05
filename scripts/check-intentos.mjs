@@ -568,6 +568,8 @@ function checkVersionMetadata() {
     "scripts/check-workflow-guidance.mjs",
     "scripts/resolve-review-surface.mjs",
     "scripts/check-review-surface.mjs",
+    "scripts/resolve-business-rule-closure.mjs",
+    "scripts/check-business-rule-closure.mjs",
     "scripts/resolve-change-impact-coverage.mjs",
     "scripts/check-change-impact-coverage.mjs",
     "scripts/check-guided-delivery-loop.mjs",
@@ -641,6 +643,7 @@ function checkVersionMetadata() {
     ".intentos/docs/hook-orchestration.md",
     ".intentos/docs/hook-policy.md",
     ".intentos/docs/natural-language-orchestrator.md",
+    ".intentos/docs/business-rule-closure.md",
     ".intentos/docs/change-impact-coverage.md",
     ".intentos/docs/context-governance-usage.md",
     ".intentos/docs/minimal-commit-set.md",
@@ -665,6 +668,7 @@ function checkVersionMetadata() {
     ".intentos/core/natural-language-orchestrator.md",
     ".intentos/core/unified-closure-model.md",
     ".intentos/core/review-surface-governance.md",
+    ".intentos/core/business-rule-closure.md",
     ".intentos/core/change-impact-coverage.md",
     ".intentos/core/change-boundary.md",
     ".intentos/core/baseline-state.md",
@@ -688,6 +692,7 @@ function checkVersionMetadata() {
     ".intentos/templates/workflow-guidance-card.md",
     ".intentos/templates/closure-decision.md",
     ".intentos/templates/review-surface-card.md",
+    ".intentos/templates/business-rule-closure-card.md",
     ".intentos/templates/change-impact-coverage-report.md",
     ".intentos/templates/user-decision-card.md",
     ".intentos/templates/change-boundary-report.md",
@@ -709,6 +714,7 @@ function checkVersionMetadata() {
     ".intentos/prompts/hook-orchestration-agent.md",
     ".intentos/prompts/workflow-concierge-agent.md",
     ".intentos/prompts/review-surface-agent.md",
+    ".intentos/prompts/business-rule-closure-agent.md",
     ".intentos/prompts/change-impact-coverage-agent.md",
     ".intentos/prompts/guided-delivery-check-agent.md",
     ".intentos/prompts/change-boundary-agent.md",
@@ -730,6 +736,7 @@ function checkVersionMetadata() {
     ".intentos/checklists/hook-orchestration-review.md",
     ".intentos/checklists/workflow-guidance-review.md",
     ".intentos/checklists/review-surface-review.md",
+    ".intentos/checklists/business-rule-closure-review.md",
     ".intentos/checklists/change-impact-coverage-review.md",
     ".intentos/checklists/standard-baseline-selection-review.md",
     ".intentos/checklists/guided-delivery-loop-review.md",
@@ -755,6 +762,7 @@ function checkVersionMetadata() {
     "hook-policies",
     "workflow-guidance-cards",
     "review-surface-cards",
+    "business-rule-closures",
     "change-impact-coverage-reports",
     "change-boundary-reports",
     "baseline-state-reports",
@@ -819,6 +827,8 @@ function checkIntentOSFirstPartyCi() {
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
     "node scripts/cli.mjs review-surface .",
+    "node scripts/check-business-rule-closure.mjs .",
+    "node scripts/cli.mjs business-rule .",
     "node scripts/check-change-impact-coverage.mjs .",
     "node scripts/cli.mjs impact-coverage .",
     "node scripts/check-delivery-path.mjs .",
@@ -874,6 +884,8 @@ function checkIntentOSFirstPartyCi() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-business-rule-closure.mjs",
+    "resolve-business-rule-closure.mjs",
     "check-change-impact-coverage.mjs",
     "resolve-change-impact-coverage.mjs",
     "check-delivery-path.mjs",
@@ -892,6 +904,8 @@ function checkIntentOSFirstPartyCi() {
     "ask-check",
     "review-surface",
     "review-surface-check",
+    "business-rule",
+    "business-rule-check",
     "impact-coverage",
     "impact-coverage-check",
     "delivery-path",
@@ -967,6 +981,8 @@ function checkIntentOSFirstPartyCi() {
     "node scripts/cli.mjs guide .",
     "node scripts/check-review-surface.mjs .",
     "node scripts/cli.mjs review-surface .",
+    "node scripts/check-business-rule-closure.mjs .",
+    "node scripts/cli.mjs business-rule .",
     "node scripts/check-change-impact-coverage.mjs .",
     "node scripts/cli.mjs impact-coverage .",
     "node scripts/check-delivery-path.mjs .",
@@ -1020,6 +1036,8 @@ function checkIntentOSFirstPartyCi() {
     "resolve-workflow-guidance.mjs",
     "check-review-surface.mjs",
     "resolve-review-surface.mjs",
+    "check-business-rule-closure.mjs",
+    "resolve-business-rule-closure.mjs",
     "check-change-impact-coverage.mjs",
     "resolve-change-impact-coverage.mjs",
     "check-delivery-path.mjs",
@@ -1032,6 +1050,8 @@ function checkIntentOSFirstPartyCi() {
     "ask-check",
     "review-surface",
     "review-surface-check",
+    "business-rule",
+    "business-rule-check",
     "impact-coverage",
     "impact-coverage-check",
     "delivery-path",
@@ -1549,6 +1569,10 @@ function checkCliFrontDoor() {
     "node --check scripts/check-review-surface.mjs",
     "node scripts/cli.mjs review-surface .",
     "node scripts/check-review-surface.mjs .",
+    "node --check scripts/resolve-business-rule-closure.mjs",
+    "node --check scripts/check-business-rule-closure.mjs",
+    "node scripts/cli.mjs business-rule .",
+    "node scripts/cli.mjs business-rule-check .",
     "node --check scripts/resolve-change-impact-coverage.mjs",
     "node --check scripts/check-change-impact-coverage.mjs",
     "node scripts/cli.mjs impact-coverage .",
@@ -1666,6 +1690,8 @@ function checkCliFrontDoor() {
     "baseline-state",
     "debt-handoff",
     "debt-handoff-check",
+    "business-rule",
+    "business-rule-check",
     "finish",
     "finish-check",
     "baseline-decision",
@@ -1766,6 +1792,22 @@ function checkCliFrontDoor() {
     pass("CLI review-surface-check delegates to review surface checker");
   } else {
     fail(`CLI review-surface-check failed: ${reviewSurfaceCheck.stderr || reviewSurfaceCheck.stdout}`);
+  }
+
+  const businessRule = runNode(["scripts/cli.mjs", "business-rule", ".", "--intent", "appointment requests must include a service time"]);
+  if (businessRule.status === 0
+    && businessRule.stdout.includes("Business Rule Closure")
+    && businessRule.stdout.includes("This closure writes target files: No")) {
+    pass("CLI business-rule delegates to business rule closure resolver");
+  } else {
+    fail(`CLI business-rule failed: ${businessRule.stderr || businessRule.stdout}`);
+  }
+
+  const businessRuleCheck = runNode(["scripts/cli.mjs", "business-rule-check", ".", "--allow-empty"]);
+  if (businessRuleCheck.status === 0 && businessRuleCheck.stdout.includes("Business Rule Closure check passed")) {
+    pass("CLI business-rule-check delegates to business rule closure checker");
+  } else {
+    fail(`CLI business-rule-check failed: ${businessRuleCheck.stderr || businessRuleCheck.stdout}`);
   }
 
   const impactCoverage = runNode(["scripts/cli.mjs", "impact-coverage", ".", "--intent", "add contract input restriction"]);
@@ -7383,6 +7425,185 @@ function checkReviewSurfaceGovernanceProtocol() {
   }
 }
 
+function checkBusinessRuleClosureProtocol() {
+  const required = [
+    "core/business-rule-closure.md",
+    "docs/business-rule-closure.md",
+    "docs/plans/business-rule-closure-1.75-plan.md",
+    "templates/business-rule-closure-card.md",
+    "checklists/business-rule-closure-review.md",
+    "prompts/business-rule-closure-agent.md",
+    "schemas/artifacts/business-rule-closure.schema.json",
+    "business-rule-closures/.gitkeep",
+    "scripts/resolve-business-rule-closure.mjs",
+    "scripts/check-business-rule-closure.mjs",
+    "examples/1.75-business-rule-closure/README.md",
+    "examples/1.75-business-rule-closure/appointment-service-time/README.md",
+    "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-service-time.md",
+    "test-fixtures/bad/bad-business-rule-authorizes-implementation/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-codex-approves-tax-decision/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-cross-platform-single-surface/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-effective-time-missing/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-exception-policy-ambiguous/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-existing-rule-conflict-ready/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-historical-data-auto-change/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-markdown-json-mismatch/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-missing-actor/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-missing-digest/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-production-verified-without-evidence/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-ready-with-blocking-decision/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-ready-with-domain-owner-pending/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-safe-default-treated-as-approval/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-tax-field-claims-tax-compliance/business-rule-closures/001-bad.md",
+    "test-fixtures/bad/bad-business-rule-too-many-user-questions/business-rule-closures/001-bad.md",
+    "releases/1.75.0/release-record.md",
+    "releases/1.75.0/known-limitations.md",
+    "releases/1.75.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.75 business rule closure asset exists ${file}`);
+    else fail(`1.75 business rule closure asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/business-rule-closure.md"),
+    read("docs/business-rule-closure.md"),
+    read("templates/business-rule-closure-card.md"),
+    read("checklists/business-rule-closure-review.md"),
+    read("prompts/business-rule-closure-agent.md"),
+    read("schemas/artifacts/business-rule-closure.schema.json"),
+    read("scripts/resolve-business-rule-closure.mjs"),
+    read("scripts/check-business-rule-closure.mjs"),
+    read("docs/plans/business-rule-closure-1.75-plan.md"),
+    read("releases/1.75.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "Business Rule Closure",
+    "READY_FOR_IMPACT_COVERAGE",
+    "NEEDS_USER_CONFIRMATION",
+    "NEEDS_DOMAIN_OWNER",
+    "business_rule_digest",
+    "closure_digest",
+    "business_rule_ref",
+    "source_request_digest",
+    "safe defaults",
+    "limited user questions",
+    "Real-Environment Validation",
+    "This closure writes target files: No",
+    "This closure authorizes implementation: No",
+    "This closure approves release or production: No",
+    "contract, tax, finance, HR, legal",
+    "generic task-communication layer",
+  ]) {
+    if (combined.includes(marker)) pass(`1.75 business rule closure includes ${marker}`);
+    else fail(`1.75 business rule closure missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-business-rule-closure.mjs", "examples/mvp-booking-web-app", "--intent", "appointment requests must include a service time"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Business Rule Closure")
+    && resolver.stdout.includes("READY_FOR_IMPACT_COVERAGE")
+    && resolver.stdout.includes("This closure writes target files: No")) {
+    pass("1.75 business rule closure resolver prints safe appointment rule closure");
+  } else {
+    fail(`1.75 business rule closure resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-business-rule-closure.mjs", "examples/mvp-booking-web-app", "--intent", "appointment requests must include a service time", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "BUSINESS_RULE_CLOSURE"
+        && parsed.structuredEvidence?.artifact_type === "business_rule_closure"
+        && parsed.structuredEvidence?.business_rule_digest
+        && parsed.structuredEvidence?.closure_digest
+        && parsed.structuredEvidence?.can_codex_write_now === "No"
+        && parsed.boundaries?.writesTargetFiles === "No") {
+        pass("1.75 business rule closure resolver JSON includes structured non-authorizing evidence");
+      } else {
+        fail(`1.75 business rule closure resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.75 business rule closure resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.75 business rule closure resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const check = runNode(["scripts/check-business-rule-closure.mjs", ".", "--allow-empty"]);
+  if (check.status === 0 && check.stdout.includes("Business Rule Closure check passed")) {
+    pass("1.75 business rule closure checker passes source repo with explicit empty allowance");
+  } else {
+    fail(`1.75 business rule closure checker failed: ${check.stderr || check.stdout}`);
+  }
+
+  const strictExample = runNode([
+    "scripts/check-business-rule-closure.mjs",
+    "examples/1.75-business-rule-closure/appointment-service-time",
+    "--require-structured-evidence",
+  ]);
+  if (strictExample.status === 0
+    && strictExample.stdout.includes("has valid structured evidence")
+    && strictExample.stdout.includes("Business Rule Closure check passed")) {
+    pass("1.75 business rule closure strict example passes checker");
+  } else {
+    fail(`1.75 business rule closure strict example failed: ${strictExample.stderr || strictExample.stdout}`);
+  }
+
+  const impactWithBusinessRule = runNode([
+    "scripts/resolve-change-impact-coverage.mjs",
+    "examples/mvp-booking-web-app",
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-appointment-service-time.md",
+    "--json",
+  ]);
+  if (impactWithBusinessRule.status === 0) {
+    try {
+      const parsed = JSON.parse(impactWithBusinessRule.stdout);
+      if (parsed.businessRuleRef === "artifact:business-rule-closures/001-appointment-service-time.md"
+        && parsed.machineReadableEvidence?.business_rule_ref === "artifact:business-rule-closures/001-appointment-service-time.md") {
+        pass("1.75 business rule ref carries into change impact coverage");
+      } else {
+        fail(`1.75 business rule ref missing from change impact coverage: ${impactWithBusinessRule.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.75 business-rule-linked impact coverage JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.75 business-rule-linked impact coverage failed: ${impactWithBusinessRule.stderr || impactWithBusinessRule.stdout}`);
+  }
+
+  const badFixtures = [
+    "test-fixtures/bad/bad-business-rule-authorizes-implementation",
+    "test-fixtures/bad/bad-business-rule-codex-approves-tax-decision",
+    "test-fixtures/bad/bad-business-rule-cross-platform-single-surface",
+    "test-fixtures/bad/bad-business-rule-effective-time-missing",
+    "test-fixtures/bad/bad-business-rule-exception-policy-ambiguous",
+    "test-fixtures/bad/bad-business-rule-existing-rule-conflict-ready",
+    "test-fixtures/bad/bad-business-rule-historical-data-auto-change",
+    "test-fixtures/bad/bad-business-rule-markdown-json-mismatch",
+    "test-fixtures/bad/bad-business-rule-missing-actor",
+    "test-fixtures/bad/bad-business-rule-missing-digest",
+    "test-fixtures/bad/bad-business-rule-production-verified-without-evidence",
+    "test-fixtures/bad/bad-business-rule-ready-with-blocking-decision",
+    "test-fixtures/bad/bad-business-rule-ready-with-domain-owner-pending",
+    "test-fixtures/bad/bad-business-rule-safe-default-treated-as-approval",
+    "test-fixtures/bad/bad-business-rule-tax-field-claims-tax-compliance",
+    "test-fixtures/bad/bad-business-rule-too-many-user-questions",
+  ];
+  for (const target of badFixtures) {
+    const result = runNode(["scripts/check-business-rule-closure.mjs", target, "--require-structured-evidence"]);
+    if (result.status !== 0) {
+      pass(`1.75 business rule closure rejects ${target}`);
+    } else {
+      fail(`1.75 business rule closure must reject ${target}`);
+    }
+  }
+}
+
 function checkChangeImpactCoverageProtocol() {
   const required = [
     "core/change-impact-coverage.md",
@@ -9824,6 +10045,7 @@ function checkStarters() {
     "intentos-proposals/.gitkeep",
     "review-packets/.gitkeep",
     "review-surface-cards/.gitkeep",
+    "business-rule-closures/.gitkeep",
     "change-impact-coverage-reports/.gitkeep",
     "gpt-review-prompts/.gitkeep",
     "review-loop-reports/.gitkeep",
@@ -9850,7 +10072,7 @@ function checkStarters() {
         fail(`starter ${entry.name} missing ${file}`);
       }
     }
-    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-beginner-entry.mjs", "scripts/check-beginner-entry.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-change-impact-coverage.mjs", "scripts/check-change-impact-coverage.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/resolve-apply-plan.mjs", "scripts/check-apply-plan.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
+    for (const injectedScript of ["scripts/summarize-ai-logs.mjs", "scripts/check-workflow-version.mjs", "scripts/check-ai-workflow.mjs", "scripts/check-guided-adoption.mjs", "scripts/workflow-daily-summary.mjs", "scripts/check-project-onboarding.mjs", "scripts/check-engineering-baseline.mjs", "scripts/check-platform-baseline.mjs", "scripts/resolve-platform-baseline.mjs", "scripts/check-industrial-pack.mjs", "scripts/resolve-industrial-baseline.mjs", "scripts/check-industrial-baseline.mjs", "scripts/check-workflow-artifacts.mjs", "scripts/check-review-loop.mjs", "scripts/check-next-step-boundary.mjs", "scripts/check-goal-mode.mjs", "scripts/check-subagent-orchestration.mjs", "scripts/resolve-beginner-entry.mjs", "scripts/check-beginner-entry.mjs", "scripts/resolve-work-queue.mjs", "scripts/check-work-queue.mjs", "scripts/resolve-hook-orchestration.mjs", "scripts/check-hook-orchestration.mjs", "scripts/resolve-hook-policy.mjs", "scripts/check-hook-policy.mjs", "scripts/resolve-review-surface.mjs", "scripts/check-review-surface.mjs", "scripts/resolve-business-rule-closure.mjs", "scripts/check-business-rule-closure.mjs", "scripts/resolve-change-impact-coverage.mjs", "scripts/check-change-impact-coverage.mjs", "scripts/resolve-delivery-path.mjs", "scripts/check-delivery-path.mjs", "scripts/resolve-debt-handoff.mjs", "scripts/check-debt-handoff.mjs", "scripts/resolve-document-archive-apply.mjs", "scripts/check-document-archive-apply.mjs", "scripts/resolve-apply-plan.mjs", "scripts/check-apply-plan.mjs", "scripts/new-workflow-item.mjs", "scripts/start-project.mjs", "scripts/workflow-next.mjs"]) {
       const full = path.join(starterRoot, entry.name, injectedScript);
       if (fs.existsSync(full)) {
         fail(`starter ${entry.name} should not duplicate injected workflow script ${injectedScript}`);
@@ -9859,7 +10081,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Beginner Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Change Impact Coverage", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Beginner Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Business Rule Closure", "Change Impact Coverage", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -9868,7 +10090,7 @@ function checkStarters() {
     const prTemplate = path.join(starterRoot, entry.name, ".github", "pull_request_template.md");
     if (fs.existsSync(prTemplate)) {
       const content = fs.readFileSync(prTemplate, "utf8");
-      for (const marker of ["Human Summary", "Workflow Guidance", "Beginner Entry", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Change Impact Coverage Report", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
+      for (const marker of ["Human Summary", "Workflow Guidance", "Beginner Entry", "Delivery Path", "Debt / Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Bootstrap state", "Project onboarding", "Engineering baseline", "Environment baseline", "Product baseline", "Claim control", "Context governance", "Git Boundary", "Assumptions", "Workflow Evidence", "Guided Delivery Loop", "Change Boundary Report", "Baseline State Report", "Workflow artifact quality", "Review Surface Card", "Business Rule Closure Card", "Change Impact Coverage Report", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
         if (!content.includes(marker)) {
           fail(`starter ${entry.name} PR template missing ${marker}`);
         }
@@ -13042,6 +13264,7 @@ checkHookOrchestrationProtocol();
 checkHookPolicyProtocol();
 checkNaturalLanguageOrchestratorProtocol();
 checkReviewSurfaceGovernanceProtocol();
+checkBusinessRuleClosureProtocol();
 checkChangeImpactCoverageProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();

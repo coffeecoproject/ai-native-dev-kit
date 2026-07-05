@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.74.3`.
+Current release: `1.75.0`.
 
-Release record: [releases/1.74.3/release-record.md](releases/1.74.3/release-record.md).
+Release record: [releases/1.75.0/release-record.md](releases/1.75.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.75.0 adds Business Rule Closure: before Codex turns a user request into implementation, it summarizes the business rule, closes required dimensions, applies safe defaults, asks only the few decisions that matter, and links the closed rule into Change Impact Coverage. This is a generic task-communication layer; contract, tax, finance, HR, or legal wording is only an example or risk signal, not the default business domain.
 
 1.74.3 closes the 1.74 line with Execution Assurance log and Markdown consistency hardening: self-check output now names the full 1.72-1.74 assurance line, and checker validation cross-checks human-readable Execution Plan, Actual Diff, and Evidence Binding tables against the machine-readable JSON evidence.
 
@@ -164,6 +166,7 @@ IntentOS 当前包含这些核心能力：
 | Standard Baseline Packs | 为不同平台提供普通工程基线 |
 | Industrial Overlays | 为生产、客户数据、权限、支付、发布等风险提供增强治理 |
 | Review Surface | 执行前判断任务完成后需要审哪些面 |
+| Business Rule Closure | 在写代码前把业务规则说清楚，AI 先补齐角色、触发条件、成功/失败路径、默认处理和待确认问题，用户只确认关键判断 |
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |

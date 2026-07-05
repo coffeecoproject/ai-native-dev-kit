@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.74.3`。
+当前版本：`1.75.0`。
 
-发布记录：[releases/1.74.3/release-record.md](releases/1.74.3/release-record.md)。
+发布记录：[releases/1.75.0/release-record.md](releases/1.75.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.75.0 新增 Business Rule Closure：在 Codex 把用户需求转成实现前，先由 AI 归纳业务规则、补齐角色、触发条件、成功/失败路径、默认处理、待确认问题和真实环境验证期待，再把闭环结果接到 Change Impact Coverage。它是通用需求沟通层，不是合同、税务、财务、人资或法务业务模板；这些词只作为示例或风险信号。
 
 1.74.3 收口 1.74 Execution Assurance 线：self-check 输出现在明确覆盖 1.72-1.74 assurance 链路，checker 会把人看的 Execution Plan、Actual Diff、Evidence Binding 表格与机器 JSON 证据做一致性校验，避免报告正文和结构化证据不一致。
 
@@ -162,6 +164,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Standard Baseline Packs | 为不同平台提供普通工程基线 |
 | Industrial Overlays | 为生产、客户数据、权限、支付、发布等风险提供增强治理 |
 | Review Surface | 执行前判断任务完成后需要审哪些面 |
+| Business Rule Closure | 写代码前先把业务规则闭环，AI 负责补齐规则维度和默认建议，用户只确认少数关键判断 |
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |

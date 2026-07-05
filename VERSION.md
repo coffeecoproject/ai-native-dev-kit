@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.74.3`
+Current version: `1.75.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,22 @@ Current version: `1.74.3`
 
 ## Current Release
 
-`1.74.3`
+`1.75.0`
 
 Includes:
+
+- Business Rule Closure phase `1.75.0`: before Codex turns a user request into
+  implementation work, it produces a read-only Business Rule Closure Card that
+  summarizes the rule, closes required dimensions, records safe defaults,
+  limits user questions, and links the closed rule into Change Impact Coverage.
+- `1.75.0` adds `business-rule` / `business-rule-check`, structured
+  `business_rule_closure` evidence, positive appointment-service-time example
+  coverage, and bad fixtures for partial, overconfident, high-risk, and
+  cross-surface rule closure failures.
+- `1.75.0` is a generic task-communication layer. Contract, tax, finance, HR,
+  legal, payment, privacy, compliance, migration, production, and customer-data
+  wording is treated as a risk signal or example; it is not the default business
+  domain and does not authorize Codex to approve those decisions.
 
 - Execution Assurance Log And Markdown Consistency patch `1.74.3`: self-check
   output labels now describe the full 1.72-1.74 assurance line, and strict

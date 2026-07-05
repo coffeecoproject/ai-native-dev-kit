@@ -32,6 +32,7 @@
         "project_profile": { "type": "string" }
       }
     },
+    "business_rule_ref": { "type": "string" },
     "change_type": {
       "type": "object",
       "required": ["primary_type", "risk_level", "reason"],

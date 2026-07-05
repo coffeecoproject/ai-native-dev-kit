@@ -2334,5 +2334,36 @@
       "forbidden change impact claim"
     ],
     "howToFix": "The checker must reject reports that claim they approve implementation or release."
+  },
+  {
+    "name": "good business rule closure appointment service time",
+    "type": "golden",
+    "checker": "check-business-rule-closure",
+    "script": "scripts/check-business-rule-closure.mjs",
+    "args": [
+      "examples/1.75-business-rule-closure/appointment-service-time",
+      "--require-structured-evidence"
+    ],
+    "expectStatus": 0,
+    "expectStdoutIncludes": [
+      "Machine-Readable Evidence matches schema",
+      "Business Rule Closure check passed"
+    ],
+    "howToFix": "Keep the appointment service-time Business Rule Closure example strict and non-authorizing."
+  },
+  {
+    "name": "bad business rule closure authorizes implementation",
+    "type": "bad",
+    "checker": "check-business-rule-closure",
+    "script": "scripts/check-business-rule-closure.mjs",
+    "args": [
+      "test-fixtures/bad/bad-business-rule-authorizes-implementation",
+      "--require-structured-evidence"
+    ],
+    "expectStatus": "nonzero",
+    "expectStderrIncludes": [
+      "boundary must be No: This closure authorizes implementation"
+    ],
+    "howToFix": "The checker must reject Business Rule Closure records that claim they authorize implementation."
   }
 ]

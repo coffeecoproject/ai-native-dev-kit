@@ -13,7 +13,7 @@ import {
 } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode", "from-git-diff", "cached", "base"]);
+const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode", "from-git-diff", "cached", "base", "business-rule-ref"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
@@ -26,6 +26,7 @@ const explicitChangedFiles = String(args["changed-files"] || "")
 const gitDiffRequested = Boolean(args["from-git-diff"]);
 const cachedDiffRequested = Boolean(args.cached);
 const baseRef = args.base ? String(args.base).trim() : "";
+const businessRuleRef = args["business-rule-ref"] ? String(args["business-rule-ref"]).trim() : "";
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -53,12 +54,12 @@ const gitChangedFiles = gitDiffRequested
   ? readGitChangedFiles(projectRoot, { cached: cachedDiffRequested, base: baseRef })
   : [];
 const changedFiles = unique([...explicitChangedFiles, ...gitChangedFiles]);
-const report = buildReport(projectRoot, intent, changedFiles, mode);
+const report = buildReport(projectRoot, intent, changedFiles, mode, businessRuleRef);
 
 if (outputFormat === "json") console.log(JSON.stringify(report, null, 2));
 else printHuman(report);
 
-function buildReport(root, userIntent, explicitChangedFiles, requestedMode) {
+function buildReport(root, userIntent, explicitChangedFiles, requestedMode, linkedBusinessRuleRef) {
   const exists = fs.existsSync(root);
   const paths = exists ? walkRelativePaths(root, ".", {
     maxDepth: 5,
@@ -84,6 +85,7 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode) {
     readOnly: true,
     mode: requestedMode,
     intent: userIntent || "Not provided",
+    businessRuleRef: linkedBusinessRuleRef || "Not provided",
     changedFiles: explicitChangedFiles,
     humanSummary: summaryFor(changeType, surfaces, risk),
     changeType: {
@@ -129,11 +131,12 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode) {
       surfaces,
       questions,
       outcome,
+      businessRuleRef: linkedBusinessRuleRef,
     }),
   };
 }
 
-function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome }) {
+function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome, businessRuleRef }) {
   const evidence = {
     schema_version: "1.49.0",
     artifact_type: "change_impact_coverage",
@@ -145,6 +148,7 @@ function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeT
       task_ref: "not provided",
       project_profile: "inferred from project signals",
     },
+    business_rule_ref: businessRuleRef || "not provided",
     change_type: {
       primary_type: changeType,
       risk_level: risk.high ? "high" : "low",
@@ -329,6 +333,7 @@ function printHuman(report) {
   console.log(`- Request: ${report.intent}`);
   console.log("- Task ref: not provided");
   console.log("- Project/profile: inferred from project signals");
+  console.log(`- Business rule closure ref: ${report.businessRuleRef}`);
   console.log("");
   console.log("## Change Type");
   console.log("");

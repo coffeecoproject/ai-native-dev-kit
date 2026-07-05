@@ -146,6 +146,15 @@ jobs:
       - name: Review surface smoke
         run: node scripts/cli.mjs review-surface .
 
+      - name: Business rule closure check
+        run: node scripts/check-business-rule-closure.mjs . --allow-empty
+
+      - name: Business rule closure example strict check
+        run: node scripts/check-business-rule-closure.mjs examples/1.75-business-rule-closure/appointment-service-time --require-structured-evidence
+
+      - name: Business rule closure smoke
+        run: node scripts/cli.mjs business-rule . --intent "appointment requests must include a service time"
+
       - name: Change impact coverage check
         run: node scripts/check-change-impact-coverage.mjs .
 
@@ -271,8 +280,10 @@ jobs:
           node "$tmp/project/scripts/resolve-workflow-guidance.mjs" "$tmp/project" --deep --intent "build an appointment app"
           node "$tmp/project/scripts/check-review-surface.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-review-surface.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-business-rule-closure.mjs" "$tmp/project" --allow-empty
+          node "$tmp/project/scripts/resolve-business-rule-closure.mjs" "$tmp/project" --intent "appointment requests must include a service time"
           node "$tmp/project/scripts/check-change-impact-coverage.mjs" "$tmp/project"
-          node "$tmp/project/scripts/resolve-change-impact-coverage.mjs" "$tmp/project" --intent "generated project validation rule"
+          node "$tmp/project/scripts/resolve-change-impact-coverage.mjs" "$tmp/project" --intent "generated project validation rule" --business-rule-ref "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md"
           node "$tmp/project/scripts/check-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-debt-handoff.mjs" "$tmp/project"
@@ -291,7 +302,9 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" ask-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" review-surface-check "$tmp/project"
-          node "$tmp/project/scripts/cli.mjs" impact-coverage "$tmp/project" --intent "generated project validation rule"
+          node "$tmp/project/scripts/cli.mjs" business-rule "$tmp/project" --intent "appointment requests must include a service time"
+          node "$tmp/project/scripts/cli.mjs" business-rule-check "$tmp/project" --allow-empty
+          node "$tmp/project/scripts/cli.mjs" impact-coverage "$tmp/project" --intent "generated project validation rule" --business-rule-ref "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md"
           node "$tmp/project/scripts/cli.mjs" impact-coverage-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" delivery-path "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" closure "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"

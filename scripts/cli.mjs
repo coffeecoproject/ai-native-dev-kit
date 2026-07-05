@@ -67,6 +67,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "business-rule": {
+    description: "Check whether a business rule is clear enough before impact coverage and coding.",
+    script: "scripts/resolve-business-rule-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "business-rule-check": {
+    description: "Check recorded Business Rule Closure cards.",
+    script: "scripts/check-business-rule-closure.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "delivery-path": {
     description: "Report how far a project is from useful use without approving release.",
     script: "scripts/resolve-delivery-path.mjs",

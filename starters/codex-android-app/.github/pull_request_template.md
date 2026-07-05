@@ -44,6 +44,7 @@
 - [ ] Workflow artifact quality check passed or is not applicable
 - [ ] Review Surface Card is linked or marked not applicable before non-trivial implementation, repair, or review work
 - [ ] Review surface close-out includes per-surface result, unverified surfaces, debt result, and next delivery state
+- [ ] Business Rule Closure Card is linked or marked not applicable before implementing a validation, permission, status, integration, data, or other business-rule change
 - [ ] Change Impact Coverage Report is linked or marked not applicable when validation, form, API, backend rule, data, permission, error copy, or business-rule behavior changed
 - [ ] Strict Change Impact Coverage closure evidence is linked when required
 - [ ] Review Packet / Review Loop Report is linked when independent review or review loop was needed, or marked not applicable

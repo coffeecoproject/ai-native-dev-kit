@@ -366,6 +366,21 @@ A Review Surface Card is pre-execution planning only. It does not write files, a
 
 After execution, final reporting must include per-surface result, unverified surfaces, debt result, and next delivery state.
 
+## Business Rule Closure
+
+Use Business Rule Closure before turning a user-requested business rule, validation rule, permission rule, status transition, integration behavior, or high-risk domain wording into implementation.
+
+Run:
+
+```bash
+node scripts/cli.mjs business-rule . --intent "<business rule>"
+node scripts/cli.mjs business-rule-check . --allow-empty
+```
+
+A Business Rule Closure Card records the actor, trigger, success path, failure path, feedback, enforcement layer, data behavior, safe defaults, limited user decisions, existing-rule conflicts, and real-environment validation expectation. It is a generic task-communication layer; contract, tax, finance, HR, legal, payment, privacy, compliance, migration, production, and customer-data wording is only example or risk-signal language unless the current project explicitly owns that domain.
+
+A Business Rule Closure Card does not write files, authorize implementation, approve release or production, approve high-risk domain decisions, or prove real-environment behavior.
+
 ## Change Impact Coverage
 
 Use `.intentos/core/change-impact-coverage.md` when a task changes validation rules, form restrictions, API behavior, backend/domain rules, data model, permissions, error copy, or any user-visible business rule.

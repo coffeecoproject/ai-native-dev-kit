@@ -59,6 +59,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Guided Delivery Baseline](guided-delivery-baseline.md)
 - [Guided Decision & Delivery Loop](guided-decision-delivery-loop.md)
 - [Review Surface Governance](review-surface-governance.md)
+- [Business Rule Closure](business-rule-closure.md)
 - [Change Impact Coverage](change-impact-coverage.md)
 - [Execution Assurance Chain](execution-assurance-chain.md)
 - [Delivery Path Governance](delivery-path-governance.md)
