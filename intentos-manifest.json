@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.75.0",
+  "intentOSVersion": "1.75.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.75.0"
+    "phase": "1.75.1"
   },
   "groups": {
     "sourceRequired": [
@@ -657,7 +657,7 @@
       "examples/1.72-execution-assurance-chain/safe-copy-patch/tasks/001-copy.md",
       "examples/1.75-business-rule-closure/README.md",
       "examples/1.75-business-rule-closure/appointment-service-time/README.md",
-      "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-service-time.md",
+      "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-requests-must-include-a-service-time.md",
       "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
       "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
@@ -1372,6 +1372,9 @@
       "releases/1.75.0/known-limitations.md",
       "releases/1.75.0/release-record.md",
       "releases/1.75.0/self-check-report.md",
+      "releases/1.75.1/known-limitations.md",
+      "releases/1.75.1/release-record.md",
+      "releases/1.75.1/self-check-report.md",
       "releases/1.8.0/known-limitations.md",
       "releases/1.8.0/release-record.md",
       "releases/1.8.0/self-check-report.md",
@@ -4342,7 +4345,7 @@
       "examples/1.71-adoption-execution-assurance/verified-existing-project/adoption-assurance-reports/001-verified.md",
       "examples/1.75-business-rule-closure/README.md",
       "examples/1.75-business-rule-closure/appointment-service-time/README.md",
-      "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-service-time.md",
+      "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-requests-must-include-a-service-time.md",
       "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
       "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",

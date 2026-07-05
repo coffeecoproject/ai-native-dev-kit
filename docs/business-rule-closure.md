@@ -55,3 +55,24 @@ data, permissions, tests, or real-environment validation.
 Business Rule Closure creates a bindable rule record with a digest so later
 Impact Coverage and Execution Assurance can prove they are working from the
 same business interpretation.
+
+## Binding Into Change Impact Coverage
+
+The `business_rule_ref` in a Business Rule Closure report must point to that
+same report file. Strict checks reject a card whose machine-readable
+`business_rule_ref` points somewhere else.
+
+When Change Impact Coverage receives `--business-rule-ref`, it can carry the
+referenced rule's `business_rule_digest` and `business_rule_state` into its own
+machine-readable evidence. For rule-heavy tasks, strict review should require:
+
+```bash
+node scripts/check-change-impact-coverage.mjs <project> \
+  --report <change-impact-report> \
+  --require-structured-evidence \
+  --require-business-rule-ref \
+  --require-business-rule-ready
+```
+
+This proves the impact map consumed a `READY_FOR_IMPACT_COVERAGE` Business Rule
+Closure. It still does not authorize implementation or release.

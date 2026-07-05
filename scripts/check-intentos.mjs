@@ -7439,7 +7439,7 @@ function checkBusinessRuleClosureProtocol() {
     "scripts/check-business-rule-closure.mjs",
     "examples/1.75-business-rule-closure/README.md",
     "examples/1.75-business-rule-closure/appointment-service-time/README.md",
-    "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-service-time.md",
+    "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-requests-must-include-a-service-time.md",
     "test-fixtures/bad/bad-business-rule-authorizes-implementation/business-rule-closures/001-bad.md",
     "test-fixtures/bad/bad-business-rule-codex-approves-tax-decision/business-rule-closures/001-bad.md",
     "test-fixtures/bad/bad-business-rule-cross-platform-single-surface/business-rule-closures/001-bad.md",
@@ -7459,6 +7459,9 @@ function checkBusinessRuleClosureProtocol() {
     "releases/1.75.0/release-record.md",
     "releases/1.75.0/known-limitations.md",
     "releases/1.75.0/self-check-report.md",
+    "releases/1.75.1/release-record.md",
+    "releases/1.75.1/known-limitations.md",
+    "releases/1.75.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.75 business rule closure asset exists ${file}`);
@@ -7474,8 +7477,10 @@ function checkBusinessRuleClosureProtocol() {
     read("schemas/artifacts/business-rule-closure.schema.json"),
     read("scripts/resolve-business-rule-closure.mjs"),
     read("scripts/check-business-rule-closure.mjs"),
+    read("scripts/check-change-impact-coverage.mjs"),
     read("docs/plans/business-rule-closure-1.75-plan.md"),
     read("releases/1.75.0/release-record.md"),
+    read("releases/1.75.1/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -7486,6 +7491,8 @@ function checkBusinessRuleClosureProtocol() {
     "business_rule_digest",
     "closure_digest",
     "business_rule_ref",
+    "business_rule_digest",
+    "business_rule_state",
     "source_request_digest",
     "safe defaults",
     "limited user questions",
@@ -7495,6 +7502,7 @@ function checkBusinessRuleClosureProtocol() {
     "This closure approves release or production: No",
     "contract, tax, finance, HR, legal",
     "generic task-communication layer",
+    "require-business-rule-ready",
   ]) {
     if (combined.includes(marker)) pass(`1.75 business rule closure includes ${marker}`);
     else fail(`1.75 business rule closure missing ${marker}`);
@@ -7553,27 +7561,69 @@ function checkBusinessRuleClosureProtocol() {
 
   const impactWithBusinessRule = runNode([
     "scripts/resolve-change-impact-coverage.mjs",
-    "examples/mvp-booking-web-app",
+    "examples/1.75-business-rule-closure/appointment-service-time",
     "--intent",
     "appointment requests must include a service time",
     "--business-rule-ref",
-    "artifact:business-rule-closures/001-appointment-service-time.md",
+    "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md",
     "--json",
   ]);
   if (impactWithBusinessRule.status === 0) {
     try {
       const parsed = JSON.parse(impactWithBusinessRule.stdout);
-      if (parsed.businessRuleRef === "artifact:business-rule-closures/001-appointment-service-time.md"
-        && parsed.machineReadableEvidence?.business_rule_ref === "artifact:business-rule-closures/001-appointment-service-time.md") {
-        pass("1.75 business rule ref carries into change impact coverage");
+      if (parsed.businessRuleRef === "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md"
+        && parsed.businessRuleDigest === "sha256:572b9f64afe07d801c4f7484fb1fdd5b9edef51864a0dee0e170fa70c8e7e9ee"
+        && parsed.businessRuleState === "READY_FOR_IMPACT_COVERAGE"
+        && parsed.machineReadableEvidence?.business_rule_ref === "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md"
+        && parsed.machineReadableEvidence?.business_rule_digest === "sha256:572b9f64afe07d801c4f7484fb1fdd5b9edef51864a0dee0e170fa70c8e7e9ee"
+        && parsed.machineReadableEvidence?.business_rule_state === "READY_FOR_IMPACT_COVERAGE") {
+        pass("1.75 business rule ref, digest, and state carry into change impact coverage");
       } else {
-        fail(`1.75 business rule ref missing from change impact coverage: ${impactWithBusinessRule.stdout}`);
+        fail(`1.75 business rule binding missing from change impact coverage: ${impactWithBusinessRule.stdout}`);
       }
     } catch (error) {
       fail(`1.75 business-rule-linked impact coverage JSON invalid: ${error.message}`);
     }
   } else {
     fail(`1.75 business-rule-linked impact coverage failed: ${impactWithBusinessRule.stderr || impactWithBusinessRule.stdout}`);
+  }
+
+  const bindingRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-business-rule-binding-"));
+  fs.mkdirSync(path.join(bindingRoot, "business-rule-closures"), { recursive: true });
+  fs.mkdirSync(path.join(bindingRoot, "change-impact-coverage-reports"), { recursive: true });
+  fs.copyFileSync(
+    path.join(kitRoot, "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-requests-must-include-a-service-time.md"),
+    path.join(bindingRoot, "business-rule-closures/001-appointment-requests-must-include-a-service-time.md"),
+  );
+  const generatedImpact = runNode([
+    "scripts/resolve-change-impact-coverage.mjs",
+    bindingRoot,
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md",
+  ]);
+  if (generatedImpact.status !== 0) {
+    fail(`1.75 business-rule-linked impact coverage report generation failed: ${generatedImpact.stderr || generatedImpact.stdout}`);
+  } else {
+    fs.writeFileSync(path.join(bindingRoot, "change-impact-coverage-reports/001-appointment-service-time.md"), generatedImpact.stdout);
+    const strictImpact = runNode([
+      "scripts/check-change-impact-coverage.mjs",
+      bindingRoot,
+      "--report",
+      "change-impact-coverage-reports/001-appointment-service-time.md",
+      "--require-structured-evidence",
+      "--require-business-rule-ref",
+      "--require-business-rule-ready",
+    ]);
+    if (strictImpact.status === 0
+      && strictImpact.stdout.includes("business_rule_ref resolves")
+      && strictImpact.stdout.includes("business_rule_digest matches referenced Business Rule Closure")
+      && strictImpact.stdout.includes("referenced Business Rule Closure is READY_FOR_IMPACT_COVERAGE")) {
+      pass("1.75 business-rule-linked Change Impact Coverage passes strict ready binding");
+    } else {
+      fail(`1.75 business-rule-linked Change Impact Coverage strict ready binding failed: ${strictImpact.stderr || strictImpact.stdout}`);
+    }
   }
 
   const badFixtures = [

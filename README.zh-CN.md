@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.75.0`。
+当前版本：`1.75.1`。
 
-发布记录：[releases/1.75.0/release-record.md](releases/1.75.0/release-record.md)。
+发布记录：[releases/1.75.1/release-record.md](releases/1.75.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.75.1 加严 Business Rule Closure 绑定：规则闭合报告必须自引用当前报告；Change Impact Coverage 严格模式可以校验 `business_rule_ref` 是否指向 READY 的业务规则闭合报告，并匹配 digest 和 state。
 
 1.75.0 新增 Business Rule Closure：在 Codex 把用户需求转成实现前，先由 AI 归纳业务规则、补齐角色、触发条件、成功/失败路径、默认处理、待确认问题和真实环境验证期待，再把闭环结果接到 Change Impact Coverage。它是通用需求沟通层，不是合同、税务、财务、人资或法务业务模板；这些词只作为示例或风险信号。
 

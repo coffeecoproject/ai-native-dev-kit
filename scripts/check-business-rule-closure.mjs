@@ -267,6 +267,7 @@ function checkReport(file) {
   const summary = checkSummary(content, label);
   const evidence = checkStructuredEvidence(content, label);
   checkMarkdownJsonConsistency(content, label, summary, evidence);
+  checkSelfReference(file, label, evidence);
   checkStateRules(content, label, summary, evidence);
 }
 
@@ -355,6 +356,16 @@ function checkMarkdownJsonConsistency(content, label, summary, evidence) {
     if (!value) continue;
     if (value !== evidence[key]) fail(`${label} Rule Identity ${field} ${value} does not match structured evidence ${evidence[key]}`);
     else pass(`${label} Rule Identity ${field} matches structured evidence`);
+  }
+}
+
+function checkSelfReference(file, label, evidence) {
+  if (!evidence?.business_rule_ref) return;
+  const allowed = businessRuleRefCandidates(file);
+  if (allowed.includes(evidence.business_rule_ref)) {
+    pass(`${label} business_rule_ref points to this report`);
+  } else {
+    fail(`${label} business_rule_ref ${evidence.business_rule_ref} must point to this report (${allowed.join(" or ")})`);
   }
 }
 
@@ -533,6 +544,13 @@ function displayAsset(relativePath, resolved) {
 function rel(file) {
   const relative = path.relative(projectRoot, file);
   return relative && !relative.startsWith("..") ? relative.replaceAll(path.sep, "/") : file;
+}
+
+function businessRuleRefCandidates(file) {
+  const relative = rel(file);
+  const candidates = [`artifact:${relative}`];
+  if (relative.startsWith(".intentos/")) candidates.push(`artifact:${relative.slice(".intentos/".length)}`);
+  return candidates;
 }
 
 function pass(message) {

@@ -33,6 +33,8 @@
       }
     },
     "business_rule_ref": { "type": "string" },
+    "business_rule_digest": { "type": "string" },
+    "business_rule_state": { "type": "string" },
     "change_type": {
       "type": "object",
       "required": ["primary_type", "risk_level", "reason"],

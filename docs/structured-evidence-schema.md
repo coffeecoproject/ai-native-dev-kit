@@ -32,6 +32,18 @@ contract, tax, finance, HR, legal, payment, privacy, compliance, migration,
 production, and customer-data wording is treated as a risk signal or example,
 not as the default business domain.
 
+1.75.1 tightens the binding between Business Rule Closure and Change Impact
+Coverage:
+
+- Business Rule Closure reports must self-reference the current report through
+  `business_rule_ref`.
+- Change Impact Coverage evidence can carry `business_rule_digest` and
+  `business_rule_state` alongside `business_rule_ref`.
+- `check-change-impact-coverage --require-business-rule-ref
+  --require-business-rule-ready` verifies that the referenced Business Rule
+  Closure resolves, is `READY_FOR_IMPACT_COVERAGE`, and matches the recorded
+  digest and state.
+
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
 - `--resolve-evidence-refs` requires `DONE` evidence references to resolve

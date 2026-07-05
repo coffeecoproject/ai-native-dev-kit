@@ -4,12 +4,29 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { loadSchema, resolveEvidenceReference, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import {
+  evidenceDigest,
+  extractMachineReadableEvidence,
+  loadSchema,
+  resolveEvidenceReference,
+  validateEvidenceBlock,
+  validateSchema,
+} from "./lib/artifact-schema.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "mode", "report", "require-structured-evidence", "strict-evidence", "resolve-evidence-refs", "require-precise-evidence"]);
+const knownFlags = new Set([
+  "json",
+  "mode",
+  "report",
+  "require-structured-evidence",
+  "strict-evidence",
+  "resolve-evidence-refs",
+  "require-precise-evidence",
+  "require-business-rule-ref",
+  "require-business-rule-ready",
+]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
@@ -18,8 +35,11 @@ const requestedReport = args.report ? String(args.report).trim() : "";
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const strictEvidence = Boolean(args["strict-evidence"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
+const requireBusinessRuleRef = Boolean(args["require-business-rule-ref"] || args["require-business-rule-ready"]);
+const requireBusinessRuleReady = Boolean(args["require-business-rule-ready"]);
 const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"] || requirePreciseEvidence);
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
+const businessRuleClosureSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -434,7 +454,160 @@ function checkMachineReadableEvidence(content, label, markdown) {
     }
   }
 
+  checkBusinessRuleBinding(label, markdown.file, evidence);
   return evidence;
+}
+
+function checkBusinessRuleBinding(label, reportFile, evidence) {
+  const ref = normalizeOptionalRef(evidence.business_rule_ref);
+  if (!ref) {
+    if (requireBusinessRuleRef || requireBusinessRuleReady) {
+      fail(`${label} business_rule_ref is required`);
+    } else {
+      pass(`${label} business_rule_ref optional and not provided`);
+    }
+    return;
+  }
+
+  const resolved = resolveBusinessRuleReport(reportFile, ref);
+  if (!resolved) {
+    fail(`${label} business_rule_ref is not resolvable: ${ref}`);
+    return;
+  }
+  pass(`${label} business_rule_ref resolves: ${ref}`);
+
+  const content = fs.readFileSync(resolved, "utf8");
+  const extracted = extractMachineReadableEvidence(content);
+  if (!extracted) {
+    fail(`${label} business_rule_ref ${ref} missing Machine-Readable Evidence`);
+    return;
+  }
+  if (!extracted.ok) {
+    for (const error of extracted.errors) fail(`${label} business_rule_ref ${ref}: ${error}`);
+    return;
+  }
+
+  const businessRule = extracted.value;
+  if (!businessRuleClosureSchema) {
+    fail(`${label} business rule closure schema is missing`);
+  } else {
+    const validation = validateSchema(businessRule, businessRuleClosureSchema, { label: `${label} business_rule_ref ${ref}` });
+    if (validation.ok) pass(`${label} business_rule_ref has valid Business Rule Closure structured evidence`);
+    else for (const error of validation.errors) fail(error);
+  }
+
+  const allowedRefs = businessRuleRefCandidates(resolved);
+  if (allowedRefs.includes(businessRule.business_rule_ref)) {
+    pass(`${label} referenced Business Rule Closure self-ref matches its report`);
+  } else {
+    fail(`${label} referenced Business Rule Closure self-ref ${businessRule.business_rule_ref || "<missing>"} must point to ${allowedRefs.join(" or ")}`);
+  }
+
+  if (businessRule.business_rule_ref === ref) pass(`${label} business_rule_ref matches referenced Business Rule Closure ref`);
+  else fail(`${label} business_rule_ref ${ref} must match referenced Business Rule Closure ref ${businessRule.business_rule_ref || "<missing>"}`);
+
+  const expectedDigest = evidenceDigest(businessRuleModelFrom(businessRule), []);
+  if (businessRule.business_rule_digest === expectedDigest) {
+    pass(`${label} referenced Business Rule Closure digest is internally valid`);
+  } else {
+    fail(`${label} referenced Business Rule Closure business_rule_digest does not match normalized business rule`);
+  }
+
+  if (normalizeOptionalRef(evidence.business_rule_digest)) {
+    if (evidence.business_rule_digest === businessRule.business_rule_digest) {
+      pass(`${label} business_rule_digest matches referenced Business Rule Closure`);
+    } else {
+      fail(`${label} business_rule_digest ${evidence.business_rule_digest} must match referenced Business Rule Closure ${businessRule.business_rule_digest || "<missing>"}`);
+    }
+  } else if (requireBusinessRuleReady) {
+    fail(`${label} business_rule_digest is required when --require-business-rule-ready is used`);
+  } else {
+    pass(`${label} business_rule_digest optional and not provided`);
+  }
+
+  if (normalizeOptionalRef(evidence.business_rule_state)) {
+    if (evidence.business_rule_state === businessRule.state) {
+      pass(`${label} business_rule_state matches referenced Business Rule Closure`);
+    } else {
+      fail(`${label} business_rule_state ${evidence.business_rule_state} must match referenced Business Rule Closure ${businessRule.state || "<missing>"}`);
+    }
+  } else if (requireBusinessRuleReady) {
+    fail(`${label} business_rule_state is required when --require-business-rule-ready is used`);
+  } else {
+    pass(`${label} business_rule_state optional and not provided`);
+  }
+
+  if (requireBusinessRuleReady) {
+    if (businessRule.state === "READY_FOR_IMPACT_COVERAGE") pass(`${label} referenced Business Rule Closure is READY_FOR_IMPACT_COVERAGE`);
+    else fail(`${label} referenced Business Rule Closure must be READY_FOR_IMPACT_COVERAGE, got ${businessRule.state || "<missing>"}`);
+
+    if (businessRule.can_enter_impact_coverage === "Yes") pass(`${label} referenced Business Rule Closure can enter impact coverage`);
+    else fail(`${label} referenced Business Rule Closure can_enter_impact_coverage must be Yes`);
+
+    const boundaries = businessRule.boundaries || {};
+    for (const field of [
+      "writes_target_files",
+      "authorizes_implementation",
+      "approves_release_or_production",
+      "approves_high_risk_domain_decisions",
+      "proves_real_environment_behavior",
+    ]) {
+      if (boundaries[field] === "No") pass(`${label} referenced Business Rule Closure boundary ${field}: No`);
+      else fail(`${label} referenced Business Rule Closure boundary ${field} must be No`);
+    }
+  }
+}
+
+function normalizeOptionalRef(value) {
+  const text = String(value || "").trim();
+  if (!text || /^not provided$/i.test(text)) return "";
+  return text;
+}
+
+function resolveBusinessRuleReport(reportFile, ref) {
+  const match = String(ref || "").trim().match(/^artifact:(.+)$/i);
+  if (!match) return null;
+  const relativeRef = match[1].trim();
+  if (!relativeRef || path.isAbsolute(relativeRef)) return null;
+  const candidates = [
+    path.resolve(projectRoot, relativeRef),
+    path.resolve(path.dirname(reportFile), relativeRef),
+  ];
+  if (!relativeRef.startsWith(".intentos/")) {
+    candidates.push(path.resolve(projectRoot, ".intentos", relativeRef));
+  }
+  for (const candidate of candidates) {
+    const relative = path.relative(projectRoot, candidate);
+    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile() && /\.md$/i.test(candidate)) return candidate;
+  }
+  return null;
+}
+
+function businessRuleRefCandidates(file) {
+  const relative = rel(file);
+  const candidates = [`artifact:${relative}`];
+  if (relative.startsWith(".intentos/")) candidates.push(`artifact:${relative.slice(".intentos/".length)}`);
+  return candidates;
+}
+
+function businessRuleModelFrom(evidence) {
+  return {
+    task_ref: evidence.task_ref,
+    user_request: evidence.user_request,
+    primary_business_rule_type: evidence.primary_business_rule_type,
+    business_rule_types: evidence.business_rule_types,
+    risk_domains: evidence.risk_domains,
+    dimensions: evidence.dimensions,
+    decision_items: evidence.decision_items,
+    safe_defaults: evidence.safe_defaults,
+    out_of_scope: evidence.out_of_scope,
+    source_rule_refs: evidence.source_rule_refs,
+    conflicts: evidence.conflicts,
+    unknown_authority_items: evidence.unknown_authority_items,
+    real_environment_validation: evidence.real_environment_validation,
+    state: evidence.state,
+  };
 }
 
 function compareStructuredRows(label, name, structuredRows = [], markdownRows = []) {

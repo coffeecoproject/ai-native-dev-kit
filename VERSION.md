@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.75.0`
+Current version: `1.75.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.75.0`
 
 ## Current Release
 
-`1.75.0`
+`1.75.1`
 
 Includes:
+
+- Business Rule Closure Binding patch `1.75.1`: Business Rule Closure reports
+  now validate that `business_rule_ref` points to the current report, and
+  Change Impact Coverage strict mode can require a resolvable READY Business
+  Rule Closure with matching `business_rule_digest` and `business_rule_state`.
+- `1.75.1` keeps 1.75.0 artifact schemas compatible by adding optional
+  Change Impact Coverage business-rule binding fields; existing reports remain
+  valid unless `--require-business-rule-ref` or `--require-business-rule-ready`
+  is explicitly used.
 
 - Business Rule Closure phase `1.75.0`: before Codex turns a user request into
   implementation work, it produces a read-only Business Rule Closure Card that

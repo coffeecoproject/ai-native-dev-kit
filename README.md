@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.75.0`.
+Current release: `1.75.1`.
 
-Release record: [releases/1.75.0/release-record.md](releases/1.75.0/release-record.md).
+Release record: [releases/1.75.1/release-record.md](releases/1.75.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.75.1 tightens Business Rule Closure binding: a closure report must self-reference the current report, and Change Impact Coverage strict mode can verify that `business_rule_ref` resolves to a READY Business Rule Closure with matching digest and state.
 
 1.75.0 adds Business Rule Closure: before Codex turns a user request into implementation, it summarizes the business rule, closes required dimensions, applies safe defaults, asks only the few decisions that matter, and links the closed rule into Change Impact Coverage. This is a generic task-communication layer; contract, tax, finance, HR, or legal wording is only an example or risk signal, not the default business domain.
 

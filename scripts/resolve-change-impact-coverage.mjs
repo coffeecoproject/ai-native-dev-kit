@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import {
   defaultIgnoredDirs,
@@ -76,6 +76,7 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
   const surfaces = affectedSurfaces(signals, risk);
   const questions = questionsFor(signals, risk);
   const outcome = risk.high && highRiskNeedsDecision(surfaces) ? "NEEDS_HUMAN_DECISION" : "CHANGE_IMPACT_RECORDED";
+  const businessRule = resolveBusinessRuleClosure(root, linkedBusinessRuleRef);
 
   return {
     reportType: "CHANGE_IMPACT_COVERAGE_REPORT",
@@ -86,6 +87,8 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
     mode: requestedMode,
     intent: userIntent || "Not provided",
     businessRuleRef: linkedBusinessRuleRef || "Not provided",
+    businessRuleDigest: businessRule.evidence?.business_rule_digest || "Not provided",
+    businessRuleState: businessRule.evidence?.state || "Not provided",
     changedFiles: explicitChangedFiles,
     humanSummary: summaryFor(changeType, surfaces, risk),
     changeType: {
@@ -132,11 +135,12 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
       questions,
       outcome,
       businessRuleRef: linkedBusinessRuleRef,
+      businessRule,
     }),
   };
 }
 
-function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome, businessRuleRef }) {
+function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome, businessRuleRef, businessRule }) {
   const evidence = {
     schema_version: "1.49.0",
     artifact_type: "change_impact_coverage",
@@ -149,6 +153,8 @@ function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeT
       project_profile: "inferred from project signals",
     },
     business_rule_ref: businessRuleRef || "not provided",
+    business_rule_digest: businessRule?.evidence?.business_rule_digest || "not provided",
+    business_rule_state: businessRule?.evidence?.state || "not provided",
     change_type: {
       primary_type: changeType,
       risk_level: risk.high ? "high" : "low",
@@ -334,6 +340,8 @@ function printHuman(report) {
   console.log("- Task ref: not provided");
   console.log("- Project/profile: inferred from project signals");
   console.log(`- Business rule closure ref: ${report.businessRuleRef}`);
+  console.log(`- Business rule digest: ${report.businessRuleDigest}`);
+  console.log(`- Business rule state: ${report.businessRuleState}`);
   console.log("");
   console.log("## Change Type");
   console.log("");
@@ -430,6 +438,27 @@ function readGitChangedFiles(root, options = {}) {
     process.exit(1);
   }
   return result.stdout.split("\n").map((line) => line.trim()).filter(Boolean);
+}
+
+function resolveBusinessRuleClosure(root, ref) {
+  const match = String(ref || "").trim().match(/^artifact:(.+)$/i);
+  if (!match) return { file: "", evidence: null };
+  const relativeRef = match[1].trim();
+  if (!relativeRef || path.isAbsolute(relativeRef)) return { file: "", evidence: null };
+  const candidates = [
+    path.resolve(root, relativeRef),
+    path.resolve(root, ".intentos", relativeRef),
+  ];
+  for (const candidate of candidates) {
+    const relative = path.relative(root, candidate);
+    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
+    if (!fs.existsSync(candidate) || !fs.statSync(candidate).isFile()) continue;
+    const content = fs.readFileSync(candidate, "utf8");
+    const extracted = extractMachineReadableEvidence(content);
+    if (!extracted?.ok) return { file: candidate, evidence: null };
+    return { file: candidate, evidence: extracted.value };
+  }
+  return { file: "", evidence: null };
 }
 
 function unique(values) {
