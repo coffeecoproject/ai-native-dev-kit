@@ -25,11 +25,21 @@ Generate a read-only view:
 node scripts/cli.mjs execution-assurance . --intent "add contract number validation"
 ```
 
+Save a task-bound report when Codex wants to later claim completion:
+
+```bash
+node scripts/cli.mjs execution-assurance . \
+  --intent "add contract number validation" \
+  --out execution-assurance-reports/001-contract-number.md
+```
+
 Check recorded reports:
 
 ```bash
 node scripts/cli.mjs execution-assurance-check .
 ```
+
+If no recorded report exists, the checker fails by default. Maintainers may use `--allow-empty` only for asset-only checks, not as proof that execution work is done.
 
 For strict evidence:
 

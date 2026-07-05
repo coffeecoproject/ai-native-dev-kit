@@ -14,6 +14,7 @@ const knownFlags = new Set([
   "require-review",
   "require-actual-diff",
   "require-precise-evidence",
+  "allow-empty",
   "report",
   "mode",
 ]);
@@ -25,6 +26,7 @@ const requireEvidenceRefs = Boolean(args["require-evidence-refs"]);
 const requireReview = Boolean(args["require-review"]);
 const requireActualDiff = Boolean(args["require-actual-diff"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
+const allowEmptyReports = Boolean(args["allow-empty"]);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "dev-kit-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -176,7 +178,11 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("execution-assurance-reports");
   if (files.length === 0) {
-    pass("execution assurance check skipped: no reports");
+    if (allowEmptyReports) {
+      pass("execution assurance check skipped by explicit --allow-empty: no reports");
+    } else {
+      fail("no execution assurance reports found; run `execution-assurance --out <relative-report-path>` or pass `--allow-empty` only for asset-only checks");
+    }
     return;
   }
   for (const file of files) {

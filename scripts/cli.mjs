@@ -164,19 +164,19 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultTarget(args),
   },
   "execution-assurance-check": {
-    description: "Check recorded Execution Assurance reports for completion contract, actual diff, evidence, review, and patch boundaries.",
+    description: "Check recorded Execution Assurance reports; fails if no report exists unless --allow-empty is explicit.",
     script: "scripts/check-execution-assurance.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
   "done-check": {
-    description: "Plain alias for checking recorded Execution Assurance reports.",
+    description: "Plain alias for checking recorded Execution Assurance reports; fails if no report exists.",
     script: "scripts/check-execution-assurance.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
   "verify-execution": {
-    description: "Plain alias for checking whether execution-class work has a valid assurance chain.",
+    description: "Plain alias for checking whether execution-class work has a valid recorded assurance chain.",
     script: "scripts/check-execution-assurance.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
@@ -705,7 +705,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs doctor ../my-project");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
-  console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制'");
+  console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制' --out execution-assurance-reports/001-contract-limit.md");
   console.log("  node scripts/cli.mjs execution-assurance-check ../my-project --require-structured-evidence");
   console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");
   console.log("  node scripts/cli.mjs apply-plan ../my-project --intent '接入 IntentOS 工作流' --action workflow-assets");

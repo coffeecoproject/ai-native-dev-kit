@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.72.0`
+Current version: `1.72.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,13 @@ Current version: `1.72.0`
 
 ## Current Release
 
-`1.72.0`
+`1.72.1`
 
 Includes:
+
+- Execution Assurance empty-report hardening patch `1.72.1`: `execution-assurance-check`, `done-check`, and `verify-execution` now fail when no recorded Execution Assurance Report exists.
+- `1.72.1` adds explicit `--allow-empty` only for asset-only maintenance checks, and keeps completion claims bound to saved reports generated with `--out`.
+- `1.72.1` keeps the public first-step README focused on `start` / `next` / `doctor` so ordinary users do not need to choose internal proof-chain commands.
 
 - Execution Assurance Chain phase `1.72.0`: adds `execution-assurance` / `execution-assurance-check` so execution-class work cannot be claimed complete without a task-bound proof chain.
 - `1.72.0` binds user intent, completion contract, planned impact, execution plan, actual diff, evidence refs, independent review, patch classification, source-system trace, and closure decision into one report.

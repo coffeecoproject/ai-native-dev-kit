@@ -4,9 +4,9 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.72.0`.
+Current release: `1.72.1`.
 
-Release record: [releases/1.72.0/release-record.md](releases/1.72.0/release-record.md).
+Release record: [releases/1.72.1/release-record.md](releases/1.72.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -28,9 +28,6 @@ When command evidence is useful, use only these first:
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
-node scripts/cli.mjs execution-assurance <project> --intent "<completed work>"
-node scripts/cli.mjs execution-assurance-check <project>
-node scripts/check-execution-assurance.mjs <project> --require-structured-evidence
 ```
 
 Those commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
@@ -44,6 +41,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
+
+1.72.1 hardens Execution Assurance: completion checks now fail when no recorded Execution Assurance Report exists, unless maintainers explicitly pass `--allow-empty` for asset-only checks. The public first-step README no longer asks users to choose internal proof-chain commands.
 
 1.72.0 adds Execution Assurance Chain: before Codex claims execution-class work is complete, it must bind the user intent, completion contract, planned impact, actual diff, evidence, review result, and patch classification into one checkable report.
 
@@ -409,6 +408,7 @@ Reference:
 
 Current release:
 
+- [1.72.1 Release Record](releases/1.72.1/release-record.md)
 - [1.72.0 Release Record](releases/1.72.0/release-record.md)
 - [1.71.3 Release Record](releases/1.71.3/release-record.md)
 - [1.71.2 Release Record](releases/1.71.2/release-record.md)

@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.72.0`
+`1.72.1`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.72.1` hardens Execution Assurance completion checks: no recorded report means no pass by default; `--allow-empty` is explicit and only for asset-only maintenance checks.
+- `1.72.1` keeps public entry light by moving proof-chain commands out of the first-step README command list.
 - `1.72.0` adds Execution Assurance Chain: execution-class work cannot be claimed complete until intent, completion contract, impact, actual diff, evidence, review, patch assessment, and source-system trace are bound into a checkable report.
 - `1.72.0` keeps assurance non-authorizing: it does not write target files, approve implementation beyond recorded scope, approve commit or push, approve release or production, mutate CI/hooks, touch secrets, run migrations, call providers, or transfer project authority.
 - `1.71.3` closes Adoption Execution Assurance evidence: generated assurance/convergence reports can be saved with explicit `--out`, surface evidence must be listed in `evidence_refs`, and unknown evidence prefixes fail strict checks.

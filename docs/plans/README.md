@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Execution Assurance Empty-Report Hardening 1.72.1](execution-assurance-empty-report-hardening-1.72.1-plan.md)
 - [Execution Assurance Chain 1.72](execution-assurance-chain-1.72-plan.md)
 - [Adoption Execution Assurance 1.71](adoption-execution-assurance-1.71-plan.md)
 - [Existing Project Governance Convergence 1.70](existing-project-governance-convergence-1.70-plan.md)

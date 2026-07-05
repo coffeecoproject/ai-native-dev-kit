@@ -5566,6 +5566,7 @@ function checkExecutionAssuranceChainProtocol() {
     "bad-execution-assurance-release-overclaim",
   ];
   const required = [
+    "docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md",
     "docs/plans/execution-assurance-chain-1.72-plan.md",
     "core/execution-assurance-chain.md",
     "docs/execution-assurance-chain.md",
@@ -5584,6 +5585,9 @@ function checkExecutionAssuranceChainProtocol() {
     "releases/1.72.0/release-record.md",
     "releases/1.72.0/known-limitations.md",
     "releases/1.72.0/self-check-report.md",
+    "releases/1.72.1/release-record.md",
+    "releases/1.72.1/known-limitations.md",
+    "releases/1.72.1/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/execution-assurance-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5592,6 +5596,7 @@ function checkExecutionAssuranceChainProtocol() {
   }
 
   const combined = [
+    read("docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md"),
     read("docs/plans/execution-assurance-chain-1.72-plan.md"),
     read("core/execution-assurance-chain.md"),
     read("docs/execution-assurance-chain.md"),
@@ -5600,6 +5605,7 @@ function checkExecutionAssuranceChainProtocol() {
     read("scripts/resolve-execution-assurance.mjs"),
     read("scripts/check-execution-assurance.mjs"),
     read("releases/1.72.0/release-record.md"),
+    read("releases/1.72.1/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -5621,6 +5627,8 @@ function checkExecutionAssuranceChainProtocol() {
     "patch_assessment",
     "source_systems",
     "No evidence chain, no verified completion",
+    "no execution assurance reports found",
+    "--allow-empty",
     "does not write target-project files",
     "does not approve commit or push",
     "does not approve release or production",
@@ -5638,7 +5646,7 @@ function checkExecutionAssuranceChainProtocol() {
     "node --check scripts/resolve-execution-assurance.mjs",
     "node --check scripts/check-execution-assurance.mjs",
     "node scripts/cli.mjs execution-assurance . --intent \"verify execution completion\"",
-    "node scripts/cli.mjs execution-assurance-check .",
+    "node scripts/cli.mjs execution-assurance-check . --allow-empty",
     "node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/feature-contract-validation --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence",
   ]) {
     if (verifySurface.includes(marker)) pass(`1.72 package verify surface includes ${marker}`);
@@ -5681,11 +5689,19 @@ function checkExecutionAssuranceChainProtocol() {
     fail(`1.72 execution assurance resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
   }
 
-  const source = runNode(["scripts/check-execution-assurance.mjs", "."]);
+  const source = runNode(["scripts/check-execution-assurance.mjs", ".", "--allow-empty"]);
   if (source.status === 0 && source.stdout.includes("Execution assurance check passed")) {
-    pass("1.72 execution assurance checker passes source repo");
+    pass("1.72 execution assurance checker allows explicit source asset check without reports");
   } else {
     fail(`1.72 execution assurance checker failed: ${source.stderr || source.stdout}`);
+  }
+
+  const emptyReportTarget = fs.mkdtempSync(path.join(os.tmpdir(), "execution-assurance-empty-"));
+  const emptyReportCheck = runNode(["scripts/check-execution-assurance.mjs", emptyReportTarget]);
+  if (emptyReportCheck.status !== 0 && /no execution assurance reports found/.test(emptyReportCheck.stderr || emptyReportCheck.stdout)) {
+    pass("1.72.1 execution assurance rejects no-report completion checks by default");
+  } else {
+    fail(`1.72.1 execution assurance must reject no-report checks: ${emptyReportCheck.stderr || emptyReportCheck.stdout}`);
   }
 
   const explicitReportDir = fs.mkdtempSync(path.join(os.tmpdir(), "execution-assurance-target-"));
@@ -5722,7 +5738,7 @@ function checkExecutionAssuranceChainProtocol() {
   }
 
   for (const commandName of ["execution-assurance-check", "done-check", "verify-execution"]) {
-    const cliChecker = runNode(["scripts/cli.mjs", commandName, "."]);
+    const cliChecker = runNode(["scripts/cli.mjs", commandName, "examples/1.72-execution-assurance-chain/feature-contract-validation"]);
     if (cliChecker.status === 0 && cliChecker.stdout.includes("Execution assurance check passed")) {
       pass(`CLI ${commandName} delegates to checker`);
     } else {
@@ -9997,7 +10013,6 @@ function checkReadmePointers() {
     "node scripts/cli.mjs workflow-map",
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
-    "node scripts/cli.mjs execution-assurance",
     "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs release-adapter",
     "node scripts/cli.mjs release-guide",
@@ -10019,7 +10034,6 @@ function checkReadmePointers() {
     "node scripts/check-workflow-guidance.mjs",
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
-    "node scripts/check-execution-assurance.mjs",
     "node scripts/check-release-adapter.mjs",
     "node scripts/check-release-guide.mjs",
     "node scripts/check-platform-release-recipe.mjs",
@@ -10120,7 +10134,6 @@ function checkReadmePointers() {
     "node scripts/cli.mjs workflow-map",
     "node scripts/cli.mjs impact-coverage",
     "node scripts/cli.mjs finish",
-    "node scripts/cli.mjs execution-assurance",
     "node scripts/cli.mjs launch-view",
     "node scripts/cli.mjs release-adapter",
     "node scripts/cli.mjs release-guide",
@@ -10137,7 +10150,6 @@ function checkReadmePointers() {
     "node scripts/check-conversation-native-ask.mjs",
     "node scripts/check-closure-decision.mjs",
     "node scripts/check-guided-closure.mjs",
-    "node scripts/check-execution-assurance.mjs",
     "node scripts/check-launch-review-view.mjs",
     "node scripts/check-release-adapter.mjs",
     "node scripts/check-release-guide.mjs",

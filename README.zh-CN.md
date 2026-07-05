@@ -4,9 +4,9 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.72.0`。
+当前版本：`1.72.1`。
 
-发布记录：[releases/1.72.0/release-record.md](releases/1.72.0/release-record.md)。
+发布记录：[releases/1.72.1/release-record.md](releases/1.72.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -28,9 +28,6 @@ IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
-node scripts/cli.mjs execution-assurance <project> --intent "<已完成的工作>"
-node scripts/cli.mjs execution-assurance-check <project>
-node scripts/check-execution-assurance.mjs <project> --require-structured-evidence
 ```
 
 这些命令都是只读入口，不批准实现、发布、生产、CI、hook、密钥、迁移、支付、权限或治理替换。
@@ -44,6 +41,8 @@ node scripts/check-execution-assurance.mjs <project> --require-structured-eviden
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 和 `ai-native-dev-kit` 继续作为兼容别名保留。
+
+1.72.1 加严 Execution Assurance：没有已记录的 Execution Assurance Report 时，完成校验会失败；只有维护者明确传入 `--allow-empty` 做资产级检查时才允许跳过。README 首屏也不再要求普通用户选择内部证明链命令。
 
 1.72.0 新增 Execution Assurance Chain：所有执行类工作在 Codex 说“完成”前，都必须把用户意图、完成标准、影响面、实际改动、证据、复审结果和补丁判断串成一条可检查的证明链。
 
@@ -407,6 +406,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.72.1 Release Record](releases/1.72.1/release-record.md)
 - [1.72.0 Release Record](releases/1.72.0/release-record.md)
 - [1.71.3 Release Record](releases/1.71.3/release-record.md)
 - [1.71.2 Release Record](releases/1.71.2/release-record.md)
