@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.71.0`
+Current version: `1.71.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,15 @@ Current version: `1.71.0`
 
 ## Current Release
 
-`1.71.0`
+`1.71.2`
 
 Includes:
+
+- Adoption Assurance Evidence Precision patch `1.71.2`: simulation steps now include exit code, read-only marker, target write marker, target diff status, output digest, and outcome; `SIMULATION_PASSED` requires every step to pass with no target diff change.
+- `1.71.2` replaces broad source-status text matching in adoption assurance and governance convergence with typed source adapters, and documents target-installed vs source-only assurance assets.
+
+- Adoption Assurance Evidence Hardening patch `1.71.1`: resolver output now records source systems and an actual read-only simulation step trace; upstream blocked evidence prevents `VERIFIED_ACTIVE`; checker validation cross-checks Markdown and JSON state, surface, simulation, and evidence refs before adoption can be claimed.
+- `1.71.1` separates no-target-writes, placeholder-only apply-chain presence, incomplete apply evidence, and verified apply evidence; production approval, IntentOS production/business ownership, release SOP replacement, CI/hook mutation, and routine AI log claims remain forbidden.
 
 - Adoption Execution Assurance phase `1.71.0`: adds `adoption-assurance` / `adoption-assurance-check` so old-project IntentOS adoption claims are verified from real surfaces, evidence refs, and read-only simulated task behavior.
 - `1.71.0` makes full old-project adoption claimable only as `VERIFIED_ACTIVE`; partial, blocked, missing, or unsupported evidence states must stay plan-first and cannot authorize writes, production, CI/hook mutation, release SOP replacement, or project authority transfer.

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.71.0",
+  "devKitVersion": "1.71.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.71.0"
+    "phase": "1.71.2"
   },
   "groups": {
     "sourceRequired": [
@@ -2187,9 +2187,23 @@
       "test-fixtures/bad/bad-adoption-assurance-stale-diff/adoption-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-adoption-assurance-ai-log-spam/adoption-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-adoption-assurance-empty-na-reason/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-verified-production-approved/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-summary-json-state-mismatch/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-surface-table-json-mismatch/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-source-blocked-verified/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-gitkeep-apply-chain-verified/adoption-assurance-reports/001-bad.md",
       "releases/1.71.0/release-record.md",
       "releases/1.71.0/known-limitations.md",
-      "releases/1.71.0/self-check-report.md"
+      "releases/1.71.0/self-check-report.md",
+      "releases/1.71.1/release-record.md",
+      "releases/1.71.1/known-limitations.md",
+      "releases/1.71.1/self-check-report.md",
+      "releases/1.71.2/release-record.md",
+      "releases/1.71.2/known-limitations.md",
+      "releases/1.71.2/self-check-report.md",
+      "test-fixtures/bad/bad-adoption-assurance-simulation-missing-exit-code/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-simulation-target-diff-changed/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-unresolved-generated-evidence/adoption-assurance-reports/001-bad.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",

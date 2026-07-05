@@ -5303,6 +5303,14 @@ function checkAdoptionExecutionAssuranceProtocol() {
     "bad-adoption-assurance-stale-diff",
     "bad-adoption-assurance-ai-log-spam",
     "bad-adoption-assurance-empty-na-reason",
+    "bad-adoption-assurance-verified-production-approved",
+    "bad-adoption-assurance-summary-json-state-mismatch",
+    "bad-adoption-assurance-surface-table-json-mismatch",
+    "bad-adoption-assurance-source-blocked-verified",
+    "bad-adoption-assurance-gitkeep-apply-chain-verified",
+    "bad-adoption-assurance-simulation-missing-exit-code",
+    "bad-adoption-assurance-simulation-target-diff-changed",
+    "bad-adoption-assurance-unresolved-generated-evidence",
   ];
   const required = [
     "docs/plans/adoption-execution-assurance-1.71-plan.md",
@@ -5323,6 +5331,12 @@ function checkAdoptionExecutionAssuranceProtocol() {
     "releases/1.71.0/release-record.md",
     "releases/1.71.0/known-limitations.md",
     "releases/1.71.0/self-check-report.md",
+    "releases/1.71.1/release-record.md",
+    "releases/1.71.1/known-limitations.md",
+    "releases/1.71.1/self-check-report.md",
+    "releases/1.71.2/release-record.md",
+    "releases/1.71.2/known-limitations.md",
+    "releases/1.71.2/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/adoption-assurance-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5338,7 +5352,7 @@ function checkAdoptionExecutionAssuranceProtocol() {
     read("schemas/artifacts/adoption-assurance.schema.json"),
     read("scripts/resolve-adoption-assurance.mjs"),
     read("scripts/check-adoption-assurance.mjs"),
-    read("releases/1.71.0/release-record.md"),
+    read("releases/1.71.2/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -5348,7 +5362,15 @@ function checkAdoptionExecutionAssuranceProtocol() {
     "VERIFIED_ACTIVE",
     "PARTIAL_ADOPTION",
     "BLOCKED_BY_PROJECT_AUTHORITY",
+    "BLOCKED_BY_UPSTREAM_EVIDENCE",
     "SIMULATION_PASSED",
+    "PRESENT_UNVERIFIED",
+    "source_systems",
+    "steps",
+    "exit_code",
+    "output_digest",
+    "target_diff_status",
+    "UNCHANGED",
     "read-only simulated task",
     "does not write target files",
     "does not approve release or production",
@@ -5405,7 +5427,7 @@ function checkAdoptionExecutionAssuranceProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "ADOPTION_ASSURANCE_REPORT"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.71.0"
+        && parsed.schemaVersion === "1.71.2"
         && parsed.humanSummary?.canCodexWriteNow === "No"
         && parsed.structuredEvidence?.artifact_type === "adoption_assurance_report"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
@@ -5494,9 +5516,19 @@ function hasCompleteAdoptionAssuranceEvidence(parsed) {
   const surfaceNames = new Set(Array.isArray(surfaces) ? surfaces.map((surface) => surface.surface) : []);
   const hasAllSurfaces = requiredSurfaces.every((surface) => surfaceNames.has(surface));
   const simulation = parsed.structuredEvidence?.simulation || {};
+  const simulationSteps = Array.isArray(simulation.steps) ? simulation.steps : [];
+  const sourceSystems = parsed.structuredEvidence?.source_systems || {};
   const boundary = parsed.structuredEvidence?.boundary || {};
   return hasAllSurfaces
     && typeof simulation.state === "string"
+    && simulationSteps.length > 0
+    && simulationSteps.every((step) => Object.prototype.hasOwnProperty.call(step, "exit_code")
+      && step.read_only === "Yes"
+      && step.writes_target_files === "No"
+      && typeof step.target_diff_status === "string"
+      && typeof step.output_digest === "string")
+    && (simulation.state !== "SIMULATION_PASSED" || simulationSteps.every((step) => step.exit_code === 0 && step.target_diff_status === "UNCHANGED"))
+    && Object.keys(sourceSystems).length > 0
     && boundary.writes_target_files === "No"
     && boundary.approves_release_or_production === "No"
     && boundary.replaces_release_sop === "No";

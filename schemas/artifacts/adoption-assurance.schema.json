@@ -14,6 +14,7 @@
     "can_codex_write_now",
     "surfaces",
     "evidence_refs",
+    "source_systems",
     "simulation",
     "pending_decisions",
     "forbidden_claims",
@@ -21,7 +22,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.71.0" },
+    "schema_version": { "const": "1.71.2" },
     "artifact_type": { "const": "adoption_assurance_report" },
     "target_project_profile": { "type": "string", "minLength": 1 },
     "assurance_state": { "$ref": "#/$defs/assuranceState" },
@@ -51,10 +52,15 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
     },
+    "source_systems": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/sourceSystem" },
+      "minProperties": 1
+    },
     "simulation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "state", "task", "writes_target_files", "route"],
+      "required": ["id", "state", "task", "writes_target_files", "route", "steps"],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "state": {
@@ -71,6 +77,10 @@
         "route": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
+        },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/simulationStep" }
         }
       }
     },
@@ -120,8 +130,39 @@
         "VERIFIED_ACTIVE",
         "BLOCKED_BY_DIRTY_WORKTREE",
         "BLOCKED_BY_PROJECT_AUTHORITY",
+        "BLOCKED_BY_UPSTREAM_EVIDENCE",
         "FAILED_ASSURANCE"
       ]
+    },
+    "sourceSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "status", "ref", "contribution"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["RECORDED", "NEEDS_INPUT", "BLOCKED"] },
+        "ref": { "type": "string", "minLength": 1 },
+        "contribution": { "type": "string", "minLength": 1 }
+      }
+    },
+    "simulationStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "status", "ref", "exit_code", "read_only", "writes_target_files", "target_diff_status", "output_digest", "outcome"],
+      "properties": {
+        "step": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["PASSED", "FAILED", "BLOCKED", "SKIPPED"] },
+        "ref": { "type": "string", "minLength": 1 },
+        "exit_code": { "type": ["integer", "null"] },
+        "read_only": { "const": "Yes" },
+        "writes_target_files": { "enum": ["Yes", "No"] },
+        "target_diff_status": { "enum": ["UNCHANGED", "CHANGED", "NOT_GIT_REPO", "UNKNOWN"] },
+        "output_digest": {
+          "type": "string",
+          "pattern": "^sha256:([a-f0-9]{64}|not-run)$"
+        },
+        "outcome": { "type": "string", "minLength": 1 }
+      }
     },
     "surface": {
       "type": "object",
@@ -138,6 +179,7 @@
             "PENDING_HUMAN_DECISION",
             "BLOCKED",
             "MISSING",
+            "PRESENT_UNVERIFIED",
             "NOT_APPLICABLE_WITH_REASON"
           ]
         },

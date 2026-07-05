@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
@@ -14,6 +15,8 @@ const knownFlags = new Set(["json", "format", "intent"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
+const schemaVersion = "1.71.2";
+const simulationTask = "Add a required field validation to a non-production example flow.";
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -46,7 +49,7 @@ function buildReport(root, options) {
   const boundary = boundaryFor();
 
   const structuredEvidence = {
-    schema_version: "1.71.0",
+    schema_version: schemaVersion,
     artifact_type: "adoption_assurance_report",
     target_project_profile: targetProfile,
     assurance_state: assuranceState,
@@ -55,6 +58,7 @@ function buildReport(root, options) {
     can_codex_write_now: "No",
     surfaces,
     evidence_refs: evidenceRefs,
+    source_systems: sources,
     simulation,
     pending_decisions: pendingDecisions,
     forbidden_claims: forbiddenClaimsFor(),
@@ -64,7 +68,7 @@ function buildReport(root, options) {
 
   return {
     reportType: "ADOPTION_ASSURANCE_REPORT",
-    schemaVersion: "1.71.0",
+    schemaVersion,
     generatedBy: "scripts/resolve-adoption-assurance.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -156,16 +160,56 @@ function resolveSource(name, script, root, extraArgs) {
   const ok = result.status === 0 && parsed;
   return {
     name,
-    status: ok ? sourceStatus(parsed) : "BLOCKED",
+    status: ok ? sourceStatusFor(name, parsed) : "BLOCKED",
     ref: ok ? `generated:${name}` : script,
     contribution: ok ? sourceContribution(name, parsed) : normalizeLine(result.stderr || result.stdout || `${name} unavailable`),
   };
 }
 
-function sourceStatus(parsed) {
-  const text = JSON.stringify(parsed);
-  if (/DIRTY_WORKTREE|BLOCKED|MUST_STOP|NEEDS_HUMAN_DECISION/i.test(text)) return "NEEDS_INPUT";
+function sourceStatusFor(name, parsed) {
+  if (hasDirtyProjectState(parsed)) return "NEEDS_INPUT";
+  if (name === "workflow_next") {
+    const stopActions = new Set([
+      "SELECT_OR_CREATE_TARGET",
+      "REVIEW_GOVERNANCE_MIGRATION",
+      "RUN_ADOPTION_ASSESSMENT",
+      "REVIEW_DIRTY_WORKTREE",
+      "REVIEW_EXISTING_GOVERNANCE_MAP",
+      "WAIT_FOR_ADAPTER_CONFIRMATION",
+    ]);
+    return parsed.mustStopForHuman === "yes" && stopActions.has(parsed.nextAction) ? "NEEDS_INPUT" : "RECORDED";
+  }
+  if (name === "native_migration") {
+    const posture = parsed.posture || parsed.migrationMode || parsed.structuredEvidence?.posture;
+    const state = parsed.projectState?.state || parsed.structuredEvidence?.project_state;
+    return /BLOCKED|NEEDS_OWNER/i.test(`${posture || ""} ${state || ""}`) ? "NEEDS_INPUT" : "RECORDED";
+  }
+  if (name === "existing_rule_reconciliation") {
+    const recommendation = parsed.structuredEvidence?.native_adoption_decision?.recommendation || parsed.outcome || "";
+    const coverage = parsed.structuredEvidence?.rule_reconciliation_coverage || {};
+    const omittedRules = Number.isInteger(coverage.omitted_rules) ? coverage.omitted_rules : 0;
+    return omittedRules > 0 || /^(BLOCKED|NEEDS_)/i.test(String(recommendation)) ? "NEEDS_INPUT" : "RECORDED";
+  }
+  if (name === "governance_convergence") {
+    const state = parsed.structuredEvidence?.convergence_state || parsed.humanSummary?.convergenceState || parsed.outcome || "";
+    return /^CONVERGENCE_BLOCKED/i.test(String(state)) ? "NEEDS_INPUT" : "RECORDED";
+  }
+  if (name === "release_plan") {
+    const state = parsed.machineReadableEvidence?.release_plan?.state || parsed.humanSummary?.releasePlanState || parsed.outcome || "";
+    return /^(BLOCKED|NEEDS_)/i.test(String(state)) ? "NEEDS_INPUT" : "RECORDED";
+  }
   return "RECORDED";
+}
+
+function hasDirtyProjectState(parsed) {
+  const states = [
+    parsed.projectState,
+    parsed.projectState?.state,
+    parsed.structuredEvidence?.project_state,
+    parsed.humanSummary?.projectState,
+  ].filter(Boolean).map(String);
+  const tags = Array.isArray(parsed.projectStateTags) ? parsed.projectStateTags.map(String) : [];
+  return [...states, ...tags].includes("DIRTY_WORKTREE_PROJECT");
 }
 
 function sourceContribution(name, parsed) {
@@ -180,6 +224,7 @@ function surfacesFor(root, signals, sources, simulation) {
   const hasConvergence = sources.governance_convergence.status === "RECORDED";
   const hasReconciliation = sources.existing_rule_reconciliation.status === "RECORDED";
   const hasMigration = sources.native_migration.status === "RECORDED";
+  const applyChain = applyChainStateFor(root, signals);
   return [
     surface("workflow_entry", signals.intentOsOperatingMode === "ACTIVE" ? "VERIFIED" : "MAPPED", "checker:workflow-next", "IntentOS route is available without granting hidden write authority."),
     surface("ai_rules_agents", signals.hasAiRules ? "MAPPED" : "PENDING_APPLY", signals.hasAiRules ? "file:AGENTS.md" : "checker:native-migration", signals.hasAiRules ? "Existing AI rules are preserved or mapped." : "AI rule merge remains pending."),
@@ -191,7 +236,7 @@ function surfacesFor(root, signals, sources, simulation) {
     surface("work_queue", signals.hasWorkQueue ? "MAPPED" : "PENDING_APPLY", "checker:work-queue", "Current, paused, and backlog behavior must be known."),
     surface("ai_logs_audit", signals.hasAiLogs || hasConvergence ? "MAPPED" : "PENDING_APPLY", "checker:convergence", "AI logs are governance notes only, not routine command logs."),
     surface("risk_authority", hasMigration || hasConvergence ? "PROJECT_OWNED" : "PENDING_HUMAN_DECISION", "checker:native-migration", "Business, production, data, compliance, secrets, payment, and migration authority remain project-owned."),
-    surface("apply_chain", signals.hasApplyChain ? "VERIFIED" : "NOT_APPLICABLE_WITH_REASON", signals.hasApplyChain ? "checker:apply-readiness" : "human-decision:no-target-writes", signals.hasApplyChain ? "Apply plan / approval / readiness surfaces exist." : "No target writes were performed by this assurance report."),
+    surface("apply_chain", applyChain.status, applyChain.evidence, applyChain.notes),
     surface("simulation_task", simulation.state === "SIMULATION_PASSED" ? "VERIFIED" : "MISSING", simulation.id, "Read-only synthetic task routing must pass before full adoption can be claimed."),
   ];
 }
@@ -200,42 +245,183 @@ function surface(surfaceName, status, evidence, notes) {
   return { surface: surfaceName, status, evidence, notes };
 }
 
-function simulationFor(root, signals) {
-  const requiredScripts = [
-    "resolve-beginner-entry.mjs",
-    "workflow-next.mjs",
-    "resolve-work-queue.mjs",
-    "resolve-change-impact-coverage.mjs",
-    "resolve-review-surface.mjs",
-    "resolve-apply-plan.mjs",
-    "resolve-closure-decision.mjs",
-  ];
-  const available = requiredScripts.every((script) => fs.existsSync(path.join(scriptDir, script)));
-  const route = [
-    "ask / guide",
-    "workflow-next",
-    "work queue / current task check",
-    "change impact coverage",
-    "review surface",
-    "apply-plan if write would be needed",
-    "closure / finish decision",
-  ];
-  if (available && signals.intentOsOperatingMode === "ACTIVE") {
+function applyChainStateFor(root, signals) {
+  if (!signals.hasApplyChain) {
     return {
-      id: "simulation:synthetic-required-field-validation",
-      state: "SIMULATION_PASSED",
-      task: "Add a required field validation to a non-production example flow.",
-      writes_target_files: "No",
-      route,
+      status: "NOT_APPLICABLE_WITH_REASON",
+      evidence: "human-decision:no-target-writes",
+      notes: "No target writes were performed by this assurance report.",
+    };
+  }
+  const reportFiles = nonGitkeepFiles(root, ["apply-plans", "approval-records", "apply-readiness-reports"]);
+  if (reportFiles.length === 0) {
+    return {
+      status: "PRESENT_UNVERIFIED",
+      evidence: "checker:apply-readiness",
+      notes: "Apply-chain directories exist, but no non-placeholder apply plan, approval record, or readiness report was found.",
+    };
+  }
+  const hasPlan = reportFiles.some((file) => file.startsWith("apply-plans/"));
+  const hasApproval = reportFiles.some((file) => file.startsWith("approval-records/"));
+  const hasReadiness = reportFiles.some((file) => file.startsWith("apply-readiness-reports/"));
+  if (hasPlan && hasApproval && hasReadiness) {
+    return {
+      status: "VERIFIED",
+      evidence: "checker:apply-readiness",
+      notes: "Apply plan, approval record, and readiness report files are present.",
     };
   }
   return {
-    id: "simulation:synthetic-required-field-validation",
-    state: signals.exists === "Yes" ? "SIMULATION_PARTIAL" : "SIMULATION_BLOCKED",
-    task: "Add a required field validation to a non-production example flow.",
-    writes_target_files: "No",
-    route: available ? route : [],
+    status: "PRESENT_UNVERIFIED",
+    evidence: "checker:apply-readiness",
+    notes: "Apply-chain evidence is present but incomplete; plan, approval, and readiness records are all required before verified apply can be claimed.",
   };
+}
+
+function nonGitkeepFiles(root, relativeDirs) {
+  const result = [];
+  for (const relativeDir of relativeDirs) {
+    const dir = path.join(root, relativeDir);
+    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) continue;
+    walkRelativeFiles(dir, (file) => {
+      const name = path.basename(file);
+      if (name === ".gitkeep" || name === ".DS_Store") return;
+      if (fs.statSync(file).isFile()) result.push(path.join(relativeDir, path.relative(dir, file)).replaceAll(path.sep, "/"));
+    });
+  }
+  return result;
+}
+
+function walkRelativeFiles(dir, visit) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkRelativeFiles(full, visit);
+    else visit(full);
+  }
+}
+
+function simulationFor(root, signals) {
+  const routeSpecs = [
+    ["ask / guide", "resolve-beginner-entry.mjs", [root, "--goal", simulationTask, "--json"]],
+    ["workflow-next", "workflow-next.mjs", [root, "--json"]],
+    ["work queue / current task check", "resolve-work-queue.mjs", [root, "--json"]],
+    ["change impact coverage", "resolve-change-impact-coverage.mjs", [root, "--intent", simulationTask, "--json"]],
+    ["review surface", "resolve-review-surface.mjs", [root, "--intent", simulationTask, "--json"]],
+    ["apply-plan if write would be needed", "resolve-apply-plan.mjs", [root, "--intent", simulationTask, "--action", "NO_ACTION", "--json"]],
+    ["closure / finish decision", "resolve-closure-decision.mjs", [root, "--intent", simulationTask, "--verification", "read-only simulation route completed without target writes", "--json"]],
+  ];
+  const steps = routeSpecs.map(([step, script, scriptArgs]) => simulationStep(step, script, scriptArgs));
+  const route = steps.map((item) => item.step);
+  const available = steps.every((item) => item.status !== "SKIPPED");
+  let state = "SIMULATION_PASSED";
+  if (!available) state = signals.exists === "Yes" ? "SIMULATION_PARTIAL" : "SIMULATION_BLOCKED";
+  else if (steps.some((item) => item.status === "FAILED")) state = "SIMULATION_FAILED";
+  else if (steps.some((item) => item.status === "BLOCKED")) state = "SIMULATION_BLOCKED";
+  return {
+    id: "simulation:synthetic-required-field-validation",
+    state,
+    task: simulationTask,
+    writes_target_files: "No",
+    route,
+    steps,
+  };
+}
+
+function simulationStep(step, script, scriptArgs) {
+  const scriptPath = path.join(scriptDir, script);
+  if (!fs.existsSync(scriptPath)) {
+    return {
+      step,
+      status: "SKIPPED",
+      ref: `missing:${script}`,
+      exit_code: null,
+      read_only: "Yes",
+      writes_target_files: "No",
+      target_diff_status: "UNKNOWN",
+      output_digest: "sha256:not-run",
+      outcome: `${script} is not available.`,
+    };
+  }
+  const targetRoot = String(scriptArgs[0] || projectRoot);
+  const before = targetSnapshot(targetRoot);
+  const result = spawnSync(process.execPath, [scriptPath, ...scriptArgs], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 20,
+  });
+  const after = targetSnapshot(targetRoot);
+  const diffStatus = targetDiffStatus(before, after);
+  const text = `${result.stdout || ""}\n${result.stderr || ""}`;
+  const output = normalizeLine(result.stdout || result.stderr || "");
+  const base = {
+    step,
+    ref: `checker:${script.replace(/\.mjs$/, "")}`,
+    exit_code: Number.isInteger(result.status) ? result.status : -1,
+    read_only: "Yes",
+    writes_target_files: diffStatus === "CHANGED" ? "Yes" : "No",
+    target_diff_status: diffStatus,
+    output_digest: digest(text),
+  };
+  if (result.status !== 0) {
+    return {
+      ...base,
+      status: "FAILED",
+      outcome: output || `${script} exited with status ${result.status}`,
+    };
+  }
+  if (diffStatus === "CHANGED") {
+    return {
+      ...base,
+      status: "FAILED",
+      outcome: `${script} changed target file state during read-only simulation.`,
+    };
+  }
+  if (diffStatus !== "UNCHANGED") {
+    return {
+      ...base,
+      status: "BLOCKED",
+      outcome: `${script} could not prove an unchanged git-backed target diff during read-only simulation.`,
+    };
+  }
+  if (/DIRTY_WORKTREE|MUST_STOP|BLOCKED|NEEDS_HUMAN_DECISION|NEEDS_INPUT/i.test(text)) {
+    return {
+      ...base,
+      status: "BLOCKED",
+      outcome: output || `${script} returned a blocking state.`,
+    };
+  }
+  return {
+    ...base,
+    status: "PASSED",
+    outcome: output || `${script} completed.`,
+  };
+}
+
+function targetSnapshot(root) {
+  if (!fs.existsSync(path.join(root, ".git"))) {
+    return { kind: "not_git", value: "" };
+  }
+  const result = spawnSync("git", ["status", "--porcelain"], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) return { kind: "unknown", value: "" };
+  return { kind: "git", value: result.stdout || "" };
+}
+
+function targetDiffStatus(before, after) {
+  if (before.kind !== "git" || after.kind !== "git") {
+    return before.kind === "not_git" || after.kind === "not_git" ? "NOT_GIT_REPO" : "UNKNOWN";
+  }
+  return before.value === after.value ? "UNCHANGED" : "CHANGED";
+}
+
+function digest(text) {
+  return `sha256:${crypto.createHash("sha256").update(text || "").digest("hex")}`;
+}
+
+function hasBlockingSources(sources) {
+  return Object.values(sources).some((source) => source.status === "NEEDS_INPUT" || source.status === "BLOCKED");
 }
 
 function assuranceStateFor({ surfaces, simulation, dirty, sources }) {
@@ -244,9 +430,14 @@ function assuranceStateFor({ surfaces, simulation, dirty, sources }) {
   if (/CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY|BLOCKED_NEEDS_OWNER|release owner/i.test(sourceText)) {
     return "BLOCKED_BY_PROJECT_AUTHORITY";
   }
+  if (hasBlockingSources(sources)) return "BLOCKED_BY_UPSTREAM_EVIDENCE";
   const hasMissing = surfaces.some((item) => item.status === "MISSING");
-  const hasPending = surfaces.some((item) => item.status === "PENDING_APPLY" || item.status === "PENDING_HUMAN_DECISION" || item.status === "BLOCKED");
-  if (!hasMissing && !hasPending && simulation.state === "SIMULATION_PASSED") return "VERIFIED_ACTIVE";
+  const hasPending = surfaces.some((item) => item.status === "PENDING_APPLY" || item.status === "PENDING_HUMAN_DECISION" || item.status === "BLOCKED" || item.status === "PRESENT_UNVERIFIED");
+  const allSourcesRecorded = Object.values(sources).every((source) => source.status === "RECORDED");
+  const allSimulationStepsPassed = Array.isArray(simulation.steps)
+    && simulation.steps.length > 0
+    && simulation.steps.every((step) => step.status === "PASSED" && step.exit_code === 0 && step.writes_target_files === "No" && step.target_diff_status === "UNCHANGED");
+  if (!hasMissing && !hasPending && simulation.state === "SIMULATION_PASSED" && allSourcesRecorded && allSimulationStepsPassed) return "VERIFIED_ACTIVE";
   if (simulation.state === "SIMULATION_FAILED") return "FAILED_ASSURANCE";
   return hasMissing ? "READ_ONLY_DIAGNOSIS_ONLY" : "PARTIAL_ADOPTION";
 }
@@ -312,6 +503,7 @@ function nextSafeStepFor(state) {
   if (state === "VERIFIED_ACTIVE") return "continue work in IntentOS mode while preserving project-owned release and risk authority";
   if (state === "BLOCKED_BY_DIRTY_WORKTREE") return "classify current worktree changes before migration or assurance apply planning";
   if (state === "BLOCKED_BY_PROJECT_AUTHORITY") return "resolve project-owned release, CI/hook, or protected authority decision before full adoption";
+  if (state === "BLOCKED_BY_UPSTREAM_EVIDENCE") return "resolve blocked upstream migration, reconciliation, convergence, or release-plan evidence before claiming adoption";
   if (state === "READ_ONLY_DIAGNOSIS_ONLY") return "record missing adoption surfaces before claiming adoption";
   if (state === "FAILED_ASSURANCE") return "remove unsupported adoption claims and rerun assurance";
   return "prepare or verify a bounded apply plan for missing surfaces, then rerun adoption assurance";

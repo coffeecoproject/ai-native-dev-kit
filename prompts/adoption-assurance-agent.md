@@ -9,9 +9,12 @@ Check only evidence-backed adoption:
 1. Identify target project state.
 2. Check required adoption surfaces.
 3. Resolve evidence refs when possible.
-4. Confirm existing rules were compared, not ignored.
-5. Confirm release, production, CI/hooks, secrets, data, and business authority remain project-owned or explicitly human-owned.
-6. Check whether a read-only simulated task passed.
-7. Return one assurance state.
+4. Confirm upstream source systems are recorded; any `BLOCKED` or `NEEDS_INPUT` source must block `VERIFIED_ACTIVE`.
+5. Confirm existing rules were compared, not ignored.
+6. Confirm release, production, CI/hooks, secrets, data, and business authority remain project-owned or explicitly human-owned.
+7. Check whether every read-only simulated task step passed with exit code `0`, read-only marker, no target writes, stable target diff status, and output digest evidence.
+8. Check Markdown and JSON consistency before accepting the report.
+9. Distinguish target-installed assets from source-only examples, fixtures, release records, and calibration evidence.
+10. Return one assurance state.
 
 If unsure, choose `PARTIAL_ADOPTION`, `READ_ONLY_DIAGNOSIS_ONLY`, or a blocked state. Never inflate to `VERIFIED_ACTIVE`.

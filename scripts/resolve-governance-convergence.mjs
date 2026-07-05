@@ -131,17 +131,53 @@ function resolveSource(name, script, root, extraArgs) {
   const ok = result.status === 0 && parsed;
   return {
     name,
-    status: ok ? sourceStatus(parsed) : "BLOCKED",
+    status: ok ? sourceStatusFor(name, parsed) : "BLOCKED",
     ref: ok ? `generated:${script.replace(/^resolve-/, "").replace(/\.mjs$/, "")}` : script,
     contribution: ok ? sourceContribution(name, parsed) : normalizeLine(result.stderr || result.stdout || `${name} unavailable`),
     data: ok ? parsed : null,
   };
 }
 
-function sourceStatus(parsed) {
-  const text = JSON.stringify(parsed);
-  if (/DIRTY_WORKTREE|BLOCKED|MUST_STOP|NEEDS_HUMAN_DECISION/i.test(text)) return "NEEDS_INPUT";
+function sourceStatusFor(name, parsed) {
+  if (hasDirtyProjectState(parsed)) return "NEEDS_INPUT";
+  if (name === "Workflow Next") {
+    const stopActions = new Set([
+      "SELECT_OR_CREATE_TARGET",
+      "REVIEW_GOVERNANCE_MIGRATION",
+      "RUN_ADOPTION_ASSESSMENT",
+      "REVIEW_DIRTY_WORKTREE",
+      "REVIEW_EXISTING_GOVERNANCE_MAP",
+      "WAIT_FOR_ADAPTER_CONFIRMATION",
+    ]);
+    return parsed.mustStopForHuman === "yes" && stopActions.has(parsed.nextAction) ? "NEEDS_INPUT" : "RECORDED";
+  }
+  if (name === "Native Migration") {
+    const posture = parsed.posture || parsed.migrationMode || parsed.structuredEvidence?.posture;
+    const state = parsed.projectState?.state || parsed.structuredEvidence?.project_state;
+    return /BLOCKED|NEEDS_OWNER/i.test(`${posture || ""} ${state || ""}`) ? "NEEDS_INPUT" : "RECORDED";
+  }
+  if (name === "Existing Rule Reconciliation") {
+    const recommendation = parsed.structuredEvidence?.native_adoption_decision?.recommendation || parsed.outcome || "";
+    const coverage = parsed.structuredEvidence?.rule_reconciliation_coverage || {};
+    const omittedRules = Number.isInteger(coverage.omitted_rules) ? coverage.omitted_rules : 0;
+    return omittedRules > 0 || /^(BLOCKED|NEEDS_)/i.test(String(recommendation)) ? "NEEDS_INPUT" : "RECORDED";
+  }
+  if (name === "Release Plan") {
+    const state = parsed.machineReadableEvidence?.release_plan?.state || parsed.humanSummary?.releasePlanState || parsed.outcome || "";
+    return /^(BLOCKED|NEEDS_)/i.test(String(state)) ? "NEEDS_INPUT" : "RECORDED";
+  }
   return "RECORDED";
+}
+
+function hasDirtyProjectState(parsed) {
+  const states = [
+    parsed.projectState,
+    parsed.projectState?.state,
+    parsed.structuredEvidence?.project_state,
+    parsed.humanSummary?.projectState,
+  ].filter(Boolean).map(String);
+  const tags = Array.isArray(parsed.projectStateTags) ? parsed.projectStateTags.map(String) : [];
+  return [...states, ...tags].includes("DIRTY_WORKTREE_PROJECT");
 }
 
 function sourceContribution(name, parsed) {

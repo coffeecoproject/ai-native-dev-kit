@@ -4,9 +4,9 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.71.0`.
+Current release: `1.71.2`.
 
-Release record: [releases/1.71.0/release-record.md](releases/1.71.0/release-record.md).
+Release record: [releases/1.71.2/release-record.md](releases/1.71.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -41,6 +41,10 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
+
+1.71.2 tightens old-project adoption assurance evidence: every passed simulation step must record exit code, read-only status, target diff status, no-write evidence, and output digest; upstream source status is now derived from typed fields instead of broad text matching.
+
+1.71.1 hardens old-project adoption assurance: Codex can no longer claim IntentOS is fully active from static text, placeholder directories, or unrelated evidence; the report must include consistent structured evidence and a real read-only simulation trace.
 
 1.71.0 adds Adoption Execution Assurance: old-project adoption can only be claimed as complete when required surfaces are checked from evidence and a read-only simulated task proves Codex would route through IntentOS.
 

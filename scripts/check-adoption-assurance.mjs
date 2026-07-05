@@ -59,6 +59,7 @@ const allowedStates = new Set([
   "VERIFIED_ACTIVE",
   "BLOCKED_BY_DIRTY_WORKTREE",
   "BLOCKED_BY_PROJECT_AUTHORITY",
+  "BLOCKED_BY_UPSTREAM_EVIDENCE",
   "FAILED_ASSURANCE",
 ]);
 const allowedSurfaceStatuses = new Set([
@@ -69,6 +70,7 @@ const allowedSurfaceStatuses = new Set([
   "PENDING_HUMAN_DECISION",
   "BLOCKED",
   "MISSING",
+  "PRESENT_UNVERIFIED",
   "NOT_APPLICABLE_WITH_REASON",
 ]);
 const requiredSurfaces = new Set([
@@ -85,9 +87,11 @@ const requiredSurfaces = new Set([
   "apply_chain",
   "simulation_task",
 ]);
-const forbiddenClaims = [
+const fullAdoptionClaimPatterns = [
   /\bhas fully adopted\b/i,
   /\bis fully adopted\b/i,
+];
+const absoluteForbiddenClaims = [
   /\bproduction approved\b/i,
   /\bdeploy production\b/i,
   /\bIntentOS owns production\b/i,
@@ -97,6 +101,22 @@ const forbiddenClaims = [
   /自动写入目标项目/i,
   /替代发布流程/i,
 ];
+const knownCheckerRefs = new Set([
+  "checker:workflow-next",
+  "checker:native-migration",
+  "checker:reconcile-rules",
+  "checker:baseline",
+  "checker:release-plan",
+  "checker:convergence",
+  "checker:work-queue",
+  "checker:apply-readiness",
+  "checker:resolve-beginner-entry",
+  "checker:resolve-work-queue",
+  "checker:resolve-change-impact-coverage",
+  "checker:resolve-review-surface",
+  "checker:resolve-apply-plan",
+  "checker:resolve-closure-decision",
+]);
 
 let failed = false;
 const checks = [];
@@ -174,6 +194,7 @@ function checkReports() {
     const surfaces = checkSurfaceTable(content, label);
     checkBoundaries(content, label);
     const evidence = checkStructuredEvidence(content, label);
+    checkCrossConsistency(content, label, summary, surfaces, evidence);
     checkStateRules(content, label, summary, surfaces, evidence);
   }
 }
@@ -268,6 +289,7 @@ function checkStructuredEvidence(content, label) {
     "can_codex_write_now",
     "surfaces",
     "evidence_refs",
+    "source_systems",
     "simulation",
     "pending_decisions",
     "forbidden_claims",
@@ -278,8 +300,8 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} evidence includes ${field}`);
     else fail(`${label} evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.71.0") pass(`${label} evidence schema_version is 1.71.0`);
-  else fail(`${label} evidence schema_version must be 1.71.0`);
+  if (parsed.schema_version === "1.71.2") pass(`${label} evidence schema_version is 1.71.2`);
+  else fail(`${label} evidence schema_version must be 1.71.2`);
   if (parsed.artifact_type === "adoption_assurance_report") pass(`${label} evidence artifact_type is adoption_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
   if (allowedStates.has(parsed.assurance_state)) pass(`${label} evidence assurance_state is allowed`);
@@ -289,6 +311,7 @@ function checkStructuredEvidence(content, label) {
   if (parsed.can_codex_write_now === "No") pass(`${label} evidence can_codex_write_now is No`);
   else fail(`${label} evidence can_codex_write_now must be No`);
   checkStructuredSurfaces(parsed, label);
+  checkStructuredSources(parsed, label);
   checkStructuredSimulation(parsed, label);
   checkStructuredBoundary(parsed, label);
   checkEvidenceRefs(parsed, label);
@@ -316,6 +339,27 @@ function checkStructuredSurfaces(parsed, label) {
   }
 }
 
+function checkStructuredSources(parsed, label) {
+  const sources = parsed.source_systems && typeof parsed.source_systems === "object" ? parsed.source_systems : {};
+  const entries = Object.entries(sources);
+  if (entries.length > 0) pass(`${label} evidence source_systems are present`);
+  else fail(`${label} evidence source_systems must not be empty`);
+  for (const [key, source] of entries) {
+    if (!source || typeof source !== "object") {
+      fail(`${label} source_systems.${key} must be an object`);
+      continue;
+    }
+    if (source.name === key || String(source.name || "").trim()) pass(`${label} source_systems.${key} has a name`);
+    else fail(`${label} source_systems.${key} missing name`);
+    if (["RECORDED", "NEEDS_INPUT", "BLOCKED"].includes(source.status)) pass(`${label} source_systems.${key} status is allowed`);
+    else fail(`${label} source_systems.${key} status invalid: ${source.status || "<empty>"}`);
+    if (String(source.ref || "").trim()) pass(`${label} source_systems.${key} has ref`);
+    else fail(`${label} source_systems.${key} missing ref`);
+    if (String(source.contribution || "").trim()) pass(`${label} source_systems.${key} has contribution`);
+    else fail(`${label} source_systems.${key} missing contribution`);
+  }
+}
+
 function checkStructuredSimulation(parsed, label) {
   const simulation = parsed.simulation || {};
   const allowed = new Set([
@@ -329,6 +373,50 @@ function checkStructuredSimulation(parsed, label) {
   else fail(`${label} simulation state invalid: ${simulation.state || "<empty>"}`);
   if (simulation.writes_target_files === "No") pass(`${label} simulation is read-only`);
   else fail(`${label} simulation must not write target files`);
+  const steps = Array.isArray(simulation.steps) ? simulation.steps : [];
+  if (steps.length > 0) pass(`${label} simulation includes executed step trace`);
+  else fail(`${label} simulation must include executed step trace`);
+  for (const [index, step] of steps.entries()) {
+    if (String(step?.step || "").trim()) pass(`${label} simulation step ${index + 1} has step name`);
+    else fail(`${label} simulation step ${index + 1} missing step name`);
+    if (["PASSED", "FAILED", "BLOCKED", "SKIPPED"].includes(step?.status)) pass(`${label} simulation step ${index + 1} status is allowed`);
+    else fail(`${label} simulation step ${index + 1} status invalid`);
+    if (String(step?.ref || "").trim()) pass(`${label} simulation step ${index + 1} has ref`);
+    else fail(`${label} simulation step ${index + 1} missing ref`);
+    if (step?.status === "SKIPPED" ? step.exit_code === null : Number.isInteger(step?.exit_code)) {
+      pass(`${label} simulation step ${index + 1} has exit code evidence`);
+    } else {
+      fail(`${label} simulation step ${index + 1} missing exit code evidence`);
+    }
+    if (step?.read_only === "Yes") pass(`${label} simulation step ${index + 1} is marked read-only`);
+    else fail(`${label} simulation step ${index + 1} must be marked read-only`);
+    if (step?.writes_target_files === "No") pass(`${label} simulation step ${index + 1} did not write target files`);
+    else fail(`${label} simulation step ${index + 1} must not write target files`);
+    if (["UNCHANGED", "CHANGED", "NOT_GIT_REPO", "UNKNOWN"].includes(step?.target_diff_status)) {
+      pass(`${label} simulation step ${index + 1} has target diff status`);
+    } else {
+      fail(`${label} simulation step ${index + 1} missing target diff status`);
+    }
+    if (/^sha256:[a-f0-9]{64}$/.test(String(step?.output_digest || "")) || step?.output_digest === "sha256:not-run") {
+      pass(`${label} simulation step ${index + 1} has output digest`);
+    } else {
+      fail(`${label} simulation step ${index + 1} missing output digest`);
+    }
+    if (String(step?.outcome || "").trim()) pass(`${label} simulation step ${index + 1} has outcome`);
+    else fail(`${label} simulation step ${index + 1} missing outcome`);
+  }
+  if (simulation.state === "SIMULATION_PASSED") {
+    const passed = steps.length > 0 && steps.every((step) => (
+      step.status === "PASSED"
+      && step.exit_code === 0
+      && step.read_only === "Yes"
+      && step.writes_target_files === "No"
+      && step.target_diff_status === "UNCHANGED"
+      && /^sha256:[a-f0-9]{64}$/.test(String(step.output_digest || ""))
+    ));
+    if (passed) pass(`${label} passed simulation has all steps passed with no target diff`);
+    else fail(`${label} SIMULATION_PASSED requires every simulation step to pass with exit_code 0, read_only Yes, writes_target_files No, target_diff_status UNCHANGED, and output digest`);
+  }
   if (requireSimulation && simulation.state !== "SIMULATION_PASSED") {
     fail(`${label} strict simulation mode requires SIMULATION_PASSED`);
   }
@@ -360,16 +448,75 @@ function checkEvidenceRefs(parsed, label) {
     if (!value.trim()) fail(`${label} evidence ref is empty`);
     if (/TODO|TBD|placeholder|<.*>|evidence:\s*yes/i.test(value)) fail(`${label} evidence ref is placeholder: ${value}`);
     if (/git-diff:stale|stale-diff|old unrelated/i.test(value)) fail(`${label} evidence ref is stale or unrelated: ${value}`);
-    if (requireStructuredEvidence && value.startsWith("file:")) {
+    if (value.startsWith("file:")) {
       const filePath = value.slice("file:".length);
       if (!filePath || path.isAbsolute(filePath) || filePath.includes("..")) {
         fail(`${label} file evidence ref must be relative and safe: ${value}`);
-      } else if (fs.existsSync(path.join(projectRoot, filePath))) {
+      } else if (!requireStructuredEvidence || fs.existsSync(path.join(projectRoot, filePath))) {
         pass(`${label} resolves file evidence ${value}`);
       } else {
         fail(`${label} unresolved file evidence ${value}`);
       }
+    } else if (value.startsWith("checker:")) {
+      if (knownCheckerRefs.has(value)) pass(`${label} resolves checker evidence ${value}`);
+      else fail(`${label} unknown checker evidence ref ${value}`);
+    } else if (value.startsWith("simulation:")) {
+      if (parsed.simulation?.id === value) pass(`${label} resolves simulation evidence ${value}`);
+      else fail(`${label} unresolved simulation evidence ${value}`);
+    } else if (value === "human-decision:no-target-writes") {
+      const applyChain = (Array.isArray(parsed.surfaces) ? parsed.surfaces : []).find((item) => item.surface === "apply_chain");
+      if (parsed.boundary?.writes_target_files === "No" && applyChain?.status === "NOT_APPLICABLE_WITH_REASON") {
+        pass(`${label} resolves human decision evidence ${value}`);
+      } else {
+        fail(`${label} human decision no-target-writes requires no-write boundary and NOT_APPLICABLE_WITH_REASON apply_chain`);
+      }
+    } else if (value.startsWith("artifact:")) {
+      const artifactPath = value.slice("artifact:".length);
+      if (!artifactPath || path.isAbsolute(artifactPath) || artifactPath.includes("..")) {
+        fail(`${label} artifact evidence ref must be relative and safe: ${value}`);
+      } else if (!requireStructuredEvidence || fs.existsSync(path.join(projectRoot, artifactPath))) {
+        pass(`${label} resolves artifact evidence ${value}`);
+      } else {
+        fail(`${label} unresolved artifact evidence ${value}`);
+      }
+    } else if (value.startsWith("generated:")) {
+      const generatedId = value.slice("generated:".length);
+      const sourceRefs = Object.values(parsed.source_systems || {}).map((source) => String(source?.ref || ""));
+      const sourceKeys = Object.keys(parsed.source_systems || {}).map((key) => `generated:${key}`);
+      const stepRefs = Array.isArray(parsed.simulation?.steps) ? parsed.simulation.steps.map((step) => String(step.ref || "")) : [];
+      if (sourceRefs.includes(value) || sourceKeys.includes(value) || stepRefs.includes(value) || generatedId === "adoption_assurance") {
+        pass(`${label} resolves generated source evidence ${value}`);
+      } else {
+        fail(`${label} unresolved generated evidence ${value}`);
+      }
     }
+  }
+}
+
+function checkCrossConsistency(content, label, summary, surfaces, evidence) {
+  if (!evidence) return;
+  if (summary.state === evidence.assurance_state) pass(`${label} summary state matches structured evidence`);
+  else fail(`${label} summary state ${summary.state || "<empty>"} does not match evidence ${evidence.assurance_state || "<empty>"}`);
+  if (summary.operatingMode === evidence.intent_os_operating_mode) pass(`${label} summary operating mode matches structured evidence`);
+  else fail(`${label} summary operating mode does not match structured evidence`);
+  if (summary.canClaim === evidence.can_claim_full_adoption) pass(`${label} summary claim flag matches structured evidence`);
+  else fail(`${label} summary claim flag does not match structured evidence`);
+  const assuranceSectionValue = firstCodeValue(sectionBody(content, "Assurance State") || "");
+  if (assuranceSectionValue === evidence.outcome) pass(`${label} Assurance State section matches evidence outcome`);
+  else fail(`${label} Assurance State section ${assuranceSectionValue || "<empty>"} does not match evidence outcome ${evidence.outcome || "<empty>"}`);
+  const simulationSectionValue = firstCodeValue(sectionBody(content, "Simulation Task Result") || "");
+  if (simulationSectionValue === evidence.simulation?.state) pass(`${label} Simulation Task Result section matches structured evidence`);
+  else fail(`${label} Simulation Task Result section ${simulationSectionValue || "<empty>"} does not match evidence ${evidence.simulation?.state || "<empty>"}`);
+  const structuredSurfaces = new Map((Array.isArray(evidence.surfaces) ? evidence.surfaces : []).map((item) => [item.surface, item]));
+  for (const [surfaceName, markdownSurface] of surfaces.entries()) {
+    const structured = structuredSurfaces.get(surfaceName);
+    if (!structured) continue;
+    if (markdownSurface.status === structured.status) pass(`${label} ${surfaceName} markdown status matches evidence`);
+    else fail(`${label} ${surfaceName} markdown status ${markdownSurface.status} does not match evidence ${structured.status}`);
+    if (markdownSurface.evidence === structured.evidence) pass(`${label} ${surfaceName} markdown evidence matches evidence`);
+    else fail(`${label} ${surfaceName} markdown evidence ${markdownSurface.evidence} does not match evidence ${structured.evidence}`);
+    if (markdownSurface.notes === structured.notes) pass(`${label} ${surfaceName} markdown notes match evidence`);
+    else fail(`${label} ${surfaceName} markdown notes do not match structured evidence`);
   }
 }
 
@@ -382,8 +529,20 @@ function checkStateRules(content, label, summary, surfaces, evidence) {
     "PENDING_APPLY",
     "PENDING_HUMAN_DECISION",
     "BLOCKED",
+    "PRESENT_UNVERIFIED",
   ].includes(item.status));
   const simulationState = evidence?.simulation?.state || "";
+  const sourceValues = evidence?.source_systems && typeof evidence.source_systems === "object" ? Object.values(evidence.source_systems) : [];
+  const hasBlockingSource = sourceValues.some((source) => source.status === "NEEDS_INPUT" || source.status === "BLOCKED");
+  const allSourcesRecorded = sourceValues.length > 0 && sourceValues.every((source) => source.status === "RECORDED");
+  const simulationSteps = Array.isArray(evidence?.simulation?.steps) ? evidence.simulation.steps : [];
+  const allSimulationStepsPassed = simulationSteps.length > 0 && simulationSteps.every((step) => (
+    step.status === "PASSED"
+    && step.exit_code === 0
+    && step.read_only === "Yes"
+    && step.writes_target_files === "No"
+    && step.target_diff_status === "UNCHANGED"
+  ));
   const claimsFullInText = /\|\s*Can Claim Full Adoption\s*\|\s*`?Yes`?\s*\|/i.test(content)
     || /\bhas fully adopted\b/i.test(content)
     || /\bis fully adopted\b/i.test(content);
@@ -395,6 +554,10 @@ function checkStateRules(content, label, summary, surfaces, evidence) {
     else fail(`${label} VERIFIED_ACTIVE requires SIMULATION_PASSED`);
     if (!hasBlockingSurface) pass(`${label} verified active has no blocking surfaces`);
     else fail(`${label} VERIFIED_ACTIVE cannot include missing, pending, or blocked surfaces`);
+    if (allSourcesRecorded) pass(`${label} verified active has all upstream sources recorded`);
+    else fail(`${label} VERIFIED_ACTIVE requires all upstream source systems to be RECORDED`);
+    if (allSimulationStepsPassed) pass(`${label} verified active has a fully passed simulation trace`);
+    else fail(`${label} VERIFIED_ACTIVE requires every simulation step to pass`);
   } else if (fullClaim === "Yes" || claimsFullInText) {
     fail(`${label} cannot claim full adoption unless state is VERIFIED_ACTIVE`);
   }
@@ -407,10 +570,17 @@ function checkStateRules(content, label, summary, surfaces, evidence) {
     fail(`${label} cannot be VERIFIED_ACTIVE without simulation pass`);
   }
 
-  for (const pattern of forbiddenClaims) {
+  if (hasBlockingSource && !["BLOCKED_BY_UPSTREAM_EVIDENCE", "BLOCKED_BY_PROJECT_AUTHORITY", "BLOCKED_BY_DIRTY_WORKTREE", "READ_ONLY_DIAGNOSIS_ONLY"].includes(state)) {
+    fail(`${label} upstream BLOCKED/NEEDS_INPUT source must block verified or partial adoption state`);
+  }
+
+  for (const pattern of fullAdoptionClaimPatterns) {
     if (pattern.test(content) && state !== "VERIFIED_ACTIVE") {
       fail(`${label} contains forbidden adoption claim: ${pattern.source}`);
     }
+  }
+  for (const pattern of absoluteForbiddenClaims) {
+    if (pattern.test(content)) fail(`${label} contains absolutely forbidden claim: ${pattern.source}`);
   }
 }
 
@@ -437,6 +607,11 @@ function tableValue(body, field) {
 function fencedJson(body) {
   const match = body.match(/```json\s*([\s\S]*?)```/i);
   return match ? match[1].trim() : "";
+}
+
+function firstCodeValue(body) {
+  const match = String(body || "").match(/`([^`]+)`/);
+  return match ? stripMarkdown(match[1]) : "";
 }
 
 function markdownFiles(relativeDir) {

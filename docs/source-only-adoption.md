@@ -4,6 +4,8 @@ IntentOS is currently adopted from the source repository.
 
 This means users should not assume there is a published npm package, hosted service, installer, dashboard, or one-command production setup.
 
+The repository exposes CLI aliases in `package.json` for local source checkout usage, but the package remains private and is not an npm distribution contract.
+
 ## Before You Start
 
 Source-only adoption expects local command-line tools:
