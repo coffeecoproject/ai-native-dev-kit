@@ -65,6 +65,31 @@ Execution Assurance checks:
 - whether the work smells like a narrow patch that hides a bigger issue;
 - whether source systems agree.
 
+## Strict Binding Vocabulary
+
+1.74.0 introduced strict binding for Execution Assurance reports, and 1.74.1
+syncs the public docs and schema vocabulary with the resolver output.
+
+Key fields:
+
+- `source_system_ref`: the source report, card, or system being relied on.
+- `source_task_ref`: the task identity inside that source system.
+- `source_outcome`: the source system's recorded result.
+- `current_task_match`: whether that source task matches the current task.
+- `report_digest`: a digest of the source report when a source report is
+  referenced.
+- `evidence_digest`: a digest of bound evidence when evidence identity matters.
+- `planned_target_paths`: explicit paths or directory globs ending in `/**`
+  that the task was allowed to change.
+- `target_diff_status: REQUIRES_EXPLICIT_EXECUTION_PLAN`: the resolver saw
+  changed files but cannot treat them as planned work without an explicit
+  execution plan.
+
+In precise mode, `VERIFIED_DONE` requires current-task source matches, concrete
+evidence, and actual changed files inside the reviewed plan. Declarative refs
+such as `review:`, `command:`, `generated:`, or `git-diff:` can help explain a
+run, but they are not enough by themselves as precise completion evidence.
+
 ## What It Does Not Do
 
 It does not:

@@ -75,6 +75,9 @@ function checkIntentOSNamingHardcut() {
     ["AI", "Native"].join(" "),
     ["ai", "native", "dev", "kit"].join("-"),
     ["ai", "native"].join("-"),
+    ["AI", "NATIVE"].join("_"),
+    ["AI", "NATIVE", "BOOTSTRAPPED", "PROJECT"].join("_"),
+    ["AI", "NATIVE"].join("-"),
     ["Dev", "Kit"].join(" "),
     ["dev", "kit"].join("-"),
     ["dev", "Kit"].join(""),
@@ -874,6 +877,8 @@ function checkIntentOSFirstPartyCi() {
     "resolve-debt-handoff.mjs",
     "check-execution-closure.mjs",
     "resolve-execution-closure.mjs",
+    "resolve-execution-assurance.mjs",
+    "check-execution-assurance.mjs",
     "guide",
     "guide . --deep",
     "guide . --deep --intent",
@@ -890,6 +895,10 @@ function checkIntentOSFirstPartyCi() {
     "debt-handoff-check",
     "closure",
     "closure-check",
+    "execution-assurance",
+    "execution-assurance-check",
+    "done-check",
+    "verify-execution",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -5628,6 +5637,7 @@ function checkExecutionAssuranceChainProtocol() {
     "bad-execution-assurance-declarative-precise-evidence",
   ];
   const required = [
+    "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
     "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
     "docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md",
     "docs/plans/execution-assurance-chain-1.72-plan.md",
@@ -5654,6 +5664,9 @@ function checkExecutionAssuranceChainProtocol() {
     "releases/1.74.0/release-record.md",
     "releases/1.74.0/known-limitations.md",
     "releases/1.74.0/self-check-report.md",
+    "releases/1.74.1/release-record.md",
+    "releases/1.74.1/known-limitations.md",
+    "releases/1.74.1/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/execution-assurance-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5665,6 +5678,7 @@ function checkExecutionAssuranceChainProtocol() {
     read("docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md"),
     read("docs/plans/execution-assurance-chain-1.72-plan.md"),
     read("docs/plans/execution-assurance-strict-binding-1.74-plan.md"),
+    read("docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md"),
     read("core/execution-assurance-chain.md"),
     read("docs/execution-assurance-chain.md"),
     read("templates/execution-assurance-report.md"),
@@ -5674,6 +5688,7 @@ function checkExecutionAssuranceChainProtocol() {
     read("releases/1.72.0/release-record.md"),
     read("releases/1.72.1/release-record.md"),
     read("releases/1.74.0/release-record.md"),
+    read("releases/1.74.1/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -5707,6 +5722,9 @@ function checkExecutionAssuranceChainProtocol() {
     "does not write target-project files",
     "does not approve commit or push",
     "does not approve release or production",
+    "schema enum",
+    "uppercase legacy identity tokens",
+    "generated-project smoke",
   ]) {
     if (combined.includes(marker)) pass(`1.72 execution assurance includes ${marker}`);
     else fail(`1.72 execution assurance missing ${marker}`);
@@ -5722,6 +5740,8 @@ function checkExecutionAssuranceChainProtocol() {
     "node --check scripts/check-execution-assurance.mjs",
     "node scripts/cli.mjs execution-assurance . --intent \"verify execution completion\"",
     "node scripts/cli.mjs execution-assurance-check . --allow-empty",
+    "node scripts/cli.mjs done-check .",
+    "node scripts/cli.mjs verify-execution .",
     "node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/feature-contract-validation --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence",
   ]) {
     if (verifySurface.includes(marker)) pass(`1.72 package verify surface includes ${marker}`);

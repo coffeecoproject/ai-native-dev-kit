@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.74.0`
+Current version: `1.74.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,13 @@ Current version: `1.74.0`
 
 ## Current Release
 
-`1.74.0`
+`1.74.1`
 
 Includes:
+
+- Execution Assurance vocabulary and docs sync patch `1.74.1`: aligns resolver output, schema enum values, runtime project-state tags, README capability tables, and generated-project smoke coverage after the `1.74.0` strict-binding release.
+- `1.74.1` keeps the Execution Assurance artifact schema version at `1.74.0`; this patch fixes repository/tooling consistency and does not introduce a new evidence artifact shape.
+- `1.74.1` extends the IntentOS naming hardcut to uppercase legacy identity tokens so generated/runtime signals no longer rely on old product names.
 
 - Execution Assurance Strict Binding phase `1.74.0`: completion claims now require source-system task binding, source outcome, current-task match, and digest-backed evidence identity.
 - `1.74.0` rejects verified completion when actual changed files fall outside the reviewed planned target paths, routing the work to scope-drift handling instead of allowing a patch-style close-out.

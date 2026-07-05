@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.74.0`
+`1.74.1`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.74.1` syncs Execution Assurance vocabulary, docs, README capability tables, generated-project smoke coverage, and runtime IntentOS naming after the 1.74 strict-binding release.
+- `1.74.1` keeps the Execution Assurance artifact schema version at `1.74.0`; existing strict reports remain compatible.
+- `1.74.1` extends naming-hardcut checks to uppercase legacy identity tokens and updates bootstrapped project tags to IntentOS terminology.
 - `1.74.0` hardens Execution Assurance binding: source systems must identify their source report/task/outcome, precise mode requires current-task matches, report/evidence digests are checked, and actual changed files must stay inside explicit planned target paths.
 - `1.74.0` makes generated execution-assurance reports conservative by default: resolver output uses `REQUIRES_EXPLICIT_EXECUTION_PLAN` instead of silently turning changed files into an approved plan.
 - `1.74.0` keeps strict binding non-authorizing: it does not write target files, approve implementation, approve commit or push, approve release or production, mutate CI/hooks, touch secrets, run migrations, call providers, or replace project authority.

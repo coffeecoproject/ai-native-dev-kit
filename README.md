@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.74.0`.
+Current release: `1.74.1`.
 
-Release record: [releases/1.74.0/release-record.md](releases/1.74.0/release-record.md).
+Release record: [releases/1.74.1/release-record.md](releases/1.74.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.74.1 syncs the 1.74 Execution Assurance release: resolver vocabulary, JSON schema enum values, runtime IntentOS tags, README command tables, docs, and generated-project smoke now point to the same behavior. It does not add a new workflow layer or require ordinary users to learn internal proof-chain commands.
 
 1.74.0 tightens Execution Assurance: when Codex says execution work is done, the source systems, evidence, actual diff, and reviewed plan must match the current task. It blocks stale evidence, wrong-task reports, unplanned changed files, and vague `review:` / `command:` proof from being treated as precise completion evidence.
 
@@ -150,6 +152,7 @@ IntentOS 当前包含这些核心能力：
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
 | Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 规则，只输出建议，不直接替换旧治理 |
 | Governance Convergence | 老项目可以按 IntentOS 日常工作方式收敛，但基线、发布、CI、hook、历史证据和旧规则必须先比较再计划 |
+| Adoption Assurance | 验证老项目是否真的按 IntentOS 工作，需要证据和只读模拟支撑，而不是只靠“已接入”的说法 |
 | Baseline Decision | 用白话确认 BL0 / BL1 / BL2、平台和风险 |
 | Ordinary First Slice | 把普通用户的一句话目标整理成第一版范围、问题、延期项和验证方式 |
 | Product Completeness | 判断现在是想法、第一版范围、可本地运行 MVP、内测候选还是阻塞 |
@@ -175,6 +178,7 @@ IntentOS 当前包含这些核心能力：
 | Work Queue / Todo | 管理当前任务、暂停任务、停车场和恢复入口 |
 | Document Lifecycle | 识别过期、重复、废弃文档和 source of truth，默认建议归档，不默认删除 |
 | Hook Policy | 定义项目允许哪些 hook、谁确认、怎么禁用和回滚 |
+| Execution Assurance Chain | 执行类工作说“完成”前，必须把意图、计划、实际改动、证据、复查和补丁判断串成可检查证明链 |
 | Execution Closure | 收口改动范围、验证结果、债务和提交前证据 |
 | Project Memory | 让 Git 和已确认文档优先于聊天记录、模型记忆和 AI 推断 |
 
@@ -215,6 +219,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查规则对齐报告 | `node scripts/cli.mjs reconcile-rules-check ../my-project` |
 | 汇总老项目如何向 IntentOS 日常治理收敛 | `node scripts/cli.mjs convergence ../my-project` |
 | 检查治理收敛报告 | `node scripts/cli.mjs convergence-check ../my-project` |
+| 生成老项目接入验收报告 | `node scripts/cli.mjs adoption-assurance ../my-project --out adoption-assurance-reports/001.md` |
+| 检查老项目接入是否真的生效 | `node scripts/cli.mjs adoption-assurance-check ../my-project` |
 | 汇总发布源系统为统一视图 | `node scripts/cli.mjs release-plan ../my-project --intent "帮我上线"` |
 | 检查统一发布视图 | `node scripts/cli.mjs release-check ../my-project` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |
@@ -237,6 +243,10 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查发布执行计划 | `node scripts/cli.mjs release-execution-check ../my-project` |
 | 生成变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage ../my-project --intent "新增合同录入限制"` |
 | 检查变更影响覆盖报告 | `node scripts/cli.mjs impact-coverage-check ../my-project` |
+| 生成执行完成证明链 | `node scripts/cli.mjs execution-assurance ../my-project --intent "新增合同录入限制" --out execution-assurance-reports/001.md` |
+| 检查执行完成证明链 | `node scripts/cli.mjs execution-assurance-check ../my-project` |
+| 用白话别名检查任务是否真正完成 | `node scripts/cli.mjs done-check ../my-project` |
+| 用白话别名验证执行是否到位 | `node scripts/cli.mjs verify-execution ../my-project` |
 | 严格检查变更影响闭环证据 | `node scripts/check-change-impact-coverage.mjs ../my-project --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs` |
 | 严格检查执行收口是否引用正确影响覆盖 | `node scripts/check-execution-closure.mjs ../my-project --require-impact-coverage --require-precise-evidence` |
 | 规划 hook 而不安装 | `node scripts/cli.mjs hook-policy ../my-project` |
@@ -410,6 +420,7 @@ Reference:
 
 Current release:
 
+- [1.74.1 Release Record](releases/1.74.1/release-record.md)
 - [1.74.0 Release Record](releases/1.74.0/release-record.md)
 - [1.73.0 Release Record](releases/1.73.0/release-record.md)
 - [1.72.1 Release Record](releases/1.72.1/release-record.md)

@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Execution Assurance Vocabulary And Docs Sync 1.74.1](execution-assurance-vocabulary-docs-sync-1.74.1-plan.md)
 - [Execution Assurance Strict Binding 1.74](execution-assurance-strict-binding-1.74-plan.md)
 - [Execution Assurance Empty-Report Hardening 1.72.1](execution-assurance-empty-report-hardening-1.72.1-plan.md)
 - [Execution Assurance Chain 1.72](execution-assurance-chain-1.72-plan.md)

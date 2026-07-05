@@ -97,6 +97,7 @@
         "target_diff_status": {
           "enum": [
             "MATCHED_PLAN",
+            "REQUIRES_EXPLICIT_EXECUTION_PLAN",
             "UNCHANGED_FOR_READ_ONLY",
             "UNCHANGED_FOR_READ_ONLY_OR_MATCHED_FOR_WRITE",
             "UNEXPECTED_DIFF",

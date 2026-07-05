@@ -279,6 +279,8 @@ jobs:
           node "$tmp/project/scripts/resolve-debt-handoff.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-execution-closure.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-execution-closure.mjs" "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"
+          node "$tmp/project/scripts/resolve-execution-assurance.mjs" "$tmp/project" --intent "verify generated project execution"
+          node "$tmp/project/scripts/check-execution-assurance.mjs" "$tmp/project" --allow-empty
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep --intent "build an appointment app"
@@ -292,6 +294,10 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" delivery-path "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" closure "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"
           node "$tmp/project/scripts/cli.mjs" closure-check "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" execution-assurance "$tmp/project" --intent "verify generated project execution"
+          node "$tmp/project/scripts/cli.mjs" execution-assurance-check "$tmp/project" --allow-empty
+          node "$tmp/project/scripts/cli.mjs" done-check "$tmp/project" --allow-empty
+          node "$tmp/project/scripts/cli.mjs" verify-execution "$tmp/project" --allow-empty
           node "$tmp/project/scripts/cli.mjs" delivery-path-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" debt-handoff "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" debt-handoff-check "$tmp/project"

@@ -848,7 +848,7 @@ function buildResult() {
   }
 
   const projectStateTags = [projectState];
-  if (version) projectStateTags.push("AI_NATIVE_BOOTSTRAPPED_PROJECT");
+  if (version) projectStateTags.push("INTENTOS_BOOTSTRAPPED_PROJECT");
   if (signals.isGovernedExisting) projectStateTags.push("GOVERNED_EXISTING_PROJECT");
   if (signals.isProductionGoverned) projectStateTags.push("PRODUCTION_GOVERNED_PROJECT");
   if (signals.isDirtyWorktree) projectStateTags.push("DIRTY_WORKTREE_PROJECT");

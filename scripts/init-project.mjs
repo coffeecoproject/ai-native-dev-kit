@@ -1964,7 +1964,7 @@ function workflowNextGate(targetPath) {
   }
   const tags = new Set(parsed.projectStateTags || []);
   const hasVersion = fs.existsSync(path.join(targetPath, ".intentos", "version.json"));
-  const isBootstrapped = hasVersion || tags.has("AI_NATIVE_BOOTSTRAPPED_PROJECT") || tags.has("BOOTSTRAPPED_PROJECT");
+  const isBootstrapped = hasVersion || tags.has("INTENTOS_BOOTSTRAPPED_PROJECT") || tags.has("BOOTSTRAPPED_PROJECT");
   const blocked = parsed.nextAction === "REVIEW_DIRTY_WORKTREE"
     || tags.has("DIRTY_WORKTREE_PROJECT")
     || !isBootstrapped;

@@ -48,6 +48,22 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 
 Execution Assurance binds intent, completion contract, planned impact, actual diff, evidence refs, review result, patch classification, source-system trace, and closure decision before Codex can claim execution-class work is complete.
 
+1.74.0/1.74.1 tighten Execution Assurance evidence identity:
+
+- source-system records include `source_system_ref`, `source_task_ref`,
+  `source_outcome`, `current_task_match`, `report_digest`, and
+  `evidence_digest`;
+- actual diff binding includes `REQUIRES_EXPLICIT_EXECUTION_PLAN` when changed
+  files exist but no explicit reviewed execution plan covers them;
+- strict/precise completion requires actual changed files to be covered by
+  explicit planned target paths;
+- declarative references such as `review:`, `command:`, `generated:`, and
+  `git-diff:` are not precise completion proof by themselves.
+
+The Execution Assurance artifact schema version remains `1.74.0` in the 1.74.1
+repository patch because the artifact shape stays compatible; 1.74.1 aligns the
+resolver, schema enum, docs, and smoke coverage.
+
 The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
 
 ## Rules
@@ -90,7 +106,7 @@ Change impact coverage strict closure mode requires a valid `impact_digest`, mat
 
 Existing-project adoption strict mode requires structured evidence for migration, rule reconciliation, convergence, release plan, and adoption assurance when those reports are used to claim IntentOS operating mode. Adoption Assurance also requires every surface evidence ref to resolve through `evidence_refs`; `VERIFIED_ACTIVE` additionally requires a passed read-only simulation trace.
 
-Execution Assurance strict mode requires current-task evidence refs, a concrete actual diff binding, a completion contract, planned impact surfaces, independent review when required, source-system trace, and a patch assessment that does not hide partial or broad changes behind safe-patch wording.
+Execution Assurance strict mode requires current-task evidence refs, a concrete actual diff binding, a completion contract, planned impact surfaces, independent review when required, source-system trace, digest-backed evidence identity when available, explicit planned target paths for actual changed files, and a patch assessment that does not hide partial or broad changes behind safe-patch wording.
 
 Product completeness structured evidence is supplied as a JSON file, not as a Markdown `Machine-Readable Evidence` block:
 
