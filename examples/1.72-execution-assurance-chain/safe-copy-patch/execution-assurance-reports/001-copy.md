@@ -80,9 +80,9 @@ This report is a read-only derived verification view. It does not write target f
 
 ## Source System Trace
 
-| Source System | Status | Ref | Contribution | Authority |
-| --- | --- | --- | --- | --- |
-| low_risk_apply_candidate | `RECORDED` | `checker:apply-candidate` | Safe patch classification. | Source system |
+| Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| low_risk_apply_candidate | `RECORDED` | `checker:apply-candidate` | `tasks/001-copy.md` | `SAFE_PATCH` | `Yes` | `sha256:e208372b18a9cba5b4ebf6bc64713320974733b8c50e7705a423517e1772de13` | Safe patch classification. | Source system |
 
 ## Closure Decision
 
@@ -111,7 +111,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
 
 ```json
 {
-  "schema_version": "1.72.0",
+  "schema_version": "1.74.0",
   "artifact_type": "execution_assurance_report",
   "execution_kind": "SAFE_PATCH",
   "task_ref": "tasks/001-copy.md",
@@ -126,7 +126,19 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "evidence_bindings": [{"criterion_id":"criterion:copy-smoke","evidence_ref":"file:evidence/copy-smoke.txt","resolved":"Yes","current_task_match":"Yes"}],
   "review": {"review_required":"No","review_refs":["checker:apply-candidate"],"all_reviewers_closed":"Yes"},
   "patch_assessment": {"state":"SAFE_PATCH","reason":"Narrow copy-only diff with local smoke evidence."},
-  "source_systems": [{"name":"low_risk_apply_candidate","status":"RECORDED","ref":"checker:apply-candidate","contribution":"Safe patch classification."}],
+  "source_systems": [
+    {
+      "name": "low_risk_apply_candidate",
+      "status": "RECORDED",
+      "ref": "checker:apply-candidate",
+      "source_system_ref": "checker:apply-candidate",
+      "source_task_ref": "tasks/001-copy.md",
+      "source_outcome": "SAFE_PATCH",
+      "current_task_match": "Yes",
+      "evidence_digest": "sha256:e208372b18a9cba5b4ebf6bc64713320974733b8c50e7705a423517e1772de13",
+      "contribution": "Safe patch classification."
+    }
+  ],
   "pending_human_decisions": [],
   "forbidden_claims": [],
   "boundary": {"writes_target_files":"No","authorizes_target_file_writes":"No","approves_implementation_beyond_recorded_scope":"No","approves_commit_or_push":"No","approves_release_or_production":"No","replaces_source_systems":"No","proves_product_correctness":"No","transfers_project_authority_to_intentos":"No"},

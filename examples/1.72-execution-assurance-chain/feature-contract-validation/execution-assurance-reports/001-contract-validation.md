@@ -88,10 +88,10 @@ This report is a read-only derived verification view. It does not write target f
 
 ## Source System Trace
 
-| Source System | Status | Ref | Contribution | Authority |
-| --- | --- | --- | --- | --- |
-| change_impact_coverage | `RECORDED` | `artifact:change-impact-coverage-reports/001-contract.md` | Planned impact map. | Source system |
-| review_loop | `RECORDED` | `artifact:review-loop-reports/001-contract.md` | Independent review. | Source system |
+| Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| change_impact_coverage | `RECORDED` | `artifact:change-impact-coverage-reports/001-contract.md` | `tasks/001-contract-validation.md` | `DONE` | `Yes` | `sha256:eeb9163262fcd5007ebe96579e5ee6fd5d8ba8aef9ea4bb5bacf23a466ce5766` | Planned impact map. | Source system |
+| review_loop | `RECORDED` | `artifact:review-loop-reports/001-contract.md` | `tasks/001-contract-validation.md` | `REVIEW_CLOSED` | `Yes` | `sha256:0f86da83bab570b44bbe02763170c41ec923d90d0ec25c8cc8043a6f20960b18` | Independent review. | Source system |
 
 ## Closure Decision
 
@@ -120,7 +120,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
 
 ```json
 {
-  "schema_version": "1.72.0",
+  "schema_version": "1.74.0",
   "artifact_type": "execution_assurance_report",
   "execution_kind": "FEATURE_IMPLEMENTATION",
   "task_ref": "tasks/001-contract-validation.md",
@@ -178,8 +178,28 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "reason": "Cross-surface planned execution with evidence coverage."
   },
   "source_systems": [
-    {"name":"change_impact_coverage","status":"RECORDED","ref":"artifact:change-impact-coverage-reports/001-contract.md","contribution":"Planned impact map."},
-    {"name":"review_loop","status":"RECORDED","ref":"artifact:review-loop-reports/001-contract.md","contribution":"Independent review."}
+    {
+      "name": "change_impact_coverage",
+      "status": "RECORDED",
+      "ref": "artifact:change-impact-coverage-reports/001-contract.md",
+      "source_system_ref": "artifact:change-impact-coverage-reports/001-contract.md",
+      "source_task_ref": "tasks/001-contract-validation.md",
+      "source_outcome": "DONE",
+      "current_task_match": "Yes",
+      "report_digest": "sha256:eeb9163262fcd5007ebe96579e5ee6fd5d8ba8aef9ea4bb5bacf23a466ce5766",
+      "contribution": "Planned impact map."
+    },
+    {
+      "name": "review_loop",
+      "status": "RECORDED",
+      "ref": "artifact:review-loop-reports/001-contract.md",
+      "source_system_ref": "artifact:review-loop-reports/001-contract.md",
+      "source_task_ref": "tasks/001-contract-validation.md",
+      "source_outcome": "REVIEW_CLOSED",
+      "current_task_match": "Yes",
+      "report_digest": "sha256:0f86da83bab570b44bbe02763170c41ec923d90d0ec25c8cc8043a6f20960b18",
+      "contribution": "Independent review."
+    }
   ],
   "pending_human_decisions": [],
   "forbidden_claims": [],

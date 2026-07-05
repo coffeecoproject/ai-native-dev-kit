@@ -79,9 +79,9 @@ This report is a read-only derived verification view. It does not write target f
 
 ## Source System Trace
 
-| Source System | Status | Ref | Contribution | Authority |
-| --- | --- | --- | --- | --- |
-| change_impact_coverage | `RECORDED` | `artifact:change-impact-coverage-reports/001-contract.md` | Planned impact map. | Source system |
+| Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| change_impact_coverage | `RECORDED` | `artifact:change-impact-coverage-reports/001-contract.md` | `tasks/001-contract-validation.md` | `DONE` | `Yes` | `sha256:eeb9163262fcd5007ebe96579e5ee6fd5d8ba8aef9ea4bb5bacf23a466ce5766` | Planned impact map. | Source system |
 
 ## Closure Decision
 
@@ -110,7 +110,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
 
 ```json
 {
-  "schema_version": "1.72.0",
+  "schema_version": "1.74.0",
   "artifact_type": "execution_assurance_report",
   "execution_kind": "FEATURE_IMPLEMENTATION",
   "task_ref": "tasks/001-contract-validation.md",
@@ -159,7 +159,17 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "reason": "Cross-surface planned change."
   },
   "source_systems": [
-    {"name":"change_impact_coverage","status":"RECORDED","ref":"artifact:change-impact-coverage-reports/001-contract.md","contribution":"Planned impact map."}
+    {
+      "name": "change_impact_coverage",
+      "status": "RECORDED",
+      "ref": "artifact:change-impact-coverage-reports/001-contract.md",
+      "source_system_ref": "artifact:change-impact-coverage-reports/001-contract.md",
+      "source_task_ref": "tasks/001-contract-validation.md",
+      "source_outcome": "DONE",
+      "current_task_match": "Yes",
+      "report_digest": "sha256:eeb9163262fcd5007ebe96579e5ee6fd5d8ba8aef9ea4bb5bacf23a466ce5766",
+      "contribution": "Planned impact map."
+    }
   ],
   "pending_human_decisions": ["Confirm whether missing frontend evidence is required or explicitly out of scope."],
   "forbidden_claims": [],

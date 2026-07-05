@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.73.0`
+`1.74.0`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.74.0` hardens Execution Assurance binding: source systems must identify their source report/task/outcome, precise mode requires current-task matches, report/evidence digests are checked, and actual changed files must stay inside explicit planned target paths.
+- `1.74.0` makes generated execution-assurance reports conservative by default: resolver output uses `REQUIRES_EXPLICIT_EXECUTION_PLAN` instead of silently turning changed files into an approved plan.
+- `1.74.0` keeps strict binding non-authorizing: it does not write target files, approve implementation, approve commit or push, approve release or production, mutate CI/hooks, touch secrets, run migrations, call providers, or replace project authority.
 - `1.73.0` completes the IntentOS naming hardcut: public docs, package metadata, CLI help, manifests, generated workflow assets, CI workflow names, templates, and active checks use the IntentOS identity.
 - `1.73.0` uses `.intentos/`, `intentos-manifest.json`, and `intentOSVersion` for generated workflow assets and version metadata.
 - `1.73.0` keeps old-project asset migration plan-first; older generated workflow assets must be detected, planned, approved, and verified before files are moved or rewritten.

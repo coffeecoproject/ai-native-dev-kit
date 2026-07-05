@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
@@ -28,6 +30,8 @@ const requireActualDiff = Boolean(args["require-actual-diff"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const allowEmptyReports = Boolean(args["allow-empty"]);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
+const schemaVersion = "1.74.0";
+const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -243,6 +247,16 @@ function checkStructuredEvidence(content, label) {
     fail(`${label} Machine-Readable Evidence JSON invalid: ${error.message}`);
     return null;
   }
+  if (requireStructuredEvidence) {
+    const schema = loadSchema(projectRoot, schemaPath);
+    if (!schema) {
+      fail(`${label} Machine-Readable Evidence schema is missing`);
+    } else {
+      const validation = validateSchema(parsed, schema, { label: `${label} Machine-Readable Evidence` });
+      if (validation.ok) pass(`${label} Machine-Readable Evidence matches schema`);
+      else for (const error of validation.errors) fail(error);
+    }
+  }
   const required = [
     "schema_version",
     "artifact_type",
@@ -269,8 +283,8 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} evidence includes ${field}`);
     else fail(`${label} evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.72.0") pass(`${label} evidence schema_version is 1.72.0`);
-  else fail(`${label} evidence schema_version must be 1.72.0`);
+  if (parsed.schema_version === schemaVersion) pass(`${label} evidence schema_version is ${schemaVersion}`);
+  else fail(`${label} evidence schema_version must be ${schemaVersion}`);
   if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
   if (allowedKinds.has(parsed.execution_kind)) pass(`${label} evidence execution_kind is allowed`);
@@ -336,9 +350,12 @@ function checkExecutionPlan(parsed, label) {
   const plan = parsed.execution_plan || {};
   if (String(plan.plan_ref || "").trim()) pass(`${label} execution plan has plan ref`);
   else fail(`${label} execution plan missing plan ref`);
-  const broad = (Array.isArray(plan.planned_target_paths) ? plan.planned_target_paths : []).some((item) => ["*", "**", "/*", "/"].includes(String(item).trim()));
-  if (broad) fail(`${label} execution plan has broad target path`);
-  else pass(`${label} execution plan avoids broad target path`);
+  const paths = Array.isArray(plan.planned_target_paths) ? plan.planned_target_paths : [];
+  if (paths.length > 0) pass(`${label} execution plan has planned target paths`);
+  else fail(`${label} execution plan must include planned target paths`);
+  const invalidPaths = paths.filter((item) => !isAllowedPlannedTargetPath(item));
+  if (invalidPaths.length > 0) fail(`${label} execution plan has unsupported or broad target path: ${invalidPaths.join(", ")}`);
+  else pass(`${label} execution plan uses explicit planned target paths`);
 }
 
 function checkActualDiff(parsed, label) {
@@ -356,6 +373,16 @@ function checkActualDiff(parsed, label) {
   for (const file of diff.changed_files || []) {
     if (/\.DS_Store$|\.env|secret|password|\.log$|\.tmp$/i.test(String(file))) {
       fail(`${label} changed file is local-only, secret-like, log, or temp artifact: ${file}`);
+    }
+  }
+  const needsPlanCoverage = requireActualDiff || requirePreciseEvidence || parsed.assurance_state === "VERIFIED_DONE";
+  if (needsPlanCoverage && Array.isArray(diff.changed_files) && diff.changed_files.length > 0) {
+    const plannedPaths = Array.isArray(parsed.execution_plan?.planned_target_paths) ? parsed.execution_plan.planned_target_paths : [];
+    const uncovered = diff.changed_files.filter((file) => !isChangedFileCoveredByPlan(file, plannedPaths));
+    if (uncovered.length > 0) {
+      fail(`${label} actual diff changed files are outside planned target paths: ${uncovered.join(", ")}; use BLOCKED_BY_SCOPE_DRIFT or record a reviewed execution plan`);
+    } else {
+      pass(`${label} actual diff changed files are covered by planned target paths`);
     }
   }
 }
@@ -421,6 +448,7 @@ function checkSourceSystems(parsed, label) {
   const sources = Array.isArray(parsed.source_systems) ? parsed.source_systems : [];
   if (sources.length > 0) pass(`${label} source systems are present`);
   else fail(`${label} source systems must not be empty`);
+  const strictSourceBinding = requirePreciseEvidence || parsed.assurance_state === "VERIFIED_DONE";
   for (const item of sources) {
     if (String(item.name || "").trim()) pass(`${label} source system has name`);
     else fail(`${label} source system missing name`);
@@ -428,6 +456,35 @@ function checkSourceSystems(parsed, label) {
     else fail(`${label} source system ${item.name || "<unknown>"} status invalid`);
     if (String(item.ref || "").trim()) pass(`${label} source system ${item.name} has ref`);
     else fail(`${label} source system ${item.name || "<unknown>"} missing ref`);
+    if (String(item.contribution || "").trim()) pass(`${label} source system ${item.name} has contribution`);
+    else fail(`${label} source system ${item.name || "<unknown>"} missing contribution`);
+    if (String(item.source_system_ref || "").trim()) pass(`${label} source system ${item.name} has source_system_ref`);
+    else fail(`${label} source system ${item.name || "<unknown>"} missing source_system_ref`);
+    if (String(item.source_task_ref || "").trim()) pass(`${label} source system ${item.name} has source_task_ref`);
+    else fail(`${label} source system ${item.name || "<unknown>"} missing source_task_ref`);
+    if (String(item.source_outcome || "").trim()) pass(`${label} source system ${item.name} has source_outcome`);
+    else fail(`${label} source system ${item.name || "<unknown>"} missing source_outcome`);
+    if (["Yes", "No"].includes(item.current_task_match)) pass(`${label} source system ${item.name} current_task_match is bounded`);
+    else fail(`${label} source system ${item.name || "<unknown>"} current_task_match invalid`);
+    if (item.status === "RECORDED") {
+      if (item.ref) checkEvidenceRef(item.ref, parsed, label);
+      if (item.source_system_ref && item.source_system_ref !== item.ref) checkEvidenceRef(item.source_system_ref, parsed, label);
+    }
+    checkSourceDigest(item, parsed, label, strictSourceBinding);
+    if (strictSourceBinding && item.status === "RECORDED") {
+      if (item.current_task_match === "Yes") pass(`${label} source system ${item.name} matches current task`);
+      else fail(`${label} source system ${item.name} must match current task in precise mode`);
+      if (item.source_task_ref === parsed.task_ref) pass(`${label} source system ${item.name} source task matches report task`);
+      else fail(`${label} source system ${item.name} source_task_ref must match current report task_ref`);
+      if (/BLOCKED|NEEDS_INPUT|FAILED|ERROR|STALE/i.test(String(item.source_outcome || ""))) {
+        fail(`${label} source system ${item.name} has non-completing source outcome: ${item.source_outcome}`);
+      } else {
+        pass(`${label} source system ${item.name} source outcome is usable`);
+      }
+    }
+    if (parsed.assurance_state === "VERIFIED_DONE" && item.status !== "RECORDED") {
+      fail(`${label} VERIFIED_DONE requires all source systems to be RECORDED`);
+    }
   }
 }
 
@@ -520,9 +577,50 @@ function checkEvidenceRef(ref, parsed, label) {
     if (knownCheckerRefs.has(value)) pass(`${label} resolves checker evidence ${value}`);
     else fail(`${label} unknown checker evidence ref ${value}`);
   } else if (value.startsWith("human-decision:") || value.startsWith("review:") || value.startsWith("command:") || value.startsWith("git-diff:") || value.startsWith("generated:")) {
-    pass(`${label} resolves recorded evidence ${value}`);
+    if (requirePreciseEvidence || parsed?.assurance_state === "VERIFIED_DONE") {
+      fail(`${label} precise evidence must resolve to file:, artifact:, or checker: record, not declarative ref ${value}`);
+    } else {
+      pass(`${label} records declarative evidence ${value}`);
+    }
   } else {
     fail(`${label} unknown evidence ref prefix ${value}`);
+  }
+}
+
+function checkSourceDigest(item, parsed, label, strictSourceBinding) {
+  const reportDigest = String(item.report_digest || "").trim();
+  const evidenceDigest = String(item.evidence_digest || "").trim();
+  const sourceRef = String(item.source_system_ref || item.ref || "").trim();
+  if (reportDigest) {
+    if (isShaDigest(reportDigest)) pass(`${label} source system ${item.name} report_digest is sha256`);
+    else fail(`${label} source system ${item.name} report_digest must be sha256`);
+    if (isFileOrArtifactRef(sourceRef)) {
+      const resolved = resolveEvidenceRefPath(sourceRef);
+      if (!resolved) {
+        fail(`${label} source system ${item.name} report_digest source is unresolved: ${sourceRef}`);
+      } else {
+        const actual = fileDigest(resolved);
+        if (actual === reportDigest) pass(`${label} source system ${item.name} report_digest matches source file`);
+        else fail(`${label} source system ${item.name} report_digest does not match source file`);
+      }
+    }
+  }
+  if (evidenceDigest) {
+    if (isShaDigest(evidenceDigest)) pass(`${label} source system ${item.name} evidence_digest is sha256`);
+    else fail(`${label} source system ${item.name} evidence_digest must be sha256`);
+  }
+  if (!strictSourceBinding || item.status !== "RECORDED") return;
+  if (isFileOrArtifactRef(sourceRef)) {
+    if (reportDigest) pass(`${label} source system ${item.name} has file-backed report digest`);
+    else fail(`${label} source system ${item.name} requires report_digest for file-backed source evidence`);
+  } else if (sourceRef.startsWith("checker:")) {
+    if (evidenceDigest) pass(`${label} source system ${item.name} has checker-backed evidence digest`);
+    else fail(`${label} source system ${item.name} requires evidence_digest for checker-backed source evidence`);
+  } else {
+    fail(`${label} source system ${item.name} must use file:, artifact:, or checker: source_system_ref in precise mode`);
+  }
+  if (!reportDigest && !evidenceDigest) {
+    fail(`${label} source system ${item.name} requires report_digest or evidence_digest in precise mode`);
   }
 }
 
@@ -531,12 +629,58 @@ function isFileOrArtifactRef(ref) {
   return value.startsWith("file:") || value.startsWith("artifact:");
 }
 
+function isAllowedPlannedTargetPath(value) {
+  const item = String(value || "").trim();
+  if (!item) return false;
+  if (item === "N/A") return true;
+  if (["*", "**", "/*", "/", "REQUIRES_EXPLICIT_EXECUTION_PLAN"].includes(item)) return false;
+  if (path.isAbsolute(item) || item.includes("..")) return false;
+  if (item.includes("*") && !item.endsWith("/**")) return false;
+  if (item.endsWith("/**")) {
+    const base = item.slice(0, -3);
+    return Boolean(base) && !base.includes("*") && !path.isAbsolute(base) && !base.includes("..");
+  }
+  return true;
+}
+
+function isChangedFileCoveredByPlan(file, plannedPaths) {
+  const changed = String(file || "").trim();
+  if (!changed || path.isAbsolute(changed) || changed.includes("..")) return false;
+  for (const item of plannedPaths || []) {
+    const planned = String(item || "").trim();
+    if (!isAllowedPlannedTargetPath(planned) || planned === "N/A") continue;
+    if (planned.endsWith("/**")) {
+      const base = planned.slice(0, -3);
+      if (changed === base || changed.startsWith(`${base}/`)) return true;
+    } else if (changed === planned) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function evidenceRefExists(ref) {
+  return Boolean(resolveEvidenceRefPath(ref));
+}
+
+function resolveEvidenceRefPath(ref) {
   const value = String(ref || "").trim();
-  if (!isFileOrArtifactRef(value)) return false;
+  if (!isFileOrArtifactRef(value)) return "";
   const filePath = value.replace(/^(file|artifact):/, "");
-  if (!filePath || path.isAbsolute(filePath) || filePath.includes("..")) return false;
-  return fs.existsSync(path.join(projectRoot, filePath)) || fs.existsSync(path.join(projectRoot, ".intentos", filePath));
+  if (!filePath || path.isAbsolute(filePath) || filePath.includes("..")) return "";
+  const direct = path.join(projectRoot, filePath);
+  if (fs.existsSync(direct) && fs.statSync(direct).isFile()) return direct;
+  const managed = path.join(projectRoot, ".intentos", filePath);
+  if (fs.existsSync(managed) && fs.statSync(managed).isFile()) return managed;
+  return "";
+}
+
+function isShaDigest(value) {
+  return /^sha256:[a-f0-9]{64}$/.test(String(value || ""));
+}
+
+function fileDigest(file) {
+  return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
 }
 
 function collectEvidenceRefs(parsed) {

@@ -5622,8 +5622,13 @@ function checkExecutionAssuranceChainProtocol() {
     "bad-execution-assurance-missing-review",
     "bad-execution-assurance-adoption-without-source",
     "bad-execution-assurance-release-overclaim",
+    "bad-execution-assurance-source-task-mismatch",
+    "bad-execution-assurance-planned-path-mismatch",
+    "bad-execution-assurance-source-digest-mismatch",
+    "bad-execution-assurance-declarative-precise-evidence",
   ];
   const required = [
+    "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
     "docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md",
     "docs/plans/execution-assurance-chain-1.72-plan.md",
     "core/execution-assurance-chain.md",
@@ -5646,6 +5651,9 @@ function checkExecutionAssuranceChainProtocol() {
     "releases/1.72.1/release-record.md",
     "releases/1.72.1/known-limitations.md",
     "releases/1.72.1/self-check-report.md",
+    "releases/1.74.0/release-record.md",
+    "releases/1.74.0/known-limitations.md",
+    "releases/1.74.0/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/execution-assurance-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5656,6 +5664,7 @@ function checkExecutionAssuranceChainProtocol() {
   const combined = [
     read("docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md"),
     read("docs/plans/execution-assurance-chain-1.72-plan.md"),
+    read("docs/plans/execution-assurance-strict-binding-1.74-plan.md"),
     read("core/execution-assurance-chain.md"),
     read("docs/execution-assurance-chain.md"),
     read("templates/execution-assurance-report.md"),
@@ -5664,6 +5673,7 @@ function checkExecutionAssuranceChainProtocol() {
     read("scripts/check-execution-assurance.mjs"),
     read("releases/1.72.0/release-record.md"),
     read("releases/1.72.1/release-record.md"),
+    read("releases/1.74.0/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -5684,6 +5694,13 @@ function checkExecutionAssuranceChainProtocol() {
     "evidence_bindings",
     "patch_assessment",
     "source_systems",
+    "source_system_ref",
+    "source_task_ref",
+    "current_task_match",
+    "report_digest",
+    "evidence_digest",
+    "REQUIRES_EXPLICIT_EXECUTION_PLAN",
+    "actual diff changed files are outside planned target paths",
     "No evidence chain, no verified completion",
     "no execution assurance reports found",
     "--allow-empty",
@@ -5728,7 +5745,7 @@ function checkExecutionAssuranceChainProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "EXECUTION_ASSURANCE"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.72.0"
+        && parsed.schemaVersion === "1.74.0"
         && parsed.structuredEvidence?.artifact_type === "execution_assurance_report"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
         && parsed.structuredEvidence?.completion_contract
@@ -12464,6 +12481,29 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project workflow artifact quality check after update");
+
+  const executionAssuranceResolveAfterUpdate = runNode([
+    path.join(target, "scripts", "resolve-execution-assurance.mjs"),
+    target,
+    "--intent",
+    "generated project execution assurance smoke",
+  ]);
+  if (executionAssuranceResolveAfterUpdate.status !== 0 || !executionAssuranceResolveAfterUpdate.stdout.includes("Execution Assurance Report")) {
+    fail(`generated project execution assurance resolver after update failed: ${executionAssuranceResolveAfterUpdate.stderr || executionAssuranceResolveAfterUpdate.stdout}`);
+    return;
+  }
+  pass("generated project execution assurance resolver after update");
+
+  const executionAssuranceCheckAfterUpdate = runNode([
+    path.join(target, "scripts", "check-execution-assurance.mjs"),
+    target,
+    "--allow-empty",
+  ]);
+  if (executionAssuranceCheckAfterUpdate.status !== 0) {
+    fail(`generated project execution assurance checker after update failed: ${executionAssuranceCheckAfterUpdate.stderr || executionAssuranceCheckAfterUpdate.stdout}`);
+    return;
+  }
+  pass("generated project execution assurance checker after update");
 
   const dryRunTarget = path.join(tempRoot, "dry-run-project");
   const nonEmptyInitTarget = path.join(tempRoot, "non-empty-init-project");

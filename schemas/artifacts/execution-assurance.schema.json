@@ -27,7 +27,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.72.0" },
+    "schema_version": { "const": "1.74.0" },
     "artifact_type": { "const": "execution_assurance_report" },
     "execution_kind": {
       "enum": [
@@ -209,12 +209,27 @@
     "sourceSystem": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "status", "ref", "contribution"],
+      "required": [
+        "name",
+        "status",
+        "ref",
+        "contribution",
+        "source_system_ref",
+        "source_task_ref",
+        "source_outcome",
+        "current_task_match"
+      ],
       "properties": {
         "name": { "type": "string", "minLength": 1 },
         "status": { "enum": ["RECORDED", "NEEDS_INPUT", "BLOCKED"] },
         "ref": { "type": "string", "minLength": 1 },
-        "contribution": { "type": "string", "minLength": 1 }
+        "contribution": { "type": "string", "minLength": 1 },
+        "source_system_ref": { "type": "string", "minLength": 1 },
+        "source_task_ref": { "type": "string", "minLength": 1 },
+        "source_outcome": { "type": "string", "minLength": 1 },
+        "current_task_match": { "enum": ["Yes", "No"] },
+        "report_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
       }
     }
   }

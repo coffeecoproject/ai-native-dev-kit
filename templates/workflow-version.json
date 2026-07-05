@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.73.0",
+  "intentOSVersion": "1.74.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -435,6 +435,7 @@
     "scripts/check-workflow-version.mjs",
     "scripts/cli.mjs",
     "scripts/lib/args.mjs",
+    "scripts/lib/artifact-schema.mjs",
     "scripts/lib/check-result.mjs",
     "scripts/lib/frontmatter.mjs",
     "scripts/lib/git.mjs",

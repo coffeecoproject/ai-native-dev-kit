@@ -82,9 +82,9 @@ This report is a read-only derived verification view. It does not write target f
 
 ## Source System Trace
 
-| Source System | Status | Ref | Contribution | Authority |
-| --- | --- | --- | --- | --- |
-| change_impact_coverage | `RECORDED` | `checker:impact-coverage` | Shows missing frontend surface. | Source system |
+| Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| change_impact_coverage | `RECORDED` | `checker:impact-coverage` | `tasks/001-backend-only.md` | `BLOCKED_BY_PATCH_SMELL` | `Yes` | `sha256:091715d9df93947dce186b2c0d1be9da7270c367088c788270ecc266167d84ab` | Shows missing frontend surface. | Source system |
 
 ## Closure Decision
 
@@ -113,7 +113,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
 
 ```json
 {
-  "schema_version": "1.72.0",
+  "schema_version": "1.74.0",
   "artifact_type": "execution_assurance_report",
   "execution_kind": "BUG_FIX",
   "task_ref": "tasks/001-backend-only.md",
@@ -128,7 +128,19 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "evidence_bindings": [{"criterion_id":"criterion:backend-rule","evidence_ref":"checker:impact-coverage","resolved":"Yes","current_task_match":"Yes"},{"criterion_id":"criterion:frontend-validation","evidence_ref":"checker:impact-coverage","resolved":"Yes","current_task_match":"No"}],
   "review": {"review_required":"Yes","review_refs":["checker:source-system-review"],"all_reviewers_closed":"Yes"},
   "patch_assessment": {"state":"PATCH_SMELL","reason":"Backend-only fix for visible validation leaves frontend behavior unproven."},
-  "source_systems": [{"name":"change_impact_coverage","status":"RECORDED","ref":"checker:impact-coverage","contribution":"Shows missing frontend surface."}],
+  "source_systems": [
+    {
+      "name": "change_impact_coverage",
+      "status": "RECORDED",
+      "ref": "checker:impact-coverage",
+      "source_system_ref": "checker:impact-coverage",
+      "source_task_ref": "tasks/001-backend-only.md",
+      "source_outcome": "BLOCKED_BY_PATCH_SMELL",
+      "current_task_match": "Yes",
+      "evidence_digest": "sha256:091715d9df93947dce186b2c0d1be9da7270c367088c788270ecc266167d84ab",
+      "contribution": "Shows missing frontend surface."
+    }
+  ],
   "pending_human_decisions": ["Decide whether to expand scope to frontend validation and error copy."],
   "forbidden_claims": [],
   "boundary": {"writes_target_files":"No","authorizes_target_file_writes":"No","approves_implementation_beyond_recorded_scope":"No","approves_commit_or_push":"No","approves_release_or_production":"No","replaces_source_systems":"No","proves_product_correctness":"No","transfers_project_authority_to_intentos":"No"},

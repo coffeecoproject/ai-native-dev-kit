@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.73.0`
+Current version: `1.74.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,13 @@ Current version: `1.73.0`
 
 ## Current Release
 
-`1.73.0`
+`1.74.0`
 
 Includes:
+
+- Execution Assurance Strict Binding phase `1.74.0`: completion claims now require source-system task binding, source outcome, current-task match, and digest-backed evidence identity.
+- `1.74.0` rejects verified completion when actual changed files fall outside the reviewed planned target paths, routing the work to scope-drift handling instead of allowing a patch-style close-out.
+- `1.74.0` keeps resolver output conservative: changed files are not treated as planned target paths, and declarative refs such as `review:` or `command:` are not accepted as precise completion evidence.
 
 - IntentOS Naming Hardcut phase `1.73.0`: makes IntentOS the only active public product, workflow, CLI, manifest, and generated-asset identity.
 - `1.73.0` removes historical CLI aliases from the public package surface, renames generated workflow assets to `.intentos/`, moves the authoritative manifest to `intentos-manifest.json`, and changes manifest version metadata to `intentOSVersion`.

@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.73.0`.
+Current release: `1.74.0`.
 
-Release record: [releases/1.73.0/release-record.md](releases/1.73.0/release-record.md).
+Release record: [releases/1.74.0/release-record.md](releases/1.74.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.74.0 tightens Execution Assurance: when Codex says execution work is done, the source systems, evidence, actual diff, and reviewed plan must match the current task. It blocks stale evidence, wrong-task reports, unplanned changed files, and vague `review:` / `command:` proof from being treated as precise completion evidence.
 
 1.73.0 completes the IntentOS naming hardcut: public docs, package metadata, CLI help, manifests, generated workflow assets, CI workflow names, templates, and active checks now use the IntentOS identity. Existing projects with old workflow assets must go through an explicit migration plan before any target-project file is moved or rewritten.
 
@@ -408,6 +410,7 @@ Reference:
 
 Current release:
 
+- [1.74.0 Release Record](releases/1.74.0/release-record.md)
 - [1.73.0 Release Record](releases/1.73.0/release-record.md)
 - [1.72.1 Release Record](releases/1.72.1/release-record.md)
 - [1.72.0 Release Record](releases/1.72.0/release-record.md)

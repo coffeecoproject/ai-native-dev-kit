@@ -14,7 +14,7 @@ const knownFlags = new Set(["json", "format", "intent", "task", "kind", "base", 
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const schemaVersion = "1.72.0";
+const schemaVersion = "1.74.0";
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
@@ -75,7 +75,7 @@ function buildReport(root, options) {
     planned_impact_map: plannedImpactMap,
     execution_plan: {
       plan_ref: options.task,
-      planned_target_paths: actualDiff.changed_files.length > 0 ? actualDiff.changed_files : ["N/A"],
+      planned_target_paths: actualDiff.changed_files.length > 0 ? ["REQUIRES_EXPLICIT_EXECUTION_PLAN"] : ["N/A"],
       risk_classification: riskFor(executionKind),
       approval_refs: [],
       restore_strategy: "Use task-scoped revert or reviewed restore plan if verification fails.",
@@ -168,7 +168,11 @@ function collectActualDiff(root, options) {
     diff_source: options.cached ? "git:cached" : options.base ? `git:${options.base}` : "git:working-tree",
     changed_files: changed,
     unexpected_files: unexpected,
-    target_diff_status: unexpected.length > 0 ? "UNEXPECTED_DIFF" : changed.length > 0 ? "MATCHED_PLAN" : "UNCHANGED_FOR_READ_ONLY",
+    target_diff_status: unexpected.length > 0
+      ? "UNEXPECTED_DIFF"
+      : changed.length > 0
+        ? "REQUIRES_EXPLICIT_EXECUTION_PLAN"
+        : "UNCHANGED_FOR_READ_ONLY",
   };
 }
 
@@ -193,10 +197,21 @@ function collectSourceSystems(root, options) {
   return systems.map(([name, dir]) => {
     const files = markdownFiles(path.join(root, dir));
     if (files.length > 0) {
+      const file = files[0];
+      const relative = path.relative(root, file);
+      const content = fs.readFileSync(file, "utf8");
+      const sourceEvidence = extractMachineReadableEvidence(content);
+      const sourceTaskRef = String(sourceEvidence?.task_ref || "UNKNOWN");
+      const sourceOutcome = String(sourceEvidence?.outcome || sourceEvidence?.assurance_state || "RECORDED");
       return {
         name,
         status: "RECORDED",
-        ref: `artifact:${path.relative(root, files[0])}`,
+        ref: `artifact:${relative}`,
+        source_system_ref: `artifact:${relative}`,
+        source_task_ref: sourceTaskRef,
+        source_outcome: sourceOutcome,
+        current_task_match: sourceTaskRef === options.task ? "Yes" : "No",
+        report_digest: digest(content),
         contribution: `${dir} evidence present.`,
       };
     }
@@ -204,9 +219,24 @@ function collectSourceSystems(root, options) {
       name,
       status: "NEEDS_INPUT",
       ref: dir,
+      source_system_ref: dir,
+      source_task_ref: options.task,
+      source_outcome: "NEEDS_INPUT",
+      current_task_match: "No",
+      evidence_digest: digest(`${name}:${dir}:${options.task}:missing`),
       contribution: `${dir} evidence not recorded for ${options.task}.`,
     };
   });
+}
+
+function extractMachineReadableEvidence(content) {
+  const match = String(content || "").match(/```json\s*([\s\S]*?)```/i);
+  if (!match) return null;
+  try {
+    return JSON.parse(match[1]);
+  } catch {
+    return null;
+  }
 }
 
 function markdownFiles(dir) {
@@ -464,10 +494,10 @@ function humanReportText(report) {
   push("");
   push("## Source System Trace");
   push("");
-  push("| Source System | Status | Ref | Contribution | Authority |");
-  push("| --- | --- | --- | --- | --- |");
+  push("| Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |");
+  push("| --- | --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const item of evidence.source_systems) {
-    push(`| ${item.name} | \`${item.status}\` | \`${item.ref}\` | ${item.contribution} | Source system |`);
+    push(`| ${item.name} | \`${item.status}\` | \`${item.ref}\` | \`${item.source_task_ref}\` | \`${item.source_outcome}\` | \`${item.current_task_match}\` | \`${item.report_digest || item.evidence_digest || "none"}\` | ${item.contribution} | Source system |`);
   }
   push("");
   push("## Closure Decision");
