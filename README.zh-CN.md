@@ -4,9 +4,9 @@
 
 原名：**AI Native Dev Kit**。
 
-当前版本：`1.71.2`。
+当前版本：`1.71.3`。
 
-发布记录：[releases/1.71.2/release-record.md](releases/1.71.2/release-record.md)。
+发布记录：[releases/1.71.3/release-record.md](releases/1.71.3/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -41,6 +41,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品和工作流体系名称；`AI Native Dev Kit` 是历史仓库/包名来源；`intentos` 命令别名已可用，`ai-native` 和 `ai-native-dev-kit` 继续作为兼容别名保留。
+
+1.71.3 补齐老项目接入验收闭环：生成的验收报告可以用 `--out` 固定落盘，每个接入面的证据都必须进入 `evidence_refs`，未知证据前缀会失败，避免“看起来有证据但实际没法验证”。
 
 1.71.2 继续加严老项目接入验收：通过的模拟步骤必须记录退出码、只读状态、目标文件 diff 状态、无写入证据和输出摘要；上游来源状态改为按结构化字段判断，避免因为文本里出现某个词就误判。
 
@@ -399,6 +401,12 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.71.3 Release Record](releases/1.71.3/release-record.md)
+- [1.71.2 Release Record](releases/1.71.2/release-record.md)
+- [1.71.1 Release Record](releases/1.71.1/release-record.md)
+- [1.71.0 Release Record](releases/1.71.0/release-record.md)
+- [1.70.1 Release Record](releases/1.70.1/release-record.md)
+- [1.70.0 Release Record](releases/1.70.0/release-record.md)
 - [1.69.2 Release Record](releases/1.69.2/release-record.md)
 - [1.69.1 Release Record](releases/1.69.1/release-record.md)
 - [1.69.0 Release Record](releases/1.69.0/release-record.md)

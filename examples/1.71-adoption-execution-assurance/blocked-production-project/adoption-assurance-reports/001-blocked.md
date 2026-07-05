@@ -88,7 +88,7 @@ Governance convergence identifies project-owned production authority.
 
 ```json
 {
-  "schema_version": "1.71.2",
+  "schema_version": "1.71.3",
   "artifact_type": "adoption_assurance_report",
   "target_project_profile": "existing_production_or_governed_project",
   "assurance_state": "BLOCKED_BY_PROJECT_AUTHORITY",

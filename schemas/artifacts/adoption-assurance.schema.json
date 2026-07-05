@@ -22,7 +22,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.71.2" },
+    "schema_version": { "const": "1.71.3" },
     "artifact_type": { "const": "adoption_assurance_report" },
     "target_project_profile": { "type": "string", "minLength": 1 },
     "assurance_state": { "$ref": "#/$defs/assuranceState" },
@@ -142,7 +142,8 @@
         "name": { "type": "string", "minLength": 1 },
         "status": { "enum": ["RECORDED", "NEEDS_INPUT", "BLOCKED"] },
         "ref": { "type": "string", "minLength": 1 },
-        "contribution": { "type": "string", "minLength": 1 }
+        "contribution": { "type": "string", "minLength": 1 },
+        "authority_block": { "enum": ["Yes", "No"] }
       }
     },
     "simulationStep": {

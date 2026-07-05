@@ -4,9 +4,9 @@ An AI-native system for guided software delivery.
 
 Formerly: **AI Native Dev Kit**.
 
-Current release: `1.71.2`.
+Current release: `1.71.3`.
 
-Release record: [releases/1.71.2/release-record.md](releases/1.71.2/release-record.md).
+Release record: [releases/1.71.3/release-record.md](releases/1.71.3/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -42,7 +42,9 @@ Start here:
 
 Naming note: **IntentOS** is the product and workflow-system name. `AI Native Dev Kit` is the historical repository/package lineage. The `intentos` command alias is available; `ai-native` and `ai-native-dev-kit` remain as compatibility aliases.
 
-1.71.2 tightens old-project adoption assurance evidence: every passed simulation step must record exit code, read-only status, target diff status, no-write evidence, and output digest; upstream source status is now derived from typed fields instead of broad text matching.
+1.71.3 closes old-project adoption assurance evidence gaps: generated reports can be saved with explicit `--out`, every surface evidence ref must appear in `evidence_refs`, and unknown evidence prefixes fail instead of being silently ignored.
+
+1.71.2 tightens old-project adoption assurance evidence: every passed simulation step must record exit code, read-only status, target diff status, no-write evidence, and output digest; upstream source status is derived from typed fields instead of broad text matching.
 
 1.71.1 hardens old-project adoption assurance: Codex can no longer claim IntentOS is fully active from static text, placeholder directories, or unrelated evidence; the report must include consistent structured evidence and a real read-only simulation trace.
 
@@ -401,6 +403,12 @@ Reference:
 
 Current release:
 
+- [1.71.3 Release Record](releases/1.71.3/release-record.md)
+- [1.71.2 Release Record](releases/1.71.2/release-record.md)
+- [1.71.1 Release Record](releases/1.71.1/release-record.md)
+- [1.71.0 Release Record](releases/1.71.0/release-record.md)
+- [1.70.1 Release Record](releases/1.70.1/release-record.md)
+- [1.70.0 Release Record](releases/1.70.0/release-record.md)
 - [1.69.2 Release Record](releases/1.69.2/release-record.md)
 - [1.69.1 Release Record](releases/1.69.1/release-record.md)
 - [1.69.0 Release Record](releases/1.69.0/release-record.md)

@@ -25,7 +25,7 @@ Describe the target project state and whether the worktree, governance, release,
 | Surface | Status | Evidence | Notes |
 | --- | --- | --- | --- |
 | workflow_entry | `MAPPED` | `checker:workflow-next` | IntentOS route known. |
-| ai_rules_agents | `PENDING_APPLY` | `file:AGENTS.md` | Existing rules are preserved until reviewed. |
+| ai_rules_agents | `PENDING_APPLY` | `checker:native-migration` | Existing rules are preserved until reviewed. |
 | engineering_baseline | `MAPPED` | `checker:reconcile-rules` | Existing vs IntentOS comparison recorded. |
 | environment_baseline | `MAPPED` | `checker:reconcile-rules` | Existing vs IntentOS comparison recorded. |
 | release_rollback | `PROJECT_OWNED` | `checker:release-plan` | Release owner remains external/project-owned. |
@@ -76,7 +76,7 @@ Governance convergence must cover workflow, baseline, audit, release, CI/hooks, 
 
 ```json
 {
-  "schema_version": "1.71.2",
+  "schema_version": "1.71.3",
   "artifact_type": "adoption_assurance_report",
   "target_project_profile": "existing_project",
   "assurance_state": "PARTIAL_ADOPTION",

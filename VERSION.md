@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.71.2`
+Current version: `1.71.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,12 @@ Current version: `1.71.2`
 
 ## Current Release
 
-`1.71.2`
+`1.71.3`
 
 Includes:
+
+- Adoption Assurance Evidence Closure patch `1.71.3`: generated assurance and convergence reports can be saved with explicit `--out <relative-report-path>` and then checked as the same artifact.
+- `1.71.3` requires every Adoption Assurance surface evidence ref to appear in `evidence_refs`, rejects unknown evidence ref prefixes, and replaces broad authority-block text scanning with typed `authority_block` source evidence.
 
 - Adoption Assurance Evidence Precision patch `1.71.2`: simulation steps now include exit code, read-only marker, target write marker, target diff status, output digest, and outcome; `SIMULATION_PASSED` requires every step to pass with no target diff change.
 - `1.71.2` replaces broad source-status text matching in adoption assurance and governance convergence with typed source adapters, and documents target-installed vs source-only assurance assets.

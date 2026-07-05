@@ -300,8 +300,8 @@ function checkStructuredEvidence(content, label) {
     if (Object.prototype.hasOwnProperty.call(parsed, field)) pass(`${label} evidence includes ${field}`);
     else fail(`${label} evidence missing ${field}`);
   }
-  if (parsed.schema_version === "1.71.2") pass(`${label} evidence schema_version is 1.71.2`);
-  else fail(`${label} evidence schema_version must be 1.71.2`);
+  if (parsed.schema_version === "1.71.3") pass(`${label} evidence schema_version is 1.71.3`);
+  else fail(`${label} evidence schema_version must be 1.71.3`);
   if (parsed.artifact_type === "adoption_assurance_report") pass(`${label} evidence artifact_type is adoption_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
   if (allowedStates.has(parsed.assurance_state)) pass(`${label} evidence assurance_state is allowed`);
@@ -443,6 +443,13 @@ function checkEvidenceRefs(parsed, label) {
   const refs = Array.isArray(parsed.evidence_refs) ? parsed.evidence_refs : [];
   if (refs.length > 0) pass(`${label} evidence refs are present`);
   else fail(`${label} evidence refs must not be empty`);
+  const refSet = new Set(refs.map((ref) => String(ref || "").trim()).filter(Boolean));
+  for (const surface of Array.isArray(parsed.surfaces) ? parsed.surfaces : []) {
+    const surfaceRef = String(surface?.evidence || "").trim();
+    if (!surfaceRef) continue;
+    if (refSet.has(surfaceRef)) pass(`${label} surface ${surface.surface || "<unknown>"} evidence is listed in evidence_refs`);
+    else fail(`${label} surface ${surface.surface || "<unknown>"} evidence is missing from evidence_refs: ${surfaceRef}`);
+  }
   for (const ref of refs) {
     const value = String(ref || "");
     if (!value.trim()) fail(`${label} evidence ref is empty`);
@@ -489,6 +496,8 @@ function checkEvidenceRefs(parsed, label) {
       } else {
         fail(`${label} unresolved generated evidence ${value}`);
       }
+    } else {
+      fail(`${label} unknown evidence ref prefix ${value}`);
     }
   }
 }

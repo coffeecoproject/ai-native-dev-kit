@@ -81,7 +81,7 @@ Governance convergence is missing.
 
 ```json
 {
-  "schema_version": "1.71.2",
+  "schema_version": "1.71.3",
   "artifact_type": "adoption_assurance_report",
   "target_project_profile": "existing_project",
   "assurance_state": "FAILED_ASSURANCE",
@@ -164,6 +164,12 @@ Governance convergence is missing.
   ],
   "evidence_refs": [
     "checker:workflow-next",
+    "checker:native-migration",
+    "checker:reconcile-rules",
+    "checker:convergence",
+    "checker:release-plan",
+    "checker:work-queue",
+    "human-decision:no-target-writes",
     "simulation:not-run"
   ],
   "source_systems": {

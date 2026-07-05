@@ -28,6 +28,20 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 - `human-decision:<id-or-ref>` points to a recorded human decision reference
 - `--require-impact-coverage` lets Execution Closure require a strict Change Impact Coverage report for cross-surface READY closures
 
+1.62.0 through 1.71.3 extend structured Markdown evidence to existing-project adoption:
+
+- Native Migration Plan
+- Existing Rule Reconciliation
+- Release Plan
+- Existing Project Governance Convergence
+- Adoption Assurance Report
+
+1.71.3 specifically tightens Adoption Assurance evidence refs:
+
+- every structured surface evidence ref must appear in `evidence_refs`
+- unknown evidence ref prefixes fail instead of being silently ignored
+- generated reports can be written with explicit `--out <relative-report-path>` and checked as the same file
+
 The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
 
 ## Rules
@@ -51,6 +65,12 @@ node scripts/check-approval-record.mjs <project> --require-structured-evidence
 node scripts/check-low-risk-apply-candidate.mjs <project> --require-structured-evidence
 node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence
 node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs
+node scripts/check-native-migration.mjs <project> --require-structured-evidence
+node scripts/check-existing-rule-reconciliation.mjs <project> --require-structured-evidence
+node scripts/check-release-plan.mjs <project> --require-structured-evidence
+node scripts/check-governance-convergence.mjs <project> --require-structured-evidence
+node scripts/check-adoption-assurance.mjs <project> --require-structured-evidence
+node scripts/check-adoption-assurance.mjs <project> --require-structured-evidence --require-simulation
 ```
 
 Strict mode requires `Machine-Readable Evidence`. For readiness and approval records, strict mode also requires the referenced apply plan to resolve locally so the checker can verify the plan digest.
@@ -60,6 +80,8 @@ Structured readiness evidence must include at least one action unless `readiness
 Low-risk apply candidate strict mode requires a valid `candidate_digest`, exact target paths, path safety evidence, rollback, verification, and authority fields that all remain non-authorizing.
 
 Change impact coverage strict closure mode requires a valid `impact_digest`, matching Markdown and JSON surface statuses, non-placeholder `DONE` evidence, and required surfaces closed instead of left `NOT_STARTED`.
+
+Existing-project adoption strict mode requires structured evidence for migration, rule reconciliation, convergence, release plan, and adoption assurance when those reports are used to claim IntentOS operating mode. Adoption Assurance also requires every surface evidence ref to resolve through `evidence_refs`; `VERIFIED_ACTIVE` additionally requires a passed read-only simulation trace.
 
 Product completeness structured evidence is supplied as a JSON file, not as a Markdown `Machine-Readable Evidence` block:
 

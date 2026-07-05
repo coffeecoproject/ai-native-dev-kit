@@ -29,6 +29,9 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Release Path Hardening](release-path-hardening.md)
 - [Release Execution Protocol](release-execution-protocol.md)
 - [Native-First Existing Project Migration](native-first-existing-project-migration.md)
+- [Existing Rule Reconciliation](existing-rule-reconciliation.md)
+- [Existing Project Governance Convergence](existing-project-governance-convergence.md)
+- [Adoption Execution Assurance](adoption-execution-assurance.md)
 
 ## Project Adoption
 
@@ -38,6 +41,9 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Baseline Setup](baseline-setup.md)
 - [Existing Project Workflow Adapter](existing-project-workflow-adapter.md)
 - [Native-First Existing Project Migration](native-first-existing-project-migration.md)
+- [Existing Rule Reconciliation](existing-rule-reconciliation.md)
+- [Existing Project Governance Convergence](existing-project-governance-convergence.md)
+- [Adoption Execution Assurance](adoption-execution-assurance.md)
 - [New Project Playbook](adoption-playbooks/new-project.md)
 - [Existing Light Project Playbook](adoption-playbooks/existing-light-project.md)
 - [Governed Read-Only Playbook](adoption-playbooks/governed-project-read-only.md)
@@ -69,6 +75,9 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Release Path Hardening](release-path-hardening.md)
 - [Release Execution Protocol](release-execution-protocol.md)
 - [Native-First Existing Project Migration](native-first-existing-project-migration.md)
+- [Existing Rule Reconciliation](existing-rule-reconciliation.md)
+- [Existing Project Governance Convergence](existing-project-governance-convergence.md)
+- [Adoption Execution Assurance](adoption-execution-assurance.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)

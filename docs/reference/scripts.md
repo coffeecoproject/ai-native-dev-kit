@@ -74,9 +74,9 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs native-migration-check <project>` | Check recorded Native Migration Plans for authority, approval, restore, no-write boundaries, and optional strict structured evidence | No |
 | `node scripts/cli.mjs reconcile-rules <project>` | Compare extracted existing rules with IntentOS references and produce recommendation-only outcomes | No |
 | `node scripts/cli.mjs reconcile-rules-check <project>` | Check recorded Existing Rule Reconciliation reports and strict structured evidence when required | No |
-| `node scripts/cli.mjs convergence <project>` | Summarize old-project workflow, baseline, audit, release, CI/hooks, docs, work queue, AI logs, and risk authority against IntentOS daily governance | No |
+| `node scripts/cli.mjs convergence <project>` | Summarize old-project workflow, baseline, audit, release, CI/hooks, docs, work queue, AI logs, and risk authority against IntentOS daily governance; `--out <relative-report-path>` explicitly saves the report for checking | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs convergence-check <project>` | Check recorded Existing Project Governance Convergence reports | No |
-| `node scripts/cli.mjs adoption-assurance <project>` | Verify whether an existing project has actually adopted IntentOS from evidence and read-only simulation | No |
+| `node scripts/cli.mjs adoption-assurance <project>` | Verify whether an existing project has actually adopted IntentOS from evidence and read-only simulation; `--out <relative-report-path>` explicitly saves the report for checking | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs adoption-assurance-check <project>` | Check recorded Adoption Assurance reports for evidence-bound adoption claims | No |
 | `node scripts/cli.mjs doc-lifecycle <project>` | Recommend document lifecycle state, source-of-truth candidates, and archive suggestions without file changes | No |
 | `node scripts/cli.mjs doc-lifecycle-check <project>` | Check recorded Document Lifecycle Reports | No |

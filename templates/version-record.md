@@ -2,7 +2,7 @@
 
 ## Current Dev Kit Version
 
-`1.71.2`
+`1.71.3`
 
 ## Project Version File
 
@@ -19,6 +19,7 @@ node ai-native-dev-kit/scripts/init-project.mjs --target <project> --update-work
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.71.3` closes Adoption Execution Assurance evidence: generated assurance/convergence reports can be saved with explicit `--out`, surface evidence must be listed in `evidence_refs`, and unknown evidence prefixes fail strict checks.
 - `1.71.2` tightens Adoption Execution Assurance evidence: simulation steps must include exit code, read-only marker, target write marker, target diff status, output digest, and typed source-status inputs before full adoption can be claimed.
 - `1.71.1` hardens Adoption Execution Assurance: old-project adoption claims must include source-system evidence, consistent Markdown/JSON state and surfaces, and a concrete read-only simulation step trace before Codex can say IntentOS is fully adopted.
 - `1.71.0` adds Adoption Execution Assurance: old-project adoption claims must be checked from required surfaces, evidence refs, and a read-only simulated task before Codex can say IntentOS is fully adopted.

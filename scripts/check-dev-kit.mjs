@@ -5311,6 +5311,8 @@ function checkAdoptionExecutionAssuranceProtocol() {
     "bad-adoption-assurance-simulation-missing-exit-code",
     "bad-adoption-assurance-simulation-target-diff-changed",
     "bad-adoption-assurance-unresolved-generated-evidence",
+    "bad-adoption-assurance-unknown-evidence-prefix",
+    "bad-adoption-assurance-surface-evidence-not-in-evidence-refs",
   ];
   const required = [
     "docs/plans/adoption-execution-assurance-1.71-plan.md",
@@ -5337,6 +5339,9 @@ function checkAdoptionExecutionAssuranceProtocol() {
     "releases/1.71.2/release-record.md",
     "releases/1.71.2/known-limitations.md",
     "releases/1.71.2/self-check-report.md",
+    "releases/1.71.3/release-record.md",
+    "releases/1.71.3/known-limitations.md",
+    "releases/1.71.3/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/adoption-assurance-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5352,7 +5357,7 @@ function checkAdoptionExecutionAssuranceProtocol() {
     read("schemas/artifacts/adoption-assurance.schema.json"),
     read("scripts/resolve-adoption-assurance.mjs"),
     read("scripts/check-adoption-assurance.mjs"),
-    read("releases/1.71.2/release-record.md"),
+    read("releases/1.71.3/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -5371,6 +5376,9 @@ function checkAdoptionExecutionAssuranceProtocol() {
     "output_digest",
     "target_diff_status",
     "UNCHANGED",
+    "unknown evidence ref prefix",
+    "surface ${surface.surface || \"<unknown>\"} evidence is listed in evidence_refs",
+    "--out requires a relative report path",
     "read-only simulated task",
     "does not write target files",
     "does not approve release or production",
@@ -5427,7 +5435,7 @@ function checkAdoptionExecutionAssuranceProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "ADOPTION_ASSURANCE_REPORT"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.71.2"
+        && parsed.schemaVersion === "1.71.3"
         && parsed.humanSummary?.canCodexWriteNow === "No"
         && parsed.structuredEvidence?.artifact_type === "adoption_assurance_report"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
@@ -5450,20 +5458,28 @@ function checkAdoptionExecutionAssuranceProtocol() {
     fail(`1.71 adoption assurance checker failed: ${source.stderr || source.stdout}`);
   }
 
-  const explicitReportDir = fs.mkdtempSync(path.join(os.tmpdir(), "adoption-assurance-report-"));
-  const explicitReportPath = path.join(explicitReportDir, "generated.md");
-  fs.writeFileSync(explicitReportPath, resolver.stdout);
+  const explicitReportDir = fs.mkdtempSync(path.join(os.tmpdir(), "adoption-assurance-target-"));
+  const generatedReport = runNode([
+    "scripts/resolve-adoption-assurance.mjs",
+    explicitReportDir,
+    "--out",
+    "adoption-assurance-reports/generated.md",
+  ]);
+  const explicitReportPath = path.join(explicitReportDir, "adoption-assurance-reports", "generated.md");
   const explicitReport = runNode([
     "scripts/check-adoption-assurance.mjs",
-    ".",
+    explicitReportDir,
     "--report",
     explicitReportPath,
     "--require-structured-evidence",
   ]);
-  if (explicitReport.status === 0 && explicitReport.stdout.includes("Adoption Assurance check passed")) {
-    pass("1.71 adoption assurance checker validates generated explicit report");
+  if (generatedReport.status === 0
+    && fs.existsSync(explicitReportPath)
+    && explicitReport.status === 0
+    && explicitReport.stdout.includes("Adoption Assurance check passed")) {
+    pass("1.71 adoption assurance --out report is generated and checked as the same file");
   } else {
-    fail(`1.71 adoption assurance explicit report check failed: ${explicitReport.stderr || explicitReport.stdout}`);
+    fail(`1.71 adoption assurance --out explicit report check failed: ${generatedReport.stderr || explicitReport.stderr || generatedReport.stdout || explicitReport.stdout}`);
   }
 
   const cliResolver = runNode(["scripts/cli.mjs", "adoption-assurance", "."]);
@@ -5484,6 +5500,7 @@ function checkAdoptionExecutionAssuranceProtocol() {
     ["examples/1.71-adoption-execution-assurance/verified-existing-project", ["--require-simulation"]],
     ["examples/1.71-adoption-execution-assurance/partial-existing-project", []],
     ["examples/1.71-adoption-execution-assurance/blocked-production-project", []],
+    ["examples/1.71-adoption-execution-assurance/failed-assurance", []],
   ]) {
     const example = runNode(["scripts/check-adoption-assurance.mjs", target, "--require-structured-evidence", ...extraFlags]);
     if (example.status === 0) pass(`1.71 adoption assurance example passes strict checker ${target}`);

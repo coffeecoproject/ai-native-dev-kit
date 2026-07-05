@@ -88,7 +88,7 @@ Governance convergence is recorded, but work queue and simulation proof are inco
 
 ```json
 {
-  "schema_version": "1.71.2",
+  "schema_version": "1.71.3",
   "artifact_type": "adoption_assurance_report",
   "target_project_profile": "existing_project",
   "assurance_state": "PARTIAL_ADOPTION",

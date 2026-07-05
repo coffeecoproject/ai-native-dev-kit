@@ -11,11 +11,12 @@ const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 const kitRoot = path.resolve(scriptDir, "..");
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent"]);
+const knownFlags = new Set(["json", "format", "intent", "out"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const schemaVersion = "1.71.2";
+const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
+const schemaVersion = "1.71.3";
 const simulationTask = "Add a required field validation to a non-production example flow.";
 
 if (unknown.length > 0) {
@@ -32,8 +33,15 @@ const report = buildReport(projectRoot, {
   intent: String(args.intent || "verify existing project IntentOS adoption"),
 });
 
-if (outputFormat === "json") console.log(JSON.stringify(report, null, 2));
-else printHuman(report);
+if (outputFormat === "json") {
+  const output = `${JSON.stringify(report, null, 2)}\n`;
+  writeOutputIfRequested(output);
+  process.stdout.write(output);
+} else {
+  const output = humanReportText(report);
+  writeOutputIfRequested(output);
+  process.stdout.write(output);
+}
 
 function buildReport(root, options) {
   const signals = collectSignals(root);
@@ -163,6 +171,7 @@ function resolveSource(name, script, root, extraArgs) {
     status: ok ? sourceStatusFor(name, parsed) : "BLOCKED",
     ref: ok ? `generated:${name}` : script,
     contribution: ok ? sourceContribution(name, parsed) : normalizeLine(result.stderr || result.stdout || `${name} unavailable`),
+    authority_block: ok && hasProjectAuthorityBlock(name, parsed) ? "Yes" : "No",
   };
 }
 
@@ -199,6 +208,28 @@ function sourceStatusFor(name, parsed) {
     return /^(BLOCKED|NEEDS_)/i.test(String(state)) ? "NEEDS_INPUT" : "RECORDED";
   }
   return "RECORDED";
+}
+
+function hasProjectAuthorityBlock(name, parsed) {
+  if (name === "native_migration") {
+    const posture = parsed.posture || parsed.migrationMode || parsed.structuredEvidence?.posture || "";
+    const state = parsed.projectState?.state || parsed.structuredEvidence?.project_state || parsed.outcome || "";
+    return /BLOCKED_NEEDS_OWNER|BLOCKED_BY_PROJECT_AUTHORITY|NEEDS_OWNER/i.test(String(posture))
+      || /BLOCKED_NEEDS_OWNER|BLOCKED_BY_PROJECT_AUTHORITY|NEEDS_OWNER/i.test(String(state));
+  }
+  if (name === "existing_rule_reconciliation") {
+    const recommendation = parsed.structuredEvidence?.native_adoption_decision?.recommendation || parsed.outcome || "";
+    return /BLOCKED_NEEDS_OWNER|BLOCKED_BY_PROJECT_AUTHORITY|PROJECT_AUTHORITY/i.test(String(recommendation));
+  }
+  if (name === "governance_convergence") {
+    const state = parsed.structuredEvidence?.convergence_state || parsed.humanSummary?.convergenceState || parsed.outcome || "";
+    return String(state) === "CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY";
+  }
+  if (name === "release_plan") {
+    const state = parsed.machineReadableEvidence?.release_plan?.state || parsed.humanSummary?.releasePlanState || parsed.outcome || "";
+    return /BLOCKED_BY_PROJECT_AUTHORITY|NEEDS_RELEASE_OWNER|NEEDS_OWNER/i.test(String(state));
+  }
+  return false;
 }
 
 function hasDirtyProjectState(parsed) {
@@ -426,8 +457,7 @@ function hasBlockingSources(sources) {
 
 function assuranceStateFor({ surfaces, simulation, dirty, sources }) {
   if (dirty) return "BLOCKED_BY_DIRTY_WORKTREE";
-  const sourceText = JSON.stringify(sources);
-  if (/CONVERGENCE_BLOCKED_BY_PROJECT_AUTHORITY|BLOCKED_NEEDS_OWNER|release owner/i.test(sourceText)) {
+  if (Object.values(sources).some((source) => source.authority_block === "Yes")) {
     return "BLOCKED_BY_PROJECT_AUTHORITY";
   }
   if (hasBlockingSources(sources)) return "BLOCKED_BY_UPSTREAM_EVIDENCE";
@@ -530,82 +560,104 @@ function normalizeLine(value) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, 240) || "unavailable";
 }
 
-function printHuman(report) {
-  console.log("# Adoption Assurance Report");
-  console.log("");
-  console.log("This report is a read-only evidence-bound verification view. It does not write target files, authorize writes, approve release, or replace project-owned rules.");
-  console.log("");
-  console.log("## Adoption Summary");
-  console.log("");
-  console.log("| Field | Value |");
-  console.log("| --- | --- |");
-  console.log(`| Target Project Profile | \`${report.humanSummary.targetProjectProfile}\` |`);
-  console.log(`| Assurance State | \`${report.humanSummary.assuranceState}\` |`);
-  console.log(`| IntentOS Operating Mode | \`${report.humanSummary.intentOsOperatingMode}\` |`);
-  console.log(`| Can Claim Full Adoption | \`${report.humanSummary.canClaimFullAdoption}\` |`);
-  console.log(`| Can Codex Write Now | \`${report.humanSummary.canCodexWriteNow}\` |`);
-  console.log("");
-  console.log("## Assurance State");
-  console.log("");
-  console.log(`\`${report.outcome}\``);
-  console.log("");
-  console.log("## Target Project State");
-  console.log("");
-  console.log("| Field | Value |");
-  console.log("| --- | --- |");
+function humanReportText(report) {
+  const lines = [];
+  const push = (line = "") => lines.push(line);
+  push("# Adoption Assurance Report");
+  push("");
+  push("This report is a read-only evidence-bound verification view. It does not write target files, authorize writes, approve release, or replace project-owned rules.");
+  push("");
+  push("## Adoption Summary");
+  push("");
+  push("| Field | Value |");
+  push("| --- | --- |");
+  push(`| Target Project Profile | \`${report.humanSummary.targetProjectProfile}\` |`);
+  push(`| Assurance State | \`${report.humanSummary.assuranceState}\` |`);
+  push(`| IntentOS Operating Mode | \`${report.humanSummary.intentOsOperatingMode}\` |`);
+  push(`| Can Claim Full Adoption | \`${report.humanSummary.canClaimFullAdoption}\` |`);
+  push(`| Can Codex Write Now | \`${report.humanSummary.canCodexWriteNow}\` |`);
+  push("");
+  push("## Assurance State");
+  push("");
+  push(`\`${report.outcome}\``);
+  push("");
+  push("## Target Project State");
+  push("");
+  push("| Field | Value |");
+  push("| --- | --- |");
   for (const [key, value] of Object.entries(report.targetProjectState)) {
-    console.log(`| ${key} | \`${value}\` |`);
+    push(`| ${key} | \`${value}\` |`);
   }
-  console.log("");
-  console.log("## Adoption Surface Coverage");
-  console.log("");
-  console.log("| Surface | Status | Evidence | Notes |");
-  console.log("| --- | --- | --- | --- |");
+  push("");
+  push("## Adoption Surface Coverage");
+  push("");
+  push("| Surface | Status | Evidence | Notes |");
+  push("| --- | --- | --- | --- |");
   for (const item of report.surfaces) {
-    console.log(`| ${item.surface} | \`${item.status}\` | \`${item.evidence}\` | ${item.notes} |`);
+    push(`| ${item.surface} | \`${item.status}\` | \`${item.evidence}\` | ${item.notes} |`);
   }
-  console.log("");
-  console.log("## Evidence Resolution");
-  console.log("");
-  for (const ref of report.evidenceRefs) console.log(`- \`${ref}\``);
-  console.log("");
-  console.log("## Actual Diff / File State Check");
-  console.log("");
-  console.log("No target writes are authorized by this report. Any past write claim must be backed by apply plan, approval record, controlled readiness, and project file/diff evidence.");
-  console.log("");
-  console.log("## Existing Rule Coverage");
-  console.log("");
-  console.log(`Existing rule reconciliation source: \`${report.sourceSystems.existing_rule_reconciliation.status}\` - ${report.sourceSystems.existing_rule_reconciliation.contribution}`);
-  console.log("");
-  console.log("## Governance Convergence Coverage");
-  console.log("");
-  console.log(`Governance convergence source: \`${report.sourceSystems.governance_convergence.status}\` - ${report.sourceSystems.governance_convergence.contribution}`);
-  console.log("");
-  console.log("## Simulation Task Result");
-  console.log("");
-  console.log(`\`${report.simulation.state}\` using \`${report.simulation.id}\``);
-  console.log("");
-  for (const step of report.simulation.route) console.log(`- ${step}`);
-  console.log("");
-  console.log("## Pending Human Decisions");
-  console.log("");
-  if (report.pendingDecisions.length === 0) console.log("- None blocking full adoption.");
-  else for (const item of report.pendingDecisions) console.log(`- ${item}`);
-  console.log("");
-  console.log("## Forbidden Claims");
-  console.log("");
-  console.log("- This report writes target files: No");
-  console.log("- This report authorizes target-file writes: No");
-  console.log("- This report approves implementation: No");
-  console.log("- This report approves release or production: No");
-  console.log("- This report mutates CI or hooks: No");
-  console.log("- This report replaces release SOP: No");
-  console.log("- This report transfers project authority to IntentOS: No");
-  console.log("- This report proves product correctness: No");
-  console.log("");
-  console.log("## Machine-Readable Evidence");
-  console.log("");
-  console.log("```json");
-  console.log(JSON.stringify(report.structuredEvidence, null, 2));
-  console.log("```");
+  push("");
+  push("## Evidence Resolution");
+  push("");
+  for (const ref of report.evidenceRefs) push(`- \`${ref}\``);
+  push("");
+  push("## Actual Diff / File State Check");
+  push("");
+  push("No target writes are authorized by this report. Any past write claim must be backed by apply plan, approval record, controlled readiness, and project file/diff evidence.");
+  push("");
+  push("## Existing Rule Coverage");
+  push("");
+  push(`Existing rule reconciliation source: \`${report.sourceSystems.existing_rule_reconciliation.status}\` - ${report.sourceSystems.existing_rule_reconciliation.contribution}`);
+  push("");
+  push("## Governance Convergence Coverage");
+  push("");
+  push(`Governance convergence source: \`${report.sourceSystems.governance_convergence.status}\` - ${report.sourceSystems.governance_convergence.contribution}`);
+  push("");
+  push("## Simulation Task Result");
+  push("");
+  push(`\`${report.simulation.state}\` using \`${report.simulation.id}\``);
+  push("");
+  for (const step of report.simulation.route) push(`- ${step}`);
+  push("");
+  push("## Pending Human Decisions");
+  push("");
+  if (report.pendingDecisions.length === 0) push("- None blocking full adoption.");
+  else for (const item of report.pendingDecisions) push(`- ${item}`);
+  push("");
+  push("## Forbidden Claims");
+  push("");
+  push("- This report writes target files: No");
+  push("- This report authorizes target-file writes: No");
+  push("- This report approves implementation: No");
+  push("- This report approves release or production: No");
+  push("- This report mutates CI or hooks: No");
+  push("- This report replaces release SOP: No");
+  push("- This report transfers project authority to IntentOS: No");
+  push("- This report proves product correctness: No");
+  push("");
+  push("## Machine-Readable Evidence");
+  push("");
+  push("```json");
+  push(JSON.stringify(report.structuredEvidence, null, 2));
+  push("```");
+  return `${lines.join("\n")}\n`;
+}
+
+function resolveOutputPath(root, value) {
+  if (value === true || !String(value || "").trim()) {
+    console.error("FAIL --out requires a relative report path");
+    process.exit(1);
+  }
+  const raw = String(value);
+  if (path.isAbsolute(raw) || raw.includes("..")) {
+    console.error("FAIL --out must be a relative path inside the target project");
+    process.exit(1);
+  }
+  return path.resolve(root, raw);
+}
+
+function writeOutputIfRequested(output) {
+  if (!outputPath) return;
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, output.endsWith("\n") ? output : `${output}\n`);
 }

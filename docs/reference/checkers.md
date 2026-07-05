@@ -69,6 +69,10 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-native-migration.mjs` | Native Migration Plan authority, source evidence, approval, restore, no-write boundary, and optional strict structured evidence checks |
 | `resolve-existing-rule-reconciliation.mjs` | Read-only Existing Rule Reconciliation resolver after Native Migration |
 | `check-existing-rule-reconciliation.mjs` | Existing Rule Reconciliation boundary, recommendation, release/production, protected constraint, and optional strict structured evidence checks |
+| `resolve-governance-convergence.mjs` | Read-only Existing Project Governance Convergence resolver after rule reconciliation; use `--out <relative-report-path>` to save the generated report explicitly |
+| `check-governance-convergence.mjs` | Governance Convergence boundary, source-system, document/audit/AI-log, project-authority, and optional strict structured evidence checks |
+| `resolve-adoption-assurance.mjs` | Read-only Adoption Assurance resolver that verifies old-project IntentOS adoption from upstream evidence and a synthetic no-write simulation; use `--out <relative-report-path>` to save the generated report explicitly |
+| `check-adoption-assurance.mjs` | Adoption Assurance surface, source-system, simulation trace, evidence-ref, no-write boundary, and full-adoption-claim checks |
 | `resolve-document-lifecycle.mjs` | Read-only document lifecycle recommendation with source-of-truth and archive-suggestion mapping |
 | `check-document-lifecycle.mjs` | Document Lifecycle Report boundary, source-of-truth, archive, deprecation, and deletion-authorization checks |
 | `resolve-document-archive-apply.mjs` | Read-only archive apply planner with link-check and archive-index preview |

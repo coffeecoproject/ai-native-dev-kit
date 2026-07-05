@@ -100,6 +100,20 @@ The report must be internally consistent:
 - If any source system is `BLOCKED` or `NEEDS_INPUT`, the report must record an
   upstream blocked reason and must not claim ready convergence.
 
+## Report Command
+
+Default resolver output is printed to the terminal. To make the generated report
+auditable, save it explicitly and check the same file:
+
+```bash
+node scripts/cli.mjs convergence <target> --out governance-convergence-reports/001-current.md
+node scripts/check-governance-convergence.mjs <target> --report governance-convergence-reports/001-current.md --require-structured-evidence
+```
+
+`--out` writes only the requested report file inside the target project. It does
+not authorize target-project writes, governance replacement, CI/hook changes,
+release, or production.
+
 ## Relationship To New Projects
 
 New projects can start with IntentOS assets and baseline choices from the

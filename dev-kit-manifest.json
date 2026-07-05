@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.71.2",
+  "devKitVersion": "1.71.3",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.71.2"
+    "phase": "1.71.3"
   },
   "groups": {
     "sourceRequired": [
@@ -2203,7 +2203,12 @@
       "releases/1.71.2/self-check-report.md",
       "test-fixtures/bad/bad-adoption-assurance-simulation-missing-exit-code/adoption-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-adoption-assurance-simulation-target-diff-changed/adoption-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-adoption-assurance-unresolved-generated-evidence/adoption-assurance-reports/001-bad.md"
+      "test-fixtures/bad/bad-adoption-assurance-unresolved-generated-evidence/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-unknown-evidence-prefix/adoption-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-adoption-assurance-surface-evidence-not-in-evidence-refs/adoption-assurance-reports/001-bad.md",
+      "releases/1.71.3/release-record.md",
+      "releases/1.71.3/known-limitations.md",
+      "releases/1.71.3/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",

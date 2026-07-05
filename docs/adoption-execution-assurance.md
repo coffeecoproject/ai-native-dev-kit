@@ -42,6 +42,8 @@ A passed simulation must show more than a route name. Each step needs an exit co
 
 In plain language: Codex must show that it actually walked the route and did not change the target project while doing so.
 
+Each surface evidence ref must also appear in `evidence_refs`. Unknown evidence prefixes fail, because an adoption report must not pass on evidence that no checker knows how to resolve.
+
 ## Install Scope
 
 Some assurance assets are copied into target projects when workflow assets are intentionally installed or updated. Other assets stay source-only in this repository, such as examples, bad fixtures, release records, and calibration evidence.
@@ -54,6 +56,15 @@ Source-only assets are useful for validating IntentOS itself. They are not proof
 node scripts/cli.mjs adoption-assurance <target>
 node scripts/cli.mjs adoption-assurance-check <target>
 ```
+
+To prove the generated result is the same artifact being checked, save the report explicitly:
+
+```bash
+node scripts/cli.mjs adoption-assurance <target> --out adoption-assurance-reports/001-current.md
+node scripts/check-adoption-assurance.mjs <target> --report adoption-assurance-reports/001-current.md --require-structured-evidence
+```
+
+`--out` writes only the requested report file inside the target project. It does not authorize business-code writes, governance replacement, CI/hook changes, release, or production.
 
 Useful strict checks:
 

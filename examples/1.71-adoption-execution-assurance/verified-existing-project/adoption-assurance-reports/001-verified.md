@@ -87,7 +87,7 @@ Governance convergence covers workflow, baseline, audit, release, CI/hooks, docu
 
 ```json
 {
-  "schema_version": "1.71.2",
+  "schema_version": "1.71.3",
   "artifact_type": "adoption_assurance_report",
   "target_project_profile": "existing_governed_project",
   "assurance_state": "VERIFIED_ACTIVE",

@@ -9,10 +9,11 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent"]);
+const knownFlags = new Set(["json", "format", "intent", "out"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
+const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -28,8 +29,15 @@ const report = buildReport(projectRoot, {
   intent: String(args.intent || "converge existing project governance"),
 });
 
-if (outputFormat === "json") console.log(JSON.stringify(report, null, 2));
-else printHuman(report);
+if (outputFormat === "json") {
+  const output = `${JSON.stringify(report, null, 2)}\n`;
+  writeOutputIfRequested(output);
+  process.stdout.write(output);
+} else {
+  const output = humanReportText(report);
+  writeOutputIfRequested(output);
+  process.stdout.write(output);
+}
 
 function buildReport(root, options) {
   const workflowNext = resolveSource("Workflow Next", "workflow-next.mjs", root, ["--json"]);
@@ -327,13 +335,15 @@ function normalizeLine(value) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, 240);
 }
 
-function printHuman(report) {
-  console.log("# Governance Convergence Report");
-  console.log("");
-  console.log("This report is a derived read-only view. It is not permission to change target project files.");
-  console.log("");
-  console.log("## Human Summary");
-  printTable(["Field", "Value"], [
+function humanReportText(report) {
+  const lines = [];
+  const push = (line = "") => lines.push(line);
+  push("# Governance Convergence Report");
+  push("");
+  push("This report is a derived read-only view. It is not permission to change target project files.");
+  push("");
+  push("## Human Summary");
+  pushTable(lines, ["Field", "Value"], [
     ["Project State", code(report.humanSummary.projectState)],
     ["IntentOS Operating Mode", code(report.humanSummary.intentosOperatingMode)],
     ["Operating Mode Grants Write Permission", code(report.humanSummary.operatingModeGrantsWritePermission)],
@@ -344,17 +354,17 @@ function printHuman(report) {
     ["Approves Release Or Production", code(report.humanSummary.approvesReleaseOrProduction)],
     ["Rewrites History", code(report.humanSummary.rewritesHistory)],
   ]);
-  console.log("");
-  console.log("## Source Systems");
-  printTable(["Source System", "Ref", "Status", "Contribution"], report.sourceSystems.map((item) => [
+  push("");
+  push("## Source Systems");
+  pushTable(lines, ["Source System", "Ref", "Status", "Contribution"], report.sourceSystems.map((item) => [
     item.name,
     code(item.ref),
     code(item.status),
     item.contribution,
   ]));
-  console.log("");
-  console.log("## Convergence Dimensions");
-  printTable(["Dimension", "Current State", "Target State", "Recommendation", "Human Decision Required", "Write Requires Apply Plan"], report.dimensions.map((item) => [
+  push("");
+  push("## Convergence Dimensions");
+  pushTable(lines, ["Dimension", "Current State", "Target State", "Recommendation", "Human Decision Required", "Write Requires Apply Plan"], report.dimensions.map((item) => [
     item.dimension,
     item.current_state,
     item.target_state,
@@ -362,63 +372,83 @@ function printHuman(report) {
     code(item.human_decision_required),
     code(item.write_requires_apply_plan),
   ]));
-  console.log("");
-  console.log("## Audit Bridge");
-  printTable(["Field", "Value"], [
+  push("");
+  push("## Audit Bridge");
+  pushTable(lines, ["Field", "Value"], [
     ["Historical Evidence Status", code(report.auditBridge.historical_evidence_status)],
     ["Convergence Anchor Required", code(report.auditBridge.convergence_anchor_required)],
     ["Post-Adoption Evidence Model", code(report.auditBridge.post_adoption_evidence_model)],
     ["Rewrite History", code(report.auditBridge.rewrite_history)],
   ]);
-  console.log("");
-  console.log("## AI Log Policy");
-  printTable(["Field", "Value"], [
+  push("");
+  push("## AI Log Policy");
+  pushTable(lines, ["Field", "Value"], [
     ["Write AI Logs By Default", code(report.aiLogPolicy.write_ai_logs_by_default)],
     ["Allowed For Governance Decisions", code(report.aiLogPolicy.allowed_for_governance_decisions)],
     ["Routine Task Logging", code(report.aiLogPolicy.routine_task_logging)],
     ["Routine Command Logging", code(report.aiLogPolicy.routine_command_logging)],
   ]);
-  console.log("");
-  console.log("## Protected Authority");
-  printTable(["Surface", "Owner", "Handling"], report.protectedAuthority.map((item) => [
+  push("");
+  push("## Protected Authority");
+  pushTable(lines, ["Surface", "Owner", "Handling"], report.protectedAuthority.map((item) => [
     item.surface,
     code(item.owner),
     item.handling,
   ]));
-  console.log("");
-  console.log("## Proposed Next Step");
-  console.log("");
-  console.log(report.proposedNextStep);
-  console.log("");
-  console.log("## Boundaries");
-  console.log("");
-  console.log("- This report writes target files: No");
-  console.log("- This report authorizes target-file writes: No");
-  console.log("- This report approves governance replacement: No");
-  console.log("- This report approves implementation: No");
-  console.log("- This report approves release or production: No");
-  console.log("- This report modifies CI or hooks: No");
-  console.log("- This report rewrites history: No");
-  console.log("- This report turns ai-logs into routine command logs: No");
-  console.log("- This report maximizes migration: No");
-  console.log("");
-  console.log("## Machine-Readable Evidence");
-  console.log("");
-  console.log("```json");
-  console.log(JSON.stringify(report.structuredEvidence, null, 2));
-  console.log("```");
-  console.log("");
-  console.log("## Outcome");
-  console.log("");
-  console.log(code(report.outcome));
+  push("");
+  push("## Proposed Next Step");
+  push("");
+  push(report.proposedNextStep);
+  push("");
+  push("## Boundaries");
+  push("");
+  push("- This report writes target files: No");
+  push("- This report authorizes target-file writes: No");
+  push("- This report approves governance replacement: No");
+  push("- This report approves implementation: No");
+  push("- This report approves release or production: No");
+  push("- This report modifies CI or hooks: No");
+  push("- This report rewrites history: No");
+  push("- This report turns ai-logs into routine command logs: No");
+  push("- This report maximizes migration: No");
+  push("");
+  push("## Machine-Readable Evidence");
+  push("");
+  push("```json");
+  push(JSON.stringify(report.structuredEvidence, null, 2));
+  push("```");
+  push("");
+  push("## Outcome");
+  push("");
+  push(code(report.outcome));
+  return `${lines.join("\n")}\n`;
 }
 
-function printTable(headers, rows) {
-  console.log(`| ${headers.join(" | ")} |`);
-  console.log(`| ${headers.map(() => "---").join(" | ")} |`);
-  for (const row of rows) console.log(`| ${row.join(" | ")} |`);
+function pushTable(lines, headers, rows) {
+  lines.push(`| ${headers.join(" | ")} |`);
+  lines.push(`| ${headers.map(() => "---").join(" | ")} |`);
+  for (const row of rows) lines.push(`| ${row.join(" | ")} |`);
 }
 
 function code(value) {
   return `\`${String(value)}\``;
+}
+
+function resolveOutputPath(root, value) {
+  if (value === true || !String(value || "").trim()) {
+    console.error("FAIL --out requires a relative report path");
+    process.exit(1);
+  }
+  const raw = String(value);
+  if (path.isAbsolute(raw) || raw.includes("..")) {
+    console.error("FAIL --out must be a relative path inside the target project");
+    process.exit(1);
+  }
+  return path.resolve(root, raw);
+}
+
+function writeOutputIfRequested(output) {
+  if (!outputPath) return;
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, output.endsWith("\n") ? output : `${output}\n`);
 }
