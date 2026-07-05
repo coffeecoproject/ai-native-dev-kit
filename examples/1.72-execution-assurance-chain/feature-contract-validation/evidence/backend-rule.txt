@@ -1,0 +1,1 @@
+Backend domain rule rejects missing contract number before persistence.

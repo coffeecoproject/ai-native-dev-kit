@@ -36,6 +36,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `release-handoff-packs/` | Bounded release handoff packages that separate Codex, human, and external-system release responsibilities |
 | `release-execution-plans/` | Bounded release execution plans after launch review and human release approval |
 | `release-plans/` | Pure-view Release Plans that summarize release source systems and existing-project rule comparison without becoming release authority |
+| `execution-assurance-reports/` | Task-bound proof chains that bind intent, completion contract, impact, actual diff, evidence, review, patch classification, and source-system trace before Codex claims execution-class work is complete |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
 | `review-loop-reports/` | Findings, AUTO_FIX rounds, verification, and remaining decisions |
@@ -93,7 +94,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Change Impact Coverage, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, and Adoption Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Change Impact Coverage, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
 ## Reporting Artifacts
 
@@ -183,6 +184,8 @@ Debt & Knowledge Handoff lives under `.ai-native/core/` in generated projects. I
 Unified Closure Model lives under `.ai-native/core/` in generated projects. It makes one task close-out resolve to one final Closure Decision. Decision Explain Trace explains why that result was selected. Change Impact Coverage, Execution Closure, Guided Closure, and precise evidence checks are inputs, not competing final truth.
 
 Guided Closure Experience lives under `.ai-native/core/` in generated projects. It answers "can this task be treated as done?" with one read-only Guided Closure Card, while keeping strict Change Impact Coverage, Execution Closure, and precise evidence checks available for maintainers and CI.
+
+Execution Assurance Chain lives under `.ai-native/core/` in generated projects. It prevents Codex from claiming execution-class work is complete unless the completion contract, actual diff, evidence refs, review result, patch classification, and source-system trace are recorded in `execution-assurance-reports/`. It does not write target-project files, approve implementation beyond the recorded scope, approve commit or push, approve release or production, mutate CI/hooks, touch secrets, run migrations, or replace source systems.
 
 Source profiles live under `profiles/`. Platform adapter instructions live under `platforms/`.
 

@@ -1,0 +1,135 @@
+# Execution Assurance Report
+
+This report is a read-only derived verification view. It does not write target files, authorize writes, approve release, or replace source systems.
+
+## Human Summary
+
+| Field | Value |
+| --- | --- |
+| Execution Kind | `SAFE_PATCH` |
+| Assurance State | `VERIFIED_DONE` |
+| Can Claim Done | `Yes` |
+| Can Codex Write Now | `No` |
+| Safe Next Step | Summarize the exact copy-only patch and evidence. |
+
+## Execution Kind
+
+`SAFE_PATCH`
+
+## Intent Lock
+
+| Field | Value |
+| --- | --- |
+| User Intent | Update button copy. |
+| Normalized Intent | Change a single low-risk label without behavior changes. |
+| Task Ref | `tasks/001-copy.md` |
+| Drift Policy | Any behavior change exits safe patch path. |
+
+## Completion Contract
+
+| Criterion | Status | Evidence | Notes |
+| --- | --- | --- | --- |
+| criterion:copy-smoke | `DONE` | `file:evidence/copy-smoke.txt` | Copy-only smoke evidence. |
+
+## Planned Impact Map
+
+| Surface | Expected | Status | Evidence | Notes |
+| --- | --- | --- | --- |
+| changed_file | `Yes` | `DONE` | `file:evidence/copy-smoke.txt` | One local file. |
+| verification | `Yes` | `DONE` | `file:evidence/copy-smoke.txt` | Smoke evidence. |
+
+## Execution Plan Binding
+
+| Field | Value |
+| --- | --- |
+| Plan Ref | `tasks/001-copy.md` |
+| Risk Classification | `LOW` |
+| Planned Target Paths | `src/copy.ts` |
+| Approval Ref | `N/A` |
+| Restore Strategy | Revert one copy file. |
+
+## Actual Diff Binding
+
+| Field | Value |
+| --- | --- |
+| Diff Source | `git` |
+| Changed Files | `src/copy.ts` |
+| Unexpected Files | `none` |
+| Target Diff Status | `MATCHED_PLAN` |
+
+## Evidence Binding
+
+| Criterion | Evidence Ref | Resolved | Current Task Match |
+| --- | --- | --- | --- |
+| criterion:copy-smoke | `file:evidence/copy-smoke.txt` | `Yes` | `Yes` |
+
+## Independent Review Binding
+
+| Field | Value |
+| --- | --- |
+| Review Required | `No` |
+| Review Refs | `checker:apply-candidate` |
+| All Reviewers Closed | `Yes` |
+
+## Patch Assessment
+
+| Field | Value |
+| --- | --- |
+| Patch State | `SAFE_PATCH` |
+| Reason | Narrow copy-only diff with local smoke evidence. |
+
+## Source System Trace
+
+| Source System | Status | Ref | Contribution | Authority |
+| --- | --- | --- | --- | --- |
+| low_risk_apply_candidate | `RECORDED` | `checker:apply-candidate` | Safe patch classification. | Source system |
+
+## Closure Decision
+
+`VERIFIED_DONE`
+
+## Pending Human Decisions
+
+- None.
+
+## Forbidden Claims
+
+- This report writes target files: No
+- This report authorizes target-file writes: No
+- This report approves implementation beyond recorded scope: No
+- This report approves commit or push: No
+- This report approves release or production: No
+- This report replaces source systems: No
+- This report proves product correctness: No
+- This report transfers project authority to IntentOS: No
+
+## Boundary
+
+Execution Assurance is derived from recorded evidence and project facts. Source systems remain authoritative.
+
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.72.0",
+  "artifact_type": "execution_assurance_report",
+  "execution_kind": "SAFE_PATCH",
+  "task_ref": "tasks/001-copy.md",
+  "assurance_state": "VERIFIED_DONE",
+  "can_claim_done": "Yes",
+  "can_codex_write_now": "No",
+  "intent_lock": {"user_intent":"Update button copy.","normalized_intent":"Change a single low-risk label without behavior changes.","in_scope":["changed file","verification evidence"],"out_of_scope":["behavior changes"]},
+  "completion_contract": {"criteria":[{"id":"criterion:copy-smoke","status":"DONE","evidence_refs":["file:evidence/copy-smoke.txt"]}]},
+  "planned_impact_map": {"surfaces":[{"surface":"changed_file","expected":"Yes","status":"DONE","evidence_refs":["file:evidence/copy-smoke.txt"]},{"surface":"verification","expected":"Yes","status":"DONE","evidence_refs":["file:evidence/copy-smoke.txt"]}]},
+  "execution_plan": {"plan_ref":"tasks/001-copy.md","planned_target_paths":["src/copy.ts"],"risk_classification":"LOW","approval_refs":[],"restore_strategy":"Revert one copy file."},
+  "actual_diff": {"diff_source":"git","changed_files":["src/copy.ts"],"unexpected_files":[],"target_diff_status":"MATCHED_PLAN"},
+  "evidence_bindings": [{"criterion_id":"criterion:copy-smoke","evidence_ref":"file:evidence/copy-smoke.txt","resolved":"Yes","current_task_match":"Yes"}],
+  "review": {"review_required":"No","review_refs":["checker:apply-candidate"],"all_reviewers_closed":"Yes"},
+  "patch_assessment": {"state":"SAFE_PATCH","reason":"Narrow copy-only diff with local smoke evidence."},
+  "source_systems": [{"name":"low_risk_apply_candidate","status":"RECORDED","ref":"checker:apply-candidate","contribution":"Safe patch classification."}],
+  "pending_human_decisions": [],
+  "forbidden_claims": [],
+  "boundary": {"writes_target_files":"No","authorizes_target_file_writes":"No","approves_implementation_beyond_recorded_scope":"No","approves_commit_or_push":"No","approves_release_or_production":"No","replaces_source_systems":"No","proves_product_correctness":"No","transfers_project_authority_to_intentos":"No"},
+  "outcome": "VERIFIED_DONE"
+}
+```

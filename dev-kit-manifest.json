@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "devKitVersion": "1.71.3",
+  "devKitVersion": "1.72.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.71.3"
+    "phase": "1.72.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2208,7 +2208,46 @@
       "test-fixtures/bad/bad-adoption-assurance-surface-evidence-not-in-evidence-refs/adoption-assurance-reports/001-bad.md",
       "releases/1.71.3/release-record.md",
       "releases/1.71.3/known-limitations.md",
-      "releases/1.71.3/self-check-report.md"
+      "releases/1.71.3/self-check-report.md",
+      "docs/plans/execution-assurance-chain-1.72-plan.md",
+      "core/execution-assurance-chain.md",
+      "docs/execution-assurance-chain.md",
+      "templates/execution-assurance-report.md",
+      "schemas/artifacts/execution-assurance.schema.json",
+      "checklists/execution-assurance-review.md",
+      "prompts/execution-assurance-agent.md",
+      "execution-assurance-reports/.gitkeep",
+      "scripts/resolve-execution-assurance.mjs",
+      "scripts/check-execution-assurance.mjs",
+      "examples/1.72-execution-assurance-chain/README.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/tasks/001-contract-validation.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/change-impact-coverage-reports/001-contract.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/review-loop-reports/001-contract.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/frontend-validation.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/api-validation.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/backend-rule.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/tests.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/execution-assurance-reports/001-contract-validation.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/adoption-assurance-reports/001-adoption.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/governance-convergence-reports/001-convergence.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/execution-assurance-reports/001-adoption.md",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/evidence/copy-smoke.txt",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/execution-assurance-reports/001-copy.md",
+      "examples/1.72-execution-assurance-chain/patch-smell-backend-only/execution-assurance-reports/001-backend-only.md",
+      "test-fixtures/bad/bad-execution-assurance-adoption-without-source/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-controlled-patch-no-debt/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-missing-actual-diff/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-missing-review/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-no-completion-contract/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-patch-smell-verified/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-release-overclaim/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-safe-patch-broad-diff/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-stale-evidence/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unexpected-ci-hook/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unresolved-evidence/execution-assurance-reports/001-bad.md",
+      "releases/1.72.0/release-record.md",
+      "releases/1.72.0/known-limitations.md",
+      "releases/1.72.0/self-check-report.md"
     ],
     "targetCore": [
       ".ai-native/checklists/automation-review.md",
@@ -2731,7 +2770,16 @@
       "existing-rule-reconciliations",
       "scripts/resolve-existing-rule-reconciliation.mjs",
       "scripts/check-existing-rule-reconciliation.mjs",
-      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json"
+      ".ai-native/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".ai-native/checklists/execution-assurance-review.md",
+      ".ai-native/core/execution-assurance-chain.md",
+      ".ai-native/docs/execution-assurance-chain.md",
+      ".ai-native/prompts/execution-assurance-agent.md",
+      ".ai-native/schemas/artifacts/execution-assurance.schema.json",
+      ".ai-native/templates/execution-assurance-report.md",
+      "execution-assurance-reports",
+      "scripts/check-execution-assurance.mjs",
+      "scripts/resolve-execution-assurance.mjs"
     ],
     "targetFull": [
       ".ai-native/checklists/approval-record-review.md",
@@ -3330,7 +3378,16 @@
       ".ai-native/schemas/artifacts/adoption-assurance.schema.json",
       "adoption-assurance-reports",
       "scripts/resolve-adoption-assurance.mjs",
-      "scripts/check-adoption-assurance.mjs"
+      "scripts/check-adoption-assurance.mjs",
+      ".ai-native/checklists/execution-assurance-review.md",
+      ".ai-native/core/execution-assurance-chain.md",
+      ".ai-native/docs/execution-assurance-chain.md",
+      ".ai-native/prompts/execution-assurance-agent.md",
+      ".ai-native/schemas/artifacts/execution-assurance.schema.json",
+      ".ai-native/templates/execution-assurance-report.md",
+      "execution-assurance-reports",
+      "scripts/check-execution-assurance.mjs",
+      "scripts/resolve-execution-assurance.mjs"
     ],
     "aiNativeCore": [
       ".ai-native/checklists/platform-release-recipe-review.md",
@@ -3458,7 +3515,9 @@
       "docs/adoption-execution-assurance.md",
       "prompts/adoption-assurance-agent.md",
       "templates/adoption-assurance-report.md",
-      "schemas/artifacts/adoption-assurance.schema.json"
+      "schemas/artifacts/adoption-assurance.schema.json",
+      "core/execution-assurance-chain.md",
+      "docs/execution-assurance-chain.md"
     ],
     "templates": [
       ".ai-native/templates/change-impact-coverage-report.md",
@@ -3571,7 +3630,8 @@
       "templates/existing-rule-reconciliation-report.md",
       "templates/release-plan.md",
       "templates/governance-convergence-report.md",
-      "templates/adoption-assurance-report.md"
+      "templates/adoption-assurance-report.md",
+      "templates/execution-assurance-report.md"
     ],
     "prompts": [
       ".ai-native/prompts/change-impact-coverage-agent.md",
@@ -3635,7 +3695,8 @@
       "prompts/existing-rule-reconciliation-agent.md",
       "prompts/release-plan-agent.md",
       "prompts/governance-convergence-agent.md",
-      "prompts/adoption-assurance-agent.md"
+      "prompts/adoption-assurance-agent.md",
+      "prompts/execution-assurance-agent.md"
     ],
     "checklists": [
       ".ai-native/checklists/change-impact-coverage-review.md",
@@ -3711,7 +3772,8 @@
       "checklists/existing-rule-reconciliation-review.md",
       "checklists/release-plan-review.md",
       "checklists/governance-convergence-review.md",
-      "checklists/adoption-assurance-review.md"
+      "checklists/adoption-assurance-review.md",
+      "checklists/execution-assurance-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -3816,7 +3878,8 @@
       "existing-rule-reconciliations",
       "release-plans",
       "governance-convergence-reports",
-      "adoption-assurance-reports"
+      "adoption-assurance-reports",
+      "execution-assurance-reports"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -3940,7 +4003,9 @@
       "scripts/resolve-governance-convergence.mjs",
       "scripts/check-governance-convergence.mjs",
       "scripts/resolve-adoption-assurance.mjs",
-      "scripts/check-adoption-assurance.mjs"
+      "scripts/check-adoption-assurance.mjs",
+      "scripts/check-execution-assurance.mjs",
+      "scripts/resolve-execution-assurance.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -5154,7 +5219,16 @@
       ".ai-native/schemas/artifacts/adoption-assurance.schema.json",
       "adoption-assurance-reports",
       "scripts/resolve-adoption-assurance.mjs",
-      "scripts/check-adoption-assurance.mjs"
+      "scripts/check-adoption-assurance.mjs",
+      ".ai-native/checklists/execution-assurance-review.md",
+      ".ai-native/core/execution-assurance-chain.md",
+      ".ai-native/docs/execution-assurance-chain.md",
+      ".ai-native/prompts/execution-assurance-agent.md",
+      ".ai-native/schemas/artifacts/execution-assurance.schema.json",
+      ".ai-native/templates/execution-assurance-report.md",
+      "execution-assurance-reports",
+      "scripts/check-execution-assurance.mjs",
+      "scripts/resolve-execution-assurance.mjs"
     ],
     "workflowReadiness": [
       ".ai-native/checklists/baseline-decision-review.md",
@@ -5809,6 +5883,10 @@
       {
         "source": "adoption-assurance-reports",
         "target": "adoption-assurance-reports"
+      },
+      {
+        "source": "execution-assurance-reports",
+        "target": "execution-assurance-reports"
       }
     ],
     "files": [
@@ -7131,6 +7209,38 @@
       {
         "source": "scripts/check-adoption-assurance.mjs",
         "target": "scripts/check-adoption-assurance.mjs"
+      },
+      {
+        "source": "checklists/execution-assurance-review.md",
+        "target": ".ai-native/checklists/execution-assurance-review.md"
+      },
+      {
+        "source": "core/execution-assurance-chain.md",
+        "target": ".ai-native/core/execution-assurance-chain.md"
+      },
+      {
+        "source": "docs/execution-assurance-chain.md",
+        "target": ".ai-native/docs/execution-assurance-chain.md"
+      },
+      {
+        "source": "prompts/execution-assurance-agent.md",
+        "target": ".ai-native/prompts/execution-assurance-agent.md"
+      },
+      {
+        "source": "templates/execution-assurance-report.md",
+        "target": ".ai-native/templates/execution-assurance-report.md"
+      },
+      {
+        "source": "schemas/artifacts/execution-assurance.schema.json",
+        "target": ".ai-native/schemas/artifacts/execution-assurance.schema.json"
+      },
+      {
+        "source": "scripts/resolve-execution-assurance.mjs",
+        "target": "scripts/resolve-execution-assurance.mjs"
+      },
+      {
+        "source": "scripts/check-execution-assurance.mjs",
+        "target": "scripts/check-execution-assurance.mjs"
       }
     ]
   },
@@ -7333,7 +7443,46 @@
       "releases/1.68.2/self-check-report.md",
       "releases/1.68.1/release-record.md",
       "releases/1.68.1/known-limitations.md",
-      "releases/1.68.1/self-check-report.md"
+      "releases/1.68.1/self-check-report.md",
+      "docs/plans/execution-assurance-chain-1.72-plan.md",
+      "core/execution-assurance-chain.md",
+      "docs/execution-assurance-chain.md",
+      "templates/execution-assurance-report.md",
+      "schemas/artifacts/execution-assurance.schema.json",
+      "checklists/execution-assurance-review.md",
+      "prompts/execution-assurance-agent.md",
+      "execution-assurance-reports/.gitkeep",
+      "scripts/resolve-execution-assurance.mjs",
+      "scripts/check-execution-assurance.mjs",
+      "examples/1.72-execution-assurance-chain/README.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/tasks/001-contract-validation.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/change-impact-coverage-reports/001-contract.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/review-loop-reports/001-contract.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/frontend-validation.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/api-validation.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/backend-rule.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/tests.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/execution-assurance-reports/001-contract-validation.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/adoption-assurance-reports/001-adoption.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/governance-convergence-reports/001-convergence.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/execution-assurance-reports/001-adoption.md",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/evidence/copy-smoke.txt",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/execution-assurance-reports/001-copy.md",
+      "examples/1.72-execution-assurance-chain/patch-smell-backend-only/execution-assurance-reports/001-backend-only.md",
+      "test-fixtures/bad/bad-execution-assurance-adoption-without-source/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-controlled-patch-no-debt/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-missing-actual-diff/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-missing-review/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-no-completion-contract/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-patch-smell-verified/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-release-overclaim/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-safe-patch-broad-diff/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-stale-evidence/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unexpected-ci-hook/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unresolved-evidence/execution-assurance-reports/001-bad.md",
+      "releases/1.72.0/release-record.md",
+      "releases/1.72.0/known-limitations.md",
+      "releases/1.72.0/self-check-report.md"
     ]
   }
 }

@@ -1,0 +1,1 @@
+Copy-only smoke check confirms the label changed and no behavior changed.

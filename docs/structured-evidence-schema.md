@@ -42,6 +42,12 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 - unknown evidence ref prefixes fail instead of being silently ignored
 - generated reports can be written with explicit `--out <relative-report-path>` and checked as the same file
 
+1.72.0 extends structured Markdown evidence to:
+
+- Execution Assurance Report
+
+Execution Assurance binds intent, completion contract, planned impact, actual diff, evidence refs, review result, patch classification, source-system trace, and closure decision before Codex can claim execution-class work is complete.
+
 The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
 
 ## Rules
@@ -52,7 +58,7 @@ The Markdown sections remain the human-readable record. The `Machine-Readable Ev
 - Boundary fields must stay false unless a future controlled runner explicitly supports a safe mode.
 - Approval evidence still does not authorize automatic apply.
 - Product completeness evidence still does not approve release, production, or real-user adoption.
-- Change impact coverage evidence still does not authorize implementation, apply, release, production, or high-risk decisions.
+- Change impact coverage and execution assurance evidence still do not authorize implementation, apply, release, production, commit/push, target writes, CI/hook mutation, secrets, migrations, provider actions, or high-risk decisions.
 
 ## Strict Mode
 
@@ -71,6 +77,7 @@ node scripts/check-release-plan.mjs <project> --require-structured-evidence
 node scripts/check-governance-convergence.mjs <project> --require-structured-evidence
 node scripts/check-adoption-assurance.mjs <project> --require-structured-evidence
 node scripts/check-adoption-assurance.mjs <project> --require-structured-evidence --require-simulation
+node scripts/check-execution-assurance.mjs <project> --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence
 ```
 
 Strict mode requires `Machine-Readable Evidence`. For readiness and approval records, strict mode also requires the referenced apply plan to resolve locally so the checker can verify the plan digest.
@@ -82,6 +89,8 @@ Low-risk apply candidate strict mode requires a valid `candidate_digest`, exact 
 Change impact coverage strict closure mode requires a valid `impact_digest`, matching Markdown and JSON surface statuses, non-placeholder `DONE` evidence, and required surfaces closed instead of left `NOT_STARTED`.
 
 Existing-project adoption strict mode requires structured evidence for migration, rule reconciliation, convergence, release plan, and adoption assurance when those reports are used to claim IntentOS operating mode. Adoption Assurance also requires every surface evidence ref to resolve through `evidence_refs`; `VERIFIED_ACTIVE` additionally requires a passed read-only simulation trace.
+
+Execution Assurance strict mode requires current-task evidence refs, a concrete actual diff binding, a completion contract, planned impact surfaces, independent review when required, source-system trace, and a patch assessment that does not hide partial or broad changes behind safe-patch wording.
 
 Product completeness structured evidence is supplied as a JSON file, not as a Markdown `Machine-Readable Evidence` block:
 

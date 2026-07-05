@@ -1,6 +1,6 @@
 # AI Native Dev Kit Version
 
-Current version: `1.71.3`
+Current version: `1.72.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,13 @@ Current version: `1.71.3`
 
 ## Current Release
 
-`1.71.3`
+`1.72.0`
 
 Includes:
+
+- Execution Assurance Chain phase `1.72.0`: adds `execution-assurance` / `execution-assurance-check` so execution-class work cannot be claimed complete without a task-bound proof chain.
+- `1.72.0` binds user intent, completion contract, planned impact, execution plan, actual diff, evidence refs, independent review, patch classification, source-system trace, and closure decision into one report.
+- `1.72.0` covers feature work, bug fixes, safe patches, old-project adoption, baseline setup, document governance, release preparation, and workflow capability changes without authorizing target-project writes, commit, push, CI/hook mutation, release, production, secrets, migrations, or provider actions.
 
 - Adoption Assurance Evidence Closure patch `1.71.3`: generated assurance and convergence reports can be saved with explicit `--out <relative-report-path>` and then checked as the same artifact.
 - `1.71.3` requires every Adoption Assurance surface evidence ref to appear in `evidence_refs`, rejects unknown evidence ref prefixes, and replaces broad authority-block text scanning with typed `authority_block` source evidence.

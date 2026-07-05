@@ -37,6 +37,7 @@ This index separates current operating documents from reference material, histor
 - [Existing Rule Reconciliation](existing-rule-reconciliation.md)
 - [Existing Project Governance Convergence](existing-project-governance-convergence.md)
 - [Adoption Execution Assurance](adoption-execution-assurance.md)
+- [Execution Assurance Chain](execution-assurance-chain.md)
 - [Guided Delivery Check](guided-delivery-check.md)
 - [Guided Baseline Selection Entry](guided-baseline-selection-entry.md)
 
@@ -72,6 +73,7 @@ This index separates current operating documents from reference material, histor
 - [Existing Rule Reconciliation](existing-rule-reconciliation.md)
 - [Existing Project Governance Convergence](existing-project-governance-convergence.md)
 - [Adoption Execution Assurance](adoption-execution-assurance.md)
+- [Execution Assurance Chain](execution-assurance-chain.md)
 - [Execution Review Closure](execution-review-closure.md)
 - [Unified Apply Plan](unified-apply-plan.md)
 - [Controlled Apply Readiness](controlled-apply-readiness.md)
@@ -118,6 +120,7 @@ This index separates current operating documents from reference material, histor
 - [Existing Rule Reconciliation](existing-rule-reconciliation.md)
 - [Existing Project Governance Convergence](existing-project-governance-convergence.md)
 - [Adoption Execution Assurance](adoption-execution-assurance.md)
+- [Execution Assurance Chain](execution-assurance-chain.md)
 
 ## Reference
 

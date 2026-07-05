@@ -32,6 +32,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Existing Rule Reconciliation](existing-rule-reconciliation.md)
 - [Existing Project Governance Convergence](existing-project-governance-convergence.md)
 - [Adoption Execution Assurance](adoption-execution-assurance.md)
+- [Execution Assurance Chain](execution-assurance-chain.md)
 
 ## Project Adoption
 
@@ -44,6 +45,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Existing Rule Reconciliation](existing-rule-reconciliation.md)
 - [Existing Project Governance Convergence](existing-project-governance-convergence.md)
 - [Adoption Execution Assurance](adoption-execution-assurance.md)
+- [Execution Assurance Chain](execution-assurance-chain.md)
 - [New Project Playbook](adoption-playbooks/new-project.md)
 - [Existing Light Project Playbook](adoption-playbooks/existing-light-project.md)
 - [Governed Read-Only Playbook](adoption-playbooks/governed-project-read-only.md)
@@ -58,6 +60,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Guided Decision & Delivery Loop](guided-decision-delivery-loop.md)
 - [Review Surface Governance](review-surface-governance.md)
 - [Change Impact Coverage](change-impact-coverage.md)
+- [Execution Assurance Chain](execution-assurance-chain.md)
 - [Delivery Path Governance](delivery-path-governance.md)
 - [Ordinary User First Slice](ordinary-user-first-slice.md)
 - [Product Completeness Gate](product-completeness-gate.md)

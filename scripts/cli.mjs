@@ -157,6 +157,30 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "execution-assurance": {
+    description: "Build a read-only assurance chain for execution-class work before claiming it is complete.",
+    script: "scripts/resolve-execution-assurance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "execution-assurance-check": {
+    description: "Check recorded Execution Assurance reports for completion contract, actual diff, evidence, review, and patch boundaries.",
+    script: "scripts/check-execution-assurance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "done-check": {
+    description: "Plain alias for checking recorded Execution Assurance reports.",
+    script: "scripts/check-execution-assurance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "verify-execution": {
+    description: "Plain alias for checking whether execution-class work has a valid assurance chain.",
+    script: "scripts/check-execution-assurance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "apply-plan": {
     description: "Turn proposed project writes into one reviewable plan without writing target files.",
     script: "scripts/resolve-apply-plan.mjs",
@@ -660,7 +684,7 @@ function printHelp() {
   printCommandGroup(["start", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
-  printCommandGroup(["ask", "guide", "finish", "release-guide", "release-plan", "apply-plan"]);
+  printCommandGroup(["ask", "guide", "finish", "execution-assurance", "release-guide", "release-plan", "apply-plan"]);
   console.log("");
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
@@ -670,6 +694,7 @@ function printHelp() {
     "ask",
     "guide",
     "finish",
+    "execution-assurance",
     "release-guide",
     "release-plan",
     "apply-plan",
@@ -680,6 +705,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs doctor ../my-project");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
+  console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制'");
+  console.log("  node scripts/cli.mjs execution-assurance-check ../my-project --require-structured-evidence");
   console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");
   console.log("  node scripts/cli.mjs apply-plan ../my-project --intent '接入 IntentOS 工作流' --action workflow-assets");
   console.log("");
