@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.75.2`.
+Current release: `1.76.0`.
 
-Release record: [releases/1.75.2/release-record.md](releases/1.75.2/release-record.md).
+Release record: [releases/1.76.0/release-record.md](releases/1.76.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.76.0 adds Verification Plan Governance: after Business Rule Closure and Change Impact Coverage, Codex now produces a source-bound verification plan that says what must be checked, how test correctness is reviewed, which manual checks need owners, and why broad commands such as `npm test` are not enough proof for business-rule or cross-surface changes. It plans verification only; it does not execute tests, approve implementation, or approve release/production.
 
 1.75.2 closes the Business Rule Closure binding gap: strict business-rule flags now require machine-readable Change Impact Coverage evidence, generated Business Rule Closure reports self-reference their actual `--out` path, and generated-project smoke proves the saved BRC -> CIC strict binding chain.
 

@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { sourceRequiredPaths } from "./lib/manifest.mjs";
 import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -7660,6 +7661,278 @@ function checkBusinessRuleClosureProtocol() {
   }
 }
 
+function checkVerificationPlanGovernanceProtocol() {
+  const required = [
+    "core/verification-test-governance.md",
+    "docs/verification-test-governance.md",
+    "docs/plans/verification-test-governance-1.76-plan.md",
+    "templates/verification-plan.md",
+    "checklists/verification-plan-review.md",
+    "prompts/verification-plan-agent.md",
+    "schemas/artifacts/verification-plan.schema.json",
+    "verification-plans/.gitkeep",
+    "scripts/resolve-verification-plan.mjs",
+    "scripts/check-verification-plan.mjs",
+    "examples/1.76-verification-plan/appointment-service-time/business-rule-closures/001-service-time.md",
+    "examples/1.76-verification-plan/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
+    "examples/1.76-verification-plan/appointment-service-time/verification-plans/001-service-time.md",
+    "releases/1.76.0/release-record.md",
+    "releases/1.76.0/known-limitations.md",
+    "releases/1.76.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.76 verification plan asset exists ${file}`);
+    else fail(`1.76 verification plan asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/verification-test-governance.md"),
+    read("docs/verification-test-governance.md"),
+    read("docs/plans/verification-test-governance-1.76-plan.md"),
+    read("templates/verification-plan.md"),
+    read("checklists/verification-plan-review.md"),
+    read("prompts/verification-plan-agent.md"),
+    read("schemas/artifacts/verification-plan.schema.json"),
+    read("scripts/resolve-verification-plan.mjs"),
+    read("scripts/check-verification-plan.mjs"),
+    read("scripts/resolve-change-impact-coverage.mjs"),
+    read("scripts/cli.mjs"),
+    exists("releases/1.76.0/release-record.md") ? read("releases/1.76.0/release-record.md") : "",
+  ].join("\n");
+
+  for (const marker of [
+    "Verification Plan Governance",
+    "Verification And Test Governance",
+    "verification_plan_digest",
+    "verification_plan_ref",
+    "source_systems",
+    "intent_digest",
+    "Test Correctness",
+    "broad-command",
+    "API_NEGATIVE_TEST",
+    "BACKEND_RULE_TEST",
+    "does not execute tests",
+    "does not approve release or production",
+    "verification-plan",
+    "verification-plan-check",
+    "--out",
+  ]) {
+    if (combined.includes(marker)) pass(`1.76 verification plan includes ${marker}`);
+    else fail(`1.76 verification plan missing ${marker}`);
+  }
+
+  const resolver = runNode([
+    "scripts/resolve-verification-plan.mjs",
+    "examples/1.76-verification-plan/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-service-time.md",
+    "--impact-ref",
+    "artifact:change-impact-coverage-reports/001-service-time.md",
+    "--project-level",
+    "BL1",
+    "--platform",
+    "web,backend",
+  ]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Verification Plan")
+    && resolver.stdout.includes("VERIFICATION_PLAN_READY")
+    && resolver.stdout.includes("This plan executes tests: No")) {
+    pass("1.76 verification plan resolver prints safe plan");
+  } else {
+    fail(`1.76 verification plan resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode([
+    "scripts/resolve-verification-plan.mjs",
+    "examples/1.76-verification-plan/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-service-time.md",
+    "--impact-ref",
+    "artifact:change-impact-coverage-reports/001-service-time.md",
+    "--project-level",
+    "BL1",
+    "--platform",
+    "web,backend",
+    "--json",
+  ]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "VERIFICATION_PLAN"
+        && parsed.structuredEvidence?.artifact_type === "verification_plan"
+        && parsed.structuredEvidence?.verification_plan_digest
+        && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "business_rule_closure")
+        && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "change_impact_coverage")
+        && parsed.structuredEvidence?.verification_obligations?.some((item) => item.verification_type === "API_NEGATIVE_TEST")
+        && parsed.boundaries?.executes_tests === "No") {
+        pass("1.76 verification plan resolver JSON includes source-bound obligations");
+      } else {
+        fail(`1.76 verification plan resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.76 verification plan resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.76 verification plan resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const sourceCheck = runNode(["scripts/check-verification-plan.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("Verification Plan check passed")) {
+    pass("1.76 verification plan checker passes source repo with explicit empty allowance");
+  } else {
+    fail(`1.76 verification plan source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const exampleCheck = runNode([
+    "scripts/check-verification-plan.mjs",
+    "examples/1.76-verification-plan/appointment-service-time",
+    "--report",
+    "verification-plans/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+  ]);
+  if (exampleCheck.status === 0
+    && exampleCheck.stdout.includes("Verification Plan check passed")
+    && exampleCheck.stdout.includes("verification_plan_ref points to this report")
+    && exampleCheck.stdout.includes("business_rule_digest matches referenced Business Rule Closure")
+    && exampleCheck.stdout.includes("impact_digest matches referenced Change Impact Coverage")
+    && exampleCheck.stdout.includes("API_CONTRACT includes API_NEGATIVE_TEST")) {
+    pass("1.76 verification plan strict example passes checker");
+  } else {
+    fail(`1.76 verification plan strict example failed: ${exampleCheck.stderr || exampleCheck.stdout}`);
+  }
+
+  const cliResolver = runNode([
+    "scripts/cli.mjs",
+    "verification-plan",
+    "examples/1.76-verification-plan/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-service-time.md",
+    "--impact-ref",
+    "artifact:change-impact-coverage-reports/001-service-time.md",
+  ]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Verification Plan")) {
+    pass("CLI verification-plan delegates to resolver");
+  } else {
+    fail(`CLI verification-plan failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliCheck = runNode([
+    "scripts/cli.mjs",
+    "verification-plan-check",
+    "examples/1.76-verification-plan/appointment-service-time",
+    "--report",
+    "verification-plans/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+  ]);
+  if (cliCheck.status === 0 && cliCheck.stdout.includes("Verification Plan check passed")) {
+    pass("CLI verification-plan-check delegates to checker");
+  } else {
+    fail(`CLI verification-plan-check failed: ${cliCheck.stderr || cliCheck.stdout}`);
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-verification-plan-"));
+  fs.mkdirSync(path.join(tempRoot, "business-rule-closures"), { recursive: true });
+  fs.mkdirSync(path.join(tempRoot, "change-impact-coverage-reports"), { recursive: true });
+  fs.mkdirSync(path.join(tempRoot, "verification-plans"), { recursive: true });
+  fs.copyFileSync(
+    path.join(kitRoot, "examples/1.76-verification-plan/appointment-service-time/business-rule-closures/001-service-time.md"),
+    path.join(tempRoot, "business-rule-closures/001-service-time.md"),
+  );
+  fs.copyFileSync(
+    path.join(kitRoot, "examples/1.76-verification-plan/appointment-service-time/change-impact-coverage-reports/001-service-time.md"),
+    path.join(tempRoot, "change-impact-coverage-reports/001-service-time.md"),
+  );
+  fs.copyFileSync(
+    path.join(kitRoot, "examples/1.76-verification-plan/appointment-service-time/verification-plans/001-service-time.md"),
+    path.join(tempRoot, "verification-plans/001-service-time.md"),
+  );
+
+  const badCases = [
+    {
+      name: "missing API negative test",
+      expected: "API_CONTRACT requires API_NEGATIVE_TEST",
+      mutate(evidence) {
+        evidence.verification_obligations = evidence.verification_obligations.filter((item) => item.verification_type !== "API_NEGATIVE_TEST");
+      },
+    },
+    {
+      name: "broad command as required business proof",
+      expected: "cannot be broad-command-only",
+      mutate(evidence) {
+        const target = evidence.verification_obligations.find((item) => item.verification_type === "BACKEND_RULE_TEST");
+        target.broad_command_only = "Yes";
+        target.suggested_command = "npm test";
+      },
+    },
+    {
+      name: "task ref mismatch",
+      expected: "must match Business Rule Closure task_ref",
+      mutate(evidence) {
+        evidence.task_ref = "tasks/001-other-task.md";
+      },
+    },
+    {
+      name: "manual verification without owner",
+      expected: "needs owner",
+      mutate(evidence) {
+        evidence.manual_verification = [{
+          id: "manual:bad",
+          owner: "",
+          decision_ref: "human-decision:missing-owner",
+          expected_manual_evidence: "Owner evidence is required.",
+          blocking: "Yes",
+        }];
+      },
+    },
+  ];
+
+  for (const badCase of badCases) {
+    const badRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-bad-verification-plan-"));
+    fs.cpSync(tempRoot, badRoot, { recursive: true });
+    const reportFile = path.join(badRoot, "verification-plans/001-service-time.md");
+    mutateVerificationPlan(reportFile, badCase.mutate);
+    const result = runNode([
+      "scripts/check-verification-plan.mjs",
+      badRoot,
+      "--report",
+      "verification-plans/001-service-time.md",
+      "--require-structured-evidence",
+      "--require-business-rule-ref",
+      "--require-impact-ref",
+      "--strict-source-binding",
+    ]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(badCase.expected)) {
+      pass(`1.76 verification plan rejects ${badCase.name}`);
+    } else {
+      fail(`1.76 verification plan must reject ${badCase.name}: ${output}`);
+    }
+  }
+}
+
+function mutateVerificationPlan(reportFile, mutate) {
+  const content = fs.readFileSync(reportFile, "utf8");
+  const extracted = extractMachineReadableEvidence(content);
+  if (!extracted?.ok) throw new Error(`invalid verification plan fixture ${reportFile}`);
+  const evidence = structuredClone(extracted.value);
+  mutate(evidence);
+  evidence.verification_plan_digest = evidenceDigest(evidence, ["verification_plan_digest"]);
+  const updated = content.replace(/```json\s*[\s\S]*?```/i, `\`\`\`json\n${JSON.stringify(evidence, null, 2)}\n\`\`\``);
+  fs.writeFileSync(reportFile, updated);
+}
+
 function checkChangeImpactCoverageProtocol() {
   const required = [
     "core/change-impact-coverage.md",
@@ -11452,6 +11725,51 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project strict Business Rule Closure to Change Impact Coverage binding");
 
+  const generatedVerificationReport = "verification-plans/001-generated-service-time.md";
+  const generatedVerificationResolve = runNode([
+    path.join(target, "scripts", "resolve-verification-plan.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    generatedBusinessRuleRef,
+    "--impact-ref",
+    `artifact:${generatedImpactReport}`,
+    "--project-level",
+    "BL1",
+    "--platform",
+    "web,backend",
+    "--out",
+    generatedVerificationReport,
+  ]);
+  if (generatedVerificationResolve.status !== 0
+    || !fs.existsSync(path.join(target, generatedVerificationReport))
+    || !generatedVerificationResolve.stdout.includes("Verification Plan")
+    || !generatedVerificationResolve.stdout.includes("VERIFICATION_PLAN_READY")) {
+    fail(`generated project verification plan resolver should write a source-bound report: ${generatedVerificationResolve.stderr || generatedVerificationResolve.stdout}`);
+    return;
+  }
+  const generatedVerificationStrictCheck = runNode([
+    path.join(target, "scripts", "check-verification-plan.mjs"),
+    target,
+    "--report",
+    generatedVerificationReport,
+    "--require-structured-evidence",
+    "--require-business-rule-ref",
+    "--require-impact-ref",
+    "--strict-source-binding",
+  ]);
+  if (generatedVerificationStrictCheck.status !== 0
+    || !generatedVerificationStrictCheck.stdout.includes("Verification Plan check passed")
+    || !generatedVerificationStrictCheck.stdout.includes("verification_plan_ref points to this report")
+    || !generatedVerificationStrictCheck.stdout.includes("business_rule_digest matches referenced Business Rule Closure")
+    || !generatedVerificationStrictCheck.stdout.includes("impact_digest matches referenced Change Impact Coverage")
+    || !generatedVerificationStrictCheck.stdout.includes("API_CONTRACT includes API_NEGATIVE_TEST")) {
+    fail(`generated project Verification Plan strict source binding failed: ${generatedVerificationStrictCheck.stderr || generatedVerificationStrictCheck.stdout}`);
+    return;
+  }
+  pass("generated project strict Verification Plan source binding");
+
   const emptyGoalModeCheck = runNode([
     path.join(target, "scripts", "check-goal-mode.mjs"),
     target,
@@ -13384,6 +13702,7 @@ checkNaturalLanguageOrchestratorProtocol();
 checkReviewSurfaceGovernanceProtocol();
 checkBusinessRuleClosureProtocol();
 checkChangeImpactCoverageProtocol();
+checkVerificationPlanGovernanceProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();

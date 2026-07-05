@@ -22,6 +22,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
 | `business-rule-closures/` | Business Rule Closure cards that close rule dimensions, safe defaults, limited user decisions, and real-environment validation expectations before impact coverage |
 | `change-impact-coverage-reports/` | Affected-surface coverage for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
+| `verification-plans/` | Source-bound verification plans that translate business rule closure and impact coverage into concrete checks, test-correctness controls, and manual verification ownership |
 | `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
 | `ordinary-first-slices/` | First useful version scope for ordinary user goals |
 | `product-completeness-reports/` | Product-state, checklist, evidence, gaps, and next-action reports |
@@ -95,7 +96,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
 ## Reporting Artifacts
 
@@ -179,6 +180,8 @@ Review Surface Governance lives under `.intentos/core/` in generated projects. I
 Business Rule Closure lives under `.intentos/core/` in generated projects. It lets Codex close the meaning of a user-requested business rule before writing code: actor, trigger, success path, failure path, feedback, enforcement, data behavior, safe defaults, pending decisions, and real-environment validation expectations. It reduces user decision burden, but it does not authorize implementation, release, production, finance, tax, HR, legal, payment, privacy, compliance, migration, or customer-data decisions.
 
 Change Impact Coverage lives under `.intentos/core/` in generated projects. It helps Codex avoid partial implementation by recording affected user-flow, frontend, API, backend, data, error-copy, test, docs, permission, and release surfaces before a rule or behavior change is treated as complete.
+
+Verification Plan Governance lives under `.intentos/core/` in generated projects. It turns closed business rules and impact coverage into a concrete verification plan so Codex cannot rely on broad command output alone or write generated tests without test-correctness review. It does not execute tests, approve implementation, approve release/production, or replace Execution Assurance.
 
 Delivery Path Governance lives under `.intentos/core/` in generated projects. It explains whether a project is still an idea, ready for plan, ready for local build, ready for self-test, ready for internal trial, ready for release review, or blocked, while keeping Delivery Path Reports read-only and non-approving.
 

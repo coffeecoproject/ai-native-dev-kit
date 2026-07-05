@@ -67,6 +67,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "verification-plan": {
+    description: "Build a read-only verification obligation plan before tests or completion claims.",
+    script: "scripts/resolve-verification-plan.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "verification-plan-check": {
+    description: "Check recorded Verification Plans for task-bound source refs, obligations, and test-correctness controls.",
+    script: "scripts/check-verification-plan.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "business-rule": {
     description: "Check whether a business rule is clear enough before impact coverage and coding.",
     script: "scripts/resolve-business-rule-closure.mjs",

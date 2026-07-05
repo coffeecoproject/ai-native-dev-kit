@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "1.76.0",
+  "artifactType": "verification_plan",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "task_ref",
+    "intent",
+    "intent_digest",
+    "verification_plan_ref",
+    "verification_plan_digest",
+    "business_rule_ref",
+    "business_rule_digest",
+    "business_rule_state",
+    "impact_ref",
+    "impact_digest",
+    "source_systems",
+    "project_level",
+    "platform_profiles",
+    "change_kind",
+    "risk_domains",
+    "verification_state",
+    "affected_surfaces",
+    "verification_obligations",
+    "test_correctness_controls",
+    "manual_verification",
+    "not_applicable_obligations",
+    "boundaries",
+    "next_step"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.76.0"] },
+    "artifact_type": { "type": "string", "enum": ["verification_plan"] },
+    "task_ref": { "type": "string" },
+    "intent": { "type": "string" },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "verification_plan_ref": { "type": "string" },
+    "verification_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "business_rule_ref": { "type": "string" },
+    "business_rule_digest": { "type": "string" },
+    "business_rule_state": { "type": "string" },
+    "impact_ref": { "type": "string" },
+    "impact_digest": { "type": "string" },
+    "source_systems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "status", "ref", "source_outcome", "digest"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "business_rule_closure",
+              "change_impact_coverage",
+              "existing_project_rule",
+              "human_decision"
+            ]
+          },
+          "status": { "type": "string", "enum": ["RECORDED", "UNRESOLVED", "NOT_PROVIDED"] },
+          "ref": { "type": "string" },
+          "source_outcome": { "type": "string" },
+          "digest": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "project_level": { "type": "string", "enum": ["BL0", "BL1", "BL2"] },
+    "platform_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "change_kind": {
+      "type": "string",
+      "enum": [
+        "BUSINESS_RULE",
+        "BUG_FIX",
+        "REFACTOR",
+        "DEPENDENCY_UPGRADE",
+        "CONFIG_CHANGE",
+        "DOCS_ONLY",
+        "RELEASE_PREPARATION",
+        "ADOPTION_MIGRATION"
+      ]
+    },
+    "risk_domains": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "verification_state": {
+      "type": "string",
+      "enum": [
+        "VERIFICATION_PLAN_READY",
+        "NEEDS_BUSINESS_RULE_CLOSURE",
+        "NEEDS_IMPACT_COVERAGE",
+        "NEEDS_DOMAIN_OWNER",
+        "BLOCKED_BY_UNCLEAR_TEST_SCOPE",
+        "BLOCKED_BY_TEST_CORRECTNESS_RISK",
+        "NOT_APPLICABLE_WITH_REASON"
+      ]
+    },
+    "affected_surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["surface", "status", "reason", "expected_evidence"],
+        "properties": {
+          "surface": {
+            "type": "string",
+            "enum": [
+              "USER_FLOW",
+              "FRONTEND_UI",
+              "API_CONTRACT",
+              "BACKEND_RULE",
+              "DATA_MODEL",
+              "ERROR_COPY",
+              "TEST_COVERAGE",
+              "DOCS_HANDOFF",
+              "PERMISSION_RISK",
+              "RELEASE_IMPACT"
+            ]
+          },
+          "status": { "type": "string", "enum": ["REQUIRED", "OPTIONAL", "NOT_APPLICABLE", "NEEDS_HUMAN_DECISION"] },
+          "reason": { "type": "string" },
+          "expected_evidence": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "verification_obligations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source_surface",
+          "verification_type",
+          "required",
+          "priority",
+          "behavior_under_test",
+          "expected_evidence",
+          "test_correctness_risk",
+          "suggested_command",
+          "broad_command_only",
+          "source_refs",
+          "owner",
+          "decision_ref",
+          "not_applicable_reason"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "source_surface": { "type": "string" },
+          "verification_type": {
+            "type": "string",
+            "enum": [
+              "UNIT_BEHAVIOR_TEST",
+              "API_POSITIVE_TEST",
+              "API_NEGATIVE_TEST",
+              "UI_INTERACTION_TEST",
+              "ERROR_COPY_CHECK",
+              "BACKEND_RULE_TEST",
+              "DATA_MODEL_CHECK",
+              "PERMISSION_BOUNDARY_TEST",
+              "INTEGRATION_CONTRACT_CHECK",
+              "REGRESSION_SMOKE",
+              "VISUAL_OR_SCREEN_CHECK",
+              "MANUAL_VERIFICATION_REQUIRED",
+              "RELEASE_SMOKE_CHECK",
+              "PRIVACY_DATA_CHECK",
+              "PERFORMANCE_SMOKE",
+              "LOAD_OR_CAPACITY_CHECK"
+            ]
+          },
+          "required": { "type": "string", "enum": ["Yes", "No"] },
+          "priority": { "type": "string", "enum": ["BLOCKING", "REQUIRED", "OPTIONAL"] },
+          "behavior_under_test": { "type": "string" },
+          "expected_evidence": { "type": "string" },
+          "test_correctness_risk": { "type": "string" },
+          "suggested_command": { "type": "string" },
+          "broad_command_only": { "type": "string", "enum": ["Yes", "No"] },
+          "source_refs": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "owner": { "type": "string" },
+          "decision_ref": { "type": "string" },
+          "not_applicable_reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "test_correctness_controls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "applies_to", "required", "reason"],
+        "properties": {
+          "id": { "type": "string" },
+          "applies_to": { "type": "string" },
+          "required": { "type": "string", "enum": ["Yes", "No"] },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "manual_verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "owner", "decision_ref", "expected_manual_evidence", "blocking"],
+        "properties": {
+          "id": { "type": "string" },
+          "owner": { "type": "string" },
+          "decision_ref": { "type": "string" },
+          "expected_manual_evidence": { "type": "string" },
+          "blocking": { "type": "string", "enum": ["Yes", "No"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "not_applicable_obligations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_surface", "reason"],
+        "properties": {
+          "source_surface": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "required": [
+        "writes_target_files",
+        "executes_tests",
+        "authorizes_implementation",
+        "approves_release_or_production",
+        "proves_product_correctness",
+        "proves_real_environment_behavior"
+      ],
+      "properties": {
+        "writes_target_files": { "type": "string", "enum": ["No"] },
+        "executes_tests": { "type": "string", "enum": ["No"] },
+        "authorizes_implementation": { "type": "string", "enum": ["No"] },
+        "approves_release_or_production": { "type": "string", "enum": ["No"] },
+        "proves_product_correctness": { "type": "string", "enum": ["No"] },
+        "proves_real_environment_behavior": { "type": "string", "enum": ["No"] }
+      },
+      "additionalProperties": false
+    },
+    "next_step": { "type": "string" }
+  },
+  "additionalProperties": false
+}

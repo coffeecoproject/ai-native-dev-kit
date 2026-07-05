@@ -282,6 +282,8 @@ jobs:
           node "$tmp/project/scripts/resolve-change-impact-coverage.mjs" "$tmp/project" --intent "generated project validation rule" --business-rule-ref "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md"
           node "$tmp/project/scripts/resolve-change-impact-coverage.mjs" "$tmp/project" --intent "appointment requests must include a service time" --business-rule-ref "artifact:business-rule-closures/001-generated-service-time.md" > "$tmp/project/change-impact-coverage-reports/001-generated-service-time.md"
           node "$tmp/project/scripts/check-change-impact-coverage.mjs" "$tmp/project" --report change-impact-coverage-reports/001-generated-service-time.md --require-business-rule-ready
+          node "$tmp/project/scripts/resolve-verification-plan.mjs" "$tmp/project" --intent "appointment requests must include a service time" --business-rule-ref "artifact:business-rule-closures/001-generated-service-time.md" --impact-ref "artifact:change-impact-coverage-reports/001-generated-service-time.md" --project-level BL1 --platform web,backend --out verification-plans/001-generated-service-time.md
+          node "$tmp/project/scripts/check-verification-plan.mjs" "$tmp/project" --report verification-plans/001-generated-service-time.md --require-structured-evidence --require-business-rule-ref --require-impact-ref --strict-source-binding
           node "$tmp/project/scripts/check-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-delivery-path.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-debt-handoff.mjs" "$tmp/project"
@@ -303,6 +305,8 @@ jobs:
           node "$tmp/project/scripts/cli.mjs" impact-coverage "$tmp/project" --intent "generated project validation rule" --business-rule-ref "artifact:business-rule-closures/001-appointment-requests-must-include-a-service-time.md"
           node "$tmp/project/scripts/cli.mjs" impact-coverage "$tmp/project" --intent "appointment requests must include a service time" --business-rule-ref "artifact:business-rule-closures/001-cli-generated-service-time.md" > "$tmp/project/change-impact-coverage-reports/001-cli-generated-service-time.md"
           node "$tmp/project/scripts/cli.mjs" impact-coverage-check "$tmp/project" --report change-impact-coverage-reports/001-cli-generated-service-time.md --require-business-rule-ready
+          node "$tmp/project/scripts/cli.mjs" verification-plan "$tmp/project" --intent "appointment requests must include a service time" --business-rule-ref "artifact:business-rule-closures/001-cli-generated-service-time.md" --impact-ref "artifact:change-impact-coverage-reports/001-cli-generated-service-time.md" --project-level BL1 --platform web,backend --out verification-plans/001-cli-generated-service-time.md
+          node "$tmp/project/scripts/cli.mjs" verification-plan-check "$tmp/project" --report verification-plans/001-cli-generated-service-time.md --require-structured-evidence --require-business-rule-ref --require-impact-ref --strict-source-binding
           node "$tmp/project/scripts/cli.mjs" impact-coverage-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" delivery-path "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" closure "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"

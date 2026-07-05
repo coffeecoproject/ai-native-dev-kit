@@ -54,6 +54,7 @@ This index separates current operating documents from reference material, histor
 - [Review Surface Governance](review-surface-governance.md)
 - [Business Rule Closure](business-rule-closure.md)
 - [Change Impact Coverage](change-impact-coverage.md)
+- [Verification Plan Governance](verification-test-governance.md)
 - [Delivery Path Governance](delivery-path-governance.md)
 - [Ordinary User First Slice](ordinary-user-first-slice.md)
 - [Product Completeness Gate](product-completeness-gate.md)

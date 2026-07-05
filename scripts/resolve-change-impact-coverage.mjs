@@ -13,7 +13,7 @@ import {
 } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode", "from-git-diff", "cached", "base", "business-rule-ref"]);
+const knownFlags = new Set(["json", "format", "intent", "changed-files", "mode", "from-git-diff", "cached", "base", "business-rule-ref", "out"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
@@ -27,6 +27,7 @@ const gitDiffRequested = Boolean(args["from-git-diff"]);
 const cachedDiffRequested = Boolean(args.cached);
 const baseRef = args.base ? String(args.base).trim() : "";
 const businessRuleRef = args["business-rule-ref"] ? String(args["business-rule-ref"]).trim() : "";
+const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -56,8 +57,15 @@ const gitChangedFiles = gitDiffRequested
 const changedFiles = unique([...explicitChangedFiles, ...gitChangedFiles]);
 const report = buildReport(projectRoot, intent, changedFiles, mode, businessRuleRef);
 
-if (outputFormat === "json") console.log(JSON.stringify(report, null, 2));
-else printHuman(report);
+if (outputFormat === "json") {
+  const output = `${JSON.stringify(report, null, 2)}\n`;
+  writeOutputIfRequested(output);
+  process.stdout.write(output);
+} else {
+  const output = humanReportText(report);
+  writeOutputIfRequested(output);
+  process.stdout.write(output);
+}
 
 function buildReport(root, userIntent, explicitChangedFiles, requestedMode, linkedBusinessRuleRef) {
   const exists = fs.existsSync(root);
@@ -70,7 +78,7 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
     intent: userIntent,
     paths: explicitChangedFiles,
     projectRoot: root,
-    includeProjectSignals: true,
+    includeProjectSignals: false,
   });
   const changeType = classifyChangeType(signals);
   const surfaces = affectedSurfaces(signals, risk);
@@ -201,13 +209,18 @@ function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeT
 }
 
 function collectSignals(root, exists, paths, userIntent, explicitChangedFiles) {
-  const text = [
+  const broadText = [
     userIntent,
     paths.join("\n"),
     explicitChangedFiles.join("\n"),
     packageMetadata(root),
   ].join("\n");
-  const lower = text.toLowerCase();
+  const explicitText = [
+    userIntent,
+    explicitChangedFiles.join("\n"),
+  ].join("\n");
+  const lower = broadText.toLowerCase();
+  const explicitLower = explicitText.toLowerCase();
   return {
     exists,
     hasProjectSignals: exists ? hasProjectSignals(root) : false,
@@ -218,11 +231,11 @@ function collectSignals(root, exists, paths, userIntent, explicitChangedFiles) {
     hasFrontend: /\b(frontend|ui|form|input|screen|page|component|wxml|wxss|css|app\.js|view|toast|disabled|client)\b/i.test(lower),
     hasApi: /\b(api|endpoint|request|response|dto|schema|contract|server|client contract)\b/i.test(lower),
     hasBackend: /\b(backend|server|service|domain|validation|permission|rule|workflow|controller|handler)\b/i.test(lower),
-    hasData: /\b(data|database|db|schema|migration|enum|lookup|model|persistence|seed|storage)\b/i.test(lower),
+    hasData: /\b(data|database|db|schema|migration|enum|lookup|model|persistence|seed|storage)\b/i.test(explicitLower),
     hasErrorCopy: /\b(error|message|copy|toast|hint|empty|validation|restriction|input)\b/i.test(lower),
-    hasPermission: /\b(auth|permission|permissions|role|rbac|tenant|visibility|admin|audit|privacy|security)\b/i.test(lower),
-    hasRelease: /\b(release|deploy|deployment|production|rollback|migration|feature flag|staging)\b/i.test(lower),
-    hasPaymentOrCompliance: /\b(payment|billing|invoice|tax|finance|compliance|legal|privacy|security)\b/i.test(lower),
+    hasPermission: /\b(auth|permission|permissions|role|rbac|tenant|visibility|admin|audit|privacy|security)\b/i.test(explicitLower),
+    hasRelease: /\b(release|deploy|deployment|production|rollback|migration|feature flag|staging)\b/i.test(explicitLower),
+    hasPaymentOrCompliance: /\b(payment|billing|invoice|tax|finance|compliance|legal|privacy|security)\b/i.test(explicitLower),
   };
 }
 
@@ -411,6 +424,111 @@ function printHuman(report) {
   console.log("## Outcome");
   console.log("");
   console.log(`\`${report.outcome}\``);
+}
+
+function humanReportText(report) {
+  const lines = [];
+  const log = (value = "") => lines.push(String(value));
+  log("# Change Impact Coverage Report");
+  log("");
+  log("## Human Summary");
+  log("");
+  log(report.humanSummary);
+  log("");
+  log("## User Request");
+  log("");
+  log(`- Request: ${report.intent}`);
+  log("- Task ref: not provided");
+  log("- Project/profile: inferred from project signals");
+  log(`- Business rule closure ref: ${report.businessRuleRef}`);
+  log(`- Business rule digest: ${report.businessRuleDigest}`);
+  log(`- Business rule state: ${report.businessRuleState}`);
+  log("");
+  log("## Change Type");
+  log("");
+  log(`- Mode: \`${report.mode}\``);
+  log(`- Primary type: \`${report.changeType.primaryType}\``);
+  log(`- Risk level: ${report.changeType.riskLevel}`);
+  log(`- Reason: ${report.changeType.reason}`);
+  log("");
+  log("## Changed Files");
+  log("");
+  if (report.changedFiles.length > 0) report.changedFiles.forEach((file) => log(`- \`${file}\``));
+  else log("- None provided.");
+  log("");
+  log("## Affected Surface Map");
+  log("");
+  log("| Surface | Status | Reason | Expected Evidence |");
+  log("|---|---|---|---|");
+  for (const row of report.affectedSurfaceMap) {
+    log(`| \`${row.surface}\` | \`${row.status}\` | ${row.reason} | ${row.expectedEvidence} |`);
+  }
+  log("");
+  log("## Out-of-Scope Decisions");
+  log("");
+  log("| Surface | Decision | Reason | Owner / Follow-up |");
+  log("|---|---|---|---|");
+  log("| None | None | Pre-execution report. | None |");
+  log("");
+  log("## Human Decisions Needed");
+  log("");
+  report.humanDecisionsNeeded.forEach((question, index) => log(`${index + 1}. ${question}`));
+  log("");
+  log("## Implementation Coverage");
+  log("");
+  log("| Surface | Status | Evidence | Reason |");
+  log("|---|---|---|---|");
+  for (const row of report.implementationCoverage) {
+    log(`| \`${row.surface}\` | \`${row.status}\` | ${row.evidence || "Not started"} | ${row.reason} |`);
+  }
+  log("");
+  log("## Verification Coverage");
+  log("");
+  log("| Surface | Verification | Evidence | Status |");
+  log("|---|---|---|---|");
+  for (const row of report.verificationCoverage) {
+    log(`| \`${row.surface}\` | ${row.verification} | ${row.evidence || "Not started"} | \`${row.status}\` |`);
+  }
+  log("");
+  log("## Missed Surface Review");
+  log("");
+  log(`- Missed surfaces found: ${report.missedSurfaceReview.missedSurfacesFound}`);
+  log(`- Notes: ${report.missedSurfaceReview.notes}`);
+  log("");
+  log("## Boundaries");
+  log("");
+  log("- This report writes target files: No");
+  log("- This report authorizes implementation: No");
+  log("- This report approves release or production: No");
+  log("- This report replaces human product judgment: No");
+  log("- This report proves every possible impact was found: No");
+  log("");
+  log("## Machine-Readable Evidence");
+  log("");
+  log("```json");
+  log(JSON.stringify(report.machineReadableEvidence, null, 2));
+  log("```");
+  log("");
+  log("## Outcome");
+  log("");
+  log(`\`${report.outcome}\``);
+  return `${lines.join("\n")}\n`;
+}
+
+function resolveOutputPath(root, requestedPath) {
+  const resolved = path.resolve(root, String(requestedPath));
+  const relative = path.relative(root, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    console.error("FAIL --out must stay inside the target project.");
+    process.exit(1);
+  }
+  return resolved;
+}
+
+function writeOutputIfRequested(output) {
+  if (!outputPath) return;
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, output);
 }
 
 function artifactId(userIntent, explicitChangedFiles) {

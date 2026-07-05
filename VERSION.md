@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.75.2`
+Current version: `1.76.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,21 @@ Current version: `1.75.2`
 
 ## Current Release
 
-`1.75.2`
+`1.76.0`
 
 Includes:
+
+- Verification Plan Governance phase `1.76.0`: after Business Rule Closure
+  and Change Impact Coverage, Codex can produce a read-only Verification Plan
+  that binds the current task, rule, and impact report to concrete verification
+  obligations.
+- `1.76.0` adds `verification-plan` / `verification-plan-check`, structured
+  `verification_plan` evidence, strict source binding, broad-command
+  rejection, API positive/negative obligation checks, backend rule checks, and
+  manual-verification owner checks.
+- `1.76.0` is a verification planning layer. It does not execute tests,
+  approve implementation, approve release or production, replace Execution
+  Assurance, or prove product correctness.
 
 - Business Rule Binding Enforcement patch `1.75.2`: strict
   `--require-business-rule-ref` / `--require-business-rule-ready` checks now

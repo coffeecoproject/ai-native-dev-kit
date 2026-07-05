@@ -33,6 +33,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Existing Project Governance Convergence](existing-project-governance-convergence.md)
 - [Adoption Execution Assurance](adoption-execution-assurance.md)
 - [Execution Assurance Chain](execution-assurance-chain.md)
+- [Verification Plan Governance](verification-test-governance.md)
 
 ## Project Adoption
 
@@ -61,6 +62,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Review Surface Governance](review-surface-governance.md)
 - [Business Rule Closure](business-rule-closure.md)
 - [Change Impact Coverage](change-impact-coverage.md)
+- [Verification Plan Governance](verification-test-governance.md)
 - [Execution Assurance Chain](execution-assurance-chain.md)
 - [Delivery Path Governance](delivery-path-governance.md)
 - [Ordinary User First Slice](ordinary-user-first-slice.md)

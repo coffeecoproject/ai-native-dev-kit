@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.75.2`。
+当前版本：`1.76.0`。
 
-发布记录：[releases/1.75.2/release-record.md](releases/1.75.2/release-record.md)。
+发布记录：[releases/1.76.0/release-record.md](releases/1.76.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.76.0 新增 Verification Plan Governance：在 Business Rule Closure 和 Change Impact Coverage 之后，Codex 需要生成一份和当前任务、业务规则、影响面绑定的验证计划，说明哪些地方必须测、测试本身如何避免写错、哪些人工验证需要负责人，以及为什么单纯 `npm test` 这类大命令不能直接当作业务闭环证明。它只规划验证，不执行测试、不批准实现，也不批准发布或生产。
 
 1.75.2 收紧业务规则绑定落地：严格业务规则检查现在会强制要求 Change Impact Coverage 具备机器可读证据；Business Rule Closure 使用 `--out` 生成时会自引用真实输出路径；生成项目 smoke 会验证同一份 BRC -> CIC 严格绑定链。
 

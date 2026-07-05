@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Verification And Test Governance 1.76](verification-test-governance-1.76-plan.md)
 - [Business Rule Closure 1.75](business-rule-closure-1.75-plan.md)
 - [Execution Assurance Log And Markdown Consistency 1.74.3](execution-assurance-log-markdown-consistency-1.74.3-plan.md)
 - [Execution Assurance Runtime Plan Ref Binding 1.74.2](execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md)
