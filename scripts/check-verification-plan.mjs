@@ -220,13 +220,41 @@ function checkStructuredEvidence(label, file, evidence) {
     if (!artifactRef(evidence.impact_ref)) fail(`${label} impact_ref is required for READY verification plans`);
     if (!sourceNames.has("change_impact_coverage")) fail(`${label} source_systems must include change_impact_coverage`);
   }
+  checkSourceSystemsConsistency(label, evidence);
 
   const businessRule = checkBusinessRuleBinding(label, file, evidence);
   const impact = checkImpactBinding(label, file, evidence);
+  checkSourceChainConsistency(label, evidence, impact);
   checkTaskBinding(label, evidence, businessRule, impact);
   checkObligations(label, evidence);
   checkManualVerification(label, evidence);
   checkBoundaries(label, evidence);
+}
+
+function checkSourceSystemsConsistency(label, evidence) {
+  const byName = new Map();
+  for (const source of evidence.source_systems || []) {
+    if (!source?.name) continue;
+    byName.set(source.name, source);
+  }
+  requireSourceField(label, byName.get("business_rule_closure"), "business_rule_closure", "ref", evidence.business_rule_ref);
+  requireSourceField(label, byName.get("business_rule_closure"), "business_rule_closure", "digest", evidence.business_rule_digest);
+  requireSourceField(label, byName.get("business_rule_closure"), "business_rule_closure", "source_outcome", evidence.business_rule_state);
+  requireSourceField(label, byName.get("change_impact_coverage"), "change_impact_coverage", "ref", evidence.impact_ref);
+  requireSourceField(label, byName.get("change_impact_coverage"), "change_impact_coverage", "digest", evidence.impact_digest);
+}
+
+function requireSourceField(label, source, sourceName, field, expected) {
+  if (!meaningful(expected) || /^not provided$/i.test(String(expected))) return;
+  if (!source) {
+    fail(`${label} source_systems must include ${sourceName} for ${field} consistency`);
+    return;
+  }
+  if (source[field] === expected) {
+    pass(`${label} source_systems ${sourceName}.${field} matches top-level binding`);
+  } else {
+    fail(`${label} source_systems ${sourceName}.${field} ${source[field] || "<missing>"} must match top-level ${expected}`);
+  }
 }
 
 function checkBusinessRuleBinding(label, file, evidence) {
@@ -291,6 +319,30 @@ function checkImpactBinding(label, file, evidence) {
     fail(`${label} impact_digest ${evidence.impact_digest || "<missing>"} must match referenced Change Impact Coverage ${impact.impact_digest || "<missing>"}`);
   }
   return impact;
+}
+
+function checkSourceChainConsistency(label, evidence, impact) {
+  if (!impact) return;
+  const shouldRequireBusinessRuleChain = requireBusinessRuleRef
+    || strictSourceBinding
+    || evidence.change_kind === "BUSINESS_RULE"
+    || meaningfulArtifact(evidence.business_rule_ref);
+  if (!shouldRequireBusinessRuleChain) return;
+  if (impact.business_rule_ref === evidence.business_rule_ref) {
+    pass(`${label} impact report business_rule_ref matches Verification Plan`);
+  } else {
+    fail(`${label} impact report business_rule_ref ${impact.business_rule_ref || "<missing>"} must match Verification Plan ${evidence.business_rule_ref || "<missing>"}`);
+  }
+  if (impact.business_rule_digest === evidence.business_rule_digest) {
+    pass(`${label} impact report business_rule_digest matches Verification Plan`);
+  } else {
+    fail(`${label} impact report business_rule_digest ${impact.business_rule_digest || "<missing>"} must match Verification Plan ${evidence.business_rule_digest || "<missing>"}`);
+  }
+  if (impact.business_rule_state === evidence.business_rule_state) {
+    pass(`${label} impact report business_rule_state matches Verification Plan`);
+  } else {
+    fail(`${label} impact report business_rule_state ${impact.business_rule_state || "<missing>"} must match Verification Plan ${evidence.business_rule_state || "<missing>"}`);
+  }
 }
 
 function checkTaskBinding(label, evidence, businessRule, impact) {
@@ -425,6 +477,10 @@ function artifactRef(value) {
   const text = String(value || "").trim();
   if (!text || /^not provided$/i.test(text)) return "";
   return text.startsWith("artifact:") ? text : "";
+}
+
+function meaningfulArtifact(value) {
+  return Boolean(artifactRef(value));
 }
 
 function resolveArtifact(reportFile, ref) {

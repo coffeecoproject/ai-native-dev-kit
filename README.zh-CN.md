@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.76.0`。
+当前版本：`1.76.1`。
 
-发布记录：[releases/1.76.0/release-record.md](releases/1.76.0/release-record.md)。
+发布记录：[releases/1.76.1/release-record.md](releases/1.76.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.76.1 收紧 Verification Plan 证据链：严格检查现在会证明 Change Impact Coverage 消费的 Business Rule Closure，和 Verification Plan 引用的是同一份；`source_systems[]` 也必须和顶层 ref、digest、outcome 一致，避免来源链变成展示性说明。
 
 1.76.0 新增 Verification Plan Governance：在 Business Rule Closure 和 Change Impact Coverage 之后，Codex 需要生成一份和当前任务、业务规则、影响面绑定的验证计划，说明哪些地方必须测、测试本身如何避免写错、哪些人工验证需要负责人，以及为什么单纯 `npm test` 这类大命令不能直接当作业务闭环证明。它只规划验证，不执行测试、不批准实现，也不批准发布或生产。
 
@@ -172,6 +174,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Review Surface | 执行前判断任务完成后需要审哪些面 |
 | Business Rule Closure | 写代码前先把业务规则闭环，AI 负责补齐规则维度和默认建议，用户只确认少数关键判断 |
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
+| Verification Plan Governance | 根据业务规则和影响面生成任务绑定的验证义务，说明哪些测试或检查足以支持后续收口；不执行测试，不批准实现或发布 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |

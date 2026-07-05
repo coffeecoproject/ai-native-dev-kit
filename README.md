@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.76.0`.
+Current release: `1.76.1`.
 
-Release record: [releases/1.76.0/release-record.md](releases/1.76.0/release-record.md).
+Release record: [releases/1.76.1/release-record.md](releases/1.76.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.76.1 tightens Verification Plan source chains: strict checks now prove the Change Impact Coverage report consumed the same Business Rule Closure referenced by the Verification Plan, and `source_systems[]` must match the top-level refs, digests, and outcomes.
 
 1.76.0 adds Verification Plan Governance: after Business Rule Closure and Change Impact Coverage, Codex now produces a source-bound verification plan that says what must be checked, how test correctness is reviewed, which manual checks need owners, and why broad commands such as `npm test` are not enough proof for business-rule or cross-surface changes. It plans verification only; it does not execute tests, approve implementation, or approve release/production.
 
@@ -174,6 +176,7 @@ IntentOS 当前包含这些核心能力：
 | Review Surface | 执行前判断任务完成后需要审哪些面 |
 | Business Rule Closure | 在写代码前把业务规则说清楚，AI 先补齐角色、触发条件、成功/失败路径、默认处理和待确认问题，用户只确认关键判断 |
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
+| Verification Plan Governance | 根据业务规则和影响面生成任务绑定的验证义务，说明哪些测试或检查足以支持后续收口；不执行测试，不批准实现或发布 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |

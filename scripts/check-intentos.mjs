@@ -7676,9 +7676,16 @@ function checkVerificationPlanGovernanceProtocol() {
     "examples/1.76-verification-plan/appointment-service-time/business-rule-closures/001-service-time.md",
     "examples/1.76-verification-plan/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
     "examples/1.76-verification-plan/appointment-service-time/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-impact-bound-to-different-business-rule/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-impact-missing-business-rule-binding/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-source-systems-digest-mismatch/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-source-systems-ref-mismatch/verification-plans/001-service-time.md",
     "releases/1.76.0/release-record.md",
     "releases/1.76.0/known-limitations.md",
     "releases/1.76.0/self-check-report.md",
+    "releases/1.76.1/release-record.md",
+    "releases/1.76.1/known-limitations.md",
+    "releases/1.76.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.76 verification plan asset exists ${file}`);
@@ -7698,6 +7705,7 @@ function checkVerificationPlanGovernanceProtocol() {
     read("scripts/resolve-change-impact-coverage.mjs"),
     read("scripts/cli.mjs"),
     exists("releases/1.76.0/release-record.md") ? read("releases/1.76.0/release-record.md") : "",
+    exists("releases/1.76.1/release-record.md") ? read("releases/1.76.1/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -7716,6 +7724,9 @@ function checkVerificationPlanGovernanceProtocol() {
     "verification-plan",
     "verification-plan-check",
     "--out",
+    "impact report business_rule_ref matches Verification Plan",
+    "checkSourceSystemsConsistency",
+    "matches top-level binding",
   ]) {
     if (combined.includes(marker)) pass(`1.76 verification plan includes ${marker}`);
     else fail(`1.76 verification plan missing ${marker}`);
@@ -7918,6 +7929,43 @@ function checkVerificationPlanGovernanceProtocol() {
       pass(`1.76 verification plan rejects ${badCase.name}`);
     } else {
       fail(`1.76 verification plan must reject ${badCase.name}: ${output}`);
+    }
+  }
+
+  const badFixtureCases = [
+    {
+      target: "test-fixtures/bad/bad-verification-plan-impact-bound-to-different-business-rule",
+      expected: "impact report business_rule_ref",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-impact-missing-business-rule-binding",
+      expected: "impact report business_rule_ref",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-source-systems-digest-mismatch",
+      expected: "source_systems business_rule_closure.digest",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-source-systems-ref-mismatch",
+      expected: "source_systems change_impact_coverage.ref",
+    },
+  ];
+  for (const badCase of badFixtureCases) {
+    const result = runNode([
+      "scripts/check-verification-plan.mjs",
+      badCase.target,
+      "--report",
+      "verification-plans/001-service-time.md",
+      "--require-structured-evidence",
+      "--require-business-rule-ref",
+      "--require-impact-ref",
+      "--strict-source-binding",
+    ]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(badCase.expected)) {
+      pass(`1.76 verification plan rejects ${badCase.target}`);
+    } else {
+      fail(`1.76 verification plan must reject ${badCase.target}: ${output}`);
     }
   }
 }

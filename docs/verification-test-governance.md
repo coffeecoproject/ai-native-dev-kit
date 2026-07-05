@@ -11,6 +11,11 @@ It does not ask the user to design tests. Codex reads the request, the Business
 Rule Closure, the Change Impact Coverage report, project level, platform
 signals, and risk signals. Then it produces a Verification Plan.
 
+In strict mode, the plan must prove it is one continuous source chain: the
+Change Impact Coverage report must have consumed the same Business Rule Closure
+that the Verification Plan references, and the `source_systems[]` trace must
+match the top-level refs, digests, and outcomes.
+
 ## What It Produces
 
 A Verification Plan lists:

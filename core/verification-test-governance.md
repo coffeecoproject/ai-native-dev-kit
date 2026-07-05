@@ -47,6 +47,11 @@ A ready Verification Plan must record:
 - `test_correctness_controls[]`
 - no-authority boundaries
 
+Strict source binding must also prove that the Change Impact Coverage report
+consumed the same Business Rule Closure referenced by the Verification Plan.
+`source_systems[]` is binding trace data: its refs, digests, and outcomes must
+match the top-level Business Rule Closure and Change Impact Coverage fields.
+
 ## Test Correctness
 
 Codex-generated tests can be wrong. Verification Plan must guard against:

@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.76.0`
+`1.76.1`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.76.1` tightens Verification Plan source-chain consistency: strict checks prove that the Change Impact Coverage report consumed the same Business Rule Closure as the Verification Plan, and `source_systems[]` must match top-level refs, digests, and outcomes.
+- `1.76.1` keeps the Verification Plan artifact schema at `1.76.0`; this patch hardens checker behavior and fixtures without adding a new workflow layer.
 - `1.76.0` adds Verification Plan Governance: Codex can turn Business Rule Closure plus Change Impact Coverage into a source-bound verification plan with concrete obligations, test-correctness controls, manual verification ownership, and strict checks against broad-command-only proof.
 - `1.76.0` remains non-executing: it plans verification only and does not execute tests, approve implementation, approve release/production, replace Execution Assurance, or prove product correctness.
 - `1.75.2` tightens Business Rule Closure binding enforcement: strict business-rule flags require Change Impact Coverage machine-readable evidence, BRC `--out` reports self-reference their actual output path, and generated projects prove saved BRC -> CIC strict binding.

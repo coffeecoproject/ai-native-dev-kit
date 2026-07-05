@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.76.0`
+Current version: `1.76.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.76.0`
 
 ## Current Release
 
-`1.76.0`
+`1.76.1`
 
 Includes:
+
+- Verification Plan Source Chain Consistency patch `1.76.1`: strict
+  Verification Plan checks now prove that the referenced Change Impact Coverage
+  report consumed the same Business Rule Closure as the Verification Plan.
+- `1.76.1` also binds `source_systems[]` entries to the top-level
+  business-rule and impact refs/digests/outcomes, so source trace cannot drift
+  into display-only evidence.
+- `1.76.1` keeps the Verification Plan artifact schema at `1.76.0`; this is a
+  checker and fixture hardening patch, not a new workflow layer.
 
 - Verification Plan Governance phase `1.76.0`: after Business Rule Closure
   and Change Impact Coverage, Codex can produce a read-only Verification Plan
