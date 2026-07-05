@@ -5642,8 +5642,10 @@ function checkExecutionAssuranceChainProtocol() {
     "bad-execution-assurance-source-digest-mismatch",
     "bad-execution-assurance-declarative-precise-evidence",
     "bad-execution-assurance-unresolved-plan-ref",
+    "bad-execution-assurance-markdown-json-plan-mismatch",
   ];
   const required = [
+    "docs/plans/execution-assurance-log-markdown-consistency-1.74.3-plan.md",
     "docs/plans/execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md",
     "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
     "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
@@ -5679,15 +5681,21 @@ function checkExecutionAssuranceChainProtocol() {
     "releases/1.74.2/release-record.md",
     "releases/1.74.2/known-limitations.md",
     "releases/1.74.2/self-check-report.md",
+    "releases/1.74.3/release-record.md",
+    "releases/1.74.3/known-limitations.md",
+    "releases/1.74.3/self-check-report.md",
     "test-fixtures/bad/bad-execution-assurance-unresolved-plan-ref/evidence/copy-smoke.txt",
+    "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/evidence/copy-smoke.txt",
+    "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/tasks/001-copy.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/execution-assurance-reports/001-bad.md`),
   ];
   for (const file of required) {
-    if (exists(file)) pass(`1.72 execution assurance asset exists ${file}`);
-    else fail(`1.72 execution assurance asset missing ${file}`);
+    if (exists(file)) pass(`1.72-1.74 execution assurance asset exists ${file}`);
+    else fail(`1.72-1.74 execution assurance asset missing ${file}`);
   }
 
   const combined = [
+    read("docs/plans/execution-assurance-log-markdown-consistency-1.74.3-plan.md"),
     read("docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md"),
     read("docs/plans/execution-assurance-chain-1.72-plan.md"),
     read("docs/plans/execution-assurance-strict-binding-1.74-plan.md"),
@@ -5704,6 +5712,7 @@ function checkExecutionAssuranceChainProtocol() {
     read("releases/1.74.0/release-record.md"),
     read("releases/1.74.1/release-record.md"),
     read("releases/1.74.2/release-record.md"),
+    read("releases/1.74.3/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -5743,11 +5752,13 @@ function checkExecutionAssuranceChainProtocol() {
     "execution_plan.plan_ref",
     "resolvable execution plan reference",
     "unresolved plan refs",
+    "Execution Plan Binding Plan Ref",
+    "Evidence Binding row count",
     "same-report generated-project smoke",
     "generated-project smoke",
   ]) {
-    if (combined.includes(marker)) pass(`1.72 execution assurance includes ${marker}`);
-    else fail(`1.72 execution assurance missing ${marker}`);
+    if (combined.includes(marker)) pass(`1.72-1.74 execution assurance includes ${marker}`);
+    else fail(`1.72-1.74 execution assurance missing ${marker}`);
   }
 
   const pkg = JSON.parse(read("package.json"));
@@ -5764,8 +5775,8 @@ function checkExecutionAssuranceChainProtocol() {
     "node scripts/cli.mjs verify-execution .",
     "node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/feature-contract-validation --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence",
   ]) {
-    if (verifySurface.includes(marker)) pass(`1.72 package verify surface includes ${marker}`);
-    else fail(`1.72 package verify surface missing ${marker}`);
+    if (verifySurface.includes(marker)) pass(`1.72-1.74 package verify surface includes ${marker}`);
+    else fail(`1.72-1.74 package verify surface missing ${marker}`);
   }
 
   const resolver = runNode(["scripts/resolve-execution-assurance.mjs", ".", "--intent", "verify execution completion"]);
@@ -5774,9 +5785,9 @@ function checkExecutionAssuranceChainProtocol() {
     && resolver.stdout.includes("## Completion Contract")
     && resolver.stdout.includes("## Actual Diff Binding")
     && resolver.stdout.includes("## Patch Assessment")) {
-    pass("1.72 execution assurance resolver prints safe report");
+    pass("1.72-1.74 execution assurance resolver prints safe report");
   } else {
-    fail(`1.72 execution assurance resolver failed: ${resolver.stderr || resolver.stdout}`);
+    fail(`1.72-1.74 execution assurance resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
 
   const resolverJson = runNode(["scripts/resolve-execution-assurance.mjs", ".", "--intent", "verify execution completion", "--json"]);
@@ -5793,22 +5804,22 @@ function checkExecutionAssuranceChainProtocol() {
         && parsed.structuredEvidence?.actual_diff
         && parsed.structuredEvidence?.patch_assessment
         && parsed.structuredEvidence?.boundary?.approves_commit_or_push === "No") {
-        pass("1.72 execution assurance resolver JSON includes safe evidence fields");
+        pass("1.72-1.74 execution assurance resolver JSON includes safe evidence fields");
       } else {
-        fail(`1.72 execution assurance resolver JSON missing expected fields: ${resolverJson.stdout}`);
+        fail(`1.72-1.74 execution assurance resolver JSON missing expected fields: ${resolverJson.stdout}`);
       }
     } catch (error) {
-      fail(`1.72 execution assurance resolver JSON invalid: ${error.message}`);
+      fail(`1.72-1.74 execution assurance resolver JSON invalid: ${error.message}`);
     }
   } else {
-    fail(`1.72 execution assurance resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+    fail(`1.72-1.74 execution assurance resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
   }
 
   const source = runNode(["scripts/check-execution-assurance.mjs", ".", "--allow-empty"]);
   if (source.status === 0 && source.stdout.includes("Execution assurance check passed")) {
-    pass("1.72 execution assurance checker allows explicit source asset check without reports");
+    pass("1.72-1.74 execution assurance checker allows explicit source asset check without reports");
   } else {
-    fail(`1.72 execution assurance checker failed: ${source.stderr || source.stdout}`);
+    fail(`1.72-1.74 execution assurance checker failed: ${source.stderr || source.stdout}`);
   }
 
   const emptyReportTarget = fs.mkdtempSync(path.join(os.tmpdir(), "execution-assurance-empty-"));
@@ -5840,9 +5851,9 @@ function checkExecutionAssuranceChainProtocol() {
     && fs.existsSync(explicitReportPath)
     && explicitReport.status === 0
     && explicitReport.stdout.includes("Execution assurance check passed")) {
-    pass("1.72 execution assurance --out report is generated and checked as the same file");
+    pass("1.72-1.74 execution assurance --out report is generated and checked as the same file");
   } else {
-    fail(`1.72 execution assurance --out explicit report check failed: ${generatedReport.stderr || explicitReport.stderr || generatedReport.stdout || explicitReport.stdout}`);
+    fail(`1.72-1.74 execution assurance --out explicit report check failed: ${generatedReport.stderr || explicitReport.stderr || generatedReport.stdout || explicitReport.stdout}`);
   }
 
   const cliResolver = runNode(["scripts/cli.mjs", "execution-assurance", ".", "--intent", "verify execution completion"]);
@@ -5868,14 +5879,14 @@ function checkExecutionAssuranceChainProtocol() {
     ["examples/1.72-execution-assurance-chain/patch-smell-backend-only", []],
   ]) {
     const example = runNode(["scripts/check-execution-assurance.mjs", target, "--require-structured-evidence", ...extraFlags]);
-    if (example.status === 0) pass(`1.72 execution assurance example passes strict checker ${target}`);
-    else fail(`1.72 execution assurance example failed ${target}: ${example.stderr || example.stdout}`);
+    if (example.status === 0) pass(`1.72-1.74 execution assurance example passes strict checker ${target}`);
+    else fail(`1.72-1.74 execution assurance example failed ${target}: ${example.stderr || example.stdout}`);
   }
 
   for (const target of badFixtures) {
     const result = runNode(["scripts/check-execution-assurance.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
-    if (result.status !== 0) pass(`1.72 execution assurance rejects ${target}`);
-    else fail(`1.72 execution assurance must reject ${target}`);
+    if (result.status !== 0) pass(`1.72-1.74 execution assurance rejects ${target}`);
+    else fail(`1.72-1.74 execution assurance must reject ${target}`);
   }
 }
 

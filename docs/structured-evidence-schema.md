@@ -48,7 +48,7 @@ IntentOS keeps workflow artifacts readable for humans, but high-risk write-contr
 
 Execution Assurance binds intent, completion contract, planned impact, actual diff, evidence refs, review result, patch classification, source-system trace, and closure decision before Codex can claim execution-class work is complete.
 
-1.74.0 through 1.74.2 tighten Execution Assurance evidence identity:
+1.74.0 through 1.74.3 tighten Execution Assurance evidence identity:
 
 - source-system records include `source_system_ref`, `source_task_ref`,
   `source_outcome`, `current_task_match`, `report_digest`, and
@@ -62,14 +62,18 @@ Execution Assurance binds intent, completion contract, planned impact, actual di
 - non-empty `approval_refs` are checked for supported, bounded references and
   cannot be treated as blanket approval;
 - declarative references such as `review:`, `command:`, `generated:`, and
-  `git-diff:` are not precise completion proof by themselves.
+  `git-diff:` are not precise completion proof by themselves;
+- Markdown `Execution Plan Binding`, `Actual Diff Binding`, and
+  `Evidence Binding` tables must match the JSON `execution_plan`,
+  `actual_diff`, and `evidence_bindings` records.
 
 The Execution Assurance artifact schema version remains `1.74.0` in the 1.74.x
 repository patches because the artifact shape stays compatible; 1.74.1 aligns
-the resolver, schema enum, docs, and smoke coverage, while 1.74.2 tightens
-checker interpretation of existing fields.
+the resolver, schema enum, docs, and smoke coverage, 1.74.2 tightens checker
+interpretation of existing fields, and 1.74.3 tightens Markdown/JSON
+consistency checks.
 
-The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record.
+The Markdown sections remain the human-readable record. The `Machine-Readable Evidence` JSON block is the machine-checkable record and remains authoritative, but the human-readable tables must not drift from it.
 
 ## Rules
 
@@ -111,7 +115,7 @@ Change impact coverage strict closure mode requires a valid `impact_digest`, mat
 
 Existing-project adoption strict mode requires structured evidence for migration, rule reconciliation, convergence, release plan, and adoption assurance when those reports are used to claim IntentOS operating mode. Adoption Assurance also requires every surface evidence ref to resolve through `evidence_refs`; `VERIFIED_ACTIVE` additionally requires a passed read-only simulation trace.
 
-Execution Assurance strict mode requires current-task evidence refs, a concrete actual diff binding, a completion contract, planned impact surfaces, a resolvable execution plan reference, independent review when required, source-system trace, digest-backed evidence identity when available, explicit planned target paths for actual changed files, and a patch assessment that does not hide partial or broad changes behind safe-patch wording.
+Execution Assurance strict mode requires current-task evidence refs, a concrete actual diff binding, a completion contract, planned impact surfaces, a resolvable execution plan reference, independent review when required, source-system trace, digest-backed evidence identity when available, explicit planned target paths for actual changed files, Markdown/JSON binding-table consistency, and a patch assessment that does not hide partial or broad changes behind safe-patch wording.
 
 Product completeness structured evidence is supplied as a JSON file, not as a Markdown `Machine-Readable Evidence` block:
 

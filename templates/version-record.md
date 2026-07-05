@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.74.2`
+`1.74.3`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.74.3` improves Execution Assurance audit readability: self-check labels cover the 1.72-1.74 assurance line, and report checks cross-compare Markdown Execution Plan, Actual Diff, and Evidence Binding tables with machine-readable JSON evidence.
+- `1.74.3` keeps the Execution Assurance artifact schema version at `1.74.0`; existing report shape remains compatible.
 - `1.74.2` removes remaining legacy uppercase runtime vocabulary from active source-repository routing and binds `VERIFIED_DONE` to a resolvable execution plan reference.
 - `1.74.2` keeps the Execution Assurance artifact schema version at `1.74.0`; this patch tightens checker interpretation of existing `execution_plan` fields rather than changing the report shape.
 - `1.74.2` adds same-report generated-project smoke coverage: generated projects write an Execution Assurance report with `--out` and check that same recorded artifact.

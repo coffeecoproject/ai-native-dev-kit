@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.74.2`
+Current version: `1.74.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.74.2`
 
 ## Current Release
 
-`1.74.2`
+`1.74.3`
 
 Includes:
+
+- Execution Assurance Log And Markdown Consistency patch `1.74.3`: self-check
+  output labels now describe the full 1.72-1.74 assurance line, and strict
+  checker validation cross-checks Markdown Execution Plan, Actual Diff, and
+  Evidence Binding tables against machine-readable JSON evidence.
+- `1.74.3` keeps the Execution Assurance artifact schema version at `1.74.0`;
+  this patch tightens report consistency checks rather than changing the report
+  shape.
 
 - Execution Assurance Runtime Plan Ref Binding patch `1.74.2`: removes
   remaining legacy uppercase runtime vocabulary from active source-repository

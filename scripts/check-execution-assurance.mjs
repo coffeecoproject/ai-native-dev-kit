@@ -522,6 +522,65 @@ function checkCrossConsistency(content, label, summary, evidence) {
   const closure = firstCodeValue(sectionBody(content, "Closure Decision") || "");
   if (closure === evidence.outcome) pass(`${label} Closure Decision matches evidence outcome`);
   else fail(`${label} Closure Decision ${closure || "<empty>"} does not match evidence outcome ${evidence.outcome || "<empty>"}`);
+  checkExecutionPlanTableConsistency(content, label, evidence);
+  checkActualDiffTableConsistency(content, label, evidence);
+  checkEvidenceBindingTableConsistency(content, label, evidence);
+}
+
+function checkExecutionPlanTableConsistency(content, label, evidence) {
+  const body = sectionBody(content, "Execution Plan Binding") || "";
+  const plan = evidence.execution_plan || {};
+  compareScalar(label, "Execution Plan Binding Plan Ref", tableValue(body, "Plan Ref"), plan.plan_ref);
+  compareScalar(label, "Execution Plan Binding Risk Classification", tableValue(body, "Risk Classification"), plan.risk_classification);
+  compareList(label, "Execution Plan Binding Planned Target Paths", tableListValue(body, "Planned Target Paths"), plan.planned_target_paths || []);
+  compareList(label, "Execution Plan Binding Approval Ref", tableListValue(body, "Approval Ref"), plan.approval_refs || []);
+}
+
+function checkActualDiffTableConsistency(content, label, evidence) {
+  const body = sectionBody(content, "Actual Diff Binding") || "";
+  const diff = evidence.actual_diff || {};
+  compareScalar(label, "Actual Diff Binding Diff Source", tableValue(body, "Diff Source"), diff.diff_source);
+  compareList(label, "Actual Diff Binding Changed Files", tableListValue(body, "Changed Files"), diff.changed_files || []);
+  compareList(label, "Actual Diff Binding Unexpected Files", tableListValue(body, "Unexpected Files"), diff.unexpected_files || []);
+  compareScalar(label, "Actual Diff Binding Target Diff Status", tableValue(body, "Target Diff Status"), diff.target_diff_status);
+}
+
+function checkEvidenceBindingTableConsistency(content, label, evidence) {
+  const body = sectionBody(content, "Evidence Binding") || "";
+  const rows = tableRows(body);
+  const markdownBindings = rows.map((row) => ({
+    criterion_id: stripMarkdown(row[0] || ""),
+    evidence_ref: stripMarkdown(row[1] || ""),
+    resolved: stripMarkdown(row[2] || ""),
+    current_task_match: stripMarkdown(row[3] || ""),
+  })).filter((row) => row.criterion_id || row.evidence_ref || row.resolved || row.current_task_match);
+  const jsonBindings = Array.isArray(evidence.evidence_bindings) ? evidence.evidence_bindings : [];
+  if (markdownBindings.length === jsonBindings.length) pass(`${label} Evidence Binding row count matches structured evidence`);
+  else fail(`${label} Evidence Binding row count ${markdownBindings.length} does not match structured evidence ${jsonBindings.length}`);
+  for (const item of jsonBindings) {
+    const row = markdownBindings.find((candidate) => candidate.criterion_id === item.criterion_id);
+    if (!row) {
+      fail(`${label} Evidence Binding missing markdown row for ${item.criterion_id || "<unknown>"}`);
+      continue;
+    }
+    compareScalar(label, `Evidence Binding ${item.criterion_id} evidence ref`, row.evidence_ref, item.evidence_ref);
+    compareScalar(label, `Evidence Binding ${item.criterion_id} resolved`, row.resolved, item.resolved);
+    compareScalar(label, `Evidence Binding ${item.criterion_id} current task match`, row.current_task_match, item.current_task_match);
+  }
+}
+
+function compareScalar(label, field, markdownValue, jsonValue) {
+  const left = String(markdownValue || "").trim();
+  const right = String(jsonValue || "").trim();
+  if (left === right) pass(`${label} ${field} matches structured evidence`);
+  else fail(`${label} ${field} ${left || "<empty>"} does not match structured evidence ${right || "<empty>"}`);
+}
+
+function compareList(label, field, markdownValues, jsonValues) {
+  const left = normalizeList(markdownValues);
+  const right = normalizeList(jsonValues);
+  if (sameList(left, right)) pass(`${label} ${field} matches structured evidence`);
+  else fail(`${label} ${field} ${left.join(", ") || "<empty>"} does not match structured evidence ${right.join(", ") || "<empty>"}`);
 }
 
 function checkStateRules(content, label, summary, evidence) {
@@ -753,6 +812,23 @@ function tableValue(body, field) {
     if (stripMarkdown(row[0] || "") === field) return stripMarkdown(row[1] || "");
   }
   return "";
+}
+
+function tableListValue(body, field) {
+  return normalizeList(tableValue(body, field));
+}
+
+function normalizeList(value) {
+  const source = Array.isArray(value) ? value : String(value || "").split(",");
+  return source
+    .map((item) => stripMarkdown(String(item || "")).trim())
+    .filter(Boolean)
+    .filter((item) => !/^(N\/A|none)$/i.test(item));
+}
+
+function sameList(left, right) {
+  if (left.length !== right.length) return false;
+  return left.every((item, index) => item === right[index]);
 }
 
 function fencedJson(body) {

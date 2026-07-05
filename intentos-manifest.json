@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.74.2",
+  "intentOSVersion": "1.74.3",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.74.2"
+    "phase": "1.74.3"
   },
   "groups": {
     "sourceRequired": [
@@ -293,6 +293,7 @@
       "docs/plans/evidence-reliability-risk-calibration-1.47-plan.md",
       "docs/plans/execution-assurance-chain-1.72-plan.md",
       "docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md",
+      "docs/plans/execution-assurance-log-markdown-consistency-1.74.3-plan.md",
       "docs/plans/execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md",
       "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
       "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
@@ -1356,6 +1357,9 @@
       "releases/1.74.2/known-limitations.md",
       "releases/1.74.2/release-record.md",
       "releases/1.74.2/self-check-report.md",
+      "releases/1.74.3/known-limitations.md",
+      "releases/1.74.3/release-record.md",
+      "releases/1.74.3/self-check-report.md",
       "releases/1.8.0/known-limitations.md",
       "releases/1.8.0/release-record.md",
       "releases/1.8.0/self-check-report.md",
@@ -7480,6 +7484,8 @@
       "releases/1.68.1/release-record.md",
       "releases/1.68.1/known-limitations.md",
       "releases/1.68.1/self-check-report.md",
+      "docs/plans/execution-assurance-log-markdown-consistency-1.74.3-plan.md",
+      "docs/plans/execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md",
       "docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md",
       "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
       "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
@@ -7507,6 +7513,7 @@
       "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/execution-assurance-reports/001-adoption.md",
       "examples/1.72-execution-assurance-chain/safe-copy-patch/evidence/copy-smoke.txt",
       "examples/1.72-execution-assurance-chain/safe-copy-patch/execution-assurance-reports/001-copy.md",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/tasks/001-copy.md",
       "examples/1.72-execution-assurance-chain/patch-smell-backend-only/execution-assurance-reports/001-backend-only.md",
       "test-fixtures/bad/bad-execution-assurance-adoption-without-source/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-controlled-patch-no-debt/execution-assurance-reports/001-bad.md",
@@ -7524,6 +7531,11 @@
       "test-fixtures/bad/bad-execution-assurance-source-digest-mismatch/source-reports/001-source.md",
       "test-fixtures/bad/bad-execution-assurance-source-digest-mismatch/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-declarative-precise-evidence/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unresolved-plan-ref/evidence/copy-smoke.txt",
+      "test-fixtures/bad/bad-execution-assurance-unresolved-plan-ref/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/evidence/copy-smoke.txt",
+      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/tasks/001-copy.md",
+      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/execution-assurance-reports/001-bad.md",
       "releases/1.72.1/release-record.md",
       "releases/1.72.0/release-record.md",
       "releases/1.72.1/known-limitations.md",
@@ -7535,7 +7547,13 @@
       "releases/1.74.0/self-check-report.md",
       "releases/1.74.1/release-record.md",
       "releases/1.74.1/known-limitations.md",
-      "releases/1.74.1/self-check-report.md"
+      "releases/1.74.1/self-check-report.md",
+      "releases/1.74.2/release-record.md",
+      "releases/1.74.2/known-limitations.md",
+      "releases/1.74.2/self-check-report.md",
+      "releases/1.74.3/release-record.md",
+      "releases/1.74.3/known-limitations.md",
+      "releases/1.74.3/self-check-report.md"
     ]
   }
 }

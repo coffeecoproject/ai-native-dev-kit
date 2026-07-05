@@ -69,7 +69,9 @@ Execution Assurance checks:
 
 1.74.0 introduced strict binding for Execution Assurance reports, 1.74.1
 syncs the public docs and schema vocabulary with the resolver output, and
-1.74.2 binds completion to a resolvable execution plan reference.
+1.74.2 binds completion to a resolvable execution plan reference. 1.74.3
+cross-checks human-readable Markdown binding tables against the
+machine-readable JSON evidence.
 
 Key fields:
 
@@ -87,6 +89,10 @@ Key fields:
 - `target_diff_status: REQUIRES_EXPLICIT_EXECUTION_PLAN`: the resolver saw
   changed files but cannot treat them as planned work without an explicit
   execution plan.
+- `Execution Plan Binding`, `Actual Diff Binding`, and `Evidence Binding`
+  Markdown tables: human-readable views that must match the JSON
+  `execution_plan`, `actual_diff`, and `evidence_bindings` records. JSON remains
+  the authority.
 
 In precise mode, `VERIFIED_DONE` requires current-task source matches, concrete
 evidence, a resolvable `execution_plan.plan_ref`, and actual changed files
