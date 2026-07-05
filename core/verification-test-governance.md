@@ -52,6 +52,11 @@ consumed the same Business Rule Closure referenced by the Verification Plan.
 `source_systems[]` is binding trace data: its refs, digests, and outcomes must
 match the top-level Business Rule Closure and Change Impact Coverage fields.
 
+Markdown/JSON consistency is part of strict verification-plan governance. The
+human-readable report sections must match the machine-readable evidence for
+source systems, identity, project calibration, affected surfaces, verification
+obligations, manual checks, not-applicable items, and outcome.
+
 ## Test Correctness
 
 Codex-generated tests can be wrong. Verification Plan must guard against:

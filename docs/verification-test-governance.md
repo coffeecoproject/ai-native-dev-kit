@@ -16,6 +16,10 @@ Change Impact Coverage report must have consumed the same Business Rule Closure
 that the Verification Plan references, and the `source_systems[]` trace must
 match the top-level refs, digests, and outcomes.
 
+The report body is also checked against JSON evidence. If the Markdown says one
+outcome, source, surface, obligation, manual check, or not-applicable reason,
+and the machine-readable evidence says another, the report fails strict checks.
+
 ## What It Produces
 
 A Verification Plan lists:

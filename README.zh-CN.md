@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.76.1`。
+当前版本：`1.76.2`。
 
-发布记录：[releases/1.76.1/release-record.md](releases/1.76.1/release-record.md)。
+发布记录：[releases/1.76.2/release-record.md](releases/1.76.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.76.2 收紧 Verification Plan 报告一致性：用户阅读的 Markdown 正文现在必须和机器读取的 JSON 证据一致，覆盖 source systems、身份信息、项目校准、影响面、验证义务、人工验证、N/A 项和 outcome。
 
 1.76.1 收紧 Verification Plan 证据链：严格检查现在会证明 Change Impact Coverage 消费的 Business Rule Closure，和 Verification Plan 引用的是同一份；`source_systems[]` 也必须和顶层 ref、digest、outcome 一致，避免来源链变成展示性说明。
 

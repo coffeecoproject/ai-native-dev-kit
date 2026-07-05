@@ -7680,12 +7680,20 @@ function checkVerificationPlanGovernanceProtocol() {
     "test-fixtures/bad/bad-verification-plan-impact-missing-business-rule-binding/verification-plans/001-service-time.md",
     "test-fixtures/bad/bad-verification-plan-source-systems-digest-mismatch/verification-plans/001-service-time.md",
     "test-fixtures/bad/bad-verification-plan-source-systems-ref-mismatch/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-source-digest-mismatch/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-identity-digest-mismatch/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-surface-status-mismatch/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-obligation-missing/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-outcome-mismatch/verification-plans/001-service-time.md",
     "releases/1.76.0/release-record.md",
     "releases/1.76.0/known-limitations.md",
     "releases/1.76.0/self-check-report.md",
     "releases/1.76.1/release-record.md",
     "releases/1.76.1/known-limitations.md",
     "releases/1.76.1/self-check-report.md",
+    "releases/1.76.2/release-record.md",
+    "releases/1.76.2/known-limitations.md",
+    "releases/1.76.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.76 verification plan asset exists ${file}`);
@@ -7706,6 +7714,7 @@ function checkVerificationPlanGovernanceProtocol() {
     read("scripts/cli.mjs"),
     exists("releases/1.76.0/release-record.md") ? read("releases/1.76.0/release-record.md") : "",
     exists("releases/1.76.1/release-record.md") ? read("releases/1.76.1/release-record.md") : "",
+    exists("releases/1.76.2/release-record.md") ? read("releases/1.76.2/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -7727,6 +7736,9 @@ function checkVerificationPlanGovernanceProtocol() {
     "impact report business_rule_ref matches Verification Plan",
     "checkSourceSystemsConsistency",
     "matches top-level binding",
+    "checkMarkdownJsonConsistency",
+    "Markdown Verification Obligations missing",
+    "Markdown outcome matches structured verification_state",
   ]) {
     if (combined.includes(marker)) pass(`1.76 verification plan includes ${marker}`);
     else fail(`1.76 verification plan missing ${marker}`);
@@ -7948,6 +7960,26 @@ function checkVerificationPlanGovernanceProtocol() {
     {
       target: "test-fixtures/bad/bad-verification-plan-source-systems-ref-mismatch",
       expected: "source_systems change_impact_coverage.ref",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-source-digest-mismatch",
+      expected: "Markdown source business_rule_closure digest",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-identity-digest-mismatch",
+      expected: "Markdown identity verification_plan_digest",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-surface-status-mismatch",
+      expected: "Markdown affected surface DATA_MODEL status",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-obligation-missing",
+      expected: "Markdown Verification Obligations missing",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-outcome-mismatch",
+      expected: "Markdown outcome",
     },
   ];
   for (const badCase of badFixtureCases) {

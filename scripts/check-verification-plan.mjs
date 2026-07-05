@@ -10,6 +10,7 @@ import {
   validateEvidenceBlock,
   validateSchema,
 } from "./lib/artifact-schema.mjs";
+import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -191,10 +192,11 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
-  checkStructuredEvidence(label, file, evidence);
+  const markdown = parseMarkdownEvidence(content);
+  checkStructuredEvidence(label, file, evidence, markdown);
 }
 
-function checkStructuredEvidence(label, file, evidence) {
+function checkStructuredEvidence(label, file, evidence, markdown) {
   const planRefs = verificationPlanRefCandidates(file);
   if (planRefs.includes(evidence.verification_plan_ref)) {
     pass(`${label} verification_plan_ref points to this report`);
@@ -229,6 +231,7 @@ function checkStructuredEvidence(label, file, evidence) {
   checkObligations(label, evidence);
   checkManualVerification(label, evidence);
   checkBoundaries(label, evidence);
+  checkMarkdownJsonConsistency(label, evidence, markdown);
 }
 
 function checkSourceSystemsConsistency(label, evidence) {
@@ -465,6 +468,119 @@ function checkBoundaries(label, evidence) {
   }
 }
 
+function checkMarkdownJsonConsistency(label, evidence, markdown) {
+  checkMarkdownIdentity(label, evidence, markdown.identity);
+  checkMarkdownProjectCalibration(label, evidence, markdown.projectCalibration);
+  checkMarkdownSourceSystems(label, evidence, markdown.sourceSystems);
+  compareSurfaceRows(label, evidence.affected_surfaces || [], markdown.affectedSurfaces);
+  compareObligationRows(label, evidence.verification_obligations || [], markdown.obligations);
+  compareManualVerificationRows(label, evidence.manual_verification || [], markdown.manualVerification);
+  compareNotApplicableRows(label, evidence.not_applicable_obligations || [], markdown.notApplicable);
+  if (markdown.outcome) {
+    if (markdown.outcome === evidence.verification_state) pass(`${label} Markdown outcome matches structured verification_state`);
+    else fail(`${label} Markdown outcome ${markdown.outcome} must match structured verification_state ${evidence.verification_state || "<missing>"}`);
+  } else {
+    fail(`${label} Markdown Outcome section must include the structured verification_state`);
+  }
+}
+
+function checkMarkdownIdentity(label, evidence, identity) {
+  compareScalar(label, "Markdown identity verification_plan_ref", identity.verification_plan_ref, evidence.verification_plan_ref);
+  compareScalar(label, "Markdown identity verification_plan_digest", identity.verification_plan_digest, evidence.verification_plan_digest);
+  compareScalar(label, "Markdown identity intent_digest", identity.intent_digest, evidence.intent_digest);
+}
+
+function checkMarkdownProjectCalibration(label, evidence, calibration) {
+  compareScalar(label, "Markdown project level", calibration.project_level, evidence.project_level);
+  compareScalar(label, "Markdown change kind", calibration.change_kind, evidence.change_kind);
+  compareSet(label, "Markdown platform profiles", calibration.platform_profiles, evidence.platform_profiles || []);
+  compareSet(label, "Markdown risk domains", calibration.risk_domains, evidence.risk_domains || []);
+}
+
+function checkMarkdownSourceSystems(label, evidence, rows) {
+  const markdownByName = new Map(rows.map((row) => [row.source, row]));
+  for (const source of evidence.source_systems || []) {
+    const row = markdownByName.get(source.name);
+    if (!row) {
+      fail(`${label} Markdown Source Systems missing ${source.name}`);
+      continue;
+    }
+    compareScalar(label, `Markdown source ${source.name} status`, row.status, source.status);
+    compareScalar(label, `Markdown source ${source.name} ref`, row.ref, source.ref);
+    compareScalar(label, `Markdown source ${source.name} outcome`, row.outcome, source.source_outcome);
+    compareScalar(label, `Markdown source ${source.name} digest`, row.digest, source.digest);
+  }
+}
+
+function compareSurfaceRows(label, structuredRows, markdownRows) {
+  const markdownBySurface = new Map(markdownRows.map((row) => [row.surface, row]));
+  for (const row of structuredRows) {
+    const markdown = markdownBySurface.get(row.surface);
+    if (!markdown) {
+      fail(`${label} Markdown Affected Surface Inputs missing ${row.surface}`);
+      continue;
+    }
+    compareScalar(label, `Markdown affected surface ${row.surface} status`, markdown.status, row.status);
+    compareScalar(label, `Markdown affected surface ${row.surface} reason`, markdown.reason, row.reason);
+    compareScalar(label, `Markdown affected surface ${row.surface} expected evidence`, markdown.expected_evidence, row.expected_evidence);
+  }
+}
+
+function compareObligationRows(label, structuredRows, markdownRows) {
+  const markdownById = new Map(markdownRows.map((row) => [row.id, row]));
+  for (const row of structuredRows) {
+    const markdown = markdownById.get(row.id);
+    if (!markdown) {
+      fail(`${label} Markdown Verification Obligations missing ${row.id}`);
+      continue;
+    }
+    compareScalar(label, `Markdown obligation ${row.id} surface`, markdown.surface, row.source_surface);
+    compareScalar(label, `Markdown obligation ${row.id} type`, markdown.type, row.verification_type);
+    compareScalar(label, `Markdown obligation ${row.id} required`, markdown.required, row.required);
+    compareScalar(label, `Markdown obligation ${row.id} priority`, markdown.priority, row.priority);
+    compareScalar(label, `Markdown obligation ${row.id} behavior`, markdown.behavior_under_test, row.behavior_under_test);
+    compareScalar(label, `Markdown obligation ${row.id} expected evidence`, markdown.expected_evidence, row.expected_evidence);
+    compareScalar(label, `Markdown obligation ${row.id} broad command only`, markdown.broad_command_only, row.broad_command_only);
+    compareSet(label, `Markdown obligation ${row.id} source refs`, markdown.source_refs, row.source_refs || []);
+  }
+}
+
+function compareManualVerificationRows(label, structuredRows, markdownRows) {
+  if (structuredRows.length === 0) {
+    const none = markdownRows.length === 1
+      && /^none$/i.test(markdownRows[0].id)
+      && /not required/i.test(`${markdownRows[0].decision_ref} ${markdownRows[0].expected_manual_evidence}`);
+    if (none) pass(`${label} Markdown Manual Verification records none`);
+    else fail(`${label} Markdown Manual Verification must record none when structured evidence has no manual verification`);
+    return;
+  }
+  const markdownById = new Map(markdownRows.map((row) => [row.id, row]));
+  for (const row of structuredRows) {
+    const markdown = markdownById.get(row.id);
+    if (!markdown) {
+      fail(`${label} Markdown Manual Verification missing ${row.id}`);
+      continue;
+    }
+    compareScalar(label, `Markdown manual verification ${row.id} owner`, markdown.owner, row.owner);
+    compareScalar(label, `Markdown manual verification ${row.id} decision ref`, markdown.decision_ref, row.decision_ref);
+    compareScalar(label, `Markdown manual verification ${row.id} expected evidence`, markdown.expected_manual_evidence, row.expected_manual_evidence);
+    compareScalar(label, `Markdown manual verification ${row.id} blocking`, markdown.blocking, row.blocking);
+  }
+}
+
+function compareNotApplicableRows(label, structuredRows, markdownRows) {
+  const markdownBySurface = new Map(markdownRows.map((row) => [row.surface, row]));
+  for (const row of structuredRows) {
+    const surface = row.source_surface || row.surface;
+    const markdown = markdownBySurface.get(surface);
+    if (!markdown) {
+      fail(`${label} Markdown Not Applicable Obligations missing ${surface}`);
+      continue;
+    }
+    compareScalar(label, `Markdown not applicable ${surface} reason`, markdown.reason, row.reason);
+  }
+}
+
 function sourceRefsAreImplementationOnly(refs) {
   if (refs.some((ref) => /^artifact:(business-rule-closures|change-impact-coverage-reports|verification-plans|human-decisions)\//i.test(ref))) {
     return false;
@@ -512,6 +628,145 @@ function requireBoundaryNo(content, label, boundary) {
   const pattern = new RegExp(`${escapeRegExp(boundary)}:\\s*No`, "i");
   if (pattern.test(content)) pass(`${label} boundary ${boundary}: No`);
   else fail(`${label} must state boundary: ${boundary}: No`);
+}
+
+function parseMarkdownEvidence(content) {
+  return {
+    sourceSystems: tableRows(sectionBody(content, "Source Systems", { fallback: "" })).map((row) => ({
+      source: row.source,
+      status: row.status,
+      ref: row.ref,
+      outcome: row.outcome,
+      digest: row.digest,
+    })),
+    identity: {
+      verification_plan_ref: bulletValue(content, "Verification Plan Identity", "Verification plan ref"),
+      verification_plan_digest: bulletValue(content, "Verification Plan Identity", "Verification plan digest"),
+      intent_digest: bulletValue(content, "Verification Plan Identity", "Intent digest"),
+    },
+    projectCalibration: {
+      project_level: bulletValue(content, "Project Calibration", "Project level"),
+      platform_profiles: codeValuesFromBullet(content, "Project Calibration", "Platform profiles"),
+      change_kind: bulletValue(content, "Project Calibration", "Change kind"),
+      risk_domains: codeValuesFromBullet(content, "Project Calibration", "Risk domains"),
+    },
+    affectedSurfaces: tableRows(sectionBody(content, "Affected Surface Inputs", { fallback: "" })).map((row) => ({
+      surface: row.surface,
+      status: row.status,
+      reason: row.reason,
+      expected_evidence: row.expected_evidence,
+    })),
+    obligations: tableRows(sectionBody(content, "Verification Obligations", { fallback: "" })).map((row) => ({
+      id: row.id,
+      surface: row.surface,
+      type: row.type,
+      required: row.required,
+      priority: row.priority,
+      behavior_under_test: row.behavior_under_test,
+      expected_evidence: row.expected_evidence,
+      broad_command_only: row.broad_command_only,
+      source_refs: splitRefs(row.source_refs),
+    })),
+    manualVerification: tableRows(sectionBody(content, "Manual Verification", { fallback: "" })).map((row) => ({
+      id: row.id,
+      owner: row.owner,
+      decision_ref: row.decision_ref,
+      expected_manual_evidence: row.expected_manual_evidence,
+      blocking: row.blocking,
+    })),
+    notApplicable: tableRows(sectionBody(content, "Not Applicable Obligations", { fallback: "" })).map((row) => ({
+      surface: row.surface,
+      reason: row.reason,
+    })),
+    outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })),
+  };
+}
+
+function tableRows(body) {
+  const lines = String(body || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("|") && line.endsWith("|"));
+  if (lines.length < 2) return [];
+  const headers = splitMarkdownRow(lines[0]).map((header) => normalizeHeader(header));
+  return lines.slice(2)
+    .filter((line) => !/^\|\s*-+/.test(line))
+    .map((line) => {
+      const row = {};
+      splitMarkdownRow(line).forEach((cell, index) => {
+        row[headers[index] || `col_${index}`] = stripMarkdown(cell);
+      });
+      return row;
+    });
+}
+
+function normalizeHeader(value) {
+  return stripMarkdown(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function bulletValue(content, heading, label) {
+  const body = sectionBody(content, heading, { fallback: "" });
+  const pattern = new RegExp(`^-\\s+${escapeRegExp(label)}:\\s*(.+)$`, "im");
+  const match = body.match(pattern);
+  return match ? codeOrTextValue(match[1]) : "";
+}
+
+function codeValuesFromBullet(content, heading, label) {
+  const body = sectionBody(content, heading, { fallback: "" });
+  const pattern = new RegExp(`^-\\s+${escapeRegExp(label)}:\\s*(.+)$`, "im");
+  const match = body.match(pattern);
+  if (!match) return [];
+  const codeValues = [...match[1].matchAll(/`([^`]+)`/g)].map((item) => item[1].trim()).filter(Boolean);
+  if (codeValues.length > 0) return codeValues;
+  return splitRefs(stripMarkdown(match[1]));
+}
+
+function codeOrTextValue(value) {
+  const text = String(value || "").trim();
+  const code = text.match(/`([^`]+)`/);
+  if (code) return stripMarkdown(code[1]);
+  return stripMarkdown(text).split(/\s+/)[0] || "";
+}
+
+function splitRefs(value) {
+  return String(value || "")
+    .split(/\s*,\s*/)
+    .map((item) => stripMarkdown(item))
+    .filter((item) => item && !/^(none|not required|n\/a)$/i.test(item));
+}
+
+function compareScalar(label, name, markdownValue, structuredValue) {
+  const left = normalizeCell(markdownValue);
+  const right = normalizeCell(structuredValue);
+  if (left === right) pass(`${label} ${name} matches structured evidence`);
+  else fail(`${label} ${name} ${markdownValue || "<missing>"} must match structured evidence ${structuredValue || "<missing>"}`);
+}
+
+function compareSet(label, name, markdownValues, structuredValues) {
+  const left = normalizeSet(markdownValues);
+  const right = normalizeSet(structuredValues);
+  if (sameArray(left, right)) pass(`${label} ${name} matches structured evidence`);
+  else fail(`${label} ${name} ${left.join(",") || "<missing>"} must match structured evidence ${right.join(",") || "<missing>"}`);
+}
+
+function normalizeSet(values) {
+  return [...new Set((Array.isArray(values) ? values : [values])
+    .map((item) => normalizeCell(item))
+    .filter(Boolean))]
+    .sort();
+}
+
+function normalizeCell(value) {
+  return stripMarkdown(value)
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function sameArray(left, right) {
+  return left.length === right.length && left.every((item, index) => item === right[index]);
 }
 
 function hasSection(content, heading) {

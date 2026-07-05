@@ -413,6 +413,24 @@ Verification Plan must include:
 This prevents mixing one task's Business Rule Closure with another task's Change
 Impact Coverage or Verification Plan.
 
+### Rule 1B: Markdown And JSON Must Say The Same Thing
+
+Verification Plan is read by humans and machines. The Markdown report body must
+match the Machine-Readable Evidence for:
+
+- Source Systems;
+- Verification Plan Identity;
+- Project Calibration;
+- Affected Surface Inputs;
+- Verification Obligations;
+- Manual Verification;
+- Not Applicable Obligations;
+- Outcome.
+
+This prevents a report from telling the user one conclusion while the checker
+uses a different JSON conclusion. It is still a report consistency rule, not
+Test Evidence Binding.
+
 ### Rule 2: Required Negative Paths Must Exist
 
 For validation, permission, API, status, data, and business-rule tasks, the plan
