@@ -828,7 +828,7 @@ Minimum evidence:
 13. Industrial packs remain opt-in and selected-only.
 14. Examples cover new, existing-light, governed-readonly, and production-sensitive scenarios.
 15. Release evidence states whether evidence is simulated or real.
-16. Dev-kit self-check passes.
+16. IntentOS self-check passes.
 
 ## Answered Review Questions
 

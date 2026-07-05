@@ -151,7 +151,7 @@ function classifyProject(root, exists, git, signals) {
 
   if (signals.isIntentOS) {
     return {
-      state: "DEV_KIT_REPOSITORY",
+      state: "INTENTOS_REPOSITORY",
       reason: "This is the IntentOS source repository.",
       riskLevel: git?.isDirty ? "medium" : "low",
       existingUsersAssumed: "No",
@@ -293,7 +293,7 @@ function plainProjectState(state) {
     EXISTING_GOVERNED_PROJECT: "an existing project with rules already present",
     PRODUCTION_SENSITIVE_PROJECT: "a risk-sensitive existing project",
     DIRTY_WORKTREE_PROJECT: "a project with unfinished changes",
-    DEV_KIT_REPOSITORY: "the IntentOS repository",
+    INTENTOS_REPOSITORY: "the IntentOS repository",
     UNKNOWN_PROJECT: "an unreadable or missing project",
   };
   return labels[state] || state;

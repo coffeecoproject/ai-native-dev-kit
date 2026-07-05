@@ -65,7 +65,7 @@ Existing governance summary:
 | Release evidence |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Skill candidates |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 | Automation proposals |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
-| Dev-kit proposals |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
+| IntentOS proposals |  | Covered / Partial / Missing |  | Keep / Map / Add adapter |
 
 ## Existing Authority
 

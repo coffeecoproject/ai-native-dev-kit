@@ -869,7 +869,7 @@ function fillAdoptionAssessment(content, context) {
       "",
       `Target project: ${context.projectRoot}`,
       "",
-      "Dev-kit version:",
+      "IntentOS version:",
     ].join("\n"),
   );
   return output;

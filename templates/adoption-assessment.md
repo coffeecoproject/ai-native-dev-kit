@@ -47,7 +47,7 @@ Prepared at:
 
 Target project:
 
-Dev-kit version:
+IntentOS version:
 
 ## Detected Project State
 

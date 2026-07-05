@@ -79,6 +79,11 @@ Unknown execution kinds cannot produce `VERIFIED_DONE`.
 
 If any required part is missing, the result must be `PARTIAL_DONE`, `NEEDS_HUMAN_DECISION`, or a blocking state.
 
+For `VERIFIED_DONE`, Execution Plan Binding must point to a resolvable
+task-plan record. The plan reference must be `file:`, `artifact:`, or a known
+`checker:` record. A bare path, placeholder, stale record, or unrelated plan
+cannot support a completion claim.
+
 ## Patch Assessment
 
 Patch states:

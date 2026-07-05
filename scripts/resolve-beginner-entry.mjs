@@ -333,7 +333,7 @@ function understoodFor(guidance, goal, route) {
     EXISTING_GOVERNED_PROJECT: "项目已经有自己的规则和治理",
     PRODUCTION_SENSITIVE_PROJECT: "项目可能涉及真实使用、发布、数据或权限风险",
     DIRTY_WORKTREE_PROJECT: "项目里有未完成改动",
-    DEV_KIT_REPOSITORY: "这是 IntentOS 自身仓库",
+    INTENTOS_REPOSITORY: "这是 IntentOS 自身仓库",
     UNKNOWN_PROJECT: "项目状态还不清楚",
   }[state] || "项目状态还不清楚";
   return `你想做的是：${intent}。我读到的状态是：${stateText}。`;

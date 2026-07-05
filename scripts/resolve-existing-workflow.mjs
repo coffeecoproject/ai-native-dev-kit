@@ -220,7 +220,7 @@ function classify(root, exists, git, signals) {
     && fs.existsSync(path.join(root, "core", "workflow.md"));
   if (isIntentOS) {
     return {
-      projectState: "DEV_KIT_REPOSITORY",
+      projectState: "INTENTOS_REPOSITORY",
       reason: "The target is the IntentOS source repository.",
       riskLevel: "low",
       confidence: "high",
@@ -298,7 +298,7 @@ function hasGovernance(signals) {
 }
 
 function adapterModeFor(classification) {
-  if (classification.projectState === "DEV_KIT_REPOSITORY") return "NOT_APPLICABLE";
+  if (classification.projectState === "INTENTOS_REPOSITORY") return "NOT_APPLICABLE";
   if (classification.projectState === "NEW_OR_EMPTY_PROJECT") return "NOT_APPLICABLE";
   if (classification.projectState === "BLOCKED_UNKNOWN_RISK") return "BLOCKED_NEEDS_OWNER";
   if (classification.projectState === "DIRTY_WORKTREE_PROJECT") return "BLOCKED_NEEDS_OWNER";

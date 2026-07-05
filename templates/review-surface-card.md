@@ -21,7 +21,7 @@ What happens if you do nothing: <safe default>
 | Field | Value |
 |---|---|
 | User mode | `plain` |
-| Project state | `<NEW_PROJECT / EXISTING_LIGHT_PROJECT / EXISTING_GOVERNED_PROJECT / PRODUCTION_SENSITIVE_PROJECT / DIRTY_WORKTREE_PROJECT / DEV_KIT_REPOSITORY / UNKNOWN_PROJECT>` |
+| Project state | `<NEW_PROJECT / EXISTING_LIGHT_PROJECT / EXISTING_GOVERNED_PROJECT / PRODUCTION_SENSITIVE_PROJECT / DIRTY_WORKTREE_PROJECT / INTENTOS_REPOSITORY / UNKNOWN_PROJECT>` |
 | Existing users assumed | `<Yes / No / Unknown treated as Yes>` |
 | Can write files now | `No` |
 | Risk level | `<low / medium / high / unknown>` |

@@ -746,7 +746,7 @@ function commandFor(action, kitRoot, context = {}) {
   if (action === "READY_FOR_TASK_EXECUTION") {
     return "Use the approved task card, then run verification.";
   }
-  if (action === "RUN_DEV_KIT_SELF_CHECK") {
+  if (action === "RUN_INTENTOS_SELF_CHECK") {
     return "node scripts/check-intentos.mjs";
   }
   return "Select or create a valid project root.";
@@ -797,16 +797,16 @@ function buildResult() {
   if (isIntentOSRepository) {
     return {
       projectRoot,
-      projectState: "DEV_KIT_REPOSITORY",
-      workflowState: "DEV_KIT_SOURCE",
+      projectState: "INTENTOS_REPOSITORY",
+      workflowState: "INTENTOS_SOURCE",
       onboardingState: "NOT_APPLICABLE",
       platformBaselineState: "NOT_APPLICABLE",
       industrialBaselineState: "NOT_APPLICABLE",
-      versionState: localVersion ? "CURRENT" : "UNKNOWN_LOCAL_DEV_KIT",
-      projectStateTags: ["DEV_KIT_REPOSITORY"],
+      versionState: localVersion ? "CURRENT" : "UNKNOWN_LOCAL_INTENTOS",
+      projectStateTags: ["INTENTOS_REPOSITORY"],
       adoptionMode: "NOT_APPLICABLE",
       governanceSignals: null,
-      nextAction: "RUN_DEV_KIT_SELF_CHECK",
+      nextAction: "RUN_INTENTOS_SELF_CHECK",
       canWriteWorkflowAssets: "not_applicable",
       mustStopForHuman: "no",
       pendingMigrationReports: [],
@@ -816,7 +816,7 @@ function buildResult() {
         localVersion ? `Local intentos version: ${localVersion}` : "Local intentos version is unavailable.",
         "This directory is the intentos source repository, not a target project.",
       ],
-      suggestedCommand: commandFor("RUN_DEV_KIT_SELF_CHECK", kitRoot),
+      suggestedCommand: commandFor("RUN_INTENTOS_SELF_CHECK", kitRoot),
     };
   }
 
@@ -870,7 +870,7 @@ function buildResult() {
   if (!version) {
     versionState = "NO_VERSION_FILE";
   } else if (!localVersion) {
-    versionState = "UNKNOWN_LOCAL_DEV_KIT";
+    versionState = "UNKNOWN_LOCAL_INTENTOS";
   } else if (version.intentOSVersion !== localVersion) {
     versionState = "MISMATCH";
   } else {
@@ -912,7 +912,7 @@ function buildResult() {
   }
 
   const governedProtectionApplies = projectState !== "NEW_PROJECT"
-    && projectState !== "DEV_KIT_REPOSITORY"
+    && projectState !== "INTENTOS_REPOSITORY"
     && (signals.isProductionGoverned || signals.isDirtyWorktree || (signals.isGovernedExisting && !version));
   if (governedProtectionApplies
     && ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction)) {
@@ -921,7 +921,7 @@ function buildResult() {
   const adoptionMode = nextAction === "RUN_ADOPTION_ASSESSMENT"
     ? "READ_ONLY"
     : nextAction === "REVIEW_DIRTY_WORKTREE" ? "GUARDED" : "STANDARD";
-  const intentosOperatingMode = projectState !== "TARGET_MISSING" && projectState !== "DEV_KIT_REPOSITORY"
+  const intentosOperatingMode = projectState !== "TARGET_MISSING" && projectState !== "INTENTOS_REPOSITORY"
     ? "ACTIVE"
     : "NOT_APPLICABLE";
   const projectAssetMigrationDepth = nextAction === "RUN_ADOPTION_ASSESSMENT"
@@ -1115,7 +1115,7 @@ function buildHumanDecisionSummary(result, human) {
     };
   }
 
-  if (result.projectState === "DEV_KIT_REPOSITORY") {
+  if (result.projectState === "INTENTOS_REPOSITORY") {
     return {
       ...defaultSummary,
       recommendedChoice: "A - Run intentos self-check",
@@ -1371,11 +1371,11 @@ function buildHumanOutput(result) {
     };
   }
 
-  if (result.projectState === "DEV_KIT_REPOSITORY") {
+  if (result.projectState === "INTENTOS_REPOSITORY") {
     return {
       summary: "This directory is the IntentOS source repository, not a target project.",
       status: "Can continue",
-      reason: "Dev-kit self-check is the appropriate next action here.",
+      reason: "IntentOS self-check is the appropriate next action here.",
       riskLevel: "low",
       canAiContinue: "yes",
       decisions: ["No project setup decision is needed."],

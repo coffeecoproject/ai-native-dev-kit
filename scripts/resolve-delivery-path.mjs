@@ -142,7 +142,7 @@ function classifyProject(root, exists, git, signals) {
 
   if (signals.isIntentOS) {
     return {
-      state: "DEV_KIT_REPOSITORY",
+      state: "INTENTOS_REPOSITORY",
       reason: "This is the IntentOS source repository.",
       riskLevel: git?.isDirty ? "medium" : "low",
       existingUsersAssumed: "No",

@@ -43,7 +43,7 @@ ACTION_REQUIRED / NO_ACTION
 
 - 
 
-### Dev-kit Proposals
+### IntentOS Proposals
 
 - 
 

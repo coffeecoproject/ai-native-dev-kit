@@ -197,7 +197,7 @@ function classifyProject(root, exists, git, signals) {
     && fs.existsSync(path.join(root, "core", "workflow.md"));
   if (isIntentOS) {
     return {
-      state: "DEV_KIT_REPOSITORY",
+      state: "INTENTOS_REPOSITORY",
       reason: "This is the IntentOS / IntentOS source repository.",
       confidence: "high",
       dirtyWorktree: git?.isDirty ? "Yes" : "No",
@@ -274,7 +274,7 @@ function postureFor(projectState, options) {
   if (projectState.state === "DIRTY_WORKTREE_PROJECT") return "NATIVE_FIRST_PENDING_WORKTREE_REVIEW";
   if (projectState.state === "EXISTING_PRODUCTION_PROJECT") return "PRODUCTION_SAFE_NATIVE_OVERLAY";
   if (projectState.state === "EXISTING_GOVERNED_PROJECT") return "NATIVE_FIRST_WITH_GOVERNANCE_CONFLICT_REVIEW";
-  if (projectState.state === "DEV_KIT_REPOSITORY") return "NATIVE_FIRST_WITH_GOVERNANCE_CONFLICT_REVIEW";
+  if (projectState.state === "INTENTOS_REPOSITORY") return "NATIVE_FIRST_WITH_GOVERNANCE_CONFLICT_REVIEW";
   if (projectState.state === "EXISTING_LIGHT_PROJECT") return "NATIVE_FIRST_MIGRATION";
   if (projectState.state === "NEW_OR_EMPTY_PROJECT") return "FULL_MANAGED_INTENTOS_NATIVE";
   return "BLOCKED_NEEDS_OWNER";

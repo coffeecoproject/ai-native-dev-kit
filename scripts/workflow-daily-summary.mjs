@@ -193,7 +193,7 @@ console.log(`- Workflow retros: ${retros.length}`);
 console.log(`- Workflow improvements: ${improvements.length}`);
 console.log(`- Skill candidates: ${skillCandidates.length}`);
 console.log(`- Automation proposals: ${automationProposals.length}`);
-console.log(`- Dev-kit proposals: ${proposals.length}`);
+console.log(`- IntentOS proposals: ${proposals.length}`);
 console.log(`- Review packets: ${reviewPackets.length}`);
 console.log(`- Review loop reports: ${reviewLoopReports.length}`);
 console.log("");
@@ -213,7 +213,7 @@ const recentGroups = [
   ["Workflow improvements", recentImprovements],
   ["Skill candidates", recentSkillCandidates],
   ["Automation proposals", recentAutomationProposals],
-  ["Dev-kit proposals", recentProposals],
+  ["IntentOS proposals", recentProposals],
   ["Review packets", recentReviewPackets],
   ["Review loop reports", recentReviewLoopReports],
 ];

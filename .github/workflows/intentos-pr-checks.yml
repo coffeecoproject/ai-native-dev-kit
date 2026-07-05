@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Dev-kit self-check
+      - name: IntentOS self-check
         run: node scripts/check-intentos.mjs
 
       - name: Release verify
@@ -281,6 +281,8 @@ jobs:
           node "$tmp/project/scripts/resolve-execution-closure.mjs" "$tmp/project" --intent "finish appointment app" --verification "npm run verify passed"
           node "$tmp/project/scripts/resolve-execution-assurance.mjs" "$tmp/project" --intent "verify generated project execution"
           node "$tmp/project/scripts/check-execution-assurance.mjs" "$tmp/project" --allow-empty
+          node "$tmp/project/scripts/cli.mjs" execution-assurance "$tmp/project" --intent "verify generated project execution" --out execution-assurance-reports/001-generated.md
+          node "$tmp/project/scripts/cli.mjs" execution-assurance-check "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project"
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep
           node "$tmp/project/scripts/cli.mjs" guide "$tmp/project" --deep --intent "build an appointment app"

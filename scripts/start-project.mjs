@@ -126,9 +126,9 @@ function classifyProject(workflow) {
     };
   }
 
-  if (workflow.projectState === "DEV_KIT_REPOSITORY") {
+  if (workflow.projectState === "INTENTOS_REPOSITORY") {
     return {
-      projectType: "DEV_KIT_REPOSITORY",
+      projectType: "INTENTOS_REPOSITORY",
       riskLevel: "low",
       adoptionMode: "intentos-maintenance",
       canAiWriteNow: "No",
@@ -330,14 +330,14 @@ function pathForClassification(classification, workflow) {
     };
   }
 
-  if (classification.projectType === "DEV_KIT_REPOSITORY") {
+  if (classification.projectType === "INTENTOS_REPOSITORY") {
     return {
       recommendedPath: {
-        oLevel: "Dev-kit maintenance",
+        oLevel: "IntentOS maintenance",
         blLevel: "Not applicable",
         profiles: "Not applicable",
         industrialPacks: "Not applicable",
-        goalMode: "DEV_KIT_MAINTENANCE",
+        goalMode: "INTENTOS_MAINTENANCE",
         planFirstRequired: false,
         adoptionMode: "intentos-maintenance",
         riskLevel: classification.riskLevel,
@@ -585,7 +585,7 @@ function chooseRecommendedStartAction(report, actions) {
   if (report.classification.projectType === "DIRTY_WORKTREE_PROJECT") {
     return actions.find((item) => item.label.includes("Read-only")) || actions[0];
   }
-  if (report.classification.projectType === "DEV_KIT_REPOSITORY") {
+  if (report.classification.projectType === "INTENTOS_REPOSITORY") {
     return actions.find((item) => item.label.includes("self-check")) || actions[0];
   }
   if (report.classification.canAiWriteNow === "Yes") {

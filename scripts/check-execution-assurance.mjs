@@ -350,6 +350,12 @@ function checkExecutionPlan(parsed, label) {
   const plan = parsed.execution_plan || {};
   if (String(plan.plan_ref || "").trim()) pass(`${label} execution plan has plan ref`);
   else fail(`${label} execution plan missing plan ref`);
+  const strictPlanBinding = requirePreciseEvidence || parsed.assurance_state === "VERIFIED_DONE";
+  if (strictPlanBinding) {
+    checkPlanRef(plan.plan_ref, parsed, label);
+    const approvalRefs = Array.isArray(plan.approval_refs) ? plan.approval_refs : [];
+    for (const ref of approvalRefs) checkApprovalRef(ref, parsed, label);
+  }
   const paths = Array.isArray(plan.planned_target_paths) ? plan.planned_target_paths : [];
   if (paths.length > 0) pass(`${label} execution plan has planned target paths`);
   else fail(`${label} execution plan must include planned target paths`);
@@ -564,11 +570,12 @@ function checkEvidenceRef(ref, parsed, label) {
   }
   if (/TODO|TBD|placeholder|<.*>|evidence:\s*yes/i.test(value)) fail(`${label} evidence ref is placeholder: ${value}`);
   if (/stale|old unrelated|another-task/i.test(value)) fail(`${label} evidence ref is stale or unrelated: ${value}`);
+  const strictResolution = requirePreciseEvidence || parsed?.assurance_state === "VERIFIED_DONE";
   if (value.startsWith("file:") || value.startsWith("artifact:")) {
     const filePath = value.replace(/^(file|artifact):/, "");
     if (!filePath || path.isAbsolute(filePath) || filePath.includes("..")) {
       fail(`${label} evidence ref must be relative and safe: ${value}`);
-    } else if (!requirePreciseEvidence || fs.existsSync(path.join(projectRoot, filePath))) {
+    } else if (!strictResolution || evidenceRefExists(value)) {
       pass(`${label} resolves evidence ${value}`);
     } else {
       fail(`${label} unresolved evidence ${value}`);
@@ -585,6 +592,42 @@ function checkEvidenceRef(ref, parsed, label) {
   } else {
     fail(`${label} unknown evidence ref prefix ${value}`);
   }
+}
+
+function checkPlanRef(ref, parsed, label) {
+  const value = String(ref || "").trim();
+  if (!value) {
+    fail(`${label} execution plan ref is empty`);
+    return;
+  }
+  if (value.startsWith("file:") || value.startsWith("artifact:") || value.startsWith("checker:")) {
+    checkEvidenceRef(value, parsed, label);
+  } else {
+    fail(`${label} execution plan ref must resolve to file:, artifact:, or known checker: record in precise completion: ${value}`);
+  }
+}
+
+function checkApprovalRef(ref, parsed, label) {
+  const value = String(ref || "").trim();
+  if (!value) {
+    fail(`${label} approval ref is empty`);
+    return;
+  }
+  if (/TODO|TBD|placeholder|<.*>/i.test(value)) {
+    fail(`${label} approval ref is placeholder: ${value}`);
+    return;
+  }
+  if (value.startsWith("file:") || value.startsWith("artifact:") || value.startsWith("checker:")) {
+    checkEvidenceRef(value, parsed, label);
+    return;
+  }
+  if (value.startsWith("human-decision:") || value.startsWith("approval:")) {
+    const id = value.replace(/^(human-decision|approval):/, "");
+    if (!id || path.isAbsolute(id) || id.includes("..")) fail(`${label} approval ref must be bounded and safe: ${value}`);
+    else pass(`${label} records bounded approval ref ${value}`);
+    return;
+  }
+  fail(`${label} approval ref has unsupported prefix ${value}`);
 }
 
 function checkSourceDigest(item, parsed, label, strictSourceBinding) {

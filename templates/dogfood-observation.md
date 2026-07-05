@@ -99,7 +99,7 @@ Observation window:
 | Rollback needed | Yes / No |  |
 | Workflow improvements created |  |  |
 | Skill candidates created |  |  |
-| Dev-kit proposals created |  |  |
+| IntentOS proposals created |  |  |
 
 ## Follow-up Records
 
@@ -107,7 +107,7 @@ Observation window:
 - Workflow retros:
 - Workflow improvements:
 - Skill candidates:
-- Dev-kit proposals:
+- IntentOS proposals:
 - Release records:
 
 ## Decision

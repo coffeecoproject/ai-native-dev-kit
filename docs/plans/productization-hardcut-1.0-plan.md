@@ -257,7 +257,7 @@ Artifacts:
 
 Acceptance criteria:
 
-- Dev-kit CI exists and runs self-checks.
+- IntentOS CI exists and runs self-checks.
 - CI is split into PR and release tiers, even if release tier initially runs the same checks plus broader syntax coverage.
 - Local `node scripts/check-intentos.mjs` passes.
 - Local generated-project smoke passes.

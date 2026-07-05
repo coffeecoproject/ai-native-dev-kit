@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.74.1`
+Current version: `1.74.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.74.1`
 
 ## Current Release
 
-`1.74.1`
+`1.74.2`
 
 Includes:
+
+- Execution Assurance Runtime Plan Ref Binding patch `1.74.2`: removes
+  remaining legacy uppercase runtime vocabulary from active source-repository
+  routing and binds `VERIFIED_DONE` to a resolvable execution plan reference.
+- `1.74.2` keeps the Execution Assurance artifact schema version at `1.74.0`;
+  this patch tightens checker interpretation of existing `execution_plan`
+  fields rather than changing the report shape.
+- `1.74.2` adds same-report generated-project smoke coverage so an installed
+  project writes an Execution Assurance report with `--out` and checks that
+  same recorded artifact.
 
 - Execution Assurance vocabulary and docs sync patch `1.74.1`: aligns resolver output, schema enum values, runtime project-state tags, README capability tables, and generated-project smoke coverage after the `1.74.0` strict-binding release.
 - `1.74.1` keeps the Execution Assurance artifact schema version at `1.74.0`; this patch fixes repository/tooling consistency and does not introduce a new evidence artifact shape.
@@ -313,7 +323,7 @@ Includes:
 - `intentos migrate --dry-run` prints a migration plan without writing target project files
 - `intentos migrate --write-plan <file>` writes only the requested JSON plan
 - `intentos migrate` without `--dry-run` or `--write-plan` fails instead of applying changes
-- Dev-kit self-check now covers migrate safety and docs IA pointers
+- IntentOS self-check now covers migrate safety and docs IA pointers
 - Productization Hardcut phase `0.41.0`: industrial pack maturity and license boundary
 - Industrial packs now expose maturity metadata with stage, evidence docs, dogfood, false-positive log, owner, changelog, promotion criteria, demotion triggers, and known limitations
 - All concrete industrial packs remain `draft`; no pack is promoted by file completeness alone

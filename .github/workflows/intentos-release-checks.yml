@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Dev-kit self-check
+      - name: IntentOS self-check
         run: node scripts/check-intentos.mjs
 
       - name: Release verify

@@ -124,7 +124,7 @@ function buildRecommendation(targetRoot, workflow) {
 
 function classify(workflow, tags) {
   if (workflow.projectState === "TARGET_MISSING") return "UNKNOWN_NEEDS_DISCUSSION";
-  if (workflow.projectState === "DEV_KIT_REPOSITORY") return "DEV_KIT_REPOSITORY";
+  if (workflow.projectState === "INTENTOS_REPOSITORY") return "INTENTOS_REPOSITORY";
   if (tags.has("DIRTY_WORKTREE_PROJECT")) return "DIRTY_WORKTREE_PROJECT";
   if (tags.has("PRODUCTION_GOVERNED_PROJECT")) return "PRODUCTION_SENSITIVE_PROJECT";
   if (tags.has("GOVERNED_EXISTING_PROJECT")) return "GOVERNED_EXISTING_PROJECT";
@@ -226,7 +226,7 @@ function scoreBaselineCandidate(rel, kind) {
 }
 
 function recommendBaselineLevel(classification, profiles) {
-  if (classification === "DEV_KIT_REPOSITORY") {
+  if (classification === "INTENTOS_REPOSITORY") {
     return {
       level: "Not applicable for target-project adoption",
       reason: "This is the IntentOS source repository. Run intentos self-check for maintenance, or run baseline against a target project.",

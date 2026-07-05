@@ -67,8 +67,9 @@ Execution Assurance checks:
 
 ## Strict Binding Vocabulary
 
-1.74.0 introduced strict binding for Execution Assurance reports, and 1.74.1
-syncs the public docs and schema vocabulary with the resolver output.
+1.74.0 introduced strict binding for Execution Assurance reports, 1.74.1
+syncs the public docs and schema vocabulary with the resolver output, and
+1.74.2 binds completion to a resolvable execution plan reference.
 
 Key fields:
 
@@ -81,14 +82,23 @@ Key fields:
 - `evidence_digest`: a digest of bound evidence when evidence identity matters.
 - `planned_target_paths`: explicit paths or directory globs ending in `/**`
   that the task was allowed to change.
+- `execution_plan.plan_ref`: the reviewed task plan, apply candidate, or
+  checker record used as the task plan source.
 - `target_diff_status: REQUIRES_EXPLICIT_EXECUTION_PLAN`: the resolver saw
   changed files but cannot treat them as planned work without an explicit
   execution plan.
 
 In precise mode, `VERIFIED_DONE` requires current-task source matches, concrete
-evidence, and actual changed files inside the reviewed plan. Declarative refs
-such as `review:`, `command:`, `generated:`, or `git-diff:` can help explain a
-run, but they are not enough by themselves as precise completion evidence.
+evidence, a resolvable `execution_plan.plan_ref`, and actual changed files
+inside the reviewed plan. Plan refs must resolve to `file:`, `artifact:`, or a
+known `checker:` record; declarative refs such as `review:`, `command:`,
+`generated:`, or `git-diff:` can help explain a run, but they are not enough by
+themselves as precise completion evidence.
+
+If `execution_plan.approval_refs` are present in strict completion, each ref
+must be bounded and use a supported prefix. Approval refs document the approval
+source; they do not become blanket approval for extra files, release, commit,
+push, production, secrets, migrations, or provider actions.
 
 ## What It Does Not Do
 

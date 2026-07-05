@@ -30,7 +30,7 @@ What happens if you do nothing: <safe default>
 | Field | Value |
 |---|---|
 | User mode | `plain` |
-| Project state | `<NEW_PROJECT / EXISTING_PROJECT / PRODUCTION_SENSITIVE_PROJECT / DIRTY_WORKTREE_PROJECT / DEV_KIT_REPOSITORY / UNKNOWN>` |
+| Project state | `<NEW_PROJECT / EXISTING_PROJECT / PRODUCTION_SENSITIVE_PROJECT / DIRTY_WORKTREE_PROJECT / INTENTOS_REPOSITORY / UNKNOWN>` |
 | Existing users assumed | `<Yes / No / Unknown treated as Yes>` |
 | Can write files now | `No` |
 | Risk level | `<low / medium / high / unknown>` |

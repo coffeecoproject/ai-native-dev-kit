@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.74.1`。
+当前版本：`1.74.2`。
 
-发布记录：[releases/1.74.1/release-record.md](releases/1.74.1/release-record.md)。
+发布记录：[releases/1.74.2/release-record.md](releases/1.74.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.74.2 清理了 active runtime 里剩余的旧式大写状态命名，并加严 Execution Assurance：只有能解析到真实执行计划的 `VERIFIED_DONE` 才能通过。生成项目 smoke 现在会先保存一份 assurance report，再检查同一份记录。
 
 1.74.1 同步 1.74 Execution Assurance 的落地细节：resolver 词汇、JSON schema 枚举、运行时 IntentOS 标签、README 命令表、文档和生成项目 smoke 现在都指向同一套行为。它不新增工作流层，也不要求普通用户学习内部证明链命令。
 
@@ -418,6 +420,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.74.2 Release Record](releases/1.74.2/release-record.md)
 - [1.74.1 Release Record](releases/1.74.1/release-record.md)
 - [1.74.0 Release Record](releases/1.74.0/release-record.md)
 - [1.73.0 Release Record](releases/1.73.0/release-record.md)

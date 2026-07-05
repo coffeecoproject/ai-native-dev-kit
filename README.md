@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.74.1`.
+Current release: `1.74.2`.
 
-Release record: [releases/1.74.1/release-record.md](releases/1.74.1/release-record.md).
+Release record: [releases/1.74.2/release-record.md](releases/1.74.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.74.2 removes the remaining legacy uppercase runtime vocabulary from source-repository routing and tightens Execution Assurance so `VERIFIED_DONE` must reference a resolvable execution plan. Generated-project smoke now writes an assurance report and checks that same recorded file.
 
 1.74.1 syncs the 1.74 Execution Assurance release: resolver vocabulary, JSON schema enum values, runtime IntentOS tags, README command tables, docs, and generated-project smoke now point to the same behavior. It does not add a new workflow layer or require ordinary users to learn internal proof-chain commands.
 
@@ -420,6 +422,7 @@ Reference:
 
 Current release:
 
+- [1.74.2 Release Record](releases/1.74.2/release-record.md)
 - [1.74.1 Release Record](releases/1.74.1/release-record.md)
 - [1.74.0 Release Record](releases/1.74.0/release-record.md)
 - [1.73.0 Release Record](releases/1.73.0/release-record.md)

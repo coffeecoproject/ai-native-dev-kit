@@ -38,7 +38,7 @@ const allowedProjectTypes = new Set([
   "DIRTY_WORKTREE_PROJECT",
   "ALREADY_BOOTSTRAPPED_PROJECT",
   "UNKNOWN_NEEDS_DISCUSSION",
-  "DEV_KIT_REPOSITORY",
+  "INTENTOS_REPOSITORY",
 ]);
 
 const results = [];

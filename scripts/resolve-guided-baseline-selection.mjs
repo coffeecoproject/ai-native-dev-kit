@@ -210,10 +210,10 @@ function profile(id, reason) {
 
 function classifyProject(workflow, git, signals) {
   const tags = new Set(workflow.projectStateTags || []);
-  if (workflow.projectState === "DEV_KIT_REPOSITORY" || tags.has("DEV_KIT_REPOSITORY")) {
+  if (workflow.projectState === "INTENTOS_REPOSITORY" || tags.has("INTENTOS_REPOSITORY")) {
     return {
       label: "IntentOS source repository",
-      internal: "DEV_KIT_REPOSITORY",
+      internal: "INTENTOS_REPOSITORY",
       defaultAdoptionMode: "intentos-maintenance",
       canCodexWriteNow: "No",
       why: "This directory is the IntentOS source repository.",
@@ -289,7 +289,7 @@ function profileReason(id, signals) {
 }
 
 function classifyRisk(projectState, signals) {
-  if (projectState.internal === "DEV_KIT_REPOSITORY") {
+  if (projectState.internal === "INTENTOS_REPOSITORY") {
     return {
       productionSensitivity: "not applicable",
       highRiskScope: "not applicable",
@@ -315,7 +315,7 @@ function classifyRisk(projectState, signals) {
 
 function recommendBaselineLevel(projectState, profiles, risk, workflow) {
   const current = workflow.baselineLevel || null;
-  if (projectState.internal === "DEV_KIT_REPOSITORY") {
+  if (projectState.internal === "INTENTOS_REPOSITORY") {
     return {
       level: "NOT_APPLICABLE",
       userLabel: "Not applicable",
@@ -572,7 +572,7 @@ function backendScope(profiles, signals) {
 }
 
 function humanDecisions(projectState, profiles, risk, baselineLevel) {
-  if (projectState.internal === "DEV_KIT_REPOSITORY") {
+  if (projectState.internal === "INTENTOS_REPOSITORY") {
     return [
       "Is this work maintaining the intentos itself rather than adopting a target project?",
       "Should Codex run intentos verification before any code change?",
@@ -600,7 +600,7 @@ function humanDecisions(projectState, profiles, risk, baselineLevel) {
 }
 
 function safeNextActions(projectState, baselineLevel, standardPacks, industrialCandidates) {
-  if (projectState.internal === "DEV_KIT_REPOSITORY") {
+  if (projectState.internal === "INTENTOS_REPOSITORY") {
     return [
       "Codex can run intentos self-checks for repository maintenance.",
       "Run baseline-decision against a target project when the goal is project adoption.",
