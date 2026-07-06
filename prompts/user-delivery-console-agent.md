@@ -10,7 +10,8 @@ Do:
 - answer where the project is now;
 - explain whether the current task can be treated as done;
 - separate verification planning from actual test/check evidence;
-- treat a task as done only when strict Completion Evidence checks pass;
+- treat a task as done only when strict Completion Evidence checks pass and
+  match the current request intent;
 - explain whether the product can move toward launch review;
 - list missing items;
 - ask only the decisions the user can reasonably make;

@@ -54,4 +54,5 @@ the user-facing summary should remain simple.
 
 If the card says a task can be treated as done, that must be backed by valid
 lower-level completion evidence that passes the strict Completion Evidence
-checker. Otherwise it must say what is still missing.
+checker and matches the current `--intent`. Otherwise it must say what is still
+missing or that the project only has completion records for another request.

@@ -56,6 +56,7 @@ const allowedStates = new Set([
   "NEEDS_VERIFICATION",
   "NEEDS_COMPLETION_EVIDENCE",
   "NEEDS_COMPLETION_EVIDENCE_CHECK",
+  "PROJECT_HAS_OTHER_COMPLETION_RECORD",
   "TASK_DONE_WITH_EVIDENCE",
   "READY_FOR_LAUNCH_REVIEW",
   "BLOCKED_BY_HUMAN_DECISION",
@@ -79,6 +80,12 @@ const userSurfaceJargon = [
   /\bdigest\b/i,
   /--require-/i,
   /--strict/i,
+  /\bTASK_DONE_WITH_EVIDENCE\b/,
+  /\bPROJECT_HAS_OTHER_COMPLETION_RECORD\b/,
+  /\bNEEDS_COMPLETION_EVIDENCE_CHECK\b/,
+  /\bREADY_FOR_LAUNCH_REVIEW\b/,
+  /\bSTRICT_CHECK_PASSED\b/,
+  /\bSTRICT_CHECK_FAILED\b/,
 ];
 const forbiddenClaims = [
   /\bThis card writes target files:\s*Yes\b/i,
@@ -173,8 +180,8 @@ function checkCards() {
     else fail(`${label} user surface exposes internal evidence jargon: ${leaking.map((item) => item.source).join(", ")}`);
 
     const state = currentState(content);
-    if (allowedStates.has(state)) pass(`${label} has valid current state`);
-    else fail(`${label} invalid current state: ${state || "<empty>"}`);
+    if (state && !allowedStates.has(state)) pass(`${label} user-facing current state is plain language`);
+    else fail(`${label} user-facing current state must be plain language, not internal enum: ${state || "<empty>"}`);
 
     const decisions = numberedItems(sectionBody(content, "What I Need From You", { fallback: "" }));
     const highRisk = /risk|sensitive|production|payment|permission|security|privacy|compliance|migration/i.test(userSurface);
@@ -234,6 +241,7 @@ function checkSourceEvidence() {
   for (const file of [
     "docs/plans/user-delivery-console-1.79-plan.md",
     "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
+    "docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md",
     "examples/1.79-user-delivery-console/README.md",
     "examples/1.79-user-delivery-console/appointment-app/delivery-status-cards/001-status.md",
     "test-fixtures/bad/bad-user-delivery-console-internal-jargon/delivery-status-cards/001-bad.md",
@@ -245,6 +253,9 @@ function checkSourceEvidence() {
     "releases/1.79.1/release-record.md",
     "releases/1.79.1/known-limitations.md",
     "releases/1.79.1/self-check-report.md",
+    "releases/1.79.2/release-record.md",
+    "releases/1.79.2/known-limitations.md",
+    "releases/1.79.2/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.79 user delivery console source evidence exists ${file}`);
     else fail(`1.79 user delivery console source evidence missing ${file}`);
@@ -265,9 +276,10 @@ function checkSourceEvidence() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
-        && parsed.schemaVersion === "1.79.1"
+        && parsed.schemaVersion === "1.79.2"
         && parsed.boundaries?.writesTargetFiles === "No"
         && parsed.deliveryStatus?.currentState
+        && parsed.deliveryStatus?.currentStateLabel
         && parsed.taskCompletion?.verificationPlanPrepared
         && parsed.taskCompletion?.testCheckEvidenceRecorded
         && parsed.taskCompletion?.completionEvidenceStrictCheck) {
@@ -365,7 +377,7 @@ function readResolved(file) {
 }
 
 function exists(relativePath) {
-  return fs.existsSync(path.join(projectRoot, relativePath));
+  return Boolean(resolveAsset(relativePath));
 }
 
 function rel(file) {

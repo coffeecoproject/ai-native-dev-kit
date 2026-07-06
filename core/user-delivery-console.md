@@ -71,4 +71,5 @@ If Codex uses this card as a final user-facing answer, it must still cite the
 lower-level evidence state when claiming work is done.
 
 No final task-completion claim is allowed without a valid lower-level completion
-evidence chain that passes strict Completion Evidence checks.
+evidence chain that passes strict Completion Evidence checks and matches the
+current request intent.

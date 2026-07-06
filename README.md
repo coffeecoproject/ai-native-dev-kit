@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.79.1`.
+Current release: `1.79.2`.
 
-Release record: [releases/1.79.1/release-record.md](releases/1.79.1/release-record.md).
+Release record: [releases/1.79.2/release-record.md](releases/1.79.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -41,7 +41,7 @@ Start here:
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
 
-1.79.1 tightens User Delivery Console: `status` now treats a task as done only when strict Completion Evidence checks pass, separates verification planning from actual test/check evidence, and keeps the card as a plain-language derived view. It still does not write project files, approve implementation, approve commit/push, approve release/production, or prove real-user stability.
+1.79.2 tightens User Delivery Console current-task binding: `status --intent` treats a task as done only when strict Completion Evidence both passes and matches the current request. The user-facing card now uses plain-language states while internal enums stay in trace/JSON. It still does not write project files, approve implementation, approve commit/push, approve release/production, or prove real-user stability.
 
 1.78.3 documents the 1.78 Completion Evidence compatibility contract: strict completion checks require canonical task intent to stay consistent across Business Rule Closure, Verification Plan, Test Evidence, Execution Assurance, and Completion Evidence; older 1.78.0/1.78.1 Completion Evidence reports need `source_chain[].intent_digest`, and strict Execution Assurance sources need top-level `intent_digest`. It is a docs/reference patch, not a new gate.
 

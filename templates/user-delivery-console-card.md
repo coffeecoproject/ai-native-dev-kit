@@ -19,7 +19,7 @@ What I need from you: {{HUMAN_NEED}}
 | Field | Value |
 |---|---|
 | First version | {{FIRST_VERSION}} |
-| Current state | `{{CURRENT_STATE}}` |
+| Current state | {{CURRENT_STATE_LABEL}} |
 | Plain reason | {{PLAIN_REASON}} |
 
 ## Task Completion

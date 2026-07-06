@@ -14,4 +14,6 @@
 - Verification planning and actual test/check evidence are separate
   user-facing fields.
 - Final task completion is not claimed unless lower-level completion evidence
-  exists and passes strict Completion Evidence checks.
+  exists, passes strict Completion Evidence checks, and matches the current
+  request intent.
+- User-facing sections use plain-language states instead of raw internal enums.

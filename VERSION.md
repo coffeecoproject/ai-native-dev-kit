@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.79.1`
+Current version: `1.79.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,21 @@ Current version: `1.79.1`
 
 ## Current Release
 
-`1.79.1`
+`1.79.2`
 
 Includes:
+
+- User Delivery Console Current Task Binding patch `1.79.2`: `status --intent`
+  now treats a task as done only when strict Completion Evidence both passes and
+  matches the current request intent, while other valid completion records are
+  shown as other-task completion records.
+- `1.79.2` removes raw internal status enums from the user-facing status card,
+  keeps enums in Outcome / JSON / trace, supports `.intentos/` asset checks for
+  target projects, and verifies generated status cards through same-card smoke.
+- `1.79.2` remains a derived view layer. It does not add a new completion gate,
+  replace Completion Evidence, replace Release Plan, write target files,
+  approve implementation, approve commit/push, approve release/production,
+  mutate CI/hooks, or prove real-user stability.
 
 - User Delivery Console Evidence Validation patch `1.79.1`: `status` now treats
   a task as done only when strict Completion Evidence checks pass, separates

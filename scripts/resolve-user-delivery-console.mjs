@@ -2,10 +2,12 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
+import { extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "verification", "out"]);
@@ -44,7 +46,7 @@ function buildCard(root) {
   const files = exists ? listFiles(root) : [];
   const counts = reportCounts(root);
   const risk = exists ? analyzeRiskSurfaces({ intent, projectRoot: root, includeProjectSignals: true }) : { high: false, surfaces: [], reasons: [] };
-  const completionEvidence = completionEvidenceStatus(root);
+  const completionEvidence = completionEvidenceStatus(root, intent);
   const completionReady = completionEvidence.ready;
   const launchReviewReady = reportHas(root, "launch-review-views", /READY_FOR_RELEASE_REVIEW|READY_FOR_INTERNAL_TRIAL/i)
     || reportHas(root, "release-plans", /READY_FOR_(PREVIEW|STAGING|PRODUCTION|LOCAL)_HANDOFF|READY_FOR_HANDOFF_REVIEW/i);
@@ -87,7 +89,7 @@ function buildCard(root) {
 
   return {
     reportType: "USER_DELIVERY_CONSOLE_CARD",
-    schemaVersion: "1.79.1",
+    schemaVersion: "1.79.2",
     generatedBy: "scripts/resolve-user-delivery-console.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -104,6 +106,7 @@ function buildCard(root) {
     deliveryStatus: {
       firstVersion,
       currentState: state.name,
+      currentStateLabel: state.label,
       plainReason: state.reason,
     },
     taskCompletion: {
@@ -114,6 +117,7 @@ function buildCard(root) {
       executionProofRecorded: yesNo(hasExecutionProof),
       canCurrentTaskBeTreatedAsDone: completionReady ? "Yes" : "No",
       completionEvidenceStrictCheck: completionEvidence.status,
+      currentIntentMatch: Boolean(completionEvidence.currentIntentMatch),
     },
     productReadiness: {
       firstUsefulVersion: yesNo(hasFirstVersion),
@@ -158,6 +162,7 @@ function classifyState(input) {
   if (!input.exists) return state("NO_PROJECT", "Project cannot be read", "The project path does not exist or is not readable.");
   if (input.completionReady && input.launchReviewReady) return state("READY_FOR_LAUNCH_REVIEW", "Ready for launch review preparation", "The task has completion evidence and launch-review evidence is present.");
   if (input.completionReady) return state("TASK_DONE_WITH_EVIDENCE", "Task can be treated as done", "The task has a recorded final completion record.");
+  if (input.completionEvidence.otherReadyCount > 0) return state("PROJECT_HAS_OTHER_COMPLETION_RECORD", "Project has a completion record for another task", "A strict completion record exists, but it does not match the current request.");
   if (input.completionEvidence.count > 0) return state("NEEDS_COMPLETION_EVIDENCE_CHECK", "Final completion record needs strict checking", "A final completion record exists, but it has not passed the strict completion check.");
   if (input.risk.high && !input.hasExecutionProof) return state("BLOCKED_BY_RISK", "Risk boundary needs confirmation", "This appears to involve higher-risk surfaces, so Codex should stop for a bounded decision.");
   if (input.hasExecutionProof || input.counts["test-evidence-reports"] > 0) return state("NEEDS_COMPLETION_EVIDENCE", "Final completion record is missing", "Work evidence exists, but the final completion record is not recorded.");
@@ -186,7 +191,11 @@ function missingItemsFor(stateValue, input) {
   if (!input.hasTestEvidence) missing.push("Record actual check evidence for the current task.");
   if (!input.hasExecutionProof) missing.push("Record proof that Codex executed the task as planned.");
   if (input.completionEvidence.count > 0 && !input.completionReady) {
-    missing.push("Fix the final completion record until it passes strict completion checks.");
+    if (input.completionEvidence.otherReadyCount > 0) {
+      missing.push("Create or select a final completion record that matches this request.");
+    } else {
+      missing.push("Fix the final completion record until it passes strict completion checks.");
+    }
   } else if (!input.completionReady) {
     missing.push("Create the final completion record before claiming the task is done.");
   }
@@ -199,6 +208,7 @@ function missingItemsFor(stateValue, input) {
 function safeActionsFor(stateValue, missing) {
   if (stateValue.name === "NO_PROJECT") return ["Confirm the project path, then rerun status."];
   if (stateValue.name === "BLOCKED_BY_RISK") return ["Pause execution and confirm the risk boundary before changing files."];
+  if (stateValue.name === "PROJECT_HAS_OTHER_COMPLETION_RECORD") return ["Match the request to the correct completion record before calling this task done."];
   if (stateValue.name === "NEEDS_COMPLETION_EVIDENCE_CHECK") return ["Review the final completion record and fix any failed strict completion checks."];
   if (stateValue.name === "TASK_DONE_WITH_EVIDENCE") return ["Prepare review summary or launch-review input without approving release."];
   if (stateValue.name === "READY_FOR_LAUNCH_REVIEW") return ["Hand this to the release owner for review; do not treat it as production approval."];
@@ -231,6 +241,7 @@ function technicalTraceRows(counts, input) {
 
 function conclusionFor(stateValue) {
   if (stateValue.name === "TASK_DONE_WITH_EVIDENCE") return "The current task can be treated as done within the recorded evidence boundary.";
+  if (stateValue.name === "PROJECT_HAS_OTHER_COMPLETION_RECORD") return "The project has a completion record, but not for this request.";
   if (stateValue.name === "READY_FOR_LAUNCH_REVIEW") return "The work can move toward launch review, but release is not approved.";
   if (stateValue.name === "BLOCKED_BY_RISK") return "This needs a risk decision before Codex continues.";
   if (stateValue.name === "NO_PROJECT") return "I cannot read the project yet.";
@@ -250,7 +261,7 @@ function humanCard(card) {
   lines.push("## Delivery Status", "");
   lines.push("| Field | Value |", "|---|---|");
   lines.push(`| First version | ${card.deliveryStatus.firstVersion} |`);
-  lines.push(`| Current state | \`${card.deliveryStatus.currentState}\` |`);
+  lines.push(`| Current state | ${card.deliveryStatus.currentStateLabel} |`);
   lines.push(`| Plain reason | ${card.deliveryStatus.plainReason} |`, "");
   lines.push("## Task Completion", "");
   lines.push("| Question | Answer |", "|---|---|");
@@ -259,7 +270,7 @@ function humanCard(card) {
   lines.push(`| Is the check plan prepared? | ${card.taskCompletion.verificationPlanPrepared} |`);
   lines.push(`| Is test/check evidence recorded? | ${card.taskCompletion.testCheckEvidenceRecorded} |`);
   lines.push(`| Is execution proof recorded? | ${card.taskCompletion.executionProofRecorded} |`);
-  lines.push(`| Did the final completion record pass required checks? | ${card.taskCompletion.completionEvidenceStrictCheck} |`);
+  lines.push(`| Did the final completion record pass required checks? | ${completionStatusDisplay(card.taskCompletion.completionEvidenceStrictCheck)} |`);
   lines.push(`| Can the current task be treated as done? | ${card.taskCompletion.canCurrentTaskBeTreatedAsDone} |`, "");
   lines.push("## Product Readiness", "");
   lines.push("| Question | Answer |", "|---|---|");
@@ -317,13 +328,15 @@ function reportHas(root, dir, pattern) {
   return markdownFiles(root, dir).some((file) => pattern.test(safeRead(file)));
 }
 
-function completionEvidenceStatus(root) {
+function completionEvidenceStatus(root, userIntent) {
   const reports = markdownFiles(root, "completion-evidence-reports");
   if (reports.length === 0) {
     return {
       ready: false,
       status: "MISSING",
       count: 0,
+      otherReadyCount: 0,
+      currentIntentMatch: false,
       report: "",
       detail: "0 final completion record(s) found",
     };
@@ -334,10 +347,13 @@ function completionEvidenceStatus(root) {
       ready: false,
       status: "STRICT_CHECK_UNAVAILABLE",
       count: reports.length,
+      otherReadyCount: 0,
+      currentIntentMatch: false,
       report: "",
       detail: `${reports.length} final completion record(s) found; strict completion checker is not installed`,
     };
   }
+  const expectedIntentDigest = userIntent ? digest(userIntent) : "";
   const attempts = reports.map((file) => {
     const report = path.relative(root, file).split(path.sep).join("/");
     const result = spawnSync(process.execPath, [
@@ -349,25 +365,64 @@ function completionEvidenceStatus(root) {
       "--require-source-refs",
       "--require-ready",
     ], { cwd: root, encoding: "utf8" });
-    return { file, report, result };
+    const evidence = extractMachineReadableEvidence(safeRead(file));
+    const reportIntentDigest = evidence?.ok ? String(evidence.value?.intent_digest || "") : "";
+    return {
+      file,
+      report,
+      result,
+      reportIntentDigest,
+      currentIntentMatch: Boolean(expectedIntentDigest && reportIntentDigest === expectedIntentDigest),
+    };
   });
-  const passing = attempts.find((attempt) => attempt.result.status === 0);
+  const strictPassing = attempts.filter((attempt) => attempt.result.status === 0);
+  const passing = strictPassing.find((attempt) => attempt.currentIntentMatch);
   if (passing) {
     return {
       ready: true,
       status: "STRICT_CHECK_PASSED",
       count: reports.length,
+      otherReadyCount: Math.max(0, strictPassing.length - 1),
+      currentIntentMatch: true,
       report: passing.report,
-      detail: `${reports.length} final completion record(s) found; ${passing.report} passed strict completion checks`,
+      detail: `${reports.length} final completion record(s) found; ${passing.report} passed strict completion checks and matches this request`,
+    };
+  }
+  if (strictPassing.length > 0) {
+    return {
+      ready: false,
+      status: expectedIntentDigest ? "STRICT_CHECK_PASSED_FOR_OTHER_TASK" : "STRICT_CHECK_PASSED_WITHOUT_CURRENT_INTENT",
+      count: reports.length,
+      otherReadyCount: strictPassing.length,
+      currentIntentMatch: false,
+      report: strictPassing[0].report,
+      detail: expectedIntentDigest
+        ? `${strictPassing.length} strict completion record(s) found, but none match this request`
+        : `${strictPassing.length} strict completion record(s) found; provide --intent to match the current request`,
     };
   }
   return {
     ready: false,
     status: "STRICT_CHECK_FAILED",
     count: reports.length,
+    otherReadyCount: 0,
+    currentIntentMatch: false,
     report: attempts[0]?.report || "",
     detail: `${reports.length} final completion record(s) found; none passed strict completion checks`,
   };
+}
+
+function completionStatusDisplay(status) {
+  if (status === "STRICT_CHECK_PASSED") return "Passed for this request";
+  if (status === "STRICT_CHECK_PASSED_FOR_OTHER_TASK") return "Passed for another request";
+  if (status === "STRICT_CHECK_PASSED_WITHOUT_CURRENT_INTENT") return "Passed, but no current request was provided";
+  if (status === "STRICT_CHECK_FAILED") return "Not passed";
+  if (status === "STRICT_CHECK_UNAVAILABLE") return "Cannot check in this project";
+  return "Not recorded";
+}
+
+function digest(value) {
+  return `sha256:${crypto.createHash("sha256").update(String(value)).digest("hex")}`;
 }
 
 function markdownFiles(root, dir) {

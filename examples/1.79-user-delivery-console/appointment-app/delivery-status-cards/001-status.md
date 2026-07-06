@@ -19,7 +19,7 @@ What I need from you: No decision needed for this read-only status card.
 | Field | Value |
 |---|---|
 | First version | Appointment requests must include a service time. |
-| Current state | `TASK_DONE_WITH_EVIDENCE` |
+| Current state | Task can be treated as done |
 | Plain reason | The current task has a recorded final completion record. |
 
 ## Task Completion
@@ -31,7 +31,7 @@ What I need from you: No decision needed for this read-only status card.
 | Is the check plan prepared? | Yes |
 | Is test/check evidence recorded? | Yes |
 | Is execution proof recorded? | Yes |
-| Did the final completion record pass required checks? | STRICT_CHECK_PASSED |
+| Did the final completion record pass required checks? | Passed for this request |
 | Can the current task be treated as done? | Yes |
 
 ## Product Readiness

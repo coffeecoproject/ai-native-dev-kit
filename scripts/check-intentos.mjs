@@ -922,6 +922,7 @@ function checkIntentOSFirstPartyCi() {
     "completion-evidence-check",
     "status",
     "status-check",
+    "delivery-status-cards/001-generated-status.md",
     "done-check",
     "verify-execution",
     "baseline-decision",
@@ -8613,6 +8614,7 @@ function checkUserDeliveryConsoleProtocol() {
     "docs/user-delivery-console.md",
     "docs/plans/user-delivery-console-1.79-plan.md",
     "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
+    "docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md",
     "templates/user-delivery-console-card.md",
     "checklists/user-delivery-console-review.md",
     "prompts/user-delivery-console-agent.md",
@@ -8630,6 +8632,9 @@ function checkUserDeliveryConsoleProtocol() {
     "releases/1.79.1/release-record.md",
     "releases/1.79.1/known-limitations.md",
     "releases/1.79.1/self-check-report.md",
+    "releases/1.79.2/release-record.md",
+    "releases/1.79.2/known-limitations.md",
+    "releases/1.79.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.79 user delivery console asset exists ${file}`);
@@ -8641,14 +8646,17 @@ function checkUserDeliveryConsoleProtocol() {
     read("docs/user-delivery-console.md"),
     read("docs/plans/user-delivery-console-1.79-plan.md"),
     read("docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md"),
+    read("docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md"),
     read("templates/user-delivery-console-card.md"),
     read("checklists/user-delivery-console-review.md"),
     read("prompts/user-delivery-console-agent.md"),
     read("scripts/resolve-user-delivery-console.mjs"),
     read("scripts/check-user-delivery-console.mjs"),
     read("scripts/cli.mjs"),
+    read(".github/workflows/intentos-pr-checks.yml"),
     read("releases/1.79.0/release-record.md"),
     read("releases/1.79.1/release-record.md"),
+    read("releases/1.79.2/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -8665,6 +8673,9 @@ function checkUserDeliveryConsoleProtocol() {
     "verificationPlanPrepared",
     "testCheckEvidenceRecorded",
     "completionEvidenceStrictCheck",
+    "PROJECT_HAS_OTHER_COMPLETION_RECORD",
+    "currentIntentMatch",
+    "delivery-status-cards/001-generated-status.md",
     "does not approve implementation",
     "does not approve release or production",
     "does not write target files",
@@ -8690,12 +8701,14 @@ function checkUserDeliveryConsoleProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
-        && parsed.schemaVersion === "1.79.1"
+        && parsed.schemaVersion === "1.79.2"
         && parsed.readOnly === true
         && parsed.deliveryStatus?.currentState
+        && parsed.deliveryStatus?.currentStateLabel
         && parsed.taskCompletion?.verificationPlanPrepared
         && parsed.taskCompletion?.testCheckEvidenceRecorded
         && parsed.taskCompletion?.completionEvidenceStrictCheck
+        && "currentIntentMatch" in parsed.taskCompletion
         && parsed.boundaries?.writesTargetFiles === "No"
         && parsed.boundaries?.approvesReleaseOrProduction === "No") {
         pass("1.79 user delivery console resolver JSON includes split verification fields, strict completion status, and no-authority boundaries");
@@ -12948,6 +12961,31 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project strict Completion Evidence source binding");
+  const generatedStatusReport = "delivery-status-cards/001-generated-status.md";
+  const generatedStatusResolve = runNode([
+    path.join(target, "scripts", "resolve-user-delivery-console.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--out",
+    generatedStatusReport,
+  ]);
+  if (generatedStatusResolve.status !== 0
+    || !fs.existsSync(path.join(target, generatedStatusReport))
+    || !generatedStatusResolve.stdout.includes("Passed for this request")
+    || !generatedStatusResolve.stdout.includes("Can the current task be treated as done? | Yes")) {
+    fail(`generated project User Delivery Console should write a current-task matched status card: ${generatedStatusResolve.stderr || generatedStatusResolve.stdout}`);
+    return;
+  }
+  const generatedStatusCheck = runNode([
+    path.join(target, "scripts", "check-user-delivery-console.mjs"),
+    target,
+  ]);
+  if (generatedStatusCheck.status !== 0 || !generatedStatusCheck.stdout.includes("User Delivery Console check passed")) {
+    fail(`generated project User Delivery Console same-card check failed: ${generatedStatusCheck.stderr || generatedStatusCheck.stdout}`);
+    return;
+  }
+  pass("generated project User Delivery Console same-card status check");
   fs.rmSync(path.join(target, generatedExecutionAssuranceReport), { force: true });
   fs.rmSync(path.join(target, generatedCompletionReport), { force: true });
 

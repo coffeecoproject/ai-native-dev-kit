@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.79.1`。
+当前版本：`1.79.2`。
 
-发布记录：[releases/1.79.1/release-record.md](releases/1.79.1/release-record.md)。
+发布记录：[releases/1.79.2/release-record.md](releases/1.79.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -41,7 +41,7 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
 
-1.79.1 收紧 User Delivery Console：`status` 只有在严格 Completion Evidence 检查通过时才会把任务视为完成，同时把“验证计划”和“实际测试/检查证据”拆开显示。它仍然只是白话状态卡，不写项目文件，不批准实现、提交、推送、发布或生产，也不证明真实用户稳定可用。
+1.79.2 收紧 User Delivery Console 当前任务绑定：`status --intent` 只有在严格 Completion Evidence 检查通过且匹配当前请求时，才会把任务视为完成。用户看到的是白话状态，内部枚举只保留在 trace / JSON 中。它仍然不写项目文件，不批准实现、提交、推送、发布或生产，也不证明真实用户稳定可用。
 
 1.78.3 补齐 1.78 Completion Evidence 的兼容性和 reference docs：严格完成校验要求 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance、Completion Evidence 使用同一条 canonical task intent；旧的 1.78.0/1.78.1 Completion Evidence 报告需要补 `source_chain[].intent_digest`，严格 Execution Assurance 来源需要顶层 `intent_digest`。这是文档/引用补丁，不新增 gate。
 
