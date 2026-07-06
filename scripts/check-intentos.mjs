@@ -8612,6 +8612,7 @@ function checkUserDeliveryConsoleProtocol() {
     "core/user-delivery-console.md",
     "docs/user-delivery-console.md",
     "docs/plans/user-delivery-console-1.79-plan.md",
+    "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
     "templates/user-delivery-console-card.md",
     "checklists/user-delivery-console-review.md",
     "prompts/user-delivery-console-agent.md",
@@ -8626,6 +8627,9 @@ function checkUserDeliveryConsoleProtocol() {
     "releases/1.79.0/release-record.md",
     "releases/1.79.0/known-limitations.md",
     "releases/1.79.0/self-check-report.md",
+    "releases/1.79.1/release-record.md",
+    "releases/1.79.1/known-limitations.md",
+    "releases/1.79.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.79 user delivery console asset exists ${file}`);
@@ -8636,6 +8640,7 @@ function checkUserDeliveryConsoleProtocol() {
     read("core/user-delivery-console.md"),
     read("docs/user-delivery-console.md"),
     read("docs/plans/user-delivery-console-1.79-plan.md"),
+    read("docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md"),
     read("templates/user-delivery-console-card.md"),
     read("checklists/user-delivery-console-review.md"),
     read("prompts/user-delivery-console-agent.md"),
@@ -8643,6 +8648,7 @@ function checkUserDeliveryConsoleProtocol() {
     read("scripts/check-user-delivery-console.mjs"),
     read("scripts/cli.mjs"),
     read("releases/1.79.0/release-record.md"),
+    read("releases/1.79.1/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -8654,6 +8660,11 @@ function checkUserDeliveryConsoleProtocol() {
     "Technical Trace",
     "status",
     "status-check",
+    "STRICT_CHECK_PASSED",
+    "NEEDS_COMPLETION_EVIDENCE_CHECK",
+    "verificationPlanPrepared",
+    "testCheckEvidenceRecorded",
+    "completionEvidenceStrictCheck",
     "does not approve implementation",
     "does not approve release or production",
     "does not write target files",
@@ -8679,12 +8690,15 @@ function checkUserDeliveryConsoleProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
-        && parsed.schemaVersion === "1.79.0"
+        && parsed.schemaVersion === "1.79.1"
         && parsed.readOnly === true
         && parsed.deliveryStatus?.currentState
+        && parsed.taskCompletion?.verificationPlanPrepared
+        && parsed.taskCompletion?.testCheckEvidenceRecorded
+        && parsed.taskCompletion?.completionEvidenceStrictCheck
         && parsed.boundaries?.writesTargetFiles === "No"
         && parsed.boundaries?.approvesReleaseOrProduction === "No") {
-        pass("1.79 user delivery console resolver JSON includes state and no-authority boundaries");
+        pass("1.79 user delivery console resolver JSON includes split verification fields, strict completion status, and no-authority boundaries");
       } else {
         fail(`1.79 user delivery console resolver JSON missing expected fields: ${resolverJson.stdout}`);
       }

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.79.0",
+  "intentOSVersion": "1.79.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.79.0"
+    "phase": "1.79.1"
   },
   "groups": {
     "sourceRequired": [
@@ -351,6 +351,7 @@
       "docs/plans/unified-apply-plan-1.34-plan.md",
       "docs/plans/unified-closure-model-1.53-plan.md",
       "docs/plans/user-delivery-console-1.79-plan.md",
+      "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
       "docs/plans/verification-test-governance-1.76-plan.md",
       "docs/platform-release-recipes.md",
       "docs/platform-standard-baseline-packs.md",
@@ -1469,6 +1470,9 @@
       "releases/1.79.0/known-limitations.md",
       "releases/1.79.0/release-record.md",
       "releases/1.79.0/self-check-report.md",
+      "releases/1.79.1/known-limitations.md",
+      "releases/1.79.1/release-record.md",
+      "releases/1.79.1/self-check-report.md",
       "releases/1.8.0/known-limitations.md",
       "releases/1.8.0/release-record.md",
       "releases/1.8.0/self-check-report.md",

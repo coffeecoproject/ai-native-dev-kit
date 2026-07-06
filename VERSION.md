@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.79.0`
+Current version: `1.79.1`
 
 ## Versioning Policy
 
@@ -10,14 +10,24 @@ Current version: `1.79.0`
 
 ## Current Release
 
-`1.79.0`
+`1.79.1`
 
 Includes:
 
-- User Delivery Console phase `1.79.0`: `status` / `status-check` now provide
-  one ordinary-user delivery status card that answers what is being built,
-  where the work stands, whether the task can be treated as done, what is
-  missing, and what Codex can safely do next.
+- User Delivery Console Evidence Validation patch `1.79.1`: `status` now treats
+  a task as done only when strict Completion Evidence checks pass, separates
+  verification planning from actual test/check evidence, and keeps PR
+  generated-project smoke aligned with the `1.78.2` Execution Assurance
+  `intent_digest` contract.
+- `1.79.1` remains a derived view layer. It does not add a new completion gate,
+  replace Completion Evidence, replace Release Plan, write target files,
+  approve implementation, approve commit/push, approve release/production,
+  mutate CI/hooks, or prove real-user stability.
+
+- User Delivery Console phase `1.79.0`: `status` / `status-check` provide one
+  ordinary-user delivery status card that answers what is being built, where
+  the work stands, whether the task can be treated as done, what is missing,
+  and what Codex can safely do next.
 - `1.79.0` is a derived view layer. It does not add a new completion gate,
   replace Completion Evidence, replace Release Plan, write target files,
   approve implementation, approve commit/push, approve release/production,

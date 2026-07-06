@@ -32,6 +32,12 @@ The card summarizes:
 6. missing items;
 7. safe next action.
 
+Task completion separates:
+
+- whether a verification plan is prepared;
+- whether actual test/check evidence is recorded;
+- whether the final completion record passed strict checks.
+
 ## What It Does Not Do
 
 It does not approve implementation, commit, push, release, production,
@@ -47,4 +53,5 @@ them in plain language. The technical trace can mention the source systems, but
 the user-facing summary should remain simple.
 
 If the card says a task can be treated as done, that must be backed by valid
-lower-level completion evidence. Otherwise it must say what is still missing.
+lower-level completion evidence that passes the strict Completion Evidence
+checker. Otherwise it must say what is still missing.

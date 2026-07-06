@@ -43,6 +43,7 @@ Use plain translations:
 - affected areas checked / not checked;
 - verification list ready / missing;
 - check evidence recorded / missing;
+- final completion record passed strict checks / not passed;
 - execution proof recorded / missing;
 - task can / cannot be treated as done;
 - can / cannot move toward launch review.
@@ -70,4 +71,4 @@ If Codex uses this card as a final user-facing answer, it must still cite the
 lower-level evidence state when claiming work is done.
 
 No final task-completion claim is allowed without a valid lower-level completion
-evidence chain.
+evidence chain that passes strict Completion Evidence checks.

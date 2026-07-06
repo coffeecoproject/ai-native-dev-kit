@@ -28,8 +28,10 @@ What I need from you: {{HUMAN_NEED}}
 |---|---|
 | Is the need clear? | {{NEED_CLEAR}} |
 | Are affected areas checked? | {{SURFACES_CHECKED}} |
-| Is verification evidence recorded? | {{VERIFICATION_RECORDED}} |
+| Is the check plan prepared? | {{VERIFICATION_PLAN_PREPARED}} |
+| Is test/check evidence recorded? | {{TEST_CHECK_EVIDENCE_RECORDED}} |
 | Is execution proof recorded? | {{EXECUTION_RECORDED}} |
+| Did the final completion record pass required checks? | {{COMPLETION_STRICT_CHECK}} |
 | Can the current task be treated as done? | {{TASK_DONE}} |
 
 ## Product Readiness

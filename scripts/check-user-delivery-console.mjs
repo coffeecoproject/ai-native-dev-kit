@@ -55,6 +55,7 @@ const allowedStates = new Set([
   "NEEDS_BUSINESS_RULE_CLARITY",
   "NEEDS_VERIFICATION",
   "NEEDS_COMPLETION_EVIDENCE",
+  "NEEDS_COMPLETION_EVIDENCE_CHECK",
   "TASK_DONE_WITH_EVIDENCE",
   "READY_FOR_LAUNCH_REVIEW",
   "BLOCKED_BY_HUMAN_DECISION",
@@ -188,6 +189,21 @@ function checkCards() {
     if (safeNext.length > 0) pass(`${label} lists safe next action`);
     else fail(`${label} must list safe next action`);
 
+    const taskCompletion = sectionBody(content, "Task Completion", { fallback: "" });
+    for (const marker of [
+      "Is the check plan prepared?",
+      "Is test/check evidence recorded?",
+      "Did the final completion record pass required checks?",
+    ]) {
+      if (taskCompletion.includes(marker)) pass(`${label} task completion splits verification plan, evidence, and strict completion status`);
+      else fail(`${label} task completion missing ${marker}`);
+    }
+    if (/Is verification evidence recorded\?/i.test(taskCompletion)) {
+      fail(`${label} must not merge verification plan and test evidence into one user-facing field`);
+    } else {
+      pass(`${label} does not merge verification plan and test evidence`);
+    }
+
     const trace = sectionBody(content, "Technical Trace", { fallback: "" });
     for (const marker of ["Source system", "Status", "Contribution", "Authority"]) {
       if (trace.includes(marker)) pass(`${label} technical trace includes ${marker}`);
@@ -217,6 +233,7 @@ function checkCards() {
 function checkSourceEvidence() {
   for (const file of [
     "docs/plans/user-delivery-console-1.79-plan.md",
+    "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
     "examples/1.79-user-delivery-console/README.md",
     "examples/1.79-user-delivery-console/appointment-app/delivery-status-cards/001-status.md",
     "test-fixtures/bad/bad-user-delivery-console-internal-jargon/delivery-status-cards/001-bad.md",
@@ -225,6 +242,9 @@ function checkSourceEvidence() {
     "releases/1.79.0/release-record.md",
     "releases/1.79.0/known-limitations.md",
     "releases/1.79.0/self-check-report.md",
+    "releases/1.79.1/release-record.md",
+    "releases/1.79.1/known-limitations.md",
+    "releases/1.79.1/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.79 user delivery console source evidence exists ${file}`);
     else fail(`1.79 user delivery console source evidence missing ${file}`);
@@ -245,9 +265,13 @@ function checkSourceEvidence() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
+        && parsed.schemaVersion === "1.79.1"
         && parsed.boundaries?.writesTargetFiles === "No"
-        && parsed.deliveryStatus?.currentState) {
-        pass("1.79 user delivery console resolver JSON includes state and boundaries");
+        && parsed.deliveryStatus?.currentState
+        && parsed.taskCompletion?.verificationPlanPrepared
+        && parsed.taskCompletion?.testCheckEvidenceRecorded
+        && parsed.taskCompletion?.completionEvidenceStrictCheck) {
+        pass("1.79 user delivery console resolver JSON includes split verification fields, strict completion status, and boundaries");
       } else {
         fail(`1.79 user delivery console resolver JSON missing expected fields: ${resolverJson.stdout}`);
       }

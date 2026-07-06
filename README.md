@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.79.0`.
+Current release: `1.79.1`.
 
-Release record: [releases/1.79.0/release-record.md](releases/1.79.0/release-record.md).
+Release record: [releases/1.79.1/release-record.md](releases/1.79.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -41,7 +41,7 @@ Start here:
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
 
-1.79.0 adds User Delivery Console: Codex can answer "where are we now, is this task done, what is missing, and what can you safely do next?" through one plain-language `status` card. It summarizes existing evidence systems without replacing them, writing target files, approving implementation, approving commit/push, approving release/production, or proving real-user stability.
+1.79.1 tightens User Delivery Console: `status` now treats a task as done only when strict Completion Evidence checks pass, separates verification planning from actual test/check evidence, and keeps the card as a plain-language derived view. It still does not write project files, approve implementation, approve commit/push, approve release/production, or prove real-user stability.
 
 1.78.3 documents the 1.78 Completion Evidence compatibility contract: strict completion checks require canonical task intent to stay consistent across Business Rule Closure, Verification Plan, Test Evidence, Execution Assurance, and Completion Evidence; older 1.78.0/1.78.1 Completion Evidence reports need `source_chain[].intent_digest`, and strict Execution Assurance sources need top-level `intent_digest`. It is a docs/reference patch, not a new gate.
 
@@ -200,6 +200,7 @@ IntentOS 当前包含这些核心能力：
 | Verification Plan Governance | 根据业务规则和影响面生成任务绑定的验证义务，说明哪些测试或检查足以支持后续收口；不执行测试，不批准实现或发布 |
 | Test Evidence Binding | 把真实命令、报告、人工或日志证据绑定到 Verification Plan 的每个必验证项；检查退出码、证据文件、digest、任务匹配和测试质量控制，不执行测试、不批准发布 |
 | Completion Evidence Gate | 最终说“任务完成”前，检查 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance 是否 recorded、ready、同 task、同 source chain；不运行测试、不批准发布 |
+| User Delivery Console | 用一张普通用户状态卡回答“做到哪、能不能算完成、能不能进上线评审、还缺什么、下一步能安全做什么”；只汇总下层证据，不替代下层证据系统 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |

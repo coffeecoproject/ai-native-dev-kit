@@ -28,8 +28,10 @@ What I need from you: No decision needed for this read-only status card.
 |---|---|
 | Is the need clear? | Yes |
 | Are affected areas checked? | Yes |
-| Is verification evidence recorded? | Yes |
+| Is the check plan prepared? | Yes |
+| Is test/check evidence recorded? | Yes |
 | Is execution proof recorded? | Yes |
+| Did the final completion record pass required checks? | STRICT_CHECK_PASSED |
 | Can the current task be treated as done? | Yes |
 
 ## Product Readiness
@@ -67,9 +69,10 @@ What I need from you: No decision needed for this read-only status card.
 | First Slice / Beginner Entry | RECORDED | 1 first-version artifact found | Source system only |
 | Business Rule Closure | RECORDED | 1 rule-clarity artifact found | Source system only |
 | Change Impact Coverage | RECORDED | 1 affected-surface report found | Source system only |
-| Verification / Test Evidence | RECORDED | 1 verification plan and 1 test evidence report found | Source system only |
+| Verification Plan | RECORDED | 1 verification plan found | Source system only |
+| Test Evidence | RECORDED | 1 test evidence report found | Source system only |
 | Execution Assurance | RECORDED | 1 execution proof report found | Source system only |
-| Completion Evidence | READY | 1 final completion record found | Source system only |
+| Completion Evidence | READY | 1 final completion record found; completion-evidence-reports/001-service-time.md passed strict completion checks | Source system only |
 | Launch / Release View | MISSING | 0 launch views and 0 release plans found | Source system only |
 
 ## Boundaries

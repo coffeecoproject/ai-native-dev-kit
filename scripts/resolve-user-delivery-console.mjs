@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
@@ -43,13 +44,15 @@ function buildCard(root) {
   const files = exists ? listFiles(root) : [];
   const counts = reportCounts(root);
   const risk = exists ? analyzeRiskSurfaces({ intent, projectRoot: root, includeProjectSignals: true }) : { high: false, surfaces: [], reasons: [] };
-  const completionReady = reportHas(root, "completion-evidence-reports", /COMPLETION_EVIDENCE_READY|can_claim_complete["']?\s*[:|]\s*["']?Yes/i);
+  const completionEvidence = completionEvidenceStatus(root);
+  const completionReady = completionEvidence.ready;
   const launchReviewReady = reportHas(root, "launch-review-views", /READY_FOR_RELEASE_REVIEW|READY_FOR_INTERNAL_TRIAL/i)
     || reportHas(root, "release-plans", /READY_FOR_(PREVIEW|STAGING|PRODUCTION|LOCAL)_HANDOFF|READY_FOR_HANDOFF_REVIEW/i);
   const hasFirstVersion = counts["ordinary-first-slices"] > 0 || counts["beginner-entry-cards"] > 0 || files.some((item) => /(^src\/|^app\/|^pages\/|^index\.html$|^package\.json$)/.test(item));
   const hasNeedClarity = counts["business-rule-closures"] > 0 || counts["ordinary-first-slices"] > 0 || counts["beginner-entry-cards"] > 0;
   const hasSurfaceCheck = counts["change-impact-coverage-reports"] > 0;
-  const hasVerification = counts["verification-plans"] > 0 || counts["test-evidence-reports"] > 0 || verificationStatus(verification) === "pass";
+  const hasVerificationPlan = counts["verification-plans"] > 0;
+  const hasTestEvidence = counts["test-evidence-reports"] > 0 || verificationStatus(verification) === "pass";
   const hasExecutionProof = counts["execution-assurance-reports"] > 0;
   const state = classifyState({
     exists,
@@ -61,16 +64,20 @@ function buildCard(root) {
     hasFirstVersion,
     hasNeedClarity,
     hasSurfaceCheck,
-    hasVerification,
+    hasVerificationPlan,
+    hasTestEvidence,
     hasExecutionProof,
+    completionEvidence,
   });
   const firstVersion = firstVersionFor(intent, hasFirstVersion);
   const missing = missingItemsFor(state, {
     hasNeedClarity,
     hasSurfaceCheck,
-    hasVerification,
+    hasVerificationPlan,
+    hasTestEvidence,
     hasExecutionProof,
     completionReady,
+    completionEvidence,
     launchReviewReady,
     risk,
     exists,
@@ -80,7 +87,7 @@ function buildCard(root) {
 
   return {
     reportType: "USER_DELIVERY_CONSOLE_CARD",
-    schemaVersion: "1.79.0",
+    schemaVersion: "1.79.1",
     generatedBy: "scripts/resolve-user-delivery-console.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -102,9 +109,11 @@ function buildCard(root) {
     taskCompletion: {
       needClear: yesNo(hasNeedClarity),
       affectedAreasChecked: yesNo(hasSurfaceCheck),
-      verificationEvidenceRecorded: yesNo(hasVerification),
+      verificationPlanPrepared: yesNo(hasVerificationPlan),
+      testCheckEvidenceRecorded: yesNo(hasTestEvidence),
       executionProofRecorded: yesNo(hasExecutionProof),
       canCurrentTaskBeTreatedAsDone: completionReady ? "Yes" : "No",
+      completionEvidenceStrictCheck: completionEvidence.status,
     },
     productReadiness: {
       firstUsefulVersion: yesNo(hasFirstVersion),
@@ -125,8 +134,10 @@ function buildCard(root) {
       hasFirstVersion,
       hasNeedClarity,
       hasSurfaceCheck,
-      hasVerification,
+      hasVerificationPlan,
+      hasTestEvidence,
       hasExecutionProof,
+      completionEvidence,
     }),
     boundaries: {
       writesTargetFiles: "No",
@@ -147,9 +158,10 @@ function classifyState(input) {
   if (!input.exists) return state("NO_PROJECT", "Project cannot be read", "The project path does not exist or is not readable.");
   if (input.completionReady && input.launchReviewReady) return state("READY_FOR_LAUNCH_REVIEW", "Ready for launch review preparation", "The task has completion evidence and launch-review evidence is present.");
   if (input.completionReady) return state("TASK_DONE_WITH_EVIDENCE", "Task can be treated as done", "The task has a recorded final completion record.");
+  if (input.completionEvidence.count > 0) return state("NEEDS_COMPLETION_EVIDENCE_CHECK", "Final completion record needs strict checking", "A final completion record exists, but it has not passed the strict completion check.");
   if (input.risk.high && !input.hasExecutionProof) return state("BLOCKED_BY_RISK", "Risk boundary needs confirmation", "This appears to involve higher-risk surfaces, so Codex should stop for a bounded decision.");
   if (input.hasExecutionProof || input.counts["test-evidence-reports"] > 0) return state("NEEDS_COMPLETION_EVIDENCE", "Final completion record is missing", "Work evidence exists, but the final completion record is not recorded.");
-  if (input.hasVerification || input.hasSurfaceCheck) return state("NEEDS_VERIFICATION", "Verification evidence is still needed", "Planning evidence exists, but current check evidence or execution proof is missing.");
+  if (input.hasTestEvidence || input.hasVerificationPlan || input.hasSurfaceCheck) return state("NEEDS_VERIFICATION", "Check evidence is still needed", "Planning evidence exists, but current check evidence or execution proof is missing.");
   if (input.hasNeedClarity || input.hasFirstVersion) return state("FIRST_VERSION_DEFINED", "First version is defined", "A first version or task direction exists, but delivery evidence is not complete yet.");
   if (input.git?.isDirty || intent) return state("IN_PROGRESS", "Work appears to be in progress", "There is a current request or changed work, but completion evidence is not present.");
   return state("IDEA_ONLY", "Idea only", "No delivery evidence was found yet.");
@@ -170,9 +182,14 @@ function missingItemsFor(stateValue, input) {
   const missing = [];
   if (!input.hasNeedClarity) missing.push("Confirm what the first useful version should do.");
   if (!input.hasSurfaceCheck) missing.push("Check all affected areas before saying the task is complete.");
-  if (!input.hasVerification) missing.push("Record check evidence for the current task.");
+  if (!input.hasVerificationPlan) missing.push("Prepare a check plan for the current task.");
+  if (!input.hasTestEvidence) missing.push("Record actual check evidence for the current task.");
   if (!input.hasExecutionProof) missing.push("Record proof that Codex executed the task as planned.");
-  if (!input.completionReady) missing.push("Create the final completion record before claiming the task is done.");
+  if (input.completionEvidence.count > 0 && !input.completionReady) {
+    missing.push("Fix the final completion record until it passes strict completion checks.");
+  } else if (!input.completionReady) {
+    missing.push("Create the final completion record before claiming the task is done.");
+  }
   if (!input.launchReviewReady) missing.push("Prepare launch review evidence before moving toward release.");
   if (input.risk.high) missing.push("Confirm the risk owner for sensitive surfaces.");
   if (stateValue.name === "TASK_DONE_WITH_EVIDENCE" && missing.length === 0) return ["No task-completion blocker found; this is still not release or production approval."];
@@ -182,6 +199,7 @@ function missingItemsFor(stateValue, input) {
 function safeActionsFor(stateValue, missing) {
   if (stateValue.name === "NO_PROJECT") return ["Confirm the project path, then rerun status."];
   if (stateValue.name === "BLOCKED_BY_RISK") return ["Pause execution and confirm the risk boundary before changing files."];
+  if (stateValue.name === "NEEDS_COMPLETION_EVIDENCE_CHECK") return ["Review the final completion record and fix any failed strict completion checks."];
   if (stateValue.name === "TASK_DONE_WITH_EVIDENCE") return ["Prepare review summary or launch-review input without approving release."];
   if (stateValue.name === "READY_FOR_LAUNCH_REVIEW") return ["Hand this to the release owner for review; do not treat it as production approval."];
   if (missing.length > 0) return [`Handle this first: ${missing[0]}`];
@@ -203,9 +221,10 @@ function technicalTraceRows(counts, input) {
     ["First Slice / Beginner Entry", input.hasFirstVersion ? "RECORDED" : "MISSING", `${counts["ordinary-first-slices"] + counts["beginner-entry-cards"]} first-version artifact(s) found`, "Source system only"],
     ["Business Rule Closure", input.hasNeedClarity ? "RECORDED" : "MISSING", `${counts["business-rule-closures"]} rule-clarity artifact(s) found`, "Source system only"],
     ["Change Impact Coverage", input.hasSurfaceCheck ? "RECORDED" : "MISSING", `${counts["change-impact-coverage-reports"]} affected-surface report(s) found`, "Source system only"],
-    ["Verification / Test Evidence", input.hasVerification ? "RECORDED" : "MISSING", `${counts["verification-plans"]} verification plan(s), ${counts["test-evidence-reports"]} test evidence report(s) found`, "Source system only"],
+    ["Verification Plan", input.hasVerificationPlan ? "RECORDED" : "MISSING", `${counts["verification-plans"]} verification plan(s) found`, "Source system only"],
+    ["Test Evidence", input.hasTestEvidence ? "RECORDED" : "MISSING", `${counts["test-evidence-reports"]} test evidence report(s) found`, "Source system only"],
     ["Execution Assurance", input.hasExecutionProof ? "RECORDED" : "MISSING", `${counts["execution-assurance-reports"]} execution proof report(s) found`, "Source system only"],
-    ["Completion Evidence", input.completionReady ? "READY" : "MISSING", `${counts["completion-evidence-reports"]} final completion record(s) found`, "Source system only"],
+    ["Completion Evidence", input.completionReady ? "READY" : input.completionEvidence.status, input.completionEvidence.detail, "Source system only"],
     ["Launch / Release View", input.launchReviewReady ? "RECORDED" : "MISSING", `${counts["launch-review-views"]} launch view(s), ${counts["release-plans"]} release plan(s) found`, "Source system only"],
   ];
 }
@@ -237,8 +256,10 @@ function humanCard(card) {
   lines.push("| Question | Answer |", "|---|---|");
   lines.push(`| Is the need clear? | ${card.taskCompletion.needClear} |`);
   lines.push(`| Are affected areas checked? | ${card.taskCompletion.affectedAreasChecked} |`);
-  lines.push(`| Is verification evidence recorded? | ${card.taskCompletion.verificationEvidenceRecorded} |`);
+  lines.push(`| Is the check plan prepared? | ${card.taskCompletion.verificationPlanPrepared} |`);
+  lines.push(`| Is test/check evidence recorded? | ${card.taskCompletion.testCheckEvidenceRecorded} |`);
   lines.push(`| Is execution proof recorded? | ${card.taskCompletion.executionProofRecorded} |`);
+  lines.push(`| Did the final completion record pass required checks? | ${card.taskCompletion.completionEvidenceStrictCheck} |`);
   lines.push(`| Can the current task be treated as done? | ${card.taskCompletion.canCurrentTaskBeTreatedAsDone} |`, "");
   lines.push("## Product Readiness", "");
   lines.push("| Question | Answer |", "|---|---|");
@@ -294,6 +315,59 @@ function reportCounts(root) {
 
 function reportHas(root, dir, pattern) {
   return markdownFiles(root, dir).some((file) => pattern.test(safeRead(file)));
+}
+
+function completionEvidenceStatus(root) {
+  const reports = markdownFiles(root, "completion-evidence-reports");
+  if (reports.length === 0) {
+    return {
+      ready: false,
+      status: "MISSING",
+      count: 0,
+      report: "",
+      detail: "0 final completion record(s) found",
+    };
+  }
+  const checker = path.join(root, "scripts", "check-completion-evidence.mjs");
+  if (!fs.existsSync(checker)) {
+    return {
+      ready: false,
+      status: "STRICT_CHECK_UNAVAILABLE",
+      count: reports.length,
+      report: "",
+      detail: `${reports.length} final completion record(s) found; strict completion checker is not installed`,
+    };
+  }
+  const attempts = reports.map((file) => {
+    const report = path.relative(root, file).split(path.sep).join("/");
+    const result = spawnSync(process.execPath, [
+      checker,
+      root,
+      "--report",
+      report,
+      "--require-structured-evidence",
+      "--require-source-refs",
+      "--require-ready",
+    ], { cwd: root, encoding: "utf8" });
+    return { file, report, result };
+  });
+  const passing = attempts.find((attempt) => attempt.result.status === 0);
+  if (passing) {
+    return {
+      ready: true,
+      status: "STRICT_CHECK_PASSED",
+      count: reports.length,
+      report: passing.report,
+      detail: `${reports.length} final completion record(s) found; ${passing.report} passed strict completion checks`,
+    };
+  }
+  return {
+    ready: false,
+    status: "STRICT_CHECK_FAILED",
+    count: reports.length,
+    report: attempts[0]?.report || "",
+    detail: `${reports.length} final completion record(s) found; none passed strict completion checks`,
+  };
 }
 
 function markdownFiles(root, dir) {
