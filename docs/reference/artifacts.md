@@ -23,6 +23,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `business-rule-closures/` | Business Rule Closure cards that close rule dimensions, safe defaults, limited user decisions, and real-environment validation expectations before impact coverage |
 | `change-impact-coverage-reports/` | Affected-surface coverage for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
 | `verification-plans/` | Source-bound verification plans that translate business rule closure and impact coverage into concrete checks, test-correctness controls, and manual verification ownership |
+| `test-evidence-reports/` | Evidence-binding reports that map concrete command/manual/report evidence to Verification Plan obligations |
 | `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
 | `ordinary-first-slices/` | First useful version scope for ordinary user goals |
 | `product-completeness-reports/` | Product-state, checklist, evidence, gaps, and next-action reports |
@@ -96,7 +97,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence Report, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
 ## Reporting Artifacts
 

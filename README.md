@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.76.3`.
+Current release: `1.77.0`.
 
-Release record: [releases/1.76.3/release-record.md](releases/1.76.3/release-record.md).
+Release record: [releases/1.77.0/release-record.md](releases/1.77.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.77.0 adds Test Evidence Binding: after a Verification Plan says what must be checked, Codex can bind real command/manual/report evidence to every required obligation. It catches missing frontend/backend/API coverage, stale reports, skipped or failed evidence, broad commands treated as proof, and ownerless manual evidence. It does not run tests or approve release.
 
 1.76.3 closes Verification Plan consistency: Markdown tables are now checked both ways against JSON evidence, Test Correctness Controls are cross-checked, and READY plans require recorded BRC/CIC source systems.
 

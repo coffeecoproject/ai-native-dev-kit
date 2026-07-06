@@ -1,0 +1,261 @@
+{
+  "schemaVersion": "1.77.0",
+  "artifactType": "test_evidence",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "task_ref",
+    "intent",
+    "intent_digest",
+    "test_evidence_ref",
+    "test_evidence_digest",
+    "verification_plan_ref",
+    "verification_plan_digest",
+    "verification_plan_state",
+    "source_systems",
+    "test_evidence_state",
+    "evidence_items",
+    "coverage_map",
+    "test_quality_controls",
+    "known_gaps",
+    "manual_verification",
+    "existing_project_mapping",
+    "boundaries",
+    "next_step"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.77.0"] },
+    "artifact_type": { "type": "string", "enum": ["test_evidence"] },
+    "task_ref": { "type": "string" },
+    "intent": { "type": "string" },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "test_evidence_ref": { "type": "string" },
+    "test_evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "verification_plan_ref": { "type": "string" },
+    "verification_plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "verification_plan_state": { "type": "string" },
+    "source_systems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "status", "ref", "source_outcome", "digest"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "verification_plan",
+              "business_rule_closure",
+              "change_impact_coverage",
+              "existing_project_rule",
+              "human_decision"
+            ]
+          },
+          "status": { "type": "string", "enum": ["RECORDED", "UNRESOLVED", "NOT_PROVIDED"] },
+          "ref": { "type": "string" },
+          "source_outcome": { "type": "string" },
+          "digest": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "test_evidence_state": {
+      "type": "string",
+      "enum": [
+        "TEST_EVIDENCE_COMPLETE",
+        "TEST_EVIDENCE_PARTIAL",
+        "TEST_EVIDENCE_BLOCKED",
+        "TEST_EVIDENCE_WAIVED_WITH_DECISION",
+        "TEST_EVIDENCE_NOT_APPLICABLE"
+      ]
+    },
+    "evidence_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "evidence_type",
+          "result_state",
+          "ref",
+          "command",
+          "owner",
+          "environment",
+          "ran_at",
+          "ran_after_change",
+          "current_task_match",
+          "covers_obligations",
+          "output_digest",
+          "limitations"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "evidence_type": {
+            "type": "string",
+            "enum": [
+              "COMMAND_OUTPUT",
+              "TEST_REPORT",
+              "SCREENSHOT",
+              "MANUAL_VERIFICATION",
+              "HUMAN_DECISION",
+              "ARTIFACT_REFERENCE",
+              "LOG_EXCERPT",
+              "NOT_APPLICABLE_RECORD"
+            ]
+          },
+          "result_state": {
+            "type": "string",
+            "enum": [
+              "PASSED",
+              "FAILED",
+              "NOT_RUN_WITH_REASON",
+              "SKIPPED_WITH_REASON",
+              "FLAKY_REQUIRES_REVIEW",
+              "WAIVED_BY_HUMAN_DECISION",
+              "NOT_APPLICABLE_WITH_REASON",
+              "UNRESOLVED"
+            ]
+          },
+          "ref": { "type": "string" },
+          "command": { "type": "string" },
+          "owner": { "type": "string" },
+          "environment": { "type": "string" },
+          "ran_at": { "type": "string" },
+          "ran_after_change": { "type": "string", "enum": ["Yes", "No", "Unknown", "Not applicable"] },
+          "current_task_match": { "type": "string", "enum": ["Yes", "No", "Unknown", "Not applicable"] },
+          "covers_obligations": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "output_digest": { "type": "string" },
+          "limitations": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "coverage_map": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["obligation_id", "coverage_state", "evidence_ids", "verification_plan_required", "reason"],
+        "properties": {
+          "obligation_id": { "type": "string" },
+          "coverage_state": {
+            "type": "string",
+            "enum": [
+              "COVERED",
+              "NOT_COVERED",
+              "PARTIAL",
+              "WAIVED_BY_HUMAN_DECISION",
+              "NOT_APPLICABLE_WITH_REASON",
+              "BLOCKED"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "verification_plan_required": { "type": "string", "enum": ["Yes", "No"] },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "test_quality_controls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "applies_to", "status", "evidence_ids", "reason"],
+        "properties": {
+          "id": { "type": "string" },
+          "applies_to": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["SATISFIED", "NOT_SATISFIED", "NOT_APPLICABLE_WITH_REASON", "NEEDS_REVIEW"]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "known_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "reason", "required_follow_up"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH", "BLOCKING"] },
+          "reason": { "type": "string" },
+          "required_follow_up": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "manual_verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "owner", "decision_ref", "evidence_ref", "status", "reason"],
+        "properties": {
+          "id": { "type": "string" },
+          "owner": { "type": "string" },
+          "decision_ref": { "type": "string" },
+          "evidence_ref": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["RECORDED", "PENDING", "NOT_REQUIRED", "WAIVED_BY_HUMAN_DECISION"]
+          },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "existing_project_mapping": {
+      "type": "object",
+      "required": ["status", "ref", "reason"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "NOT_APPLICABLE",
+            "MAPPED_READ_ONLY",
+            "NEEDS_ADOPTION_ASSESSMENT",
+            "NEEDS_RULE_RECONCILIATION",
+            "BLOCKED_BY_EXISTING_GOVERNANCE"
+          ]
+        },
+        "ref": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "boundaries": {
+      "type": "object",
+      "required": [
+        "writes_target_files",
+        "executes_tests",
+        "fabricates_evidence",
+        "authorizes_implementation",
+        "approves_release_or_production",
+        "proves_product_correctness",
+        "proves_real_environment_behavior"
+      ],
+      "properties": {
+        "writes_target_files": { "type": "string", "enum": ["No"] },
+        "executes_tests": { "type": "string", "enum": ["No"] },
+        "fabricates_evidence": { "type": "string", "enum": ["No"] },
+        "authorizes_implementation": { "type": "string", "enum": ["No"] },
+        "approves_release_or_production": { "type": "string", "enum": ["No"] },
+        "proves_product_correctness": { "type": "string", "enum": ["No"] },
+        "proves_real_environment_behavior": { "type": "string", "enum": ["No"] }
+      },
+      "additionalProperties": false
+    },
+    "next_step": { "type": "string" }
+  },
+  "additionalProperties": false
+}

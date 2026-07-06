@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.76.3`。
+当前版本：`1.77.0`。
 
-发布记录：[releases/1.76.3/release-record.md](releases/1.76.3/release-record.md)。
+发布记录：[releases/1.77.0/release-record.md](releases/1.77.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.77.0 新增 Test Evidence Binding：Verification Plan 说清楚“哪些必须验证”之后，Codex 还要把真实命令、人工、报告等证据逐项绑定到每个验证义务。它会拦截前端/后端/API 漏测、过期报告、跳过或失败证据、只跑大命令就当证明、人工证据没有负责人等问题。它不执行测试，也不批准发布。
 
 1.76.3 收口 Verification Plan 一致性：Markdown 表格现在会和 JSON 证据做双向检查，Test Correctness Controls 也会交叉校验，READY 状态的计划必须有已记录的 BRC/CIC source systems。
 

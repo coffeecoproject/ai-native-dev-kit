@@ -8055,6 +8055,243 @@ function mutateVerificationPlan(reportFile, mutate) {
   fs.writeFileSync(reportFile, updated);
 }
 
+function checkTestEvidenceBindingProtocol() {
+  const required = [
+    "core/test-evidence-binding.md",
+    "docs/test-evidence-binding.md",
+    "docs/plans/test-evidence-binding-1.77-plan.md",
+    "templates/test-evidence-report.md",
+    "checklists/test-evidence-review.md",
+    "prompts/test-evidence-agent.md",
+    "schemas/artifacts/test-evidence.schema.json",
+    "test-evidence-reports/.gitkeep",
+    "scripts/resolve-test-evidence.mjs",
+    "scripts/check-test-evidence.mjs",
+    "examples/1.77-test-evidence-binding/README.md",
+    "examples/1.77-test-evidence-binding/appointment-service-time/README.md",
+    "examples/1.77-test-evidence-binding/appointment-service-time/business-rule-closures/001-service-time.md",
+    "examples/1.77-test-evidence-binding/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
+    "examples/1.77-test-evidence-binding/appointment-service-time/verification-plans/001-service-time.md",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/api-contract.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/backend-rule.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/frontend-ui.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/handoff.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/evidence/user-flow.txt",
+    "examples/1.77-test-evidence-binding/appointment-service-time/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-missing-verification-plan-ref/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-verification-plan-digest-mismatch/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-missing-required-obligation/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-covered-with-failed-evidence/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-covered-with-skipped-evidence/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-stale-ran-before-change/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-current-task-no/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-output-digest-mismatch/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-broad-command-only/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-manual-owner-ai/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-waiver-missing-human-decision/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-markdown-result-mismatch/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-markdown-extra-coverage-row/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-source-system-digest-mismatch/test-evidence-reports/001-service-time.md",
+    "releases/1.77.0/release-record.md",
+    "releases/1.77.0/known-limitations.md",
+    "releases/1.77.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.77 test evidence asset exists ${file}`);
+    else fail(`1.77 test evidence asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/test-evidence-binding.md"),
+    read("docs/test-evidence-binding.md"),
+    read("docs/plans/test-evidence-binding-1.77-plan.md"),
+    read("templates/test-evidence-report.md"),
+    read("checklists/test-evidence-review.md"),
+    read("prompts/test-evidence-agent.md"),
+    read("schemas/artifacts/test-evidence.schema.json"),
+    read("scripts/resolve-test-evidence.mjs"),
+    read("scripts/check-test-evidence.mjs"),
+    read("scripts/cli.mjs"),
+    exists("releases/1.77.0/release-record.md") ? read("releases/1.77.0/release-record.md") : "",
+  ].join("\n");
+
+  for (const marker of [
+    "Test Evidence Binding",
+    "Test Evidence Report",
+    "test_evidence_digest",
+    "test_evidence_ref",
+    "verification_plan_ref",
+    "verification_plan_digest",
+    "coverage_map",
+    "covers_obligations",
+    "PASSED",
+    "FAILED",
+    "SKIPPED_WITH_REASON",
+    "FLAKY_REQUIRES_REVIEW",
+    "WAIVED_BY_HUMAN_DECISION",
+    "does not execute tests",
+    "does not approve release or production",
+    "test-evidence",
+    "test-evidence-check",
+    "--out",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+    "Markdown Evidence Items",
+    "output_digest matches",
+  ]) {
+    if (combined.includes(marker)) pass(`1.77 test evidence includes ${marker}`);
+    else fail(`1.77 test evidence missing ${marker}`);
+  }
+
+  const resolver = runNode([
+    "scripts/resolve-test-evidence.mjs",
+    "examples/1.77-test-evidence-binding/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--verification-plan-ref",
+    "artifact:verification-plans/001-service-time.md",
+    "--evidence",
+    "artifact:evidence/user-flow.txt,artifact:evidence/frontend-ui.txt,artifact:evidence/api-contract.txt,artifact:evidence/backend-rule.txt,artifact:evidence/handoff.txt",
+  ]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Test Evidence Report")
+    && resolver.stdout.includes("TEST_EVIDENCE_COMPLETE")
+    && resolver.stdout.includes("This report executes tests: No")) {
+    pass("1.77 test evidence resolver prints safe complete report");
+  } else {
+    fail(`1.77 test evidence resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode([
+    "scripts/resolve-test-evidence.mjs",
+    "examples/1.77-test-evidence-binding/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--verification-plan-ref",
+    "artifact:verification-plans/001-service-time.md",
+    "--evidence",
+    "artifact:evidence/user-flow.txt,artifact:evidence/frontend-ui.txt,artifact:evidence/api-contract.txt,artifact:evidence/backend-rule.txt,artifact:evidence/handoff.txt",
+    "--json",
+  ]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "TEST_EVIDENCE_REPORT"
+        && parsed.structuredEvidence?.artifact_type === "test_evidence"
+        && parsed.structuredEvidence?.test_evidence_digest
+        && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "verification_plan")
+        && parsed.structuredEvidence?.coverage_map?.every((item) => item.coverage_state === "COVERED")
+        && parsed.boundaries?.executes_tests === "No") {
+        pass("1.77 test evidence resolver JSON includes source-bound coverage");
+      } else {
+        fail(`1.77 test evidence resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.77 test evidence resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.77 test evidence resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const sourceCheck = runNode(["scripts/check-test-evidence.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("Test Evidence check passed")) {
+    pass("1.77 test evidence checker passes source repo with explicit empty allowance");
+  } else {
+    fail(`1.77 test evidence source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const exampleCheck = runNode([
+    "scripts/check-test-evidence.mjs",
+    "examples/1.77-test-evidence-binding/appointment-service-time",
+    "--report",
+    "test-evidence-reports/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-verification-plan-ref",
+    "--strict-source-binding",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+  ]);
+  if (exampleCheck.status === 0
+    && exampleCheck.stdout.includes("Test Evidence check passed")
+    && exampleCheck.stdout.includes("test_evidence_ref points to this report")
+    && exampleCheck.stdout.includes("verification_plan_digest matches referenced Verification Plan")
+    && exampleCheck.stdout.includes("TEST_EVIDENCE_COMPLETE covers every required obligation")
+    && exampleCheck.stdout.includes("output_digest matches")) {
+    pass("1.77 test evidence strict example passes checker");
+  } else {
+    fail(`1.77 test evidence strict example failed: ${exampleCheck.stderr || exampleCheck.stdout}`);
+  }
+
+  const cliResolver = runNode([
+    "scripts/cli.mjs",
+    "test-evidence",
+    "examples/1.77-test-evidence-binding/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--verification-plan-ref",
+    "artifact:verification-plans/001-service-time.md",
+  ]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Test Evidence Report")) {
+    pass("CLI test-evidence delegates to resolver");
+  } else {
+    fail(`CLI test-evidence failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliCheck = runNode([
+    "scripts/cli.mjs",
+    "test-evidence-check",
+    "examples/1.77-test-evidence-binding/appointment-service-time",
+    "--report",
+    "test-evidence-reports/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-verification-plan-ref",
+    "--strict-source-binding",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+  ]);
+  if (cliCheck.status === 0 && cliCheck.stdout.includes("Test Evidence check passed")) {
+    pass("CLI test-evidence-check delegates to checker");
+  } else {
+    fail(`CLI test-evidence-check failed: ${cliCheck.stderr || cliCheck.stdout}`);
+  }
+
+  const badFixtureCases = [
+    ["bad-test-evidence-missing-verification-plan-ref", "verification_plan_ref is required"],
+    ["bad-test-evidence-verification-plan-digest-mismatch", "verification_plan_digest"],
+    ["bad-test-evidence-missing-required-obligation", "coverage_map missing required obligation"],
+    ["bad-test-evidence-covered-with-failed-evidence", "cannot use FAILED"],
+    ["bad-test-evidence-covered-with-skipped-evidence", "cannot use SKIPPED_WITH_REASON"],
+    ["bad-test-evidence-stale-ran-before-change", "must run after change"],
+    ["bad-test-evidence-current-task-no", "must match current task"],
+    ["bad-test-evidence-output-digest-mismatch", "output_digest"],
+    ["bad-test-evidence-broad-command-only", "cannot rely on broad command only"],
+    ["bad-test-evidence-manual-owner-ai", "needs a real owner"],
+    ["bad-test-evidence-waiver-missing-human-decision", "requires human-decision ref"],
+    ["bad-test-evidence-markdown-result-mismatch", "Markdown evidence evidence:api-contract result"],
+    ["bad-test-evidence-markdown-extra-coverage-row", "Markdown Coverage Map has extra row"],
+    ["bad-test-evidence-source-system-digest-mismatch", "source_systems business_rule_closure.digest"],
+  ];
+  for (const [name, expected] of badFixtureCases) {
+    const result = runNode([
+      "scripts/check-test-evidence.mjs",
+      `test-fixtures/bad/${name}`,
+      "--report",
+      "test-evidence-reports/001-service-time.md",
+      "--require-structured-evidence",
+      "--require-verification-plan-ref",
+      "--strict-source-binding",
+      "--require-current-evidence",
+      "--require-test-quality-controls",
+    ]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.77 test evidence rejects ${name}`);
+    } else {
+      fail(`1.77 test evidence must reject ${name}: ${output}`);
+    }
+  }
+}
+
 function checkChangeImpactCoverageProtocol() {
   const required = [
     "core/change-impact-coverage.md",
@@ -13825,6 +14062,7 @@ checkReviewSurfaceGovernanceProtocol();
 checkBusinessRuleClosureProtocol();
 checkChangeImpactCoverageProtocol();
 checkVerificationPlanGovernanceProtocol();
+checkTestEvidenceBindingProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();

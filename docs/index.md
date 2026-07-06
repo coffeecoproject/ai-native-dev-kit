@@ -38,6 +38,7 @@ This index separates current operating documents from reference material, histor
 - [Existing Project Governance Convergence](existing-project-governance-convergence.md)
 - [Adoption Execution Assurance](adoption-execution-assurance.md)
 - [Execution Assurance Chain](execution-assurance-chain.md)
+- [Test Evidence Binding](test-evidence-binding.md)
 - [Guided Delivery Check](guided-delivery-check.md)
 - [Guided Baseline Selection Entry](guided-baseline-selection-entry.md)
 
@@ -55,6 +56,7 @@ This index separates current operating documents from reference material, histor
 - [Business Rule Closure](business-rule-closure.md)
 - [Change Impact Coverage](change-impact-coverage.md)
 - [Verification Plan Governance](verification-test-governance.md)
+- [Test Evidence Binding](test-evidence-binding.md)
 - [Delivery Path Governance](delivery-path-governance.md)
 - [Ordinary User First Slice](ordinary-user-first-slice.md)
 - [Product Completeness Gate](product-completeness-gate.md)

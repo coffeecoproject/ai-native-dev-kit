@@ -1,0 +1,13 @@
+id: evidence:backend-rule
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: npm run test:domain -- appointment-service-time
+owner: automated-test-command
+environment: local-ci-node-20
+ran_at: 2026-07-06T10:03:00Z
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:backend-rule-backend-rule-test-server-domain-logic-enforces-the-
+limitations: Domain/service evidence; database migration is not part of this task.
+
+PASS backend rejects service-time bypass attempts.

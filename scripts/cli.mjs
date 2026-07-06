@@ -79,6 +79,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "test-evidence": {
+    description: "Bind actual evidence to a Verification Plan without running tests or approving completion.",
+    script: "scripts/resolve-test-evidence.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "test-evidence-check": {
+    description: "Check recorded Test Evidence Reports for obligation coverage, evidence freshness, and no-overclaim boundaries.",
+    script: "scripts/check-test-evidence.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "business-rule": {
     description: "Check whether a business rule is clear enough before impact coverage and coding.",
     script: "scripts/resolve-business-rule-closure.mjs",

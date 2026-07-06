@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.76.3",
+  "intentOSVersion": "1.77.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.76.3"
+    "phase": "1.77.0"
   },
   "groups": {
     "sourceRequired": [
@@ -14,6 +14,15 @@
       ".github/pull_request_template.md",
       ".github/workflows/intentos-pr-checks.yml",
       ".github/workflows/intentos-release-checks.yml",
+      "CONTRIBUTING.md",
+      "LICENSE-COMMERCIAL.md",
+      "LICENSE-FAQ.md",
+      "LICENSE.md",
+      "NOTICE.md",
+      "README.md",
+      "README.zh-CN.md",
+      "SECURITY.md",
+      "VERSION.md",
       "active-work-threads/.gitkeep",
       "adoption-assurance-reports/.gitkeep",
       "adoption-recommendations/.gitkeep",
@@ -36,8 +45,8 @@
       "baseline-calibration-reports/2026-06-28-local-production-governed-web-project.md",
       "baseline-calibration-reports/2026-06-28-summary.md",
       "baseline-calibration-reports/2026-06-29-synthetic-precision-fixtures.md",
-      "baseline-calibration-reports/precision-fixtures.json",
       "baseline-calibration-reports/README.md",
+      "baseline-calibration-reports/precision-fixtures.json",
       "baseline-calibration-reports/risk-surface-false-positives.md",
       "baseline-calibration-reports/scoreboard.md",
       "baseline-decision-cards/.gitkeep",
@@ -112,6 +121,7 @@
       "checklists/standard-baseline-selection-review.md",
       "checklists/starter-review.md",
       "checklists/subagent-orchestration-review.md",
+      "checklists/test-evidence-review.md",
       "checklists/unified-apply-plan-review.md",
       "checklists/verification-gate.md",
       "checklists/verification-plan-review.md",
@@ -119,7 +129,6 @@
       "checklists/workflow-guidance-review.md",
       "closure-decisions/.gitkeep",
       "context-corrections/.gitkeep",
-      "CONTRIBUTING.md",
       "controlled-apply-candidates/.gitkeep",
       "conversation-ask-cards/.gitkeep",
       "conversation-turns/.gitkeep",
@@ -193,6 +202,7 @@
       "core/subagent-dispatch-hygiene.md",
       "core/subagent-orchestration.md",
       "core/task-levels.md",
+      "core/test-evidence-binding.md",
       "core/unified-apply-plan.md",
       "core/unified-closure-model.md",
       "core/verification-test-governance.md",
@@ -211,6 +221,7 @@
       "decision-briefs/140-context-source-of-truth-boundary.md",
       "delivery-path-reports/.gitkeep",
       "doc-lifecycle-reports/.gitkeep",
+      "docs/README.md",
       "docs/adoption-execution-assurance.md",
       "docs/adoption-playbooks/existing-light-project.md",
       "docs/adoption-playbooks/governed-project-read-only.md",
@@ -270,6 +281,7 @@
       "docs/o0-bl0-lightweight-path.md",
       "docs/operator-manual.md",
       "docs/ordinary-user-first-slice.md",
+      "docs/plans/README.md",
       "docs/plans/adoption-execution-assurance-1.71-plan.md",
       "docs/plans/approval-record-governance-1.40-plan.md",
       "docs/plans/approval-record-hardening-1.40.1-plan.md",
@@ -322,7 +334,6 @@
       "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
-      "docs/plans/README.md",
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
       "docs/plans/release-core-model-consolidation-1.67-plan.md",
       "docs/plans/release-execution-protocol-1.56-plan.md",
@@ -335,6 +346,7 @@
       "docs/plans/structured-evidence-schema-1.41-plan.md",
       "docs/plans/structured-impact-coverage-1.49-plan.md",
       "docs/plans/subagent-dispatch-hygiene-1.39-plan.md",
+      "docs/plans/test-evidence-binding-1.77-plan.md",
       "docs/plans/unified-apply-plan-1.34-plan.md",
       "docs/plans/unified-closure-model-1.53-plan.md",
       "docs/plans/verification-test-governance-1.76-plan.md",
@@ -344,7 +356,6 @@
       "docs/product-completeness-gate.md",
       "docs/project-memory.md",
       "docs/quickstart.md",
-      "docs/README.md",
       "docs/real-adoption-usage.md",
       "docs/real-mvp-example-evidence.md",
       "docs/reference/artifacts.md",
@@ -362,18 +373,19 @@
       "docs/release-path-hardening.md",
       "docs/repository-structure.md",
       "docs/review-surface-governance.md",
+      "docs/roadmaps/README.md",
       "docs/roadmaps/controlled-apply-execution-roadmap-1.40-1.42.md",
       "docs/roadmaps/delivery-governance-roadmap-1.26-1.29.md",
       "docs/roadmaps/delivery-readiness-and-drift-roadmap-1.4.1-1.6.md",
       "docs/roadmaps/governance-hardening-roadmap.md",
       "docs/roadmaps/ordinary-user-product-loop-1.42-1.45.md",
-      "docs/roadmaps/README.md",
       "docs/safe-launch.md",
       "docs/source-only-adoption.md",
       "docs/standard-baseline-pack-registry.md",
       "docs/start-here.md",
       "docs/structured-evidence-schema.md",
       "docs/subagent-dispatch-hygiene.md",
+      "docs/test-evidence-binding.md",
       "docs/troubleshooting.md",
       "docs/unified-apply-plan.md",
       "docs/unified-closure-model.md",
@@ -403,24 +415,25 @@
       "evals/221-manifest-readme-fallback-sync.md",
       "evals/230-baseline-pack-system.md",
       "evals/240-standard-baseline-pack-registry.md",
+      "examples/1.1-guided-adoption/README.md",
       "examples/1.1-guided-adoption/existing-light-project/adoption-recommendations/001-guided-start.md",
       "examples/1.1-guided-adoption/governed-readonly/adoption-recommendations/001-guided-start.md",
       "examples/1.1-guided-adoption/new-project/adoption-recommendations/001-guided-start.md",
-      "examples/1.1-guided-adoption/README.md",
+      "examples/1.10-guided-decision-delivery-loop/README.md",
       "examples/1.10-guided-decision-delivery-loop/active-work-threads/001-appointment-first-slice.md",
       "examples/1.10-guided-decision-delivery-loop/conversation-turns/001-payment-mention.md",
       "examples/1.10-guided-decision-delivery-loop/guided-decision-summaries/001-status-model.md",
-      "examples/1.10-guided-decision-delivery-loop/README.md",
+      "examples/1.12-change-boundary-baseline-state/README.md",
       "examples/1.12-change-boundary-baseline-state/active-work-threads/001-appointment-first-slice.md",
       "examples/1.12-change-boundary-baseline-state/baseline-state-reports/001-no-code-baseline.md",
       "examples/1.12-change-boundary-baseline-state/change-boundary-reports/001-appointment-first-slice.md",
       "examples/1.12-change-boundary-baseline-state/final-reports/001-appointment-first-slice.md",
       "examples/1.12-change-boundary-baseline-state/guided-decision-summaries/001-first-slice-boundary.md",
-      "examples/1.12-change-boundary-baseline-state/README.md",
+      "examples/1.14-standard-baseline-registry/README.md",
       "examples/1.14-standard-baseline-registry/docs/baseline-selection.md",
       "examples/1.14-standard-baseline-registry/docs/project-profile.md",
-      "examples/1.14-standard-baseline-registry/README.md",
       "examples/1.14-standard-baseline-registry/standard-baseline-selections/001-web-runtime-standard.md",
+      "examples/1.15-platform-standard-baselines/README.md",
       "examples/1.15-platform-standard-baselines/existing-governed-project-gap-review/docs/baseline-selection.md",
       "examples/1.15-platform-standard-baselines/existing-governed-project-gap-review/docs/project-profile.md",
       "examples/1.15-platform-standard-baselines/existing-governed-project-gap-review/standard-baseline-selections/001-platform-standard.md",
@@ -439,7 +452,7 @@
       "examples/1.15-platform-standard-baselines/new-miniprogram-with-backend/docs/baseline-selection.md",
       "examples/1.15-platform-standard-baselines/new-miniprogram-with-backend/docs/project-profile.md",
       "examples/1.15-platform-standard-baselines/new-miniprogram-with-backend/standard-baseline-selections/001-platform-standard.md",
-      "examples/1.15-platform-standard-baselines/README.md",
+      "examples/1.16-bl2-industrial-deepening/README.md",
       "examples/1.16-bl2-industrial-deepening/miniprogram-cloud-auth/docs/baseline-evidence.md",
       "examples/1.16-bl2-industrial-deepening/miniprogram-cloud-auth/docs/baseline-selection.md",
       "examples/1.16-bl2-industrial-deepening/miniprogram-cloud-auth/docs/project-profile.md",
@@ -452,11 +465,11 @@
       "examples/1.16-bl2-industrial-deepening/payment-risk-overlay/docs/baseline-selection.md",
       "examples/1.16-bl2-industrial-deepening/payment-risk-overlay/docs/project-profile.md",
       "examples/1.16-bl2-industrial-deepening/payment-risk-overlay/evidence/payment-risk-overlay-verification.md",
-      "examples/1.16-bl2-industrial-deepening/README.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/docs/baseline-evidence.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/docs/baseline-selection.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/docs/project-profile.md",
       "examples/1.16-bl2-industrial-deepening/web-admin-data-auth/evidence/web-admin-data-auth-verification.md",
+      "examples/1.17-guided-baseline-selection/README.md",
       "examples/1.17-guided-baseline-selection/bl2-candidate/baseline-decision-cards/001-baseline-decision.md",
       "examples/1.17-guided-baseline-selection/dirty-worktree/baseline-decision-cards/001-baseline-decision.md",
       "examples/1.17-guided-baseline-selection/existing-governed-readonly/baseline-decision-cards/001-baseline-decision.md",
@@ -464,7 +477,7 @@
       "examples/1.17-guided-baseline-selection/new-miniprogram/baseline-decision-cards/001-baseline-decision.md",
       "examples/1.17-guided-baseline-selection/new-web-admin/baseline-decision-cards/001-baseline-decision.md",
       "examples/1.17-guided-baseline-selection/production-sensitive/baseline-decision-cards/001-baseline-decision.md",
-      "examples/1.17-guided-baseline-selection/README.md",
+      "examples/1.2-baseline-guided-setup/README.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-gap-reports/001-baseline-gaps.md",
       "examples/1.2-baseline-guided-setup/existing-light-project/baseline-recommendations/001-baseline-recommendation.md",
       "examples/1.2-baseline-guided-setup/governed-readonly-project/baseline-recommendations/001-baseline-recommendation.md",
@@ -473,69 +486,69 @@
       "examples/1.2-baseline-guided-setup/new-web-project/docs/environment-baseline.md",
       "examples/1.2-baseline-guided-setup/new-web-project/tasks/001-first-web-task.md",
       "examples/1.2-baseline-guided-setup/production-sensitive-project/baseline-recommendations/001-baseline-recommendation.md",
-      "examples/1.2-baseline-guided-setup/README.md",
       "examples/1.20-existing-project-workflow-adapter/README.md",
       "examples/1.20-existing-project-workflow-adapter/workflow-adoption-maps/001-governed-web-workflow-map.md",
-      "examples/1.21-document-lifecycle/doc-lifecycle-reports/001-doc-lifecycle.md",
       "examples/1.21-document-lifecycle/README.md",
+      "examples/1.21-document-lifecycle/doc-lifecycle-reports/001-doc-lifecycle.md",
       "examples/1.24-natural-language-orchestrator/README.md",
       "examples/1.24-natural-language-orchestrator/workflow-guidance-cards/001-existing-project.md",
       "examples/1.25-review-surface-governance/README.md",
       "examples/1.25-review-surface-governance/review-surface-cards/001-booking-review-surface.md",
-      "examples/1.26-delivery-path-governance/delivery-path-reports/001-booking-delivery-path.md",
       "examples/1.26-delivery-path-governance/README.md",
-      "examples/1.27-debt-knowledge-handoff/debt-handoff-reports/001-booking-handoff.md",
+      "examples/1.26-delivery-path-governance/delivery-path-reports/001-booking-delivery-path.md",
       "examples/1.27-debt-knowledge-handoff/README.md",
-      "examples/1.28-document-archive-apply/archive-apply-plans/001-archive-plan.md",
+      "examples/1.27-debt-knowledge-handoff/debt-handoff-reports/001-booking-handoff.md",
       "examples/1.28-document-archive-apply/README.md",
-      "examples/1.29-hook-policy-hardening/hook-policies/001-project-hook-policy.md",
+      "examples/1.28-document-archive-apply/archive-apply-plans/001-archive-plan.md",
       "examples/1.29-hook-policy-hardening/README.md",
+      "examples/1.29-hook-policy-hardening/hook-policies/001-project-hook-policy.md",
+      "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/claim-control-reports/example-claim-control.md",
       "examples/1.3-guided-delivery-baseline/final-reports/example-final-report.md",
-      "examples/1.3-guided-delivery-baseline/README.md",
       "examples/1.3-guided-delivery-baseline/releases/example-release.md",
       "examples/1.30-deep-guide-orchestration/README.md",
       "examples/1.30-deep-guide-orchestration/workflow-guidance-cards/001-deep-guide.md",
       "examples/1.31-intent-aware-deep-guide/README.md",
       "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
-      "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
       "examples/1.32-execution-review-closure/README.md",
+      "examples/1.32-execution-review-closure/execution-closures/001-booking-validation-closure.md",
+      "examples/1.33-evidence-linked-closure/README.md",
       "examples/1.33-evidence-linked-closure/change-boundary-reports/001-booking.md",
       "examples/1.33-evidence-linked-closure/debt-handoff-reports/001-booking.md",
       "examples/1.33-evidence-linked-closure/delivery-path-reports/001-booking.md",
       "examples/1.33-evidence-linked-closure/execution-closures/001-booking.md",
-      "examples/1.33-evidence-linked-closure/README.md",
       "examples/1.33-evidence-linked-closure/reports/verify-output.txt",
       "examples/1.33-evidence-linked-closure/review-loop-reports/001-booking.md",
       "examples/1.33-evidence-linked-closure/review-surface-cards/001-booking.md",
-      "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
       "examples/1.34-unified-apply-plan/README.md",
-      "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
+      "examples/1.34-unified-apply-plan/apply-plans/001-existing-project.md",
       "examples/1.35-beginner-entry/README.md",
-      "examples/1.37-conversation-native-ask/conversation-ask-cards/001-appointment-app.md",
+      "examples/1.35-beginner-entry/beginner-entry-cards/001-appointment-app.md",
       "examples/1.37-conversation-native-ask/README.md",
-      "examples/1.38-controlled-apply-readiness/apply-readiness-reports/001-workflow-assets.md",
+      "examples/1.37-conversation-native-ask/conversation-ask-cards/001-appointment-app.md",
       "examples/1.38-controlled-apply-readiness/README.md",
+      "examples/1.38-controlled-apply-readiness/apply-readiness-reports/001-workflow-assets.md",
       "examples/1.39-subagent-dispatch-hygiene/README.md",
       "examples/1.39-subagent-dispatch-hygiene/subagent-run-plans/001-dispatch-hygiene.md",
+      "examples/1.4-project-memory-context/README.md",
       "examples/1.4-project-memory-context/context-corrections/001-status-source-correction.md",
       "examples/1.4-project-memory-context/git-boundary-reports/001-context-artifacts.md",
       "examples/1.4-project-memory-context/learning-candidates/001-status-source.md",
-      "examples/1.4-project-memory-context/README.md",
-      "examples/1.40-approval-record-governance/approval-records/001-workflow-assets.md",
       "examples/1.40-approval-record-governance/README.md",
+      "examples/1.40-approval-record-governance/approval-records/001-workflow-assets.md",
+      "examples/1.41-structured-evidence-schema/README.md",
       "examples/1.41-structured-evidence-schema/apply-plans/001-structured-workflow-assets.md",
       "examples/1.41-structured-evidence-schema/apply-readiness-reports/001-structured-workflow-assets.md",
       "examples/1.41-structured-evidence-schema/approval-records/001-structured-workflow-assets.md",
-      "examples/1.41-structured-evidence-schema/README.md",
-      "examples/1.42-ordinary-user-first-slice/ordinary-first-slices/001-booking-app.md",
       "examples/1.42-ordinary-user-first-slice/README.md",
-      "examples/1.43-product-completeness-gate/product-completeness-reports/001-booking-mvp.md",
+      "examples/1.42-ordinary-user-first-slice/ordinary-first-slices/001-booking-app.md",
       "examples/1.43-product-completeness-gate/README.md",
-      "examples/1.45-low-risk-apply-candidate/controlled-apply-candidates/001-booking-demo.md",
+      "examples/1.43-product-completeness-gate/product-completeness-reports/001-booking-mvp.md",
       "examples/1.45-low-risk-apply-candidate/README.md",
-      "examples/1.48-change-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
+      "examples/1.45-low-risk-apply-candidate/controlled-apply-candidates/001-booking-demo.md",
       "examples/1.48-change-impact-coverage/contract-input-rule/README.md",
+      "examples/1.48-change-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
+      "examples/1.49-structured-impact-coverage/contract-input-rule/README.md",
       "examples/1.49-structured-impact-coverage/contract-input-rule/change-impact-coverage-reports/001-contract-input-rule.md",
       "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/api-contract-title-validation.txt",
       "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/backend-contract-validation.txt",
@@ -545,18 +558,17 @@
       "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/test-contract-input-rule.txt",
       "examples/1.49-structured-impact-coverage/contract-input-rule/evidence/user-flow-contract-title-required.txt",
       "examples/1.49-structured-impact-coverage/contract-input-rule/execution-closures/001-contract-input-rule.md",
-      "examples/1.49-structured-impact-coverage/contract-input-rule/README.md",
-      "examples/1.5-safe-launch-readiness/launch-readiness/001-internal-handoff.md",
       "examples/1.5-safe-launch-readiness/README.md",
+      "examples/1.5-safe-launch-readiness/launch-readiness/001-internal-handoff.md",
       "examples/1.50-evidence-reference-resolution/README.md",
-      "examples/1.52-guided-closure-experience/guided-closure-cards/001-booking-validation.md",
       "examples/1.52-guided-closure-experience/README.md",
-      "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
+      "examples/1.52-guided-closure-experience/guided-closure-cards/001-booking-validation.md",
       "examples/1.53-unified-closure-model/README.md",
-      "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
+      "examples/1.53-unified-closure-model/closure-decisions/001-booking-validation.md",
       "examples/1.54-decision-explain-trace/README.md",
-      "examples/1.55-launch-review-view/web-internal-handoff/launch-review-views/001-web-mvp.md",
+      "examples/1.54-decision-explain-trace/closure-decisions/001-contract-approval-rule.md",
       "examples/1.55-launch-review-view/web-internal-handoff/README.md",
+      "examples/1.55-launch-review-view/web-internal-handoff/launch-review-views/001-web-mvp.md",
       "examples/1.56-release-execution/web-assisted-handoff/README.md",
       "examples/1.56-release-execution/web-assisted-handoff/release-execution-plans/001-web-release.md",
       "examples/1.57-guided-release-adapter/web-vercel-preview/README.md",
@@ -569,8 +581,8 @@
       "examples/1.59-platform-release-recipes/mini-program-review/release-recipes/001-mini-program-review.md",
       "examples/1.59-platform-release-recipes/web-hosted-preview/README.md",
       "examples/1.59-platform-release-recipes/web-hosted-preview/release-recipes/001-web-hosted-preview.md",
-      "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/README.md",
+      "examples/1.6-conversation-drift-control/conversation-turns/001-discuss-only.md",
       "examples/1.6-conversation-drift-control/scope-change-reports/001-add-release-gate.md",
       "examples/1.60-release-handoff-packs/backend-api-release/README.md",
       "examples/1.60-release-handoff-packs/backend-api-release/release-handoff-packs/001-backend-api-release.md",
@@ -578,39 +590,40 @@
       "examples/1.60-release-handoff-packs/mini-program-review/release-handoff-packs/001-mini-program-review.md",
       "examples/1.60-release-handoff-packs/web-hosted-preview/README.md",
       "examples/1.60-release-handoff-packs/web-hosted-preview/release-handoff-packs/001-web-hosted-preview.md",
+      "examples/1.62-native-first-existing-project/README.md",
       "examples/1.62-native-first-existing-project/dirty-worktree/native-migration-plans/001-dirty-worktree.md",
       "examples/1.62-native-first-existing-project/governed-admin/native-migration-plans/001-governed-admin.md",
       "examples/1.62-native-first-existing-project/light-web/native-migration-plans/001-light-web.md",
       "examples/1.62-native-first-existing-project/production-maintained/native-migration-plans/001-production-maintained.md",
-      "examples/1.62-native-first-existing-project/README.md",
+      "examples/1.63-native-migration-precision/README.md",
       "examples/1.63-native-migration-precision/mixed-agent-rules/AGENTS.md",
       "examples/1.63-native-migration-precision/mixed-agent-rules/docs/WEB_ENGINEERING_BASELINE.md",
       "examples/1.63-native-migration-precision/mixed-agent-rules/native-migration-plans/001-mixed-agent-rules.md",
-      "examples/1.63-native-migration-precision/README.md",
       "examples/1.64-native-migration-parser-calibration/README.md",
       "examples/1.64-native-migration-parser-calibration/table-long-bilingual/AGENTS.md",
       "examples/1.64-native-migration-parser-calibration/table-long-bilingual/docs/GOVERNANCE.md",
       "examples/1.64-native-migration-parser-calibration/table-long-bilingual/native-migration-plans/001-table-long-bilingual.md",
+      "examples/1.65-native-migration-classification-calibration/README.md",
       "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/AGENTS.md",
       "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/docs/GOVERNANCE.md",
       "examples/1.65-native-migration-classification-calibration/mixed-domain-bilingual/native-migration-plans/001-mixed-domain-bilingual.md",
-      "examples/1.65-native-migration-classification-calibration/README.md",
-      "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md",
-      "examples/1.66-existing-rule-reconciliation/governed-web-admin/README.md",
       "examples/1.66-existing-rule-reconciliation/README.md",
+      "examples/1.66-existing-rule-reconciliation/governed-web-admin/README.md",
+      "examples/1.66-existing-rule-reconciliation/governed-web-admin/existing-rule-reconciliations/001-governed-web-admin.md",
+      "examples/1.67-release-core-model/README.md",
       "examples/1.67-release-core-model/backend-api-handoff/README.md",
       "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENVIRONMENT_BASELINE.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
-      "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
       "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
       "examples/1.67-release-core-model/mini-program-review/README.md",
       "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
-      "examples/1.67-release-core-model/README.md",
       "examples/1.67-release-core-model/web-preview/README.md",
       "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.7-first-delivery-walkthrough/README.md",
       "examples/1.7-first-delivery-walkthrough/adoption-trial-reports/001-booking-app-simulation.md",
       "examples/1.7-first-delivery-walkthrough/baseline-recommendations/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/conversation-turns/001-add-payment.md",
@@ -619,22 +632,22 @@
       "examples/1.7-first-delivery-walkthrough/goal-cards/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/launch-readiness/001-booking-app-demo.md",
       "examples/1.7-first-delivery-walkthrough/preflight/001-booking-app.md",
-      "examples/1.7-first-delivery-walkthrough/README.md",
       "examples/1.7-first-delivery-walkthrough/requests/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/review-loop-reports/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/scope-change-reports/001-add-payment.md",
       "examples/1.7-first-delivery-walkthrough/specs/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/subagent-run-plans/001-booking-app.md",
       "examples/1.7-first-delivery-walkthrough/tasks/001-booking-app.md",
+      "examples/1.70-existing-project-governance-convergence/README.md",
       "examples/1.70-existing-project-governance-convergence/dirty-worktree-blocked/governance-convergence-reports/001-dirty-worktree.md",
       "examples/1.70-existing-project-governance-convergence/governed-web-admin/governance-convergence-reports/001-governed-web-admin.md",
       "examples/1.70-existing-project-governance-convergence/production-multiplatform/governance-convergence-reports/001-production-multiplatform.md",
-      "examples/1.70-existing-project-governance-convergence/README.md",
+      "examples/1.71-adoption-execution-assurance/README.md",
       "examples/1.71-adoption-execution-assurance/blocked-production-project/adoption-assurance-reports/001-blocked.md",
       "examples/1.71-adoption-execution-assurance/failed-assurance/adoption-assurance-reports/001-failed.md",
       "examples/1.71-adoption-execution-assurance/partial-existing-project/adoption-assurance-reports/001-partial.md",
-      "examples/1.71-adoption-execution-assurance/README.md",
       "examples/1.71-adoption-execution-assurance/verified-existing-project/adoption-assurance-reports/001-verified.md",
+      "examples/1.72-execution-assurance-chain/README.md",
       "examples/1.72-execution-assurance-chain/feature-contract-validation/change-impact-coverage-reports/001-contract.md",
       "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/api-validation.txt",
       "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/backend-rule.txt",
@@ -647,31 +660,42 @@
       "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/execution-assurance-reports/001-adoption.md",
       "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/governance-convergence-reports/001-convergence.md",
       "examples/1.72-execution-assurance-chain/patch-smell-backend-only/execution-assurance-reports/001-backend-only.md",
-      "examples/1.72-execution-assurance-chain/README.md",
       "examples/1.72-execution-assurance-chain/safe-copy-patch/evidence/copy-smoke.txt",
       "examples/1.72-execution-assurance-chain/safe-copy-patch/execution-assurance-reports/001-copy.md",
       "examples/1.72-execution-assurance-chain/safe-copy-patch/tasks/001-copy.md",
-      "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-requests-must-include-a-service-time.md",
-      "examples/1.75-business-rule-closure/appointment-service-time/README.md",
       "examples/1.75-business-rule-closure/README.md",
+      "examples/1.75-business-rule-closure/appointment-service-time/README.md",
+      "examples/1.75-business-rule-closure/appointment-service-time/business-rule-closures/001-appointment-requests-must-include-a-service-time.md",
+      "examples/1.76-verification-plan/README.md",
+      "examples/1.76-verification-plan/appointment-service-time/README.md",
       "examples/1.76-verification-plan/appointment-service-time/business-rule-closures/001-service-time.md",
       "examples/1.76-verification-plan/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
-      "examples/1.76-verification-plan/appointment-service-time/README.md",
       "examples/1.76-verification-plan/appointment-service-time/verification-plans/001-service-time.md",
-      "examples/1.76-verification-plan/README.md",
+      "examples/1.77-test-evidence-binding/README.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/README.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/business-rule-closures/001-service-time.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/api-contract.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/backend-rule.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/frontend-ui.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/handoff.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/user-flow.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/test-evidence-reports/001-service-time.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/verification-plans/001-service-time.md",
+      "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
       "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
-      "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/real-adoption-trials/001-governed-web-readonly.md",
+      "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
-      "examples/engineering-baseline-api-dto-domain/README.md",
+      "examples/engineering-baseline-enum-vs-lookup/README.md",
       "examples/engineering-baseline-enum-vs-lookup/decision-briefs/001-status-model-decision.md",
       "examples/engineering-baseline-enum-vs-lookup/docs/engineering-baseline.md",
-      "examples/engineering-baseline-enum-vs-lookup/README.md",
       "examples/generic-first-change/README.md",
-      "examples/goal-mode-first-route/goal-cards/001-define-work.md",
       "examples/goal-mode-first-route/README.md",
+      "examples/goal-mode-first-route/goal-cards/001-define-work.md",
+      "examples/goal-subagent-l2-feature/README.md",
       "examples/goal-subagent-l2-feature/docs/engineering-baseline.md",
       "examples/goal-subagent-l2-feature/evals/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/final-reports/001-project-status-filter.md",
@@ -679,7 +703,6 @@
       "examples/goal-subagent-l2-feature/goal-cards/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/gpt-review-prompts/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/preflight/001-project-status-filter.md",
-      "examples/goal-subagent-l2-feature/README.md",
       "examples/goal-subagent-l2-feature/requests/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/review-loop-reports/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/review-packets/001-project-status-filter.md",
@@ -687,17 +710,18 @@
       "examples/goal-subagent-l2-feature/specs/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/subagent-run-plans/001-project-status-filter.md",
       "examples/goal-subagent-l2-feature/tasks/001-project-status-filter.md",
+      "examples/miniprogram-industrial-bl2-first-slice/README.md",
       "examples/miniprogram-industrial-bl2-first-slice/ai-logs/2026-06-26-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/docs/baseline-evidence.md",
       "examples/miniprogram-industrial-bl2-first-slice/docs/baseline-selection.md",
       "examples/miniprogram-industrial-bl2-first-slice/evals/001-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/evidence/miniprogram-runtime-evidence.md",
       "examples/miniprogram-industrial-bl2-first-slice/preflight/001-miniprogram-login-cloud-read.md",
-      "examples/miniprogram-industrial-bl2-first-slice/README.md",
       "examples/miniprogram-industrial-bl2-first-slice/releases/001-miniprogram-login-cloud-read-release.md",
       "examples/miniprogram-industrial-bl2-first-slice/requests/001-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/specs/001-miniprogram-login-cloud-read.md",
       "examples/miniprogram-industrial-bl2-first-slice/tasks/001-miniprogram-login-cloud-read.md",
+      "examples/mvp-booking-web-app/README.md",
       "examples/mvp-booking-web-app/docs/product-brief.md",
       "examples/mvp-booking-web-app/evidence/smoke-output.json",
       "examples/mvp-booking-web-app/evidence/smoke-output.txt",
@@ -705,11 +729,11 @@
       "examples/mvp-booking-web-app/ordinary-first-slices/001-booking-web-app.md",
       "examples/mvp-booking-web-app/package.json",
       "examples/mvp-booking-web-app/product-completeness-reports/001-booking-web-app.md",
-      "examples/mvp-booking-web-app/README.md",
       "examples/mvp-booking-web-app/scripts/smoke-test.mjs",
       "examples/mvp-booking-web-app/src/app.js",
       "examples/mvp-booking-web-app/src/index.html",
       "examples/mvp-booking-web-app/src/styles.css",
+      "examples/mvp-cli-note-tool/README.md",
       "examples/mvp-cli-note-tool/docs/product-brief.md",
       "examples/mvp-cli-note-tool/evidence/smoke-output.json",
       "examples/mvp-cli-note-tool/evidence/smoke-output.txt",
@@ -717,9 +741,9 @@
       "examples/mvp-cli-note-tool/ordinary-first-slices/001-cli-note-tool.md",
       "examples/mvp-cli-note-tool/package.json",
       "examples/mvp-cli-note-tool/product-completeness-reports/001-cli-note-tool.md",
-      "examples/mvp-cli-note-tool/README.md",
       "examples/mvp-cli-note-tool/scripts/smoke-test.mjs",
       "examples/mvp-cli-note-tool/src/cli.mjs",
+      "examples/mvp-dashboard-web-app/README.md",
       "examples/mvp-dashboard-web-app/docs/product-brief.md",
       "examples/mvp-dashboard-web-app/evidence/smoke-output.json",
       "examples/mvp-dashboard-web-app/evidence/smoke-output.txt",
@@ -727,19 +751,18 @@
       "examples/mvp-dashboard-web-app/ordinary-first-slices/001-dashboard-web-app.md",
       "examples/mvp-dashboard-web-app/package.json",
       "examples/mvp-dashboard-web-app/product-completeness-reports/001-dashboard-web-app.md",
-      "examples/mvp-dashboard-web-app/README.md",
       "examples/mvp-dashboard-web-app/scripts/smoke-test.mjs",
       "examples/mvp-dashboard-web-app/src/app.js",
       "examples/mvp-dashboard-web-app/src/index.html",
       "examples/mvp-dashboard-web-app/src/styles.css",
-      "examples/next-step-boundary-suggestions/final-reports/001-suggestions.md",
       "examples/next-step-boundary-suggestions/README.md",
+      "examples/next-step-boundary-suggestions/final-reports/001-suggestions.md",
+      "examples/review-loop-l2-first-slice/README.md",
       "examples/review-loop-l2-first-slice/evals/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/final-reports/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/follow-up-proposals/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/gpt-review-prompts/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/preflight/001-review-loop-l2-slice.md",
-      "examples/review-loop-l2-first-slice/README.md",
       "examples/review-loop-l2-first-slice/requests/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/review-loop-reports/001-review-loop-l2-slice.md",
       "examples/review-loop-l2-first-slice/review-packets/001-review-loop-l2-slice.md",
@@ -748,21 +771,21 @@
       "examples/review-loop-l2-first-slice/tasks/001-review-loop-l2-slice.md",
       "examples/subagent-orchestration-closed-run/README.md",
       "examples/subagent-orchestration-closed-run/subagent-run-plans/001-closed-review.md",
+      "examples/web-industrial-bl2-first-slice/README.md",
       "examples/web-industrial-bl2-first-slice/ai-logs/2026-06-26-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/docs/baseline-evidence.md",
       "examples/web-industrial-bl2-first-slice/docs/baseline-selection.md",
       "examples/web-industrial-bl2-first-slice/evals/001-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/evidence/web-runtime-evidence.md",
       "examples/web-industrial-bl2-first-slice/preflight/001-web-runtime-quality.md",
-      "examples/web-industrial-bl2-first-slice/README.md",
       "examples/web-industrial-bl2-first-slice/releases/001-web-runtime-quality-release.md",
       "examples/web-industrial-bl2-first-slice/requests/001-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/specs/001-web-runtime-quality.md",
       "examples/web-industrial-bl2-first-slice/tasks/001-web-runtime-quality.md",
+      "examples/web-internal-admin-first-slice/README.md",
       "examples/web-internal-admin-first-slice/ai-task-log.example.md",
       "examples/web-internal-admin-first-slice/eval.md",
       "examples/web-internal-admin-first-slice/preflight-report.md",
-      "examples/web-internal-admin-first-slice/README.md",
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
       "examples/web-internal-admin-first-slice/task-card.md",
@@ -822,6 +845,7 @@
       "hook-policies/.gitkeep",
       "industrial-pack-candidates/README.md",
       "industrial-pack-candidates/web-app/README.md",
+      "industrial-packs/README.md",
       "industrial-packs/android-app/changelog.md",
       "industrial-packs/android-app/dogfood.md",
       "industrial-packs/android-app/evidence.md",
@@ -877,7 +901,6 @@
       "industrial-packs/payment-value-transfer/false-positive-log.md",
       "industrial-packs/payment-value-transfer/maturity.md",
       "industrial-packs/payment-value-transfer/owner.md",
-      "industrial-packs/README.md",
       "industrial-packs/schema/baseline-selection.schema.json",
       "industrial-packs/schema/pack.schema.json",
       "industrial-packs/selection-guide.md",
@@ -938,12 +961,8 @@
       "launch-readiness/.gitkeep",
       "launch-review-views/.gitkeep",
       "learning-candidates/.gitkeep",
-      "LICENSE-COMMERCIAL.md",
-      "LICENSE-FAQ.md",
-      "LICENSE.md",
       "mvp-example-reports/.gitkeep",
       "native-migration-plans/.gitkeep",
-      "NOTICE.md",
       "ordinary-first-slices/.gitkeep",
       "package.json",
       "patch-classification-false-positives/.gitkeep",
@@ -1051,12 +1070,11 @@
       "prompts/review-surface-agent.md",
       "prompts/reviewer-agent.md",
       "prompts/standard-baseline-router-agent.md",
+      "prompts/test-evidence-agent.md",
       "prompts/verification-plan-agent.md",
       "prompts/walkthrough-agent.md",
       "prompts/workflow-adapter-agent.md",
       "prompts/workflow-concierge-agent.md",
-      "README.md",
-      "README.zh-CN.md",
       "real-adoption-trials/.gitkeep",
       "real-adoption-trials/180-governed-web-readonly.md",
       "release-adapters/.gitkeep",
@@ -1398,6 +1416,9 @@
       "releases/1.76.3/known-limitations.md",
       "releases/1.76.3/release-record.md",
       "releases/1.76.3/self-check-report.md",
+      "releases/1.77.0/known-limitations.md",
+      "releases/1.77.0/release-record.md",
+      "releases/1.77.0/self-check-report.md",
       "releases/1.8.0/known-limitations.md",
       "releases/1.8.0/release-record.md",
       "releases/1.8.0/self-check-report.md",
@@ -1491,10 +1512,12 @@
       "schemas/artifacts/spec.schema.json",
       "schemas/artifacts/subagent-run-plan.schema.json",
       "schemas/artifacts/task.schema.json",
+      "schemas/artifacts/test-evidence.schema.json",
       "schemas/artifacts/unified-apply-plan.schema.json",
       "schemas/artifacts/verification-plan.schema.json",
       "schemas/intentos-manifest.schema.json",
       "scope-change-reports/.gitkeep",
+      "scripts/README.md",
       "scripts/baseline-project.mjs",
       "scripts/check-adoption-assurance.mjs",
       "scripts/check-ai-workflow.mjs",
@@ -1561,6 +1584,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-test-evidence.mjs",
       "scripts/check-verification-plan.mjs",
       "scripts/check-workflow-adoption-map.mjs",
       "scripts/check-workflow-artifacts.mjs",
@@ -1580,7 +1604,6 @@
       "scripts/lib/risk-surfaces.mjs",
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
-      "scripts/README.md",
       "scripts/resolve-adoption-assurance.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
@@ -1616,6 +1639,7 @@
       "scripts/resolve-release-plan.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
+      "scripts/resolve-test-evidence.mjs",
       "scripts/resolve-verification-plan.mjs",
       "scripts/resolve-workflow-guidance.mjs",
       "scripts/score-output-quality.mjs",
@@ -1623,7 +1647,6 @@
       "scripts/summarize-ai-logs.mjs",
       "scripts/workflow-daily-summary.mjs",
       "scripts/workflow-next.mjs",
-      "SECURITY.md",
       "specs/034-baseline-freeze-self-ci.md",
       "specs/035-readonly-manifest.md",
       "specs/036-cli-front-door.md",
@@ -1649,6 +1672,7 @@
       "specs/221-manifest-readme-fallback-sync.md",
       "specs/230-baseline-pack-system.md",
       "specs/240-standard-baseline-pack-registry.md",
+      "standard-baseline-packs/README.md",
       "standard-baseline-packs/android-app/baselines/android-app-baseline.md",
       "standard-baseline-packs/android-app/baselines/android-build-verification-baseline.md",
       "standard-baseline-packs/android-app/changelog.md",
@@ -1710,7 +1734,6 @@
       "standard-baseline-packs/miniprogram-runtime/pack.json",
       "standard-baseline-packs/miniprogram-runtime/pack.md",
       "standard-baseline-packs/miniprogram-runtime/templates/miniprogram-runtime-evidence.md",
-      "standard-baseline-packs/README.md",
       "standard-baseline-packs/release-rollback/baselines/release-readiness-baseline.md",
       "standard-baseline-packs/release-rollback/baselines/rollback-baseline.md",
       "standard-baseline-packs/release-rollback/changelog.md",
@@ -1893,6 +1916,7 @@
       "templates/subagent-run-plan.md",
       "templates/task-card.md",
       "templates/tech-stack-strategy.md",
+      "templates/test-evidence-report.md",
       "templates/unified-apply-plan.md",
       "templates/user-decision-card.md",
       "templates/verification-matrix.md",
@@ -1904,6 +1928,9 @@
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
       "templates/workflow-version.json",
+      "test-evidence-reports/.gitkeep",
+      "test-fixtures/README.md",
+      "test-fixtures/bad/README.md",
       "test-fixtures/bad/bad-adoption-assurance-ai-log-spam/adoption-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-adoption-assurance-authorizes-write/adoption-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-adoption-assurance-claims-production-approval/adoption-assurance-reports/001-bad.md",
@@ -2169,8 +2196,8 @@
       "test-fixtures/bad/bad-next-step-boundary/final-reports/001-boundary.md",
       "test-fixtures/bad/bad-next-step-risk-decision/final-reports/001-risk-decision.md",
       "test-fixtures/bad/bad-output-quality/final-reports/001-low-quality.md",
-      "test-fixtures/bad/bad-overclaimed-release/releases/1.3.0/release-record.md",
       "test-fixtures/bad/bad-overclaimed-release/VERSION.md",
+      "test-fixtures/bad/bad-overclaimed-release/releases/1.3.0/release-record.md",
       "test-fixtures/bad/bad-patch-authorizes-implementation/patch-classifications/001-authorizes.md",
       "test-fixtures/bad/bad-patch-do-not-patch-done/patch-classifications/001-done.md",
       "test-fixtures/bad/bad-patch-false-positive-unsafe/patch-classification-false-positives/001-unsafe.md",
@@ -2329,24 +2356,35 @@
       "test-fixtures/bad/bad-subagent-dispatch-task-drift/subagent-run-plans/001-bad.md",
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
+      "test-fixtures/bad/bad-test-evidence-broad-command-only/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-covered-with-failed-evidence/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-covered-with-skipped-evidence/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-current-task-no/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-manual-owner-ai/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-markdown-extra-coverage-row/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-markdown-result-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-missing-required-obligation/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-missing-verification-plan-ref/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-output-digest-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-source-system-digest-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-stale-ran-before-change/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-verification-plan-digest-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-waiver-missing-human-decision/test-evidence-reports/001-service-time.md",
       "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
       "test-fixtures/bad/bad-workflow-adoption-authorizes-write/workflow-adoption-maps/001-bad.md",
       "test-fixtures/bad/bad-workflow-adoption-missing-use/workflow-adoption-maps/001-bad.md",
       "test-fixtures/bad/bad-workflow-guidance-overclaim/workflow-guidance-cards/001-bad.md",
       "test-fixtures/bad/bad-workflow-guidance-too-many-questions/workflow-guidance-cards/001-bad.md",
       "test-fixtures/bad/bad-workflow-map-adapter-endpoint/workflow-adoption-maps/001-bad.md",
-      "test-fixtures/bad/README.md",
       "test-fixtures/cli/README.md",
       "test-fixtures/fixture-cases.json",
       "test-fixtures/golden/README.md",
       "test-fixtures/init-update/README.md",
-      "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/README.md",
+      "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.intentos/version.json",
       "test-fixtures/output-quality/README.md",
-      "test-fixtures/README.md",
       "verification-plans/.gitkeep",
-      "VERSION.md",
       "workflow-adoption-maps/.gitkeep",
       "workflow-guidance-cards/.gitkeep"
     ],
@@ -2966,6 +3004,7 @@
       ".intentos/checklists/standard-baseline-selection-review.md",
       ".intentos/checklists/starter-review.md",
       ".intentos/checklists/subagent-orchestration-review.md",
+      ".intentos/checklists/test-evidence-review.md",
       ".intentos/checklists/unified-apply-plan-review.md",
       ".intentos/checklists/verification-gate.md",
       ".intentos/checklists/verification-plan-review.md",
@@ -3038,6 +3077,7 @@
       ".intentos/core/subagent-dispatch-hygiene.md",
       ".intentos/core/subagent-orchestration.md",
       ".intentos/core/task-levels.md",
+      ".intentos/core/test-evidence-binding.md",
       ".intentos/core/unified-apply-plan.md",
       ".intentos/core/unified-closure-model.md",
       ".intentos/core/verification-test-governance.md",
@@ -3188,6 +3228,7 @@
       ".intentos/prompts/reviewer-agent.md",
       ".intentos/prompts/spec-agent.md",
       ".intentos/prompts/standard-baseline-router-agent.md",
+      ".intentos/prompts/test-evidence-agent.md",
       ".intentos/prompts/verification-plan-agent.md",
       ".intentos/prompts/walkthrough-agent.md",
       ".intentos/prompts/work-queue-agent.md",
@@ -3202,6 +3243,7 @@
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/test-evidence.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/standard-baseline-packs",
       ".intentos/templates/active-work-thread.md",
@@ -3295,6 +3337,7 @@
       ".intentos/templates/subagent-run-plan.md",
       ".intentos/templates/task-card.md",
       ".intentos/templates/tech-stack-strategy.md",
+      ".intentos/templates/test-evidence-report.md",
       ".intentos/templates/unified-apply-plan.md",
       ".intentos/templates/user-decision-card.md",
       ".intentos/templates/verification-matrix.md",
@@ -3454,6 +3497,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-test-evidence.mjs",
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
@@ -3507,6 +3551,7 @@
       "scripts/resolve-release-plan.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
+      "scripts/resolve-test-evidence.mjs",
       "scripts/resolve-verification-plan.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -3521,6 +3566,7 @@
       "status-reports",
       "subagent-run-plans",
       "tasks",
+      "test-evidence-reports",
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
@@ -3581,6 +3627,7 @@
       ".intentos/core/subagent-dispatch-hygiene.md",
       ".intentos/core/subagent-orchestration.md",
       ".intentos/core/task-levels.md",
+      ".intentos/core/test-evidence-binding.md",
       ".intentos/core/unified-closure-model.md",
       ".intentos/core/workflow.md",
       ".intentos/docs/platform-release-recipes.md",
@@ -3669,6 +3716,7 @@
       ".intentos/templates/product-completeness-report.md",
       ".intentos/templates/real-mvp-example-record.md",
       ".intentos/templates/review-surface-card.md",
+      ".intentos/templates/test-evidence-report.md",
       "templates/active-work-thread.md",
       "templates/adoption-assessment.md",
       "templates/adoption-assurance-report.md",
@@ -3786,6 +3834,7 @@
       ".intentos/prompts/product-completeness-agent.md",
       ".intentos/prompts/real-mvp-example-agent.md",
       ".intentos/prompts/review-surface-agent.md",
+      ".intentos/prompts/test-evidence-agent.md",
       "prompts/adoption-assurance-agent.md",
       "prompts/apply-plan-agent.md",
       "prompts/approval-record-agent.md",
@@ -3854,6 +3903,7 @@
       ".intentos/checklists/product-completeness-gate-review.md",
       ".intentos/checklists/real-mvp-example-review.md",
       ".intentos/checklists/review-surface-review.md",
+      ".intentos/checklists/test-evidence-review.md",
       "checklists/adoption-assurance-review.md",
       "checklists/approval-record-review.md",
       "checklists/automation-review.md",
@@ -4027,6 +4077,7 @@
       "status-reports",
       "subagent-run-plans",
       "tasks",
+      "test-evidence-reports",
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
@@ -4100,6 +4151,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-test-evidence.mjs",
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
@@ -4156,6 +4208,7 @@
       "scripts/resolve-release-plan.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
+      "scripts/resolve-test-evidence.mjs",
       "scripts/resolve-verification-plan.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -4406,6 +4459,17 @@
       "examples/1.76-verification-plan/appointment-service-time/business-rule-closures/001-service-time.md",
       "examples/1.76-verification-plan/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
       "examples/1.76-verification-plan/appointment-service-time/verification-plans/001-service-time.md",
+      "examples/1.77-test-evidence-binding/README.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/README.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/business-rule-closures/001-service-time.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/api-contract.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/backend-rule.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/frontend-ui.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/handoff.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/evidence/user-flow.txt",
+      "examples/1.77-test-evidence-binding/appointment-service-time/test-evidence-reports/001-service-time.md",
+      "examples/1.77-test-evidence-binding/appointment-service-time/verification-plans/001-service-time.md",
       "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
       "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
@@ -4908,6 +4972,20 @@
       "test-fixtures/bad/bad-subagent-dispatch-task-drift/subagent-run-plans/001-bad.md",
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
+      "test-fixtures/bad/bad-test-evidence-broad-command-only/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-covered-with-failed-evidence/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-covered-with-skipped-evidence/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-current-task-no/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-manual-owner-ai/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-markdown-extra-coverage-row/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-markdown-result-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-missing-required-obligation/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-missing-verification-plan-ref/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-output-digest-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-source-system-digest-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-stale-ran-before-change/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-verification-plan-digest-mismatch/test-evidence-reports/001-service-time.md",
+      "test-fixtures/bad/bad-test-evidence-waiver-missing-human-decision/test-evidence-reports/001-service-time.md",
       "test-fixtures/bad/bad-unmarked-assumption/final-reports/001-assumption.md",
       "test-fixtures/bad/bad-work-queue-multiple-current/work-queue/001-bad.md",
       "test-fixtures/bad/bad-work-queue-resume-without-review/work-queue/001-bad.md",
@@ -4976,6 +5054,7 @@
       ".intentos/checklists/release-plan-review.md",
       ".intentos/checklists/review-surface-review.md",
       ".intentos/checklists/standard-baseline-selection-review.md",
+      ".intentos/checklists/test-evidence-review.md",
       ".intentos/checklists/unified-apply-plan-review.md",
       ".intentos/checklists/verification-plan-review.md",
       ".intentos/checklists/work-queue-review.md",
@@ -5036,6 +5115,7 @@
       ".intentos/core/safe-launch.md",
       ".intentos/core/standard-baseline-pack-registry.md",
       ".intentos/core/subagent-dispatch-hygiene.md",
+      ".intentos/core/test-evidence-binding.md",
       ".intentos/core/unified-apply-plan.md",
       ".intentos/core/unified-closure-model.md",
       ".intentos/core/verification-test-governance.md",
@@ -5157,6 +5237,7 @@
       ".intentos/prompts/release-plan-agent.md",
       ".intentos/prompts/review-surface-agent.md",
       ".intentos/prompts/standard-baseline-router-agent.md",
+      ".intentos/prompts/test-evidence-agent.md",
       ".intentos/prompts/verification-plan-agent.md",
       ".intentos/prompts/walkthrough-agent.md",
       ".intentos/prompts/work-queue-agent.md",
@@ -5171,6 +5252,7 @@
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/test-evidence.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/standard-baseline-packs",
       ".intentos/templates",
@@ -5228,6 +5310,7 @@
       ".intentos/templates/review-surface-card.md",
       ".intentos/templates/scope-change-report.md",
       ".intentos/templates/standard-baseline-selection-report.md",
+      ".intentos/templates/test-evidence-report.md",
       ".intentos/templates/unified-apply-plan.md",
       ".intentos/templates/user-decision-card.md",
       ".intentos/templates/verification-plan.md",
@@ -5364,6 +5447,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-test-evidence.mjs",
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
@@ -5416,6 +5500,7 @@
       "scripts/resolve-release-plan.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
+      "scripts/resolve-test-evidence.mjs",
       "scripts/resolve-verification-plan.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -5426,6 +5511,7 @@
       "standard-baseline-selections",
       "status-reports",
       "subagent-run-plans",
+      "test-evidence-reports",
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
@@ -5480,6 +5566,7 @@
       ".intentos/checklists/review-surface-review.md",
       ".intentos/checklists/standard-baseline-selection-review.md",
       ".intentos/checklists/subagent-orchestration-review.md",
+      ".intentos/checklists/test-evidence-review.md",
       ".intentos/checklists/unified-apply-plan-review.md",
       ".intentos/checklists/verification-plan-review.md",
       ".intentos/checklists/work-queue-review.md",
@@ -5539,6 +5626,7 @@
       ".intentos/core/safe-launch.md",
       ".intentos/core/standard-baseline-pack-registry.md",
       ".intentos/core/subagent-orchestration.md",
+      ".intentos/core/test-evidence-binding.md",
       ".intentos/core/unified-apply-plan.md",
       ".intentos/core/unified-closure-model.md",
       ".intentos/core/verification-test-governance.md",
@@ -5655,6 +5743,7 @@
       ".intentos/prompts/reporter-agent.md",
       ".intentos/prompts/review-surface-agent.md",
       ".intentos/prompts/standard-baseline-router-agent.md",
+      ".intentos/prompts/test-evidence-agent.md",
       ".intentos/prompts/verification-plan-agent.md",
       ".intentos/prompts/walkthrough-agent.md",
       ".intentos/prompts/work-queue-agent.md",
@@ -5663,6 +5752,7 @@
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/test-evidence.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/standard-baseline-packs",
       ".intentos/templates/active-work-thread.md",
@@ -5732,6 +5822,7 @@
       ".intentos/templates/standard-baseline-selection-report.md",
       ".intentos/templates/subagent-run-plan.md",
       ".intentos/templates/tech-stack-strategy.md",
+      ".intentos/templates/test-evidence-report.md",
       ".intentos/templates/unified-apply-plan.md",
       ".intentos/templates/user-decision-card.md",
       ".intentos/templates/verification-plan.md",
@@ -5861,6 +5952,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-test-evidence.mjs",
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
@@ -5901,6 +5993,7 @@
       "scripts/resolve-release-plan.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
+      "scripts/resolve-test-evidence.mjs",
       "scripts/resolve-verification-plan.mjs",
       "scripts/resolve-work-queue.mjs",
       "scripts/resolve-workflow-guidance.mjs",
@@ -5911,6 +6004,7 @@
       "standard-baseline-selections",
       "status-reports",
       "subagent-run-plans",
+      "test-evidence-reports",
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
@@ -5919,34 +6013,6 @@
   },
   "copyRules": {
     "directories": [
-      {
-        "source": "checklists",
-        "target": ".intentos/checklists"
-      },
-      {
-        "source": "core",
-        "target": ".intentos/core"
-      },
-      {
-        "source": "profiles",
-        "target": ".intentos/profiles"
-      },
-      {
-        "source": "prompts",
-        "target": ".intentos/prompts"
-      },
-      {
-        "source": "schemas/artifacts",
-        "target": ".intentos/schemas/artifacts"
-      },
-      {
-        "source": "standard-baseline-packs",
-        "target": ".intentos/standard-baseline-packs"
-      },
-      {
-        "source": "templates",
-        "target": ".intentos/templates"
-      },
       {
         "source": "adoption-assurance-reports",
         "target": "adoption-assurance-reports"
@@ -5992,12 +6058,20 @@
         "target": "change-impact-coverage-reports"
       },
       {
+        "source": "checklists",
+        "target": ".intentos/checklists"
+      },
+      {
         "source": "closure-decisions",
         "target": "closure-decisions"
       },
       {
         "source": "controlled-apply-candidates",
         "target": "controlled-apply-candidates"
+      },
+      {
+        "source": "core",
+        "target": ".intentos/core"
       },
       {
         "source": "delivery-path-reports",
@@ -6064,6 +6138,14 @@
         "target": "product-completeness-reports"
       },
       {
+        "source": "profiles",
+        "target": ".intentos/profiles"
+      },
+      {
+        "source": "prompts",
+        "target": ".intentos/prompts"
+      },
+      {
         "source": "real-adoption-trials",
         "target": "real-adoption-trials"
       },
@@ -6096,8 +6178,24 @@
         "target": "review-surface-cards"
       },
       {
+        "source": "schemas/artifacts",
+        "target": ".intentos/schemas/artifacts"
+      },
+      {
+        "source": "standard-baseline-packs",
+        "target": ".intentos/standard-baseline-packs"
+      },
+      {
         "source": "standard-baseline-selections",
         "target": "standard-baseline-selections"
+      },
+      {
+        "source": "templates",
+        "target": ".intentos/templates"
+      },
+      {
+        "source": "test-evidence-reports",
+        "target": "test-evidence-reports"
       },
       {
         "source": "verification-plans",
@@ -6117,10 +6215,6 @@
       }
     ],
     "files": [
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
-      },
       {
         "source": "checklists/adoption-assurance-review.md",
         "target": ".intentos/checklists/adoption-assurance-review.md"
@@ -6248,6 +6342,10 @@
       {
         "source": "checklists/standard-baseline-selection-review.md",
         "target": ".intentos/checklists/standard-baseline-selection-review.md"
+      },
+      {
+        "source": "checklists/test-evidence-review.md",
+        "target": ".intentos/checklists/test-evidence-review.md"
       },
       {
         "source": "checklists/unified-apply-plan-review.md",
@@ -6408,6 +6506,10 @@
       {
         "source": "core/subagent-dispatch-hygiene.md",
         "target": ".intentos/core/subagent-dispatch-hygiene.md"
+      },
+      {
+        "source": "core/test-evidence-binding.md",
+        "target": ".intentos/core/test-evidence-binding.md"
       },
       {
         "source": "core/unified-apply-plan.md",
@@ -6694,6 +6796,10 @@
         "target": ".intentos/intentos-manifest.json"
       },
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
         "source": "prompts/adoption-assurance-agent.md",
         "target": ".intentos/prompts/adoption-assurance-agent.md"
       },
@@ -6834,6 +6940,10 @@
         "target": ".intentos/prompts/standard-baseline-router-agent.md"
       },
       {
+        "source": "prompts/test-evidence-agent.md",
+        "target": ".intentos/prompts/test-evidence-agent.md"
+      },
+      {
         "source": "prompts/verification-plan-agent.md",
         "target": ".intentos/prompts/verification-plan-agent.md"
       },
@@ -6870,176 +6980,12 @@
         "target": ".intentos/schemas/artifacts/release-handoff-evidence.schema.json"
       },
       {
+        "source": "schemas/artifacts/test-evidence.schema.json",
+        "target": ".intentos/schemas/artifacts/test-evidence.schema.json"
+      },
+      {
         "source": "schemas/artifacts/verification-plan.schema.json",
         "target": ".intentos/schemas/artifacts/verification-plan.schema.json"
-      },
-      {
-        "source": "templates/active-work-thread.md",
-        "target": ".intentos/templates/active-work-thread.md"
-      },
-      {
-        "source": "templates/adoption-assurance-report.md",
-        "target": ".intentos/templates/adoption-assurance-report.md"
-      },
-      {
-        "source": "templates/archive-index.md",
-        "target": ".intentos/templates/archive-index.md"
-      },
-      {
-        "source": "templates/baseline-decision-card.md",
-        "target": ".intentos/templates/baseline-decision-card.md"
-      },
-      {
-        "source": "templates/baseline-pack-selection-report.md",
-        "target": ".intentos/templates/baseline-pack-selection-report.md"
-      },
-      {
-        "source": "templates/baseline-state-report.md",
-        "target": ".intentos/templates/baseline-state-report.md"
-      },
-      {
-        "source": "templates/beginner-entry-card.md",
-        "target": ".intentos/templates/beginner-entry-card.md"
-      },
-      {
-        "source": "templates/business-rule-closure-card.md",
-        "target": ".intentos/templates/business-rule-closure-card.md"
-      },
-      {
-        "source": "templates/change-boundary-report.md",
-        "target": ".intentos/templates/change-boundary-report.md"
-      },
-      {
-        "source": "templates/change-impact-coverage-report.md",
-        "target": ".intentos/templates/change-impact-coverage-report.md"
-      },
-      {
-        "source": "templates/closure-decision.md",
-        "target": ".intentos/templates/closure-decision.md"
-      },
-      {
-        "source": "templates/controlled-apply-readiness-report.md",
-        "target": ".intentos/templates/controlled-apply-readiness-report.md"
-      },
-      {
-        "source": "templates/conversation-ask-card.md",
-        "target": ".intentos/templates/conversation-ask-card.md"
-      },
-      {
-        "source": "templates/debt-knowledge-handoff-report.md",
-        "target": ".intentos/templates/debt-knowledge-handoff-report.md"
-      },
-      {
-        "source": "templates/delivery-path-report.md",
-        "target": ".intentos/templates/delivery-path-report.md"
-      },
-      {
-        "source": "templates/document-archive-apply-plan.md",
-        "target": ".intentos/templates/document-archive-apply-plan.md"
-      },
-      {
-        "source": "templates/execution-assurance-report.md",
-        "target": ".intentos/templates/execution-assurance-report.md"
-      },
-      {
-        "source": "templates/execution-closure-report.md",
-        "target": ".intentos/templates/execution-closure-report.md"
-      },
-      {
-        "source": "templates/existing-rule-reconciliation-report.md",
-        "target": ".intentos/templates/existing-rule-reconciliation-report.md"
-      },
-      {
-        "source": "templates/governance-convergence-report.md",
-        "target": ".intentos/templates/governance-convergence-report.md"
-      },
-      {
-        "source": "templates/guided-closure-card.md",
-        "target": ".intentos/templates/guided-closure-card.md"
-      },
-      {
-        "source": "templates/guided-decision-summary.md",
-        "target": ".intentos/templates/guided-decision-summary.md"
-      },
-      {
-        "source": "templates/hook-orchestration-plan.md",
-        "target": ".intentos/templates/hook-orchestration-plan.md"
-      },
-      {
-        "source": "templates/launch-review-view-card.md",
-        "target": ".intentos/templates/launch-review-view-card.md"
-      },
-      {
-        "source": "templates/native-migration-plan.md",
-        "target": ".intentos/templates/native-migration-plan.md"
-      },
-      {
-        "source": "templates/patch-classification-false-positive.md",
-        "target": ".intentos/templates/patch-classification-false-positive.md"
-      },
-      {
-        "source": "templates/patch-classification-report.md",
-        "target": ".intentos/templates/patch-classification-report.md"
-      },
-      {
-        "source": "templates/platform-release-recipe.md",
-        "target": ".intentos/templates/platform-release-recipe.md"
-      },
-      {
-        "source": "templates/project-hook-policy.md",
-        "target": ".intentos/templates/project-hook-policy.md"
-      },
-      {
-        "source": "templates/real-adoption-trial-report.md",
-        "target": ".intentos/templates/real-adoption-trial-report.md"
-      },
-      {
-        "source": "templates/release-adapter-profile.md",
-        "target": ".intentos/templates/release-adapter-profile.md"
-      },
-      {
-        "source": "templates/release-approval-record.md",
-        "target": ".intentos/templates/release-approval-record.md"
-      },
-      {
-        "source": "templates/release-execution-plan.md",
-        "target": ".intentos/templates/release-execution-plan.md"
-      },
-      {
-        "source": "templates/release-guide-card.md",
-        "target": ".intentos/templates/release-guide-card.md"
-      },
-      {
-        "source": "templates/release-handoff-pack.md",
-        "target": ".intentos/templates/release-handoff-pack.md"
-      },
-      {
-        "source": "templates/review-surface-card.md",
-        "target": ".intentos/templates/review-surface-card.md"
-      },
-      {
-        "source": "templates/standard-baseline-selection-report.md",
-        "target": ".intentos/templates/standard-baseline-selection-report.md"
-      },
-      {
-        "source": "templates/unified-apply-plan.md",
-        "target": ".intentos/templates/unified-apply-plan.md"
-      },
-      {
-        "source": "templates/user-decision-card.md",
-        "target": ".intentos/templates/user-decision-card.md"
-      },
-      {
-        "source": "templates/verification-plan.md",
-        "target": ".intentos/templates/verification-plan.md"
-      },
-      {
-        "source": "templates/work-queue-report.md",
-        "target": ".intentos/templates/work-queue-report.md"
-      },
-      {
-        "source": "templates/workflow-guidance-card.md",
-        "target": ".intentos/templates/workflow-guidance-card.md"
       },
       {
         "source": "scripts/baseline-project.mjs",
@@ -7290,6 +7236,10 @@
         "target": "scripts/check-subagent-orchestration.mjs"
       },
       {
+        "source": "scripts/check-test-evidence.mjs",
+        "target": "scripts/check-test-evidence.mjs"
+      },
+      {
         "source": "scripts/check-verification-plan.mjs",
         "target": "scripts/check-verification-plan.mjs"
       },
@@ -7506,6 +7456,10 @@
         "target": "scripts/resolve-standard-baseline.mjs"
       },
       {
+        "source": "scripts/resolve-test-evidence.mjs",
+        "target": "scripts/resolve-test-evidence.mjs"
+      },
+      {
         "source": "scripts/resolve-verification-plan.mjs",
         "target": "scripts/resolve-verification-plan.mjs"
       },
@@ -7532,6 +7486,178 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "templates/active-work-thread.md",
+        "target": ".intentos/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/adoption-assurance-report.md",
+        "target": ".intentos/templates/adoption-assurance-report.md"
+      },
+      {
+        "source": "templates/archive-index.md",
+        "target": ".intentos/templates/archive-index.md"
+      },
+      {
+        "source": "templates/baseline-decision-card.md",
+        "target": ".intentos/templates/baseline-decision-card.md"
+      },
+      {
+        "source": "templates/baseline-pack-selection-report.md",
+        "target": ".intentos/templates/baseline-pack-selection-report.md"
+      },
+      {
+        "source": "templates/baseline-state-report.md",
+        "target": ".intentos/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/beginner-entry-card.md",
+        "target": ".intentos/templates/beginner-entry-card.md"
+      },
+      {
+        "source": "templates/business-rule-closure-card.md",
+        "target": ".intentos/templates/business-rule-closure-card.md"
+      },
+      {
+        "source": "templates/change-boundary-report.md",
+        "target": ".intentos/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/change-impact-coverage-report.md",
+        "target": ".intentos/templates/change-impact-coverage-report.md"
+      },
+      {
+        "source": "templates/closure-decision.md",
+        "target": ".intentos/templates/closure-decision.md"
+      },
+      {
+        "source": "templates/controlled-apply-readiness-report.md",
+        "target": ".intentos/templates/controlled-apply-readiness-report.md"
+      },
+      {
+        "source": "templates/conversation-ask-card.md",
+        "target": ".intentos/templates/conversation-ask-card.md"
+      },
+      {
+        "source": "templates/debt-knowledge-handoff-report.md",
+        "target": ".intentos/templates/debt-knowledge-handoff-report.md"
+      },
+      {
+        "source": "templates/delivery-path-report.md",
+        "target": ".intentos/templates/delivery-path-report.md"
+      },
+      {
+        "source": "templates/document-archive-apply-plan.md",
+        "target": ".intentos/templates/document-archive-apply-plan.md"
+      },
+      {
+        "source": "templates/execution-assurance-report.md",
+        "target": ".intentos/templates/execution-assurance-report.md"
+      },
+      {
+        "source": "templates/execution-closure-report.md",
+        "target": ".intentos/templates/execution-closure-report.md"
+      },
+      {
+        "source": "templates/existing-rule-reconciliation-report.md",
+        "target": ".intentos/templates/existing-rule-reconciliation-report.md"
+      },
+      {
+        "source": "templates/governance-convergence-report.md",
+        "target": ".intentos/templates/governance-convergence-report.md"
+      },
+      {
+        "source": "templates/guided-closure-card.md",
+        "target": ".intentos/templates/guided-closure-card.md"
+      },
+      {
+        "source": "templates/guided-decision-summary.md",
+        "target": ".intentos/templates/guided-decision-summary.md"
+      },
+      {
+        "source": "templates/hook-orchestration-plan.md",
+        "target": ".intentos/templates/hook-orchestration-plan.md"
+      },
+      {
+        "source": "templates/launch-review-view-card.md",
+        "target": ".intentos/templates/launch-review-view-card.md"
+      },
+      {
+        "source": "templates/native-migration-plan.md",
+        "target": ".intentos/templates/native-migration-plan.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".intentos/templates/patch-classification-false-positive.md"
+      },
+      {
+        "source": "templates/patch-classification-report.md",
+        "target": ".intentos/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/platform-release-recipe.md",
+        "target": ".intentos/templates/platform-release-recipe.md"
+      },
+      {
+        "source": "templates/project-hook-policy.md",
+        "target": ".intentos/templates/project-hook-policy.md"
+      },
+      {
+        "source": "templates/real-adoption-trial-report.md",
+        "target": ".intentos/templates/real-adoption-trial-report.md"
+      },
+      {
+        "source": "templates/release-adapter-profile.md",
+        "target": ".intentos/templates/release-adapter-profile.md"
+      },
+      {
+        "source": "templates/release-approval-record.md",
+        "target": ".intentos/templates/release-approval-record.md"
+      },
+      {
+        "source": "templates/release-execution-plan.md",
+        "target": ".intentos/templates/release-execution-plan.md"
+      },
+      {
+        "source": "templates/release-guide-card.md",
+        "target": ".intentos/templates/release-guide-card.md"
+      },
+      {
+        "source": "templates/release-handoff-pack.md",
+        "target": ".intentos/templates/release-handoff-pack.md"
+      },
+      {
+        "source": "templates/review-surface-card.md",
+        "target": ".intentos/templates/review-surface-card.md"
+      },
+      {
+        "source": "templates/standard-baseline-selection-report.md",
+        "target": ".intentos/templates/standard-baseline-selection-report.md"
+      },
+      {
+        "source": "templates/test-evidence-report.md",
+        "target": ".intentos/templates/test-evidence-report.md"
+      },
+      {
+        "source": "templates/unified-apply-plan.md",
+        "target": ".intentos/templates/unified-apply-plan.md"
+      },
+      {
+        "source": "templates/user-decision-card.md",
+        "target": ".intentos/templates/user-decision-card.md"
+      },
+      {
+        "source": "templates/verification-plan.md",
+        "target": ".intentos/templates/verification-plan.md"
+      },
+      {
+        "source": "templates/work-queue-report.md",
+        "target": ".intentos/templates/work-queue-report.md"
+      },
+      {
+        "source": "templates/workflow-guidance-card.md",
+        "target": ".intentos/templates/workflow-guidance-card.md"
       }
     ]
   },

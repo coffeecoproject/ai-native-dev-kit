@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.76.3`
+Current version: `1.77.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,21 @@ Current version: `1.76.3`
 
 ## Current Release
 
-`1.76.3`
+`1.77.0`
 
 Includes:
+
+- Test Evidence Binding phase `1.77.0`: after Verification Plan Governance,
+  Codex can record whether concrete evidence actually covers every required
+  Verification Plan obligation.
+- `1.77.0` adds `test-evidence` / `test-evidence-check`, structured
+  `test_evidence` evidence, obligation-to-evidence coverage maps, current-task
+  evidence checks, output digest checks, Markdown/JSON consistency checks, and
+  bad fixtures for stale, skipped, failed, broad-command, mismatched, or
+  ownerless evidence.
+- `1.77.0` is an evidence-binding layer. It does not run tests, design tests,
+  approve implementation, approve release or production, or prove product
+  correctness.
 
 - Verification Plan Consistency Closure patch `1.76.3`: strict checks now reject
   extra Markdown rows that are not present in JSON evidence, cross-check Test

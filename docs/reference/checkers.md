@@ -17,6 +17,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-change-impact-coverage.mjs` | Change Impact Coverage report completeness, structured evidence, preflight/closure mode, cross-surface close-out, evidence, evidence reference resolution, precise evidence, changed-file implication, and overclaim checks |
 | `resolve-verification-plan.mjs` | Read-only verification planner that maps Business Rule Closure plus Change Impact Coverage into source-bound obligations and test-correctness controls |
 | `check-verification-plan.mjs` | Verification Plan source binding, obligation coverage, broad-command rejection, manual owner, test-correctness, and no-authority checks |
+| `resolve-test-evidence.mjs` | Read-only test evidence binder that maps explicit evidence files to Verification Plan obligations without running tests |
+| `check-test-evidence.mjs` | Test Evidence source binding, obligation coverage, output digest, current-task, manual owner, Markdown/JSON, and no-authority checks |
 | `resolve-delivery-path.mjs` | Read-only delivery path resolver that reports current usable-state progress |
 | `check-delivery-path.mjs` | Delivery Path Report state, evidence, blocker, and overclaim checks |
 | `resolve-first-slice.mjs` | Read-only ordinary-user first-slice resolver for a first useful version |

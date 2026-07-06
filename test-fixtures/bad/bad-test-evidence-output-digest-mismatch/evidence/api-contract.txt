@@ -1,0 +1,14 @@
+id: evidence:api-contract
+evidence_type: COMMAND_OUTPUT
+result_state: PASSED
+command: npm run test:api -- appointment-service-time
+owner: automated-test-command
+environment: local-ci-node-20
+ran_at: 2026-07-06T10:02:00Z
+ran_after_change: Yes
+current_task_match: Yes
+covers_obligations: verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t, verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-
+limitations: Local API evidence; does not prove production behavior.
+
+PASS valid appointment request with service time succeeds.
+PASS appointment request missing service time returns validation error.

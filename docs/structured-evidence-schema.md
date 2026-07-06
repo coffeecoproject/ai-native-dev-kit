@@ -66,6 +66,20 @@ BRC/CIC reports, Markdown sections must match JSON evidence both ways, Test
 Correctness Controls are part of the consistency contract, and READY plans must
 use recorded BRC/CIC source systems.
 
+1.77.0 extends structured Markdown evidence to:
+
+- Test Evidence Report
+
+Test Evidence Report records concrete command, manual, report, screenshot, log,
+or artifact evidence against a saved Verification Plan. It binds
+`verification_plan_ref`, `verification_plan_digest`, task ref, intent digest,
+source systems, evidence item output digests, `covers_obligations`, and
+`coverage_map` rows. Required Verification Plan obligations cannot be satisfied
+by failed, skipped, not-run, flaky, unresolved, stale, wrong-task, ownerless, or
+broad-command-only evidence. Test Evidence Binding does not run tests, design
+tests, approve implementation, approve release or production, or prove product
+correctness.
+
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
 - `--resolve-evidence-refs` requires `DONE` evidence references to resolve
@@ -144,6 +158,7 @@ node scripts/check-business-rule-closure.mjs <project> --require-structured-evid
 node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence
 node scripts/check-change-impact-coverage.mjs <project> --require-structured-evidence --mode closure --strict-evidence --resolve-evidence-refs
 node scripts/check-verification-plan.mjs <project> --require-structured-evidence --require-business-rule-ref --require-impact-ref --strict-source-binding
+node scripts/check-test-evidence.mjs <project> --require-structured-evidence --require-verification-plan-ref --strict-source-binding --require-current-evidence --require-test-quality-controls
 node scripts/check-native-migration.mjs <project> --require-structured-evidence
 node scripts/check-existing-rule-reconciliation.mjs <project> --require-structured-evidence
 node scripts/check-release-plan.mjs <project> --require-structured-evidence
@@ -174,6 +189,14 @@ reports are present, concrete obligations for required impact surfaces, positive
 and negative API checks for API contracts, generated-test review controls when
 risk requires them, and manual-verification owner fields when manual checks are
 blocking.
+
+Test Evidence strict mode requires a valid `test_evidence_digest`,
+current-report `test_evidence_ref`, a resolvable Verification Plan reference,
+matching plan digest, matching task and intent digest, preserved BRC/CIC source
+systems when present, explicit evidence files with output digests, coverage rows
+for every required Verification Plan obligation, current-task and ran-after-change
+signals, satisfied test quality controls, valid manual owners, and Markdown/JSON
+consistency.
 
 Existing-project adoption strict mode requires structured evidence for migration, rule reconciliation, convergence, release plan, and adoption assurance when those reports are used to claim IntentOS operating mode. Adoption Assurance also requires every surface evidence ref to resolve through `evidence_refs`; `VERIFIED_ACTIVE` additionally requires a passed read-only simulation trace.
 
