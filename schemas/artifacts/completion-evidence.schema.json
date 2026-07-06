@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/completion-evidence.schema.json",
+  "title": "Completion Evidence Gate Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "task_ref",
+    "intent",
+    "intent_digest",
+    "completion_evidence_ref",
+    "completion_gate_digest",
+    "completion_state",
+    "can_claim_complete",
+    "source_chain",
+    "gate_checks",
+    "task_consistency",
+    "missing_or_blocking_items",
+    "boundary",
+    "next_step"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.78.0" },
+    "artifact_type": { "const": "completion_evidence_gate" },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "completion_evidence_ref": { "type": "string", "minLength": 1 },
+    "completion_gate_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "completion_state": {
+      "enum": [
+        "COMPLETION_EVIDENCE_READY",
+        "BLOCKED_BY_MISSING_SOURCE",
+        "BLOCKED_BY_TEST_EVIDENCE",
+        "BLOCKED_BY_EXECUTION_ASSURANCE",
+        "BLOCKED_BY_TASK_MISMATCH"
+      ]
+    },
+    "can_claim_complete": { "enum": ["Yes", "No"] },
+    "source_chain": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "ref", "task_ref", "source_outcome", "digest", "ready", "reason"],
+        "properties": {
+          "name": {
+            "enum": [
+              "business_rule_closure",
+              "verification_plan",
+              "test_evidence",
+              "execution_assurance"
+            ]
+          },
+          "status": { "enum": ["RECORDED", "NOT_PROVIDED", "UNRESOLVED", "INVALID"] },
+          "ref": { "type": "string" },
+          "task_ref": { "type": "string" },
+          "source_outcome": { "type": "string" },
+          "digest": { "type": "string" },
+          "ready": { "enum": ["Yes", "No"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "gate_checks": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "source", "expected", "actual", "reason"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["PASS", "FAIL"] },
+          "source": { "type": "string", "minLength": 1 },
+          "expected": { "type": "string", "minLength": 1 },
+          "actual": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "task_consistency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_task_ref", "recorded_task_refs", "all_sources_same_task", "reason"],
+      "properties": {
+        "expected_task_ref": { "type": "string", "minLength": 1 },
+        "recorded_task_refs": { "type": "array", "items": { "type": "string" } },
+        "all_sources_same_task": { "enum": ["Yes", "No"] },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "missing_or_blocking_items": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "runs_tests",
+        "fabricates_evidence",
+        "authorizes_implementation",
+        "approves_commit_or_push",
+        "approves_release_or_production",
+        "proves_product_correctness",
+        "proves_real_environment_behavior",
+        "replaces_source_systems"
+      ],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "runs_tests": { "const": "No" },
+        "fabricates_evidence": { "const": "No" },
+        "authorizes_implementation": { "const": "No" },
+        "approves_commit_or_push": { "const": "No" },
+        "approves_release_or_production": { "const": "No" },
+        "proves_product_correctness": { "const": "No" },
+        "proves_real_environment_behavior": { "const": "No" },
+        "replaces_source_systems": { "const": "No" }
+      }
+    },
+    "next_step": { "type": "string", "minLength": 1 }
+  }
+}

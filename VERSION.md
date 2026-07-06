@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.77.2`
+Current version: `1.78.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,22 @@ Current version: `1.77.2`
 
 ## Current Release
 
-`1.77.2`
+`1.78.0`
 
 Includes:
+
+- Completion Evidence Gate phase `1.78.0`: final task-completion claims now
+  require a recorded Business Rule Closure, Verification Plan, Test Evidence,
+  and Execution Assurance report to be ready and bound to the same task.
+- `1.78.0` adds `completion-evidence` / `completion-evidence-check`,
+  structured `completion_evidence_gate` evidence, source-chain readiness checks,
+  task-consistency checks, positive BRC -> Verification Plan -> Test Evidence ->
+  Execution Assurance -> Completion Evidence example coverage, and bad fixtures
+  for missing Test Evidence, task mismatch, and unverified execution.
+- `1.78.0` is a completion-claim gate. It does not run tests, write target
+  files, approve implementation, approve commit/push, approve release or
+  production, prove product correctness, prove real-environment behavior, or
+  replace the source systems it consumes.
 
 - Test Evidence Installation And Schema Contract Sync patch `1.77.2`: the
   stricter Test Evidence artifact shape is now explicitly schema `1.77.1`;

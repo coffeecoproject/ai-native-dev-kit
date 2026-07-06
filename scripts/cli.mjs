@@ -91,6 +91,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "completion-evidence": {
+    description: "Gate final task completion claims against BRC, Verification Plan, Test Evidence, and Execution Assurance.",
+    script: "scripts/resolve-completion-evidence.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "completion-evidence-check": {
+    description: "Check recorded Completion Evidence Gate reports before Codex claims a task is complete.",
+    script: "scripts/check-completion-evidence.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "business-rule": {
     description: "Check whether a business rule is clear enough before impact coverage and coding.",
     script: "scripts/resolve-business-rule-closure.mjs",
@@ -720,7 +732,7 @@ function printHelp() {
   printCommandGroup(["start", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
-  printCommandGroup(["ask", "guide", "finish", "execution-assurance", "release-guide", "release-plan", "apply-plan"]);
+  printCommandGroup(["ask", "guide", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "apply-plan"]);
   console.log("");
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
@@ -730,6 +742,7 @@ function printHelp() {
     "ask",
     "guide",
     "finish",
+    "completion-evidence",
     "execution-assurance",
     "release-guide",
     "release-plan",
@@ -741,6 +754,8 @@ function printHelp() {
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs doctor ../my-project");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
+  console.log("  node scripts/cli.mjs completion-evidence ../my-project --intent '完成预约时间规则' --out completion-evidence-reports/001-service-time.md");
+  console.log("  node scripts/cli.mjs completion-evidence-check ../my-project --require-structured-evidence --require-ready");
   console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制' --out execution-assurance-reports/001-contract-limit.md");
   console.log("  node scripts/cli.mjs execution-assurance-check ../my-project --require-structured-evidence");
   console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");

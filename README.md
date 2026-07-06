@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.77.2`.
+Current release: `1.78.0`.
 
-Release record: [releases/1.77.2/release-record.md](releases/1.77.2/release-record.md).
+Release record: [releases/1.78.0/release-record.md](releases/1.78.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.78.0 adds Completion Evidence Gate: Codex can only claim a task is complete when Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance are all recorded, ready, and bound to the same task. It catches missing test evidence, stale or wrong-task reports, and execution summaries that say done without the full proof chain. It still does not run tests, approve commits, approve release, or prove production behavior.
 
 1.77.2 synchronizes Test Evidence installation and schema contracts: the stricter Test Evidence report shape is now explicitly schema `1.77.1`; source examples and fixtures are regenerated; PR generated-project smoke visibly runs BRC -> CIC -> Verification Plan -> Test Evidence strict binding; Markdown/JSON reason fields are compared. It still does not run tests or approve release.
 

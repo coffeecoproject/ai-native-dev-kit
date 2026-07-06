@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Completion Evidence Gate 1.78](completion-evidence-gate-1.78-plan.md)
 - [Test Evidence Installation And Schema Contract 1.77.2](test-evidence-installation-schema-contract-1.77.2-plan.md)
 - [Test Evidence Identity Hardening 1.77.1](test-evidence-identity-hardening-1.77.1-plan.md)
 - [Test Evidence Binding 1.77](test-evidence-binding-1.77-plan.md)

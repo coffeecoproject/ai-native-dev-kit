@@ -918,6 +918,8 @@ function checkIntentOSFirstPartyCi() {
     "execution-assurance",
     "execution-assurance-check",
     "execution-assurance-reports/001-generated.md",
+    "completion-evidence",
+    "completion-evidence-check",
     "done-check",
     "verify-execution",
     "baseline-decision",
@@ -8324,6 +8326,441 @@ function checkTestEvidenceBindingProtocol() {
   }
 }
 
+function checkCompletionEvidenceGateProtocol() {
+  const required = [
+    "core/completion-evidence-gate.md",
+    "docs/completion-evidence-gate.md",
+    "docs/plans/completion-evidence-gate-1.78-plan.md",
+    "templates/completion-evidence-report.md",
+    "checklists/completion-evidence-review.md",
+    "prompts/completion-evidence-agent.md",
+    "schemas/artifacts/completion-evidence.schema.json",
+    "completion-evidence-reports/.gitkeep",
+    "scripts/resolve-completion-evidence.mjs",
+    "scripts/check-completion-evidence.mjs",
+    "examples/1.78-completion-evidence-gate/README.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/README.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/business-rule-closures/001-service-time.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/verification-plans/001-service-time.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/test-evidence-reports/001-service-time.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/execution-assurance-reports/001-service-time.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/completion-evidence-reports/001-service-time.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/tasks/001-appointment-requests-must-include-a-service-time.md",
+    "examples/1.78-completion-evidence-gate/appointment-service-time/review-loop-reports/001-service-time.md",
+    "test-fixtures/bad/bad-completion-evidence-missing-test-evidence/completion-evidence-reports/001-bad.md",
+    "test-fixtures/bad/bad-completion-evidence-task-mismatch/completion-evidence-reports/001-bad.md",
+    "test-fixtures/bad/bad-completion-evidence-execution-not-verified/completion-evidence-reports/001-bad.md",
+    "releases/1.78.0/release-record.md",
+    "releases/1.78.0/known-limitations.md",
+    "releases/1.78.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.78 completion evidence asset exists ${file}`);
+    else fail(`1.78 completion evidence asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/completion-evidence-gate.md"),
+    read("docs/completion-evidence-gate.md"),
+    read("docs/plans/completion-evidence-gate-1.78-plan.md"),
+    read("templates/completion-evidence-report.md"),
+    read("checklists/completion-evidence-review.md"),
+    read("prompts/completion-evidence-agent.md"),
+    read("schemas/artifacts/completion-evidence.schema.json"),
+    read("scripts/resolve-completion-evidence.mjs"),
+    read("scripts/check-completion-evidence.mjs"),
+    read("scripts/cli.mjs"),
+    exists("releases/1.78.0/release-record.md") ? read("releases/1.78.0/release-record.md") : "",
+  ].join("\n");
+
+  for (const marker of [
+    "Completion Evidence Gate",
+    "Completion Evidence Gate Report",
+    "completion_evidence_gate",
+    "completion_gate_digest",
+    "can_claim_complete",
+    "source_chain",
+    "Business Rule Closure",
+    "Verification Plan",
+    "Test Evidence",
+    "Execution Assurance",
+    "COMPLETION_EVIDENCE_READY",
+    "BLOCKED_BY_TEST_EVIDENCE",
+    "BLOCKED_BY_EXECUTION_ASSURANCE",
+    "BLOCKED_BY_TASK_MISMATCH",
+    "does not run tests",
+    "does not approve release or production",
+    "completion-evidence",
+    "completion-evidence-check",
+    "--require-ready",
+    "No source chain, no completion claim",
+  ]) {
+    if (combined.includes(marker)) pass(`1.78 completion evidence includes ${marker}`);
+    else fail(`1.78 completion evidence missing ${marker}`);
+  }
+
+  const resolver = runNode([
+    "scripts/resolve-completion-evidence.mjs",
+    "examples/1.78-completion-evidence-gate/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-service-time.md",
+    "--verification-plan-ref",
+    "artifact:verification-plans/001-service-time.md",
+    "--test-evidence-ref",
+    "artifact:test-evidence-reports/001-service-time.md",
+    "--execution-assurance-ref",
+    "artifact:execution-assurance-reports/001-service-time.md",
+  ]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("Completion Evidence Gate Report")
+    && resolver.stdout.includes("COMPLETION_EVIDENCE_READY")
+    && resolver.stdout.includes("This report runs tests: No")) {
+    pass("1.78 completion evidence resolver prints safe complete report");
+  } else {
+    fail(`1.78 completion evidence resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode([
+    "scripts/resolve-completion-evidence.mjs",
+    "examples/1.78-completion-evidence-gate/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-service-time.md",
+    "--verification-plan-ref",
+    "artifact:verification-plans/001-service-time.md",
+    "--test-evidence-ref",
+    "artifact:test-evidence-reports/001-service-time.md",
+    "--execution-assurance-ref",
+    "artifact:execution-assurance-reports/001-service-time.md",
+    "--json",
+  ]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "COMPLETION_EVIDENCE_GATE"
+        && parsed.schemaVersion === "1.78.0"
+        && parsed.structuredEvidence?.artifact_type === "completion_evidence_gate"
+        && parsed.structuredEvidence?.completion_state === "COMPLETION_EVIDENCE_READY"
+        && parsed.structuredEvidence?.can_claim_complete === "Yes"
+        && parsed.structuredEvidence?.source_chain?.length === 4
+        && parsed.structuredEvidence?.gate_checks?.every((item) => item.status === "PASS")
+        && parsed.structuredEvidence?.boundary?.runs_tests === "No") {
+        pass("1.78 completion evidence resolver JSON includes ready source chain");
+      } else {
+        fail(`1.78 completion evidence resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.78 completion evidence resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.78 completion evidence resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const sourceCheck = runNode(["scripts/check-completion-evidence.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("Completion Evidence Gate check passed")) {
+    pass("1.78 completion evidence checker passes source repo with explicit empty allowance");
+  } else {
+    fail(`1.78 completion evidence source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const exampleCheck = runNode([
+    "scripts/check-completion-evidence.mjs",
+    "examples/1.78-completion-evidence-gate/appointment-service-time",
+    "--report",
+    "completion-evidence-reports/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+  ]);
+  if (exampleCheck.status === 0
+    && exampleCheck.stdout.includes("Completion Evidence Gate check passed")
+    && exampleCheck.stdout.includes("completion_evidence_ref points to this report")
+    && exampleCheck.stdout.includes("ready gate can claim complete")
+    && exampleCheck.stdout.includes("source test_evidence outcome matches referenced evidence")
+    && exampleCheck.stdout.includes("source execution_assurance outcome matches referenced evidence")) {
+    pass("1.78 completion evidence strict example passes checker");
+  } else {
+    fail(`1.78 completion evidence strict example failed: ${exampleCheck.stderr || exampleCheck.stdout}`);
+  }
+
+  const cliResolver = runNode([
+    "scripts/cli.mjs",
+    "completion-evidence",
+    "examples/1.78-completion-evidence-gate/appointment-service-time",
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    "artifact:business-rule-closures/001-service-time.md",
+    "--verification-plan-ref",
+    "artifact:verification-plans/001-service-time.md",
+    "--test-evidence-ref",
+    "artifact:test-evidence-reports/001-service-time.md",
+    "--execution-assurance-ref",
+    "artifact:execution-assurance-reports/001-service-time.md",
+  ]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Completion Evidence Gate Report")) {
+    pass("CLI completion-evidence delegates to resolver");
+  } else {
+    fail(`CLI completion-evidence failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliCheck = runNode([
+    "scripts/cli.mjs",
+    "completion-evidence-check",
+    "examples/1.78-completion-evidence-gate/appointment-service-time",
+    "--report",
+    "completion-evidence-reports/001-service-time.md",
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+  ]);
+  if (cliCheck.status === 0 && cliCheck.stdout.includes("Completion Evidence Gate check passed")) {
+    pass("CLI completion-evidence-check delegates to checker");
+  } else {
+    fail(`CLI completion-evidence-check failed: ${cliCheck.stderr || cliCheck.stdout}`);
+  }
+
+  const badFixtureCases = [
+    ["bad-completion-evidence-missing-test-evidence", "ready gate requires recorded ready source test_evidence"],
+    ["bad-completion-evidence-task-mismatch", "source chain task refs must be consistent"],
+    ["bad-completion-evidence-execution-not-verified", "ready gate requires recorded ready source execution_assurance"],
+  ];
+  for (const [name, expected] of badFixtureCases) {
+    const result = runNode([
+      "scripts/check-completion-evidence.mjs",
+      `test-fixtures/bad/${name}`,
+      "--report",
+      "completion-evidence-reports/001-bad.md",
+      "--require-structured-evidence",
+      "--require-ready",
+    ]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.78 completion evidence rejects ${name}`);
+    } else {
+      fail(`1.78 completion evidence must reject ${name}: ${output}`);
+    }
+  }
+
+  const completionPackage = JSON.parse(read("package.json"));
+  const completionVerifySurface = Object.entries(completionPackage.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, value]) => value)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-completion-evidence.mjs",
+    "node --check scripts/check-completion-evidence.mjs",
+    "node scripts/cli.mjs completion-evidence . --intent \"verify task completion\"",
+    "node scripts/cli.mjs completion-evidence-check . --allow-empty",
+    "node scripts/check-completion-evidence.mjs examples/1.78-completion-evidence-gate/appointment-service-time --report completion-evidence-reports/001-service-time.md --require-structured-evidence --require-source-refs --require-ready",
+  ]) {
+    if (completionVerifySurface.includes(marker)) pass(`1.78 package verify includes ${marker}`);
+    else fail(`1.78 package verify missing ${marker}`);
+  }
+}
+
+function generatedExecutionAssuranceReportText({ taskRef, testEvidenceRef }) {
+  return `# Execution Assurance Report
+
+This report is a read-only derived verification view. It does not write target files, authorize writes, approve release, or replace source systems.
+
+## Human Summary
+
+| Field | Value |
+| --- | --- |
+| Execution Kind | \`FEATURE_IMPLEMENTATION\` |
+| Assurance State | \`VERIFIED_DONE\` |
+| Can Claim Done | \`Yes\` |
+| Can Codex Write Now | \`No\` |
+| Safe Next Step | Prepare a completion evidence gate before claiming the task is complete. |
+
+## Execution Kind
+
+\`FEATURE_IMPLEMENTATION\`
+
+## Intent Lock
+
+| Field | Value |
+| --- | --- |
+| User Intent | Appointment requests must include a service time. |
+| Normalized Intent | Service time is required across user-visible and server-side entry paths. |
+| Task Ref | \`${taskRef}\` |
+| Drift Policy | Any new scheduling policy exits this task. |
+
+## Completion Contract
+
+| Criterion | Status | Evidence | Notes |
+| --- | --- | --- | --- |
+| criterion:test-evidence | \`DONE\` | \`${testEvidenceRef}\` | Test Evidence report is recorded. |
+
+## Planned Impact Map
+
+| Surface | Expected | Status | Evidence | Notes |
+| --- | --- | --- | --- |
+| USER_FLOW | \`Yes\` | \`DONE\` | \`${testEvidenceRef}\` | User flow covered by Test Evidence. |
+| FRONTEND_UI | \`Yes\` | \`DONE\` | \`${testEvidenceRef}\` | Frontend covered by Test Evidence. |
+| API_CONTRACT | \`Yes\` | \`DONE\` | \`${testEvidenceRef}\` | API covered by Test Evidence. |
+| BACKEND_RULE | \`Yes\` | \`DONE\` | \`${testEvidenceRef}\` | Backend rule covered by Test Evidence. |
+
+## Execution Plan Binding
+
+| Field | Value |
+| --- | --- |
+| Plan Ref | \`artifact:${taskRef}\` |
+| Risk Classification | \`NORMAL\` |
+| Planned Target Paths | \`src/appointment/form.ts, src/appointment/api.ts, src/appointment/domain.ts, tests/appointment-service-time.test.ts\` |
+| Approval Ref | \`N/A\` |
+| Restore Strategy | Revert task-scoped diff if validation behavior regresses. |
+
+## Actual Diff Binding
+
+| Field | Value |
+| --- | --- |
+| Diff Source | \`git\` |
+| Changed Files | \`src/appointment/form.ts, src/appointment/api.ts, src/appointment/domain.ts, tests/appointment-service-time.test.ts\` |
+| Unexpected Files | \`none\` |
+| Target Diff Status | \`MATCHED_PLAN\` |
+
+## Evidence Binding
+
+| Criterion | Evidence Ref | Resolved | Current Task Match |
+| --- | --- | --- | --- |
+| criterion:test-evidence | \`${testEvidenceRef}\` | \`Yes\` | \`Yes\` |
+
+## Independent Review Binding
+
+| Field | Value |
+| --- | --- |
+| Review Required | \`No\` |
+| Review Refs | \`checker:generated-project-smoke\` |
+| All Reviewers Closed | \`Yes\` |
+
+## Patch Assessment
+
+| Field | Value |
+| --- | --- |
+| Patch State | \`NOT_A_PATCH\` |
+| Reason | Generated-project smoke covers a cross-surface task chain. |
+
+## Source System Trace
+
+| Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| test_evidence | \`RECORDED\` | \`${testEvidenceRef}\` | \`${taskRef}\` | \`TEST_EVIDENCE_COMPLETE\` | \`Yes\` | \`sha256:generated\` | Generated smoke Test Evidence. | Source system |
+
+## Closure Decision
+
+\`VERIFIED_DONE\`
+
+## Pending Human Decisions
+
+- None.
+
+## Forbidden Claims
+
+- This report writes target files: No
+- This report authorizes target-file writes: No
+- This report approves implementation beyond recorded scope: No
+- This report approves commit or push: No
+- This report approves release or production: No
+- This report replaces source systems: No
+- This report proves product correctness: No
+- This report transfers project authority to IntentOS: No
+
+## Boundary
+
+Execution Assurance is derived from recorded evidence and project facts. Source systems remain authoritative.
+
+## Machine-Readable Evidence
+
+\`\`\`json
+{
+  "schema_version": "1.74.0",
+  "artifact_type": "execution_assurance_report",
+  "execution_kind": "FEATURE_IMPLEMENTATION",
+  "task_ref": "${taskRef}",
+  "assurance_state": "VERIFIED_DONE",
+  "can_claim_done": "Yes",
+  "can_codex_write_now": "No",
+  "intent_lock": {
+    "user_intent": "Appointment requests must include a service time.",
+    "normalized_intent": "Service time is required across user-visible and server-side entry paths.",
+    "in_scope": ["user flow", "frontend UI", "API contract", "backend rule", "verification"],
+    "out_of_scope": ["payment", "production release", "new scheduling policy"]
+  },
+  "completion_contract": {
+    "criteria": [
+      {"id":"criterion:test-evidence","status":"DONE","evidence_refs":["${testEvidenceRef}"]}
+    ]
+  },
+  "planned_impact_map": {
+    "surfaces": [
+      {"surface":"USER_FLOW","expected":"Yes","status":"DONE","evidence_refs":["${testEvidenceRef}"]},
+      {"surface":"FRONTEND_UI","expected":"Yes","status":"DONE","evidence_refs":["${testEvidenceRef}"]},
+      {"surface":"API_CONTRACT","expected":"Yes","status":"DONE","evidence_refs":["${testEvidenceRef}"]},
+      {"surface":"BACKEND_RULE","expected":"Yes","status":"DONE","evidence_refs":["${testEvidenceRef}"]}
+    ]
+  },
+  "execution_plan": {
+    "plan_ref": "artifact:${taskRef}",
+    "planned_target_paths": ["src/appointment/form.ts", "src/appointment/api.ts", "src/appointment/domain.ts", "tests/appointment-service-time.test.ts"],
+    "risk_classification": "NORMAL",
+    "approval_refs": [],
+    "restore_strategy": "Revert task-scoped diff if validation behavior regresses."
+  },
+  "actual_diff": {
+    "diff_source": "git",
+    "changed_files": ["src/appointment/form.ts", "src/appointment/api.ts", "src/appointment/domain.ts", "tests/appointment-service-time.test.ts"],
+    "unexpected_files": [],
+    "target_diff_status": "MATCHED_PLAN"
+  },
+  "evidence_bindings": [
+    {"criterion_id":"criterion:test-evidence","evidence_ref":"${testEvidenceRef}","resolved":"Yes","current_task_match":"Yes"}
+  ],
+  "review": {
+    "review_required": "No",
+    "review_refs": ["checker:generated-project-smoke"],
+    "all_reviewers_closed": "Yes"
+  },
+  "patch_assessment": {
+    "state": "NOT_A_PATCH",
+    "reason": "Generated-project smoke covers a cross-surface task chain."
+  },
+  "source_systems": [
+    {
+      "name": "test_evidence",
+      "status": "RECORDED",
+      "ref": "${testEvidenceRef}",
+      "source_system_ref": "${testEvidenceRef}",
+      "source_task_ref": "${taskRef}",
+      "source_outcome": "TEST_EVIDENCE_COMPLETE",
+      "current_task_match": "Yes",
+      "report_digest": "sha256:generated",
+      "contribution": "Generated smoke Test Evidence."
+    }
+  ],
+  "pending_human_decisions": [],
+  "forbidden_claims": [],
+  "boundary": {
+    "writes_target_files": "No",
+    "authorizes_target_file_writes": "No",
+    "approves_implementation_beyond_recorded_scope": "No",
+    "approves_commit_or_push": "No",
+    "approves_release_or_production": "No",
+    "replaces_source_systems": "No",
+    "proves_product_correctness": "No",
+    "transfers_project_authority_to_intentos": "No"
+  },
+  "outcome": "VERIFIED_DONE"
+}
+\`\`\`
+`;
+}
+
 function checkChangeImpactCoverageProtocol() {
   const required = [
     "core/change-impact-coverage.md",
@@ -12046,6 +12483,15 @@ function checkGeneratedProjectE2E() {
     "baseline-state-reports/.gitkeep",
     "docs/verification-matrix.md",
     "docs/engineering-baseline.md",
+    ".intentos/core/completion-evidence-gate.md",
+    ".intentos/docs/completion-evidence-gate.md",
+    ".intentos/templates/completion-evidence-report.md",
+    ".intentos/checklists/completion-evidence-review.md",
+    ".intentos/prompts/completion-evidence-agent.md",
+    ".intentos/schemas/artifacts/completion-evidence.schema.json",
+    "scripts/resolve-completion-evidence.mjs",
+    "scripts/check-completion-evidence.mjs",
+    "completion-evidence-reports/.gitkeep",
   ]) {
     if (!fs.existsSync(path.join(target, rel))) {
       fail(`generated project missing platform baseline asset: ${rel}`);
@@ -12247,6 +12693,57 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project strict Test Evidence source binding");
+
+  const generatedExecutionAssuranceReport = "execution-assurance-reports/001-generated-service-time.md";
+  fs.mkdirSync(path.join(target, "execution-assurance-reports"), { recursive: true });
+  fs.writeFileSync(path.join(target, generatedExecutionAssuranceReport), generatedExecutionAssuranceReportText({
+    taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
+    testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
+  }));
+  const generatedCompletionReport = "completion-evidence-reports/001-generated-service-time.md";
+  const generatedCompletionResolve = runNode([
+    path.join(target, "scripts", "resolve-completion-evidence.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    generatedBusinessRuleRef,
+    "--verification-plan-ref",
+    `artifact:${generatedVerificationReport}`,
+    "--test-evidence-ref",
+    `artifact:${generatedTestEvidenceReport}`,
+    "--execution-assurance-ref",
+    `artifact:${generatedExecutionAssuranceReport}`,
+    "--out",
+    generatedCompletionReport,
+  ]);
+  if (generatedCompletionResolve.status !== 0
+    || !fs.existsSync(path.join(target, generatedCompletionReport))
+    || !generatedCompletionResolve.stdout.includes("COMPLETION_EVIDENCE_READY")
+    || !generatedCompletionResolve.stdout.includes("Can Claim Complete")) {
+    fail(`generated project Completion Evidence resolver should write a source-bound report: ${generatedCompletionResolve.stderr || generatedCompletionResolve.stdout}`);
+    return;
+  }
+  const generatedCompletionStrictCheck = runNode([
+    path.join(target, "scripts", "check-completion-evidence.mjs"),
+    target,
+    "--report",
+    generatedCompletionReport,
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+  ]);
+  if (generatedCompletionStrictCheck.status !== 0
+    || !generatedCompletionStrictCheck.stdout.includes("Completion Evidence Gate check passed")
+    || !generatedCompletionStrictCheck.stdout.includes("completion_evidence_ref points to this report")
+    || !generatedCompletionStrictCheck.stdout.includes("ready gate can claim complete")
+    || !generatedCompletionStrictCheck.stdout.includes("source execution_assurance outcome matches referenced evidence")) {
+    fail(`generated project Completion Evidence strict source binding failed: ${generatedCompletionStrictCheck.stderr || generatedCompletionStrictCheck.stdout}`);
+    return;
+  }
+  pass("generated project strict Completion Evidence source binding");
+  fs.rmSync(path.join(target, generatedExecutionAssuranceReport), { force: true });
+  fs.rmSync(path.join(target, generatedCompletionReport), { force: true });
 
   const emptyGoalModeCheck = runNode([
     path.join(target, "scripts", "check-goal-mode.mjs"),
@@ -14182,6 +14679,7 @@ checkBusinessRuleClosureProtocol();
 checkChangeImpactCoverageProtocol();
 checkVerificationPlanGovernanceProtocol();
 checkTestEvidenceBindingProtocol();
+checkCompletionEvidenceGateProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();

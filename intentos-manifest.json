@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.77.2",
+  "intentOSVersion": "1.78.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.77.2"
+    "phase": "1.78.0"
   },
   "groups": {
     "sourceRequired": [
@@ -69,6 +69,7 @@
       "checklists/change-impact-coverage-review.md",
       "checklists/claim-control-review.md",
       "checklists/closure-decision-review.md",
+      "checklists/completion-evidence-review.md",
       "checklists/context-governance-review.md",
       "checklists/controlled-apply-readiness-review.md",
       "checklists/conversation-drift-review.md",
@@ -128,6 +129,7 @@
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md",
       "closure-decisions/.gitkeep",
+      "completion-evidence-reports/.gitkeep",
       "context-corrections/.gitkeep",
       "controlled-apply-candidates/.gitkeep",
       "conversation-ask-cards/.gitkeep",
@@ -144,6 +146,7 @@
       "core/change-boundary.md",
       "core/change-impact-coverage.md",
       "core/claim-control.md",
+      "core/completion-evidence-gate.md",
       "core/context-governance.md",
       "core/controlled-apply-readiness.md",
       "core/conversation-drift-control.md",
@@ -240,6 +243,7 @@
       "docs/change-impact-coverage.md",
       "docs/claim-control.md",
       "docs/codex-usage.md",
+      "docs/completion-evidence-gate.md",
       "docs/context-governance-usage.md",
       "docs/controlled-apply-readiness.md",
       "docs/conversation-drift-control.md",
@@ -293,6 +297,7 @@
       "docs/plans/change-boundary-baseline-state-1.12-plan.md",
       "docs/plans/change-impact-coverage-1.48-plan.md",
       "docs/plans/closeout-evidence-precision-1.51-plan.md",
+      "docs/plans/completion-evidence-gate-1.78-plan.md",
       "docs/plans/controlled-apply-readiness-1.38-plan.md",
       "docs/plans/conversation-native-ask-1.37-plan.md",
       "docs/plans/decision-explain-trace-1.54-plan.md",
@@ -684,6 +689,21 @@
       "examples/1.77-test-evidence-binding/appointment-service-time/evidence/user-flow.txt",
       "examples/1.77-test-evidence-binding/appointment-service-time/test-evidence-reports/001-service-time.md",
       "examples/1.77-test-evidence-binding/appointment-service-time/verification-plans/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/README.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/README.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/business-rule-closures/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/change-impact-coverage-reports/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/completion-evidence-reports/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/evidence/api-contract.txt",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/evidence/backend-rule.txt",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/evidence/frontend-ui.txt",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/evidence/handoff.txt",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/evidence/user-flow.txt",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/execution-assurance-reports/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/review-loop-reports/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/tasks/001-appointment-requests-must-include-a-service-time.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/test-evidence-reports/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/verification-plans/001-service-time.md",
       "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
       "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
@@ -1032,6 +1052,7 @@
       "prompts/change-impact-coverage-agent.md",
       "prompts/claim-control-agent.md",
       "prompts/closure-decision-agent.md",
+      "prompts/completion-evidence-agent.md",
       "prompts/context-governance-agent.md",
       "prompts/controlled-apply-readiness-agent.md",
       "prompts/conversation-native-ask-agent.md",
@@ -1427,6 +1448,9 @@
       "releases/1.77.2/known-limitations.md",
       "releases/1.77.2/release-record.md",
       "releases/1.77.2/self-check-report.md",
+      "releases/1.78.0/known-limitations.md",
+      "releases/1.78.0/release-record.md",
+      "releases/1.78.0/self-check-report.md",
       "releases/1.8.0/known-limitations.md",
       "releases/1.8.0/release-record.md",
       "releases/1.8.0/self-check-report.md",
@@ -1503,6 +1527,7 @@
       "schemas/artifacts/approval-record.schema.json",
       "schemas/artifacts/business-rule-closure.schema.json",
       "schemas/artifacts/change-impact-coverage.schema.json",
+      "schemas/artifacts/completion-evidence.schema.json",
       "schemas/artifacts/controlled-apply-readiness.schema.json",
       "schemas/artifacts/eval.schema.json",
       "schemas/artifacts/execution-assurance.schema.json",
@@ -1541,6 +1566,7 @@
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-closure-decision.mjs",
+      "scripts/check-completion-evidence.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -1619,6 +1645,7 @@
       "scripts/resolve-business-rule-closure.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
+      "scripts/resolve-completion-evidence.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -1852,6 +1879,7 @@
       "templates/change-impact-coverage-report.md",
       "templates/claim-control-report.md",
       "templates/closure-decision.md",
+      "templates/completion-evidence-report.md",
       "templates/context-correction-report.md",
       "templates/controlled-apply-readiness-report.md",
       "templates/conversation-ask-card.md",
@@ -2020,6 +2048,9 @@
       "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-closure-decision-missing-explain-trace/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-execution-not-verified/completion-evidence-reports/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-missing-test-evidence/completion-evidence-reports/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-task-mismatch/completion-evidence-reports/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
@@ -2538,6 +2569,7 @@
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
+      ".intentos/docs/completion-evidence-gate.md",
       ".intentos/docs/context-governance-usage.md",
       ".intentos/docs/controlled-apply-readiness.md",
       ".intentos/docs/conversation-drift-control.md",
@@ -2763,6 +2795,7 @@
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
+      "completion-evidence-reports",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -2839,6 +2872,7 @@
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-closure-decision.mjs",
+      "scripts/check-completion-evidence.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -2905,6 +2939,7 @@
       "scripts/resolve-business-rule-closure.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
+      "scripts/resolve-completion-evidence.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -2966,6 +3001,7 @@
       ".intentos/checklists/change-impact-coverage-review.md",
       ".intentos/checklists/claim-control-review.md",
       ".intentos/checklists/closure-decision-review.md",
+      ".intentos/checklists/completion-evidence-review.md",
       ".intentos/checklists/context-governance-review.md",
       ".intentos/checklists/controlled-apply-readiness-review.md",
       ".intentos/checklists/conversation-drift-review.md",
@@ -3034,6 +3070,7 @@
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
+      ".intentos/core/completion-evidence-gate.md",
       ".intentos/core/context-governance.md",
       ".intentos/core/controlled-apply-readiness.md",
       ".intentos/core/conversation-drift-control.md",
@@ -3106,6 +3143,7 @@
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
+      ".intentos/docs/completion-evidence-gate.md",
       ".intentos/docs/context-governance-usage.md",
       ".intentos/docs/controlled-apply-readiness.md",
       ".intentos/docs/conversation-drift-control.md",
@@ -3200,6 +3238,7 @@
       ".intentos/prompts/change-impact-coverage-agent.md",
       ".intentos/prompts/claim-control-agent.md",
       ".intentos/prompts/closure-decision-agent.md",
+      ".intentos/prompts/completion-evidence-agent.md",
       ".intentos/prompts/context-governance-agent.md",
       ".intentos/prompts/controlled-apply-readiness-agent.md",
       ".intentos/prompts/conversation-native-ask-agent.md",
@@ -3249,6 +3288,7 @@
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
+      ".intentos/schemas/artifacts/completion-evidence.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
       ".intentos/schemas/artifacts/governance-convergence.schema.json",
@@ -3282,6 +3322,7 @@
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/claim-control-report.md",
       ".intentos/templates/closure-decision.md",
+      ".intentos/templates/completion-evidence-report.md",
       ".intentos/templates/context-correction-report.md",
       ".intentos/templates/controlled-apply-readiness-report.md",
       ".intentos/templates/conversation-ask-card.md",
@@ -3382,6 +3423,7 @@
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
+      "completion-evidence-reports",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -3462,6 +3504,7 @@
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-closure-decision.mjs",
+      "scripts/check-completion-evidence.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -3535,6 +3578,7 @@
       "scripts/resolve-business-rule-closure.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
+      "scripts/resolve-completion-evidence.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -3600,6 +3644,7 @@
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
+      ".intentos/core/completion-evidence-gate.md",
       ".intentos/core/context-governance.md",
       ".intentos/core/decision-delegation-boundary.md",
       ".intentos/core/decision-explain-trace.md",
@@ -3703,6 +3748,7 @@
       "core/unified-closure-model.md",
       "core/verification-test-governance.md",
       "docs/adoption-execution-assurance.md",
+      "docs/completion-evidence-gate.md",
       "docs/execution-assurance-chain.md",
       "docs/existing-project-governance-convergence.md",
       "docs/existing-rule-reconciliation.md",
@@ -3724,6 +3770,7 @@
     "templates": [
       ".intentos/templates/business-rule-closure-card.md",
       ".intentos/templates/change-impact-coverage-report.md",
+      ".intentos/templates/completion-evidence-report.md",
       ".intentos/templates/low-risk-controlled-apply-candidate.md",
       ".intentos/templates/ordinary-user-first-slice-card.md",
       ".intentos/templates/product-completeness-report.md",
@@ -3842,6 +3889,7 @@
     "prompts": [
       ".intentos/prompts/business-rule-closure-agent.md",
       ".intentos/prompts/change-impact-coverage-agent.md",
+      ".intentos/prompts/completion-evidence-agent.md",
       ".intentos/prompts/low-risk-controlled-apply-candidate-agent.md",
       ".intentos/prompts/ordinary-user-first-slice-agent.md",
       ".intentos/prompts/product-completeness-agent.md",
@@ -3911,6 +3959,7 @@
     "checklists": [
       ".intentos/checklists/business-rule-closure-review.md",
       ".intentos/checklists/change-impact-coverage-review.md",
+      ".intentos/checklists/completion-evidence-review.md",
       ".intentos/checklists/low-risk-controlled-apply-candidate-review.md",
       ".intentos/checklists/ordinary-user-first-slice-review.md",
       ".intentos/checklists/product-completeness-gate-review.md",
@@ -4035,6 +4084,7 @@
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
+      "completion-evidence-reports",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -4113,6 +4163,7 @@
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-closure-decision.mjs",
+      "scripts/check-completion-evidence.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -4192,6 +4243,7 @@
       "scripts/resolve-business-rule-closure.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
+      "scripts/resolve-completion-evidence.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -4483,6 +4535,9 @@
       "examples/1.77-test-evidence-binding/appointment-service-time/evidence/user-flow.txt",
       "examples/1.77-test-evidence-binding/appointment-service-time/test-evidence-reports/001-service-time.md",
       "examples/1.77-test-evidence-binding/appointment-service-time/verification-plans/001-service-time.md",
+      "examples/1.78-completion-evidence-gate/README.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/README.md",
+      "examples/1.78-completion-evidence-gate/appointment-service-time/completion-evidence-reports/001-service-time.md",
       "examples/1.8-real-project-readonly/README.md",
       "examples/1.8-real-project-readonly/governance-maps/001-governed-web-readonly.md",
       "examples/1.8-real-project-readonly/patch-classifications/001-structural-remediation.md",
@@ -4664,6 +4719,9 @@
       "test-fixtures/bad/bad-closure-decision-done-without-evidence/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-closure-decision-missing-explain-trace/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-execution-not-verified/completion-evidence-reports/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-missing-test-evidence/completion-evidence-reports/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-task-mismatch/completion-evidence-reports/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/context-corrections/001-missing-evidence.md",
@@ -5031,6 +5089,7 @@
       ".intentos/checklists/change-impact-coverage-review.md",
       ".intentos/checklists/claim-control-review.md",
       ".intentos/checklists/closure-decision-review.md",
+      ".intentos/checklists/completion-evidence-review.md",
       ".intentos/checklists/context-governance-review.md",
       ".intentos/checklists/controlled-apply-readiness-review.md",
       ".intentos/checklists/conversation-drift-review.md",
@@ -5084,6 +5143,7 @@
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
+      ".intentos/core/completion-evidence-gate.md",
       ".intentos/core/context-governance.md",
       ".intentos/core/controlled-apply-readiness.md",
       ".intentos/core/conversation-drift-control.md",
@@ -5145,6 +5205,7 @@
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
+      ".intentos/docs/completion-evidence-gate.md",
       ".intentos/docs/context-governance-usage.md",
       ".intentos/docs/controlled-apply-readiness.md",
       ".intentos/docs/conversation-drift-control.md",
@@ -5216,6 +5277,7 @@
       ".intentos/prompts/change-impact-coverage-agent.md",
       ".intentos/prompts/claim-control-agent.md",
       ".intentos/prompts/closure-decision-agent.md",
+      ".intentos/prompts/completion-evidence-agent.md",
       ".intentos/prompts/context-governance-agent.md",
       ".intentos/prompts/controlled-apply-readiness-agent.md",
       ".intentos/prompts/conversation-native-ask-agent.md",
@@ -5260,6 +5322,7 @@
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
+      ".intentos/schemas/artifacts/completion-evidence.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
       ".intentos/schemas/artifacts/governance-convergence.schema.json",
@@ -5285,6 +5348,7 @@
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/claim-control-report.md",
       ".intentos/templates/closure-decision.md",
+      ".intentos/templates/completion-evidence-report.md",
       ".intentos/templates/context-correction-report.md",
       ".intentos/templates/controlled-apply-readiness-report.md",
       ".intentos/templates/conversation-ask-card.md",
@@ -5350,6 +5414,7 @@
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
+      "completion-evidence-reports",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-ask-cards",
@@ -5415,6 +5480,7 @@
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
       "scripts/check-closure-decision.mjs",
+      "scripts/check-completion-evidence.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/check-conversation-drift.mjs",
@@ -5487,6 +5553,7 @@
       "scripts/resolve-business-rule-closure.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
+      "scripts/resolve-completion-evidence.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
@@ -5654,6 +5721,7 @@
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
+      ".intentos/docs/completion-evidence-gate.md",
       ".intentos/docs/context-governance-usage.md",
       ".intentos/docs/controlled-apply-readiness.md",
       ".intentos/docs/conversation-drift-control.md",
@@ -5863,6 +5931,7 @@
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
+      "completion-evidence-reports",
       "context-corrections",
       "controlled-apply-candidates",
       "conversation-turns",
@@ -6081,6 +6150,10 @@
         "target": "closure-decisions"
       },
       {
+        "source": "completion-evidence-reports",
+        "target": "completion-evidence-reports"
+      },
+      {
         "source": "controlled-apply-candidates",
         "target": "controlled-apply-candidates"
       },
@@ -6231,6 +6304,10 @@
     ],
     "files": [
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
         "source": "checklists/adoption-assurance-review.md",
         "target": ".intentos/checklists/adoption-assurance-review.md"
       },
@@ -6265,6 +6342,10 @@
       {
         "source": "checklists/closure-decision-review.md",
         "target": ".intentos/checklists/closure-decision-review.md"
+      },
+      {
+        "source": "checklists/completion-evidence-review.md",
+        "target": ".intentos/checklists/completion-evidence-review.md"
       },
       {
         "source": "checklists/controlled-apply-readiness-review.md",
@@ -6401,6 +6482,10 @@
       {
         "source": "core/change-impact-coverage.md",
         "target": ".intentos/core/change-impact-coverage.md"
+      },
+      {
+        "source": "core/completion-evidence-gate.md",
+        "target": ".intentos/core/completion-evidence-gate.md"
       },
       {
         "source": "core/controlled-apply-readiness.md",
@@ -6589,6 +6674,10 @@
       {
         "source": "docs/claim-control.md",
         "target": ".intentos/docs/claim-control.md"
+      },
+      {
+        "source": "docs/completion-evidence-gate.md",
+        "target": ".intentos/docs/completion-evidence-gate.md"
       },
       {
         "source": "docs/context-governance-usage.md",
@@ -6815,10 +6904,6 @@
         "target": ".intentos/intentos-manifest.json"
       },
       {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
-      },
-      {
         "source": "prompts/adoption-assurance-agent.md",
         "target": ".intentos/prompts/adoption-assurance-agent.md"
       },
@@ -6857,6 +6942,10 @@
       {
         "source": "prompts/closure-decision-agent.md",
         "target": ".intentos/prompts/closure-decision-agent.md"
+      },
+      {
+        "source": "prompts/completion-evidence-agent.md",
+        "target": ".intentos/prompts/completion-evidence-agent.md"
       },
       {
         "source": "prompts/controlled-apply-readiness-agent.md",
@@ -6979,6 +7068,10 @@
         "target": ".intentos/schemas/artifacts/adoption-assurance.schema.json"
       },
       {
+        "source": "schemas/artifacts/completion-evidence.schema.json",
+        "target": ".intentos/schemas/artifacts/completion-evidence.schema.json"
+      },
+      {
         "source": "schemas/artifacts/execution-assurance.schema.json",
         "target": ".intentos/schemas/artifacts/execution-assurance.schema.json"
       },
@@ -7005,6 +7098,182 @@
       {
         "source": "schemas/artifacts/verification-plan.schema.json",
         "target": ".intentos/schemas/artifacts/verification-plan.schema.json"
+      },
+      {
+        "source": "templates/active-work-thread.md",
+        "target": ".intentos/templates/active-work-thread.md"
+      },
+      {
+        "source": "templates/adoption-assurance-report.md",
+        "target": ".intentos/templates/adoption-assurance-report.md"
+      },
+      {
+        "source": "templates/archive-index.md",
+        "target": ".intentos/templates/archive-index.md"
+      },
+      {
+        "source": "templates/baseline-decision-card.md",
+        "target": ".intentos/templates/baseline-decision-card.md"
+      },
+      {
+        "source": "templates/baseline-pack-selection-report.md",
+        "target": ".intentos/templates/baseline-pack-selection-report.md"
+      },
+      {
+        "source": "templates/baseline-state-report.md",
+        "target": ".intentos/templates/baseline-state-report.md"
+      },
+      {
+        "source": "templates/beginner-entry-card.md",
+        "target": ".intentos/templates/beginner-entry-card.md"
+      },
+      {
+        "source": "templates/business-rule-closure-card.md",
+        "target": ".intentos/templates/business-rule-closure-card.md"
+      },
+      {
+        "source": "templates/change-boundary-report.md",
+        "target": ".intentos/templates/change-boundary-report.md"
+      },
+      {
+        "source": "templates/change-impact-coverage-report.md",
+        "target": ".intentos/templates/change-impact-coverage-report.md"
+      },
+      {
+        "source": "templates/closure-decision.md",
+        "target": ".intentos/templates/closure-decision.md"
+      },
+      {
+        "source": "templates/completion-evidence-report.md",
+        "target": ".intentos/templates/completion-evidence-report.md"
+      },
+      {
+        "source": "templates/controlled-apply-readiness-report.md",
+        "target": ".intentos/templates/controlled-apply-readiness-report.md"
+      },
+      {
+        "source": "templates/conversation-ask-card.md",
+        "target": ".intentos/templates/conversation-ask-card.md"
+      },
+      {
+        "source": "templates/debt-knowledge-handoff-report.md",
+        "target": ".intentos/templates/debt-knowledge-handoff-report.md"
+      },
+      {
+        "source": "templates/delivery-path-report.md",
+        "target": ".intentos/templates/delivery-path-report.md"
+      },
+      {
+        "source": "templates/document-archive-apply-plan.md",
+        "target": ".intentos/templates/document-archive-apply-plan.md"
+      },
+      {
+        "source": "templates/execution-assurance-report.md",
+        "target": ".intentos/templates/execution-assurance-report.md"
+      },
+      {
+        "source": "templates/execution-closure-report.md",
+        "target": ".intentos/templates/execution-closure-report.md"
+      },
+      {
+        "source": "templates/existing-rule-reconciliation-report.md",
+        "target": ".intentos/templates/existing-rule-reconciliation-report.md"
+      },
+      {
+        "source": "templates/governance-convergence-report.md",
+        "target": ".intentos/templates/governance-convergence-report.md"
+      },
+      {
+        "source": "templates/guided-closure-card.md",
+        "target": ".intentos/templates/guided-closure-card.md"
+      },
+      {
+        "source": "templates/guided-decision-summary.md",
+        "target": ".intentos/templates/guided-decision-summary.md"
+      },
+      {
+        "source": "templates/hook-orchestration-plan.md",
+        "target": ".intentos/templates/hook-orchestration-plan.md"
+      },
+      {
+        "source": "templates/launch-review-view-card.md",
+        "target": ".intentos/templates/launch-review-view-card.md"
+      },
+      {
+        "source": "templates/native-migration-plan.md",
+        "target": ".intentos/templates/native-migration-plan.md"
+      },
+      {
+        "source": "templates/patch-classification-false-positive.md",
+        "target": ".intentos/templates/patch-classification-false-positive.md"
+      },
+      {
+        "source": "templates/patch-classification-report.md",
+        "target": ".intentos/templates/patch-classification-report.md"
+      },
+      {
+        "source": "templates/platform-release-recipe.md",
+        "target": ".intentos/templates/platform-release-recipe.md"
+      },
+      {
+        "source": "templates/project-hook-policy.md",
+        "target": ".intentos/templates/project-hook-policy.md"
+      },
+      {
+        "source": "templates/real-adoption-trial-report.md",
+        "target": ".intentos/templates/real-adoption-trial-report.md"
+      },
+      {
+        "source": "templates/release-adapter-profile.md",
+        "target": ".intentos/templates/release-adapter-profile.md"
+      },
+      {
+        "source": "templates/release-approval-record.md",
+        "target": ".intentos/templates/release-approval-record.md"
+      },
+      {
+        "source": "templates/release-execution-plan.md",
+        "target": ".intentos/templates/release-execution-plan.md"
+      },
+      {
+        "source": "templates/release-guide-card.md",
+        "target": ".intentos/templates/release-guide-card.md"
+      },
+      {
+        "source": "templates/release-handoff-pack.md",
+        "target": ".intentos/templates/release-handoff-pack.md"
+      },
+      {
+        "source": "templates/review-surface-card.md",
+        "target": ".intentos/templates/review-surface-card.md"
+      },
+      {
+        "source": "templates/standard-baseline-selection-report.md",
+        "target": ".intentos/templates/standard-baseline-selection-report.md"
+      },
+      {
+        "source": "templates/test-evidence-report.md",
+        "target": ".intentos/templates/test-evidence-report.md"
+      },
+      {
+        "source": "templates/unified-apply-plan.md",
+        "target": ".intentos/templates/unified-apply-plan.md"
+      },
+      {
+        "source": "templates/user-decision-card.md",
+        "target": ".intentos/templates/user-decision-card.md"
+      },
+      {
+        "source": "templates/verification-plan.md",
+        "target": ".intentos/templates/verification-plan.md"
+      },
+      {
+        "source": "templates/work-queue-report.md",
+        "target": ".intentos/templates/work-queue-report.md"
+      },
+      {
+        "source": "templates/workflow-guidance-card.md",
+        "target": ".intentos/templates/workflow-guidance-card.md"
       },
       {
         "source": "scripts/baseline-project.mjs",
@@ -7061,6 +7330,10 @@
       {
         "source": "scripts/check-closure-decision.mjs",
         "target": "scripts/check-closure-decision.mjs"
+      },
+      {
+        "source": "scripts/check-completion-evidence.mjs",
+        "target": "scripts/check-completion-evidence.mjs"
       },
       {
         "source": "scripts/check-context-governance.mjs",
@@ -7359,6 +7632,10 @@
         "target": "scripts/resolve-closure-decision.mjs"
       },
       {
+        "source": "scripts/resolve-completion-evidence.mjs",
+        "target": "scripts/resolve-completion-evidence.mjs"
+      },
+      {
         "source": "scripts/resolve-controlled-apply-readiness.mjs",
         "target": "scripts/resolve-controlled-apply-readiness.mjs"
       },
@@ -7505,178 +7782,6 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
-      },
-      {
-        "source": "templates/active-work-thread.md",
-        "target": ".intentos/templates/active-work-thread.md"
-      },
-      {
-        "source": "templates/adoption-assurance-report.md",
-        "target": ".intentos/templates/adoption-assurance-report.md"
-      },
-      {
-        "source": "templates/archive-index.md",
-        "target": ".intentos/templates/archive-index.md"
-      },
-      {
-        "source": "templates/baseline-decision-card.md",
-        "target": ".intentos/templates/baseline-decision-card.md"
-      },
-      {
-        "source": "templates/baseline-pack-selection-report.md",
-        "target": ".intentos/templates/baseline-pack-selection-report.md"
-      },
-      {
-        "source": "templates/baseline-state-report.md",
-        "target": ".intentos/templates/baseline-state-report.md"
-      },
-      {
-        "source": "templates/beginner-entry-card.md",
-        "target": ".intentos/templates/beginner-entry-card.md"
-      },
-      {
-        "source": "templates/business-rule-closure-card.md",
-        "target": ".intentos/templates/business-rule-closure-card.md"
-      },
-      {
-        "source": "templates/change-boundary-report.md",
-        "target": ".intentos/templates/change-boundary-report.md"
-      },
-      {
-        "source": "templates/change-impact-coverage-report.md",
-        "target": ".intentos/templates/change-impact-coverage-report.md"
-      },
-      {
-        "source": "templates/closure-decision.md",
-        "target": ".intentos/templates/closure-decision.md"
-      },
-      {
-        "source": "templates/controlled-apply-readiness-report.md",
-        "target": ".intentos/templates/controlled-apply-readiness-report.md"
-      },
-      {
-        "source": "templates/conversation-ask-card.md",
-        "target": ".intentos/templates/conversation-ask-card.md"
-      },
-      {
-        "source": "templates/debt-knowledge-handoff-report.md",
-        "target": ".intentos/templates/debt-knowledge-handoff-report.md"
-      },
-      {
-        "source": "templates/delivery-path-report.md",
-        "target": ".intentos/templates/delivery-path-report.md"
-      },
-      {
-        "source": "templates/document-archive-apply-plan.md",
-        "target": ".intentos/templates/document-archive-apply-plan.md"
-      },
-      {
-        "source": "templates/execution-assurance-report.md",
-        "target": ".intentos/templates/execution-assurance-report.md"
-      },
-      {
-        "source": "templates/execution-closure-report.md",
-        "target": ".intentos/templates/execution-closure-report.md"
-      },
-      {
-        "source": "templates/existing-rule-reconciliation-report.md",
-        "target": ".intentos/templates/existing-rule-reconciliation-report.md"
-      },
-      {
-        "source": "templates/governance-convergence-report.md",
-        "target": ".intentos/templates/governance-convergence-report.md"
-      },
-      {
-        "source": "templates/guided-closure-card.md",
-        "target": ".intentos/templates/guided-closure-card.md"
-      },
-      {
-        "source": "templates/guided-decision-summary.md",
-        "target": ".intentos/templates/guided-decision-summary.md"
-      },
-      {
-        "source": "templates/hook-orchestration-plan.md",
-        "target": ".intentos/templates/hook-orchestration-plan.md"
-      },
-      {
-        "source": "templates/launch-review-view-card.md",
-        "target": ".intentos/templates/launch-review-view-card.md"
-      },
-      {
-        "source": "templates/native-migration-plan.md",
-        "target": ".intentos/templates/native-migration-plan.md"
-      },
-      {
-        "source": "templates/patch-classification-false-positive.md",
-        "target": ".intentos/templates/patch-classification-false-positive.md"
-      },
-      {
-        "source": "templates/patch-classification-report.md",
-        "target": ".intentos/templates/patch-classification-report.md"
-      },
-      {
-        "source": "templates/platform-release-recipe.md",
-        "target": ".intentos/templates/platform-release-recipe.md"
-      },
-      {
-        "source": "templates/project-hook-policy.md",
-        "target": ".intentos/templates/project-hook-policy.md"
-      },
-      {
-        "source": "templates/real-adoption-trial-report.md",
-        "target": ".intentos/templates/real-adoption-trial-report.md"
-      },
-      {
-        "source": "templates/release-adapter-profile.md",
-        "target": ".intentos/templates/release-adapter-profile.md"
-      },
-      {
-        "source": "templates/release-approval-record.md",
-        "target": ".intentos/templates/release-approval-record.md"
-      },
-      {
-        "source": "templates/release-execution-plan.md",
-        "target": ".intentos/templates/release-execution-plan.md"
-      },
-      {
-        "source": "templates/release-guide-card.md",
-        "target": ".intentos/templates/release-guide-card.md"
-      },
-      {
-        "source": "templates/release-handoff-pack.md",
-        "target": ".intentos/templates/release-handoff-pack.md"
-      },
-      {
-        "source": "templates/review-surface-card.md",
-        "target": ".intentos/templates/review-surface-card.md"
-      },
-      {
-        "source": "templates/standard-baseline-selection-report.md",
-        "target": ".intentos/templates/standard-baseline-selection-report.md"
-      },
-      {
-        "source": "templates/test-evidence-report.md",
-        "target": ".intentos/templates/test-evidence-report.md"
-      },
-      {
-        "source": "templates/unified-apply-plan.md",
-        "target": ".intentos/templates/unified-apply-plan.md"
-      },
-      {
-        "source": "templates/user-decision-card.md",
-        "target": ".intentos/templates/user-decision-card.md"
-      },
-      {
-        "source": "templates/verification-plan.md",
-        "target": ".intentos/templates/verification-plan.md"
-      },
-      {
-        "source": "templates/work-queue-report.md",
-        "target": ".intentos/templates/work-queue-report.md"
-      },
-      {
-        "source": "templates/workflow-guidance-card.md",
-        "target": ".intentos/templates/workflow-guidance-card.md"
       }
     ]
   },

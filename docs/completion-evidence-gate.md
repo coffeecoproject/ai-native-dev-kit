@@ -1,0 +1,55 @@
+# Completion Evidence Gate
+
+Completion Evidence Gate answers one user-facing question:
+
+```text
+Can Codex say this task is complete?
+```
+
+It does not run tests. It does not decide whether the product is correct. It checks whether the current task has a complete evidence chain:
+
+```text
+Business Rule Closure
+-> Verification Plan
+-> Test Evidence
+-> Execution Assurance
+-> Completion Evidence Gate
+```
+
+## When To Use
+
+Use it when Codex is about to say:
+
+- done
+- completed
+- ready to hand off
+- ready for final response
+
+For small discussion-only work, it can be skipped. For feature implementation, bug fixes, old-project adoption, baseline migration, and release preparation, it should be used before a completion claim.
+
+## Human Role
+
+The user should not need to know the internal artifact names. Codex should explain the result in plain language:
+
+- complete
+- blocked by missing test evidence
+- blocked by execution assurance
+- blocked by stale or mismatched task evidence
+
+## Commands
+
+```bash
+node scripts/cli.mjs completion-evidence . \
+  --intent "appointment requests must include a service time" \
+  --business-rule-ref artifact:business-rule-closures/001-service-time.md \
+  --verification-plan-ref artifact:verification-plans/001-service-time.md \
+  --test-evidence-ref artifact:test-evidence-reports/001-service-time.md \
+  --execution-assurance-ref artifact:execution-assurance-reports/001-service-time.md \
+  --out completion-evidence-reports/001-service-time.md
+
+node scripts/cli.mjs completion-evidence-check . \
+  --report completion-evidence-reports/001-service-time.md \
+  --require-structured-evidence \
+  --require-source-refs \
+  --require-ready
+```

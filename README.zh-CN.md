@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.77.2`。
+当前版本：`1.78.0`。
 
-发布记录：[releases/1.77.2/release-record.md](releases/1.77.2/release-record.md)。
+发布记录：[releases/1.78.0/release-record.md](releases/1.78.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.78.0 新增 Completion Evidence Gate：Codex 只有在 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance 都已记录、就绪，并且绑定同一个任务时，才能说“这个任务完成了”。它会拦截缺测试证据、复用旧任务报告、执行证明没完成却提前收口等问题。它仍然不执行测试、不批准提交、不批准发布，也不证明生产环境结果。
 
 1.77.2 同步 Test Evidence 的安装烟测和 schema 合约：更严格的 Test Evidence 报告形状正式标记为 schema `1.77.1`；示例和坏例子重新生成；PR 里的生成项目 smoke 会可见地跑完 BRC -> CIC -> Verification Plan -> Test Evidence 严格绑定；Markdown/JSON 的 reason 字段也会对齐检查。它仍然不执行测试，也不批准发布。
 
