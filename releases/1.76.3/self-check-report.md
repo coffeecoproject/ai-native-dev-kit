@@ -25,6 +25,7 @@ node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 git diff --check
 node scripts/check-intentos.mjs
+npm run verify
 ```
 
 ## Required Negative Coverage
@@ -42,6 +43,9 @@ Self-check must reject:
 ## Outcome
 
 Passed in the release working tree.
+
+`npm run verify` completed successfully after the 1.76.3 self-check report was
+updated with final command evidence.
 
 ## Notes
 
