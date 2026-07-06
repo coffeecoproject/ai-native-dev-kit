@@ -25,6 +25,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `verification-plans/` | Source-bound verification plans that translate business rule closure and impact coverage into concrete checks, test-correctness controls, and manual verification ownership |
 | `test-evidence-reports/` | Evidence-binding reports that map concrete command/manual/report evidence to Verification Plan obligations |
 | `completion-evidence-reports/` | Final task-completion evidence gate reports that bind Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance into one checked source chain |
+| `delivery-status-cards/` | User Delivery Console cards that translate existing evidence into a plain-language status, missing-item, and safe-next-action view |
 | `delivery-path-reports/` | Current path toward useful use, self-test, internal trial, release review, or blocked status |
 | `ordinary-first-slices/` | First useful version scope for ordinary user goals |
 | `product-completeness-reports/` | Product-state, checklist, evidence, gaps, and next-action reports |
@@ -108,6 +109,11 @@ include top-level `intent_digest`. Keep one canonical task intent across
 Business Rule Closure, Verification Plan, Test Evidence, Execution Assurance,
 and Completion Evidence; otherwise the same task phrased differently will
 produce different intent digests.
+
+User Delivery Console cards live in `delivery-status-cards/`. They are derived
+views for ordinary users and must not replace Completion Evidence, Execution
+Assurance, Release Plan, or any lower-level source system. Use them to answer
+where the project stands, what is missing, and what Codex can safely do next.
 
 ## Reporting Artifacts
 

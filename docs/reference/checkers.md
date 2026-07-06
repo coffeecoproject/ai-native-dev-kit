@@ -21,6 +21,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-test-evidence.mjs` | Test Evidence source binding, obligation coverage, output digest, current-task, manual owner, Markdown/JSON, and no-authority checks |
 | `resolve-completion-evidence.mjs` | Read-only final completion evidence gate that binds BRC, Verification Plan, Test Evidence, and Execution Assurance source artifacts with task, digest, and intent identity |
 | `check-completion-evidence.mjs` | Completion Evidence source-chain, source schema, source digest, source intent, task, outcome, strict 1.78.2+ intent-field compatibility, and no-authority checks |
+| `resolve-user-delivery-console.mjs` | Read-only ordinary-user status resolver that summarizes what is being built, where the work stands, whether it can be treated as done, what is missing, and what Codex can safely do next |
+| `check-user-delivery-console.mjs` | User Delivery Console section, plain-language, limited-decision, technical-trace, and no-authority checks |
 | `resolve-delivery-path.mjs` | Read-only delivery path resolver that reports current usable-state progress |
 | `check-delivery-path.mjs` | Delivery Path Report state, evidence, blocker, and overclaim checks |
 | `resolve-first-slice.mjs` | Read-only ordinary-user first-slice resolver for a first useful version |

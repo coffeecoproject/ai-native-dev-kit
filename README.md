@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.78.3`.
+Current release: `1.79.0`.
 
-Release record: [releases/1.78.3/release-record.md](releases/1.78.3/release-record.md).
+Release record: [releases/1.79.0/release-record.md](releases/1.79.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -26,6 +26,7 @@ When command evidence is useful, use only these first:
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
+node scripts/cli.mjs status <project> --intent "<what you want>"
 ```
 
 Those commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
@@ -39,6 +40,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.79.0 adds User Delivery Console: Codex can answer "where are we now, is this task done, what is missing, and what can you safely do next?" through one plain-language `status` card. It summarizes existing evidence systems without replacing them, writing target files, approving implementation, approving commit/push, approving release/production, or proving real-user stability.
 
 1.78.3 documents the 1.78 Completion Evidence compatibility contract: strict completion checks require canonical task intent to stay consistent across Business Rule Closure, Verification Plan, Test Evidence, Execution Assurance, and Completion Evidence; older 1.78.0/1.78.1 Completion Evidence reports need `source_chain[].intent_digest`, and strict Execution Assurance sources need top-level `intent_digest`. It is a docs/reference patch, not a new gate.
 

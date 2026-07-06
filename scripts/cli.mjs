@@ -103,6 +103,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  status: {
+    description: "Show one plain-language delivery status card without asking the user to know internal workflow terms.",
+    script: "scripts/resolve-user-delivery-console.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "status-check": {
+    description: "Check recorded User Delivery Console cards for plain-language status and no-authority boundaries.",
+    script: "scripts/check-user-delivery-console.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "business-rule": {
     description: "Check whether a business rule is clear enough before impact coverage and coding.",
     script: "scripts/resolve-business-rule-closure.mjs",
@@ -732,7 +744,7 @@ function printHelp() {
   printCommandGroup(["start", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
-  printCommandGroup(["ask", "guide", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "apply-plan"]);
+  printCommandGroup(["ask", "guide", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "apply-plan"]);
   console.log("");
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
@@ -741,6 +753,7 @@ function printHelp() {
     "doctor",
     "ask",
     "guide",
+    "status",
     "finish",
     "completion-evidence",
     "execution-assurance",
@@ -754,6 +767,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs doctor ../my-project");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
+  console.log("  node scripts/cli.mjs status ../my-project --intent '我想做一个预约 App'");
   console.log("  node scripts/cli.mjs completion-evidence ../my-project --intent '完成预约时间规则' --out completion-evidence-reports/001-service-time.md");
   console.log("  node scripts/cli.mjs completion-evidence-check ../my-project --require-structured-evidence --require-ready");
   console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制' --out execution-assurance-reports/001-contract-limit.md");

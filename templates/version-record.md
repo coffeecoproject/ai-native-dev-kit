@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.78.3`
+`1.79.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.79.0` adds User Delivery Console through `status` / `status-check`: Codex can answer where the project stands, whether the current task can be treated as done, what is missing, and what it can safely do next in plain language.
+- `1.79.0` remains a derived status view. It does not add a completion gate, replace Completion Evidence, write target files, approve implementation, approve commit/push, approve release/production, mutate CI/hooks, or prove real-user stability.
 - `1.78.3` documents Completion Evidence compatibility: strict completion chains must keep one canonical task intent across BRC, Verification Plan, Test Evidence, Execution Assurance, and Completion Evidence; older 1.78.0/1.78.1 Completion Evidence reports need `source_chain[].intent_digest`; strict Execution Assurance sources need top-level `intent_digest`.
 - `1.78.3` is a reference and compatibility-notes patch. It does not add a new gate, run tests, approve release/production, or prove real-environment behavior.
 - `1.78.2` syncs the Completion Evidence intent contract: `source_chain[].intent_digest` is required, Execution Assurance exposes top-level `intent_digest`, and Completion Evidence directly checks Execution Assurance intent.

@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.78.3`。
+当前版本：`1.79.0`。
 
-发布记录：[releases/1.78.3/release-record.md](releases/1.78.3/release-record.md)。
+发布记录：[releases/1.79.0/release-record.md](releases/1.79.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -26,6 +26,7 @@ IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
+node scripts/cli.mjs status <project> --intent "<你想做什么>"
 ```
 
 这些命令都是只读入口，不批准实现、发布、生产、CI、hook、密钥、迁移、支付、权限或治理替换。
@@ -39,6 +40,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.79.0 新增 User Delivery Console：用户问“现在做到哪了、这个任务完成了吗、还差什么、下一步你能安全做什么”时，Codex 可以用 `status` 输出一张白话状态卡。它只是汇总已有证据系统，不替代底层证据，不写项目文件，不批准实现、提交、推送、发布或生产，也不证明真实用户稳定可用。
 
 1.78.3 补齐 1.78 Completion Evidence 的兼容性和 reference docs：严格完成校验要求 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance、Completion Evidence 使用同一条 canonical task intent；旧的 1.78.0/1.78.1 Completion Evidence 报告需要补 `source_chain[].intent_digest`，严格 Execution Assurance 来源需要顶层 `intent_digest`。这是文档/引用补丁，不新增 gate。
 

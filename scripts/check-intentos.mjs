@@ -920,6 +920,8 @@ function checkIntentOSFirstPartyCi() {
     "execution-assurance-reports/001-generated.md",
     "completion-evidence",
     "completion-evidence-check",
+    "status",
+    "status-check",
     "done-check",
     "verify-execution",
     "baseline-decision",
@@ -1626,6 +1628,10 @@ function checkCliFrontDoor() {
     "node scripts/cli.mjs release-plan .",
     "node scripts/cli.mjs release-check .",
     "node scripts/check-release-plan.mjs .",
+    "node --check scripts/resolve-user-delivery-console.mjs",
+    "node --check scripts/check-user-delivery-console.mjs",
+    "node scripts/cli.mjs status . --intent \"维护 IntentOS 普通用户交付状态\"",
+    "node scripts/cli.mjs status-check .",
     "node scripts/cli.mjs baseline-decision .",
     "node scripts/cli.mjs baseline-decision-check .",
     "node scripts/check-standard-baseline-pack.mjs .",
@@ -1663,6 +1669,8 @@ function checkCliFrontDoor() {
     "guide-check",
     "ask",
     "ask-check",
+    "status",
+    "status-check",
     "start",
     "baseline",
     "product-baseline",
@@ -8599,6 +8607,153 @@ function checkCompletionEvidenceGateProtocol() {
   }
 }
 
+function checkUserDeliveryConsoleProtocol() {
+  const required = [
+    "core/user-delivery-console.md",
+    "docs/user-delivery-console.md",
+    "docs/plans/user-delivery-console-1.79-plan.md",
+    "templates/user-delivery-console-card.md",
+    "checklists/user-delivery-console-review.md",
+    "prompts/user-delivery-console-agent.md",
+    "delivery-status-cards/.gitkeep",
+    "scripts/resolve-user-delivery-console.mjs",
+    "scripts/check-user-delivery-console.mjs",
+    "examples/1.79-user-delivery-console/README.md",
+    "examples/1.79-user-delivery-console/appointment-app/delivery-status-cards/001-status.md",
+    "test-fixtures/bad/bad-user-delivery-console-internal-jargon/delivery-status-cards/001-bad.md",
+    "test-fixtures/bad/bad-user-delivery-console-overclaim/delivery-status-cards/001-bad.md",
+    "test-fixtures/bad/bad-user-delivery-console-too-many-decisions/delivery-status-cards/001-bad.md",
+    "releases/1.79.0/release-record.md",
+    "releases/1.79.0/known-limitations.md",
+    "releases/1.79.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.79 user delivery console asset exists ${file}`);
+    else fail(`1.79 user delivery console asset missing ${file}`);
+  }
+
+  const combined = [
+    read("core/user-delivery-console.md"),
+    read("docs/user-delivery-console.md"),
+    read("docs/plans/user-delivery-console-1.79-plan.md"),
+    read("templates/user-delivery-console-card.md"),
+    read("checklists/user-delivery-console-review.md"),
+    read("prompts/user-delivery-console-agent.md"),
+    read("scripts/resolve-user-delivery-console.mjs"),
+    read("scripts/check-user-delivery-console.mjs"),
+    read("scripts/cli.mjs"),
+    read("releases/1.79.0/release-record.md"),
+  ].join("\n");
+
+  for (const marker of [
+    "User Delivery Console",
+    "User Delivery Console Card",
+    "derived view only",
+    "What are we building first?",
+    "Can this task be treated as done",
+    "Technical Trace",
+    "status",
+    "status-check",
+    "does not approve implementation",
+    "does not approve release or production",
+    "does not write target files",
+    "does not prove real-user stability",
+  ]) {
+    if (combined.includes(marker)) pass(`1.79 user delivery console includes ${marker}`);
+    else fail(`1.79 user delivery console missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-user-delivery-console.mjs", ".", "--intent", "maintain IntentOS ordinary user delivery status"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# User Delivery Console Card")
+    && resolver.stdout.includes("## Human Summary")
+    && resolver.stdout.includes("Can this task be treated as done")
+    && resolver.stdout.includes("This card writes target files: No")) {
+    pass("1.79 user delivery console resolver prints safe status card");
+  } else {
+    fail(`1.79 user delivery console resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-user-delivery-console.mjs", ".", "--intent", "maintain IntentOS ordinary user delivery status", "--json"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
+        && parsed.schemaVersion === "1.79.0"
+        && parsed.readOnly === true
+        && parsed.deliveryStatus?.currentState
+        && parsed.boundaries?.writesTargetFiles === "No"
+        && parsed.boundaries?.approvesReleaseOrProduction === "No") {
+        pass("1.79 user delivery console resolver JSON includes state and no-authority boundaries");
+      } else {
+        fail(`1.79 user delivery console resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.79 user delivery console resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.79 user delivery console resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "status", ".", "--intent", "maintain IntentOS ordinary user delivery status"]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("# User Delivery Console Card")) {
+    pass("CLI status delegates to user delivery console resolver");
+  } else {
+    fail(`CLI status failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const sourceCheck = runNode(["scripts/check-user-delivery-console.mjs", "."]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("User Delivery Console check passed")) {
+    pass("1.79 user delivery console checker passes source repo");
+  } else {
+    fail(`1.79 user delivery console checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const cliCheck = runNode(["scripts/cli.mjs", "status-check", "."]);
+  if (cliCheck.status === 0 && cliCheck.stdout.includes("User Delivery Console check passed")) {
+    pass("CLI status-check delegates to user delivery console checker");
+  } else {
+    fail(`CLI status-check failed: ${cliCheck.stderr || cliCheck.stdout}`);
+  }
+
+  const example = runNode(["scripts/check-user-delivery-console.mjs", "examples/1.79-user-delivery-console/appointment-app"]);
+  if (example.status === 0 && example.stdout.includes("User Delivery Console check passed")) {
+    pass("1.79 user delivery console example passes checker");
+  } else {
+    fail(`1.79 user delivery console example failed: ${example.stderr || example.stdout}`);
+  }
+
+  for (const [name, target, expected] of [
+    ["internal jargon", "test-fixtures/bad/bad-user-delivery-console-internal-jargon", "internal evidence jargon"],
+    ["overclaim", "test-fixtures/bad/bad-user-delivery-console-overclaim", "forbidden user delivery console claim"],
+    ["too many decisions", "test-fixtures/bad/bad-user-delivery-console-too-many-decisions", "invalid number of human decisions"],
+  ]) {
+    const result = runNode(["scripts/check-user-delivery-console.mjs", target]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.79 user delivery console rejects ${name}`);
+    } else {
+      fail(`1.79 user delivery console must reject ${name}: ${output}`);
+    }
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, value]) => value)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-user-delivery-console.mjs",
+    "node --check scripts/check-user-delivery-console.mjs",
+    "node scripts/cli.mjs status . --intent \"维护 IntentOS 普通用户交付状态\"",
+    "node scripts/cli.mjs status-check .",
+    "node scripts/check-user-delivery-console.mjs examples/1.79-user-delivery-console/appointment-app",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.79 package verify includes ${marker}`);
+    else fail(`1.79 package verify missing ${marker}`);
+  }
+}
+
 function generatedExecutionAssuranceReportText({ taskRef, testEvidenceRef }) {
   return `# Execution Assurance Report
 
@@ -14717,6 +14872,7 @@ checkChangeImpactCoverageProtocol();
 checkVerificationPlanGovernanceProtocol();
 checkTestEvidenceBindingProtocol();
 checkCompletionEvidenceGateProtocol();
+checkUserDeliveryConsoleProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();

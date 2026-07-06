@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.78.3`
+Current version: `1.79.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.78.3`
 
 ## Current Release
 
-`1.78.3`
+`1.79.0`
 
 Includes:
+
+- User Delivery Console phase `1.79.0`: `status` / `status-check` now provide
+  one ordinary-user delivery status card that answers what is being built,
+  where the work stands, whether the task can be treated as done, what is
+  missing, and what Codex can safely do next.
+- `1.79.0` is a derived view layer. It does not add a new completion gate,
+  replace Completion Evidence, replace Release Plan, write target files,
+  approve implementation, approve commit/push, approve release/production,
+  mutate CI/hooks, or prove real-user stability.
 
 - Completion Evidence Reference Docs And Compatibility Notes patch `1.78.3`:
   reference docs now expose the Completion Evidence CLI/checker/artifact

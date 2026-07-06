@@ -36,6 +36,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Verification Plan Governance](verification-test-governance.md)
 - [Test Evidence Binding](test-evidence-binding.md)
 - [Completion Evidence Gate](completion-evidence-gate.md)
+- [User Delivery Console](user-delivery-console.md)
 
 ## Project Adoption
 
@@ -67,6 +68,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Verification Plan Governance](verification-test-governance.md)
 - [Test Evidence Binding](test-evidence-binding.md)
 - [Completion Evidence Gate](completion-evidence-gate.md)
+- [User Delivery Console](user-delivery-console.md)
 - [Execution Assurance Chain](execution-assurance-chain.md)
 - [Delivery Path Governance](delivery-path-governance.md)
 - [Ordinary User First Slice](ordinary-user-first-slice.md)
