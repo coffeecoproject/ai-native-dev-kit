@@ -80,6 +80,18 @@ broad-command-only evidence. Test Evidence Binding does not run tests, design
 tests, approve implementation, approve release or production, or prove product
 correctness.
 
+1.78.0 extends structured Markdown evidence to:
+
+- Completion Evidence Gate
+
+Completion Evidence Gate consumes recorded Business Rule Closure, Verification
+Plan, Test Evidence, and Execution Assurance artifacts. Strict checks validate
+source schemas, task refs, outcomes, source digests, source intent digests, and
+BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs before
+Codex can claim the task is complete. It still does not run tests, write target
+files, approve commits, approve release or production, prove product
+correctness, or prove real-environment behavior.
+
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
 - `--resolve-evidence-refs` requires `DONE` evidence references to resolve

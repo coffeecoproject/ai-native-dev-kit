@@ -20,12 +20,15 @@ This report is a read-only completion gate. It does not run tests, write target 
 | Check | Status | Source | Expected | Actual | Reason |
 |---|---|---|---|---|---|
 | `check:business_rule_closure` | `FAIL` | `business_rule_closure` | Business Rule Closure is READY_FOR_IMPACT_COVERAGE. | `NOT_PROVIDED` | Required source is missing. |
+| `check:source-digest-consistency` | `FAIL` | `source_chain` | Source digests match referenced artifacts. | `No` | Required source artifacts are missing. |
+| `check:intent-consistency` | `FAIL` | `source_chain` | Source intent digests match current completion intent. | `No` | Required source artifacts are missing. |
+| `check:source-chain-binding` | `FAIL` | `source_chain` | BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs and digests match. | `No` | Required source artifacts are missing. |
 
 ## Source Chain
 
-| Source | Status | Ref | Task Ref | Outcome | Ready | Digest | Reason |
-|---|---|---|---|---|---|---|---|
-| `business_rule_closure` | `NOT_PROVIDED` | `not provided` | `not provided` | `not provided` | `No` | `not provided` | Required source reference was not provided. |
+| Source | Status | Ref | Task Ref | Intent Digest | Outcome | Ready | Digest | Reason |
+|---|---|---|---|---|---|---|---|---|
+| `business_rule_closure` | `NOT_PROVIDED` | `not provided` | `not provided` | `not provided` | `not provided` | `No` | `not provided` | Required source reference was not provided. |
 
 ## Task Consistency
 

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.78.0`
+Current version: `1.78.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.78.0`
 
 ## Current Release
 
-`1.78.0`
+`1.78.1`
 
 Includes:
+
+- Completion Evidence Source Chain Binding patch `1.78.1`: strict Completion
+  Evidence checks now verify cross-source refs and digests across Business Rule
+  Closure -> Verification Plan -> Test Evidence -> Execution Assurance.
+- `1.78.1` validates source artifact schemas, source identity digests, and
+  source intent digests before Codex can claim the task is complete. The
+  Completion Evidence artifact schema remains `1.78.0`; this is a checker and
+  fixture hardening patch.
 
 - Completion Evidence Gate phase `1.78.0`: final task-completion claims now
   require a recorded Business Rule Closure, Verification Plan, Test Evidence,

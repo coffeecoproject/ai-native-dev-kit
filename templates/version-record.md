@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.78.0`
+`1.78.1`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.78.1` tightens Completion Evidence Gate source-chain binding: strict checks validate source schemas, source identity digests, source intent digests, and BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs before a completion claim can pass.
+- `1.78.1` keeps Completion Evidence schema compatibility at `1.78.0`; it is a checker, fixture, documentation, and release-record hardening patch.
 - `1.78.0` adds Completion Evidence Gate: final completion claims require recorded BRC, Verification Plan, Test Evidence, and Execution Assurance source artifacts to be ready and bound to the same task.
 - `1.78.0` remains non-executing: it does not run tests, approve implementation, approve commit/push, approve release/production, prove product correctness, prove real-environment behavior, or replace its source systems.
 - `1.77.2` synchronizes Test Evidence installation and schema contracts: the stricter Test Evidence report shape is explicitly schema `1.77.1`, generated-project PR smoke visibly runs BRC -> CIC -> Verification Plan -> Test Evidence strict binding, and Test Evidence Markdown/JSON reason fields are compared.

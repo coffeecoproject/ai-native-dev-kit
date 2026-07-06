@@ -16,6 +16,15 @@ Business Rule Closure
 -> Completion Evidence Gate
 ```
 
+From 1.78.1, strict mode also checks that this is one real source chain, not
+four unrelated ready reports. It verifies:
+
+- Verification Plan points to the same Business Rule Closure.
+- Test Evidence points to the same Verification Plan.
+- Execution Assurance points to the same Test Evidence.
+- Source digests match the referenced artifacts.
+- Source intent digests match the current completion intent when available.
+
 ## When To Use
 
 Use it when Codex is about to say:

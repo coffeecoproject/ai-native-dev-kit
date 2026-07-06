@@ -11,6 +11,16 @@ It connects:
 
 Codex may only claim a task is complete when the recorded source artifacts are all present, all ready, and all bound to the same task.
 
+1.78.1 hardens this gate from a ready-state aggregator into a source-chain
+binding gate. A ready completion claim must prove:
+
+- Verification Plan is bound to the same Business Rule Closure.
+- Test Evidence is bound to the same Verification Plan.
+- Execution Assurance is bound to the same Test Evidence.
+- Source digests match the referenced artifacts.
+- Source intent digests match the current completion intent when the upstream
+  artifact exposes one.
+
 ## What It Prevents
 
 - Backend-only completion when frontend or API surfaces were required.
@@ -18,6 +28,8 @@ Codex may only claim a task is complete when the recorded source artifacts are a
 - Test evidence reused from an older task.
 - Execution summaries that say done without Business Rule Closure or Test Evidence.
 - Patch-style completion claims that bypass the planned evidence chain.
+- Same-task but wrong-source-chain completion claims.
+- Display-only source digests or intent digests.
 
 ## Required Ready States
 

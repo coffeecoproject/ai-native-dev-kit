@@ -58,6 +58,7 @@
           "status": { "enum": ["RECORDED", "NOT_PROVIDED", "UNRESOLVED", "INVALID"] },
           "ref": { "type": "string" },
           "task_ref": { "type": "string" },
+          "intent_digest": { "type": "string" },
           "source_outcome": { "type": "string" },
           "digest": { "type": "string" },
           "ready": { "enum": ["Yes", "No"] },

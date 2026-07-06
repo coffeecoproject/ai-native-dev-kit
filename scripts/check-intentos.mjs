@@ -8351,9 +8351,18 @@ function checkCompletionEvidenceGateProtocol() {
     "test-fixtures/bad/bad-completion-evidence-missing-test-evidence/completion-evidence-reports/001-bad.md",
     "test-fixtures/bad/bad-completion-evidence-task-mismatch/completion-evidence-reports/001-bad.md",
     "test-fixtures/bad/bad-completion-evidence-execution-not-verified/completion-evidence-reports/001-bad.md",
+    "test-fixtures/bad/bad-completion-evidence-vp-bound-to-different-brc/completion-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-completion-evidence-test-evidence-bound-to-different-plan/completion-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-completion-evidence-ea-missing-test-evidence-ref/completion-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-completion-evidence-source-digest-mismatch/completion-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-completion-evidence-source-schema-invalid/completion-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-completion-evidence-intent-digest-mismatch/completion-evidence-reports/001-service-time.md",
     "releases/1.78.0/release-record.md",
     "releases/1.78.0/known-limitations.md",
     "releases/1.78.0/self-check-report.md",
+    "releases/1.78.1/release-record.md",
+    "releases/1.78.1/known-limitations.md",
+    "releases/1.78.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.78 completion evidence asset exists ${file}`);
@@ -8372,6 +8381,7 @@ function checkCompletionEvidenceGateProtocol() {
     read("scripts/check-completion-evidence.mjs"),
     read("scripts/cli.mjs"),
     exists("releases/1.78.0/release-record.md") ? read("releases/1.78.0/release-record.md") : "",
+    exists("releases/1.78.1/release-record.md") ? read("releases/1.78.1/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -8389,6 +8399,9 @@ function checkCompletionEvidenceGateProtocol() {
     "BLOCKED_BY_TEST_EVIDENCE",
     "BLOCKED_BY_EXECUTION_ASSURANCE",
     "BLOCKED_BY_TASK_MISMATCH",
+    "check:source-digest-consistency",
+    "check:intent-consistency",
+    "check:source-chain-binding",
     "does not run tests",
     "does not approve release or production",
     "completion-evidence",
@@ -8525,16 +8538,22 @@ function checkCompletionEvidenceGateProtocol() {
   }
 
   const badFixtureCases = [
-    ["bad-completion-evidence-missing-test-evidence", "ready gate requires recorded ready source test_evidence"],
-    ["bad-completion-evidence-task-mismatch", "source chain task refs must be consistent"],
-    ["bad-completion-evidence-execution-not-verified", "ready gate requires recorded ready source execution_assurance"],
+    ["bad-completion-evidence-missing-test-evidence", "ready gate requires recorded ready source test_evidence", "completion-evidence-reports/001-bad.md"],
+    ["bad-completion-evidence-task-mismatch", "source chain task refs must be consistent", "completion-evidence-reports/001-bad.md"],
+    ["bad-completion-evidence-execution-not-verified", "ready gate requires recorded ready source execution_assurance", "completion-evidence-reports/001-bad.md"],
+    ["bad-completion-evidence-vp-bound-to-different-brc", "Verification Plan business_rule_ref", "completion-evidence-reports/001-service-time.md"],
+    ["bad-completion-evidence-test-evidence-bound-to-different-plan", "Test Evidence verification_plan_ref", "completion-evidence-reports/001-service-time.md"],
+    ["bad-completion-evidence-ea-missing-test-evidence-ref", "Execution Assurance must bind referenced Test Evidence", "completion-evidence-reports/001-service-time.md"],
+    ["bad-completion-evidence-source-digest-mismatch", "source test_evidence digest", "completion-evidence-reports/001-service-time.md"],
+    ["bad-completion-evidence-source-schema-invalid", "source business_rule_closure.artifact_type", "completion-evidence-reports/001-service-time.md"],
+    ["bad-completion-evidence-intent-digest-mismatch", "source verification_plan intent_digest", "completion-evidence-reports/001-service-time.md"],
   ];
-  for (const [name, expected] of badFixtureCases) {
+  for (const [name, expected, report] of badFixtureCases) {
     const result = runNode([
       "scripts/check-completion-evidence.mjs",
       `test-fixtures/bad/${name}`,
       "--report",
-      "completion-evidence-reports/001-bad.md",
+      report,
       "--require-structured-evidence",
       "--require-ready",
     ]);

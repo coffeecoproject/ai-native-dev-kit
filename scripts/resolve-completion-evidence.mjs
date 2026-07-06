@@ -74,7 +74,7 @@ function buildReport(root) {
   ];
   const taskRef = explicitTask || firstTaskRef(sources) || `tasks/001-${slugify(intent)}.md`;
   const completionEvidenceRef = completionEvidenceRefForOutput(root, outputPath, slugify(intent));
-  const checks = buildChecks(sources, taskRef);
+  const checks = buildChecks(sources, taskRef, digest(intent));
   const state = stateFor(checks);
   const canClaimComplete = state === "COMPLETION_EVIDENCE_READY" ? "Yes" : "No";
   const base = {
@@ -92,6 +92,7 @@ function buildReport(root) {
       status: source.status,
       ref: source.ref || "not provided",
       task_ref: source.taskRef || "not provided",
+      intent_digest: source.intentDigest || "not provided",
       source_outcome: source.outcome || "not provided",
       digest: source.digest || "not provided",
       ready: source.ready,
@@ -182,7 +183,10 @@ function sourceFor(root, name, refValue, options) {
     name,
     status: "RECORDED",
     ref,
+    file: resolved,
+    evidence,
     taskRef: String(evidence?.task_ref || ""),
+    intentDigest: String(evidence?.intent_digest || evidence?.source_request_digest || ""),
     outcome,
     digest: options.digestField ? String(evidence?.[options.digestField] || "") : fileDigest(resolved),
     ready: readyState && extraReady ? "Yes" : "No",
@@ -192,7 +196,7 @@ function sourceFor(root, name, refValue, options) {
   };
 }
 
-function buildChecks(sources, taskRef) {
+function buildChecks(sources, taskRef, intentDigest) {
   const required = [
     ["business_rule_closure", "Business Rule Closure is READY_FOR_IMPACT_COVERAGE."],
     ["verification_plan", "Verification Plan is VERIFICATION_PLAN_READY."],
@@ -220,6 +224,33 @@ function buildChecks(sources, taskRef) {
     actual: consistency.all_sources_same_task,
     reason: consistency.reason,
   });
+  const sourceDigestConsistency = sourceDigestConsistencyFor(sources);
+  checks.push({
+    id: "check:source-digest-consistency",
+    status: sourceDigestConsistency.all_source_digests_recorded === "Yes" ? "PASS" : "FAIL",
+    source: "source_chain",
+    expected: "All recorded source artifacts include a source identity digest.",
+    actual: sourceDigestConsistency.all_source_digests_recorded,
+    reason: sourceDigestConsistency.reason,
+  });
+  const intentConsistency = sourceIntentConsistencyFor(sources, intentDigest);
+  checks.push({
+    id: "check:intent-consistency",
+    status: intentConsistency.all_recorded_sources_have_intent === "Yes" ? "PASS" : "FAIL",
+    source: "source_chain",
+    expected: "Recorded source artifacts expose current intent digest when available.",
+    actual: intentConsistency.all_recorded_sources_have_intent,
+    reason: intentConsistency.reason,
+  });
+  const sourceChainBinding = sourceChainBindingFor(sources);
+  checks.push({
+    id: "check:source-chain-binding",
+    status: sourceChainBinding.all_source_bindings_match === "Yes" ? "PASS" : "FAIL",
+    source: "source_chain",
+    expected: "BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs and digests match.",
+    actual: sourceChainBinding.all_source_bindings_match,
+    reason: sourceChainBinding.reason,
+  });
   return checks;
 }
 
@@ -238,9 +269,115 @@ function taskConsistencyFor(sources, taskRef) {
   };
 }
 
+function sourceDigestConsistencyFor(sources) {
+  const recorded = sources.filter((item) => item.status === "RECORDED");
+  const mismatched = recorded.filter((item) => item.digest !== expectedDigestForSource(item));
+  return {
+    all_source_digests_recorded: recorded.length > 0 && mismatched.length === 0 ? "Yes" : "No",
+    reason: recorded.length === 0
+      ? "No recorded source artifacts were available."
+      : mismatched.length === 0
+        ? "All recorded source artifact digests match referenced evidence."
+        : `Mismatched source digests: ${mismatched.map((item) => `${item.name}=${item.digest || "not provided"}`).join(", ")}`,
+  };
+}
+
+function sourceIntentConsistencyFor(sources, intentDigest) {
+  const recorded = sources.filter((item) => item.status === "RECORDED" && item.name !== "execution_assurance");
+  const mismatched = recorded.filter((item) => item.intentDigest !== intentDigest);
+  return {
+    all_recorded_sources_have_intent: recorded.length > 0 && mismatched.length === 0 ? "Yes" : "No",
+    reason: recorded.length === 0
+      ? "No recorded source artifacts with intent digest were available."
+      : mismatched.length === 0
+        ? "Business Rule Closure, Verification Plan, and Test Evidence match the completion intent digest."
+        : `Mismatched source intent digests: ${mismatched.map((item) => `${item.name}=${item.intentDigest || "not provided"}`).join(", ")}`,
+  };
+}
+
+function sourceChainBindingFor(sources) {
+  const byName = new Map(sources.map((item) => [item.name, item]));
+  const brc = byName.get("business_rule_closure");
+  const vp = byName.get("verification_plan");
+  const te = byName.get("test_evidence");
+  const ea = byName.get("execution_assurance");
+  if ([brc, vp, te, ea].some((item) => item?.status !== "RECORDED")) {
+    return {
+      all_source_bindings_match: "No",
+      reason: "All four source artifacts must be recorded before source-chain binding can pass.",
+    };
+  }
+  const failures = [];
+  if (!sameRef(vp.evidence?.business_rule_ref, brc.ref)) failures.push("Verification Plan business_rule_ref does not match Completion Evidence BRC ref");
+  if (vp.evidence?.business_rule_digest !== brc.evidence?.business_rule_digest) failures.push("Verification Plan business_rule_digest does not match referenced BRC");
+  if (!sourceSystemsContains(vp.evidence?.source_systems, "business_rule_closure", brc.ref, brc.evidence?.business_rule_digest, brc.outcome)) failures.push("Verification Plan source_systems does not bind BRC ref/digest/outcome");
+  if (!sameRef(te.evidence?.verification_plan_ref, vp.ref)) failures.push("Test Evidence verification_plan_ref does not match Completion Evidence Verification Plan ref");
+  if (te.evidence?.verification_plan_digest !== vp.digest) failures.push("Test Evidence verification_plan_digest does not match referenced Verification Plan");
+  if (!sourceSystemsContains(te.evidence?.source_systems, "verification_plan", vp.ref, vp.digest, vp.outcome)) failures.push("Test Evidence source_systems does not bind Verification Plan ref/digest/outcome");
+  if (!executionAssuranceContainsTestEvidence(ea.evidence, te)) failures.push("Execution Assurance does not bind the referenced Test Evidence");
+  return {
+    all_source_bindings_match: failures.length === 0 ? "Yes" : "No",
+    reason: failures.length === 0 ? "BRC, Verification Plan, Test Evidence, and Execution Assurance form one bound source chain." : failures.join("; "),
+  };
+}
+
+function expectedDigestForSource(source) {
+  if (source.name === "business_rule_closure") return source.evidence?.closure_digest || "";
+  if (source.name === "verification_plan") return source.evidence?.verification_plan_digest || "";
+  if (source.name === "test_evidence") return source.evidence?.test_evidence_digest || "";
+  if (source.name === "execution_assurance") return source.evidence?.report_digest || fileDigest(source.file || "");
+  return "";
+}
+
+function sourceSystemsContains(items, name, ref, digestValue, outcome) {
+  return (items || []).some((item) => item.name === name
+    && sameRef(item.ref || item.source_system_ref, ref)
+    && item.digest === digestValue
+    && item.source_outcome === outcome);
+}
+
+function executionAssuranceContainsTestEvidence(evidence, testEvidenceSource) {
+  const sourceMatch = (evidence?.source_systems || []).some((item) => item.name === "test_evidence"
+    && sameRef(item.source_system_ref || item.ref, testEvidenceSource.ref)
+    && item.source_task_ref === testEvidenceSource.taskRef
+    && item.source_outcome === testEvidenceSource.outcome);
+  if (sourceMatch) return true;
+  return collectEvidenceRefs(evidence).some((ref) => sameRef(ref, testEvidenceSource.ref));
+}
+
+function collectEvidenceRefs(value) {
+  const refs = [];
+  visit(value);
+  return refs;
+
+  function visit(item) {
+    if (Array.isArray(item)) {
+      item.forEach(visit);
+      return;
+    }
+    if (!item || typeof item !== "object") return;
+    for (const [key, child] of Object.entries(item)) {
+      if (key === "evidence_ref" || key === "source_system_ref" || key === "ref") refs.push(String(child || ""));
+      if (key === "evidence_refs" && Array.isArray(child)) refs.push(...child.map((ref) => String(ref || "")));
+      visit(child);
+    }
+  }
+}
+
+function sameRef(left, right) {
+  return normalizeRef(left) === normalizeRef(right);
+}
+
+function normalizeRef(value) {
+  return String(value || "").trim().replace(/^(artifact|file):/, "");
+}
+
 function stateFor(checks) {
   if (checks.every((check) => check.status === "PASS")) return "COMPLETION_EVIDENCE_READY";
   if (checks.some((check) => check.id === "check:task-consistency" && check.status !== "PASS")) return "BLOCKED_BY_TASK_MISMATCH";
+  if (checks.some((check) => check.id === "check:intent-consistency" && check.status !== "PASS")) return "BLOCKED_BY_TASK_MISMATCH";
+  if (checks.some((check) => check.id === "check:source-digest-consistency" && check.status !== "PASS")) return "BLOCKED_BY_MISSING_SOURCE";
+  if (checks.some((check) => check.id === "check:source-chain-binding" && check.status !== "PASS")) return "BLOCKED_BY_MISSING_SOURCE";
   if (checks.some((check) => check.id === "check:test_evidence" && check.status !== "PASS")) return "BLOCKED_BY_TEST_EVIDENCE";
   if (checks.some((check) => check.id === "check:execution_assurance" && check.status !== "PASS")) return "BLOCKED_BY_EXECUTION_ASSURANCE";
   return "BLOCKED_BY_MISSING_SOURCE";
@@ -302,9 +439,9 @@ ${evidence.gate_checks.map((check) => `| \`${check.id}\` | \`${check.status}\` |
 
 ## Source Chain
 
-| Source | Status | Ref | Task Ref | Outcome | Ready | Digest | Reason |
-|---|---|---|---|---|---|---|---|
-${evidence.source_chain.map((source) => `| \`${source.name}\` | \`${source.status}\` | \`${source.ref}\` | \`${source.task_ref}\` | \`${source.source_outcome}\` | \`${source.ready}\` | \`${source.digest}\` | ${source.reason} |`).join("\n")}
+| Source | Status | Ref | Task Ref | Intent Digest | Outcome | Ready | Digest | Reason |
+|---|---|---|---|---|---|---|---|---|
+${evidence.source_chain.map((source) => `| \`${source.name}\` | \`${source.status}\` | \`${source.ref}\` | \`${source.task_ref}\` | \`${source.intent_digest || "not provided"}\` | \`${source.source_outcome}\` | \`${source.ready}\` | \`${source.digest}\` | ${source.reason} |`).join("\n")}
 
 ## Task Consistency
 

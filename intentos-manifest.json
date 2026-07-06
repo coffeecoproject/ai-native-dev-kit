@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.78.0",
+  "intentOSVersion": "1.78.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.78.0"
+    "phase": "1.78.1"
   },
   "groups": {
     "sourceRequired": [
@@ -1451,6 +1451,9 @@
       "releases/1.78.0/known-limitations.md",
       "releases/1.78.0/release-record.md",
       "releases/1.78.0/self-check-report.md",
+      "releases/1.78.1/known-limitations.md",
+      "releases/1.78.1/release-record.md",
+      "releases/1.78.1/self-check-report.md",
       "releases/1.8.0/known-limitations.md",
       "releases/1.8.0/release-record.md",
       "releases/1.8.0/self-check-report.md",

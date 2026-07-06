@@ -2,10 +2,12 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import {
   extractMachineReadableEvidence,
   loadSchema,
+  validateSchema,
   validateEvidenceBlock,
 } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
@@ -31,6 +33,12 @@ const requireSourceRefs = Boolean(args["require-source-refs"] || args["require-r
 const requireReady = Boolean(args["require-ready"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/completion-evidence.schema.json");
+const sourceSchemas = {
+  business_rule_closure: loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json"),
+  verification_plan: loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json"),
+  test_evidence: loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json"),
+  execution_assurance: loadSchema(projectRoot, "schemas/artifacts/execution-assurance.schema.json"),
+};
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -213,8 +221,10 @@ function checkStructuredEvidence(label, file, evidence) {
     if (sourceNames.has(name)) pass(`${label} includes source ${name}`);
     else fail(`${label} missing source ${name}`);
   }
+  const sourceRecords = new Map();
   for (const source of sources) {
-    checkSource(label, source);
+    const record = checkSource(label, source, evidence);
+    if (record?.evidence) sourceRecords.set(source.name, record);
   }
   const checksById = new Map((evidence.gate_checks || []).map((item) => [item.id, item]));
   for (const id of [
@@ -223,10 +233,14 @@ function checkStructuredEvidence(label, file, evidence) {
     "check:test_evidence",
     "check:execution_assurance",
     "check:task-consistency",
+    "check:source-digest-consistency",
+    "check:intent-consistency",
+    "check:source-chain-binding",
   ]) {
     if (checksById.has(id)) pass(`${label} includes gate check ${id}`);
     else fail(`${label} missing gate check ${id}`);
   }
+  checkCrossSourceBinding(label, evidence, sourceRecords);
   if (evidence.task_consistency?.all_sources_same_task === "Yes") pass(`${label} source chain task refs are consistent`);
   else fail(`${label} source chain task refs must be consistent before completion can be claimed`);
   const allPass = (evidence.gate_checks || []).every((item) => item.status === "PASS");
@@ -247,13 +261,13 @@ function checkStructuredEvidence(label, file, evidence) {
   }
 }
 
-function checkSource(label, source) {
+function checkSource(label, source, completionEvidence) {
   if (!requiredSourceNames.has(source.name)) fail(`${label} unknown source ${source.name}`);
   if (requireSourceRefs || source.ready === "Yes") {
     const resolved = resolveArtifact(String(source.ref || ""));
     if (resolved) {
       pass(`${label} source ${source.name} ref resolves`);
-      checkReferencedSource(label, source, resolved);
+      return checkReferencedSource(label, source, resolved, completionEvidence);
     } else {
       fail(`${label} source ${source.name} ref is not resolvable: ${source.ref || "<missing>"}`);
     }
@@ -261,23 +275,42 @@ function checkSource(label, source) {
   if (source.ready === "Yes" && source.status !== "RECORDED") {
     fail(`${label} source ${source.name} cannot be ready unless RECORDED`);
   }
+  return null;
 }
 
-function checkReferencedSource(label, source, file) {
+function checkReferencedSource(label, source, file, completionEvidence) {
   const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
   if (!extracted?.ok) {
     fail(`${label} source ${source.name} has invalid Machine-Readable Evidence`);
-    return;
+    return null;
   }
   const evidence = extracted.value;
+  const sourceSchema = sourceSchemas[source.name];
+  if (sourceSchema && (requireSourceRefs || requireReady || source.ready === "Yes")) {
+    const validation = validateSchema(evidence, sourceSchema, { label: `${label} source ${source.name}` });
+    if (validation.ok) pass(`${label} source ${source.name} has valid source schema evidence`);
+    else validation.errors.forEach((error) => fail(error));
+  }
   if (source.task_ref === evidence.task_ref) pass(`${label} source ${source.name} task_ref matches referenced evidence`);
   else fail(`${label} source ${source.name} task_ref ${source.task_ref || "<missing>"} must match referenced evidence ${evidence.task_ref || "<missing>"}`);
   const expected = expectedOutcomeFor(source.name, evidence);
   if (source.source_outcome === expected) pass(`${label} source ${source.name} outcome matches referenced evidence`);
   else fail(`${label} source ${source.name} outcome ${source.source_outcome || "<missing>"} must match referenced evidence ${expected || "<missing>"}`);
+  const expectedDigest = expectedDigestFor(source.name, evidence, file);
+  if (source.digest === expectedDigest) pass(`${label} source ${source.name} digest matches referenced evidence`);
+  else fail(`${label} source ${source.name} digest ${source.digest || "<missing>"} must match referenced evidence ${expectedDigest || "<missing>"}`);
+  const expectedIntentDigest = expectedIntentDigestFor(source.name, evidence);
+  if (source.name !== "execution_assurance" && (requireSourceRefs || requireReady)) {
+    if (source.intent_digest === expectedIntentDigest && source.intent_digest === completionEvidence.intent_digest) {
+      pass(`${label} source ${source.name} intent_digest matches completion evidence`);
+    } else {
+      fail(`${label} source ${source.name} intent_digest ${source.intent_digest || "<missing>"} must match completion evidence ${completionEvidence.intent_digest || "<missing>"}`);
+    }
+  }
   if (source.name === "execution_assurance" && evidence.can_claim_done !== "Yes" && source.ready === "Yes") {
     fail(`${label} execution assurance ready source requires can_claim_done Yes`);
   }
+  return { source, file, evidence };
 }
 
 function expectedOutcomeFor(name, evidence) {
@@ -286,6 +319,105 @@ function expectedOutcomeFor(name, evidence) {
   if (name === "test_evidence") return evidence.test_evidence_state || evidence.outcome;
   if (name === "execution_assurance") return evidence.assurance_state || evidence.outcome;
   return evidence.outcome;
+}
+
+function expectedDigestFor(name, evidence, file) {
+  if (name === "business_rule_closure") return evidence.closure_digest || "";
+  if (name === "verification_plan") return evidence.verification_plan_digest || "";
+  if (name === "test_evidence") return evidence.test_evidence_digest || "";
+  if (name === "execution_assurance") return evidence.report_digest || fileDigest(file);
+  return "";
+}
+
+function expectedIntentDigestFor(name, evidence) {
+  if (name === "business_rule_closure") return evidence.source_request_digest || evidence.intent_digest || "";
+  if (name === "verification_plan") return evidence.intent_digest || "";
+  if (name === "test_evidence") return evidence.intent_digest || "";
+  return evidence.intent_digest || "";
+}
+
+function checkCrossSourceBinding(label, completionEvidence, sourceRecords) {
+  if (!requireSourceRefs && !requireReady) return;
+  const brc = sourceRecords.get("business_rule_closure");
+  const vp = sourceRecords.get("verification_plan");
+  const te = sourceRecords.get("test_evidence");
+  const ea = sourceRecords.get("execution_assurance");
+  if (!brc || !vp || !te || !ea) {
+    fail(`${label} source-chain binding requires all four referenced source artifacts`);
+    return;
+  }
+
+  if (sameRef(vp.evidence.business_rule_ref, brc.source.ref)) pass(`${label} Verification Plan business_rule_ref matches Completion Evidence BRC ref`);
+  else fail(`${label} Verification Plan business_rule_ref ${vp.evidence.business_rule_ref || "<missing>"} must match ${brc.source.ref || "<missing>"}`);
+  if (vp.evidence.business_rule_digest === brc.evidence.business_rule_digest) pass(`${label} Verification Plan business_rule_digest matches referenced BRC`);
+  else fail(`${label} Verification Plan business_rule_digest ${vp.evidence.business_rule_digest || "<missing>"} must match referenced BRC ${brc.evidence.business_rule_digest || "<missing>"}`);
+  checkSourceSystemBinding(label, vp.evidence.source_systems, "verification_plan", "business_rule_closure", brc.source.ref, brc.evidence.business_rule_digest, brc.source.source_outcome);
+
+  if (sameRef(te.evidence.verification_plan_ref, vp.source.ref)) pass(`${label} Test Evidence verification_plan_ref matches Completion Evidence Verification Plan ref`);
+  else fail(`${label} Test Evidence verification_plan_ref ${te.evidence.verification_plan_ref || "<missing>"} must match ${vp.source.ref || "<missing>"}`);
+  if (te.evidence.verification_plan_digest === vp.source.digest) pass(`${label} Test Evidence verification_plan_digest matches referenced Verification Plan`);
+  else fail(`${label} Test Evidence verification_plan_digest ${te.evidence.verification_plan_digest || "<missing>"} must match referenced Verification Plan ${vp.source.digest || "<missing>"}`);
+  checkSourceSystemBinding(label, te.evidence.source_systems, "test_evidence", "verification_plan", vp.source.ref, vp.source.digest, vp.source.source_outcome);
+
+  if (executionAssuranceBindsTestEvidence(ea.evidence, te.source)) pass(`${label} Execution Assurance binds referenced Test Evidence`);
+  else fail(`${label} Execution Assurance must bind referenced Test Evidence ${te.source.ref || "<missing>"}`);
+  if (completionEvidence.intent_digest === brc.source.intent_digest
+    && completionEvidence.intent_digest === vp.source.intent_digest
+    && completionEvidence.intent_digest === te.source.intent_digest) {
+    pass(`${label} source-chain intent digests match completion intent`);
+  } else {
+    fail(`${label} source-chain intent digests must match completion intent ${completionEvidence.intent_digest || "<missing>"}`);
+  }
+}
+
+function checkSourceSystemBinding(label, items, ownerName, sourceName, expectedRef, expectedDigest, expectedOutcome) {
+  const match = (items || []).find((item) => item.name === sourceName);
+  if (!match) {
+    fail(`${label} ${ownerName} source_systems must include ${sourceName}`);
+    return;
+  }
+  if (sameRef(match.ref || match.source_system_ref, expectedRef)) pass(`${label} ${ownerName} source_systems ${sourceName}.ref matches`);
+  else fail(`${label} ${ownerName} source_systems ${sourceName}.ref ${match.ref || match.source_system_ref || "<missing>"} must match ${expectedRef || "<missing>"}`);
+  if (match.digest === expectedDigest) pass(`${label} ${ownerName} source_systems ${sourceName}.digest matches`);
+  else fail(`${label} ${ownerName} source_systems ${sourceName}.digest ${match.digest || "<missing>"} must match ${expectedDigest || "<missing>"}`);
+  if (match.source_outcome === expectedOutcome) pass(`${label} ${ownerName} source_systems ${sourceName}.source_outcome matches`);
+  else fail(`${label} ${ownerName} source_systems ${sourceName}.source_outcome ${match.source_outcome || "<missing>"} must match ${expectedOutcome || "<missing>"}`);
+}
+
+function executionAssuranceBindsTestEvidence(evidence, testEvidenceSource) {
+  const sourceMatch = (evidence.source_systems || []).some((item) => item.name === "test_evidence"
+    && sameRef(item.source_system_ref || item.ref, testEvidenceSource.ref)
+    && item.source_task_ref === testEvidenceSource.task_ref
+    && item.source_outcome === testEvidenceSource.source_outcome);
+  if (sourceMatch) return true;
+  return collectEvidenceRefs(evidence).some((ref) => sameRef(ref, testEvidenceSource.ref));
+}
+
+function collectEvidenceRefs(value) {
+  const refs = [];
+  visit(value);
+  return refs;
+
+  function visit(item) {
+    if (Array.isArray(item)) {
+      item.forEach(visit);
+      return;
+    }
+    if (!item || typeof item !== "object") return;
+    for (const [key, child] of Object.entries(item)) {
+      if (key === "evidence_ref" || key === "source_system_ref" || key === "ref") refs.push(String(child || ""));
+      if (key === "evidence_refs" && Array.isArray(child)) refs.push(...child.map((ref) => String(ref || "")));
+      visit(child);
+    }
+  }
+}
+
+function sameRef(left, right) {
+  return normalizeRef(left) === normalizeRef(right);
+}
+
+function normalizeRef(value) {
+  return String(value || "").trim().replace(/^(artifact|file):/, "");
 }
 
 function resolveReportPath(relativeOrAbsolute) {
@@ -364,6 +496,10 @@ function resolveArtifact(ref) {
     path.resolve(projectRoot, ".intentos", relative),
   ];
   return candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) || "";
+}
+
+function fileDigest(file) {
+  return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
 }
 
 function rel(file) {

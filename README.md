@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.78.0`.
+Current release: `1.78.1`.
 
-Release record: [releases/1.78.0/release-record.md](releases/1.78.0/release-record.md).
+Release record: [releases/1.78.1/release-record.md](releases/1.78.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.78.1 tightens Completion Evidence Gate: completion claims now require source-chain cross-binding, source digest checks, source schema validation, and intent digest matching across Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance. It still does not run tests, approve commits, approve release, or prove production behavior.
 
 1.78.0 adds Completion Evidence Gate: Codex can only claim a task is complete when Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance are all recorded, ready, and bound to the same task. It catches missing test evidence, stale or wrong-task reports, and execution summaries that say done without the full proof chain. It still does not run tests, approve commits, approve release, or prove production behavior.
 
