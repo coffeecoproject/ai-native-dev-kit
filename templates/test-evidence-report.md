@@ -34,9 +34,9 @@ Summarize whether the Verification Plan obligations are covered by concrete evid
 
 ## Evidence Items
 
-| ID | Type | Result State | Ref | Command | Owner | Environment | Ran After Change | Current Task Match | Covers Obligations | Output Digest | Limitations |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| `evidence:api-negative` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/api-negative.txt` | `npm test -- api-negative` | automated-test-command | local-dev | `Yes` | `Yes` | `verify:api-negative` | `sha256:...` | None |
+| ID | Type | Result State | Ref | Command | Owner | Environment | Exit Code | Ran After Change | Current Task Match | Covers Obligations | Output Digest | Failure Reason | Limitations |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `evidence:api-negative` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/api-negative.txt` | `npm test -- api-negative` | automated-test-command | local-dev | `0` | `Yes` | `Yes` | `verify:api-negative` | `sha256:...` | not recorded | None |
 
 ## Coverage Map
 

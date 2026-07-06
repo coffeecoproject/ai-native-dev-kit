@@ -226,7 +226,7 @@ function checkStructuredEvidence(label, file, evidence, markdown) {
   checkSourceSystemsConsistency(label, evidence, verificationPlan);
   checkEvidenceItems(label, file, evidence, verificationPlan);
   checkCoverageMap(label, evidence, verificationPlan);
-  checkTestQualityControls(label, evidence);
+  checkTestQualityControls(label, evidence, verificationPlan);
   checkManualVerification(label, evidence);
   checkBoundaries(label, evidence);
   checkMarkdownJsonConsistency(label, evidence, markdown);
@@ -318,8 +318,18 @@ function checkEvidenceItems(label, file, evidence, verificationPlan) {
       fail(`${label} waived evidence ${item.id} requires human-decision ref`);
     }
     if (item.result_state === "PASSED") {
+      if (!/^artifact:/i.test(String(item.ref || ""))) fail(`${label} passed evidence ${item.id} requires artifact ref`);
+      if (exitCodeValue(item.exit_code) !== 0 && (item.evidence_type === "COMMAND_OUTPUT" || item.evidence_type === "TEST_REPORT")) {
+        fail(`${label} passed command evidence ${item.id} requires exit_code 0`);
+      }
       if (requireCurrentEvidence && item.ran_after_change !== "Yes") fail(`${label} passed evidence ${item.id} must run after change`);
       if (requireCurrentEvidence && item.current_task_match !== "Yes") fail(`${label} passed evidence ${item.id} must match current task`);
+    }
+    if (item.result_state === "FAILED" && (item.evidence_type === "COMMAND_OUTPUT" || item.evidence_type === "TEST_REPORT")) {
+      const code = exitCodeValue(item.exit_code);
+      if ((code === null || code === 0) && !meaningful(item.failure_reason)) {
+        fail(`${label} failed command evidence ${item.id} requires non-zero exit_code or failure_reason`);
+      }
     }
     if (item.evidence_type === "COMMAND_OUTPUT" || item.evidence_type === "TEST_REPORT") {
       if (!meaningful(item.command)) fail(`${label} command evidence ${item.id} needs command`);
@@ -373,6 +383,7 @@ function checkCoverageMap(label, evidence, verificationPlan) {
           continue;
         }
         if (!passingStates.has(item.result_state)) fail(`${label} covered obligation ${obligation.id} cannot use ${item.result_state} evidence ${id}`);
+        if (!/^artifact:/i.test(String(item.ref || ""))) fail(`${label} covered obligation ${obligation.id} requires artifact evidence ref for ${id}`);
         if (!item.covers_obligations.includes(obligation.id)) fail(`${label} evidence ${id} must list covers_obligations ${obligation.id}`);
         if (requireCurrentEvidence && item.ran_after_change !== "Yes") fail(`${label} evidence ${id} for ${obligation.id} must run after change`);
         if (requireCurrentEvidence && item.current_task_match !== "Yes") fail(`${label} evidence ${id} for ${obligation.id} must match current task`);
@@ -405,17 +416,54 @@ function checkCoverageMap(label, evidence, verificationPlan) {
   }
 }
 
-function checkTestQualityControls(label, evidence) {
+function checkTestQualityControls(label, evidence, verificationPlan) {
   if (requireTestQualityControls && (!Array.isArray(evidence.test_quality_controls) || evidence.test_quality_controls.length === 0)) {
     fail(`${label} requires test_quality_controls`);
   }
   const evidenceIds = new Set((evidence.evidence_items || []).map((item) => item.id));
+  const evidenceById = new Map((evidence.evidence_items || []).map((item) => [item.id, item]));
+  const controlsById = new Map((evidence.test_quality_controls || []).map((control) => [control.id, control]));
+  const obligations = verificationPlan?.verification_obligations || [];
   for (const control of evidence.test_quality_controls || []) {
     if (control.status === "SATISFIED" && (!control.evidence_ids || control.evidence_ids.length === 0)) {
       fail(`${label} satisfied control ${control.id} needs evidence_ids`);
     }
     for (const id of control.evidence_ids || []) {
       if (!evidenceIds.has(id)) fail(`${label} control ${control.id} references missing evidence ${id}`);
+    }
+  }
+  for (const required of verificationPlan?.test_correctness_controls || []) {
+    if (required.required !== "Yes") continue;
+    const carried = controlsById.get(required.id);
+    if (!carried) {
+      fail(`${label} test_quality_controls must preserve required Verification Plan control ${required.id}`);
+      continue;
+    }
+    if (carried.status !== "SATISFIED" && carried.status !== "NOT_APPLICABLE_WITH_REASON") {
+      fail(`${label} required Verification Plan control ${required.id} must be SATISFIED or NOT_APPLICABLE_WITH_REASON`);
+    }
+    const relatedObligations = obligations
+      .filter((obligation) => obligation.required === "Yes" && surfaceList(required.applies_to).includes(obligation.source_surface))
+      .map((obligation) => obligation.id);
+    if (carried.status === "SATISFIED") {
+      if (!carried.evidence_ids?.length) fail(`${label} satisfied required Verification Plan control ${required.id} needs evidence_ids`);
+      for (const id of carried.evidence_ids || []) {
+        const item = evidenceById.get(id);
+        if (!item) continue;
+        if (!/^artifact:/i.test(String(item.ref || ""))) fail(`${label} satisfied control ${required.id} requires artifact evidence ref for ${id}`);
+        if (item.result_state !== "PASSED" && item.result_state !== "WAIVED_BY_HUMAN_DECISION") {
+          fail(`${label} satisfied control ${required.id} cannot rely on ${item.result_state} evidence ${id}`);
+        }
+      }
+      if (relatedObligations.length > 0) {
+        const covered = new Set((carried.evidence_ids || []).flatMap((id) => evidenceById.get(id)?.covers_obligations || []));
+        for (const obligationId of relatedObligations) {
+          if (!covered.has(obligationId)) fail(`${label} satisfied control ${required.id} must support related obligation ${obligationId}`);
+        }
+      }
+    }
+    if (carried.status === "NOT_APPLICABLE_WITH_REASON" && !meaningful(carried.reason)) {
+      fail(`${label} not-applicable control ${required.id} needs reason`);
     }
   }
   const broad = (evidence.test_quality_controls || []).find((item) => item.id === "control:broad-command-not-proof");
@@ -496,10 +544,12 @@ function parseMarkdownEvidence(content) {
       command: row.command,
       owner: row.owner,
       environment: row.environment,
+      exit_code: row.exit_code,
       ran_after_change: row.ran_after_change,
       current_task_match: row.current_task_match,
       covers_obligations: splitRefs(row.covers_obligations),
       output_digest: row.output_digest,
+      failure_reason: row.failure_reason,
       limitations: row.limitations,
     })),
     coverageMap: tableRows(sectionBody(content, "Coverage Map", { fallback: "" })).map((row) => ({
@@ -572,10 +622,12 @@ function compareEvidenceRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown evidence ${row.id} command`, markdown.command, row.command);
     compareScalar(label, `Markdown evidence ${row.id} owner`, markdown.owner, row.owner);
     compareScalar(label, `Markdown evidence ${row.id} environment`, markdown.environment, row.environment);
+    compareScalar(label, `Markdown evidence ${row.id} exit code`, markdown.exit_code, row.exit_code);
     compareScalar(label, `Markdown evidence ${row.id} ran after change`, markdown.ran_after_change, row.ran_after_change);
     compareScalar(label, `Markdown evidence ${row.id} current task match`, markdown.current_task_match, row.current_task_match);
     compareSet(label, `Markdown evidence ${row.id} covers obligations`, markdown.covers_obligations, row.covers_obligations || []);
     compareScalar(label, `Markdown evidence ${row.id} output digest`, markdown.output_digest, row.output_digest);
+    compareScalar(label, `Markdown evidence ${row.id} failure reason`, markdown.failure_reason, row.failure_reason);
   }
   for (const row of markdownRows) {
     if (!structuredIds.has(row.id)) fail(`${label} Markdown Evidence Items has extra row ${row.id}`);
@@ -794,6 +846,20 @@ function hasSection(content, heading) {
 function meaningful(value) {
   const text = String(value || "").trim();
   return Boolean(text) && !/^(n\/a|none|todo|tbd|not provided|not recorded|placeholder|unknown)$/i.test(text);
+}
+
+function exitCodeValue(value) {
+  const text = String(value ?? "").trim();
+  if (!text || /^(n\/a|none|todo|tbd|not provided|not recorded|placeholder|unknown)$/i.test(text)) return null;
+  if (!/^-?\d+$/.test(text)) return null;
+  return Number(text);
+}
+
+function surfaceList(value) {
+  return String(value || "")
+    .split(/\s*,\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function invalidOwner(value) {

@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.77.0`
+`1.77.1`
 
 ## Project Version File
 
@@ -19,8 +19,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.77.1` tightens Test Evidence Binding: command/test-report evidence records `exit_code` and `failure_reason`; passed evidence must resolve to an artifact with matching digest; required Verification Plan test-correctness controls must be preserved.
+- `1.77.1` keeps Test Evidence non-executing: it records and checks evidence binding only; it does not run tests, approve implementation, approve release/production, or prove product correctness by itself.
 - `1.77.0` adds Test Evidence Binding: Verification Plans can be linked to concrete, task-bound Test Evidence Reports, with strict checks for required obligation coverage, current evidence, source bindings, command/manual evidence quality, and Markdown/JSON consistency.
-- `1.77.0` remains non-executing: it records and checks test evidence binding only; it does not run tests, approve implementation, approve release/production, or prove product correctness by itself.
 - `1.76.3` closes remaining Verification Plan consistency gaps: strict checks reject Markdown-only extra rows, cross-check Test Correctness Controls, and require READY plans to use recorded BRC/CIC source systems.
 - `1.76.3` keeps the Verification Plan artifact schema at `1.76.0`; it still does not execute tests or bind actual test results.
 - `1.76.2` tightens Verification Plan Markdown/JSON consistency: report sections users read must match machine-readable evidence for source systems, identity, project calibration, affected surfaces, verification obligations, manual checks, N/A items, and outcome.

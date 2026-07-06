@@ -16,7 +16,10 @@ It is not a test runner, CI executor, release approver, or production proof. Its
 - A Test Evidence Report does not approve release or production.
 - The report must carry the Verification Plan digest, task ref, intent digest, and required source systems.
 - Evidence must be explicit. If no evidence input exists, the report is blocked or partial.
-- Command evidence must include command, environment, run time, output digest, current-task match, ran-after-change, and covered obligations.
+- Command evidence must include command, environment, run time, `exit_code`, output digest, current-task match, ran-after-change, and covered obligations.
+- `PASSED` command or test-report evidence must have `exit_code` `0` and a resolvable `artifact:` ref whose digest matches the recorded output.
+- `FAILED` command or test-report evidence must record a non-zero `exit_code` or a concrete `failure_reason`.
+- Required Verification Plan `test_correctness_controls` must be preserved in Test Evidence and marked `SATISFIED` or `NOT_APPLICABLE_WITH_REASON`.
 - Manual evidence must include a real accountable owner, decision or evidence ref, environment, and limitations.
 - `AI`, `Codex`, `TBD`, `unknown`, and empty owners are invalid for required manual evidence.
 - `FAILED`, `SKIPPED_WITH_REASON`, `NOT_RUN_WITH_REASON`, `FLAKY_REQUIRES_REVIEW`, and `UNRESOLVED` cannot satisfy required coverage.

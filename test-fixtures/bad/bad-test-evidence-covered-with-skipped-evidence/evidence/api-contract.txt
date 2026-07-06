@@ -5,6 +5,8 @@ command: npm run test:api -- appointment-service-time
 owner: automated-test-command
 environment: local-ci-node-20
 ran_at: 2026-07-06T10:02:00Z
+exit_code: 0
+failure_reason: not recorded
 ran_after_change: Yes
 current_task_match: Yes
 covers_obligations: verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t, verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-

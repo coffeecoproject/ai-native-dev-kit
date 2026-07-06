@@ -8060,6 +8060,7 @@ function checkTestEvidenceBindingProtocol() {
     "core/test-evidence-binding.md",
     "docs/test-evidence-binding.md",
     "docs/plans/test-evidence-binding-1.77-plan.md",
+    "docs/plans/test-evidence-identity-hardening-1.77.1-plan.md",
     "templates/test-evidence-report.md",
     "checklists/test-evidence-review.md",
     "prompts/test-evidence-agent.md",
@@ -8092,9 +8093,14 @@ function checkTestEvidenceBindingProtocol() {
     "test-fixtures/bad/bad-test-evidence-markdown-result-mismatch/test-evidence-reports/001-service-time.md",
     "test-fixtures/bad/bad-test-evidence-markdown-extra-coverage-row/test-evidence-reports/001-service-time.md",
     "test-fixtures/bad/bad-test-evidence-source-system-digest-mismatch/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-passed-unresolved-nonartifact-ref/test-evidence-reports/001-service-time.md",
+    "test-fixtures/bad/bad-test-evidence-passed-missing-ref/test-evidence-reports/001-service-time.md",
     "releases/1.77.0/release-record.md",
     "releases/1.77.0/known-limitations.md",
     "releases/1.77.0/self-check-report.md",
+    "releases/1.77.1/release-record.md",
+    "releases/1.77.1/known-limitations.md",
+    "releases/1.77.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.77 test evidence asset exists ${file}`);
@@ -8105,6 +8111,7 @@ function checkTestEvidenceBindingProtocol() {
     read("core/test-evidence-binding.md"),
     read("docs/test-evidence-binding.md"),
     read("docs/plans/test-evidence-binding-1.77-plan.md"),
+    read("docs/plans/test-evidence-identity-hardening-1.77.1-plan.md"),
     read("templates/test-evidence-report.md"),
     read("checklists/test-evidence-review.md"),
     read("prompts/test-evidence-agent.md"),
@@ -8138,6 +8145,10 @@ function checkTestEvidenceBindingProtocol() {
     "--require-test-quality-controls",
     "Markdown Evidence Items",
     "output_digest matches",
+    "exit_code",
+    "failure_reason",
+    "required Verification Plan control",
+    "passed evidence",
   ]) {
     if (combined.includes(marker)) pass(`1.77 test evidence includes ${marker}`);
     else fail(`1.77 test evidence missing ${marker}`);
@@ -8179,6 +8190,7 @@ function checkTestEvidenceBindingProtocol() {
       if (parsed.reportType === "TEST_EVIDENCE_REPORT"
         && parsed.structuredEvidence?.artifact_type === "test_evidence"
         && parsed.structuredEvidence?.test_evidence_digest
+        && parsed.structuredEvidence?.evidence_items?.every((item) => item.exit_code === 0 && item.failure_reason === "not recorded")
         && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "verification_plan")
         && parsed.structuredEvidence?.coverage_map?.every((item) => item.coverage_state === "COVERED")
         && parsed.boundaries?.executes_tests === "No") {
@@ -8270,6 +8282,8 @@ function checkTestEvidenceBindingProtocol() {
     ["bad-test-evidence-markdown-result-mismatch", "Markdown evidence evidence:api-contract result"],
     ["bad-test-evidence-markdown-extra-coverage-row", "Markdown Coverage Map has extra row"],
     ["bad-test-evidence-source-system-digest-mismatch", "source_systems business_rule_closure.digest"],
+    ["bad-test-evidence-passed-unresolved-nonartifact-ref", "passed evidence evidence:user-flow requires artifact ref"],
+    ["bad-test-evidence-passed-missing-ref", "passed evidence evidence:user-flow requires artifact ref"],
   ];
   for (const [name, expected] of badFixtureCases) {
     const result = runNode([
@@ -12128,6 +12142,93 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project strict Verification Plan source binding");
+
+  const generatedVerificationEvidence = extractMachineReadableEvidence(fs.readFileSync(path.join(target, generatedVerificationReport), "utf8"));
+  if (!generatedVerificationEvidence?.ok) {
+    fail("generated project Verification Plan should include machine-readable evidence for Test Evidence smoke");
+    return;
+  }
+  const obligationsBySurface = new Map();
+  for (const obligation of generatedVerificationEvidence.value.verification_obligations || []) {
+    if (obligation.required !== "Yes") continue;
+    const list = obligationsBySurface.get(obligation.source_surface) || [];
+    list.push(obligation.id);
+    obligationsBySurface.set(obligation.source_surface, list);
+  }
+  const generatedEvidenceDir = path.join(target, "evidence");
+  fs.mkdirSync(generatedEvidenceDir, { recursive: true });
+  const generatedEvidenceFiles = [
+    ["user-flow.txt", "evidence:user-flow", "COMMAND_OUTPUT", "npm run test:user-flow -- generated-service-time", ["USER_FLOW"], "Generated user-flow smoke evidence."],
+    ["frontend-ui.txt", "evidence:frontend-ui", "COMMAND_OUTPUT", "npm run test:ui -- generated-service-time", ["FRONTEND_UI", "ERROR_COPY"], "Generated frontend UI smoke evidence."],
+    ["api-contract.txt", "evidence:api-contract", "COMMAND_OUTPUT", "npm run test:api -- generated-service-time", ["API_CONTRACT"], "Generated API contract smoke evidence."],
+    ["backend-rule.txt", "evidence:backend-rule", "COMMAND_OUTPUT", "npm run test:domain -- generated-service-time", ["BACKEND_RULE"], "Generated backend rule smoke evidence."],
+    ["handoff.txt", "evidence:handoff", "COMMAND_OUTPUT", "npm run docs:check -- generated-service-time", ["DOCS_HANDOFF", "TEST_COVERAGE"], "Generated handoff smoke evidence."],
+  ];
+  const generatedEvidenceRefs = [];
+  for (const [fileName, evidenceId, type, command, surfaces, limitation] of generatedEvidenceFiles) {
+    const covered = surfaces.flatMap((surface) => obligationsBySurface.get(surface) || []);
+    if (covered.length === 0) continue;
+    const relativeFile = `evidence/${fileName}`;
+    fs.writeFileSync(path.join(target, relativeFile), [
+      `id: ${evidenceId}`,
+      `evidence_type: ${type}`,
+      "result_state: PASSED",
+      `command: ${command}`,
+      "owner: generated-project-smoke",
+      "environment: generated-local-ci",
+      "ran_at: 2026-07-06T10:10:00Z",
+      "exit_code: 0",
+      "failure_reason: not recorded",
+      "ran_after_change: Yes",
+      "current_task_match: Yes",
+      `covers_obligations: ${covered.join(", ")}`,
+      `limitations: ${limitation}`,
+      "",
+      "PASS generated project task-bound evidence.",
+      "",
+    ].join("\n"));
+    generatedEvidenceRefs.push(`artifact:${relativeFile}`);
+  }
+  const generatedTestEvidenceReport = "test-evidence-reports/001-generated-service-time.md";
+  const generatedTestEvidenceResolve = runNode([
+    path.join(target, "scripts", "resolve-test-evidence.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--verification-plan-ref",
+    `artifact:${generatedVerificationReport}`,
+    "--evidence",
+    generatedEvidenceRefs.join(","),
+    "--out",
+    generatedTestEvidenceReport,
+  ]);
+  if (generatedTestEvidenceResolve.status !== 0
+    || !fs.existsSync(path.join(target, generatedTestEvidenceReport))
+    || !generatedTestEvidenceResolve.stdout.includes("TEST_EVIDENCE_COMPLETE")
+    || !generatedTestEvidenceResolve.stdout.includes("Exit Code")) {
+    fail(`generated project Test Evidence resolver should write a source-bound report: ${generatedTestEvidenceResolve.stderr || generatedTestEvidenceResolve.stdout}`);
+    return;
+  }
+  const generatedTestEvidenceStrictCheck = runNode([
+    path.join(target, "scripts", "check-test-evidence.mjs"),
+    target,
+    "--report",
+    generatedTestEvidenceReport,
+    "--require-structured-evidence",
+    "--require-verification-plan-ref",
+    "--strict-source-binding",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+  ]);
+  if (generatedTestEvidenceStrictCheck.status !== 0
+    || !generatedTestEvidenceStrictCheck.stdout.includes("Test Evidence check passed")
+    || !generatedTestEvidenceStrictCheck.stdout.includes("test_evidence_ref points to this report")
+    || !generatedTestEvidenceStrictCheck.stdout.includes("verification_plan_digest matches referenced Verification Plan")
+    || !generatedTestEvidenceStrictCheck.stdout.includes("TEST_EVIDENCE_COMPLETE covers every required obligation")) {
+    fail(`generated project Test Evidence strict source binding failed: ${generatedTestEvidenceStrictCheck.stderr || generatedTestEvidenceStrictCheck.stdout}`);
+    return;
+  }
+  pass("generated project strict Test Evidence source binding");
 
   const emptyGoalModeCheck = runNode([
     path.join(target, "scripts", "check-goal-mode.mjs"),

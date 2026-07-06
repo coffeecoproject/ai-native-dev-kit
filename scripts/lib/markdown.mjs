@@ -19,7 +19,7 @@ export function hasSection(content, heading) {
 }
 
 export function stripMarkdown(value) {
-  return String(value || "").replace(/`/g, "").replace(/\*\*/g, "").trim();
+  return String(value ?? "").replace(/`/g, "").replace(/\*\*/g, "").trim();
 }
 
 export function splitMarkdownRow(line) {

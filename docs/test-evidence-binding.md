@@ -21,6 +21,8 @@ The report does not run tests by itself. It records and checks the evidence prod
 - Passing `npm test` being treated as proof without obligation mapping.
 - Reusing an old report for a new task.
 - Claiming skipped, flaky, or failed checks as covered.
+- Claiming a command passed without a recorded `exit_code` and resolvable output artifact.
+- Dropping required Verification Plan test-quality controls during evidence collection.
 - Treating AI-written tests as correct without review controls.
 - Manual evidence with no real owner or environment.
 
@@ -33,6 +35,8 @@ When a task reaches verification:
 3. Create a Test Evidence Report.
 4. Run the checker in strict mode.
 5. If required coverage is missing, say what is missing instead of claiming completion.
+
+Strict mode treats `TEST_EVIDENCE_COMPLETE` as evidence coverage only. It does not mean the task, product, release, or real environment is fully complete.
 
 ## What The User Sees
 

@@ -20,7 +20,7 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
 ## Test Evidence Identity
 
 - Test evidence ref: `artifact:test-evidence-reports/001-service-time.md`
-- Test evidence digest: `sha256:e88ba401970682152664933b213e5062846867a0df71d8fb01459307204d99f9`
+- Test evidence digest: `sha256:7152a48f26217bd8ab9fa73fbf369db9cbe019559955a45587730e5b7361b14f`
 - Verification plan ref: `artifact:verification-plans/001-service-time.md`
 - Verification plan digest: `sha256:417e7eba332b2d5b4e987a5472095c2bb069e6de0e781a0231398130337acc79`
 - Intent digest: `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28`
@@ -34,13 +34,13 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
 
 ## Evidence Items
 
-| ID | Type | Result State | Ref | Command | Owner | Environment | Ran After Change | Current Task Match | Covers Obligations | Output Digest | Limitations |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| `evidence:user-flow` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/user-flow.txt` | npm run test:user-flow -- appointment-service-time | automated-test-command | local-ci-node-20 | `Yes` | `Yes` | `verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-`, `verify:user-flow-regression-smoke-existing-critical-flow-still-works-af` | `sha256:86d0a8e61836d820b7719ba160892ddcdefe9c176e1f6a65da40b9b67be8ad5a` | Local CI simulation only; not production traffic. |
-| `evidence:frontend-ui` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/frontend-ui.txt` | npm run test:ui -- appointment-service-time | automated-test-command | local-ci-node-20 | `Yes` | `Yes` | `verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-`, `verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-` | `sha256:bede9685d9567655a43053dcca5e21f4fdab1641fa4b767541c2717ec9525787` | Component-level UI evidence; browser visual regression is not included. |
-| `evidence:api-contract` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/api-contract.txt` | npm run test:api -- appointment-service-time | automated-test-command | local-ci-node-20 | `Yes` | `Yes` | `verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t`, `verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-` | `sha256:f117142f7cb31c7530311c49beb0d0388da2d2d00cd3c969741004674b5d3126` | Local API evidence; does not prove production behavior. |
-| `evidence:backend-rule` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/backend-rule.txt` | npm run test:domain -- appointment-service-time | automated-test-command | local-ci-node-20 | `Yes` | `Yes` | `verify:backend-rule-backend-rule-test-server-domain-logic-enforces-the-` | `sha256:fa697f884564d5feafe075532e1885e24b36699b61cbba76070bc4d2057af18e` | Domain/service evidence; database migration is not part of this task. |
-| `evidence:handoff` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/handoff.txt` | npm run docs:check -- appointment-service-time | automated-test-command | local-ci-node-20 | `Yes` | `Yes` | `verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders`, `verify:test-coverage-regression-smoke-task-specific-verification-exists` | `sha256:d51f45bcaa070e2cc96faeb0b794e5ac4838c858209926cdab640f966dd80c0a` | Handoff evidence only; release approval is out of scope. |
+| ID | Type | Result State | Ref | Command | Owner | Environment | Exit Code | Ran After Change | Current Task Match | Covers Obligations | Output Digest | Failure Reason | Limitations |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `evidence:user-flow` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/user-flow.txt` | npm run test:user-flow -- appointment-service-time | automated-test-command | local-ci-node-20 | `0` | `Yes` | `Yes` | `verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-`, `verify:user-flow-regression-smoke-existing-critical-flow-still-works-af` | `sha256:73af6ff2fbfba8e950ec2f4f8d650fcf1f9fa889703cec418995331ff6b3436e` | not recorded | Local CI simulation only; not production traffic. |
+| `evidence:frontend-ui` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/frontend-ui.txt` | npm run test:ui -- appointment-service-time | automated-test-command | local-ci-node-20 | `0` | `Yes` | `Yes` | `verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-`, `verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-` | `sha256:f99968c5a2f7246401b6ed41f60018c6ed3546565652d195f007c32e5a34e05c` | not recorded | Component-level UI evidence; browser visual regression is not included. |
+| `evidence:api-contract` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/api-contract.txt` | npm run test:api -- appointment-service-time | automated-test-command | local-ci-node-20 | `0` | `Yes` | `Yes` | `verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t`, `verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-` | `sha256:6e4b56a4611b2a1ac2a956267f32e3b5744e8fe231207c9d28b27ca685464a50` | not recorded | Local API evidence; does not prove production behavior. |
+| `evidence:backend-rule` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/backend-rule.txt` | npm run test:domain -- appointment-service-time | automated-test-command | local-ci-node-20 | `0` | `Yes` | `Yes` | `verify:backend-rule-backend-rule-test-server-domain-logic-enforces-the-` | `sha256:178643c28884ba981231e91d8efe74e6e3b7e151e108cc77d293da557b4dd918` | not recorded | Domain/service evidence; database migration is not part of this task. |
+| `evidence:handoff` | `COMMAND_OUTPUT` | `PASSED` | `artifact:evidence/handoff.txt` | npm run docs:check -- appointment-service-time | automated-test-command | local-ci-node-20 | `0` | `Yes` | `Yes` | `verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders`, `verify:test-coverage-regression-smoke-task-specific-verification-exists` | `sha256:6c0f2758b8e1609f0c8286fe68db00bd80d5121e3c7d91dc32280458e0a6f562` | not recorded | Handoff evidence only; release approval is out of scope. |
 
 ## Coverage Map
 
@@ -103,7 +103,7 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
   "intent": "appointment requests must include a service time",
   "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
   "test_evidence_ref": "artifact:test-evidence-reports/001-service-time.md",
-  "test_evidence_digest": "sha256:e88ba401970682152664933b213e5062846867a0df71d8fb01459307204d99f9",
+  "test_evidence_digest": "sha256:7152a48f26217bd8ab9fa73fbf369db9cbe019559955a45587730e5b7361b14f",
   "verification_plan_ref": "artifact:verification-plans/001-service-time.md",
   "verification_plan_digest": "sha256:417e7eba332b2d5b4e987a5472095c2bb069e6de0e781a0231398130337acc79",
   "verification_plan_state": "VERIFICATION_PLAN_READY",
@@ -147,8 +147,10 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
         "verify:user-flow-ui-interaction-test-the-primary-user-flow-follows-the-",
         "verify:user-flow-regression-smoke-existing-critical-flow-still-works-af"
       ],
-      "output_digest": "sha256:86d0a8e61836d820b7719ba160892ddcdefe9c176e1f6a65da40b9b67be8ad5a",
-      "limitations": "Local CI simulation only; not production traffic."
+      "output_digest": "sha256:73af6ff2fbfba8e950ec2f4f8d650fcf1f9fa889703cec418995331ff6b3436e",
+      "limitations": "Local CI simulation only; not production traffic.",
+      "exit_code": 0,
+      "failure_reason": "not recorded"
     },
     {
       "id": "evidence:frontend-ui",
@@ -165,8 +167,10 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
         "verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-",
         "verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-"
       ],
-      "output_digest": "sha256:bede9685d9567655a43053dcca5e21f4fdab1641fa4b767541c2717ec9525787",
-      "limitations": "Component-level UI evidence; browser visual regression is not included."
+      "output_digest": "sha256:f99968c5a2f7246401b6ed41f60018c6ed3546565652d195f007c32e5a34e05c",
+      "limitations": "Component-level UI evidence; browser visual regression is not included.",
+      "exit_code": 0,
+      "failure_reason": "not recorded"
     },
     {
       "id": "evidence:api-contract",
@@ -183,8 +187,10 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
         "verify:api-contract-api-positive-test-valid-api-request-succeeds-with-t",
         "verify:api-contract-api-negative-test-invalid-api-request-fails-with-a-"
       ],
-      "output_digest": "sha256:f117142f7cb31c7530311c49beb0d0388da2d2d00cd3c969741004674b5d3126",
-      "limitations": "Local API evidence; does not prove production behavior."
+      "output_digest": "sha256:6e4b56a4611b2a1ac2a956267f32e3b5744e8fe231207c9d28b27ca685464a50",
+      "limitations": "Local API evidence; does not prove production behavior.",
+      "exit_code": 0,
+      "failure_reason": "not recorded"
     },
     {
       "id": "evidence:backend-rule",
@@ -200,8 +206,10 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
       "covers_obligations": [
         "verify:backend-rule-backend-rule-test-server-domain-logic-enforces-the-"
       ],
-      "output_digest": "sha256:fa697f884564d5feafe075532e1885e24b36699b61cbba76070bc4d2057af18e",
-      "limitations": "Domain/service evidence; database migration is not part of this task."
+      "output_digest": "sha256:178643c28884ba981231e91d8efe74e6e3b7e151e108cc77d293da557b4dd918",
+      "limitations": "Domain/service evidence; database migration is not part of this task.",
+      "exit_code": 0,
+      "failure_reason": "not recorded"
     },
     {
       "id": "evidence:handoff",
@@ -218,8 +226,10 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
         "verify:docs-handoff-regression-smoke-the-rule-and-exclusions-are-unders",
         "verify:test-coverage-regression-smoke-task-specific-verification-exists"
       ],
-      "output_digest": "sha256:d51f45bcaa070e2cc96faeb0b794e5ac4838c858209926cdab640f966dd80c0a",
-      "limitations": "Handoff evidence only; release approval is out of scope."
+      "output_digest": "sha256:6c0f2758b8e1609f0c8286fe68db00bd80d5121e3c7d91dc32280458e0a6f562",
+      "limitations": "Handoff evidence only; release approval is out of scope.",
+      "exit_code": 0,
+      "failure_reason": "not recorded"
     }
   ],
   "coverage_map": [

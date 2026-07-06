@@ -81,10 +81,12 @@
           "owner",
           "environment",
           "ran_at",
+          "exit_code",
           "ran_after_change",
           "current_task_match",
           "covers_obligations",
           "output_digest",
+          "failure_reason",
           "limitations"
         ],
         "properties": {
@@ -120,6 +122,7 @@
           "owner": { "type": "string" },
           "environment": { "type": "string" },
           "ran_at": { "type": "string" },
+          "exit_code": { "type": ["integer", "string"] },
           "ran_after_change": { "type": "string", "enum": ["Yes", "No", "Unknown", "Not applicable"] },
           "current_task_match": { "type": "string", "enum": ["Yes", "No", "Unknown", "Not applicable"] },
           "covers_obligations": {
@@ -127,6 +130,7 @@
             "items": { "type": "string" }
           },
           "output_digest": { "type": "string" },
+          "failure_reason": { "type": "string" },
           "limitations": { "type": "string" }
         },
         "additionalProperties": false

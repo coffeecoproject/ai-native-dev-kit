@@ -5,6 +5,8 @@ command: npm run test:ui -- appointment-service-time
 owner: automated-test-command
 environment: local-ci-node-20
 ran_at: 2026-07-06T10:01:00Z
+exit_code: 0
+failure_reason: not recorded
 ran_after_change: Yes
 current_task_match: Yes
 covers_obligations: verify:frontend-ui-ui-interaction-test-visible-form-or-screen-behavior-, verify:error-copy-error-copy-check-blocked-users-receive-clear-bounded-

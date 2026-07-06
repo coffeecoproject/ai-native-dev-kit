@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.77.0`
+Current version: `1.77.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.77.0`
 
 ## Current Release
 
-`1.77.0`
+`1.77.1`
 
 Includes:
+
+- Test Evidence Identity Hardening patch `1.77.1`: command/test-report
+  evidence now records `exit_code` and `failure_reason`; passed evidence must
+  resolve to real artifact output with matching digest; required Verification
+  Plan test-correctness controls must be preserved in Test Evidence.
+- `1.77.1` keeps the Test Evidence artifact schema version at `1.77.0`; this
+  patch tightens identity and checker behavior without making Execution
+  Assurance consume Test Evidence by default.
 
 - Test Evidence Binding phase `1.77.0`: after Verification Plan Governance,
   Codex can record whether concrete evidence actually covers every required

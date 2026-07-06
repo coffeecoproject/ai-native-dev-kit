@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.77.0",
+  "intentOSVersion": "1.77.1",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -182,6 +182,7 @@
     ".intentos/docs/standard-baseline-pack-registry.md",
     ".intentos/docs/structured-evidence-schema.md",
     ".intentos/docs/subagent-dispatch-hygiene.md",
+    ".intentos/docs/test-evidence-binding.md",
     ".intentos/docs/unified-apply-plan.md",
     ".intentos/docs/unified-closure-model.md",
     ".intentos/docs/verification-test-governance.md",

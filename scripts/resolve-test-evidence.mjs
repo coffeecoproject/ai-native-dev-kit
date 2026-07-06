@@ -190,10 +190,12 @@ function evidenceItemFor(root, ref, index) {
     owner: metadata.owner || "not recorded",
     environment: metadata.environment || "not recorded",
     ran_at: metadata.ran_at || "not recorded",
+    exit_code: exitCodeFor(metadata),
     ran_after_change: metadata.ran_after_change || "Unknown",
     current_task_match: metadata.current_task_match || "Unknown",
     covers_obligations: splitList(metadata.covers_obligations || metadata.covers || ""),
     output_digest: file ? fileDigest(file) : "not provided",
+    failure_reason: metadata.failure_reason || "not recorded",
     limitations: metadata.limitations || "not recorded",
   };
 }
@@ -250,17 +252,32 @@ function coverageMapFor(requiredObligations, evidenceItems) {
 
 function testQualityControlsFor(planEvidence, evidenceItems, coverageMap) {
   const controls = [];
+  const evidenceByObligation = new Map();
+  for (const item of evidenceItems) {
+    for (const obligation of item.covers_obligations || []) {
+      const list = evidenceByObligation.get(obligation) || [];
+      list.push(item.id);
+      evidenceByObligation.set(obligation, list);
+    }
+  }
+  const requiredObligations = planEvidence?.verification_obligations || [];
   for (const control of planEvidence?.test_correctness_controls || []) {
-    const evidenceIds = evidenceItems
-      .filter((item) => item.covers_obligations.length > 0)
-      .map((item) => item.id);
-    const allCovered = coverageMap.every((item) => item.coverage_state === "COVERED" || item.coverage_state === "WAIVED_BY_HUMAN_DECISION");
+    const relatedObligationIds = requiredObligations
+      .filter((obligation) => surfaceList(control.applies_to).includes(obligation.source_surface))
+      .map((obligation) => obligation.id);
+    const evidenceIds = [...new Set(relatedObligationIds.flatMap((id) => evidenceByObligation.get(id) || []))];
+    const relevantCoverage = coverageMap.filter((item) => relatedObligationIds.includes(item.obligation_id));
+    const allCovered = relevantCoverage.length > 0
+      && relevantCoverage.every((item) => item.coverage_state === "COVERED" || item.coverage_state === "WAIVED_BY_HUMAN_DECISION");
+    const notApplicable = relevantCoverage.length === 0 && control.required !== "Yes";
     controls.push({
       id: control.id,
       applies_to: control.applies_to,
-      status: allCovered && evidenceIds.length > 0 ? "SATISFIED" : "NOT_SATISFIED",
+      status: allCovered && evidenceIds.length > 0 ? "SATISFIED" : (notApplicable ? "NOT_APPLICABLE_WITH_REASON" : "NOT_SATISFIED"),
       evidence_ids: evidenceIds,
-      reason: allCovered ? "Evidence is mapped to Verification Plan obligations." : "Coverage remains incomplete or unmapped.",
+      reason: allCovered
+        ? "Evidence is mapped to related Verification Plan obligations."
+        : (notApplicable ? "Control is not required by this Verification Plan." : "Related Verification Plan obligations remain incomplete or unmapped."),
     });
   }
   if (!controls.some((item) => item.id === "control:broad-command-not-proof")) {
@@ -379,6 +396,20 @@ function boundariesFor() {
   };
 }
 
+function exitCodeFor(metadata) {
+  const raw = String(metadata.exit_code || metadata.exitcode || "").trim();
+  if (!raw) return "not recorded";
+  if (/^-?\d+$/.test(raw)) return Number(raw);
+  return raw;
+}
+
+function surfaceList(value) {
+  return String(value || "")
+    .split(/\s*,\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function humanReportText(report) {
   const evidence = report.structuredEvidence;
   return `# Test Evidence Report
@@ -415,9 +446,9 @@ ${evidence.source_systems.length > 0 ? evidence.source_systems.map((item) => `| 
 
 ## Evidence Items
 
-| ID | Type | Result State | Ref | Command | Owner | Environment | Ran After Change | Current Task Match | Covers Obligations | Output Digest | Limitations |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-${evidence.evidence_items.length > 0 ? evidence.evidence_items.map((item) => `| \`${item.id}\` | \`${item.evidence_type}\` | \`${item.result_state}\` | \`${item.ref}\` | ${item.command} | ${item.owner} | ${item.environment} | \`${item.ran_after_change}\` | \`${item.current_task_match}\` | ${item.covers_obligations.map((id) => `\`${id}\``).join(", ")} | \`${item.output_digest}\` | ${item.limitations} |`).join("\n") : "| `none` | `COMMAND_OUTPUT` | `NOT_RUN_WITH_REASON` | `not provided` | not recorded | not recorded | not recorded | `Unknown` | `Unknown` |  | `not provided` | No evidence input was provided. |"}
+| ID | Type | Result State | Ref | Command | Owner | Environment | Exit Code | Ran After Change | Current Task Match | Covers Obligations | Output Digest | Failure Reason | Limitations |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+${evidence.evidence_items.length > 0 ? evidence.evidence_items.map((item) => `| \`${item.id}\` | \`${item.evidence_type}\` | \`${item.result_state}\` | \`${item.ref}\` | ${item.command} | ${item.owner} | ${item.environment} | \`${item.exit_code}\` | \`${item.ran_after_change}\` | \`${item.current_task_match}\` | ${item.covers_obligations.map((id) => `\`${id}\``).join(", ")} | \`${item.output_digest}\` | ${item.failure_reason} | ${item.limitations} |`).join("\n") : "| `none` | `COMMAND_OUTPUT` | `NOT_RUN_WITH_REASON` | `not provided` | not recorded | not recorded | not recorded | `not recorded` | `Unknown` | `Unknown` |  | `not provided` | not recorded | No evidence input was provided. |"}
 
 ## Coverage Map
 
