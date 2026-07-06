@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.78.2`.
+Current release: `1.78.3`.
 
-Release record: [releases/1.78.2/release-record.md](releases/1.78.2/release-record.md).
+Release record: [releases/1.78.3/release-record.md](releases/1.78.3/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.78.3 documents the 1.78 Completion Evidence compatibility contract: strict completion checks require canonical task intent to stay consistent across Business Rule Closure, Verification Plan, Test Evidence, Execution Assurance, and Completion Evidence; older 1.78.0/1.78.1 Completion Evidence reports need `source_chain[].intent_digest`, and strict Execution Assurance sources need top-level `intent_digest`. It is a docs/reference patch, not a new gate.
 
 1.78.2 closes the Completion Evidence contract: `source_chain[].intent_digest` is now part of the schema contract, Execution Assurance exposes a top-level `intent_digest`, and Completion Evidence checks Execution Assurance intent directly instead of relying only on task/source-system indirection. It remains a completion-claim gate, not a test runner, release gate, or production approval.
 

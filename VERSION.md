@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.78.2`
+Current version: `1.78.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.78.2`
 
 ## Current Release
 
-`1.78.2`
+`1.78.3`
 
 Includes:
+
+- Completion Evidence Reference Docs And Compatibility Notes patch `1.78.3`:
+  reference docs now expose the Completion Evidence CLI/checker/artifact
+  surface, strict-chain compatibility notes explain the `1.78.2` required
+  intent fields, and docs call out canonical task intent usage across BRC,
+  Verification Plan, Test Evidence, Execution Assurance, and Completion
+  Evidence.
+- `1.78.3` is a documentation and compatibility-notes patch. It does not
+  change checker authority, add a new gate, run tests, approve
+  release/production, or prove real-environment behavior.
 
 - Completion Evidence Reference And Intent Contract Sync patch `1.78.2`:
   `source_chain[].intent_digest` is now part of the Completion Evidence schema

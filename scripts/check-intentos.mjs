@@ -8367,6 +8367,9 @@ function checkCompletionEvidenceGateProtocol() {
     "releases/1.78.2/release-record.md",
     "releases/1.78.2/known-limitations.md",
     "releases/1.78.2/self-check-report.md",
+    "releases/1.78.3/release-record.md",
+    "releases/1.78.3/known-limitations.md",
+    "releases/1.78.3/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.78 completion evidence asset exists ${file}`);
@@ -8387,6 +8390,7 @@ function checkCompletionEvidenceGateProtocol() {
     exists("releases/1.78.0/release-record.md") ? read("releases/1.78.0/release-record.md") : "",
     exists("releases/1.78.1/release-record.md") ? read("releases/1.78.1/release-record.md") : "",
     exists("releases/1.78.2/release-record.md") ? read("releases/1.78.2/release-record.md") : "",
+    exists("releases/1.78.3/release-record.md") ? read("releases/1.78.3/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -8408,7 +8412,10 @@ function checkCompletionEvidenceGateProtocol() {
     "check:intent-consistency",
     "check:source-chain-binding",
     "source_chain[].intent_digest",
+    "canonical task intent",
+    "1.78.0 / 1.78.1 Completion Evidence reports",
     "Execution Assurance reports now expose top-level",
+    "top-level `intent_digest`",
     "Execution Assurance intent directly",
     "does not run tests",
     "does not approve release or production",

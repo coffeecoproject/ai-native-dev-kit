@@ -98,6 +98,19 @@ tightens the contract: every `source_chain[]` item must include
 `intent_digest` so the final completion gate can check all source intents
 directly.
 
+1.78.3 documents the compatibility rule for that stricter contract:
+
+- 1.78.0 / 1.78.1 Completion Evidence reports checked with 1.78.2+ strict
+  flags must be regenerated or patched to include `source_chain[].intent_digest`.
+- Execution Assurance reports used as strict Completion Evidence sources must
+  include top-level `intent_digest`, even though the Execution Assurance
+  artifact schema version remains `1.74.0`.
+- For strict completion chains, use one canonical task intent string across
+  Business Rule Closure, Verification Plan, Test Evidence, Execution Assurance,
+  and Completion Evidence, or use the saved task artifact as the canonical
+  source of that intent. Semantically similar but textually different intent
+  strings produce different digests.
+
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
 - `--resolve-evidence-refs` requires `DONE` evidence references to resolve

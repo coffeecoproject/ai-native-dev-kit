@@ -100,6 +100,15 @@ Assumption Register is a report section or template, not a mandatory directory. 
 
 Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence Report, Completion Evidence Gate, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
+Completion Evidence Gate structured evidence uses `completion_evidence_gate` and
+lives in `completion-evidence-reports/`. Under strict 1.78.2+ checks, older
+1.78.0 / 1.78.1 reports must be regenerated or patched to include
+`source_chain[].intent_digest`, and referenced Execution Assurance reports must
+include top-level `intent_digest`. Keep one canonical task intent across
+Business Rule Closure, Verification Plan, Test Evidence, Execution Assurance,
+and Completion Evidence; otherwise the same task phrased differently will
+produce different intent digests.
+
 ## Reporting Artifacts
 
 | Directory | Purpose |

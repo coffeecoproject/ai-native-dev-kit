@@ -30,6 +30,13 @@ From 1.78.2, strict mode requires every source-chain item to include
 That lets Completion Evidence check Execution Assurance intent directly instead
 of treating it as an indirect task/source-system match.
 
+From 1.78.3, the compatibility rule is explicit: strict completion chains
+should use one canonical task intent across Business Rule Closure, Verification
+Plan, Test Evidence, Execution Assurance, and Completion Evidence, or treat the
+saved task artifact as the canonical intent source. If the same task is phrased
+differently in different commands, the intent digests will differ and strict
+Completion Evidence should block the completion claim.
+
 ## When To Use
 
 Use it when Codex is about to say:

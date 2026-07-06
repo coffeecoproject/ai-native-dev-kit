@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.78.2`。
+当前版本：`1.78.3`。
 
-发布记录：[releases/1.78.2/release-record.md](releases/1.78.2/release-record.md)。
+发布记录：[releases/1.78.3/release-record.md](releases/1.78.3/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.78.3 补齐 1.78 Completion Evidence 的兼容性和 reference docs：严格完成校验要求 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance、Completion Evidence 使用同一条 canonical task intent；旧的 1.78.0/1.78.1 Completion Evidence 报告需要补 `source_chain[].intent_digest`，严格 Execution Assurance 来源需要顶层 `intent_digest`。这是文档/引用补丁，不新增 gate。
 
 1.78.2 收口 Completion Evidence 合约：`source_chain[].intent_digest` 现在进入 schema 合约，Execution Assurance 暴露顶层 `intent_digest`，Completion Evidence 会直接校验 Execution Assurance intent，而不是只通过 task/source_systems 间接绑定。它仍然只是任务完成声明 gate，不执行测试、不批准发布、不证明生产环境结果。
 
