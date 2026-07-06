@@ -66,7 +66,7 @@ function buildReport(root) {
   const state = stateFor(requiredObligations, coverageMap, evidenceItems, verificationPlan);
   const boundaries = boundariesFor();
   const structuredBase = {
-    schema_version: "1.77.0",
+    schema_version: "1.77.1",
     artifact_type: "test_evidence",
     task_ref: taskRef,
     intent: resolvedIntent,
@@ -93,7 +93,7 @@ function buildReport(root) {
   };
   return {
     reportType: "TEST_EVIDENCE_REPORT",
-    schemaVersion: "1.77.0",
+    schemaVersion: "1.77.1",
     generatedBy: "scripts/resolve-test-evidence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,

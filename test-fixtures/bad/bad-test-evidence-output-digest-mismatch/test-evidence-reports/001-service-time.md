@@ -20,7 +20,7 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
 ## Test Evidence Identity
 
 - Test evidence ref: `artifact:test-evidence-reports/001-service-time.md`
-- Test evidence digest: `sha256:e6565491b7e4d4538ec4c41b29aab0444f7ac578378f754fbb333d22da93e465`
+- Test evidence digest: `sha256:f6ee62c2decb69559740ff39b4cc9be9dd4a673db61e50b91a2c5c4f8f527bb5`
 - Verification plan ref: `artifact:verification-plans/001-service-time.md`
 - Verification plan digest: `sha256:417e7eba332b2d5b4e987a5472095c2bb069e6de0e781a0231398130337acc79`
 - Intent digest: `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28`
@@ -97,13 +97,13 @@ Test evidence state TEST_EVIDENCE_COMPLETE; 9/9 required obligations covered by 
 
 ```json
 {
-  "schema_version": "1.77.0",
+  "schema_version": "1.77.1",
   "artifact_type": "test_evidence",
   "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
   "intent": "appointment requests must include a service time",
   "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
   "test_evidence_ref": "artifact:test-evidence-reports/001-service-time.md",
-  "test_evidence_digest": "sha256:e6565491b7e4d4538ec4c41b29aab0444f7ac578378f754fbb333d22da93e465",
+  "test_evidence_digest": "sha256:f6ee62c2decb69559740ff39b4cc9be9dd4a673db61e50b91a2c5c4f8f527bb5",
   "verification_plan_ref": "artifact:verification-plans/001-service-time.md",
   "verification_plan_digest": "sha256:417e7eba332b2d5b4e987a5472095c2bb069e6de0e781a0231398130337acc79",
   "verification_plan_state": "VERIFICATION_PLAN_READY",

@@ -8061,6 +8061,7 @@ function checkTestEvidenceBindingProtocol() {
     "docs/test-evidence-binding.md",
     "docs/plans/test-evidence-binding-1.77-plan.md",
     "docs/plans/test-evidence-identity-hardening-1.77.1-plan.md",
+    "docs/plans/test-evidence-installation-schema-contract-1.77.2-plan.md",
     "templates/test-evidence-report.md",
     "checklists/test-evidence-review.md",
     "prompts/test-evidence-agent.md",
@@ -8101,6 +8102,9 @@ function checkTestEvidenceBindingProtocol() {
     "releases/1.77.1/release-record.md",
     "releases/1.77.1/known-limitations.md",
     "releases/1.77.1/self-check-report.md",
+    "releases/1.77.2/release-record.md",
+    "releases/1.77.2/known-limitations.md",
+    "releases/1.77.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.77 test evidence asset exists ${file}`);
@@ -8112,6 +8116,7 @@ function checkTestEvidenceBindingProtocol() {
     read("docs/test-evidence-binding.md"),
     read("docs/plans/test-evidence-binding-1.77-plan.md"),
     read("docs/plans/test-evidence-identity-hardening-1.77.1-plan.md"),
+    read("docs/plans/test-evidence-installation-schema-contract-1.77.2-plan.md"),
     read("templates/test-evidence-report.md"),
     read("checklists/test-evidence-review.md"),
     read("prompts/test-evidence-agent.md"),
@@ -8120,6 +8125,7 @@ function checkTestEvidenceBindingProtocol() {
     read("scripts/check-test-evidence.mjs"),
     read("scripts/cli.mjs"),
     exists("releases/1.77.0/release-record.md") ? read("releases/1.77.0/release-record.md") : "",
+    exists("releases/1.77.2/release-record.md") ? read("releases/1.77.2/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -8140,6 +8146,8 @@ function checkTestEvidenceBindingProtocol() {
     "does not approve release or production",
     "test-evidence",
     "test-evidence-check",
+    "schemaVersion",
+    "1.77.1",
     "--out",
     "--require-current-evidence",
     "--require-test-quality-controls",
@@ -8149,6 +8157,12 @@ function checkTestEvidenceBindingProtocol() {
     "failure_reason",
     "required Verification Plan control",
     "passed evidence",
+    "Markdown coverage",
+    "Markdown quality control",
+    "Markdown known gap",
+    "Markdown manual verification",
+    "Markdown existing project reason",
+    "Generated-project PR smoke",
   ]) {
     if (combined.includes(marker)) pass(`1.77 test evidence includes ${marker}`);
     else fail(`1.77 test evidence missing ${marker}`);
@@ -8188,7 +8202,9 @@ function checkTestEvidenceBindingProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "TEST_EVIDENCE_REPORT"
+        && parsed.schemaVersion === "1.77.1"
         && parsed.structuredEvidence?.artifact_type === "test_evidence"
+        && parsed.structuredEvidence?.schema_version === "1.77.1"
         && parsed.structuredEvidence?.test_evidence_digest
         && parsed.structuredEvidence?.evidence_items?.every((item) => item.exit_code === 0 && item.failure_reason === "not recorded")
         && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "verification_plan")
@@ -8228,7 +8244,9 @@ function checkTestEvidenceBindingProtocol() {
     && exampleCheck.stdout.includes("test_evidence_ref points to this report")
     && exampleCheck.stdout.includes("verification_plan_digest matches referenced Verification Plan")
     && exampleCheck.stdout.includes("TEST_EVIDENCE_COMPLETE covers every required obligation")
-    && exampleCheck.stdout.includes("output_digest matches")) {
+    && exampleCheck.stdout.includes("output_digest matches")
+    && exampleCheck.stdout.includes("Markdown coverage")
+    && exampleCheck.stdout.includes("reason matches structured evidence")) {
     pass("1.77 test evidence strict example passes checker");
   } else {
     fail(`1.77 test evidence strict example failed: ${exampleCheck.stderr || exampleCheck.stdout}`);

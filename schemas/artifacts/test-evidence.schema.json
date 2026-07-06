@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.77.0",
+  "schemaVersion": "1.77.1",
   "artifactType": "test_evidence",
   "required": [
     "schema_version",
@@ -24,7 +24,7 @@
     "next_step"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.77.0"] },
+    "schema_version": { "type": "string", "enum": ["1.77.1"] },
     "artifact_type": { "type": "string", "enum": ["test_evidence"] },
     "task_ref": { "type": "string" },
     "intent": { "type": "string" },

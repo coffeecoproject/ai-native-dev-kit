@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.77.1`。
+当前版本：`1.77.2`。
 
-发布记录：[releases/1.77.1/release-record.md](releases/1.77.1/release-record.md)。
+发布记录：[releases/1.77.2/release-record.md](releases/1.77.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -39,6 +39,8 @@ node scripts/cli.mjs doctor <project>
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.77.2 同步 Test Evidence 的安装烟测和 schema 合约：更严格的 Test Evidence 报告形状正式标记为 schema `1.77.1`；示例和坏例子重新生成；PR 里的生成项目 smoke 会可见地跑完 BRC -> CIC -> Verification Plan -> Test Evidence 严格绑定；Markdown/JSON 的 reason 字段也会对齐检查。它仍然不执行测试，也不批准发布。
 
 1.77.1 收紧 Test Evidence Binding：命令/测试报告证据必须记录 `exit_code` 和 `failure_reason`；通过的证据必须能解析到真实 artifact 并匹配 digest；Verification Plan 要求的测试质量控制必须在 Test Evidence 中逐项继承。它仍然不执行测试，也不批准发布。
 
@@ -183,6 +185,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Business Rule Closure | 写代码前先把业务规则闭环，AI 负责补齐规则维度和默认建议，用户只确认少数关键判断 |
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
 | Verification Plan Governance | 根据业务规则和影响面生成任务绑定的验证义务，说明哪些测试或检查足以支持后续收口；不执行测试，不批准实现或发布 |
+| Test Evidence Binding | 把真实命令、报告、人工或日志证据绑定到 Verification Plan 的每个必验证项；检查退出码、证据文件、digest、任务匹配和测试质量控制，不执行测试、不批准发布 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |

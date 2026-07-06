@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.77.1`
+Current version: `1.77.2`
 
 ## Versioning Policy
 
@@ -10,17 +10,26 @@ Current version: `1.77.1`
 
 ## Current Release
 
-`1.77.1`
+`1.77.2`
 
 Includes:
+
+- Test Evidence Installation And Schema Contract Sync patch `1.77.2`: the
+  stricter Test Evidence artifact shape is now explicitly schema `1.77.1`;
+  source examples and fixtures are regenerated with matching digests; PR
+  generated-project smoke visibly runs BRC -> CIC -> Verification Plan -> Test
+  Evidence strict binding.
+- `1.77.2` adds Markdown/JSON reason consistency checks for Test Evidence
+  coverage maps, test-quality controls, known gaps, manual verification, and
+  existing-project mapping. It does not make Execution Assurance require Test
+  Evidence by default.
 
 - Test Evidence Identity Hardening patch `1.77.1`: command/test-report
   evidence now records `exit_code` and `failure_reason`; passed evidence must
   resolve to real artifact output with matching digest; required Verification
   Plan test-correctness controls must be preserved in Test Evidence.
-- `1.77.1` keeps the Test Evidence artifact schema version at `1.77.0`; this
-  patch tightens identity and checker behavior without making Execution
-  Assurance consume Test Evidence by default.
+- `1.77.1` introduced the stricter Test Evidence report shape; `1.77.2`
+  formalizes that shape as Test Evidence artifact schema `1.77.1`.
 
 - Test Evidence Binding phase `1.77.0`: after Verification Plan Governance,
   Codex can record whether concrete evidence actually covers every required

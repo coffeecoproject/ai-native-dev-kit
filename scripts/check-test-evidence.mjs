@@ -512,6 +512,7 @@ function checkMarkdownJsonConsistency(label, evidence, markdown) {
   compareManualRows(label, evidence.manual_verification || [], markdown.manualVerification);
   compareScalar(label, "Markdown existing project status", markdown.existingProject.status, evidence.existing_project_mapping?.status);
   compareScalar(label, "Markdown existing project ref", markdown.existingProject.ref, evidence.existing_project_mapping?.ref);
+  compareScalar(label, "Markdown existing project reason", markdown.existingProject.reason, evidence.existing_project_mapping?.reason);
   if (markdown.outcome) {
     if (markdown.outcome === evidence.test_evidence_state) pass(`${label} Markdown outcome matches structured test_evidence_state`);
     else fail(`${label} Markdown outcome ${markdown.outcome} must match structured test_evidence_state ${evidence.test_evidence_state || "<missing>"}`);
@@ -582,7 +583,7 @@ function parseMarkdownEvidence(content) {
     existingProject: {
       status: bulletValue(content, "Existing Project Mapping", "Status"),
       ref: bulletValue(content, "Existing Project Mapping", "Ref"),
-      reason: bulletValue(content, "Existing Project Mapping", "Reason"),
+      reason: bulletTextValue(content, "Existing Project Mapping", "Reason"),
     },
     outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })),
   };
@@ -645,6 +646,7 @@ function compareCoverageRows(label, structuredRows, markdownRows) {
     }
     compareScalar(label, `Markdown coverage ${row.obligation_id} state`, markdown.coverage_state, row.coverage_state);
     compareSet(label, `Markdown coverage ${row.obligation_id} evidence ids`, markdown.evidence_ids, row.evidence_ids || []);
+    compareScalar(label, `Markdown coverage ${row.obligation_id} reason`, markdown.reason, row.reason);
   }
   for (const row of markdownRows) {
     if (!structuredIds.has(row.obligation_id)) fail(`${label} Markdown Coverage Map has extra row ${row.obligation_id}`);
@@ -663,6 +665,7 @@ function compareQualityControlRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown quality control ${row.id} applies to`, markdown.applies_to, row.applies_to);
     compareScalar(label, `Markdown quality control ${row.id} status`, markdown.status, row.status);
     compareSet(label, `Markdown quality control ${row.id} evidence ids`, markdown.evidence_ids, row.evidence_ids || []);
+    compareScalar(label, `Markdown quality control ${row.id} reason`, markdown.reason, row.reason);
   }
   for (const row of markdownRows) {
     if (!structuredIds.has(row.id)) fail(`${label} Markdown Test Quality Controls has extra row ${row.id}`);
@@ -679,6 +682,8 @@ function compareKnownGapRows(label, structuredRows, markdownRows) {
       continue;
     }
     compareScalar(label, `Markdown known gap ${row.id} severity`, markdown.severity, row.severity);
+    compareScalar(label, `Markdown known gap ${row.id} reason`, markdown.reason, row.reason);
+    compareScalar(label, `Markdown known gap ${row.id} required follow up`, markdown.required_follow_up, row.required_follow_up);
   }
   for (const row of markdownRows) {
     if (!structuredIds.has(row.id)) fail(`${label} Markdown Known Gaps has extra row ${row.id}`);
@@ -698,6 +703,7 @@ function compareManualRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown manual verification ${row.id} decision ref`, markdown.decision_ref, row.decision_ref);
     compareScalar(label, `Markdown manual verification ${row.id} evidence ref`, markdown.evidence_ref, row.evidence_ref);
     compareScalar(label, `Markdown manual verification ${row.id} status`, markdown.status, row.status);
+    compareScalar(label, `Markdown manual verification ${row.id} reason`, markdown.reason, row.reason);
   }
   for (const row of markdownRows) {
     if (!structuredIds.has(row.id)) fail(`${label} Markdown Manual Verification has extra row ${row.id}`);
@@ -792,6 +798,13 @@ function bulletValue(content, heading, label) {
   const pattern = new RegExp(`^-\\s+${escapeRegExp(label)}:\\s*(.+)$`, "im");
   const match = body.match(pattern);
   return match ? codeOrTextValue(match[1]) : "";
+}
+
+function bulletTextValue(content, heading, label) {
+  const body = sectionBody(content, heading, { fallback: "" });
+  const pattern = new RegExp(`^-\\s+${escapeRegExp(label)}:\\s*(.+)$`, "im");
+  const match = body.match(pattern);
+  return match ? stripMarkdown(match[1]).trim() : "";
 }
 
 function codeOrTextValue(value) {
