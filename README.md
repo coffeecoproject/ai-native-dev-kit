@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.78.1`.
+Current release: `1.78.2`.
 
-Release record: [releases/1.78.1/release-record.md](releases/1.78.1/release-record.md).
+Release record: [releases/1.78.2/release-record.md](releases/1.78.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.78.2 closes the Completion Evidence contract: `source_chain[].intent_digest` is now part of the schema contract, Execution Assurance exposes a top-level `intent_digest`, and Completion Evidence checks Execution Assurance intent directly instead of relying only on task/source-system indirection. It remains a completion-claim gate, not a test runner, release gate, or production approval.
 
 1.78.1 tightens Completion Evidence Gate: completion claims now require source-chain cross-binding, source digest checks, source schema validation, and intent digest matching across Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance. It still does not run tests, approve commits, approve release, or prove production behavior.
 
@@ -192,6 +194,7 @@ IntentOS 当前包含这些核心能力：
 | Change Impact Coverage | 防止业务规则只改一层，要求前端、API、后端、文案、测试和交接等相关面逐项收口 |
 | Verification Plan Governance | 根据业务规则和影响面生成任务绑定的验证义务，说明哪些测试或检查足以支持后续收口；不执行测试，不批准实现或发布 |
 | Test Evidence Binding | 把真实命令、报告、人工或日志证据绑定到 Verification Plan 的每个必验证项；检查退出码、证据文件、digest、任务匹配和测试质量控制，不执行测试、不批准发布 |
+| Completion Evidence Gate | 最终说“任务完成”前，检查 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance 是否 recorded、ready、同 task、同 source chain；不运行测试、不批准发布 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |

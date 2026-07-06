@@ -101,6 +101,11 @@ known `checker:` record; declarative refs such as `review:`, `command:`,
 `generated:`, or `git-diff:` can help explain a run, but they are not enough by
 themselves as precise completion evidence.
 
+From 1.78.2, Execution Assurance reports expose a top-level `intent_digest`.
+Completion Evidence uses that digest to check Execution Assurance against the
+same task intent, so a stale or task-mismatched assurance report cannot support
+a final completion claim.
+
 If `execution_plan.approval_refs` are present in strict completion, each ref
 must be bounded and use a supported prefix. Approval refs document the approval
 source; they do not become blanket approval for extra files, release, commit,

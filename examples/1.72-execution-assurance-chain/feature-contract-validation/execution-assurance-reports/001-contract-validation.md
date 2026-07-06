@@ -130,47 +130,138 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "intent_lock": {
     "user_intent": "Add required contract number validation.",
     "normalized_intent": "Contract number must be required across user-visible and server-side entry paths.",
-    "in_scope": ["frontend form", "API validation", "backend rule", "tests"],
-    "out_of_scope": ["production release"]
+    "in_scope": [
+      "frontend form",
+      "API validation",
+      "backend rule",
+      "tests"
+    ],
+    "out_of_scope": [
+      "production release"
+    ]
   },
   "completion_contract": {
     "criteria": [
-      {"id":"criterion:frontend-validation","status":"DONE","evidence_refs":["file:evidence/frontend-validation.txt"]},
-      {"id":"criterion:api-validation","status":"DONE","evidence_refs":["file:evidence/api-validation.txt"]},
-      {"id":"criterion:backend-rule","status":"DONE","evidence_refs":["file:evidence/backend-rule.txt"]},
-      {"id":"criterion:tests","status":"DONE","evidence_refs":["file:evidence/tests.txt"]}
+      {
+        "id": "criterion:frontend-validation",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/frontend-validation.txt"
+        ]
+      },
+      {
+        "id": "criterion:api-validation",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/api-validation.txt"
+        ]
+      },
+      {
+        "id": "criterion:backend-rule",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/backend-rule.txt"
+        ]
+      },
+      {
+        "id": "criterion:tests",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/tests.txt"
+        ]
+      }
     ]
   },
   "planned_impact_map": {
     "surfaces": [
-      {"surface":"FRONTEND_UI","expected":"Yes","status":"DONE","evidence_refs":["artifact:change-impact-coverage-reports/001-contract.md"]},
-      {"surface":"API_CONTRACT","expected":"Yes","status":"DONE","evidence_refs":["artifact:change-impact-coverage-reports/001-contract.md"]},
-      {"surface":"BACKEND_RULE","expected":"Yes","status":"DONE","evidence_refs":["artifact:change-impact-coverage-reports/001-contract.md"]},
-      {"surface":"TESTS","expected":"Yes","status":"DONE","evidence_refs":["file:evidence/tests.txt"]}
+      {
+        "surface": "FRONTEND_UI",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:change-impact-coverage-reports/001-contract.md"
+        ]
+      },
+      {
+        "surface": "API_CONTRACT",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:change-impact-coverage-reports/001-contract.md"
+        ]
+      },
+      {
+        "surface": "BACKEND_RULE",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:change-impact-coverage-reports/001-contract.md"
+        ]
+      },
+      {
+        "surface": "TESTS",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/tests.txt"
+        ]
+      }
     ]
   },
   "execution_plan": {
     "plan_ref": "artifact:tasks/001-contract-validation.md",
-    "planned_target_paths": ["src/contracts/form.ts", "src/contracts/api.ts", "src/contracts/domain.ts", "tests/contracts.test.ts"],
+    "planned_target_paths": [
+      "src/contracts/form.ts",
+      "src/contracts/api.ts",
+      "src/contracts/domain.ts",
+      "tests/contracts.test.ts"
+    ],
     "risk_classification": "NORMAL",
     "approval_refs": [],
     "restore_strategy": "Revert task-scoped diff if validation behavior regresses."
   },
   "actual_diff": {
     "diff_source": "git",
-    "changed_files": ["src/contracts/form.ts", "src/contracts/api.ts", "src/contracts/domain.ts", "tests/contracts.test.ts"],
+    "changed_files": [
+      "src/contracts/form.ts",
+      "src/contracts/api.ts",
+      "src/contracts/domain.ts",
+      "tests/contracts.test.ts"
+    ],
     "unexpected_files": [],
     "target_diff_status": "MATCHED_PLAN"
   },
   "evidence_bindings": [
-    {"criterion_id":"criterion:frontend-validation","evidence_ref":"file:evidence/frontend-validation.txt","resolved":"Yes","current_task_match":"Yes"},
-    {"criterion_id":"criterion:api-validation","evidence_ref":"file:evidence/api-validation.txt","resolved":"Yes","current_task_match":"Yes"},
-    {"criterion_id":"criterion:backend-rule","evidence_ref":"file:evidence/backend-rule.txt","resolved":"Yes","current_task_match":"Yes"},
-    {"criterion_id":"criterion:tests","evidence_ref":"file:evidence/tests.txt","resolved":"Yes","current_task_match":"Yes"}
+    {
+      "criterion_id": "criterion:frontend-validation",
+      "evidence_ref": "file:evidence/frontend-validation.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:api-validation",
+      "evidence_ref": "file:evidence/api-validation.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:backend-rule",
+      "evidence_ref": "file:evidence/backend-rule.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:tests",
+      "evidence_ref": "file:evidence/tests.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    }
   ],
   "review": {
     "review_required": "Yes",
-    "review_refs": ["artifact:review-loop-reports/001-contract.md"],
+    "review_refs": [
+      "artifact:review-loop-reports/001-contract.md"
+    ],
     "all_reviewers_closed": "Yes"
   },
   "patch_assessment": {
@@ -213,6 +304,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "proves_product_correctness": "No",
     "transfers_project_authority_to_intentos": "No"
   },
-  "outcome": "VERIFIED_DONE"
+  "outcome": "VERIFIED_DONE",
+  "intent_digest": "sha256:881870172460a2d38f0bb40c1d03f89120e8439e5c63be5ae3e3ae0bbd2a4767"
 }
 ```

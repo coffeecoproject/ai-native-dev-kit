@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.78.1`
+`1.78.2`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.78.2` syncs the Completion Evidence intent contract: `source_chain[].intent_digest` is required, Execution Assurance exposes top-level `intent_digest`, and Completion Evidence directly checks Execution Assurance intent.
+- `1.78.2` remains a contract hardening patch. It does not add a new artifact schema version, run tests, approve release/production, or prove real-environment behavior.
 - `1.78.1` tightens Completion Evidence Gate source-chain binding: strict checks validate source schemas, source identity digests, source intent digests, and BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs before a completion claim can pass.
 - `1.78.1` keeps Completion Evidence schema compatibility at `1.78.0`; it is a checker, fixture, documentation, and release-record hardening patch.
 - `1.78.0` adds Completion Evidence Gate: final completion claims require recorded BRC, Verification Plan, Test Evidence, and Execution Assurance source artifacts to be ready and bound to the same task.

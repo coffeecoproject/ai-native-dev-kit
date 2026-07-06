@@ -114,44 +114,77 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "artifact_type": "execution_assurance_report",
   "execution_kind": "FEATURE_IMPLEMENTATION",
   "task_ref": "tasks/001-contract-validation.md",
+  "intent_digest": "sha256:881870172460a2d38f0bb40c1d03f89120e8439e5c63be5ae3e3ae0bbd2a4767",
   "assurance_state": "PARTIAL_DONE",
   "can_claim_done": "No",
   "can_codex_write_now": "No",
   "intent_lock": {
     "user_intent": "Add required contract number validation.",
     "normalized_intent": "Contract number is required across user-visible and server-side entry paths.",
-    "in_scope": ["frontend form", "API validation", "backend rule", "tests"],
-    "out_of_scope": ["production release"]
+    "in_scope": [
+      "frontend form",
+      "API validation",
+      "backend rule",
+      "tests"
+    ],
+    "out_of_scope": [
+      "production release"
+    ]
   },
   "completion_contract": {
     "criteria": [
-      {"id":"criterion:frontend-validation","status":"PENDING","evidence_refs":["file:evidence/frontend-validation.txt"]}
+      {
+        "id": "criterion:frontend-validation",
+        "status": "PENDING",
+        "evidence_refs": [
+          "file:evidence/frontend-validation.txt"
+        ]
+      }
     ]
   },
   "planned_impact_map": {
     "surfaces": [
-      {"surface":"FRONTEND_UI","expected":"Yes","status":"PENDING","evidence_refs":["artifact:change-impact-coverage-reports/001-contract.md"]}
+      {
+        "surface": "FRONTEND_UI",
+        "expected": "Yes",
+        "status": "PENDING",
+        "evidence_refs": [
+          "artifact:change-impact-coverage-reports/001-contract.md"
+        ]
+      }
     ]
   },
   "execution_plan": {
     "plan_ref": "artifact:tasks/001-contract-validation.md",
-    "planned_target_paths": ["src/contract/**"],
+    "planned_target_paths": [
+      "src/contract/**"
+    ],
     "risk_classification": "NORMAL",
     "approval_refs": [],
     "restore_strategy": "Revert task-scoped diff if validation behavior regresses."
   },
   "actual_diff": {
     "diff_source": "git",
-    "changed_files": ["src/contract/form.ts", "src/contract/api.ts"],
+    "changed_files": [
+      "src/contract/form.ts",
+      "src/contract/api.ts"
+    ],
     "unexpected_files": [],
     "target_diff_status": "MATCHED_PLAN"
   },
   "evidence_bindings": [
-    {"criterion_id":"criterion:frontend-validation","evidence_ref":"file:evidence/frontend-validation.txt","resolved":"No","current_task_match":"No"}
+    {
+      "criterion_id": "criterion:frontend-validation",
+      "evidence_ref": "file:evidence/frontend-validation.txt",
+      "resolved": "No",
+      "current_task_match": "No"
+    }
   ],
   "review": {
     "review_required": "Yes",
-    "review_refs": ["artifact:review-loop-reports/001-contract.md"],
+    "review_refs": [
+      "artifact:review-loop-reports/001-contract.md"
+    ],
     "all_reviewers_closed": "No"
   },
   "patch_assessment": {
@@ -171,7 +204,9 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "contribution": "Planned impact map."
     }
   ],
-  "pending_human_decisions": ["Confirm whether missing frontend evidence is required or explicitly out of scope."],
+  "pending_human_decisions": [
+    "Confirm whether missing frontend evidence is required or explicitly out of scope."
+  ],
   "forbidden_claims": [],
   "boundary": {
     "writes_target_files": "No",

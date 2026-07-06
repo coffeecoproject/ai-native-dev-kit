@@ -45,7 +45,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "status", "ref", "task_ref", "source_outcome", "digest", "ready", "reason"],
+        "required": ["name", "status", "ref", "task_ref", "intent_digest", "source_outcome", "digest", "ready", "reason"],
         "properties": {
           "name": {
             "enum": [

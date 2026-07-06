@@ -131,52 +131,167 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "can_claim_done": "Yes",
   "can_codex_write_now": "No",
   "intent_lock": {
-    "user_intent": "Appointment requests must include a service time.",
+    "user_intent": "appointment requests must include a service time",
     "normalized_intent": "Service time is required across visible entry, API contract, backend rule, verification, and handoff.",
-    "in_scope": ["user flow", "frontend UI", "API contract", "backend rule", "verification", "handoff"],
-    "out_of_scope": ["payment", "production release", "new scheduling policy"]
+    "in_scope": [
+      "user flow",
+      "frontend UI",
+      "API contract",
+      "backend rule",
+      "verification",
+      "handoff"
+    ],
+    "out_of_scope": [
+      "payment",
+      "production release",
+      "new scheduling policy"
+    ]
   },
   "completion_contract": {
     "criteria": [
-      {"id":"criterion:user-flow","status":"DONE","evidence_refs":["artifact:evidence/user-flow.txt"]},
-      {"id":"criterion:frontend-ui","status":"DONE","evidence_refs":["artifact:evidence/frontend-ui.txt"]},
-      {"id":"criterion:api-contract","status":"DONE","evidence_refs":["artifact:evidence/api-contract.txt"]},
-      {"id":"criterion:backend-rule","status":"DONE","evidence_refs":["artifact:evidence/backend-rule.txt"]},
-      {"id":"criterion:handoff","status":"DONE","evidence_refs":["artifact:evidence/handoff.txt"]}
+      {
+        "id": "criterion:user-flow",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:evidence/user-flow.txt"
+        ]
+      },
+      {
+        "id": "criterion:frontend-ui",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:evidence/frontend-ui.txt"
+        ]
+      },
+      {
+        "id": "criterion:api-contract",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:evidence/api-contract.txt"
+        ]
+      },
+      {
+        "id": "criterion:backend-rule",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:evidence/backend-rule.txt"
+        ]
+      },
+      {
+        "id": "criterion:handoff",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:evidence/handoff.txt"
+        ]
+      }
     ]
   },
   "planned_impact_map": {
     "surfaces": [
-      {"surface":"USER_FLOW","expected":"Yes","status":"DONE","evidence_refs":["artifact:test-evidence-reports/001-service-time.md"]},
-      {"surface":"FRONTEND_UI","expected":"Yes","status":"DONE","evidence_refs":["artifact:test-evidence-reports/001-service-time.md"]},
-      {"surface":"API_CONTRACT","expected":"Yes","status":"DONE","evidence_refs":["artifact:test-evidence-reports/001-service-time.md"]},
-      {"surface":"BACKEND_RULE","expected":"Yes","status":"DONE","evidence_refs":["artifact:test-evidence-reports/001-service-time.md"]},
-      {"surface":"DOCS_HANDOFF","expected":"Yes","status":"DONE","evidence_refs":["artifact:evidence/handoff.txt"]}
+      {
+        "surface": "USER_FLOW",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:test-evidence-reports/001-service-time.md"
+        ]
+      },
+      {
+        "surface": "FRONTEND_UI",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:test-evidence-reports/001-service-time.md"
+        ]
+      },
+      {
+        "surface": "API_CONTRACT",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:test-evidence-reports/001-service-time.md"
+        ]
+      },
+      {
+        "surface": "BACKEND_RULE",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:test-evidence-reports/001-service-time.md"
+        ]
+      },
+      {
+        "surface": "DOCS_HANDOFF",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:evidence/handoff.txt"
+        ]
+      }
     ]
   },
   "execution_plan": {
     "plan_ref": "artifact:tasks/001-appointment-requests-must-include-a-service-time.md",
-    "planned_target_paths": ["src/appointment/form.ts", "src/appointment/api.ts", "src/appointment/domain.ts", "tests/appointment-service-time.test.ts", "docs/appointment-service-time.md"],
+    "planned_target_paths": [
+      "src/appointment/form.ts",
+      "src/appointment/api.ts",
+      "src/appointment/domain.ts",
+      "tests/appointment-service-time.test.ts",
+      "docs/appointment-service-time.md"
+    ],
     "risk_classification": "NORMAL",
     "approval_refs": [],
     "restore_strategy": "Revert the task-scoped diff if service-time validation regresses."
   },
   "actual_diff": {
     "diff_source": "git",
-    "changed_files": ["src/appointment/form.ts", "src/appointment/api.ts", "src/appointment/domain.ts", "tests/appointment-service-time.test.ts", "docs/appointment-service-time.md"],
+    "changed_files": [
+      "src/appointment/form.ts",
+      "src/appointment/api.ts",
+      "src/appointment/domain.ts",
+      "tests/appointment-service-time.test.ts",
+      "docs/appointment-service-time.md"
+    ],
     "unexpected_files": [],
     "target_diff_status": "MATCHED_PLAN"
   },
   "evidence_bindings": [
-    {"criterion_id":"criterion:user-flow","evidence_ref":"artifact:evidence/user-flow.txt","resolved":"Yes","current_task_match":"Yes"},
-    {"criterion_id":"criterion:frontend-ui","evidence_ref":"artifact:evidence/frontend-ui.txt","resolved":"Yes","current_task_match":"Yes"},
-    {"criterion_id":"criterion:api-contract","evidence_ref":"artifact:evidence/api-contract.txt","resolved":"Yes","current_task_match":"Yes"},
-    {"criterion_id":"criterion:backend-rule","evidence_ref":"artifact:evidence/backend-rule.txt","resolved":"Yes","current_task_match":"Yes"},
-    {"criterion_id":"criterion:handoff","evidence_ref":"artifact:evidence/handoff.txt","resolved":"Yes","current_task_match":"Yes"}
+    {
+      "criterion_id": "criterion:user-flow",
+      "evidence_ref": "artifact:evidence/user-flow.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:frontend-ui",
+      "evidence_ref": "artifact:evidence/frontend-ui.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:api-contract",
+      "evidence_ref": "artifact:evidence/api-contract.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:backend-rule",
+      "evidence_ref": "artifact:evidence/backend-rule.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:handoff",
+      "evidence_ref": "artifact:evidence/handoff.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    }
   ],
   "review": {
     "review_required": "Yes",
-    "review_refs": ["artifact:review-loop-reports/001-service-time.md"],
+    "review_refs": [
+      "artifact:review-loop-reports/001-service-time.md"
+    ],
     "all_reviewers_closed": "Yes"
   },
   "patch_assessment": {
@@ -219,6 +334,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "proves_product_correctness": "No",
     "transfers_project_authority_to_intentos": "No"
   },
-  "outcome": "VERIFIED_DONE"
+  "outcome": "VERIFIED_DONE",
+  "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28"
 }
 ```

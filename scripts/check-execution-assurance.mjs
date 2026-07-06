@@ -262,6 +262,7 @@ function checkStructuredEvidence(content, label) {
     "artifact_type",
     "execution_kind",
     "task_ref",
+    "intent_digest",
     "assurance_state",
     "can_claim_done",
     "can_codex_write_now",
@@ -287,6 +288,11 @@ function checkStructuredEvidence(content, label) {
   else fail(`${label} evidence schema_version must be ${schemaVersion}`);
   if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
+  if (isShaDigest(parsed.intent_digest)) pass(`${label} evidence intent_digest is sha256`);
+  else fail(`${label} evidence intent_digest must be sha256`);
+  const expectedIntentDigest = digest(parsed.intent_lock?.user_intent || "");
+  if (parsed.intent_digest === expectedIntentDigest) pass(`${label} evidence intent_digest matches user intent`);
+  else fail(`${label} evidence intent_digest must match intent_lock.user_intent`);
   if (allowedKinds.has(parsed.execution_kind)) pass(`${label} evidence execution_kind is allowed`);
   else fail(`${label} evidence execution_kind invalid`);
   if (allowedStates.has(parsed.assurance_state)) pass(`${label} evidence assurance_state is allowed`);
@@ -779,6 +785,10 @@ function resolveEvidenceRefPath(ref) {
 
 function isShaDigest(value) {
   return /^sha256:[a-f0-9]{64}$/.test(String(value || ""));
+}
+
+function digest(value) {
+  return `sha256:${crypto.createHash("sha256").update(String(value)).digest("hex")}`;
 }
 
 function fileDigest(file) {

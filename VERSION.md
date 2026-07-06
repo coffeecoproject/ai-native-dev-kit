@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.78.1`
+Current version: `1.78.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.78.1`
 
 ## Current Release
 
-`1.78.1`
+`1.78.2`
 
 Includes:
+
+- Completion Evidence Reference And Intent Contract Sync patch `1.78.2`:
+  `source_chain[].intent_digest` is now part of the Completion Evidence schema
+  contract, Execution Assurance exposes top-level `intent_digest`, and
+  Completion Evidence checks Execution Assurance intent directly.
+- `1.78.2` keeps Completion Evidence artifact schema at `1.78.0` and Execution
+  Assurance artifact schema at `1.74.0`; this is a contract hardening patch,
+  not a new workflow layer.
 
 - Completion Evidence Source Chain Binding patch `1.78.1`: strict Completion
   Evidence checks now verify cross-source refs and digests across Business Rule

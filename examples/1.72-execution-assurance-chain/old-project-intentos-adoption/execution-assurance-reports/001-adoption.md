@@ -123,14 +123,114 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "assurance_state": "VERIFIED_DONE",
   "can_claim_done": "Yes",
   "can_codex_write_now": "No",
-  "intent_lock": {"user_intent":"Verify old-project IntentOS adoption.","normalized_intent":"Existing project routes through IntentOS without rewriting project-owned authority.","in_scope":["native migration","rule reconciliation","governance convergence","adoption assurance"],"out_of_scope":["target-file writes","release approval"]},
-  "completion_contract": {"criteria":[{"id":"criterion:adoption-assurance","status":"DONE","evidence_refs":["artifact:adoption-assurance-reports/001-adoption.md"]},{"id":"criterion:governance-convergence","status":"DONE","evidence_refs":["artifact:governance-convergence-reports/001-convergence.md"]}]},
-  "planned_impact_map": {"surfaces":[{"surface":"workflow","expected":"Yes","status":"DONE","evidence_refs":["artifact:adoption-assurance-reports/001-adoption.md"]},{"surface":"baseline","expected":"Yes","status":"DONE","evidence_refs":["artifact:governance-convergence-reports/001-convergence.md"]},{"surface":"release","expected":"Yes","status":"DONE","evidence_refs":["artifact:governance-convergence-reports/001-convergence.md"]},{"surface":"simulation","expected":"Yes","status":"DONE","evidence_refs":["artifact:adoption-assurance-reports/001-adoption.md"]}]},
-  "execution_plan": {"plan_ref":"artifact:adoption-assurance-reports/001-adoption.md","planned_target_paths":["N/A"],"risk_classification":"HIGH_PLAN_ONLY","approval_refs":[],"restore_strategy":"No target writes; re-run adoption assurance if project rules change."},
-  "actual_diff": {"diff_source":"read-only","changed_files":[],"unexpected_files":[],"target_diff_status":"UNCHANGED_FOR_READ_ONLY"},
-  "evidence_bindings": [{"criterion_id":"criterion:adoption-assurance","evidence_ref":"artifact:adoption-assurance-reports/001-adoption.md","resolved":"Yes","current_task_match":"Yes"},{"criterion_id":"criterion:governance-convergence","evidence_ref":"artifact:governance-convergence-reports/001-convergence.md","resolved":"Yes","current_task_match":"Yes"}],
-  "review": {"review_required":"Yes","review_refs":["checker:source-system-review"],"all_reviewers_closed":"Yes"},
-  "patch_assessment": {"state":"NOT_A_PATCH","reason":"Adoption execution is not a patch."},
+  "intent_lock": {
+    "user_intent": "Verify old-project IntentOS adoption.",
+    "normalized_intent": "Existing project routes through IntentOS without rewriting project-owned authority.",
+    "in_scope": [
+      "native migration",
+      "rule reconciliation",
+      "governance convergence",
+      "adoption assurance"
+    ],
+    "out_of_scope": [
+      "target-file writes",
+      "release approval"
+    ]
+  },
+  "completion_contract": {
+    "criteria": [
+      {
+        "id": "criterion:adoption-assurance",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:adoption-assurance-reports/001-adoption.md"
+        ]
+      },
+      {
+        "id": "criterion:governance-convergence",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:governance-convergence-reports/001-convergence.md"
+        ]
+      }
+    ]
+  },
+  "planned_impact_map": {
+    "surfaces": [
+      {
+        "surface": "workflow",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:adoption-assurance-reports/001-adoption.md"
+        ]
+      },
+      {
+        "surface": "baseline",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:governance-convergence-reports/001-convergence.md"
+        ]
+      },
+      {
+        "surface": "release",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:governance-convergence-reports/001-convergence.md"
+        ]
+      },
+      {
+        "surface": "simulation",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "artifact:adoption-assurance-reports/001-adoption.md"
+        ]
+      }
+    ]
+  },
+  "execution_plan": {
+    "plan_ref": "artifact:adoption-assurance-reports/001-adoption.md",
+    "planned_target_paths": [
+      "N/A"
+    ],
+    "risk_classification": "HIGH_PLAN_ONLY",
+    "approval_refs": [],
+    "restore_strategy": "No target writes; re-run adoption assurance if project rules change."
+  },
+  "actual_diff": {
+    "diff_source": "read-only",
+    "changed_files": [],
+    "unexpected_files": [],
+    "target_diff_status": "UNCHANGED_FOR_READ_ONLY"
+  },
+  "evidence_bindings": [
+    {
+      "criterion_id": "criterion:adoption-assurance",
+      "evidence_ref": "artifact:adoption-assurance-reports/001-adoption.md",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:governance-convergence",
+      "evidence_ref": "artifact:governance-convergence-reports/001-convergence.md",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    }
+  ],
+  "review": {
+    "review_required": "Yes",
+    "review_refs": [
+      "checker:source-system-review"
+    ],
+    "all_reviewers_closed": "Yes"
+  },
+  "patch_assessment": {
+    "state": "NOT_A_PATCH",
+    "reason": "Adoption execution is not a patch."
+  },
   "source_systems": [
     {
       "name": "adoption_assurance",
@@ -157,7 +257,17 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   ],
   "pending_human_decisions": [],
   "forbidden_claims": [],
-  "boundary": {"writes_target_files":"No","authorizes_target_file_writes":"No","approves_implementation_beyond_recorded_scope":"No","approves_commit_or_push":"No","approves_release_or_production":"No","replaces_source_systems":"No","proves_product_correctness":"No","transfers_project_authority_to_intentos":"No"},
-  "outcome": "VERIFIED_DONE"
+  "boundary": {
+    "writes_target_files": "No",
+    "authorizes_target_file_writes": "No",
+    "approves_implementation_beyond_recorded_scope": "No",
+    "approves_commit_or_push": "No",
+    "approves_release_or_production": "No",
+    "replaces_source_systems": "No",
+    "proves_product_correctness": "No",
+    "transfers_project_authority_to_intentos": "No"
+  },
+  "outcome": "VERIFIED_DONE",
+  "intent_digest": "sha256:dd487f9383d2d717d4f159f7b9a19b61d092056af1a927904bcb59fc231a23eb"
 }
 ```

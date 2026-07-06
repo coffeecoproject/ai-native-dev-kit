@@ -62,6 +62,7 @@ function buildReport(root, options) {
     artifact_type: "execution_assurance_report",
     execution_kind: executionKind,
     task_ref: options.task,
+    intent_digest: digest(options.intent),
     assurance_state: state,
     can_claim_done: canClaimDone,
     can_codex_write_now: "No",

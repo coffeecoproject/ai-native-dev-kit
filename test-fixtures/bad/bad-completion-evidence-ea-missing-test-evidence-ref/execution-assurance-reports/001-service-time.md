@@ -131,7 +131,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "can_claim_done": "Yes",
   "can_codex_write_now": "No",
   "intent_lock": {
-    "user_intent": "Appointment requests must include a service time.",
+    "user_intent": "appointment requests must include a service time",
     "normalized_intent": "Service time is required across visible entry, API contract, backend rule, verification, and handoff.",
     "in_scope": [
       "user flow",
@@ -334,6 +334,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "proves_product_correctness": "No",
     "transfers_project_authority_to_intentos": "No"
   },
-  "outcome": "VERIFIED_DONE"
+  "outcome": "VERIFIED_DONE",
+  "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28"
 }
 ```

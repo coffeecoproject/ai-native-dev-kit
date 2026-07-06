@@ -9,6 +9,7 @@
     "artifact_type",
     "execution_kind",
     "task_ref",
+    "intent_digest",
     "assurance_state",
     "can_claim_done",
     "can_codex_write_now",
@@ -44,6 +45,7 @@
       ]
     },
     "task_ref": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "assurance_state": { "$ref": "#/$defs/assuranceState" },
     "can_claim_done": { "enum": ["Yes", "No"] },
     "can_codex_write_now": { "const": "No" },

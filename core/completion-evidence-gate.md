@@ -21,6 +21,13 @@ binding gate. A ready completion claim must prove:
 - Source intent digests match the current completion intent when the upstream
   artifact exposes one.
 
+1.78.2 makes intent binding explicit across the final source chain:
+
+- Every `source_chain[]` item must carry `intent_digest`.
+- Execution Assurance exposes top-level `intent_digest`.
+- Completion Evidence checks Execution Assurance intent directly instead of
+  relying only on task refs and source-system links.
+
 ## What It Prevents
 
 - Backend-only completion when frontend or API surfaces were required.

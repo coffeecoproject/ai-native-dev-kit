@@ -300,7 +300,7 @@ function checkReferencedSource(label, source, file, completionEvidence) {
   if (source.digest === expectedDigest) pass(`${label} source ${source.name} digest matches referenced evidence`);
   else fail(`${label} source ${source.name} digest ${source.digest || "<missing>"} must match referenced evidence ${expectedDigest || "<missing>"}`);
   const expectedIntentDigest = expectedIntentDigestFor(source.name, evidence);
-  if (source.name !== "execution_assurance" && (requireSourceRefs || requireReady)) {
+  if (requireSourceRefs || requireReady) {
     if (source.intent_digest === expectedIntentDigest && source.intent_digest === completionEvidence.intent_digest) {
       pass(`${label} source ${source.name} intent_digest matches completion evidence`);
     } else {
@@ -363,7 +363,8 @@ function checkCrossSourceBinding(label, completionEvidence, sourceRecords) {
   else fail(`${label} Execution Assurance must bind referenced Test Evidence ${te.source.ref || "<missing>"}`);
   if (completionEvidence.intent_digest === brc.source.intent_digest
     && completionEvidence.intent_digest === vp.source.intent_digest
-    && completionEvidence.intent_digest === te.source.intent_digest) {
+    && completionEvidence.intent_digest === te.source.intent_digest
+    && completionEvidence.intent_digest === ea.source.intent_digest) {
     pass(`${label} source-chain intent digests match completion intent`);
   } else {
     fail(`${label} source-chain intent digests must match completion intent ${completionEvidence.intent_digest || "<missing>"}`);

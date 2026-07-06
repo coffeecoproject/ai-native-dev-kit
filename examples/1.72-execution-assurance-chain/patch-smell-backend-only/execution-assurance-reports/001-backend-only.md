@@ -120,14 +120,95 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "assurance_state": "BLOCKED_BY_PATCH_SMELL",
   "can_claim_done": "No",
   "can_codex_write_now": "No",
-  "intent_lock": {"user_intent":"Fix required contract number validation.","normalized_intent":"Visible validation must be complete across UI and backend.","in_scope":["backend rule","frontend UI"],"out_of_scope":[]},
-  "completion_contract": {"criteria":[{"id":"criterion:backend-rule","status":"DONE","evidence_refs":["checker:impact-coverage"]},{"id":"criterion:frontend-validation","status":"PENDING","evidence_refs":["checker:impact-coverage"]}]},
-  "planned_impact_map": {"surfaces":[{"surface":"BACKEND_RULE","expected":"Yes","status":"DONE","evidence_refs":["checker:impact-coverage"]},{"surface":"FRONTEND_UI","expected":"Yes","status":"PENDING","evidence_refs":["checker:impact-coverage"]}]},
-  "execution_plan": {"plan_ref":"tasks/001-backend-only.md","planned_target_paths":["src/contracts/domain.ts"],"risk_classification":"NORMAL","approval_refs":[],"restore_strategy":"Revert backend-only patch if cross-surface validation is required."},
-  "actual_diff": {"diff_source":"git","changed_files":["src/contracts/domain.ts"],"unexpected_files":[],"target_diff_status":"MATCHED_PLAN"},
-  "evidence_bindings": [{"criterion_id":"criterion:backend-rule","evidence_ref":"checker:impact-coverage","resolved":"Yes","current_task_match":"Yes"},{"criterion_id":"criterion:frontend-validation","evidence_ref":"checker:impact-coverage","resolved":"Yes","current_task_match":"No"}],
-  "review": {"review_required":"Yes","review_refs":["checker:source-system-review"],"all_reviewers_closed":"Yes"},
-  "patch_assessment": {"state":"PATCH_SMELL","reason":"Backend-only fix for visible validation leaves frontend behavior unproven."},
+  "intent_lock": {
+    "user_intent": "Fix required contract number validation.",
+    "normalized_intent": "Visible validation must be complete across UI and backend.",
+    "in_scope": [
+      "backend rule",
+      "frontend UI"
+    ],
+    "out_of_scope": []
+  },
+  "completion_contract": {
+    "criteria": [
+      {
+        "id": "criterion:backend-rule",
+        "status": "DONE",
+        "evidence_refs": [
+          "checker:impact-coverage"
+        ]
+      },
+      {
+        "id": "criterion:frontend-validation",
+        "status": "PENDING",
+        "evidence_refs": [
+          "checker:impact-coverage"
+        ]
+      }
+    ]
+  },
+  "planned_impact_map": {
+    "surfaces": [
+      {
+        "surface": "BACKEND_RULE",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "checker:impact-coverage"
+        ]
+      },
+      {
+        "surface": "FRONTEND_UI",
+        "expected": "Yes",
+        "status": "PENDING",
+        "evidence_refs": [
+          "checker:impact-coverage"
+        ]
+      }
+    ]
+  },
+  "execution_plan": {
+    "plan_ref": "tasks/001-backend-only.md",
+    "planned_target_paths": [
+      "src/contracts/domain.ts"
+    ],
+    "risk_classification": "NORMAL",
+    "approval_refs": [],
+    "restore_strategy": "Revert backend-only patch if cross-surface validation is required."
+  },
+  "actual_diff": {
+    "diff_source": "git",
+    "changed_files": [
+      "src/contracts/domain.ts"
+    ],
+    "unexpected_files": [],
+    "target_diff_status": "MATCHED_PLAN"
+  },
+  "evidence_bindings": [
+    {
+      "criterion_id": "criterion:backend-rule",
+      "evidence_ref": "checker:impact-coverage",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    },
+    {
+      "criterion_id": "criterion:frontend-validation",
+      "evidence_ref": "checker:impact-coverage",
+      "resolved": "Yes",
+      "current_task_match": "No"
+    }
+  ],
+  "review": {
+    "review_required": "Yes",
+    "review_refs": [
+      "checker:source-system-review"
+    ],
+    "all_reviewers_closed": "Yes"
+  },
+  "patch_assessment": {
+    "state": "PATCH_SMELL",
+    "reason": "Backend-only fix for visible validation leaves frontend behavior unproven."
+  },
   "source_systems": [
     {
       "name": "change_impact_coverage",
@@ -141,9 +222,21 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "contribution": "Shows missing frontend surface."
     }
   ],
-  "pending_human_decisions": ["Decide whether to expand scope to frontend validation and error copy."],
+  "pending_human_decisions": [
+    "Decide whether to expand scope to frontend validation and error copy."
+  ],
   "forbidden_claims": [],
-  "boundary": {"writes_target_files":"No","authorizes_target_file_writes":"No","approves_implementation_beyond_recorded_scope":"No","approves_commit_or_push":"No","approves_release_or_production":"No","replaces_source_systems":"No","proves_product_correctness":"No","transfers_project_authority_to_intentos":"No"},
-  "outcome": "BLOCKED_BY_PATCH_SMELL"
+  "boundary": {
+    "writes_target_files": "No",
+    "authorizes_target_file_writes": "No",
+    "approves_implementation_beyond_recorded_scope": "No",
+    "approves_commit_or_push": "No",
+    "approves_release_or_production": "No",
+    "replaces_source_systems": "No",
+    "proves_product_correctness": "No",
+    "transfers_project_authority_to_intentos": "No"
+  },
+  "outcome": "BLOCKED_BY_PATCH_SMELL",
+  "intent_digest": "sha256:acc94b5ccc7e935464af74baf4aae32ccdb3441fedab2301d6a227a6d8aff5b5"
 }
 ```

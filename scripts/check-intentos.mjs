@@ -5778,6 +5778,7 @@ function checkExecutionAssuranceChainProtocol() {
     "evidence_bindings",
     "patch_assessment",
     "source_systems",
+    "intent_digest",
     "source_system_ref",
     "source_task_ref",
     "current_task_match",
@@ -8363,6 +8364,9 @@ function checkCompletionEvidenceGateProtocol() {
     "releases/1.78.1/release-record.md",
     "releases/1.78.1/known-limitations.md",
     "releases/1.78.1/self-check-report.md",
+    "releases/1.78.2/release-record.md",
+    "releases/1.78.2/known-limitations.md",
+    "releases/1.78.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.78 completion evidence asset exists ${file}`);
@@ -8382,6 +8386,7 @@ function checkCompletionEvidenceGateProtocol() {
     read("scripts/cli.mjs"),
     exists("releases/1.78.0/release-record.md") ? read("releases/1.78.0/release-record.md") : "",
     exists("releases/1.78.1/release-record.md") ? read("releases/1.78.1/release-record.md") : "",
+    exists("releases/1.78.2/release-record.md") ? read("releases/1.78.2/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -8402,6 +8407,9 @@ function checkCompletionEvidenceGateProtocol() {
     "check:source-digest-consistency",
     "check:intent-consistency",
     "check:source-chain-binding",
+    "source_chain[].intent_digest",
+    "Execution Assurance reports now expose top-level",
+    "Execution Assurance intent directly",
     "does not run tests",
     "does not approve release or production",
     "completion-evidence",
@@ -8460,6 +8468,7 @@ function checkCompletionEvidenceGateProtocol() {
         && parsed.structuredEvidence?.completion_state === "COMPLETION_EVIDENCE_READY"
         && parsed.structuredEvidence?.can_claim_complete === "Yes"
         && parsed.structuredEvidence?.source_chain?.length === 4
+        && parsed.structuredEvidence?.source_chain?.every((item) => typeof item.intent_digest === "string" && item.intent_digest.startsWith("sha256:"))
         && parsed.structuredEvidence?.gate_checks?.every((item) => item.status === "PASS")
         && parsed.structuredEvidence?.boundary?.runs_tests === "No") {
         pass("1.78 completion evidence resolver JSON includes ready source chain");
@@ -8547,6 +8556,7 @@ function checkCompletionEvidenceGateProtocol() {
     ["bad-completion-evidence-source-digest-mismatch", "source test_evidence digest", "completion-evidence-reports/001-service-time.md"],
     ["bad-completion-evidence-source-schema-invalid", "source business_rule_closure.artifact_type", "completion-evidence-reports/001-service-time.md"],
     ["bad-completion-evidence-intent-digest-mismatch", "source verification_plan intent_digest", "completion-evidence-reports/001-service-time.md"],
+    ["bad-completion-evidence-ea-intent-digest-mismatch", "source execution_assurance intent_digest", "completion-evidence-reports/001-service-time.md"],
   ];
   for (const [name, expected, report] of badFixtureCases) {
     const result = runNode([
@@ -8605,7 +8615,7 @@ This report is a read-only derived verification view. It does not write target f
 
 | Field | Value |
 | --- | --- |
-| User Intent | Appointment requests must include a service time. |
+| User Intent | appointment requests must include a service time |
 | Normalized Intent | Service time is required across user-visible and server-side entry paths. |
 | Task Ref | \`${taskRef}\` |
 | Drift Policy | Any new scheduling policy exits this task. |
@@ -8702,11 +8712,12 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "artifact_type": "execution_assurance_report",
   "execution_kind": "FEATURE_IMPLEMENTATION",
   "task_ref": "${taskRef}",
+  "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
   "assurance_state": "VERIFIED_DONE",
   "can_claim_done": "Yes",
   "can_codex_write_now": "No",
   "intent_lock": {
-    "user_intent": "Appointment requests must include a service time.",
+    "user_intent": "appointment requests must include a service time",
     "normalized_intent": "Service time is required across user-visible and server-side entry paths.",
     "in_scope": ["user flow", "frontend UI", "API contract", "backend rule", "verification"],
     "out_of_scope": ["payment", "production release", "new scheduling policy"]

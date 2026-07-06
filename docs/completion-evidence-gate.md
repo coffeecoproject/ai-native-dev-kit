@@ -25,6 +25,11 @@ four unrelated ready reports. It verifies:
 - Source digests match the referenced artifacts.
 - Source intent digests match the current completion intent when available.
 
+From 1.78.2, strict mode requires every source-chain item to include
+`intent_digest`, and Execution Assurance must expose top-level `intent_digest`.
+That lets Completion Evidence check Execution Assurance intent directly instead
+of treating it as an indirect task/source-system match.
+
 ## When To Use
 
 Use it when Codex is about to say:

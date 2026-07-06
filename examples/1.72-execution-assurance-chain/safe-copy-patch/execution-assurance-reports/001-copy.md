@@ -118,14 +118,84 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "assurance_state": "VERIFIED_DONE",
   "can_claim_done": "Yes",
   "can_codex_write_now": "No",
-  "intent_lock": {"user_intent":"Update button copy.","normalized_intent":"Change a single low-risk label without behavior changes.","in_scope":["changed file","verification evidence"],"out_of_scope":["behavior changes"]},
-  "completion_contract": {"criteria":[{"id":"criterion:copy-smoke","status":"DONE","evidence_refs":["file:evidence/copy-smoke.txt"]}]},
-  "planned_impact_map": {"surfaces":[{"surface":"changed_file","expected":"Yes","status":"DONE","evidence_refs":["file:evidence/copy-smoke.txt"]},{"surface":"verification","expected":"Yes","status":"DONE","evidence_refs":["file:evidence/copy-smoke.txt"]}]},
-  "execution_plan": {"plan_ref":"file:tasks/001-copy.md","planned_target_paths":["src/copy.ts"],"risk_classification":"LOW","approval_refs":[],"restore_strategy":"Revert one copy file."},
-  "actual_diff": {"diff_source":"git","changed_files":["src/copy.ts"],"unexpected_files":[],"target_diff_status":"MATCHED_PLAN"},
-  "evidence_bindings": [{"criterion_id":"criterion:copy-smoke","evidence_ref":"file:evidence/copy-smoke.txt","resolved":"Yes","current_task_match":"Yes"}],
-  "review": {"review_required":"No","review_refs":["checker:apply-candidate"],"all_reviewers_closed":"Yes"},
-  "patch_assessment": {"state":"SAFE_PATCH","reason":"Narrow copy-only diff with local smoke evidence."},
+  "intent_lock": {
+    "user_intent": "Update button copy.",
+    "normalized_intent": "Change a single low-risk label without behavior changes.",
+    "in_scope": [
+      "changed file",
+      "verification evidence"
+    ],
+    "out_of_scope": [
+      "behavior changes"
+    ]
+  },
+  "completion_contract": {
+    "criteria": [
+      {
+        "id": "criterion:copy-smoke",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/copy-smoke.txt"
+        ]
+      }
+    ]
+  },
+  "planned_impact_map": {
+    "surfaces": [
+      {
+        "surface": "changed_file",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/copy-smoke.txt"
+        ]
+      },
+      {
+        "surface": "verification",
+        "expected": "Yes",
+        "status": "DONE",
+        "evidence_refs": [
+          "file:evidence/copy-smoke.txt"
+        ]
+      }
+    ]
+  },
+  "execution_plan": {
+    "plan_ref": "file:tasks/001-copy.md",
+    "planned_target_paths": [
+      "src/copy.ts"
+    ],
+    "risk_classification": "LOW",
+    "approval_refs": [],
+    "restore_strategy": "Revert one copy file."
+  },
+  "actual_diff": {
+    "diff_source": "git",
+    "changed_files": [
+      "src/copy.ts"
+    ],
+    "unexpected_files": [],
+    "target_diff_status": "MATCHED_PLAN"
+  },
+  "evidence_bindings": [
+    {
+      "criterion_id": "criterion:copy-smoke",
+      "evidence_ref": "file:evidence/copy-smoke.txt",
+      "resolved": "Yes",
+      "current_task_match": "Yes"
+    }
+  ],
+  "review": {
+    "review_required": "No",
+    "review_refs": [
+      "checker:apply-candidate"
+    ],
+    "all_reviewers_closed": "Yes"
+  },
+  "patch_assessment": {
+    "state": "SAFE_PATCH",
+    "reason": "Narrow copy-only diff with local smoke evidence."
+  },
   "source_systems": [
     {
       "name": "low_risk_apply_candidate",
@@ -141,7 +211,17 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   ],
   "pending_human_decisions": [],
   "forbidden_claims": [],
-  "boundary": {"writes_target_files":"No","authorizes_target_file_writes":"No","approves_implementation_beyond_recorded_scope":"No","approves_commit_or_push":"No","approves_release_or_production":"No","replaces_source_systems":"No","proves_product_correctness":"No","transfers_project_authority_to_intentos":"No"},
-  "outcome": "VERIFIED_DONE"
+  "boundary": {
+    "writes_target_files": "No",
+    "authorizes_target_file_writes": "No",
+    "approves_implementation_beyond_recorded_scope": "No",
+    "approves_commit_or_push": "No",
+    "approves_release_or_production": "No",
+    "replaces_source_systems": "No",
+    "proves_product_correctness": "No",
+    "transfers_project_authority_to_intentos": "No"
+  },
+  "outcome": "VERIFIED_DONE",
+  "intent_digest": "sha256:3037e524d8ac2d32d6920f3b0397f2d1f0ea0c55f0f45df6230f9617bc4db1de"
 }
 ```

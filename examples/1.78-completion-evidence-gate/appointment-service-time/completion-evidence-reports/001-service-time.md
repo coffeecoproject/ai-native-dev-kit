@@ -25,7 +25,7 @@ This report is a read-only completion gate. It does not run tests, write target 
 | `check:execution_assurance` | `PASS` | `execution_assurance` | Execution Assurance is VERIFIED_DONE and can_claim_done is Yes. | `VERIFIED_DONE` | Required source is ready. |
 | `check:task-consistency` | `PASS` | `source_chain` | All recorded source artifacts bind to the current task. | `Yes` | All recorded source artifacts reference the same task. |
 | `check:source-digest-consistency` | `PASS` | `source_chain` | All recorded source artifacts include a source identity digest. | `Yes` | All recorded source artifact digests match referenced evidence. |
-| `check:intent-consistency` | `PASS` | `source_chain` | Recorded source artifacts expose current intent digest when available. | `Yes` | Business Rule Closure, Verification Plan, and Test Evidence match the completion intent digest. |
+| `check:intent-consistency` | `PASS` | `source_chain` | Recorded source artifacts expose current intent digest when available. | `Yes` | Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance match the completion intent digest. |
 | `check:source-chain-binding` | `PASS` | `source_chain` | BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs and digests match. | `Yes` | BRC, Verification Plan, Test Evidence, and Execution Assurance form one bound source chain. |
 
 ## Source Chain
@@ -35,7 +35,7 @@ This report is a read-only completion gate. It does not run tests, write target 
 | `business_rule_closure` | `RECORDED` | `artifact:business-rule-closures/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `READY_FOR_IMPACT_COVERAGE` | `Yes` | `sha256:5fe1a693331004af176d194d2b8b1e3e8fad84250401b526d3eff9e42f29874e` | Source artifact is recorded and in a completion-ready state. |
 | `verification_plan` | `RECORDED` | `artifact:verification-plans/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `VERIFICATION_PLAN_READY` | `Yes` | `sha256:417e7eba332b2d5b4e987a5472095c2bb069e6de0e781a0231398130337acc79` | Source artifact is recorded and in a completion-ready state. |
 | `test_evidence` | `RECORDED` | `artifact:test-evidence-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `TEST_EVIDENCE_COMPLETE` | `Yes` | `sha256:ba285ca4ea5d54d849f231f12dad133778d5139705a9cccf62c35196382b11b8` | Source artifact is recorded and in a completion-ready state. |
-| `execution_assurance` | `RECORDED` | `artifact:execution-assurance-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `not provided` | `VERIFIED_DONE` | `Yes` | `sha256:a8a2cd5969c4f5fb683b36ca575d14260f620a111d212a7082450814f12ef559` | Source artifact is recorded and in a completion-ready state. |
+| `execution_assurance` | `RECORDED` | `artifact:execution-assurance-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `VERIFIED_DONE` | `Yes` | `sha256:6f53cb666c2ef7c37980e601eba0d2af8ed69cb1450870d14ab87bff3c881560` | Source artifact is recorded and in a completion-ready state. |
 
 ## Task Consistency
 
@@ -69,7 +69,7 @@ This report is a read-only completion gate. It does not run tests, write target 
   "intent": "appointment requests must include a service time",
   "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
   "completion_evidence_ref": "artifact:completion-evidence-reports/001-service-time.md",
-  "completion_gate_digest": "sha256:4c85beff0d02546dceace37e271fa70fb51d8e5652beaef206b51a53578a67b5",
+  "completion_gate_digest": "sha256:27bb17b134b44c44f0d290a26991f469a7d665b77bc53555f88233645cbb2ced",
   "completion_state": "COMPLETION_EVIDENCE_READY",
   "can_claim_complete": "Yes",
   "source_chain": [
@@ -111,9 +111,9 @@ This report is a read-only completion gate. It does not run tests, write target 
       "status": "RECORDED",
       "ref": "artifact:execution-assurance-reports/001-service-time.md",
       "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
-      "intent_digest": "not provided",
+      "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
       "source_outcome": "VERIFIED_DONE",
-      "digest": "sha256:a8a2cd5969c4f5fb683b36ca575d14260f620a111d212a7082450814f12ef559",
+      "digest": "sha256:6f53cb666c2ef7c37980e601eba0d2af8ed69cb1450870d14ab87bff3c881560",
       "ready": "Yes",
       "reason": "Source artifact is recorded and in a completion-ready state."
     }
@@ -173,7 +173,7 @@ This report is a read-only completion gate. It does not run tests, write target 
       "source": "source_chain",
       "expected": "Recorded source artifacts expose current intent digest when available.",
       "actual": "Yes",
-      "reason": "Business Rule Closure, Verification Plan, and Test Evidence match the completion intent digest."
+      "reason": "Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance match the completion intent digest."
     },
     {
       "id": "check:source-chain-binding",

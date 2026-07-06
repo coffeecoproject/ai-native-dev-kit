@@ -503,15 +503,26 @@ The structured evidence should include at minimum:
   "intent_lock": {
     "user_intent": "Add required contract number validation",
     "normalized_intent": "Contract number must be required across user-visible and server-side entry paths",
-    "in_scope": ["frontend form", "API validation", "backend rule", "tests", "error copy"],
-    "out_of_scope": ["data migration", "production release"]
+    "in_scope": [
+      "frontend form",
+      "API validation",
+      "backend rule",
+      "tests",
+      "error copy"
+    ],
+    "out_of_scope": [
+      "data migration",
+      "production release"
+    ]
   },
   "completion_contract": {
     "criteria": [
       {
         "id": "criterion:frontend-validation",
         "status": "DONE",
-        "evidence_refs": ["file:evidence/frontend-validation.txt"]
+        "evidence_refs": [
+          "file:evidence/frontend-validation.txt"
+        ]
       }
     ]
   },
@@ -521,7 +532,9 @@ The structured evidence should include at minimum:
         "surface": "FRONTEND_UI",
         "expected": "Yes",
         "status": "DONE",
-        "evidence_refs": ["artifact:change-impact-coverage-reports/001-contract.md"]
+        "evidence_refs": [
+          "artifact:change-impact-coverage-reports/001-contract.md"
+        ]
       }
     ]
   },
@@ -540,7 +553,9 @@ The structured evidence should include at minimum:
   ],
   "review": {
     "review_required": "Yes",
-    "review_refs": ["artifact:review-loop-reports/001-contract.md"],
+    "review_refs": [
+      "artifact:review-loop-reports/001-contract.md"
+    ],
     "all_reviewers_closed": "Yes"
   },
   "patch_assessment": {
@@ -559,7 +574,8 @@ The structured evidence should include at minimum:
     "authorizes_target_file_writes": "No",
     "approves_release_or_production": "No",
     "replaces_source_systems": "No"
-  }
+  },
+  "intent_digest": "sha256:7cc67ccc46876eec1cf18536d0fae4d35655bf36f39b4b8e3cb389cf76616741"
 }
 ```
 

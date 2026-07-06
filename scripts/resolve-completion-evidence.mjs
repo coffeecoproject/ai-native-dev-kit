@@ -283,14 +283,14 @@ function sourceDigestConsistencyFor(sources) {
 }
 
 function sourceIntentConsistencyFor(sources, intentDigest) {
-  const recorded = sources.filter((item) => item.status === "RECORDED" && item.name !== "execution_assurance");
+  const recorded = sources.filter((item) => item.status === "RECORDED");
   const mismatched = recorded.filter((item) => item.intentDigest !== intentDigest);
   return {
     all_recorded_sources_have_intent: recorded.length > 0 && mismatched.length === 0 ? "Yes" : "No",
     reason: recorded.length === 0
       ? "No recorded source artifacts with intent digest were available."
       : mismatched.length === 0
-        ? "Business Rule Closure, Verification Plan, and Test Evidence match the completion intent digest."
+        ? "Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance match the completion intent digest."
         : `Mismatched source intent digests: ${mismatched.map((item) => `${item.name}=${item.intentDigest || "not provided"}`).join(", ")}`,
   };
 }

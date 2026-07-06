@@ -92,6 +92,12 @@ Codex can claim the task is complete. It still does not run tests, write target
 files, approve commits, approve release or production, prove product
 correctness, or prove real-environment behavior.
 
+1.78.2 keeps the Completion Evidence artifact schema version at `1.78.0`, but
+tightens the contract: every `source_chain[]` item must include
+`intent_digest`, and Execution Assurance reports expose a top-level
+`intent_digest` so the final completion gate can check all source intents
+directly.
+
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
 - `--resolve-evidence-refs` requires `DONE` evidence references to resolve

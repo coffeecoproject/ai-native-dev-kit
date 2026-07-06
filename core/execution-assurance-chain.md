@@ -6,6 +6,11 @@ It is a derived verification layer. It consumes existing IntentOS source systems
 
 It does not replace those systems.
 
+From 1.78.2, every Execution Assurance report also exposes a top-level
+`intent_digest`. Completion Evidence can then bind Execution Assurance to the
+same task intent directly, instead of trusting that an Execution Assurance
+report merely exists.
+
 ## Purpose
 
 The purpose is to move completion from narrative claim to evidence chain:
