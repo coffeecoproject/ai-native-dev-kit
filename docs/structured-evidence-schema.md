@@ -60,6 +60,12 @@ not-applicable obligations, `verification_plan_ref`, and
 tests, approve implementation, approve release or production, replace Execution
 Assurance, or prove product correctness.
 
+1.76.1 through 1.76.3 keep the Verification Plan artifact schema at `1.76.0`
+while tightening checker behavior: source-system chains must bind to the same
+BRC/CIC reports, Markdown sections must match JSON evidence both ways, Test
+Correctness Controls are part of the consistency contract, and READY plans must
+use recorded BRC/CIC source systems.
+
 1.50.0 keeps the 1.49 Change Impact Coverage schema and adds stricter checker behavior:
 
 - `--resolve-evidence-refs` requires `DONE` evidence references to resolve

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.76.2`
+Current version: `1.76.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,16 @@ Current version: `1.76.2`
 
 ## Current Release
 
-`1.76.2`
+`1.76.3`
 
 Includes:
+
+- Verification Plan Consistency Closure patch `1.76.3`: strict checks now reject
+  extra Markdown rows that are not present in JSON evidence, cross-check Test
+  Correctness Controls, and require READY plans to use `RECORDED` BRC/CIC source
+  systems.
+- `1.76.3` keeps the Verification Plan artifact schema at `1.76.0`; this is the
+  final consistency hardening pass before Test Evidence Binding.
 
 - Verification Plan Markdown/JSON Consistency patch `1.76.2`: strict
   Verification Plan checks now compare human-readable Markdown sections with

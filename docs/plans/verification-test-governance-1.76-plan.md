@@ -890,26 +890,35 @@ production.
 - 1.76.0 should not execute tests.
 - 1.76.0 should not prove that tests pass.
 - 1.76.0 should not prove real-world correctness.
-- Test Evidence Binding should be a follow-up patch after Verification Plan
-  Governance is stable.
+- 1.76.1 tightened source-chain binding.
+- 1.76.2 tightened Markdown/JSON consistency for existing report sections.
+- 1.76.3 closes the remaining Verification Plan consistency gaps by rejecting
+  extra Markdown rows that are absent from JSON evidence, checking Test
+  Correctness Controls against JSON, and requiring READY plans to have recorded
+  BRC/CIC source systems.
+- Test Evidence Binding should be a later phase after Verification Plan
+  consistency is stable.
 - Full mutation testing, flaky-test analytics, and deep static analysis are out
-  of scope for 1.76.0.
+  of scope for the 1.76 Verification Plan line.
 
 ## Follow-Up Path
 
 Recommended sequence after 1.76.0:
 
-1. 1.76.1 Test Evidence Binding
+1. 1.76.1 Source Chain Consistency
+   - prove the Verification Plan and Change Impact Coverage consumed the same
+     Business Rule Closure;
+   - make `source_systems[]` match top-level refs, digests, and outcomes.
+2. 1.76.2 Markdown/JSON Consistency
+   - compare user-visible report sections against machine-readable evidence.
+3. 1.76.3 Verification Plan Consistency Closure
+   - reject extra Markdown-only rows;
+   - include Test Correctness Controls in Markdown/JSON checks;
+   - require READY plans to use recorded BRC/CIC source systems.
+4. Later Test Evidence Binding
    - add `test-evidence-reports/`;
    - bind commands, exit codes, output digests, environment, skipped/not-run
      states, and manual checks to Verification Plan obligations.
-2. 1.76.2 Execution Assurance Integration
-   - make execution-class completion consume Test Evidence where obligations
-     exist.
-3. 1.76.3 Test Correctness Hardening
-   - add deeper cross-checks for Codex-generated tests, failure-path proof,
-     mutation/sentinel evidence where justified, and stale-test-output
-     rejection.
 
 ## Final Position
 

@@ -19,6 +19,11 @@ match the top-level refs, digests, and outcomes.
 The report body is also checked against JSON evidence. If the Markdown says one
 outcome, source, surface, obligation, manual check, or not-applicable reason,
 and the machine-readable evidence says another, the report fails strict checks.
+The consistency check is bidirectional: Markdown cannot add extra source
+systems, affected surfaces, verification obligations, manual checks, or
+not-applicable rows that JSON evidence does not record. Test Correctness
+Controls are checked too, and a `VERIFICATION_PLAN_READY` plan must use
+`RECORDED` Business Rule Closure and Change Impact Coverage source systems.
 
 ## What It Produces
 

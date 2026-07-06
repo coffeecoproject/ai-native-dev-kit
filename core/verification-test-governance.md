@@ -57,6 +57,11 @@ human-readable report sections must match the machine-readable evidence for
 source systems, identity, project calibration, affected surfaces, verification
 obligations, manual checks, not-applicable items, and outcome.
 
+Consistency is bidirectional: Markdown must not add source systems, surfaces,
+obligations, manual checks, or not-applicable rows that JSON evidence does not
+record. Test Correctness Controls are also part of the consistency contract. A
+`VERIFICATION_PLAN_READY` plan must use `RECORDED` BRC/CIC source systems.
+
 ## Test Correctness
 
 Codex-generated tests can be wrong. Verification Plan must guard against:

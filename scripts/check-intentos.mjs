@@ -7685,6 +7685,13 @@ function checkVerificationPlanGovernanceProtocol() {
     "test-fixtures/bad/bad-verification-plan-markdown-surface-status-mismatch/verification-plans/001-service-time.md",
     "test-fixtures/bad/bad-verification-plan-markdown-obligation-missing/verification-plans/001-service-time.md",
     "test-fixtures/bad/bad-verification-plan-markdown-outcome-mismatch/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-extra-obligation/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-extra-source-system/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-extra-surface/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-extra-not-applicable/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-test-control-mismatch/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-markdown-test-control-missing/verification-plans/001-service-time.md",
+    "test-fixtures/bad/bad-verification-plan-ready-with-unresolved-source-system/verification-plans/001-service-time.md",
     "releases/1.76.0/release-record.md",
     "releases/1.76.0/known-limitations.md",
     "releases/1.76.0/self-check-report.md",
@@ -7694,6 +7701,9 @@ function checkVerificationPlanGovernanceProtocol() {
     "releases/1.76.2/release-record.md",
     "releases/1.76.2/known-limitations.md",
     "releases/1.76.2/self-check-report.md",
+    "releases/1.76.3/release-record.md",
+    "releases/1.76.3/known-limitations.md",
+    "releases/1.76.3/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.76 verification plan asset exists ${file}`);
@@ -7715,6 +7725,7 @@ function checkVerificationPlanGovernanceProtocol() {
     exists("releases/1.76.0/release-record.md") ? read("releases/1.76.0/release-record.md") : "",
     exists("releases/1.76.1/release-record.md") ? read("releases/1.76.1/release-record.md") : "",
     exists("releases/1.76.2/release-record.md") ? read("releases/1.76.2/release-record.md") : "",
+    exists("releases/1.76.3/release-record.md") ? read("releases/1.76.3/release-record.md") : "",
   ].join("\n");
 
   for (const marker of [
@@ -7739,6 +7750,9 @@ function checkVerificationPlanGovernanceProtocol() {
     "checkMarkdownJsonConsistency",
     "Markdown Verification Obligations missing",
     "Markdown outcome matches structured verification_state",
+    "READY source_systems",
+    "Markdown Test Correctness Controls",
+    "has extra row",
   ]) {
     if (combined.includes(marker)) pass(`1.76 verification plan includes ${marker}`);
     else fail(`1.76 verification plan missing ${marker}`);
@@ -7980,6 +7994,34 @@ function checkVerificationPlanGovernanceProtocol() {
     {
       target: "test-fixtures/bad/bad-verification-plan-markdown-outcome-mismatch",
       expected: "Markdown outcome",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-extra-obligation",
+      expected: "Markdown Verification Obligations has extra row",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-extra-source-system",
+      expected: "Markdown Source Systems has extra row",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-extra-surface",
+      expected: "Markdown Affected Surface Inputs has extra row",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-extra-not-applicable",
+      expected: "Markdown Not Applicable Obligations has extra row",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-test-control-mismatch",
+      expected: "Markdown test correctness control",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-markdown-test-control-missing",
+      expected: "Markdown Test Correctness Controls missing",
+    },
+    {
+      target: "test-fixtures/bad/bad-verification-plan-ready-with-unresolved-source-system",
+      expected: "READY source_systems business_rule_closure.status must be RECORDED",
     },
   ];
   for (const badCase of badFixtureCases) {

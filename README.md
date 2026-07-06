@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.76.2`.
+Current release: `1.76.3`.
 
-Release record: [releases/1.76.2/release-record.md](releases/1.76.2/release-record.md).
+Release record: [releases/1.76.3/release-record.md](releases/1.76.3/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -39,6 +39,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.76.3 closes Verification Plan consistency: Markdown tables are now checked both ways against JSON evidence, Test Correctness Controls are cross-checked, and READY plans require recorded BRC/CIC source systems.
 
 1.76.2 tightens Verification Plan report consistency: the Markdown sections users read now must match the machine-readable JSON evidence for source systems, identity, project calibration, affected surfaces, verification obligations, manual checks, not-applicable items, and outcome.
 

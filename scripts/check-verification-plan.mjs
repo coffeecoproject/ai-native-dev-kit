@@ -240,11 +240,24 @@ function checkSourceSystemsConsistency(label, evidence) {
     if (!source?.name) continue;
     byName.set(source.name, source);
   }
+  if (evidence.verification_state === "VERIFICATION_PLAN_READY") {
+    requireRecordedSource(label, byName.get("business_rule_closure"), "business_rule_closure");
+    requireRecordedSource(label, byName.get("change_impact_coverage"), "change_impact_coverage");
+  }
   requireSourceField(label, byName.get("business_rule_closure"), "business_rule_closure", "ref", evidence.business_rule_ref);
   requireSourceField(label, byName.get("business_rule_closure"), "business_rule_closure", "digest", evidence.business_rule_digest);
   requireSourceField(label, byName.get("business_rule_closure"), "business_rule_closure", "source_outcome", evidence.business_rule_state);
   requireSourceField(label, byName.get("change_impact_coverage"), "change_impact_coverage", "ref", evidence.impact_ref);
   requireSourceField(label, byName.get("change_impact_coverage"), "change_impact_coverage", "digest", evidence.impact_digest);
+}
+
+function requireRecordedSource(label, source, sourceName) {
+  if (!source) return;
+  if (source.status === "RECORDED") {
+    pass(`${label} READY source_systems ${sourceName}.status is RECORDED`);
+  } else {
+    fail(`${label} READY source_systems ${sourceName}.status must be RECORDED, got ${source.status || "<missing>"}`);
+  }
 }
 
 function requireSourceField(label, source, sourceName, field, expected) {
@@ -474,6 +487,7 @@ function checkMarkdownJsonConsistency(label, evidence, markdown) {
   checkMarkdownSourceSystems(label, evidence, markdown.sourceSystems);
   compareSurfaceRows(label, evidence.affected_surfaces || [], markdown.affectedSurfaces);
   compareObligationRows(label, evidence.verification_obligations || [], markdown.obligations);
+  compareTestCorrectnessControlRows(label, evidence.test_correctness_controls || [], markdown.testCorrectnessControls);
   compareManualVerificationRows(label, evidence.manual_verification || [], markdown.manualVerification);
   compareNotApplicableRows(label, evidence.not_applicable_obligations || [], markdown.notApplicable);
   if (markdown.outcome) {
@@ -499,6 +513,7 @@ function checkMarkdownProjectCalibration(label, evidence, calibration) {
 
 function checkMarkdownSourceSystems(label, evidence, rows) {
   const markdownByName = new Map(rows.map((row) => [row.source, row]));
+  const structuredNames = new Set((evidence.source_systems || []).map((row) => row.name));
   for (const source of evidence.source_systems || []) {
     const row = markdownByName.get(source.name);
     if (!row) {
@@ -510,10 +525,14 @@ function checkMarkdownSourceSystems(label, evidence, rows) {
     compareScalar(label, `Markdown source ${source.name} outcome`, row.outcome, source.source_outcome);
     compareScalar(label, `Markdown source ${source.name} digest`, row.digest, source.digest);
   }
+  for (const row of rows) {
+    if (!structuredNames.has(row.source)) fail(`${label} Markdown Source Systems has extra row ${row.source}`);
+  }
 }
 
 function compareSurfaceRows(label, structuredRows, markdownRows) {
   const markdownBySurface = new Map(markdownRows.map((row) => [row.surface, row]));
+  const structuredSurfaces = new Set(structuredRows.map((row) => row.surface));
   for (const row of structuredRows) {
     const markdown = markdownBySurface.get(row.surface);
     if (!markdown) {
@@ -524,10 +543,14 @@ function compareSurfaceRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown affected surface ${row.surface} reason`, markdown.reason, row.reason);
     compareScalar(label, `Markdown affected surface ${row.surface} expected evidence`, markdown.expected_evidence, row.expected_evidence);
   }
+  for (const row of markdownRows) {
+    if (!structuredSurfaces.has(row.surface)) fail(`${label} Markdown Affected Surface Inputs has extra row ${row.surface}`);
+  }
 }
 
 function compareObligationRows(label, structuredRows, markdownRows) {
   const markdownById = new Map(markdownRows.map((row) => [row.id, row]));
+  const structuredIds = new Set(structuredRows.map((row) => row.id));
   for (const row of structuredRows) {
     const markdown = markdownById.get(row.id);
     if (!markdown) {
@@ -543,6 +566,27 @@ function compareObligationRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown obligation ${row.id} broad command only`, markdown.broad_command_only, row.broad_command_only);
     compareSet(label, `Markdown obligation ${row.id} source refs`, markdown.source_refs, row.source_refs || []);
   }
+  for (const row of markdownRows) {
+    if (!structuredIds.has(row.id)) fail(`${label} Markdown Verification Obligations has extra row ${row.id}`);
+  }
+}
+
+function compareTestCorrectnessControlRows(label, structuredRows, markdownRows) {
+  const markdownById = new Map(markdownRows.map((row) => [row.id, row]));
+  const structuredIds = new Set(structuredRows.map((row) => row.id));
+  for (const row of structuredRows) {
+    const markdown = markdownById.get(row.id);
+    if (!markdown) {
+      fail(`${label} Markdown Test Correctness Controls missing ${row.id}`);
+      continue;
+    }
+    compareScalar(label, `Markdown test correctness control ${row.id} applies to`, markdown.applies_to, row.applies_to);
+    compareScalar(label, `Markdown test correctness control ${row.id} required`, markdown.required, row.required);
+    compareScalar(label, `Markdown test correctness control ${row.id} reason`, markdown.reason, row.reason);
+  }
+  for (const row of markdownRows) {
+    if (!structuredIds.has(row.id)) fail(`${label} Markdown Test Correctness Controls has extra row ${row.id}`);
+  }
 }
 
 function compareManualVerificationRows(label, structuredRows, markdownRows) {
@@ -555,6 +599,7 @@ function compareManualVerificationRows(label, structuredRows, markdownRows) {
     return;
   }
   const markdownById = new Map(markdownRows.map((row) => [row.id, row]));
+  const structuredIds = new Set(structuredRows.map((row) => row.id));
   for (const row of structuredRows) {
     const markdown = markdownById.get(row.id);
     if (!markdown) {
@@ -566,10 +611,14 @@ function compareManualVerificationRows(label, structuredRows, markdownRows) {
     compareScalar(label, `Markdown manual verification ${row.id} expected evidence`, markdown.expected_manual_evidence, row.expected_manual_evidence);
     compareScalar(label, `Markdown manual verification ${row.id} blocking`, markdown.blocking, row.blocking);
   }
+  for (const row of markdownRows) {
+    if (!structuredIds.has(row.id)) fail(`${label} Markdown Manual Verification has extra row ${row.id}`);
+  }
 }
 
 function compareNotApplicableRows(label, structuredRows, markdownRows) {
   const markdownBySurface = new Map(markdownRows.map((row) => [row.surface, row]));
+  const structuredSurfaces = new Set(structuredRows.map((row) => row.source_surface || row.surface));
   for (const row of structuredRows) {
     const surface = row.source_surface || row.surface;
     const markdown = markdownBySurface.get(surface);
@@ -578,6 +627,9 @@ function compareNotApplicableRows(label, structuredRows, markdownRows) {
       continue;
     }
     compareScalar(label, `Markdown not applicable ${surface} reason`, markdown.reason, row.reason);
+  }
+  for (const row of markdownRows) {
+    if (!structuredSurfaces.has(row.surface)) fail(`${label} Markdown Not Applicable Obligations has extra row ${row.surface}`);
   }
 }
 
@@ -666,6 +718,12 @@ function parseMarkdownEvidence(content) {
       expected_evidence: row.expected_evidence,
       broad_command_only: row.broad_command_only,
       source_refs: splitRefs(row.source_refs),
+    })),
+    testCorrectnessControls: tableRows(sectionBody(content, "Test Correctness Controls", { fallback: "" })).map((row) => ({
+      id: row.id,
+      applies_to: row.applies_to,
+      required: row.required,
+      reason: row.reason,
     })),
     manualVerification: tableRows(sectionBody(content, "Manual Verification", { fallback: "" })).map((row) => ({
       id: row.id,
