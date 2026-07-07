@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.81.3`
+Current version: `1.82.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.81.3`
 
 ## Current Release
 
-`1.81.3`
+`1.82.0`
 
 Includes:
+
+- Controlled Native Adoption Review phase `1.82.0`: adds `adopt-review` and
+  `adopt-review-check` so Codex can judge existing-project governance maturity
+  and recommend whether to stay partial, repair governance, prepare a selected
+  deeper adoption plan, or remain blocked.
+- `1.82.0` is review-only. It does not write target-project files, install
+  `.intentos/`, replace `AGENTS.md`, change CI, approve implementation, approve
+  release, or claim full adoption.
 
 - Adoption Autopilot Plain-Language And Reference Polish patch `1.81.3`:
   `adopt` Human Summary now uses plain-language adoption state and working-mode

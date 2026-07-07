@@ -535,6 +535,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "adopt-review": {
+    description: "Review whether an existing project should stay partial, repair governance, or prepare a deeper adoption plan.",
+    script: "scripts/resolve-controlled-native-adoption-review.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "adopt-review-check": {
+    description: "Check recorded Controlled Native Adoption Review reports.",
+    script: "scripts/check-controlled-native-adoption-review.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "doc-lifecycle": {
     description: "Recommend document lifecycle state without deleting, moving, or archiving files.",
     script: "scripts/resolve-document-lifecycle.mjs",
@@ -765,7 +777,7 @@ function printHelp() {
   console.log(`Manifest: ${manifest ? `intentos-manifest.json (${manifest.mode}, ${manifest.intentOSVersion})` : "not found"}`);
   console.log("");
   console.log("Primary entry commands:");
-  printCommandGroup(["start", "adopt", "next", "doctor"]);
+  printCommandGroup(["start", "adopt", "adopt-review", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
   printCommandGroup(["ask", "guide", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "release-evidence", "apply-plan"]);
@@ -774,6 +786,7 @@ function printHelp() {
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
     "start",
     "adopt",
+    "adopt-review",
     "next",
     "doctor",
     "ask",
@@ -791,6 +804,7 @@ function printHelp() {
   console.log("Examples:");
   console.log("  node scripts/cli.mjs start ../my-project            # read-only orientation only");
   console.log("  node scripts/cli.mjs adopt ../existing-project --intent 'connect this project under IntentOS'");
+  console.log("  node scripts/cli.mjs adopt-review ../existing-project --intent 'review deeper IntentOS adoption'");
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs doctor ../my-project");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");

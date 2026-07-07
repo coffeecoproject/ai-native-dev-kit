@@ -55,6 +55,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
 | `node scripts/cli.mjs adopt <existing-project> --intent "<goal>"` | Run the read-only Existing Project Safe Adoption Autopilot and print one user-facing adoption result card | No |
 | `node scripts/cli.mjs adopt-check <project>` | Check recorded Existing Project Safe Adoption Autopilot reports | No |
+| `node scripts/cli.mjs adopt-review <existing-project> --intent "<goal>"` | Review existing-project governance maturity and recommend the safest adoption depth without applying files | No |
+| `node scripts/cli.mjs adopt-review-check <project>` | Check recorded Controlled Native Adoption Review reports | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
 | `node scripts/cli.mjs baseline-decision-check <project>` | Check recorded Baseline Decision Cards | No |

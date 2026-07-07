@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.81.3",
+  "intentOSVersion": "1.82.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -552,6 +552,15 @@
     "verification-plans",
     "work-queue",
     "workflow-adoption-maps",
-    "workflow-guidance-cards"
+    "workflow-guidance-cards",
+    ".intentos/core/controlled-native-adoption-autopilot-review.md",
+    ".intentos/docs/controlled-native-adoption-autopilot-review.md",
+    ".intentos/templates/controlled-native-adoption-review-report.md",
+    ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
+    ".intentos/checklists/controlled-native-adoption-review.md",
+    ".intentos/prompts/controlled-native-adoption-review-agent.md",
+    "scripts/resolve-controlled-native-adoption-review.mjs",
+    "scripts/check-controlled-native-adoption-review.mjs",
+    "native-adoption-review-reports"
   ]
 }

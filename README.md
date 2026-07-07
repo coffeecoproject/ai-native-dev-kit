@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.81.3`.
+Current release: `1.82.0`.
 
-Release record: [releases/1.81.3/release-record.md](releases/1.81.3/release-record.md).
+Release record: [releases/1.82.0/release-record.md](releases/1.82.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -25,6 +25,7 @@ When command evidence is useful, use only these first:
 ```bash
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs adopt <existing-project> --intent "<connect this project>"
+node scripts/cli.mjs adopt-review <existing-project> --intent "<review deeper adoption>"
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<what you want>"
@@ -35,6 +36,10 @@ Those commands are read-only. They do not approve implementation, release, produ
 `start` is only orientation. It reads and classifies the target. For an existing
 project, use `adopt` to enter the safe adoption flow.
 
+`adopt-review` is the next read-only step when an existing project asks whether
+it should stay partial, repair governance first, or prepare a deeper adoption
+plan. It recommends adoption depth, but still does not write project files.
+
 Start here:
 
 - [Start Here](docs/start-here.md)
@@ -44,6 +49,14 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.82.0 adds Controlled Native Adoption Review: after `adopt` says IntentOS is
+available as a safe working method, `adopt-review` lets Codex judge the old
+project's governance maturity and recommend the safest adoption depth. Strong
+governed projects can stay partial; weak or messy projects get governance
+repair first; light projects may prepare a selected deeper adoption plan. It is
+review-only and does not install `.intentos/`, replace `AGENTS.md`, change CI,
+or claim full adoption.
 
 1.81.3 polishes the old-project adoption card: `adopt` now keeps raw internal
 states out of the Human Summary and uses plain language for the current state
@@ -215,6 +228,7 @@ IntentOS 当前包含这些核心能力：
 | Beginner Entry | 用户只说目标，AI 给出可确认的下一步 |
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
 | Existing Project Safe Adoption Autopilot | 老项目说“接入 IntentOS”时，`adopt` 自动跑只读诊断、规则对比、收敛与验收摘要，输出白话结果卡；不写项目、不安装 `.intentos/`、不宣称完整接入 |
+| Controlled Native Adoption Review | 老项目想进一步接入时，`adopt-review` 判断项目治理成熟度并推荐最安全接入深度：保持部分接入、先修治理，或准备更深接入计划；仍然只读、不写项目、不替换规则 |
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
 | Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 规则，只输出建议，不直接替换旧治理 |
 | Governance Convergence | 老项目可以按 IntentOS 日常工作方式收敛，但基线、发布、CI、hook、历史证据和旧规则必须先比较再计划 |

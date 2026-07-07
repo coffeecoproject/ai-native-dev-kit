@@ -5955,6 +5955,139 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
   }
 }
 
+function checkControlledNativeAdoptionReviewProtocol() {
+  const examples = [
+    "strong-governed-stay-partial",
+    "weak-governance-repair",
+    "messy-production-repair-only",
+    "light-plan-only",
+  ];
+  const required = [
+    "docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md",
+    "core/controlled-native-adoption-autopilot-review.md",
+    "docs/controlled-native-adoption-autopilot-review.md",
+    "templates/controlled-native-adoption-review-report.md",
+    "schemas/artifacts/controlled-native-adoption-review.schema.json",
+    "checklists/controlled-native-adoption-review.md",
+    "prompts/controlled-native-adoption-review-agent.md",
+    "native-adoption-review-reports/.gitkeep",
+    "scripts/resolve-controlled-native-adoption-review.mjs",
+    "scripts/check-controlled-native-adoption-review.mjs",
+    "examples/1.82-controlled-native-adoption-review/README.md",
+    ...examples.map((example) => `examples/1.82-controlled-native-adoption-review/${example}/native-adoption-review-reports/001-review.md`),
+    "releases/1.82.0/release-record.md",
+    "releases/1.82.0/known-limitations.md",
+    "releases/1.82.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.82 controlled native adoption review asset exists ${file}`);
+    else fail(`1.82 controlled native adoption review asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md"),
+    read("core/controlled-native-adoption-autopilot-review.md"),
+    read("docs/controlled-native-adoption-autopilot-review.md"),
+    read("templates/controlled-native-adoption-review-report.md"),
+    read("schemas/artifacts/controlled-native-adoption-review.schema.json"),
+    read("checklists/controlled-native-adoption-review.md"),
+    read("prompts/controlled-native-adoption-review-agent.md"),
+    read("scripts/resolve-controlled-native-adoption-review.mjs"),
+    read("scripts/check-controlled-native-adoption-review.mjs"),
+    read("README.md"),
+    read("README.zh-CN.md"),
+    read("docs/reference/scripts.md"),
+    read("releases/1.82.0/release-record.md"),
+  ].join("\n");
+  for (const marker of [
+    "Controlled Native Adoption Review",
+    "controlled_native_adoption_review",
+    "adopt-review",
+    "adopt-review-check",
+    "review-only",
+    "does not write target-project files",
+    "source evidence",
+    "derived_view",
+    "native_apply_allowed",
+    "STRONG_GOVERNED_PROJECT",
+    "WEAK_GOVERNANCE_PROJECT",
+    "MESSY_PRODUCTION_PROJECT",
+    "LIGHT_LOW_RISK_PROJECT",
+    "RECOMMEND_STAY_PARTIAL",
+    "RECOMMEND_GOVERNANCE_REPAIR",
+    "READY_FOR_SELECTED_NATIVE_PLAN_ONLY",
+    "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+    "full_adoption_claim",
+  ]) {
+    if (combined.includes(marker)) pass(`1.82 controlled native adoption review includes ${marker}`);
+    else fail(`1.82 controlled native adoption review missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-controlled-native-adoption-review.mjs",
+    "node --check scripts/check-controlled-native-adoption-review.mjs",
+    "node scripts/cli.mjs adopt-review . --intent",
+    "node scripts/cli.mjs adopt-review-check . --allow-empty",
+    "node scripts/check-controlled-native-adoption-review.mjs examples/1.82-controlled-native-adoption-review/strong-governed-stay-partial --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.82 package verify surface includes ${marker}`);
+    else fail(`1.82 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-controlled-native-adoption-review.mjs", ".", "--intent", "review deeper IntentOS adoption"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Controlled Native Adoption Review Report")
+    && resolver.stdout.includes("read-only maturity and adoption-depth recommendation")
+    && resolver.stdout.includes("Native apply allowed")
+    && resolver.stdout.includes("Full adoption claim")) {
+    pass("1.82 controlled native adoption review resolver prints read-only result card");
+  } else {
+    fail(`1.82 controlled native adoption review resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const sourceCheck = runNode(["scripts/check-controlled-native-adoption-review.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("Controlled Native Adoption Review check passed")) {
+    pass("1.82 controlled native adoption review checker passes source repo with explicit allow-empty");
+  } else {
+    fail(`1.82 controlled native adoption review source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "adopt-review", ".", "--intent", "review deeper IntentOS adoption"]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Controlled Native Adoption Review Report")) {
+    pass("CLI adopt-review delegates to controlled native adoption review resolver");
+  } else {
+    fail(`CLI adopt-review failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "adopt-review-check", ".", "--allow-empty"]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("Controlled Native Adoption Review check passed")) {
+    pass("CLI adopt-review-check delegates to controlled native adoption review checker");
+  } else {
+    fail(`CLI adopt-review-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const example of examples) {
+    const target = `examples/1.82-controlled-native-adoption-review/${example}`;
+    const result = runNode(["scripts/check-controlled-native-adoption-review.mjs", target, "--require-structured-evidence"]);
+    if (result.status === 0) pass(`1.82 controlled native adoption review example passes strict checker ${target}`);
+    else fail(`1.82 controlled native adoption review example failed ${target}: ${result.stderr || result.stdout}`);
+  }
+
+  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  if (cliHelp.status === 0
+    && cliHelp.stdout.includes("adopt-review")
+    && cliHelp.stdout.includes("Review whether an existing project should stay partial")) {
+    pass("1.82 CLI help exposes adopt-review as primary entry");
+  } else {
+    fail(`1.82 CLI help missing adopt-review: ${cliHelp.stderr || cliHelp.stdout}`);
+  }
+}
+
 function checkExecutionAssuranceChainProtocol() {
   const badFixtures = [
     "bad-execution-assurance-no-completion-contract",
@@ -15601,6 +15734,7 @@ checkExistingRuleReconciliationProtocol();
 checkGovernanceConvergenceProtocol();
 checkAdoptionExecutionAssuranceProtocol();
 checkExistingProjectAdoptionAutopilotProtocol();
+checkControlledNativeAdoptionReviewProtocol();
 checkExecutionAssuranceChainProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();

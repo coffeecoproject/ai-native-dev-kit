@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.81.3`。
+当前版本：`1.82.0`。
 
-发布记录：[releases/1.81.3/release-record.md](releases/1.81.3/release-record.md)。
+发布记录：[releases/1.82.0/release-record.md](releases/1.82.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -25,6 +25,7 @@ IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规
 ```bash
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs adopt <老项目> --intent "<接入这个项目>"
+node scripts/cli.mjs adopt-review <老项目> --intent "<评估是否进一步接入>"
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<你想做什么>"
@@ -35,6 +36,10 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 `start` 只负责看项目和判断状态，不写计划、不应用工作流资产。老项目要进入
 安全接入流程时，用 `adopt`。
 
+如果老项目已经能用 IntentOS 的只读工作方式，但你想知道是否要进一步接入，
+用 `adopt-review`。它会由 Codex 判断项目治理成熟度，推荐是保持部分接入、
+先修治理，还是准备更深接入计划；仍然不写项目文件。
+
 先读这几页：
 
 - [Start Here](docs/start-here.md)
@@ -44,6 +49,8 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.82.0 新增 Controlled Native Adoption Review：`adopt` 之后，如果老项目想进一步接入，`adopt-review` 会让 Codex 判断项目治理成熟度并推荐最安全的接入深度。强治理项目可以继续部分接入；弱治理或混乱项目先修治理；轻量项目可以准备更深接入计划。它仍然只读，不安装 `.intentos/`、不替换 `AGENTS.md`、不改 CI，也不宣称完整接入。
 
 1.81.3 优化老项目接入结果卡：`adopt` 的 Human Summary 不再直接显示
 内部枚举，而是用白话说明当前状态和可用工作方式。原始状态仍保留在 JSON、
@@ -208,6 +215,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Beginner Entry | 用户只说目标，AI 给出可确认的下一步 |
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
 | Existing Project Safe Adoption Autopilot | 老项目说“接入 IntentOS”时，`adopt` 自动跑只读诊断、规则对比、收敛与验收摘要，输出白话结果卡；不写项目、不安装 `.intentos/`、不宣称完整接入 |
+| Controlled Native Adoption Review | 老项目想进一步接入时，`adopt-review` 判断项目治理成熟度并推荐最安全接入深度：保持部分接入、先修治理，或准备更深接入计划；仍然只读、不写项目、不替换规则 |
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
 | Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 参考规则，只输出建议，不直接替换旧治理 |
 | Governance Convergence | 老项目可以按 IntentOS 日常工作方式收敛，但基线、发布、CI、hook、历史证据和旧规则必须先比较再计划 |

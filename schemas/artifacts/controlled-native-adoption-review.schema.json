@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/controlled-native-adoption-review.schema.json",
+  "title": "Controlled Native Adoption Review Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "intent",
+    "intent_digest",
+    "review_ref",
+    "review_digest",
+    "governance_maturity",
+    "adoption_recommendation",
+    "recommended_actions",
+    "blocked_actions",
+    "human_decisions",
+    "source_chain",
+    "risk_verification_rollback",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.82.0" },
+    "artifact_type": { "const": "controlled_native_adoption_review" },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "review_ref": { "type": "string", "minLength": 1 },
+    "review_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "governance_maturity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "confidence",
+        "signals_present",
+        "signals_missing",
+        "production_sensitivity",
+        "recommended_adoption_depth"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "STRONG_GOVERNED_PROJECT",
+            "WEAK_GOVERNANCE_PROJECT",
+            "MESSY_PRODUCTION_PROJECT",
+            "LIGHT_LOW_RISK_PROJECT",
+            "UNKNOWN_OR_OWNERLESS_PROJECT",
+            "DIRTY_OR_UNSAFE_PROJECT"
+          ]
+        },
+        "confidence": { "enum": ["low", "medium", "high"] },
+        "signals_present": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "signals_missing": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "production_sensitivity": { "enum": ["yes", "no", "unknown"] },
+        "recommended_adoption_depth": {
+          "enum": [
+            "KEEP_PARTIAL_ADOPTION",
+            "GOVERNANCE_REPAIR_ONLY",
+            "GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN",
+            "DOCS_ONLY_ENHANCEMENT_REVIEW",
+            "COLLABORATION_ENTRY_REFINEMENT_REVIEW",
+            "SELECTED_NATIVE_PLAN_ONLY",
+            "BLOCK_NATIVE_ADOPTION"
+          ]
+        }
+      }
+    },
+    "adoption_recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "current_adoption_state",
+        "recommendation_class",
+        "recommended_user_choice",
+        "safe_to_apply_now",
+        "native_apply_allowed",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "RECOMMEND_STAY_PARTIAL",
+            "RECOMMEND_GOVERNANCE_REPAIR",
+            "READY_FOR_LOW_RISK_COLLABORATION_APPLY_REVIEW",
+            "READY_FOR_DOCS_ONLY_ENHANCEMENT_REVIEW",
+            "READY_FOR_SELECTED_NATIVE_PLAN_ONLY",
+            "BLOCKED_BY_PROJECT_AUTHORITY",
+            "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+            "NATIVE_APPLY_NOT_RECOMMENDED",
+            "FAILED_INVALID_EVIDENCE"
+          ]
+        },
+        "current_adoption_state": { "type": "string", "minLength": 1 },
+        "recommendation_class": {
+          "enum": [
+            "KEEP_PARTIAL_ADOPTION",
+            "GOVERNANCE_REPAIR_ONLY",
+            "GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN",
+            "DOCS_ONLY_ENHANCEMENT_REVIEW",
+            "COLLABORATION_ENTRY_REFINEMENT_REVIEW",
+            "SELECTED_NATIVE_PLAN_ONLY",
+            "BLOCK_NATIVE_ADOPTION"
+          ]
+        },
+        "recommended_user_choice": { "type": "string", "minLength": 1 },
+        "safe_to_apply_now": { "const": false },
+        "native_apply_allowed": { "const": false },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "recommended_actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "plain_summary", "risk", "execution"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "plain_summary": { "type": "string", "minLength": 1 },
+          "risk": { "enum": ["low", "medium", "high"] },
+          "execution": { "enum": ["review_only", "plan_only"] }
+        }
+      }
+    },
+    "blocked_actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "plain_summary", "reason"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "plain_summary": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "human_decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision", "plain_question", "required_now"],
+        "properties": {
+          "decision": { "type": "string", "minLength": 1 },
+          "plain_question": { "type": "string", "minLength": 1 },
+          "required_now": { "enum": ["Yes", "No"] }
+        }
+      }
+    },
+    "source_chain": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "role", "authority", "status", "summary"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "authority": { "enum": ["derived_view", "source_evidence", "project_signal"] },
+          "status": { "enum": ["RECORDED", "NEEDS_INPUT", "BLOCKED", "UNAVAILABLE"] },
+          "summary": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "risk_verification_rollback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["risk_summary", "verification_required", "rollback_plan_required"],
+      "properties": {
+        "risk_summary": { "type": "string", "minLength": 1 },
+        "verification_required": { "type": "string", "minLength": 1 },
+        "rollback_plan_required": { "type": "string", "minLength": 1 }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "installs_intentos",
+        "changes_agents_or_ci",
+        "native_apply_allowed",
+        "approves_implementation",
+        "approves_release_or_production",
+        "full_adoption_claim"
+      ],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "installs_intentos": { "const": "No" },
+        "changes_agents_or_ci": { "const": "No" },
+        "native_apply_allowed": { "const": "No" },
+        "approves_implementation": { "const": "No" },
+        "approves_release_or_production": { "const": "No" },
+        "full_adoption_claim": { "const": "No" }
+      }
+    },
+    "outcome": {
+      "enum": [
+        "RECOMMEND_STAY_PARTIAL",
+        "RECOMMEND_GOVERNANCE_REPAIR",
+        "READY_FOR_LOW_RISK_COLLABORATION_APPLY_REVIEW",
+        "READY_FOR_DOCS_ONLY_ENHANCEMENT_REVIEW",
+        "READY_FOR_SELECTED_NATIVE_PLAN_ONLY",
+        "BLOCKED_BY_PROJECT_AUTHORITY",
+        "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+        "NATIVE_APPLY_NOT_RECOMMENDED",
+        "FAILED_INVALID_EVIDENCE"
+      ]
+    }
+  }
+}

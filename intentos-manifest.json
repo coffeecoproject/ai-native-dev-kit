@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.81.3",
+  "intentOSVersion": "1.82.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.81.3"
+    "phase": "1.82.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2593,7 +2593,24 @@
       "test-fixtures/output-quality/README.md",
       "verification-plans/.gitkeep",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "core/controlled-native-adoption-autopilot-review.md",
+      "docs/controlled-native-adoption-autopilot-review.md",
+      "templates/controlled-native-adoption-review-report.md",
+      "schemas/artifacts/controlled-native-adoption-review.schema.json",
+      "checklists/controlled-native-adoption-review.md",
+      "prompts/controlled-native-adoption-review-agent.md",
+      "native-adoption-review-reports/.gitkeep",
+      "scripts/resolve-controlled-native-adoption-review.mjs",
+      "scripts/check-controlled-native-adoption-review.mjs",
+      "examples/1.82-controlled-native-adoption-review/README.md",
+      "examples/1.82-controlled-native-adoption-review/strong-governed-stay-partial/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/weak-governance-repair/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/messy-production-repair-only/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/light-plan-only/native-adoption-review-reports/001-review.md",
+      "releases/1.82.0/release-record.md",
+      "releases/1.82.0/known-limitations.md",
+      "releases/1.82.0/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -3844,7 +3861,16 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".intentos/core/controlled-native-adoption-autopilot-review.md",
+      ".intentos/docs/controlled-native-adoption-autopilot-review.md",
+      ".intentos/templates/controlled-native-adoption-review-report.md",
+      ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
+      ".intentos/checklists/controlled-native-adoption-review.md",
+      ".intentos/prompts/controlled-native-adoption-review-agent.md",
+      "scripts/resolve-controlled-native-adoption-review.mjs",
+      "scripts/check-controlled-native-adoption-review.mjs",
+      "native-adoption-review-reports"
     ],
     "intentOSCore": [
       ".intentos/checklists/platform-release-recipe-review.md",
@@ -3986,7 +4012,8 @@
       "templates/adoption-assurance-report.md",
       "templates/existing-rule-reconciliation-report.md",
       "templates/governance-convergence-report.md",
-      "templates/native-migration-plan.md"
+      "templates/native-migration-plan.md",
+      ".intentos/core/controlled-native-adoption-autopilot-review.md"
     ],
     "templates": [
       ".intentos/templates/business-rule-closure-card.md",
@@ -4108,7 +4135,9 @@
       "templates/workflow-guidance-card.md",
       "templates/workflow-improvement.md",
       "templates/workflow-retro.md",
-      "templates/workflow-version.json"
+      "templates/workflow-version.json",
+      ".intentos/templates/controlled-native-adoption-review-report.md",
+      "templates/controlled-native-adoption-review-report.md"
     ],
     "prompts": [
       ".intentos/prompts/business-rule-closure-agent.md",
@@ -4181,7 +4210,9 @@
       "prompts/walkthrough-agent.md",
       "prompts/work-queue-agent.md",
       "prompts/workflow-adapter-agent.md",
-      "prompts/workflow-concierge-agent.md"
+      "prompts/workflow-concierge-agent.md",
+      ".intentos/prompts/controlled-native-adoption-review-agent.md",
+      "prompts/controlled-native-adoption-review-agent.md"
     ],
     "checklists": [
       ".intentos/checklists/business-rule-closure-review.md",
@@ -4266,7 +4297,9 @@
       "checklists/verification-plan-review.md",
       "checklists/work-queue-review.md",
       "checklists/workflow-adoption-map-review.md",
-      "checklists/workflow-guidance-review.md"
+      "checklists/workflow-guidance-review.md",
+      ".intentos/checklists/controlled-native-adoption-review.md",
+      "checklists/controlled-native-adoption-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -4378,7 +4411,8 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "native-adoption-review-reports"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -4517,7 +4551,9 @@
       "scripts/start-project.mjs",
       "scripts/summarize-ai-logs.mjs",
       "scripts/workflow-daily-summary.mjs",
-      "scripts/workflow-next.mjs"
+      "scripts/workflow-next.mjs",
+      "scripts/resolve-controlled-native-adoption-review.mjs",
+      "scripts/check-controlled-native-adoption-review.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -4885,7 +4921,8 @@
       "examples/web-internal-admin-first-slice/preflight-report.md",
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
-      "examples/web-internal-admin-first-slice/task-card.md"
+      "examples/web-internal-admin-first-slice/task-card.md",
+      "examples/1.82-controlled-native-adoption-review"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -5871,7 +5908,16 @@
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      ".intentos/core/controlled-native-adoption-autopilot-review.md",
+      ".intentos/docs/controlled-native-adoption-autopilot-review.md",
+      ".intentos/templates/controlled-native-adoption-review-report.md",
+      ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
+      ".intentos/checklists/controlled-native-adoption-review.md",
+      ".intentos/prompts/controlled-native-adoption-review-agent.md",
+      "scripts/resolve-controlled-native-adoption-review.mjs",
+      "scripts/check-controlled-native-adoption-review.mjs",
+      "native-adoption-review-reports"
     ],
     "workflowReadiness": [
       ".github/workflows/ai-workflow-checks.yml",
@@ -6598,6 +6644,10 @@
       {
         "source": "workflow-guidance-cards",
         "target": "workflow-guidance-cards"
+      },
+      {
+        "source": "native-adoption-review-reports",
+        "target": "native-adoption-review-reports"
       }
     ],
     "files": [
@@ -8132,6 +8182,18 @@
       {
         "source": "scripts/workflow-next.mjs",
         "target": "scripts/workflow-next.mjs"
+      },
+      {
+        "source": "scripts/resolve-controlled-native-adoption-review.mjs",
+        "target": "scripts/resolve-controlled-native-adoption-review.mjs"
+      },
+      {
+        "source": "scripts/check-controlled-native-adoption-review.mjs",
+        "target": "scripts/check-controlled-native-adoption-review.mjs"
+      },
+      {
+        "source": "docs/controlled-native-adoption-autopilot-review.md",
+        "target": ".intentos/docs/controlled-native-adoption-autopilot-review.md"
       }
     ]
   },
@@ -8404,7 +8466,25 @@
       "releases/1.74.2/self-check-report.md",
       "releases/1.74.3/release-record.md",
       "releases/1.74.3/known-limitations.md",
-      "releases/1.74.3/self-check-report.md"
+      "releases/1.74.3/self-check-report.md",
+      "core/controlled-native-adoption-autopilot-review.md",
+      "docs/controlled-native-adoption-autopilot-review.md",
+      "docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md",
+      "templates/controlled-native-adoption-review-report.md",
+      "schemas/artifacts/controlled-native-adoption-review.schema.json",
+      "checklists/controlled-native-adoption-review.md",
+      "prompts/controlled-native-adoption-review-agent.md",
+      "native-adoption-review-reports/.gitkeep",
+      "scripts/resolve-controlled-native-adoption-review.mjs",
+      "scripts/check-controlled-native-adoption-review.mjs",
+      "examples/1.82-controlled-native-adoption-review/README.md",
+      "examples/1.82-controlled-native-adoption-review/strong-governed-stay-partial/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/weak-governance-repair/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/messy-production-repair-only/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/light-plan-only/native-adoption-review-reports/001-review.md",
+      "releases/1.82.0/release-record.md",
+      "releases/1.82.0/known-limitations.md",
+      "releases/1.82.0/self-check-report.md"
     ]
   }
 }
