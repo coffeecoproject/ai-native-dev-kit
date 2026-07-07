@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.81.0`.
+Current release: `1.81.2`.
 
-Release record: [releases/1.81.0/release-record.md](releases/1.81.0/release-record.md).
+Release record: [releases/1.81.2/release-record.md](releases/1.81.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -24,13 +24,16 @@ When command evidence is useful, use only these first:
 
 ```bash
 node scripts/cli.mjs start <project>
+node scripts/cli.mjs adopt <existing-project> --intent "<connect this project>"
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<what you want>"
-node scripts/cli.mjs adopt <existing-project> --intent "<connect this project>"
 ```
 
 Those commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
+
+`start` is only orientation. It reads and classifies the target. For an existing
+project, use `adopt` to enter the safe adoption flow.
 
 Start here:
 
@@ -41,6 +44,12 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.81.2 consolidates public adoption entry semantics: `start` remains read-only
+orientation and never writes plan files or applies workflow assets; `adopt` is
+the only public command that enters the old-project safe adoption flow. This
+keeps migration from starting accidentally when a user only asks Codex to read
+a project.
 
 1.81.0 adds Existing Project Safe Adoption Autopilot: `adopt` gives old projects one read-only result card instead of asking the user to run internal adoption commands. It can say IntentOS is available as a safe working method, but it does not write project files, install `.intentos/`, change project authority, or claim full adoption.
 

@@ -276,7 +276,7 @@ function blockedActionsFor(state) {
   const common = [
     {
       action: "Write target project files",
-      reason: "1.81.0 is read-only.",
+      reason: "The 1.81 adoption autopilot line is read-only.",
       required_confirmation: "Handled in a future safe docs-only phase, not this report.",
     },
     {

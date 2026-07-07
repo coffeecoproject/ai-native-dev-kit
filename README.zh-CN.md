@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.81.0`。
+当前版本：`1.81.2`。
 
-发布记录：[releases/1.81.0/release-record.md](releases/1.81.0/release-record.md)。
+发布记录：[releases/1.81.2/release-record.md](releases/1.81.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -24,13 +24,16 @@ IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规
 
 ```bash
 node scripts/cli.mjs start <project>
+node scripts/cli.mjs adopt <老项目> --intent "<接入这个项目>"
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<你想做什么>"
-node scripts/cli.mjs adopt <老项目> --intent "<接入这个项目>"
 ```
 
 这些命令都是只读入口，不批准实现、发布、生产、CI、hook、密钥、迁移、支付、权限或治理替换。
+
+`start` 只负责看项目和判断状态，不写计划、不应用工作流资产。老项目要进入
+安全接入流程时，用 `adopt`。
 
 先读这几页：
 
@@ -41,6 +44,8 @@ node scripts/cli.mjs adopt <老项目> --intent "<接入这个项目>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.81.2 收紧公开入口语义：`start` 只保持只读识别，不写计划文件、不应用工作流资产；`adopt` 才是老项目进入安全接入流程的公开入口。这样用户只是让 Codex 读取项目时，不会误触发迁移。
 
 1.81.0 新增老项目安全接入自动判断：`adopt` 会把老项目接入判断汇总成一张只读结果卡，不再要求用户理解内部接入命令。它可以说明 IntentOS 是否能作为安全工作方式使用，但不写项目文件、不安装 `.intentos/`、不改变项目权威，也不宣称完整接入。
 

@@ -272,7 +272,7 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultTarget(args),
   },
   start: {
-    description: "Guide project adoption with a read-only recommendation.",
+    description: "Read-only project orientation; it classifies the target but does not enter adoption or write flow.",
     script: "scripts/start-project.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
@@ -524,7 +524,7 @@ const commandRegistry = {
     buildArgs: (args) => withDefaultTarget(args),
   },
   "adopt": {
-    description: "Run read-only existing-project adoption autopilot and print one safe result card.",
+    description: "Enter read-only existing-project safe adoption autopilot and print one safe result card.",
     script: "scripts/resolve-existing-project-adoption-autopilot.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
@@ -765,7 +765,7 @@ function printHelp() {
   console.log(`Manifest: ${manifest ? `intentos-manifest.json (${manifest.mode}, ${manifest.intentOSVersion})` : "not found"}`);
   console.log("");
   console.log("Primary entry commands:");
-  printCommandGroup(["start", "next", "doctor"]);
+  printCommandGroup(["start", "adopt", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
   printCommandGroup(["ask", "guide", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "release-evidence", "apply-plan"]);
@@ -773,6 +773,7 @@ function printHelp() {
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
     "start",
+    "adopt",
     "next",
     "doctor",
     "ask",
@@ -788,7 +789,8 @@ function printHelp() {
   ].includes(name)));
   console.log("");
   console.log("Examples:");
-  console.log("  node scripts/cli.mjs start ../my-project");
+  console.log("  node scripts/cli.mjs start ../my-project            # read-only orientation only");
+  console.log("  node scripts/cli.mjs adopt ../existing-project --intent 'connect this project under IntentOS'");
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs doctor ../my-project");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");

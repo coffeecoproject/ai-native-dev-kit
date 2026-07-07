@@ -7,9 +7,9 @@ It is a user-facing aggregation layer over existing IntentOS diagnosis systems.
 It does not replace those systems, change target-project authority, install
 native assets, or write target-project files.
 
-## 1.81.0 Boundary
+## 1.81.x Boundary
 
-1.81.0 supports only S0 read-only diagnosis.
+The 1.81 adoption autopilot line supports only S0 read-only diagnosis.
 
 It may:
 

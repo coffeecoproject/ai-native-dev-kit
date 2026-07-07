@@ -5704,9 +5704,13 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     "examples/1.81-existing-project-adoption-autopilot/governed-readonly/adoption-autopilot-reports/001-adoption.md",
     "examples/1.81-existing-project-adoption-autopilot/light-existing/adoption-autopilot-reports/001-adoption.md",
     "examples/1.81-existing-project-adoption-autopilot/dirty-blocked/adoption-autopilot-reports/001-adoption.md",
+    "docs/plans/public-entry-adoption-integration-1.81.2-plan.md",
     "releases/1.81.0/release-record.md",
     "releases/1.81.0/known-limitations.md",
     "releases/1.81.0/self-check-report.md",
+    "releases/1.81.2/release-record.md",
+    "releases/1.81.2/known-limitations.md",
+    "releases/1.81.2/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/adoption-autopilot-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5722,10 +5726,15 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     read("schemas/artifacts/existing-project-adoption-autopilot.schema.json"),
     read("scripts/resolve-existing-project-adoption-autopilot.mjs"),
     read("scripts/check-existing-project-adoption-autopilot.mjs"),
+    read("docs/start-here.md"),
+    read("docs/for-existing-projects.md"),
+    read("docs/plans/public-entry-adoption-integration-1.81.2-plan.md"),
     read("releases/1.81.0/release-record.md"),
+    read("releases/1.81.2/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Existing Project Safe Adoption Autopilot",
+    "Public Entry Adoption Integration",
     "existing_project_adoption_autopilot",
     "AVAILABLE_FOR_SAFE_USE",
     "S0_READ_ONLY_ONLY",
@@ -5737,6 +5746,9 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     "does not write target-project files",
     "does not claim full adoption",
     "Technical Trace",
+    "read-only orientation only",
+    "safe adoption entry",
+    "Use `adopt` when the user wants an existing project",
   ]) {
     if (combined.includes(marker)) pass(`1.81 adoption autopilot includes ${marker}`);
     else fail(`1.81 adoption autopilot missing ${marker}`);
@@ -5852,6 +5864,56 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     const result = runNode(["scripts/check-existing-project-adoption-autopilot.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
     if (result.status !== 0) pass(`1.81 adoption autopilot rejects ${target}`);
     else fail(`1.81 adoption autopilot must reject ${target}`);
+  }
+
+  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  if (cliHelp.status === 0
+    && cliHelp.stdout.includes("Primary entry commands:")
+    && cliHelp.stdout.includes("adopt")
+    && cliHelp.stdout.includes("Read-only project orientation")
+    && cliHelp.stdout.includes("Enter read-only existing-project safe adoption autopilot")) {
+    pass("1.81.2 public entry help exposes start/adopt distinction");
+  } else {
+    fail(`1.81.2 public entry help missing start/adopt distinction: ${cliHelp.stderr || cliHelp.stdout}`);
+  }
+
+  const startHuman = runNode(["scripts/cli.mjs", "start", "."]);
+  const forbiddenStartPhrases = [
+    "Apply reviewed init plan",
+    "--apply-plan adoption-plan.json",
+    "init-project.mjs --apply-plan",
+    "Write adoption plan",
+    "Write init plan",
+  ];
+  const hasForbiddenStartPhrase = forbiddenStartPhrases.some((phrase) => startHuman.stdout.includes(phrase));
+  if (startHuman.status === 0
+    && startHuman.stdout.includes("## Public Entry Boundary")
+    && startHuman.stdout.includes("`start` only reads and classifies the target")
+    && startHuman.stdout.includes("Use `adopt <project> --intent")
+    && !hasForbiddenStartPhrase) {
+    pass("1.81.2 start output stays read-only and does not recommend direct apply actions");
+  } else {
+    fail(`1.81.2 start output boundary failed: ${startHuman.stderr || startHuman.stdout}`);
+  }
+
+  const startJson = runNode(["scripts/cli.mjs", "start", ".", "--json"]);
+  if (startJson.status === 0) {
+    try {
+      const parsed = JSON.parse(startJson.stdout);
+      if (parsed.startIsReadOnlyByDefault === true
+        && parsed.publicEntryBoundary?.writesTargetProjectFiles === "No"
+        && parsed.publicEntryBoundary?.startsAdoptionAutopilot === "No"
+        && parsed.publicEntryBoundary?.appliesWorkflowAssets === "No"
+        && String(parsed.publicEntryBoundary?.adopt || "").includes("existing-project safe adoption entry")) {
+        pass("1.81.2 start JSON records public entry boundary");
+      } else {
+        fail(`1.81.2 start JSON missing public entry boundary: ${startJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.81.2 start JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.81.2 start JSON failed: ${startJson.stderr || startJson.stdout}`);
   }
 }
 

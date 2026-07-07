@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.81.0`
+Current version: `1.81.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,16 @@ Current version: `1.81.0`
 
 ## Current Release
 
-`1.81.0`
+`1.81.2`
 
 Includes:
+
+- Public Entry Adoption Integration patch `1.81.2`: `start` remains read-only
+  orientation only, while `adopt` is the public old-project safe adoption
+  entry.
+- `1.81.2` prevents `start` output from directly recommending workflow-asset
+  apply actions. It does not write target-project files, install `.intentos/`,
+  change project authority, approve implementation, or approve release.
 
 - Existing Project Safe Adoption Autopilot `1.81.0`: `adopt` now gives old
   projects one read-only result card instead of exposing internal adoption

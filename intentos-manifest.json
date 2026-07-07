@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.81.0",
+  "intentOSVersion": "1.81.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.81.0"
+    "phase": "1.81.2"
   },
   "groups": {
     "sourceRequired": [
@@ -349,6 +349,7 @@
       "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
+      "docs/plans/public-entry-adoption-integration-1.81.2-plan.md",
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
       "docs/plans/release-core-model-consolidation-1.67-plan.md",
       "docs/plans/release-evidence-gate-1.80-plan.md",
@@ -1565,6 +1566,9 @@
       "releases/1.81.0/known-limitations.md",
       "releases/1.81.0/release-record.md",
       "releases/1.81.0/self-check-report.md",
+      "releases/1.81.2/known-limitations.md",
+      "releases/1.81.2/release-record.md",
+      "releases/1.81.2/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",

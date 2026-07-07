@@ -92,6 +92,14 @@ function buildRecommendation(workflow, coreCheck) {
     generatedBy: "scripts/start-project.mjs",
     generatedAt: new Date().toISOString(),
     startIsReadOnlyByDefault: true,
+    publicEntryBoundary: {
+      start: "Read-only orientation only. It classifies the project and recommends where to go next.",
+      adopt: "Read-only existing-project safe adoption entry. Use it when the user wants an old project to work under IntentOS.",
+      writesTargetProjectFiles: "No",
+      startsAdoptionAutopilot: "No",
+      appliesWorkflowAssets: "No",
+      requiredWriteEntry: "A later Unified Apply Plan plus explicit approval, never start.",
+    },
     projectRoot: workflow.projectRoot,
     classification,
     recommendedPath: pathPlan.recommendedPath,
@@ -208,6 +216,7 @@ function classifyProject(workflow) {
 function pathForClassification(classification, workflow) {
   const commonMustNot = [
     "Do not write workflow assets from start; start is read-only by default.",
+    "Do not treat start as the adoption/apply entry; use adopt for existing-project safe adoption.",
     "Do not install all industrial packs by default.",
     "Do not enable BL2 or any industrial pack without explicit human confirmation.",
     "Do not change business code, deployment settings, secrets, migrations, permissions, or production configuration during adoption recommendation.",
@@ -232,7 +241,7 @@ function pathForClassification(classification, workflow) {
       },
       why: [
         "The target appears empty or new.",
-        "AI can prepare an initialization command, but the human still confirms project type and platform before writing.",
+        "start can orient the project, but setup still requires explicit setup intent and a separate reviewed plan before writing.",
       ],
       decisionsNeededFromHuman: [
         "Confirm this is the intended new project directory.",
@@ -240,14 +249,13 @@ function pathForClassification(classification, workflow) {
         "Confirm whether to initialize workflow assets now.",
       ],
       safeNextActions: [
-        action("Preview init", `node scripts/cli.mjs init --target ${shellQuote(workflow.projectRoot)} --dry-run`, "No", "No"),
+        action("Stay in read-only orientation", `node scripts/cli.mjs start ${shellQuote(workflow.projectRoot)}`, "No", "No"),
         action("Read baseline recommendation", `node scripts/cli.mjs baseline ${shellQuote(workflow.projectRoot)}`, "No", "No"),
-        action("Write init plan", `node scripts/init-project.mjs --target ${shellQuote(workflow.projectRoot)} --write-plan adoption-plan.json`, "Plan file only", "Yes"),
-        action("Apply reviewed init plan", "node scripts/init-project.mjs --apply-plan adoption-plan.json", "Yes", "Yes"),
+        action("Describe the first slice", `node scripts/cli.mjs first-slice ${shellQuote(workflow.projectRoot)} "describe the product goal"`, "No", "No"),
       ],
       actionsAiMustNotTakeYet: commonMustNot,
       generatedPlanReportRefs: baseRefs,
-      finalRecommendation: "Ask the human to confirm project type and platform, then create an init plan before applying anything.",
+      finalRecommendation: "Ask the human to confirm project type and platform. If setup is requested, prepare a separate reviewed apply plan; start itself must not apply anything.",
     };
   }
 
@@ -273,14 +281,13 @@ function pathForClassification(classification, workflow) {
         "Confirm platform profile candidates before any baseline setup.",
       ],
       safeNextActions: [
+        action("Run safe adoption autopilot", `node scripts/cli.mjs adopt ${shellQuote(workflow.projectRoot)} --intent "connect this existing project under IntentOS"`, "No", "No"),
         action("Inspect only", `node scripts/cli.mjs start ${shellQuote(workflow.projectRoot)}`, "No", "No"),
         action("Read baseline recommendation", `node scripts/cli.mjs baseline ${shellQuote(workflow.projectRoot)}`, "No", "No"),
-        action("Write adoption plan", `node scripts/init-project.mjs --target ${shellQuote(workflow.projectRoot)} --update-workflow-assets --write-plan adoption-plan.json`, "Plan file only", "Yes"),
-        action("Apply reviewed plan", "node scripts/init-project.mjs --apply-plan adoption-plan.json", "Yes", "Yes"),
       ],
       actionsAiMustNotTakeYet: commonMustNot,
       generatedPlanReportRefs: baseRefs,
-      finalRecommendation: "Prepare a write plan only after the human confirms the existing project should be adopted.",
+      finalRecommendation: "Use adopt as the safe old-project adoption entry. Prepare any write plan only after the adoption card, rule comparison, apply plan, and approval exist.",
     };
   }
 
@@ -417,12 +424,10 @@ function governedPath(classification, workflow, reason) {
       "Confirm whether any workflow write plan is allowed after assessment.",
     ],
     safeNextActions: [
+      action("Run safe adoption autopilot", `node scripts/cli.mjs adopt ${shellQuote(workflow.projectRoot)} --intent "connect this existing project under IntentOS"`, "No", "No"),
       action("IntentOS mode status", `node scripts/cli.mjs next ${shellQuote(workflow.projectRoot)}`, "No", "No"),
-      action("Prepare Native Migration Plan", `node scripts/cli.mjs native-migration ${shellQuote(workflow.projectRoot)}`, "Report only", "Yes"),
-      action("Prepare Existing Rule Reconciliation", `node scripts/cli.mjs reconcile-rules ${shellQuote(workflow.projectRoot)}`, "Report only", "Yes"),
       action("View unified release plan", `node scripts/cli.mjs release-plan ${shellQuote(workflow.projectRoot)} --intent "continue existing project under IntentOS"`, "No", "No"),
       action("Read baseline recommendation", `node scripts/cli.mjs baseline ${shellQuote(workflow.projectRoot)}`, "No", "No"),
-      action("Write adoption plan later", `node scripts/init-project.mjs --target ${shellQuote(workflow.projectRoot)} --update-workflow-assets --write-plan adoption-plan.json`, "Plan file only", "Yes"),
     ],
     actionsAiMustNotTakeYet: [
       "Do not run direct init or direct update.",
@@ -479,6 +484,12 @@ function printRecommendation(report) {
   console.log("## Human Summary");
   console.log("");
   console.log(`Project type: ${report.classification.projectType}. Recommended mode: ${report.classification.adoptionMode}. start is read-only by default; no target project files were written.`);
+  console.log("");
+  console.log("## Public Entry Boundary");
+  console.log("");
+  console.log("`start` only reads and classifies the target. It does not enter the safe adoption flow, write a plan file, apply workflow assets, or approve project changes.");
+  console.log("");
+  console.log("Use `adopt <project> --intent \"...\"` when the user wants an existing project to start the safe IntentOS adoption flow.");
   console.log("");
   console.log("## Project Classification");
   console.log("");
@@ -580,10 +591,10 @@ function buildStartDecisionSummary(report) {
 
 function chooseRecommendedStartAction(report, actions) {
   if (report.classification.projectType === "PRODUCTION_SENSITIVE_PROJECT" || report.classification.projectType === "GOVERNED_EXISTING_PROJECT") {
-    return actions.find((item) => item.label.includes("Existing Rule Reconciliation")) || actions.find((item) => item.label.includes("Native Migration")) || actions[0];
+    return actions.find((item) => item.label.includes("adoption autopilot")) || actions[0];
   }
   if (report.classification.projectType === "DIRTY_WORKTREE_PROJECT") {
-    return actions.find((item) => item.label.includes("Read-only")) || actions[0];
+    return actions.find((item) => item.label.includes("adoption autopilot")) || actions.find((item) => item.label.includes("Read-only")) || actions[0];
   }
   if (report.classification.projectType === "INTENTOS_REPOSITORY") {
     return actions.find((item) => item.label.includes("self-check")) || actions[0];
@@ -591,7 +602,7 @@ function chooseRecommendedStartAction(report, actions) {
   if (report.classification.canAiWriteNow === "Yes") {
     return actions.find((item) => item.writes !== "No") || actions[0];
   }
-  return actions.find((item) => item.writes === "Report only" || item.writes === "Plan file only") || actions[0];
+  return actions.find((item) => item.label.includes("adoption autopilot")) || actions.find((item) => item.writes === "No") || actions[0];
 }
 
 function optionLetterFor(options, actionItem) {

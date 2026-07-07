@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.81.0`
+`1.81.2`
 
 ## Project Version File
 
@@ -19,6 +19,11 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.81.2` makes `start` read-only orientation only and makes `adopt` the
+  public entry for old-project safe adoption.
+- `1.81.2` prevents `start` from directly recommending workflow-asset apply
+  actions. It does not write target-project files, install `.intentos/`, change
+  project authority, or approve implementation/release.
 - `1.81.0` adds Existing Project Safe Adoption Autopilot through `adopt` and `adopt-check`.
 - `1.81.0` remains read-only: it does not write target-project files, install `.intentos/`, change project authority, or claim full adoption.
 - `1.80.3` binds Release Evidence Gate to a complete Completion Evidence set: every included completion item must resolve, match the release task scope, carry a digest, and pass strict Completion Evidence validation when the gate is ready or strict.
