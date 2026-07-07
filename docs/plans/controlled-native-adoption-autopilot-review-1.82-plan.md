@@ -27,29 +27,72 @@ User only confirms whether to follow the recommended safe action.
 
 ## Relationship To 1.81
 
-1.81 establishes safe existing-project adoption:
+1.81 establishes safe read-only existing-project adoption and the public
+`adopt` entry:
 
 ```text
 read-only diagnosis
-safe docs-only records where allowed
-adoption assurance
-collaboration-layer entry
-plain result card
+safe adoption result card
+plain-language Human Summary
+machine-readable evidence for audit
+public start/adopt boundary
+no target-project writes
+no docs-only records
+no native asset installation
+no full-adoption claim
 ```
 
-1.82 starts from that posture, but does not assume WorkControl-like strong governance.
+1.81 does not establish target-project docs-only records, write ledgers, or
+native workflow assets. If docs-only records or collaboration-entry refinements
+are useful, 1.82 may recommend them as a future plan-only governance repair
+path. It must not assume they already exist.
+
+1.82 starts from that read-only posture, but does not assume WorkControl-like
+strong governance.
 
 It must support both:
 
 ```text
 strong governed projects -> likely stay partial
-weak or messy projects -> likely governance repair and selected native adoption planning
+weak or messy projects -> likely governance repair and selected native planning
+light low-risk projects -> likely selected native plan-only
+ownerless or unsafe projects -> likely block
 ```
 
 1.82 must preserve the 1.81 UX principle:
 
 ```text
 Users should not need to understand IntentOS internals.
+```
+
+## 1.82 Boundary
+
+1.82 is a review-only maturity and adoption-depth recommendation layer.
+
+It may recommend:
+
+```text
+stay partial
+governance repair plan
+docs-only enhancement review
+collaboration-entry refinement review
+selected native adoption plan-only
+blocked until owner/risk/state is resolved
+```
+
+It must not execute:
+
+```text
+S1 docs-only apply
+S2 collaboration apply
+S3 selected native apply
+S4 production/release/data/security actions
+```
+
+Actual target-project writes still require the existing downstream path:
+
+```text
+Unified Apply Plan -> Approval Record -> Controlled Apply Readiness -> explicit execution evidence
 ```
 
 ## Context Reset
@@ -90,14 +133,14 @@ WorkControl, AiCoffeeCo, or other local project observations may be used only as
 
 ## Current Baseline
 
-IntentOS can already bring an old project to a safe partial adoption state:
+IntentOS can already bring an old project to a safe read-only working posture:
 
 ```text
-PARTIAL_ADOPTION
-ADAPTER_ONLY
+SAFE_READ_ONLY_ADOPTION_COMPLETE or READY_FOR_RULE_ENTRY_REVIEW
 planning/review working mode available
 project authority preserved
 no runtime or production takeover
+no target-project workflow asset writes
 ```
 
 The next question is broader than "should we deepen adoption":
@@ -158,6 +201,8 @@ GOVERNANCE_REPAIR -> SELECTED_NATIVE_ADOPTION_PLAN -> controlled apply later
 It must not:
 
 - apply native migration;
+- apply docs-only records;
+- apply collaboration-entry changes;
 - install `.intentos/`;
 - replace `AGENTS.md`;
 - modify CI, hooks, release, API, Web, DB, Docker, production, secrets, payments, data, or external systems;
@@ -278,6 +323,55 @@ Allowed states:
 - `FAILED_INVALID_EVIDENCE`
 
 These states are internal. The user-facing output must explain them plainly.
+
+## Source Authority Model
+
+1.82 must not treat the 1.81 adoption card as the only authority source.
+
+The 1.81 Existing Project Safe Adoption Autopilot report is a user-facing
+derived view. It is useful as orientation, but its source chain is summary-level
+and does not replace source evidence.
+
+The 1.82 resolver must re-read or re-run read-only source systems when safe:
+
+- Native Migration;
+- Existing Rule Reconciliation;
+- Governance Convergence;
+- Adoption Assurance;
+- Unified Apply Plan / Controlled Apply Readiness signals where recorded;
+- document lifecycle and source-of-truth signals;
+- git state;
+- release, CI, baseline, test, environment, and owner signals.
+
+Suggested source-chain shape:
+
+```json
+{
+  "source_chain": [
+    {
+      "name": "existing_project_adoption_autopilot",
+      "role": "user-facing summary",
+      "authority": "derived_view"
+    },
+    {
+      "name": "existing_rule_reconciliation",
+      "role": "maturity evidence",
+      "authority": "source_evidence"
+    },
+    {
+      "name": "governance_convergence",
+      "role": "daily workflow convergence evidence",
+      "authority": "source_evidence"
+    }
+  ]
+}
+```
+
+Acceptance rule:
+
+```text
+1.82 fails if it recommends deeper adoption from the adoption card alone.
+```
 
 ## Maturity-To-Recommendation Matrix
 
@@ -419,7 +513,7 @@ If the user must understand IntentOS subsystem terms to answer, the flow fails.
 
 The resolver should consume, when available:
 
-- existing-project adoption autopilot report;
+- existing-project adoption autopilot report as a derived view only;
 - native migration report;
 - existing-rule reconciliation report;
 - governance convergence report;
@@ -433,11 +527,15 @@ The resolver should consume, when available:
 
 Missing inputs should not automatically force a user prompt. Codex should:
 
-1. generate missing read-only inputs when safe;
+1. generate missing read-only source inputs when safe;
 2. classify the project using available evidence;
 3. mark unavailable inputs clearly;
 4. proceed with a conservative recommendation when evidence is partial;
 5. avoid claiming readiness without evidence.
+
+Codex must not collapse source review into the adoption card. If source
+evidence is unavailable, the recommendation must be conservative and must name
+the missing source area in the technical trace.
 
 ## Execution Plan
 
@@ -486,11 +584,12 @@ The resolver should:
 Suggested CLI:
 
 ```text
-intentos adopt-deeper <target>
-intentos native-review <target>
+intentos adopt-review <target>
+intentos adopt-review-check <target>
 ```
 
-Both must be review-only in 1.82.
+Both must be review-only in 1.82. Do not use a public command name that implies
+native apply, native installation, or automatic migration.
 
 ### Phase C: Checker
 
@@ -503,13 +602,17 @@ scripts/check-controlled-native-adoption-review.mjs
 The checker must reject:
 
 - native apply execution in 1.82;
+- docs-only apply execution in 1.82;
+- collaboration-entry apply execution in 1.82;
 - `.intentos/` installation recommendations without plan-only framing;
 - `AGENTS.md`, CI, release, code, DB, API, Web, Docker, production, secret, payment, data, or external-system changes as direct actions;
 - full adoption claims from partial evidence;
 - recommendations that ask users to choose technical artifact names;
+- user-facing Human Summary or Human Decisions that contain `selected native adoption`, `controlled apply readiness`, `native migration`, or `install .intentos`;
 - recommendations without maturity classification;
 - weak-governance projects that are told to stay partial without explaining missing governance repair;
 - strong-governance projects that are pushed toward native assets without showing the value;
+- deeper adoption recommendations based only on the 1.81 adoption card;
 - recommendations without risk, verification, and rollback analysis;
 - recommendations that ignore existing stricter project authority;
 - reports that hide missing evidence;
@@ -676,7 +779,8 @@ Humans should only be asked:
 
 - whether to accept the recommendation;
 - whether Codex may generate a plan-only deeper adoption proposal;
-- whether Codex may perform a clearly described low-risk docs/collaboration update;
+- whether Codex may generate a clearly described low-risk docs/collaboration
+  update plan for later approval;
 - whether a responsible owner approves high-risk production/release/data/security actions.
 
 Humans should not be asked:
@@ -697,7 +801,7 @@ After 1.82:
 
 ```text
 Existing projects can proceed from safe adoption to maturity-based deep adoption review without making users learn IntentOS internals.
-Codex decides whether the project should stay partial, repair governance, or plan selected native adoption.
+Codex recommends whether the project should stay partial, repair governance, or plan selected native adoption.
 Codex may recommend staying partial.
 Codex may recommend governance repair.
 Codex only asks simple permission questions when a safe next action exists.
@@ -714,4 +818,3 @@ weak projects can move toward fuller adoption without burdening users
 strong projects are not over-migrated
 no hidden authority transfer
 ```
-
