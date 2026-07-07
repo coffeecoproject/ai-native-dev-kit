@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.79.2`
+Current version: `1.79.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.79.2`
 
 ## Current Release
 
-`1.79.2`
+`1.79.3`
 
 Includes:
+
+- User Delivery Console Verification Note Polish patch `1.79.3`: `--verification`
+  free text is now displayed as a user verification note only, while
+  `testCheckEvidenceRecorded` depends on real `test-evidence-reports/`
+  artifacts.
+- `1.79.3` also records `git diff --check` in release self-check evidence and
+  keeps User Delivery Console a derived view. It does not add a completion gate,
+  replace Test Evidence, replace Completion Evidence, write target files,
+  approve implementation, approve commit/push, approve release/production,
+  mutate CI/hooks, or prove real-user stability.
 
 - User Delivery Console Current Task Binding patch `1.79.2`: `status --intent`
   now treats a task as done only when strict Completion Evidence both passes and

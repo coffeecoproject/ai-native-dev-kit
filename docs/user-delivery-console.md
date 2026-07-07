@@ -36,7 +36,12 @@ Task completion separates:
 
 - whether a verification plan is prepared;
 - whether actual test/check evidence is recorded;
+- whether the user supplied a verification note;
 - whether the final completion record passed strict checks.
+
+A `--verification` note is not the same thing as a Test Evidence report. The
+console may show that the note exists, but it must not treat the note as
+recorded test/check evidence.
 
 ## What It Does Not Do
 

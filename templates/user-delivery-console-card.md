@@ -30,6 +30,7 @@ What I need from you: {{HUMAN_NEED}}
 | Are affected areas checked? | {{SURFACES_CHECKED}} |
 | Is the check plan prepared? | {{VERIFICATION_PLAN_PREPARED}} |
 | Is test/check evidence recorded? | {{TEST_CHECK_EVIDENCE_RECORDED}} |
+| Is there a user verification note? | {{USER_VERIFICATION_NOTE_PROVIDED}} |
 | Is execution proof recorded? | {{EXECUTION_RECORDED}} |
 | Did the final completion record pass required checks? | {{COMPLETION_STRICT_CHECK}} |
 | Can the current task be treated as done? | {{TASK_DONE}} |

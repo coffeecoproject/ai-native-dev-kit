@@ -30,6 +30,7 @@ What I need from you: No decision needed for this read-only status card.
 | Are affected areas checked? | Yes |
 | Is the check plan prepared? | Yes |
 | Is test/check evidence recorded? | Yes |
+| Is there a user verification note? | No |
 | Is execution proof recorded? | Yes |
 | Did the final completion record pass required checks? | Passed for this request |
 | Can the current task be treated as done? | Yes |

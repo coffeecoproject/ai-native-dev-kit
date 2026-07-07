@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.79.2`。
+当前版本：`1.79.3`。
 
-发布记录：[releases/1.79.2/release-record.md](releases/1.79.2/release-record.md)。
+发布记录：[releases/1.79.3/release-record.md](releases/1.79.3/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -40,6 +40,8 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.79.3 把 User Delivery Console 里的用户验证备注和正式 Test Evidence 分开：`--verification` 自由文本只会显示为用户备注，不会让“测试/检查证据已记录”变成 Yes；只有真实的 `test-evidence-reports/` 才算正式测试证据。同时发布证据补记 `git diff --check`。它仍然不写项目文件，不批准实现、提交、推送、发布或生产，也不证明真实用户稳定可用。
 
 1.79.2 收紧 User Delivery Console 当前任务绑定：`status --intent` 只有在严格 Completion Evidence 检查通过且匹配当前请求时，才会把任务视为完成。用户看到的是白话状态，内部枚举只保留在 trace / JSON 中。它仍然不写项目文件，不批准实现、提交、推送、发布或生产，也不证明真实用户稳定可用。
 

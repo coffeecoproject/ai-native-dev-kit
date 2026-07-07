@@ -43,6 +43,7 @@ Use plain translations:
 - affected areas checked / not checked;
 - verification list ready / missing;
 - check evidence recorded / missing;
+- user verification note provided / not provided;
 - final completion record passed strict checks / not passed;
 - execution proof recorded / missing;
 - task can / cannot be treated as done;
@@ -73,3 +74,7 @@ lower-level evidence state when claiming work is done.
 No final task-completion claim is allowed without a valid lower-level completion
 evidence chain that passes strict Completion Evidence checks and matches the
 current request intent.
+
+`--verification` free text is only a user-provided verification note. It must
+not be displayed as recorded Test Evidence unless a real `test-evidence-reports/`
+artifact exists.

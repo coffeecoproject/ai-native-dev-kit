@@ -1,4 +1,4 @@
-# IntentOS 1.79.2 Self-Check Report
+# IntentOS 1.79.3 Self-Check Report
 
 ## Status
 
@@ -9,8 +9,8 @@ Passed.
 ```bash
 node --check scripts/resolve-user-delivery-console.mjs
 node --check scripts/check-user-delivery-console.mjs
-node scripts/cli.mjs status . --intent "maintain IntentOS ordinary user delivery status" --json
 node scripts/cli.mjs status . --intent "维护 IntentOS 普通用户交付状态"
+node scripts/cli.mjs status . --intent "maintain IntentOS ordinary user delivery status" --verification "npm run verify passed" --json
 node scripts/cli.mjs status-check .
 node scripts/check-user-delivery-console.mjs examples/1.79-user-delivery-console/appointment-app
 node scripts/check-user-delivery-console.mjs .

@@ -54,7 +54,9 @@ function buildCard(root) {
   const hasNeedClarity = counts["business-rule-closures"] > 0 || counts["ordinary-first-slices"] > 0 || counts["beginner-entry-cards"] > 0;
   const hasSurfaceCheck = counts["change-impact-coverage-reports"] > 0;
   const hasVerificationPlan = counts["verification-plans"] > 0;
-  const hasTestEvidence = counts["test-evidence-reports"] > 0 || verificationStatus(verification) === "pass";
+  const hasTestEvidence = counts["test-evidence-reports"] > 0;
+  const hasUserVerificationNote = Boolean(verification);
+  const userVerificationNoteStatus = verificationStatus(verification);
   const hasExecutionProof = counts["execution-assurance-reports"] > 0;
   const state = classifyState({
     exists,
@@ -68,6 +70,7 @@ function buildCard(root) {
     hasSurfaceCheck,
     hasVerificationPlan,
     hasTestEvidence,
+    hasUserVerificationNote,
     hasExecutionProof,
     completionEvidence,
   });
@@ -89,7 +92,7 @@ function buildCard(root) {
 
   return {
     reportType: "USER_DELIVERY_CONSOLE_CARD",
-    schemaVersion: "1.79.2",
+    schemaVersion: "1.79.3",
     generatedBy: "scripts/resolve-user-delivery-console.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -114,6 +117,8 @@ function buildCard(root) {
       affectedAreasChecked: yesNo(hasSurfaceCheck),
       verificationPlanPrepared: yesNo(hasVerificationPlan),
       testCheckEvidenceRecorded: yesNo(hasTestEvidence),
+      userVerificationNoteProvided: yesNo(hasUserVerificationNote),
+      userVerificationNoteStatus,
       executionProofRecorded: yesNo(hasExecutionProof),
       canCurrentTaskBeTreatedAsDone: completionReady ? "Yes" : "No",
       completionEvidenceStrictCheck: completionEvidence.status,
@@ -140,6 +145,8 @@ function buildCard(root) {
       hasSurfaceCheck,
       hasVerificationPlan,
       hasTestEvidence,
+      hasUserVerificationNote,
+      userVerificationNoteStatus,
       hasExecutionProof,
       completionEvidence,
     }),
@@ -233,6 +240,7 @@ function technicalTraceRows(counts, input) {
     ["Change Impact Coverage", input.hasSurfaceCheck ? "RECORDED" : "MISSING", `${counts["change-impact-coverage-reports"]} affected-surface report(s) found`, "Source system only"],
     ["Verification Plan", input.hasVerificationPlan ? "RECORDED" : "MISSING", `${counts["verification-plans"]} verification plan(s) found`, "Source system only"],
     ["Test Evidence", input.hasTestEvidence ? "RECORDED" : "MISSING", `${counts["test-evidence-reports"]} test evidence report(s) found`, "Source system only"],
+    ["User Verification Note", input.hasUserVerificationNote ? "PROVIDED" : "MISSING", input.hasUserVerificationNote ? `User note status: ${input.userVerificationNoteStatus}` : "No --verification note provided", "User note only; not Test Evidence"],
     ["Execution Assurance", input.hasExecutionProof ? "RECORDED" : "MISSING", `${counts["execution-assurance-reports"]} execution proof report(s) found`, "Source system only"],
     ["Completion Evidence", input.completionReady ? "READY" : input.completionEvidence.status, input.completionEvidence.detail, "Source system only"],
     ["Launch / Release View", input.launchReviewReady ? "RECORDED" : "MISSING", `${counts["launch-review-views"]} launch view(s), ${counts["release-plans"]} release plan(s) found`, "Source system only"],
@@ -269,6 +277,7 @@ function humanCard(card) {
   lines.push(`| Are affected areas checked? | ${card.taskCompletion.affectedAreasChecked} |`);
   lines.push(`| Is the check plan prepared? | ${card.taskCompletion.verificationPlanPrepared} |`);
   lines.push(`| Is test/check evidence recorded? | ${card.taskCompletion.testCheckEvidenceRecorded} |`);
+  lines.push(`| Is there a user verification note? | ${card.taskCompletion.userVerificationNoteProvided} |`);
   lines.push(`| Is execution proof recorded? | ${card.taskCompletion.executionProofRecorded} |`);
   lines.push(`| Did the final completion record pass required checks? | ${completionStatusDisplay(card.taskCompletion.completionEvidenceStrictCheck)} |`);
   lines.push(`| Can the current task be treated as done? | ${card.taskCompletion.canCurrentTaskBeTreatedAsDone} |`, "");

@@ -13,6 +13,7 @@
 - Missing items and safe next action are concrete.
 - Verification planning and actual test/check evidence are separate
   user-facing fields.
+- Free-text user verification notes are separate from Test Evidence reports.
 - Final task completion is not claimed unless lower-level completion evidence
   exists, passes strict Completion Evidence checks, and matches the current
   request intent.

@@ -8615,6 +8615,7 @@ function checkUserDeliveryConsoleProtocol() {
     "docs/plans/user-delivery-console-1.79-plan.md",
     "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
     "docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md",
+    "docs/plans/user-delivery-console-verification-note-1.79.3-plan.md",
     "templates/user-delivery-console-card.md",
     "checklists/user-delivery-console-review.md",
     "prompts/user-delivery-console-agent.md",
@@ -8635,6 +8636,9 @@ function checkUserDeliveryConsoleProtocol() {
     "releases/1.79.2/release-record.md",
     "releases/1.79.2/known-limitations.md",
     "releases/1.79.2/self-check-report.md",
+    "releases/1.79.3/release-record.md",
+    "releases/1.79.3/known-limitations.md",
+    "releases/1.79.3/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.79 user delivery console asset exists ${file}`);
@@ -8647,6 +8651,7 @@ function checkUserDeliveryConsoleProtocol() {
     read("docs/plans/user-delivery-console-1.79-plan.md"),
     read("docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md"),
     read("docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md"),
+    read("docs/plans/user-delivery-console-verification-note-1.79.3-plan.md"),
     read("templates/user-delivery-console-card.md"),
     read("checklists/user-delivery-console-review.md"),
     read("prompts/user-delivery-console-agent.md"),
@@ -8657,6 +8662,7 @@ function checkUserDeliveryConsoleProtocol() {
     read("releases/1.79.0/release-record.md"),
     read("releases/1.79.1/release-record.md"),
     read("releases/1.79.2/release-record.md"),
+    read("releases/1.79.3/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -8672,6 +8678,7 @@ function checkUserDeliveryConsoleProtocol() {
     "NEEDS_COMPLETION_EVIDENCE_CHECK",
     "verificationPlanPrepared",
     "testCheckEvidenceRecorded",
+    "userVerificationNoteProvided",
     "completionEvidenceStrictCheck",
     "PROJECT_HAS_OTHER_COMPLETION_RECORD",
     "currentIntentMatch",
@@ -8701,12 +8708,13 @@ function checkUserDeliveryConsoleProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
-        && parsed.schemaVersion === "1.79.2"
+        && parsed.schemaVersion === "1.79.3"
         && parsed.readOnly === true
         && parsed.deliveryStatus?.currentState
         && parsed.deliveryStatus?.currentStateLabel
         && parsed.taskCompletion?.verificationPlanPrepared
         && parsed.taskCompletion?.testCheckEvidenceRecorded
+        && parsed.taskCompletion?.userVerificationNoteProvided
         && parsed.taskCompletion?.completionEvidenceStrictCheck
         && "currentIntentMatch" in parsed.taskCompletion
         && parsed.boundaries?.writesTargetFiles === "No"
@@ -8720,6 +8728,31 @@ function checkUserDeliveryConsoleProtocol() {
     }
   } else {
     fail(`1.79 user delivery console resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const noteJson = runNode([
+    "scripts/resolve-user-delivery-console.mjs",
+    ".",
+    "--intent",
+    "maintain IntentOS ordinary user delivery status",
+    "--verification",
+    "npm run verify passed",
+    "--json",
+  ]);
+  if (noteJson.status === 0) {
+    try {
+      const parsed = JSON.parse(noteJson.stdout);
+      if (parsed.taskCompletion?.testCheckEvidenceRecorded === "No"
+        && parsed.taskCompletion?.userVerificationNoteProvided === "Yes") {
+        pass("1.79 user delivery console keeps user verification note separate from Test Evidence reports");
+      } else {
+        fail(`1.79 user delivery console verification note must not count as Test Evidence: ${noteJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.79 user delivery console verification note JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.79 user delivery console verification note JSON failed: ${noteJson.stderr || noteJson.stdout}`);
   }
 
   const cliResolver = runNode(["scripts/cli.mjs", "status", ".", "--intent", "maintain IntentOS ordinary user delivery status"]);
