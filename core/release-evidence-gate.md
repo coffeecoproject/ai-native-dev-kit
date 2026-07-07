@@ -43,14 +43,23 @@ Every report must identify the release candidate:
 Without release-candidate identity, IntentOS can only reason about an individual
 task, not a release review package.
 
+## Completion Evidence Set
+
+Release scope may include more than one Completion Evidence report. A
+release-ready report must not validate only the first item. It must record a
+Completion Evidence set where every included Completion Evidence ref resolves,
+records a digest, exposes task and intent identity, belongs to the current
+release scope, and passes strict Completion Evidence checks before the release
+candidate can be handed off.
+
 ## Evidence Precision
 
 When runtime smoke, rollback, monitoring, build, platform recipe, or handoff
 evidence is required, the report must resolve the referenced artifact and record
 a digest that can be recomputed from that artifact. Human-readable Markdown
 tables must match the machine-readable evidence block for the release scope,
-source chain, runtime, rollback, monitoring, environment, migration, cost, and
-missing evidence.
+source chain, Completion Evidence set, owner readiness, runtime, rollback,
+monitoring, environment, migration, cost, and missing evidence.
 
 ## Target Matrix
 
@@ -64,8 +73,16 @@ Required evidence depends on the target:
 - mini-program review.
 
 Production-like targets require stricter evidence: clean source revision,
-rollback, monitoring, incident owner, environment/config owner, data/migration
-decision, and release-owner handoff.
+rollback, monitoring, incident owner, release owner, risk owner,
+environment/config owner, data/migration decision, and release-owner handoff.
+
+## Owner Readiness
+
+Owner identification, owner review, and release approval are separate. Release
+Evidence Gate records `owner_readiness` so release owner, risk owner,
+environment owner, and release approval refs can be checked structurally. A
+human decision record may be referenced, but this gate still keeps release and
+production approval as `No`.
 
 ## Boundary
 

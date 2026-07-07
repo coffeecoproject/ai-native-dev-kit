@@ -7,18 +7,25 @@ release owner.
   state, included task refs, and included Completion Evidence refs.
 - User Delivery Console is treated as display only, not source authority.
 - The release target has a target-specific evidence matrix.
-- Completion Evidence is current-release matched.
+- Every included Completion Evidence ref appears in the Completion Evidence set.
+- Ready or strict release evidence runs strict Completion Evidence checks for
+  every included Completion Evidence ref.
+- Completion Evidence task refs belong to the release scope.
 - Runtime smoke is not a user note only.
 - Required runtime smoke, rollback, monitoring, build, platform recipe, and
   handoff evidence refs resolve and their digests match the resolved artifacts.
 - Markdown tables match the machine-readable evidence block for the release
-  scope, source chain, runtime/rollback/monitoring, environment, migration,
-  cost, and missing evidence.
+  scope, source chain, Completion Evidence set, owner readiness,
+  runtime/rollback/monitoring, environment, migration, cost, and missing
+  evidence.
 - Production-like targets have rollback, monitoring, incident owner,
-  environment/config owner, clean source, and migration decision.
+  release owner, risk owner, environment/config owner, clean source, and
+  migration decision.
 - App-store and mini-program review targets have a platform recipe and handoff
   evidence.
 - Release owner identification is separate from release approval.
+- Release owner, risk owner, environment owner, and release approval refs are
+  recorded in structured `owner_readiness`.
 - Existing project release SOPs are mapped and never downgraded.
 - The report states release / production approval is `No`.
 - Codex does not deploy, submit, migrate, mutate provider state, store secrets,

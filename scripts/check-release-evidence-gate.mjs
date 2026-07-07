@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
-import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { extractMachineReadableEvidence, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -62,6 +62,7 @@ const requiredSections = [
   "Release Scope",
   "Release Target Requirements",
   "Source Chain",
+  "Completion Evidence Set",
   "Owner And Approval",
   "Environment Readiness",
   "Runtime And Rollback",
@@ -238,7 +239,29 @@ function checkMarkdownJsonConsistency(content, label, evidence) {
     expectCell(row[4], source.source_outcome || "not provided", label, `Source Chain row ${index + 1} outcome`);
   }
 
+  const completionRows = tableRows(sectionBody(content, "Completion Evidence Set") || "")
+    .filter((row) => !/^ref$/i.test(row[0] || ""));
+  const completionSet = evidence.completion_evidence_set || [];
+  if (completionRows.length === completionSet.length) pass(`${label} Completion Evidence Set row count matches structured evidence`);
+  else fail(`${label} Completion Evidence Set row count ${completionRows.length} does not match ${completionSet.length}`);
+  for (let index = 0; index < Math.min(completionRows.length, completionSet.length); index += 1) {
+    const row = completionRows[index];
+    const item = completionSet[index];
+    expectCell(row[0], item.ref, label, `Completion Evidence Set row ${index + 1} ref`);
+    expectCell(row[1], item.status, label, `Completion Evidence Set row ${index + 1} status`);
+    expectCell(row[2], item.task_ref || "not provided", label, `Completion Evidence Set row ${index + 1} task ref`);
+    expectCell(row[3], item.strict_check, label, `Completion Evidence Set row ${index + 1} strict check`);
+    expectCell(row[4], item.current_release_match, label, `Completion Evidence Set row ${index + 1} current release match`);
+    expectCell(row[5], item.task_ref_in_release_scope, label, `Completion Evidence Set row ${index + 1} task in release scope`);
+  }
+
   const owner = sectionBody(content, "Owner And Approval") || "";
+  expectTableValue(owner, "Release Owner Ref", evidence.owner_readiness?.release_owner_ref, label, "Owner And Approval");
+  expectTableValue(owner, "Release Owner Review Ref", evidence.owner_readiness?.release_owner_review_ref, label, "Owner And Approval");
+  expectTableValue(owner, "Risk Owner Ref", evidence.owner_readiness?.risk_owner_ref, label, "Owner And Approval");
+  expectTableValue(owner, "Environment Owner Ref", evidence.owner_readiness?.environment_owner_ref, label, "Owner And Approval");
+  expectTableValue(owner, "Release Approval Ref", evidence.owner_readiness?.release_approval_ref, label, "Owner And Approval");
+  expectTableValue(owner, "Release Approval State", evidence.owner_readiness?.release_approval_state, label, "Owner And Approval");
   expectTableValue(owner, "Release Approval", evidence.release_or_production_approved, label, "Owner And Approval");
   expectTableValue(owner, "Owner Decisions", (evidence.owner_decisions || []).join("; "), label, "Owner And Approval");
 
@@ -308,9 +331,7 @@ function checkStructuredEvidence(label, evidence) {
     else fail(`${label} Completion Evidence source marked current release but not included in release scope: ${completion.ref}`);
   }
 
-  if (requireCurrentCompletion) {
-    checkCompletionEvidenceStrict(label, completion);
-  }
+  checkCompletionEvidenceSet(label, evidence);
 
   if (strictSourceBinding || readyStates.has(evidence.gate_state)) {
     for (const source of evidence.source_chain || []) {
@@ -356,6 +377,7 @@ function checkStructuredEvidence(label, evidence) {
   if (productionLikeTargets.has(evidence.release_target)) {
     checkProductionLike(label, evidence);
   }
+  checkOwnerReadiness(label, evidence, new Set(requirements));
 
   if (evidence.runtime_readiness?.runtime_smoke_user_note_only === "Yes") {
     fail(`${label} runtime smoke cannot be a user note only`);
@@ -392,6 +414,38 @@ function checkProductionLike(label, evidence) {
   else pass(`${label} production-like target has migration decision`);
 }
 
+function checkOwnerReadiness(label, evidence, requirements) {
+  const owner = evidence.owner_readiness || {};
+  const ready = readyStates.has(evidence.gate_state) || requireReady;
+  const missing = new Set(evidence.missing_evidence || []);
+  if (owner.release_or_production_approved === "No") pass(`${label} owner readiness does not approve release`);
+  else fail(`${label} owner readiness must not approve release`);
+  if (requirements.has("release-owner")) {
+    if (isConcrete(owner.release_owner_ref)) pass(`${label} release owner ref is concrete`);
+    else if (!ready && missing.has("release-owner")) pass(`${label} blocked report records missing release owner ref`);
+    else fail(`${label} required release owner ref must be concrete`);
+  }
+  if (productionLikeTargets.has(evidence.release_target)) {
+    if (isConcrete(owner.risk_owner_ref)) pass(`${label} production-like target has concrete risk owner ref`);
+    else if (!ready && missing.has("risk-owner")) pass(`${label} blocked production-like report records missing risk owner ref`);
+    else fail(`${label} production-like target requires concrete risk owner ref`);
+    if (isConcrete(owner.environment_owner_ref)) pass(`${label} production-like target has concrete environment owner ref`);
+    else if (!ready && missing.has("environment-owner")) pass(`${label} blocked production-like report records missing environment owner ref`);
+    else fail(`${label} production-like target requires concrete environment owner ref`);
+  } else {
+    pass(`${label} risk/environment owner refs are not required for non-production-like target`);
+  }
+  if (["out_of_scope", "pending", "human_decision_recorded", "invalid"].includes(owner.release_approval_state)) {
+    pass(`${label} release approval state is structured`);
+  } else {
+    fail(`${label} release approval state must be structured`);
+  }
+  const approvalRef = String(owner.release_approval_ref || "");
+  const allowedApprovalRef = approvalRef === "out_of_scope" || approvalRef === "pending" || approvalRef.startsWith("human-decision:");
+  if (allowedApprovalRef && owner.release_approval_state !== "invalid") pass(`${label} release approval ref is non-authorizing`);
+  else fail(`${label} release approval ref must be out_of_scope, pending, or human-decision:* without approving release`);
+}
+
 function checkRequiredEvidenceArtifacts(label, evidence, requirements) {
   const scope = evidence.release_scope || {};
   if (requirements.has("build-or-preview-evidence")) {
@@ -411,6 +465,66 @@ function checkRequiredEvidenceArtifacts(label, evidence, requirements) {
   }
   if (requirements.has("platform-recipe")) {
     requireRecordedSourceArtifact(label, evidence, "platform_release_recipe");
+  }
+}
+
+function checkCompletionEvidenceSet(label, evidence) {
+  const scopeRefs = evidence.release_scope?.included_completion_evidence_refs || [];
+  const taskRefs = evidence.release_scope?.included_task_refs || [];
+  const set = evidence.completion_evidence_set || [];
+  const mustStrictCheck = requireCurrentCompletion || readyStates.has(evidence.gate_state) || strictSourceBinding || requireReady;
+  if (Array.isArray(set)) pass(`${label} records Completion Evidence set`);
+  else {
+    fail(`${label} must record Completion Evidence set`);
+    return;
+  }
+  if (set.length === scopeRefs.length) pass(`${label} Completion Evidence set count matches release scope`);
+  else fail(`${label} Completion Evidence set count ${set.length} does not match release scope count ${scopeRefs.length}`);
+  const seen = new Set();
+  for (const item of set) {
+    seen.add(item.ref);
+    if (scopeRefs.includes(item.ref)) pass(`${label} Completion Evidence set ref is included in release scope: ${item.ref}`);
+    else fail(`${label} Completion Evidence set ref is not included in release scope: ${item.ref}`);
+    if (item.current_release_match === "Yes") pass(`${label} Completion Evidence set current release match is Yes: ${item.ref}`);
+    else fail(`${label} Completion Evidence set current release match must be Yes: ${item.ref}`);
+    const resolved = resolveArtifact(String(item.ref || ""));
+    if (resolved) pass(`${label} Completion Evidence set ref resolves: ${item.ref}`);
+    else {
+      fail(`${label} Completion Evidence set ref does not resolve: ${item.ref || "<missing>"}`);
+      continue;
+    }
+    if (/^sha256:[a-f0-9]{64}$/.test(String(item.digest || ""))) pass(`${label} Completion Evidence set records digest: ${item.ref}`);
+    else fail(`${label} Completion Evidence set must record sha256 digest: ${item.ref}`);
+    if (item.digest === fileDigest(resolved)) pass(`${label} Completion Evidence set digest matches resolved artifact: ${item.ref}`);
+    else fail(`${label} Completion Evidence set digest does not match resolved artifact: ${item.ref}`);
+    const content = fs.readFileSync(resolved, "utf8");
+    const extracted = extractMachineReadableEvidence(content);
+    if (extracted?.ok) {
+      const completionEvidence = extracted.value;
+      if (item.task_ref === completionEvidence.task_ref) pass(`${label} Completion Evidence set task ref matches artifact: ${item.ref}`);
+      else fail(`${label} Completion Evidence set task ref ${item.task_ref || "<empty>"} does not match artifact task ${completionEvidence.task_ref}`);
+      if (item.intent_digest === completionEvidence.intent_digest) pass(`${label} Completion Evidence set intent digest matches artifact: ${item.ref}`);
+      else fail(`${label} Completion Evidence set intent digest does not match artifact: ${item.ref}`);
+      if (item.completion_state === completionEvidence.completion_state) pass(`${label} Completion Evidence set state matches artifact: ${item.ref}`);
+      else fail(`${label} Completion Evidence set state does not match artifact: ${item.ref}`);
+      if (item.can_claim_complete === completionEvidence.can_claim_complete) pass(`${label} Completion Evidence set claim flag matches artifact: ${item.ref}`);
+      else fail(`${label} Completion Evidence set claim flag does not match artifact: ${item.ref}`);
+      if (taskRefs.includes(completionEvidence.task_ref)) pass(`${label} Completion Evidence task is in release scope: ${completionEvidence.task_ref}`);
+      else fail(`${label} Completion Evidence task must be included in release scope: ${completionEvidence.task_ref}`);
+      if (item.task_ref_in_release_scope === "Yes") pass(`${label} Completion Evidence set records task in release scope: ${item.ref}`);
+      else fail(`${label} Completion Evidence set must record task in release scope: ${item.ref}`);
+    } else {
+      fail(`${label} Completion Evidence set artifact must contain machine-readable evidence: ${item.ref}`);
+    }
+    if (mustStrictCheck) {
+      if (item.strict_check === "PASS") pass(`${label} Completion Evidence set records strict check PASS: ${item.ref}`);
+      else fail(`${label} Completion Evidence set must record strict check PASS for ready/strict release evidence: ${item.ref}`);
+      checkCompletionRefStrict(label, item.ref, `Completion Evidence set ${item.ref}`);
+    }
+  }
+  for (const ref of scopeRefs) {
+    if (seen.has(ref)) pass(`${label} release scope Completion Evidence has set entry: ${ref}`);
+    else fail(`${label} release scope Completion Evidence missing set entry: ${ref}`);
   }
 }
 
@@ -482,6 +596,31 @@ function checkCompletionEvidenceStrict(label, completion) {
   ], { encoding: "utf8" });
   if (result.status === 0) pass(`${label} Completion Evidence strict checker passed`);
   else fail(`${label} Completion Evidence strict checker failed: ${firstUsefulLine(result.stderr || result.stdout)}`);
+}
+
+function checkCompletionRefStrict(label, ref, context) {
+  const resolved = resolveArtifact(String(ref || ""));
+  if (!resolved) {
+    fail(`${label} ${context} could not resolve Completion Evidence: ${ref || "<missing>"}`);
+    return;
+  }
+  const report = path.relative(projectRoot, resolved);
+  if (report.startsWith("..") || path.isAbsolute(report)) {
+    fail(`${label} ${context} report must stay inside target project`);
+    return;
+  }
+  const completionChecker = path.join(scriptDir, "check-completion-evidence.mjs");
+  const result = spawnSync(process.execPath, [
+    completionChecker,
+    projectRoot,
+    "--report",
+    report,
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+  ], { encoding: "utf8" });
+  if (result.status === 0) pass(`${label} ${context} strict checker passed`);
+  else fail(`${label} ${context} strict checker failed: ${firstUsefulLine(result.stderr || result.stdout)}`);
 }
 
 function checkSourceEvidence() {

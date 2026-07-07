@@ -97,10 +97,11 @@ function buildReport(root) {
   const completionRefs = splitList(args["completion-evidence-ref"]);
   const excluded = splitList(args["excluded-known-item"]);
   const buildArtifactRef = String(args["build-artifact-ref"] || "missing");
-  const buildArtifactDigest = String(args["build-artifact-digest"] || digest(`${releaseCandidateRef}:${sourceRevision}:${buildArtifactRef}`));
+  const buildArtifactDigest = String(args["build-artifact-digest"] || artifactDigestOrEmpty(root, buildArtifactRef) || digest(`${releaseCandidateRef}:${sourceRevision}:${buildArtifactRef}`));
   const sourceChain = buildSourceChain(root, completionRefs);
+  const completionEvidenceSet = buildCompletionEvidenceSet(root, completionRefs, taskRefs);
   const targetRequirements = requirementsFor(releaseTarget);
-  const ownerState = ownerStateFor();
+  const ownerState = ownerStateFor(releaseTarget);
   const runtime = runtimeReadiness(root);
   const rollback = rollbackReadiness(root, releaseTarget);
   const monitoring = monitoringReadiness(root, releaseTarget);
@@ -148,6 +149,8 @@ function buildReport(root) {
     release_target_requirements: [targetRequirements],
     required_evidence: targetRequirements.required_evidence_ids,
     missing_evidence: missing,
+    completion_evidence_set: completionEvidenceSet,
+    owner_readiness: ownerState.owner_readiness,
     owner_decisions: ownerDecisionsFor(ownerState, releaseTarget, missing),
     runtime_readiness: runtime,
     rollback_readiness: rollback,
@@ -182,6 +185,47 @@ function buildReport(root) {
     structuredEvidence,
     outcome: gateState,
   };
+}
+
+function buildCompletionEvidenceSet(root, completionRefs, taskRefs) {
+  return completionRefs.map((ref) => {
+    const resolved = resolveArtifact(root, ref);
+    if (!resolved) {
+      return {
+        ref,
+        status: "UNRESOLVED",
+        digest: "",
+        task_ref: "",
+        intent_digest: "",
+        completion_state: "",
+        can_claim_complete: "No",
+        strict_check: "FAIL",
+        current_release_match: "Yes",
+        task_ref_in_release_scope: "Unknown",
+        reason: "Completion Evidence reference did not resolve to a local artifact.",
+      };
+    }
+    const content = fs.readFileSync(resolved, "utf8");
+    const extracted = extractMachineReadableEvidence(content);
+    const evidence = extracted?.ok ? extracted.value : null;
+    const taskRef = String(evidence?.task_ref || "");
+    const strict = runCompletionStrictCheck(root, resolved);
+    return {
+      ref,
+      status: evidence ? "RECORDED" : "INVALID",
+      digest: fileDigest(resolved),
+      task_ref: taskRef,
+      intent_digest: String(evidence?.intent_digest || ""),
+      completion_state: String(evidence?.completion_state || ""),
+      can_claim_complete: yesNo(evidence?.can_claim_complete === "Yes"),
+      strict_check: strict.ok ? "PASS" : "FAIL",
+      current_release_match: "Yes",
+      task_ref_in_release_scope: taskRefs.length === 0 ? "Unknown" : yesNo(taskRefs.includes(taskRef)),
+      reason: strict.ok
+        ? "Completion Evidence resolves and strict checker passes."
+        : `Completion Evidence strict checker failed: ${strict.reason}`,
+    };
+  });
 }
 
 function buildSourceChain(root, completionRefs) {
@@ -276,8 +320,8 @@ function requirementsFor(target) {
     internal_trial: ["completion-evidence", "runtime-smoke", "rollback", "release-owner"],
     staging: ["completion-evidence", "environment-config", "runtime-smoke", "monitoring", "rollback", "release-owner"],
     production_review: ["completion-evidence", "release-owner", "risk-owner", "environment-owner", "rollback", "monitoring", "runtime-smoke", "incident-owner", "data-migration-decision", "release-handoff-pack"],
-    app_store_review: ["completion-evidence", "platform-recipe", "release-owner", "runtime-smoke", "rollback", "release-handoff-pack"],
-    mini_program_review: ["completion-evidence", "platform-recipe", "release-owner", "runtime-smoke", "rollback", "release-handoff-pack"],
+    app_store_review: ["completion-evidence", "platform-recipe", "release-owner", "risk-owner", "environment-owner", "runtime-smoke", "rollback", "release-handoff-pack"],
+    mini_program_review: ["completion-evidence", "platform-recipe", "release-owner", "risk-owner", "environment-owner", "runtime-smoke", "rollback", "release-handoff-pack"],
     unknown: ["release-target", "release-owner"],
   };
   return {
@@ -286,16 +330,29 @@ function requirementsFor(target) {
   };
 }
 
-function ownerStateFor() {
+function ownerStateFor(target) {
   const releaseOwner = String(args["release-owner"] || "").trim();
   const riskOwner = String(args["risk-owner"] || "").trim();
   const environmentOwner = String(args["environment-owner"] || "").trim();
+  const releaseOwnerReviewRef = String(args["release-owner-review-ref"] || (isConcrete(releaseOwner) ? "pending" : "missing"));
+  const releaseApprovalRef = String(args["release-approval-ref"] || "out_of_scope");
+  const riskOwnerRef = isConcrete(riskOwner) ? riskOwner : (isProductionLike(target) ? "missing" : "not_applicable");
+  const environmentOwnerRef = isConcrete(environmentOwner) ? environmentOwner : (isProductionLike(target) ? "missing" : "not_applicable");
   return {
     releaseOwnerIdentified: isConcrete(releaseOwner) ? "Yes" : "No",
-    releaseOwnerReviewRef: String(args["release-owner-review-ref"] || "missing"),
+    releaseOwnerReviewRef,
     riskOwnerIdentified: isConcrete(riskOwner) ? "Yes" : "No",
     environmentOwnerIdentified: isConcrete(environmentOwner) ? "Yes" : "No",
-    releaseApprovalRef: String(args["release-approval-ref"] || "out_of_scope"),
+    releaseApprovalRef,
+    owner_readiness: {
+      release_owner_ref: isConcrete(releaseOwner) ? releaseOwner : "missing",
+      release_owner_review_ref: releaseOwnerReviewRef,
+      risk_owner_ref: riskOwnerRef,
+      environment_owner_ref: environmentOwnerRef,
+      release_approval_ref: releaseApprovalRef,
+      release_approval_state: releaseApprovalStateFor(releaseApprovalRef),
+      release_or_production_approved: "No",
+    },
   };
 }
 
@@ -452,11 +509,23 @@ ${markdownList(evidence.release_target_requirements[0].required_evidence_ids)}
 |---|---|---|---|---|
 ${evidence.source_chain.map((source) => `| ${source.name} | ${source.status} | ${source.ref || "not provided"} | ${source.current_release_match} | ${source.source_outcome || "not provided"} |`).join("\n")}
 
+## Completion Evidence Set
+
+| Ref | Status | Task Ref | Strict Check | Current Release Match | Task In Release Scope |
+|---|---|---|---|---|---|
+${evidence.completion_evidence_set.map((item) => `| ${item.ref} | ${item.status} | ${item.task_ref || "not provided"} | ${item.strict_check} | ${item.current_release_match} | ${item.task_ref_in_release_scope} |`).join("\n")}
+
 ## Owner And Approval
 
 | Field | Value |
 |---|---|
 | Release Owner Identified | ${evidence.owner_decisions.some((item) => /Identify the human release owner/i.test(item)) ? "No" : "Yes"} |
+| Release Owner Ref | ${evidence.owner_readiness.release_owner_ref} |
+| Release Owner Review Ref | ${evidence.owner_readiness.release_owner_review_ref} |
+| Risk Owner Ref | ${evidence.owner_readiness.risk_owner_ref} |
+| Environment Owner Ref | ${evidence.owner_readiness.environment_owner_ref} |
+| Release Approval Ref | ${evidence.owner_readiness.release_approval_ref} |
+| Release Approval State | ${evidence.owner_readiness.release_approval_state} |
 | Release Approval | ${evidence.release_or_production_approved} |
 | Owner Decisions | ${evidence.owner_decisions.join("; ")} |
 
@@ -588,6 +657,14 @@ function normalizeExistingRuleState(value) {
   return allowed.has(normalized) ? normalized : "NEEDS_OWNER";
 }
 
+function releaseApprovalStateFor(value) {
+  const ref = String(value || "out_of_scope");
+  if (ref === "out_of_scope") return "out_of_scope";
+  if (ref === "pending") return "pending";
+  if (ref.startsWith("human-decision:")) return "human_decision_recorded";
+  return "invalid";
+}
+
 function sourceOutcomeFor(name, evidence, content) {
   if (evidence) {
     return String(
@@ -635,6 +712,27 @@ function artifactDigestOrEmpty(root, reference, provided) {
   if (explicit) return explicit;
   const resolved = resolveArtifact(root, reference);
   return resolved ? fileDigest(resolved) : "";
+}
+
+function runCompletionStrictCheck(root, resolved) {
+  const report = path.relative(root, resolved);
+  if (report.startsWith("..") || path.isAbsolute(report)) {
+    return { ok: false, reason: "Completion Evidence report is outside the target project." };
+  }
+  const checker = path.join(path.dirname(new URL(import.meta.url).pathname), "check-completion-evidence.mjs");
+  const result = spawnSync(process.execPath, [
+    checker,
+    root,
+    "--report",
+    report,
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+  ], { encoding: "utf8" });
+  return {
+    ok: result.status === 0,
+    reason: firstUsefulLine(result.stderr || result.stdout),
+  };
 }
 
 function writeOutputIfRequested(output) {
@@ -686,6 +784,13 @@ function digest(value) {
 
 function fileDigest(file) {
   return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
+}
+
+function firstUsefulLine(output) {
+  return String(output || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean) || "no output";
 }
 
 function slugify(value) {

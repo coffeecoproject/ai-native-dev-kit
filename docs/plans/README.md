@@ -10,6 +10,8 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Release Owner And Completion Set Binding 1.80.3](release-owner-completion-set-binding-1.80.3-plan.md)
+- [Existing Project Safe Adoption Autopilot 1.81](existing-project-safe-adoption-autopilot-1.81-plan.md)
 - [Completion Evidence Gate 1.78](completion-evidence-gate-1.78-plan.md)
 - [Test Evidence Installation And Schema Contract 1.77.2](test-evidence-installation-schema-contract-1.77.2-plan.md)
 - [Test Evidence Identity Hardening 1.77.1](test-evidence-identity-hardening-1.77.1-plan.md)

@@ -25,6 +25,8 @@
 - completion-evidence
 - platform-recipe
 - release-owner
+- risk-owner
+- environment-owner
 - runtime-smoke
 - rollback
 - release-handoff-pack
@@ -44,13 +46,25 @@
 | existing_release_rule | OPTIONAL | not provided | N/A | not provided |
 | human_decision | OPTIONAL | not provided | N/A | not provided |
 
+## Completion Evidence Set
+
+| Ref | Status | Task Ref | Strict Check | Current Release Match | Task In Release Scope |
+|---|---|---|---|---|---|
+| artifact:completion-evidence-reports/001-mini-program-completion.md | RECORDED | tasks/001-appointment-requests-must-include-a-service-time.md | PASS | Yes | Yes |
+
 ## Owner And Approval
 
 | Field | Value |
 |---|---|
 | Release Owner Identified | Yes |
+| Release Owner Ref | human:mini-program-release-owner |
+| Release Owner Review Ref | pending |
+| Risk Owner Ref | human:mini-program-risk-owner |
+| Environment Owner Ref | human:mini-program-env-owner |
+| Release Approval Ref | out_of_scope |
+| Release Approval State | out_of_scope |
 | Release Approval | No |
-| Owner Decisions | Identify the risk owner.; Identify the environment/config owner. |
+| Owner Decisions | No release approval is granted; handoff is for review only. |
 
 ## Environment Readiness
 
@@ -58,10 +72,10 @@
 |---|---|
 | Target Environment | production-like |
 | Config Owner | human:mini-program-env-owner |
-| Secrets Required | Unknown |
+| Secrets Required | No |
 | Secret Values Recorded | No |
-| DNS Or Callback Changes Required | Unknown |
-| Blocked By Environment Config | Yes |
+| DNS Or Callback Changes Required | No |
+| Blocked By Environment Config | No |
 
 ## Runtime And Rollback
 
@@ -118,7 +132,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare mini program review handoff",
   "intent_digest": "sha256:87bd161358b3bd4a7ef2fa40bee0d8d5892fc8155afd562439344616c5466d50",
-  "release_evidence_digest": "sha256:30999fe9985e80251c52cb9ea149b282f8a4e9a9cc89b6596d943d0528eaabe9",
+  "release_evidence_digest": "sha256:11733677967e1c12d49f4f5924a35604d947e626647062f5edbb6b3f0a06fa3b",
   "release_target": "mini_program_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-mini-program-review.md",
@@ -237,6 +251,8 @@
         "completion-evidence",
         "platform-recipe",
         "release-owner",
+        "risk-owner",
+        "environment-owner",
         "runtime-smoke",
         "rollback",
         "release-handoff-pack"
@@ -247,41 +263,66 @@
     "completion-evidence",
     "platform-recipe",
     "release-owner",
+    "risk-owner",
+    "environment-owner",
     "runtime-smoke",
     "rollback",
     "release-handoff-pack"
   ],
   "missing_evidence": [],
+  "completion_evidence_set": [
+    {
+      "ref": "artifact:completion-evidence-reports/001-mini-program-completion.md",
+      "status": "RECORDED",
+      "digest": "sha256:901989d8723ef333cf69511d9e61a2f2d2fb0f221634004e526317bbe4f5c5a5",
+      "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+      "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+      "completion_state": "COMPLETION_EVIDENCE_READY",
+      "can_claim_complete": "Yes",
+      "strict_check": "PASS",
+      "current_release_match": "Yes",
+      "task_ref_in_release_scope": "Yes",
+      "reason": "Completion Evidence resolves and strict checker passes."
+    }
+  ],
+  "owner_readiness": {
+    "release_owner_ref": "human:mini-program-release-owner",
+    "release_owner_review_ref": "pending",
+    "risk_owner_ref": "human:mini-program-risk-owner",
+    "environment_owner_ref": "human:mini-program-env-owner",
+    "release_approval_ref": "out_of_scope",
+    "release_approval_state": "out_of_scope",
+    "release_or_production_approved": "No"
+  },
   "owner_decisions": [
-    "Identify the risk owner.",
-    "Identify the environment/config owner."
+    "No release approval is granted; handoff is for review only."
   ],
   "runtime_readiness": {
     "runtime_smoke_ref": "artifact:evidence/runtime-smoke.txt",
-    "runtime_smoke_evidence_type": "missing",
-    "runtime_smoke_user_note_only": "No",
-    "runtime_smoke_digest": "sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc"
+    "runtime_smoke_digest": "sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc",
+    "runtime_smoke_evidence_type": "artifact",
+    "runtime_smoke_user_note_only": "No"
   },
   "rollback_readiness": {
     "rollback_ref": "artifact:evidence/rollback.md",
+    "rollback_digest": "sha256:9835ff4286f7206d41fc649d77f5a97d8f6f1c16b7f556993e214070919868ef",
     "rollback_window": "defined",
-    "blocked_by_missing_rollback": "No",
-    "rollback_digest": "sha256:9835ff4286f7206d41fc649d77f5a97d8f6f1c16b7f556993e214070919868ef"
+    "blocked_by_missing_rollback": "No"
   },
   "monitoring_readiness": {
     "monitoring_ref": "artifact:evidence/runtime-smoke.txt",
+    "monitoring_digest": "sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc",
     "incident_owner_ref": "human-decision:mini-program-owner",
     "support_handoff_ref": "missing",
-    "blocked_by_missing_monitoring": "No",
-    "monitoring_digest": "sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc"
+    "blocked_by_missing_monitoring": "No"
   },
   "environment_readiness": {
     "target_environment": "production-like",
     "config_owner": "human:mini-program-env-owner",
-    "secrets_required": "Unknown",
+    "secrets_required": "No",
     "secrets_values_recorded": "No",
-    "dns_or_callback_changes_required": "Unknown",
-    "blocked_by_environment_config": "Yes"
+    "dns_or_callback_changes_required": "No",
+    "blocked_by_environment_config": "No"
   },
   "data_migration_readiness": {
     "migration_required": "No",

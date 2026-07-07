@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.80.2",
+  "intentOSVersion": "1.80.3",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.80.2"
+    "phase": "1.80.3"
   },
   "groups": {
     "sourceRequired": [
@@ -316,6 +316,7 @@
       "docs/plans/execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md",
       "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
       "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
+      "docs/plans/existing-project-safe-adoption-autopilot-1.81-plan.md",
       "docs/plans/existing-project-governance-convergence-1.70-plan.md",
       "docs/plans/existing-project-native-adoption-decision-1.69-plan.md",
       "docs/plans/existing-project-native-adoption-evidence-hardening-1.69.1-plan.md",
@@ -348,6 +349,7 @@
       "docs/plans/release-core-model-consolidation-1.67-plan.md",
       "docs/plans/release-evidence-gate-1.80-plan.md",
       "docs/plans/release-execution-protocol-1.56-plan.md",
+      "docs/plans/release-owner-completion-set-binding-1.80.3-plan.md",
       "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
       "docs/plans/release-path-consolidation-1.58-plan.md",
       "docs/plans/release-path-hardening-1.61-plan.md",
@@ -762,6 +764,7 @@
       "examples/1.80-release-evidence-gate/web-preview-handoff/tasks/001-appointment-requests-must-include-a-service-time.md",
       "examples/1.80-release-evidence-gate/web-preview-handoff/test-evidence-reports/001-service-time.md",
       "examples/1.80-release-evidence-gate/web-preview-handoff/verification-plans/001-service-time.md",
+      "examples/1.80-release-evidence-gate/web-preview-handoff/completion-evidence-reports/002-web-preview-completion.md",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
@@ -1548,6 +1551,9 @@
       "releases/1.80.2/known-limitations.md",
       "releases/1.80.2/release-record.md",
       "releases/1.80.2/self-check-report.md",
+      "releases/1.80.3/known-limitations.md",
+      "releases/1.80.3/release-record.md",
+      "releases/1.80.3/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -2394,8 +2400,11 @@
       "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/evidence/preview-build.txt",
       "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/evidence/runtime-smoke.txt",
       "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-approval-ref-implies-release-approved/release-evidence-gate-reports/001-web-preview.md",
+      "test-fixtures/bad/bad-release-evidence-completion-task-not-in-release-scope/release-evidence-gate-reports/001-web-preview.md",
       "test-fixtures/bad/bad-release-evidence-missing-rollback-production/release-evidence-gate-reports/001-bad.md",
       "test-fixtures/bad/bad-release-evidence-no-release-owner/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-production-without-risk-owner-ref/release-evidence-gate-reports/001-mini-program-review.md",
       "test-fixtures/bad/bad-release-evidence-release-approved-claim/release-evidence-gate-reports/001-bad.md",
       "test-fixtures/bad/bad-release-evidence-runtime-smoke-unresolved/completion-evidence-reports/001-web-preview-completion.md",
       "test-fixtures/bad/bad-release-evidence-runtime-smoke-unresolved/evidence/preview-build.txt",
@@ -2404,6 +2413,7 @@
       "test-fixtures/bad/bad-release-evidence-source-digest-mismatch/evidence/preview-build.txt",
       "test-fixtures/bad/bad-release-evidence-source-digest-mismatch/evidence/runtime-smoke.txt",
       "test-fixtures/bad/bad-release-evidence-source-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-second-completion-unchecked/release-evidence-gate-reports/001-web-preview.md",
       "test-fixtures/bad/bad-release-evidence-user-note-treated-as-smoke/release-evidence-gate-reports/001-bad.md",
       "test-fixtures/bad/bad-release-execution-assisted-without-approval/release-execution-plans/001-bad.md",
       "test-fixtures/bad/bad-release-execution-auto-production-deploy/release-execution-plans/001-bad.md",

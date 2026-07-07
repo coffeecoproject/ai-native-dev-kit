@@ -69,7 +69,7 @@ This report is a read-only completion gate. It does not run tests, write target 
   "intent": "appointment requests must include a service time",
   "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
   "completion_evidence_ref": "artifact:completion-evidence-reports/001-web-preview-completion.md",
-  "completion_gate_digest": "sha256:896bc92ea04df8ca3471981afaf0763a48f0305879e382e2038b4b46ad02757a",
+  "completion_gate_digest": "sha256:a8b3cd6794cafc845ceffaebd04f5fc3706db123077a1cd469e510246b00bcd0",
   "completion_state": "COMPLETION_EVIDENCE_READY",
   "can_claim_complete": "Yes",
   "source_chain": [
@@ -102,7 +102,7 @@ This report is a read-only completion gate. It does not run tests, write target 
       "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
       "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
       "source_outcome": "TEST_EVIDENCE_COMPLETE",
-      "digest": "sha256:ba285ca4ea5d54d849f231f12dad133778d5139705a9cccf62c35196382b11b8",
+      "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "ready": "Yes",
       "reason": "Source artifact is recorded and in a completion-ready state."
     },

@@ -48,11 +48,23 @@
 | existing_release_rule | OPTIONAL | not provided | N/A | not provided |
 | human_decision | OPTIONAL | not provided | N/A | not provided |
 
+## Completion Evidence Set
+
+| Ref | Status | Task Ref | Strict Check | Current Release Match | Task In Release Scope |
+|---|---|---|---|---|---|
+| artifact:completion-evidence-reports/001-admin-completion.md | RECORDED | tasks/001-admin-release.md | FAIL | Yes | Yes |
+
 ## Owner And Approval
 
 | Field | Value |
 |---|---|
 | Release Owner Identified | No |
+| Release Owner Ref | missing |
+| Release Owner Review Ref | missing |
+| Risk Owner Ref | missing |
+| Environment Owner Ref | missing |
+| Release Approval Ref | out_of_scope |
+| Release Approval State | out_of_scope |
 | Release Approval | No |
 | Owner Decisions | Identify the human release owner.; Identify the risk owner.; Identify the environment/config owner.; Confirm whether data migration is required. |
 
@@ -132,7 +144,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare admin production review",
   "intent_digest": "sha256:9a562836fd0fd0d8bd31756bb3f6f337d83ee24116f1fc7951e5917353e04b2a",
-  "release_evidence_digest": "sha256:2136d9ddf69a3932e15ea7825770788f66e033d5a8c70b23432ab73dd07336fa",
+  "release_evidence_digest": "sha256:860318e2c9a89a46318f1a162c630deb562e121b3de5958eb27c559a89056794",
   "release_target": "production_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-admin-production.md",
@@ -286,6 +298,30 @@
     "clean-source-revision",
     "known-source-revision"
   ],
+  "completion_evidence_set": [
+    {
+      "ref": "artifact:completion-evidence-reports/001-admin-completion.md",
+      "status": "RECORDED",
+      "digest": "sha256:a1e4d063204e1188abba647037bb2190f0046de7755e656789972c405da87a37",
+      "task_ref": "tasks/001-admin-release.md",
+      "intent_digest": "sha256:placeholder",
+      "completion_state": "COMPLETION_EVIDENCE_READY",
+      "can_claim_complete": "Yes",
+      "strict_check": "FAIL",
+      "current_release_match": "Yes",
+      "task_ref_in_release_scope": "Yes",
+      "reason": "Completion Evidence strict checker failed: # Completion Evidence Gate Check"
+    }
+  ],
+  "owner_readiness": {
+    "release_owner_ref": "missing",
+    "release_owner_review_ref": "missing",
+    "risk_owner_ref": "missing",
+    "environment_owner_ref": "missing",
+    "release_approval_ref": "out_of_scope",
+    "release_approval_state": "out_of_scope",
+    "release_or_production_approved": "No"
+  },
   "owner_decisions": [
     "Identify the human release owner.",
     "Identify the risk owner.",
@@ -294,22 +330,22 @@
   ],
   "runtime_readiness": {
     "runtime_smoke_ref": "missing",
+    "runtime_smoke_digest": "",
     "runtime_smoke_evidence_type": "missing",
-    "runtime_smoke_user_note_only": "No",
-    "runtime_smoke_digest": ""
+    "runtime_smoke_user_note_only": "No"
   },
   "rollback_readiness": {
     "rollback_ref": "missing",
+    "rollback_digest": "",
     "rollback_window": "missing",
-    "blocked_by_missing_rollback": "Yes",
-    "rollback_digest": ""
+    "blocked_by_missing_rollback": "Yes"
   },
   "monitoring_readiness": {
     "monitoring_ref": "missing",
+    "monitoring_digest": "",
     "incident_owner_ref": "missing",
     "support_handoff_ref": "missing",
-    "blocked_by_missing_monitoring": "Yes",
-    "monitoring_digest": ""
+    "blocked_by_missing_monitoring": "Yes"
   },
   "environment_readiness": {
     "target_environment": "production-like",

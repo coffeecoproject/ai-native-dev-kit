@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.80.2`。
+当前版本：`1.80.3`。
 
-发布记录：[releases/1.80.2/release-record.md](releases/1.80.2/release-record.md)。
+发布记录：[releases/1.80.3/release-record.md](releases/1.80.3/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -40,6 +40,8 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.80.3 加严 Release Evidence Gate 的 owner 和 completion 绑定：一个 release candidate 如果包含多份 Completion Evidence，严格检查会逐份校验，确认每份 completion 的 task 都属于本次 release scope，并要求 release/risk/environment owner readiness 和非授权 approval ref 都进入结构化证据。它仍然不批准发布、不部署生产、不提交应用商店或小程序审核、不执行迁移、不记录密钥、不改 DNS/支付/CI，也不证明真实用户稳定可用。
 
 1.80.2 收口 Release Evidence Gate 精度缺口：runtime smoke、rollback、monitoring 证据现在都有 digest 字段，严格检查会从真实 artifact 重新计算；Release Evidence 报告也会检查关键 Markdown 表格和机器 JSON 是否一致。README 能力表也把 Release Evidence Gate 作为一等能力列出。它仍然不批准发布、不部署生产、不提交应用商店或小程序审核、不执行迁移、不记录密钥、不改 DNS/支付/CI，也不证明真实用户稳定可用。
 

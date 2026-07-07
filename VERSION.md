@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.80.2`
+Current version: `1.80.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.80.2`
 
 ## Current Release
 
-`1.80.2`
+`1.80.3`
 
 Includes:
+
+- Release Owner And Completion Set Binding patch `1.80.3`: strict Release
+  Evidence Gate checks now validate every included Completion Evidence ref,
+  bind each completion task back to `release_scope.included_task_refs`, and
+  require structured owner readiness for release owner, risk owner,
+  environment owner, and non-authorizing release approval refs.
+- `1.80.3` remains a review-evidence gate. It does not approve release, deploy,
+  submit app-store or mini-program review, execute migrations, record secrets,
+  change DNS/payment/CI, or prove real-user stability.
 
 - Release Evidence Gate Runtime Digest and Markdown/JSON Consistency patch
   `1.80.2`: strict release evidence checks now require runtime smoke,

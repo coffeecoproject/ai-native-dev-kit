@@ -1,0 +1,220 @@
+# Completion Evidence Gate Report
+
+This report is a read-only completion gate. It does not run tests, write target files, approve commits, or approve release.
+
+## Human Summary
+
+| Field | Value |
+|---|---|
+| Completion State | `COMPLETION_EVIDENCE_READY` |
+| Can Claim Complete | `Yes` |
+| Safe Next Step | Prepare a final response with evidence summary; do not claim release or production approval. |
+
+## User Request
+
+- Request: appointment requests must include a service time
+- Task ref: `tasks/001-appointment-requests-must-include-a-service-time.md`
+
+## Completion Evidence Gate
+
+| Check | Status | Source | Expected | Actual | Reason |
+|---|---|---|---|---|---|
+| `check:business_rule_closure` | `PASS` | `business_rule_closure` | Business Rule Closure is READY_FOR_IMPACT_COVERAGE. | `READY_FOR_IMPACT_COVERAGE` | Required source is ready. |
+| `check:verification_plan` | `PASS` | `verification_plan` | Verification Plan is VERIFICATION_PLAN_READY. | `VERIFICATION_PLAN_READY` | Required source is ready. |
+| `check:test_evidence` | `PASS` | `test_evidence` | Test Evidence is TEST_EVIDENCE_COMPLETE. | `TEST_EVIDENCE_COMPLETE` | Required source is ready. |
+| `check:execution_assurance` | `PASS` | `execution_assurance` | Execution Assurance is VERIFIED_DONE and can_claim_done is Yes. | `VERIFIED_DONE` | Required source is ready. |
+| `check:task-consistency` | `PASS` | `source_chain` | All recorded source artifacts bind to the current task. | `Yes` | All recorded source artifacts reference the same task. |
+| `check:source-digest-consistency` | `PASS` | `source_chain` | All recorded source artifacts include a source identity digest. | `Yes` | All recorded source artifact digests match referenced evidence. |
+| `check:intent-consistency` | `PASS` | `source_chain` | Recorded source artifacts expose current intent digest when available. | `Yes` | Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance match the completion intent digest. |
+| `check:source-chain-binding` | `PASS` | `source_chain` | BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs and digests match. | `Yes` | BRC, Verification Plan, Test Evidence, and Execution Assurance form one bound source chain. |
+
+## Source Chain
+
+| Source | Status | Ref | Task Ref | Intent Digest | Outcome | Ready | Digest | Reason |
+|---|---|---|---|---|---|---|---|---|
+| `business_rule_closure` | `RECORDED` | `artifact:business-rule-closures/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `READY_FOR_IMPACT_COVERAGE` | `Yes` | `sha256:5fe1a693331004af176d194d2b8b1e3e8fad84250401b526d3eff9e42f29874e` | Source artifact is recorded and in a completion-ready state. |
+| `verification_plan` | `RECORDED` | `artifact:verification-plans/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `VERIFICATION_PLAN_READY` | `Yes` | `sha256:417e7eba332b2d5b4e987a5472095c2bb069e6de0e781a0231398130337acc79` | Source artifact is recorded and in a completion-ready state. |
+| `test_evidence` | `RECORDED` | `artifact:test-evidence-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `TEST_EVIDENCE_COMPLETE` | `Yes` | `sha256:ba285ca4ea5d54d849f231f12dad133778d5139705a9cccf62c35196382b11b8` | Source artifact is recorded and in a completion-ready state. |
+| `execution_assurance` | `RECORDED` | `artifact:execution-assurance-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28` | `VERIFIED_DONE` | `Yes` | `sha256:6f53cb666c2ef7c37980e601eba0d2af8ed69cb1450870d14ab87bff3c881560` | Source artifact is recorded and in a completion-ready state. |
+
+## Task Consistency
+
+- Expected task ref: `tasks/001-appointment-requests-must-include-a-service-time.md`
+- All sources same task: `Yes`
+- Reason: All recorded source artifacts reference the same task.
+
+## Missing Or Blocking Items
+
+- None.
+
+## Boundaries
+
+- This report writes target files: No
+- This report runs tests: No
+- This report fabricates evidence: No
+- This report authorizes implementation: No
+- This report approves commit or push: No
+- This report approves release or production: No
+- This report proves product correctness: No
+- This report proves real-environment behavior: No
+- This report replaces source systems: No
+
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.78.0",
+  "artifact_type": "completion_evidence_gate",
+  "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+  "intent": "appointment requests must include a service time",
+  "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+  "completion_evidence_ref": "artifact:completion-evidence-reports/001-mini-program-completion.md",
+  "completion_gate_digest": "sha256:fe8836beedce192b8f2b90665b79871f68aec3dc7c30b21b45805f2f62aef9b5",
+  "completion_state": "COMPLETION_EVIDENCE_READY",
+  "can_claim_complete": "Yes",
+  "source_chain": [
+    {
+      "name": "business_rule_closure",
+      "status": "RECORDED",
+      "ref": "artifact:business-rule-closures/001-service-time.md",
+      "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+      "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+      "source_outcome": "READY_FOR_IMPACT_COVERAGE",
+      "digest": "sha256:5fe1a693331004af176d194d2b8b1e3e8fad84250401b526d3eff9e42f29874e",
+      "ready": "Yes",
+      "reason": "Source artifact is recorded and in a completion-ready state."
+    },
+    {
+      "name": "verification_plan",
+      "status": "RECORDED",
+      "ref": "artifact:verification-plans/001-service-time.md",
+      "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+      "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+      "source_outcome": "VERIFICATION_PLAN_READY",
+      "digest": "sha256:417e7eba332b2d5b4e987a5472095c2bb069e6de0e781a0231398130337acc79",
+      "ready": "Yes",
+      "reason": "Source artifact is recorded and in a completion-ready state."
+    },
+    {
+      "name": "test_evidence",
+      "status": "RECORDED",
+      "ref": "artifact:test-evidence-reports/001-service-time.md",
+      "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+      "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+      "source_outcome": "TEST_EVIDENCE_COMPLETE",
+      "digest": "sha256:ba285ca4ea5d54d849f231f12dad133778d5139705a9cccf62c35196382b11b8",
+      "ready": "Yes",
+      "reason": "Source artifact is recorded and in a completion-ready state."
+    },
+    {
+      "name": "execution_assurance",
+      "status": "RECORDED",
+      "ref": "artifact:execution-assurance-reports/001-service-time.md",
+      "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+      "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+      "source_outcome": "VERIFIED_DONE",
+      "digest": "sha256:6f53cb666c2ef7c37980e601eba0d2af8ed69cb1450870d14ab87bff3c881560",
+      "ready": "Yes",
+      "reason": "Source artifact is recorded and in a completion-ready state."
+    }
+  ],
+  "gate_checks": [
+    {
+      "id": "check:business_rule_closure",
+      "status": "PASS",
+      "source": "business_rule_closure",
+      "expected": "Business Rule Closure is READY_FOR_IMPACT_COVERAGE.",
+      "actual": "READY_FOR_IMPACT_COVERAGE",
+      "reason": "Required source is ready."
+    },
+    {
+      "id": "check:verification_plan",
+      "status": "PASS",
+      "source": "verification_plan",
+      "expected": "Verification Plan is VERIFICATION_PLAN_READY.",
+      "actual": "VERIFICATION_PLAN_READY",
+      "reason": "Required source is ready."
+    },
+    {
+      "id": "check:test_evidence",
+      "status": "PASS",
+      "source": "test_evidence",
+      "expected": "Test Evidence is TEST_EVIDENCE_COMPLETE.",
+      "actual": "TEST_EVIDENCE_COMPLETE",
+      "reason": "Required source is ready."
+    },
+    {
+      "id": "check:execution_assurance",
+      "status": "PASS",
+      "source": "execution_assurance",
+      "expected": "Execution Assurance is VERIFIED_DONE and can_claim_done is Yes.",
+      "actual": "VERIFIED_DONE",
+      "reason": "Required source is ready."
+    },
+    {
+      "id": "check:task-consistency",
+      "status": "PASS",
+      "source": "source_chain",
+      "expected": "All recorded source artifacts bind to the current task.",
+      "actual": "Yes",
+      "reason": "All recorded source artifacts reference the same task."
+    },
+    {
+      "id": "check:source-digest-consistency",
+      "status": "PASS",
+      "source": "source_chain",
+      "expected": "All recorded source artifacts include a source identity digest.",
+      "actual": "Yes",
+      "reason": "All recorded source artifact digests match referenced evidence."
+    },
+    {
+      "id": "check:intent-consistency",
+      "status": "PASS",
+      "source": "source_chain",
+      "expected": "Recorded source artifacts expose current intent digest when available.",
+      "actual": "Yes",
+      "reason": "Business Rule Closure, Verification Plan, Test Evidence, and Execution Assurance match the completion intent digest."
+    },
+    {
+      "id": "check:source-chain-binding",
+      "status": "PASS",
+      "source": "source_chain",
+      "expected": "BRC -> Verification Plan -> Test Evidence -> Execution Assurance refs and digests match.",
+      "actual": "Yes",
+      "reason": "BRC, Verification Plan, Test Evidence, and Execution Assurance form one bound source chain."
+    }
+  ],
+  "task_consistency": {
+    "expected_task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+    "recorded_task_refs": [
+      "business_rule_closure:tasks/001-appointment-requests-must-include-a-service-time.md",
+      "verification_plan:tasks/001-appointment-requests-must-include-a-service-time.md",
+      "test_evidence:tasks/001-appointment-requests-must-include-a-service-time.md",
+      "execution_assurance:tasks/001-appointment-requests-must-include-a-service-time.md"
+    ],
+    "all_sources_same_task": "Yes",
+    "reason": "All recorded source artifacts reference the same task."
+  },
+  "missing_or_blocking_items": [],
+  "boundary": {
+    "writes_target_files": "No",
+    "runs_tests": "No",
+    "fabricates_evidence": "No",
+    "authorizes_implementation": "No",
+    "approves_commit_or_push": "No",
+    "approves_release_or_production": "No",
+    "proves_product_correctness": "No",
+    "proves_real_environment_behavior": "No",
+    "replaces_source_systems": "No"
+  },
+  "next_step": "Prepare a final response with evidence summary; do not claim release or production approval."
+}
+```
+
+## Outcome
+
+`COMPLETION_EVIDENCE_READY`
+
+## Next Step
+
+Prepare a final response with evidence summary; do not claim release or production approval.

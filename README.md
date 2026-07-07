@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.80.2`.
+Current release: `1.80.3`.
 
-Release record: [releases/1.80.2/release-record.md](releases/1.80.2/release-record.md).
+Release record: [releases/1.80.3/release-record.md](releases/1.80.3/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -40,6 +40,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.80.3 tightens Release Evidence Gate owner and completion binding: when one release candidate includes multiple Completion Evidence reports, strict checks now validate every included report, bind each completion task back to release scope, and require structured release/risk/environment owner readiness plus non-authorizing approval refs. It still does not approve release, deploy production, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 
 1.80.2 closes Release Evidence Gate precision gaps: runtime smoke, rollback, and monitoring evidence now carry digest fields and strict checks recompute them from resolved artifacts; Release Evidence reports also cross-check key Markdown tables against machine-readable JSON. The README capability table now exposes Release Evidence Gate as a first-class capability. It still does not approve release, deploy production, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 

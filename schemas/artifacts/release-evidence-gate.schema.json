@@ -19,6 +19,8 @@
     "release_target_requirements",
     "required_evidence",
     "missing_evidence",
+    "completion_evidence_set",
+    "owner_readiness",
     "owner_decisions",
     "runtime_readiness",
     "rollback_readiness",
@@ -148,6 +150,61 @@
     "missing_evidence": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "completion_evidence_set": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "status",
+          "digest",
+          "task_ref",
+          "intent_digest",
+          "completion_state",
+          "can_claim_complete",
+          "strict_check",
+          "current_release_match",
+          "task_ref_in_release_scope",
+          "reason"
+        ],
+        "properties": {
+          "ref": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["RECORDED", "UNRESOLVED", "INVALID"] },
+          "digest": { "type": "string" },
+          "task_ref": { "type": "string" },
+          "intent_digest": { "type": "string" },
+          "completion_state": { "type": "string" },
+          "can_claim_complete": { "enum": ["Yes", "No"] },
+          "strict_check": { "enum": ["PASS", "FAIL"] },
+          "current_release_match": { "enum": ["Yes", "No", "Unknown"] },
+          "task_ref_in_release_scope": { "enum": ["Yes", "No", "Unknown"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "owner_readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_owner_ref",
+        "release_owner_review_ref",
+        "risk_owner_ref",
+        "environment_owner_ref",
+        "release_approval_ref",
+        "release_approval_state",
+        "release_or_production_approved"
+      ],
+      "properties": {
+        "release_owner_ref": { "type": "string" },
+        "release_owner_review_ref": { "type": "string" },
+        "risk_owner_ref": { "type": "string" },
+        "environment_owner_ref": { "type": "string" },
+        "release_approval_ref": { "type": "string" },
+        "release_approval_state": { "enum": ["out_of_scope", "pending", "human_decision_recorded", "invalid"] },
+        "release_or_production_approved": { "const": "No" }
+      }
     },
     "owner_decisions": {
       "type": "array",

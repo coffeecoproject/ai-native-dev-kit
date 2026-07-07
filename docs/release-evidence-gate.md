@@ -21,13 +21,19 @@ Can this go live now?
 - Which release target is intended: preview, internal trial, staging,
   production review, app-store review, or mini-program review.
 - Whether Completion Evidence exists for the included work.
+- Whether every included Completion Evidence ref is represented in the
+  Completion Evidence set and, for ready/strict reports, passes strict
+  Completion Evidence checks.
 - Whether runtime smoke, rollback, monitoring, owner, platform recipe, and
   handoff evidence are present for the target.
+- Whether release owner, risk owner, environment owner, and release approval
+  status are recorded as structured owner readiness fields.
 - Whether required runtime smoke, rollback, monitoring, build, platform recipe,
   and handoff refs resolve to artifacts with matching digests.
 - Whether the human-readable Markdown tables match the machine-readable JSON
-  evidence for the release scope, source chain, runtime, rollback, monitoring,
-  environment, migration, cost, and missing evidence.
+  evidence for the release scope, source chain, Completion Evidence set, owner
+  readiness, runtime, rollback, monitoring, environment, migration, cost, and
+  missing evidence.
 - Whether existing project release SOPs are mapped rather than downgraded.
 - Whether any field incorrectly claims release approval or deployment authority.
 

@@ -33,11 +33,23 @@
 |---|---|---|---|---|
 | completion_evidence | NOT_PROVIDED | not provided | N/A | not provided |
 
+## Completion Evidence Set
+
+| Ref | Status | Task Ref | Strict Check | Current Release Match | Task In Release Scope |
+|---|---|---|---|---|---|
+| not provided | UNRESOLVED | not provided | FAIL | Unknown | Unknown |
+
 ## Owner And Approval
 
 | Field | Value |
 |---|---|
 | Release Owner Identified | No |
+| Release Owner Ref | missing |
+| Release Owner Review Ref | missing |
+| Risk Owner Ref | not_applicable |
+| Environment Owner Ref | not_applicable |
+| Release Approval Ref | out_of_scope |
+| Release Approval State | out_of_scope |
 | Release Approval | No |
 | Owner Decisions | Identify the human release owner. |
 
@@ -135,6 +147,16 @@
   ],
   "required_evidence": ["completion-evidence", "build-or-preview-evidence", "runtime-smoke", "release-owner"],
   "missing_evidence": ["completion-evidence", "build-or-preview-evidence", "runtime-smoke", "release-owner"],
+  "completion_evidence_set": [],
+  "owner_readiness": {
+    "release_owner_ref": "missing",
+    "release_owner_review_ref": "missing",
+    "risk_owner_ref": "not_applicable",
+    "environment_owner_ref": "not_applicable",
+    "release_approval_ref": "out_of_scope",
+    "release_approval_state": "out_of_scope",
+    "release_or_production_approved": "No"
+  },
   "owner_decisions": ["Identify the human release owner."],
   "runtime_readiness": {
     "runtime_smoke_ref": "missing",
