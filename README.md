@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.79.3`.
+Current release: `1.79.4`.
 
-Release record: [releases/1.79.3/release-record.md](releases/1.79.3/release-record.md).
+Release record: [releases/1.79.4/release-record.md](releases/1.79.4/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -40,6 +40,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.79.4 calibrates User Delivery Console source signals to the current request: Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence, and Execution Assurance are shown as current-task evidence only when they match the current `--intent`; other-task records stay visible in trace but do not make the user-facing task status say Yes. It also adds the 1.80 Release Evidence Gate plan. It still does not write project files, approve implementation, approve commit/push, approve release/production, or prove real-user stability.
 
 1.79.3 keeps User Delivery Console verification notes separate from formal Test Evidence: `--verification` free text is shown as a user note, but it no longer makes "test/check evidence recorded" show as yes unless a real `test-evidence-reports/` artifact exists. It also records `git diff --check` in release evidence. It still does not write project files, approve implementation, approve commit/push, approve release/production, or prove real-user stability.
 

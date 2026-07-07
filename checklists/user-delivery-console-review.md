@@ -17,4 +17,7 @@
 - Final task completion is not claimed unless lower-level completion evidence
   exists, passes strict Completion Evidence checks, and matches the current
   request intent.
+- Intermediate source signals do not count other-task Business Rule Closure,
+  Change Impact Coverage, Verification Plan, Test Evidence, or Execution
+  Assurance as current-task evidence.
 - User-facing sections use plain-language states instead of raw internal enums.

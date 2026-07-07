@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.79.3",
+  "intentOSVersion": "1.79.4",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.79.3"
+    "phase": "1.79.4"
   },
   "groups": {
     "sourceRequired": [
@@ -354,6 +354,8 @@
       "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
       "docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md",
       "docs/plans/user-delivery-console-verification-note-1.79.3-plan.md",
+      "docs/plans/user-delivery-console-source-signal-calibration-1.79.4-plan.md",
+      "docs/plans/release-evidence-gate-1.80-plan.md",
       "docs/plans/verification-test-governance-1.76-plan.md",
       "docs/platform-release-recipes.md",
       "docs/platform-standard-baseline-packs.md",
@@ -1481,6 +1483,9 @@
       "releases/1.79.3/known-limitations.md",
       "releases/1.79.3/release-record.md",
       "releases/1.79.3/self-check-report.md",
+      "releases/1.79.4/known-limitations.md",
+      "releases/1.79.4/release-record.md",
+      "releases/1.79.4/self-check-report.md",
       "releases/1.8.0/known-limitations.md",
       "releases/1.8.0/release-record.md",
       "releases/1.8.0/self-check-report.md",

@@ -46,18 +46,19 @@ function buildCard(root) {
   const files = exists ? listFiles(root) : [];
   const counts = reportCounts(root);
   const risk = exists ? analyzeRiskSurfaces({ intent, projectRoot: root, includeProjectSignals: true }) : { high: false, surfaces: [], reasons: [] };
+  const sourceSignals = sourceSignalStatus(root, intent);
   const completionEvidence = completionEvidenceStatus(root, intent);
   const completionReady = completionEvidence.ready;
   const launchReviewReady = reportHas(root, "launch-review-views", /READY_FOR_RELEASE_REVIEW|READY_FOR_INTERNAL_TRIAL/i)
     || reportHas(root, "release-plans", /READY_FOR_(PREVIEW|STAGING|PRODUCTION|LOCAL)_HANDOFF|READY_FOR_HANDOFF_REVIEW/i);
   const hasFirstVersion = counts["ordinary-first-slices"] > 0 || counts["beginner-entry-cards"] > 0 || files.some((item) => /(^src\/|^app\/|^pages\/|^index\.html$|^package\.json$)/.test(item));
-  const hasNeedClarity = counts["business-rule-closures"] > 0 || counts["ordinary-first-slices"] > 0 || counts["beginner-entry-cards"] > 0;
-  const hasSurfaceCheck = counts["change-impact-coverage-reports"] > 0;
-  const hasVerificationPlan = counts["verification-plans"] > 0;
-  const hasTestEvidence = counts["test-evidence-reports"] > 0;
+  const hasNeedClarity = sourceSignals.businessRuleClosure.currentCount > 0 || counts["ordinary-first-slices"] > 0 || counts["beginner-entry-cards"] > 0;
+  const hasSurfaceCheck = sourceSignals.changeImpactCoverage.currentCount > 0;
+  const hasVerificationPlan = sourceSignals.verificationPlan.currentCount > 0;
+  const hasTestEvidence = sourceSignals.testEvidence.currentCount > 0;
   const hasUserVerificationNote = Boolean(verification);
   const userVerificationNoteStatus = verificationStatus(verification);
-  const hasExecutionProof = counts["execution-assurance-reports"] > 0;
+  const hasExecutionProof = sourceSignals.executionAssurance.currentCount > 0;
   const state = classifyState({
     exists,
     git,
@@ -83,6 +84,7 @@ function buildCard(root) {
     hasExecutionProof,
     completionReady,
     completionEvidence,
+    sourceSignals,
     launchReviewReady,
     risk,
     exists,
@@ -92,7 +94,7 @@ function buildCard(root) {
 
   return {
     reportType: "USER_DELIVERY_CONSOLE_CARD",
-    schemaVersion: "1.79.3",
+    schemaVersion: "1.79.4",
     generatedBy: "scripts/resolve-user-delivery-console.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -138,6 +140,7 @@ function buildCard(root) {
     safeNextActions: safeActions,
     humanDecisions: decisions,
     technicalTrace: technicalTraceRows(counts, {
+      sourceSignals,
       completionReady,
       launchReviewReady,
       hasFirstVersion,
@@ -150,6 +153,7 @@ function buildCard(root) {
       hasExecutionProof,
       completionEvidence,
     }),
+    sourceSignals: sourceSignalSummary(sourceSignals),
     boundaries: {
       writesTargetFiles: "No",
       authorizesApply: "No",
@@ -189,10 +193,16 @@ function firstVersionFor(userIntent, hasFirstVersion) {
   return "Not defined yet.";
 }
 
+function hasOtherSourceRecords(signals) {
+  if (!signals) return false;
+  return Object.values(signals).some((signal) => signal.intentBound && signal.currentCount === 0 && signal.otherCount > 0);
+}
+
 function missingItemsFor(stateValue, input) {
   if (!input.exists) return ["Confirm the project path."];
   const missing = [];
   if (!input.hasNeedClarity) missing.push("Confirm what the first useful version should do.");
+  if (hasOtherSourceRecords(input.sourceSignals)) missing.push("Create or select source evidence that matches the current request.");
   if (!input.hasSurfaceCheck) missing.push("Check all affected areas before saying the task is complete.");
   if (!input.hasVerificationPlan) missing.push("Prepare a check plan for the current task.");
   if (!input.hasTestEvidence) missing.push("Record actual check evidence for the current task.");
@@ -234,17 +244,32 @@ function humanDecisionsFor(stateValue, risk, missing) {
 }
 
 function technicalTraceRows(counts, input) {
+  const signals = input.sourceSignals;
   return [
     ["First Slice / Beginner Entry", input.hasFirstVersion ? "RECORDED" : "MISSING", `${counts["ordinary-first-slices"] + counts["beginner-entry-cards"]} first-version artifact(s) found`, "Source system only"],
-    ["Business Rule Closure", input.hasNeedClarity ? "RECORDED" : "MISSING", `${counts["business-rule-closures"]} rule-clarity artifact(s) found`, "Source system only"],
-    ["Change Impact Coverage", input.hasSurfaceCheck ? "RECORDED" : "MISSING", `${counts["change-impact-coverage-reports"]} affected-surface report(s) found`, "Source system only"],
-    ["Verification Plan", input.hasVerificationPlan ? "RECORDED" : "MISSING", `${counts["verification-plans"]} verification plan(s) found`, "Source system only"],
-    ["Test Evidence", input.hasTestEvidence ? "RECORDED" : "MISSING", `${counts["test-evidence-reports"]} test evidence report(s) found`, "Source system only"],
+    signalTraceRow("Business Rule Closure", signals.businessRuleClosure, "rule-clarity artifact"),
+    signalTraceRow("Change Impact Coverage", signals.changeImpactCoverage, "affected-surface report"),
+    signalTraceRow("Verification Plan", signals.verificationPlan, "verification plan"),
+    signalTraceRow("Test Evidence", signals.testEvidence, "test evidence report"),
     ["User Verification Note", input.hasUserVerificationNote ? "PROVIDED" : "MISSING", input.hasUserVerificationNote ? `User note status: ${input.userVerificationNoteStatus}` : "No --verification note provided", "User note only; not Test Evidence"],
-    ["Execution Assurance", input.hasExecutionProof ? "RECORDED" : "MISSING", `${counts["execution-assurance-reports"]} execution proof report(s) found`, "Source system only"],
+    signalTraceRow("Execution Assurance", signals.executionAssurance, "execution proof report"),
     ["Completion Evidence", input.completionReady ? "READY" : input.completionEvidence.status, input.completionEvidence.detail, "Source system only"],
     ["Launch / Release View", input.launchReviewReady ? "RECORDED" : "MISSING", `${counts["launch-review-views"]} launch view(s), ${counts["release-plans"]} release plan(s) found`, "Source system only"],
   ];
+}
+
+function signalTraceRow(label, signal, noun) {
+  const plural = signal.total === 1 ? noun : `${noun}s`;
+  if (!signal.intentBound) {
+    return [label, signal.currentCount > 0 ? "RECORDED" : "MISSING", `${signal.total} ${plural} found`, "Project-level signal; provide --intent for current-task matching"];
+  }
+  if (signal.currentCount > 0) {
+    return [label, "RECORDED", `${signal.currentCount} current-task ${plural}; ${signal.otherCount} other-task record(s)`, "Current intent match"];
+  }
+  if (signal.otherCount > 0) {
+    return [label, "OTHER_TASK_ONLY", `0 current-task ${plural}; ${signal.otherCount} other-task record(s)`, "Not current-task evidence"];
+  }
+  return [label, "MISSING", `0 current-task ${plural} found`, "Source system only"];
 }
 
 function conclusionFor(stateValue) {
@@ -335,6 +360,94 @@ function reportCounts(root) {
 
 function reportHas(root, dir, pattern) {
   return markdownFiles(root, dir).some((file) => pattern.test(safeRead(file)));
+}
+
+function sourceSignalStatus(root, userIntent) {
+  const expectedIntentDigest = userIntent ? digest(userIntent) : "";
+  const businessRuleClosure = sourceSignal(root, "business-rule-closures", expectedIntentDigest, (evidence) => {
+    return evidence.source_request_digest === expectedIntentDigest || evidence.intent_digest === expectedIntentDigest;
+  });
+  const currentBusinessRuleRefs = new Set(businessRuleClosure.currentRecords.map((record) => record.evidence.business_rule_ref).filter(Boolean));
+  const currentBusinessRuleDigests = new Set(businessRuleClosure.currentRecords.map((record) => record.evidence.business_rule_digest).filter(Boolean));
+
+  const changeImpactCoverage = sourceSignal(root, "change-impact-coverage-reports", expectedIntentDigest, (evidence) => {
+    const intentValue = evidence.user_request && typeof evidence.user_request === "object" ? evidence.user_request.intent : "";
+    return digestMatch(intentValue, expectedIntentDigest)
+      || currentBusinessRuleRefs.has(evidence.business_rule_ref)
+      || currentBusinessRuleDigests.has(evidence.business_rule_digest);
+  });
+  const verificationPlan = sourceSignal(root, "verification-plans", expectedIntentDigest, (evidence) => {
+    return evidence.intent_digest === expectedIntentDigest
+      || currentBusinessRuleRefs.has(evidence.business_rule_ref)
+      || currentBusinessRuleDigests.has(evidence.business_rule_digest);
+  });
+  const currentVerificationPlanRefs = new Set(verificationPlan.currentRecords.map((record) => record.evidence.verification_plan_ref).filter(Boolean));
+  const currentVerificationPlanDigests = new Set(verificationPlan.currentRecords.map((record) => record.evidence.verification_plan_digest).filter(Boolean));
+
+  const testEvidence = sourceSignal(root, "test-evidence-reports", expectedIntentDigest, (evidence) => {
+    return evidence.intent_digest === expectedIntentDigest
+      || currentVerificationPlanRefs.has(evidence.verification_plan_ref)
+      || currentVerificationPlanDigests.has(evidence.verification_plan_digest);
+  });
+  const currentTestEvidenceRefs = new Set(testEvidence.currentRecords.map((record) => record.evidence.test_evidence_ref).filter(Boolean));
+
+  const executionAssurance = sourceSignal(root, "execution-assurance-reports", expectedIntentDigest, (evidence) => {
+    return evidence.intent_digest === expectedIntentDigest
+      || (Array.isArray(evidence.source_systems) && evidence.source_systems.some((source) => source.name === "test_evidence" && currentTestEvidenceRefs.has(source.ref)));
+  });
+
+  return {
+    businessRuleClosure,
+    changeImpactCoverage,
+    verificationPlan,
+    testEvidence,
+    executionAssurance,
+  };
+}
+
+function sourceSignal(root, dir, expectedIntentDigest, matcher) {
+  const files = markdownFiles(root, dir);
+  const records = files.map((file) => {
+    const extracted = extractMachineReadableEvidence(safeRead(file));
+    return {
+      file,
+      ref: `artifact:${path.relative(root, file).split(path.sep).join("/")}`,
+      evidence: extracted?.ok ? extracted.value : {},
+    };
+  });
+  if (!expectedIntentDigest) {
+    return {
+      intentBound: false,
+      total: records.length,
+      currentCount: records.length,
+      otherCount: 0,
+      currentRecords: records,
+      currentRefs: records.map((record) => record.ref).slice(0, 5),
+    };
+  }
+  const currentRecords = records.filter((record) => matcher(record.evidence, record));
+  return {
+    intentBound: true,
+    total: records.length,
+    currentCount: currentRecords.length,
+    otherCount: Math.max(0, records.length - currentRecords.length),
+    currentRecords,
+    currentRefs: currentRecords.map((record) => record.ref).slice(0, 5),
+  };
+}
+
+function sourceSignalSummary(signals) {
+  return Object.fromEntries(Object.entries(signals).map(([name, signal]) => [name, {
+    intentBound: signal.intentBound,
+    totalRecords: signal.total,
+    currentTaskMatches: signal.currentCount,
+    otherTaskRecords: signal.otherCount,
+    currentRefs: signal.currentRefs,
+  }]));
+}
+
+function digestMatch(value, expectedDigest) {
+  return Boolean(value && expectedDigest && digest(value) === expectedDigest);
 }
 
 function completionEvidenceStatus(root, userIntent) {

@@ -61,3 +61,8 @@ If the card says a task can be treated as done, that must be backed by valid
 lower-level completion evidence that passes the strict Completion Evidence
 checker and matches the current `--intent`. Otherwise it must say what is still
 missing or that the project only has completion records for another request.
+
+The same current-request rule applies to intermediate source signals. Existing
+Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence,
+or Execution Assurance records from another task may appear in the technical
+trace, but they do not make the current task's user-facing fields show `Yes`.

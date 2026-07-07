@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.79.3`
+`1.79.4`
 
 ## Project Version File
 
@@ -19,8 +19,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.79.4` calibrates User Delivery Console source signals to the current `--intent` and adds the 1.80 Release Evidence Gate plan.
+- `1.79.4` remains a derived status view. It does not implement the 1.80 gate, add release approval, replace Test Evidence, replace Completion Evidence, write target files, approve implementation, approve commit/push, approve release/production, mutate CI/hooks, or prove real-user stability.
 - `1.79.3` keeps `--verification` free text separate from formal Test Evidence in User Delivery Console and records `git diff --check` in release self-check evidence.
-- `1.79.3` remains a derived status view. It does not add a completion gate, replace Test Evidence, replace Completion Evidence, write target files, approve implementation, approve commit/push, approve release/production, mutate CI/hooks, or prove real-user stability.
 - `1.79.2` binds User Delivery Console completion status to the current `--intent`, removes raw internal status enums from the user-facing card, supports `.intentos/` asset completeness checks, and verifies generated status cards through same-card smoke.
 - `1.78.3` documents Completion Evidence compatibility: strict completion chains must keep one canonical task intent across BRC, Verification Plan, Test Evidence, Execution Assurance, and Completion Evidence; older 1.78.0/1.78.1 Completion Evidence reports need `source_chain[].intent_digest`; strict Execution Assurance sources need top-level `intent_digest`.
 - `1.78.3` is a reference and compatibility-notes patch. It does not add a new gate, run tests, approve release/production, or prove real-environment behavior.

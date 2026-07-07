@@ -51,6 +51,12 @@ Use plain translations:
 
 Technical names may appear only in Technical Trace.
 
+When `--intent` is provided, source-system signals are current-task signals.
+Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence,
+and Execution Assurance must match the current request before the user-facing
+task completion fields show them as recorded. Other-task records may appear in
+Technical Trace, but they must not make the current task look complete.
+
 ## Authority Boundary
 
 A User Delivery Console card does not:

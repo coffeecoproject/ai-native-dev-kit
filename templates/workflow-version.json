@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.79.3",
+  "intentOSVersion": "1.79.4",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",

@@ -244,6 +244,7 @@ function checkSourceEvidence() {
     "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
     "docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md",
     "docs/plans/user-delivery-console-verification-note-1.79.3-plan.md",
+    "docs/plans/user-delivery-console-source-signal-calibration-1.79.4-plan.md",
     "examples/1.79-user-delivery-console/README.md",
     "examples/1.79-user-delivery-console/appointment-app/delivery-status-cards/001-status.md",
     "test-fixtures/bad/bad-user-delivery-console-internal-jargon/delivery-status-cards/001-bad.md",
@@ -261,6 +262,9 @@ function checkSourceEvidence() {
     "releases/1.79.3/release-record.md",
     "releases/1.79.3/known-limitations.md",
     "releases/1.79.3/self-check-report.md",
+    "releases/1.79.4/release-record.md",
+    "releases/1.79.4/known-limitations.md",
+    "releases/1.79.4/self-check-report.md",
   ]) {
     if (exists(file)) pass(`1.79 user delivery console source evidence exists ${file}`);
     else fail(`1.79 user delivery console source evidence missing ${file}`);
@@ -281,14 +285,17 @@ function checkSourceEvidence() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
-        && parsed.schemaVersion === "1.79.3"
+        && parsed.schemaVersion === "1.79.4"
         && parsed.boundaries?.writesTargetFiles === "No"
         && parsed.deliveryStatus?.currentState
         && parsed.deliveryStatus?.currentStateLabel
         && parsed.taskCompletion?.verificationPlanPrepared
         && parsed.taskCompletion?.testCheckEvidenceRecorded
         && parsed.taskCompletion?.userVerificationNoteProvided
-        && parsed.taskCompletion?.completionEvidenceStrictCheck) {
+        && parsed.taskCompletion?.completionEvidenceStrictCheck
+        && parsed.sourceSignals?.verificationPlan
+        && parsed.sourceSignals?.testEvidence
+        && parsed.sourceSignals?.executionAssurance) {
         pass("1.79 user delivery console resolver JSON includes split verification fields, strict completion status, and boundaries");
       } else {
         fail(`1.79 user delivery console resolver JSON missing expected fields: ${resolverJson.stdout}`);
@@ -323,6 +330,33 @@ function checkSourceEvidence() {
     }
   } else {
     fail(`1.79 user delivery console verification note JSON failed: ${noteJson.stderr || noteJson.stdout}`);
+  }
+
+  const otherTaskJson = runNode([
+    "scripts/resolve-user-delivery-console.mjs",
+    "examples/1.78-completion-evidence-gate/appointment-service-time",
+    "--intent",
+    "different task",
+    "--json",
+  ]);
+  if (otherTaskJson.status === 0) {
+    try {
+      const parsed = JSON.parse(otherTaskJson.stdout);
+      if (parsed.taskCompletion?.verificationPlanPrepared === "No"
+        && parsed.taskCompletion?.testCheckEvidenceRecorded === "No"
+        && parsed.taskCompletion?.executionProofRecorded === "No"
+        && parsed.sourceSignals?.verificationPlan?.otherTaskRecords > 0
+        && parsed.sourceSignals?.testEvidence?.otherTaskRecords > 0
+        && parsed.sourceSignals?.executionAssurance?.otherTaskRecords > 0) {
+        pass("1.79 user delivery console keeps other-task source signals out of current-task status");
+      } else {
+        fail(`1.79 user delivery console must not count other-task source signals as current-task evidence: ${otherTaskJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.79 user delivery console other-task source signal JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.79 user delivery console other-task source signal JSON failed: ${otherTaskJson.stderr || otherTaskJson.stdout}`);
   }
 
   const example = runNode(["scripts/check-user-delivery-console.mjs", "examples/1.79-user-delivery-console/appointment-app"]);

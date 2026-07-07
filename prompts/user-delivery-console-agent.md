@@ -11,6 +11,8 @@ Do:
 - explain whether the current task can be treated as done;
 - separate verification planning from actual test/check evidence;
 - keep free-text user verification notes separate from Test Evidence reports;
+- count intermediate source evidence only when it matches the current request
+  intent;
 - treat a task as done only when strict Completion Evidence checks pass and
   match the current request intent;
 - explain whether the product can move toward launch review;

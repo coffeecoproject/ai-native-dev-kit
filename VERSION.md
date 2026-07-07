@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.79.3`
+Current version: `1.79.4`
 
 ## Versioning Policy
 
@@ -10,9 +10,21 @@ Current version: `1.79.3`
 
 ## Current Release
 
-`1.79.3`
+`1.79.4`
 
 Includes:
+
+- User Delivery Console Source Signal Calibration patch `1.79.4`: intermediate
+  source signals now match the current `--intent` before user-facing task
+  completion fields show Business Rule Closure, Change Impact Coverage,
+  Verification Plan, Test Evidence, or Execution Assurance as recorded.
+- Other-task source records remain visible in Technical Trace and JSON
+  `sourceSignals`, but they no longer make the current task look more complete
+  than it is.
+- `1.79.4` also adds the `1.80` Release Evidence Gate execution and acceptance
+  plan. It does not implement the 1.80 gate, add release approval, write target
+  files, approve implementation, approve commit/push, approve
+  release/production, mutate CI/hooks, or prove real-user stability.
 
 - User Delivery Console Verification Note Polish patch `1.79.3`: `--verification`
   free text is now displayed as a user verification note only, while

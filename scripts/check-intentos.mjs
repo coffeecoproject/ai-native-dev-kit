@@ -8616,6 +8616,7 @@ function checkUserDeliveryConsoleProtocol() {
     "docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md",
     "docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md",
     "docs/plans/user-delivery-console-verification-note-1.79.3-plan.md",
+    "docs/plans/user-delivery-console-source-signal-calibration-1.79.4-plan.md",
     "templates/user-delivery-console-card.md",
     "checklists/user-delivery-console-review.md",
     "prompts/user-delivery-console-agent.md",
@@ -8639,6 +8640,9 @@ function checkUserDeliveryConsoleProtocol() {
     "releases/1.79.3/release-record.md",
     "releases/1.79.3/known-limitations.md",
     "releases/1.79.3/self-check-report.md",
+    "releases/1.79.4/release-record.md",
+    "releases/1.79.4/known-limitations.md",
+    "releases/1.79.4/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.79 user delivery console asset exists ${file}`);
@@ -8652,6 +8656,7 @@ function checkUserDeliveryConsoleProtocol() {
     read("docs/plans/user-delivery-console-evidence-validation-1.79.1-plan.md"),
     read("docs/plans/user-delivery-console-current-task-binding-1.79.2-plan.md"),
     read("docs/plans/user-delivery-console-verification-note-1.79.3-plan.md"),
+    read("docs/plans/user-delivery-console-source-signal-calibration-1.79.4-plan.md"),
     read("templates/user-delivery-console-card.md"),
     read("checklists/user-delivery-console-review.md"),
     read("prompts/user-delivery-console-agent.md"),
@@ -8663,6 +8668,7 @@ function checkUserDeliveryConsoleProtocol() {
     read("releases/1.79.1/release-record.md"),
     read("releases/1.79.2/release-record.md"),
     read("releases/1.79.3/release-record.md"),
+    read("releases/1.79.4/release-record.md"),
   ].join("\n");
 
   for (const marker of [
@@ -8679,6 +8685,8 @@ function checkUserDeliveryConsoleProtocol() {
     "verificationPlanPrepared",
     "testCheckEvidenceRecorded",
     "userVerificationNoteProvided",
+    "sourceSignals",
+    "currentTaskMatches",
     "completionEvidenceStrictCheck",
     "PROJECT_HAS_OTHER_COMPLETION_RECORD",
     "currentIntentMatch",
@@ -8708,7 +8716,7 @@ function checkUserDeliveryConsoleProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "USER_DELIVERY_CONSOLE_CARD"
-        && parsed.schemaVersion === "1.79.3"
+        && parsed.schemaVersion === "1.79.4"
         && parsed.readOnly === true
         && parsed.deliveryStatus?.currentState
         && parsed.deliveryStatus?.currentStateLabel
@@ -8717,6 +8725,9 @@ function checkUserDeliveryConsoleProtocol() {
         && parsed.taskCompletion?.userVerificationNoteProvided
         && parsed.taskCompletion?.completionEvidenceStrictCheck
         && "currentIntentMatch" in parsed.taskCompletion
+        && parsed.sourceSignals?.verificationPlan
+        && parsed.sourceSignals?.testEvidence
+        && parsed.sourceSignals?.executionAssurance
         && parsed.boundaries?.writesTargetFiles === "No"
         && parsed.boundaries?.approvesReleaseOrProduction === "No") {
         pass("1.79 user delivery console resolver JSON includes split verification fields, strict completion status, and no-authority boundaries");
@@ -8753,6 +8764,33 @@ function checkUserDeliveryConsoleProtocol() {
     }
   } else {
     fail(`1.79 user delivery console verification note JSON failed: ${noteJson.stderr || noteJson.stdout}`);
+  }
+
+  const otherTaskJson = runNode([
+    "scripts/resolve-user-delivery-console.mjs",
+    "examples/1.78-completion-evidence-gate/appointment-service-time",
+    "--intent",
+    "different task",
+    "--json",
+  ]);
+  if (otherTaskJson.status === 0) {
+    try {
+      const parsed = JSON.parse(otherTaskJson.stdout);
+      if (parsed.taskCompletion?.verificationPlanPrepared === "No"
+        && parsed.taskCompletion?.testCheckEvidenceRecorded === "No"
+        && parsed.taskCompletion?.executionProofRecorded === "No"
+        && parsed.sourceSignals?.verificationPlan?.otherTaskRecords > 0
+        && parsed.sourceSignals?.testEvidence?.otherTaskRecords > 0
+        && parsed.sourceSignals?.executionAssurance?.otherTaskRecords > 0) {
+        pass("1.79 user delivery console keeps other-task source signals out of current-task status");
+      } else {
+        fail(`1.79 user delivery console must not count other-task source signals as current-task evidence: ${otherTaskJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.79 user delivery console other-task source signal JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.79 user delivery console other-task source signal JSON failed: ${otherTaskJson.stderr || otherTaskJson.stdout}`);
   }
 
   const cliResolver = runNode(["scripts/cli.mjs", "status", ".", "--intent", "maintain IntentOS ordinary user delivery status"]);
