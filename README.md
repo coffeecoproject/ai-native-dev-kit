@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.80.3`.
+Current release: `1.81.0`.
 
-Release record: [releases/1.80.3/release-record.md](releases/1.80.3/release-record.md).
+Release record: [releases/1.81.0/release-record.md](releases/1.81.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -27,6 +27,7 @@ node scripts/cli.mjs start <project>
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<what you want>"
+node scripts/cli.mjs adopt <existing-project> --intent "<connect this project>"
 ```
 
 Those commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
@@ -40,6 +41,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.81.0 adds Existing Project Safe Adoption Autopilot: `adopt` gives old projects one read-only result card instead of asking the user to run internal adoption commands. It can say IntentOS is available as a safe working method, but it does not write project files, install `.intentos/`, change project authority, or claim full adoption.
 
 1.80.3 tightens Release Evidence Gate owner and completion binding: when one release candidate includes multiple Completion Evidence reports, strict checks now validate every included report, bind each completion task back to release scope, and require structured release/risk/environment owner readiness plus non-authorizing approval refs. It still does not approve release, deploy production, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 
@@ -473,6 +476,7 @@ Reference:
 
 Current release:
 
+- [1.81.0 Release Record](releases/1.81.0/release-record.md)
 - [1.74.3 Release Record](releases/1.74.3/release-record.md)
 - [1.74.2 Release Record](releases/1.74.2/release-record.md)
 - [1.74.1 Release Record](releases/1.74.1/release-record.md)

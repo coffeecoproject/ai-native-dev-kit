@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.80.3`。
+当前版本：`1.81.0`。
 
-发布记录：[releases/1.80.3/release-record.md](releases/1.80.3/release-record.md)。
+发布记录：[releases/1.81.0/release-record.md](releases/1.81.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -27,6 +27,7 @@ node scripts/cli.mjs start <project>
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<你想做什么>"
+node scripts/cli.mjs adopt <老项目> --intent "<接入这个项目>"
 ```
 
 这些命令都是只读入口，不批准实现、发布、生产、CI、hook、密钥、迁移、支付、权限或治理替换。
@@ -40,6 +41,8 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.81.0 新增老项目安全接入自动判断：`adopt` 会把老项目接入判断汇总成一张只读结果卡，不再要求用户理解内部接入命令。它可以说明 IntentOS 是否能作为安全工作方式使用，但不写项目文件、不安装 `.intentos/`、不改变项目权威，也不宣称完整接入。
 
 1.80.3 加严 Release Evidence Gate 的 owner 和 completion 绑定：一个 release candidate 如果包含多份 Completion Evidence，严格检查会逐份校验，确认每份 completion 的 task 都属于本次 release scope，并要求 release/risk/environment owner readiness 和非授权 approval ref 都进入结构化证据。它仍然不批准发布、不部署生产、不提交应用商店或小程序审核、不执行迁移、不记录密钥、不改 DNS/支付/CI，也不证明真实用户稳定可用。
 
@@ -471,6 +474,7 @@ node scripts/check-execution-closure.mjs examples/1.49-structured-impact-coverag
 
 当前版本：
 
+- [1.81.0 Release Record](releases/1.81.0/release-record.md)
 - [1.74.3 Release Record](releases/1.74.3/release-record.md)
 - [1.74.2 Release Record](releases/1.74.2/release-record.md)
 - [1.74.1 Release Record](releases/1.74.1/release-record.md)

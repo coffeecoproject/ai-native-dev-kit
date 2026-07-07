@@ -5683,6 +5683,178 @@ function hasCompleteAdoptionAssuranceEvidence(parsed) {
     && boundary.replaces_release_sop === "No";
 }
 
+function checkExistingProjectAdoptionAutopilotProtocol() {
+  const badFixtures = [
+    "bad-adoption-autopilot-technical-user-burden",
+    "bad-adoption-autopilot-claims-full-adoption",
+    "bad-adoption-autopilot-writes-performed",
+    "bad-adoption-autopilot-authority-changed",
+  ];
+  const required = [
+    "docs/plans/existing-project-safe-adoption-autopilot-1.81-plan.md",
+    "core/existing-project-safe-adoption-autopilot.md",
+    "docs/existing-project-safe-adoption-autopilot.md",
+    "templates/existing-project-adoption-autopilot-report.md",
+    "schemas/artifacts/existing-project-adoption-autopilot.schema.json",
+    "checklists/existing-project-adoption-autopilot-review.md",
+    "prompts/existing-project-adoption-autopilot-agent.md",
+    "adoption-autopilot-reports/.gitkeep",
+    "scripts/resolve-existing-project-adoption-autopilot.mjs",
+    "scripts/check-existing-project-adoption-autopilot.mjs",
+    "examples/1.81-existing-project-adoption-autopilot/governed-readonly/adoption-autopilot-reports/001-adoption.md",
+    "examples/1.81-existing-project-adoption-autopilot/light-existing/adoption-autopilot-reports/001-adoption.md",
+    "examples/1.81-existing-project-adoption-autopilot/dirty-blocked/adoption-autopilot-reports/001-adoption.md",
+    "releases/1.81.0/release-record.md",
+    "releases/1.81.0/known-limitations.md",
+    "releases/1.81.0/self-check-report.md",
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/adoption-autopilot-reports/001-bad.md`),
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.81 adoption autopilot asset exists ${file}`);
+    else fail(`1.81 adoption autopilot asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/existing-project-safe-adoption-autopilot-1.81-plan.md"),
+    read("core/existing-project-safe-adoption-autopilot.md"),
+    read("docs/existing-project-safe-adoption-autopilot.md"),
+    read("templates/existing-project-adoption-autopilot-report.md"),
+    read("schemas/artifacts/existing-project-adoption-autopilot.schema.json"),
+    read("scripts/resolve-existing-project-adoption-autopilot.mjs"),
+    read("scripts/check-existing-project-adoption-autopilot.mjs"),
+    read("releases/1.81.0/release-record.md"),
+  ].join("\n");
+  for (const marker of [
+    "Existing Project Safe Adoption Autopilot",
+    "existing_project_adoption_autopilot",
+    "AVAILABLE_FOR_SAFE_USE",
+    "S0_READ_ONLY_ONLY",
+    "project_authority_changed",
+    "native_assets_installed",
+    "full_adoption_claim",
+    "adopt",
+    "adopt-check",
+    "does not write target-project files",
+    "does not claim full adoption",
+    "Technical Trace",
+  ]) {
+    if (combined.includes(marker)) pass(`1.81 adoption autopilot includes ${marker}`);
+    else fail(`1.81 adoption autopilot missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-existing-project-adoption-autopilot.mjs",
+    "node --check scripts/check-existing-project-adoption-autopilot.mjs",
+    "node scripts/cli.mjs adopt . --intent",
+    "node scripts/cli.mjs adopt-check . --allow-empty",
+    "node scripts/check-existing-project-adoption-autopilot.mjs examples/1.81-existing-project-adoption-autopilot/governed-readonly --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.81 package verify surface includes ${marker}`);
+    else fail(`1.81 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-existing-project-adoption-autopilot.mjs", ".", "--intent", "connect existing project"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Existing Project Adoption Autopilot Report")
+    && resolver.stdout.includes("This report is a read-only adoption view")
+    && resolver.stdout.includes("## Human Summary")
+    && resolver.stdout.includes("## Technical Trace")) {
+    pass("1.81 adoption autopilot resolver prints read-only result card");
+  } else {
+    fail(`1.81 adoption autopilot resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverJson = runNode(["scripts/resolve-existing-project-adoption-autopilot.mjs", ".", "--json", "--intent", "connect existing project"]);
+  if (resolverJson.status === 0) {
+    try {
+      const parsed = JSON.parse(resolverJson.stdout);
+      if (parsed.reportType === "EXISTING_PROJECT_ADOPTION_AUTOPILOT"
+        && parsed.readOnly === true
+        && parsed.schemaVersion === "1.81.0"
+        && parsed.structuredEvidence?.artifact_type === "existing_project_adoption_autopilot"
+        && parsed.structuredEvidence?.project_authority_changed === "No"
+        && parsed.structuredEvidence?.native_assets_installed === "No"
+        && parsed.structuredEvidence?.full_adoption_claim === "No"
+        && parsed.structuredEvidence?.writes_performed === "No"
+        && parsed.structuredEvidence?.runtime_changes_performed === "No") {
+        pass("1.81 adoption autopilot resolver JSON includes safe evidence fields");
+      } else {
+        fail(`1.81 adoption autopilot resolver JSON missing expected fields: ${resolverJson.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.81 adoption autopilot resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.81 adoption autopilot resolver JSON failed: ${resolverJson.stderr || resolverJson.stdout}`);
+  }
+
+  const sourceCheck = runNode(["scripts/check-existing-project-adoption-autopilot.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("Existing Project Adoption Autopilot check passed")) {
+    pass("1.81 adoption autopilot checker passes source repo with explicit allow-empty");
+  } else {
+    fail(`1.81 adoption autopilot checker failed source repo: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const explicitReportDir = fs.mkdtempSync(path.join(os.tmpdir(), "adoption-autopilot-target-"));
+  const generatedReport = runNode([
+    "scripts/resolve-existing-project-adoption-autopilot.mjs",
+    explicitReportDir,
+    "--out",
+    "adoption-autopilot-reports/generated.md",
+  ]);
+  const explicitReportPath = path.join(explicitReportDir, "adoption-autopilot-reports", "generated.md");
+  const explicitReport = runNode([
+    "scripts/check-existing-project-adoption-autopilot.mjs",
+    explicitReportDir,
+    "--report",
+    explicitReportPath,
+    "--require-structured-evidence",
+  ]);
+  if (generatedReport.status === 0
+    && fs.existsSync(explicitReportPath)
+    && explicitReport.status === 0
+    && explicitReport.stdout.includes("Existing Project Adoption Autopilot check passed")) {
+    pass("1.81 adoption autopilot --out report is generated and checked as the same file");
+  } else {
+    fail(`1.81 adoption autopilot --out explicit report check failed: ${generatedReport.stderr || explicitReport.stderr || generatedReport.stdout || explicitReport.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "adopt", ".", "--intent", "connect existing project"]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Existing Project Adoption Autopilot Report")) {
+    pass("CLI adopt delegates to adoption autopilot resolver");
+  } else {
+    fail(`CLI adopt failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "adopt-check", ".", "--allow-empty"]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("Existing Project Adoption Autopilot check passed")) {
+    pass("CLI adopt-check delegates to adoption autopilot checker");
+  } else {
+    fail(`CLI adopt-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const target of [
+    "examples/1.81-existing-project-adoption-autopilot/governed-readonly",
+    "examples/1.81-existing-project-adoption-autopilot/light-existing",
+    "examples/1.81-existing-project-adoption-autopilot/dirty-blocked",
+  ]) {
+    const example = runNode(["scripts/check-existing-project-adoption-autopilot.mjs", target, "--require-structured-evidence"]);
+    if (example.status === 0) pass(`1.81 adoption autopilot example passes strict checker ${target}`);
+    else fail(`1.81 adoption autopilot example failed ${target}: ${example.stderr || example.stdout}`);
+  }
+
+  for (const target of badFixtures) {
+    const result = runNode(["scripts/check-existing-project-adoption-autopilot.mjs", `test-fixtures/bad/${target}`, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.81 adoption autopilot rejects ${target}`);
+    else fail(`1.81 adoption autopilot must reject ${target}`);
+  }
+}
+
 function checkExecutionAssuranceChainProtocol() {
   const badFixtures = [
     "bad-execution-assurance-no-completion-contract",
@@ -15328,6 +15500,7 @@ checkNativeFirstMigrationProtocol();
 checkExistingRuleReconciliationProtocol();
 checkGovernanceConvergenceProtocol();
 checkAdoptionExecutionAssuranceProtocol();
+checkExistingProjectAdoptionAutopilotProtocol();
 checkExecutionAssuranceChainProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();

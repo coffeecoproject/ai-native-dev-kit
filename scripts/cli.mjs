@@ -523,6 +523,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "adopt": {
+    description: "Run read-only existing-project adoption autopilot and print one safe result card.",
+    script: "scripts/resolve-existing-project-adoption-autopilot.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "adopt-check": {
+    description: "Check recorded Existing Project Adoption Autopilot reports.",
+    script: "scripts/check-existing-project-adoption-autopilot.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "doc-lifecycle": {
     description: "Recommend document lifecycle state without deleting, moving, or archiving files.",
     script: "scripts/resolve-document-lifecycle.mjs",

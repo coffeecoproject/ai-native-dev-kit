@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.80.3`
+Current version: `1.81.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,16 @@ Current version: `1.80.3`
 
 ## Current Release
 
-`1.80.3`
+`1.81.0`
 
 Includes:
+
+- Existing Project Safe Adoption Autopilot `1.81.0`: `adopt` now gives old
+  projects one read-only result card instead of exposing internal adoption
+  commands to the user.
+- `1.81.0` separates safe use from full adoption: it may say IntentOS is
+  available as a read-only working method, but it does not write target-project
+  files, install `.intentos/`, change project authority, or claim full adoption.
 
 - Release Owner And Completion Set Binding patch `1.80.3`: strict Release
   Evidence Gate checks now validate every included Completion Evidence ref,

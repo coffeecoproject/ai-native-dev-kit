@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/existing-project-adoption-autopilot.schema.json",
+  "title": "Existing Project Adoption Autopilot Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "intent",
+    "intent_digest",
+    "adoption_autopilot_ref",
+    "adoption_autopilot_digest",
+    "adoption_state",
+    "project_classification",
+    "intentos_working_mode",
+    "project_authority_changed",
+    "native_assets_installed",
+    "full_adoption_claim",
+    "safe_action_budget",
+    "writes_performed",
+    "runtime_changes_performed",
+    "source_chain",
+    "internal_actions",
+    "blocked_actions",
+    "human_decisions",
+    "forbidden_surfaces_not_touched",
+    "boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.81.0" },
+    "artifact_type": { "const": "existing_project_adoption_autopilot" },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "adoption_autopilot_ref": { "type": "string", "minLength": 1 },
+    "adoption_autopilot_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "adoption_state": {
+      "enum": [
+        "SAFE_READ_ONLY_ADOPTION_COMPLETE",
+        "READY_FOR_RULE_ENTRY_REVIEW",
+        "BLOCKED_BY_PROJECT_AUTHORITY",
+        "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+        "BLOCKED_BY_PROJECT_NOT_FOUND",
+        "FAILED_INVALID_EVIDENCE"
+      ]
+    },
+    "project_classification": {
+      "enum": [
+        "EXISTING_GOVERNED_PROJECT",
+        "EXISTING_LIGHT_PROJECT",
+        "PRODUCTION_SENSITIVE_PROJECT",
+        "DIRTY_WORKTREE_PROJECT",
+        "INTENTOS_SOURCE_REPOSITORY",
+        "UNKNOWN_EXISTING_PROJECT",
+        "NO_PROJECT"
+      ]
+    },
+    "intentos_working_mode": {
+      "enum": [
+        "AVAILABLE_FOR_SAFE_USE",
+        "READ_ONLY_DIAGNOSIS_ONLY",
+        "NOT_AVAILABLE"
+      ]
+    },
+    "project_authority_changed": { "const": "No" },
+    "native_assets_installed": { "const": "No" },
+    "full_adoption_claim": { "const": "No" },
+    "safe_action_budget": { "const": "S0_READ_ONLY_ONLY" },
+    "writes_performed": { "const": "No" },
+    "runtime_changes_performed": { "const": "No" },
+    "source_chain": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "summary", "authority_block"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["RECORDED", "NEEDS_REVIEW", "BLOCKED", "FAILED"] },
+          "summary": { "type": "string", "minLength": 1 },
+          "authority_block": { "enum": ["Yes", "No"] }
+        }
+      }
+    },
+    "internal_actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "level", "status", "summary"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "level": { "const": "S0" },
+          "status": { "enum": ["COMPLETED", "SKIPPED", "BLOCKED"] },
+          "summary": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "blocked_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action", "reason", "required_confirmation"],
+        "properties": {
+          "action": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "required_confirmation": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "human_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["decision", "plain_question", "required_now"],
+        "properties": {
+          "decision": { "type": "string", "minLength": 1 },
+          "plain_question": { "type": "string", "minLength": 1 },
+          "required_now": { "enum": ["Yes", "No"] }
+        }
+      }
+    },
+    "forbidden_surfaces_not_touched": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "runtime_changes_performed",
+        "project_authority_changed",
+        "native_assets_installed",
+        "full_adoption_claim",
+        "approves_implementation",
+        "approves_release_or_production"
+      ],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "runtime_changes_performed": { "const": "No" },
+        "project_authority_changed": { "const": "No" },
+        "native_assets_installed": { "const": "No" },
+        "full_adoption_claim": { "const": "No" },
+        "approves_implementation": { "const": "No" },
+        "approves_release_or_production": { "const": "No" }
+      }
+    },
+    "outcome": {
+      "enum": [
+        "SAFE_READ_ONLY_ADOPTION_COMPLETE",
+        "READY_FOR_RULE_ENTRY_REVIEW",
+        "BLOCKED_BY_PROJECT_AUTHORITY",
+        "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+        "BLOCKED_BY_PROJECT_NOT_FOUND",
+        "FAILED_INVALID_EVIDENCE"
+      ]
+    }
+  }
+}
