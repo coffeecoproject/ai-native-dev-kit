@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.80.0`
+Current version: `1.80.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.80.0`
 
 ## Current Release
 
-`1.80.0`
+`1.80.1`
 
 Includes:
+
+- Release Evidence Gate Precision patch `1.80.1`: strict release evidence checks
+  now recompute source-chain file digests, resolve required build/runtime/
+  rollback/monitoring artifacts, run strict Completion Evidence validation when
+  current completion is required, and add generated-project smoke coverage for
+  `release-evidence` / `release-evidence-check`.
+- `1.80.1` remains a review-evidence gate. It does not approve release, deploy,
+  submit app-store or mini-program review, execute migrations, record secrets,
+  change DNS/payment/CI, or prove real-user stability.
 
 - Release Evidence Gate phase `1.80.0`: Codex can prepare a read-only release
   review evidence package that answers whether a release candidate can be

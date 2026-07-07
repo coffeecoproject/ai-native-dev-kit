@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.80.0`。
+当前版本：`1.80.1`。
 
-发布记录：[releases/1.80.0/release-record.md](releases/1.80.0/release-record.md)。
+发布记录：[releases/1.80.1/release-record.md](releases/1.80.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -40,6 +40,8 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.80.1 加严 Release Evidence Gate：严格检查现在会重新计算 source-chain 文件 digest，解析必须的 build/runtime/rollback/monitoring 证据，并在要求当前 completion 时运行严格 Completion Evidence 校验。生成项目 smoke 也会验证 `release-evidence` 和 `release-evidence-check` 已安装且可用。它仍然不批准发布、不部署生产、不提交应用商店或小程序审核、不执行迁移、不记录密钥、不改 DNS/支付/CI，也不证明真实用户稳定可用。
 
 1.80.0 新增 Release Evidence Gate：在任务完成证据和用户状态卡之后，Codex 可以准备一份发布评审证据包，判断这个 release candidate 是否可以交给人类 release owner 做正式评审。它会记录版本范围、发布目标、证据链 digest、owner/approval 拆分、运行 smoke、回滚、监控、环境、迁移、成本配额和老项目发布 SOP 映射。它仍然不批准发布、不部署生产、不提交应用商店或小程序审核、不执行迁移、不记录密钥、不改 DNS/支付/CI，也不证明真实用户稳定可用。
 

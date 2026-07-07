@@ -49,7 +49,7 @@
 |---|---|
 | Release Owner Identified | Yes |
 | Release Approval | No |
-| Owner Decisions | No release approval is granted; handoff is for review only. |
+| Owner Decisions | Identify the risk owner.; Identify the environment/config owner. |
 
 ## Environment Readiness
 
@@ -57,10 +57,10 @@
 |---|---|
 | Target Environment | production-like |
 | Config Owner | human:mini-program-env-owner |
-| Secrets Required | No |
+| Secrets Required | Unknown |
 | Secret Values Recorded | No |
-| DNS Or Callback Changes Required | No |
-| Blocked By Environment Config | No |
+| DNS Or Callback Changes Required | Unknown |
+| Blocked By Environment Config | Yes |
 
 ## Runtime And Rollback
 
@@ -114,7 +114,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare mini program review handoff",
   "intent_digest": "sha256:87bd161358b3bd4a7ef2fa40bee0d8d5892fc8155afd562439344616c5466d50",
-  "release_evidence_digest": "sha256:fd60c5d02254f6a344ec2474c1d6510233be241e2d393c608509b9ca1de14126",
+  "release_evidence_digest": "sha256:db294f32d2772980082e22e93ab9411eda7b1c5bd5dc531cf2bc236a047e362a",
   "release_target": "mini_program_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-mini-program-review.md",
@@ -122,14 +122,14 @@
     "source_revision": "git:2222222222222222222222222222222222222222",
     "dirty_worktree_status": "clean",
     "included_task_refs": [
-      "tasks/001-mini-program-review.md"
+      "tasks/001-appointment-requests-must-include-a-service-time.md"
     ],
     "included_completion_evidence_refs": [
       "artifact:completion-evidence-reports/001-mini-program-completion.md"
     ],
     "excluded_known_items": [],
     "build_artifact_ref": "artifact:evidence/package.txt",
-    "build_artifact_digest": "sha256:6306760612156118b293f9b8a6dda0fee200539468ed2abbbd313c9bc2bd766e"
+    "build_artifact_digest": "sha256:280899d987a09fc157c1eaad8a33b63bf5071484b200c6c99c2f5869db359c39"
   },
   "gate_state": "READY_FOR_RELEASE_OWNER_REVIEW",
   "can_handoff_to_release_owner": "Yes",
@@ -139,7 +139,7 @@
       "name": "completion_evidence",
       "status": "RECORDED",
       "ref": "artifact:completion-evidence-reports/001-mini-program-completion.md",
-      "digest": "sha256:ba48bbd94e7ea464ca424d5540b8ca54839d48ce5c0fc16f491944e3558aa13c",
+      "digest": "sha256:901989d8723ef333cf69511d9e61a2f2d2fb0f221634004e526317bbe4f5c5a5",
       "source_outcome": "COMPLETION_EVIDENCE_READY",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -249,11 +249,12 @@
   ],
   "missing_evidence": [],
   "owner_decisions": [
-    "No release approval is granted; handoff is for review only."
+    "Identify the risk owner.",
+    "Identify the environment/config owner."
   ],
   "runtime_readiness": {
     "runtime_smoke_ref": "artifact:evidence/runtime-smoke.txt",
-    "runtime_smoke_evidence_type": "artifact",
+    "runtime_smoke_evidence_type": "missing",
     "runtime_smoke_user_note_only": "No"
   },
   "rollback_readiness": {
@@ -264,16 +265,16 @@
   "monitoring_readiness": {
     "monitoring_ref": "artifact:evidence/runtime-smoke.txt",
     "incident_owner_ref": "human-decision:mini-program-owner",
-    "support_handoff_ref": "human-decision:mini-program-support",
+    "support_handoff_ref": "missing",
     "blocked_by_missing_monitoring": "No"
   },
   "environment_readiness": {
     "target_environment": "production-like",
     "config_owner": "human:mini-program-env-owner",
-    "secrets_required": "No",
+    "secrets_required": "Unknown",
     "secrets_values_recorded": "No",
-    "dns_or_callback_changes_required": "No",
-    "blocked_by_environment_config": "No"
+    "dns_or_callback_changes_required": "Unknown",
+    "blocked_by_environment_config": "Yes"
   },
   "data_migration_readiness": {
     "migration_required": "No",

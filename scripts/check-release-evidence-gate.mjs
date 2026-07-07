@@ -2,7 +2,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
@@ -32,6 +34,7 @@ const requirePlatformRecipe = Boolean(args["require-platform-recipe"]);
 const requireReady = Boolean(args["require-ready"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/release-evidence-gate.schema.json");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -240,6 +243,10 @@ function checkStructuredEvidence(label, evidence) {
     else fail(`${label} Completion Evidence must match current release`);
   }
 
+  if (requireCurrentCompletion) {
+    checkCompletionEvidenceStrict(label, completion);
+  }
+
   if (strictSourceBinding || readyStates.has(evidence.gate_state)) {
     for (const source of evidence.source_chain || []) {
       if (source.status !== "RECORDED") continue;
@@ -248,9 +255,18 @@ function checkStructuredEvidence(label, evidence) {
       else fail(`${label} source ${source.name} does not resolve: ${source.ref || "<missing>"}`);
       if (source.digest && /^sha256:[a-f0-9]{64}$/.test(source.digest)) pass(`${label} source ${source.name} records digest`);
       else fail(`${label} source ${source.name} must record sha256 digest`);
+      if (resolved && source.digest && /^sha256:[a-f0-9]{64}$/.test(source.digest)) {
+        const actual = fileDigest(resolved);
+        if (source.digest === actual) pass(`${label} source ${source.name} digest matches resolved artifact`);
+        else fail(`${label} source ${source.name} digest ${source.digest} does not match resolved artifact ${actual}`);
+      }
       if (source.current_release_match === "Yes" || source.current_release_match === "N/A") pass(`${label} source ${source.name} current release match is explicit`);
       else fail(`${label} source ${source.name} current release match must be Yes or N/A`);
     }
+  }
+
+  if (strictSourceBinding || readyStates.has(evidence.gate_state) || requireReady) {
+    checkRequiredEvidenceArtifacts(label, evidence, new Set(requirements));
   }
 
   if (requirePlatformRecipe || ["app_store_review", "mini_program_review"].includes(evidence.release_target)) {
@@ -311,6 +327,98 @@ function checkProductionLike(label, evidence) {
   else pass(`${label} production-like target has migration decision`);
 }
 
+function checkRequiredEvidenceArtifacts(label, evidence, requirements) {
+  const scope = evidence.release_scope || {};
+  if (requirements.has("build-or-preview-evidence")) {
+    resolveRequiredArtifact(label, "build-or-preview-evidence", scope.build_artifact_ref, scope.build_artifact_digest);
+  }
+  if (requirements.has("runtime-smoke")) {
+    resolveRequiredArtifact(label, "runtime-smoke", evidence.runtime_readiness?.runtime_smoke_ref);
+  }
+  if (requirements.has("rollback")) {
+    resolveRequiredArtifact(label, "rollback", evidence.rollback_readiness?.rollback_ref);
+  }
+  if (requirements.has("monitoring")) {
+    resolveRequiredArtifact(label, "monitoring", evidence.monitoring_readiness?.monitoring_ref);
+  }
+  if (requirements.has("release-handoff-pack")) {
+    requireRecordedSourceArtifact(label, evidence, "release_handoff_pack");
+  }
+  if (requirements.has("platform-recipe")) {
+    requireRecordedSourceArtifact(label, evidence, "platform_release_recipe");
+  }
+}
+
+function requireRecordedSourceArtifact(label, evidence, sourceName) {
+  const source = (evidence.source_chain || []).find((item) => item.name === sourceName);
+  if (source?.status !== "RECORDED") {
+    fail(`${label} required source ${sourceName} must be recorded`);
+    return;
+  }
+  const resolved = resolveArtifact(String(source.ref || ""));
+  if (resolved) pass(`${label} required source ${sourceName} resolves`);
+  else fail(`${label} required source ${sourceName} does not resolve: ${source.ref || "<missing>"}`);
+  if (resolved && /^sha256:[a-f0-9]{64}$/.test(String(source.digest || ""))) {
+    const actual = fileDigest(resolved);
+    if (source.digest === actual) pass(`${label} required source ${sourceName} digest matches resolved artifact`);
+    else fail(`${label} required source ${sourceName} digest ${source.digest} does not match resolved artifact ${actual}`);
+  } else {
+    fail(`${label} required source ${sourceName} must record sha256 digest`);
+  }
+}
+
+function resolveRequiredArtifact(label, evidenceId, reference, digest = "") {
+  if (!isConcrete(reference)) {
+    fail(`${label} required evidence ${evidenceId} must record artifact ref`);
+    return "";
+  }
+  const resolved = resolveArtifact(String(reference));
+  if (resolved) pass(`${label} required evidence ${evidenceId} resolves`);
+  else {
+    fail(`${label} required evidence ${evidenceId} does not resolve: ${reference}`);
+    return "";
+  }
+  if (digest) {
+    if (!/^sha256:[a-f0-9]{64}$/.test(String(digest))) {
+      fail(`${label} required evidence ${evidenceId} must record sha256 digest`);
+      return resolved;
+    }
+    const actual = fileDigest(resolved);
+    if (digest === actual) pass(`${label} required evidence ${evidenceId} digest matches resolved artifact`);
+    else fail(`${label} required evidence ${evidenceId} digest ${digest} does not match resolved artifact ${actual}`);
+  }
+  return resolved;
+}
+
+function checkCompletionEvidenceStrict(label, completion) {
+  if (!completion?.ref) {
+    fail(`${label} --require-current-completion requires Completion Evidence ref`);
+    return;
+  }
+  const resolved = resolveArtifact(String(completion.ref));
+  if (!resolved) {
+    fail(`${label} --require-current-completion could not resolve Completion Evidence: ${completion.ref}`);
+    return;
+  }
+  const report = path.relative(projectRoot, resolved);
+  if (report.startsWith("..") || path.isAbsolute(report)) {
+    fail(`${label} Completion Evidence report must stay inside target project`);
+    return;
+  }
+  const completionChecker = path.join(scriptDir, "check-completion-evidence.mjs");
+  const result = spawnSync(process.execPath, [
+    completionChecker,
+    projectRoot,
+    "--report",
+    report,
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+  ], { encoding: "utf8" });
+  if (result.status === 0) pass(`${label} Completion Evidence strict checker passed`);
+  else fail(`${label} Completion Evidence strict checker failed: ${firstUsefulLine(result.stderr || result.stdout)}`);
+}
+
 function checkSourceEvidence() {
   for (const file of [
     "docs/plans/release-evidence-gate-1.80-plan.md",
@@ -320,15 +428,28 @@ function checkSourceEvidence() {
     "schemas/artifacts/release-evidence-gate.schema.json",
     "examples/1.80-release-evidence-gate/README.md",
     "examples/1.80-release-evidence-gate/web-preview-handoff/release-evidence-gate-reports/001-web-preview.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/completion-evidence-reports/001-web-preview-completion.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/business-rule-closures/001-service-time.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/verification-plans/001-service-time.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/test-evidence-reports/001-service-time.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/execution-assurance-reports/001-service-time.md",
     "examples/1.80-release-evidence-gate/mini-program-review-handoff/release-evidence-gate-reports/001-mini-program-review.md",
+    "examples/1.80-release-evidence-gate/mini-program-review-handoff/completion-evidence-reports/001-mini-program-completion.md",
     "examples/1.80-release-evidence-gate/admin-production-review-blocked/release-evidence-gate-reports/001-admin-production-blocked.md",
     "test-fixtures/bad/bad-release-evidence-release-approved-claim/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-no-release-owner/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-missing-rollback-production/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-user-note-treated-as-smoke/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-source-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-runtime-smoke-unresolved/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-build-artifact-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/release-evidence-gate-reports/001-bad.md",
     "releases/1.80.0/release-record.md",
     "releases/1.80.0/known-limitations.md",
     "releases/1.80.0/self-check-report.md",
+    "releases/1.80.1/release-record.md",
+    "releases/1.80.1/known-limitations.md",
+    "releases/1.80.1/self-check-report.md",
   ]) {
     if (fs.existsSync(path.join(projectRoot, file))) pass(`source evidence exists: ${file}`);
     else fail(`missing source evidence: ${file}`);
@@ -355,6 +476,17 @@ function tableValue(body, label) {
 
 function isConcrete(value) {
   return Boolean(value) && !/^(missing|unknown|n\/a|not_applicable|not provided|out_of_scope)$/i.test(String(value).trim());
+}
+
+function fileDigest(file) {
+  return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
+}
+
+function firstUsefulLine(output) {
+  return String(output || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean) || "no output";
 }
 
 function markdownFiles(dir) {
@@ -445,6 +577,9 @@ function emitAndExit() {
       projectRoot,
       checks,
     }, null, 2));
+  } else if (!failed) {
+    console.log("");
+    console.log("Release Evidence Gate check passed.");
   }
   process.exit(failed ? 1 : 0);
 }

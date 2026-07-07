@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
@@ -35,6 +36,10 @@ function exists(relativePath) {
 
 function read(relativePath) {
   return fs.readFileSync(path.join(kitRoot, relativePath), "utf8");
+}
+
+function fileDigest(file) {
+  return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
 }
 
 function walkSourceFiles(dir) {
@@ -8608,6 +8613,174 @@ function checkCompletionEvidenceGateProtocol() {
   }
 }
 
+function checkReleaseEvidenceGateProtocol() {
+  const required = [
+    "core/release-evidence-gate.md",
+    "docs/release-evidence-gate.md",
+    "docs/plans/release-evidence-gate-1.80-plan.md",
+    "templates/release-evidence-gate-report.md",
+    "checklists/release-evidence-gate-review.md",
+    "prompts/release-evidence-gate-agent.md",
+    "schemas/artifacts/release-evidence-gate.schema.json",
+    "release-evidence-gate-reports/.gitkeep",
+    "release-candidates/.gitkeep",
+    "scripts/resolve-release-evidence-gate.mjs",
+    "scripts/check-release-evidence-gate.mjs",
+    "examples/1.80-release-evidence-gate/README.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/release-evidence-gate-reports/001-web-preview.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/completion-evidence-reports/001-web-preview-completion.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/business-rule-closures/001-service-time.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/verification-plans/001-service-time.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/test-evidence-reports/001-service-time.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/execution-assurance-reports/001-service-time.md",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/evidence/preview-build.txt",
+    "examples/1.80-release-evidence-gate/web-preview-handoff/evidence/runtime-smoke.txt",
+    "examples/1.80-release-evidence-gate/mini-program-review-handoff/release-evidence-gate-reports/001-mini-program-review.md",
+    "examples/1.80-release-evidence-gate/mini-program-review-handoff/completion-evidence-reports/001-mini-program-completion.md",
+    "examples/1.80-release-evidence-gate/admin-production-review-blocked/release-evidence-gate-reports/001-admin-production-blocked.md",
+    "test-fixtures/bad/bad-release-evidence-release-approved-claim/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-no-release-owner/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-missing-rollback-production/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-user-note-treated-as-smoke/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-source-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-runtime-smoke-unresolved/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-build-artifact-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/release-evidence-gate-reports/001-bad.md",
+    "releases/1.80.0/release-record.md",
+    "releases/1.80.0/known-limitations.md",
+    "releases/1.80.0/self-check-report.md",
+    "releases/1.80.1/release-record.md",
+    "releases/1.80.1/known-limitations.md",
+    "releases/1.80.1/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.80 release evidence gate asset exists ${file}`);
+    else fail(`1.80 release evidence gate asset missing ${file}`);
+  }
+
+  const combined = [
+    read("README.md"),
+    read("README.zh-CN.md"),
+    read("docs/README.md"),
+    read("docs/index.md"),
+    read("core/release-evidence-gate.md"),
+    read("docs/release-evidence-gate.md"),
+    read("docs/plans/release-evidence-gate-1.80-plan.md"),
+    read("templates/release-evidence-gate-report.md"),
+    read("checklists/release-evidence-gate-review.md"),
+    read("prompts/release-evidence-gate-agent.md"),
+    read("schemas/artifacts/release-evidence-gate.schema.json"),
+    read("scripts/resolve-release-evidence-gate.mjs"),
+    read("scripts/check-release-evidence-gate.mjs"),
+    read("scripts/cli.mjs"),
+    exists("releases/1.80.1/release-record.md") ? read("releases/1.80.1/release-record.md") : "",
+  ].join("\n");
+  for (const marker of [
+    "Release Evidence Gate",
+    "release_evidence_gate",
+    "release-evidence",
+    "release-evidence-check",
+    "Completion Evidence strict checker",
+    "source_chain",
+    "build_artifact_digest",
+    "runtime_smoke_ref",
+    "human release owner",
+    "not release approval",
+    "does not deploy",
+    "does not submit app-store or mini-program review",
+    "User Delivery Console is not a source authority",
+  ]) {
+    if (combined.includes(marker)) pass(`1.80 release evidence includes ${marker}`);
+    else fail(`1.80 release evidence missing ${marker}`);
+  }
+
+  const web = runNode([
+    "scripts/check-release-evidence-gate.mjs",
+    "examples/1.80-release-evidence-gate/web-preview-handoff",
+    "--require-structured-evidence",
+    "--require-current-completion",
+    "--strict-source-binding",
+  ]);
+  if (web.status === 0
+    && web.stdout.includes("Completion Evidence strict checker passed")
+    && web.stdout.includes("source completion_evidence digest matches resolved artifact")
+    && web.stdout.includes("required evidence build-or-preview-evidence digest matches resolved artifact")
+    && web.stdout.includes("required evidence runtime-smoke resolves")) {
+    pass("1.80 release evidence strict web preview example passes checker");
+  } else {
+    fail(`1.80 release evidence strict web preview example failed: ${web.stderr || web.stdout}`);
+  }
+
+  const mini = runNode([
+    "scripts/check-release-evidence-gate.mjs",
+    "examples/1.80-release-evidence-gate/mini-program-review-handoff",
+    "--require-structured-evidence",
+    "--require-platform-recipe",
+  ]);
+  if (mini.status === 0
+    && mini.stdout.includes("required source release_handoff_pack digest matches resolved artifact")
+    && mini.stdout.includes("required source platform_release_recipe digest matches resolved artifact")
+    && mini.stdout.includes("production-like target has rollback evidence")) {
+    pass("1.80 release evidence mini-program handoff example passes checker");
+  } else {
+    fail(`1.80 release evidence mini-program example failed: ${mini.stderr || mini.stdout}`);
+  }
+
+  const blocked = runNode([
+    "scripts/check-release-evidence-gate.mjs",
+    "examples/1.80-release-evidence-gate/admin-production-review-blocked",
+    "--require-structured-evidence",
+  ]);
+  if (blocked.status === 0 && blocked.stdout.includes("blocked production-like report records missing rollback")) {
+    pass("1.80 release evidence blocked production example stays non-ready");
+  } else {
+    fail(`1.80 release evidence blocked production example failed: ${blocked.stderr || blocked.stdout}`);
+  }
+
+  const badFixtureCases = [
+    ["bad-release-evidence-release-approved-claim", "contains forbidden release evidence claim", []],
+    ["bad-release-evidence-no-release-owner", "release-evidence-gate-reports/001-bad.md.intent is required", []],
+    ["bad-release-evidence-missing-rollback-production", "release-evidence-gate-reports/001-bad.md.release_scope is required", ["--require-ready"]],
+    ["bad-release-evidence-user-note-treated-as-smoke", "release-evidence-gate-reports/001-bad.md.runtime_readiness.runtime_smoke_ref is required", []],
+    ["bad-release-evidence-source-digest-mismatch", "source completion_evidence digest", ["--strict-source-binding"]],
+    ["bad-release-evidence-runtime-smoke-unresolved", "required evidence runtime-smoke does not resolve", ["--strict-source-binding"]],
+    ["bad-release-evidence-build-artifact-digest-mismatch", "required evidence build-or-preview-evidence digest", ["--strict-source-binding"]],
+    ["bad-release-evidence-completion-evidence-strict-check-fails", "Completion Evidence strict checker failed", ["--require-current-completion", "--strict-source-binding"]],
+  ];
+  for (const [name, expected, extra] of badFixtureCases) {
+    const result = runNode([
+      "scripts/check-release-evidence-gate.mjs",
+      `test-fixtures/bad/${name}`,
+      "--report",
+      "release-evidence-gate-reports/001-bad.md",
+      "--require-structured-evidence",
+      ...extra,
+    ]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.80 release evidence rejects ${name}`);
+    } else {
+      fail(`1.80 release evidence must reject ${name}: ${output}`);
+    }
+  }
+
+  const releasePackage = JSON.parse(read("package.json"));
+  const releaseVerifySurface = Object.entries(releasePackage.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, value]) => value)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-release-evidence-gate.mjs",
+    "node --check scripts/check-release-evidence-gate.mjs",
+    "node scripts/cli.mjs release-evidence . --intent \"prepare release review\"",
+    "node scripts/cli.mjs release-evidence-check . --allow-empty",
+    "node scripts/check-release-evidence-gate.mjs examples/1.80-release-evidence-gate/web-preview-handoff --require-structured-evidence --require-current-completion --strict-source-binding",
+  ]) {
+    if (releaseVerifySurface.includes(marker)) pass(`1.80 package verify includes ${marker}`);
+    else fail(`1.80 package verify missing ${marker}`);
+  }
+}
+
 function checkUserDeliveryConsoleProtocol() {
   const required = [
     "core/user-delivery-console.md",
@@ -12782,6 +12955,16 @@ function checkGeneratedProjectE2E() {
     "scripts/resolve-completion-evidence.mjs",
     "scripts/check-completion-evidence.mjs",
     "completion-evidence-reports/.gitkeep",
+    ".intentos/core/release-evidence-gate.md",
+    ".intentos/docs/release-evidence-gate.md",
+    ".intentos/templates/release-evidence-gate-report.md",
+    ".intentos/checklists/release-evidence-gate-review.md",
+    ".intentos/prompts/release-evidence-gate-agent.md",
+    ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
+    "scripts/resolve-release-evidence-gate.mjs",
+    "scripts/check-release-evidence-gate.mjs",
+    "release-evidence-gate-reports/.gitkeep",
+    "release-candidates/.gitkeep",
   ]) {
     if (!fs.existsSync(path.join(target, rel))) {
       fail(`generated project missing platform baseline asset: ${rel}`);
@@ -14504,6 +14687,138 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project execution assurance checker after update");
 
+  fs.writeFileSync(path.join(target, generatedExecutionAssuranceReport), generatedExecutionAssuranceReportText({
+    taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
+    testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
+  }));
+  const generatedCompletionResolveAfterUpdate = runNode([
+    path.join(target, "scripts", "resolve-completion-evidence.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    generatedBusinessRuleRef,
+    "--verification-plan-ref",
+    `artifact:${generatedVerificationReport}`,
+    "--test-evidence-ref",
+    `artifact:${generatedTestEvidenceReport}`,
+    "--execution-assurance-ref",
+    `artifact:${generatedExecutionAssuranceReport}`,
+    "--out",
+    generatedCompletionReport,
+  ]);
+  if (generatedCompletionResolveAfterUpdate.status !== 0
+    || !fs.existsSync(path.join(target, generatedCompletionReport))
+    || !generatedCompletionResolveAfterUpdate.stdout.includes("COMPLETION_EVIDENCE_READY")) {
+    fail(`generated project Completion Evidence resolver after workflow update failed: ${generatedCompletionResolveAfterUpdate.stderr || generatedCompletionResolveAfterUpdate.stdout}`);
+    return;
+  }
+  const generatedCompletionStrictCheckAfterUpdate = runNode([
+    path.join(target, "scripts", "check-completion-evidence.mjs"),
+    target,
+    "--report",
+    generatedCompletionReport,
+    "--require-structured-evidence",
+    "--require-source-refs",
+    "--require-ready",
+  ]);
+  if (generatedCompletionStrictCheckAfterUpdate.status !== 0
+    || !generatedCompletionStrictCheckAfterUpdate.stdout.includes("Completion Evidence Gate check passed")) {
+    fail(`generated project Completion Evidence strict source binding after workflow update failed: ${generatedCompletionStrictCheckAfterUpdate.stderr || generatedCompletionStrictCheckAfterUpdate.stdout}`);
+    return;
+  }
+  pass("generated project strict Completion Evidence source binding after workflow update");
+
+  const generatedReleaseCandidate = "release-candidates/001-generated-service-time-preview.md";
+  const generatedBuildEvidence = "evidence/generated-preview-build.txt";
+  const generatedRuntimeSmoke = "evidence/generated-runtime-smoke.txt";
+  fs.mkdirSync(path.join(target, "release-candidates"), { recursive: true });
+  fs.writeFileSync(path.join(target, generatedReleaseCandidate), [
+    "# Generated Service Time Preview Candidate",
+    "",
+    "- Target: preview",
+    "- Source revision: git:generated-project-smoke",
+    "- Boundary: review handoff only; no release approval.",
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(target, generatedBuildEvidence), [
+    "id: evidence:generated-preview-build",
+    "evidence_type: COMMAND_OUTPUT",
+    "result_state: PASSED",
+    "command: npm run build -- generated-service-time",
+    "owner: generated-project-smoke",
+    "environment: generated-local-ci",
+    "ran_at: 2026-07-06T10:20:00Z",
+    "exit_code: 0",
+    "PASS generated preview build artifact.",
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(target, generatedRuntimeSmoke), [
+    "id: evidence:generated-runtime-smoke",
+    "evidence_type: COMMAND_OUTPUT",
+    "result_state: PASSED",
+    "command: npm run smoke:preview -- generated-service-time",
+    "owner: generated-project-smoke",
+    "environment: generated-local-ci",
+    "ran_at: 2026-07-06T10:21:00Z",
+    "exit_code: 0",
+    "PASS generated preview runtime smoke.",
+    "",
+  ].join("\n"));
+  const generatedReleaseEvidenceReport = "release-evidence-gate-reports/001-generated-service-time-preview.md";
+  const generatedReleaseEvidenceResolve = runNode([
+    path.join(target, "scripts", "resolve-release-evidence-gate.mjs"),
+    target,
+    "--intent",
+    "prepare generated service time preview review",
+    "--release-target",
+    "preview",
+    "--release-candidate-ref",
+    `artifact:${generatedReleaseCandidate}`,
+    "--source-revision",
+    "git:generated-project-smoke",
+    "--dirty-worktree-status",
+    "clean",
+    "--task-ref",
+    "tasks/001-appointment-requests-must-include-a-service-time.md",
+    "--completion-evidence-ref",
+    `artifact:${generatedCompletionReport}`,
+    "--build-artifact-ref",
+    `artifact:${generatedBuildEvidence}`,
+    "--build-artifact-digest",
+    fileDigest(path.join(target, generatedBuildEvidence)),
+    "--release-owner",
+    "human:generated-preview-owner",
+    "--runtime-smoke-ref",
+    `artifact:${generatedRuntimeSmoke}`,
+    "--out",
+    generatedReleaseEvidenceReport,
+  ]);
+  if (generatedReleaseEvidenceResolve.status !== 0
+    || !fs.existsSync(path.join(target, generatedReleaseEvidenceReport))
+    || !generatedReleaseEvidenceResolve.stdout.includes("Release Evidence Gate Report")
+    || !generatedReleaseEvidenceResolve.stdout.includes("READY_FOR_INTERNAL_TRIAL_REVIEW")) {
+    fail(`generated project Release Evidence Gate resolver after update failed: ${generatedReleaseEvidenceResolve.stderr || generatedReleaseEvidenceResolve.stdout}`);
+    return;
+  }
+  const generatedReleaseEvidenceCheck = runNode([
+    path.join(target, "scripts", "check-release-evidence-gate.mjs"),
+    target,
+    "--report",
+    generatedReleaseEvidenceReport,
+    "--require-structured-evidence",
+    "--require-current-completion",
+    "--strict-source-binding",
+  ]);
+  if (generatedReleaseEvidenceCheck.status !== 0
+    || !generatedReleaseEvidenceCheck.stdout.includes("Completion Evidence strict checker passed")
+    || !generatedReleaseEvidenceCheck.stdout.includes("required evidence build-or-preview-evidence digest matches resolved artifact")
+    || !generatedReleaseEvidenceCheck.stdout.includes("Release Evidence Gate check passed")) {
+    fail(`generated project Release Evidence Gate checker after update failed: ${generatedReleaseEvidenceCheck.stderr || generatedReleaseEvidenceCheck.stdout}`);
+    return;
+  }
+  pass("generated project Release Evidence Gate resolver/checker after update");
+
   const dryRunTarget = path.join(tempRoot, "dry-run-project");
   const nonEmptyInitTarget = path.join(tempRoot, "non-empty-init-project");
   fs.mkdirSync(nonEmptyInitTarget, { recursive: true });
@@ -14995,6 +15310,7 @@ checkChangeImpactCoverageProtocol();
 checkVerificationPlanGovernanceProtocol();
 checkTestEvidenceBindingProtocol();
 checkCompletionEvidenceGateProtocol();
+checkReleaseEvidenceGateProtocol();
 checkUserDeliveryConsoleProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();

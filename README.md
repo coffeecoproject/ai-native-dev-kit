@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.80.0`.
+Current release: `1.80.1`.
 
-Release record: [releases/1.80.0/release-record.md](releases/1.80.0/release-record.md).
+Release record: [releases/1.80.1/release-record.md](releases/1.80.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -40,6 +40,8 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.80.1 hardens Release Evidence Gate: strict checks now recompute source-chain file digests, resolve required build/runtime/rollback/monitoring evidence, and run strict Completion Evidence validation when current completion is required. Generated-project smoke now proves `release-evidence` and `release-evidence-check` are installed and usable. It still does not approve release, deploy production, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 
 1.80.0 adds Release Evidence Gate: after task completion and user-facing status, Codex can prepare a release-review evidence package that says whether a release candidate can be handed to a human release owner. It records the release candidate, target-specific evidence, source-chain digests, owner/approval split, runtime smoke, rollback, monitoring, environment, migration, cost/quota, and existing release SOP mapping. It still does not approve release, deploy production, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 
