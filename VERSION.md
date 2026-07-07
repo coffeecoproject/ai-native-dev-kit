@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.81.2`
+Current version: `1.81.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.81.2`
 
 ## Current Release
 
-`1.81.2`
+`1.81.3`
 
 Includes:
+
+- Adoption Autopilot Plain-Language And Reference Polish patch `1.81.3`:
+  `adopt` Human Summary now uses plain-language adoption state and working-mode
+  wording instead of raw internal enums.
+- `1.81.3` keeps raw adoption enums in JSON, Outcome, and Technical Trace for
+  auditability, adds `adopt` / `adopt-check` to the script reference, and
+  exposes Existing Project Safe Adoption Autopilot in the capability table.
+- `1.81.3` remains read-only. It does not write target-project files, install
+  `.intentos/`, change project authority, approve implementation, or approve
+  release.
 
 - Public Entry Adoption Integration patch `1.81.2`: `start` remains read-only
   orientation only, while `adopt` is the public old-project safe adoption

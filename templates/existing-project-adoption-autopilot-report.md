@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| Current state | `<SAFE_READ_ONLY_ADOPTION_COMPLETE | READY_FOR_RULE_ENTRY_REVIEW | BLOCKED_BY_PROJECT_AUTHORITY | BLOCKED_BY_UNSAFE_PROJECT_STATE | BLOCKED_BY_PROJECT_NOT_FOUND | FAILED_INVALID_EVIDENCE>` |
-| IntentOS working mode | `<AVAILABLE_FOR_SAFE_USE | READ_ONLY_DIAGNOSIS_ONLY | NOT_AVAILABLE>` |
+| Current state | `<plain-language adoption state>` |
+| IntentOS working mode | `<plain-language working mode>` |
 | Project authority changed | `No` |
 | Native assets installed | `No` |
 | Full adoption claim | `No` |

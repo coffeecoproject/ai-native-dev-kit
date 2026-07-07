@@ -53,6 +53,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs status <project> --intent "<goal>"` | Show one plain-language delivery status card without asking the user to know internal workflow terms | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs status-check <project>` | Check recorded User Delivery Console cards for plain-language status and no-authority boundaries | No |
 | `node scripts/cli.mjs start <project>` | Read-only guided adoption recommendation | No |
+| `node scripts/cli.mjs adopt <existing-project> --intent "<goal>"` | Run the read-only Existing Project Safe Adoption Autopilot and print one user-facing adoption result card | No |
+| `node scripts/cli.mjs adopt-check <project>` | Check recorded Existing Project Safe Adoption Autopilot reports | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
 | `node scripts/cli.mjs baseline-decision-check <project>` | Check recorded Baseline Decision Cards | No |

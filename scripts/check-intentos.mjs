@@ -10,6 +10,7 @@ import { sourceRequiredPaths } from "./lib/manifest.mjs";
 import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -5705,12 +5706,16 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     "examples/1.81-existing-project-adoption-autopilot/light-existing/adoption-autopilot-reports/001-adoption.md",
     "examples/1.81-existing-project-adoption-autopilot/dirty-blocked/adoption-autopilot-reports/001-adoption.md",
     "docs/plans/public-entry-adoption-integration-1.81.2-plan.md",
+    "docs/plans/adoption-autopilot-plain-language-reference-1.81.3-plan.md",
     "releases/1.81.0/release-record.md",
     "releases/1.81.0/known-limitations.md",
     "releases/1.81.0/self-check-report.md",
     "releases/1.81.2/release-record.md",
     "releases/1.81.2/known-limitations.md",
     "releases/1.81.2/self-check-report.md",
+    "releases/1.81.3/release-record.md",
+    "releases/1.81.3/known-limitations.md",
+    "releases/1.81.3/self-check-report.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/adoption-autopilot-reports/001-bad.md`),
   ];
   for (const file of required) {
@@ -5728,12 +5733,16 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     read("scripts/check-existing-project-adoption-autopilot.mjs"),
     read("docs/start-here.md"),
     read("docs/for-existing-projects.md"),
+    read("docs/reference/scripts.md"),
     read("docs/plans/public-entry-adoption-integration-1.81.2-plan.md"),
+    read("docs/plans/adoption-autopilot-plain-language-reference-1.81.3-plan.md"),
     read("releases/1.81.0/release-record.md"),
     read("releases/1.81.2/release-record.md"),
+    read("releases/1.81.3/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Existing Project Safe Adoption Autopilot",
+    "Adoption Autopilot Plain-Language",
     "Public Entry Adoption Integration",
     "existing_project_adoption_autopilot",
     "AVAILABLE_FOR_SAFE_USE",
@@ -5749,6 +5758,9 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     "read-only orientation only",
     "safe adoption entry",
     "Use `adopt` when the user wants an existing project",
+    "node scripts/cli.mjs adopt <existing-project> --intent",
+    "node scripts/cli.mjs adopt-check <project>",
+    "plain-language adoption state",
   ]) {
     if (combined.includes(marker)) pass(`1.81 adoption autopilot includes ${marker}`);
     else fail(`1.81 adoption autopilot missing ${marker}`);
@@ -5779,6 +5791,32 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     pass("1.81 adoption autopilot resolver prints read-only result card");
   } else {
     fail(`1.81 adoption autopilot resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const resolverHumanSummary = sectionBody(resolver.stdout, "Human Summary", { fallback: "" }) || "";
+  const rawSummaryEnums = [
+    "SAFE_READ_ONLY_ADOPTION_COMPLETE",
+    "READY_FOR_RULE_ENTRY_REVIEW",
+    "BLOCKED_BY_PROJECT_AUTHORITY",
+    "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+    "BLOCKED_BY_PROJECT_NOT_FOUND",
+    "FAILED_INVALID_EVIDENCE",
+    "AVAILABLE_FOR_SAFE_USE",
+    "READ_ONLY_DIAGNOSIS_ONLY",
+    "NOT_AVAILABLE",
+  ];
+  const exposesRawSummaryEnum = rawSummaryEnums.some((marker) => resolverHumanSummary.includes(marker));
+  if (resolver.status === 0
+    && resolverHumanSummary.includes("Current state")
+    && resolverHumanSummary.includes("IntentOS working mode")
+    && /The project can|The target project path was not found|The evidence is invalid or incomplete/.test(stripMarkdown(resolverHumanSummary))
+    && /Available as a read-only working method|Read-only diagnosis only|Not available until/.test(stripMarkdown(resolverHumanSummary))
+    && !exposesRawSummaryEnum
+    && resolver.stdout.includes('"adoption_state"')
+    && resolver.stdout.includes('"intentos_working_mode"')) {
+    pass("1.81.3 adoption autopilot Human Summary uses plain language while JSON keeps technical state");
+  } else {
+    fail(`1.81.3 adoption autopilot Human Summary plain-language regression failed: ${resolver.stderr || resolver.stdout}`);
   }
 
   const resolverJson = runNode(["scripts/resolve-existing-project-adoption-autopilot.mjs", ".", "--json", "--intent", "connect existing project"]);

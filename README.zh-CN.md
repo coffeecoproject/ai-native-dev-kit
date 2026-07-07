@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.81.2`。
+当前版本：`1.81.3`。
 
-发布记录：[releases/1.81.2/release-record.md](releases/1.81.2/release-record.md)。
+发布记录：[releases/1.81.3/release-record.md](releases/1.81.3/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -44,6 +44,11 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.81.3 优化老项目接入结果卡：`adopt` 的 Human Summary 不再直接显示
+内部枚举，而是用白话说明当前状态和可用工作方式。原始状态仍保留在 JSON、
+Outcome 和技术追踪里，方便审计。脚本参考和能力表也补上了 `adopt` /
+`adopt-check` 与老项目安全接入自动判断。
 
 1.81.2 收紧公开入口语义：`start` 只保持只读识别，不写计划文件、不应用工作流资产；`adopt` 才是老项目进入安全接入流程的公开入口。这样用户只是让 Codex 读取项目时，不会误触发迁移。
 
@@ -202,6 +207,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Conversation-Native Ask | 用户直接说目标，Codex 自动按入口流程判断 |
 | Beginner Entry | 用户只说目标，AI 给出可确认的下一步 |
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
+| Existing Project Safe Adoption Autopilot | 老项目说“接入 IntentOS”时，`adopt` 自动跑只读诊断、规则对比、收敛与验收摘要，输出白话结果卡；不写项目、不安装 `.intentos/`、不宣称完整接入 |
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
 | Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 参考规则，只输出建议，不直接替换旧治理 |
 | Governance Convergence | 老项目可以按 IntentOS 日常工作方式收敛，但基线、发布、CI、hook、历史证据和旧规则必须先比较再计划 |

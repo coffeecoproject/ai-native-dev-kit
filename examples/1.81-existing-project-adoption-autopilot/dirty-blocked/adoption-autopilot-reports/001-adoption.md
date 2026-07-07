@@ -6,8 +6,8 @@ This report is a read-only adoption view. It did not change the target project.
 
 | Field | Value |
 | --- | --- |
-| Current state | `BLOCKED_BY_UNSAFE_PROJECT_STATE` |
-| IntentOS working mode | `READ_ONLY_DIAGNOSIS_ONLY` |
+| Current state | The project has an unsafe current state for adoption writes. Codex can keep analyzing without writing files. |
+| IntentOS working mode | Read-only diagnosis only until the unsafe project state is resolved. |
 | Project authority changed | `No` |
 | Native assets installed | `No` |
 | Full adoption claim | `No` |

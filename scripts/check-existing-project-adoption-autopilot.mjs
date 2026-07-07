@@ -80,6 +80,17 @@ const forbiddenClaimPatterns = [
   /自动写入目标项目/,
   /替代项目权威/,
 ];
+const rawSummaryEnumPatterns = [
+  /\bSAFE_READ_ONLY_ADOPTION_COMPLETE\b/,
+  /\bREADY_FOR_RULE_ENTRY_REVIEW\b/,
+  /\bBLOCKED_BY_PROJECT_AUTHORITY\b/,
+  /\bBLOCKED_BY_UNSAFE_PROJECT_STATE\b/,
+  /\bBLOCKED_BY_PROJECT_NOT_FOUND\b/,
+  /\bFAILED_INVALID_EVIDENCE\b/,
+  /\bAVAILABLE_FOR_SAFE_USE\b/,
+  /\bREAD_ONLY_DIAGNOSIS_ONLY\b/,
+  /\bNOT_AVAILABLE\b/,
+];
 
 let failed = false;
 const checks = [];
@@ -234,8 +245,11 @@ function checkStructuredEvidence(label, file, evidence) {
 
 function checkMarkdownConsistency(content, label, evidence) {
   const summary = sectionBody(content, "Human Summary") || "";
-  compareTable(label, summary, "Current state", evidence.adoption_state);
-  compareTable(label, summary, "IntentOS working mode", evidence.intentos_working_mode);
+  for (const pattern of rawSummaryEnumPatterns) {
+    if (pattern.test(summary)) fail(`${label} Human Summary exposes raw internal enum: ${pattern.source}`);
+  }
+  compareTable(label, summary, "Current state", plainStateFor(evidence.adoption_state));
+  compareTable(label, summary, "IntentOS working mode", plainWorkingModeFor(evidence.intentos_working_mode));
   compareTable(label, summary, "Project authority changed", evidence.project_authority_changed);
   compareTable(label, summary, "Native assets installed", evidence.native_assets_installed);
   compareTable(label, summary, "Full adoption claim", evidence.full_adoption_claim);
@@ -261,6 +275,21 @@ function compareTable(label, body, key, expected) {
   const value = tableValue(body, key);
   if (value === expected) pass(`${label} ${key} matches structured evidence`);
   else fail(`${label} ${key} ${value || "<empty>"} does not match ${expected}`);
+}
+
+function plainStateFor(state) {
+  if (state === "SAFE_READ_ONLY_ADOPTION_COMPLETE") return "The project can use IntentOS as a safe read-only working method now. No project files were changed.";
+  if (state === "READY_FOR_RULE_ENTRY_REVIEW") return "The project can use IntentOS safely, but deeper adoption needs a separate collaboration-instruction review plan.";
+  if (state === "BLOCKED_BY_PROJECT_AUTHORITY") return "The project has authority rules that must be reviewed before deeper adoption.";
+  if (state === "BLOCKED_BY_UNSAFE_PROJECT_STATE") return "The project has an unsafe current state for adoption writes. Codex can keep analyzing without writing files.";
+  if (state === "BLOCKED_BY_PROJECT_NOT_FOUND") return "The target project path was not found.";
+  return "The evidence is invalid or incomplete, so Codex cannot claim adoption status.";
+}
+
+function plainWorkingModeFor(mode) {
+  if (mode === "AVAILABLE_FOR_SAFE_USE") return "Available as a read-only working method.";
+  if (mode === "READ_ONLY_DIAGNOSIS_ONLY") return "Read-only diagnosis only until the unsafe project state is resolved.";
+  return "Not available until the blocking evidence is fixed.";
 }
 
 function tableValue(markdown, key) {

@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.81.2`.
+Current release: `1.81.3`.
 
-Release record: [releases/1.81.2/release-record.md](releases/1.81.2/release-record.md).
+Release record: [releases/1.81.3/release-record.md](releases/1.81.3/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -44,6 +44,12 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.81.3 polishes the old-project adoption card: `adopt` now keeps raw internal
+states out of the Human Summary and uses plain language for the current state
+and working mode. Raw enums remain in JSON, Outcome, and technical trace for
+auditing. The script reference and capability table now list `adopt` /
+`adopt-check` and Existing Project Safe Adoption Autopilot explicitly.
 
 1.81.2 consolidates public adoption entry semantics: `start` remains read-only
 orientation and never writes plan files or applies workflow assets; `adopt` is
@@ -208,6 +214,7 @@ IntentOS 当前包含这些核心能力：
 | Conversation-Native Ask | 用户直接说目标，Codex 自动按入口流程判断 |
 | Beginner Entry | 用户只说目标，AI 给出可确认的下一步 |
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
+| Existing Project Safe Adoption Autopilot | 老项目说“接入 IntentOS”时，`adopt` 自动跑只读诊断、规则对比、收敛与验收摘要，输出白话结果卡；不写项目、不安装 `.intentos/`、不宣称完整接入 |
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
 | Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 规则，只输出建议，不直接替换旧治理 |
 | Governance Convergence | 老项目可以按 IntentOS 日常工作方式收敛，但基线、发布、CI、hook、历史证据和旧规则必须先比较再计划 |

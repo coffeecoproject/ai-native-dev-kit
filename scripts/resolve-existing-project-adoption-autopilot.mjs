@@ -90,7 +90,9 @@ function buildReport(root) {
     readOnly: true,
     humanSummary: {
       adoptionState,
+      adoptionStateText: plainStateFor(adoptionState),
       intentosWorkingMode: workingMode,
+      intentosWorkingModeText: plainWorkingModeFor(workingMode),
       projectAuthorityChanged: "No",
       nativeAssetsInstalled: "No",
       fullAdoptionClaim: "No",
@@ -383,8 +385,8 @@ This report is a read-only adoption view. It did not change the target project.
 
 | Field | Value |
 | --- | --- |
-| Current state | \`${e.adoption_state}\` |
-| IntentOS working mode | \`${e.intentos_working_mode}\` |
+| Current state | ${plainStateFor(e.adoption_state)} |
+| IntentOS working mode | ${plainWorkingModeFor(e.intentos_working_mode)} |
 | Project authority changed | \`${e.project_authority_changed}\` |
 | Native assets installed | \`${e.native_assets_installed}\` |
 | Full adoption claim | \`${e.full_adoption_claim}\` |
@@ -453,6 +455,12 @@ function plainStateFor(state) {
   if (state === "BLOCKED_BY_UNSAFE_PROJECT_STATE") return "The project has an unsafe current state for adoption writes. Codex can keep analyzing without writing files.";
   if (state === "BLOCKED_BY_PROJECT_NOT_FOUND") return "The target project path was not found.";
   return "The evidence is invalid or incomplete, so Codex cannot claim adoption status.";
+}
+
+function plainWorkingModeFor(mode) {
+  if (mode === "AVAILABLE_FOR_SAFE_USE") return "Available as a read-only working method.";
+  if (mode === "READ_ONLY_DIAGNOSIS_ONLY") return "Read-only diagnosis only until the unsafe project state is resolved.";
+  return "Not available until the blocking evidence is fixed.";
 }
 
 function hasDirtyState(parsed) {

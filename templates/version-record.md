@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.81.2`
+`1.81.3`
 
 ## Project Version File
 
@@ -19,6 +19,10 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.81.3` keeps old-project adoption Human Summary output in plain language
+  while preserving raw enums in JSON, Outcome, and Technical Trace.
+- `1.81.3` documents `adopt` / `adopt-check` in the script reference and
+  exposes Existing Project Safe Adoption Autopilot in the capability table.
 - `1.81.2` makes `start` read-only orientation only and makes `adopt` the
   public entry for old-project safe adoption.
 - `1.81.2` prevents `start` from directly recommending workflow-asset apply

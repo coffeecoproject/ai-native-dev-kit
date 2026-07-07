@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.81.2",
+  "intentOSVersion": "1.81.3",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.81.2"
+    "phase": "1.81.3"
   },
   "groups": {
     "sourceRequired": [
@@ -298,6 +298,7 @@
       "docs/plans/adoption-execution-assurance-1.71-plan.md",
       "docs/plans/approval-record-governance-1.40-plan.md",
       "docs/plans/approval-record-hardening-1.40.1-plan.md",
+      "docs/plans/adoption-autopilot-plain-language-reference-1.81.3-plan.md",
       "docs/plans/baseline-pack-system-1.13-plan.md",
       "docs/plans/baseline-selection-precision-calibration-1.19-plan.md",
       "docs/plans/beginner-entry-1.35-plan.md",
@@ -308,6 +309,7 @@
       "docs/plans/closeout-evidence-precision-1.51-plan.md",
       "docs/plans/completion-evidence-gate-1.78-plan.md",
       "docs/plans/controlled-apply-readiness-1.38-plan.md",
+      "docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md",
       "docs/plans/conversation-native-ask-1.37-plan.md",
       "docs/plans/decision-explain-trace-1.54-plan.md",
       "docs/plans/engineering-environment-baseline-1.2-plan.md",
@@ -1569,6 +1571,9 @@
       "releases/1.81.2/known-limitations.md",
       "releases/1.81.2/release-record.md",
       "releases/1.81.2/self-check-report.md",
+      "releases/1.81.3/known-limitations.md",
+      "releases/1.81.3/release-record.md",
+      "releases/1.81.3/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",

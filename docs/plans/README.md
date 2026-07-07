@@ -10,6 +10,8 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Controlled Native Adoption Autopilot Review 1.82](controlled-native-adoption-autopilot-review-1.82-plan.md)
+- [Adoption Autopilot Plain-Language Reference 1.81.3](adoption-autopilot-plain-language-reference-1.81.3-plan.md)
 - [Release Owner And Completion Set Binding 1.80.3](release-owner-completion-set-binding-1.80.3-plan.md)
 - [Existing Project Safe Adoption Autopilot 1.81](existing-project-safe-adoption-autopilot-1.81-plan.md)
 - [Completion Evidence Gate 1.78](completion-evidence-gate-1.78-plan.md)

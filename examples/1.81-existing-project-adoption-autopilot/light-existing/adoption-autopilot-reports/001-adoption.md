@@ -6,8 +6,8 @@ This report is a read-only adoption view. It did not change the target project.
 
 | Field | Value |
 | --- | --- |
-| Current state | `SAFE_READ_ONLY_ADOPTION_COMPLETE` |
-| IntentOS working mode | `AVAILABLE_FOR_SAFE_USE` |
+| Current state | The project can use IntentOS as a safe read-only working method now. No project files were changed. |
+| IntentOS working mode | Available as a read-only working method. |
 | Project authority changed | `No` |
 | Native assets installed | `No` |
 | Full adoption claim | `No` |
