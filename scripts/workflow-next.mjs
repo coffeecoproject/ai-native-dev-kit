@@ -350,15 +350,19 @@ const workflowInternalProductionSignalPaths = new Set([
   "release-guides",
   "release-execution-plans",
   "release-plans",
+  "release-candidates",
+  "release-evidence-gate-reports",
   "scripts/check-native-migration.mjs",
   "scripts/resolve-native-migration.mjs",
   "scripts/check-release-adapter.mjs",
+  "scripts/check-release-evidence-gate.mjs",
   "scripts/check-platform-release-recipe.mjs",
   "scripts/check-release-handoff-pack.mjs",
   "scripts/check-release-guide.mjs",
   "scripts/check-release-execution.mjs",
   "scripts/check-release-plan.mjs",
   "scripts/resolve-release-adapter.mjs",
+  "scripts/resolve-release-evidence-gate.mjs",
   "scripts/resolve-platform-release-recipe.mjs",
   "scripts/resolve-release-handoff-pack.mjs",
   "scripts/resolve-release-guide.mjs",
@@ -431,7 +435,9 @@ function isWorkflowInternalProductionSignal(rel) {
     || rel.startsWith("release-handoff-packs/")
     || rel.startsWith("release-guides/")
     || rel.startsWith("release-execution-plans/")
-    || rel.startsWith("release-plans/");
+    || rel.startsWith("release-plans/")
+    || rel.startsWith("release-candidates/")
+    || rel.startsWith("release-evidence-gate-reports/");
 }
 
 function governanceSignals() {

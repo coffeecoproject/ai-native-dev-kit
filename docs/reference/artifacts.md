@@ -41,6 +41,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `release-handoff-packs/` | Bounded release handoff packages that separate Codex, human, and external-system release responsibilities |
 | `release-execution-plans/` | Bounded release execution plans after launch review and human release approval |
 | `release-plans/` | Pure-view Release Plans that summarize release source systems and existing-project rule comparison without becoming release authority |
+| `release-evidence-gate-reports/` | Release-review evidence gate reports that decide whether a release candidate can be handed to a human release owner without approving release |
 | `execution-assurance-reports/` | Task-bound proof chains that bind intent, completion contract, impact, actual diff, evidence, review, patch classification, and source-system trace before Codex claims execution-class work is complete |
 | `review-packets/` | Stable input for human, GPT Pro, or reviewer agent |
 | `gpt-review-prompts/` | Read-only reviewer prompt |
@@ -114,6 +115,15 @@ User Delivery Console cards live in `delivery-status-cards/`. They are derived
 views for ordinary users and must not replace Completion Evidence, Execution
 Assurance, Release Plan, or any lower-level source system. Use them to answer
 where the project stands, what is missing, and what Codex can safely do next.
+
+Release Evidence Gate reports live in `release-evidence-gate-reports/` and use
+`release_evidence_gate` structured evidence. They must identify a release
+candidate, release target, source chain, target-specific required evidence,
+owner/approval split, runtime smoke, rollback, monitoring, environment,
+migration, cost/quota, and existing release SOP mapping. They answer whether a
+release candidate can be handed to a human release owner for review. They do not
+approve release, deploy, submit platform review, run migrations, record secrets,
+change DNS/payment/CI, or prove real-user stability.
 
 ## Reporting Artifacts
 

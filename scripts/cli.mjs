@@ -427,6 +427,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "release-evidence": {
+    description: "Prepare a Release Evidence Gate report for release-owner review without approving release.",
+    script: "scripts/resolve-release-evidence-gate.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-evidence-check": {
+    description: "Check recorded Release Evidence Gate reports for release candidate identity, evidence, and no-approval boundaries.",
+    script: "scripts/check-release-evidence-gate.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "conversation-drift": {
     description: "Check conversation turn routing and scope-change governance.",
     script: "scripts/check-conversation-drift.mjs",
@@ -744,7 +756,7 @@ function printHelp() {
   printCommandGroup(["start", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
-  printCommandGroup(["ask", "guide", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "apply-plan"]);
+  printCommandGroup(["ask", "guide", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "release-evidence", "apply-plan"]);
   console.log("");
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
@@ -759,6 +771,7 @@ function printHelp() {
     "execution-assurance",
     "release-guide",
     "release-plan",
+    "release-evidence",
     "apply-plan",
   ].includes(name)));
   console.log("");
@@ -773,6 +786,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制' --out execution-assurance-reports/001-contract-limit.md");
   console.log("  node scripts/cli.mjs execution-assurance-check ../my-project --require-structured-evidence");
   console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");
+  console.log("  node scripts/cli.mjs release-evidence ../my-project --intent 'prepare release review'");
   console.log("  node scripts/cli.mjs apply-plan ../my-project --intent '接入 IntentOS 工作流' --action workflow-assets");
   console.log("");
   console.log("Docs:");

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.79.4",
+  "intentOSVersion": "1.80.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.79.4"
+    "phase": "1.80.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2470,7 +2470,41 @@
       "verification-plans/.gitkeep",
       "VERSION.md",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "checklists/release-evidence-gate-review.md",
+      "core/release-evidence-gate.md",
+      "docs/release-evidence-gate.md",
+      "prompts/release-evidence-gate-agent.md",
+      "schemas/artifacts/release-evidence-gate.schema.json",
+      "scripts/check-release-evidence-gate.mjs",
+      "scripts/resolve-release-evidence-gate.mjs",
+      "templates/release-evidence-gate-report.md",
+      "release-evidence-gate-reports/.gitkeep",
+      "release-candidates/.gitkeep",
+      "releases/1.80.0/release-record.md",
+      "releases/1.80.0/known-limitations.md",
+      "releases/1.80.0/self-check-report.md",
+      "examples/1.80-release-evidence-gate/README.md",
+      "examples/1.80-release-evidence-gate/web-preview-handoff/completion-evidence-reports/001-web-preview-completion.md",
+      "examples/1.80-release-evidence-gate/web-preview-handoff/release-candidates/001-web-preview.md",
+      "examples/1.80-release-evidence-gate/web-preview-handoff/evidence/preview-build.txt",
+      "examples/1.80-release-evidence-gate/web-preview-handoff/evidence/runtime-smoke.txt",
+      "examples/1.80-release-evidence-gate/web-preview-handoff/release-evidence-gate-reports/001-web-preview.md",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/completion-evidence-reports/001-mini-program-completion.md",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/release-recipes/001-mini-program-review.md",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/release-handoff-packs/001-mini-program-review.md",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/release-candidates/001-mini-program-review.md",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/evidence/runtime-smoke.txt",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/evidence/rollback.md",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/evidence/package.txt",
+      "examples/1.80-release-evidence-gate/mini-program-review-handoff/release-evidence-gate-reports/001-mini-program-review.md",
+      "examples/1.80-release-evidence-gate/admin-production-review-blocked/completion-evidence-reports/001-admin-completion.md",
+      "examples/1.80-release-evidence-gate/admin-production-review-blocked/release-candidates/001-admin-production.md",
+      "examples/1.80-release-evidence-gate/admin-production-review-blocked/release-evidence-gate-reports/001-admin-production-blocked.md",
+      "test-fixtures/bad/bad-release-evidence-release-approved-claim/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-no-release-owner/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-missing-rollback-production/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-user-note-treated-as-smoke/release-evidence-gate-reports/001-bad.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -3030,7 +3064,17 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "release-evidence-gate-reports",
+      "release-candidates",
+      "scripts/check-release-evidence-gate.mjs",
+      "scripts/resolve-release-evidence-gate.mjs",
+      ".intentos/checklists/release-evidence-gate-review.md",
+      ".intentos/core/release-evidence-gate.md",
+      ".intentos/docs/release-evidence-gate.md",
+      ".intentos/prompts/release-evidence-gate-agent.md",
+      ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
+      ".intentos/templates/release-evidence-gate-report.md"
     ],
     "targetFull": [
       ".github/pull_request_template.md",
@@ -3683,7 +3727,17 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      "release-evidence-gate-reports",
+      "release-candidates",
+      "scripts/check-release-evidence-gate.mjs",
+      "scripts/resolve-release-evidence-gate.mjs",
+      ".intentos/checklists/release-evidence-gate-review.md",
+      ".intentos/core/release-evidence-gate.md",
+      ".intentos/docs/release-evidence-gate.md",
+      ".intentos/prompts/release-evidence-gate-agent.md",
+      ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
+      ".intentos/templates/release-evidence-gate-report.md"
     ],
     "intentOSCore": [
       ".intentos/checklists/platform-release-recipe-review.md",
@@ -5672,7 +5726,17 @@
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      "release-evidence-gate-reports",
+      "release-candidates",
+      "scripts/check-release-evidence-gate.mjs",
+      "scripts/resolve-release-evidence-gate.mjs",
+      ".intentos/checklists/release-evidence-gate-review.md",
+      ".intentos/core/release-evidence-gate.md",
+      ".intentos/docs/release-evidence-gate.md",
+      ".intentos/prompts/release-evidence-gate-agent.md",
+      ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
+      ".intentos/templates/release-evidence-gate-report.md"
     ],
     "workflowReadiness": [
       ".github/workflows/ai-workflow-checks.yml",
@@ -6348,8 +6412,16 @@
         "target": "release-handoff-packs"
       },
       {
+        "source": "release-evidence-gate-reports",
+        "target": "release-evidence-gate-reports"
+      },
+      {
         "source": "release-plans",
         "target": "release-plans"
+      },
+      {
+        "source": "release-candidates",
+        "target": "release-candidates"
       },
       {
         "source": "release-recipes",
@@ -6944,6 +7016,10 @@
       {
         "source": "docs/release-handoff-packs.md",
         "target": ".intentos/docs/release-handoff-packs.md"
+      },
+      {
+        "source": "docs/release-evidence-gate.md",
+        "target": ".intentos/docs/release-evidence-gate.md"
       },
       {
         "source": "docs/release-path-hardening.md",
@@ -7594,6 +7670,10 @@
         "target": "scripts/check-release-adapter.mjs"
       },
       {
+        "source": "scripts/check-release-evidence-gate.mjs",
+        "target": "scripts/check-release-evidence-gate.mjs"
+      },
+      {
         "source": "scripts/check-release-execution.mjs",
         "target": "scripts/check-release-execution.mjs"
       },
@@ -7832,6 +7912,10 @@
       {
         "source": "scripts/resolve-release-adapter.mjs",
         "target": "scripts/resolve-release-adapter.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-evidence-gate.mjs",
+        "target": "scripts/resolve-release-evidence-gate.mjs"
       },
       {
         "source": "scripts/resolve-release-execution.mjs",

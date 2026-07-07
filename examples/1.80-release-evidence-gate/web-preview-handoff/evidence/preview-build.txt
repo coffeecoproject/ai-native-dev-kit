@@ -1,0 +1,1 @@
+Preview build artifact recorded for Release Evidence Gate example.

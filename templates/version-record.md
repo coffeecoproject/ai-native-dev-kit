@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.79.4`
+`1.80.0`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.80.0` adds Release Evidence Gate: after task completion and User Delivery Console status, Codex can prepare a read-only release-review evidence package for a human release owner.
+- `1.80.0` records release candidate, task/completion evidence, source-chain digests, platform recipe/handoff refs, release owner, runtime smoke, rollback, monitoring, environment, migration, cost/quota, and existing release SOP mapping. It does not approve release, deploy, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 - `1.79.4` calibrates User Delivery Console source signals to the current `--intent` and adds the 1.80 Release Evidence Gate plan.
 - `1.79.4` remains a derived status view. It does not implement the 1.80 gate, add release approval, replace Test Evidence, replace Completion Evidence, write target files, approve implementation, approve commit/push, approve release/production, mutate CI/hooks, or prove real-user stability.
 - `1.79.3` keeps `--verification` free text separate from formal Test Evidence in User Delivery Console and records `git diff --check` in release self-check evidence.

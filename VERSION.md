@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.79.4`
+Current version: `1.80.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,21 @@ Current version: `1.79.4`
 
 ## Current Release
 
-`1.79.4`
+`1.80.0`
 
 Includes:
+
+- Release Evidence Gate phase `1.80.0`: Codex can prepare a read-only release
+  review evidence package that answers whether a release candidate can be
+  handed to a human release owner for formal review.
+- `1.80.0` adds `release-evidence` / `release-evidence-check`, structured
+  `release_evidence_gate` evidence, release candidate identity, target-specific
+  required evidence, source-chain digest binding, owner/approval separation,
+  runtime/rollback/monitoring/environment/migration/cost readiness fields, and
+  existing-project release SOP mapping.
+- `1.80.0` is not release approval. It does not deploy, submit app-store or
+  mini-program review, execute migrations, record secrets, change DNS/payment
+  providers/CI, or prove real-user stability.
 
 - User Delivery Console Source Signal Calibration patch `1.79.4`: intermediate
   source signals now match the current `--intent` before user-facing task
