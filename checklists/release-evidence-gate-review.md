@@ -9,6 +9,11 @@ release owner.
 - The release target has a target-specific evidence matrix.
 - Completion Evidence is current-release matched.
 - Runtime smoke is not a user note only.
+- Required runtime smoke, rollback, monitoring, build, platform recipe, and
+  handoff evidence refs resolve and their digests match the resolved artifacts.
+- Markdown tables match the machine-readable evidence block for the release
+  scope, source chain, runtime/rollback/monitoring, environment, migration,
+  cost, and missing evidence.
 - Production-like targets have rollback, monitoring, incident owner,
   environment/config owner, clean source, and migration decision.
 - App-store and mini-program review targets have a platform recipe and handoff

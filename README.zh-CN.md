@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.80.1`。
+当前版本：`1.80.2`。
 
-发布记录：[releases/1.80.1/release-record.md](releases/1.80.1/release-record.md)。
+发布记录：[releases/1.80.2/release-record.md](releases/1.80.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -40,6 +40,8 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.80.2 收口 Release Evidence Gate 精度缺口：runtime smoke、rollback、monitoring 证据现在都有 digest 字段，严格检查会从真实 artifact 重新计算；Release Evidence 报告也会检查关键 Markdown 表格和机器 JSON 是否一致。README 能力表也把 Release Evidence Gate 作为一等能力列出。它仍然不批准发布、不部署生产、不提交应用商店或小程序审核、不执行迁移、不记录密钥、不改 DNS/支付/CI，也不证明真实用户稳定可用。
 
 1.80.1 加严 Release Evidence Gate：严格检查现在会重新计算 source-chain 文件 digest，解析必须的 build/runtime/rollback/monitoring 证据，并在要求当前 completion 时运行严格 Completion Evidence 校验。生成项目 smoke 也会验证 `release-evidence` 和 `release-evidence-check` 已安装且可用。它仍然不批准发布、不部署生产、不提交应用商店或小程序审核、不执行迁移、不记录密钥、不改 DNS/支付/CI，也不证明真实用户稳定可用。
 
@@ -207,6 +209,7 @@ IntentOS 不鼓励一上来启用最重治理。它按项目风险分层：
 | Test Evidence Binding | 把真实命令、报告、人工或日志证据绑定到 Verification Plan 的每个必验证项；检查退出码、证据文件、digest、任务匹配和测试质量控制，不执行测试、不批准发布 |
 | Completion Evidence Gate | 最终说“任务完成”前，检查 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance 是否 recorded、ready、同 task、同 source chain；不运行测试、不批准发布 |
 | User Delivery Console | 用一张普通用户状态卡回答“做到哪、能不能算完成、能不能进上线评审、还缺什么、下一步能安全做什么”；只汇总下层证据，不替代下层证据系统 |
+| Release Evidence Gate | 正式发布前，把 release candidate、Completion Evidence、runtime smoke、rollback、monitoring、owner、环境/迁移/成本和老项目发布规则汇成 release owner review 证据包；不批准发布、不执行上线 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |

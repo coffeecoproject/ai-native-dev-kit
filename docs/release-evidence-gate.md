@@ -23,6 +23,11 @@ Can this go live now?
 - Whether Completion Evidence exists for the included work.
 - Whether runtime smoke, rollback, monitoring, owner, platform recipe, and
   handoff evidence are present for the target.
+- Whether required runtime smoke, rollback, monitoring, build, platform recipe,
+  and handoff refs resolve to artifacts with matching digests.
+- Whether the human-readable Markdown tables match the machine-readable JSON
+  evidence for the release scope, source chain, runtime, rollback, monitoring,
+  environment, migration, cost, and missing evidence.
 - Whether existing project release SOPs are mapped rather than downgraded.
 - Whether any field incorrectly claims release approval or deployment authority.
 

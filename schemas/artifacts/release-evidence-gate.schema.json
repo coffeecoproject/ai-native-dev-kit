@@ -156,9 +156,10 @@
     "runtime_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["runtime_smoke_ref", "runtime_smoke_evidence_type", "runtime_smoke_user_note_only"],
+      "required": ["runtime_smoke_ref", "runtime_smoke_digest", "runtime_smoke_evidence_type", "runtime_smoke_user_note_only"],
       "properties": {
         "runtime_smoke_ref": { "type": "string" },
+        "runtime_smoke_digest": { "type": "string" },
         "runtime_smoke_evidence_type": { "enum": ["artifact", "command-output", "manual-report", "missing", "not_applicable"] },
         "runtime_smoke_user_note_only": { "enum": ["Yes", "No"] }
       }
@@ -166,9 +167,10 @@
     "rollback_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["rollback_ref", "rollback_window", "blocked_by_missing_rollback"],
+      "required": ["rollback_ref", "rollback_digest", "rollback_window", "blocked_by_missing_rollback"],
       "properties": {
         "rollback_ref": { "type": "string" },
+        "rollback_digest": { "type": "string" },
         "rollback_window": { "enum": ["defined", "missing", "not_applicable"] },
         "blocked_by_missing_rollback": { "enum": ["Yes", "No"] }
       }
@@ -176,9 +178,10 @@
     "monitoring_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["monitoring_ref", "incident_owner_ref", "support_handoff_ref", "blocked_by_missing_monitoring"],
+      "required": ["monitoring_ref", "monitoring_digest", "incident_owner_ref", "support_handoff_ref", "blocked_by_missing_monitoring"],
       "properties": {
         "monitoring_ref": { "type": "string" },
+        "monitoring_digest": { "type": "string" },
         "incident_owner_ref": { "type": "string" },
         "support_handoff_ref": { "type": "string" },
         "blocked_by_missing_monitoring": { "enum": ["Yes", "No"] }

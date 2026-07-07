@@ -17,6 +17,7 @@
 | Source Revision | git:2222222222222222222222222222222222222222 |
 | Dirty Worktree Status | clean |
 | Build Artifact | artifact:evidence/package.txt |
+| Build Artifact Digest | sha256:280899d987a09fc157c1eaad8a33b63bf5071484b200c6c99c2f5869db359c39 |
 | Completion Evidence Count | 1 |
 
 ## Release Target Requirements
@@ -67,10 +68,13 @@
 | Field | Value |
 |---|---|
 | Runtime Smoke Ref | artifact:evidence/runtime-smoke.txt |
+| Runtime Smoke Digest | sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc |
 | Runtime Smoke User Note Only | No |
 | Rollback Ref | artifact:evidence/rollback.md |
+| Rollback Digest | sha256:9835ff4286f7206d41fc649d77f5a97d8f6f1c16b7f556993e214070919868ef |
 | Rollback Window | defined |
 | Monitoring Ref | artifact:evidence/runtime-smoke.txt |
+| Monitoring Digest | sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc |
 | Incident Owner Ref | human-decision:mini-program-owner |
 
 ## Data Migration And Cost
@@ -114,7 +118,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare mini program review handoff",
   "intent_digest": "sha256:87bd161358b3bd4a7ef2fa40bee0d8d5892fc8155afd562439344616c5466d50",
-  "release_evidence_digest": "sha256:db294f32d2772980082e22e93ab9411eda7b1c5bd5dc531cf2bc236a047e362a",
+  "release_evidence_digest": "sha256:30999fe9985e80251c52cb9ea149b282f8a4e9a9cc89b6596d943d0528eaabe9",
   "release_target": "mini_program_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-mini-program-review.md",
@@ -255,18 +259,21 @@
   "runtime_readiness": {
     "runtime_smoke_ref": "artifact:evidence/runtime-smoke.txt",
     "runtime_smoke_evidence_type": "missing",
-    "runtime_smoke_user_note_only": "No"
+    "runtime_smoke_user_note_only": "No",
+    "runtime_smoke_digest": "sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc"
   },
   "rollback_readiness": {
     "rollback_ref": "artifact:evidence/rollback.md",
     "rollback_window": "defined",
-    "blocked_by_missing_rollback": "No"
+    "blocked_by_missing_rollback": "No",
+    "rollback_digest": "sha256:9835ff4286f7206d41fc649d77f5a97d8f6f1c16b7f556993e214070919868ef"
   },
   "monitoring_readiness": {
     "monitoring_ref": "artifact:evidence/runtime-smoke.txt",
     "incident_owner_ref": "human-decision:mini-program-owner",
     "support_handoff_ref": "missing",
-    "blocked_by_missing_monitoring": "No"
+    "blocked_by_missing_monitoring": "No",
+    "monitoring_digest": "sha256:a2fe0b75c858e14fb0774b46f4caf8a22a54ffa088491cc03dc9073064cd82fc"
   },
   "environment_readiness": {
     "target_environment": "production-like",

@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.80.1`
+`1.80.2`
 
 ## Project Version File
 
@@ -19,6 +19,8 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.80.2` closes Release Evidence Gate runtime evidence precision: runtime smoke, rollback, and monitoring refs now carry digest fields when required, strict checks recompute those digests, and key Markdown tables are checked against machine-readable JSON.
+- `1.80.2` remains non-authorizing. It does not approve release, deploy, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 - `1.80.1` hardens Release Evidence Gate precision: strict checks recompute source-chain file digests, resolve required build/runtime/rollback/monitoring artifacts, run strict Completion Evidence validation for current-completion release handoff, and prove generated projects can run `release-evidence` / `release-evidence-check`.
 - `1.80.1` remains non-authorizing. It does not approve release, deploy, submit app-store or mini-program review, execute migrations, record secrets, change DNS/payment/CI, or prove real-user stability.
 - `1.80.0` adds Release Evidence Gate: after task completion and User Delivery Console status, Codex can prepare a read-only release-review evidence package for a human release owner.

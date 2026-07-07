@@ -17,6 +17,7 @@
 | Source Revision | unknown |
 | Dirty Worktree Status | dirty |
 | Build Artifact | missing |
+| Build Artifact Digest | sha256:a3b3885f24f757f89e709c9820be798a4d6218f66a949b5224b70e87a3a7d443 |
 | Completion Evidence Count | 1 |
 
 ## Release Target Requirements
@@ -71,10 +72,13 @@
 | Field | Value |
 |---|---|
 | Runtime Smoke Ref | missing |
+| Runtime Smoke Digest |  |
 | Runtime Smoke User Note Only | No |
 | Rollback Ref | missing |
+| Rollback Digest |  |
 | Rollback Window | missing |
 | Monitoring Ref | missing |
+| Monitoring Digest |  |
 | Incident Owner Ref | missing |
 
 ## Data Migration And Cost
@@ -128,7 +132,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare admin production review",
   "intent_digest": "sha256:9a562836fd0fd0d8bd31756bb3f6f337d83ee24116f1fc7951e5917353e04b2a",
-  "release_evidence_digest": "sha256:70914e6ecd1b4ebf43791c0f4a0d284479f9382320ecdbfd83e59374f4003abf",
+  "release_evidence_digest": "sha256:2136d9ddf69a3932e15ea7825770788f66e033d5a8c70b23432ab73dd07336fa",
   "release_target": "production_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-admin-production.md",
@@ -291,18 +295,21 @@
   "runtime_readiness": {
     "runtime_smoke_ref": "missing",
     "runtime_smoke_evidence_type": "missing",
-    "runtime_smoke_user_note_only": "No"
+    "runtime_smoke_user_note_only": "No",
+    "runtime_smoke_digest": ""
   },
   "rollback_readiness": {
     "rollback_ref": "missing",
     "rollback_window": "missing",
-    "blocked_by_missing_rollback": "Yes"
+    "blocked_by_missing_rollback": "Yes",
+    "rollback_digest": ""
   },
   "monitoring_readiness": {
     "monitoring_ref": "missing",
     "incident_owner_ref": "missing",
     "support_handoff_ref": "missing",
-    "blocked_by_missing_monitoring": "Yes"
+    "blocked_by_missing_monitoring": "Yes",
+    "monitoring_digest": ""
   },
   "environment_readiness": {
     "target_environment": "production-like",

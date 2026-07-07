@@ -17,6 +17,7 @@
 | Source Revision | git:1111111111111111111111111111111111111111 |
 | Dirty Worktree Status | clean |
 | Build Artifact | artifact:evidence/preview-build.txt |
+| Build Artifact Digest | sha256:c78c8394e9fed1326f400d0446f7fc73540d8547f24a78ed7a4e0bdc7e2f469f |
 | Completion Evidence Count | 1 |
 
 ## Release Target Requirements
@@ -65,10 +66,13 @@
 | Field | Value |
 |---|---|
 | Runtime Smoke Ref | artifact:evidence/runtime-smoke.txt |
+| Runtime Smoke Digest | sha256:8d5ce934caa1f7a73608f106f7d2fd206fdb10b240df6f558ba1fe86f454ccd5 |
 | Runtime Smoke User Note Only | No |
 | Rollback Ref | missing |
+| Rollback Digest |  |
 | Rollback Window | missing |
 | Monitoring Ref | missing |
+| Monitoring Digest |  |
 | Incident Owner Ref | missing |
 
 ## Data Migration And Cost
@@ -112,7 +116,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare web preview release review",
   "intent_digest": "sha256:1ec073c4075da41f71c1b103224082b01ec4249ff0b3d496b533b8911cba39d7",
-  "release_evidence_digest": "sha256:df4707e1d365679e2ea1a5bd0867efc13cfd1840c49bbd018ff4ef7c99623e2b",
+  "release_evidence_digest": "sha256:15a86fe75d1c9fbcac2652d0033cc29b600193a931cae023d20c4efc9855bec7",
   "release_target": "preview",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-web-preview.md",
@@ -248,18 +252,21 @@
   "runtime_readiness": {
     "runtime_smoke_ref": "artifact:evidence/runtime-smoke.txt",
     "runtime_smoke_evidence_type": "missing",
-    "runtime_smoke_user_note_only": "No"
+    "runtime_smoke_user_note_only": "No",
+    "runtime_smoke_digest": "sha256:8d5ce934caa1f7a73608f106f7d2fd206fdb10b240df6f558ba1fe86f454ccd5"
   },
   "rollback_readiness": {
     "rollback_ref": "missing",
     "rollback_window": "missing",
-    "blocked_by_missing_rollback": "No"
+    "blocked_by_missing_rollback": "No",
+    "rollback_digest": ""
   },
   "monitoring_readiness": {
     "monitoring_ref": "missing",
     "incident_owner_ref": "missing",
     "support_handoff_ref": "missing",
-    "blocked_by_missing_monitoring": "No"
+    "blocked_by_missing_monitoring": "No",
+    "monitoring_digest": ""
   },
   "environment_readiness": {
     "target_environment": "preview",

@@ -17,6 +17,7 @@
 | Source Revision | unknown |
 | Dirty Worktree Status | unknown |
 | Build Artifact | missing |
+| Build Artifact Digest | sha256:replace-with-generated |
 | Completion Evidence Count | 0 |
 
 ## Release Target Requirements
@@ -56,10 +57,13 @@
 | Field | Value |
 |---|---|
 | Runtime Smoke Ref | missing |
+| Runtime Smoke Digest |  |
 | Runtime Smoke User Note Only | No |
 | Rollback Ref | missing |
+| Rollback Digest |  |
 | Rollback Window | missing |
 | Monitoring Ref | missing |
+| Monitoring Digest |  |
 | Incident Owner Ref | missing |
 
 ## Data Migration And Cost
@@ -134,16 +138,19 @@
   "owner_decisions": ["Identify the human release owner."],
   "runtime_readiness": {
     "runtime_smoke_ref": "missing",
+    "runtime_smoke_digest": "",
     "runtime_smoke_evidence_type": "missing",
     "runtime_smoke_user_note_only": "No"
   },
   "rollback_readiness": {
     "rollback_ref": "missing",
+    "rollback_digest": "",
     "rollback_window": "missing",
     "blocked_by_missing_rollback": "No"
   },
   "monitoring_readiness": {
     "monitoring_ref": "missing",
+    "monitoring_digest": "",
     "incident_owner_ref": "missing",
     "support_handoff_ref": "missing",
     "blocked_by_missing_monitoring": "No"

@@ -43,6 +43,15 @@ Every report must identify the release candidate:
 Without release-candidate identity, IntentOS can only reason about an individual
 task, not a release review package.
 
+## Evidence Precision
+
+When runtime smoke, rollback, monitoring, build, platform recipe, or handoff
+evidence is required, the report must resolve the referenced artifact and record
+a digest that can be recomputed from that artifact. Human-readable Markdown
+tables must match the machine-readable evidence block for the release scope,
+source chain, runtime, rollback, monitoring, environment, migration, cost, and
+missing evidence.
+
 ## Target Matrix
 
 Required evidence depends on the target:

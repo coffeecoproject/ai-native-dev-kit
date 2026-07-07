@@ -36,11 +36,14 @@ const knownFlags = new Set([
   "environment-owner",
   "release-approval-ref",
   "runtime-smoke-ref",
+  "runtime-smoke-digest",
   "runtime-smoke-type",
   "runtime-smoke-user-note-only",
   "rollback-ref",
+  "rollback-digest",
   "rollback-window",
   "monitoring-ref",
+  "monitoring-digest",
   "incident-owner-ref",
   "support-handoff-ref",
   "target-environment",
@@ -98,9 +101,9 @@ function buildReport(root) {
   const sourceChain = buildSourceChain(root, completionRefs);
   const targetRequirements = requirementsFor(releaseTarget);
   const ownerState = ownerStateFor();
-  const runtime = runtimeReadiness();
-  const rollback = rollbackReadiness(releaseTarget);
-  const monitoring = monitoringReadiness(releaseTarget);
+  const runtime = runtimeReadiness(root);
+  const rollback = rollbackReadiness(root, releaseTarget);
+  const monitoring = monitoringReadiness(root, releaseTarget);
   const environment = environmentReadiness(releaseTarget);
   const migration = dataMigrationReadiness(releaseTarget);
   const costQuota = costQuotaReadiness(releaseTarget);
@@ -296,19 +299,22 @@ function ownerStateFor() {
   };
 }
 
-function runtimeReadiness() {
+function runtimeReadiness(root) {
+  const runtimeSmokeRef = String(args["runtime-smoke-ref"] || "missing");
   return {
-    runtime_smoke_ref: String(args["runtime-smoke-ref"] || "missing"),
+    runtime_smoke_ref: runtimeSmokeRef,
+    runtime_smoke_digest: artifactDigestOrEmpty(root, runtimeSmokeRef, args["runtime-smoke-digest"]),
     runtime_smoke_evidence_type: normalizeRuntimeSmokeType(args["runtime-smoke-type"]),
     runtime_smoke_user_note_only: yesNo(args["runtime-smoke-user-note-only"], "No"),
   };
 }
 
-function rollbackReadiness(target) {
+function rollbackReadiness(root, target) {
   const rollbackRef = String(args["rollback-ref"] || "missing");
   const rollbackWindow = normalizeRollbackWindow(args["rollback-window"]);
   return {
     rollback_ref: rollbackRef,
+    rollback_digest: artifactDigestOrEmpty(root, rollbackRef, args["rollback-digest"]),
     rollback_window: rollbackWindow,
     blocked_by_missing_rollback: isProductionLike(target) || target === "staging" || target === "internal_trial"
       ? yesNo(!isConcrete(rollbackRef) || rollbackWindow === "missing")
@@ -316,7 +322,7 @@ function rollbackReadiness(target) {
   };
 }
 
-function monitoringReadiness(target) {
+function monitoringReadiness(root, target) {
   const monitoringRef = String(args["monitoring-ref"] || "missing");
   const incidentOwnerRef = String(args["incident-owner-ref"] || "missing");
   const supportHandoffRef = String(args["support-handoff-ref"] || "missing");
@@ -325,6 +331,7 @@ function monitoringReadiness(target) {
     : false;
   return {
     monitoring_ref: monitoringRef,
+    monitoring_digest: artifactDigestOrEmpty(root, monitoringRef, args["monitoring-digest"]),
     incident_owner_ref: incidentOwnerRef,
     support_handoff_ref: supportHandoffRef,
     blocked_by_missing_monitoring: yesNo(blocked),
@@ -432,6 +439,7 @@ function humanReportText(report) {
 | Source Revision | ${evidence.release_scope.source_revision} |
 | Dirty Worktree Status | ${evidence.release_scope.dirty_worktree_status} |
 | Build Artifact | ${evidence.release_scope.build_artifact_ref} |
+| Build Artifact Digest | ${evidence.release_scope.build_artifact_digest} |
 | Completion Evidence Count | ${evidence.release_scope.included_completion_evidence_refs.length} |
 
 ## Release Target Requirements
@@ -468,10 +476,13 @@ ${evidence.source_chain.map((source) => `| ${source.name} | ${source.status} | $
 | Field | Value |
 |---|---|
 | Runtime Smoke Ref | ${evidence.runtime_readiness.runtime_smoke_ref} |
+| Runtime Smoke Digest | ${evidence.runtime_readiness.runtime_smoke_digest} |
 | Runtime Smoke User Note Only | ${evidence.runtime_readiness.runtime_smoke_user_note_only} |
 | Rollback Ref | ${evidence.rollback_readiness.rollback_ref} |
+| Rollback Digest | ${evidence.rollback_readiness.rollback_digest} |
 | Rollback Window | ${evidence.rollback_readiness.rollback_window} |
 | Monitoring Ref | ${evidence.monitoring_readiness.monitoring_ref} |
+| Monitoring Digest | ${evidence.monitoring_readiness.monitoring_digest} |
 | Incident Owner Ref | ${evidence.monitoring_readiness.incident_owner_ref} |
 
 ## Data Migration And Cost
@@ -617,6 +628,13 @@ function resolveArtifact(root, reference) {
     if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate;
   }
   return "";
+}
+
+function artifactDigestOrEmpty(root, reference, provided) {
+  const explicit = String(provided || "").trim();
+  if (explicit) return explicit;
+  const resolved = resolveArtifact(root, reference);
+  return resolved ? fileDigest(resolved) : "";
 }
 
 function writeOutputIfRequested(output) {

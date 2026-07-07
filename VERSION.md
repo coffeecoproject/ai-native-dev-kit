@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.80.1`
+Current version: `1.80.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.80.1`
 
 ## Current Release
 
-`1.80.1`
+`1.80.2`
 
 Includes:
+
+- Release Evidence Gate Runtime Digest and Markdown/JSON Consistency patch
+  `1.80.2`: strict release evidence checks now require runtime smoke,
+  rollback, and monitoring digest fields when those artifacts are required,
+  recompute them from resolved artifacts, and cross-check key human-readable
+  Markdown tables against machine-readable JSON.
+- `1.80.2` remains a review-evidence gate. It does not approve release, deploy,
+  submit app-store or mini-program review, execute migrations, record secrets,
+  change DNS/payment/CI, or prove real-user stability.
 
 - Release Evidence Gate Precision patch `1.80.1`: strict release evidence checks
   now recompute source-chain file digests, resolve required build/runtime/

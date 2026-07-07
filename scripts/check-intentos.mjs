@@ -8645,6 +8645,8 @@ function checkReleaseEvidenceGateProtocol() {
     "test-fixtures/bad/bad-release-evidence-source-digest-mismatch/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-runtime-smoke-unresolved/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-build-artifact-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-runtime-smoke-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-markdown-json-mismatch/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/release-evidence-gate-reports/001-bad.md",
     "releases/1.80.0/release-record.md",
     "releases/1.80.0/known-limitations.md",
@@ -8652,6 +8654,9 @@ function checkReleaseEvidenceGateProtocol() {
     "releases/1.80.1/release-record.md",
     "releases/1.80.1/known-limitations.md",
     "releases/1.80.1/self-check-report.md",
+    "releases/1.80.2/release-record.md",
+    "releases/1.80.2/known-limitations.md",
+    "releases/1.80.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.80 release evidence gate asset exists ${file}`);
@@ -8683,6 +8688,10 @@ function checkReleaseEvidenceGateProtocol() {
     "Completion Evidence strict checker",
     "source_chain",
     "build_artifact_digest",
+    "runtime_smoke_digest",
+    "rollback_digest",
+    "monitoring_digest",
+    "Markdown/JSON",
     "runtime_smoke_ref",
     "human release owner",
     "not release approval",
@@ -8705,7 +8714,8 @@ function checkReleaseEvidenceGateProtocol() {
     && web.stdout.includes("Completion Evidence strict checker passed")
     && web.stdout.includes("source completion_evidence digest matches resolved artifact")
     && web.stdout.includes("required evidence build-or-preview-evidence digest matches resolved artifact")
-    && web.stdout.includes("required evidence runtime-smoke resolves")) {
+    && web.stdout.includes("required evidence runtime-smoke digest matches resolved artifact")
+    && web.stdout.includes("Release Scope Build Artifact Digest matches structured evidence")) {
     pass("1.80 release evidence strict web preview example passes checker");
   } else {
     fail(`1.80 release evidence strict web preview example failed: ${web.stderr || web.stdout}`);
@@ -8740,11 +8750,13 @@ function checkReleaseEvidenceGateProtocol() {
   const badFixtureCases = [
     ["bad-release-evidence-release-approved-claim", "contains forbidden release evidence claim", []],
     ["bad-release-evidence-no-release-owner", "release-evidence-gate-reports/001-bad.md.intent is required", []],
-    ["bad-release-evidence-missing-rollback-production", "release-evidence-gate-reports/001-bad.md.release_scope is required", ["--require-ready"]],
+    ["bad-release-evidence-missing-rollback-production", "required evidence rollback must record artifact ref", []],
     ["bad-release-evidence-user-note-treated-as-smoke", "release-evidence-gate-reports/001-bad.md.runtime_readiness.runtime_smoke_ref is required", []],
     ["bad-release-evidence-source-digest-mismatch", "source completion_evidence digest", ["--strict-source-binding"]],
     ["bad-release-evidence-runtime-smoke-unresolved", "required evidence runtime-smoke does not resolve", ["--strict-source-binding"]],
     ["bad-release-evidence-build-artifact-digest-mismatch", "required evidence build-or-preview-evidence digest", ["--strict-source-binding"]],
+    ["bad-release-evidence-runtime-smoke-digest-mismatch", "required evidence runtime-smoke digest", ["--strict-source-binding"]],
+    ["bad-release-evidence-markdown-json-mismatch", "Release Scope Build Artifact", ["--strict-source-binding"]],
     ["bad-release-evidence-completion-evidence-strict-check-fails", "Completion Evidence strict checker failed", ["--require-current-completion", "--strict-source-binding"]],
   ];
   for (const [name, expected, extra] of badFixtureCases) {

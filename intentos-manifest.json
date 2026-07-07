@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.80.1",
+  "intentOSVersion": "1.80.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.80.1"
+    "phase": "1.80.2"
   },
   "groups": {
     "sourceRequired": [
@@ -1545,6 +1545,9 @@
       "releases/1.80.1/known-limitations.md",
       "releases/1.80.1/release-record.md",
       "releases/1.80.1/self-check-report.md",
+      "releases/1.80.2/known-limitations.md",
+      "releases/1.80.2/release-record.md",
+      "releases/1.80.2/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -2379,6 +2382,14 @@
       "test-fixtures/bad/bad-release-evidence-build-artifact-digest-mismatch/evidence/preview-build.txt",
       "test-fixtures/bad/bad-release-evidence-build-artifact-digest-mismatch/evidence/runtime-smoke.txt",
       "test-fixtures/bad/bad-release-evidence-build-artifact-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-markdown-json-mismatch/completion-evidence-reports/001-web-preview-completion.md",
+      "test-fixtures/bad/bad-release-evidence-markdown-json-mismatch/evidence/preview-build.txt",
+      "test-fixtures/bad/bad-release-evidence-markdown-json-mismatch/evidence/runtime-smoke.txt",
+      "test-fixtures/bad/bad-release-evidence-markdown-json-mismatch/release-evidence-gate-reports/001-bad.md",
+      "test-fixtures/bad/bad-release-evidence-runtime-smoke-digest-mismatch/completion-evidence-reports/001-web-preview-completion.md",
+      "test-fixtures/bad/bad-release-evidence-runtime-smoke-digest-mismatch/evidence/preview-build.txt",
+      "test-fixtures/bad/bad-release-evidence-runtime-smoke-digest-mismatch/evidence/runtime-smoke.txt",
+      "test-fixtures/bad/bad-release-evidence-runtime-smoke-digest-mismatch/release-evidence-gate-reports/001-bad.md",
       "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/completion-evidence-reports/001-web-preview-completion.md",
       "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/evidence/preview-build.txt",
       "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/evidence/runtime-smoke.txt",

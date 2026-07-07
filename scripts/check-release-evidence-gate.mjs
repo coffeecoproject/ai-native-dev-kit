@@ -196,6 +196,7 @@ function checkReport(file) {
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
   checkSummary(content, label, evidence);
+  checkMarkdownJsonConsistency(content, label, evidence);
   checkStructuredEvidence(label, evidence);
 }
 
@@ -210,6 +211,66 @@ function checkSummary(content, label, evidence) {
   else fail(`${label} summary handoff flag ${canHandoff || "<empty>"} does not match ${evidence.can_handoff_to_release_owner}`);
   if (approved === "No" && evidence.release_or_production_approved === "No") pass(`${label} summary keeps release approval No`);
   else fail(`${label} release approval must stay No`);
+}
+
+function checkMarkdownJsonConsistency(content, label, evidence) {
+  const scope = sectionBody(content, "Release Scope") || "";
+  expectTableValue(scope, "Source Revision", evidence.release_scope?.source_revision, label, "Release Scope");
+  expectTableValue(scope, "Dirty Worktree Status", evidence.release_scope?.dirty_worktree_status, label, "Release Scope");
+  expectTableValue(scope, "Build Artifact", evidence.release_scope?.build_artifact_ref, label, "Release Scope");
+  expectTableValue(scope, "Build Artifact Digest", evidence.release_scope?.build_artifact_digest, label, "Release Scope");
+  expectTableValue(scope, "Completion Evidence Count", String((evidence.release_scope?.included_completion_evidence_refs || []).length), label, "Release Scope");
+
+  const requirements = markdownListItems(sectionBody(content, "Release Target Requirements") || "");
+  expectListValue(requirements, evidence.release_target_requirements?.[0]?.required_evidence_ids || [], label, "Release Target Requirements");
+
+  const sourceRows = tableRows(sectionBody(content, "Source Chain") || "");
+  const sources = evidence.source_chain || [];
+  if (sourceRows.length === sources.length) pass(`${label} Source Chain row count matches structured evidence`);
+  else fail(`${label} Source Chain row count ${sourceRows.length} does not match ${sources.length}`);
+  for (let index = 0; index < Math.min(sourceRows.length, sources.length); index += 1) {
+    const row = sourceRows[index];
+    const source = sources[index];
+    expectCell(row[0], source.name, label, `Source Chain row ${index + 1} source`);
+    expectCell(row[1], source.status, label, `Source Chain row ${index + 1} status`);
+    expectCell(row[2], source.ref || "not provided", label, `Source Chain row ${index + 1} ref`);
+    expectCell(row[3], source.current_release_match, label, `Source Chain row ${index + 1} current release match`);
+    expectCell(row[4], source.source_outcome || "not provided", label, `Source Chain row ${index + 1} outcome`);
+  }
+
+  const owner = sectionBody(content, "Owner And Approval") || "";
+  expectTableValue(owner, "Release Approval", evidence.release_or_production_approved, label, "Owner And Approval");
+  expectTableValue(owner, "Owner Decisions", (evidence.owner_decisions || []).join("; "), label, "Owner And Approval");
+
+  const environment = sectionBody(content, "Environment Readiness") || "";
+  expectTableValue(environment, "Target Environment", evidence.environment_readiness?.target_environment, label, "Environment Readiness");
+  expectTableValue(environment, "Config Owner", evidence.environment_readiness?.config_owner, label, "Environment Readiness");
+  expectTableValue(environment, "Secrets Required", evidence.environment_readiness?.secrets_required, label, "Environment Readiness");
+  expectTableValue(environment, "Secret Values Recorded", evidence.environment_readiness?.secrets_values_recorded, label, "Environment Readiness");
+  expectTableValue(environment, "DNS Or Callback Changes Required", evidence.environment_readiness?.dns_or_callback_changes_required, label, "Environment Readiness");
+  expectTableValue(environment, "Blocked By Environment Config", evidence.environment_readiness?.blocked_by_environment_config, label, "Environment Readiness");
+
+  const runtime = sectionBody(content, "Runtime And Rollback") || "";
+  expectTableValue(runtime, "Runtime Smoke Ref", evidence.runtime_readiness?.runtime_smoke_ref, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Runtime Smoke Digest", evidence.runtime_readiness?.runtime_smoke_digest, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Runtime Smoke User Note Only", evidence.runtime_readiness?.runtime_smoke_user_note_only, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Rollback Ref", evidence.rollback_readiness?.rollback_ref, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Rollback Digest", evidence.rollback_readiness?.rollback_digest, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Rollback Window", evidence.rollback_readiness?.rollback_window, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Monitoring Ref", evidence.monitoring_readiness?.monitoring_ref, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Monitoring Digest", evidence.monitoring_readiness?.monitoring_digest, label, "Runtime And Rollback");
+  expectTableValue(runtime, "Incident Owner Ref", evidence.monitoring_readiness?.incident_owner_ref, label, "Runtime And Rollback");
+
+  const migration = sectionBody(content, "Data Migration And Cost") || "";
+  expectTableValue(migration, "Migration Required", evidence.data_migration_readiness?.migration_required, label, "Data Migration And Cost");
+  expectTableValue(migration, "Migration Plan Ref", evidence.data_migration_readiness?.migration_plan_ref, label, "Data Migration And Cost");
+  expectTableValue(migration, "Codex May Execute Migration", evidence.data_migration_readiness?.codex_may_execute_migration, label, "Data Migration And Cost");
+  expectTableValue(migration, "Cost Owner Ref", evidence.cost_quota_readiness?.cost_owner_ref, label, "Data Migration And Cost");
+  expectTableValue(migration, "Blocked By Unknown Quota", evidence.cost_quota_readiness?.blocked_by_unknown_quota, label, "Data Migration And Cost");
+
+  const missing = markdownListItems(sectionBody(content, "Missing Evidence") || "");
+  const expectedMissing = evidence.missing_evidence?.length ? evidence.missing_evidence : ["None."];
+  expectListValue(missing, expectedMissing, label, "Missing Evidence");
 }
 
 function checkStructuredEvidence(label, evidence) {
@@ -241,6 +302,10 @@ function checkStructuredEvidence(label, evidence) {
     else fail(`${label} ready or strict release evidence requires included Completion Evidence refs`);
     if (completion?.current_release_match === "Yes") pass(`${label} Completion Evidence matches current release`);
     else fail(`${label} Completion Evidence must match current release`);
+  }
+  if (completion?.status === "RECORDED" && completion.current_release_match === "Yes") {
+    if ((scope.included_completion_evidence_refs || []).includes(completion.ref)) pass(`${label} Completion Evidence ref is included in release scope`);
+    else fail(`${label} Completion Evidence source marked current release but not included in release scope: ${completion.ref}`);
   }
 
   if (requireCurrentCompletion) {
@@ -333,13 +398,13 @@ function checkRequiredEvidenceArtifacts(label, evidence, requirements) {
     resolveRequiredArtifact(label, "build-or-preview-evidence", scope.build_artifact_ref, scope.build_artifact_digest);
   }
   if (requirements.has("runtime-smoke")) {
-    resolveRequiredArtifact(label, "runtime-smoke", evidence.runtime_readiness?.runtime_smoke_ref);
+    resolveRequiredArtifact(label, "runtime-smoke", evidence.runtime_readiness?.runtime_smoke_ref, evidence.runtime_readiness?.runtime_smoke_digest);
   }
   if (requirements.has("rollback")) {
-    resolveRequiredArtifact(label, "rollback", evidence.rollback_readiness?.rollback_ref);
+    resolveRequiredArtifact(label, "rollback", evidence.rollback_readiness?.rollback_ref, evidence.rollback_readiness?.rollback_digest);
   }
   if (requirements.has("monitoring")) {
-    resolveRequiredArtifact(label, "monitoring", evidence.monitoring_readiness?.monitoring_ref);
+    resolveRequiredArtifact(label, "monitoring", evidence.monitoring_readiness?.monitoring_ref, evidence.monitoring_readiness?.monitoring_digest);
   }
   if (requirements.has("release-handoff-pack")) {
     requireRecordedSourceArtifact(label, evidence, "release_handoff_pack");
@@ -443,6 +508,8 @@ function checkSourceEvidence() {
     "test-fixtures/bad/bad-release-evidence-source-digest-mismatch/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-runtime-smoke-unresolved/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-build-artifact-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-runtime-smoke-digest-mismatch/release-evidence-gate-reports/001-bad.md",
+    "test-fixtures/bad/bad-release-evidence-markdown-json-mismatch/release-evidence-gate-reports/001-bad.md",
     "test-fixtures/bad/bad-release-evidence-completion-evidence-strict-check-fails/release-evidence-gate-reports/001-bad.md",
     "releases/1.80.0/release-record.md",
     "releases/1.80.0/known-limitations.md",
@@ -450,6 +517,9 @@ function checkSourceEvidence() {
     "releases/1.80.1/release-record.md",
     "releases/1.80.1/known-limitations.md",
     "releases/1.80.1/self-check-report.md",
+    "releases/1.80.2/release-record.md",
+    "releases/1.80.2/known-limitations.md",
+    "releases/1.80.2/self-check-report.md",
   ]) {
     if (fs.existsSync(path.join(projectRoot, file))) pass(`source evidence exists: ${file}`);
     else fail(`missing source evidence: ${file}`);
@@ -472,6 +542,46 @@ function tableValue(body, label) {
   const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = String(body || "").match(new RegExp(`\\|\\s*${escaped}\\s*\\|\\s*([^|]+?)\\s*\\|`, "i"));
   return match ? match[1].trim().replace(/^`|`$/g, "") : "";
+}
+
+function tableRows(body) {
+  return String(body || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("|") && line.endsWith("|"))
+    .map((line) => line.slice(1, -1).split("|").map((cell) => cell.trim()))
+    .filter((cells) => !cells.every((cell) => /^:?-{3,}:?$/.test(cell)) && !/^source$/i.test(cells[0] || ""));
+}
+
+function markdownListItems(body) {
+  return String(body || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- "))
+    .map((line) => line.slice(2).trim());
+}
+
+function expectTableValue(body, field, expected, label, section) {
+  const actual = tableValue(body, field);
+  expectCell(actual, expected, label, `${section} ${field}`);
+}
+
+function expectListValue(actual, expected, label, section) {
+  const actualText = (actual || []).join("\n");
+  const expectedText = (expected || []).join("\n");
+  if (actualText === expectedText) pass(`${label} ${section} matches structured evidence`);
+  else fail(`${label} ${section} ${JSON.stringify(actual || [])} does not match ${JSON.stringify(expected || [])}`);
+}
+
+function expectCell(actual, expected, label, field) {
+  const normalizedActual = normalizeMarkdownValue(actual);
+  const normalizedExpected = normalizeMarkdownValue(expected);
+  if (normalizedActual === normalizedExpected) pass(`${label} ${field} matches structured evidence`);
+  else fail(`${label} ${field} ${normalizedActual || "<empty>"} does not match ${normalizedExpected || "<empty>"}`);
+}
+
+function normalizeMarkdownValue(value) {
+  return String(value ?? "").trim().replace(/^`|`$/g, "");
 }
 
 function isConcrete(value) {
