@@ -10,6 +10,8 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Task Governance Consumer Integration 1.85](task-governance-consumer-integration-1.85-plan.md)
+- [Existing Project Work Queue Takeover 1.84](existing-project-work-queue-takeover-1.84-plan.md)
 - [Behavior-Complete Existing Project Adoption 1.83](behavior-complete-existing-project-adoption-1.83-plan.md)
 - [Controlled Native Adoption Autopilot Review 1.82](controlled-native-adoption-autopilot-review-1.82-plan.md)
 - [Adoption Autopilot Plain-Language Reference 1.81.3](adoption-autopilot-plain-language-reference-1.81.3-plan.md)

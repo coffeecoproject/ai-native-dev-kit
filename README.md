@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.83.3`.
+Current release: `1.84.0`.
 
-Release record: [releases/1.83.3/release-record.md](releases/1.83.3/release-record.md).
+Release record: [releases/1.84.0/release-record.md](releases/1.84.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -26,6 +26,7 @@ When command evidence is useful, use only these first:
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs adopt <existing-project> --intent "<connect this project>"
 node scripts/cli.mjs adopt-review <existing-project> --intent "<review deeper adoption>"
+node scripts/cli.mjs queue-takeover <existing-project> --intent "<continue old project work>"
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<what you want>"
@@ -40,6 +41,11 @@ project, use `adopt` to enter the safe adoption flow.
 it should stay partial, repair governance first, or prepare a deeper adoption
 plan. It recommends adoption depth, but still does not write project files.
 
+`queue-takeover` is the old-project task-entry review. It checks whether the
+project already has a reliable task system, has messy TODO/session records, has
+no task system, or is unsafe to take over. It can recommend IntentOS Work Queue
+as the future task authority, but it still does not authorize implementation.
+
 Start here:
 
 - [Start Here](docs/start-here.md)
@@ -49,6 +55,17 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.84.0 adds Existing Project Work Queue Takeover. For old projects with messy
+or missing task records, Codex can classify the existing task system as
+`RELIABLE_EXISTING_TASK_SYSTEM`, `MESSY_TASK_SYSTEM`, `MISSING_TASK_SYSTEM`, or
+`UNSAFE_TO_TAKE_OVER`, then either map the existing system, recommend IntentOS
+Work Queue as the future task authority, or block takeover. Old TODO/session
+records are preserved as sources; they are not execution permission.
+
+1.84.0 is non-authorizing. It does not write target-project files, delete old
+task sources, approve implementation, approve completion, approve commit/push,
+approve release/production, claim full adoption, or install native assets.
 
 1.83.3 hardens Task Governance for real task execution: verification fields now
 record required/recorded status instead of claiming checks are already done,

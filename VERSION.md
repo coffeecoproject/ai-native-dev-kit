@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.83.3`
+Current version: `1.84.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.83.3`
 
 ## Current Release
 
-`1.83.3`
+`1.84.0`
 
 Includes:
+
+- Existing Project Work Queue Takeover phase `1.84.0`: adds
+  `queue-takeover` and `queue-takeover-check` so Codex can classify old-project
+  task records, map reliable existing task systems, establish IntentOS Work
+  Queue for messy or missing task systems, and block unsafe takeover.
+- `1.84.0` remains non-authorizing. It does not write target-project files,
+  delete old task sources, approve implementation, approve completion, approve
+  commit/push, approve release/production, claim full adoption, or install
+  native assets.
 
 - Task Governance Verification Status And Intent Scan Hardening patch `1.83.3`:
   verification fields now record status instead of claiming unperformed checks

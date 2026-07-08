@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.83.3`。
+当前版本：`1.84.0`。
 
-发布记录：[releases/1.83.3/release-record.md](releases/1.83.3/release-record.md)。
+发布记录：[releases/1.84.0/release-record.md](releases/1.84.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -20,12 +20,13 @@ IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规
 我想做一个预约 App，你帮我开始。
 ```
 
-需要命令行证据时，先只用这三个：
+需要命令行证据时，先用这些入口：
 
 ```bash
 node scripts/cli.mjs start <project>
 node scripts/cli.mjs adopt <老项目> --intent "<接入这个项目>"
 node scripts/cli.mjs adopt-review <老项目> --intent "<评估是否进一步接入>"
+node scripts/cli.mjs queue-takeover <老项目> --intent "<继续处理老项目任务>"
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<你想做什么>"
@@ -40,6 +41,10 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 用 `adopt-review`。它会由 Codex 判断项目治理成熟度，推荐是保持部分接入、
 先修治理，还是准备更深接入计划；仍然不写项目文件。
 
+如果老项目的 TODO、session 或任务记录很乱，用 `queue-takeover`。它会判断
+项目是否已有可靠任务体系、是否需要建立 IntentOS Work Queue、是否因为风险
+必须停止接管。它只决定未来任务入口，不授权实现。
+
 先读这几页：
 
 - [Start Here](docs/start-here.md)
@@ -49,6 +54,15 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.84.0 新增 Existing Project Work Queue Takeover：老项目如果任务记录混乱或
+几乎没有任务体系，Codex 可以先判断现有任务体系属于可靠、混乱、缺失还是危险
+状态，再决定是映射原有任务体系，还是建议由 IntentOS Work Queue 成为未来任务
+入口。旧 TODO/session 只作为来源保留，不能直接当作执行许可。
+
+1.84.0 仍然不授权实现。它不写目标项目文件、不删除旧任务来源、不批准实现、
+不批准完成、不批准提交/推送、不批准发布/生产、不宣称完整接入，也不安装原生
+资产。
 
 1.83.3 加严真实任务执行前的任务治理：验证字段不再默认写成“已完成”，而是记录
 required/recorded 状态；`--out` 报告只能写在目标项目内；LOW/MEDIUM 报告会直接

@@ -595,6 +595,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "queue-takeover": {
+    description: "Review whether an old project's task records should be mapped or taken over by IntentOS Work Queue.",
+    script: "scripts/resolve-work-queue-takeover.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "queue-takeover-check": {
+    description: "Check recorded Work Queue Takeover reports for old-project task source migration.",
+    script: "scripts/check-work-queue-takeover.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "hook-plan": {
     description: "Recommend hook orchestration candidates without installing hooks, changing CI, or adding gates.",
     script: "scripts/resolve-hook-orchestration.mjs",

@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/work-queue-takeover.schema.json",
+  "title": "Work Queue Takeover Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "work_queue_takeover_ref",
+    "work_queue_takeover_digest",
+    "intent",
+    "intent_digest",
+    "project_task_system_class",
+    "recommended_action",
+    "future_task_authority",
+    "plain_user_summary",
+    "source_inventory",
+    "reliability_assessment",
+    "migration_dispositions",
+    "queue_items",
+    "readiness",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "enum": ["1.84.0"] },
+    "artifact_type": { "const": "work_queue_takeover" },
+    "work_queue_takeover_ref": { "type": "string", "minLength": 1 },
+    "work_queue_takeover_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "project_task_system_class": {
+      "enum": [
+        "RELIABLE_EXISTING_TASK_SYSTEM",
+        "MESSY_TASK_SYSTEM",
+        "MISSING_TASK_SYSTEM",
+        "UNSAFE_TO_TAKE_OVER"
+      ]
+    },
+    "recommended_action": {
+      "enum": [
+        "MAP_EXISTING_TASK_SYSTEM",
+        "ESTABLISH_INTENTOS_WORK_QUEUE",
+        "BLOCK_TAKEOVER"
+      ]
+    },
+    "future_task_authority": {
+      "enum": [
+        "PROJECT_NATIVE_MAPPED",
+        "INTENTOS_WORK_QUEUE",
+        "BLOCKED"
+      ]
+    },
+    "plain_user_summary": { "type": "string", "minLength": 1 },
+    "source_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_ref", "source_type", "status", "summary"],
+        "properties": {
+          "source_ref": { "type": "string", "minLength": 1 },
+          "source_type": {
+            "enum": ["todo", "session", "issue_export", "work_queue", "ai_log", "handoff", "roadmap", "other"]
+          },
+          "status": { "enum": ["CURRENT", "STALE", "UNKNOWN", "MISSING", "RISKY"] },
+          "summary": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "reliability_assessment": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "result", "reason"],
+        "properties": {
+          "criterion": { "type": "string", "minLength": 1 },
+          "result": { "enum": ["Yes", "No", "Unknown"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "migration_dispositions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_item", "disposition", "target_queue_state", "reason"],
+        "properties": {
+          "source_item": { "type": "string", "minLength": 1 },
+          "disposition": {
+            "enum": [
+              "MIGRATE_CURRENT",
+              "MIGRATE_BACKLOG",
+              "MIGRATE_PAUSED",
+              "MIGRATE_BLOCKED",
+              "MERGE_DUPLICATE",
+              "MARK_DONE_WITH_EVIDENCE",
+              "MARK_STALE",
+              "NEEDS_CLARIFICATION",
+              "ARCHIVE_SOURCE_ONLY"
+            ]
+          },
+          "target_queue_state": {
+            "enum": ["CURRENT", "BACKLOG", "PAUSED", "BLOCKED", "DONE", "CANCELLED", "N/A"]
+          },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "queue_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item_id",
+          "state",
+          "title",
+          "source_item",
+          "task_governance_ref",
+          "task_governance_digest",
+          "execution_eligible",
+          "reason"
+        ],
+        "properties": {
+          "item_id": { "type": "string", "minLength": 1 },
+          "state": { "enum": ["CURRENT", "PAUSED", "BLOCKED", "BACKLOG", "DONE", "CANCELLED"] },
+          "title": { "type": "string", "minLength": 1 },
+          "source_item": { "type": "string", "minLength": 1 },
+          "task_governance_ref": { "type": "string", "minLength": 1 },
+          "task_governance_digest": { "type": "string", "minLength": 1 },
+          "execution_eligible": { "enum": ["Yes", "No"] },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "takeover_ready",
+        "can_codex_write_now",
+        "can_execute_from_old_todo_directly",
+        "blocked_by"
+      ],
+      "properties": {
+        "takeover_ready": { "enum": ["Yes", "No"] },
+        "can_codex_write_now": { "const": "No" },
+        "can_execute_from_old_todo_directly": { "const": "No" },
+        "blocked_by": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "deletes_old_task_sources",
+        "approves_implementation",
+        "approves_completion",
+        "approves_commit_or_push",
+        "approves_release_or_production",
+        "claims_full_adoption",
+        "installs_native_assets"
+      ],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "deletes_old_task_sources": { "const": "No" },
+        "approves_implementation": { "const": "No" },
+        "approves_completion": { "const": "No" },
+        "approves_commit_or_push": { "const": "No" },
+        "approves_release_or_production": { "const": "No" },
+        "claims_full_adoption": { "const": "No" },
+        "installs_native_assets": { "const": "No" }
+      }
+    },
+    "outcome": {
+      "enum": ["MAPPED_EXISTING_SYSTEM", "TAKEOVER_RECOMMENDED", "TAKEOVER_BLOCKED"]
+    }
+  }
+}

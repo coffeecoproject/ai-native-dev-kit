@@ -6306,6 +6306,173 @@ function checkTaskGovernanceProtocol() {
   }
 }
 
+function checkWorkQueueTakeoverProtocol() {
+  const examples = [
+    "reliable-existing-system",
+    "messy-todo-migration",
+    "missing-task-system",
+    "unsafe-dirty-project",
+  ];
+  const badFixtures = [
+    "bad-work-queue-takeover-activates-all-todos",
+    "bad-work-queue-takeover-multiple-current",
+    "bad-work-queue-takeover-current-without-task-governance",
+    "bad-work-queue-takeover-deletes-old-source",
+    "bad-work-queue-takeover-claims-full-adoption",
+    "bad-work-queue-takeover-backlog-executable",
+    "bad-work-queue-takeover-stale-current",
+    "bad-work-queue-takeover-approves-implementation",
+  ];
+  const required = [
+    "docs/plans/existing-project-work-queue-takeover-1.84-plan.md",
+    "docs/plans/task-governance-consumer-integration-1.85-plan.md",
+    "core/existing-project-work-queue-takeover.md",
+    "docs/existing-project-work-queue-takeover.md",
+    "templates/work-queue-takeover-report.md",
+    "schemas/artifacts/work-queue-takeover.schema.json",
+    "checklists/work-queue-takeover-review.md",
+    "prompts/work-queue-takeover-agent.md",
+    "work-queue-takeover-reports/.gitkeep",
+    "scripts/resolve-work-queue-takeover.mjs",
+    "scripts/check-work-queue-takeover.mjs",
+    "examples/1.84-work-queue-takeover/README.md",
+    ...examples.map((example) => `examples/1.84-work-queue-takeover/${example}/work-queue-takeover-reports/001-${reportNameForTakeoverExample(example)}.md`),
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/work-queue-takeover-reports/001-bad.md`),
+    "releases/1.84.0/release-record.md",
+    "releases/1.84.0/known-limitations.md",
+    "releases/1.84.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.84 work queue takeover asset exists ${file}`);
+    else fail(`1.84 work queue takeover asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/existing-project-work-queue-takeover-1.84-plan.md"),
+    read("core/existing-project-work-queue-takeover.md"),
+    read("docs/existing-project-work-queue-takeover.md"),
+    read("templates/work-queue-takeover-report.md"),
+    read("schemas/artifacts/work-queue-takeover.schema.json"),
+    read("checklists/work-queue-takeover-review.md"),
+    read("prompts/work-queue-takeover-agent.md"),
+    read("scripts/resolve-work-queue-takeover.mjs"),
+    read("scripts/check-work-queue-takeover.mjs"),
+    read("README.md"),
+    read("README.zh-CN.md"),
+    read("releases/1.84.0/release-record.md"),
+  ].join("\n");
+  for (const marker of [
+    "Existing Project Work Queue Takeover",
+    "work_queue_takeover",
+    "queue-takeover",
+    "queue-takeover-check",
+    "RELIABLE_EXISTING_TASK_SYSTEM",
+    "MESSY_TASK_SYSTEM",
+    "MISSING_TASK_SYSTEM",
+    "UNSAFE_TO_TAKE_OVER",
+    "MAP_EXISTING_TASK_SYSTEM",
+    "ESTABLISH_INTENTOS_WORK_QUEUE",
+    "BLOCK_TAKEOVER",
+    "MIGRATE_CURRENT",
+    "MIGRATE_BACKLOG",
+    "ARCHIVE_SOURCE_ONLY",
+    "can_execute_from_old_todo_directly",
+    "task_governance_ref",
+    "does not authorize implementation",
+  ]) {
+    if (combined.includes(marker)) pass(`1.84 work queue takeover includes ${marker}`);
+    else fail(`1.84 work queue takeover missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-work-queue-takeover.mjs",
+    "node --check scripts/check-work-queue-takeover.mjs",
+    "node scripts/cli.mjs queue-takeover . --intent",
+    "node scripts/cli.mjs queue-takeover-check . --allow-empty",
+    "node scripts/check-work-queue-takeover.mjs examples/1.84-work-queue-takeover/reliable-existing-system --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.84 package verify surface includes ${marker}`);
+    else fail(`1.84 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-work-queue-takeover.mjs", "examples/1.84-work-queue-takeover/messy-todo-migration", "--intent", "continue old project tasks"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Work Queue Takeover Report")
+    && resolver.stdout.includes("MESSY_TASK_SYSTEM")
+    && resolver.stdout.includes("Can Codex execute tasks from old TODO directly")
+    && resolver.stdout.includes("No")
+    && resolver.stdout.includes("This report approves implementation: No")) {
+    pass("1.84 work queue takeover resolver prints non-authorizing takeover report");
+  } else {
+    fail(`1.84 work queue takeover resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const absoluteOut = runNode(["scripts/resolve-work-queue-takeover.mjs", ".", "--intent", "continue old project tasks", "--out", "/tmp/work-queue-takeover.md"]);
+  if (absoluteOut.status !== 0 && (absoluteOut.stderr || absoluteOut.stdout).includes("--out must be a relative path")) {
+    pass("1.84 work queue takeover rejects absolute --out path");
+  } else {
+    fail("1.84 work queue takeover must reject absolute --out path");
+  }
+
+  const sourceCheck = runNode(["scripts/check-work-queue-takeover.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("work queue takeover check skipped by explicit --allow-empty")) {
+    pass("1.84 work queue takeover checker passes source repo with explicit allow-empty");
+  } else {
+    fail(`1.84 work queue takeover source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "queue-takeover", "examples/1.84-work-queue-takeover/messy-todo-migration", "--intent", "continue old project tasks"]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Work Queue Takeover Report")) {
+    pass("CLI queue-takeover delegates to resolver");
+  } else {
+    fail(`CLI queue-takeover failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "queue-takeover-check", "examples/1.84-work-queue-takeover/messy-todo-migration", "--require-structured-evidence"]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("Work queue takeover check passed")) {
+    pass("CLI queue-takeover-check delegates to checker");
+  } else {
+    fail(`CLI queue-takeover-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const example of examples) {
+    const target = `examples/1.84-work-queue-takeover/${example}`;
+    const result = runNode(["scripts/check-work-queue-takeover.mjs", target, "--require-structured-evidence"]);
+    if (result.status === 0) pass(`1.84 work queue takeover example passes strict checker ${target}`);
+    else fail(`1.84 work queue takeover example failed ${target}: ${result.stderr || result.stdout}`);
+  }
+
+  for (const fixture of badFixtures) {
+    const target = `test-fixtures/bad/${fixture}`;
+    const result = runNode(["scripts/check-work-queue-takeover.mjs", target, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.84 work queue takeover rejects ${fixture}`);
+    else fail(`1.84 work queue takeover must reject ${fixture}`);
+  }
+
+  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  if (cliHelp.status === 0
+    && cliHelp.stdout.includes("queue-takeover")
+    && cliHelp.stdout.includes("old project's task records")) {
+    pass("1.84 CLI help exposes queue-takeover");
+  } else {
+    fail(`1.84 CLI help missing queue-takeover: ${cliHelp.stderr || cliHelp.stdout}`);
+  }
+}
+
+function reportNameForTakeoverExample(example) {
+  return {
+    "reliable-existing-system": "reliable-existing-system",
+    "messy-todo-migration": "messy-todo",
+    "missing-task-system": "missing-task-system",
+    "unsafe-dirty-project": "unsafe",
+  }[example] || example;
+}
+
 function checkExecutionAssuranceChainProtocol() {
   const badFixtures = [
     "bad-execution-assurance-no-completion-contract",
@@ -15954,6 +16121,7 @@ checkAdoptionExecutionAssuranceProtocol();
 checkExistingProjectAdoptionAutopilotProtocol();
 checkControlledNativeAdoptionReviewProtocol();
 checkTaskGovernanceProtocol();
+checkWorkQueueTakeoverProtocol();
 checkExecutionAssuranceChainProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
