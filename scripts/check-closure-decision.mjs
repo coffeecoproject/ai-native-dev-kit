@@ -6,12 +6,16 @@ import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json"]);
+const knownFlags = new Set(["json", "require-task-governance", "require-work-queue", "strict-task-consumer"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireTaskGovernance = Boolean(args["require-task-governance"]);
+const requireWorkQueue = Boolean(args["require-work-queue"]);
+const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -150,6 +154,18 @@ function checkClosureDecisions() {
     const decision = tableValue(content, "Decision");
     if (allowedDecisions.has(decision)) pass(`${label} has valid closure decision`);
     else fail(`${label} has invalid closure decision: ${decision || "<empty>"}`);
+    checkTaskEntryBinding({
+      content,
+      evidence: { decision },
+      label,
+      projectRoot,
+      consumer: "closure_decision",
+      requireTaskGovernance,
+      requireWorkQueue,
+      strictTaskConsumer,
+      pass,
+      fail,
+    });
 
     const finalSource = tableValue(content, "Final closure source");
     if (finalSource === "UNIFIED_CLOSURE_DECISION") pass(`${label} declares unified final closure source`);

@@ -66,3 +66,10 @@ The same current-request rule applies to intermediate source signals. Existing
 Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence,
 or Execution Assurance records from another task may appear in the technical
 trace, but they do not make the current task's user-facing fields show `Yes`.
+
+## Task Governance Consumer Integration
+
+From 1.85.0, strict task-consumer mode lets the status card check Task Entry
+Binding. If the current task still needs classification, targeted verification,
+full high-impact evidence, or a current Work Queue item, the user-facing status
+must say that plainly instead of claiming the task is done.

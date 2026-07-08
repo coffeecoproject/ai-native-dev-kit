@@ -11,6 +11,10 @@ From 1.78.2, every Execution Assurance report also exposes a top-level
 same task intent directly, instead of trusting that an Execution Assurance
 report merely exists.
 
+From 1.85.0, strict task-consumer mode requires `task_entry_binding`.
+Execution Assurance must consume the current Work Queue item and matching Task
+Governance report before it can support a done claim.
+
 ## Purpose
 
 The purpose is to move completion from narrative claim to evidence chain:

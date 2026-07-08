@@ -2,55 +2,53 @@
 
 ## Human Summary
 
-Conclusion:
+Conclusion: Not done yet. This task needs impact clarification first.
 
-Recommended next step:
+Recommended next step: Clarify whether the list filter changes saved data or runtime state.
 
-What I need from you:
+What I need from you: Confirm whether this affects persisted state.
 
 ## Closure Decision
 
 | Field | Value |
 |---|---|
-| Decision | `NEEDS_EVIDENCE` |
+| Decision | `BLOCKED` |
 | Can count as done | No |
-| Plain reason | Evidence is not complete enough to mark this task done. |
+| Plain reason | Impact is not clear enough to close this task. |
 | Final closure source | `UNIFIED_CLOSURE_DECISION` |
 
 ## Decision Inputs
 
 | Input | Status | Ref | Finding |
 |---|---|---|---|
-| Change Impact Coverage | `MISSING` | N/A | Related surfaces were not confirmed. |
-| Execution Closure | `MISSING` | N/A | Execution closure evidence was not confirmed. |
-| Guided Closure | `OPTIONAL` | N/A | User-facing summary can be prepared after decision. |
+| Task entry | `BLOCKED` | `artifact:task-governance-reports/001-task-governance.md` | Impact is still possible-high. |
+| Execution Closure | `MISSING` | N/A | Execution evidence is not recorded. |
 | Verification | `MISSING` | N/A | Passing verification is not recorded. |
-| Human Decision | `N/A` | N/A | No high-risk decision is recorded. |
 
 ## Decision Trace
 
 | Step | Input | Status | Effect |
 |---|---|---|---|
-| 1 | Change Impact Coverage | `MISSING` | Dominant reason: this input sets final decision to NEEDS_IMPACT_COVERAGE. |
-| 2 | Execution Closure | `MISSING` | Stricter than done, but lower precedence than Change Impact Coverage. |
-| 3 | Verification | `MISSING` | Stricter than done, but lower precedence than Change Impact Coverage. |
+| 1 | Task entry | `BLOCKED` | Dominant reason: this input sets final decision to BLOCKED. |
+| 2 | Execution Closure | `MISSING` | Also blocks done. |
+| 3 | Verification | `MISSING` | Also blocks done. |
 
 ## Dominant Reason
 
 | Field | Value |
 |---|---|
-| Input | Change Impact Coverage |
-| Status | `MISSING` |
-| Result | `NEEDS_IMPACT_COVERAGE` |
-| Why this decides | Related-surface coverage outranks a completion claim when behavior or rule changes may affect more than one surface. |
+| Input | Task entry |
+| Status | `BLOCKED` |
+| Result | `BLOCKED` |
+| Why this decides | A possible-high task cannot be closed until impact is clarified and the required evidence path is selected. |
 
 ## Conflict Summary
 
 | Field | Value |
 |---|---|
-| Inputs disagree | Yes |
-| Stricter input | Change Impact Coverage |
-| Summary | Some closure inputs may pass, but missing related-surface coverage controls the final result; stricter result wins. |
+| Inputs disagree | No |
+| Stricter input | Task entry |
+| Summary | All relevant inputs point to not done, and the task-entry blocker is the strictest current reason. |
 
 ## Single Source Rule
 
@@ -63,26 +61,26 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 | Field | Value |
 |---|---|
 | Work Queue Item Ref | `artifact:work-queue-takeover-reports/001-current.md#WQ-001` |
-| Work Queue Item Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Work Queue Item Digest | `sha256:4444444444444444444444444444444444444444444444444444444444444444` |
 | Work Queue Item State | `CURRENT` |
 | Work Queue Item Current Task Match | `Yes` |
 | Approved Resume Review | `No` |
 | Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
-| Task Governance Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
-| Task Governance Tier | `MEDIUM` |
-| Task Governance Review Level | `TARGETED` |
+| Task Governance Digest | `sha256:3333333333333333333333333333333333333333333333333333333333333333` |
+| Task Governance Tier | `POSSIBLE_HIGH` |
+| Task Governance Review Level | `BLOCKING_CLARIFICATION` |
 | Task Governance Task Match | `Yes` |
 | Minimal Verification Status | `N/A` |
-| Targeted Verification Status | `RECORDED` |
+| Targeted Verification Status | `N/A` |
 | High Impact Evidence Chain Complete | `N/A` |
 | Task Governance Blocks Completion | `Yes` |
 | Tier Completion Requirements Satisfied | `No` |
-| Unresolved Task Governance Blockers | targeted verification missing |
-| Plain User Blocker | This task still needs targeted verification before it can be called done. |
+| Unresolved Task Governance Blockers | possible high impact is unresolved |
+| Plain User Blocker | This may affect important behavior, so impact must be clarified before completion. |
 
 ## Required Next Action
 
-1. Record or run verification.
+1. Clarify whether the list filter changes persisted data or runtime state.
 
 ## Evidence Map
 

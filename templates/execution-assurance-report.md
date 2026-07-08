@@ -83,6 +83,28 @@ This report is a read-only derived verification view. It does not write target f
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | change_impact_coverage | `RECORDED` | `artifact:change-impact-coverage-reports/001-contract.md` | `tasks/001-contract-validation.md` | `DONE` | `Yes` | `sha256:eeb9163262fcd5007ebe96579e5ee6fd5d8ba8aef9ea4bb5bacf23a466ce5766` | Planned impact map. | Source system |
 
+## Task Entry Binding
+
+| Field | Value |
+| --- | --- |
+| Work Queue Item Ref | `artifact:work-queue-takeover-reports/001-current.md#WQ-001` |
+| Work Queue Item Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Work Queue Item State | `CURRENT` |
+| Work Queue Item Current Task Match | `Yes` |
+| Approved Resume Review | `No` |
+| Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
+| Task Governance Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Task Governance Tier | `MEDIUM` |
+| Task Governance Review Level | `TARGETED` |
+| Task Governance Task Match | `Yes` |
+| Minimal Verification Status | `N/A` |
+| Targeted Verification Status | `RECORDED` |
+| High Impact Evidence Chain Complete | `N/A` |
+| Task Governance Blocks Completion | `Yes` |
+| Tier Completion Requirements Satisfied | `No` |
+| Unresolved Task Governance Blockers | targeted verification missing |
+| Plain User Blocker | This task still needs targeted verification before it can be called done. |
+
 ## Closure Decision
 
 `PARTIAL_DONE`

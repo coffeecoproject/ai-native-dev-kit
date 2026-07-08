@@ -57,6 +57,9 @@ and Execution Assurance must match the current request before the user-facing
 task completion fields show them as recorded. Other-task records may appear in
 Technical Trace, but they must not make the current task look complete.
 
+From 1.85.0, strict task-consumer mode also checks Task Entry Binding. Work
+Queue and Task Governance blockers must be translated into plain user status.
+
 ## Authority Boundary
 
 A User Delivery Console card does not:

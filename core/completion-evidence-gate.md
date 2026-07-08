@@ -28,6 +28,9 @@ binding gate. A ready completion claim must prove:
 - Completion Evidence checks Execution Assurance intent directly instead of
   relying only on task refs and source-system links.
 
+1.85.0 adds task-entry binding. Strict Completion Evidence must match the
+current Work Queue item and Task Governance tier before it can claim completion.
+
 ## What It Prevents
 
 - Backend-only completion when frontend or API surfaces were required.

@@ -12,6 +12,7 @@ import {
 } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -22,6 +23,9 @@ const knownFlags = new Set([
   "require-structured-evidence",
   "require-source-refs",
   "require-ready",
+  "require-task-governance",
+  "require-work-queue",
+  "strict-task-consumer",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -31,6 +35,9 @@ const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-source-refs"] || args["require-ready"]);
 const requireSourceRefs = Boolean(args["require-source-refs"] || args["require-ready"]);
 const requireReady = Boolean(args["require-ready"]);
+const requireTaskGovernance = Boolean(args["require-task-governance"]);
+const requireWorkQueue = Boolean(args["require-work-queue"]);
+const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/completion-evidence.schema.json");
 const sourceSchemas = {
@@ -137,6 +144,8 @@ function checkCoreContent() {
     "Verification Plan",
     "Test Evidence",
     "Execution Assurance",
+    "Task Entry Binding",
+    "task_entry_binding",
     "This report approves release or production: No",
   ]) {
     if (combined.includes(marker)) pass(`completion evidence docs include ${marker}`);
@@ -241,6 +250,18 @@ function checkStructuredEvidence(label, file, evidence) {
     else fail(`${label} missing gate check ${id}`);
   }
   checkCrossSourceBinding(label, evidence, sourceRecords);
+  checkTaskEntryBinding({
+    content: "",
+    evidence,
+    label,
+    projectRoot,
+    consumer: "completion_evidence",
+    requireTaskGovernance,
+    requireWorkQueue,
+    strictTaskConsumer,
+    pass,
+    fail,
+  });
   if (evidence.task_consistency?.all_sources_same_task === "Yes") pass(`${label} source chain task refs are consistent`);
   else fail(`${label} source chain task refs must be consistent before completion can be claimed`);
   const allPass = (evidence.gate_checks || []).every((item) => item.status === "PASS");

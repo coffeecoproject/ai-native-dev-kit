@@ -106,6 +106,19 @@ Completion Evidence uses that digest to check Execution Assurance against the
 same task intent, so a stale or task-mismatched assurance report cannot support
 a final completion claim.
 
+From 1.85.0, strict task-consumer mode also checks `task_entry_binding`.
+Execution Assurance can only support a completion claim when it is bound to the
+current Work Queue item and the matching Task Governance report. This prevents
+execution evidence from bypassing a `POSSIBLE_HIGH`, stale queue item, or
+missing tier-specific verification.
+
+```bash
+node scripts/check-execution-assurance.mjs . \
+  --require-task-governance \
+  --require-work-queue \
+  --strict-task-consumer
+```
+
 If `execution_plan.approval_refs` are present in strict completion, each ref
 must be bounded and use a supported prefix. Approval refs document the approval
 source; they do not become blanket approval for extra files, release, commit,

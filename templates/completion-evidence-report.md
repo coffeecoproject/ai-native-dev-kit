@@ -36,6 +36,28 @@ This report is a read-only completion gate. It does not run tests, write target 
 - All sources same task: `No`
 - Reason:
 
+## Task Entry Binding
+
+| Field | Value |
+|---|---|
+| Work Queue Item Ref | `artifact:work-queue-takeover-reports/001-current.md#WQ-001` |
+| Work Queue Item Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Work Queue Item State | `CURRENT` |
+| Work Queue Item Current Task Match | `Yes` |
+| Approved Resume Review | `No` |
+| Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
+| Task Governance Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
+| Task Governance Tier | `MEDIUM` |
+| Task Governance Review Level | `TARGETED` |
+| Task Governance Task Match | `Yes` |
+| Minimal Verification Status | `N/A` |
+| Targeted Verification Status | `RECORDED` |
+| High Impact Evidence Chain Complete | `N/A` |
+| Task Governance Blocks Completion | `Yes` |
+| Tier Completion Requirements Satisfied | `No` |
+| Unresolved Task Governance Blockers | targeted verification missing |
+| Plain User Blocker | This task still needs targeted verification before it can be called complete. |
+
 ## Missing Or Blocking Items
 
 - Missing source artifacts.

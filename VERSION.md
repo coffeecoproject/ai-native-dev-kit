@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.84.1`
+Current version: `1.85.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.84.1`
 
 ## Current Release
 
-`1.84.1`
+`1.85.0`
 
 Includes:
+
+- Task Governance Consumer Integration phase `1.85.0`: Execution Assurance,
+  Completion Evidence, Unified Closure, and User Delivery Console now have
+  strict task-consumer checks that bind completion/status claims to the current
+  Work Queue item and matching Task Governance record.
+- `1.85.0` remains non-authorizing. It does not create a new closure system,
+  write target-project files, approve implementation, approve completion by
+  itself, approve commit/push, approve release/production, or replace
+  project-native reviewers.
 
 - Work Queue Takeover Hardening patch `1.84.1`: Work Queue Takeover now
   records source digests, refuses to promote stale or risky sources to

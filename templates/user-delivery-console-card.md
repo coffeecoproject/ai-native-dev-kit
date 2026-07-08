@@ -69,6 +69,28 @@ What I need from you: {{HUMAN_NEED}}
 |---|---|---|---|
 {{TECHNICAL_TRACE}}
 
+## Task Entry Binding
+
+| Field | Value |
+|---|---|
+| Work Queue Item Ref | {{WORK_QUEUE_ITEM_REF}} |
+| Work Queue Item Digest | {{WORK_QUEUE_ITEM_DIGEST}} |
+| Work Queue Item State | {{WORK_QUEUE_ITEM_STATE}} |
+| Work Queue Item Current Task Match | {{WORK_QUEUE_ITEM_CURRENT_TASK_MATCH}} |
+| Approved Resume Review | {{APPROVED_RESUME_REVIEW}} |
+| Task Governance Ref | {{TASK_GOVERNANCE_REF}} |
+| Task Governance Digest | {{TASK_GOVERNANCE_DIGEST}} |
+| Task Governance Tier | {{TASK_GOVERNANCE_TIER}} |
+| Task Governance Review Level | {{TASK_GOVERNANCE_REVIEW_LEVEL}} |
+| Task Governance Task Match | {{TASK_GOVERNANCE_TASK_MATCH}} |
+| Minimal Verification Status | {{MINIMAL_VERIFICATION_STATUS}} |
+| Targeted Verification Status | {{TARGETED_VERIFICATION_STATUS}} |
+| High Impact Evidence Chain Complete | {{HIGH_IMPACT_EVIDENCE_CHAIN_COMPLETE}} |
+| Task Governance Blocks Completion | {{TASK_GOVERNANCE_BLOCKS_COMPLETION}} |
+| Tier Completion Requirements Satisfied | {{TIER_COMPLETION_REQUIREMENTS_SATISFIED}} |
+| Unresolved Task Governance Blockers | {{UNRESOLVED_TASK_GOVERNANCE_BLOCKERS}} |
+| Plain User Blocker | {{PLAIN_USER_BLOCKER}} |
+
 ## Boundaries
 
 - This card writes target files: No

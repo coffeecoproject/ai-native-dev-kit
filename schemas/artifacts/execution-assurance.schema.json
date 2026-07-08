@@ -136,6 +136,7 @@
       "type": "array",
       "items": { "$ref": "#/$defs/sourceSystem" }
     },
+    "task_entry_binding": { "$ref": "#/$defs/taskEntryBinding" },
     "pending_human_decisions": { "type": "array", "items": { "type": "string" } },
     "forbidden_claims": { "type": "array", "items": { "type": "string" } },
     "boundary": {
@@ -233,6 +234,48 @@
         "current_task_match": { "enum": ["Yes", "No"] },
         "report_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
         "evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "taskEntryBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "work_queue_item_ref",
+        "work_queue_item_digest",
+        "work_queue_item_state",
+        "work_queue_item_current_task_match",
+        "approved_resume_review",
+        "task_governance_ref",
+        "task_governance_digest",
+        "task_governance_tier",
+        "task_governance_review_level",
+        "task_governance_task_match",
+        "minimal_verification_status",
+        "targeted_verification_status",
+        "high_impact_evidence_chain_complete",
+        "task_governance_blocks_completion",
+        "tier_completion_requirements_satisfied",
+        "unresolved_task_governance_blockers",
+        "plain_user_blocker"
+      ],
+      "properties": {
+        "work_queue_item_ref": { "type": "string", "minLength": 1 },
+        "work_queue_item_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "work_queue_item_state": { "enum": ["CURRENT", "PAUSED", "BLOCKED", "BACKLOG", "DONE", "CANCELLED"] },
+        "work_queue_item_current_task_match": { "enum": ["Yes", "No"] },
+        "approved_resume_review": { "enum": ["Yes", "No"] },
+        "task_governance_ref": { "type": "string", "minLength": 1 },
+        "task_governance_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "task_governance_tier": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH"] },
+        "task_governance_review_level": { "enum": ["LIGHTWEIGHT", "TARGETED", "BLOCKING_CLARIFICATION", "FULL"] },
+        "task_governance_task_match": { "enum": ["Yes", "No"] },
+        "minimal_verification_status": { "enum": ["REQUIRED", "NOT_RUN", "RECORDED", "NOT_APPLICABLE_WITH_REASON", "N/A"] },
+        "targeted_verification_status": { "enum": ["REQUIRED", "NOT_RUN", "RECORDED", "NOT_APPLICABLE_WITH_REASON", "N/A"] },
+        "high_impact_evidence_chain_complete": { "enum": ["Yes", "No", "N/A"] },
+        "task_governance_blocks_completion": { "enum": ["Yes", "No"] },
+        "tier_completion_requirements_satisfied": { "enum": ["Yes", "No"] },
+        "unresolved_task_governance_blockers": { "type": "array", "items": { "type": "string" } },
+        "plain_user_blocker": { "type": "string" }
       }
     }
   }

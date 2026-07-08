@@ -6,11 +6,15 @@ import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json"]));
+const unknown = unknownOptions(args, new Set(["json", "require-task-governance", "require-work-queue", "strict-task-consumer"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireTaskGovernance = Boolean(args["require-task-governance"]);
+const requireWorkQueue = Boolean(args["require-work-queue"]);
+const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -182,6 +186,19 @@ function checkCards() {
     const state = currentState(content);
     if (state && !allowedStates.has(state)) pass(`${label} user-facing current state is plain language`);
     else fail(`${label} user-facing current state must be plain language, not internal enum: ${state || "<empty>"}`);
+    const taskDone = taskDoneValue(content);
+    checkTaskEntryBinding({
+      content,
+      evidence: { task_done: taskDone, outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })) },
+      label,
+      projectRoot,
+      consumer: "user_delivery_console",
+      requireTaskGovernance,
+      requireWorkQueue,
+      strictTaskConsumer,
+      pass,
+      fail,
+    });
 
     const decisions = numberedItems(sectionBody(content, "What I Need From You", { fallback: "" }));
     const highRisk = /risk|sensitive|production|payment|permission|security|privacy|compliance|migration/i.test(userSurface);
@@ -381,6 +398,13 @@ function checkSourceEvidence() {
 function currentState(content) {
   const body = sectionBody(content, "Delivery Status", { fallback: "" });
   const row = body.split(/\r?\n/).find((line) => /\|\s*Current state\s*\|/i.test(line));
+  if (!row) return "";
+  return stripPipes(row).split("|")[1]?.replace(/`/g, "").trim() || "";
+}
+
+function taskDoneValue(content) {
+  const body = sectionBody(content, "Task Completion", { fallback: "" });
+  const row = body.split(/\r?\n/).find((line) => /\|\s*Can the current task be treated as done\?\s*\|/i.test(line));
   if (!row) return "";
   return stripPipes(row).split("|")[1]?.replace(/`/g, "").trim() || "";
 }

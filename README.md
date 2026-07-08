@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.84.1`.
+Current release: `1.85.0`.
 
-Release record: [releases/1.84.1/release-record.md](releases/1.84.1/release-record.md).
+Release record: [releases/1.85.0/release-record.md](releases/1.85.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -55,6 +55,18 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.85.0 adds Task Governance Consumer Integration. Execution Assurance,
+Completion Evidence, Unified Closure, and User Delivery Console can now run in
+strict task-consumer mode and verify that completion/status claims are bound to
+the current Work Queue item and matching Task Governance record.
+
+1.85.0 remains non-authorizing. It does not create a new closure system, write
+target-project files, approve implementation, approve completion by itself,
+approve commit/push, approve release/production, or replace project-native
+reviewers. It only prevents downstream consumers from claiming done against the
+wrong task, stale queue item, unresolved `POSSIBLE_HIGH`, or missing tier
+evidence.
 
 1.84.1 hardens Existing Project Work Queue Takeover. Source records now carry
 digests, stale or risky sources cannot become `CURRENT`, and a migrated

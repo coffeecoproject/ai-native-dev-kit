@@ -37,6 +37,17 @@ saved task artifact as the canonical intent source. If the same task is phrased
 differently in different commands, the intent digests will differ and strict
 Completion Evidence should block the completion claim.
 
+From 1.85.0, strict task-consumer mode adds Task Entry Binding. Completion
+Evidence must match the current Work Queue item and the corresponding Task
+Governance tier before it can say the task is complete.
+
+```bash
+node scripts/check-completion-evidence.mjs . \
+  --require-task-governance \
+  --require-work-queue \
+  --strict-task-consumer
+```
+
 ## When To Use
 
 Use it when Codex is about to say:

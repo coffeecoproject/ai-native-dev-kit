@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.84.1",
+  "intentOSVersion": "1.85.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.84.1"
+    "phase": "1.85.0"
   },
   "groups": {
     "sourceRequired": [
@@ -216,6 +216,7 @@
       "core/standard-baseline-pack-registry.md",
       "core/subagent-dispatch-hygiene.md",
       "core/subagent-orchestration.md",
+      "core/task-governance-consumer-integration.md",
       "core/task-levels.md",
       "core/test-evidence-binding.md",
       "core/unified-apply-plan.md",
@@ -337,7 +338,6 @@
       "docs/plans/existing-project-native-adoption-evidence-hardening-1.69.1-plan.md",
       "docs/plans/existing-project-safe-adoption-autopilot-1.81-plan.md",
       "docs/plans/existing-project-work-queue-takeover-1.84-plan.md",
-      "docs/plans/work-queue-takeover-hardening-1.84.1-plan.md",
       "docs/plans/existing-rule-reconciliation-calibration-1.66-plan.md",
       "docs/plans/existing-rule-reconciliation-evidence-consistency-1.69.2-plan.md",
       "docs/plans/governance-hardening-drift-guard-1.11-plan.md",
@@ -390,6 +390,7 @@
       "docs/plans/user-delivery-console-source-signal-calibration-1.79.4-plan.md",
       "docs/plans/user-delivery-console-verification-note-1.79.3-plan.md",
       "docs/plans/verification-test-governance-1.76-plan.md",
+      "docs/plans/work-queue-takeover-hardening-1.84.1-plan.md",
       "docs/platform-release-recipes.md",
       "docs/platform-standard-baseline-packs.md",
       "docs/product-baseline.md",
@@ -426,6 +427,7 @@
       "docs/start-here.md",
       "docs/structured-evidence-schema.md",
       "docs/subagent-dispatch-hygiene.md",
+      "docs/task-governance-consumer-integration.md",
       "docs/test-evidence-binding.md",
       "docs/troubleshooting.md",
       "docs/unified-apply-plan.md",
@@ -807,6 +809,15 @@
       "examples/1.83-task-governance/project-native-rfc-mapping/task-governance-reports/001-task-governance.md",
       "examples/1.83-task-governance/review-required-step-policy/task-governance-reports/001-task-governance.md",
       "examples/1.84-work-queue-takeover/README.md",
+      "examples/1.85-task-governance-consumer-integration/README.md",
+      "examples/1.85-task-governance-consumer-integration/high-workflow-rule/execution-assurance-reports/001-high-workflow-rule.md",
+      "examples/1.85-task-governance-consumer-integration/high-workflow-rule/task-governance-reports/001-task-governance.md",
+      "examples/1.85-task-governance-consumer-integration/high-workflow-rule/work-queue-takeover-reports/001-current.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/closure-decisions/001-possible-high-blocked.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/completion-evidence-reports/001-possible-high-blocked.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/delivery-status-cards/001-possible-high-blocked.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/task-governance-reports/001-task-governance.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/work-queue-takeover-reports/001-current.md",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
@@ -1634,6 +1645,9 @@
       "releases/1.84.1/known-limitations.md",
       "releases/1.84.1/release-record.md",
       "releases/1.84.1/self-check-report.md",
+      "releases/1.85.0/known-limitations.md",
+      "releases/1.85.0/release-record.md",
+      "releases/1.85.0/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -1824,6 +1838,7 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/task-entry-binding.mjs",
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-adoption-assurance.mjs",
@@ -2635,6 +2650,10 @@
       "test-fixtures/bad/bad-subagent-dispatch-task-drift/subagent-run-plans/001-bad.md",
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
+      "test-fixtures/bad/bad-task-consumer-missing-task-entry/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-task-consumer-possible-high-done/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-task-consumer-possible-high-done/task-governance-reports/001-task-governance.md",
+      "test-fixtures/bad/bad-task-consumer-possible-high-done/work-queue-takeover-reports/001-current.md",
       "test-fixtures/bad/bad-task-governance-authorizes-implementation/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-closeout-without-evidence/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-ignores-1.82-blocker/task-governance-reports/001-bad.md",
@@ -2750,6 +2769,7 @@
       ".intentos/checklists/skill-review.md",
       ".intentos/checklists/standard-baseline-selection-review.md",
       ".intentos/checklists/subagent-orchestration-review.md",
+      ".intentos/checklists/task-governance-review.md",
       ".intentos/checklists/unified-apply-plan-review.md",
       ".intentos/checklists/verification-gate.md",
       ".intentos/checklists/verification-plan-review.md",
@@ -2762,6 +2782,7 @@
       ".intentos/core/baseline-pack-system.md",
       ".intentos/core/baseline-state.md",
       ".intentos/core/beginner-entry.md",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
@@ -2819,6 +2840,7 @@
       ".intentos/core/standard-baseline-pack-registry.md",
       ".intentos/core/subagent-dispatch-hygiene.md",
       ".intentos/core/subagent-orchestration.md",
+      ".intentos/core/task-governance-consumer-integration.md",
       ".intentos/core/task-levels.md",
       ".intentos/core/unified-apply-plan.md",
       ".intentos/core/unified-closure-model.md",
@@ -2830,6 +2852,7 @@
       ".intentos/docs/baseline-setup.md",
       ".intentos/docs/baseline-state.md",
       ".intentos/docs/beginner-entry.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
       ".intentos/docs/business-rule-closure.md",
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
@@ -2880,6 +2903,7 @@
       ".intentos/docs/standard-baseline-pack-registry.md",
       ".intentos/docs/structured-evidence-schema.md",
       ".intentos/docs/subagent-dispatch-hygiene.md",
+      ".intentos/docs/task-governance-consumer-integration.md",
       ".intentos/docs/test-evidence-binding.md",
       ".intentos/docs/unified-apply-plan.md",
       ".intentos/docs/unified-closure-model.md",
@@ -2941,6 +2965,7 @@
       ".intentos/prompts/reviewer-agent.md",
       ".intentos/prompts/spec-agent.md",
       ".intentos/prompts/standard-baseline-router-agent.md",
+      ".intentos/prompts/task-governance-agent.md",
       ".intentos/prompts/verification-plan-agent.md",
       ".intentos/prompts/walkthrough-agent.md",
       ".intentos/prompts/work-queue-agent.md",
@@ -2954,6 +2979,7 @@
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/standard-baseline-packs",
       ".intentos/templates/active-work-thread.md",
@@ -3038,6 +3064,7 @@
       ".intentos/templates/standard-baseline-selection-report.md",
       ".intentos/templates/subagent-run-plan.md",
       ".intentos/templates/task-card.md",
+      ".intentos/templates/task-governance-report.md",
       ".intentos/templates/tech-stack-strategy.md",
       ".intentos/templates/unified-apply-plan.md",
       ".intentos/templates/user-decision-card.md",
@@ -3195,6 +3222,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-task-governance.mjs",
       "scripts/check-user-delivery-console.mjs",
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
@@ -3213,6 +3241,7 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/task-entry-binding.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-baseline-packs.mjs",
@@ -3247,6 +3276,7 @@
       "scripts/resolve-release-handoff-pack.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
+      "scripts/resolve-task-governance.mjs",
       "scripts/resolve-user-delivery-console.mjs",
       "scripts/resolve-verification-plan.mjs",
       "scripts/resolve-work-queue.mjs",
@@ -3261,22 +3291,14 @@
       "standard-baseline-selections",
       "status-reports",
       "subagent-run-plans",
+      "task-governance-reports",
       "tasks",
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros",
-      ".intentos/core/behavior-complete-existing-project-adoption.md",
-      ".intentos/docs/behavior-complete-existing-project-adoption.md",
-      ".intentos/templates/task-governance-report.md",
-      ".intentos/schemas/artifacts/task-governance.schema.json",
-      ".intentos/checklists/task-governance-review.md",
-      ".intentos/prompts/task-governance-agent.md",
-      "scripts/resolve-task-governance.mjs",
-      "scripts/check-task-governance.mjs",
-      "task-governance-reports"
+      "workflow-retros"
     ],
     "targetFull": [
       ".github/pull_request_template.md",
@@ -3297,6 +3319,7 @@
       ".intentos/checklists/completion-evidence-review.md",
       ".intentos/checklists/context-governance-review.md",
       ".intentos/checklists/controlled-apply-readiness-review.md",
+      ".intentos/checklists/controlled-native-adoption-review.md",
       ".intentos/checklists/conversation-drift-review.md",
       ".intentos/checklists/conversation-native-ask-review.md",
       ".intentos/checklists/core-purity-review.md",
@@ -3346,6 +3369,7 @@
       ".intentos/checklists/standard-baseline-selection-review.md",
       ".intentos/checklists/starter-review.md",
       ".intentos/checklists/subagent-orchestration-review.md",
+      ".intentos/checklists/task-governance-review.md",
       ".intentos/checklists/test-evidence-review.md",
       ".intentos/checklists/unified-apply-plan-review.md",
       ".intentos/checklists/user-delivery-console-review.md",
@@ -3362,6 +3386,7 @@
       ".intentos/core/baseline-pack-system.md",
       ".intentos/core/baseline-state.md",
       ".intentos/core/beginner-entry.md",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
@@ -3369,6 +3394,7 @@
       ".intentos/core/completion-evidence-gate.md",
       ".intentos/core/context-governance.md",
       ".intentos/core/controlled-apply-readiness.md",
+      ".intentos/core/controlled-native-adoption-autopilot-review.md",
       ".intentos/core/conversation-drift-control.md",
       ".intentos/core/conversation-native-ask.md",
       ".intentos/core/debt-knowledge-handoff.md",
@@ -3422,6 +3448,7 @@
       ".intentos/core/standard-baseline-pack-registry.md",
       ".intentos/core/subagent-dispatch-hygiene.md",
       ".intentos/core/subagent-orchestration.md",
+      ".intentos/core/task-governance-consumer-integration.md",
       ".intentos/core/task-levels.md",
       ".intentos/core/test-evidence-binding.md",
       ".intentos/core/unified-apply-plan.md",
@@ -3438,6 +3465,7 @@
       ".intentos/docs/baseline-setup.md",
       ".intentos/docs/baseline-state.md",
       ".intentos/docs/beginner-entry.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
       ".intentos/docs/business-rule-closure.md",
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
@@ -3445,6 +3473,7 @@
       ".intentos/docs/completion-evidence-gate.md",
       ".intentos/docs/context-governance-usage.md",
       ".intentos/docs/controlled-apply-readiness.md",
+      ".intentos/docs/controlled-native-adoption-autopilot-review.md",
       ".intentos/docs/conversation-drift-control.md",
       ".intentos/docs/conversation-native-ask.md",
       ".intentos/docs/debt-knowledge-handoff.md",
@@ -3491,6 +3520,7 @@
       ".intentos/docs/standard-baseline-pack-registry.md",
       ".intentos/docs/structured-evidence-schema.md",
       ".intentos/docs/subagent-dispatch-hygiene.md",
+      ".intentos/docs/task-governance-consumer-integration.md",
       ".intentos/docs/test-evidence-binding.md",
       ".intentos/docs/unified-apply-plan.md",
       ".intentos/docs/unified-closure-model.md",
@@ -3543,6 +3573,7 @@
       ".intentos/prompts/completion-evidence-agent.md",
       ".intentos/prompts/context-governance-agent.md",
       ".intentos/prompts/controlled-apply-readiness-agent.md",
+      ".intentos/prompts/controlled-native-adoption-review-agent.md",
       ".intentos/prompts/conversation-native-ask-agent.md",
       ".intentos/prompts/conversation-router-agent.md",
       ".intentos/prompts/debt-handoff-agent.md",
@@ -3583,6 +3614,7 @@
       ".intentos/prompts/reviewer-agent.md",
       ".intentos/prompts/spec-agent.md",
       ".intentos/prompts/standard-baseline-router-agent.md",
+      ".intentos/prompts/task-governance-agent.md",
       ".intentos/prompts/test-evidence-agent.md",
       ".intentos/prompts/user-delivery-console-agent.md",
       ".intentos/prompts/verification-plan-agent.md",
@@ -3594,6 +3626,7 @@
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/completion-evidence.schema.json",
+      ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
@@ -3602,6 +3635,7 @@
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
       ".intentos/schemas/artifacts/test-evidence.schema.json",
       ".intentos/schemas/artifacts/verification-plan.schema.json",
       ".intentos/standard-baseline-packs",
@@ -3632,6 +3666,7 @@
       ".intentos/templates/completion-evidence-report.md",
       ".intentos/templates/context-correction-report.md",
       ".intentos/templates/controlled-apply-readiness-report.md",
+      ".intentos/templates/controlled-native-adoption-review-report.md",
       ".intentos/templates/conversation-ask-card.md",
       ".intentos/templates/conversation-turn-classification.md",
       ".intentos/templates/customer-handoff.md",
@@ -3698,6 +3733,7 @@
       ".intentos/templates/starter-readiness.md",
       ".intentos/templates/subagent-run-plan.md",
       ".intentos/templates/task-card.md",
+      ".intentos/templates/task-governance-report.md",
       ".intentos/templates/tech-stack-strategy.md",
       ".intentos/templates/test-evidence-report.md",
       ".intentos/templates/unified-apply-plan.md",
@@ -3782,6 +3818,7 @@
       "launch-review-views",
       "learning-candidates",
       "mvp-example-reports",
+      "native-adoption-review-reports",
       "native-migration-plans",
       "ordinary-first-slices",
       "patch-classification-false-positives",
@@ -3821,6 +3858,7 @@
       "scripts/check-completion-evidence.mjs",
       "scripts/check-context-governance.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
+      "scripts/check-controlled-native-adoption-review.mjs",
       "scripts/check-conversation-drift.mjs",
       "scripts/check-conversation-native-ask.mjs",
       "scripts/check-debt-handoff.mjs",
@@ -3868,6 +3906,7 @@
       "scripts/check-standard-baseline-pack.mjs",
       "scripts/check-standard-baseline-selection.mjs",
       "scripts/check-subagent-orchestration.mjs",
+      "scripts/check-task-governance.mjs",
       "scripts/check-test-evidence.mjs",
       "scripts/check-user-delivery-console.mjs",
       "scripts/check-verification-plan.mjs",
@@ -3887,6 +3926,7 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/task-entry-binding.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-adoption-assurance.mjs",
       "scripts/resolve-apply-plan.mjs",
@@ -3897,6 +3937,7 @@
       "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-completion-evidence.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
+      "scripts/resolve-controlled-native-adoption-review.mjs",
       "scripts/resolve-debt-handoff.mjs",
       "scripts/resolve-delivery-path.mjs",
       "scripts/resolve-document-archive-apply.mjs",
@@ -3926,6 +3967,7 @@
       "scripts/resolve-release-plan.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-standard-baseline.mjs",
+      "scripts/resolve-task-governance.mjs",
       "scripts/resolve-test-evidence.mjs",
       "scripts/resolve-user-delivery-console.mjs",
       "scripts/resolve-verification-plan.mjs",
@@ -3941,6 +3983,7 @@
       "standard-baseline-selections",
       "status-reports",
       "subagent-run-plans",
+      "task-governance-reports",
       "tasks",
       "test-evidence-reports",
       "verification-plans",
@@ -3948,42 +3991,27 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros",
-      ".intentos/core/controlled-native-adoption-autopilot-review.md",
-      ".intentos/docs/controlled-native-adoption-autopilot-review.md",
-      ".intentos/templates/controlled-native-adoption-review-report.md",
-      ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
-      ".intentos/checklists/controlled-native-adoption-review.md",
-      ".intentos/prompts/controlled-native-adoption-review-agent.md",
-      "scripts/resolve-controlled-native-adoption-review.mjs",
-      "scripts/check-controlled-native-adoption-review.mjs",
-      "native-adoption-review-reports",
-      ".intentos/core/behavior-complete-existing-project-adoption.md",
-      ".intentos/docs/behavior-complete-existing-project-adoption.md",
-      ".intentos/templates/task-governance-report.md",
-      ".intentos/schemas/artifacts/task-governance.schema.json",
-      ".intentos/checklists/task-governance-review.md",
-      ".intentos/prompts/task-governance-agent.md",
-      "scripts/resolve-task-governance.mjs",
-      "scripts/check-task-governance.mjs",
-      "task-governance-reports"
+      "workflow-retros"
     ],
     "intentOSCore": [
       ".intentos/checklists/platform-release-recipe-review.md",
       ".intentos/checklists/release-guide-review.md",
       ".intentos/checklists/release-handoff-pack-review.md",
+      ".intentos/checklists/task-governance-review.md",
       ".intentos/core/assumption-register.md",
       ".intentos/core/automation-governance.md",
       ".intentos/core/baseline-enforcement.md",
       ".intentos/core/baseline-pack-system.md",
       ".intentos/core/baseline-state.md",
       ".intentos/core/beginner-entry.md",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
       ".intentos/core/completion-evidence-gate.md",
       ".intentos/core/context-governance.md",
+      ".intentos/core/controlled-native-adoption-autopilot-review.md",
       ".intentos/core/decision-delegation-boundary.md",
       ".intentos/core/decision-explain-trace.md",
       ".intentos/core/document-lifecycle.md",
@@ -4022,11 +4050,13 @@
       ".intentos/core/skill-governance.md",
       ".intentos/core/subagent-dispatch-hygiene.md",
       ".intentos/core/subagent-orchestration.md",
+      ".intentos/core/task-governance-consumer-integration.md",
       ".intentos/core/task-levels.md",
       ".intentos/core/test-evidence-binding.md",
       ".intentos/core/unified-closure-model.md",
       ".intentos/core/user-delivery-console.md",
       ".intentos/core/workflow.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
       ".intentos/docs/existing-project-safe-adoption-autopilot.md",
       ".intentos/docs/platform-release-recipes.md",
       ".intentos/docs/release-core-model.md",
@@ -4034,17 +4064,21 @@
       ".intentos/docs/release-handoff-packs.md",
       ".intentos/docs/release-path-hardening.md",
       ".intentos/docs/subagent-dispatch-hygiene.md",
+      ".intentos/docs/task-governance-consumer-integration.md",
       ".intentos/prompts/platform-release-recipe-agent.md",
       ".intentos/prompts/release-guide-agent.md",
       ".intentos/prompts/release-handoff-pack-agent.md",
+      ".intentos/prompts/task-governance-agent.md",
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
       ".intentos/templates/platform-release-recipe.md",
       ".intentos/templates/release-approval-record.md",
       ".intentos/templates/release-guide-card.md",
       ".intentos/templates/release-handoff-pack.md",
+      ".intentos/templates/task-governance-report.md",
       "checklists/adoption-assurance-review.md",
       "checklists/existing-rule-reconciliation-review.md",
       "checklists/governance-convergence-review.md",
@@ -4086,6 +4120,7 @@
       "core/review-surface-governance.md",
       "core/safe-launch.md",
       "core/standard-baseline-pack-registry.md",
+      "core/task-governance-consumer-integration.md",
       "core/unified-apply-plan.md",
       "core/unified-closure-model.md",
       "core/verification-test-governance.md",
@@ -4095,6 +4130,7 @@
       "docs/existing-project-governance-convergence.md",
       "docs/existing-rule-reconciliation.md",
       "docs/native-first-existing-project-migration.md",
+      "docs/task-governance-consumer-integration.md",
       "docs/test-evidence-binding.md",
       "docs/user-delivery-console.md",
       "prompts/adoption-assurance-agent.md",
@@ -4108,14 +4144,7 @@
       "templates/adoption-assurance-report.md",
       "templates/existing-rule-reconciliation-report.md",
       "templates/governance-convergence-report.md",
-      "templates/native-migration-plan.md",
-      ".intentos/core/controlled-native-adoption-autopilot-review.md",
-      ".intentos/core/behavior-complete-existing-project-adoption.md",
-      ".intentos/docs/behavior-complete-existing-project-adoption.md",
-      ".intentos/templates/task-governance-report.md",
-      ".intentos/schemas/artifacts/task-governance.schema.json",
-      ".intentos/checklists/task-governance-review.md",
-      ".intentos/prompts/task-governance-agent.md"
+      "templates/native-migration-plan.md"
     ],
     "templates": [
       ".intentos/templates/business-rule-closure-card.md",
@@ -4611,6 +4640,7 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/task-entry-binding.mjs",
       "scripts/migrate-project.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-adoption-assurance.mjs",
@@ -4932,6 +4962,7 @@
       "examples/1.82-controlled-native-adoption-review",
       "examples/1.83-task-governance",
       "examples/1.84-work-queue-takeover",
+      "examples/1.85-task-governance-consumer-integration",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
@@ -5437,6 +5468,8 @@
       "test-fixtures/bad/bad-subagent-dispatch-task-drift/subagent-run-plans/001-bad.md",
       "test-fixtures/bad/bad-subagent-multiple-writers/subagent-run-plans/001-two-writers.md",
       "test-fixtures/bad/bad-subagent-unclosed/subagent-run-plans/001-unclosed.md",
+      "test-fixtures/bad/bad-task-consumer-missing-task-entry",
+      "test-fixtures/bad/bad-task-consumer-possible-high-done",
       "test-fixtures/bad/bad-task-governance-authorizes-implementation/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-closeout-without-evidence/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-ignores-1.82-blocker/task-governance-reports/001-bad.md",
@@ -5618,6 +5651,7 @@
       ".intentos/core/safe-launch.md",
       ".intentos/core/standard-baseline-pack-registry.md",
       ".intentos/core/subagent-dispatch-hygiene.md",
+      ".intentos/core/task-governance-consumer-integration.md",
       ".intentos/core/test-evidence-binding.md",
       ".intentos/core/unified-apply-plan.md",
       ".intentos/core/unified-closure-model.md",
@@ -5692,6 +5726,7 @@
       ".intentos/docs/standard-baseline-pack-registry.md",
       ".intentos/docs/structured-evidence-schema.md",
       ".intentos/docs/subagent-dispatch-hygiene.md",
+      ".intentos/docs/task-governance-consumer-integration.md",
       ".intentos/docs/test-evidence-binding.md",
       ".intentos/docs/unified-apply-plan.md",
       ".intentos/docs/unified-closure-model.md",
@@ -6010,6 +6045,7 @@
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
+      "scripts/lib/task-entry-binding.mjs",
       "scripts/new-workflow-item.mjs",
       "scripts/resolve-adoption-assurance.mjs",
       "scripts/resolve-apply-plan.mjs",
@@ -6823,10 +6859,6 @@
     ],
     "files": [
       {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
-      },
-      {
         "source": "checklists/adoption-assurance-review.md",
         "target": ".intentos/checklists/adoption-assurance-review.md"
       },
@@ -7187,6 +7219,10 @@
         "target": ".intentos/docs/beginner-entry.md"
       },
       {
+        "source": "docs/behavior-complete-existing-project-adoption.md",
+        "target": ".intentos/docs/behavior-complete-existing-project-adoption.md"
+      },
+      {
         "source": "docs/business-rule-closure.md",
         "target": ".intentos/docs/business-rule-closure.md"
       },
@@ -7213,6 +7249,10 @@
       {
         "source": "docs/controlled-apply-readiness.md",
         "target": ".intentos/docs/controlled-apply-readiness.md"
+      },
+      {
+        "source": "docs/controlled-native-adoption-autopilot-review.md",
+        "target": ".intentos/docs/controlled-native-adoption-autopilot-review.md"
       },
       {
         "source": "docs/conversation-drift-control.md",
@@ -7375,6 +7415,10 @@
         "target": ".intentos/docs/release-core-model.md"
       },
       {
+        "source": "docs/release-evidence-gate.md",
+        "target": ".intentos/docs/release-evidence-gate.md"
+      },
+      {
         "source": "docs/release-execution-protocol.md",
         "target": ".intentos/docs/release-execution-protocol.md"
       },
@@ -7385,10 +7429,6 @@
       {
         "source": "docs/release-handoff-packs.md",
         "target": ".intentos/docs/release-handoff-packs.md"
-      },
-      {
-        "source": "docs/release-evidence-gate.md",
-        "target": ".intentos/docs/release-evidence-gate.md"
       },
       {
         "source": "docs/release-path-hardening.md",
@@ -7413,6 +7453,10 @@
       {
         "source": "docs/subagent-dispatch-hygiene.md",
         "target": ".intentos/docs/subagent-dispatch-hygiene.md"
+      },
+      {
+        "source": "docs/task-governance-consumer-integration.md",
+        "target": ".intentos/docs/task-governance-consumer-integration.md"
       },
       {
         "source": "docs/test-evidence-binding.md",
@@ -7441,6 +7485,10 @@
       {
         "source": "intentos-manifest.json",
         "target": ".intentos/intentos-manifest.json"
+      },
+      {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
       },
       {
         "source": "prompts/adoption-assurance-agent.md",
@@ -7643,6 +7691,558 @@
         "target": ".intentos/schemas/artifacts/verification-plan.schema.json"
       },
       {
+        "source": "scripts/baseline-project.mjs",
+        "target": "scripts/baseline-project.mjs"
+      },
+      {
+        "source": "scripts/check-adoption-assurance.mjs",
+        "target": "scripts/check-adoption-assurance.mjs"
+      },
+      {
+        "source": "scripts/check-ai-workflow.mjs",
+        "target": "scripts/check-ai-workflow.mjs"
+      },
+      {
+        "source": "scripts/check-apply-plan.mjs",
+        "target": "scripts/check-apply-plan.mjs"
+      },
+      {
+        "source": "scripts/check-approval-record.mjs",
+        "target": "scripts/check-approval-record.mjs"
+      },
+      {
+        "source": "scripts/check-baseline-enforcement.mjs",
+        "target": "scripts/check-baseline-enforcement.mjs"
+      },
+      {
+        "source": "scripts/check-baseline-pack-selection.mjs",
+        "target": "scripts/check-baseline-pack-selection.mjs"
+      },
+      {
+        "source": "scripts/check-baseline-state.mjs",
+        "target": "scripts/check-baseline-state.mjs"
+      },
+      {
+        "source": "scripts/check-beginner-entry.mjs",
+        "target": "scripts/check-beginner-entry.mjs"
+      },
+      {
+        "source": "scripts/check-business-rule-closure.mjs",
+        "target": "scripts/check-business-rule-closure.mjs"
+      },
+      {
+        "source": "scripts/check-change-boundary.mjs",
+        "target": "scripts/check-change-boundary.mjs"
+      },
+      {
+        "source": "scripts/check-change-impact-coverage.mjs",
+        "target": "scripts/check-change-impact-coverage.mjs"
+      },
+      {
+        "source": "scripts/check-claim-control.mjs",
+        "target": "scripts/check-claim-control.mjs"
+      },
+      {
+        "source": "scripts/check-closure-decision.mjs",
+        "target": "scripts/check-closure-decision.mjs"
+      },
+      {
+        "source": "scripts/check-completion-evidence.mjs",
+        "target": "scripts/check-completion-evidence.mjs"
+      },
+      {
+        "source": "scripts/check-context-governance.mjs",
+        "target": "scripts/check-context-governance.mjs"
+      },
+      {
+        "source": "scripts/check-controlled-apply-readiness.mjs",
+        "target": "scripts/check-controlled-apply-readiness.mjs"
+      },
+      {
+        "source": "scripts/check-controlled-native-adoption-review.mjs",
+        "target": "scripts/check-controlled-native-adoption-review.mjs"
+      },
+      {
+        "source": "scripts/check-conversation-drift.mjs",
+        "target": "scripts/check-conversation-drift.mjs"
+      },
+      {
+        "source": "scripts/check-conversation-native-ask.mjs",
+        "target": "scripts/check-conversation-native-ask.mjs"
+      },
+      {
+        "source": "scripts/check-debt-handoff.mjs",
+        "target": "scripts/check-debt-handoff.mjs"
+      },
+      {
+        "source": "scripts/check-delivery-path.mjs",
+        "target": "scripts/check-delivery-path.mjs"
+      },
+      {
+        "source": "scripts/check-document-archive-apply.mjs",
+        "target": "scripts/check-document-archive-apply.mjs"
+      },
+      {
+        "source": "scripts/check-document-lifecycle.mjs",
+        "target": "scripts/check-document-lifecycle.mjs"
+      },
+      {
+        "source": "scripts/check-engineering-baseline.mjs",
+        "target": "scripts/check-engineering-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-environment-baseline.mjs",
+        "target": "scripts/check-environment-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-execution-assurance.mjs",
+        "target": "scripts/check-execution-assurance.mjs"
+      },
+      {
+        "source": "scripts/check-execution-closure.mjs",
+        "target": "scripts/check-execution-closure.mjs"
+      },
+      {
+        "source": "scripts/check-existing-project-adoption-autopilot.mjs",
+        "target": "scripts/check-existing-project-adoption-autopilot.mjs"
+      },
+      {
+        "source": "scripts/check-existing-rule-reconciliation.mjs",
+        "target": "scripts/check-existing-rule-reconciliation.mjs"
+      },
+      {
+        "source": "scripts/check-first-delivery-walkthrough.mjs",
+        "target": "scripts/check-first-delivery-walkthrough.mjs"
+      },
+      {
+        "source": "scripts/check-first-slice.mjs",
+        "target": "scripts/check-first-slice.mjs"
+      },
+      {
+        "source": "scripts/check-goal-mode.mjs",
+        "target": "scripts/check-goal-mode.mjs"
+      },
+      {
+        "source": "scripts/check-governance-convergence.mjs",
+        "target": "scripts/check-governance-convergence.mjs"
+      },
+      {
+        "source": "scripts/check-guided-adoption.mjs",
+        "target": "scripts/check-guided-adoption.mjs"
+      },
+      {
+        "source": "scripts/check-guided-baseline-selection.mjs",
+        "target": "scripts/check-guided-baseline-selection.mjs"
+      },
+      {
+        "source": "scripts/check-guided-closure.mjs",
+        "target": "scripts/check-guided-closure.mjs"
+      },
+      {
+        "source": "scripts/check-guided-delivery-loop.mjs",
+        "target": "scripts/check-guided-delivery-loop.mjs"
+      },
+      {
+        "source": "scripts/check-hook-orchestration.mjs",
+        "target": "scripts/check-hook-orchestration.mjs"
+      },
+      {
+        "source": "scripts/check-hook-policy.mjs",
+        "target": "scripts/check-hook-policy.mjs"
+      },
+      {
+        "source": "scripts/check-industrial-baseline.mjs",
+        "target": "scripts/check-industrial-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-industrial-pack.mjs",
+        "target": "scripts/check-industrial-pack.mjs"
+      },
+      {
+        "source": "scripts/check-launch-readiness.mjs",
+        "target": "scripts/check-launch-readiness.mjs"
+      },
+      {
+        "source": "scripts/check-launch-review-view.mjs",
+        "target": "scripts/check-launch-review-view.mjs"
+      },
+      {
+        "source": "scripts/check-low-risk-apply-candidate.mjs",
+        "target": "scripts/check-low-risk-apply-candidate.mjs"
+      },
+      {
+        "source": "scripts/check-mvp-example.mjs",
+        "target": "scripts/check-mvp-example.mjs"
+      },
+      {
+        "source": "scripts/check-native-migration.mjs",
+        "target": "scripts/check-native-migration.mjs"
+      },
+      {
+        "source": "scripts/check-next-step-boundary.mjs",
+        "target": "scripts/check-next-step-boundary.mjs"
+      },
+      {
+        "source": "scripts/check-patch-classification.mjs",
+        "target": "scripts/check-patch-classification.mjs"
+      },
+      {
+        "source": "scripts/check-platform-baseline.mjs",
+        "target": "scripts/check-platform-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-platform-release-recipe.mjs",
+        "target": "scripts/check-platform-release-recipe.mjs"
+      },
+      {
+        "source": "scripts/check-product-baseline.mjs",
+        "target": "scripts/check-product-baseline.mjs"
+      },
+      {
+        "source": "scripts/check-product-completeness.mjs",
+        "target": "scripts/check-product-completeness.mjs"
+      },
+      {
+        "source": "scripts/check-project-onboarding.mjs",
+        "target": "scripts/check-project-onboarding.mjs"
+      },
+      {
+        "source": "scripts/check-real-adoption-trial.mjs",
+        "target": "scripts/check-real-adoption-trial.mjs"
+      },
+      {
+        "source": "scripts/check-release-adapter.mjs",
+        "target": "scripts/check-release-adapter.mjs"
+      },
+      {
+        "source": "scripts/check-release-evidence-gate.mjs",
+        "target": "scripts/check-release-evidence-gate.mjs"
+      },
+      {
+        "source": "scripts/check-release-execution.mjs",
+        "target": "scripts/check-release-execution.mjs"
+      },
+      {
+        "source": "scripts/check-release-guide.mjs",
+        "target": "scripts/check-release-guide.mjs"
+      },
+      {
+        "source": "scripts/check-release-handoff-pack.mjs",
+        "target": "scripts/check-release-handoff-pack.mjs"
+      },
+      {
+        "source": "scripts/check-release-plan.mjs",
+        "target": "scripts/check-release-plan.mjs"
+      },
+      {
+        "source": "scripts/check-review-loop.mjs",
+        "target": "scripts/check-review-loop.mjs"
+      },
+      {
+        "source": "scripts/check-review-surface.mjs",
+        "target": "scripts/check-review-surface.mjs"
+      },
+      {
+        "source": "scripts/check-standard-baseline-pack.mjs",
+        "target": "scripts/check-standard-baseline-pack.mjs"
+      },
+      {
+        "source": "scripts/check-standard-baseline-selection.mjs",
+        "target": "scripts/check-standard-baseline-selection.mjs"
+      },
+      {
+        "source": "scripts/check-subagent-orchestration.mjs",
+        "target": "scripts/check-subagent-orchestration.mjs"
+      },
+      {
+        "source": "scripts/check-task-governance.mjs",
+        "target": "scripts/check-task-governance.mjs"
+      },
+      {
+        "source": "scripts/check-test-evidence.mjs",
+        "target": "scripts/check-test-evidence.mjs"
+      },
+      {
+        "source": "scripts/check-user-delivery-console.mjs",
+        "target": "scripts/check-user-delivery-console.mjs"
+      },
+      {
+        "source": "scripts/check-verification-plan.mjs",
+        "target": "scripts/check-verification-plan.mjs"
+      },
+      {
+        "source": "scripts/check-work-queue.mjs",
+        "target": "scripts/check-work-queue.mjs"
+      },
+      {
+        "source": "scripts/check-workflow-adoption-map.mjs",
+        "target": "scripts/check-workflow-adoption-map.mjs"
+      },
+      {
+        "source": "scripts/check-workflow-artifacts.mjs",
+        "target": "scripts/check-workflow-artifacts.mjs"
+      },
+      {
+        "source": "scripts/check-workflow-guidance.mjs",
+        "target": "scripts/check-workflow-guidance.mjs"
+      },
+      {
+        "source": "scripts/check-workflow-version.mjs",
+        "target": "scripts/check-workflow-version.mjs"
+      },
+      {
+        "source": "scripts/cli.mjs",
+        "target": "scripts/cli.mjs"
+      },
+      {
+        "source": "scripts/lib/args.mjs",
+        "target": "scripts/lib/args.mjs"
+      },
+      {
+        "source": "scripts/lib/artifact-schema.mjs",
+        "target": "scripts/lib/artifact-schema.mjs"
+      },
+      {
+        "source": "scripts/lib/check-result.mjs",
+        "target": "scripts/lib/check-result.mjs"
+      },
+      {
+        "source": "scripts/lib/frontmatter.mjs",
+        "target": "scripts/lib/frontmatter.mjs"
+      },
+      {
+        "source": "scripts/lib/git.mjs",
+        "target": "scripts/lib/git.mjs"
+      },
+      {
+        "source": "scripts/lib/manifest.mjs",
+        "target": "scripts/lib/manifest.mjs"
+      },
+      {
+        "source": "scripts/lib/markdown.mjs",
+        "target": "scripts/lib/markdown.mjs"
+      },
+      {
+        "source": "scripts/lib/native-rule-extraction.mjs",
+        "target": "scripts/lib/native-rule-extraction.mjs"
+      },
+      {
+        "source": "scripts/lib/project-signals.mjs",
+        "target": "scripts/lib/project-signals.mjs"
+      },
+      {
+        "source": "scripts/lib/risk-surfaces.mjs",
+        "target": "scripts/lib/risk-surfaces.mjs"
+      },
+      {
+        "source": "scripts/lib/task-entry-binding.mjs",
+        "target": "scripts/lib/task-entry-binding.mjs"
+      },
+      {
+        "source": "scripts/new-workflow-item.mjs",
+        "target": "scripts/new-workflow-item.mjs"
+      },
+      {
+        "source": "scripts/resolve-adoption-assurance.mjs",
+        "target": "scripts/resolve-adoption-assurance.mjs"
+      },
+      {
+        "source": "scripts/resolve-apply-plan.mjs",
+        "target": "scripts/resolve-apply-plan.mjs"
+      },
+      {
+        "source": "scripts/resolve-baseline-packs.mjs",
+        "target": "scripts/resolve-baseline-packs.mjs"
+      },
+      {
+        "source": "scripts/resolve-beginner-entry.mjs",
+        "target": "scripts/resolve-beginner-entry.mjs"
+      },
+      {
+        "source": "scripts/resolve-business-rule-closure.mjs",
+        "target": "scripts/resolve-business-rule-closure.mjs"
+      },
+      {
+        "source": "scripts/resolve-change-impact-coverage.mjs",
+        "target": "scripts/resolve-change-impact-coverage.mjs"
+      },
+      {
+        "source": "scripts/resolve-closure-decision.mjs",
+        "target": "scripts/resolve-closure-decision.mjs"
+      },
+      {
+        "source": "scripts/resolve-completion-evidence.mjs",
+        "target": "scripts/resolve-completion-evidence.mjs"
+      },
+      {
+        "source": "scripts/resolve-controlled-apply-readiness.mjs",
+        "target": "scripts/resolve-controlled-apply-readiness.mjs"
+      },
+      {
+        "source": "scripts/resolve-controlled-native-adoption-review.mjs",
+        "target": "scripts/resolve-controlled-native-adoption-review.mjs"
+      },
+      {
+        "source": "scripts/resolve-debt-handoff.mjs",
+        "target": "scripts/resolve-debt-handoff.mjs"
+      },
+      {
+        "source": "scripts/resolve-delivery-path.mjs",
+        "target": "scripts/resolve-delivery-path.mjs"
+      },
+      {
+        "source": "scripts/resolve-document-archive-apply.mjs",
+        "target": "scripts/resolve-document-archive-apply.mjs"
+      },
+      {
+        "source": "scripts/resolve-document-lifecycle.mjs",
+        "target": "scripts/resolve-document-lifecycle.mjs"
+      },
+      {
+        "source": "scripts/resolve-execution-assurance.mjs",
+        "target": "scripts/resolve-execution-assurance.mjs"
+      },
+      {
+        "source": "scripts/resolve-execution-closure.mjs",
+        "target": "scripts/resolve-execution-closure.mjs"
+      },
+      {
+        "source": "scripts/resolve-existing-project-adoption-autopilot.mjs",
+        "target": "scripts/resolve-existing-project-adoption-autopilot.mjs"
+      },
+      {
+        "source": "scripts/resolve-existing-rule-reconciliation.mjs",
+        "target": "scripts/resolve-existing-rule-reconciliation.mjs"
+      },
+      {
+        "source": "scripts/resolve-existing-workflow.mjs",
+        "target": "scripts/resolve-existing-workflow.mjs"
+      },
+      {
+        "source": "scripts/resolve-first-slice.mjs",
+        "target": "scripts/resolve-first-slice.mjs"
+      },
+      {
+        "source": "scripts/resolve-governance-convergence.mjs",
+        "target": "scripts/resolve-governance-convergence.mjs"
+      },
+      {
+        "source": "scripts/resolve-guided-baseline-selection.mjs",
+        "target": "scripts/resolve-guided-baseline-selection.mjs"
+      },
+      {
+        "source": "scripts/resolve-guided-closure.mjs",
+        "target": "scripts/resolve-guided-closure.mjs"
+      },
+      {
+        "source": "scripts/resolve-hook-orchestration.mjs",
+        "target": "scripts/resolve-hook-orchestration.mjs"
+      },
+      {
+        "source": "scripts/resolve-hook-policy.mjs",
+        "target": "scripts/resolve-hook-policy.mjs"
+      },
+      {
+        "source": "scripts/resolve-industrial-baseline.mjs",
+        "target": "scripts/resolve-industrial-baseline.mjs"
+      },
+      {
+        "source": "scripts/resolve-launch-review-view.mjs",
+        "target": "scripts/resolve-launch-review-view.mjs"
+      },
+      {
+        "source": "scripts/resolve-low-risk-apply-candidate.mjs",
+        "target": "scripts/resolve-low-risk-apply-candidate.mjs"
+      },
+      {
+        "source": "scripts/resolve-native-migration.mjs",
+        "target": "scripts/resolve-native-migration.mjs"
+      },
+      {
+        "source": "scripts/resolve-platform-baseline.mjs",
+        "target": "scripts/resolve-platform-baseline.mjs"
+      },
+      {
+        "source": "scripts/resolve-platform-release-recipe.mjs",
+        "target": "scripts/resolve-platform-release-recipe.mjs"
+      },
+      {
+        "source": "scripts/resolve-product-completeness.mjs",
+        "target": "scripts/resolve-product-completeness.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-adapter.mjs",
+        "target": "scripts/resolve-release-adapter.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-evidence-gate.mjs",
+        "target": "scripts/resolve-release-evidence-gate.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-execution.mjs",
+        "target": "scripts/resolve-release-execution.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-guide.mjs",
+        "target": "scripts/resolve-release-guide.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-handoff-pack.mjs",
+        "target": "scripts/resolve-release-handoff-pack.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-plan.mjs",
+        "target": "scripts/resolve-release-plan.mjs"
+      },
+      {
+        "source": "scripts/resolve-review-surface.mjs",
+        "target": "scripts/resolve-review-surface.mjs"
+      },
+      {
+        "source": "scripts/resolve-standard-baseline.mjs",
+        "target": "scripts/resolve-standard-baseline.mjs"
+      },
+      {
+        "source": "scripts/resolve-task-governance.mjs",
+        "target": "scripts/resolve-task-governance.mjs"
+      },
+      {
+        "source": "scripts/resolve-test-evidence.mjs",
+        "target": "scripts/resolve-test-evidence.mjs"
+      },
+      {
+        "source": "scripts/resolve-user-delivery-console.mjs",
+        "target": "scripts/resolve-user-delivery-console.mjs"
+      },
+      {
+        "source": "scripts/resolve-verification-plan.mjs",
+        "target": "scripts/resolve-verification-plan.mjs"
+      },
+      {
+        "source": "scripts/resolve-work-queue.mjs",
+        "target": "scripts/resolve-work-queue.mjs"
+      },
+      {
+        "source": "scripts/resolve-workflow-guidance.mjs",
+        "target": "scripts/resolve-workflow-guidance.mjs"
+      },
+      {
+        "source": "scripts/start-project.mjs",
+        "target": "scripts/start-project.mjs"
+      },
+      {
+        "source": "scripts/summarize-ai-logs.mjs",
+        "target": "scripts/summarize-ai-logs.mjs"
+      },
+      {
+        "source": "scripts/workflow-daily-summary.mjs",
+        "target": "scripts/workflow-daily-summary.mjs"
+      },
+      {
+        "source": "scripts/workflow-next.mjs",
+        "target": "scripts/workflow-next.mjs"
+      },
+      {
         "source": "templates/active-work-thread.md",
         "target": ".intentos/templates/active-work-thread.md"
       },
@@ -7821,569 +8421,15 @@
       {
         "source": "templates/workflow-guidance-card.md",
         "target": ".intentos/templates/workflow-guidance-card.md"
-      },
-      {
-        "source": "scripts/baseline-project.mjs",
-        "target": "scripts/baseline-project.mjs"
-      },
-      {
-        "source": "scripts/check-adoption-assurance.mjs",
-        "target": "scripts/check-adoption-assurance.mjs"
-      },
-      {
-        "source": "scripts/check-existing-project-adoption-autopilot.mjs",
-        "target": "scripts/check-existing-project-adoption-autopilot.mjs"
-      },
-      {
-        "source": "scripts/check-ai-workflow.mjs",
-        "target": "scripts/check-ai-workflow.mjs"
-      },
-      {
-        "source": "scripts/check-apply-plan.mjs",
-        "target": "scripts/check-apply-plan.mjs"
-      },
-      {
-        "source": "scripts/check-approval-record.mjs",
-        "target": "scripts/check-approval-record.mjs"
-      },
-      {
-        "source": "scripts/check-baseline-enforcement.mjs",
-        "target": "scripts/check-baseline-enforcement.mjs"
-      },
-      {
-        "source": "scripts/check-baseline-pack-selection.mjs",
-        "target": "scripts/check-baseline-pack-selection.mjs"
-      },
-      {
-        "source": "scripts/check-baseline-state.mjs",
-        "target": "scripts/check-baseline-state.mjs"
-      },
-      {
-        "source": "scripts/check-beginner-entry.mjs",
-        "target": "scripts/check-beginner-entry.mjs"
-      },
-      {
-        "source": "scripts/check-business-rule-closure.mjs",
-        "target": "scripts/check-business-rule-closure.mjs"
-      },
-      {
-        "source": "scripts/check-change-boundary.mjs",
-        "target": "scripts/check-change-boundary.mjs"
-      },
-      {
-        "source": "scripts/check-change-impact-coverage.mjs",
-        "target": "scripts/check-change-impact-coverage.mjs"
-      },
-      {
-        "source": "scripts/check-claim-control.mjs",
-        "target": "scripts/check-claim-control.mjs"
-      },
-      {
-        "source": "scripts/check-closure-decision.mjs",
-        "target": "scripts/check-closure-decision.mjs"
-      },
-      {
-        "source": "scripts/check-completion-evidence.mjs",
-        "target": "scripts/check-completion-evidence.mjs"
-      },
-      {
-        "source": "scripts/check-context-governance.mjs",
-        "target": "scripts/check-context-governance.mjs"
-      },
-      {
-        "source": "scripts/check-controlled-apply-readiness.mjs",
-        "target": "scripts/check-controlled-apply-readiness.mjs"
-      },
-      {
-        "source": "scripts/check-conversation-drift.mjs",
-        "target": "scripts/check-conversation-drift.mjs"
-      },
-      {
-        "source": "scripts/check-conversation-native-ask.mjs",
-        "target": "scripts/check-conversation-native-ask.mjs"
-      },
-      {
-        "source": "scripts/check-debt-handoff.mjs",
-        "target": "scripts/check-debt-handoff.mjs"
-      },
-      {
-        "source": "scripts/check-delivery-path.mjs",
-        "target": "scripts/check-delivery-path.mjs"
-      },
-      {
-        "source": "scripts/check-document-archive-apply.mjs",
-        "target": "scripts/check-document-archive-apply.mjs"
-      },
-      {
-        "source": "scripts/check-document-lifecycle.mjs",
-        "target": "scripts/check-document-lifecycle.mjs"
-      },
-      {
-        "source": "scripts/check-engineering-baseline.mjs",
-        "target": "scripts/check-engineering-baseline.mjs"
-      },
-      {
-        "source": "scripts/check-environment-baseline.mjs",
-        "target": "scripts/check-environment-baseline.mjs"
-      },
-      {
-        "source": "scripts/check-execution-assurance.mjs",
-        "target": "scripts/check-execution-assurance.mjs"
-      },
-      {
-        "source": "scripts/check-execution-closure.mjs",
-        "target": "scripts/check-execution-closure.mjs"
-      },
-      {
-        "source": "scripts/check-existing-rule-reconciliation.mjs",
-        "target": "scripts/check-existing-rule-reconciliation.mjs"
-      },
-      {
-        "source": "scripts/check-first-delivery-walkthrough.mjs",
-        "target": "scripts/check-first-delivery-walkthrough.mjs"
-      },
-      {
-        "source": "scripts/check-first-slice.mjs",
-        "target": "scripts/check-first-slice.mjs"
-      },
-      {
-        "source": "scripts/check-goal-mode.mjs",
-        "target": "scripts/check-goal-mode.mjs"
-      },
-      {
-        "source": "scripts/check-governance-convergence.mjs",
-        "target": "scripts/check-governance-convergence.mjs"
-      },
-      {
-        "source": "scripts/check-guided-adoption.mjs",
-        "target": "scripts/check-guided-adoption.mjs"
-      },
-      {
-        "source": "scripts/check-guided-baseline-selection.mjs",
-        "target": "scripts/check-guided-baseline-selection.mjs"
-      },
-      {
-        "source": "scripts/check-guided-closure.mjs",
-        "target": "scripts/check-guided-closure.mjs"
-      },
-      {
-        "source": "scripts/check-guided-delivery-loop.mjs",
-        "target": "scripts/check-guided-delivery-loop.mjs"
-      },
-      {
-        "source": "scripts/check-hook-orchestration.mjs",
-        "target": "scripts/check-hook-orchestration.mjs"
-      },
-      {
-        "source": "scripts/check-hook-policy.mjs",
-        "target": "scripts/check-hook-policy.mjs"
-      },
-      {
-        "source": "scripts/check-industrial-baseline.mjs",
-        "target": "scripts/check-industrial-baseline.mjs"
-      },
-      {
-        "source": "scripts/check-industrial-pack.mjs",
-        "target": "scripts/check-industrial-pack.mjs"
-      },
-      {
-        "source": "scripts/check-launch-readiness.mjs",
-        "target": "scripts/check-launch-readiness.mjs"
-      },
-      {
-        "source": "scripts/check-launch-review-view.mjs",
-        "target": "scripts/check-launch-review-view.mjs"
-      },
-      {
-        "source": "scripts/check-low-risk-apply-candidate.mjs",
-        "target": "scripts/check-low-risk-apply-candidate.mjs"
-      },
-      {
-        "source": "scripts/check-mvp-example.mjs",
-        "target": "scripts/check-mvp-example.mjs"
-      },
-      {
-        "source": "scripts/check-native-migration.mjs",
-        "target": "scripts/check-native-migration.mjs"
-      },
-      {
-        "source": "scripts/check-next-step-boundary.mjs",
-        "target": "scripts/check-next-step-boundary.mjs"
-      },
-      {
-        "source": "scripts/check-patch-classification.mjs",
-        "target": "scripts/check-patch-classification.mjs"
-      },
-      {
-        "source": "scripts/check-platform-baseline.mjs",
-        "target": "scripts/check-platform-baseline.mjs"
-      },
-      {
-        "source": "scripts/check-platform-release-recipe.mjs",
-        "target": "scripts/check-platform-release-recipe.mjs"
-      },
-      {
-        "source": "scripts/check-product-baseline.mjs",
-        "target": "scripts/check-product-baseline.mjs"
-      },
-      {
-        "source": "scripts/check-product-completeness.mjs",
-        "target": "scripts/check-product-completeness.mjs"
-      },
-      {
-        "source": "scripts/check-project-onboarding.mjs",
-        "target": "scripts/check-project-onboarding.mjs"
-      },
-      {
-        "source": "scripts/check-real-adoption-trial.mjs",
-        "target": "scripts/check-real-adoption-trial.mjs"
-      },
-      {
-        "source": "scripts/check-release-adapter.mjs",
-        "target": "scripts/check-release-adapter.mjs"
-      },
-      {
-        "source": "scripts/check-release-evidence-gate.mjs",
-        "target": "scripts/check-release-evidence-gate.mjs"
-      },
-      {
-        "source": "scripts/check-release-execution.mjs",
-        "target": "scripts/check-release-execution.mjs"
-      },
-      {
-        "source": "scripts/check-release-guide.mjs",
-        "target": "scripts/check-release-guide.mjs"
-      },
-      {
-        "source": "scripts/check-release-handoff-pack.mjs",
-        "target": "scripts/check-release-handoff-pack.mjs"
-      },
-      {
-        "source": "scripts/check-release-plan.mjs",
-        "target": "scripts/check-release-plan.mjs"
-      },
-      {
-        "source": "scripts/check-review-loop.mjs",
-        "target": "scripts/check-review-loop.mjs"
-      },
-      {
-        "source": "scripts/check-review-surface.mjs",
-        "target": "scripts/check-review-surface.mjs"
-      },
-      {
-        "source": "scripts/check-standard-baseline-pack.mjs",
-        "target": "scripts/check-standard-baseline-pack.mjs"
-      },
-      {
-        "source": "scripts/check-standard-baseline-selection.mjs",
-        "target": "scripts/check-standard-baseline-selection.mjs"
-      },
-      {
-        "source": "scripts/check-subagent-orchestration.mjs",
-        "target": "scripts/check-subagent-orchestration.mjs"
-      },
-      {
-        "source": "scripts/check-test-evidence.mjs",
-        "target": "scripts/check-test-evidence.mjs"
-      },
-      {
-        "source": "scripts/check-user-delivery-console.mjs",
-        "target": "scripts/check-user-delivery-console.mjs"
-      },
-      {
-        "source": "scripts/check-verification-plan.mjs",
-        "target": "scripts/check-verification-plan.mjs"
-      },
-      {
-        "source": "scripts/check-work-queue.mjs",
-        "target": "scripts/check-work-queue.mjs"
-      },
-      {
-        "source": "scripts/check-workflow-adoption-map.mjs",
-        "target": "scripts/check-workflow-adoption-map.mjs"
-      },
-      {
-        "source": "scripts/check-workflow-artifacts.mjs",
-        "target": "scripts/check-workflow-artifacts.mjs"
-      },
-      {
-        "source": "scripts/check-workflow-guidance.mjs",
-        "target": "scripts/check-workflow-guidance.mjs"
-      },
-      {
-        "source": "scripts/check-workflow-version.mjs",
-        "target": "scripts/check-workflow-version.mjs"
-      },
-      {
-        "source": "scripts/cli.mjs",
-        "target": "scripts/cli.mjs"
-      },
-      {
-        "source": "scripts/lib/args.mjs",
-        "target": "scripts/lib/args.mjs"
-      },
-      {
-        "source": "scripts/lib/artifact-schema.mjs",
-        "target": "scripts/lib/artifact-schema.mjs"
-      },
-      {
-        "source": "scripts/lib/check-result.mjs",
-        "target": "scripts/lib/check-result.mjs"
-      },
-      {
-        "source": "scripts/lib/frontmatter.mjs",
-        "target": "scripts/lib/frontmatter.mjs"
-      },
-      {
-        "source": "scripts/lib/git.mjs",
-        "target": "scripts/lib/git.mjs"
-      },
-      {
-        "source": "scripts/lib/manifest.mjs",
-        "target": "scripts/lib/manifest.mjs"
-      },
-      {
-        "source": "scripts/lib/markdown.mjs",
-        "target": "scripts/lib/markdown.mjs"
-      },
-      {
-        "source": "scripts/lib/native-rule-extraction.mjs",
-        "target": "scripts/lib/native-rule-extraction.mjs"
-      },
-      {
-        "source": "scripts/lib/project-signals.mjs",
-        "target": "scripts/lib/project-signals.mjs"
-      },
-      {
-        "source": "scripts/lib/risk-surfaces.mjs",
-        "target": "scripts/lib/risk-surfaces.mjs"
-      },
-      {
-        "source": "scripts/new-workflow-item.mjs",
-        "target": "scripts/new-workflow-item.mjs"
-      },
-      {
-        "source": "scripts/resolve-adoption-assurance.mjs",
-        "target": "scripts/resolve-adoption-assurance.mjs"
-      },
-      {
-        "source": "scripts/resolve-existing-project-adoption-autopilot.mjs",
-        "target": "scripts/resolve-existing-project-adoption-autopilot.mjs"
-      },
-      {
-        "source": "scripts/resolve-apply-plan.mjs",
-        "target": "scripts/resolve-apply-plan.mjs"
-      },
-      {
-        "source": "scripts/resolve-baseline-packs.mjs",
-        "target": "scripts/resolve-baseline-packs.mjs"
-      },
-      {
-        "source": "scripts/resolve-beginner-entry.mjs",
-        "target": "scripts/resolve-beginner-entry.mjs"
-      },
-      {
-        "source": "scripts/resolve-business-rule-closure.mjs",
-        "target": "scripts/resolve-business-rule-closure.mjs"
-      },
-      {
-        "source": "scripts/resolve-change-impact-coverage.mjs",
-        "target": "scripts/resolve-change-impact-coverage.mjs"
-      },
-      {
-        "source": "scripts/resolve-closure-decision.mjs",
-        "target": "scripts/resolve-closure-decision.mjs"
-      },
-      {
-        "source": "scripts/resolve-completion-evidence.mjs",
-        "target": "scripts/resolve-completion-evidence.mjs"
-      },
-      {
-        "source": "scripts/resolve-controlled-apply-readiness.mjs",
-        "target": "scripts/resolve-controlled-apply-readiness.mjs"
-      },
-      {
-        "source": "scripts/resolve-debt-handoff.mjs",
-        "target": "scripts/resolve-debt-handoff.mjs"
-      },
-      {
-        "source": "scripts/resolve-delivery-path.mjs",
-        "target": "scripts/resolve-delivery-path.mjs"
-      },
-      {
-        "source": "scripts/resolve-document-archive-apply.mjs",
-        "target": "scripts/resolve-document-archive-apply.mjs"
-      },
-      {
-        "source": "scripts/resolve-document-lifecycle.mjs",
-        "target": "scripts/resolve-document-lifecycle.mjs"
-      },
-      {
-        "source": "scripts/resolve-execution-assurance.mjs",
-        "target": "scripts/resolve-execution-assurance.mjs"
-      },
-      {
-        "source": "scripts/resolve-execution-closure.mjs",
-        "target": "scripts/resolve-execution-closure.mjs"
-      },
-      {
-        "source": "scripts/resolve-existing-rule-reconciliation.mjs",
-        "target": "scripts/resolve-existing-rule-reconciliation.mjs"
-      },
-      {
-        "source": "scripts/resolve-existing-workflow.mjs",
-        "target": "scripts/resolve-existing-workflow.mjs"
-      },
-      {
-        "source": "scripts/resolve-first-slice.mjs",
-        "target": "scripts/resolve-first-slice.mjs"
-      },
-      {
-        "source": "scripts/resolve-governance-convergence.mjs",
-        "target": "scripts/resolve-governance-convergence.mjs"
-      },
-      {
-        "source": "scripts/resolve-guided-baseline-selection.mjs",
-        "target": "scripts/resolve-guided-baseline-selection.mjs"
-      },
-      {
-        "source": "scripts/resolve-guided-closure.mjs",
-        "target": "scripts/resolve-guided-closure.mjs"
-      },
-      {
-        "source": "scripts/resolve-hook-orchestration.mjs",
-        "target": "scripts/resolve-hook-orchestration.mjs"
-      },
-      {
-        "source": "scripts/resolve-hook-policy.mjs",
-        "target": "scripts/resolve-hook-policy.mjs"
-      },
-      {
-        "source": "scripts/resolve-industrial-baseline.mjs",
-        "target": "scripts/resolve-industrial-baseline.mjs"
-      },
-      {
-        "source": "scripts/resolve-launch-review-view.mjs",
-        "target": "scripts/resolve-launch-review-view.mjs"
-      },
-      {
-        "source": "scripts/resolve-low-risk-apply-candidate.mjs",
-        "target": "scripts/resolve-low-risk-apply-candidate.mjs"
-      },
-      {
-        "source": "scripts/resolve-native-migration.mjs",
-        "target": "scripts/resolve-native-migration.mjs"
-      },
-      {
-        "source": "scripts/resolve-platform-baseline.mjs",
-        "target": "scripts/resolve-platform-baseline.mjs"
-      },
-      {
-        "source": "scripts/resolve-platform-release-recipe.mjs",
-        "target": "scripts/resolve-platform-release-recipe.mjs"
-      },
-      {
-        "source": "scripts/resolve-product-completeness.mjs",
-        "target": "scripts/resolve-product-completeness.mjs"
-      },
-      {
-        "source": "scripts/resolve-release-adapter.mjs",
-        "target": "scripts/resolve-release-adapter.mjs"
-      },
-      {
-        "source": "scripts/resolve-release-evidence-gate.mjs",
-        "target": "scripts/resolve-release-evidence-gate.mjs"
-      },
-      {
-        "source": "scripts/resolve-release-execution.mjs",
-        "target": "scripts/resolve-release-execution.mjs"
-      },
-      {
-        "source": "scripts/resolve-release-guide.mjs",
-        "target": "scripts/resolve-release-guide.mjs"
-      },
-      {
-        "source": "scripts/resolve-release-handoff-pack.mjs",
-        "target": "scripts/resolve-release-handoff-pack.mjs"
-      },
-      {
-        "source": "scripts/resolve-release-plan.mjs",
-        "target": "scripts/resolve-release-plan.mjs"
-      },
-      {
-        "source": "scripts/resolve-review-surface.mjs",
-        "target": "scripts/resolve-review-surface.mjs"
-      },
-      {
-        "source": "scripts/resolve-standard-baseline.mjs",
-        "target": "scripts/resolve-standard-baseline.mjs"
-      },
-      {
-        "source": "scripts/resolve-test-evidence.mjs",
-        "target": "scripts/resolve-test-evidence.mjs"
-      },
-      {
-        "source": "scripts/resolve-user-delivery-console.mjs",
-        "target": "scripts/resolve-user-delivery-console.mjs"
-      },
-      {
-        "source": "scripts/resolve-verification-plan.mjs",
-        "target": "scripts/resolve-verification-plan.mjs"
-      },
-      {
-        "source": "scripts/resolve-work-queue.mjs",
-        "target": "scripts/resolve-work-queue.mjs"
-      },
-      {
-        "source": "scripts/resolve-workflow-guidance.mjs",
-        "target": "scripts/resolve-workflow-guidance.mjs"
-      },
-      {
-        "source": "scripts/start-project.mjs",
-        "target": "scripts/start-project.mjs"
-      },
-      {
-        "source": "scripts/summarize-ai-logs.mjs",
-        "target": "scripts/summarize-ai-logs.mjs"
-      },
-      {
-        "source": "scripts/workflow-daily-summary.mjs",
-        "target": "scripts/workflow-daily-summary.mjs"
-      },
-      {
-        "source": "scripts/workflow-next.mjs",
-        "target": "scripts/workflow-next.mjs"
-      },
-      {
-        "source": "scripts/resolve-controlled-native-adoption-review.mjs",
-        "target": "scripts/resolve-controlled-native-adoption-review.mjs"
-      },
-      {
-        "source": "scripts/check-controlled-native-adoption-review.mjs",
-        "target": "scripts/check-controlled-native-adoption-review.mjs"
-      },
-      {
-        "source": "docs/controlled-native-adoption-autopilot-review.md",
-        "target": ".intentos/docs/controlled-native-adoption-autopilot-review.md"
-      },
-      {
-        "source": "docs/behavior-complete-existing-project-adoption.md",
-        "target": ".intentos/docs/behavior-complete-existing-project-adoption.md"
-      },
-      {
-        "source": "scripts/resolve-task-governance.mjs",
-        "target": "scripts/resolve-task-governance.mjs"
-      },
-      {
-        "source": "scripts/check-task-governance.mjs",
-        "target": "scripts/check-task-governance.mjs"
       }
     ]
   },
   "assets": {
     "sourceRequired": [
       "apply-plans/.gitkeep",
+      "checklists/controlled-native-adoption-review.md",
       "checklists/conversation-native-ask-review.md",
+      "checklists/execution-assurance-review.md",
       "checklists/guided-closure-review.md",
       "checklists/low-risk-controlled-apply-candidate-review.md",
       "checklists/ordinary-user-first-slice-review.md",
@@ -8391,8 +8437,13 @@
       "checklists/product-completeness-gate-review.md",
       "checklists/real-mvp-example-review.md",
       "checklists/release-guide-review.md",
+      "checklists/release-plan-review.md",
+      "checklists/task-governance-review.md",
       "checklists/unified-apply-plan-review.md",
+      "core/behavior-complete-existing-project-adoption.md",
+      "core/controlled-native-adoption-autopilot-review.md",
       "core/conversation-native-ask.md",
+      "core/execution-assurance-chain.md",
       "core/guided-closure-experience.md",
       "core/low-risk-controlled-apply-candidate.md",
       "core/natural-language-orchestrator.md",
@@ -8400,16 +8451,30 @@
       "core/platform-release-recipes.md",
       "core/product-completeness-gate.md",
       "core/real-mvp-example-evidence.md",
+      "core/release-core-model.md",
       "core/release-guide.md",
+      "core/task-governance-consumer-integration.md",
       "core/unified-apply-plan.md",
+      "docs/behavior-complete-existing-project-adoption.md",
+      "docs/controlled-native-adoption-autopilot-review.md",
       "docs/conversation-native-ask.md",
+      "docs/execution-assurance-chain.md",
       "docs/guided-closure-experience.md",
       "docs/low-risk-controlled-apply-candidate.md",
       "docs/natural-language-orchestrator.md",
       "docs/ordinary-user-first-slice.md",
+      "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
+      "docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md",
       "docs/plans/conversation-native-ask-1.37-plan.md",
+      "docs/plans/execution-assurance-chain-1.72-plan.md",
+      "docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md",
+      "docs/plans/execution-assurance-log-markdown-consistency-1.74.3-plan.md",
+      "docs/plans/execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md",
+      "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
+      "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
       "docs/plans/guided-closure-experience-1.52-plan.md",
       "docs/plans/platform-release-recipes-1.59-plan.md",
+      "docs/plans/release-core-model-consolidation-1.67-plan.md",
       "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
       "docs/plans/release-path-consolidation-1.58-plan.md",
       "docs/plans/structured-impact-coverage-1.49-plan.md",
@@ -8417,7 +8482,9 @@
       "docs/platform-release-recipes.md",
       "docs/product-completeness-gate.md",
       "docs/real-mvp-example-evidence.md",
+      "docs/release-core-model.md",
       "docs/release-guide.md",
+      "docs/task-governance-consumer-integration.md",
       "docs/unified-apply-plan.md",
       "examples/1.31-intent-aware-deep-guide/README.md",
       "examples/1.31-intent-aware-deep-guide/workflow-guidance-cards/001-payment-booking-intent.md",
@@ -8437,9 +8504,69 @@
       "examples/1.59-platform-release-recipes/mini-program-review/release-recipes/001-mini-program-review.md",
       "examples/1.59-platform-release-recipes/web-hosted-preview/README.md",
       "examples/1.59-platform-release-recipes/web-hosted-preview/release-recipes/001-web-hosted-preview.md",
+      "examples/1.67-release-core-model/README.md",
+      "examples/1.67-release-core-model/backend-api-handoff/README.md",
+      "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENVIRONMENT_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
+      "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
+      "examples/1.67-release-core-model/mini-program-review/README.md",
+      "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
+      "examples/1.67-release-core-model/web-preview/README.md",
+      "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
+      "examples/1.72-execution-assurance-chain/README.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/change-impact-coverage-reports/001-contract.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/api-validation.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/backend-rule.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/frontend-validation.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/tests.txt",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/execution-assurance-reports/001-contract-validation.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/review-loop-reports/001-contract.md",
+      "examples/1.72-execution-assurance-chain/feature-contract-validation/tasks/001-contract-validation.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/adoption-assurance-reports/001-adoption.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/execution-assurance-reports/001-adoption.md",
+      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/governance-convergence-reports/001-convergence.md",
+      "examples/1.72-execution-assurance-chain/patch-smell-backend-only/execution-assurance-reports/001-backend-only.md",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/evidence/copy-smoke.txt",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/execution-assurance-reports/001-copy.md",
+      "examples/1.72-execution-assurance-chain/safe-copy-patch/tasks/001-copy.md",
+      "examples/1.82-controlled-native-adoption-review/README.md",
+      "examples/1.82-controlled-native-adoption-review/light-plan-only/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/messy-production-repair-only/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/strong-governed-stay-partial/native-adoption-review-reports/001-review.md",
+      "examples/1.82-controlled-native-adoption-review/weak-governance-repair/native-adoption-review-reports/001-review.md",
+      "examples/1.83-task-governance/README.md",
+      "examples/1.83-task-governance/db-api-ui-change/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/last-step-settlement/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/low-copy-change/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/medium-frontend-interaction/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/medium-list-filter/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/permission-sensitive-workflow/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/possible-high-downgraded/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/project-native-qa-checklist-mapping/docs/qa-permission-approval-checklist.md",
+      "examples/1.83-task-governance/project-native-qa-checklist-mapping/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/project-native-rfc-mapping/docs/rfc-approval-review-workflow.md",
+      "examples/1.83-task-governance/project-native-rfc-mapping/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/review-required-step-policy/task-governance-reports/001-task-governance.md",
+      "examples/1.85-task-governance-consumer-integration/README.md",
+      "examples/1.85-task-governance-consumer-integration/high-workflow-rule/execution-assurance-reports/001-high-workflow-rule.md",
+      "examples/1.85-task-governance-consumer-integration/high-workflow-rule/task-governance-reports/001-task-governance.md",
+      "examples/1.85-task-governance-consumer-integration/high-workflow-rule/work-queue-takeover-reports/001-current.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/closure-decisions/001-possible-high-blocked.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/completion-evidence-reports/001-possible-high-blocked.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/delivery-status-cards/001-possible-high-blocked.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/task-governance-reports/001-task-governance.md",
+      "examples/1.85-task-governance-consumer-integration/possible-high-blocked/work-queue-takeover-reports/001-current.md",
+      "execution-assurance-reports/.gitkeep",
       "guided-closure-cards/.gitkeep",
+      "native-adoption-review-reports/.gitkeep",
       "prompts/apply-plan-agent.md",
+      "prompts/controlled-native-adoption-review-agent.md",
       "prompts/conversation-native-ask-agent.md",
+      "prompts/execution-assurance-agent.md",
       "prompts/guided-closure-agent.md",
       "prompts/low-risk-controlled-apply-candidate-agent.md",
       "prompts/ordinary-user-first-slice-agent.md",
@@ -8447,7 +8574,10 @@
       "prompts/product-completeness-agent.md",
       "prompts/real-mvp-example-agent.md",
       "prompts/release-guide-agent.md",
+      "prompts/release-plan-agent.md",
+      "prompts/task-governance-agent.md",
       "release-guides/.gitkeep",
+      "release-plans/.gitkeep",
       "release-recipes/.gitkeep",
       "release-recipes/backend-api-handoff.md",
       "release-recipes/draft-android-internal-testing.md",
@@ -8477,9 +8607,63 @@
       "releases/1.59.0/known-limitations.md",
       "releases/1.59.0/release-record.md",
       "releases/1.59.0/self-check-report.md",
+      "releases/1.67.0/known-limitations.md",
+      "releases/1.67.0/release-record.md",
+      "releases/1.67.0/self-check-report.md",
+      "releases/1.67.1/known-limitations.md",
+      "releases/1.67.1/release-record.md",
+      "releases/1.67.1/self-check-report.md",
+      "releases/1.67.2/known-limitations.md",
+      "releases/1.67.2/release-record.md",
+      "releases/1.67.2/self-check-report.md",
+      "releases/1.68.0/known-limitations.md",
+      "releases/1.68.0/release-record.md",
+      "releases/1.68.0/self-check-report.md",
+      "releases/1.68.1/known-limitations.md",
+      "releases/1.68.1/release-record.md",
+      "releases/1.68.1/self-check-report.md",
+      "releases/1.68.2/known-limitations.md",
+      "releases/1.68.2/release-record.md",
+      "releases/1.68.2/self-check-report.md",
+      "releases/1.72.0/known-limitations.md",
+      "releases/1.72.0/release-record.md",
+      "releases/1.72.0/self-check-report.md",
+      "releases/1.72.1/known-limitations.md",
+      "releases/1.72.1/release-record.md",
+      "releases/1.72.1/self-check-report.md",
+      "releases/1.74.0/known-limitations.md",
+      "releases/1.74.0/release-record.md",
+      "releases/1.74.0/self-check-report.md",
+      "releases/1.74.1/known-limitations.md",
+      "releases/1.74.1/release-record.md",
+      "releases/1.74.1/self-check-report.md",
+      "releases/1.74.2/known-limitations.md",
+      "releases/1.74.2/release-record.md",
+      "releases/1.74.2/self-check-report.md",
+      "releases/1.74.3/known-limitations.md",
+      "releases/1.74.3/release-record.md",
+      "releases/1.74.3/self-check-report.md",
+      "releases/1.82.0/known-limitations.md",
+      "releases/1.82.0/release-record.md",
+      "releases/1.82.0/self-check-report.md",
+      "releases/1.82.1/known-limitations.md",
+      "releases/1.82.1/release-record.md",
+      "releases/1.82.1/self-check-report.md",
+      "releases/1.83.0/known-limitations.md",
+      "releases/1.83.0/release-record.md",
+      "releases/1.83.0/self-check-report.md",
+      "releases/1.85.0/known-limitations.md",
+      "releases/1.85.0/release-record.md",
+      "releases/1.85.0/self-check-report.md",
       "schemas/artifacts/change-impact-coverage.schema.json",
+      "schemas/artifacts/controlled-native-adoption-review.schema.json",
+      "schemas/artifacts/execution-assurance.schema.json",
+      "schemas/artifacts/release-plan.schema.json",
+      "schemas/artifacts/task-governance.schema.json",
       "scripts/check-apply-plan.mjs",
+      "scripts/check-controlled-native-adoption-review.mjs",
       "scripts/check-conversation-native-ask.mjs",
+      "scripts/check-execution-assurance.mjs",
       "scripts/check-first-slice.mjs",
       "scripts/check-guided-closure.mjs",
       "scripts/check-low-risk-apply-candidate.mjs",
@@ -8487,16 +8671,26 @@
       "scripts/check-platform-release-recipe.mjs",
       "scripts/check-product-completeness.mjs",
       "scripts/check-release-guide.mjs",
+      "scripts/check-release-plan.mjs",
+      "scripts/check-task-governance.mjs",
       "scripts/check-workflow-guidance.mjs",
+      "scripts/lib/task-entry-binding.mjs",
       "scripts/resolve-apply-plan.mjs",
+      "scripts/resolve-controlled-native-adoption-review.mjs",
+      "scripts/resolve-execution-assurance.mjs",
       "scripts/resolve-first-slice.mjs",
       "scripts/resolve-guided-closure.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-platform-release-recipe.mjs",
       "scripts/resolve-product-completeness.mjs",
       "scripts/resolve-release-guide.mjs",
+      "scripts/resolve-release-plan.mjs",
+      "scripts/resolve-task-governance.mjs",
       "scripts/resolve-workflow-guidance.mjs",
+      "task-governance-reports/.gitkeep",
+      "templates/controlled-native-adoption-review-report.md",
       "templates/conversation-ask-card.md",
+      "templates/execution-assurance-report.md",
       "templates/guided-closure-card.md",
       "templates/low-risk-controlled-apply-candidate.md",
       "templates/ordinary-user-first-slice-card.md",
@@ -8505,6 +8699,8 @@
       "templates/real-mvp-example-record.md",
       "templates/release-approval-record.md",
       "templates/release-guide-card.md",
+      "templates/release-plan.md",
+      "templates/task-governance-report.md",
       "templates/unified-apply-plan.md",
       "templates/workflow-guidance-card.md",
       "test-fixtures/bad/bad-apply-plan-authorizes-apply/apply-plans/001-bad.md",
@@ -8512,12 +8708,51 @@
       "test-fixtures/bad/bad-change-impact-closure-not-started/change-impact-coverage-reports/001-bad.md",
       "test-fixtures/bad/bad-change-impact-missing-structured-evidence/change-impact-coverage-reports/001-bad.md",
       "test-fixtures/bad/bad-change-impact-placeholder-evidence/change-impact-coverage-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-dirty-plan-only/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-maturity-depth-drift/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-messy-selected-plan/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-unknown-owner-repair/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-adoption-without-source/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-controlled-patch-no-debt/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-declarative-precise-evidence/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/evidence/copy-smoke.txt",
+      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/tasks/001-copy.md",
+      "test-fixtures/bad/bad-execution-assurance-missing-actual-diff/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-missing-review/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-no-completion-contract/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-patch-smell-verified/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-planned-path-mismatch/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-release-overclaim/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-safe-patch-broad-diff/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-source-digest-mismatch/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-source-digest-mismatch/source-reports/001-source.md",
+      "test-fixtures/bad/bad-execution-assurance-source-task-mismatch/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-stale-evidence/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unexpected-ci-hook/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unresolved-evidence/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-unresolved-plan-ref/evidence/copy-smoke.txt",
+      "test-fixtures/bad/bad-execution-assurance-unresolved-plan-ref/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-guided-closure-overclaim/guided-closure-cards/001-bad.md",
       "test-fixtures/bad/bad-guided-closure-technical-burden/guided-closure-cards/001-bad.md",
       "test-fixtures/bad/bad-release-guide-codex-production/release-guides/001-bad.md",
       "test-fixtures/bad/bad-release-guide-remote-local/release-guides/001-bad.md",
       "test-fixtures/bad/bad-release-guide-unstructured-approval/release-guides/001-bad.md",
       "test-fixtures/bad/bad-release-guide-weak-evidence/release-guides/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-codex-owner/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-extra-dangerous-field/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-provider-exec/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-replaces-lower-level-system/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-secret-request/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-skips-native-migration/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
+      "test-fixtures/bad/bad-release-plan-trace-controls-execution/release-plans/001-bad.md",
       "test-fixtures/bad/bad-release-recipe-codex-production/release-recipes/001-bad.md",
       "test-fixtures/bad/bad-release-recipe-draft-strict/release-recipes/001-bad.md",
       "test-fixtures/bad/bad-release-recipe-missing-monitoring/release-recipes/001-bad.md",
@@ -8525,179 +8760,10 @@
       "test-fixtures/bad/bad-release-recipe-missing-rollback/release-recipes/001-bad.md",
       "test-fixtures/bad/bad-release-recipe-provider-certainty/release-recipes/001-bad.md",
       "test-fixtures/bad/bad-release-recipe-secret-request/release-recipes/001-bad.md",
-      "core/release-core-model.md",
-      "docs/release-core-model.md",
-      "templates/release-plan.md",
-      "schemas/artifacts/release-plan.schema.json",
-      "checklists/release-plan-review.md",
-      "prompts/release-plan-agent.md",
-      "release-plans/.gitkeep",
-      "scripts/resolve-release-plan.mjs",
-      "scripts/check-release-plan.mjs",
-      "docs/plans/release-core-model-consolidation-1.67-plan.md",
-      "examples/1.67-release-core-model/README.md",
-      "examples/1.67-release-core-model/web-preview/README.md",
-      "examples/1.67-release-core-model/web-preview/release-plans/001-web-preview.md",
-      "examples/1.67-release-core-model/mini-program-review/README.md",
-      "examples/1.67-release-core-model/mini-program-review/release-plans/001-mini-program-review.md",
-      "examples/1.67-release-core-model/backend-api-handoff/README.md",
-      "examples/1.67-release-core-model/backend-api-handoff/release-plans/001-backend-api-handoff.md",
-      "examples/1.67-release-core-model/governed-existing-project-readonly/README.md",
-      "examples/1.67-release-core-model/governed-existing-project-readonly/AGENTS.md",
-      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENGINEERING_BASELINE.md",
-      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_ENVIRONMENT_BASELINE.md",
-      "examples/1.67-release-core-model/governed-existing-project-readonly/docs/WEB_RELEASE_ROLLBACK_BASELINE.md",
-      "examples/1.67-release-core-model/governed-existing-project-readonly/release-plans/001-governed-existing-project.md",
-      "test-fixtures/bad/bad-release-plan-approves-production/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-codex-owner/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-secret-request/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-provider-exec/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-skips-native-migration/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-missing-trace/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-replaces-lower-level-system/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-asset-migration-maximize-governed-project/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-trace-controls-execution/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-state-drives-execution/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-operating-mode-writes-files/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-ignores-existing-rules/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-extra-dangerous-field/release-plans/001-bad.md",
-      "test-fixtures/bad/bad-release-plan-chinese-forbidden-claim/release-plans/001-bad.md",
-      "releases/1.67.0/release-record.md",
-      "releases/1.67.0/known-limitations.md",
-      "releases/1.67.0/self-check-report.md",
-      "releases/1.67.1/release-record.md",
-      "releases/1.67.1/known-limitations.md",
-      "releases/1.67.1/self-check-report.md",
-      "releases/1.67.2/release-record.md",
-      "releases/1.67.2/known-limitations.md",
-      "releases/1.67.2/self-check-report.md",
-      "releases/1.68.0/release-record.md",
-      "releases/1.68.0/known-limitations.md",
-      "releases/1.68.0/self-check-report.md",
-      "releases/1.68.2/release-record.md",
-      "releases/1.68.2/known-limitations.md",
-      "releases/1.68.2/self-check-report.md",
-      "releases/1.68.1/release-record.md",
-      "releases/1.68.1/known-limitations.md",
-      "releases/1.68.1/self-check-report.md",
-      "docs/plans/execution-assurance-log-markdown-consistency-1.74.3-plan.md",
-      "docs/plans/execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md",
-      "docs/plans/execution-assurance-empty-report-hardening-1.72.1-plan.md",
-      "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
-      "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
-      "docs/plans/execution-assurance-chain-1.72-plan.md",
-      "core/execution-assurance-chain.md",
-      "docs/execution-assurance-chain.md",
-      "templates/execution-assurance-report.md",
-      "schemas/artifacts/execution-assurance.schema.json",
-      "checklists/execution-assurance-review.md",
-      "prompts/execution-assurance-agent.md",
-      "execution-assurance-reports/.gitkeep",
-      "scripts/resolve-execution-assurance.mjs",
-      "scripts/check-execution-assurance.mjs",
-      "examples/1.72-execution-assurance-chain/README.md",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/tasks/001-contract-validation.md",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/change-impact-coverage-reports/001-contract.md",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/review-loop-reports/001-contract.md",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/frontend-validation.txt",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/api-validation.txt",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/backend-rule.txt",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/evidence/tests.txt",
-      "examples/1.72-execution-assurance-chain/feature-contract-validation/execution-assurance-reports/001-contract-validation.md",
-      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/adoption-assurance-reports/001-adoption.md",
-      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/governance-convergence-reports/001-convergence.md",
-      "examples/1.72-execution-assurance-chain/old-project-intentos-adoption/execution-assurance-reports/001-adoption.md",
-      "examples/1.72-execution-assurance-chain/safe-copy-patch/evidence/copy-smoke.txt",
-      "examples/1.72-execution-assurance-chain/safe-copy-patch/execution-assurance-reports/001-copy.md",
-      "examples/1.72-execution-assurance-chain/safe-copy-patch/tasks/001-copy.md",
-      "examples/1.72-execution-assurance-chain/patch-smell-backend-only/execution-assurance-reports/001-backend-only.md",
-      "test-fixtures/bad/bad-execution-assurance-adoption-without-source/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-controlled-patch-no-debt/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-missing-actual-diff/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-missing-review/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-no-completion-contract/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-patch-smell-verified/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-release-overclaim/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-safe-patch-broad-diff/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-stale-evidence/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-unexpected-ci-hook/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-unresolved-evidence/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-source-task-mismatch/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-planned-path-mismatch/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-source-digest-mismatch/source-reports/001-source.md",
-      "test-fixtures/bad/bad-execution-assurance-source-digest-mismatch/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-declarative-precise-evidence/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-unresolved-plan-ref/evidence/copy-smoke.txt",
-      "test-fixtures/bad/bad-execution-assurance-unresolved-plan-ref/execution-assurance-reports/001-bad.md",
-      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/evidence/copy-smoke.txt",
-      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/tasks/001-copy.md",
-      "test-fixtures/bad/bad-execution-assurance-markdown-json-plan-mismatch/execution-assurance-reports/001-bad.md",
-      "releases/1.72.1/release-record.md",
-      "releases/1.72.0/release-record.md",
-      "releases/1.72.1/known-limitations.md",
-      "releases/1.72.0/known-limitations.md",
-      "releases/1.72.1/self-check-report.md",
-      "releases/1.72.0/self-check-report.md",
-      "releases/1.74.0/release-record.md",
-      "releases/1.74.0/known-limitations.md",
-      "releases/1.74.0/self-check-report.md",
-      "releases/1.74.1/release-record.md",
-      "releases/1.74.1/known-limitations.md",
-      "releases/1.74.1/self-check-report.md",
-      "releases/1.74.2/release-record.md",
-      "releases/1.74.2/known-limitations.md",
-      "releases/1.74.2/self-check-report.md",
-      "releases/1.74.3/release-record.md",
-      "releases/1.74.3/known-limitations.md",
-      "releases/1.74.3/self-check-report.md",
-      "core/controlled-native-adoption-autopilot-review.md",
-      "docs/controlled-native-adoption-autopilot-review.md",
-      "docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md",
-      "templates/controlled-native-adoption-review-report.md",
-      "schemas/artifacts/controlled-native-adoption-review.schema.json",
-      "checklists/controlled-native-adoption-review.md",
-      "prompts/controlled-native-adoption-review-agent.md",
-      "native-adoption-review-reports/.gitkeep",
-      "scripts/resolve-controlled-native-adoption-review.mjs",
-      "scripts/check-controlled-native-adoption-review.mjs",
-      "examples/1.82-controlled-native-adoption-review/README.md",
-      "examples/1.82-controlled-native-adoption-review/strong-governed-stay-partial/native-adoption-review-reports/001-review.md",
-      "examples/1.82-controlled-native-adoption-review/weak-governance-repair/native-adoption-review-reports/001-review.md",
-      "examples/1.82-controlled-native-adoption-review/messy-production-repair-only/native-adoption-review-reports/001-review.md",
-      "examples/1.82-controlled-native-adoption-review/light-plan-only/native-adoption-review-reports/001-review.md",
-      "test-fixtures/bad/bad-controlled-native-adoption-review-dirty-plan-only/native-adoption-review-reports/001-bad.md",
-      "test-fixtures/bad/bad-controlled-native-adoption-review-unknown-owner-repair/native-adoption-review-reports/001-bad.md",
-      "test-fixtures/bad/bad-controlled-native-adoption-review-messy-selected-plan/native-adoption-review-reports/001-bad.md",
-      "test-fixtures/bad/bad-controlled-native-adoption-review-maturity-depth-drift/native-adoption-review-reports/001-bad.md",
-      "releases/1.82.0/release-record.md",
-      "releases/1.82.0/known-limitations.md",
-      "releases/1.82.0/self-check-report.md",
-      "releases/1.82.1/release-record.md",
-      "releases/1.82.1/known-limitations.md",
-      "releases/1.82.1/self-check-report.md",
-      "core/behavior-complete-existing-project-adoption.md",
-      "docs/behavior-complete-existing-project-adoption.md",
-      "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
-      "templates/task-governance-report.md",
-      "schemas/artifacts/task-governance.schema.json",
-      "checklists/task-governance-review.md",
-      "prompts/task-governance-agent.md",
-      "task-governance-reports/.gitkeep",
-      "scripts/resolve-task-governance.mjs",
-      "scripts/check-task-governance.mjs",
-      "examples/1.83-task-governance/README.md",
-      "examples/1.83-task-governance/db-api-ui-change/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/last-step-settlement/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/low-copy-change/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/medium-frontend-interaction/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/medium-list-filter/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/permission-sensitive-workflow/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/possible-high-downgraded/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/project-native-qa-checklist-mapping/docs/qa-permission-approval-checklist.md",
-      "examples/1.83-task-governance/project-native-qa-checklist-mapping/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/project-native-rfc-mapping/docs/rfc-approval-review-workflow.md",
-      "examples/1.83-task-governance/project-native-rfc-mapping/task-governance-reports/001-task-governance.md",
-      "examples/1.83-task-governance/review-required-step-policy/task-governance-reports/001-task-governance.md",
+      "test-fixtures/bad/bad-task-consumer-missing-task-entry/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-task-consumer-possible-high-done/closure-decisions/001-bad.md",
+      "test-fixtures/bad/bad-task-consumer-possible-high-done/task-governance-reports/001-task-governance.md",
+      "test-fixtures/bad/bad-task-consumer-possible-high-done/work-queue-takeover-reports/001-current.md",
       "test-fixtures/bad/bad-task-governance-authorizes-implementation/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-closeout-without-evidence/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-ignores-1.82-blocker/task-governance-reports/001-bad.md",
@@ -8711,10 +8777,7 @@
       "test-fixtures/bad/bad-task-governance-no-verification-plan/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-possible-high-no-clarification/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-stronger-rule-not-preserved/task-governance-reports/001-bad.md",
-      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md",
-      "releases/1.83.0/release-record.md",
-      "releases/1.83.0/known-limitations.md",
-      "releases/1.83.0/self-check-report.md"
+      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md"
     ]
   }
 }

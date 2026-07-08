@@ -7,6 +7,7 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -16,6 +17,9 @@ const knownFlags = new Set([
   "require-review",
   "require-actual-diff",
   "require-precise-evidence",
+  "require-task-governance",
+  "require-work-queue",
+  "strict-task-consumer",
   "allow-empty",
   "report",
   "mode",
@@ -28,6 +32,9 @@ const requireEvidenceRefs = Boolean(args["require-evidence-refs"]);
 const requireReview = Boolean(args["require-review"]);
 const requireActualDiff = Boolean(args["require-actual-diff"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
+const requireTaskGovernance = Boolean(args["require-task-governance"]);
+const requireWorkQueue = Boolean(args["require-work-queue"]);
+const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const allowEmptyReports = Boolean(args["allow-empty"]);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schemaVersion = "1.74.0";
@@ -173,6 +180,8 @@ function checkCoreContent() {
     "Independent Review Binding",
     "Source systems remain authoritative",
     "This report approves release or production: No",
+    "Task Entry Binding",
+    "task_entry_binding",
   ]) {
     if (combined.includes(marker)) pass(`execution assurance docs include ${marker}`);
     else fail(`execution assurance docs missing ${marker}`);
@@ -310,6 +319,18 @@ function checkStructuredEvidence(content, label) {
   checkReview(parsed, label);
   checkPatchAssessment(parsed, label);
   checkSourceSystems(parsed, label);
+  checkTaskEntryBinding({
+    content: "",
+    evidence: parsed,
+    label,
+    projectRoot,
+    consumer: "execution_assurance",
+    requireTaskGovernance,
+    requireWorkQueue,
+    strictTaskConsumer,
+    pass,
+    fail,
+  });
   checkBoundary(parsed, label);
   return parsed;
 }

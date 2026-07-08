@@ -73,3 +73,15 @@ node scripts/check-change-impact-coverage.mjs .
 node scripts/check-execution-closure.mjs .
 node scripts/check-guided-closure.mjs .
 ```
+
+## Task Governance Consumer Integration
+
+From 1.85.0, `check-closure-decision` can run in strict task-consumer mode:
+
+```bash
+node scripts/check-closure-decision.mjs . --strict-task-consumer
+```
+
+In that mode, a Closure Decision cannot return `DONE` while Task Governance says
+the current Work Queue item is blocked, unresolved, or missing required
+verification.

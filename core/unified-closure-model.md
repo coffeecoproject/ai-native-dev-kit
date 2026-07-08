@@ -42,6 +42,9 @@ Current Closure Decision records should include:
 
 The trace explains the decision. It does not create another final closure source.
 
+From 1.85.0, strict task-consumer mode prevents `DONE` when Task Governance
+still blocks the current Work Queue item or required verification.
+
 ## Input Roles
 
 | Input | Role |

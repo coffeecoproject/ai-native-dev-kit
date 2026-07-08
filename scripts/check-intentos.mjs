@@ -6488,6 +6488,104 @@ function reportNameForTakeoverExample(example) {
   }[example] || example;
 }
 
+function checkTaskGovernanceConsumerIntegrationProtocol() {
+  const required = [
+    "docs/plans/task-governance-consumer-integration-1.85-plan.md",
+    "core/task-governance-consumer-integration.md",
+    "docs/task-governance-consumer-integration.md",
+    "scripts/lib/task-entry-binding.mjs",
+    "examples/1.85-task-governance-consumer-integration/README.md",
+    "examples/1.85-task-governance-consumer-integration/high-workflow-rule/task-governance-reports/001-task-governance.md",
+    "examples/1.85-task-governance-consumer-integration/high-workflow-rule/work-queue-takeover-reports/001-current.md",
+    "examples/1.85-task-governance-consumer-integration/high-workflow-rule/execution-assurance-reports/001-high-workflow-rule.md",
+    "examples/1.85-task-governance-consumer-integration/possible-high-blocked/task-governance-reports/001-task-governance.md",
+    "examples/1.85-task-governance-consumer-integration/possible-high-blocked/work-queue-takeover-reports/001-current.md",
+    "examples/1.85-task-governance-consumer-integration/possible-high-blocked/completion-evidence-reports/001-possible-high-blocked.md",
+    "examples/1.85-task-governance-consumer-integration/possible-high-blocked/closure-decisions/001-possible-high-blocked.md",
+    "examples/1.85-task-governance-consumer-integration/possible-high-blocked/delivery-status-cards/001-possible-high-blocked.md",
+    "test-fixtures/bad/bad-task-consumer-missing-task-entry/closure-decisions/001-bad.md",
+    "test-fixtures/bad/bad-task-consumer-possible-high-done/closure-decisions/001-bad.md",
+    "releases/1.85.0/release-record.md",
+    "releases/1.85.0/known-limitations.md",
+    "releases/1.85.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.85 task governance consumer asset exists ${file}`);
+    else fail(`1.85 task governance consumer asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/task-governance-consumer-integration-1.85-plan.md"),
+    read("core/task-governance-consumer-integration.md"),
+    read("docs/task-governance-consumer-integration.md"),
+    read("docs/execution-assurance-chain.md"),
+    read("docs/completion-evidence-gate.md"),
+    read("docs/unified-closure-model.md"),
+    read("docs/user-delivery-console.md"),
+    read("scripts/lib/task-entry-binding.mjs"),
+    read("scripts/check-execution-assurance.mjs"),
+    read("scripts/check-completion-evidence.mjs"),
+    read("scripts/check-closure-decision.mjs"),
+    read("scripts/check-user-delivery-console.mjs"),
+    read("releases/1.85.0/release-record.md"),
+  ].join("\n");
+  for (const marker of [
+    "Task Governance Consumer Integration",
+    "task_entry_binding",
+    "Task Entry Binding",
+    "--require-task-governance",
+    "--require-work-queue",
+    "--strict-task-consumer",
+    "work_queue_item_ref",
+    "work_queue_item_digest",
+    "task_governance_ref",
+    "task_governance_digest",
+    "POSSIBLE_HIGH",
+    "plain user blocker",
+    "does not authorize implementation",
+    "does not approve release or production",
+  ]) {
+    if (combined.includes(marker)) pass(`1.85 task governance consumer includes ${marker}`);
+    else fail(`1.85 task governance consumer missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/lib/task-entry-binding.mjs",
+    "node scripts/check-execution-assurance.mjs examples/1.85-task-governance-consumer-integration/high-workflow-rule --require-structured-evidence --require-task-governance --require-work-queue --strict-task-consumer",
+    "node scripts/check-completion-evidence.mjs examples/1.85-task-governance-consumer-integration/possible-high-blocked --report completion-evidence-reports/001-possible-high-blocked.md --require-structured-evidence --require-task-governance --require-work-queue --strict-task-consumer",
+    "node scripts/check-closure-decision.mjs examples/1.85-task-governance-consumer-integration/possible-high-blocked --require-task-governance --require-work-queue --strict-task-consumer",
+    "node scripts/check-user-delivery-console.mjs examples/1.85-task-governance-consumer-integration/possible-high-blocked --require-task-governance --require-work-queue --strict-task-consumer",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.85 package verify surface includes ${marker}`);
+    else fail(`1.85 package verify surface missing ${marker}`);
+  }
+
+  for (const [name, args] of [
+    ["execution assurance high task consumer", ["scripts/check-execution-assurance.mjs", "examples/1.85-task-governance-consumer-integration/high-workflow-rule", "--require-structured-evidence", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
+    ["completion evidence possible-high blocked consumer", ["scripts/check-completion-evidence.mjs", "examples/1.85-task-governance-consumer-integration/possible-high-blocked", "--report", "completion-evidence-reports/001-possible-high-blocked.md", "--require-structured-evidence", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
+    ["closure possible-high blocked consumer", ["scripts/check-closure-decision.mjs", "examples/1.85-task-governance-consumer-integration/possible-high-blocked", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
+    ["user delivery possible-high blocked consumer", ["scripts/check-user-delivery-console.mjs", "examples/1.85-task-governance-consumer-integration/possible-high-blocked", "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]],
+  ]) {
+    const result = runNode(args);
+    if (result.status === 0) pass(`1.85 ${name} passes strict checker`);
+    else fail(`1.85 ${name} failed: ${result.stderr || result.stdout}`);
+  }
+
+  for (const [name, target] of [
+    ["missing task entry", "test-fixtures/bad/bad-task-consumer-missing-task-entry"],
+    ["possible-high done claim", "test-fixtures/bad/bad-task-consumer-possible-high-done"],
+  ]) {
+    const result = runNode(["scripts/check-closure-decision.mjs", target, "--require-task-governance", "--require-work-queue", "--strict-task-consumer"]);
+    if (result.status !== 0) pass(`1.85 task consumer rejects ${name}`);
+    else fail(`1.85 task consumer must reject ${name}`);
+  }
+}
+
 function checkExecutionAssuranceChainProtocol() {
   const badFixtures = [
     "bad-execution-assurance-no-completion-contract",
@@ -16137,6 +16235,7 @@ checkExistingProjectAdoptionAutopilotProtocol();
 checkControlledNativeAdoptionReviewProtocol();
 checkTaskGovernanceProtocol();
 checkWorkQueueTakeoverProtocol();
+checkTaskGovernanceConsumerIntegrationProtocol();
 checkExecutionAssuranceChainProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
