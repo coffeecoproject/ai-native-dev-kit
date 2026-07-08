@@ -55,6 +55,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "task-governance": {
+    description: "Classify task impact and route required governance without authorizing implementation.",
+    script: "scripts/resolve-task-governance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "task-governance-check": {
+    description: "Check recorded Task Governance reports for tier rules, source mapping, and no-authorization boundaries.",
+    script: "scripts/check-task-governance.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "impact-coverage": {
     description: "Map affected surfaces for a change so Codex does not complete only one layer.",
     script: "scripts/resolve-change-impact-coverage.mjs",
@@ -780,7 +792,7 @@ function printHelp() {
   printCommandGroup(["start", "adopt", "adopt-review", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
-  printCommandGroup(["ask", "guide", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "release-evidence", "apply-plan"]);
+  printCommandGroup(["ask", "guide", "task-governance", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "release-evidence", "apply-plan"]);
   console.log("");
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
@@ -791,6 +803,7 @@ function printHelp() {
     "doctor",
     "ask",
     "guide",
+    "task-governance",
     "status",
     "finish",
     "completion-evidence",
@@ -808,6 +821,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs next ../my-project");
   console.log("  node scripts/cli.mjs doctor ../my-project");
   console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
+  console.log("  node scripts/cli.mjs task-governance ../my-project --intent '新增审批状态规则'");
   console.log("  node scripts/cli.mjs status ../my-project --intent '我想做一个预约 App'");
   console.log("  node scripts/cli.mjs completion-evidence ../my-project --intent '完成预约时间规则' --out completion-evidence-reports/001-service-time.md");
   console.log("  node scripts/cli.mjs completion-evidence-check ../my-project --require-structured-evidence --require-ready");

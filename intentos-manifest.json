@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.82.1",
+  "intentOSVersion": "1.83.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.82.1"
+    "phase": "1.83.0"
   },
   "groups": {
     "sourceRequired": [
@@ -2618,7 +2618,46 @@
       "releases/1.82.0/self-check-report.md",
       "releases/1.82.1/release-record.md",
       "releases/1.82.1/known-limitations.md",
-      "releases/1.82.1/self-check-report.md"
+      "releases/1.82.1/self-check-report.md",
+      "core/behavior-complete-existing-project-adoption.md",
+      "docs/behavior-complete-existing-project-adoption.md",
+      "templates/task-governance-report.md",
+      "schemas/artifacts/task-governance.schema.json",
+      "checklists/task-governance-review.md",
+      "prompts/task-governance-agent.md",
+      "task-governance-reports/.gitkeep",
+      "scripts/resolve-task-governance.mjs",
+      "scripts/check-task-governance.mjs",
+      "examples/1.83-task-governance/README.md",
+      "examples/1.83-task-governance/db-api-ui-change/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/last-step-settlement/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/low-copy-change/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/medium-frontend-interaction/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/medium-list-filter/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/permission-sensitive-workflow/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/possible-high-downgraded/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/project-native-qa-checklist-mapping/docs/qa-permission-approval-checklist.md",
+      "examples/1.83-task-governance/project-native-qa-checklist-mapping/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/project-native-rfc-mapping/docs/rfc-approval-review-workflow.md",
+      "examples/1.83-task-governance/project-native-rfc-mapping/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/review-required-step-policy/task-governance-reports/001-task-governance.md",
+      "test-fixtures/bad/bad-task-governance-authorizes-implementation/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-closeout-without-evidence/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-ignores-1.82-blocker/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-low-hidden-api-change/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-low-no-reason/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-medium-hidden-permission-impact/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-medium-no-short-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-business-rule-closure/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-change-impact-coverage/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-execution-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-verification-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-possible-high-no-clarification/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-stronger-rule-not-preserved/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md",
+      "releases/1.83.0/release-record.md",
+      "releases/1.83.0/known-limitations.md",
+      "releases/1.83.0/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -3197,7 +3236,16 @@
       "workflow-adoption-maps",
       "workflow-guidance-cards",
       "workflow-improvements",
-      "workflow-retros"
+      "workflow-retros",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
+      ".intentos/templates/task-governance-report.md",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/checklists/task-governance-review.md",
+      ".intentos/prompts/task-governance-agent.md",
+      "scripts/resolve-task-governance.mjs",
+      "scripts/check-task-governance.mjs",
+      "task-governance-reports"
     ],
     "targetFull": [
       ".github/pull_request_template.md",
@@ -3878,7 +3926,16 @@
       ".intentos/prompts/controlled-native-adoption-review-agent.md",
       "scripts/resolve-controlled-native-adoption-review.mjs",
       "scripts/check-controlled-native-adoption-review.mjs",
-      "native-adoption-review-reports"
+      "native-adoption-review-reports",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
+      ".intentos/templates/task-governance-report.md",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/checklists/task-governance-review.md",
+      ".intentos/prompts/task-governance-agent.md",
+      "scripts/resolve-task-governance.mjs",
+      "scripts/check-task-governance.mjs",
+      "task-governance-reports"
     ],
     "intentOSCore": [
       ".intentos/checklists/platform-release-recipe-review.md",
@@ -4021,7 +4078,13 @@
       "templates/existing-rule-reconciliation-report.md",
       "templates/governance-convergence-report.md",
       "templates/native-migration-plan.md",
-      ".intentos/core/controlled-native-adoption-autopilot-review.md"
+      ".intentos/core/controlled-native-adoption-autopilot-review.md",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
+      ".intentos/templates/task-governance-report.md",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/checklists/task-governance-review.md",
+      ".intentos/prompts/task-governance-agent.md"
     ],
     "templates": [
       ".intentos/templates/business-rule-closure-card.md",
@@ -4145,7 +4208,8 @@
       "templates/workflow-retro.md",
       "templates/workflow-version.json",
       ".intentos/templates/controlled-native-adoption-review-report.md",
-      "templates/controlled-native-adoption-review-report.md"
+      "templates/controlled-native-adoption-review-report.md",
+      "templates/task-governance-report.md"
     ],
     "prompts": [
       ".intentos/prompts/business-rule-closure-agent.md",
@@ -4220,7 +4284,8 @@
       "prompts/workflow-adapter-agent.md",
       "prompts/workflow-concierge-agent.md",
       ".intentos/prompts/controlled-native-adoption-review-agent.md",
-      "prompts/controlled-native-adoption-review-agent.md"
+      "prompts/controlled-native-adoption-review-agent.md",
+      "prompts/task-governance-agent.md"
     ],
     "checklists": [
       ".intentos/checklists/business-rule-closure-review.md",
@@ -4307,7 +4372,8 @@
       "checklists/workflow-adoption-map-review.md",
       "checklists/workflow-guidance-review.md",
       ".intentos/checklists/controlled-native-adoption-review.md",
-      "checklists/controlled-native-adoption-review.md"
+      "checklists/controlled-native-adoption-review.md",
+      "checklists/task-governance-review.md"
     ],
     "profiles": [
       "profiles/android-app/baseline.json",
@@ -4420,7 +4486,8 @@
       "workflow-guidance-cards",
       "workflow-improvements",
       "workflow-retros",
-      "native-adoption-review-reports"
+      "native-adoption-review-reports",
+      "task-governance-reports"
     ],
     "scripts": [
       "scripts/baseline-project.mjs",
@@ -4561,7 +4628,9 @@
       "scripts/workflow-daily-summary.mjs",
       "scripts/workflow-next.mjs",
       "scripts/resolve-controlled-native-adoption-review.mjs",
-      "scripts/check-controlled-native-adoption-review.mjs"
+      "scripts/check-controlled-native-adoption-review.mjs",
+      "scripts/resolve-task-governance.mjs",
+      "scripts/check-task-governance.mjs"
     ],
     "platformAdapters": [
       "platforms/claude/instructions.md",
@@ -4930,7 +4999,8 @@
       "examples/web-internal-admin-first-slice/request-card.md",
       "examples/web-internal-admin-first-slice/spec.md",
       "examples/web-internal-admin-first-slice/task-card.md",
-      "examples/1.82-controlled-native-adoption-review"
+      "examples/1.82-controlled-native-adoption-review",
+      "examples/1.83-task-governance"
     ],
     "fixtures": [
       "test-fixtures/README.md",
@@ -5365,7 +5435,21 @@
       "test-fixtures/migrations/README.md",
       "test-fixtures/migrations/artifact-frontmatter-legacy/requests/001-legacy.md",
       "test-fixtures/migrations/workflow-version-mismatch/.intentos/version.json",
-      "test-fixtures/output-quality/README.md"
+      "test-fixtures/output-quality/README.md",
+      "test-fixtures/bad/bad-task-governance-authorizes-implementation/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-closeout-without-evidence/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-ignores-1.82-blocker/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-low-hidden-api-change/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-low-no-reason/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-medium-hidden-permission-impact/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-medium-no-short-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-business-rule-closure/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-change-impact-coverage/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-execution-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-verification-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-possible-high-no-clarification/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-stronger-rule-not-preserved/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md"
     ],
     "workflowVersionAssets": [
       ".github/pull_request_template.md",
@@ -5925,7 +6009,16 @@
       ".intentos/prompts/controlled-native-adoption-review-agent.md",
       "scripts/resolve-controlled-native-adoption-review.mjs",
       "scripts/check-controlled-native-adoption-review.mjs",
-      "native-adoption-review-reports"
+      "native-adoption-review-reports",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
+      ".intentos/templates/task-governance-report.md",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/checklists/task-governance-review.md",
+      ".intentos/prompts/task-governance-agent.md",
+      "scripts/resolve-task-governance.mjs",
+      "scripts/check-task-governance.mjs",
+      "task-governance-reports"
     ],
     "workflowReadiness": [
       ".github/workflows/ai-workflow-checks.yml",
@@ -6432,7 +6525,16 @@
       "verification-plans",
       "work-queue",
       "workflow-adoption-maps",
-      "workflow-guidance-cards"
+      "workflow-guidance-cards",
+      ".intentos/core/behavior-complete-existing-project-adoption.md",
+      ".intentos/docs/behavior-complete-existing-project-adoption.md",
+      ".intentos/templates/task-governance-report.md",
+      ".intentos/schemas/artifacts/task-governance.schema.json",
+      ".intentos/checklists/task-governance-review.md",
+      ".intentos/prompts/task-governance-agent.md",
+      "scripts/resolve-task-governance.mjs",
+      "scripts/check-task-governance.mjs",
+      "task-governance-reports"
     ]
   },
   "copyRules": {
@@ -6656,6 +6758,10 @@
       {
         "source": "native-adoption-review-reports",
         "target": "native-adoption-review-reports"
+      },
+      {
+        "source": "task-governance-reports",
+        "target": "task-governance-reports"
       }
     ],
     "files": [
@@ -8202,6 +8308,18 @@
       {
         "source": "docs/controlled-native-adoption-autopilot-review.md",
         "target": ".intentos/docs/controlled-native-adoption-autopilot-review.md"
+      },
+      {
+        "source": "docs/behavior-complete-existing-project-adoption.md",
+        "target": ".intentos/docs/behavior-complete-existing-project-adoption.md"
+      },
+      {
+        "source": "scripts/resolve-task-governance.mjs",
+        "target": "scripts/resolve-task-governance.mjs"
+      },
+      {
+        "source": "scripts/check-task-governance.mjs",
+        "target": "scripts/check-task-governance.mjs"
       }
     ]
   },
@@ -8499,7 +8617,47 @@
       "releases/1.82.0/self-check-report.md",
       "releases/1.82.1/release-record.md",
       "releases/1.82.1/known-limitations.md",
-      "releases/1.82.1/self-check-report.md"
+      "releases/1.82.1/self-check-report.md",
+      "core/behavior-complete-existing-project-adoption.md",
+      "docs/behavior-complete-existing-project-adoption.md",
+      "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
+      "templates/task-governance-report.md",
+      "schemas/artifacts/task-governance.schema.json",
+      "checklists/task-governance-review.md",
+      "prompts/task-governance-agent.md",
+      "task-governance-reports/.gitkeep",
+      "scripts/resolve-task-governance.mjs",
+      "scripts/check-task-governance.mjs",
+      "examples/1.83-task-governance/README.md",
+      "examples/1.83-task-governance/db-api-ui-change/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/last-step-settlement/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/low-copy-change/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/medium-frontend-interaction/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/medium-list-filter/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/permission-sensitive-workflow/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/possible-high-downgraded/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/project-native-qa-checklist-mapping/docs/qa-permission-approval-checklist.md",
+      "examples/1.83-task-governance/project-native-qa-checklist-mapping/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/project-native-rfc-mapping/docs/rfc-approval-review-workflow.md",
+      "examples/1.83-task-governance/project-native-rfc-mapping/task-governance-reports/001-task-governance.md",
+      "examples/1.83-task-governance/review-required-step-policy/task-governance-reports/001-task-governance.md",
+      "test-fixtures/bad/bad-task-governance-authorizes-implementation/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-closeout-without-evidence/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-ignores-1.82-blocker/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-low-hidden-api-change/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-low-no-reason/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-medium-hidden-permission-impact/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-medium-no-short-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-business-rule-closure/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-change-impact-coverage/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-execution-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-no-verification-plan/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-possible-high-no-clarification/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-stronger-rule-not-preserved/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md",
+      "releases/1.83.0/release-record.md",
+      "releases/1.83.0/known-limitations.md",
+      "releases/1.83.0/self-check-report.md"
     ]
   }
 }

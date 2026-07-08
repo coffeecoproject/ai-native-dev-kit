@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.82.1`
+`1.83.0`
 
 ## Project Version File
 
@@ -19,6 +19,10 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.83.0` adds Task Governance for behavior-complete existing-project
+  adoption: Codex can classify task impact as LOW, MEDIUM, POSSIBLE_HIGH, or
+  HIGH, map required governance, and route work without authorizing
+  implementation or claiming completion.
 - `1.82.1` hardens Controlled Native Adoption Review source blocker handling,
   maturity/recommendation matrix validation, low-risk calibration, and source
   trace refs/digests while remaining review-only.

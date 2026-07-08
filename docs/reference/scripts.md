@@ -57,6 +57,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs adopt-check <project>` | Check recorded Existing Project Safe Adoption Autopilot reports | No |
 | `node scripts/cli.mjs adopt-review <existing-project> --intent "<goal>"` | Review existing-project governance maturity and recommend the safest adoption depth without applying files | No |
 | `node scripts/cli.mjs adopt-review-check <project>` | Check recorded Controlled Native Adoption Review reports | No |
+| `node scripts/cli.mjs task-governance <project> --intent "<task>"` | Classify task impact as LOW, MEDIUM, POSSIBLE_HIGH, or HIGH and route required governance before implementation review | No by default; writes only the requested report file with `--out` |
+| `node scripts/cli.mjs task-governance-check <project>` | Check recorded Task Governance reports for impact-tier rules, project-native evidence mapping, no-authority boundaries, and user-burden control | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
 | `node scripts/cli.mjs baseline-decision-check <project>` | Check recorded Baseline Decision Cards | No |
@@ -192,6 +194,23 @@ For strict completion chains, pass the same canonical task intent across Busines
 `scripts/resolve-user-delivery-console.mjs` is the 1.79 ordinary-user status entry. It reads existing IntentOS evidence and prints one User Delivery Console Card with human summary, current state, task completion, product readiness, launch readiness, missing items, safe next action, limited human decisions, technical trace, and no-authority boundaries. Task-done status depends on strict Completion Evidence checks that match the current `--intent`; intermediate source signals also match the current intent before user-facing fields show Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence, or Execution Assurance as recorded. Verification planning is separated from actual test/check evidence, and `--verification` free text is shown only as a user note rather than recorded Test Evidence. It is read-only by default; `--out <relative-report-path>` writes only the requested status card for later checking.
 
 `scripts/check-user-delivery-console.mjs` checks recorded User Delivery Console Cards. It rejects internal evidence jargon in the user-facing sections, merged verification-plan/test-evidence fields, excessive human decisions, target-file write claims, implementation/commit/push/release/production approval, CI/hook changes, source-system replacement, real-user-stability claims, and missing technical trace.
+
+`scripts/resolve-task-governance.mjs` is the 1.83 Task Governance entry. It
+reads the task intent and, when present, the latest Controlled Native Adoption
+Review source, then classifies the task as `LOW`, `MEDIUM`, `POSSIBLE_HIGH`, or
+`HIGH`. It maps the required before-implementation and before-completion
+governance, accepts project-native equivalents only when refs/digests/task
+matching are recorded, and prints one plain next step. It is read-only by
+default; `--out <relative-report-path>` writes only the requested report file
+for later checking.
+
+`scripts/check-task-governance.mjs` checks recorded Task Governance reports. It
+rejects hidden high-impact surfaces in LOW/MEDIUM tasks, high-impact work
+without required Business Rule Closure / Change Impact Coverage / Execution
+Plan / Verification Plan routing, completion claims without test and execution
+evidence, implementation authorization, technical workflow burden in the
+user-facing summary, stale or mismatched source refs, and downgrading stronger
+project-owned rules.
 
 `scripts/resolve-execution-assurance.mjs` is the 1.72 execution assurance entry. It reads the current project, optional intent, optional git diff flags, and recorded source-system artifacts, then prints one Execution Assurance Report that binds the user intent, completion contract, planned impact, execution plan, actual diff, evidence, independent review, patch assessment, source-system trace, and closure decision. It is read-only by default; `--out <relative-report-path>` writes only the requested report file for later checking.
 

@@ -274,6 +274,7 @@ Examples:
 - typo fixes;
 - isolated visual spacing or style changes;
 - non-authoritative documentation cleanup;
+- README typo fixes, test-name text cleanup, or non-authoritative doc links;
 - static label changes with no business logic impact.
 
 LOW tasks must not touch:
@@ -285,7 +286,13 @@ LOW tasks must not touch:
 - business rules;
 - review/approval/settlement;
 - release or production config;
-- tests or infrastructure unless the task is specifically about tests/docs.
+- test behavior, CI, infrastructure, gates, or runtime test setup.
+
+LOW may include docs-only or test-text cleanup only when:
+
+- `task_kind` is `docs_only`, `test_docs_only`, `copy`, or `visual_only`;
+- the change does not alter test behavior, fixtures, assertions, CI, gates, or runtime behavior;
+- the report explains why no API, DB, permission, runtime, release, or business-rule surface is affected.
 
 Required flow:
 
@@ -311,9 +318,11 @@ Examples:
 
 - a local frontend interaction;
 - a list filter or display rule;
-- a small non-critical API parameter;
+- a backward-compatible internal query or display parameter with no public API contract, DB, permission, runtime, or client compatibility impact;
 - a local validation rule without DB/runtime/permission impact;
 - a component-level behavior change.
+
+Public API contracts, DTO/domain boundaries, persisted parameters, or compatibility-visible API changes are HIGH, not MEDIUM.
 
 Required flow:
 
@@ -388,6 +397,8 @@ Business Rule Closure comes before Change Impact Coverage because Codex must und
 
 1.83 should not create a replacement close-out. It should require and reference the existing closure and evidence systems.
 
+Implementation appears in the lifecycle above, but a task governance report does not authorize implementation. Any code, config, migration, CI, hook, release, or production change still requires the normal apply, approval, and execution chain.
+
 ## Upgrade Rules
 
 Codex must upgrade LOW or MEDIUM to POSSIBLE_HIGH or HIGH when it discovers:
@@ -438,22 +449,46 @@ Suggested machine-readable shape:
   "intent_digest": "sha256:...",
   "task_ref": "tasks/...",
   "project_adoption_mode": "partial",
+  "adoption_review": {
+    "ref": "artifact:native-adoption-review-reports/001.md",
+    "digest": "sha256:...",
+    "state": "RECOMMEND_STAY_PARTIAL",
+    "current_project_match": "Yes",
+    "blocks_task_governance": "No"
+  },
   "impact_classification": {
     "task_impact": "HIGH",
     "confidence": "high",
+    "task_kind": "code_behavior",
     "triggered_surfaces": ["runtime workflow state machine", "review center", "settlement"],
     "trigger_evidence": ["step submission changes status", "last step enters settlement"],
+    "excluded_high_impact_surfaces": [
+      {
+        "surface": "CI/release",
+        "excluded": "Yes",
+        "reason": "No CI, hook, release, or production files are touched."
+      }
+    ],
     "low_impact_reason": "",
     "medium_impact_reason": "",
+    "possible_high_resolution": {
+      "initial_state": "N/A",
+      "resolution": "N/A",
+      "inspection_ref": "",
+      "inspection_digest": "",
+      "reason": ""
+    },
     "upgrade_history": []
   },
-  "required_governance": {
+  "required_before_implementation_review": {
     "scope_check_required": "Yes",
     "short_plan_required": "No",
     "business_rule_closure_required": "Yes",
     "change_impact_coverage_required": "Yes",
     "execution_plan_required": "Yes",
-    "verification_plan_required": "Yes",
+    "verification_plan_required": "Yes"
+  },
+  "required_before_completion_claim": {
     "test_evidence_required": "Yes",
     "execution_assurance_required": "Yes",
     "completion_evidence_required": "Yes"
@@ -461,9 +496,18 @@ Suggested machine-readable shape:
   "source_chain": [],
   "existing_project_mapping": [],
   "readiness": {
-    "can_start_implementation": "No",
+    "governance_prerequisites_satisfied": "No",
+    "ready_for_implementation_review": "No",
+    "implementation_authorized_by_this_report": "No",
     "can_claim_done": "No",
     "blocked_by": ["missing business rule closure", "missing verification plan"]
+  },
+  "lightweight_closeout": {
+    "scope_unchanged": "N/A",
+    "minimal_verification_done": "N/A",
+    "targeted_verification_done": "N/A",
+    "unrelated_edits": "No",
+    "remaining_risk": ""
   },
   "user_prompt": {
     "plain_next_step": "这个需求会影响任务推进和结算链路。我会先写执行方案和验证清单，再实现。",
@@ -492,6 +536,8 @@ Impact classification must be evidence-bound:
 
 LOW and MEDIUM classifications must include reasons.
 
+They must also include negative evidence for excluded high-impact surfaces. A LOW or MEDIUM report should not only say what changed; it should also explain why DB, API contract, runtime state, permission, release, production, and business-rule surfaces are not affected.
+
 Examples:
 
 ```text
@@ -501,6 +547,26 @@ LOW because only user-facing copy changed; no DB/API/runtime/permission/release 
 ```text
 MEDIUM because the change affects one list filter; API contract, DB, permission, runtime state, and release surfaces are unchanged.
 ```
+
+### Possible-High Resolution
+
+POSSIBLE_HIGH can be downgraded only with evidence.
+
+Suggested shape:
+
+```json
+{
+  "possible_high_resolution": {
+    "initial_state": "POSSIBLE_HIGH",
+    "resolution": "DOWNGRADED_TO_MEDIUM",
+    "inspection_ref": "artifact:task-governance-reports/inspection-001.md",
+    "inspection_digest": "sha256:...",
+    "reason": "Read-only inspection confirmed no API contract, DB, runtime state, permission, or release impact."
+  }
+}
+```
+
+The checker must reject POSSIBLE_HIGH work that proceeds as LOW or MEDIUM without clarification or inspection evidence.
 
 ### Source Chain
 
@@ -537,6 +603,7 @@ Suggested shape:
       "required_behavior": "Business Rule Closure",
       "project_native_evidence_ref": "artifact:docs/rfc-123.md",
       "mapping_state": "MATCHED",
+      "stronger_project_rule_preserved": "N/A",
       "reason": "RFC describes user-visible rule, backend rule, edge cases, and audit behavior."
     }
   ]
@@ -550,6 +617,8 @@ Allowed mapping states:
 - `STRONGER`
 - `MISSING`
 - `NEEDS_OWNER`
+
+If `mapping_state` is `STRONGER`, `stronger_project_rule_preserved` must be `Yes`. 1.83 must not downgrade stronger project-native rules into weaker IntentOS requirements.
 
 ## Execution Plan Is Not Apply Plan
 
@@ -659,6 +728,8 @@ The resolver should:
 - classify whether a task is `LOW`, `MEDIUM`, `POSSIBLE_HIGH`, or `HIGH`;
 - infer affected surfaces;
 - identify required governance artifacts for the tier;
+- split requirements into before-implementation-review and before-completion-claim obligations;
+- record the current 1.82 adoption review source when available;
 - map project-native evidence;
 - recommend whether a durable plan is required;
 - produce plain-language next steps;
@@ -677,10 +748,15 @@ scripts/check-task-governance.mjs
 The checker must reject:
 
 - LOW tasks without low-impact reason;
+- LOW tasks without a valid `task_kind`;
 - LOW tasks that touch API, DB, runtime, permissions, release, production, business rules, or state;
+- LOW docs/test cleanup that alters test behavior, fixtures, assertions, CI, gates, runtime setup, or infrastructure;
 - LOW tasks without scope check, minimal verification, or concrete no-verification reason;
+- LOW tasks without negative evidence for excluded high-impact surfaces;
 - MEDIUM tasks without short plan, surface check, targeted verification, or close-out;
+- MEDIUM tasks that change public API contracts, DTO/domain boundaries, persisted parameters, or compatibility-visible API behavior;
 - MEDIUM tasks with hidden high-impact surfaces;
+- MEDIUM tasks without negative evidence for excluded high-impact surfaces;
 - POSSIBLE_HIGH tasks that proceed as LOW/MEDIUM without clarification or read-only inspection;
 - high-impact tasks without Business Rule Closure or project-native equivalent;
 - high-impact tasks without Change Impact Coverage;
@@ -696,6 +772,8 @@ The checker must reject:
 - patch-style runtime fixes with no shared transition logic analysis;
 - user-facing prompts that ask "是否进入 BRC/CIC/Execution Assurance";
 - task governance reports that claim implementation, commit, push, release, migration, CI/hook, or production approval;
+- task governance reports where `implementation_authorized_by_this_report` is not `No`;
+- source mappings that mark a `STRONGER` project-native rule without preserving it;
 - cases where 1.82 adopt-review says blocked but 1.83 says implementation can start.
 
 ### Phase D: Existing Project Integration
@@ -836,8 +914,8 @@ required_artifacts:
   - test evidence before completion claim
   - execution assurance before completion claim
   - completion evidence before done claim
-can_start_implementation: No
-authorizes_implementation: No
+ready_for_implementation_review: No
+implementation_authorized_by_this_report: No
 user_technical_participation_required: No
 ```
 
@@ -897,7 +975,10 @@ The verification must prove:
 - high-impact tasks cannot bypass governance classification;
 - Business Rule Closure precedes Change Impact Coverage for high-impact tasks;
 - source refs and digests are checked;
+- 1.82 adoption review blockers are explicit sources when available;
 - project-native evidence can satisfy required behaviors when mapped;
+- stronger project-native evidence is preserved rather than downgraded;
+- before-implementation-review requirements are separate from before-completion-claim requirements;
 - execution plan does not authorize writes;
 - verification/test evidence is required and must map to rules;
 - finalization/settlement paths are covered when impacted;
@@ -923,4 +1004,3 @@ This means:
 - tests and evidence are tied to the business rule;
 - close-out cannot claim success without proof;
 - full native adoption remains optional and separate.
-

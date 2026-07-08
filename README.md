@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.82.1`.
+Current release: `1.83.0`.
 
-Release record: [releases/1.82.1/release-record.md](releases/1.82.1/release-record.md).
+Release record: [releases/1.83.0/release-record.md](releases/1.83.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -49,6 +49,19 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.83.0 adds Behavior-Complete Existing Project Adoption through Task
+Governance: before an old or partially adopted project starts a task, Codex can
+classify the task as `LOW`, `MEDIUM`, `POSSIBLE_HIGH`, or `HIGH`, then route it
+to the right governance strength. Low and medium tasks stay lightweight; high
+impact work is routed to the existing Business Rule Closure, Change Impact
+Coverage, Verification Plan, Test Evidence, Execution Assurance, and Completion
+Evidence chain.
+
+1.83.0 is a classifier and router only. It does not write target-project files,
+install `.intentos/`, replace `AGENTS.md`, change CI/hooks/release rules,
+authorize implementation, approve commit/push, approve release/production, or
+claim task completion.
 
 1.82.1 hardens Controlled Native Adoption Review: upstream source blockers now
 drive blocked recommendations only when they match the target project, maturity
@@ -235,6 +248,7 @@ IntentOS 当前包含这些核心能力：
 | Guided Adoption | 判断项目是新项目、老项目、强治理项目还是生产敏感项目 |
 | Existing Project Safe Adoption Autopilot | 老项目说“接入 IntentOS”时，`adopt` 自动跑只读诊断、规则对比、收敛与验收摘要，输出白话结果卡；不写项目、不安装 `.intentos/`、不宣称完整接入 |
 | Controlled Native Adoption Review | 老项目想进一步接入时，`adopt-review` 判断项目治理成熟度并推荐最安全接入深度：保持部分接入、先修治理，或准备更深接入计划；仍然只读、不写项目、不替换规则 |
+| Task Governance | 老项目或部分接入项目执行任务前，先判断任务是小修、中等变更、疑似高风险还是高影响任务，再自动选择轻量、短计划或完整证据链；不授权实现、不宣称完成 |
 | Native-First Migration | 老项目不再停在笼统 adapter 建议；先分类旧规则和权力边界，再计划接入 IntentOS |
 | Existing Rule Reconciliation | 对比旧项目规则和 IntentOS 规则，只输出建议，不直接替换旧治理 |
 | Governance Convergence | 老项目可以按 IntentOS 日常工作方式收敛，但基线、发布、CI、hook、历史证据和旧规则必须先比较再计划 |
@@ -313,6 +327,8 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 检查治理收敛报告 | `node scripts/cli.mjs convergence-check ../my-project` |
 | 生成老项目接入验收报告 | `node scripts/cli.mjs adoption-assurance ../my-project --out adoption-assurance-reports/001.md` |
 | 检查老项目接入是否真的生效 | `node scripts/cli.mjs adoption-assurance-check ../my-project` |
+| 判断当前任务需要多重治理 | `node scripts/cli.mjs task-governance ../my-project --intent "新增审批状态规则"` |
+| 检查任务治理报告 | `node scripts/cli.mjs task-governance-check ../my-project` |
 | 汇总发布源系统为统一视图 | `node scripts/cli.mjs release-plan ../my-project --intent "帮我上线"` |
 | 检查统一发布视图 | `node scripts/cli.mjs release-check ../my-project` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |

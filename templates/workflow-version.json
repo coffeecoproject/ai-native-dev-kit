@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.82.1",
+  "intentOSVersion": "1.83.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -561,6 +561,15 @@
     ".intentos/prompts/controlled-native-adoption-review-agent.md",
     "scripts/resolve-controlled-native-adoption-review.mjs",
     "scripts/check-controlled-native-adoption-review.mjs",
-    "native-adoption-review-reports"
+    "native-adoption-review-reports",
+    ".intentos/core/behavior-complete-existing-project-adoption.md",
+    ".intentos/docs/behavior-complete-existing-project-adoption.md",
+    ".intentos/templates/task-governance-report.md",
+    ".intentos/schemas/artifacts/task-governance.schema.json",
+    ".intentos/checklists/task-governance-review.md",
+    ".intentos/prompts/task-governance-agent.md",
+    "scripts/resolve-task-governance.mjs",
+    "scripts/check-task-governance.mjs",
+    "task-governance-reports"
   ]
 }

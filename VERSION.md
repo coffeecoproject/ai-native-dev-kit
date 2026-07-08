@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.82.1`
+Current version: `1.83.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.82.1`
 
 ## Current Release
 
-`1.82.1`
+`1.83.0`
 
 Includes:
+
+- Task Impact Tier Classifier phase `1.83.0`: adds Task Governance so Codex can
+  classify each task as `LOW`, `MEDIUM`, `POSSIBLE_HIGH`, or `HIGH` and route it
+  to the right governance strength before implementation review.
+- `1.83.0` keeps behavior-complete existing-project adoption non-authorizing:
+  it does not write target-project files, install `.intentos/`, replace
+  `AGENTS.md`, change CI/hooks/release rules, authorize implementation, approve
+  commit/push, approve release/production, or claim completion.
 
 - Controlled Native Adoption Review hardening patch `1.82.1`: upstream source
   blockers must match the target project before they drive blocked

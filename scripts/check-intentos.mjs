@@ -6110,6 +6110,166 @@ function checkControlledNativeAdoptionReviewProtocol() {
   }
 }
 
+function checkTaskGovernanceProtocol() {
+  const examples = [
+    "low-copy-change",
+    "medium-list-filter",
+    "medium-frontend-interaction",
+    "review-required-step-policy",
+    "db-api-ui-change",
+    "last-step-settlement",
+    "permission-sensitive-workflow",
+    "possible-high-downgraded",
+    "project-native-rfc-mapping",
+    "project-native-qa-checklist-mapping",
+  ];
+  const badFixtures = [
+    "bad-task-governance-low-hidden-api-change",
+    "bad-task-governance-low-no-reason",
+    "bad-task-governance-medium-no-short-plan",
+    "bad-task-governance-medium-hidden-permission-impact",
+    "bad-task-governance-possible-high-no-clarification",
+    "bad-task-governance-no-business-rule-closure",
+    "bad-task-governance-no-change-impact-coverage",
+    "bad-task-governance-no-execution-plan",
+    "bad-task-governance-no-verification-plan",
+    "bad-task-governance-closeout-without-evidence",
+    "bad-task-governance-authorizes-implementation",
+    "bad-task-governance-ignores-1.82-blocker",
+    "bad-task-governance-technical-user-prompt",
+    "bad-task-governance-stronger-rule-not-preserved",
+  ];
+  const required = [
+    "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
+    "core/behavior-complete-existing-project-adoption.md",
+    "docs/behavior-complete-existing-project-adoption.md",
+    "templates/task-governance-report.md",
+    "schemas/artifacts/task-governance.schema.json",
+    "checklists/task-governance-review.md",
+    "prompts/task-governance-agent.md",
+    "task-governance-reports/.gitkeep",
+    "scripts/resolve-task-governance.mjs",
+    "scripts/check-task-governance.mjs",
+    "examples/1.83-task-governance/README.md",
+    ...examples.map((example) => `examples/1.83-task-governance/${example}/task-governance-reports/001-task-governance.md`),
+    "examples/1.83-task-governance/project-native-rfc-mapping/docs/rfc-approval-review-workflow.md",
+    "examples/1.83-task-governance/project-native-qa-checklist-mapping/docs/qa-permission-approval-checklist.md",
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/task-governance-reports/001-bad.md`),
+    "releases/1.83.0/release-record.md",
+    "releases/1.83.0/known-limitations.md",
+    "releases/1.83.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.83 task governance asset exists ${file}`);
+    else fail(`1.83 task governance asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md"),
+    read("core/behavior-complete-existing-project-adoption.md"),
+    read("docs/behavior-complete-existing-project-adoption.md"),
+    read("templates/task-governance-report.md"),
+    read("schemas/artifacts/task-governance.schema.json"),
+    read("checklists/task-governance-review.md"),
+    read("prompts/task-governance-agent.md"),
+    read("scripts/resolve-task-governance.mjs"),
+    read("scripts/check-task-governance.mjs"),
+    read("README.md"),
+    read("README.zh-CN.md"),
+    read("releases/1.83.0/release-record.md"),
+  ].join("\n");
+  for (const marker of [
+    "Behavior-Complete Existing Project Adoption",
+    "task_governance",
+    "task-governance",
+    "task-governance-check",
+    "LOW",
+    "MEDIUM",
+    "POSSIBLE_HIGH",
+    "HIGH",
+    "required_before_implementation_review",
+    "required_before_completion_claim",
+    "implementation_authorized_by_this_report",
+    "project-native evidence",
+    "STRONGER",
+    "does not authorize implementation",
+  ]) {
+    if (combined.includes(marker)) pass(`1.83 task governance includes ${marker}`);
+    else fail(`1.83 task governance missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-task-governance.mjs",
+    "node --check scripts/check-task-governance.mjs",
+    "node scripts/cli.mjs task-governance . --intent",
+    "node scripts/cli.mjs task-governance-check . --allow-empty",
+    "node scripts/check-task-governance.mjs examples/1.83-task-governance/low-copy-change --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.83 package verify surface includes ${marker}`);
+    else fail(`1.83 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode(["scripts/resolve-task-governance.mjs", ".", "--intent", "change approval review workflow state transition"]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Task Governance Report")
+    && resolver.stdout.includes("Task impact")
+    && resolver.stdout.includes("Implementation authorized by this report")
+    && resolver.stdout.includes("No")) {
+    pass("1.83 task governance resolver prints non-authorizing task card");
+  } else {
+    fail(`1.83 task governance resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const sourceCheck = runNode(["scripts/check-task-governance.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("task governance check skipped by explicit --allow-empty")) {
+    pass("1.83 task governance checker passes source repo with explicit allow-empty");
+  } else {
+    fail(`1.83 task governance source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "task-governance", ".", "--intent", "change approval review workflow state transition"]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Task Governance Report")) {
+    pass("CLI task-governance delegates to resolver");
+  } else {
+    fail(`CLI task-governance failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "task-governance-check", ".", "--allow-empty"]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("task governance check skipped by explicit --allow-empty")) {
+    pass("CLI task-governance-check delegates to checker");
+  } else {
+    fail(`CLI task-governance-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const example of examples) {
+    const target = `examples/1.83-task-governance/${example}`;
+    const result = runNode(["scripts/check-task-governance.mjs", target, "--require-structured-evidence"]);
+    if (result.status === 0) pass(`1.83 task governance example passes strict checker ${target}`);
+    else fail(`1.83 task governance example failed ${target}: ${result.stderr || result.stdout}`);
+  }
+
+  for (const fixture of badFixtures) {
+    const target = `test-fixtures/bad/${fixture}`;
+    const result = runNode(["scripts/check-task-governance.mjs", target, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.83 task governance rejects ${fixture}`);
+    else fail(`1.83 task governance must reject ${fixture}`);
+  }
+
+  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  if (cliHelp.status === 0
+    && cliHelp.stdout.includes("task-governance")
+    && cliHelp.stdout.includes("Classify task impact")) {
+    pass("1.83 CLI help exposes task-governance");
+  } else {
+    fail(`1.83 CLI help missing task-governance: ${cliHelp.stderr || cliHelp.stdout}`);
+  }
+}
+
 function checkExecutionAssuranceChainProtocol() {
   const badFixtures = [
     "bad-execution-assurance-no-completion-contract",
@@ -15757,6 +15917,7 @@ checkGovernanceConvergenceProtocol();
 checkAdoptionExecutionAssuranceProtocol();
 checkExistingProjectAdoptionAutopilotProtocol();
 checkControlledNativeAdoptionReviewProtocol();
+checkTaskGovernanceProtocol();
 checkExecutionAssuranceChainProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
