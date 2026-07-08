@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.83.0`
+`1.83.2`
 
 ## Project Version File
 
@@ -19,6 +19,19 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.83.2` clarifies tier-specific Task Governance review policy: LOW uses
+  lightweight self-check, MEDIUM uses targeted review or checker-backed
+  validation, POSSIBLE_HIGH blocks for clarification or read-only inspection,
+  and HIGH uses the full review/evidence chain.
+- `1.83.2` remains non-authorizing. It does not approve implementation,
+  completion, commit/push, release, or project-native reviewer replacement.
+- `1.83.1` hardens Task Governance project-native evidence binding: mapped
+  project records must be resolvable, digest-matched, owner-scoped,
+  task-matched, and summarized before they can satisfy IntentOS task
+  governance requirements.
+- `1.83.1` remains non-authorizing. Project-native evidence binding does not
+  approve implementation, native apply, CI/hooks, release, production, commit,
+  push, tests, migrations, or full IntentOS adoption.
 - `1.83.0` adds Task Governance for behavior-complete existing-project
   adoption: Codex can classify task impact as LOW, MEDIUM, POSSIBLE_HIGH, or
   HIGH, map required governance, and route work without authorizing

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.83.0`
+Current version: `1.83.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,25 @@ Current version: `1.83.0`
 
 ## Current Release
 
-`1.83.0`
+`1.83.2`
 
 Includes:
+
+- Task Governance Review Policy patch `1.83.2`: Task Governance now records
+  tier-specific review policy so `LOW`, `MEDIUM`, `POSSIBLE_HIGH`, and `HIGH`
+  tasks each have explicit review level, review source, timing, and coverage.
+- `1.83.2` remains non-authorizing. It does not write target-project files,
+  approve implementation, approve completion, approve commit/push, approve
+  release, or replace project-native reviewers.
+
+- Project-Native Evidence Binding patch `1.83.1`: Task Governance now requires
+  project-native mappings to carry resolvable artifact refs, matching sha256
+  digests, owners, scopes, current-task match, and plain summaries before those
+  mappings can satisfy IntentOS behavior.
+- `1.83.1` remains non-authorizing. It does not write target-project files,
+  install `.intentos/`, replace `AGENTS.md`, change CI/hooks/release rules,
+  authorize implementation, approve commit/push, approve release/production, or
+  claim task completion.
 
 - Task Impact Tier Classifier phase `1.83.0`: adds Task Governance so Codex can
   classify each task as `LOW`, `MEDIUM`, `POSSIBLE_HIGH`, or `HIGH` and route it

@@ -44,7 +44,7 @@ Recommended sequence:
 1.82.1 Source Blocker And Maturity Matrix Hardening
 1.83.0 Task Impact Tier Classifier
 1.83.1 Source Binding And Project-Native Evidence Mapping
-1.83.2 Behavior-Complete Existing Project Enforcement
+1.83.2 Tier-Specific Review Policy Enforcement
 ```
 
 This document defines the full 1.83 direction, but 1.83.0 should start narrow:
@@ -231,9 +231,53 @@ It should not:
 
 It should verify source refs, digests, task matching, and current intent matching.
 
-### 1.83.2: Behavior-Complete Existing Project Enforcement
+For existing projects, 1.83.1 must make project-native evidence binding
+explicit rather than advisory. A project RFC, QA checklist, session record,
+engineering baseline, release SOP, or gate result can satisfy an IntentOS
+behavior only when the mapping records:
 
-1.83.2 may integrate behavior-complete checks into existing-project workflows so tasks cannot proceed or close with the wrong governance tier.
+- `project_native_evidence_ref`: a resolvable `artifact:` reference inside the
+  target project;
+- `project_native_evidence_digest`: a sha256 digest that matches that artifact;
+- `project_native_evidence_owner`: the project owner or source owner for that
+  record;
+- `project_native_evidence_scope`: `task_specific`, `project_wide`, or
+  `release_wide`;
+- `project_native_task_match`: `Yes` for `MATCHED` and `STRONGER` mappings;
+- `project_native_evidence_summary`: a plain explanation of what the project
+  record covers.
+
+This keeps old projects close to native IntentOS behavior without requiring
+full asset migration. It also prevents Codex from saying "the project already
+has a document" when the document is stale, unresolved, ownerless, or not
+matched to the current task.
+
+### 1.83.2: Tier-Specific Review Policy Enforcement
+
+1.83.2 should make review policy explicit after task classification so
+behavior-complete adoption does not get misread as "skip review for lower
+tiers."
+
+It should add a structured `review_policy` to Task Governance reports:
+
+- `review_level`;
+- `codex_self_check_required`;
+- `independent_review_required`;
+- `review_must_happen_before`;
+- `review_must_cover`;
+- `review_source`;
+- `skip_full_review_reason`.
+
+Required tier behavior:
+
+- `LOW` -> `LIGHTWEIGHT`: self-check scope, excluded high-impact surfaces,
+  minimal verification or explicit reason, and unrelated edits.
+- `MEDIUM` -> `TARGETED`: short plan, bounded surface, excluded high-impact
+  surfaces, targeted verification, and unrelated edits.
+- `POSSIBLE_HIGH` -> `BLOCKING_CLARIFICATION`: stop implementation review until
+  clarification or read-only inspection resolves the tier.
+- `HIGH` -> `FULL`: full review/evidence chain before implementation review and
+  completion claims.
 
 It must still preserve project-owned authority and must not force full native adoption.
 
@@ -602,6 +646,11 @@ Suggested shape:
     {
       "required_behavior": "Business Rule Closure",
       "project_native_evidence_ref": "artifact:docs/rfc-123.md",
+      "project_native_evidence_digest": "sha256:<64 hex>",
+      "project_native_evidence_owner": "Product owner",
+      "project_native_evidence_scope": "task_specific",
+      "project_native_task_match": "Yes",
+      "project_native_evidence_summary": "RFC describes user-visible rule, backend rule, edge cases, and audit behavior.",
       "mapping_state": "MATCHED",
       "stronger_project_rule_preserved": "N/A",
       "reason": "RFC describes user-visible rule, backend rule, edge cases, and audit behavior."
@@ -619,6 +668,10 @@ Allowed mapping states:
 - `NEEDS_OWNER`
 
 If `mapping_state` is `STRONGER`, `stronger_project_rule_preserved` must be `Yes`. 1.83 must not downgrade stronger project-native rules into weaker IntentOS requirements.
+
+If `mapping_state` is `MISSING`, the mapping must use `N/A` for ref, digest,
+owner, scope, and task match, and must explain the missing evidence. Missing
+evidence is allowed as a blocker; it is not allowed as a pass.
 
 ## Execution Plan Is Not Apply Plan
 
@@ -758,6 +811,10 @@ The checker must reject:
 - MEDIUM tasks with hidden high-impact surfaces;
 - MEDIUM tasks without negative evidence for excluded high-impact surfaces;
 - POSSIBLE_HIGH tasks that proceed as LOW/MEDIUM without clarification or read-only inspection;
+- `MATCHED` or `STRONGER` project-native mappings with unresolved refs, stale
+  digests, unknown owners, unknown scope, missing summaries, or task match other
+  than `Yes`;
+- `MISSING` project-native mappings that pretend to satisfy required behavior;
 - high-impact tasks without Business Rule Closure or project-native equivalent;
 - high-impact tasks without Change Impact Coverage;
 - high-impact tasks with DB/API/runtime/review/settlement surfaces missing from the impact map;

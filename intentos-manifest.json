@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.83.0",
+  "intentOSVersion": "1.83.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.83.0"
+    "phase": "1.83.2"
   },
   "groups": {
     "sourceRequired": [
@@ -2655,9 +2655,17 @@
       "test-fixtures/bad/bad-task-governance-possible-high-no-clarification/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-stronger-rule-not-preserved/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md",
+      "test-fixtures/bad/bad-task-governance-project-native-digest-mismatch/task-governance-reports/001-bad.md",
       "releases/1.83.0/release-record.md",
       "releases/1.83.0/known-limitations.md",
-      "releases/1.83.0/self-check-report.md"
+      "releases/1.83.0/self-check-report.md",
+      "releases/1.83.1/release-record.md",
+      "releases/1.83.1/known-limitations.md",
+      "releases/1.83.1/self-check-report.md",
+      "test-fixtures/bad/bad-task-governance-low-wrong-review-policy/task-governance-reports/001-bad.md",
+      "releases/1.83.2/release-record.md",
+      "releases/1.83.2/known-limitations.md",
+      "releases/1.83.2/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",

@@ -48,7 +48,7 @@ function buildReport() {
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "task-governance-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.83.0",
+    schema_version: "1.83.2",
     artifact_type: "task_governance",
     intent,
     intent_digest: digest(intent),
@@ -60,6 +60,7 @@ function buildReport() {
     impact_classification: classification,
     required_before_implementation_review: requiredBeforeImplementation,
     required_before_completion_claim: requiredBeforeCompletion,
+    review_policy: reviewPolicyFor(classification.task_impact),
     source_chain: sourceChainFor(intent, classification, adoptionReview),
     existing_project_mapping: existingProjectMappingFor(classification.task_impact),
     readiness: {
@@ -83,7 +84,7 @@ function buildReport() {
   };
   return {
     reportType: "TASK_GOVERNANCE",
-    schemaVersion: "1.83.0",
+    schemaVersion: "1.83.2",
     generatedBy: "scripts/resolve-task-governance.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -98,6 +99,7 @@ function buildReport() {
     impactClassification: classification,
     requiredBeforeImplementation,
     requiredBeforeCompletion,
+    reviewPolicy: structuredEvidence.review_policy,
     sourceChain: structuredEvidence.source_chain,
     existingProjectMapping: structuredEvidence.existing_project_mapping,
     readiness: structuredEvidence.readiness,
@@ -214,6 +216,74 @@ function requirementsBeforeCompletion(impact) {
   };
 }
 
+function reviewPolicyFor(impact) {
+  if (impact === "LOW") {
+    return {
+      review_level: "LIGHTWEIGHT",
+      codex_self_check_required: "Yes",
+      independent_review_required: "No",
+      review_must_happen_before: "completion_claim",
+      review_must_cover: [
+        "scope unchanged",
+        "excluded high-impact surfaces",
+        "minimal verification or explicit reason",
+        "unrelated edits check",
+      ],
+      review_source: "codex_self_check",
+      skip_full_review_reason: "LOW tasks use lightweight review only because no high-impact surface is detected.",
+    };
+  }
+  if (impact === "MEDIUM") {
+    return {
+      review_level: "TARGETED",
+      codex_self_check_required: "Yes",
+      independent_review_required: "Conditional",
+      review_must_happen_before: "completion_claim",
+      review_must_cover: [
+        "short plan",
+        "bounded impact surface",
+        "excluded high-impact surfaces",
+        "targeted verification",
+        "unrelated edits check",
+      ],
+      review_source: "targeted_checker_or_project_review",
+      skip_full_review_reason: "MEDIUM tasks do not require the full high-impact chain when the affected surface stays local and bounded.",
+    };
+  }
+  if (impact === "POSSIBLE_HIGH") {
+    return {
+      review_level: "BLOCKING_CLARIFICATION",
+      codex_self_check_required: "Yes",
+      independent_review_required: "Yes",
+      review_must_happen_before: "implementation_review",
+      review_must_cover: [
+        "clarification or read-only inspection",
+        "high-impact surface decision",
+        "upgrade or downgrade rationale",
+      ],
+      review_source: "human_or_read_only_inspection",
+      skip_full_review_reason: "POSSIBLE_HIGH tasks cannot skip full review until clarification proves the task is not high impact.",
+    };
+  }
+  return {
+    review_level: "FULL",
+    codex_self_check_required: "Yes",
+    independent_review_required: "Yes",
+    review_must_happen_before: "implementation_and_completion",
+    review_must_cover: [
+      "business rule closure",
+      "change impact coverage",
+      "execution plan",
+      "verification plan",
+      "test evidence",
+      "execution assurance",
+      "completion evidence",
+    ],
+    review_source: "review_loop_or_project_native_review",
+    skip_full_review_reason: "HIGH tasks cannot skip the full review chain.",
+  };
+}
+
 function blockersFor(impact, adoptionReview, beforeImplementation, beforeCompletion) {
   const blocked = [];
   if (adoptionReview.blocks_task_governance === "Yes") blocked.push("blocked by current adoption review source");
@@ -283,6 +353,11 @@ function existingProjectMappingFor(impact) {
     {
       required_behavior: "Business Rule Closure",
       project_native_evidence_ref: "N/A",
+      project_native_evidence_digest: "N/A",
+      project_native_evidence_owner: "N/A",
+      project_native_evidence_scope: "N/A",
+      project_native_task_match: "N/A",
+      project_native_evidence_summary: "No project-native business rule evidence was supplied to this classifier report.",
       mapping_state: "MISSING",
       stronger_project_rule_preserved: "N/A",
       reason: "No project-native business rule evidence was supplied to this classifier report.",
@@ -290,6 +365,11 @@ function existingProjectMappingFor(impact) {
     {
       required_behavior: "Verification Plan",
       project_native_evidence_ref: "N/A",
+      project_native_evidence_digest: "N/A",
+      project_native_evidence_owner: "N/A",
+      project_native_evidence_scope: "N/A",
+      project_native_task_match: "N/A",
+      project_native_evidence_summary: "No project-native verification plan evidence was supplied to this classifier report.",
       mapping_state: "MISSING",
       stronger_project_rule_preserved: "N/A",
       reason: "No project-native verification plan evidence was supplied to this classifier report.",
@@ -363,7 +443,7 @@ function humanReportText(report) {
   const evidence = report.structuredEvidence;
   const impact = evidence.impact_classification;
   const excludedRows = impact.excluded_high_impact_surfaces.map((item) => `| ${item.surface} | ${item.excluded} | ${item.reason} |`).join("\n") || "| N/A | N/A | N/A |";
-  const mappingRows = evidence.existing_project_mapping.map((item) => `| ${item.required_behavior} | ${item.project_native_evidence_ref} | ${item.mapping_state} | ${item.stronger_project_rule_preserved} | ${item.reason} |`).join("\n") || "| N/A | N/A | N/A | N/A | N/A |";
+  const mappingRows = evidence.existing_project_mapping.map((item) => `| ${item.required_behavior} | ${item.project_native_evidence_ref} | ${item.project_native_evidence_digest} | ${item.project_native_evidence_owner} | ${item.project_native_evidence_scope} | ${item.project_native_task_match} | ${item.mapping_state} | ${item.stronger_project_rule_preserved} | ${item.reason} |`).join("\n") || "| N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A |";
   const sourceRows = evidence.source_chain.map((item) => `| ${item.name} | ${item.status} | ${item.ref} | ${item.current_task_match} |`).join("\n");
   return `# Task Governance Report
 
@@ -378,6 +458,7 @@ This report classifies task impact and routes required governance. It does not a
 | Ready for implementation review | \`${evidence.readiness.ready_for_implementation_review}\` |
 | Implementation authorized by this report | \`${evidence.readiness.implementation_authorized_by_this_report}\` |
 | Can claim done | \`${evidence.readiness.can_claim_done}\` |
+| Review level | \`${evidence.review_policy.review_level}\` |
 
 ## Impact Classification
 
@@ -415,10 +496,22 @@ ${excludedRows}
 | Execution Assurance | \`${evidence.required_before_completion_claim.execution_assurance_required}\` |
 | Completion Evidence | \`${evidence.required_before_completion_claim.completion_evidence_required}\` |
 
+## Review Policy
+
+| Field | Value |
+| --- | --- |
+| Review level | \`${evidence.review_policy.review_level}\` |
+| Codex self-check required | \`${evidence.review_policy.codex_self_check_required}\` |
+| Independent review required | \`${evidence.review_policy.independent_review_required}\` |
+| Review must happen before | \`${evidence.review_policy.review_must_happen_before}\` |
+| Review source | \`${evidence.review_policy.review_source}\` |
+| Review must cover | ${evidence.review_policy.review_must_cover.join("; ")} |
+| Skip full review reason | ${evidence.review_policy.skip_full_review_reason} |
+
 ## Existing Project Mapping
 
-| Required Behavior | Project-Native Evidence | State | Stronger Rule Preserved | Reason |
-| --- | --- | --- | --- | --- |
+| Required Behavior | Project-Native Evidence | Digest | Owner | Scope | Task Match | State | Stronger Rule Preserved | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${mappingRows}
 
 ## Source Chain

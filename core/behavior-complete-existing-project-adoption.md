@@ -32,6 +32,25 @@ queues. They require Business Rule Closure, Change Impact Coverage, Execution
 Plan, Verification Plan, Test Evidence, Execution Assurance, and Completion
 Evidence / Unified Close-Out through the existing systems.
 
+## Review Policy By Tier
+
+Task grading does not remove review. It selects the right review strength:
+
+- `LOW`: `LIGHTWEIGHT` review. Codex must self-check scope, excluded
+  high-impact surfaces, minimal verification or explicit no-verification
+  reason, and unrelated edits before any completion claim.
+- `MEDIUM`: `TARGETED` review. Codex must keep a short plan, confirm the
+  bounded surface, run targeted verification, and use a checker-backed or
+  project-native review source when the project provides one.
+- `POSSIBLE_HIGH`: `BLOCKING_CLARIFICATION` review. Codex must stop direct
+  implementation until clarification or read-only inspection resolves whether
+  the task is high impact.
+- `HIGH`: `FULL` review. Codex must use the full review and evidence chain
+  before implementation review and completion claims.
+
+This keeps low-risk tasks light without making them unreviewed, and keeps
+high-impact tasks from being treated as patch work.
+
 ## Boundary
 
 Task Governance is a router and gate, not a completion system.
@@ -53,3 +72,16 @@ It must not:
 Project-native evidence may satisfy required IntentOS behavior when it is
 mapped with a source ref, digest, task match, and reason. If the project-native
 rule is stronger, it must be preserved rather than downgraded.
+
+For 1.83.1 and later, a project-native mapping is only valid when it records:
+
+- an `artifact:` ref that resolves inside the project;
+- a matching sha256 digest for that artifact;
+- an evidence owner;
+- a concrete scope such as `task_specific`, `project_wide`, or `release_wide`;
+- `project_native_task_match: Yes` for matched or stronger mappings;
+- a plain summary explaining what the project-native evidence covers.
+
+This lets existing projects use their own RFCs, QA checklists, sessions,
+engineering baselines, or release SOPs without turning an unverified reference
+into a task-governance pass.

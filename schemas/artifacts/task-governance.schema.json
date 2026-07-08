@@ -17,6 +17,7 @@
     "impact_classification",
     "required_before_implementation_review",
     "required_before_completion_claim",
+    "review_policy",
     "source_chain",
     "existing_project_mapping",
     "readiness",
@@ -26,7 +27,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.83.0" },
+    "schema_version": { "enum": ["1.83.0", "1.83.1", "1.83.2"] },
     "artifact_type": { "const": "task_governance" },
     "intent": { "type": "string", "minLength": 1 },
     "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -150,6 +151,43 @@
         "completion_evidence_required": { "enum": ["Yes", "No"] }
       }
     },
+    "review_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_level",
+        "codex_self_check_required",
+        "independent_review_required",
+        "review_must_happen_before",
+        "review_must_cover",
+        "review_source",
+        "skip_full_review_reason"
+      ],
+      "properties": {
+        "review_level": {
+          "enum": ["LIGHTWEIGHT", "TARGETED", "BLOCKING_CLARIFICATION", "FULL"]
+        },
+        "codex_self_check_required": { "enum": ["Yes", "No"] },
+        "independent_review_required": { "enum": ["Yes", "No", "Conditional"] },
+        "review_must_happen_before": {
+          "enum": ["completion_claim", "implementation_review", "implementation_and_completion"]
+        },
+        "review_must_cover": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "review_source": {
+          "enum": [
+            "codex_self_check",
+            "targeted_checker_or_project_review",
+            "human_or_read_only_inspection",
+            "review_loop_or_project_native_review"
+          ]
+        },
+        "skip_full_review_reason": { "type": "string", "minLength": 1 }
+      }
+    },
     "source_chain": {
       "type": "array",
       "items": {
@@ -175,6 +213,11 @@
         "required": [
           "required_behavior",
           "project_native_evidence_ref",
+          "project_native_evidence_digest",
+          "project_native_evidence_owner",
+          "project_native_evidence_scope",
+          "project_native_task_match",
+          "project_native_evidence_summary",
           "mapping_state",
           "stronger_project_rule_preserved",
           "reason"
@@ -182,6 +225,13 @@
         "properties": {
           "required_behavior": { "type": "string", "minLength": 1 },
           "project_native_evidence_ref": { "type": "string", "minLength": 1 },
+          "project_native_evidence_digest": { "type": "string", "minLength": 1 },
+          "project_native_evidence_owner": { "type": "string", "minLength": 1 },
+          "project_native_evidence_scope": {
+            "enum": ["task_specific", "project_wide", "release_wide", "unknown", "N/A"]
+          },
+          "project_native_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+          "project_native_evidence_summary": { "type": "string", "minLength": 1 },
           "mapping_state": { "enum": ["MATCHED", "WEAKER", "STRONGER", "MISSING", "NEEDS_OWNER"] },
           "stronger_project_rule_preserved": { "enum": ["Yes", "No", "N/A"] },
           "reason": { "type": "string", "minLength": 1 }

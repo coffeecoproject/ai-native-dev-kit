@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.83.0`。
+当前版本：`1.83.2`。
 
-发布记录：[releases/1.83.0/release-record.md](releases/1.83.0/release-record.md)。
+发布记录：[releases/1.83.2/release-record.md](releases/1.83.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -49,6 +49,22 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.83.2 明确任务分级后的审查策略：`LOW` 不是无审查，而是轻量自检；
+`MEDIUM` 要做定向审查或 checker 验证；`POSSIBLE_HIGH` 必须先澄清或只读检查；
+`HIGH` 才进入完整审查和证据链。这样避免“分级”被误解成“可以跳过审查”。
+
+1.83.2 仍然不授权实现。它不写目标项目文件、不批准实现、不批准完成、
+不批准提交/推送、不批准发布，也不替代项目原有审核人。
+
+1.83.1 加严老项目任务治理里的“项目原生证据绑定”：老项目可以继续使用
+自己的 RFC、QA 清单、session、工程基线、发布 SOP 和 gate 证据，但 IntentOS
+现在会要求这些记录具备可解析 artifact 引用、匹配 digest、负责人、适用范围、
+当前任务匹配和白话摘要，不能只写一句“已有文档”就算通过。
+
+1.83.1 仍然不授权实现。它不写目标项目文件、不安装 `.intentos/`、不替换
+`AGENTS.md`、不改 CI/hook/发布规则、不批准实现、提交、推送、发布或生产，
+也不宣称任务完成。
 
 1.83.0 新增 Behavior-Complete Existing Project Adoption 的任务治理入口：
 老项目或部分接入项目开始做任务前，Codex 可以先把任务判断为 `LOW`、

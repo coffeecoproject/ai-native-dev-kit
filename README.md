@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.83.0`.
+Current release: `1.83.2`.
 
-Release record: [releases/1.83.0/release-record.md](releases/1.83.0/release-record.md).
+Release record: [releases/1.83.2/release-record.md](releases/1.83.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -49,6 +49,28 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.83.2 clarifies review policy after task-impact classification. `LOW` tasks
+still require lightweight self-checks, `MEDIUM` tasks require targeted review
+or checker-backed validation, `POSSIBLE_HIGH` tasks block for clarification or
+read-only inspection, and `HIGH` tasks require the full review/evidence chain.
+This prevents task grading from being misread as permission to skip review.
+
+1.83.2 remains non-authorizing. It does not write target-project files, approve
+implementation, approve completion, approve commit/push, approve release, or
+replace project-native reviewers.
+
+1.83.1 hardens Behavior-Complete Existing Project Adoption with project-native
+evidence binding: old projects can keep their own RFCs, QA checklists,
+sessions, baselines, release SOPs, and gate evidence, but Task Governance now
+requires resolvable artifact refs, matching digests, owners, scopes,
+current-task match, and a plain summary before treating those records as mapped
+IntentOS behavior.
+
+1.83.1 remains non-authorizing. It does not write target-project files, install
+`.intentos/`, replace `AGENTS.md`, change CI/hooks/release rules, authorize
+implementation, approve commit/push, approve release/production, or claim task
+completion.
 
 1.83.0 adds Behavior-Complete Existing Project Adoption through Task
 Governance: before an old or partially adopted project starts a task, Codex can

@@ -11,6 +11,7 @@ This report classifies task impact and routes required governance. It does not a
 | Ready for implementation review | `No` |
 | Implementation authorized by this report | `No` |
 | Can claim done | `No` |
+| Review level | `FULL` |
 
 ## Impact Classification
 
@@ -53,12 +54,24 @@ This report classifies task impact and routes required governance. It does not a
 | Execution Assurance | `Yes` |
 | Completion Evidence | `Yes` |
 
+## Review Policy
+
+| Field | Value |
+| --- | --- |
+| Review level | `FULL` |
+| Codex self-check required | `Yes` |
+| Independent review required | `Yes` |
+| Review must happen before | `implementation_and_completion` |
+| Review source | `review_loop_or_project_native_review` |
+| Review must cover | business rule closure; change impact coverage; execution plan; verification plan; test evidence; execution assurance; completion evidence |
+| Skip full review reason | HIGH tasks cannot skip the full review chain. |
+
 ## Existing Project Mapping
 
-| Required Behavior | Project-Native Evidence | State | Stronger Rule Preserved | Reason |
-| --- | --- | --- | --- | --- |
-| Business Rule Closure | N/A | MISSING | N/A | No project-native business rule evidence was supplied to this classifier report. |
-| Verification Plan | N/A | MISSING | N/A | No project-native verification plan evidence was supplied to this classifier report. |
+| Required Behavior | Project-Native Evidence | Digest | Owner | Scope | Task Match | State | Stronger Rule Preserved | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Business Rule Closure | N/A | N/A | N/A | N/A | N/A | MISSING | N/A | No project-native business rule evidence was supplied to this classifier report. |
+| Verification Plan | N/A | N/A | N/A | N/A | N/A | MISSING | N/A | No project-native verification plan evidence was supplied to this classifier report. |
 
 ## Source Chain
 
@@ -103,12 +116,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.0",
+  "schema_version": "1.83.2",
   "artifact_type": "task_governance",
   "intent": "change last step settlement finalization workflow state",
   "intent_digest": "sha256:1c5ffec07ad37b4a9d06c41ac8bd714093d04cf96ab806a10d466d3674e85a65",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:f2d2538c1e6001973f46204fc7a68b531e6b709c1a224a9b3bbf453fc45aec4f",
+  "task_governance_digest": "sha256:f91e9855fc90fad1176dc0e6b44175822514897791f025a3ef11b845356e83d5",
   "task_ref": "task:change-last-step-settlement-finalization-workflow-state",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -217,14 +230,24 @@ This report classifies task impact and routes required governance. It does not a
       "project_native_evidence_ref": "N/A",
       "mapping_state": "MISSING",
       "stronger_project_rule_preserved": "N/A",
-      "reason": "No project-native business rule evidence was supplied to this classifier report."
+      "reason": "No project-native business rule evidence was supplied to this classifier report.",
+      "project_native_evidence_digest": "N/A",
+      "project_native_evidence_owner": "N/A",
+      "project_native_evidence_scope": "N/A",
+      "project_native_task_match": "N/A",
+      "project_native_evidence_summary": "No project-native business rule evidence was supplied to this classifier report."
     },
     {
       "required_behavior": "Verification Plan",
       "project_native_evidence_ref": "N/A",
       "mapping_state": "MISSING",
       "stronger_project_rule_preserved": "N/A",
-      "reason": "No project-native verification plan evidence was supplied to this classifier report."
+      "reason": "No project-native verification plan evidence was supplied to this classifier report.",
+      "project_native_evidence_digest": "N/A",
+      "project_native_evidence_owner": "N/A",
+      "project_native_evidence_scope": "N/A",
+      "project_native_task_match": "N/A",
+      "project_native_evidence_summary": "No project-native verification plan evidence was supplied to this classifier report."
     }
   ],
   "readiness": {
@@ -260,7 +283,24 @@ This report classifies task impact and routes required governance. It does not a
     "executes_migrations": "No",
     "changes_ci_or_hooks": "No"
   },
-  "outcome": "HIGH_REQUIRES_FULL_GOVERNANCE"
+  "outcome": "HIGH_REQUIRES_FULL_GOVERNANCE",
+  "review_policy": {
+    "review_level": "FULL",
+    "codex_self_check_required": "Yes",
+    "independent_review_required": "Yes",
+    "review_must_happen_before": "implementation_and_completion",
+    "review_must_cover": [
+      "business rule closure",
+      "change impact coverage",
+      "execution plan",
+      "verification plan",
+      "test evidence",
+      "execution assurance",
+      "completion evidence"
+    ],
+    "review_source": "review_loop_or_project_native_review",
+    "skip_full_review_reason": "HIGH tasks cannot skip the full review chain."
+  }
 }
 ```
 

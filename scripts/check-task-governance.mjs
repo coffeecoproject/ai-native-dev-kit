@@ -46,6 +46,7 @@ const requiredSections = [
   "Excluded High-Impact Surfaces",
   "Required Before Implementation Review",
   "Required Before Completion Claim",
+  "Review Policy",
   "Existing Project Mapping",
   "Source Chain",
   "Lightweight Close-Out",
@@ -205,6 +206,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
 
   checkSourceChain(label, projectRoot, file, evidence);
   checkExistingProjectMapping(label, evidence);
+  checkReviewPolicy(label, evidence);
   checkTierRules(label, evidence);
   checkMarkdownConsistency(content, label, evidence);
 }
@@ -322,10 +324,121 @@ function checkSourceChain(label, root, file, evidence) {
 
 function checkExistingProjectMapping(label, evidence) {
   for (const mapping of evidence.existing_project_mapping || []) {
+    checkProjectNativeEvidenceBinding(label, mapping);
     if (mapping.mapping_state === "STRONGER") {
       if (mapping.stronger_project_rule_preserved === "Yes") pass(`${label} preserves stronger project-native rule`);
       else fail(`${label} STRONGER project-native rule must be preserved`);
     }
+  }
+}
+
+function checkReviewPolicy(label, evidence) {
+  const impact = evidence.impact_classification?.task_impact;
+  const policy = evidence.review_policy || {};
+  const coverage = new Set(policy.review_must_cover || []);
+  const expected = {
+    LOW: {
+      review_level: "LIGHTWEIGHT",
+      independent_review_required: "No",
+      review_must_happen_before: "completion_claim",
+      review_source: "codex_self_check",
+      coverage: ["scope unchanged", "excluded high-impact surfaces", "minimal verification or explicit reason", "unrelated edits check"],
+    },
+    MEDIUM: {
+      review_level: "TARGETED",
+      independent_review_required: "Conditional",
+      review_must_happen_before: "completion_claim",
+      review_source: "targeted_checker_or_project_review",
+      coverage: ["short plan", "bounded impact surface", "excluded high-impact surfaces", "targeted verification", "unrelated edits check"],
+    },
+    POSSIBLE_HIGH: {
+      review_level: "BLOCKING_CLARIFICATION",
+      independent_review_required: "Yes",
+      review_must_happen_before: "implementation_review",
+      review_source: "human_or_read_only_inspection",
+      coverage: ["clarification or read-only inspection", "high-impact surface decision", "upgrade or downgrade rationale"],
+    },
+    HIGH: {
+      review_level: "FULL",
+      independent_review_required: "Yes",
+      review_must_happen_before: "implementation_and_completion",
+      review_source: "review_loop_or_project_native_review",
+      coverage: ["business rule closure", "change impact coverage", "execution plan", "verification plan", "test evidence", "execution assurance", "completion evidence"],
+    },
+  }[impact];
+
+  if (!expected) return;
+  if (policy.review_level === expected.review_level) pass(`${label} review level matches ${impact}`);
+  else fail(`${label} review level must be ${expected.review_level} for ${impact}`);
+  if (policy.codex_self_check_required === "Yes") pass(`${label} requires Codex self-check review`);
+  else fail(`${label} must require Codex self-check review`);
+  if (policy.independent_review_required === expected.independent_review_required) pass(`${label} independent review policy matches ${impact}`);
+  else fail(`${label} independent review policy must be ${expected.independent_review_required} for ${impact}`);
+  if (policy.review_must_happen_before === expected.review_must_happen_before) pass(`${label} review timing matches ${impact}`);
+  else fail(`${label} review must happen before ${expected.review_must_happen_before} for ${impact}`);
+  if (policy.review_source === expected.review_source) pass(`${label} review source matches ${impact}`);
+  else fail(`${label} review source must be ${expected.review_source} for ${impact}`);
+  for (const item of expected.coverage) {
+    if (coverage.has(item)) pass(`${label} review policy covers ${item}`);
+    else fail(`${label} review policy must cover ${item} for ${impact}`);
+  }
+  if (policy.skip_full_review_reason) pass(`${label} review policy explains full-review boundary`);
+  else fail(`${label} review policy must explain full-review boundary`);
+}
+
+function checkProjectNativeEvidenceBinding(label, mapping) {
+  const state = mapping.mapping_state;
+  const ref = mapping.project_native_evidence_ref || "";
+  const digestValue = mapping.project_native_evidence_digest || "";
+  const owner = mapping.project_native_evidence_owner || "";
+  const scope = mapping.project_native_evidence_scope || "";
+  const taskMatch = mapping.project_native_task_match || "";
+  const summary = mapping.project_native_evidence_summary || "";
+  const behavior = mapping.required_behavior || "<unknown>";
+
+  if (state === "MISSING") {
+    if (ref === "N/A" && digestValue === "N/A" && owner === "N/A" && scope === "N/A" && taskMatch === "N/A") {
+      pass(`${label} missing project-native mapping for ${behavior} is explicit`);
+    } else {
+      fail(`${label} MISSING project-native mapping for ${behavior} must use N/A ref, digest, owner, scope, and task match`);
+    }
+    if (/missing|no project-native|not supplied|not found/i.test(`${summary}\n${mapping.reason || ""}`)) {
+      pass(`${label} missing project-native mapping for ${behavior} explains the gap`);
+    } else {
+      fail(`${label} MISSING project-native mapping for ${behavior} must explain the missing evidence`);
+    }
+    return;
+  }
+
+  if (["MATCHED", "STRONGER"].includes(state)) {
+    if (ref.startsWith("artifact:")) {
+      const resolved = resolveArtifactRef(projectRoot, path.join(projectRoot, mapping.project_native_evidence_ref.replace(/^artifact:/, "")), ref);
+      if (!resolved) {
+        fail(`${label} project-native evidence for ${behavior} does not resolve: ${ref}`);
+      } else if (digestValue.startsWith("sha256:")) {
+        const actual = digest(fs.readFileSync(resolved, "utf8"));
+        if (digestValue === actual) pass(`${label} project-native evidence digest matches for ${behavior}`);
+        else fail(`${label} project-native evidence digest mismatch for ${behavior}`);
+      } else {
+        fail(`${label} project-native evidence for ${behavior} must include sha256 digest`);
+      }
+    } else {
+      fail(`${label} project-native evidence for ${behavior} must use artifact: ref`);
+    }
+    if (taskMatch === "Yes") pass(`${label} project-native evidence task match is Yes for ${behavior}`);
+    else fail(`${label} project-native evidence for ${behavior} must match the current task`);
+    if (owner && owner !== "N/A" && owner !== "Unknown") pass(`${label} project-native evidence owner recorded for ${behavior}`);
+    else fail(`${label} project-native evidence owner is required for ${behavior}`);
+    if (["task_specific", "project_wide", "release_wide"].includes(scope)) pass(`${label} project-native evidence scope recorded for ${behavior}`);
+    else fail(`${label} project-native evidence scope must be concrete for ${behavior}`);
+    if (summary && summary !== "N/A") pass(`${label} project-native evidence summary recorded for ${behavior}`);
+    else fail(`${label} project-native evidence summary is required for ${behavior}`);
+  }
+
+  if (state === "WEAKER" || state === "NEEDS_OWNER") {
+    if (summary && summary !== "N/A") pass(`${label} ${state} project-native mapping explains ${behavior}`);
+    else fail(`${label} ${state} project-native mapping for ${behavior} needs an evidence summary`);
+    if (state === "NEEDS_OWNER" && owner === "Unknown") pass(`${label} NEEDS_OWNER mapping records unknown owner for ${behavior}`);
   }
 }
 

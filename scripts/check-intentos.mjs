@@ -6138,6 +6138,8 @@ function checkTaskGovernanceProtocol() {
     "bad-task-governance-ignores-1.82-blocker",
     "bad-task-governance-technical-user-prompt",
     "bad-task-governance-stronger-rule-not-preserved",
+    "bad-task-governance-project-native-digest-mismatch",
+    "bad-task-governance-low-wrong-review-policy",
   ];
   const required = [
     "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
@@ -6158,6 +6160,12 @@ function checkTaskGovernanceProtocol() {
     "releases/1.83.0/release-record.md",
     "releases/1.83.0/known-limitations.md",
     "releases/1.83.0/self-check-report.md",
+    "releases/1.83.1/release-record.md",
+    "releases/1.83.1/known-limitations.md",
+    "releases/1.83.1/self-check-report.md",
+    "releases/1.83.2/release-record.md",
+    "releases/1.83.2/known-limitations.md",
+    "releases/1.83.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.83 task governance asset exists ${file}`);
@@ -6177,6 +6185,8 @@ function checkTaskGovernanceProtocol() {
     read("README.md"),
     read("README.zh-CN.md"),
     read("releases/1.83.0/release-record.md"),
+    read("releases/1.83.1/release-record.md"),
+    read("releases/1.83.2/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Behavior-Complete Existing Project Adoption",
@@ -6189,8 +6199,17 @@ function checkTaskGovernanceProtocol() {
     "HIGH",
     "required_before_implementation_review",
     "required_before_completion_claim",
+    "review_policy",
+    "review_level",
+    "LIGHTWEIGHT",
+    "TARGETED",
+    "BLOCKING_CLARIFICATION",
+    "FULL",
     "implementation_authorized_by_this_report",
     "project-native evidence",
+    "project_native_evidence_digest",
+    "project_native_evidence_owner",
+    "project_native_task_match",
     "STRONGER",
     "does not authorize implementation",
   ]) {

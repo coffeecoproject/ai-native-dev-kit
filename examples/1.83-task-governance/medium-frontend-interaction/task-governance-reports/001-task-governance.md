@@ -11,6 +11,7 @@ This report classifies task impact and routes required governance. It does not a
 | Ready for implementation review | `Yes` |
 | Implementation authorized by this report | `No` |
 | Can claim done | `No` |
+| Review level | `TARGETED` |
 
 ## Impact Classification
 
@@ -53,11 +54,23 @@ This report classifies task impact and routes required governance. It does not a
 | Execution Assurance | `No` |
 | Completion Evidence | `No` |
 
+## Review Policy
+
+| Field | Value |
+| --- | --- |
+| Review level | `TARGETED` |
+| Codex self-check required | `Yes` |
+| Independent review required | `Conditional` |
+| Review must happen before | `completion_claim` |
+| Review source | `targeted_checker_or_project_review` |
+| Review must cover | short plan; bounded impact surface; excluded high-impact surfaces; targeted verification; unrelated edits check |
+| Skip full review reason | MEDIUM tasks do not require the full high-impact chain when the affected surface stays local and bounded. |
+
 ## Existing Project Mapping
 
-| Required Behavior | Project-Native Evidence | State | Stronger Rule Preserved | Reason |
-| --- | --- | --- | --- | --- |
-| N/A | N/A | N/A | N/A | N/A |
+| Required Behavior | Project-Native Evidence | Digest | Owner | Scope | Task Match | State | Stronger Rule Preserved | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A |
 
 ## Source Chain
 
@@ -102,12 +115,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.0",
+  "schema_version": "1.83.2",
   "artifact_type": "task_governance",
   "intent": "add local frontend component interaction for a details modal",
   "intent_digest": "sha256:ac2f6fd57676e487353430109ff48ebaf4b8a2ea66b80ecfb89d0bab8017a8b4",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:e43c664b0c5ebb5fe0d36e7e5c3cc5051789599dae69d53dfa061a54fbfc0b3e",
+  "task_governance_digest": "sha256:5951a692dd7d125a7ccd981a73a4c80ec22e847c440eb8f104b3f550c4c781a0",
   "task_ref": "task:add-local-frontend-component-interaction-for-a-details-modal",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -236,7 +249,22 @@ This report classifies task impact and routes required governance. It does not a
     "executes_migrations": "No",
     "changes_ci_or_hooks": "No"
   },
-  "outcome": "MEDIUM_TARGETED_GOVERNANCE"
+  "outcome": "MEDIUM_TARGETED_GOVERNANCE",
+  "review_policy": {
+    "review_level": "TARGETED",
+    "codex_self_check_required": "Yes",
+    "independent_review_required": "Conditional",
+    "review_must_happen_before": "completion_claim",
+    "review_must_cover": [
+      "short plan",
+      "bounded impact surface",
+      "excluded high-impact surfaces",
+      "targeted verification",
+      "unrelated edits check"
+    ],
+    "review_source": "targeted_checker_or_project_review",
+    "skip_full_review_reason": "MEDIUM tasks do not require the full high-impact chain when the affected surface stays local and bounded."
+  }
 }
 ```
 

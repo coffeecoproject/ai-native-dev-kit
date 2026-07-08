@@ -19,5 +19,21 @@ Business Rule Closure, Change Impact Coverage, Execution Plan, and Verification
 Plan before implementation review, then Test Evidence, Execution Assurance, and
 Completion Evidence before completion claims.
 
-Return one plain next step for the user.
+Task grading never means "no review":
 
+- `LOW` uses lightweight self-check review before a completion claim.
+- `MEDIUM` uses targeted review or checker-backed validation before a
+  completion claim.
+- `POSSIBLE_HIGH` blocks implementation review until clarification or read-only
+  inspection resolves the tier.
+- `HIGH` uses full independent review through Review Loop or project-native
+  review evidence.
+
+When an existing project already has its own RFC, QA checklist, session record,
+engineering baseline, release SOP, or gate evidence, you may map that
+project-native evidence to an IntentOS requirement only if the mapping has a
+resolvable artifact ref, matching digest, owner, scope, current-task match, and
+plain summary. Preserve stronger project-native rules. Do not treat an
+unresolved or stale reference as satisfied governance.
+
+Return one plain next step for the user.

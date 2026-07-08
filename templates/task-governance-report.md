@@ -14,6 +14,7 @@ It does not authorize implementation.
 | Ready for implementation review | `No` |
 | Implementation authorized by this report | `No` |
 | Can claim done | `No` |
+| Review level | `<LIGHTWEIGHT/TARGETED/BLOCKING_CLARIFICATION/FULL>` |
 
 ## Impact Classification
 
@@ -51,11 +52,23 @@ It does not authorize implementation.
 | Execution Assurance | `<Yes/No>` |
 | Completion Evidence | `<Yes/No>` |
 
+## Review Policy
+
+| Field | Value |
+| --- | --- |
+| Review level | `<LIGHTWEIGHT/TARGETED/BLOCKING_CLARIFICATION/FULL>` |
+| Codex self-check required | `Yes` |
+| Independent review required | `<Yes/No/Conditional>` |
+| Review must happen before | `<completion_claim/implementation_review/implementation_and_completion>` |
+| Review source | `<codex_self_check/targeted_checker_or_project_review/human_or_read_only_inspection/review_loop_or_project_native_review>` |
+| Review must cover | `<plain coverage items>` |
+| Skip full review reason | `<why full review is or is not required>` |
+
 ## Existing Project Mapping
 
-| Required Behavior | Project-Native Evidence | State | Stronger Rule Preserved | Reason |
-| --- | --- | --- | --- | --- |
-| `<behavior>` | `<artifact/ref>` | `<MATCHED/WEAKER/STRONGER/MISSING/NEEDS_OWNER>` | `<Yes/No/N/A>` | `<reason>` |
+| Required Behavior | Project-Native Evidence | Digest | Owner | Scope | Task Match | State | Stronger Rule Preserved | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `<behavior>` | `<artifact/ref>` | `<sha256 or N/A>` | `<owner or N/A>` | `<task_specific/project_wide/release_wide/N/A>` | `<Yes/No/Unknown/N/A>` | `<MATCHED/WEAKER/STRONGER/MISSING/NEEDS_OWNER>` | `<Yes/No/N/A>` | `<reason>` |
 
 ## Source Chain
 
@@ -99,7 +112,7 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.83.0",
+  "schema_version": "1.83.2",
   "artifact_type": "task_governance",
   "intent": "<intent>",
   "intent_digest": "sha256:<64 hex>",
@@ -145,8 +158,38 @@ It does not authorize implementation.
     "execution_assurance_required": "Yes",
     "completion_evidence_required": "Yes"
   },
+  "review_policy": {
+    "review_level": "FULL",
+    "codex_self_check_required": "Yes",
+    "independent_review_required": "Yes",
+    "review_must_happen_before": "implementation_and_completion",
+    "review_must_cover": [
+      "business rule closure",
+      "change impact coverage",
+      "execution plan",
+      "verification plan",
+      "test evidence",
+      "execution assurance",
+      "completion evidence"
+    ],
+    "review_source": "review_loop_or_project_native_review",
+    "skip_full_review_reason": "HIGH tasks cannot skip the full review chain."
+  },
   "source_chain": [],
-  "existing_project_mapping": [],
+  "existing_project_mapping": [
+    {
+      "required_behavior": "Business Rule Closure",
+      "project_native_evidence_ref": "artifact:docs/project-rfc.md",
+      "project_native_evidence_digest": "sha256:<64 hex>",
+      "project_native_evidence_owner": "Project owner",
+      "project_native_evidence_scope": "task_specific",
+      "project_native_task_match": "Yes",
+      "project_native_evidence_summary": "Project RFC records the user-visible rule, edge cases, and verification expectations.",
+      "mapping_state": "MATCHED",
+      "stronger_project_rule_preserved": "N/A",
+      "reason": "Project RFC covers the required behavior."
+    }
+  ],
   "readiness": {
     "governance_prerequisites_satisfied": "No",
     "ready_for_implementation_review": "No",

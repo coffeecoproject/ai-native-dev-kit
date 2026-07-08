@@ -11,6 +11,7 @@ This report classifies task impact and routes required governance. It does not a
 | Ready for implementation review | `No` |
 | Implementation authorized by this report | `No` |
 | Can claim done | `No` |
+| Review level | `FULL` |
 
 ## Impact Classification
 
@@ -53,12 +54,24 @@ This report classifies task impact and routes required governance. It does not a
 | Execution Assurance | `Yes` |
 | Completion Evidence | `Yes` |
 
+## Review Policy
+
+| Field | Value |
+| --- | --- |
+| Review level | `FULL` |
+| Codex self-check required | `Yes` |
+| Independent review required | `Yes` |
+| Review must happen before | `implementation_and_completion` |
+| Review source | `review_loop_or_project_native_review` |
+| Review must cover | business rule closure; change impact coverage; execution plan; verification plan; test evidence; execution assurance; completion evidence |
+| Skip full review reason | HIGH tasks cannot skip the full review chain. |
+
 ## Existing Project Mapping
 
-| Required Behavior | Project-Native Evidence | State | Stronger Rule Preserved | Reason |
-| --- | --- | --- | --- | --- |
-| Business Rule Closure | artifact:docs/rfc-approval-review-workflow.md | MATCHED | N/A | Project RFC describes user-visible behavior, backend rule, edge cases, audit behavior, and verification expectations. |
-| Verification Plan | artifact:docs/rfc-approval-review-workflow.md | MATCHED | N/A | Project RFC includes concrete transition, rejection, and settlement verification expectations. |
+| Required Behavior | Project-Native Evidence | Digest | Owner | Scope | Task Match | State | Stronger Rule Preserved | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Business Rule Closure | artifact:docs/rfc-approval-review-workflow.md | sha256:167acefe4e69f6b28f85239930a412a5fdbababfd00e630e10973b66e572c899 | Project owner | task_specific | Yes | MATCHED | N/A | Project RFC describes user-visible behavior, backend rule, edge cases, audit behavior, and verification expectations. |
+| Verification Plan | artifact:docs/rfc-approval-review-workflow.md | sha256:167acefe4e69f6b28f85239930a412a5fdbababfd00e630e10973b66e572c899 | Project owner | task_specific | Yes | MATCHED | N/A | Project RFC includes concrete transition, rejection, and settlement verification expectations. |
 
 ## Source Chain
 
@@ -103,12 +116,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.0",
+  "schema_version": "1.83.2",
   "artifact_type": "task_governance",
   "intent": "change approval review workflow state transition with project RFC evidence",
   "intent_digest": "sha256:c1d6bcf27a5e43e9573db4325acf17dc3213b20a8cac1c92c8c456bf63445039",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:ee2cea358e68eb4b3a3272134322347202e930489f850add68a0bdfa8f2892c9",
+  "task_governance_digest": "sha256:e0ba7fa62038e5b875121bc77e9c88535163f6b343c78191e27db66ef0709ad0",
   "task_ref": "task:change-approval-review-workflow-state-transition-with-projec",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -217,14 +230,24 @@ This report classifies task impact and routes required governance. It does not a
       "project_native_evidence_ref": "artifact:docs/rfc-approval-review-workflow.md",
       "mapping_state": "MATCHED",
       "stronger_project_rule_preserved": "N/A",
-      "reason": "Project RFC describes user-visible behavior, backend rule, edge cases, audit behavior, and verification expectations."
+      "reason": "Project RFC describes user-visible behavior, backend rule, edge cases, audit behavior, and verification expectations.",
+      "project_native_evidence_digest": "sha256:167acefe4e69f6b28f85239930a412a5fdbababfd00e630e10973b66e572c899",
+      "project_native_evidence_owner": "Project owner",
+      "project_native_evidence_scope": "task_specific",
+      "project_native_task_match": "Yes",
+      "project_native_evidence_summary": "Project RFC describes user-visible behavior, backend rule, edge cases, audit behavior, and verification expectations."
     },
     {
       "required_behavior": "Verification Plan",
       "project_native_evidence_ref": "artifact:docs/rfc-approval-review-workflow.md",
       "mapping_state": "MATCHED",
       "stronger_project_rule_preserved": "N/A",
-      "reason": "Project RFC includes concrete transition, rejection, and settlement verification expectations."
+      "reason": "Project RFC includes concrete transition, rejection, and settlement verification expectations.",
+      "project_native_evidence_digest": "sha256:167acefe4e69f6b28f85239930a412a5fdbababfd00e630e10973b66e572c899",
+      "project_native_evidence_owner": "Project owner",
+      "project_native_evidence_scope": "task_specific",
+      "project_native_task_match": "Yes",
+      "project_native_evidence_summary": "Project RFC includes concrete transition, rejection, and settlement verification expectations."
     }
   ],
   "readiness": {
@@ -260,7 +283,24 @@ This report classifies task impact and routes required governance. It does not a
     "executes_migrations": "No",
     "changes_ci_or_hooks": "No"
   },
-  "outcome": "HIGH_REQUIRES_FULL_GOVERNANCE"
+  "outcome": "HIGH_REQUIRES_FULL_GOVERNANCE",
+  "review_policy": {
+    "review_level": "FULL",
+    "codex_self_check_required": "Yes",
+    "independent_review_required": "Yes",
+    "review_must_happen_before": "implementation_and_completion",
+    "review_must_cover": [
+      "business rule closure",
+      "change impact coverage",
+      "execution plan",
+      "verification plan",
+      "test evidence",
+      "execution assurance",
+      "completion evidence"
+    ],
+    "review_source": "review_loop_or_project_native_review",
+    "skip_full_review_reason": "HIGH tasks cannot skip the full review chain."
+  }
 }
 ```
 

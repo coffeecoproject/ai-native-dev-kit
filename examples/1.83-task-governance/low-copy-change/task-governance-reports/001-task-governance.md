@@ -11,6 +11,7 @@ This report classifies task impact and routes required governance. It does not a
 | Ready for implementation review | `Yes` |
 | Implementation authorized by this report | `No` |
 | Can claim done | `No` |
+| Review level | `LIGHTWEIGHT` |
 
 ## Impact Classification
 
@@ -53,11 +54,23 @@ This report classifies task impact and routes required governance. It does not a
 | Execution Assurance | `No` |
 | Completion Evidence | `No` |
 
+## Review Policy
+
+| Field | Value |
+| --- | --- |
+| Review level | `LIGHTWEIGHT` |
+| Codex self-check required | `Yes` |
+| Independent review required | `No` |
+| Review must happen before | `completion_claim` |
+| Review source | `codex_self_check` |
+| Review must cover | scope unchanged; excluded high-impact surfaces; minimal verification or explicit reason; unrelated edits check |
+| Skip full review reason | LOW tasks use lightweight review only because no high-impact surface is detected. |
+
 ## Existing Project Mapping
 
-| Required Behavior | Project-Native Evidence | State | Stronger Rule Preserved | Reason |
-| --- | --- | --- | --- | --- |
-| N/A | N/A | N/A | N/A | N/A |
+| Required Behavior | Project-Native Evidence | Digest | Owner | Scope | Task Match | State | Stronger Rule Preserved | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A |
 
 ## Source Chain
 
@@ -102,12 +115,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.0",
+  "schema_version": "1.83.2",
   "artifact_type": "task_governance",
   "intent": "fix button label copy",
   "intent_digest": "sha256:524c53bd06e93c8e3869e71ea8af6ed48c9a44a313981fc6df6abe1968ed7819",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:c545fb25d8ddc820206053f468d5eb78415e919784ec4ef9985b83c54b711072",
+  "task_governance_digest": "sha256:26771677b265d16f8dbc2920f5ea52e9c7fc1cba1cbe7051fe639ee2276db0d6",
   "task_ref": "task:fix-button-label-copy",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -236,7 +249,21 @@ This report classifies task impact and routes required governance. It does not a
     "executes_migrations": "No",
     "changes_ci_or_hooks": "No"
   },
-  "outcome": "LOW_LIGHTWEIGHT_GOVERNANCE"
+  "outcome": "LOW_LIGHTWEIGHT_GOVERNANCE",
+  "review_policy": {
+    "review_level": "LIGHTWEIGHT",
+    "codex_self_check_required": "Yes",
+    "independent_review_required": "No",
+    "review_must_happen_before": "completion_claim",
+    "review_must_cover": [
+      "scope unchanged",
+      "excluded high-impact surfaces",
+      "minimal verification or explicit reason",
+      "unrelated edits check"
+    ],
+    "review_source": "codex_self_check",
+    "skip_full_review_reason": "LOW tasks use lightweight review only because no high-impact surface is detected."
+  }
 }
 ```
 
