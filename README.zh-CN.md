@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.82.0`。
+当前版本：`1.82.1`。
 
-发布记录：[releases/1.82.0/release-record.md](releases/1.82.0/release-record.md)。
+发布记录：[releases/1.82.1/release-record.md](releases/1.82.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -49,6 +49,8 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.82.1 加严 Controlled Native Adoption Review：上游 source blocker 只有确认属于目标项目时才会驱动阻断；治理成熟度和推荐结果必须符合统一矩阵；轻量低风险需要明确低生产敏感性；source trace 会记录 ref、digest、outcome 和 blocker class，方便复查。
 
 1.82.0 新增 Controlled Native Adoption Review：`adopt` 之后，如果老项目想进一步接入，`adopt-review` 会让 Codex 判断项目治理成熟度并推荐最安全的接入深度。强治理项目可以继续部分接入；弱治理或混乱项目先修治理；轻量项目可以准备更深接入计划。它仍然只读，不安装 `.intentos/`、不替换 `AGENTS.md`、不改 CI，也不宣称完整接入。
 

@@ -51,7 +51,7 @@ function buildReport(root) {
     ? path.relative(root, outputPath).replaceAll(path.sep, "/")
     : "native-adoption-review-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.82.0",
+    schema_version: "1.82.1",
     artifact_type: "controlled_native_adoption_review",
     intent,
     intent_digest: digest(intent),
@@ -73,7 +73,7 @@ function buildReport(root) {
   };
   return {
     reportType: "CONTROLLED_NATIVE_ADOPTION_REVIEW",
-    schemaVersion: "1.82.0",
+    schemaVersion: "1.82.1",
     generatedBy: "scripts/resolve-controlled-native-adoption-review.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -137,13 +137,29 @@ function resolveSource(name, role, authority, script, root, extraArgs) {
   });
   const parsed = parseJson(result.stdout);
   const ok = result.status === 0 && parsed;
+  const summary = ok ? sourceSummaryFor(name, parsed) : normalizeLine(result.stderr || result.stdout || `${name} unavailable`);
+  const outcome = ok ? sourceOutcomeFor(name, parsed) : "UNAVAILABLE";
+  const blockerClass = sourceBlockerClassFor(name, parsed, summary, ok);
   return {
     name,
     role,
     authority,
     status: ok ? sourceStatusFor(name, parsed) : "UNAVAILABLE",
-    summary: ok ? sourceSummaryFor(name, parsed) : normalizeLine(result.stderr || result.stdout || `${name} unavailable`),
+    summary,
+    ref: `resolver:${script}`,
+    digest: digest(result.stdout || result.stderr || `${name}:empty-output`),
+    source_outcome: outcome,
+    current_project_match: currentProjectMatchFor(root, blockerClass, ok),
+    blocker_class: blockerClass,
   };
+}
+
+function currentProjectMatchFor(root, blockerClass, ok) {
+  if (!ok) return "Unknown";
+  const insideKit = root === kitRoot || root.startsWith(`${kitRoot}${path.sep}`);
+  const hasOwnGit = fs.existsSync(path.join(root, ".git"));
+  if (blockerClass === "dirty_or_unsafe" && insideKit && !hasOwnGit) return "No";
+  return "Yes";
 }
 
 function projectSignalSource(root) {
@@ -160,8 +176,13 @@ function projectSignalSource(root) {
     name: "project_signals",
     role: "filesystem governance signals",
     authority: "project_signal",
-    status: signals.exists ? "RECORDED" : "BLOCKED",
-    summary: signals.exists ? `present=${present.join(",") || "basic project only"}` : "target project not found",
+    status: !signals.exists || signals.dirty ? "BLOCKED" : "RECORDED",
+    summary: signals.exists ? `present=${present.join(",") || "basic project only"}; dirty=${signals.dirty ? "yes" : "no"}` : "target project not found",
+    ref: "project:filesystem-signals",
+    digest: digest(JSON.stringify(signals)),
+    source_outcome: signals.exists ? (signals.dirty ? "DIRTY_WORKTREE_PROJECT" : "PROJECT_SIGNALS_RECORDED") : "TARGET_PROJECT_NOT_FOUND",
+    current_project_match: signals.exists ? "Yes" : "No",
+    blocker_class: !signals.exists ? "project_authority" : signals.dirty ? "dirty_or_unsafe" : "none",
   };
 }
 
@@ -195,6 +216,35 @@ function sourceSummaryFor(name, parsed) {
   return parsed.outcome || parsed.reportType || "recorded";
 }
 
+function sourceOutcomeFor(name, parsed) {
+  if (name === "existing_project_adoption_autopilot") {
+    return parsed.structuredEvidence?.outcome || parsed.outcome || parsed.structuredEvidence?.adoption_state || "RECORDED";
+  }
+  if (name === "native_migration") {
+    return parsed.structuredEvidence?.project_state || parsed.projectState?.state || parsed.outcome || "RECORDED";
+  }
+  if (name === "existing_rule_reconciliation") {
+    return parsed.structuredEvidence?.native_adoption_decision?.recommendation || parsed.outcome || "RECORDED";
+  }
+  if (name === "governance_convergence") {
+    return parsed.structuredEvidence?.convergence_state || parsed.humanSummary?.convergenceState || parsed.outcome || "RECORDED";
+  }
+  if (name === "adoption_assurance") {
+    return parsed.structuredEvidence?.assurance_state || parsed.humanSummary?.assuranceState || parsed.outcome || "RECORDED";
+  }
+  return parsed.outcome || parsed.reportType || "RECORDED";
+}
+
+function sourceBlockerClassFor(name, parsed, summary, ok) {
+  if (!ok) return "unavailable";
+  const text = `${summary}\n${JSON.stringify(parsed)}`;
+  if (/DIRTY_WORKTREE_PROJECT|dirty worktree/i.test(text)) return "dirty_or_unsafe";
+  if (/BLOCKED_BY_PROJECT_AUTHORITY|BLOCKED_NEEDS_OWNER|NEEDS_OWNER|authority boundary|owner/i.test(text)) return "project_authority";
+  if (/BLOCKED_BY_RULE_COVERAGE|omitted=\d*[1-9]\d*|omitted_rules"\s*:\s*[1-9]\d*/i.test(text)) return "rule_coverage";
+  if (/NEEDS_REVIEW|NEEDS_INPUT|CONVERGENCE_BLOCKED/i.test(text)) return "needs_input";
+  return "none";
+}
+
 function maturityFor(signals, sources) {
   const present = [];
   const missing = [];
@@ -208,21 +258,39 @@ function maturityFor(signals, sources) {
   add(signals.hasDocs, "project documents");
   add(signals.hasWorkQueue, "work queue");
 
+  const targetHardBlocker = targetBlockingSourceFor(sources);
+  const lowRiskEvidence = signals.exists
+    && !signals.productionSensitive
+    && !signals.hasCi
+    && !signals.hasRelease
+    && !signals.hasApplyChain
+    && !signals.hasWorkQueue;
+  const productionSensitivity = signals.productionSensitive ? "yes" : lowRiskEvidence ? "no" : "unknown";
   let state = "WEAK_GOVERNANCE_PROJECT";
   if (!signals.exists) state = "UNKNOWN_OR_OWNERLESS_PROJECT";
   else if (signals.dirty) state = "DIRTY_OR_UNSAFE_PROJECT";
+  else if (targetHardBlocker?.blocker_class === "dirty_or_unsafe") state = "DIRTY_OR_UNSAFE_PROJECT";
+  else if (targetHardBlocker?.blocker_class === "project_authority") state = "UNKNOWN_OR_OWNERLESS_PROJECT";
   else if (signals.productionSensitive && missing.length >= 3) state = "MESSY_PRODUCTION_PROJECT";
   else if (present.length >= 6 && signals.hasRelease && signals.hasCi) state = "STRONG_GOVERNED_PROJECT";
-  else if (!signals.productionSensitive && present.length <= 3) state = "LIGHT_LOW_RISK_PROJECT";
+  else if (lowRiskEvidence && present.length <= 3) state = "LIGHT_LOW_RISK_PROJECT";
 
   return {
     state,
     confidence: state === "WEAK_GOVERNANCE_PROJECT" ? "medium" : "high",
     signals_present: present.length > 0 ? present : ["basic project path"],
     signals_missing: missing.length > 0 ? missing : ["no major governance gaps detected"],
-    production_sensitivity: signals.productionSensitive ? "yes" : signals.exists ? "unknown" : "unknown",
+    production_sensitivity: productionSensitivity,
     recommended_adoption_depth: adoptionDepthFor(state),
   };
+}
+
+function targetBlockingSourceFor(sources) {
+  return sources.find((source) => {
+    if (source.status !== "BLOCKED") return false;
+    if (!["dirty_or_unsafe", "project_authority"].includes(source.blocker_class)) return false;
+    return source.current_project_match === "Yes";
+  });
 }
 
 function adoptionDepthFor(state) {

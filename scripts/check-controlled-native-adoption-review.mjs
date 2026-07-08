@@ -159,7 +159,10 @@ function checkReport(file) {
   }
   const userText = [
     sectionBody(content, "Human Summary") || "",
+    sectionBody(content, "Recommended Actions") || "",
+    sectionBody(content, "Blocked Actions") || "",
     sectionBody(content, "Human Decisions") || "",
+    sectionBody(content, "Risk / Verification / Rollback") || "",
   ].join("\n");
   for (const pattern of userBurdenPatterns) {
     if (pattern.test(userText)) fail(`${label} exposes technical adoption decision to user: ${pattern.source}`);
@@ -209,22 +212,23 @@ function checkStructuredEvidence(content, label, file, evidence) {
   const sourceEvidence = (evidence.source_chain || []).filter((source) => source.authority === "source_evidence");
   if (sourceEvidence.length > 0) pass(`${label} source chain includes source evidence`);
   else fail(`${label} must not rely only on derived adoption card`);
+  for (const source of evidence.source_chain || []) {
+    if (source.ref && /^sha256:[a-f0-9]{64}$/.test(source.digest || "") && source.source_outcome && source.current_project_match && source.blocker_class) {
+      pass(`${label} source ${source.name} has trace ref, digest, outcome, project match, and blocker class`);
+    } else {
+      fail(`${label} source ${source.name || "<unknown>"} must include ref, digest, source_outcome, current_project_match, and blocker_class`);
+    }
+  }
   const adoptionCard = (evidence.source_chain || []).find((source) => source.name === "existing_project_adoption_autopilot");
   if (!adoptionCard || adoptionCard.authority === "derived_view") pass(`${label} adoption card is derived view only`);
   else fail(`${label} adoption card must be marked derived_view`);
 
   const maturity = evidence.governance_maturity?.state;
+  const maturityDepth = evidence.governance_maturity?.recommended_adoption_depth;
   const recommendationClass = evidence.adoption_recommendation?.recommendation_class;
-  if (maturity === "WEAK_GOVERNANCE_PROJECT" && recommendationClass === "KEEP_PARTIAL_ADOPTION") {
-    fail(`${label} weak governance project must not be left partial without repair path`);
-  } else {
-    pass(`${label} weak-governance under-migration rule satisfied`);
-  }
-  if (maturity === "STRONG_GOVERNED_PROJECT" && recommendationClass === "SELECTED_NATIVE_PLAN_ONLY") {
-    fail(`${label} strong governed project must not be pushed to native assets without value case`);
-  } else {
-    pass(`${label} strong-governed over-migration rule satisfied`);
-  }
+  const outcome = evidence.outcome;
+  checkMaturityMatrix(label, maturity, maturityDepth, recommendationClass, outcome, evidence);
+  checkSourceBlockers(label, evidence);
   if (evidence.risk_verification_rollback?.risk_summary
     && evidence.risk_verification_rollback?.verification_required
     && evidence.risk_verification_rollback?.rollback_plan_required) {
@@ -233,6 +237,80 @@ function checkStructuredEvidence(content, label, file, evidence) {
     fail(`${label} must record risk, verification, and rollback`);
   }
   checkMarkdownConsistency(content, label, evidence);
+}
+
+function checkMaturityMatrix(label, maturity, maturityDepth, recommendationClass, outcome, evidence) {
+  const matrix = {
+    STRONG_GOVERNED_PROJECT: {
+      classes: ["KEEP_PARTIAL_ADOPTION"],
+      outcomes: ["RECOMMEND_STAY_PARTIAL"],
+    },
+    WEAK_GOVERNANCE_PROJECT: {
+      classes: ["GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN"],
+      outcomes: ["RECOMMEND_GOVERNANCE_REPAIR"],
+    },
+    MESSY_PRODUCTION_PROJECT: {
+      classes: ["GOVERNANCE_REPAIR_ONLY"],
+      outcomes: ["RECOMMEND_GOVERNANCE_REPAIR"],
+    },
+    LIGHT_LOW_RISK_PROJECT: {
+      classes: ["SELECTED_NATIVE_PLAN_ONLY"],
+      outcomes: ["READY_FOR_SELECTED_NATIVE_PLAN_ONLY"],
+    },
+    UNKNOWN_OR_OWNERLESS_PROJECT: {
+      classes: ["BLOCK_NATIVE_ADOPTION"],
+      outcomes: ["BLOCKED_BY_PROJECT_AUTHORITY"],
+    },
+    DIRTY_OR_UNSAFE_PROJECT: {
+      classes: ["BLOCK_NATIVE_ADOPTION"],
+      outcomes: ["BLOCKED_BY_UNSAFE_PROJECT_STATE"],
+    },
+  };
+  const rule = matrix[maturity];
+  if (!rule) {
+    fail(`${label} has unknown governance maturity ${maturity || "<missing>"}`);
+    return;
+  }
+  if (rule.classes.includes(recommendationClass)) pass(`${label} maturity ${maturity} allows recommendation class ${recommendationClass}`);
+  else fail(`${label} maturity ${maturity} must not use recommendation class ${recommendationClass || "<missing>"}`);
+  if (rule.outcomes.includes(outcome)) pass(`${label} maturity ${maturity} allows outcome ${outcome}`);
+  else fail(`${label} maturity ${maturity} must not use outcome ${outcome || "<missing>"}`);
+  if (maturityDepth === recommendationClass) pass(`${label} maturity adoption depth matches recommendation class`);
+  else fail(`${label} governance_maturity.recommended_adoption_depth must match adoption_recommendation.recommendation_class`);
+  if (maturity === "LIGHT_LOW_RISK_PROJECT") {
+    if (evidence.governance_maturity?.production_sensitivity === "no") pass(`${label} light low-risk project has explicit low production sensitivity`);
+    else fail(`${label} LIGHT_LOW_RISK_PROJECT requires production_sensitivity = no`);
+  }
+}
+
+function checkSourceBlockers(label, evidence) {
+  const targetBlockers = (evidence.source_chain || []).filter((source) => source.status === "BLOCKED"
+    && source.current_project_match === "Yes"
+    && ["dirty_or_unsafe", "project_authority"].includes(source.blocker_class));
+  if (targetBlockers.length === 0) {
+    pass(`${label} source blocker consistency satisfied`);
+    return;
+  }
+  const hasDirty = targetBlockers.some((source) => source.blocker_class === "dirty_or_unsafe");
+  const hasAuthority = targetBlockers.some((source) => source.blocker_class === "project_authority");
+  if (hasDirty) {
+    if (evidence.governance_maturity?.state === "DIRTY_OR_UNSAFE_PROJECT"
+      && evidence.adoption_recommendation?.recommendation_class === "BLOCK_NATIVE_ADOPTION"
+      && evidence.outcome === "BLOCKED_BY_UNSAFE_PROJECT_STATE") {
+      pass(`${label} dirty/unsafe source blocker drives unsafe blocked recommendation`);
+    } else {
+      fail(`${label} dirty/unsafe source blocker must drive DIRTY_OR_UNSAFE_PROJECT and BLOCKED_BY_UNSAFE_PROJECT_STATE`);
+    }
+  }
+  if (hasAuthority && !hasDirty) {
+    if (evidence.governance_maturity?.state === "UNKNOWN_OR_OWNERLESS_PROJECT"
+      && evidence.adoption_recommendation?.recommendation_class === "BLOCK_NATIVE_ADOPTION"
+      && evidence.outcome === "BLOCKED_BY_PROJECT_AUTHORITY") {
+      pass(`${label} project-authority source blocker drives authority blocked recommendation`);
+    } else {
+      fail(`${label} project-authority source blocker must drive UNKNOWN_OR_OWNERLESS_PROJECT and BLOCKED_BY_PROJECT_AUTHORITY`);
+    }
+  }
 }
 
 function checkMarkdownConsistency(content, label, evidence) {

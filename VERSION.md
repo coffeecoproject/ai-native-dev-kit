@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.82.0`
+Current version: `1.82.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.82.0`
 
 ## Current Release
 
-`1.82.0`
+`1.82.1`
 
 Includes:
+
+- Controlled Native Adoption Review hardening patch `1.82.1`: upstream source
+  blockers must match the target project before they drive blocked
+  recommendations, maturity/recommendation outcomes are checked by a complete
+  matrix, light low-risk requires explicit low production sensitivity, and
+  source traces include refs, digests, outcomes, project-match status, and
+  blocker classes.
+- `1.82.1` remains review-only. It does not write target-project files, install
+  `.intentos/`, replace `AGENTS.md`, change CI, approve implementation, approve
+  release, or claim full adoption.
 
 - Controlled Native Adoption Review phase `1.82.0`: adds `adopt-review` and
   `adopt-review-check` so Codex can judge existing-project governance maturity

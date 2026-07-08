@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.82.0`
+`1.82.1`
 
 ## Project Version File
 
@@ -19,6 +19,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.82.1` hardens Controlled Native Adoption Review source blocker handling,
+  maturity/recommendation matrix validation, low-risk calibration, and source
+  trace refs/digests while remaining review-only.
 - `1.82.0` adds Controlled Native Adoption Review. `adopt-review` recommends
   existing-project adoption depth from read-only maturity evidence, but does not
   apply files, install `.intentos/`, replace project governance, or claim full

@@ -73,12 +73,12 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
 
 ```json
 {
-  "schema_version": "1.82.0",
+  "schema_version": "1.82.1",
   "artifact_type": "controlled_native_adoption_review",
   "intent": "review deeper IntentOS adoption",
   "intent_digest": "sha256:70b82208f6e25c57bbfa1523b6c4df7344e6774be83c4b686f8247af44099c5a",
   "review_ref": "native-adoption-review-reports/001-review.md",
-  "review_digest": "sha256:85b4d67cc7172277f265721be57cd6c10d36b3d255b35b5c3663ee3fa71ee4f6",
+  "review_digest": "sha256:fee93fa91b6e297f1aeebc16ddb673e77cdfdb814fe31a8e693aa76b6218ddb3",
   "governance_maturity": {
     "state": "WEAK_GOVERNANCE_PROJECT",
     "confidence": "medium",
@@ -94,7 +94,7 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
       "release or rollback policy",
       "work queue"
     ],
-    "production_sensitivity": "unknown",
+    "production_sensitivity": "no",
     "recommended_adoption_depth": "GOVERNANCE_REPAIR_THEN_SELECTED_NATIVE_PLAN"
   },
   "adoption_recommendation": {
@@ -144,42 +144,72 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
       "role": "user-facing summary",
       "authority": "derived_view",
       "status": "BLOCKED",
-      "summary": "state=BLOCKED_BY_UNSAFE_PROJECT_STATE"
+      "summary": "state=BLOCKED_BY_UNSAFE_PROJECT_STATE",
+      "ref": "resolver:resolve-existing-project-adoption-autopilot.mjs",
+      "digest": "sha256:8d0af15c35d1bffb14799d88b72b195ab01fc0da9d69a3722dda9d866a37b9f3",
+      "source_outcome": "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "native_migration",
       "role": "native migration source evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "project=DIRTY_WORKTREE_PROJECT"
+      "summary": "project=DIRTY_WORKTREE_PROJECT",
+      "ref": "resolver:resolve-native-migration.mjs",
+      "digest": "sha256:f4875b916c9574585781de029180e2c55e23a23fbe3fadf80a2226ea84747dd8",
+      "source_outcome": "DIRTY_WORKTREE_PROJECT",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "existing_rule_reconciliation",
       "role": "maturity evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "recommendation=BLOCKED_BY_DIRTY_WORKTREE; omitted=0"
+      "summary": "recommendation=BLOCKED_BY_DIRTY_WORKTREE; omitted=0",
+      "ref": "resolver:resolve-existing-rule-reconciliation.mjs",
+      "digest": "sha256:526aadefcce4c6473354e03d801b40197209bb9610b0dbb5c94889282d23201e",
+      "source_outcome": "BLOCKED_BY_DIRTY_WORKTREE",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "governance_convergence",
       "role": "daily workflow convergence evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "state=CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE"
+      "summary": "state=CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
+      "ref": "resolver:resolve-governance-convergence.mjs",
+      "digest": "sha256:b399442ef36bd777467ab24c6159a410e8d501185d9c02a964ebecdd50aebdd7",
+      "source_outcome": "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "adoption_assurance",
       "role": "adoption assurance evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "state=BLOCKED_BY_PROJECT_AUTHORITY"
+      "summary": "state=BLOCKED_BY_PROJECT_AUTHORITY",
+      "ref": "resolver:resolve-adoption-assurance.mjs",
+      "digest": "sha256:dc9a5f7cf5ca72471bec75f585c959c82ae387f71214bae41888b785d55cda59",
+      "source_outcome": "BLOCKED_BY_PROJECT_AUTHORITY",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "project_signals",
       "role": "filesystem governance signals",
       "authority": "project_signal",
       "status": "RECORDED",
-      "summary": "present=agents,engineering-baseline,environment-baseline,tests"
+      "summary": "present=agents,engineering-baseline,environment-baseline,tests; dirty=no",
+      "ref": "project:filesystem-signals",
+      "digest": "sha256:dfba2830341d50d9df4636ac547f153c57ec6da263d6b98b5af57bf3c88b293a",
+      "source_outcome": "PROJECT_SIGNALS_RECORDED",
+      "current_project_match": "Yes",
+      "blocker_class": "none"
     }
   ],
   "risk_verification_rollback": {

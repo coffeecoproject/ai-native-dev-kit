@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.82.0",
+  "intentOSVersion": "1.82.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.82.0"
+    "phase": "1.82.1"
   },
   "groups": {
     "sourceRequired": [
@@ -302,6 +302,7 @@
       "docs/plans/baseline-pack-system-1.13-plan.md",
       "docs/plans/baseline-selection-precision-calibration-1.19-plan.md",
       "docs/plans/beginner-entry-1.35-plan.md",
+      "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
       "docs/plans/bl2-industrial-baseline-deepening-1.16-plan.md",
       "docs/plans/business-rule-closure-1.75-plan.md",
       "docs/plans/change-boundary-baseline-state-1.12-plan.md",
@@ -2608,9 +2609,16 @@
       "examples/1.82-controlled-native-adoption-review/weak-governance-repair/native-adoption-review-reports/001-review.md",
       "examples/1.82-controlled-native-adoption-review/messy-production-repair-only/native-adoption-review-reports/001-review.md",
       "examples/1.82-controlled-native-adoption-review/light-plan-only/native-adoption-review-reports/001-review.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-dirty-plan-only/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-unknown-owner-repair/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-messy-selected-plan/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-maturity-depth-drift/native-adoption-review-reports/001-bad.md",
       "releases/1.82.0/release-record.md",
       "releases/1.82.0/known-limitations.md",
-      "releases/1.82.0/self-check-report.md"
+      "releases/1.82.0/self-check-report.md",
+      "releases/1.82.1/release-record.md",
+      "releases/1.82.1/known-limitations.md",
+      "releases/1.82.1/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -8482,9 +8490,16 @@
       "examples/1.82-controlled-native-adoption-review/weak-governance-repair/native-adoption-review-reports/001-review.md",
       "examples/1.82-controlled-native-adoption-review/messy-production-repair-only/native-adoption-review-reports/001-review.md",
       "examples/1.82-controlled-native-adoption-review/light-plan-only/native-adoption-review-reports/001-review.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-dirty-plan-only/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-unknown-owner-repair/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-messy-selected-plan/native-adoption-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-native-adoption-review-maturity-depth-drift/native-adoption-review-reports/001-bad.md",
       "releases/1.82.0/release-record.md",
       "releases/1.82.0/known-limitations.md",
-      "releases/1.82.0/self-check-report.md"
+      "releases/1.82.0/self-check-report.md",
+      "releases/1.82.1/release-record.md",
+      "releases/1.82.1/known-limitations.md",
+      "releases/1.82.1/self-check-report.md"
     ]
   }
 }

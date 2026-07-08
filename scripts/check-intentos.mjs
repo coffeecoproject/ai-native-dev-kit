@@ -5962,6 +5962,12 @@ function checkControlledNativeAdoptionReviewProtocol() {
     "messy-production-repair-only",
     "light-plan-only",
   ];
+  const badFixtures = [
+    "bad-controlled-native-adoption-review-dirty-plan-only",
+    "bad-controlled-native-adoption-review-unknown-owner-repair",
+    "bad-controlled-native-adoption-review-messy-selected-plan",
+    "bad-controlled-native-adoption-review-maturity-depth-drift",
+  ];
   const required = [
     "docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md",
     "core/controlled-native-adoption-autopilot-review.md",
@@ -5975,9 +5981,13 @@ function checkControlledNativeAdoptionReviewProtocol() {
     "scripts/check-controlled-native-adoption-review.mjs",
     "examples/1.82-controlled-native-adoption-review/README.md",
     ...examples.map((example) => `examples/1.82-controlled-native-adoption-review/${example}/native-adoption-review-reports/001-review.md`),
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/native-adoption-review-reports/001-bad.md`),
     "releases/1.82.0/release-record.md",
     "releases/1.82.0/known-limitations.md",
     "releases/1.82.0/self-check-report.md",
+    "releases/1.82.1/release-record.md",
+    "releases/1.82.1/known-limitations.md",
+    "releases/1.82.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.82 controlled native adoption review asset exists ${file}`);
@@ -5998,6 +6008,7 @@ function checkControlledNativeAdoptionReviewProtocol() {
     read("README.zh-CN.md"),
     read("docs/reference/scripts.md"),
     read("releases/1.82.0/release-record.md"),
+    read("releases/1.82.1/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Controlled Native Adoption Review",
@@ -6008,6 +6019,10 @@ function checkControlledNativeAdoptionReviewProtocol() {
     "does not write target-project files",
     "source evidence",
     "derived_view",
+    "source_outcome",
+    "current_project_match",
+    "blocker_class",
+    "maturity adoption depth matches recommendation class",
     "native_apply_allowed",
     "STRONG_GOVERNED_PROJECT",
     "WEAK_GOVERNANCE_PROJECT",
@@ -6076,6 +6091,13 @@ function checkControlledNativeAdoptionReviewProtocol() {
     const result = runNode(["scripts/check-controlled-native-adoption-review.mjs", target, "--require-structured-evidence"]);
     if (result.status === 0) pass(`1.82 controlled native adoption review example passes strict checker ${target}`);
     else fail(`1.82 controlled native adoption review example failed ${target}: ${result.stderr || result.stdout}`);
+  }
+
+  for (const fixture of badFixtures) {
+    const target = `test-fixtures/bad/${fixture}`;
+    const result = runNode(["scripts/check-controlled-native-adoption-review.mjs", target, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.82 controlled native adoption review rejects ${fixture}`);
+    else fail(`1.82 controlled native adoption review must reject ${fixture}`);
   }
 
   const cliHelp = runNode(["scripts/cli.mjs", "--help"]);

@@ -73,12 +73,12 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
 
 ```json
 {
-  "schema_version": "1.82.0",
+  "schema_version": "1.82.1",
   "artifact_type": "controlled_native_adoption_review",
   "intent": "review deeper IntentOS adoption",
   "intent_digest": "sha256:70b82208f6e25c57bbfa1523b6c4df7344e6774be83c4b686f8247af44099c5a",
   "review_ref": "native-adoption-review-reports/001-review.md",
-  "review_digest": "sha256:6b51ebec761677535cb04719f95ab1090f5b55aafab3391b5705816bed491715",
+  "review_digest": "sha256:57f04590e88069e842fa11ed06d636a63436764ec4171da8faf1f3832e57f424",
   "governance_maturity": {
     "state": "MESSY_PRODUCTION_PROJECT",
     "confidence": "high",
@@ -144,42 +144,72 @@ This report is a read-only maturity and adoption-depth recommendation. It does n
       "role": "user-facing summary",
       "authority": "derived_view",
       "status": "BLOCKED",
-      "summary": "state=BLOCKED_BY_UNSAFE_PROJECT_STATE"
+      "summary": "state=BLOCKED_BY_UNSAFE_PROJECT_STATE",
+      "ref": "resolver:resolve-existing-project-adoption-autopilot.mjs",
+      "digest": "sha256:16c5e5d7a8a0fcdb4467c1ac39c3b9d2f130189dffb5b7625a3572dade438894",
+      "source_outcome": "BLOCKED_BY_UNSAFE_PROJECT_STATE",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "native_migration",
       "role": "native migration source evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "project=DIRTY_WORKTREE_PROJECT"
+      "summary": "project=DIRTY_WORKTREE_PROJECT",
+      "ref": "resolver:resolve-native-migration.mjs",
+      "digest": "sha256:3fa593c5a72477192dc43491eefb3719d58c17ffdd9b6a3a4e19d92d31c0ec59",
+      "source_outcome": "DIRTY_WORKTREE_PROJECT",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "existing_rule_reconciliation",
       "role": "maturity evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "recommendation=BLOCKED_BY_DIRTY_WORKTREE; omitted=0"
+      "summary": "recommendation=BLOCKED_BY_DIRTY_WORKTREE; omitted=0",
+      "ref": "resolver:resolve-existing-rule-reconciliation.mjs",
+      "digest": "sha256:4b84eef76bbd225dc6b5a381c4896cf938d540cfee5d2cdceb2608637c793851",
+      "source_outcome": "BLOCKED_BY_DIRTY_WORKTREE",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "governance_convergence",
       "role": "daily workflow convergence evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "state=CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE"
+      "summary": "state=CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
+      "ref": "resolver:resolve-governance-convergence.mjs",
+      "digest": "sha256:03fe4eaf0d3894a9de8e6eed97a333c30bb576d836d0a5e52a7534196e8e68ab",
+      "source_outcome": "CONVERGENCE_BLOCKED_BY_DIRTY_WORKTREE",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "adoption_assurance",
       "role": "adoption assurance evidence",
       "authority": "source_evidence",
       "status": "BLOCKED",
-      "summary": "state=BLOCKED_BY_UPSTREAM_EVIDENCE"
+      "summary": "state=BLOCKED_BY_UPSTREAM_EVIDENCE",
+      "ref": "resolver:resolve-adoption-assurance.mjs",
+      "digest": "sha256:5b8be7a7f3bcda0d42b857987bc4ff5172ca978972ae6186b5467c72b34852a5",
+      "source_outcome": "BLOCKED_BY_UPSTREAM_EVIDENCE",
+      "current_project_match": "No",
+      "blocker_class": "dirty_or_unsafe"
     },
     {
       "name": "project_signals",
       "role": "filesystem governance signals",
       "authority": "project_signal",
       "status": "RECORDED",
-      "summary": "present=ci"
+      "summary": "present=ci; dirty=no",
+      "ref": "project:filesystem-signals",
+      "digest": "sha256:5c54c10f80fda5cfef1d91ffe8b26bcd0fe39a7ccb7bcf21c268ed15e2239a47",
+      "source_outcome": "PROJECT_SIGNALS_RECORDED",
+      "current_project_match": "Yes",
+      "blocker_class": "none"
     }
   ],
   "risk_verification_rollback": {

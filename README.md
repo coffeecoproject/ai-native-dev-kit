@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.82.0`.
+Current release: `1.82.1`.
 
-Release record: [releases/1.82.0/release-record.md](releases/1.82.0/release-record.md).
+Release record: [releases/1.82.1/release-record.md](releases/1.82.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -49,6 +49,12 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.82.1 hardens Controlled Native Adoption Review: upstream source blockers now
+drive blocked recommendations only when they match the target project, maturity
+and recommendation must follow one matrix, light low-risk needs explicit low
+production sensitivity, and source trace records refs, digests, outcomes, and
+blocker classes.
 
 1.82.0 adds Controlled Native Adoption Review: after `adopt` says IntentOS is
 available as a safe working method, `adopt-review` lets Codex judge the old

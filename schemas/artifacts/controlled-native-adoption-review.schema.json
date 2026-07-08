@@ -22,7 +22,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.82.0" },
+    "schema_version": { "const": "1.82.1" },
     "artifact_type": { "const": "controlled_native_adoption_review" },
     "intent": { "type": "string", "minLength": 1 },
     "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -166,13 +166,38 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "role", "authority", "status", "summary"],
+        "required": [
+          "name",
+          "role",
+          "authority",
+          "status",
+          "summary",
+          "ref",
+          "digest",
+          "source_outcome",
+          "current_project_match",
+          "blocker_class"
+        ],
         "properties": {
           "name": { "type": "string", "minLength": 1 },
           "role": { "type": "string", "minLength": 1 },
           "authority": { "enum": ["derived_view", "source_evidence", "project_signal"] },
           "status": { "enum": ["RECORDED", "NEEDS_INPUT", "BLOCKED", "UNAVAILABLE"] },
-          "summary": { "type": "string", "minLength": 1 }
+          "summary": { "type": "string", "minLength": 1 },
+          "ref": { "type": "string", "minLength": 1 },
+          "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "source_outcome": { "type": "string", "minLength": 1 },
+          "current_project_match": { "enum": ["Yes", "No", "Unknown"] },
+          "blocker_class": {
+            "enum": [
+              "none",
+              "dirty_or_unsafe",
+              "project_authority",
+              "rule_coverage",
+              "needs_input",
+              "unavailable"
+            ]
+          }
         }
       }
     },
