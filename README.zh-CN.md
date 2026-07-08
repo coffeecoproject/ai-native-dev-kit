@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.85.1`。
+当前版本：`1.86.0`。
 
-发布记录：[releases/1.85.1/release-record.md](releases/1.85.1/release-record.md)。
+发布记录：[releases/1.86.0/release-record.md](releases/1.86.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -45,6 +45,10 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 项目是否已有可靠任务体系、是否需要建立 IntentOS Work Queue、是否因为风险
 必须停止接管。它只决定未来任务入口，不授权实现。
 
+`runtime-hygiene` 是交付运行时检查。它会判断分支历史、提交范围、本地门禁、
+CI、发布通道、制品配额和发布包体积问题，但不批准提交、推送、发布、生产、
+删除制品、绕过门禁或强推。
+
 先读这几页：
 
 - [Start Here](docs/start-here.md)
@@ -54,6 +58,13 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.86.0 新增 Execution And Release Runtime Hygiene：当任务已经实现或准备交付时，
+Codex 可以判断分支过旧、提交混杂、本地门禁失败、CI 失败、发布预检、制品配额、
+发布包过大和生产副作用不明等问题。
+
+1.86.0 仍然不授权执行。它不写目标项目文件、不批准提交/推送、不批准发布/生产、
+不绕过项目门禁、不删除制品、不强推，也不移除证据。
 
 1.85.1 加严 Task Governance Consumer Integration：严格任务消费检查会验证
 被引用的 Work Queue 和 Task Governance 来源证据，证明 Work Queue item 和同一份

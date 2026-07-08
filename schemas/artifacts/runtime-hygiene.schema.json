@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/runtime-hygiene.schema.json",
+  "title": "Runtime Hygiene Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "runtime_hygiene_ref",
+    "runtime_hygiene_digest",
+    "task_ref",
+    "work_queue_item_ref",
+    "task_governance_ref",
+    "operation",
+    "runtime_class",
+    "decision_state",
+    "plain_user_summary",
+    "plain_next_step",
+    "technical_terms_required",
+    "git_context",
+    "gate_context",
+    "release_context",
+    "artifact_context",
+    "bundle_context",
+    "boundaries",
+    "required_approval",
+    "task_continuation",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.86.0" },
+    "artifact_type": { "const": "runtime_hygiene" },
+    "runtime_hygiene_ref": { "type": "string", "minLength": 1 },
+    "runtime_hygiene_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "work_queue_item_ref": { "type": "string", "minLength": 1 },
+    "task_governance_ref": { "type": "string", "minLength": 1 },
+    "operation": {
+      "enum": ["commit", "push", "ci", "release", "artifact-cleanup", "bundle-slimming"]
+    },
+    "runtime_class": {
+      "enum": [
+        "GIT_LINEAGE_DIRTY",
+        "COMMIT_SCOPE_MIXED",
+        "PRE_PUSH_GATE_FAILED",
+        "STRUCTURE_BUDGET_EXCEEDED",
+        "CI_CODE_FAILURE",
+        "CI_ENVIRONMENT_FAILURE",
+        "RELEASE_PREFLIGHT_FAILED",
+        "ARTIFACT_QUOTA_BLOCKED",
+        "RELEASE_BUNDLE_OVERSIZED",
+        "PRODUCTION_SIDE_EFFECT_UNKNOWN",
+        "PRODUCTION_SIDE_EFFECT_PRESENT"
+      ]
+    },
+    "decision_state": {
+      "enum": [
+        "CAN_CONTINUE_AUTOMATICALLY",
+        "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR",
+        "NEEDS_PLAIN_USER_APPROVAL",
+        "NEEDS_RELEASE_OWNER_APPROVAL",
+        "BLOCKED_BY_IRREVERSIBLE_ACTION",
+        "BLOCKED_BY_PRODUCTION_SIDE_EFFECT",
+        "BLOCKED_BY_UNCLEAR_TASK_SCOPE"
+      ]
+    },
+    "plain_user_summary": { "type": "string", "minLength": 1 },
+    "plain_next_step": { "type": "string", "minLength": 1 },
+    "technical_terms_required": { "const": "No" },
+    "git_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch",
+        "upstream",
+        "origin_main_fresh",
+        "ahead_count",
+        "behind_count",
+        "current_task_commit_isolated",
+        "force_push_required"
+      ],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "upstream": { "type": "string", "minLength": 1 },
+        "origin_main_fresh": { "enum": ["Yes", "No", "Unknown"] },
+        "ahead_count": { "type": "integer" },
+        "behind_count": { "type": "integer" },
+        "current_task_commit_isolated": { "enum": ["Yes", "No", "Unknown"] },
+        "force_push_required": { "enum": ["Yes", "No", "Unknown"] }
+      }
+    },
+    "gate_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_name",
+        "exit_code",
+        "failure_class",
+        "current_task_related",
+        "bypass_recommended"
+      ],
+      "properties": {
+        "gate_name": { "type": "string", "minLength": 1 },
+        "exit_code": { "type": "string", "minLength": 1 },
+        "failure_class": { "type": "string", "minLength": 1 },
+        "current_task_related": { "enum": ["Yes", "No", "Unknown"] },
+        "bypass_recommended": { "enum": ["Yes", "No"] }
+      }
+    },
+    "release_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_state",
+        "production_touched",
+        "release_id_reusable",
+        "release_owner_required"
+      ],
+      "properties": {
+        "lane_state": {
+          "enum": [
+            "PREFLIGHT_ONLY",
+            "BUNDLE_CREATED",
+            "TEST_LANE_STARTED",
+            "PROD_FREEZE_ENTERED",
+            "PROD_DEPLOY_STARTED",
+            "PROD_DEPLOY_DONE",
+            "UNKNOWN"
+          ]
+        },
+        "production_touched": { "enum": ["Yes", "No", "Unknown"] },
+        "release_id_reusable": { "enum": ["Yes", "No", "Unknown"] },
+        "release_owner_required": { "enum": ["Yes", "No"] }
+      }
+    },
+    "artifact_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_quota_blocked",
+        "artifact_deletion_required",
+        "artifact_deletion_irreversible",
+        "preserve_evidence_artifacts",
+        "preserve_latest_production_bundle"
+      ],
+      "properties": {
+        "artifact_quota_blocked": { "enum": ["Yes", "No", "Unknown"] },
+        "artifact_deletion_required": { "enum": ["Yes", "No", "Unknown"] },
+        "artifact_deletion_irreversible": { "enum": ["Yes", "No", "N/A"] },
+        "preserve_evidence_artifacts": { "const": "Yes" },
+        "preserve_latest_production_bundle": { "enum": ["Yes", "No", "Unknown"] }
+      }
+    },
+    "bundle_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bundle_size_status",
+        "suspected_non_runtime_content",
+        "evidence_removed",
+        "bundle_slimming_recommended"
+      ],
+      "properties": {
+        "bundle_size_status": { "enum": ["OK", "WARN", "BLOCKED", "Unknown"] },
+        "suspected_non_runtime_content": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidence_removed": { "enum": ["Yes", "No"] },
+        "bundle_slimming_recommended": { "enum": ["Yes", "No"] }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "approves_commit_or_push",
+        "approves_release_or_production",
+        "bypasses_gates",
+        "deletes_artifacts",
+        "changes_production",
+        "force_pushes"
+      ],
+      "properties": {
+        "writes_target_files": { "const": "No" },
+        "approves_commit_or_push": { "const": "No" },
+        "approves_release_or_production": { "const": "No" },
+        "bypasses_gates": { "const": "No" },
+        "deletes_artifacts": { "const": "No" },
+        "changes_production": { "const": "No" },
+        "force_pushes": { "const": "No" }
+      }
+    },
+    "required_approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval_required", "approval_reason", "approval_scope"],
+      "properties": {
+        "approval_required": { "enum": ["Yes", "No"] },
+        "approval_reason": { "type": "string", "minLength": 1 },
+        "approval_scope": { "type": "string", "minLength": 1 }
+      }
+    },
+    "task_continuation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_remains_open", "resume_action", "work_queue_update_required"],
+      "properties": {
+        "task_remains_open": { "enum": ["Yes", "No"] },
+        "resume_action": { "type": "string", "minLength": 1 },
+        "work_queue_update_required": { "enum": ["Yes", "No"] }
+      }
+    },
+    "outcome": {
+      "enum": [
+        "CAN_CONTINUE_AUTOMATICALLY",
+        "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR",
+        "NEEDS_PLAIN_USER_APPROVAL",
+        "NEEDS_RELEASE_OWNER_APPROVAL",
+        "BLOCKED_BY_IRREVERSIBLE_ACTION",
+        "BLOCKED_BY_PRODUCTION_SIDE_EFFECT",
+        "BLOCKED_BY_UNCLEAR_TASK_SCOPE"
+      ]
+    }
+  }
+}

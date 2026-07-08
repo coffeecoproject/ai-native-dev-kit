@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.85.1`.
+Current release: `1.86.0`.
 
-Release record: [releases/1.85.1/release-record.md](releases/1.85.1/release-record.md).
+Release record: [releases/1.86.0/release-record.md](releases/1.86.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -46,6 +46,11 @@ project already has a reliable task system, has messy TODO/session records, has
 no task system, or is unsafe to take over. It can recommend IntentOS Work Queue
 as the future task authority, but it still does not authorize implementation.
 
+`runtime-hygiene` is the delivery-runtime review. It classifies Git lineage,
+pre-push gates, CI failures, release lanes, artifact quota, and bundle bloat
+without approving commit, push, release, production, deletion, gate bypass, or
+force push.
+
 Start here:
 
 - [Start Here](docs/start-here.md)
@@ -55,6 +60,15 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.86.0 adds Execution And Release Runtime Hygiene. It helps Codex classify
+runtime blockers after a task is implemented or prepared for delivery: stale
+branch state, mixed commits, local gate failures, CI failures, release preflight
+state, artifact quota, oversized bundles, and production side-effect ambiguity.
+
+1.86.0 remains non-authorizing. It does not write target-project files, approve
+commit/push, approve release/production, bypass project gates, delete artifacts,
+force push, or remove evidence.
 
 1.85.1 hardens Task Governance Consumer Integration. Strict task-consumer
 checks now validate referenced Work Queue and Task Governance source evidence,

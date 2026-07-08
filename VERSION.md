@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.85.1`
+Current version: `1.86.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.85.1`
 
 ## Current Release
 
-`1.85.1`
+`1.86.0`
 
 Includes:
+
+- Execution And Release Runtime Hygiene phase `1.86.0`: Git lineage, mixed
+  commit scope, pre-push gates, CI runtime failures, release lanes, artifact
+  quota, oversized bundles, and production side-effect ambiguity now have a
+  shared runtime-hygiene classifier and checker.
+- `1.86.0` remains non-authorizing. It does not write target-project files,
+  approve commit/push, approve release/production, bypass project gates, delete
+  artifacts, force push, or remove evidence.
 
 - Task Entry Joint Binding And Source Validation patch `1.85.1`: strict
   task-consumer checks now validate referenced Work Queue and Task Governance

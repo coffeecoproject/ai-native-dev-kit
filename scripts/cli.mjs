@@ -607,6 +607,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "runtime-hygiene": {
+    description: "Diagnose Git, push, CI, artifact, bundle, or release-runtime blockers without approving destructive actions.",
+    script: "scripts/resolve-runtime-hygiene.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "runtime-hygiene-check": {
+    description: "Check recorded Runtime Hygiene reports for safe continuation and non-authorizing boundaries.",
+    script: "scripts/check-runtime-hygiene.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "hook-plan": {
     description: "Recommend hook orchestration candidates without installing hooks, changing CI, or adding gates.",
     script: "scripts/resolve-hook-orchestration.mjs",
@@ -804,7 +816,7 @@ function printHelp() {
   printCommandGroup(["start", "adopt", "adopt-review", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
-  printCommandGroup(["ask", "guide", "task-governance", "status", "finish", "completion-evidence", "execution-assurance", "release-guide", "release-plan", "release-evidence", "apply-plan"]);
+  printCommandGroup(["ask", "guide", "task-governance", "status", "finish", "completion-evidence", "execution-assurance", "runtime-hygiene", "release-guide", "release-plan", "release-evidence", "apply-plan"]);
   console.log("");
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
@@ -820,6 +832,7 @@ function printHelp() {
     "finish",
     "completion-evidence",
     "execution-assurance",
+    "runtime-hygiene",
     "release-guide",
     "release-plan",
     "release-evidence",
@@ -839,6 +852,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs completion-evidence-check ../my-project --require-structured-evidence --require-ready");
   console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制' --out execution-assurance-reports/001-contract-limit.md");
   console.log("  node scripts/cli.mjs execution-assurance-check ../my-project --require-structured-evidence");
+  console.log("  node scripts/cli.mjs runtime-hygiene ../my-project --intent 'push current task'");
   console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");
   console.log("  node scripts/cli.mjs release-evidence ../my-project --intent 'prepare release review'");
   console.log("  node scripts/cli.mjs apply-plan ../my-project --intent '接入 IntentOS 工作流' --action workflow-assets");

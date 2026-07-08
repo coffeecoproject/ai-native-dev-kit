@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.85.1`
+`1.86.0`
 
 ## Project Version File
 
@@ -19,6 +19,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.86.0` adds Execution And Release Runtime Hygiene: Git lineage, mixed
+  commit scope, pre-push gates, CI runtime failures, release lanes, artifact
+  quota, oversized bundles, and production side-effect ambiguity are classified
+  before Codex claims delivery or release readiness.
+- `1.86.0` remains non-authorizing. It does not write target-project files,
+  approve commit/push, approve release/production, bypass project gates, delete
+  artifacts, force push, or remove evidence.
 - `1.85.1` hardens Task Governance Consumer Integration: strict consumers now
   validate referenced Work Queue and Task Governance source evidence, prove
   the queue item is jointly bound to the same Task Governance record, require

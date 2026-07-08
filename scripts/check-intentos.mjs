@@ -6596,6 +6596,189 @@ function checkTaskGovernanceConsumerIntegrationProtocol() {
   }
 }
 
+function checkRuntimeHygieneProtocol() {
+  const examples = [
+    "git-old-branch-rebase-plan",
+    "pre-push-structure-gate",
+    "ci-environment-retry",
+    "release-artifact-quota-preflight",
+    "release-bundle-evidence-bloat",
+  ];
+  const badFixtures = [
+    "bad-runtime-hygiene-force-push-without-approval",
+    "bad-runtime-hygiene-bypasses-pre-push",
+    "bad-runtime-hygiene-claims-done-after-gate-fail",
+    "bad-runtime-hygiene-artifact-delete-without-approval",
+    "bad-runtime-hygiene-deletes-release-evidence",
+    "bad-runtime-hygiene-reuses-release-id-after-prod-touch",
+    "bad-runtime-hygiene-unknown-production-side-effect-continues",
+    "bad-runtime-hygiene-bundle-slimming-deletes-evidence",
+    "bad-runtime-hygiene-technical-user-burden",
+  ];
+  const required = [
+    "docs/plans/execution-release-runtime-hygiene-1.86-plan.md",
+    "core/execution-release-runtime-hygiene.md",
+    "docs/execution-release-runtime-hygiene.md",
+    "templates/runtime-hygiene-report.md",
+    "schemas/artifacts/runtime-hygiene.schema.json",
+    "checklists/runtime-hygiene-review.md",
+    "prompts/runtime-hygiene-agent.md",
+    "runtime-hygiene-reports/.gitkeep",
+    "scripts/resolve-runtime-hygiene.mjs",
+    "scripts/check-runtime-hygiene.mjs",
+    "examples/1.86-runtime-hygiene/README.md",
+    "examples/1.86-runtime-hygiene/git-old-branch-rebase-plan/runtime-hygiene-reports/001-git-old-branch.md",
+    "examples/1.86-runtime-hygiene/pre-push-structure-gate/runtime-hygiene-reports/001-pre-push-structure-gate.md",
+    "examples/1.86-runtime-hygiene/ci-environment-retry/runtime-hygiene-reports/001-ci-environment-retry.md",
+    "examples/1.86-runtime-hygiene/release-artifact-quota-preflight/runtime-hygiene-reports/001-artifact-quota.md",
+    "examples/1.86-runtime-hygiene/release-bundle-evidence-bloat/runtime-hygiene-reports/001-bundle-evidence-bloat.md",
+    ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/runtime-hygiene-reports/001-bad.md`),
+    "releases/1.86.0/release-record.md",
+    "releases/1.86.0/known-limitations.md",
+    "releases/1.86.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.86 runtime hygiene asset exists ${file}`);
+    else fail(`1.86 runtime hygiene asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/execution-release-runtime-hygiene-1.86-plan.md"),
+    read("core/execution-release-runtime-hygiene.md"),
+    read("docs/execution-release-runtime-hygiene.md"),
+    read("templates/runtime-hygiene-report.md"),
+    read("schemas/artifacts/runtime-hygiene.schema.json"),
+    read("checklists/runtime-hygiene-review.md"),
+    read("prompts/runtime-hygiene-agent.md"),
+    read("scripts/resolve-runtime-hygiene.mjs"),
+    read("scripts/check-runtime-hygiene.mjs"),
+    read("README.md"),
+    read("README.zh-CN.md"),
+    read("releases/1.86.0/release-record.md"),
+    read("releases/1.86.0/known-limitations.md"),
+    read("releases/1.86.0/self-check-report.md"),
+  ].join("\n");
+  for (const marker of [
+    "Execution And Release Runtime Hygiene",
+    "runtime_hygiene",
+    "runtime-hygiene",
+    "runtime-hygiene-check",
+    "GIT_LINEAGE_DIRTY",
+    "COMMIT_SCOPE_MIXED",
+    "PRE_PUSH_GATE_FAILED",
+    "STRUCTURE_BUDGET_EXCEEDED",
+    "CI_CODE_FAILURE",
+    "CI_ENVIRONMENT_FAILURE",
+    "RELEASE_PREFLIGHT_FAILED",
+    "ARTIFACT_QUOTA_BLOCKED",
+    "RELEASE_BUNDLE_OVERSIZED",
+    "PRODUCTION_SIDE_EFFECT_UNKNOWN",
+    "PRODUCTION_SIDE_EFFECT_PRESENT",
+    "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR",
+    "NEEDS_RELEASE_OWNER_APPROVAL",
+    "NEEDS_PLAIN_USER_APPROVAL",
+    "BLOCKED_BY_PRODUCTION_SIDE_EFFECT",
+    "BLOCKED_BY_UNCLEAR_TASK_SCOPE",
+    "runtime_hygiene_digest",
+    "technical_terms_required",
+    "approves commit or push: No",
+    "approves release or production: No",
+    "bypasses gates: No",
+    "deletes artifacts: No",
+    "force pushes: No",
+    "does not approve commit",
+  ]) {
+    if (combined.includes(marker)) pass(`1.86 runtime hygiene includes ${marker}`);
+    else fail(`1.86 runtime hygiene missing ${marker}`);
+  }
+
+  const pkg = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(pkg.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, command]) => command)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-runtime-hygiene.mjs",
+    "node --check scripts/check-runtime-hygiene.mjs",
+    "node scripts/cli.mjs runtime-hygiene . --intent",
+    "node scripts/cli.mjs runtime-hygiene-check . --allow-empty",
+    "node scripts/check-runtime-hygiene.mjs examples/1.86-runtime-hygiene/git-old-branch-rebase-plan --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.86 package verify surface includes ${marker}`);
+    else fail(`1.86 package verify surface missing ${marker}`);
+  }
+
+  const resolver = runNode([
+    "scripts/resolve-runtime-hygiene.mjs",
+    "examples/1.86-runtime-hygiene/pre-push-structure-gate",
+    "--intent",
+    "pre-push structure budget gate failed",
+    "--gate-output",
+    "structure budget failed",
+  ]);
+  if (resolver.status === 0
+    && resolver.stdout.includes("# Runtime Hygiene Report")
+    && resolver.stdout.includes("STRUCTURE_BUDGET_EXCEEDED")
+    && resolver.stdout.includes("CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR")
+    && resolver.stdout.includes("This report approves commit or push: No")
+    && resolver.stdout.includes("This report bypasses gates: No")) {
+    pass("1.86 runtime hygiene resolver prints non-authorizing gate report");
+  } else {
+    fail(`1.86 runtime hygiene resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const absoluteOut = runNode(["scripts/resolve-runtime-hygiene.mjs", ".", "--intent", "push current task", "--out", "/tmp/runtime-hygiene.md"]);
+  if (absoluteOut.status !== 0 && (absoluteOut.stderr || absoluteOut.stdout).includes("--out must be a relative path")) {
+    pass("1.86 runtime hygiene rejects absolute --out path");
+  } else {
+    fail("1.86 runtime hygiene must reject absolute --out path");
+  }
+
+  const sourceCheck = runNode(["scripts/check-runtime-hygiene.mjs", ".", "--allow-empty"]);
+  if (sourceCheck.status === 0 && sourceCheck.stdout.includes("runtime hygiene check skipped by explicit --allow-empty")) {
+    pass("1.86 runtime hygiene checker passes source repo with explicit allow-empty");
+  } else {
+    fail(`1.86 runtime hygiene source checker failed: ${sourceCheck.stderr || sourceCheck.stdout}`);
+  }
+
+  const cliResolver = runNode(["scripts/cli.mjs", "runtime-hygiene", ".", "--intent", "push current task"]);
+  if (cliResolver.status === 0 && cliResolver.stdout.includes("Runtime Hygiene Report")) {
+    pass("CLI runtime-hygiene delegates to resolver");
+  } else {
+    fail(`CLI runtime-hygiene failed: ${cliResolver.stderr || cliResolver.stdout}`);
+  }
+
+  const cliChecker = runNode(["scripts/cli.mjs", "runtime-hygiene-check", ".", "--allow-empty"]);
+  if (cliChecker.status === 0 && cliChecker.stdout.includes("runtime hygiene check skipped by explicit --allow-empty")) {
+    pass("CLI runtime-hygiene-check delegates to checker");
+  } else {
+    fail(`CLI runtime-hygiene-check failed: ${cliChecker.stderr || cliChecker.stdout}`);
+  }
+
+  for (const example of examples) {
+    const target = `examples/1.86-runtime-hygiene/${example}`;
+    const result = runNode(["scripts/check-runtime-hygiene.mjs", target, "--require-structured-evidence"]);
+    if (result.status === 0) pass(`1.86 runtime hygiene example passes strict checker ${target}`);
+    else fail(`1.86 runtime hygiene example failed ${target}: ${result.stderr || result.stdout}`);
+  }
+
+  for (const fixture of badFixtures) {
+    const target = `test-fixtures/bad/${fixture}`;
+    const result = runNode(["scripts/check-runtime-hygiene.mjs", target, "--require-structured-evidence"]);
+    if (result.status !== 0) pass(`1.86 runtime hygiene rejects ${fixture}`);
+    else fail(`1.86 runtime hygiene must reject ${fixture}`);
+  }
+
+  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  if (cliHelp.status === 0
+    && cliHelp.stdout.includes("runtime-hygiene")
+    && cliHelp.stdout.includes("Git, push, CI, artifact, bundle, or release-runtime blockers")) {
+    pass("1.86 CLI help exposes runtime-hygiene");
+  } else {
+    fail(`1.86 CLI help missing runtime-hygiene: ${cliHelp.stderr || cliHelp.stdout}`);
+  }
+}
+
 function checkExecutionAssuranceChainProtocol() {
   const badFixtures = [
     "bad-execution-assurance-no-completion-contract",
@@ -16246,6 +16429,7 @@ checkControlledNativeAdoptionReviewProtocol();
 checkTaskGovernanceProtocol();
 checkWorkQueueTakeoverProtocol();
 checkTaskGovernanceConsumerIntegrationProtocol();
+checkRuntimeHygieneProtocol();
 checkExecutionAssuranceChainProtocol();
 checkDocumentLifecycleProtocol();
 checkDocumentArchiveApplyProtocol();
