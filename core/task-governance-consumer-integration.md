@@ -3,6 +3,10 @@
 Task Governance Consumer Integration makes downstream completion systems consume
 the task-entry decision from Work Queue and Task Governance.
 
+1.85.1 hardens this integration. Strict consumers must prove that the referenced
+Work Queue item and referenced Task Governance report are jointly bound to each
+other, not merely valid in isolation.
+
 It answers one control question:
 
 ```text
@@ -36,6 +40,8 @@ Required binding fields:
 - `work_queue_item_state`
 - `work_queue_item_current_task_match`
 - `approved_resume_review`
+- `resume_review_ref` / `resume_review_digest` / `resume_review_owner` /
+  `resume_review_task_match` when `approved_resume_review` is `Yes`
 - `task_governance_ref`
 - `task_governance_digest`
 - `task_governance_tier`
@@ -48,6 +54,24 @@ Required binding fields:
 - `tier_completion_requirements_satisfied`
 - `unresolved_task_governance_blockers`
 - `plain_user_blocker`
+
+## Strict Source And Joint Binding
+
+Strict consumers must validate referenced Work Queue Takeover and Task
+Governance structured evidence. A consumer cannot pass strict task-consumer
+checks by pointing at a minimal source stub.
+
+Strict consumers must also prove joint binding:
+
+```text
+queueItem.task_governance_ref == binding.task_governance_ref
+queueItem.task_governance_digest == binding.task_governance_digest
+queueItem.task_governance_binding_status == VERIFIED when completion can be claimed
+```
+
+Closure Decision and User Delivery Console are derived views, but in strict
+mode they still need a task ref so the referenced Task Governance report can be
+matched to the current task.
 
 ## Tier Rules
 

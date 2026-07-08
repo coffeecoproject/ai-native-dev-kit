@@ -187,9 +187,10 @@ function checkCards() {
     if (state && !allowedStates.has(state)) pass(`${label} user-facing current state is plain language`);
     else fail(`${label} user-facing current state must be plain language, not internal enum: ${state || "<empty>"}`);
     const taskDone = taskDoneValue(content);
+    const taskRef = taskRefValue(content);
     checkTaskEntryBinding({
       content,
-      evidence: { task_done: taskDone, outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })) },
+      evidence: { task_done: taskDone, outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })), task_ref: taskRef },
       label,
       projectRoot,
       consumer: "user_delivery_console",
@@ -199,6 +200,8 @@ function checkCards() {
       pass,
       fail,
     });
+    if (!strictTaskConsumer || taskRef) pass(`${label} task ref is available for delivery task binding`);
+    else fail(`${label} strict task consumer requires delivery card task ref`);
 
     const decisions = numberedItems(sectionBody(content, "What I Need From You", { fallback: "" }));
     const highRisk = /risk|sensitive|production|payment|permission|security|privacy|compliance|migration/i.test(userSurface);
@@ -398,6 +401,13 @@ function checkSourceEvidence() {
 function currentState(content) {
   const body = sectionBody(content, "Delivery Status", { fallback: "" });
   const row = body.split(/\r?\n/).find((line) => /\|\s*Current state\s*\|/i.test(line));
+  if (!row) return "";
+  return stripPipes(row).split("|")[1]?.replace(/`/g, "").trim() || "";
+}
+
+function taskRefValue(content) {
+  const body = sectionBody(content, "Delivery Status", { fallback: "" });
+  const row = body.split(/\r?\n/).find((line) => /\|\s*Task ref\s*\|/i.test(line));
   if (!row) return "";
   return stripPipes(row).split("|")[1]?.replace(/`/g, "").trim() || "";
 }

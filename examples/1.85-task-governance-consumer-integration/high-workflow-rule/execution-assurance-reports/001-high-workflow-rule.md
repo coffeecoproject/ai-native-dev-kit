@@ -92,8 +92,12 @@ This report is a read-only derived verification view. It does not write target f
 | Work Queue Item State | `CURRENT` |
 | Work Queue Item Current Task Match | `Yes` |
 | Approved Resume Review | `No` |
+| Resume Review Ref | N/A |
+| Resume Review Digest | N/A |
+| Resume Review Owner | N/A |
+| Resume Review Task Match | N/A |
 | Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
-| Task Governance Digest | `sha256:2222222222222222222222222222222222222222222222222222222222222222` |
+| Task Governance Digest | `sha256:a8eb75fcca5ae9dd7c50943ed3550e37dbaf05073ed1f4d1103848d8a89bbad2` |
 | Task Governance Tier | `HIGH` |
 | Task Governance Review Level | `FULL` |
 | Task Governance Task Match | `Yes` |
@@ -229,7 +233,11 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "work_queue_item_current_task_match": "Yes",
     "approved_resume_review": "No",
     "task_governance_ref": "artifact:task-governance-reports/001-task-governance.md",
-    "task_governance_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "resume_review_ref": "N/A",
+    "resume_review_digest": "N/A",
+    "resume_review_owner": "N/A",
+    "resume_review_task_match": "N/A",
+    "task_governance_digest": "sha256:a8eb75fcca5ae9dd7c50943ed3550e37dbaf05073ed1f4d1103848d8a89bbad2",
     "task_governance_tier": "HIGH",
     "task_governance_review_level": "FULL",
     "task_governance_task_match": "Yes",

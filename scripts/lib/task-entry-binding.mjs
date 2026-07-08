@@ -1,7 +1,11 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { extractMachineReadableEvidence } from "./artifact-schema.mjs";
+import {
+  extractMachineReadableEvidence,
+  loadSchema,
+  validateEvidenceBlock,
+} from "./artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./markdown.mjs";
 
 const SHA_RE = /^sha256:[a-f0-9]{64}$/;
@@ -35,16 +39,29 @@ export function checkTaskEntryBinding({
   if (TIERS.has(tier)) pass(`${label} task governance tier is valid`);
   else fail(`${label} task governance tier is invalid: ${tier || "<empty>"}`);
 
+  let workQueueBinding = null;
+  let taskGovernanceBinding = null;
   if (requireWorkQueue || strictTaskConsumer) {
-    checkWorkQueueBinding({ binding, label, projectRoot, pass, fail });
+    workQueueBinding = checkWorkQueueBinding({ binding, label, projectRoot, strictTaskConsumer, pass, fail });
   }
   if (requireTaskGovernance || strictTaskConsumer) {
-    checkTaskGovernanceBinding({ binding, label, projectRoot, consumerEvidence: evidence, pass, fail });
+    taskGovernanceBinding = checkTaskGovernanceBinding({
+      binding,
+      label,
+      projectRoot,
+      consumerEvidence: evidence,
+      strictTaskConsumer,
+      pass,
+      fail,
+    });
+  }
+  if (strictTaskConsumer && workQueueBinding?.item && taskGovernanceBinding?.evidence) {
+    checkJointBinding({ binding, workQueueItem: workQueueBinding.item, label, pass, fail });
   }
   checkTierRules({ binding, tier, label, consumer, evidence, pass, fail });
 }
 
-function checkWorkQueueBinding({ binding, label, projectRoot, pass, fail }) {
+function checkWorkQueueBinding({ binding, label, projectRoot, strictTaskConsumer, pass, fail }) {
   const ref = String(binding.work_queue_item_ref || "").trim();
   const digest = String(binding.work_queue_item_digest || "").trim();
   const state = String(binding.work_queue_item_state || "").trim();
@@ -63,12 +80,23 @@ function checkWorkQueueBinding({ binding, label, projectRoot, pass, fail }) {
   const resolved = resolveArtifact(projectRoot, ref);
   if (!resolved) {
     fail(`${label} work_queue_item_ref does not resolve: ${ref || "<missing>"}`);
-    return;
+    return null;
   }
-  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  const sourceContent = fs.readFileSync(resolved.file, "utf8");
+  if (strictTaskConsumer) {
+    const validation = validateEvidenceBlock(
+      sourceContent,
+      loadSchema(projectRoot, "schemas/artifacts/work-queue-takeover.schema.json"),
+      `${label} referenced Work Queue report`,
+      { require: true, digestField: "work_queue_takeover_digest" },
+    );
+    if (validation.ok) pass(`${label} referenced Work Queue report has valid structured evidence`);
+    else validation.errors.forEach((error) => fail(error));
+  }
+  const extracted = extractMachineReadableEvidence(sourceContent);
   if (!extracted?.ok) {
     fail(`${label} work queue source has invalid Machine-Readable Evidence`);
-    return;
+    return null;
   }
   const items = Array.isArray(extracted.value?.queue_items) ? extracted.value.queue_items : [];
   const item = items.find((candidate) => {
@@ -87,9 +115,10 @@ function checkWorkQueueBinding({ binding, label, projectRoot, pass, fail }) {
   if (["STALE", "RISKY"].includes(sourceStatusFor(extracted.value, item.source_item))) {
     fail(`${label} stale or risky work queue source cannot feed execution/completion`);
   }
+  return { evidence: extracted.value, item, resolved };
 }
 
-function checkTaskGovernanceBinding({ binding, label, projectRoot, consumerEvidence, pass, fail }) {
+function checkTaskGovernanceBinding({ binding, label, projectRoot, consumerEvidence, strictTaskConsumer, pass, fail }) {
   const ref = String(binding.task_governance_ref || "").trim();
   const digest = String(binding.task_governance_digest || "").trim();
   const match = String(binding.task_governance_task_match || "").trim();
@@ -103,12 +132,23 @@ function checkTaskGovernanceBinding({ binding, label, projectRoot, consumerEvide
   const resolved = resolveArtifact(projectRoot, ref);
   if (!resolved) {
     fail(`${label} task_governance_ref does not resolve: ${ref || "<missing>"}`);
-    return;
+    return null;
   }
-  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  const sourceContent = fs.readFileSync(resolved.file, "utf8");
+  if (strictTaskConsumer) {
+    const validation = validateEvidenceBlock(
+      sourceContent,
+      loadSchema(projectRoot, "schemas/artifacts/task-governance.schema.json"),
+      `${label} referenced Task Governance report`,
+      { require: true, digestField: "task_governance_digest" },
+    );
+    if (validation.ok) pass(`${label} referenced Task Governance report has valid structured evidence`);
+    else validation.errors.forEach((error) => fail(error));
+  }
+  const extracted = extractMachineReadableEvidence(sourceContent);
   if (!extracted?.ok) {
     fail(`${label} task governance source has invalid Machine-Readable Evidence`);
-    return;
+    return null;
   }
   const taskGovernance = extracted.value;
   if (taskGovernance.task_governance_digest === digest) pass(`${label} task governance digest matches referenced report`);
@@ -118,14 +158,54 @@ function checkTaskGovernanceBinding({ binding, label, projectRoot, consumerEvide
   } else {
     fail(`${label} task governance tier must match referenced report`);
   }
-  if (!consumerEvidence?.task_ref || taskGovernance.task_ref === consumerEvidence.task_ref) {
+  if (strictTaskConsumer && !consumerEvidence?.task_ref) {
+    fail(`${label} strict task consumer requires consumer task_ref`);
+  } else if (!consumerEvidence?.task_ref || taskGovernance.task_ref === consumerEvidence.task_ref) {
     pass(`${label} task governance task_ref matches consumer task`);
   } else {
     fail(`${label} task governance task_ref ${taskGovernance.task_ref || "<missing>"} must match consumer task ${consumerEvidence.task_ref || "<missing>"}`);
   }
+  return { evidence: taskGovernance, resolved };
+}
+
+function checkJointBinding({ binding, workQueueItem, label, pass, fail }) {
+  if (workQueueItem.task_governance_ref === stripArtifactPrefix(binding.task_governance_ref)) {
+    pass(`${label} work queue item task governance ref matches binding`);
+  } else {
+    fail(`${label} work queue item task governance ref ${workQueueItem.task_governance_ref || "<missing>"} must match binding ${stripArtifactPrefix(binding.task_governance_ref) || "<missing>"}`);
+  }
+  if (workQueueItem.task_governance_digest === binding.task_governance_digest) {
+    pass(`${label} work queue item task governance digest matches binding`);
+  } else {
+    fail(`${label} work queue item task governance digest must match binding task governance digest`);
+  }
+  if (binding.task_governance_blocks_completion === "No") {
+    if (workQueueItem.task_governance_binding_status === "VERIFIED") {
+      pass(`${label} work queue item has verified Task Governance binding`);
+    } else {
+      fail(`${label} work queue item must have VERIFIED Task Governance binding before done-capable consumer claims`);
+    }
+  }
+}
+
+function checkResumeReviewBinding({ binding, label, pass, fail }) {
+  if (String(binding.approved_resume_review || "").trim() !== "Yes") return;
+  const ref = String(binding.resume_review_ref || "").trim();
+  const digest = String(binding.resume_review_digest || "").trim();
+  const owner = String(binding.resume_review_owner || "").trim();
+  const taskMatch = String(binding.resume_review_task_match || "").trim();
+  if (ref && ref !== "N/A") pass(`${label} approved resume review has ref`);
+  else fail(`${label} approved resume review requires resume_review_ref`);
+  if (SHA_RE.test(digest)) pass(`${label} approved resume review has sha256 digest`);
+  else fail(`${label} approved resume review requires sha256 resume_review_digest`);
+  if (owner && owner !== "N/A") pass(`${label} approved resume review has owner`);
+  else fail(`${label} approved resume review requires resume_review_owner`);
+  if (taskMatch === "Yes") pass(`${label} approved resume review matches current task`);
+  else fail(`${label} approved resume review requires resume_review_task_match Yes`);
 }
 
 function checkTierRules({ binding, tier, label, consumer, evidence, pass, fail }) {
+  checkResumeReviewBinding({ binding, label, pass, fail });
   const blockers = Array.isArray(binding.unresolved_task_governance_blockers)
     ? binding.unresolved_task_governance_blockers
     : parseList(binding.unresolved_task_governance_blockers);
@@ -249,6 +329,11 @@ function resolveArtifact(projectRoot, ref) {
     }
   }
   return null;
+}
+
+function stripArtifactPrefix(ref) {
+  const raw = String(ref || "").trim().replace(/^(artifact|file):/, "");
+  return raw.split("#")[0];
 }
 
 export function fileDigest(file) {

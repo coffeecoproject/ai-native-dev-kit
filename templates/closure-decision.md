@@ -13,6 +13,7 @@ What I need from you:
 | Field | Value |
 |---|---|
 | Decision | `NEEDS_EVIDENCE` |
+| Task ref | `{{TASK_REF}}` |
 | Can count as done | No |
 | Plain reason | Evidence is not complete enough to mark this task done. |
 | Final closure source | `UNIFIED_CLOSURE_DECISION` |
@@ -67,6 +68,10 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 | Work Queue Item State | `CURRENT` |
 | Work Queue Item Current Task Match | `Yes` |
 | Approved Resume Review | `No` |
+| Resume Review Ref | N/A |
+| Resume Review Digest | N/A |
+| Resume Review Owner | N/A |
+| Resume Review Task Match | N/A |
 | Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
 | Task Governance Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
 | Task Governance Tier | `MEDIUM` |

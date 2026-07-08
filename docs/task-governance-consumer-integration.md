@@ -12,6 +12,7 @@ That means the final answer must line up with:
 
 - the current Work Queue item;
 - the Task Governance classification;
+- the proof that the queue item and classification point to each other;
 - the required review strength;
 - the required verification evidence.
 
@@ -24,6 +25,11 @@ That means the final answer must line up with:
 1.85 makes the downstream proof chain consume those decisions. Codex should not
 be able to classify a task as high risk, or migrate a current queue item, and
 then later say "done" using unrelated or weaker evidence.
+
+1.85.1 tightens this further: strict checks validate the referenced Work Queue
+and Task Governance reports, require them to be jointly bound, require task
+refs for closure/status views, and require structured resume-review evidence
+when a paused or non-current item is resumed.
 
 ## What Users See
 

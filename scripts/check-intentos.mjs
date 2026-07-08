@@ -6508,6 +6508,9 @@ function checkTaskGovernanceConsumerIntegrationProtocol() {
     "releases/1.85.0/release-record.md",
     "releases/1.85.0/known-limitations.md",
     "releases/1.85.0/self-check-report.md",
+    "releases/1.85.1/release-record.md",
+    "releases/1.85.1/known-limitations.md",
+    "releases/1.85.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.85 task governance consumer asset exists ${file}`);
@@ -6528,6 +6531,7 @@ function checkTaskGovernanceConsumerIntegrationProtocol() {
     read("scripts/check-closure-decision.mjs"),
     read("scripts/check-user-delivery-console.mjs"),
     read("releases/1.85.0/release-record.md"),
+    read("releases/1.85.1/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Task Governance Consumer Integration",
@@ -6540,6 +6544,12 @@ function checkTaskGovernanceConsumerIntegrationProtocol() {
     "work_queue_item_digest",
     "task_governance_ref",
     "task_governance_digest",
+    "validateEvidenceBlock",
+    "checkJointBinding",
+    "resume_review_ref",
+    "strict task consumer requires consumer task_ref",
+    "referenced Work Queue report has valid structured evidence",
+    "referenced Task Governance report has valid structured evidence",
     "POSSIBLE_HIGH",
     "plain user blocker",
     "does not authorize implementation",

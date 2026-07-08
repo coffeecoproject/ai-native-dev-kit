@@ -152,11 +152,12 @@ function checkClosureDecisions() {
     }
 
     const decision = tableValue(content, "Decision");
+    const taskRef = tableValue(content, "Task ref");
     if (allowedDecisions.has(decision)) pass(`${label} has valid closure decision`);
     else fail(`${label} has invalid closure decision: ${decision || "<empty>"}`);
     checkTaskEntryBinding({
       content,
-      evidence: { decision },
+      evidence: { decision, task_ref: taskRef },
       label,
       projectRoot,
       consumer: "closure_decision",
@@ -166,6 +167,8 @@ function checkClosureDecisions() {
       pass,
       fail,
     });
+    if (!strictTaskConsumer || taskRef) pass(`${label} task ref is available for closure task binding`);
+    else fail(`${label} strict task consumer requires Closure Decision Task ref`);
 
     const finalSource = tableValue(content, "Final closure source");
     if (finalSource === "UNIFIED_CLOSURE_DECISION") pass(`${label} declares unified final closure source`);

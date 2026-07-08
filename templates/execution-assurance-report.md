@@ -92,6 +92,10 @@ This report is a read-only derived verification view. It does not write target f
 | Work Queue Item State | `CURRENT` |
 | Work Queue Item Current Task Match | `Yes` |
 | Approved Resume Review | `No` |
+| Resume Review Ref | N/A |
+| Resume Review Digest | N/A |
+| Resume Review Owner | N/A |
+| Resume Review Task Match | N/A |
 | Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
 | Task Governance Digest | `sha256:0000000000000000000000000000000000000000000000000000000000000000` |
 | Task Governance Tier | `MEDIUM` |

@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.85.0`。
+当前版本：`1.85.1`。
 
-发布记录：[releases/1.85.0/release-record.md](releases/1.85.0/release-record.md)。
+发布记录：[releases/1.85.1/release-record.md](releases/1.85.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -54,6 +54,14 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.85.1 加严 Task Governance Consumer Integration：严格任务消费检查会验证
+被引用的 Work Queue 和 Task Governance 来源证据，证明 Work Queue item 和同一份
+Task Governance 记录互相绑定；Closure 和 User Delivery 视图也必须带任务引用；
+非当前任务要继续执行时，必须有结构化 resume review 证据。
+
+1.85.1 仍然不授权实现。它不新增收口系统、不写目标项目文件、不批准实现、
+不单独批准完成、不批准提交/推送、不批准发布/生产，也不替代项目原有审核人。
 
 1.85.0 新增 Task Governance Consumer Integration：Execution Assurance、
 Completion Evidence、Unified Closure 和 User Delivery Console 可以进入严格任务消费模式，

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.85.0`
+Current version: `1.85.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.85.0`
 
 ## Current Release
 
-`1.85.0`
+`1.85.1`
 
 Includes:
+
+- Task Entry Joint Binding And Source Validation patch `1.85.1`: strict
+  task-consumer checks now validate referenced Work Queue and Task Governance
+  source evidence, prove the current queue item is jointly bound to the same
+  Task Governance record, require task refs for Closure/User Delivery views,
+  and structure resume-review evidence.
+- `1.85.1` remains non-authorizing. It does not create a new closure system,
+  write target-project files, approve implementation, approve completion by
+  itself, approve commit/push, approve release/production, or replace
+  project-native reviewers.
 
 - Task Governance Consumer Integration phase `1.85.0`: Execution Assurance,
   Completion Evidence, Unified Closure, and User Delivery Console now have

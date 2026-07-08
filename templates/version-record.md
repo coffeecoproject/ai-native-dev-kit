@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.85.0`
+`1.85.1`
 
 ## Project Version File
 
@@ -19,6 +19,15 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.85.1` hardens Task Governance Consumer Integration: strict consumers now
+  validate referenced Work Queue and Task Governance source evidence, prove
+  the queue item is jointly bound to the same Task Governance record, require
+  task refs for Closure/User Delivery views, and require structured resume
+  review evidence before non-current continuation.
+- `1.85.1` remains non-authorizing. It does not create a new closure system,
+  write target-project files, approve implementation, approve completion by
+  itself, approve commit/push, approve release/production, or replace
+  project-native reviewers.
 - `1.85.0` adds Task Governance Consumer Integration: Execution Assurance,
   Completion Evidence, Unified Closure, and User Delivery Console can verify
   that completion/status claims consume the current Work Queue item and

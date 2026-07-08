@@ -52,8 +52,12 @@ This report is a read-only completion gate. It does not run tests, write target 
 | Work Queue Item State | `CURRENT` |
 | Work Queue Item Current Task Match | `Yes` |
 | Approved Resume Review | `No` |
+| Resume Review Ref | N/A |
+| Resume Review Digest | N/A |
+| Resume Review Owner | N/A |
+| Resume Review Task Match | N/A |
 | Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
-| Task Governance Digest | `sha256:3333333333333333333333333333333333333333333333333333333333333333` |
+| Task Governance Digest | `sha256:764a18e457da3011cd8879b39eb0f03eac52137328975bb7da87ad200dc55327` |
 | Task Governance Tier | `POSSIBLE_HIGH` |
 | Task Governance Review Level | `BLOCKING_CLARIFICATION` |
 | Task Governance Task Match | `Yes` |
@@ -92,7 +96,7 @@ This report is a read-only completion gate. It does not run tests, write target 
   "intent": "possibly change list filter rule may touch data state",
   "intent_digest": "sha256:41246c09558f1a6323e99c08aa7d1208c05ab25bae9d104e00a6a7e91e755e1a",
   "completion_evidence_ref": "artifact:completion-evidence-reports/001-possible-high-blocked.md",
-  "completion_gate_digest": "sha256:a69e3515604f63eeabfba83a99a1bf22ff6314ac31af0e0d2384f0e9fac49055",
+  "completion_gate_digest": "sha256:73147f4a9c3c2cf86924ec486c1e636b73563b9250eb43bb0a52bfa5cfd791a5",
   "completion_state": "BLOCKED_BY_MISSING_SOURCE",
   "can_claim_complete": "No",
   "source_chain": [
@@ -225,7 +229,11 @@ This report is a read-only completion gate. It does not run tests, write target 
     "work_queue_item_current_task_match": "Yes",
     "approved_resume_review": "No",
     "task_governance_ref": "artifact:task-governance-reports/001-task-governance.md",
-    "task_governance_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "resume_review_ref": "N/A",
+    "resume_review_digest": "N/A",
+    "resume_review_owner": "N/A",
+    "resume_review_task_match": "N/A",
+    "task_governance_digest": "sha256:764a18e457da3011cd8879b39eb0f03eac52137328975bb7da87ad200dc55327",
     "task_governance_tier": "POSSIBLE_HIGH",
     "task_governance_review_level": "BLOCKING_CLARIFICATION",
     "task_governance_task_match": "Yes",

@@ -19,6 +19,7 @@ What I need from you: Confirm whether this changes saved data or runtime state.
 | Field | Value |
 |---|---|
 | First version | Review the list filter change safely before coding. |
+| Task ref | `task:possibly-change-list-filter-rule-may-touch-data-state` |
 | Current state | Needs impact clarification |
 | Plain reason | The requested change may affect important behavior and cannot be treated as done yet. |
 
@@ -81,8 +82,12 @@ What I need from you: Confirm whether this changes saved data or runtime state.
 | Work Queue Item State | `CURRENT` |
 | Work Queue Item Current Task Match | `Yes` |
 | Approved Resume Review | `No` |
+| Resume Review Ref | N/A |
+| Resume Review Digest | N/A |
+| Resume Review Owner | N/A |
+| Resume Review Task Match | N/A |
 | Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
-| Task Governance Digest | `sha256:3333333333333333333333333333333333333333333333333333333333333333` |
+| Task Governance Digest | `sha256:764a18e457da3011cd8879b39eb0f03eac52137328975bb7da87ad200dc55327` |
 | Task Governance Tier | `POSSIBLE_HIGH` |
 | Task Governance Review Level | `BLOCKING_CLARIFICATION` |
 | Task Governance Task Match | `Yes` |

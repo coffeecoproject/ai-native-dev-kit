@@ -19,6 +19,7 @@ What I need from you: {{HUMAN_NEED}}
 | Field | Value |
 |---|---|
 | First version | {{FIRST_VERSION}} |
+| Task ref | {{TASK_REF}} |
 | Current state | {{CURRENT_STATE_LABEL}} |
 | Plain reason | {{PLAIN_REASON}} |
 
@@ -78,6 +79,10 @@ What I need from you: {{HUMAN_NEED}}
 | Work Queue Item State | {{WORK_QUEUE_ITEM_STATE}} |
 | Work Queue Item Current Task Match | {{WORK_QUEUE_ITEM_CURRENT_TASK_MATCH}} |
 | Approved Resume Review | {{APPROVED_RESUME_REVIEW}} |
+| Resume Review Ref | {{RESUME_REVIEW_REF}} |
+| Resume Review Digest | {{RESUME_REVIEW_DIGEST}} |
+| Resume Review Owner | {{RESUME_REVIEW_OWNER}} |
+| Resume Review Task Match | {{RESUME_REVIEW_TASK_MATCH}} |
 | Task Governance Ref | {{TASK_GOVERNANCE_REF}} |
 | Task Governance Digest | {{TASK_GOVERNANCE_DIGEST}} |
 | Task Governance Tier | {{TASK_GOVERNANCE_TIER}} |

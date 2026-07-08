@@ -13,6 +13,7 @@ What I need from you: Confirm whether this affects persisted state.
 | Field | Value |
 |---|---|
 | Decision | `BLOCKED` |
+| Task ref | `task:possibly-change-list-filter-rule-may-touch-data-state` |
 | Can count as done | No |
 | Plain reason | Impact is not clear enough to close this task. |
 | Final closure source | `UNIFIED_CLOSURE_DECISION` |
@@ -65,8 +66,12 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 | Work Queue Item State | `CURRENT` |
 | Work Queue Item Current Task Match | `Yes` |
 | Approved Resume Review | `No` |
+| Resume Review Ref | N/A |
+| Resume Review Digest | N/A |
+| Resume Review Owner | N/A |
+| Resume Review Task Match | N/A |
 | Task Governance Ref | `artifact:task-governance-reports/001-task-governance.md` |
-| Task Governance Digest | `sha256:3333333333333333333333333333333333333333333333333333333333333333` |
+| Task Governance Digest | `sha256:764a18e457da3011cd8879b39eb0f03eac52137328975bb7da87ad200dc55327` |
 | Task Governance Tier | `POSSIBLE_HIGH` |
 | Task Governance Review Level | `BLOCKING_CLARIFICATION` |
 | Task Governance Task Match | `Yes` |
