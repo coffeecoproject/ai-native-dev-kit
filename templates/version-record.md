@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.83.2`
+`1.83.3`
 
 ## Project Version File
 
@@ -19,6 +19,15 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.83.3` hardens Task Governance verification status and intent scanning:
+  classifier reports record required/recorded verification status instead of
+  claiming checks are already done, `--out` stays inside the target project,
+  LOW/MEDIUM reports scan the original intent for hidden high-impact wording,
+  project-native mappings clear matching readiness blockers, and user-facing
+  summaries stay plain.
+- `1.83.3` remains non-authorizing. It does not approve implementation,
+  completion, commit/push, release, production, or project-native reviewer
+  replacement.
 - `1.83.2` clarifies tier-specific Task Governance review policy: LOW uses
   lightweight self-check, MEDIUM uses targeted review or checker-backed
   validation, POSSIBLE_HIGH blocks for clarification or read-only inspection,

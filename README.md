@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.83.2`.
+Current release: `1.83.3`.
 
-Release record: [releases/1.83.2/release-record.md](releases/1.83.2/release-record.md).
+Release record: [releases/1.83.3/release-record.md](releases/1.83.3/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -49,6 +49,17 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.83.3 hardens Task Governance for real task execution: verification fields now
+record required/recorded status instead of claiming checks are already done,
+`--out` reports must stay inside the target project, low/medium reports are
+checked against the original intent for hidden high-impact wording, mapped
+project-native evidence clears matching readiness blockers, and user-facing
+summaries must stay plain-language.
+
+1.83.3 remains non-authorizing. It does not write implementation changes,
+approve completion, approve commit/push, approve release/production, or replace
+project-native reviewers.
 
 1.83.2 clarifies review policy after task-impact classification. `LOW` tasks
 still require lightweight self-checks, `MEDIUM` tasks require targeted review

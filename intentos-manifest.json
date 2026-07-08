@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.83.2",
+  "intentOSVersion": "1.83.3",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.83.2"
+    "phase": "1.83.3"
   },
   "groups": {
     "sourceRequired": [
@@ -2665,7 +2665,11 @@
       "test-fixtures/bad/bad-task-governance-low-wrong-review-policy/task-governance-reports/001-bad.md",
       "releases/1.83.2/release-record.md",
       "releases/1.83.2/known-limitations.md",
-      "releases/1.83.2/self-check-report.md"
+      "releases/1.83.2/self-check-report.md",
+      "test-fixtures/bad/bad-task-governance-low-hidden-intent-api/task-governance-reports/001-bad.md",
+      "releases/1.83.3/release-record.md",
+      "releases/1.83.3/known-limitations.md",
+      "releases/1.83.3/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",

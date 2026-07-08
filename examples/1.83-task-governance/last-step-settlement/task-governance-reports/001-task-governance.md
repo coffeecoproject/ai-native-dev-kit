@@ -6,6 +6,7 @@ This report classifies task impact and routes required governance. It does not a
 
 | Field | Value |
 | --- | --- |
+| Plain user summary | 这个需求影响较大。我会先梳理业务规则、影响范围和验证方式，再进入实现。 |
 | Task impact | `HIGH` |
 | Plain next step | 这个任务影响较大。我会先整理业务规则、影响面、执行计划和验证清单，再进入实现评审。 |
 | Ready for implementation review | `No` |
@@ -85,8 +86,8 @@ This report classifies task impact and routes required governance. It does not a
 | Field | Value |
 | --- | --- |
 | Scope unchanged | `N/A` |
-| Minimal verification done | `N/A` |
-| Targeted verification done | `N/A` |
+| Minimal verification status | `NOT_APPLICABLE_WITH_REASON` |
+| Targeted verification status | `NOT_APPLICABLE_WITH_REASON` |
 | Unrelated edits | `No` |
 | Remaining risk | High-impact governance is required before implementation review. |
 
@@ -116,12 +117,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.2",
+  "schema_version": "1.83.3",
   "artifact_type": "task_governance",
   "intent": "change last step settlement finalization workflow state",
   "intent_digest": "sha256:1c5ffec07ad37b4a9d06c41ac8bd714093d04cf96ab806a10d466d3674e85a65",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:f91e9855fc90fad1176dc0e6b44175822514897791f025a3ef11b845356e83d5",
+  "task_governance_digest": "sha256:1bab1c5d9e788fb1e519b7e04c92e5d77b2eb96bb557f505ea3e285abbaf600c",
   "task_ref": "task:change-last-step-settlement-finalization-workflow-state",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -265,14 +266,15 @@ This report classifies task impact and routes required governance. It does not a
   },
   "lightweight_closeout": {
     "scope_unchanged": "N/A",
-    "minimal_verification_done": "N/A",
-    "targeted_verification_done": "N/A",
     "unrelated_edits": "No",
-    "remaining_risk": "High-impact governance is required before implementation review."
+    "remaining_risk": "High-impact governance is required before implementation review.",
+    "minimal_verification_status": "NOT_APPLICABLE_WITH_REASON",
+    "targeted_verification_status": "NOT_APPLICABLE_WITH_REASON"
   },
   "user_prompt": {
     "plain_next_step": "这个任务影响较大。我会先整理业务规则、影响面、执行计划和验证清单，再进入实现评审。",
-    "technical_terms_required": "No"
+    "technical_terms_required": "No",
+    "plain_user_summary": "这个需求影响较大。我会先梳理业务规则、影响范围和验证方式，再进入实现。"
   },
   "boundaries": {
     "writes_target_files": "No",

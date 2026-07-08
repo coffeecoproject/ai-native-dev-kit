@@ -6,6 +6,7 @@ This report classifies task impact and routes required governance. It does not a
 
 | Field | Value |
 | --- | --- |
+| Plain user summary | 这个需求可能影响数据、权限或流程状态。我会先只读确认影响范围，不直接改代码。 |
 | Task impact | `POSSIBLE_HIGH` |
 | Plain next step | 这个任务可能影响数据、状态或权限。我会先做只读检查确认影响范围，不直接改代码。 |
 | Ready for implementation review | `No` |
@@ -84,8 +85,8 @@ This report classifies task impact and routes required governance. It does not a
 | Field | Value |
 | --- | --- |
 | Scope unchanged | `N/A` |
-| Minimal verification done | `N/A` |
-| Targeted verification done | `N/A` |
+| Minimal verification status | `NOT_APPLICABLE_WITH_REASON` |
+| Targeted verification status | `NOT_APPLICABLE_WITH_REASON` |
 | Unrelated edits | `No` |
 | Remaining risk | Impact is not yet resolved. |
 
@@ -115,12 +116,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.2",
+  "schema_version": "1.83.3",
   "artifact_type": "task_governance",
   "intent": "possibly change list filter rule, may touch data state",
   "intent_digest": "sha256:68c2e064ec03462e4bb7fb8c3e679134c2dc9b3cc74efbeaf917e615a34d63e5",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:5a97ece4a33de8e78dc26e11bca2520ed4268592151cba83f68b8082e7465400",
+  "task_governance_digest": "sha256:8d17c4bf8b898ea4f4bab839fb275537a2ca64d3e12c744da4a1187cb54b38fa",
   "task_ref": "task:possibly-change-list-filter-rule-may-touch-data-state",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -233,14 +234,15 @@ This report classifies task impact and routes required governance. It does not a
   },
   "lightweight_closeout": {
     "scope_unchanged": "N/A",
-    "minimal_verification_done": "N/A",
-    "targeted_verification_done": "N/A",
     "unrelated_edits": "No",
-    "remaining_risk": "Impact is not yet resolved."
+    "remaining_risk": "Impact is not yet resolved.",
+    "minimal_verification_status": "NOT_APPLICABLE_WITH_REASON",
+    "targeted_verification_status": "NOT_APPLICABLE_WITH_REASON"
   },
   "user_prompt": {
     "plain_next_step": "这个任务可能影响数据、状态或权限。我会先做只读检查确认影响范围，不直接改代码。",
-    "technical_terms_required": "No"
+    "technical_terms_required": "No",
+    "plain_user_summary": "这个需求可能影响数据、权限或流程状态。我会先只读确认影响范围，不直接改代码。"
   },
   "boundaries": {
     "writes_target_files": "No",

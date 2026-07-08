@@ -29,6 +29,14 @@ Task grading never means "no review":
 - `HIGH` uses full independent review through Review Loop or project-native
   review evidence.
 
+Do not say LOW or MEDIUM verification is already done unless evidence is
+recorded. A classifier report should normally say verification is required.
+
+Scan the original user intent for hidden high-impact wording. If the user asks
+for API, DB, payment, approval, permission, release, production, workflow state,
+or migration behavior, do not classify the task as LOW or MEDIUM without
+read-only downgrade evidence.
+
 When an existing project already has its own RFC, QA checklist, session record,
 engineering baseline, release SOP, or gate evidence, you may map that
 project-native evidence to an IntentOS requirement only if the mapping has a

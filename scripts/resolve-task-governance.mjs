@@ -43,12 +43,13 @@ function buildReport() {
   const adoptionReview = adoptionReviewFor(projectRoot);
   const requiredBeforeImplementation = requirementsBeforeImplementation(classification.task_impact);
   const requiredBeforeCompletion = requirementsBeforeCompletion(classification.task_impact);
-  const blockedBy = blockersFor(classification.task_impact, adoptionReview, requiredBeforeImplementation, requiredBeforeCompletion);
+  const existingProjectMapping = existingProjectMappingFor(classification.task_impact);
+  const blockedBy = blockersFor(classification.task_impact, adoptionReview, requiredBeforeImplementation, requiredBeforeCompletion, existingProjectMapping);
   const taskGovernanceRef = outputPath
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "task-governance-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.83.2",
+    schema_version: "1.83.3",
     artifact_type: "task_governance",
     intent,
     intent_digest: digest(intent),
@@ -62,7 +63,7 @@ function buildReport() {
     required_before_completion_claim: requiredBeforeCompletion,
     review_policy: reviewPolicyFor(classification.task_impact),
     source_chain: sourceChainFor(intent, classification, adoptionReview),
-    existing_project_mapping: existingProjectMappingFor(classification.task_impact),
+    existing_project_mapping: existingProjectMapping,
     readiness: {
       governance_prerequisites_satisfied: blockedBy.length === 0 ? "Yes" : "No",
       ready_for_implementation_review: blockedBy.length === 0 && classification.task_impact !== "POSSIBLE_HIGH" ? "Yes" : "No",
@@ -72,6 +73,7 @@ function buildReport() {
     },
     lightweight_closeout: lightweightCloseoutFor(classification.task_impact),
     user_prompt: {
+      plain_user_summary: plainUserSummaryFor(classification.task_impact),
       plain_next_step: plainNextStepFor(classification.task_impact),
       technical_terms_required: "No",
     },
@@ -84,7 +86,7 @@ function buildReport() {
   };
   return {
     reportType: "TASK_GOVERNANCE",
-    schemaVersion: "1.83.2",
+    schemaVersion: "1.83.3",
     generatedBy: "scripts/resolve-task-governance.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -284,18 +286,28 @@ function reviewPolicyFor(impact) {
   };
 }
 
-function blockersFor(impact, adoptionReview, beforeImplementation, beforeCompletion) {
+function blockersFor(impact, adoptionReview, beforeImplementation, beforeCompletion, existingProjectMapping = []) {
   const blocked = [];
   if (adoptionReview.blocks_task_governance === "Yes") blocked.push("blocked by current adoption review source");
   if (impact === "POSSIBLE_HIGH") blocked.push("needs clarification or read-only inspection before implementation");
   if (impact === "HIGH") {
-    if (beforeImplementation.business_rule_closure_required === "Yes") blocked.push("missing clear business rule or project-native equivalent");
+    if (beforeImplementation.business_rule_closure_required === "Yes" && !hasMatchedProjectNativeBehavior(existingProjectMapping, "Business Rule Closure")) {
+      blocked.push("missing clear business rule or project-native equivalent");
+    }
     if (beforeImplementation.change_impact_coverage_required === "Yes") blocked.push("missing affected-surface map");
     if (beforeImplementation.execution_plan_required === "Yes") blocked.push("missing durable execution plan");
-    if (beforeImplementation.verification_plan_required === "Yes") blocked.push("missing verification checklist");
+    if (beforeImplementation.verification_plan_required === "Yes" && !hasMatchedProjectNativeBehavior(existingProjectMapping, "Verification Plan")) {
+      blocked.push("missing verification checklist");
+    }
     if (beforeCompletion.test_evidence_required === "Yes") blocked.push("test proof is required before any done claim");
   }
   return blocked;
+}
+
+function hasMatchedProjectNativeBehavior(mappings, behavior) {
+  return mappings.some((mapping) => mapping.required_behavior === behavior
+    && ["MATCHED", "STRONGER"].includes(mapping.mapping_state)
+    && mapping.project_native_task_match === "Yes");
 }
 
 function sourceChainFor(value, classification, adoptionReview) {
@@ -381,28 +393,35 @@ function lightweightCloseoutFor(impact) {
   if (impact === "LOW") {
     return {
       scope_unchanged: "Yes",
-      minimal_verification_done: "Yes",
-      targeted_verification_done: "N/A",
+      minimal_verification_status: "REQUIRED",
+      targeted_verification_status: "NOT_APPLICABLE_WITH_REASON",
       unrelated_edits: "No",
-      remaining_risk: "None identified by read-only classification.",
+      remaining_risk: "Minimal verification is required before a completion claim; none is performed by this read-only classifier.",
     };
   }
   if (impact === "MEDIUM") {
     return {
       scope_unchanged: "Yes",
-      minimal_verification_done: "N/A",
-      targeted_verification_done: "Yes",
+      minimal_verification_status: "NOT_APPLICABLE_WITH_REASON",
+      targeted_verification_status: "REQUIRED",
       unrelated_edits: "No",
-      remaining_risk: "Targeted verification is still required during execution.",
+      remaining_risk: "Targeted verification is required before a completion claim; none is performed by this read-only classifier.",
     };
   }
   return {
     scope_unchanged: "N/A",
-    minimal_verification_done: "N/A",
-    targeted_verification_done: "N/A",
+    minimal_verification_status: "NOT_APPLICABLE_WITH_REASON",
+    targeted_verification_status: "NOT_APPLICABLE_WITH_REASON",
     unrelated_edits: "No",
     remaining_risk: impact === "POSSIBLE_HIGH" ? "Impact is not yet resolved." : "High-impact governance is required before implementation review.",
   };
+}
+
+function plainUserSummaryFor(impact) {
+  if (impact === "LOW") return "这是小改动。我会保持范围很小，并在完成前做轻量检查。";
+  if (impact === "MEDIUM") return "这是局部功能改动。我会先确认影响范围，再做针对性检查。";
+  if (impact === "POSSIBLE_HIGH") return "这个需求可能影响数据、权限或流程状态。我会先只读确认影响范围，不直接改代码。";
+  return "这个需求影响较大。我会先梳理业务规则、影响范围和验证方式，再进入实现。";
 }
 
 function plainNextStepFor(impact) {
@@ -453,6 +472,7 @@ This report classifies task impact and routes required governance. It does not a
 
 | Field | Value |
 | --- | --- |
+| Plain user summary | ${evidence.user_prompt.plain_user_summary} |
 | Task impact | \`${impact.task_impact}\` |
 | Plain next step | ${evidence.user_prompt.plain_next_step} |
 | Ready for implementation review | \`${evidence.readiness.ready_for_implementation_review}\` |
@@ -525,8 +545,8 @@ ${sourceRows}
 | Field | Value |
 | --- | --- |
 | Scope unchanged | \`${evidence.lightweight_closeout.scope_unchanged}\` |
-| Minimal verification done | \`${evidence.lightweight_closeout.minimal_verification_done}\` |
-| Targeted verification done | \`${evidence.lightweight_closeout.targeted_verification_done}\` |
+| Minimal verification status | \`${evidence.lightweight_closeout.minimal_verification_status}\` |
+| Targeted verification status | \`${evidence.lightweight_closeout.targeted_verification_status}\` |
 | Unrelated edits | \`${evidence.lightweight_closeout.unrelated_edits}\` |
 | Remaining risk | ${evidence.lightweight_closeout.remaining_risk || "none"} |
 
@@ -673,7 +693,10 @@ function markdownFiles(dir) {
 }
 
 function resolveOutputPath(root, requested) {
-  if (path.isAbsolute(requested)) return requested;
+  if (path.isAbsolute(requested)) {
+    console.error(`FAIL --out must be a relative path inside target project: ${requested}`);
+    process.exit(1);
+  }
   const resolved = path.resolve(root, requested);
   const relative = path.relative(root, resolved);
   if (relative.startsWith("..") || path.isAbsolute(relative)) {

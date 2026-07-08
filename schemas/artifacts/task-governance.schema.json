@@ -27,7 +27,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "enum": ["1.83.0", "1.83.1", "1.83.2"] },
+    "schema_version": { "enum": ["1.83.0", "1.83.1", "1.83.2", "1.83.3"] },
     "artifact_type": { "const": "task_governance" },
     "intent": { "type": "string", "minLength": 1 },
     "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -264,15 +264,19 @@
       "additionalProperties": false,
       "required": [
         "scope_unchanged",
-        "minimal_verification_done",
-        "targeted_verification_done",
+        "minimal_verification_status",
+        "targeted_verification_status",
         "unrelated_edits",
         "remaining_risk"
       ],
       "properties": {
         "scope_unchanged": { "enum": ["Yes", "No", "N/A"] },
-        "minimal_verification_done": { "enum": ["Yes", "No", "N/A"] },
-        "targeted_verification_done": { "enum": ["Yes", "No", "N/A"] },
+        "minimal_verification_status": {
+          "enum": ["REQUIRED", "NOT_RUN", "RECORDED", "NOT_APPLICABLE_WITH_REASON"]
+        },
+        "targeted_verification_status": {
+          "enum": ["REQUIRED", "NOT_RUN", "RECORDED", "NOT_APPLICABLE_WITH_REASON"]
+        },
         "unrelated_edits": { "enum": ["Yes", "No"] },
         "remaining_risk": { "type": "string" }
       }
@@ -280,8 +284,9 @@
     "user_prompt": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["plain_next_step", "technical_terms_required"],
+      "required": ["plain_user_summary", "plain_next_step", "technical_terms_required"],
       "properties": {
+        "plain_user_summary": { "type": "string", "minLength": 1 },
         "plain_next_step": { "type": "string", "minLength": 1 },
         "technical_terms_required": { "enum": ["Yes", "No"] }
       }

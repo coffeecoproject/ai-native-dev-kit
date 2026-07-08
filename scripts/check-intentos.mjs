@@ -6140,6 +6140,7 @@ function checkTaskGovernanceProtocol() {
     "bad-task-governance-stronger-rule-not-preserved",
     "bad-task-governance-project-native-digest-mismatch",
     "bad-task-governance-low-wrong-review-policy",
+    "bad-task-governance-low-hidden-intent-api",
   ];
   const required = [
     "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
@@ -6166,6 +6167,9 @@ function checkTaskGovernanceProtocol() {
     "releases/1.83.2/release-record.md",
     "releases/1.83.2/known-limitations.md",
     "releases/1.83.2/self-check-report.md",
+    "releases/1.83.3/release-record.md",
+    "releases/1.83.3/known-limitations.md",
+    "releases/1.83.3/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.83 task governance asset exists ${file}`);
@@ -6187,6 +6191,7 @@ function checkTaskGovernanceProtocol() {
     read("releases/1.83.0/release-record.md"),
     read("releases/1.83.1/release-record.md"),
     read("releases/1.83.2/release-record.md"),
+    read("releases/1.83.3/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Behavior-Complete Existing Project Adoption",
@@ -6201,6 +6206,9 @@ function checkTaskGovernanceProtocol() {
     "required_before_completion_claim",
     "review_policy",
     "review_level",
+    "minimal_verification_status",
+    "targeted_verification_status",
+    "plain_user_summary",
     "LIGHTWEIGHT",
     "TARGETED",
     "BLOCKING_CLARIFICATION",
@@ -6237,11 +6245,20 @@ function checkTaskGovernanceProtocol() {
   if (resolver.status === 0
     && resolver.stdout.includes("# Task Governance Report")
     && resolver.stdout.includes("Task impact")
+    && resolver.stdout.includes("Plain user summary")
+    && resolver.stdout.includes("Minimal verification status")
     && resolver.stdout.includes("Implementation authorized by this report")
     && resolver.stdout.includes("No")) {
     pass("1.83 task governance resolver prints non-authorizing task card");
   } else {
     fail(`1.83 task governance resolver failed: ${resolver.stderr || resolver.stdout}`);
+  }
+
+  const absoluteOut = runNode(["scripts/resolve-task-governance.mjs", ".", "--intent", "update README copy", "--out", "/tmp/task-governance.md"]);
+  if (absoluteOut.status !== 0 && (absoluteOut.stderr || absoluteOut.stdout).includes("--out must be a relative path")) {
+    pass("1.83 task governance rejects absolute --out path");
+  } else {
+    fail("1.83 task governance must reject absolute --out path");
   }
 
   const sourceCheck = runNode(["scripts/check-task-governance.mjs", ".", "--allow-empty"]);

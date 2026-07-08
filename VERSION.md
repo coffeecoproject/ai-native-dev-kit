@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.83.2`
+Current version: `1.83.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.83.2`
 
 ## Current Release
 
-`1.83.2`
+`1.83.3`
 
 Includes:
+
+- Task Governance Verification Status And Intent Scan Hardening patch `1.83.3`:
+  verification fields now record status instead of claiming unperformed checks
+  are done; `--out` stays inside the target project; LOW/MEDIUM reports scan
+  the original intent for hidden high-impact wording; project-native mappings
+  clear matching readiness blockers; and user-facing summaries stay plain.
+- `1.83.3` remains non-authorizing. It does not write implementation changes,
+  approve completion, approve commit/push, approve release/production, or
+  replace project-native reviewers.
 
 - Task Governance Review Policy patch `1.83.2`: Task Governance now records
   tier-specific review policy so `LOW`, `MEDIUM`, `POSSIBLE_HIGH`, and `HIGH`

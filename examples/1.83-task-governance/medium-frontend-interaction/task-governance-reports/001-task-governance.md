@@ -6,6 +6,7 @@ This report classifies task impact and routes required governance. It does not a
 
 | Field | Value |
 | --- | --- |
+| Plain user summary | 这是局部功能改动。我会先确认影响范围，再做针对性检查。 |
 | Task impact | `MEDIUM` |
 | Plain next step | 这个任务是局部行为变更。我会先写短计划，确认影响面，再做针对性验证。 |
 | Ready for implementation review | `Yes` |
@@ -84,10 +85,10 @@ This report classifies task impact and routes required governance. It does not a
 | Field | Value |
 | --- | --- |
 | Scope unchanged | `Yes` |
-| Minimal verification done | `N/A` |
-| Targeted verification done | `Yes` |
+| Minimal verification status | `NOT_APPLICABLE_WITH_REASON` |
+| Targeted verification status | `REQUIRED` |
 | Unrelated edits | `No` |
-| Remaining risk | Targeted verification is still required during execution. |
+| Remaining risk | Targeted verification is required before a completion claim; none is performed by this read-only classifier. |
 
 ## Readiness
 
@@ -115,12 +116,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.2",
+  "schema_version": "1.83.3",
   "artifact_type": "task_governance",
   "intent": "add local frontend component interaction for a details modal",
   "intent_digest": "sha256:ac2f6fd57676e487353430109ff48ebaf4b8a2ea66b80ecfb89d0bab8017a8b4",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:5951a692dd7d125a7ccd981a73a4c80ec22e847c440eb8f104b3f550c4c781a0",
+  "task_governance_digest": "sha256:c9902d002b0aa400eb7efa0f2f899b5042d0d947a0012bdb3ef0a2d3e2001bc6",
   "task_ref": "task:add-local-frontend-component-interaction-for-a-details-modal",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -231,14 +232,15 @@ This report classifies task impact and routes required governance. It does not a
   },
   "lightweight_closeout": {
     "scope_unchanged": "Yes",
-    "minimal_verification_done": "N/A",
-    "targeted_verification_done": "Yes",
     "unrelated_edits": "No",
-    "remaining_risk": "Targeted verification is still required during execution."
+    "remaining_risk": "Targeted verification is required before a completion claim; none is performed by this read-only classifier.",
+    "minimal_verification_status": "NOT_APPLICABLE_WITH_REASON",
+    "targeted_verification_status": "REQUIRED"
   },
   "user_prompt": {
     "plain_next_step": "这个任务是局部行为变更。我会先写短计划，确认影响面，再做针对性验证。",
-    "technical_terms_required": "No"
+    "technical_terms_required": "No",
+    "plain_user_summary": "这是局部功能改动。我会先确认影响范围，再做针对性检查。"
   },
   "boundaries": {
     "writes_target_files": "No",

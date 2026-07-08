@@ -18,6 +18,8 @@
 - LOW still has a self-check review before completion claim.
 - MEDIUM still has targeted review or checker-backed validation before
   completion claim.
+- LOW/MEDIUM verification fields record status, not unperformed work as done.
+- LOW/MEDIUM reports scan the original intent for hidden high-impact wording.
 - POSSIBLE_HIGH blocks implementation review until clarification or read-only
   inspection resolves the tier.
 - HIGH requires independent review through Review Loop or project-native review
@@ -34,3 +36,4 @@
   production, CI/hook changes, migrations, or tests.
 - User-facing prompts are plain language and do not ask users to choose
   internal IntentOS subsystem names.
+- `--out` report paths stay inside the target project.

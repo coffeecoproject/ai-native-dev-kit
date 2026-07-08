@@ -65,6 +65,8 @@ const highSurfacePatterns = [
 ];
 const lowKinds = new Set(["docs_only", "test_docs_only", "copy", "visual_only"]);
 const userBurdenPatterns = [
+  /Task Governance/i,
+  /Review Policy/i,
   /Business Rule Closure/i,
   /Change Impact Coverage/i,
   /Execution Assurance/i,
@@ -199,6 +201,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} implementation_authorized_by_this_report must be No`);
   if (evidence.readiness?.can_claim_done === "No") pass(`${label} can_claim_done is No`);
   else fail(`${label} can_claim_done must be No`);
+  checkUserPromptBurden(label, evidence);
 
   const impact = evidence.impact_classification?.task_impact;
   if (["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH"].includes(impact)) pass(`${label} task impact is ${impact}`);
@@ -206,9 +209,26 @@ function checkStructuredEvidence(content, label, file, evidence) {
 
   checkSourceChain(label, projectRoot, file, evidence);
   checkExistingProjectMapping(label, evidence);
+  checkReadinessRespectsProjectNativeMappings(label, evidence);
   checkReviewPolicy(label, evidence);
   checkTierRules(label, evidence);
   checkMarkdownConsistency(content, label, evidence);
+}
+
+function checkUserPromptBurden(label, evidence) {
+  const userText = [
+    evidence.user_prompt?.plain_user_summary || "",
+    evidence.user_prompt?.plain_next_step || "",
+  ].join("\n");
+  if (!userText.trim()) {
+    fail(`${label} user prompt must include plain user summary and next step`);
+    return;
+  }
+  if (evidence.user_prompt?.technical_terms_required === "No") pass(`${label} user prompt does not require technical terms`);
+  else fail(`${label} user prompt must not require technical terms`);
+  for (const pattern of userBurdenPatterns) {
+    if (pattern.test(userText)) fail(`${label} user prompt exposes technical workflow burden: ${pattern.source}`);
+  }
 }
 
 function checkTierRules(label, evidence) {
@@ -219,9 +239,11 @@ function checkTierRules(label, evidence) {
   const readiness = evidence.readiness || {};
   const closeout = evidence.lightweight_closeout || {};
   const highSurfaceText = [
+    evidence.intent || "",
     ...(classification.triggered_surfaces || []),
     ...(classification.trigger_evidence || []),
   ].join("\n");
+  const rawIntentHighSurface = hasHighSurface(evidence.intent || "");
 
   if (evidence.adoption_review?.blocks_task_governance === "Yes") {
     if (evidence.outcome === "BLOCKED_BY_ADOPTION_REVIEW") pass(`${label} adoption blocker drives blocked outcome`);
@@ -237,14 +259,20 @@ function checkTierRules(label, evidence) {
     else fail(`${label} LOW task_kind must be one of ${Array.from(lowKinds).join(", ")}`);
     if (!hasHighSurface(highSurfaceText)) pass(`${label} LOW has no high-impact triggered surface`);
     else fail(`${label} LOW must not touch API, DB, runtime, permissions, release, production, business rules, state, CI, gates, or test behavior`);
+    if (!rawIntentHighSurface) pass(`${label} LOW intent has no hidden high-impact surface`);
+    else fail(`${label} LOW intent contains high-impact wording and must be upgraded or explicitly inspected`);
     requireExcludedHighSurfaces(label, classification);
     requireRequirement(label, beforeImplementation, "scope_check_required", "Yes");
     requireRequirement(label, beforeImplementation, "short_plan_required", "No");
     requireRequirement(label, beforeCompletion, "test_evidence_required", "No");
     if (closeout.scope_unchanged === "Yes") pass(`${label} LOW records scope unchanged`);
     else fail(`${label} LOW requires scope unchanged evidence`);
-    if (closeout.minimal_verification_done === "Yes" || closeout.remaining_risk) pass(`${label} LOW records minimal verification or concrete reason`);
-    else fail(`${label} LOW requires minimal verification or a concrete no-verification reason`);
+    if (["REQUIRED", "RECORDED"].includes(closeout.minimal_verification_status)
+      || (closeout.minimal_verification_status === "NOT_APPLICABLE_WITH_REASON" && closeout.remaining_risk)) {
+      pass(`${label} LOW records minimal verification status`);
+    } else {
+      fail(`${label} LOW requires minimal verification status without claiming unperformed work is done`);
+    }
   }
 
   if (impact === "MEDIUM") {
@@ -252,11 +280,13 @@ function checkTierRules(label, evidence) {
     else fail(`${label} MEDIUM requires medium-impact reason`);
     if (!hasHighSurface(highSurfaceText)) pass(`${label} MEDIUM has no high-impact triggered surface`);
     else fail(`${label} MEDIUM must not include public API, DTO/domain, persisted parameter, permission, runtime-state, release, or production impact`);
+    if (!rawIntentHighSurface) pass(`${label} MEDIUM intent has no hidden high-impact surface`);
+    else fail(`${label} MEDIUM intent contains high-impact wording and must be upgraded or explicitly inspected`);
     requireExcludedHighSurfaces(label, classification);
     requireRequirement(label, beforeImplementation, "scope_check_required", "Yes");
     requireRequirement(label, beforeImplementation, "short_plan_required", "Yes");
-    if (closeout.targeted_verification_done === "Yes") pass(`${label} MEDIUM records targeted verification`);
-    else fail(`${label} MEDIUM requires targeted verification`);
+    if (["REQUIRED", "RECORDED"].includes(closeout.targeted_verification_status)) pass(`${label} MEDIUM records targeted verification status`);
+    else fail(`${label} MEDIUM requires targeted verification status without claiming unperformed work is done`);
   }
 
   if (impact === "POSSIBLE_HIGH") {
@@ -328,6 +358,29 @@ function checkExistingProjectMapping(label, evidence) {
     if (mapping.mapping_state === "STRONGER") {
       if (mapping.stronger_project_rule_preserved === "Yes") pass(`${label} preserves stronger project-native rule`);
       else fail(`${label} STRONGER project-native rule must be preserved`);
+    }
+  }
+}
+
+function checkReadinessRespectsProjectNativeMappings(label, evidence) {
+  const blockers = (evidence.readiness?.blocked_by || []).join("\n");
+  for (const mapping of evidence.existing_project_mapping || []) {
+    if (!["MATCHED", "STRONGER"].includes(mapping.mapping_state)) continue;
+    if (mapping.project_native_task_match !== "Yes") continue;
+    const behavior = mapping.required_behavior || "";
+    if (behavior === "Business Rule Closure") {
+      if (!/missing clear business rule or project-native equivalent/i.test(blockers)) {
+        pass(`${label} readiness respects project-native Business Rule Closure mapping`);
+      } else {
+        fail(`${label} readiness must not keep Business Rule Closure missing when project-native mapping is matched`);
+      }
+    }
+    if (behavior === "Verification Plan") {
+      if (!/missing verification checklist/i.test(blockers)) {
+        pass(`${label} readiness respects project-native Verification Plan mapping`);
+      } else {
+        fail(`${label} readiness must not keep Verification Plan missing when project-native mapping is matched`);
+      }
     }
   }
 }

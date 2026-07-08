@@ -6,6 +6,7 @@ This report classifies task impact and routes required governance. It does not a
 
 | Field | Value |
 | --- | --- |
+| Plain user summary | 这个需求影响较大。我会先梳理业务规则、影响范围和验证方式，再进入实现。 |
 | Task impact | `HIGH` |
 | Plain next step | 这个任务影响较大。我会先整理业务规则、影响面、执行计划和验证清单，再进入实现评审。 |
 | Ready for implementation review | `No` |
@@ -84,8 +85,8 @@ This report classifies task impact and routes required governance. It does not a
 | Field | Value |
 | --- | --- |
 | Scope unchanged | `N/A` |
-| Minimal verification done | `N/A` |
-| Targeted verification done | `N/A` |
+| Minimal verification status | `NOT_APPLICABLE_WITH_REASON` |
+| Targeted verification status | `NOT_APPLICABLE_WITH_REASON` |
 | Unrelated edits | `No` |
 | Remaining risk | High-impact governance is required before implementation review. |
 
@@ -97,7 +98,7 @@ This report classifies task impact and routes required governance. It does not a
 | Ready for implementation review | `No` |
 | Implementation authorized by this report | `No` |
 | Can claim done | `No` |
-| Blocked by | missing clear business rule or project-native equivalent; missing affected-surface map; missing durable execution plan; missing verification checklist; test proof is required before any done claim |
+| Blocked by | missing clear business rule or project-native equivalent; missing affected-surface map; missing durable execution plan; test proof is required before any done claim |
 
 ## Boundaries
 
@@ -115,12 +116,12 @@ This report classifies task impact and routes required governance. It does not a
 
 ```json
 {
-  "schema_version": "1.83.2",
+  "schema_version": "1.83.3",
   "artifact_type": "task_governance",
   "intent": "change permission approval workflow with project QA checklist evidence",
   "intent_digest": "sha256:08efe1634ee6feaf205c0af09edbe51c56b5e98db44ababda542b3dfa32c959e",
   "task_governance_ref": "task-governance-reports/001-task-governance.md",
-  "task_governance_digest": "sha256:6128e9fc851fcf3caa1f145fd821bcbd1a6bd1a4000cb03832f7772293fc6437",
+  "task_governance_digest": "sha256:0b1f2257b95e6083c52bc0b563c1695541b79002733bceff2e1e20aac2ac95ae",
   "task_ref": "task:change-permission-approval-workflow-with-project-qa-checklis",
   "project_adoption_mode": "unknown",
   "adoption_review": {
@@ -246,20 +247,20 @@ This report classifies task impact and routes required governance. It does not a
       "missing clear business rule or project-native equivalent",
       "missing affected-surface map",
       "missing durable execution plan",
-      "missing verification checklist",
       "test proof is required before any done claim"
     ]
   },
   "lightweight_closeout": {
     "scope_unchanged": "N/A",
-    "minimal_verification_done": "N/A",
-    "targeted_verification_done": "N/A",
     "unrelated_edits": "No",
-    "remaining_risk": "High-impact governance is required before implementation review."
+    "remaining_risk": "High-impact governance is required before implementation review.",
+    "minimal_verification_status": "NOT_APPLICABLE_WITH_REASON",
+    "targeted_verification_status": "NOT_APPLICABLE_WITH_REASON"
   },
   "user_prompt": {
     "plain_next_step": "这个任务影响较大。我会先整理业务规则、影响面、执行计划和验证清单，再进入实现评审。",
-    "technical_terms_required": "No"
+    "technical_terms_required": "No",
+    "plain_user_summary": "这个需求影响较大。我会先梳理业务规则、影响范围和验证方式，再进入实现。"
   },
   "boundaries": {
     "writes_target_files": "No",

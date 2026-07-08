@@ -9,6 +9,7 @@ It does not authorize implementation.
 
 | Field | Value |
 | --- | --- |
+| Plain user summary | `<plain user summary>` |
 | Task impact | `<LOW/MEDIUM/POSSIBLE_HIGH/HIGH>` |
 | Plain next step | `<plain next step>` |
 | Ready for implementation review | `No` |
@@ -112,7 +113,7 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.83.2",
+  "schema_version": "1.83.3",
   "artifact_type": "task_governance",
   "intent": "<intent>",
   "intent_digest": "sha256:<64 hex>",
@@ -199,12 +200,13 @@ It does not authorize implementation.
   },
   "lightweight_closeout": {
     "scope_unchanged": "N/A",
-    "minimal_verification_done": "N/A",
-    "targeted_verification_done": "N/A",
+    "minimal_verification_status": "NOT_APPLICABLE_WITH_REASON",
+    "targeted_verification_status": "NOT_APPLICABLE_WITH_REASON",
     "unrelated_edits": "No",
     "remaining_risk": ""
   },
   "user_prompt": {
+    "plain_user_summary": "<plain user summary>",
     "plain_next_step": "<plain next step>",
     "technical_terms_required": "No"
   },

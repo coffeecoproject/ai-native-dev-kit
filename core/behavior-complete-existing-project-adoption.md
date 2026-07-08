@@ -51,6 +51,29 @@ Task grading does not remove review. It selects the right review strength:
 This keeps low-risk tasks light without making them unreviewed, and keeps
 high-impact tasks from being treated as patch work.
 
+## Verification Status
+
+Task Governance reports must not claim that verification has already happened
+when they only classified and routed the task.
+
+Use status fields instead:
+
+- `REQUIRED`: verification must happen before a completion claim.
+- `RECORDED`: verification evidence has been recorded elsewhere.
+- `NOT_RUN`: verification has not run.
+- `NOT_APPLICABLE_WITH_REASON`: the report explains why that verification type
+  does not apply.
+
+Default classifier output should use `REQUIRED` for low or medium verification
+obligations, not `done`.
+
+## User Burden Boundary
+
+User-facing summaries must stay plain-language. Codex should not ask a
+zero-experience user to choose internal systems such as Business Rule Closure,
+Change Impact Coverage, Execution Assurance, Completion Evidence, or Review
+Policy.
+
 ## Boundary
 
 Task Governance is a router and gate, not a completion system.

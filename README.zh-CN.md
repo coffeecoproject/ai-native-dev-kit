@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.83.2`。
+当前版本：`1.83.3`。
 
-发布记录：[releases/1.83.2/release-record.md](releases/1.83.2/release-record.md)。
+发布记录：[releases/1.83.3/release-record.md](releases/1.83.3/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -49,6 +49,14 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.83.3 加严真实任务执行前的任务治理：验证字段不再默认写成“已完成”，而是记录
+required/recorded 状态；`--out` 报告只能写在目标项目内；LOW/MEDIUM 报告会直接
+扫描原始需求，避免隐藏 API、权限、支付、审批等高风险词；有效的项目原生证据会
+清除对应 readiness blocker；用户可见摘要必须保持白话。
+
+1.83.3 仍然不授权实现。它不写实现改动、不批准完成、不批准提交/推送、
+不批准发布/生产，也不替代项目原有审核人。
 
 1.83.2 明确任务分级后的审查策略：`LOW` 不是无审查，而是轻量自检；
 `MEDIUM` 要做定向审查或 checker 验证；`POSSIBLE_HIGH` 必须先澄清或只读检查；

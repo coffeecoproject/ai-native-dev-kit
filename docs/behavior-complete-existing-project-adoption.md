@@ -53,6 +53,25 @@ Assurance?
 
 所以小任务不会被过度治理，但也不是无审查；高影响任务不会被当成补丁处理。
 
+## Verification Status
+
+任务治理报告只是判断和路由，不会默认说“验证已完成”。
+
+它只会记录验证状态：
+
+- `REQUIRED`：后续完成前必须验证。
+- `RECORDED`：验证证据已经在别处记录。
+- `NOT_RUN`：还没验证。
+- `NOT_APPLICABLE_WITH_REASON`：不适用，并说明原因。
+
+这避免 Codex 把“应该验证”写成“已经验证”。
+
+## User Burden Boundary
+
+用户可见摘要必须保持白话。Codex 不应该让 0 经验用户选择
+Business Rule Closure、Change Impact Coverage、Execution Assurance、
+Completion Evidence 或 Review Policy 这些内部治理名词。
+
 ## Completion Boundary
 
 Task Governance may say what is required before implementation review and what

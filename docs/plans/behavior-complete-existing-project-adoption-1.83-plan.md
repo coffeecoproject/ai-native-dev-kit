@@ -45,6 +45,7 @@ Recommended sequence:
 1.83.0 Task Impact Tier Classifier
 1.83.1 Source Binding And Project-Native Evidence Mapping
 1.83.2 Tier-Specific Review Policy Enforcement
+1.83.3 Verification Status And Intent Scan Hardening
 ```
 
 This document defines the full 1.83 direction, but 1.83.0 should start narrow:
@@ -280,6 +281,43 @@ Required tier behavior:
   completion claims.
 
 It must still preserve project-owned authority and must not force full native adoption.
+
+### 1.83.3: Verification Status And Intent Scan Hardening
+
+1.83.3 should harden the task-governance classifier before it is connected to
+broader execution or closure paths.
+
+It should fix four issues:
+
+1. Verification overclaim:
+   - classifier reports must not say LOW/MEDIUM verification is already done;
+   - use `minimal_verification_status` and `targeted_verification_status`;
+   - default classifier output should be `REQUIRED`, not `done`.
+2. Output path boundary:
+   - `--out` must be relative;
+   - resolved output path must stay inside the target project.
+3. Hidden high-impact intent:
+   - LOW/MEDIUM reports must scan the original `intent`;
+   - hidden API, DB, permission, payment, approval, release, production,
+     workflow-state, or migration wording must fail unless the task is upgraded
+     or explicitly inspected.
+4. Project-native readiness:
+   - matched or stronger project-native Business Rule Closure mapping should
+     clear the matching business-rule readiness blocker;
+   - matched or stronger project-native Verification Plan mapping should clear
+     the matching verification blocker;
+   - unrelated blockers must remain.
+
+It should also reduce zero-experience user burden:
+
+- add a plain user summary;
+- keep internal governance terms out of user-facing prompts;
+- let Codex choose the governance path instead of asking users to choose
+  IntentOS subsystems.
+
+1.83.3 is still not global enforcement. It prepares Task Governance for later
+integration with Execution Assurance, Completion Evidence, Unified Closure, and
+User Delivery Console.
 
 ## Core Concept
 
