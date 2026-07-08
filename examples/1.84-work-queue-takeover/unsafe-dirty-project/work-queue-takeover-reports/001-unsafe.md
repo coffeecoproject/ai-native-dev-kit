@@ -17,9 +17,9 @@ It does not authorize implementation.
 
 ## Source Inventory
 
-| Source | Type | Status | Summary |
-| --- | --- | --- | --- |
-| TODO.md | todo | RISKY | Unsafe Takeover Source |
+| Source | Digest | Type | Status | Summary |
+| --- | --- | --- | --- | --- |
+| TODO.md | sha256:0bf11023081301b7c76263c235a9d6ff9555546df11184aba6236fa1013214ba | todo | RISKY | Unsafe Takeover Source |
 
 ## Reliability Assessment
 
@@ -35,15 +35,15 @@ It does not authorize implementation.
 
 ## Migration Dispositions
 
-| Source Item | Disposition | Target Queue State | Reason |
-| --- | --- | --- | --- |
-| TODO.md | NEEDS_CLARIFICATION | N/A | Project state is unsafe for task takeover; sources remain read-only evidence. |
+| Source Item | Source Digest | Disposition | Target Queue State | Reason |
+| --- | --- | --- | --- | --- |
+| TODO.md | sha256:0bf11023081301b7c76263c235a9d6ff9555546df11184aba6236fa1013214ba | NEEDS_CLARIFICATION | N/A | Project state is unsafe for task takeover; sources remain read-only evidence. |
 
 ## Queue Items
 
-| Item ID | State | Title | Source Item | Task Governance Ref | Task Governance Digest | Execution Eligible | Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| None | BACKLOG | No queue item | N/A | N/A | N/A | No | No executable queue item. |
+| Item ID | State | Title | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| None | BACKLOG | No queue item | N/A | N/A | N/A | N/A | N/A | No | No | No executable queue item. |
 
 ## Boundaries
 
@@ -60,12 +60,12 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.84.0",
+  "schema_version": "1.84.1",
   "artifact_type": "work_queue_takeover",
   "work_queue_takeover_ref": "work-queue-takeover-reports/001-unsafe.md",
-  "work_queue_takeover_digest": "sha256:d664dc8183ea5fc4478311011c940d01e3849bee87c2ecbf9fb65c9d38260b3d",
-  "intent": "take over old project task records",
-  "intent_digest": "sha256:37b26d6924ad809c7756250d7f0f97699d7e4047f518435fb6c93116404bf775",
+  "work_queue_takeover_digest": "sha256:c5a04592528486d370da446c05165edc2bbc12876a10c734a43d3e3bfa31a7e0",
+  "intent": "review existing project task records",
+  "intent_digest": "sha256:cddf525172659826ce01a49772185baf0f2fc19b6d89865385d7e1192b298dbd",
   "project_task_system_class": "UNSAFE_TO_TAKE_OVER",
   "recommended_action": "BLOCK_TAKEOVER",
   "future_task_authority": "BLOCKED",
@@ -73,6 +73,7 @@ It does not authorize implementation.
   "source_inventory": [
     {
       "source_ref": "TODO.md",
+      "source_digest": "sha256:0bf11023081301b7c76263c235a9d6ff9555546df11184aba6236fa1013214ba",
       "source_type": "todo",
       "status": "RISKY",
       "summary": "Unsafe Takeover Source"
@@ -118,6 +119,7 @@ It does not authorize implementation.
   "migration_dispositions": [
     {
       "source_item": "TODO.md",
+      "source_digest": "sha256:0bf11023081301b7c76263c235a9d6ff9555546df11184aba6236fa1013214ba",
       "disposition": "NEEDS_CLARIFICATION",
       "target_queue_state": "N/A",
       "reason": "Project state is unsafe for task takeover; sources remain read-only evidence."
@@ -126,6 +128,7 @@ It does not authorize implementation.
   "queue_items": [],
   "readiness": {
     "takeover_ready": "No",
+    "takeover_review_ready": "No",
     "can_codex_write_now": "No",
     "can_execute_from_old_todo_directly": "No",
     "blocked_by": [

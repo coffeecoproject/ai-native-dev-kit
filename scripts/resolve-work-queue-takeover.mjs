@@ -64,7 +64,7 @@ function buildReport() {
     : "work-queue-takeover-reports/generated.md";
   const blockedBy = blockedByFor({ exists, taskClass, rootGitDirty, explicitUnsafe });
   const baseEvidence = {
-    schema_version: "1.84.0",
+    schema_version: "1.84.1",
     artifact_type: "work_queue_takeover",
     work_queue_takeover_ref: takeoverRef,
     work_queue_takeover_digest: "sha256:pending",
@@ -80,6 +80,7 @@ function buildReport() {
     queue_items: queueItems,
     readiness: {
       takeover_ready: blockedBy.length === 0 ? "Yes" : "No",
+      takeover_review_ready: blockedBy.length === 0 ? "Yes" : "No",
       can_codex_write_now: "No",
       can_execute_from_old_todo_directly: "No",
       blocked_by: blockedBy,
@@ -109,6 +110,7 @@ function discoverTaskSources(root, paths) {
     const content = readFile(fullPath);
     candidates.push({
       source_ref: relativePath,
+      source_digest: digest(`${relativePath}\n${content}`),
       source_type: sourceTypeFor(relativePath),
       status: statusForSource(relativePath, content),
       summary: summaryForSource(relativePath, content),
@@ -165,8 +167,9 @@ function classFor({ exists, explicitUnsafe, rootGitDirty, hasExistingQueue, hasT
 function appearsReliable(sourceInventory) {
   const queueSources = sourceInventory.filter((source) => source.source_type === "work_queue");
   if (queueSources.length === 0) return false;
+  if (queueSources.some((source) => source.status === "RISKY")) return false;
   const currentCount = queueSources.filter((source) => source.status === "CURRENT").length;
-  return currentCount <= 1;
+  return currentCount === 1;
 }
 
 function actionFor(taskClass) {
@@ -184,25 +187,19 @@ function authorityFor(taskClass) {
 function dispositionsFor(taskClass, sources) {
   if (sources.length === 0) return [];
   if (taskClass === "RELIABLE_EXISTING_TASK_SYSTEM") {
-    return sources.map((source) => ({
-      source_item: source.source_ref,
-      disposition: "ARCHIVE_SOURCE_ONLY",
-      target_queue_state: "N/A",
-      reason: "Existing task system appears reliable and can be mapped without duplicate migration.",
-    }));
+    return sources.map((source) => disposition(source, "ARCHIVE_SOURCE_ONLY", "N/A", "Existing task system appears reliable and can be mapped without duplicate migration."));
   }
   if (taskClass === "UNSAFE_TO_TAKE_OVER") {
-    return sources.map((source) => ({
-      source_item: source.source_ref,
-      disposition: source.status === "RISKY" ? "NEEDS_CLARIFICATION" : "ARCHIVE_SOURCE_ONLY",
-      target_queue_state: "N/A",
-      reason: "Project state is unsafe for task takeover; sources remain read-only evidence.",
-    }));
+    return sources.map((source) => disposition(source, source.status === "RISKY" ? "NEEDS_CLARIFICATION" : "ARCHIVE_SOURCE_ONLY", "N/A", "Project state is unsafe for task takeover; sources remain read-only evidence."));
   }
-  return sources.slice(0, 20).map((source, index) => {
-    if (index === 0) return disposition(source, "MIGRATE_CURRENT", "CURRENT", "Use the first viable source as the candidate current task after Task Governance binding.");
+  const scopedSources = sources.slice(0, 20);
+  const currentCandidate = scopedSources.find((source) => source.status === "CURRENT" && canPromoteToCurrent(source))
+    || scopedSources.find((source) => canPromoteToCurrent(source));
+  return scopedSources.map((source) => {
     if (source.status === "STALE") return disposition(source, "MARK_STALE", "N/A", "Source looks stale or completed; preserve as history.");
-    if (/blocked|needs|unclear|unknown/i.test(source.summary)) return disposition(source, "NEEDS_CLARIFICATION", "BLOCKED", "Source is ambiguous and should not be executed directly.");
+    if (source.status === "RISKY") return disposition(source, "NEEDS_CLARIFICATION", "BLOCKED", "Source carries risk signals and cannot become the current task.");
+    if (isAmbiguousSource(source)) return disposition(source, "NEEDS_CLARIFICATION", "BLOCKED", "Source is ambiguous and should not be executed directly.");
+    if (source === currentCandidate) return disposition(source, "MIGRATE_CURRENT", "CURRENT", "Use the first viable non-stale, non-risky source as the candidate current task after Task Governance binding.");
     return disposition(source, "MIGRATE_BACKLOG", "BACKLOG", "Source remains useful but is not execution permission.");
   });
 }
@@ -210,10 +207,19 @@ function dispositionsFor(taskClass, sources) {
 function disposition(source, dispositionValue, state, reason) {
   return {
     source_item: source.source_ref,
+    source_digest: source.source_digest,
     disposition: dispositionValue,
     target_queue_state: state,
     reason,
   };
+}
+
+function canPromoteToCurrent(source) {
+  return !["STALE", "RISKY"].includes(source.status) && !isAmbiguousSource(source);
+}
+
+function isAmbiguousSource(source) {
+  return /blocked|needs|unclear|unknown/i.test(source.summary);
 }
 
 function queueItemsFor(taskClass, dispositions) {
@@ -222,17 +228,20 @@ function queueItemsFor(taskClass, dispositions) {
     .filter((item) => ["MIGRATE_CURRENT", "MIGRATE_BACKLOG", "MIGRATE_PAUSED", "MIGRATE_BLOCKED"].includes(item.disposition))
     .map((item, index) => {
       const state = item.target_queue_state === "N/A" ? "BACKLOG" : item.target_queue_state;
-      const executable = state === "CURRENT" ? "Yes" : "No";
+      const current = state === "CURRENT";
       return {
         item_id: `WQ-${String(index + 1).padStart(3, "0")}`,
         state,
         title: titleFromSource(item.source_item),
         source_item: item.source_item,
-        task_governance_ref: state === "CURRENT" ? "task-governance-reports/001-current-task.md" : "N/A",
-        task_governance_digest: state === "CURRENT" ? digest(`task-governance:${item.source_item}`) : "N/A",
-        execution_eligible: executable,
-        reason: executable === "Yes"
-          ? "Executable only after the referenced Task Governance report is recorded and checked."
+        source_item_digest: item.source_digest,
+        task_governance_ref: current ? "task-governance-reports/001-current-task.md" : "N/A",
+        task_governance_digest: "N/A",
+        task_governance_binding_status: current ? "PENDING" : "N/A",
+        execution_review_eligible_after_task_governance: current ? "Yes" : "No",
+        execution_eligible: "No",
+        reason: current
+          ? "Not executable yet. It only becomes execution-review eligible after a real Task Governance report is recorded and checked."
           : "Not execution permission until promoted and governed.",
       };
     });
@@ -305,9 +314,9 @@ It does not authorize implementation.
 
 ## Source Inventory
 
-| Source | Type | Status | Summary |
-| --- | --- | --- | --- |
-${rows(evidence.source_inventory, (item) => `| ${escapeCell(item.source_ref)} | ${item.source_type} | ${item.status} | ${escapeCell(item.summary)} |`, "| None | other | MISSING | No task source found. |")}
+| Source | Digest | Type | Status | Summary |
+| --- | --- | --- | --- | --- |
+${rows(evidence.source_inventory, (item) => `| ${escapeCell(item.source_ref)} | ${escapeCell(item.source_digest)} | ${item.source_type} | ${item.status} | ${escapeCell(item.summary)} |`, "| None | N/A | other | MISSING | No task source found. |")}
 
 ## Reliability Assessment
 
@@ -317,15 +326,15 @@ ${rows(evidence.reliability_assessment, (item) => `| ${escapeCell(item.criterion
 
 ## Migration Dispositions
 
-| Source Item | Disposition | Target Queue State | Reason |
-| --- | --- | --- | --- |
-${rows(evidence.migration_dispositions, (item) => `| ${escapeCell(item.source_item)} | ${item.disposition} | ${item.target_queue_state} | ${escapeCell(item.reason)} |`, "| None | ARCHIVE_SOURCE_ONLY | N/A | No old source item found. |")}
+| Source Item | Source Digest | Disposition | Target Queue State | Reason |
+| --- | --- | --- | --- | --- |
+${rows(evidence.migration_dispositions, (item) => `| ${escapeCell(item.source_item)} | ${escapeCell(item.source_digest)} | ${item.disposition} | ${item.target_queue_state} | ${escapeCell(item.reason)} |`, "| None | N/A | ARCHIVE_SOURCE_ONLY | N/A | No old source item found. |")}
 
 ## Queue Items
 
-| Item ID | State | Title | Source Item | Task Governance Ref | Task Governance Digest | Execution Eligible | Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-${rows(evidence.queue_items, (item) => `| ${item.item_id} | ${item.state} | ${escapeCell(item.title)} | ${escapeCell(item.source_item)} | ${escapeCell(item.task_governance_ref)} | ${escapeCell(item.task_governance_digest)} | ${item.execution_eligible} | ${escapeCell(item.reason)} |`, "| None | BACKLOG | No queue item | N/A | N/A | N/A | No | No executable queue item. |")}
+| Item ID | State | Title | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+${rows(evidence.queue_items, (item) => `| ${item.item_id} | ${item.state} | ${escapeCell(item.title)} | ${escapeCell(item.source_item)} | ${escapeCell(item.source_item_digest)} | ${escapeCell(item.task_governance_ref)} | ${escapeCell(item.task_governance_digest)} | ${item.task_governance_binding_status} | ${item.execution_review_eligible_after_task_governance} | ${item.execution_eligible} | ${escapeCell(item.reason)} |`, "| None | BACKLOG | No queue item | N/A | N/A | N/A | N/A | N/A | No | No | No executable queue item. |")}
 
 ## Boundaries
 

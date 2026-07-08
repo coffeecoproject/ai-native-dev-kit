@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.84.0`
+`1.84.1`
 
 ## Project Version File
 
@@ -19,6 +19,15 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.84.1` hardens Existing Project Work Queue Takeover: source records carry
+  digests, stale or risky sources cannot become `CURRENT`, and migrated
+  `CURRENT` items remain non-executable until real Task Governance evidence is
+  verified.
+- `1.84.1` remains non-authorizing. `takeover_review_ready` means review-ready,
+  not implementation-ready; it does not write target-project files, delete old
+  task sources, approve implementation, approve completion, approve
+  commit/push, approve release/production, claim full adoption, install native
+  assets, or execute old TODOs directly.
 - `1.84.0` adds Existing Project Work Queue Takeover: old project TODOs,
   sessions, issue exports, handoffs, and roadmaps can be classified, preserved
   as sources, mapped to an existing reliable task system, or migrated into an

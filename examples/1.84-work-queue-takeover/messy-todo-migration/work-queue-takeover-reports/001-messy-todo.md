@@ -17,10 +17,10 @@ It does not authorize implementation.
 
 ## Source Inventory
 
-| Source | Type | Status | Summary |
-| --- | --- | --- | --- |
-| TODO.md | todo | UNKNOWN | Old TODO |
-| docs/sessions/S-001.md | session | CURRENT | Session S-001 |
+| Source | Digest | Type | Status | Summary |
+| --- | --- | --- | --- | --- |
+| TODO.md | sha256:b650c803d1080483ace4d5b2e048951423b8c055f75c286998923493e6e8c060 | todo | UNKNOWN | Old TODO |
+| docs/sessions/S-001.md | sha256:9b715fd63a175d0930a1092ea7b4e5b64a13dc24d0ba01e47c286b2c20377aab | session | CURRENT | Session S-001 |
 
 ## Reliability Assessment
 
@@ -36,17 +36,17 @@ It does not authorize implementation.
 
 ## Migration Dispositions
 
-| Source Item | Disposition | Target Queue State | Reason |
-| --- | --- | --- | --- |
-| TODO.md | MIGRATE_CURRENT | CURRENT | Use the first viable source as the candidate current task after Task Governance binding. |
-| docs/sessions/S-001.md | MIGRATE_BACKLOG | BACKLOG | Source remains useful but is not execution permission. |
+| Source Item | Source Digest | Disposition | Target Queue State | Reason |
+| --- | --- | --- | --- | --- |
+| TODO.md | sha256:b650c803d1080483ace4d5b2e048951423b8c055f75c286998923493e6e8c060 | MIGRATE_BACKLOG | BACKLOG | Source remains useful but is not execution permission. |
+| docs/sessions/S-001.md | sha256:9b715fd63a175d0930a1092ea7b4e5b64a13dc24d0ba01e47c286b2c20377aab | MIGRATE_CURRENT | CURRENT | Use the first viable non-stale, non-risky source as the candidate current task after Task Governance binding. |
 
 ## Queue Items
 
-| Item ID | State | Title | Source Item | Task Governance Ref | Task Governance Digest | Execution Eligible | Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| WQ-001 | CURRENT | TODO | TODO.md | task-governance-reports/001-current-task.md | sha256:6b032064b91e93e19c950180f923282c1fd1037aa4fe6dd22bc6af00eb3a7d62 | Yes | Executable only after the referenced Task Governance report is recorded and checked. |
-| WQ-002 | BACKLOG | S 001 | docs/sessions/S-001.md | N/A | N/A | No | Not execution permission until promoted and governed. |
+| Item ID | State | Title | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| WQ-001 | BACKLOG | TODO | TODO.md | sha256:b650c803d1080483ace4d5b2e048951423b8c055f75c286998923493e6e8c060 | N/A | N/A | N/A | No | No | Not execution permission until promoted and governed. |
+| WQ-002 | CURRENT | S 001 | docs/sessions/S-001.md | sha256:9b715fd63a175d0930a1092ea7b4e5b64a13dc24d0ba01e47c286b2c20377aab | task-governance-reports/001-current-task.md | N/A | PENDING | Yes | No | Not executable yet. It only becomes execution-review eligible after a real Task Governance report is recorded and checked. |
 
 ## Boundaries
 
@@ -63,12 +63,12 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.84.0",
+  "schema_version": "1.84.1",
   "artifact_type": "work_queue_takeover",
   "work_queue_takeover_ref": "work-queue-takeover-reports/001-messy-todo.md",
-  "work_queue_takeover_digest": "sha256:e56544c694b540031fb00587e4c5bd135110afe5b741eab288d7688ad1f80683",
-  "intent": "continue old project tasks from messy TODO",
-  "intent_digest": "sha256:ceaccba215938ad7915319f74af578831760e2daf6d1367493e87aaed80bfdba",
+  "work_queue_takeover_digest": "sha256:354aa2d50043ffb043e034de28cea35ec9e4e9b93bc439dcf9f89e22334f31c1",
+  "intent": "continue old project tasks",
+  "intent_digest": "sha256:fccc6a87697c00f9a2e97144d5c3647a1a5deb3eee00e720b3a92349476135f0",
   "project_task_system_class": "MESSY_TASK_SYSTEM",
   "recommended_action": "ESTABLISH_INTENTOS_WORK_QUEUE",
   "future_task_authority": "INTENTOS_WORK_QUEUE",
@@ -76,12 +76,14 @@ It does not authorize implementation.
   "source_inventory": [
     {
       "source_ref": "TODO.md",
+      "source_digest": "sha256:b650c803d1080483ace4d5b2e048951423b8c055f75c286998923493e6e8c060",
       "source_type": "todo",
       "status": "UNKNOWN",
       "summary": "Old TODO"
     },
     {
       "source_ref": "docs/sessions/S-001.md",
+      "source_digest": "sha256:9b715fd63a175d0930a1092ea7b4e5b64a13dc24d0ba01e47c286b2c20377aab",
       "source_type": "session",
       "status": "CURRENT",
       "summary": "Session S-001"
@@ -127,41 +129,50 @@ It does not authorize implementation.
   "migration_dispositions": [
     {
       "source_item": "TODO.md",
-      "disposition": "MIGRATE_CURRENT",
-      "target_queue_state": "CURRENT",
-      "reason": "Use the first viable source as the candidate current task after Task Governance binding."
-    },
-    {
-      "source_item": "docs/sessions/S-001.md",
+      "source_digest": "sha256:b650c803d1080483ace4d5b2e048951423b8c055f75c286998923493e6e8c060",
       "disposition": "MIGRATE_BACKLOG",
       "target_queue_state": "BACKLOG",
       "reason": "Source remains useful but is not execution permission."
+    },
+    {
+      "source_item": "docs/sessions/S-001.md",
+      "source_digest": "sha256:9b715fd63a175d0930a1092ea7b4e5b64a13dc24d0ba01e47c286b2c20377aab",
+      "disposition": "MIGRATE_CURRENT",
+      "target_queue_state": "CURRENT",
+      "reason": "Use the first viable non-stale, non-risky source as the candidate current task after Task Governance binding."
     }
   ],
   "queue_items": [
     {
       "item_id": "WQ-001",
-      "state": "CURRENT",
+      "state": "BACKLOG",
       "title": "TODO",
       "source_item": "TODO.md",
-      "task_governance_ref": "task-governance-reports/001-current-task.md",
-      "task_governance_digest": "sha256:6b032064b91e93e19c950180f923282c1fd1037aa4fe6dd22bc6af00eb3a7d62",
-      "execution_eligible": "Yes",
-      "reason": "Executable only after the referenced Task Governance report is recorded and checked."
+      "source_item_digest": "sha256:b650c803d1080483ace4d5b2e048951423b8c055f75c286998923493e6e8c060",
+      "task_governance_ref": "N/A",
+      "task_governance_digest": "N/A",
+      "task_governance_binding_status": "N/A",
+      "execution_review_eligible_after_task_governance": "No",
+      "execution_eligible": "No",
+      "reason": "Not execution permission until promoted and governed."
     },
     {
       "item_id": "WQ-002",
-      "state": "BACKLOG",
+      "state": "CURRENT",
       "title": "S 001",
       "source_item": "docs/sessions/S-001.md",
-      "task_governance_ref": "N/A",
+      "source_item_digest": "sha256:9b715fd63a175d0930a1092ea7b4e5b64a13dc24d0ba01e47c286b2c20377aab",
+      "task_governance_ref": "task-governance-reports/001-current-task.md",
       "task_governance_digest": "N/A",
+      "task_governance_binding_status": "PENDING",
+      "execution_review_eligible_after_task_governance": "Yes",
       "execution_eligible": "No",
-      "reason": "Not execution permission until promoted and governed."
+      "reason": "Not executable yet. It only becomes execution-review eligible after a real Task Governance report is recorded and checked."
     }
   ],
   "readiness": {
     "takeover_ready": "Yes",
+    "takeover_review_ready": "Yes",
     "can_codex_write_now": "No",
     "can_execute_from_old_todo_directly": "No",
     "blocked_by": []

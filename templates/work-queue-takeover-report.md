@@ -17,9 +17,9 @@ It does not authorize implementation.
 
 ## Source Inventory
 
-| Source | Type | Status | Summary |
-| --- | --- | --- | --- |
-| `<source ref>` | `<todo/session/work_queue/other>` | `<CURRENT/STALE/UNKNOWN>` | `<summary>` |
+| Source | Digest | Type | Status | Summary |
+| --- | --- | --- | --- | --- |
+| `<source ref>` | `sha256:<64 hex>` | `<todo/session/work_queue/other>` | `<CURRENT/STALE/UNKNOWN/RISKY>` | `<summary>` |
 
 ## Reliability Assessment
 
@@ -35,15 +35,15 @@ It does not authorize implementation.
 
 ## Migration Dispositions
 
-| Source Item | Disposition | Target Queue State | Reason |
-| --- | --- | --- | --- |
-| `<source item>` | `<MIGRATE_CURRENT/MIGRATE_BACKLOG/MARK_STALE/...>` | `<CURRENT/BACKLOG/PAUSED/BLOCKED/DONE/CANCELLED/N/A>` | `<reason>` |
+| Source Item | Source Digest | Disposition | Target Queue State | Reason |
+| --- | --- | --- | --- | --- |
+| `<source item>` | `sha256:<64 hex>` | `<MIGRATE_CURRENT/MIGRATE_BACKLOG/MARK_STALE/...>` | `<CURRENT/BACKLOG/PAUSED/BLOCKED/DONE/CANCELLED/N/A>` | `<reason>` |
 
 ## Queue Items
 
-| Item ID | State | Title | Source Item | Task Governance Ref | Task Governance Digest | Execution Eligible | Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `<item id>` | `<CURRENT/BACKLOG/PAUSED/BLOCKED/DONE/CANCELLED>` | `<title>` | `<source item>` | `<ref or N/A>` | `<digest or N/A>` | `<Yes/No>` | `<reason>` |
+| Item ID | State | Title | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `<item id>` | `<CURRENT/BACKLOG/PAUSED/BLOCKED/DONE/CANCELLED>` | `<title>` | `<source item>` | `sha256:<64 hex>` | `<ref or N/A>` | `<digest or N/A>` | `<PENDING/VERIFIED/N/A>` | `<Yes/No>` | `No` | `<reason>` |
 
 ## Boundaries
 
@@ -60,7 +60,7 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.84.0",
+  "schema_version": "1.84.1",
   "artifact_type": "work_queue_takeover",
   "work_queue_takeover_ref": "work-queue-takeover-reports/generated.md",
   "work_queue_takeover_digest": "sha256:<64 hex>",
@@ -76,6 +76,7 @@ It does not authorize implementation.
   "queue_items": [],
   "readiness": {
     "takeover_ready": "Yes",
+    "takeover_review_ready": "Yes",
     "can_codex_write_now": "No",
     "can_execute_from_old_todo_directly": "No",
     "blocked_by": []

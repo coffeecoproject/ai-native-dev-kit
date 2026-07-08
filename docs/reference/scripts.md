@@ -59,6 +59,8 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs adopt-review-check <project>` | Check recorded Controlled Native Adoption Review reports | No |
 | `node scripts/cli.mjs task-governance <project> --intent "<task>"` | Classify task impact as LOW, MEDIUM, POSSIBLE_HIGH, or HIGH and route required governance before implementation review | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs task-governance-check <project>` | Check recorded Task Governance reports for impact-tier rules, project-native evidence mapping, no-authority boundaries, and user-burden control | No |
+| `node scripts/cli.mjs queue-takeover <existing-project> --intent "<continue safely>"` | Classify old-project task records as reliable, messy, missing, or unsafe; map reliable systems or recommend IntentOS Work Queue without authorizing execution | No by default; writes only the requested report file with `--out` |
+| `node scripts/cli.mjs queue-takeover-check <project>` | Check Work Queue Takeover reports for source digests, stale/risky-source blocking, pending Task Governance binding, no-execution boundaries, and no-authority claims | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
 | `node scripts/cli.mjs baseline-decision-check <project>` | Check recorded Baseline Decision Cards | No |

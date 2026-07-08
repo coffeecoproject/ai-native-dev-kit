@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.84.0`.
+Current release: `1.84.1`.
 
-Release record: [releases/1.84.0/release-record.md](releases/1.84.0/release-record.md).
+Release record: [releases/1.84.1/release-record.md](releases/1.84.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -55,6 +55,17 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.84.1 hardens Existing Project Work Queue Takeover. Source records now carry
+digests, stale or risky sources cannot become `CURRENT`, and a migrated
+`CURRENT` item is still not executable until real Task Governance evidence is
+recorded and checked. `takeover_review_ready` means the takeover report is
+ready for review, not that Codex can implement from it.
+
+1.84.1 remains non-authorizing. It does not write target-project files, delete
+old task sources, approve implementation, approve completion, approve
+commit/push, approve release/production, claim full adoption, install native
+assets, or execute old TODOs directly.
 
 1.84.0 adds Existing Project Work Queue Takeover. For old projects with messy
 or missing task records, Codex can classify the existing task system as

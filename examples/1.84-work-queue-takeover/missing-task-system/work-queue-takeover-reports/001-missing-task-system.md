@@ -17,9 +17,9 @@ It does not authorize implementation.
 
 ## Source Inventory
 
-| Source | Type | Status | Summary |
-| --- | --- | --- | --- |
-| None | other | MISSING | No task source found. |
+| Source | Digest | Type | Status | Summary |
+| --- | --- | --- | --- | --- |
+| None | N/A | other | MISSING | No task source found. |
 
 ## Reliability Assessment
 
@@ -35,15 +35,15 @@ It does not authorize implementation.
 
 ## Migration Dispositions
 
-| Source Item | Disposition | Target Queue State | Reason |
-| --- | --- | --- | --- |
-| None | ARCHIVE_SOURCE_ONLY | N/A | No old source item found. |
+| Source Item | Source Digest | Disposition | Target Queue State | Reason |
+| --- | --- | --- | --- | --- |
+| None | N/A | ARCHIVE_SOURCE_ONLY | N/A | No old source item found. |
 
 ## Queue Items
 
-| Item ID | State | Title | Source Item | Task Governance Ref | Task Governance Digest | Execution Eligible | Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| None | BACKLOG | No queue item | N/A | N/A | N/A | No | No executable queue item. |
+| Item ID | State | Title | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| None | BACKLOG | No queue item | N/A | N/A | N/A | N/A | N/A | No | No | No executable queue item. |
 
 ## Boundaries
 
@@ -60,12 +60,12 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.84.0",
+  "schema_version": "1.84.1",
   "artifact_type": "work_queue_takeover",
   "work_queue_takeover_ref": "work-queue-takeover-reports/001-missing-task-system.md",
-  "work_queue_takeover_digest": "sha256:815d1e03d62eedf9d6b47897e9711eb61fdf4bb77aadf2bf4dae4ec35426e062",
-  "intent": "start using IntentOS task queue",
-  "intent_digest": "sha256:46c3123d7e23833f516a0dd13de13cd183ab993df8fff701ceb49303302d44be",
+  "work_queue_takeover_digest": "sha256:160d95b2f92ffa8060f6b7f4e9756af79c71e8fc1d90ee816e64eb33af8090f3",
+  "intent": "review existing project task records",
+  "intent_digest": "sha256:cddf525172659826ce01a49772185baf0f2fc19b6d89865385d7e1192b298dbd",
   "project_task_system_class": "MISSING_TASK_SYSTEM",
   "recommended_action": "ESTABLISH_INTENTOS_WORK_QUEUE",
   "future_task_authority": "INTENTOS_WORK_QUEUE",
@@ -112,6 +112,7 @@ It does not authorize implementation.
   "queue_items": [],
   "readiness": {
     "takeover_ready": "Yes",
+    "takeover_review_ready": "Yes",
     "can_codex_write_now": "No",
     "can_execute_from_old_todo_directly": "No",
     "blocked_by": []

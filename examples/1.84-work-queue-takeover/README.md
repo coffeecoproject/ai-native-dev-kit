@@ -8,3 +8,6 @@ These examples show how IntentOS handles old-project task records before task ex
 - `unsafe-dirty-project`: unsafe signals block takeover.
 
 The reports are non-authorizing. They do not approve implementation, completion, commit, push, or release.
+
+1.84.1 reports include source digests and keep migrated `CURRENT` items
+`execution_eligible: No` until Task Governance is verified.

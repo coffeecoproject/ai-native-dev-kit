@@ -6324,6 +6324,7 @@ function checkWorkQueueTakeoverProtocol() {
     "bad-work-queue-takeover-approves-implementation",
   ];
   const required = [
+    "docs/plans/work-queue-takeover-hardening-1.84.1-plan.md",
     "docs/plans/existing-project-work-queue-takeover-1.84-plan.md",
     "docs/plans/task-governance-consumer-integration-1.85-plan.md",
     "core/existing-project-work-queue-takeover.md",
@@ -6341,6 +6342,9 @@ function checkWorkQueueTakeoverProtocol() {
     "releases/1.84.0/release-record.md",
     "releases/1.84.0/known-limitations.md",
     "releases/1.84.0/self-check-report.md",
+    "releases/1.84.1/release-record.md",
+    "releases/1.84.1/known-limitations.md",
+    "releases/1.84.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.84 work queue takeover asset exists ${file}`);
@@ -6348,6 +6352,7 @@ function checkWorkQueueTakeoverProtocol() {
   }
 
   const combined = [
+    read("docs/plans/work-queue-takeover-hardening-1.84.1-plan.md"),
     read("docs/plans/existing-project-work-queue-takeover-1.84-plan.md"),
     read("core/existing-project-work-queue-takeover.md"),
     read("docs/existing-project-work-queue-takeover.md"),
@@ -6360,6 +6365,8 @@ function checkWorkQueueTakeoverProtocol() {
     read("README.md"),
     read("README.zh-CN.md"),
     read("releases/1.84.0/release-record.md"),
+    read("releases/1.84.1/release-record.md"),
+    read("releases/1.84.1/self-check-report.md"),
   ].join("\n");
   for (const marker of [
     "Existing Project Work Queue Takeover",
@@ -6376,8 +6383,16 @@ function checkWorkQueueTakeoverProtocol() {
     "MIGRATE_CURRENT",
     "MIGRATE_BACKLOG",
     "ARCHIVE_SOURCE_ONLY",
+    "source_digest",
+    "source_item_digest",
+    "task_governance_binding_status",
+    "execution_review_eligible_after_task_governance",
+    "takeover_review_ready",
     "can_execute_from_old_todo_directly",
     "task_governance_ref",
+    "npm run verify:baseline",
+    "npm run verify:industrial",
+    "npm run verify:release",
     "does not authorize implementation",
   ]) {
     if (combined.includes(marker)) pass(`1.84 work queue takeover includes ${marker}`);

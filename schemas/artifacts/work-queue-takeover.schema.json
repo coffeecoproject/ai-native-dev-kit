@@ -24,7 +24,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "enum": ["1.84.0"] },
+    "schema_version": { "enum": ["1.84.1"] },
     "artifact_type": { "const": "work_queue_takeover" },
     "work_queue_takeover_ref": { "type": "string", "minLength": 1 },
     "work_queue_takeover_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -58,9 +58,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["source_ref", "source_type", "status", "summary"],
+        "required": ["source_ref", "source_digest", "source_type", "status", "summary"],
         "properties": {
           "source_ref": { "type": "string", "minLength": 1 },
+          "source_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
           "source_type": {
             "enum": ["todo", "session", "issue_export", "work_queue", "ai_log", "handoff", "roadmap", "other"]
           },
@@ -88,9 +89,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["source_item", "disposition", "target_queue_state", "reason"],
+        "required": ["source_item", "source_digest", "disposition", "target_queue_state", "reason"],
         "properties": {
           "source_item": { "type": "string", "minLength": 1 },
+          "source_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
           "disposition": {
             "enum": [
               "MIGRATE_CURRENT",
@@ -121,8 +123,11 @@
           "state",
           "title",
           "source_item",
+          "source_item_digest",
           "task_governance_ref",
           "task_governance_digest",
+          "task_governance_binding_status",
+          "execution_review_eligible_after_task_governance",
           "execution_eligible",
           "reason"
         ],
@@ -131,8 +136,11 @@
           "state": { "enum": ["CURRENT", "PAUSED", "BLOCKED", "BACKLOG", "DONE", "CANCELLED"] },
           "title": { "type": "string", "minLength": 1 },
           "source_item": { "type": "string", "minLength": 1 },
+          "source_item_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
           "task_governance_ref": { "type": "string", "minLength": 1 },
           "task_governance_digest": { "type": "string", "minLength": 1 },
+          "task_governance_binding_status": { "enum": ["PENDING", "VERIFIED", "N/A"] },
+          "execution_review_eligible_after_task_governance": { "enum": ["Yes", "No"] },
           "execution_eligible": { "enum": ["Yes", "No"] },
           "reason": { "type": "string", "minLength": 1 }
         }
@@ -143,12 +151,14 @@
       "additionalProperties": false,
       "required": [
         "takeover_ready",
+        "takeover_review_ready",
         "can_codex_write_now",
         "can_execute_from_old_todo_directly",
         "blocked_by"
       ],
       "properties": {
         "takeover_ready": { "enum": ["Yes", "No"] },
+        "takeover_review_ready": { "enum": ["Yes", "No"] },
         "can_codex_write_now": { "const": "No" },
         "can_execute_from_old_todo_directly": { "const": "No" },
         "blocked_by": {

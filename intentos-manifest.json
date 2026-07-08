@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.84.0",
+  "intentOSVersion": "1.84.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.84.0"
+    "phase": "1.84.1"
   },
   "groups": {
     "sourceRequired": [
@@ -337,6 +337,7 @@
       "docs/plans/existing-project-native-adoption-evidence-hardening-1.69.1-plan.md",
       "docs/plans/existing-project-safe-adoption-autopilot-1.81-plan.md",
       "docs/plans/existing-project-work-queue-takeover-1.84-plan.md",
+      "docs/plans/work-queue-takeover-hardening-1.84.1-plan.md",
       "docs/plans/existing-rule-reconciliation-calibration-1.66-plan.md",
       "docs/plans/existing-rule-reconciliation-evidence-consistency-1.69.2-plan.md",
       "docs/plans/governance-hardening-drift-guard-1.11-plan.md",
@@ -1630,6 +1631,9 @@
       "releases/1.84.0/known-limitations.md",
       "releases/1.84.0/release-record.md",
       "releases/1.84.0/self-check-report.md",
+      "releases/1.84.1/known-limitations.md",
+      "releases/1.84.1/release-record.md",
+      "releases/1.84.1/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",

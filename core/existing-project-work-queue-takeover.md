@@ -60,9 +60,19 @@ Every old source item must receive exactly one disposition:
 
 ## Work Queue Binding
 
-Every executable Work Queue item must bind to Task Governance:
+Every migrated Work Queue item must keep source identity:
 
-- `CURRENT` requires `task_governance_ref` and `task_governance_digest`.
+- `source_digest` records the old task source content at review time.
+- `source_item_digest` on queue items must match the source inventory.
+- `STALE` and `RISKY` sources cannot become `CURRENT`.
+- `MIGRATE_CURRENT` is only a candidate current task, not permission to start work.
+
+Every execution-eligible Work Queue item must bind to Task Governance:
+
+- `CURRENT` requires `task_governance_ref`.
+- `CURRENT` starts with `task_governance_binding_status: PENDING`.
+- `execution_eligible` remains `No` until Task Governance is verified.
+- `execution_review_eligible_after_task_governance` may be `Yes` for a pending `CURRENT` item.
 - `PAUSED` requires resume review before execution; Task Governance must be present before resume.
 - `BACKLOG` is not execution permission.
 - `BLOCKED` records why execution cannot continue.
@@ -85,6 +95,7 @@ Old records stay as history, and future work starts from the queue.
 
 Every Work Queue Takeover report must state:
 
+- This report is takeover-review ready: Yes/No
 - This report writes target files: No
 - This report deletes old task sources: No
 - This report approves implementation: No

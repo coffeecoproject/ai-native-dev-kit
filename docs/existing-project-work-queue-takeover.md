@@ -28,10 +28,11 @@ Codex should:
 
 1. Read old task sources.
 2. Decide whether the project task system is reliable, messy, missing, or unsafe.
-3. If messy or missing, establish IntentOS Work Queue authority.
+3. If messy or missing, recommend IntentOS Work Queue authority.
 4. Give every old task source one disposition.
-5. Bind executable queue items to Task Governance.
-6. Keep old records as history unless a controlled apply path later changes them.
+5. Record source digests so later reviews can detect stale or reused task sources.
+6. Mark any migrated `CURRENT` item as non-executable until Task Governance is recorded and checked.
+7. Keep old records as history unless a controlled apply path later changes them.
 
 ## User Experience
 
@@ -77,4 +78,6 @@ This layer does not:
 - approve release or production
 - claim full adoption
 
-It only decides whether task entry should be mapped or taken over by IntentOS Work Queue.
+It only decides whether task entry should be mapped or recommended for takeover by IntentOS Work Queue.
+`takeover_review_ready` means the report can be reviewed; it is not permission
+to implement, commit, release, or execute old TODOs.

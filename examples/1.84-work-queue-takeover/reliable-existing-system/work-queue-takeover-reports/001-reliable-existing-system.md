@@ -17,9 +17,9 @@ It does not authorize implementation.
 
 ## Source Inventory
 
-| Source | Type | Status | Summary |
-| --- | --- | --- | --- |
-| work-queue/001-current.md | work_queue | CURRENT | Existing Work Queue |
+| Source | Digest | Type | Status | Summary |
+| --- | --- | --- | --- | --- |
+| work-queue/001-current.md | sha256:da248106fe914da00fd96bb77a02a4ee076012a46c9598373ba14e3fd9fbc3c7 | work_queue | CURRENT | Existing Work Queue |
 
 ## Reliability Assessment
 
@@ -35,15 +35,15 @@ It does not authorize implementation.
 
 ## Migration Dispositions
 
-| Source Item | Disposition | Target Queue State | Reason |
-| --- | --- | --- | --- |
-| work-queue/001-current.md | ARCHIVE_SOURCE_ONLY | N/A | Existing task system appears reliable and can be mapped without duplicate migration. |
+| Source Item | Source Digest | Disposition | Target Queue State | Reason |
+| --- | --- | --- | --- | --- |
+| work-queue/001-current.md | sha256:da248106fe914da00fd96bb77a02a4ee076012a46c9598373ba14e3fd9fbc3c7 | ARCHIVE_SOURCE_ONLY | N/A | Existing task system appears reliable and can be mapped without duplicate migration. |
 
 ## Queue Items
 
-| Item ID | State | Title | Source Item | Task Governance Ref | Task Governance Digest | Execution Eligible | Reason |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| None | BACKLOG | No queue item | N/A | N/A | N/A | No | No executable queue item. |
+| Item ID | State | Title | Source Item | Source Digest | Task Governance Ref | Task Governance Digest | Binding Status | Execution Review Eligible After Task Governance | Execution Eligible | Reason |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| None | BACKLOG | No queue item | N/A | N/A | N/A | N/A | N/A | No | No | No executable queue item. |
 
 ## Boundaries
 
@@ -60,12 +60,12 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.84.0",
+  "schema_version": "1.84.1",
   "artifact_type": "work_queue_takeover",
   "work_queue_takeover_ref": "work-queue-takeover-reports/001-reliable-existing-system.md",
-  "work_queue_takeover_digest": "sha256:fce4510e65ad999da5f54ed1ff0a5c5a1627bed64d0d212232ef1ce6969a029d",
-  "intent": "continue old project work safely",
-  "intent_digest": "sha256:e3075a060155ad02b66149ec5df470ec13b2ed4052029021573a6540a4c9f396",
+  "work_queue_takeover_digest": "sha256:e6801ffe7b2c3018ed8f8c8719b1423a51bd53d6bc3a1f19ca913e0bfdf87650",
+  "intent": "review existing project task records",
+  "intent_digest": "sha256:cddf525172659826ce01a49772185baf0f2fc19b6d89865385d7e1192b298dbd",
   "project_task_system_class": "RELIABLE_EXISTING_TASK_SYSTEM",
   "recommended_action": "MAP_EXISTING_TASK_SYSTEM",
   "future_task_authority": "PROJECT_NATIVE_MAPPED",
@@ -73,6 +73,7 @@ It does not authorize implementation.
   "source_inventory": [
     {
       "source_ref": "work-queue/001-current.md",
+      "source_digest": "sha256:da248106fe914da00fd96bb77a02a4ee076012a46c9598373ba14e3fd9fbc3c7",
       "source_type": "work_queue",
       "status": "CURRENT",
       "summary": "Existing Work Queue"
@@ -118,6 +119,7 @@ It does not authorize implementation.
   "migration_dispositions": [
     {
       "source_item": "work-queue/001-current.md",
+      "source_digest": "sha256:da248106fe914da00fd96bb77a02a4ee076012a46c9598373ba14e3fd9fbc3c7",
       "disposition": "ARCHIVE_SOURCE_ONLY",
       "target_queue_state": "N/A",
       "reason": "Existing task system appears reliable and can be mapped without duplicate migration."
@@ -126,6 +128,7 @@ It does not authorize implementation.
   "queue_items": [],
   "readiness": {
     "takeover_ready": "Yes",
+    "takeover_review_ready": "Yes",
     "can_codex_write_now": "No",
     "can_execute_from_old_todo_directly": "No",
     "blocked_by": []

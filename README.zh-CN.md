@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.84.0`。
+当前版本：`1.84.1`。
 
-发布记录：[releases/1.84.0/release-record.md](releases/1.84.0/release-record.md)。
+发布记录：[releases/1.84.1/release-record.md](releases/1.84.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -54,6 +54,15 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.84.1 加严 Existing Project Work Queue Takeover：旧任务来源会记录 digest；
+过期或风险来源不能被提升为 `CURRENT`；迁移出来的 `CURRENT` 任务在真实
+Task Governance 证据记录并通过检查前，仍然不可执行。`takeover_review_ready`
+只表示报告可进入评审，不表示 Codex 可以开始实现。
+
+1.84.1 仍然不授权实现。它不写目标项目文件、不删除旧任务来源、不批准实现、
+不批准完成、不批准提交/推送、不批准发布/生产、不宣称完整接入、不安装原生
+资产，也不允许直接执行旧 TODO。
 
 1.84.0 新增 Existing Project Work Queue Takeover：老项目如果任务记录混乱或
 几乎没有任务体系，Codex 可以先判断现有任务体系属于可靠、混乱、缺失还是危险
