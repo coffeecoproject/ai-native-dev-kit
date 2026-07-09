@@ -67,6 +67,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "plan-review": {
+    description: "Review an implementation plan before coding, especially for permission, data-destructive, workflow, or business-rule changes.",
+    script: "scripts/resolve-plan-review.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "plan-review-check": {
+    description: "Check recorded Plan Review reports for pre-implementation review coverage and no-authorization boundaries.",
+    script: "scripts/check-plan-review.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "impact-coverage": {
     description: "Map affected surfaces for a change so Codex does not complete only one layer.",
     script: "scripts/resolve-change-impact-coverage.mjs",

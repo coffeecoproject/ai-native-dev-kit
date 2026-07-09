@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.87.1`.
+Current release: `1.88.0`.
 
-Release record: [releases/1.87.1/release-record.md](releases/1.87.1/release-record.md).
+Release record: [releases/1.88.0/release-record.md](releases/1.88.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -30,6 +30,7 @@ node scripts/cli.mjs queue-takeover <existing-project> --intent "<continue old p
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<what you want>"
+node scripts/cli.mjs plan-review <project> --plan <plan.md> --intent "<review this plan>"
 node scripts/cli.mjs release-channel <project> --intent "<decide release channel policy>"
 ```
 
@@ -58,6 +59,11 @@ Release assets, GitHub Actions artifacts, provider deploys, registries,
 app-store or mini-program uploads, release owners, cost owners, and retention
 policies are decided separately.
 
+`plan-review` reviews an implementation plan before coding. For important
+tasks, especially permission, deletion, workflow, business-rule, data, API, or
+release-related work, a plan being written is not enough. The plan must pass a
+pre-implementation review gate before Codex moves to implementation review.
+
 Start here:
 
 - [Start Here](docs/start-here.md)
@@ -67,6 +73,16 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.88.0 adds Plan Review Gate. Implementation plans now become reviewable
+artifacts: high-impact work cannot move from "plan written" to "coding" until
+the plan is reviewed, blocking findings are handled, required surfaces are
+covered, and the report reaches `PLAN_REVIEW_PASSED`.
+
+1.88.0 remains non-authorizing. `PLAN_REVIEW_PASSED` satisfies only the
+pre-implementation plan-review prerequisite. It does not approve code changes,
+commit, push, release, production, tests, migrations, or project-owner
+decisions.
 
 1.87.1 hardens Release Channel Decoupling. Strict source binding now resolves
 project `file:` refs and recomputes source digests, source-only projects no

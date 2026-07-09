@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.87.1`
+`1.88.0`
 
 ## Project Version File
 
@@ -19,6 +19,12 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.88.0` adds Plan Review Gate: implementation plans become reviewable
+  artifacts before coding. High-impact plans must pass the pre-implementation
+  plan-review prerequisite before Codex moves to implementation review.
+- `1.88.0` remains non-authorizing. `PLAN_REVIEW_PASSED` does not approve
+  implementation, commit, push, release, production, tests, migrations, or
+  project-owner decisions.
 - `1.87.1` hardens Release Channel Decoupling: strict checks resolve project
   `file:` refs, recompute `source_digest`, split release-owner timing, and
   calibrate source-only owner/cost defaults.

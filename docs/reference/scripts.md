@@ -449,6 +449,8 @@ node scripts/check-guided-delivery-loop.mjs .
 node scripts/check-first-delivery-walkthrough.mjs .
 node scripts/check-real-adoption-trial.mjs .
 node scripts/check-patch-classification.mjs .
+node scripts/resolve-plan-review.mjs . --plan docs/example-plan.md --intent "<review this plan>"
+node scripts/check-plan-review.mjs .
 node scripts/resolve-change-impact-coverage.mjs . --intent "<change>"
 node scripts/check-change-impact-coverage.mjs .
 node scripts/resolve-closure-decision.mjs . --intent "<change>" --verification "<verification evidence>"
@@ -485,6 +487,8 @@ These are primarily for maintaining this repository:
 - `scripts/check-guided-delivery-loop.mjs`
 - `scripts/check-real-adoption-trial.mjs`
 - `scripts/check-patch-classification.mjs`
+- `scripts/resolve-plan-review.mjs`
+- `scripts/check-plan-review.mjs`
 - `scripts/resolve-change-impact-coverage.mjs`
 - `scripts/check-change-impact-coverage.mjs`
 - `scripts/resolve-existing-workflow.mjs`

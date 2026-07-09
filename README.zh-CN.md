@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.87.1`。
+当前版本：`1.88.0`。
 
-发布记录：[releases/1.87.1/release-record.md](releases/1.87.1/release-record.md)。
+发布记录：[releases/1.88.0/release-record.md](releases/1.88.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -30,6 +30,7 @@ node scripts/cli.mjs queue-takeover <老项目> --intent "<继续处理老项目
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<你想做什么>"
+node scripts/cli.mjs plan-review <project> --plan <plan.md> --intent "<审查这个计划>"
 node scripts/cli.mjs release-channel <project> --intent "<判断发布通道策略>"
 ```
 
@@ -55,6 +56,10 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 制品、平台部署、镜像仓库、包仓库、小程序/应用商店提交、发布负责人、成本负责人
 和保留策略必须分开判断。
 
+`plan-review` 用来在写代码前审查实现计划。对权限、删除、流程状态、业务规则、
+数据、接口或发布相关任务来说，“写了计划”不等于“可以开始实现”。计划必须先通过
+预实现审查门，Codex 才能进入实现评审。
+
 `1.86.1` 加强了这部分：如果是 CI 环境问题，只有在项目允许重试并确认没有
 生产副作用时，Codex 才能自动继续；严格模式下还会检查这个阻断是否真的属于
 当前任务，并记录日志、门禁、制品或发布事件的来源证据。
@@ -68,6 +73,13 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.88.0 新增 Plan Review Gate：实现计划会成为可审查的产物。高影响任务不能从
+“计划已写”直接进入“写代码”，必须先审查计划、处理阻断问题、覆盖必要审查面，
+并达到 `PLAN_REVIEW_PASSED`。
+
+1.88.0 仍然不授权执行。`PLAN_REVIEW_PASSED` 只表示“计划审查这个前置条件已满足”，
+不批准代码实现、提交、推送、发布、生产、测试、迁移或项目负责人决策。
 
 1.87.1 加严 Release Channel Decoupling：严格来源绑定会解析项目内
 `file:` 引用并重新计算 source digest；没有发布通道风险的 source-only 项目

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.87.1`
+Current version: `1.88.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.87.1`
 
 ## Current Release
 
-`1.87.1`
+`1.88.0`
 
 Includes:
+
+- Plan Review Gate phase `1.88.0`: implementation plans are now reviewable
+  artifacts before coding. High-impact tasks must bind to Task Governance,
+  review surfaces, findings, revision loop, source-chain evidence, and static
+  verification command review before reaching `PLAN_REVIEW_PASSED`.
+- `1.88.0` remains non-authorizing. `PLAN_REVIEW_PASSED` satisfies only the
+  pre-implementation plan-review prerequisite; it does not approve
+  implementation, commit, push, release, production, tests, migrations, or
+  project-owner decisions.
 
 - Release Channel Source Binding And Reference Polish patch `1.87.1`: strict
   release-channel checks now resolve project `file:` refs, recompute

@@ -10098,6 +10098,171 @@ function checkReleaseChannelDecouplingProtocol() {
   }
 }
 
+function checkPlanReviewGateProtocol() {
+  const required = [
+    "core/plan-review-gate.md",
+    "docs/plan-review-gate.md",
+    "docs/plans/plan-review-gate-1.88-plan.md",
+    "templates/plan-review-report.md",
+    "checklists/plan-review-gate-review.md",
+    "prompts/plan-review-gate-agent.md",
+    "schemas/artifacts/plan-review.schema.json",
+    "plan-review-reports/.gitkeep",
+    "scripts/resolve-plan-review.mjs",
+    "scripts/check-plan-review.mjs",
+    "examples/1.88-plan-review-gate/README.md",
+    "examples/1.88-plan-review-gate/low-docs-plan-skip/plan-review-reports/001-low-skip.md",
+    "examples/1.88-plan-review-gate/medium-ui-plan-reviewed/docs/example-plan.md",
+    "examples/1.88-plan-review-gate/medium-ui-plan-reviewed/plan-review-reports/001-medium-ui.md",
+    "examples/1.88-plan-review-gate/high-permission-delete-plan-revision/docs/example-plan.md",
+    "examples/1.88-plan-review-gate/high-permission-delete-plan-revision/plan-review-reports/001-revision.md",
+    "examples/1.88-plan-review-gate/high-permission-delete-plan-passed/docs/example-plan.md",
+    "examples/1.88-plan-review-gate/high-permission-delete-plan-passed/plan-review-reports/001-passed.md",
+    "examples/1.88-plan-review-gate/high-business-rule-plan-stale/docs/example-plan.md",
+    "examples/1.88-plan-review-gate/high-business-rule-plan-stale/plan-review-reports/001-stale.md",
+    "test-fixtures/bad/bad-plan-review-high-without-task-governance/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-high-without-review-surface-analysis/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-missing-review-surface-matrix/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-required-surface-not-reviewed/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-authorizes-implementation/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-passed-without-prerequisite-satisfied/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-passed-claims-full-authority/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-unresolved-p1-passed/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-unstructured-p2-acceptance/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-codex-accepted-p2/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-subagent-output-treated-as-authority/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-subagent-writer-used-for-review/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-subagent-left-running/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-missing-source-chain/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-source-chain-digest-mismatch/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-source-chain-contradiction/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-fake-test-command/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-claims-test-executed/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-stale-plan-digest/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-rewrites-original-plan/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-repeated-failure-not-blocked/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-technical-user-burden/plan-review-reports/001-bad.md",
+    "releases/1.88.0/release-record.md",
+    "releases/1.88.0/known-limitations.md",
+    "releases/1.88.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.88 plan review asset exists ${file}`);
+    else fail(`1.88 plan review asset missing ${file}`);
+  }
+
+  const combined = [
+    read("README.md"),
+    read("README.zh-CN.md"),
+    read("VERSION.md"),
+    read("core/plan-review-gate.md"),
+    read("docs/plan-review-gate.md"),
+    read("docs/plans/plan-review-gate-1.88-plan.md"),
+    read("templates/plan-review-report.md"),
+    read("checklists/plan-review-gate-review.md"),
+    read("prompts/plan-review-gate-agent.md"),
+    read("schemas/artifacts/plan-review.schema.json"),
+    read("scripts/resolve-plan-review.mjs"),
+    read("scripts/check-plan-review.mjs"),
+    read("scripts/cli.mjs"),
+    read("releases/1.88.0/release-record.md"),
+  ].join("\n");
+  for (const marker of [
+    "Plan Review Gate",
+    "plan_review",
+    "plan-review",
+    "plan-review-check",
+    "PLAN_REVIEW_PASSED",
+    "NO_PLAN_REQUIRED",
+    "PLAN_REVISION_REQUIRED",
+    "Task Governance remains the source of truth",
+    "Review Surface Governance remains the source of truth",
+    "pre-implementation plan-review prerequisite",
+    "does not authorize implementation",
+    "does not execute tests",
+    "commands_executed_by_this_report",
+    "subagent_output_is_authority",
+    "rewrites_original_plan",
+  ]) {
+    if (combined.includes(marker)) pass(`1.88 plan review includes ${marker}`);
+    else fail(`1.88 plan review missing ${marker}`);
+  }
+
+  const examples = [
+    "low-docs-plan-skip",
+    "medium-ui-plan-reviewed",
+    "high-permission-delete-plan-revision",
+    "high-permission-delete-plan-passed",
+    "high-business-rule-plan-stale",
+  ];
+  for (const name of examples) {
+    const result = runNode([
+      "scripts/check-plan-review.mjs",
+      `examples/1.88-plan-review-gate/${name}`,
+      "--require-structured-evidence",
+    ]);
+    if (result.status === 0 && result.stdout.includes("Plan review check passed")) {
+      pass(`1.88 plan review example ${name} passes checker`);
+    } else {
+      fail(`1.88 plan review example ${name} failed: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  const badFixtureCases = [
+    ["bad-plan-review-high-without-task-governance", "high-impact review requires Task Governance ref"],
+    ["bad-plan-review-high-without-review-surface-analysis", "high-impact review requires review surface analysis"],
+    ["bad-plan-review-missing-review-surface-matrix", "high-impact review requires review surface matrix"],
+    ["bad-plan-review-required-surface-not-reviewed", "required surface not reviewed"],
+    ["bad-plan-review-authorizes-implementation", "implementation_authorized_by_this_report must be No"],
+    ["bad-plan-review-passed-without-prerequisite-satisfied", "PLAN_REVIEW_PASSED requires pre_implementation_review_prerequisite_satisfied Yes"],
+    ["bad-plan-review-passed-claims-full-authority", "PLAN_REVIEW_PASSED must not claim full implementation authority"],
+    ["bad-plan-review-unresolved-p1-passed", "PLAN_REVIEW_PASSED has unresolved P0/P1 findings"],
+    ["bad-plan-review-unstructured-p2-acceptance", "acceptance is not structured owner acceptance"],
+    ["bad-plan-review-codex-accepted-p2", "Codex cannot accept blocking P2"],
+    ["bad-plan-review-subagent-output-treated-as-authority", "subagent output must not be authority"],
+    ["bad-plan-review-subagent-writer-used-for-review", "must not use writer subagent"],
+    ["bad-plan-review-subagent-left-running", "cannot leave recommended subagent review unknown"],
+    ["bad-plan-review-missing-source-chain", "high-impact PLAN_REVIEW_PASSED requires source chain"],
+    ["bad-plan-review-source-chain-digest-mismatch", "digest mismatch sentinel is blocked"],
+    ["bad-plan-review-source-chain-contradiction", "contradicts plan"],
+    ["bad-plan-review-fake-test-command", "PLAN_REVIEW_PASSED cannot contain fake or unstable verification command"],
+    ["bad-plan-review-claims-test-executed", "plan review must not claim tests were executed"],
+    ["bad-plan-review-stale-plan-digest", "plan_digest does not match plan file"],
+    ["bad-plan-review-rewrites-original-plan", "review loop must not rewrite original plan"],
+    ["bad-plan-review-repeated-failure-not-blocked", "repeated plan review failure must be blocked after max rounds"],
+    ["bad-plan-review-technical-user-burden", "user-facing text exposes technical workflow burden"],
+  ];
+  for (const [name, expected] of badFixtureCases) {
+    const result = runNode([
+      "scripts/check-plan-review.mjs",
+      `test-fixtures/bad/${name}`,
+      "--require-structured-evidence",
+    ]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.88 plan review rejects ${name}`);
+    } else {
+      fail(`1.88 plan review must reject ${name}: ${output}`);
+    }
+  }
+
+  const planReviewPackage = JSON.parse(read("package.json"));
+  const verifySurface = Object.entries(planReviewPackage.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, value]) => value)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-plan-review.mjs",
+    "node --check scripts/check-plan-review.mjs",
+    "node scripts/cli.mjs plan-review . --intent \"review implementation plan before coding\"",
+    "node scripts/cli.mjs plan-review-check . --allow-empty",
+    "node scripts/check-plan-review.mjs examples/1.88-plan-review-gate/high-permission-delete-plan-passed --require-structured-evidence",
+  ]) {
+    if (verifySurface.includes(marker)) pass(`1.88 package verify includes ${marker}`);
+    else fail(`1.88 package verify missing ${marker}`);
+  }
+}
+
 function checkUserDeliveryConsoleProtocol() {
   const required = [
     "core/user-delivery-console.md",
@@ -16635,6 +16800,7 @@ checkTestEvidenceBindingProtocol();
 checkCompletionEvidenceGateProtocol();
 checkReleaseEvidenceGateProtocol();
 checkReleaseChannelDecouplingProtocol();
+checkPlanReviewGateProtocol();
 checkUserDeliveryConsoleProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();

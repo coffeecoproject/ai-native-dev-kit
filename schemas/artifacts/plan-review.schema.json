@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/plan-review.schema.json",
+  "title": "Plan Review Gate Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "plan_review_ref",
+    "plan_review_digest",
+    "task_ref",
+    "work_queue_item_ref",
+    "work_queue_item_digest",
+    "review_surface_analysis",
+    "task_governance",
+    "source_chain",
+    "plan_ref",
+    "plan_digest",
+    "plan_task_match",
+    "plan_review_state",
+    "pre_implementation_review_prerequisite_satisfied",
+    "ready_for_implementation_review",
+    "implementation_authorized_by_this_report",
+    "implementation_allowed_by_full_authority",
+    "task_impact",
+    "skip_review",
+    "required_review_surfaces",
+    "review_surface_matrix",
+    "subagent_review_routing",
+    "reviewed_surfaces",
+    "findings",
+    "revision_loop",
+    "verification_command_review",
+    "plain_user_summary",
+    "plain_next_step",
+    "technical_terms_required",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.88.0" },
+    "artifact_type": { "const": "plan_review" },
+    "plan_review_ref": { "type": "string", "minLength": 1 },
+    "plan_review_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "task_ref": { "type": "string", "minLength": 1 },
+    "work_queue_item_ref": { "type": "string", "minLength": 1 },
+    "work_queue_item_digest": { "type": "string", "minLength": 1 },
+    "review_surface_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest", "source", "derived_by_plan_review", "current_task_match", "user_selected_surfaces"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["review_surface_card", "project_native_equivalent", "derived_plan_review_matrix", "N/A"] },
+        "derived_by_plan_review": { "enum": ["Yes", "No"] },
+        "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+        "user_selected_surfaces": { "enum": ["Yes", "No"] }
+      }
+    },
+    "task_governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest", "task_ref", "task_impact", "plan_review_required", "current_task_match"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 },
+        "task_ref": { "type": "string", "minLength": 1 },
+        "task_impact": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH", "Unknown"] },
+        "plan_review_required": { "enum": ["Yes", "No", "Unknown"] },
+        "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] }
+      }
+    },
+    "source_chain": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_kind",
+          "source_ref",
+          "source_digest",
+          "source_state",
+          "current_task_match",
+          "project_native_equivalent",
+          "owner",
+          "contradicts_plan"
+        ],
+        "properties": {
+          "source_kind": { "type": "string", "minLength": 1 },
+          "source_ref": { "type": "string", "minLength": 1 },
+          "source_digest": { "type": "string", "minLength": 1 },
+          "source_state": { "type": "string", "minLength": 1 },
+          "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+          "project_native_equivalent": { "enum": ["Yes", "No"] },
+          "owner": { "type": "string", "minLength": 1 },
+          "contradicts_plan": { "enum": ["Yes", "No", "Unknown"] }
+        }
+      }
+    },
+    "plan_ref": { "type": "string", "minLength": 1 },
+    "plan_digest": { "type": "string", "minLength": 1 },
+    "plan_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+    "plan_review_state": {
+      "enum": [
+        "NO_PLAN_REQUIRED",
+        "PLAN_REQUIRED",
+        "PLAN_DRAFTED",
+        "PLAN_REVIEW_REQUIRED",
+        "PLAN_REVISION_REQUIRED",
+        "PLAN_REVIEW_PASSED",
+        "BLOCKED_BY_STALE_PLAN",
+        "BLOCKED_BY_INCOMPLETE_REVIEW",
+        "BLOCKED_BY_USER_DECISION",
+        "BLOCKED_BY_REPEATED_PLAN_REVIEW_FAILURE",
+        "PLAN_REVIEW_REQUIRED_WITH_TASK_GOVERNANCE_RECHECK"
+      ]
+    },
+    "pre_implementation_review_prerequisite_satisfied": { "enum": ["Yes", "No"] },
+    "ready_for_implementation_review": { "enum": ["Yes", "No"] },
+    "implementation_authorized_by_this_report": { "enum": ["Yes", "No"] },
+    "implementation_allowed_by_full_authority": { "enum": ["Yes", "No", "Unknown"] },
+    "task_impact": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH", "Unknown"] },
+    "skip_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skip_allowed", "skip_source", "skip_reason", "task_impact"],
+      "properties": {
+        "skip_allowed": { "enum": ["Yes", "No"] },
+        "skip_source": { "type": "string", "minLength": 1 },
+        "skip_reason": { "type": "string", "minLength": 1 },
+        "task_impact": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH", "Unknown"] }
+      }
+    },
+    "required_review_surfaces": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "review_surface_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "surface",
+          "required",
+          "required_before_implementation",
+          "required_after_implementation",
+          "reviewed",
+          "source",
+          "human_decision_needed",
+          "finding_count",
+          "blocking"
+        ],
+        "properties": {
+          "surface": { "type": "string", "minLength": 1 },
+          "required": { "enum": ["Yes", "No"] },
+          "required_before_implementation": { "enum": ["Yes", "No"] },
+          "required_after_implementation": { "enum": ["Yes", "No"] },
+          "reviewed": { "enum": ["Yes", "No"] },
+          "source": { "type": "string", "minLength": 1 },
+          "human_decision_needed": { "enum": ["Yes", "No"] },
+          "finding_count": { "type": "integer" },
+          "blocking": { "enum": ["Yes", "No"] }
+        }
+      }
+    },
+    "subagent_review_routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subagent_review_recommended",
+        "reason",
+        "run_plan_required",
+        "run_plan_ref",
+        "all_subagents_read_only",
+        "subagent_output_is_authority",
+        "writer_subagent_used",
+        "all_subagents_closed_or_skipped",
+        "fallback_used",
+        "fallback_reason"
+      ],
+      "properties": {
+        "subagent_review_recommended": { "enum": ["Yes", "No"] },
+        "reason": { "type": "string" },
+        "run_plan_required": { "enum": ["Yes", "No"] },
+        "run_plan_ref": { "type": "string", "minLength": 1 },
+        "all_subagents_read_only": { "enum": ["Yes", "No", "N/A"] },
+        "subagent_output_is_authority": { "enum": ["Yes", "No"] },
+        "writer_subagent_used": { "enum": ["Yes", "No"] },
+        "all_subagents_closed_or_skipped": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+        "fallback_used": { "enum": ["Yes", "No"] },
+        "fallback_reason": { "type": "string" }
+      }
+    },
+    "reviewed_surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["surface", "reviewed", "finding_count", "notes"],
+        "properties": {
+          "surface": { "type": "string", "minLength": 1 },
+          "reviewed": { "enum": ["Yes", "No"] },
+          "finding_count": { "type": "integer" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "surface",
+          "summary",
+          "required_action",
+          "resolved",
+          "accepted",
+          "accepted_by_ref",
+          "acceptance_reason",
+          "acceptance_scope",
+          "expires_at",
+          "allowed_for_task_impact"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "severity": { "enum": ["P0", "P1", "P2", "P3"] },
+          "surface": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string", "minLength": 1 },
+          "required_action": { "type": "string", "minLength": 1 },
+          "resolved": { "enum": ["Yes", "No"] },
+          "accepted": { "enum": ["Yes", "No"] },
+          "accepted_by_ref": { "type": "string", "minLength": 1 },
+          "acceptance_reason": { "type": "string", "minLength": 1 },
+          "acceptance_scope": { "type": "string", "minLength": 1 },
+          "expires_at": { "type": "string", "minLength": 1 },
+          "allowed_for_task_impact": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "revision_loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["round", "max_auto_rounds", "requires_revision", "previous_plan_digest", "rewrites_original_plan", "revised_plan_ref"],
+      "properties": {
+        "round": { "type": "integer" },
+        "max_auto_rounds": { "type": "integer" },
+        "requires_revision": { "enum": ["Yes", "No"] },
+        "previous_plan_digest": { "type": "string", "minLength": 1 },
+        "rewrites_original_plan": { "enum": ["Yes", "No"] },
+        "revised_plan_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "verification_command_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commands_reviewed",
+        "commands_exist_in_project",
+        "commands_are_project_native",
+        "commands_target_required_behavior",
+        "commands_executed_by_this_report",
+        "requires_test_evidence_later",
+        "fake_or_unstable_command_found",
+        "notes"
+      ],
+      "properties": {
+        "commands_reviewed": { "enum": ["Yes", "No"] },
+        "commands_exist_in_project": { "enum": ["Yes", "No", "Unknown"] },
+        "commands_are_project_native": { "enum": ["Yes", "No", "Unknown"] },
+        "commands_target_required_behavior": { "enum": ["Yes", "No", "Unknown"] },
+        "commands_executed_by_this_report": { "enum": ["Yes", "No"] },
+        "requires_test_evidence_later": { "enum": ["Yes", "No"] },
+        "fake_or_unstable_command_found": { "enum": ["Yes", "No"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "plain_user_summary": { "type": "string", "minLength": 1 },
+    "plain_next_step": { "type": "string", "minLength": 1 },
+    "technical_terms_required": { "enum": ["Yes", "No"] },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writes_target_files",
+        "authorizes_implementation",
+        "approves_commit_or_push",
+        "approves_release_or_production",
+        "executes_tests",
+        "changes_production"
+      ],
+      "properties": {
+        "writes_target_files": { "enum": ["Yes", "No"] },
+        "authorizes_implementation": { "enum": ["Yes", "No"] },
+        "approves_commit_or_push": { "enum": ["Yes", "No"] },
+        "approves_release_or_production": { "enum": ["Yes", "No"] },
+        "executes_tests": { "enum": ["Yes", "No"] },
+        "changes_production": { "enum": ["Yes", "No"] }
+      }
+    },
+    "outcome": { "type": "string", "minLength": 1 }
+  }
+}
+

@@ -10,7 +10,7 @@ Plain-language target:
 ```text
 For important work, writing a plan is not enough.
 Codex must review the plan, repair blocking gaps, review it again, and only
-then move to implementation.
+then move to implementation review.
 ```
 
 This phase is based on a real observed failure mode:
@@ -30,6 +30,12 @@ historical data guards, and reliable verification commands were found.
 
 ```text
 How risky is this task, and what governance does it require?
+```
+
+1.25 Review Surface Governance answers:
+
+```text
+What must be reviewed before and after this task?
 ```
 
 1.84 Work Queue Takeover answers:
@@ -71,6 +77,7 @@ The intended chain is:
 
 ```text
 Work Queue -> Task Governance
+-> Review Surface Analysis
 -> Business Rule Closure / Change Impact Coverage / Verification Plan as required
 -> Plan Draft
 -> Plan Review Gate
@@ -78,14 +85,24 @@ Work Queue -> Task Governance
 -> Execution Assurance -> Completion Evidence -> Closure / Delivery Status
 ```
 
-1.88 must not replace Business Rule Closure, Change Impact Coverage,
-Verification Plan, Execution Assurance, or Approval Records. It coordinates
-the pre-implementation plan review gate.
+1.88 must not replace Review Surface Governance, Business Rule Closure, Change
+Impact Coverage, Verification Plan, Review Loop, Subagent Orchestration,
+Execution Assurance, or Approval Records. It coordinates the
+pre-implementation plan review gate.
+
+Review Surface Governance remains the source for "what must be reviewed."
+Plan Review Gate consumes that result and checks whether the implementation
+plan actually covers the required review surfaces.
 
 For `HIGH` and other high-impact task classes, Plan Review Gate must consume
 the relevant upstream evidence. It should not review an isolated Markdown plan
 without checking the Task Governance source and required Business Rule Closure,
 Change Impact Coverage, Verification Plan, or project-native equivalents.
+
+For broad or high-impact review work, Plan Review Gate may recommend read-only
+subagent review through Subagent Orchestration. Subagents remain inputs only:
+they do not approve the plan, write implementation files, accept risk, or
+replace the main thread's final judgment.
 
 ## Context Reset
 
@@ -101,6 +118,11 @@ Before implementation, Codex must re-read:
 - `docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md`
 - `docs/plans/existing-project-work-queue-takeover-1.84-plan.md`
 - `docs/plans/task-governance-consumer-integration-1.85-plan.md`
+- `core/review-surface-governance.md`
+- `docs/review-surface-governance.md`
+- `templates/review-surface-card.md`
+- `scripts/check-review-surface.mjs`
+- `scripts/resolve-review-surface.mjs`
 - `core/behavior-complete-existing-project-adoption.md`
 - `docs/behavior-complete-existing-project-adoption.md`
 - `schemas/artifacts/task-governance.schema.json`
@@ -111,6 +133,12 @@ Before implementation, Codex must re-read:
 - `docs/change-impact-coverage.md`
 - `core/verification-test-governance.md`
 - `docs/verification-test-governance.md`
+- `core/review-loop.md`
+- `templates/review-loop-report.md`
+- `scripts/check-review-loop.mjs`
+- `core/subagent-orchestration.md`
+- `core/subagent-dispatch-hygiene.md`
+- `templates/subagent-run-plan.md`
 - `core/execution-assurance-chain.md`
 - `docs/execution-assurance-chain.md`
 - `templates/task-governance-report.md`
@@ -209,9 +237,13 @@ Plan Review Gate must check that verification commands are:
 
 - project-native;
 - stable;
-- executable in the repo;
+- statically identifiable in the repo or explicitly marked `Unknown` with a
+  blocker;
 - aligned with the affected behavior;
 - not merely aspirational.
+
+Plan Review Gate does not execute those commands. Execution belongs to later
+verification and evidence systems.
 
 ## Scope
 
@@ -315,6 +347,135 @@ Checker requirements:
 - reject Task Governance task mismatch;
 - reject `NO_PLAN_REQUIRED` unless Task Governance supports the skip;
 - reject Plan Review Gate that downgrades a Task Governance-required review.
+
+## Review Surface Analysis Precondition
+
+Review Surface Governance is the review-surface source of truth.
+
+Before a non-trivial plan review, Codex must know which surfaces need review.
+That can come from:
+
+- an existing Review Surface Card;
+- project-native equivalent review-surface evidence;
+- resolver-generated review surface analysis;
+- Task Governance plus plan content when no durable card exists.
+
+The user should not need to choose review surfaces.
+
+Plan Review Gate must consume or generate a review-surface matrix that records:
+
+- selected review surface;
+- why it is required;
+- whether it is required before implementation;
+- whether it is required after implementation;
+- whether human decision is needed;
+- source of the surface decision;
+- whether the plan reviewed that surface;
+- blocking findings count.
+
+For high-impact tasks, missing review-surface analysis blocks
+`PLAN_REVIEW_PASSED`.
+
+Allowed fallback:
+
+```text
+If no durable Review Surface Card exists, Plan Review Gate may derive a
+temporary review-surface matrix from Task Governance and plan content, but the
+report must say the matrix is derived and not a replacement for project-native
+review evidence.
+```
+
+If project-native governance requires a durable Review Surface Card or
+equivalent review-surface artifact, a derived matrix can only produce
+`PLAN_REVIEW_REQUIRED` or `PLAN_REVISION_REQUIRED`. It cannot produce
+`PLAN_REVIEW_PASSED` unless the missing durable surface artifact is explicitly
+accepted by the project authority.
+
+Checker requirements:
+
+- reject high-impact `PLAN_REVIEW_PASSED` with no review-surface matrix;
+- reject a required surface marked `reviewed: No`;
+- reject a plan that omits a selected high-risk surface;
+- reject a report that asks the user to choose technical review surfaces;
+- reject a report that treats Review Surface Card as implementation approval.
+
+## Subagent Review Routing
+
+Subagents are optional review helpers, not a required user-facing concept.
+
+Plan Review Gate may recommend read-only subagent review when:
+
+- review-surface count is broad;
+- task impact is `HIGH`;
+- permission, data, release, security, privacy, or business-rule surfaces are
+  selected;
+- implementation plan touches multiple platforms or layers;
+- an independent reviewer is required by Task Governance or project-native
+  governance.
+
+Subagent use must follow Subagent Orchestration:
+
+- many readers, one writer;
+- reviewer subagents are read-only;
+- subagent output is input, not authority;
+- all subagents must be closed or skipped before final response;
+- no subagent can approve implementation, release, risk acceptance, or scope
+  expansion.
+
+If subagent review is recommended but not available, Plan Review Gate should
+fall back to main-thread structured review and record the reason. It must not
+pretend independent review happened.
+
+If `plan_review_state` is `PLAN_REVIEW_PASSED` and subagent review was
+recommended, the report must show either:
+
+- all launched subagents are `CLOSED` or `SKIPPED`; or
+- subagent review was unavailable, a main-thread structured review fallback was
+  used, and the fallback reason is recorded.
+
+`Unknown` subagent closure cannot support `PLAN_REVIEW_PASSED`.
+
+## Document Review vs Task Review
+
+Plan Review Gate must distinguish two review targets:
+
+```text
+Document review: Is the plan document complete, bounded, sourced, and safe to
+use as an implementation input?
+
+Task review: Does the actual task, impact, risk, implementation path, and
+verification chain satisfy the governance required for this task?
+```
+
+Both may be required.
+
+Document review checks:
+
+- plan identity and digest;
+- task binding;
+- source-chain references;
+- missing sections;
+- contradictions;
+- unsupported claims;
+- accidental implementation authorization;
+- stale examples treated as rules;
+- fake or unstable verification commands;
+- user-facing clarity.
+
+Task review checks:
+
+- task impact from Task Governance;
+- selected review surfaces;
+- business-rule completeness;
+- affected surface coverage;
+- verification obligations;
+- permission, data, release, security, privacy, or production risk;
+- project-native authority conflicts;
+- whether the plan can proceed to implementation review.
+
+For high-impact tasks, a plan cannot pass because the Markdown document is
+well-written. It must also pass task review against Task Governance, Review
+Surface Analysis, and required source-chain evidence.
 
 ## Task Classes Requiring Plan Review
 
@@ -650,6 +811,14 @@ The machine-readable evidence should include:
   "task_ref": "task:<id>",
   "work_queue_item_ref": "<ref or N/A>",
   "work_queue_item_digest": "<sha256 or N/A>",
+  "review_surface_analysis": {
+    "ref": "artifact:review-surface-cards/001.md",
+    "digest": "sha256:<64 hex>",
+    "source": "review_surface_card",
+    "derived_by_plan_review": "No",
+    "current_task_match": "Yes",
+    "user_selected_surfaces": "No"
+  },
   "task_governance": {
     "ref": "artifact:task-governance-reports/001.md",
     "digest": "sha256:<64 hex>",
@@ -712,12 +881,24 @@ The machine-readable evidence should include:
     {
       "surface": "permission",
       "required": "Yes",
+      "required_before_implementation": "Yes",
+      "required_after_implementation": "Yes",
       "reviewed": "Yes",
-      "source": "task_governance|plan_content|business_rule_closure",
+      "source": "review_surface_card|task_governance|plan_content|business_rule_closure",
+      "human_decision_needed": "Yes",
       "finding_count": 1,
       "blocking": "Yes"
     }
   ],
+  "subagent_review_routing": {
+    "subagent_review_recommended": "Yes",
+    "reason": "HIGH task with permission and data-destructive surfaces.",
+    "run_plan_required": "Yes",
+    "run_plan_ref": "artifact:subagent-run-plans/001.md",
+    "all_subagents_read_only": "Yes",
+    "subagent_output_is_authority": "No",
+    "all_subagents_closed_or_skipped": "Unknown"
+  },
   "reviewed_surfaces": [
     {
       "surface": "permission",
@@ -759,7 +940,7 @@ The machine-readable evidence should include:
     "notes": "<notes>"
   },
   "plain_user_summary": "The plan is not ready yet. I found required permission-rule gaps and will revise the plan before coding.",
-  "plain_next_step": "I will update the plan, run the plan review again, and only then start implementation.",
+  "plain_next_step": "I will update the plan, run the plan review again, and only then move to implementation review.",
   "technical_terms_required": "No",
   "boundaries": {
     "writes_target_files": "No",
@@ -772,6 +953,25 @@ The machine-readable evidence should include:
   "outcome": "PLAN_REVISION_REQUIRED"
 }
 ```
+
+For `NO_PLAN_REQUIRED`:
+
+```json
+{
+  "plan_review_state": "NO_PLAN_REQUIRED",
+  "plan_ref": "N/A",
+  "plan_digest": "N/A",
+  "skip_review": {
+    "skip_allowed": "Yes",
+    "skip_source": "task_governance",
+    "skip_reason": "<structured reason>",
+    "task_impact": "LOW"
+  },
+  "implementation_authorized_by_this_report": "No"
+}
+```
+
+Do not invent a fake plan ref or fake digest for a skipped plan.
 
 Important boundary:
 
@@ -786,6 +986,9 @@ project authority also allow it.
 `resolve-plan-review.mjs` should:
 
 - read a plan file;
+- consume an existing Review Surface Card when available;
+- derive a temporary review-surface matrix when no durable card exists;
+- mark derived review-surface analysis as derived, not project authority;
 - read Task Governance evidence when required by task impact or provided by the
   caller;
 - treat Task Governance as the task-impact source of truth;
@@ -799,6 +1002,8 @@ project authority also allow it.
 - output a review report;
 - output findings and a recommended plan patch instead of rewriting the source
   implementation plan by default;
+- recommend read-only subagent review when task impact and selected surfaces
+  make independent review useful;
 - never write target implementation files;
 - never mutate source Task Governance, Business Rule Closure, Change Impact
   Coverage, Verification Plan, or project-native evidence;
@@ -819,7 +1024,15 @@ Suggested flags:
 --revised-plan-out
 ```
 
-`--out` must be relative to the target project.
+`--out` must:
+
+- be relative to the target project;
+- stay under `plan-review-reports/*.md` unless a project-native report
+  directory is explicitly configured;
+- reject absolute paths;
+- reject `..` path traversal;
+- reject writes to implementation files, authority files, CI, release,
+  production, or runtime configuration.
 
 `--revised-plan-out` is reserved for an explicit future write mode. If enabled,
 it must write only to an approved documentation path and must not edit the
@@ -838,6 +1051,8 @@ original plan or implementation files.
 - `PLAN_REVIEW_PASSED` that claims full implementation authority while upstream
   authorities remain unknown;
 - high-impact plan review without a Task Governance ref;
+- high-impact plan review without Review Surface Card, project-native
+  equivalent, or derived review-surface matrix;
 - Task Governance digest mismatch;
 - Task Governance task mismatch;
 - plan review report that downgrades or overrides Task Governance task impact;
@@ -854,6 +1069,11 @@ original plan or implementation files.
 - missing required review surfaces;
 - missing `review_surface_matrix`;
 - required review surface marked as not reviewed;
+- report that asks the user to choose technical review surfaces;
+- report that treats Review Surface Card as implementation approval;
+- subagent review routing that treats subagent output as authority;
+- subagent review routing with writer subagents for plan review;
+- subagent review routing that leaves known launched subagents unclosed;
 - stale plan digest;
 - plan/task mismatch;
 - missing verification command review;
@@ -901,6 +1121,7 @@ Add positive examples:
 Add bad fixtures:
 
 - `bad-plan-review-high-without-review`
+- `bad-plan-review-high-without-review-surface-analysis`
 - `bad-plan-review-high-without-task-governance`
 - `bad-plan-review-task-governance-digest-mismatch`
 - `bad-plan-review-task-governance-task-mismatch`
@@ -915,6 +1136,11 @@ Add bad fixtures:
 - `bad-plan-review-missing-permission-surface`
 - `bad-plan-review-missing-review-surface-matrix`
 - `bad-plan-review-required-surface-not-reviewed`
+- `bad-plan-review-user-asked-to-pick-technical-surfaces`
+- `bad-plan-review-surface-card-treated-as-approval`
+- `bad-plan-review-subagent-output-treated-as-authority`
+- `bad-plan-review-subagent-writer-used-for-review`
+- `bad-plan-review-subagent-left-running`
 - `bad-plan-review-missing-source-chain`
 - `bad-plan-review-source-chain-digest-mismatch`
 - `bad-plan-review-source-chain-contradiction`
@@ -958,6 +1184,7 @@ The schema must require:
 
 - plan ref and digest;
 - source task binding;
+- review-surface analysis binding or derived matrix flag;
 - Task Governance binding object;
 - source chain for high-impact tasks;
 - review state;
@@ -965,6 +1192,7 @@ The schema must require:
 - explicit non-authorization fields;
 - reviewed surfaces;
 - review surface matrix;
+- subagent review routing when independent review is recommended;
 - findings;
 - structured P2 acceptance fields;
 - revision loop;
@@ -986,6 +1214,10 @@ Governance / Work Queue sources.
 For high-impact work, Task Governance and source-chain evidence are not
 optional. The resolver may still produce a report without them, but that report
 must be blocked and must not pass.
+
+For high-impact work, review-surface analysis is also not optional. If no
+durable Review Surface Card or project-native equivalent exists, the resolver
+must derive a temporary matrix and mark it as derived evidence.
 
 ### Step 4: Add Checker
 
@@ -1084,6 +1316,7 @@ Each bad fixture must fail:
 
 ```bash
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-high-without-review --require-structured-evidence
+node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-high-without-review-surface-analysis --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-high-without-task-governance --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-task-governance-digest-mismatch --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-task-governance-task-mismatch --require-structured-evidence
@@ -1098,6 +1331,11 @@ node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-codex-accep
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-missing-permission-surface --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-missing-review-surface-matrix --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-required-surface-not-reviewed --require-structured-evidence
+node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-user-asked-to-pick-technical-surfaces --require-structured-evidence
+node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-surface-card-treated-as-approval --require-structured-evidence
+node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-subagent-output-treated-as-authority --require-structured-evidence
+node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-subagent-writer-used-for-review --require-structured-evidence
+node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-subagent-left-running --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-missing-source-chain --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-source-chain-digest-mismatch --require-structured-evidence
 node scripts/check-plan-review.mjs test-fixtures/bad/bad-plan-review-source-chain-contradiction --require-structured-evidence
@@ -1118,6 +1356,8 @@ Negative checks must prove the checker rejects:
 - Plan Review Gate acting as a second task classifier;
 - `PLAN_REVIEW_PASSED` acting as implementation authorization;
 - `NO_PLAN_REQUIRED` created without Task Governance support;
+- missing review-surface analysis for high-impact tasks;
+- user-facing output that asks the user to select technical review surfaces;
 - fake or merely aspirational verification commands;
 - claims that tests were executed by the plan-review report;
 - high-impact plan reviews without source-chain evidence;
@@ -1145,6 +1385,7 @@ Before releasing 1.88, perform a static review focused on:
 
 - high-impact tasks cannot enter implementation from an unreviewed plan;
 - high-impact tasks cannot pass without Task Governance binding;
+- high-impact tasks cannot pass without review-surface analysis;
 - high-impact tasks cannot pass without required source-chain evidence;
 - Plan Review Gate does not authorize implementation by itself;
 - Plan Review Gate does not reclassify task impact by itself;
@@ -1152,6 +1393,10 @@ Before releasing 1.88, perform a static review focused on:
   lightweight execution;
 - permission-sensitive and data-destructive surfaces are explicit;
 - review surface matrix covers all required surfaces;
+- review surface selection is AI-owned and does not ask the user to pick
+  technical surfaces;
+- subagent review is read-only, input-only, and closed/skipped before final
+  response when used;
 - structured P2 acceptance requires a real human or domain-owner decision ref;
 - existence leakage and error-return priority are first-class checks;
 - verification command review rejects fake or unstable commands;
@@ -1181,8 +1426,10 @@ stable tests prove the rule.
 For a reviewed and revised plan:
 
 ```text
-The plan review passed. I can now move to implementation under the approved
-scope. The review itself still does not approve commit, push, or release.
+The plan review passed. I can now move to implementation review under the
+approved scope. If implementation is already authorized by the project workflow,
+I can implement within that scope. The review itself still does not approve code
+changes, commit, push, or release.
 ```
 
 ## Completion Definition
@@ -1194,6 +1441,7 @@ scope. The review itself still does not approve commit, push, or release.
 - CLI entries exist;
 - plan-review schema exists;
 - Task Governance binding is enforced;
+- Review Surface Governance is consumed or a derived matrix is recorded;
 - source-chain evidence is enforced for high-impact plans;
 - `NO_PLAN_REQUIRED` requires Task Governance-backed skip evidence;
 - `PLAN_REVIEW_PASSED` is limited to pre-implementation prerequisite status;
@@ -1201,6 +1449,7 @@ scope. The review itself still does not approve commit, push, or release.
 - unresolved P0/P1 findings are rejected;
 - unstructured or Codex-accepted P2 findings are rejected where they block;
 - review surface matrix is required and checked;
+- subagent review routing remains optional, read-only, and input-only;
 - permission/data-destructive plan examples are covered;
 - fake verification command examples are rejected;
 - plan-review reports cannot claim test execution;
@@ -1220,6 +1469,10 @@ scope. The review itself still does not approve commit, push, or release.
 - `NO_PLAN_REQUIRED` can be decided by Plan Review Gate alone;
 - Plan Review Gate executes tests;
 - Plan Review Gate rewrites the original implementation plan by default;
+- Plan Review Gate replaces Review Surface Governance;
+- users must choose technical review surfaces;
+- subagent reviewer output becomes authority;
+- subagents can remain running after review handoff;
 - plan review replaces business owner decisions;
 - plan review replaces tests;
 - plan review replaces completion evidence;
