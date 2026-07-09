@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.88.1`。
+当前版本：`1.88.2`。
 
-发布记录：[releases/1.88.1/release-record.md](releases/1.88.1/release-record.md)。
+发布记录：[releases/1.88.2/release-record.md](releases/1.88.2/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -73,6 +73,14 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.88.2 把 Plan Review Gate 接到下游执行链路：Execution Assurance、
+Completion Evidence 和 Controlled Apply Readiness 可以使用严格
+`--require-plan-review` 模式，要求绑定同一任务的 `PLAN_REVIEW_PASSED`
+报告后，才能说执行完成、任务完成或 apply readiness 通过。
+
+1.88.2 仍然不授权执行。它只是消费计划审查证据，不批准代码实现、apply、
+提交、推送、发布、生产、测试、迁移或项目负责人决策。
 
 1.88.1 加严 Plan Review Gate：高影响任务如果要达到 `PLAN_REVIEW_PASSED`，
 必须有 Task Governance、Review Surface 权威、Verification Plan，以及必要的

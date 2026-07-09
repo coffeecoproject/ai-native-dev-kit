@@ -38,6 +38,7 @@ Codex should not jump from plan to write. It should first produce a Controlled A
 Codex should check:
 
 - whether the apply plan exists;
+- whether a required Plan Review Gate report is passed and bound;
 - whether the plan itself says it does not authorize apply;
 - whether target paths are clear;
 - whether git state is safe;
@@ -67,10 +68,14 @@ For maintainer evidence:
 
 ```bash
 node scripts/cli.mjs apply-readiness . --plan apply-plans/001-example.md
-node scripts/cli.mjs apply-readiness-check .
+node scripts/cli.mjs apply-readiness-check . --require-plan-review
 ```
 
 For ordinary users, Codex should not require these commands. Codex can run the internal path and explain the result.
+
+From 1.88.2, `--require-plan-review` checks `plan_review_binding`. Controlled
+Apply Readiness can only pass that strict mode when the referenced Plan Review
+report is `PLAN_REVIEW_PASSED`, digest-bound, task-bound, and non-authorizing.
 
 ## Relationship To Unified Apply Plan
 

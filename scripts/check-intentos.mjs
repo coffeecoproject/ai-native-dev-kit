@@ -10104,6 +10104,7 @@ function checkPlanReviewGateProtocol() {
     "docs/plan-review-gate.md",
     "docs/plans/plan-review-gate-1.88-plan.md",
     "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
+    "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
     "templates/plan-review-report.md",
     "checklists/plan-review-gate-review.md",
     "prompts/plan-review-gate-agent.md",
@@ -10111,6 +10112,7 @@ function checkPlanReviewGateProtocol() {
     "plan-review-reports/.gitkeep",
     "scripts/resolve-plan-review.mjs",
     "scripts/check-plan-review.mjs",
+    "scripts/lib/plan-review-binding.mjs",
     "examples/1.88-plan-review-gate/README.md",
     "examples/1.88-plan-review-gate/low-docs-plan-skip/plan-review-reports/001-low-skip.md",
     "examples/1.88-plan-review-gate/medium-ui-plan-reviewed/docs/example-plan.md",
@@ -10121,6 +10123,10 @@ function checkPlanReviewGateProtocol() {
     "examples/1.88-plan-review-gate/high-permission-delete-plan-passed/plan-review-reports/001-passed.md",
     "examples/1.88-plan-review-gate/high-business-rule-plan-stale/docs/example-plan.md",
     "examples/1.88-plan-review-gate/high-business-rule-plan-stale/plan-review-reports/001-stale.md",
+    "examples/1.88-plan-review-consumer-integration/README.md",
+    "examples/1.88-plan-review-consumer-integration/high-execution-assurance/execution-assurance-reports/001-plan-reviewed.md",
+    "examples/1.88-plan-review-consumer-integration/completion-evidence-plan-reviewed/completion-evidence-reports/001-service-time.md",
+    "examples/1.88-plan-review-consumer-integration/apply-readiness-plan-reviewed/apply-readiness-reports/001-structured-workflow-assets.md",
     "test-fixtures/bad/bad-plan-review-high-without-task-governance/plan-review-reports/001-bad.md",
     "test-fixtures/bad/bad-plan-review-high-without-review-surface-analysis/plan-review-reports/001-bad.md",
     "test-fixtures/bad/bad-plan-review-missing-review-surface-matrix/plan-review-reports/001-bad.md",
@@ -10146,12 +10152,18 @@ function checkPlanReviewGateProtocol() {
     "test-fixtures/bad/bad-plan-review-derived-surface-pass/plan-review-reports/001-bad.md",
     "test-fixtures/bad/bad-plan-review-missing-source-verification/plan-review-reports/001-bad.md",
     "test-fixtures/bad/bad-plan-review-subagent-fallback-pass/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-execution-assurance-missing-plan-review-binding/execution-assurance-reports/001-plan-reviewed.md",
+    "test-fixtures/bad/bad-completion-evidence-missing-plan-review-binding/completion-evidence-reports/001-possible-high-blocked.md",
+    "test-fixtures/bad/bad-controlled-apply-plan-review-not-passed/apply-readiness-reports/001-structured-workflow-assets.md",
     "releases/1.88.0/release-record.md",
     "releases/1.88.0/known-limitations.md",
     "releases/1.88.0/self-check-report.md",
     "releases/1.88.1/release-record.md",
     "releases/1.88.1/known-limitations.md",
     "releases/1.88.1/self-check-report.md",
+    "releases/1.88.2/release-record.md",
+    "releases/1.88.2/known-limitations.md",
+    "releases/1.88.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.88 plan review asset exists ${file}`);
@@ -10166,15 +10178,27 @@ function checkPlanReviewGateProtocol() {
     read("docs/plan-review-gate.md"),
     read("docs/plans/plan-review-gate-1.88-plan.md"),
     read("docs/plans/plan-review-gate-hardening-1.88.1-plan.md"),
+    read("docs/plans/plan-review-consumer-integration-1.88.2-plan.md"),
     read("templates/plan-review-report.md"),
+    read("templates/execution-assurance-report.md"),
+    read("templates/completion-evidence-report.md"),
+    read("templates/controlled-apply-readiness-report.md"),
     read("checklists/plan-review-gate-review.md"),
     read("prompts/plan-review-gate-agent.md"),
     read("schemas/artifacts/plan-review.schema.json"),
+    read("schemas/artifacts/execution-assurance.schema.json"),
+    read("schemas/artifacts/completion-evidence.schema.json"),
+    read("schemas/artifacts/controlled-apply-readiness.schema.json"),
     read("scripts/resolve-plan-review.mjs"),
     read("scripts/check-plan-review.mjs"),
+    read("scripts/lib/plan-review-binding.mjs"),
+    read("scripts/check-execution-assurance.mjs"),
+    read("scripts/check-completion-evidence.mjs"),
+    read("scripts/check-controlled-apply-readiness.mjs"),
     read("scripts/cli.mjs"),
     read("releases/1.88.0/release-record.md"),
     read("releases/1.88.1/release-record.md"),
+    read("releases/1.88.2/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Plan Review Gate",
@@ -10195,6 +10219,10 @@ function checkPlanReviewGateProtocol() {
     "subagent_output_is_authority",
     "PLAN_REVIEW_PASSED cannot use fallback as substitute",
     "rewrites_original_plan",
+    "plan_review_binding",
+    "--require-plan-review",
+    "Plan Review Consumer Integration",
+    "required plan review must be PLAN_REVIEW_PASSED",
   ]) {
     if (combined.includes(marker)) pass(`1.88 plan review includes ${marker}`);
     else fail(`1.88 plan review missing ${marker}`);
@@ -10217,6 +10245,20 @@ function checkPlanReviewGateProtocol() {
       pass(`1.88 plan review example ${name} passes checker`);
     } else {
       fail(`1.88 plan review example ${name} failed: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  const consumerExamples = [
+    ["execution assurance consumer", ["scripts/check-execution-assurance.mjs", "examples/1.88-plan-review-consumer-integration/high-execution-assurance", "--require-structured-evidence", "--require-plan-review", "--require-actual-diff", "--require-precise-evidence"], "Execution assurance check passed"],
+    ["completion evidence consumer", ["scripts/check-completion-evidence.mjs", "examples/1.88-plan-review-consumer-integration/completion-evidence-plan-reviewed", "--report", "completion-evidence-reports/001-service-time.md", "--require-structured-evidence", "--require-source-refs", "--require-ready", "--require-plan-review"], "Completion Evidence Gate check passed"],
+    ["controlled apply readiness consumer", ["scripts/check-controlled-apply-readiness.mjs", "examples/1.88-plan-review-consumer-integration/apply-readiness-plan-reviewed", "--require-structured-evidence", "--require-plan-review"], "Controlled Apply Readiness check passed"],
+  ];
+  for (const [name, command, expected] of consumerExamples) {
+    const result = runNode(command);
+    if (result.status === 0 && result.stdout.includes(expected)) {
+      pass(`1.88.2 plan review ${name} passes strict consumer checker`);
+    } else {
+      fail(`1.88.2 plan review ${name} failed: ${result.stderr || result.stdout}`);
     }
   }
 
@@ -10261,6 +10303,21 @@ function checkPlanReviewGateProtocol() {
     }
   }
 
+  const badConsumerCases = [
+    ["bad-execution-assurance-missing-plan-review-binding", ["scripts/check-execution-assurance.mjs", "test-fixtures/bad/bad-execution-assurance-missing-plan-review-binding", "--require-structured-evidence", "--require-plan-review", "--require-actual-diff", "--require-precise-evidence"], "requires plan_review_binding"],
+    ["bad-completion-evidence-missing-plan-review-binding", ["scripts/check-completion-evidence.mjs", "test-fixtures/bad/bad-completion-evidence-missing-plan-review-binding", "--report", "completion-evidence-reports/001-possible-high-blocked.md", "--require-structured-evidence", "--require-plan-review"], "requires plan_review_binding"],
+    ["bad-controlled-apply-plan-review-not-passed", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-controlled-apply-plan-review-not-passed", "--require-structured-evidence", "--require-plan-review"], "required plan review must be PLAN_REVIEW_PASSED"],
+  ];
+  for (const [name, command, expected] of badConsumerCases) {
+    const result = runNode(command);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.88.2 plan review consumer rejects ${name}`);
+    } else {
+      fail(`1.88.2 plan review consumer must reject ${name}: ${output}`);
+    }
+  }
+
   const planReviewPackage = JSON.parse(read("package.json"));
   const verifySurface = Object.entries(planReviewPackage.scripts || {})
     .filter(([name]) => name === "verify" || name.startsWith("verify:"))
@@ -10269,9 +10326,11 @@ function checkPlanReviewGateProtocol() {
   for (const marker of [
     "node --check scripts/resolve-plan-review.mjs",
     "node --check scripts/check-plan-review.mjs",
+    "node --check scripts/lib/plan-review-binding.mjs",
     "node scripts/cli.mjs plan-review . --intent \"review implementation plan before coding\"",
     "node scripts/cli.mjs plan-review-check . --allow-empty",
     "node scripts/check-plan-review.mjs examples/1.88-plan-review-gate/high-permission-delete-plan-passed --require-structured-evidence",
+    "node scripts/check-execution-assurance.mjs examples/1.88-plan-review-consumer-integration/high-execution-assurance --require-structured-evidence --require-plan-review --require-actual-diff --require-precise-evidence",
   ]) {
     if (verifySurface.includes(marker)) pass(`1.88 package verify includes ${marker}`);
     else fail(`1.88 package verify missing ${marker}`);

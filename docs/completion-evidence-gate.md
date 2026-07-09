@@ -48,6 +48,12 @@ node scripts/check-completion-evidence.mjs . \
   --strict-task-consumer
 ```
 
+From 1.88.2, strict plan-review consumer mode adds Plan Review Binding. If the
+task required Plan Review Gate before implementation, run completion checks with
+`--require-plan-review`. Completion Evidence then requires a
+`plan_review_binding` that resolves to a `PLAN_REVIEW_PASSED` report for the
+same task and plan digest.
+
 ## When To Use
 
 Use it when Codex is about to say:
@@ -83,5 +89,6 @@ node scripts/cli.mjs completion-evidence-check . \
   --report completion-evidence-reports/001-service-time.md \
   --require-structured-evidence \
   --require-source-refs \
-  --require-ready
+  --require-ready \
+  --require-plan-review
 ```

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.88.1",
+  "intentOSVersion": "1.88.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.88.1"
+    "phase": "1.88.2"
   },
   "groups": {
     "sourceRequired": [
@@ -365,6 +365,7 @@
       "docs/plans/native-migration-parser-calibration-1.64-plan.md",
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
+      "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
       "docs/plans/plan-review-gate-1.88-plan.md",
       "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
       "docs/plans/platform-release-recipes-1.59-plan.md",
@@ -841,6 +842,10 @@
       "examples/1.86-runtime-hygiene/strict-task-entry/task-governance-reports/001-task-governance.md",
       "examples/1.86-runtime-hygiene/strict-task-entry/work-queue-takeover-reports/001-current.md",
       "examples/1.87-release-channel-decoupling/README.md",
+      "examples/1.88-plan-review-consumer-integration/README.md",
+      "examples/1.88-plan-review-consumer-integration/apply-readiness-plan-reviewed/apply-readiness-reports/001-structured-workflow-assets.md",
+      "examples/1.88-plan-review-consumer-integration/completion-evidence-plan-reviewed/completion-evidence-reports/001-service-time.md",
+      "examples/1.88-plan-review-consumer-integration/high-execution-assurance/execution-assurance-reports/001-plan-reviewed.md",
       "examples/1.88-plan-review-gate/README.md",
       "examples/1.88-plan-review-gate/high-business-rule-plan-stale/docs/example-plan.md",
       "examples/1.88-plan-review-gate/high-business-rule-plan-stale/plan-review-reports/001-stale.md",
@@ -1707,6 +1712,9 @@
       "releases/1.88.1/known-limitations.md",
       "releases/1.88.1/release-record.md",
       "releases/1.88.1/self-check-report.md",
+      "releases/1.88.2/known-limitations.md",
+      "releases/1.88.2/release-record.md",
+      "releases/1.88.2/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -1902,6 +1910,7 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -2341,6 +2350,7 @@
       "test-fixtures/bad/bad-closure-decision-missing-explain-trace/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-closure-decision-split-truth/closure-decisions/001-bad.md",
       "test-fixtures/bad/bad-completion-evidence-execution-not-verified/completion-evidence-reports/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-missing-plan-review-binding/completion-evidence-reports/001-possible-high-blocked.md",
       "test-fixtures/bad/bad-completion-evidence-missing-test-evidence/completion-evidence-reports/001-bad.md",
       "test-fixtures/bad/bad-completion-evidence-task-mismatch/completion-evidence-reports/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
@@ -2357,6 +2367,7 @@
       "test-fixtures/bad/bad-context-correction-missing-evidence/templates/learning-candidate.md",
       "test-fixtures/bad/bad-controlled-apply-authorizes-apply/apply-readiness-reports/001-bad.md",
       "test-fixtures/bad/bad-controlled-apply-high-risk-ready/apply-readiness-reports/001-bad.md",
+      "test-fixtures/bad/bad-controlled-apply-plan-review-not-passed/apply-readiness-reports/001-structured-workflow-assets.md",
       "test-fixtures/bad/bad-controlled-apply-proceeds-without-approval/apply-readiness-reports/001-bad.md",
       "test-fixtures/bad/bad-controlled-native-adoption-review-dirty-plan-only/native-adoption-review-reports/001-bad.md",
       "test-fixtures/bad/bad-controlled-native-adoption-review-maturity-depth-drift/native-adoption-review-reports/001-bad.md",
@@ -2381,6 +2392,7 @@
       "test-fixtures/bad/bad-execution-assurance-controlled-patch-no-debt/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-declarative-precise-evidence/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-missing-actual-diff/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-missing-plan-review-binding/execution-assurance-reports/001-plan-reviewed.md",
       "test-fixtures/bad/bad-execution-assurance-missing-review/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-no-completion-contract/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-patch-smell-verified/execution-assurance-reports/001-bad.md",
@@ -3371,6 +3383,7 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -4072,6 +4085,7 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -4794,6 +4808,7 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -6227,6 +6242,7 @@
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -8254,6 +8270,10 @@
         "target": "scripts/lib/native-rule-extraction.mjs"
       },
       {
+        "source": "scripts/lib/plan-review-binding.mjs",
+        "target": "scripts/lib/plan-review-binding.mjs"
+      },
+      {
         "source": "scripts/lib/project-signals.mjs",
         "target": "scripts/lib/project-signals.mjs"
       },
@@ -8921,6 +8941,7 @@
       "scripts/check-task-governance.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/lib/task-entry-binding.mjs",
+      "scripts/lib/plan-review-binding.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-controlled-native-adoption-review.mjs",
       "scripts/resolve-execution-assurance.mjs",

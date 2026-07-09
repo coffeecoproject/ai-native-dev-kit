@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.88.1`
+Current version: `1.88.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.88.1`
 
 ## Current Release
 
-`1.88.1`
+`1.88.2`
 
 Includes:
+
+- Plan Review Consumer Integration patch `1.88.2`: Execution Assurance,
+  Completion Evidence, and Controlled Apply Readiness can now require
+  `plan_review_binding` before downstream reports claim done, complete, or
+  ready. Required bindings must resolve to a `PLAN_REVIEW_PASSED` report and
+  match the referenced plan review digest, plan ref, plan digest, and task ref.
+- `1.88.2` remains non-authorizing. It consumes Plan Review Gate evidence but
+  does not approve implementation, apply, commit, push, release, production,
+  tests, migrations, or project-owner decisions.
 
 - Plan Review Gate Hardening patch `1.88.1`: high-impact
   `PLAN_REVIEW_PASSED` reports now require source-chain evidence from Task

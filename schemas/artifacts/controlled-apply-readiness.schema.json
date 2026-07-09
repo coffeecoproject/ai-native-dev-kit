@@ -18,33 +18,86 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.41.0"] },
-    "artifact_type": { "type": "string", "enum": ["controlled_apply_readiness"] },
-    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "1.41.0"
+      ]
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "controlled_apply_readiness"
+      ]
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
     "readiness_state": {
       "type": "string",
-      "enum": ["NO_APPLY_PLAN", "NOT_READY", "READY_FOR_HUMAN_APPROVED_APPLY", "HUMAN_ONLY", "BLOCKED"]
+      "enum": [
+        "NO_APPLY_PLAN",
+        "NOT_READY",
+        "READY_FOR_HUMAN_APPROVED_APPLY",
+        "HUMAN_ONLY",
+        "BLOCKED"
+      ]
     },
-    "can_codex_apply_now": { "type": "boolean" },
-    "requires_explicit_human_approval": { "type": "boolean" },
-    "can_proceed_without_new_approval": { "type": "boolean" },
+    "can_codex_apply_now": {
+      "type": "boolean"
+    },
+    "requires_explicit_human_approval": {
+      "type": "boolean"
+    },
+    "can_proceed_without_new_approval": {
+      "type": "boolean"
+    },
     "apply_plan": {
       "type": "object",
-      "required": ["path", "plan_digest"],
+      "required": [
+        "path",
+        "plan_digest"
+      ],
       "properties": {
-        "path": { "type": "string" },
-        "plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+        "path": {
+          "type": "string"
+        },
+        "plan_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
       }
     },
     "actions": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "classification", "target_paths"],
+        "required": [
+          "id",
+          "classification",
+          "target_paths"
+        ],
         "properties": {
-          "id": { "type": "string", "pattern": "^[A-Z]-?[0-9]{3}$" },
-          "classification": { "type": "string", "enum": ["LOW_RISK_CANDIDATE", "HUMAN_ONLY", "BLOCKED"] },
-          "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Z]-?[0-9]{3}$"
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "LOW_RISK_CANDIDATE",
+              "HUMAN_ONLY",
+              "BLOCKED"
+            ]
+          },
+          "target_paths": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -52,30 +105,65 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "status"],
+        "required": [
+          "name",
+          "status"
+        ],
         "properties": {
-          "name": { "type": "string" },
-          "status": { "type": "string", "enum": ["pass", "fail", "not_applicable"] }
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "not_applicable"
+            ]
+          }
         }
       }
     },
     "rollback": {
       "type": "object",
-      "required": ["required", "path", "step", "verification"],
+      "required": [
+        "required",
+        "path",
+        "step",
+        "verification"
+      ],
       "properties": {
-        "required": { "type": "boolean" },
-        "path": { "type": "string" },
-        "step": { "type": "string" },
-        "verification": { "type": "string" }
+        "required": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "step": {
+          "type": "string"
+        },
+        "verification": {
+          "type": "string"
+        }
       }
     },
     "verification": {
       "type": "object",
-      "required": ["pre_apply", "post_apply", "evidence_path"],
+      "required": [
+        "pre_apply",
+        "post_apply",
+        "evidence_path"
+      ],
       "properties": {
-        "pre_apply": { "type": "string" },
-        "post_apply": { "type": "string" },
-        "evidence_path": { "type": "string" }
+        "pre_apply": {
+          "type": "string"
+        },
+        "post_apply": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        }
       }
     },
     "boundary": {
@@ -89,14 +177,117 @@
         "enables_high_risk_actions"
       ],
       "properties": {
-        "writes_files_now": { "type": "boolean" },
-        "authorizes_apply": { "type": "boolean" },
-        "approves_implementation": { "type": "boolean" },
-        "approves_release_or_production": { "type": "boolean" },
-        "installs_hooks_or_changes_ci": { "type": "boolean" },
-        "enables_high_risk_actions": { "type": "boolean" }
+        "writes_files_now": {
+          "type": "boolean"
+        },
+        "authorizes_apply": {
+          "type": "boolean"
+        },
+        "approves_implementation": {
+          "type": "boolean"
+        },
+        "approves_release_or_production": {
+          "type": "boolean"
+        },
+        "installs_hooks_or_changes_ci": {
+          "type": "boolean"
+        },
+        "enables_high_risk_actions": {
+          "type": "boolean"
+        }
       }
     },
-    "outcome": { "type": "string", "enum": ["READINESS_RECORDED", "NEEDS_HUMAN_DECISION", "BLOCKED"] }
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "READINESS_RECORDED",
+        "NEEDS_HUMAN_DECISION",
+        "BLOCKED"
+      ]
+    },
+    "plan_review_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "plan_review_ref",
+        "plan_review_digest",
+        "plan_review_state",
+        "plan_ref",
+        "plan_digest",
+        "task_ref",
+        "current_task_match",
+        "ready_for_implementation_review",
+        "implementation_authorized_by_this_report",
+        "reason"
+      ],
+      "properties": {
+        "required": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "plan_review_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plan_review_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "plan_review_state": {
+          "enum": [
+            "NO_PLAN_REQUIRED",
+            "PLAN_REQUIRED",
+            "PLAN_DRAFTED",
+            "PLAN_REVIEW_REQUIRED",
+            "PLAN_REVISION_REQUIRED",
+            "PLAN_REVIEW_PASSED",
+            "BLOCKED_BY_STALE_PLAN",
+            "BLOCKED_BY_INCOMPLETE_REVIEW",
+            "BLOCKED_BY_USER_DECISION",
+            "BLOCKED_BY_REPEATED_PLAN_REVIEW_FAILURE",
+            "PLAN_REVIEW_REQUIRED_WITH_TASK_GOVERNANCE_RECHECK"
+          ]
+        },
+        "plan_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plan_digest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "current_task_match": {
+          "enum": [
+            "Yes",
+            "No",
+            "Unknown",
+            "N/A"
+          ]
+        },
+        "ready_for_implementation_review": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "implementation_authorized_by_this_report": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
   }
 }

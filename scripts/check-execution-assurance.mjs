@@ -8,6 +8,7 @@ import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -20,6 +21,7 @@ const knownFlags = new Set([
   "require-task-governance",
   "require-work-queue",
   "strict-task-consumer",
+  "require-plan-review",
   "allow-empty",
   "report",
   "mode",
@@ -35,6 +37,7 @@ const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const requireTaskGovernance = Boolean(args["require-task-governance"]);
 const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
+const requirePlanReview = Boolean(args["require-plan-review"]);
 const allowEmptyReports = Boolean(args["allow-empty"]);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schemaVersion = "1.74.0";
@@ -214,7 +217,7 @@ function checkReports() {
     for (const section of requiredSections) requireSection(content, section, label);
     if (requireStructuredEvidence) requireSection(content, "Machine-Readable Evidence", label);
     const summary = checkSummary(content, label);
-    const evidence = checkStructuredEvidence(content, label);
+    const evidence = checkStructuredEvidence(content, label, file);
     checkCrossConsistency(content, label, summary, evidence);
     checkStateRules(content, label, summary, evidence);
   }
@@ -237,7 +240,7 @@ function checkSummary(content, label) {
   return { kind, state, canClaimDone, canWrite };
 }
 
-function checkStructuredEvidence(content, label) {
+function checkStructuredEvidence(content, label, file) {
   const body = sectionBody(content, "Machine-Readable Evidence", { fallback: "" }) || "";
   if (!body.trim()) {
     if (requireStructuredEvidence) fail(`${label} must include Machine-Readable Evidence in strict mode`);
@@ -328,6 +331,16 @@ function checkStructuredEvidence(content, label) {
     requireTaskGovernance,
     requireWorkQueue,
     strictTaskConsumer,
+    pass,
+    fail,
+  });
+  checkPlanReviewBinding({
+    projectRoot,
+    currentFile: file,
+    evidence: parsed,
+    label,
+    requirePlanReview,
+    consumer: "execution assurance",
     pass,
     fail,
   });

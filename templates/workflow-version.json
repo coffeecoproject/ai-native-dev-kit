@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.88.1",
+  "intentOSVersion": "1.88.2",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -536,6 +536,7 @@
     "scripts/lib/manifest.mjs",
     "scripts/lib/markdown.mjs",
     "scripts/lib/native-rule-extraction.mjs",
+    "scripts/lib/plan-review-binding.mjs",
     "scripts/lib/project-signals.mjs",
     "scripts/lib/risk-surfaces.mjs",
     "scripts/lib/task-entry-binding.mjs",
@@ -601,5 +602,6 @@
     "work-queue-takeover-reports",
     "workflow-adoption-maps",
     "workflow-guidance-cards"
-  ]
+  ],
+  "version": "1.88.2"
 }

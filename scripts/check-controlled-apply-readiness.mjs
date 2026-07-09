@@ -11,12 +11,14 @@ import {
   resolveEvidenceReference,
   validateEvidenceBlock,
 } from "./lib/artifact-schema.mjs";
+import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence"]));
+const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence", "require-plan-review"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const requirePlanReview = Boolean(args["require-plan-review"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -241,6 +243,16 @@ function checkStructuredEvidence(content, label, file) {
   } else {
     fail(`${label} structured boundary must keep all authority flags false`);
   }
+  checkPlanReviewBinding({
+    projectRoot,
+    currentFile: file,
+    evidence,
+    label,
+    requirePlanReview,
+    consumer: "controlled apply readiness",
+    pass,
+    fail,
+  });
 
   if (evidence.readiness_state !== "NO_APPLY_PLAN" && (!Array.isArray(evidence.actions) || evidence.actions.length === 0)) {
     fail(`${label} structured readiness actions must not be empty unless readiness_state is NO_APPLY_PLAN`);

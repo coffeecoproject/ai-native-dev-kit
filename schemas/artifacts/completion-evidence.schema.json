@@ -22,13 +22,32 @@
     "next_step"
   ],
   "properties": {
-    "schema_version": { "const": "1.78.0" },
-    "artifact_type": { "const": "completion_evidence_gate" },
-    "task_ref": { "type": "string", "minLength": 1 },
-    "intent": { "type": "string", "minLength": 1 },
-    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-    "completion_evidence_ref": { "type": "string", "minLength": 1 },
-    "completion_gate_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "schema_version": {
+      "const": "1.78.0"
+    },
+    "artifact_type": {
+      "const": "completion_evidence_gate"
+    },
+    "task_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "completion_evidence_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "completion_gate_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
     "completion_state": {
       "enum": [
         "COMPLETION_EVIDENCE_READY",
@@ -38,14 +57,29 @@
         "BLOCKED_BY_TASK_MISMATCH"
       ]
     },
-    "can_claim_complete": { "enum": ["Yes", "No"] },
+    "can_claim_complete": {
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
     "source_chain": {
       "type": "array",
       "minItems": 4,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "status", "ref", "task_ref", "intent_digest", "source_outcome", "digest", "ready", "reason"],
+        "required": [
+          "name",
+          "status",
+          "ref",
+          "task_ref",
+          "intent_digest",
+          "source_outcome",
+          "digest",
+          "ready",
+          "reason"
+        ],
         "properties": {
           "name": {
             "enum": [
@@ -55,14 +89,39 @@
               "execution_assurance"
             ]
           },
-          "status": { "enum": ["RECORDED", "NOT_PROVIDED", "UNRESOLVED", "INVALID"] },
-          "ref": { "type": "string" },
-          "task_ref": { "type": "string" },
-          "intent_digest": { "type": "string" },
-          "source_outcome": { "type": "string" },
-          "digest": { "type": "string" },
-          "ready": { "enum": ["Yes", "No"] },
-          "reason": { "type": "string", "minLength": 1 }
+          "status": {
+            "enum": [
+              "RECORDED",
+              "NOT_PROVIDED",
+              "UNRESOLVED",
+              "INVALID"
+            ]
+          },
+          "ref": {
+            "type": "string"
+          },
+          "task_ref": {
+            "type": "string"
+          },
+          "intent_digest": {
+            "type": "string"
+          },
+          "source_outcome": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "ready": {
+            "enum": [
+              "Yes",
+              "No"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
@@ -72,32 +131,84 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "status", "source", "expected", "actual", "reason"],
+        "required": [
+          "id",
+          "status",
+          "source",
+          "expected",
+          "actual",
+          "reason"
+        ],
         "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "status": { "enum": ["PASS", "FAIL"] },
-          "source": { "type": "string", "minLength": 1 },
-          "expected": { "type": "string", "minLength": 1 },
-          "actual": { "type": "string", "minLength": 1 },
-          "reason": { "type": "string", "minLength": 1 }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected": {
+            "type": "string",
+            "minLength": 1
+          },
+          "actual": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
     "task_consistency": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["expected_task_ref", "recorded_task_refs", "all_sources_same_task", "reason"],
+      "required": [
+        "expected_task_ref",
+        "recorded_task_refs",
+        "all_sources_same_task",
+        "reason"
+      ],
       "properties": {
-        "expected_task_ref": { "type": "string", "minLength": 1 },
-        "recorded_task_refs": { "type": "array", "items": { "type": "string" } },
-        "all_sources_same_task": { "enum": ["Yes", "No"] },
-        "reason": { "type": "string", "minLength": 1 }
+        "expected_task_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recorded_task_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "all_sources_same_task": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
-    "task_entry_binding": { "$ref": "#/$defs/taskEntryBinding" },
+    "task_entry_binding": {
+      "$ref": "#/$defs/taskEntryBinding"
+    },
     "missing_or_blocking_items": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "boundary": {
       "type": "object",
@@ -114,18 +225,123 @@
         "replaces_source_systems"
       ],
       "properties": {
-        "writes_target_files": { "const": "No" },
-        "runs_tests": { "const": "No" },
-        "fabricates_evidence": { "const": "No" },
-        "authorizes_implementation": { "const": "No" },
-        "approves_commit_or_push": { "const": "No" },
-        "approves_release_or_production": { "const": "No" },
-        "proves_product_correctness": { "const": "No" },
-        "proves_real_environment_behavior": { "const": "No" },
-        "replaces_source_systems": { "const": "No" }
+        "writes_target_files": {
+          "const": "No"
+        },
+        "runs_tests": {
+          "const": "No"
+        },
+        "fabricates_evidence": {
+          "const": "No"
+        },
+        "authorizes_implementation": {
+          "const": "No"
+        },
+        "approves_commit_or_push": {
+          "const": "No"
+        },
+        "approves_release_or_production": {
+          "const": "No"
+        },
+        "proves_product_correctness": {
+          "const": "No"
+        },
+        "proves_real_environment_behavior": {
+          "const": "No"
+        },
+        "replaces_source_systems": {
+          "const": "No"
+        }
       }
     },
-    "next_step": { "type": "string", "minLength": 1 }
+    "next_step": {
+      "type": "string",
+      "minLength": 1
+    },
+    "plan_review_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "plan_review_ref",
+        "plan_review_digest",
+        "plan_review_state",
+        "plan_ref",
+        "plan_digest",
+        "task_ref",
+        "current_task_match",
+        "ready_for_implementation_review",
+        "implementation_authorized_by_this_report",
+        "reason"
+      ],
+      "properties": {
+        "required": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "plan_review_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plan_review_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "plan_review_state": {
+          "enum": [
+            "NO_PLAN_REQUIRED",
+            "PLAN_REQUIRED",
+            "PLAN_DRAFTED",
+            "PLAN_REVIEW_REQUIRED",
+            "PLAN_REVISION_REQUIRED",
+            "PLAN_REVIEW_PASSED",
+            "BLOCKED_BY_STALE_PLAN",
+            "BLOCKED_BY_INCOMPLETE_REVIEW",
+            "BLOCKED_BY_USER_DECISION",
+            "BLOCKED_BY_REPEATED_PLAN_REVIEW_FAILURE",
+            "PLAN_REVIEW_REQUIRED_WITH_TASK_GOVERNANCE_RECHECK"
+          ]
+        },
+        "plan_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plan_digest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "current_task_match": {
+          "enum": [
+            "Yes",
+            "No",
+            "Unknown",
+            "N/A"
+          ]
+        },
+        "ready_for_implementation_review": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "implementation_authorized_by_this_report": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
   },
   "$defs": {
     "taskEntryBinding": {
@@ -151,27 +367,128 @@
         "plain_user_blocker"
       ],
       "properties": {
-        "work_queue_item_ref": { "type": "string", "minLength": 1 },
-        "work_queue_item_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-        "work_queue_item_state": { "enum": ["CURRENT", "PAUSED", "BLOCKED", "BACKLOG", "DONE", "CANCELLED"] },
-        "work_queue_item_current_task_match": { "enum": ["Yes", "No"] },
-        "approved_resume_review": { "enum": ["Yes", "No"] },
-        "resume_review_ref": { "type": "string" },
-        "resume_review_digest": { "type": "string" },
-        "resume_review_owner": { "type": "string" },
-        "resume_review_task_match": { "enum": ["Yes", "No", "N/A"] },
-        "task_governance_ref": { "type": "string", "minLength": 1 },
-        "task_governance_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-        "task_governance_tier": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH"] },
-        "task_governance_review_level": { "enum": ["LIGHTWEIGHT", "TARGETED", "BLOCKING_CLARIFICATION", "FULL"] },
-        "task_governance_task_match": { "enum": ["Yes", "No"] },
-        "minimal_verification_status": { "enum": ["REQUIRED", "NOT_RUN", "RECORDED", "NOT_APPLICABLE_WITH_REASON", "N/A"] },
-        "targeted_verification_status": { "enum": ["REQUIRED", "NOT_RUN", "RECORDED", "NOT_APPLICABLE_WITH_REASON", "N/A"] },
-        "high_impact_evidence_chain_complete": { "enum": ["Yes", "No", "N/A"] },
-        "task_governance_blocks_completion": { "enum": ["Yes", "No"] },
-        "tier_completion_requirements_satisfied": { "enum": ["Yes", "No"] },
-        "unresolved_task_governance_blockers": { "type": "array", "items": { "type": "string" } },
-        "plain_user_blocker": { "type": "string" }
+        "work_queue_item_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "work_queue_item_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "work_queue_item_state": {
+          "enum": [
+            "CURRENT",
+            "PAUSED",
+            "BLOCKED",
+            "BACKLOG",
+            "DONE",
+            "CANCELLED"
+          ]
+        },
+        "work_queue_item_current_task_match": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "approved_resume_review": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "resume_review_ref": {
+          "type": "string"
+        },
+        "resume_review_digest": {
+          "type": "string"
+        },
+        "resume_review_owner": {
+          "type": "string"
+        },
+        "resume_review_task_match": {
+          "enum": [
+            "Yes",
+            "No",
+            "N/A"
+          ]
+        },
+        "task_governance_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_governance_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "task_governance_tier": {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "POSSIBLE_HIGH",
+            "HIGH"
+          ]
+        },
+        "task_governance_review_level": {
+          "enum": [
+            "LIGHTWEIGHT",
+            "TARGETED",
+            "BLOCKING_CLARIFICATION",
+            "FULL"
+          ]
+        },
+        "task_governance_task_match": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "minimal_verification_status": {
+          "enum": [
+            "REQUIRED",
+            "NOT_RUN",
+            "RECORDED",
+            "NOT_APPLICABLE_WITH_REASON",
+            "N/A"
+          ]
+        },
+        "targeted_verification_status": {
+          "enum": [
+            "REQUIRED",
+            "NOT_RUN",
+            "RECORDED",
+            "NOT_APPLICABLE_WITH_REASON",
+            "N/A"
+          ]
+        },
+        "high_impact_evidence_chain_complete": {
+          "enum": [
+            "Yes",
+            "No",
+            "N/A"
+          ]
+        },
+        "task_governance_blocks_completion": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "tier_completion_requirements_satisfied": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        },
+        "unresolved_task_governance_blockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plain_user_blocker": {
+          "type": "string"
+        }
       }
     }
   }

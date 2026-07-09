@@ -1389,6 +1389,7 @@ function fallbackCopyRules() {
       { source: "scripts/lib/artifact-schema.mjs", target: "scripts/lib/artifact-schema.mjs" },
       { source: "scripts/lib/frontmatter.mjs", target: "scripts/lib/frontmatter.mjs" },
       { source: "scripts/lib/manifest.mjs", target: "scripts/lib/manifest.mjs" },
+      { source: "scripts/lib/plan-review-binding.mjs", target: "scripts/lib/plan-review-binding.mjs" },
       { source: "scripts/new-workflow-item.mjs", target: "scripts/new-workflow-item.mjs" },
       { source: "scripts/workflow-next.mjs", target: "scripts/workflow-next.mjs" },
       { source: "platforms/github/ci-ai-workflow.yml", target: ".github/workflows/ai-workflow-checks.yml" },

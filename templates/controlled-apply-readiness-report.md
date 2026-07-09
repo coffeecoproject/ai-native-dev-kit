@@ -71,6 +71,19 @@ What I need from you: `<approval / missing evidence / owner decision / no decisi
     "post_apply": "<post-apply verification>",
     "evidence_path": "<evidence-path>"
   },
+  "plan_review_binding": {
+    "required": "No",
+    "plan_review_ref": "N/A",
+    "plan_review_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "plan_review_state": "NO_PLAN_REQUIRED",
+    "plan_ref": "N/A",
+    "plan_digest": "N/A",
+    "task_ref": "N/A",
+    "current_task_match": "N/A",
+    "ready_for_implementation_review": "No",
+    "implementation_authorized_by_this_report": "No",
+    "reason": "Plan Review Gate is not required for this readiness report."
+  },
   "boundary": {
     "writes_files_now": false,
     "authorizes_apply": false,
@@ -118,6 +131,17 @@ What I need from you: `<approval / missing evidence / owner decision / no decisi
 | Post-apply verification | `<command or method>` |
 | Evidence path | `<path>` |
 | Missing verification | Yes / No |
+
+## Plan Review Binding
+
+| Field | Value |
+|---|---|
+| Required | Yes / No |
+| Plan Review Ref | `<artifact:plan-review-reports/...>` |
+| Plan Review State | `<PLAN_REVIEW_PASSED | NO_PLAN_REQUIRED | blocked state>` |
+| Current Task Match | Yes / No / N/A |
+| Ready For Implementation Review | Yes / No |
+| Implementation Authorized By This Report | No |
 
 ## Boundary
 

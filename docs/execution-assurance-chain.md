@@ -119,6 +119,12 @@ node scripts/check-execution-assurance.mjs . \
   --strict-task-consumer
 ```
 
+From 1.88.2, strict plan-review consumer mode checks `plan_review_binding`.
+Use `--require-plan-review` when the task required Plan Review Gate before
+implementation. In that mode, Execution Assurance cannot claim `VERIFIED_DONE`
+unless the referenced Plan Review report is `PLAN_REVIEW_PASSED`, task-bound,
+digest-bound, and non-authorizing.
+
 If `execution_plan.approval_refs` are present in strict completion, each ref
 must be bounded and use a supported prefix. Approval refs document the approval
 source; they do not become blanket approval for extra files, release, commit,

@@ -62,6 +62,17 @@ This report is a read-only completion gate. It does not run tests, write target 
 | Unresolved Task Governance Blockers | targeted verification missing |
 | Plain User Blocker | This task still needs targeted verification before it can be called complete. |
 
+## Plan Review Binding
+
+| Field | Value |
+|---|---|
+| Required | `No` |
+| Plan Review Ref | `N/A` |
+| Plan Review State | `N/A` |
+| Current Task Match | `N/A` |
+| Ready For Implementation Review | `No` |
+| Implementation Authorized By This Report | `No` |
+
 ## Missing Or Blocking Items
 
 - Missing source artifacts.

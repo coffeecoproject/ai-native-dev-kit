@@ -109,6 +109,17 @@ This report is a read-only derived verification view. It does not write target f
 | Unresolved Task Governance Blockers | targeted verification missing |
 | Plain User Blocker | This task still needs targeted verification before it can be called done. |
 
+## Plan Review Binding
+
+| Field | Value |
+| --- | --- |
+| Required | `No` |
+| Plan Review Ref | `N/A` |
+| Plan Review State | `N/A` |
+| Current Task Match | `N/A` |
+| Ready For Implementation Review | `No` |
+| Implementation Authorized By This Report | `No` |
+
 ## Closure Decision
 
 `PARTIAL_DONE`

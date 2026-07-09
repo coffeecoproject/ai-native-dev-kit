@@ -13,6 +13,7 @@ import {
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -26,6 +27,7 @@ const knownFlags = new Set([
   "require-task-governance",
   "require-work-queue",
   "strict-task-consumer",
+  "require-plan-review",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -38,6 +40,7 @@ const requireReady = Boolean(args["require-ready"]);
 const requireTaskGovernance = Boolean(args["require-task-governance"]);
 const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
+const requirePlanReview = Boolean(args["require-plan-review"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/completion-evidence.schema.json");
 const sourceSchemas = {
@@ -259,6 +262,16 @@ function checkStructuredEvidence(label, file, evidence) {
     requireTaskGovernance,
     requireWorkQueue,
     strictTaskConsumer,
+    pass,
+    fail,
+  });
+  checkPlanReviewBinding({
+    projectRoot,
+    currentFile: file,
+    evidence,
+    label,
+    requirePlanReview,
+    consumer: "completion evidence",
     pass,
     fail,
   });

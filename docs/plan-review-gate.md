@@ -66,6 +66,24 @@ subagent route to be closed or explicitly skipped through the approved route. A
 fallback explanation is not enough to turn an unfinished recommended subagent
 review into a passing plan review.
 
+## Downstream Consumers
+
+Use strict consumer mode when later reports depend on the plan review result:
+
+```bash
+node scripts/check-execution-assurance.mjs <project> --require-plan-review
+node scripts/check-completion-evidence.mjs <project> --require-plan-review
+node scripts/check-controlled-apply-readiness.mjs <project> --require-plan-review
+```
+
+These checks require a `plan_review_binding` that resolves to a local
+`PLAN_REVIEW_PASSED` report and matches the referenced plan review digest, plan
+ref, plan digest, and task ref.
+
+This does not approve implementation or apply. It only prevents downstream
+reports from saying "done" or "ready" when the required plan review is missing,
+stale, or not passed.
+
 ## User Experience
 
 For a plan with gaps:

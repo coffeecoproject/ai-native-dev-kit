@@ -43,6 +43,24 @@ Impact Coverage evidence as appropriate.
 A derived review-surface matrix is helper evidence only. It cannot be the only
 authority for a high-impact passing plan review.
 
+## Downstream Consumer Binding
+
+In 1.88.2, downstream consumers can require a `plan_review_binding`.
+
+This lets Execution Assurance, Completion Evidence, and Controlled Apply
+Readiness consume the same Plan Review Gate result instead of separately
+guessing whether a plan was reviewed.
+
+The binding is evidence consumption only:
+
+- it must point to a local Plan Review report;
+- it must match `plan_review_digest`, `plan_ref`, `plan_digest`, and task ref;
+- required bindings must point to `PLAN_REVIEW_PASSED`;
+- the referenced Plan Review report must remain non-authorizing.
+
+Blocked, stale, revision-required, incomplete, or user-decision-blocked Plan
+Review states cannot satisfy downstream consumers.
+
 ## State Model
 
 | State | Meaning |
