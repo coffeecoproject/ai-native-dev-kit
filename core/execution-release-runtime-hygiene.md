@@ -85,6 +85,20 @@ CI failures must be classified before Codex claims status:
   when retry is safe and no production side effect exists;
 - unknown failures remain blocked.
 
+For `CI_ENVIRONMENT_FAILURE`, `CAN_CONTINUE_AUTOMATICALLY` is allowed only when
+the report records both project retry-policy permission and a production
+side-effect check. Without those two facts, the safe result is user or owner
+approval, not automatic continuation.
+
+Runtime Hygiene reports should preserve source trace for the observed blocker:
+gate output, CI log, artifact error, bundle summary, or release event. Strict
+checks may require those source refs and digests before accepting the report.
+
+When a downstream delivery consumer runs in strict mode, the report must also
+bind to the current Work Queue item and matching Task Governance record. Runtime
+Hygiene does not replace task governance; it proves the delivery blocker belongs
+to the current task before Codex continues.
+
 ## Release Lane Rules
 
 Runtime Hygiene distinguishes release lanes:

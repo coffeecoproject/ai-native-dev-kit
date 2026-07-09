@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.86.0`
+`1.86.1`
 
 ## Project Version File
 
@@ -19,6 +19,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.86.1` hardens Runtime Hygiene source and task binding: reports can record
+  runtime source refs/digests, strict checks can bind blockers to the current
+  Work Queue item and Task Governance record, and CI environment retries require
+  retry-policy proof plus production side-effect proof.
+- `1.86.1` remains non-authorizing. It does not write target-project files,
+  approve commit/push, approve release/production, bypass project gates, delete
+  artifacts, force push, or remove evidence.
 - `1.86.0` adds Execution And Release Runtime Hygiene: Git lineage, mixed
   commit scope, pre-push gates, CI runtime failures, release lanes, artifact
   quota, oversized bundles, and production side-effect ambiguity are classified

@@ -6,15 +6,28 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence"]);
+const knownFlags = new Set([
+  "json",
+  "allow-empty",
+  "report",
+  "require-report",
+  "require-structured-evidence",
+  "require-task-entry",
+  "strict-task-entry",
+  "require-runtime-sources",
+]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const requireTaskEntry = Boolean(args["require-task-entry"] || args["strict-task-entry"]);
+const strictTaskEntry = Boolean(args["strict-task-entry"]);
+const requireRuntimeSources = Boolean(args["require-runtime-sources"]);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/runtime-hygiene.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -116,6 +129,10 @@ function checkCoreContent() {
     "does not approve commit",
     "deletes artifacts: No",
     "force pushes: No",
+    "runtime_source_trace",
+    "task_entry_binding",
+    "retry_policy_allowed",
+    "production_side_effect_checked",
   ]) {
     if (combined.includes(marker)) pass(`runtime hygiene docs include ${marker}`);
     else fail(`runtime hygiene docs missing ${marker}`);
@@ -175,8 +192,8 @@ function checkStructuredEvidence(content, label, file, evidence) {
 
   if (evidence.artifact_type === "runtime_hygiene") pass(`${label} artifact_type is runtime_hygiene`);
   else fail(`${label} artifact_type must be runtime_hygiene`);
-  if (evidence.schema_version === "1.86.0") pass(`${label} schema_version is 1.86.0`);
-  else fail(`${label} schema_version must be 1.86.0`);
+  if (["1.86.0", "1.86.1"].includes(evidence.schema_version)) pass(`${label} schema_version is supported`);
+  else fail(`${label} schema_version must be 1.86.0 or 1.86.1`);
   if (evidence.outcome === evidence.decision_state) pass(`${label} outcome matches decision_state`);
   else fail(`${label} outcome must match decision_state`);
   if (stripMarkdown(sectionBody(content, "Outcome") || "").includes(evidence.outcome)) pass(`${label} Outcome includes structured state`);
@@ -203,6 +220,19 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} runtime hygiene must keep the task open`);
 
   checkRuntimeConsistency(label, evidence);
+  checkRuntimeSourceTrace(label, evidence);
+  checkTaskEntryBinding({
+    content,
+    evidence,
+    label,
+    projectRoot,
+    consumer: "runtime_hygiene",
+    requireTaskGovernance: requireTaskEntry,
+    requireWorkQueue: requireTaskEntry,
+    strictTaskConsumer: strictTaskEntry,
+    pass,
+    fail,
+  });
 }
 
 function checkRuntimeConsistency(label, evidence) {
@@ -218,6 +248,16 @@ function checkRuntimeConsistency(label, evidence) {
 
   if (evidence.runtime_class === "PRE_PUSH_GATE_FAILED" || evidence.runtime_class === "STRUCTURE_BUDGET_EXCEEDED" || evidence.runtime_class === "CI_CODE_FAILURE") {
     requireDecision(label, evidence, "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR", `${evidence.runtime_class} decision`);
+  }
+  if (evidence.runtime_class === "CI_ENVIRONMENT_FAILURE") {
+    if (evidence.decision_state === "CAN_CONTINUE_AUTOMATICALLY") {
+      if (evidence.ci_context?.retry_policy_allowed === "Yes") pass(`${label} CI retry policy allows automatic retry`);
+      else fail(`${label} CI_ENVIRONMENT_FAILURE cannot continue automatically without retry policy evidence`);
+      if (evidence.ci_context?.production_side_effect_checked === "Yes") pass(`${label} CI retry has production side-effect check`);
+      else fail(`${label} CI_ENVIRONMENT_FAILURE cannot continue automatically without production side-effect check`);
+    } else {
+      pass(`${label} CI environment failure is not automatically continued without complete safety proof`);
+    }
   }
   if (evidence.runtime_class === "ARTIFACT_QUOTA_BLOCKED") {
     requireDecision(label, evidence, "NEEDS_RELEASE_OWNER_APPROVAL", "artifact quota decision");
@@ -262,6 +302,38 @@ function checkRuntimeConsistency(label, evidence) {
   }
   if (evidence.artifact_context?.preserve_evidence_artifacts === "Yes") pass(`${label} evidence artifacts are preserved`);
   else fail(`${label} preserve_evidence_artifacts must be Yes`);
+}
+
+function checkRuntimeSourceTrace(label, evidence) {
+  const sources = Array.isArray(evidence.runtime_source_trace) ? evidence.runtime_source_trace : [];
+  if (sources.length === 0) {
+    if (requireRuntimeSources) fail(`${label} requires runtime_source_trace`);
+    else pass(`${label} runtime source trace is optional in compatibility mode`);
+    return;
+  }
+  const sourceByKind = new Map();
+  for (const source of sources) {
+    sourceByKind.set(source.source_kind, source);
+    if (source.source_ref && source.source_ref !== "N/A") pass(`${label} source ${source.source_kind} has ref`);
+    else if (source.source_present === "Yes") fail(`${label} present source ${source.source_kind} requires a source_ref`);
+    if (/^sha256:[a-f0-9]{64}$/.test(String(source.source_digest || ""))) pass(`${label} source ${source.source_kind} has sha256 digest`);
+    else fail(`${label} source ${source.source_kind} requires sha256 digest`);
+  }
+  if (!requireRuntimeSources) return;
+  for (const kind of requiredSourceKindsFor(evidence.runtime_class)) {
+    const source = sourceByKind.get(kind);
+    if (source?.source_present === "Yes") pass(`${label} required runtime source present: ${kind}`);
+    else fail(`${label} requires runtime source for ${kind}`);
+  }
+}
+
+function requiredSourceKindsFor(runtimeClass) {
+  if (runtimeClass === "CI_ENVIRONMENT_FAILURE" || runtimeClass === "CI_CODE_FAILURE") return ["ci_log"];
+  if (runtimeClass === "PRE_PUSH_GATE_FAILED" || runtimeClass === "STRUCTURE_BUDGET_EXCEEDED") return ["gate_output"];
+  if (runtimeClass === "ARTIFACT_QUOTA_BLOCKED") return ["artifact_error"];
+  if (runtimeClass === "RELEASE_BUNDLE_OVERSIZED") return ["bundle_summary"];
+  if (runtimeClass === "RELEASE_PREFLIGHT_FAILED" || runtimeClass === "PRODUCTION_SIDE_EFFECT_UNKNOWN" || runtimeClass === "PRODUCTION_SIDE_EFFECT_PRESENT") return ["release_event"];
+  return [];
 }
 
 function requireDecision(label, evidence, expected, context) {

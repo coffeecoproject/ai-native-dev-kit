@@ -16,6 +16,8 @@ artifact deletion, gate bypass, or force push.
   owner approval because deletion is irreversible.
 - `release-bundle-evidence-bloat`: runtime bundle slimming must preserve
   evidence outside the bundle.
+- `strict-task-entry`: a runtime blocker resolves to the current Work Queue item
+  and matching Task Governance record under strict task-entry checks.
 
 ## Boundaries
 

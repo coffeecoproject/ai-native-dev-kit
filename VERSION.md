@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.86.0`
+Current version: `1.86.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.86.0`
 
 ## Current Release
 
-`1.86.0`
+`1.86.1`
 
 Includes:
+
+- Execution Runtime Hygiene Source And Task Binding patch `1.86.1`: Runtime
+  Hygiene reports can record source refs/digests for gate output, CI logs,
+  artifact errors, bundle summaries, and release events; strict checks can bind
+  a runtime blocker to the current Work Queue item and Task Governance record;
+  and CI environment failures can continue automatically only with retry-policy
+  proof and production side-effect proof.
+- `1.86.1` remains non-authorizing. It does not write target-project files,
+  approve commit/push, approve release/production, bypass project gates, delete
+  artifacts, force push, or remove evidence.
 
 - Execution And Release Runtime Hygiene phase `1.86.0`: Git lineage, mixed
   commit scope, pre-push gates, CI runtime failures, release lanes, artifact

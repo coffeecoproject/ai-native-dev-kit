@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.86.0`.
+Current release: `1.86.1`.
 
-Release record: [releases/1.86.0/release-record.md](releases/1.86.0/release-record.md).
+Release record: [releases/1.86.1/release-record.md](releases/1.86.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -60,6 +60,17 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.86.1 hardens Execution And Release Runtime Hygiene. Runtime reports can now
+carry source refs/digests for gate output, CI logs, artifact errors, bundle
+summaries, and release events; strict checks can bind the blocker to the
+current Work Queue item and Task Governance record; and CI environment failures
+can continue automatically only when retry policy and production side-effect
+checks are both recorded.
+
+1.86.1 remains non-authorizing. It does not write target-project files, approve
+commit/push, approve release/production, bypass project gates, delete
+artifacts, force push, or remove evidence.
 
 1.86.0 adds Execution And Release Runtime Hygiene. It helps Codex classify
 runtime blockers after a task is implemented or prepared for delivery: stale
@@ -365,6 +376,7 @@ IntentOS 当前包含这些核心能力：
 | Completion Evidence Gate | 最终说“任务完成”前，检查 Business Rule Closure、Verification Plan、Test Evidence、Execution Assurance 是否 recorded、ready、同 task、同 source chain；不运行测试、不批准发布 |
 | User Delivery Console | 用一张普通用户状态卡回答“做到哪、能不能算完成、能不能进上线评审、还缺什么、下一步能安全做什么”；只汇总下层证据，不替代下层证据系统 |
 | Release Evidence Gate | 正式发布前，把 release candidate、Completion Evidence、runtime smoke、rollback、monitoring、owner、环境/迁移/成本和老项目发布规则汇成 release owner review 证据包；不批准发布、不执行上线 |
+| Runtime Hygiene | 交付时遇到分支、门禁、CI、制品、发布包或生产副作用问题时，先分类阻断、绑定来源证据和当前任务，再决定是否能安全继续；不批准提交、推送或发布 |
 | Review Loop | 任务完成后复查、自动修复可修项、把风险交给人 |
 | Unified Closure | 用户问“能算完成了吗”时，AI 给出唯一收口结论，避免多个检查给出不同答案 |
 | Launch Review View | 用户问“能不能上线/提交审核”时，把收口结果、Safe Launch 标签和上线缺口整理成一张评审视图 |

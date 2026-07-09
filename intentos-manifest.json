@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.86.0",
+  "intentOSVersion": "1.86.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.86.0"
+    "phase": "1.86.1"
   },
   "groups": {
     "sourceRequired": [
@@ -828,6 +828,9 @@
       "examples/1.86-runtime-hygiene/pre-push-structure-gate/runtime-hygiene-reports/001-pre-push-structure-gate.md",
       "examples/1.86-runtime-hygiene/release-artifact-quota-preflight/runtime-hygiene-reports/001-artifact-quota.md",
       "examples/1.86-runtime-hygiene/release-bundle-evidence-bloat/runtime-hygiene-reports/001-bundle-evidence-bloat.md",
+      "examples/1.86-runtime-hygiene/strict-task-entry/runtime-hygiene-reports/001-strict-task-entry.md",
+      "examples/1.86-runtime-hygiene/strict-task-entry/task-governance-reports/001-task-governance.md",
+      "examples/1.86-runtime-hygiene/strict-task-entry/work-queue-takeover-reports/001-current.md",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
@@ -1665,6 +1668,9 @@
       "releases/1.86.0/known-limitations.md",
       "releases/1.86.0/release-record.md",
       "releases/1.86.0/self-check-report.md",
+      "releases/1.86.1/known-limitations.md",
+      "releases/1.86.1/release-record.md",
+      "releases/1.86.1/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -2623,6 +2629,7 @@
       "test-fixtures/bad/bad-runtime-hygiene-artifact-delete-without-approval/runtime-hygiene-reports/001-bad.md",
       "test-fixtures/bad/bad-runtime-hygiene-bundle-slimming-deletes-evidence/runtime-hygiene-reports/001-bad.md",
       "test-fixtures/bad/bad-runtime-hygiene-bypasses-pre-push/runtime-hygiene-reports/001-bad.md",
+      "test-fixtures/bad/bad-runtime-hygiene-ci-auto-without-safety-proof/runtime-hygiene-reports/001-bad.md",
       "test-fixtures/bad/bad-runtime-hygiene-claims-done-after-gate-fail/runtime-hygiene-reports/001-bad.md",
       "test-fixtures/bad/bad-runtime-hygiene-deletes-release-evidence/runtime-hygiene-reports/001-bad.md",
       "test-fixtures/bad/bad-runtime-hygiene-force-push-without-approval/runtime-hygiene-reports/001-bad.md",
@@ -5467,6 +5474,7 @@
       "test-fixtures/bad/bad-runtime-hygiene-artifact-delete-without-approval",
       "test-fixtures/bad/bad-runtime-hygiene-bundle-slimming-deletes-evidence",
       "test-fixtures/bad/bad-runtime-hygiene-bypasses-pre-push",
+      "test-fixtures/bad/bad-runtime-hygiene-ci-auto-without-safety-proof",
       "test-fixtures/bad/bad-runtime-hygiene-claims-done-after-gate-fail",
       "test-fixtures/bad/bad-runtime-hygiene-deletes-release-evidence",
       "test-fixtures/bad/bad-runtime-hygiene-force-push-without-approval",

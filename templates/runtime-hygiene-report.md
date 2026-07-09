@@ -22,6 +22,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Task ref | `<task ref or N/A>` |
 | Work Queue item ref | `<ref or N/A>` |
 | Task Governance ref | `<ref or N/A>` |
+| Strict task entry binding | `<Yes/No; required before strict completion or delivery consumers>` |
 
 ## Git Context
 
@@ -44,6 +45,15 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Failure class | `<class or N/A>` |
 | Current task related | `<Yes/No/Unknown>` |
 | Bypass recommended | `No` |
+
+## CI Context
+
+| Field | Value |
+| --- | --- |
+| Retry policy allowed | `<Yes/No/Unknown>` |
+| Production side effect checked | `<Yes/No/Unknown>` |
+| CI log ref | `<ref or N/A>` |
+| CI log digest | `sha256:<64 hex>` |
 
 ## Release Context
 
@@ -72,6 +82,16 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Suspected non-runtime content | `<items or []>` |
 | Evidence removed | `No` |
 | Bundle slimming recommended | `<Yes/No>` |
+
+## Runtime Source Trace
+
+| Source | Ref | Digest | Present | Current task match |
+| --- | --- | --- | --- | --- |
+| `gate_output` | `<ref or N/A>` | `sha256:<64 hex>` | `<Yes/No>` | `<Yes/No/Unknown>` |
+| `ci_log` | `<ref or N/A>` | `sha256:<64 hex>` | `<Yes/No>` | `<Yes/No/Unknown>` |
+| `artifact_error` | `<ref or N/A>` | `sha256:<64 hex>` | `<Yes/No>` | `<Yes/No/Unknown>` |
+| `bundle_summary` | `<ref or N/A>` | `sha256:<64 hex>` | `<Yes/No>` | `<Yes/No/Unknown>` |
+| `release_event` | `<ref or N/A>` | `sha256:<64 hex>` | `<Yes/No>` | `<Yes/No/Unknown>` |
 
 ## Boundaries
 
@@ -103,13 +123,36 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 
 ```json
 {
-  "schema_version": "1.86.0",
+  "schema_version": "1.86.1",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/generated.md",
   "runtime_hygiene_digest": "sha256:<64 hex>",
   "task_ref": "task:<id>",
   "work_queue_item_ref": "N/A",
   "task_governance_ref": "N/A",
+  "task_entry_binding": {
+    "work_queue_item_ref": "N/A",
+    "work_queue_item_digest": "sha256:<64 hex>",
+    "work_queue_item_state": "CURRENT",
+    "work_queue_item_current_task_match": "Unknown",
+    "approved_resume_review": "No",
+    "resume_review_ref": "N/A",
+    "resume_review_digest": "sha256:<64 hex>",
+    "resume_review_owner": "N/A",
+    "resume_review_task_match": "No",
+    "task_governance_ref": "N/A",
+    "task_governance_digest": "sha256:<64 hex>",
+    "task_governance_task_match": "Unknown",
+    "task_governance_tier": "LOW",
+    "task_governance_review_level": "LIGHTWEIGHT",
+    "task_governance_blocks_completion": "No",
+    "unresolved_task_governance_blockers": [],
+    "tier_completion_requirements_satisfied": "Yes",
+    "minimal_verification_status": "RECORDED",
+    "targeted_verification_status": "NOT_APPLICABLE_WITH_REASON",
+    "high_impact_evidence_chain_complete": "N/A",
+    "plain_user_blocker": "N/A"
+  },
   "operation": "push",
   "runtime_class": "PRE_PUSH_GATE_FAILED",
   "decision_state": "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR",
@@ -132,6 +175,12 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     "current_task_related": "Unknown",
     "bypass_recommended": "No"
   },
+  "ci_context": {
+    "retry_policy_allowed": "Unknown",
+    "production_side_effect_checked": "Unknown",
+    "ci_log_ref": "N/A",
+    "ci_log_digest": "sha256:<64 hex>"
+  },
   "release_context": {
     "lane_state": "PREFLIGHT_ONLY",
     "production_touched": "No",
@@ -151,6 +200,22 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     "evidence_removed": "No",
     "bundle_slimming_recommended": "No"
   },
+  "runtime_source_trace": [
+    {
+      "source_kind": "gate_output",
+      "source_ref": "N/A",
+      "source_digest": "sha256:<64 hex>",
+      "source_present": "No",
+      "current_task_match": "Unknown"
+    },
+    {
+      "source_kind": "ci_log",
+      "source_ref": "N/A",
+      "source_digest": "sha256:<64 hex>",
+      "source_present": "No",
+      "current_task_match": "Unknown"
+    }
+  ],
   "boundaries": {
     "writes_target_files": "No",
     "approves_commit_or_push": "No",

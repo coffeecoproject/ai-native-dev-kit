@@ -29,13 +29,66 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.86.0" },
+    "schema_version": { "enum": ["1.86.0", "1.86.1"] },
     "artifact_type": { "const": "runtime_hygiene" },
     "runtime_hygiene_ref": { "type": "string", "minLength": 1 },
     "runtime_hygiene_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
     "task_ref": { "type": "string", "minLength": 1 },
     "work_queue_item_ref": { "type": "string", "minLength": 1 },
     "task_governance_ref": { "type": "string", "minLength": 1 },
+    "task_entry_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "work_queue_item_ref",
+        "work_queue_item_digest",
+        "work_queue_item_state",
+        "work_queue_item_current_task_match",
+        "approved_resume_review",
+        "resume_review_ref",
+        "resume_review_digest",
+        "resume_review_owner",
+        "resume_review_task_match",
+        "task_governance_ref",
+        "task_governance_digest",
+        "task_governance_task_match",
+        "task_governance_tier",
+        "task_governance_review_level",
+        "task_governance_blocks_completion",
+        "unresolved_task_governance_blockers",
+        "tier_completion_requirements_satisfied",
+        "minimal_verification_status",
+        "targeted_verification_status",
+        "high_impact_evidence_chain_complete",
+        "plain_user_blocker"
+      ],
+      "properties": {
+        "work_queue_item_ref": { "type": "string", "minLength": 1 },
+        "work_queue_item_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "work_queue_item_state": { "enum": ["CURRENT", "PAUSED", "BLOCKED", "DONE", "UNKNOWN"] },
+        "work_queue_item_current_task_match": { "enum": ["Yes", "No", "Unknown"] },
+        "approved_resume_review": { "enum": ["Yes", "No"] },
+        "resume_review_ref": { "type": "string", "minLength": 1 },
+        "resume_review_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "resume_review_owner": { "type": "string", "minLength": 1 },
+        "resume_review_task_match": { "enum": ["Yes", "No", "Unknown"] },
+        "task_governance_ref": { "type": "string", "minLength": 1 },
+        "task_governance_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "task_governance_task_match": { "enum": ["Yes", "No", "Unknown"] },
+        "task_governance_tier": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH"] },
+        "task_governance_review_level": { "enum": ["LIGHTWEIGHT", "TARGETED", "BLOCKED_FOR_CLASSIFICATION", "FULL"] },
+        "task_governance_blocks_completion": { "enum": ["Yes", "No"] },
+        "unresolved_task_governance_blockers": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "tier_completion_requirements_satisfied": { "enum": ["Yes", "No"] },
+        "minimal_verification_status": { "enum": ["RECORDED", "NOT_APPLICABLE_WITH_REASON", "MISSING"] },
+        "targeted_verification_status": { "enum": ["RECORDED", "NOT_APPLICABLE_WITH_REASON", "MISSING"] },
+        "high_impact_evidence_chain_complete": { "enum": ["Yes", "No", "N/A"] },
+        "plain_user_blocker": { "type": "string", "minLength": 1 }
+      }
+    },
     "operation": {
       "enum": ["commit", "push", "ci", "release", "artifact-cleanup", "bundle-slimming"]
     },
@@ -108,6 +161,22 @@
         "bypass_recommended": { "enum": ["Yes", "No"] }
       }
     },
+    "ci_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "retry_policy_allowed",
+        "production_side_effect_checked",
+        "ci_log_ref",
+        "ci_log_digest"
+      ],
+      "properties": {
+        "retry_policy_allowed": { "enum": ["Yes", "No", "Unknown"] },
+        "production_side_effect_checked": { "enum": ["Yes", "No", "Unknown"] },
+        "ci_log_ref": { "type": "string", "minLength": 1 },
+        "ci_log_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
     "release_context": {
       "type": "object",
       "additionalProperties": false,
@@ -169,6 +238,29 @@
         },
         "evidence_removed": { "enum": ["Yes", "No"] },
         "bundle_slimming_recommended": { "enum": ["Yes", "No"] }
+      }
+    },
+    "runtime_source_trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_kind",
+          "source_ref",
+          "source_digest",
+          "source_present",
+          "current_task_match"
+        ],
+        "properties": {
+          "source_kind": {
+            "enum": ["gate_output", "ci_log", "artifact_error", "bundle_summary", "release_event"]
+          },
+          "source_ref": { "type": "string", "minLength": 1 },
+          "source_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "source_present": { "enum": ["Yes", "No"] },
+          "current_task_match": { "enum": ["Yes", "No", "Unknown"] }
+        }
       }
     },
     "boundaries": {

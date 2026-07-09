@@ -19,5 +19,10 @@ Prefer:
 
 - repairing current-task gate failures;
 - preserving evidence;
+- recording source refs and digests for the observed blocker;
+- treating CI environment retry as automatic only when project retry policy and
+  production side-effect checks are both recorded;
+- binding strict reports to the current Work Queue item and Task Governance
+  record before downstream consumers rely on them;
 - asking for release-owner approval when production may be involved;
 - explaining technical trace only after the plain summary.

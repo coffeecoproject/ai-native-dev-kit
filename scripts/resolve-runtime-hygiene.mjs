@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
 
@@ -11,12 +12,28 @@ const knownFlags = new Set([
   "intent",
   "operation",
   "gate-output",
+  "gate-output-ref",
+  "ci-log",
+  "ci-log-ref",
   "release-lane",
+  "release-event",
+  "release-event-ref",
   "artifact-error",
+  "artifact-error-ref",
   "bundle-summary",
+  "bundle-summary-ref",
+  "retry-policy-allowed",
+  "production-side-effect-checked",
   "task-ref",
   "work-queue-item-ref",
+  "work-queue-item-digest",
+  "work-queue-item-state",
+  "work-queue-item-current-task-match",
   "task-governance-ref",
+  "task-governance-digest",
+  "task-governance-tier",
+  "task-governance-task-match",
+  "task-governance-review-level",
   "json",
   "format",
   "out",
@@ -51,12 +68,16 @@ if (outputFormat === "json") {
 
 function buildEvidence() {
   const gateText = readOptionalText(args["gate-output"]);
+  const ciText = readOptionalText(args["ci-log"]);
   const artifactText = readOptionalText(args["artifact-error"]);
   const bundleText = readOptionalText(args["bundle-summary"]);
+  const releaseEventText = readOptionalText(args["release-event"]);
   const releaseLane = String(args["release-lane"] || "");
-  const operation = operationFor({ explicit: args.operation, intent, gateText, artifactText, bundleText, releaseLane });
-  const runtimeClass = runtimeClassFor({ operation, intent, gateText, artifactText, bundleText, releaseLane });
-  const decisionState = decisionStateFor(runtimeClass, releaseLane);
+  const runtimeSourceTrace = runtimeSourceTraceFor({ gateText, ciText, artifactText, bundleText, releaseEventText });
+  const ci = ciContext(ciText);
+  const operation = operationFor({ explicit: args.operation, intent, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText });
+  const runtimeClass = runtimeClassFor({ operation, intent, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText });
+  const decisionState = decisionStateFor(runtimeClass, releaseLane, ci);
   const git = gitContext(projectRoot, runtimeClass);
   const gate = gateContext(runtimeClass, gateText);
   const release = releaseContext(runtimeClass, releaseLane);
@@ -68,13 +89,14 @@ function buildEvidence() {
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "runtime-hygiene-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.86.0",
+    schema_version: "1.86.1",
     artifact_type: "runtime_hygiene",
     runtime_hygiene_ref: runtimeRef,
     runtime_hygiene_digest: "sha256:pending",
     task_ref: String(args["task-ref"] || "task:current"),
     work_queue_item_ref: String(args["work-queue-item-ref"] || "N/A"),
     task_governance_ref: String(args["task-governance-ref"] || "N/A"),
+    task_entry_binding: taskEntryBinding(),
     operation,
     runtime_class: runtimeClass,
     decision_state: decisionState,
@@ -83,9 +105,11 @@ function buildEvidence() {
     technical_terms_required: "No",
     git_context: git,
     gate_context: gate,
+    ci_context: ci,
     release_context: release,
     artifact_context: artifact,
     bundle_context: bundle,
+    runtime_source_trace: runtimeSourceTrace,
     boundaries: {
       writes_target_files: "No",
       approves_commit_or_push: "No",
@@ -103,12 +127,12 @@ function buildEvidence() {
   return baseEvidence;
 }
 
-function operationFor({ explicit, intent: intentText, gateText, artifactText, bundleText, releaseLane }) {
+function operationFor({ explicit, intent: intentText, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText }) {
   if (explicit) {
     const value = String(explicit);
     if (new Set(["commit", "push", "ci", "release", "artifact-cleanup", "bundle-slimming"]).has(value)) return value;
   }
-  const combined = `${intentText}\n${gateText}\n${artifactText}\n${bundleText}\n${releaseLane}`;
+  const combined = `${intentText}\n${gateText}\n${ciText}\n${artifactText}\n${bundleText}\n${releaseLane}\n${releaseEventText}`;
   if (/bundle|slim|large|oversized/i.test(combined)) return "bundle-slimming";
   if (/artifact|quota|storage/i.test(combined)) return "artifact-cleanup";
   if (/release|deploy|preflight|prod/i.test(combined)) return "release";
@@ -117,8 +141,8 @@ function operationFor({ explicit, intent: intentText, gateText, artifactText, bu
   return "commit";
 }
 
-function runtimeClassFor({ operation, intent: intentText, gateText, artifactText, bundleText, releaseLane }) {
-  const combined = `${intentText}\n${gateText}\n${artifactText}\n${bundleText}\n${releaseLane}`;
+function runtimeClassFor({ operation, intent: intentText, gateText, ciText, artifactText, bundleText, releaseLane, releaseEventText }) {
+  const combined = `${intentText}\n${gateText}\n${ciText}\n${artifactText}\n${bundleText}\n${releaseLane}\n${releaseEventText}`;
   if (/production side effect|prod touched|deploy started|deploy done/i.test(combined)) return "PRODUCTION_SIDE_EFFECT_PRESENT";
   if (/unknown production|cannot prove production|unclear production/i.test(combined)) return "PRODUCTION_SIDE_EFFECT_UNKNOWN";
   if (/artifact.*quota|quota.*artifact|storage.*full|storage quota|exceeded.*storage/i.test(artifactText || combined)) return "ARTIFACT_QUOTA_BLOCKED";
@@ -133,11 +157,17 @@ function runtimeClassFor({ operation, intent: intentText, gateText, artifactText
   return "GIT_LINEAGE_DIRTY";
 }
 
-function decisionStateFor(runtimeClass, releaseLane) {
+function decisionStateFor(runtimeClass, releaseLane, ci) {
   if (runtimeClass === "PRE_PUSH_GATE_FAILED" || runtimeClass === "STRUCTURE_BUDGET_EXCEEDED" || runtimeClass === "CI_CODE_FAILURE") {
     return "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR";
   }
-  if (runtimeClass === "CI_ENVIRONMENT_FAILURE" || runtimeClass === "RELEASE_PREFLIGHT_FAILED") {
+  if (runtimeClass === "CI_ENVIRONMENT_FAILURE") {
+    if (ci.retry_policy_allowed === "Yes" && ci.production_side_effect_checked === "Yes") {
+      return "CAN_CONTINUE_AUTOMATICALLY";
+    }
+    return "NEEDS_PLAIN_USER_APPROVAL";
+  }
+  if (runtimeClass === "RELEASE_PREFLIGHT_FAILED") {
     return "CAN_CONTINUE_AUTOMATICALLY";
   }
   if (runtimeClass === "ARTIFACT_QUOTA_BLOCKED") return "NEEDS_RELEASE_OWNER_APPROVAL";
@@ -185,6 +215,15 @@ function gateContext(runtimeClass, gateText) {
   };
 }
 
+function ciContext(ciText) {
+  return {
+    retry_policy_allowed: normalizeYesNoUnknown(args["retry-policy-allowed"]),
+    production_side_effect_checked: normalizeYesNoUnknown(args["production-side-effect-checked"]),
+    ci_log_ref: sourceRef(args["ci-log-ref"], ciText, "ci_log"),
+    ci_log_digest: digestText(ciText),
+  };
+}
+
 function releaseContext(runtimeClass, releaseLane) {
   const lane = normalizeLane(releaseLane);
   const productionTouched = runtimeClass === "PRODUCTION_SIDE_EFFECT_PRESENT" || lane === "PROD_DEPLOY_STARTED" || lane === "PROD_DEPLOY_DONE" ? "Yes"
@@ -200,6 +239,67 @@ function releaseContext(runtimeClass, releaseLane) {
     release_id_reusable: reusable,
     release_owner_required: ownerRequired,
   };
+}
+
+function runtimeSourceTraceFor({ gateText, ciText, artifactText, bundleText, releaseEventText }) {
+  return [
+    sourceTraceRecord("gate_output", gateText, args["gate-output-ref"]),
+    sourceTraceRecord("ci_log", ciText, args["ci-log-ref"]),
+    sourceTraceRecord("artifact_error", artifactText, args["artifact-error-ref"]),
+    sourceTraceRecord("bundle_summary", bundleText, args["bundle-summary-ref"]),
+    sourceTraceRecord("release_event", releaseEventText, args["release-event-ref"]),
+  ];
+}
+
+function sourceTraceRecord(sourceKind, text, explicitRef) {
+  return {
+    source_kind: sourceKind,
+    source_ref: sourceRef(explicitRef, text, sourceKind),
+    source_digest: digestText(text),
+    source_present: text ? "Yes" : "No",
+    current_task_match: "Unknown",
+  };
+}
+
+function sourceRef(explicitRef, text, sourceKind) {
+  if (explicitRef) return String(explicitRef);
+  return text ? `inline:${sourceKind}` : "N/A";
+}
+
+function taskEntryBinding() {
+  const taskGovernanceTier = String(args["task-governance-tier"] || "LOW").toUpperCase();
+  const workQueueRef = String(args["work-queue-item-ref"] || "N/A");
+  const taskGovernanceRef = String(args["task-governance-ref"] || "N/A");
+  return {
+    work_queue_item_ref: workQueueRef,
+    work_queue_item_digest: String(args["work-queue-item-digest"] || digestText(workQueueRef)),
+    work_queue_item_state: String(args["work-queue-item-state"] || "CURRENT"),
+    work_queue_item_current_task_match: normalizeYesNoUnknown(args["work-queue-item-current-task-match"] || "Unknown"),
+    approved_resume_review: "No",
+    resume_review_ref: "N/A",
+    resume_review_digest: digestText("N/A"),
+    resume_review_owner: "N/A",
+    resume_review_task_match: "No",
+    task_governance_ref: taskGovernanceRef,
+    task_governance_digest: String(args["task-governance-digest"] || digestText(taskGovernanceRef)),
+    task_governance_task_match: normalizeYesNoUnknown(args["task-governance-task-match"] || "Unknown"),
+    task_governance_tier: new Set(["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH"]).has(taskGovernanceTier) ? taskGovernanceTier : "LOW",
+    task_governance_review_level: String(args["task-governance-review-level"] || reviewLevelFor(taskGovernanceTier)),
+    task_governance_blocks_completion: "No",
+    unresolved_task_governance_blockers: [],
+    tier_completion_requirements_satisfied: "Yes",
+    minimal_verification_status: "RECORDED",
+    targeted_verification_status: taskGovernanceTier === "MEDIUM" || taskGovernanceTier === "HIGH" ? "RECORDED" : "NOT_APPLICABLE_WITH_REASON",
+    high_impact_evidence_chain_complete: taskGovernanceTier === "HIGH" ? "Yes" : "N/A",
+    plain_user_blocker: "N/A",
+  };
+}
+
+function reviewLevelFor(tier) {
+  if (tier === "MEDIUM") return "TARGETED";
+  if (tier === "HIGH") return "FULL";
+  if (tier === "POSSIBLE_HIGH") return "BLOCKED_FOR_CLASSIFICATION";
+  return "LIGHTWEIGHT";
 }
 
 function artifactContext(runtimeClass) {
@@ -347,6 +447,15 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Current task related | \`${evidence.gate_context.current_task_related}\` |
 | Bypass recommended | \`${evidence.gate_context.bypass_recommended}\` |
 
+## CI Context
+
+| Field | Value |
+| --- | --- |
+| Retry policy allowed | \`${evidence.ci_context.retry_policy_allowed}\` |
+| Production side effect checked | \`${evidence.ci_context.production_side_effect_checked}\` |
+| CI log ref | \`${evidence.ci_context.ci_log_ref}\` |
+| CI log digest | \`${evidence.ci_context.ci_log_digest}\` |
+
 ## Release Context
 
 | Field | Value |
@@ -374,6 +483,12 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Suspected non-runtime content | \`${JSON.stringify(evidence.bundle_context.suspected_non_runtime_content)}\` |
 | Evidence removed | \`${evidence.bundle_context.evidence_removed}\` |
 | Bundle slimming recommended | \`${evidence.bundle_context.bundle_slimming_recommended}\` |
+
+## Runtime Source Trace
+
+| Source | Ref | Digest | Present | Current task match |
+| --- | --- | --- | --- | --- |
+${evidence.runtime_source_trace.map((source) => `| \`${source.source_kind}\` | \`${source.source_ref}\` | \`${source.source_digest}\` | \`${source.source_present}\` | \`${source.current_task_match}\` |`).join("\n")}
 
 ## Boundaries
 
@@ -426,6 +541,17 @@ function readOptionalText(value) {
   const resolved = path.resolve(projectRoot, text);
   if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) return fs.readFileSync(resolved, "utf8");
   return text;
+}
+
+function normalizeYesNoUnknown(value) {
+  const normalized = String(value || "Unknown").trim().toLowerCase();
+  if (["yes", "true", "1", "allowed", "pass", "passed"].includes(normalized)) return "Yes";
+  if (["no", "false", "0", "blocked", "fail", "failed"].includes(normalized)) return "No";
+  return "Unknown";
+}
+
+function digestText(value) {
+  return `sha256:${crypto.createHash("sha256").update(String(value || "")).digest("hex")}`;
 }
 
 function inferGateName(text) {

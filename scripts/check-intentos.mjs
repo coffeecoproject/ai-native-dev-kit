@@ -6603,6 +6603,7 @@ function checkRuntimeHygieneProtocol() {
     "ci-environment-retry",
     "release-artifact-quota-preflight",
     "release-bundle-evidence-bloat",
+    "strict-task-entry",
   ];
   const badFixtures = [
     "bad-runtime-hygiene-force-push-without-approval",
@@ -6614,6 +6615,7 @@ function checkRuntimeHygieneProtocol() {
     "bad-runtime-hygiene-unknown-production-side-effect-continues",
     "bad-runtime-hygiene-bundle-slimming-deletes-evidence",
     "bad-runtime-hygiene-technical-user-burden",
+    "bad-runtime-hygiene-ci-auto-without-safety-proof",
   ];
   const required = [
     "docs/plans/execution-release-runtime-hygiene-1.86-plan.md",
@@ -6632,10 +6634,16 @@ function checkRuntimeHygieneProtocol() {
     "examples/1.86-runtime-hygiene/ci-environment-retry/runtime-hygiene-reports/001-ci-environment-retry.md",
     "examples/1.86-runtime-hygiene/release-artifact-quota-preflight/runtime-hygiene-reports/001-artifact-quota.md",
     "examples/1.86-runtime-hygiene/release-bundle-evidence-bloat/runtime-hygiene-reports/001-bundle-evidence-bloat.md",
+    "examples/1.86-runtime-hygiene/strict-task-entry/runtime-hygiene-reports/001-strict-task-entry.md",
+    "examples/1.86-runtime-hygiene/strict-task-entry/work-queue-takeover-reports/001-current.md",
+    "examples/1.86-runtime-hygiene/strict-task-entry/task-governance-reports/001-task-governance.md",
     ...badFixtures.map((fixture) => `test-fixtures/bad/${fixture}/runtime-hygiene-reports/001-bad.md`),
     "releases/1.86.0/release-record.md",
     "releases/1.86.0/known-limitations.md",
     "releases/1.86.0/self-check-report.md",
+    "releases/1.86.1/release-record.md",
+    "releases/1.86.1/known-limitations.md",
+    "releases/1.86.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.86 runtime hygiene asset exists ${file}`);
@@ -6657,6 +6665,9 @@ function checkRuntimeHygieneProtocol() {
     read("releases/1.86.0/release-record.md"),
     read("releases/1.86.0/known-limitations.md"),
     read("releases/1.86.0/self-check-report.md"),
+    read("releases/1.86.1/release-record.md"),
+    read("releases/1.86.1/known-limitations.md"),
+    read("releases/1.86.1/self-check-report.md"),
   ].join("\n");
   for (const marker of [
     "Execution And Release Runtime Hygiene",
@@ -6680,6 +6691,12 @@ function checkRuntimeHygieneProtocol() {
     "BLOCKED_BY_PRODUCTION_SIDE_EFFECT",
     "BLOCKED_BY_UNCLEAR_TASK_SCOPE",
     "runtime_hygiene_digest",
+    "runtime_source_trace",
+    "task_entry_binding",
+    "retry_policy_allowed",
+    "production_side_effect_checked",
+    "strict-task-entry",
+    "require-runtime-sources",
     "technical_terms_required",
     "approves commit or push: No",
     "approves release or production: No",
@@ -6703,6 +6720,7 @@ function checkRuntimeHygieneProtocol() {
     "node scripts/cli.mjs runtime-hygiene . --intent",
     "node scripts/cli.mjs runtime-hygiene-check . --allow-empty",
     "node scripts/check-runtime-hygiene.mjs examples/1.86-runtime-hygiene/git-old-branch-rebase-plan --require-structured-evidence",
+    "node scripts/check-runtime-hygiene.mjs examples/1.86-runtime-hygiene/strict-task-entry --require-structured-evidence --require-runtime-sources --strict-task-entry",
   ]) {
     if (verifySurface.includes(marker)) pass(`1.86 package verify surface includes ${marker}`);
     else fail(`1.86 package verify surface missing ${marker}`);
@@ -6757,7 +6775,9 @@ function checkRuntimeHygieneProtocol() {
 
   for (const example of examples) {
     const target = `examples/1.86-runtime-hygiene/${example}`;
-    const result = runNode(["scripts/check-runtime-hygiene.mjs", target, "--require-structured-evidence"]);
+    const result = example === "strict-task-entry"
+      ? runNode(["scripts/check-runtime-hygiene.mjs", target, "--require-structured-evidence", "--require-runtime-sources", "--strict-task-entry"])
+      : runNode(["scripts/check-runtime-hygiene.mjs", target, "--require-structured-evidence"]);
     if (result.status === 0) pass(`1.86 runtime hygiene example passes strict checker ${target}`);
     else fail(`1.86 runtime hygiene example failed ${target}: ${result.stderr || result.stdout}`);
   }

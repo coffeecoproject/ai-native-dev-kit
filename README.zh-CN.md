@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.86.0`。
+当前版本：`1.86.1`。
 
-发布记录：[releases/1.86.0/release-record.md](releases/1.86.0/release-record.md)。
+发布记录：[releases/1.86.1/release-record.md](releases/1.86.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -49,6 +49,10 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 CI、发布通道、制品配额和发布包体积问题，但不批准提交、推送、发布、生产、
 删除制品、绕过门禁或强推。
 
+`1.86.1` 加强了这部分：如果是 CI 环境问题，只有在项目允许重试并确认没有
+生产副作用时，Codex 才能自动继续；严格模式下还会检查这个阻断是否真的属于
+当前任务，并记录日志、门禁、制品或发布事件的来源证据。
+
 先读这几页：
 
 - [Start Here](docs/start-here.md)
@@ -58,6 +62,14 @@ CI、发布通道、制品配额和发布包体积问题，但不批准提交、
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.86.1 加严 Execution And Release Runtime Hygiene：运行时报告可以记录门禁输出、
+CI 日志、制品错误、发布包摘要和发布事件的来源引用与 digest；严格检查可以把
+阻断绑定到当前 Work Queue 任务和 Task Governance 记录；CI 环境失败只有在重试
+策略和生产无副作用检查都记录后，才允许自动继续。
+
+1.86.1 仍然不授权执行。它不写目标项目文件、不批准提交/推送、不批准发布/生产、
+不绕过项目门禁、不删除制品、不强推，也不移除证据。
 
 1.86.0 新增 Execution And Release Runtime Hygiene：当任务已经实现或准备交付时，
 Codex 可以判断分支过旧、提交混杂、本地门禁失败、CI 失败、发布预检、制品配额、

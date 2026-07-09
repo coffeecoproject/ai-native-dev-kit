@@ -22,6 +22,15 @@ Use it when:
 
 It produces a Runtime Hygiene Report.
 
+In strict use, the report also records:
+
+- which task it belongs to;
+- the Work Queue and Task Governance references when available;
+- the source of the blocker, such as gate output, CI log, artifact error,
+  bundle summary, or release event;
+- whether a CI environment retry is allowed by project policy and whether
+  production side effects were checked.
+
 The report does not approve:
 
 - implementation;
@@ -49,3 +58,7 @@ evidence stays preserved.
 
 Technical details can be recorded in the report, but the first user-facing
 answer should stay plain.
+
+If a CI failure is environmental, Codex should not say it can simply retry
+unless the report proves both the retry policy and production safety. If either
+is missing, the next step is a plain approval or owner decision.

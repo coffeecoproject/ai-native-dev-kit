@@ -8,20 +8,20 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 
 | Field | Value |
 | --- | --- |
-| Plain user summary | The remote check failed for an environment or provider reason. The task stays open while I classify whether retry is safe. |
-| Plain next step | Record the provider issue and retry only if project policy allows it. |
-| Operation | `ci` |
-| Runtime class | `CI_ENVIRONMENT_FAILURE` |
-| Decision state | `CAN_CONTINUE_AUTOMATICALLY` |
+| Plain user summary | The code is not ready to push. The project blocked it because too much logic is concentrated in large files. |
+| Plain next step | Split the new logic structurally and rerun the structure gate. |
+| Operation | `push` |
+| Runtime class | `STRUCTURE_BUDGET_EXCEEDED` |
+| Decision state | `CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR` |
 | Technical terms required | `No` |
 
 ## Task Binding
 
 | Field | Value |
 | --- | --- |
-| Task ref | `task:current` |
-| Work Queue item ref | `N/A` |
-| Task Governance ref | `N/A` |
+| Task ref | `task:change-review-workflow-step-policy-after-task-submission` |
+| Work Queue item ref | `artifact:work-queue-takeover-reports/001-current.md#WQ-001` |
+| Task Governance ref | `artifact:task-governance-reports/001-task-governance.md` |
 
 ## Git Context
 
@@ -39,20 +39,20 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 
 | Field | Value |
 | --- | --- |
-| Gate name | `N/A` |
-| Exit code | `Unknown` |
-| Failure class | `N/A` |
-| Current task related | `Unknown` |
+| Gate name | `structure-budget` |
+| Exit code | `nonzero` |
+| Failure class | `STRUCTURE_BUDGET_EXCEEDED` |
+| Current task related | `Yes` |
 | Bypass recommended | `No` |
 
 ## CI Context
 
 | Field | Value |
 | --- | --- |
-| Retry policy allowed | `Yes` |
-| Production side effect checked | `Yes` |
-| CI log ref | `ci:run-123` |
-| CI log digest | `sha256:0b298f65897f48e4c0f10f42f59c57e4d8e390392eb6774915eb8ccb30f6c75b` |
+| Retry policy allowed | `Unknown` |
+| Production side effect checked | `Unknown` |
+| CI log ref | `N/A` |
+| CI log digest | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 
 ## Release Context
 
@@ -86,8 +86,8 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 
 | Source | Ref | Digest | Present | Current task match |
 | --- | --- | --- | --- | --- |
-| `gate_output` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
-| `ci_log` | `ci:run-123` | `sha256:0b298f65897f48e4c0f10f42f59c57e4d8e390392eb6774915eb8ccb30f6c75b` | `Yes` | `Unknown` |
+| `gate_output` | `gate:structure-budget#run-1` | `sha256:e95cd58d205959e74972385e4198c42de19f223fb4dce468475e6e6bac361723` | `Yes` | `Unknown` |
+| `ci_log` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `artifact_error` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `bundle_summary` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `release_event` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
@@ -115,7 +115,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Field | Value |
 | --- | --- |
 | Task remains open | `Yes` |
-| Resume action | Record the provider issue and retry only if project policy allows it. |
+| Resume action | Split the new logic structurally and rerun the structure gate. |
 | Work Queue update required | `No` |
 
 ## Machine-Readable Evidence
@@ -124,39 +124,39 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 {
   "schema_version": "1.86.1",
   "artifact_type": "runtime_hygiene",
-  "runtime_hygiene_ref": "runtime-hygiene-reports/001-ci-environment-retry.md",
-  "runtime_hygiene_digest": "sha256:d2a5e5784c70a2c539ec5b98e64d4006e739997c96b9595e5dc49f787cc42b3d",
-  "task_ref": "task:current",
-  "work_queue_item_ref": "N/A",
-  "task_governance_ref": "N/A",
+  "runtime_hygiene_ref": "runtime-hygiene-reports/001-strict-task-entry.md",
+  "runtime_hygiene_digest": "sha256:0a46f3346f0f3943c4fd8a1fdc1bbf0179dd56de829b46601f1280770076bd20",
+  "task_ref": "task:change-review-workflow-step-policy-after-task-submission",
+  "work_queue_item_ref": "artifact:work-queue-takeover-reports/001-current.md#WQ-001",
+  "task_governance_ref": "artifact:task-governance-reports/001-task-governance.md",
   "task_entry_binding": {
-    "work_queue_item_ref": "N/A",
-    "work_queue_item_digest": "sha256:e2f79e5b60330bba4c289962231b6ba2957d0b14e7deb3110417003c79dea635",
+    "work_queue_item_ref": "artifact:work-queue-takeover-reports/001-current.md#WQ-001",
+    "work_queue_item_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
     "work_queue_item_state": "CURRENT",
-    "work_queue_item_current_task_match": "Unknown",
+    "work_queue_item_current_task_match": "Yes",
     "approved_resume_review": "No",
     "resume_review_ref": "N/A",
     "resume_review_digest": "sha256:e2f79e5b60330bba4c289962231b6ba2957d0b14e7deb3110417003c79dea635",
     "resume_review_owner": "N/A",
     "resume_review_task_match": "No",
-    "task_governance_ref": "N/A",
-    "task_governance_digest": "sha256:e2f79e5b60330bba4c289962231b6ba2957d0b14e7deb3110417003c79dea635",
-    "task_governance_task_match": "Unknown",
-    "task_governance_tier": "LOW",
-    "task_governance_review_level": "LIGHTWEIGHT",
+    "task_governance_ref": "artifact:task-governance-reports/001-task-governance.md",
+    "task_governance_digest": "sha256:a8eb75fcca5ae9dd7c50943ed3550e37dbaf05073ed1f4d1103848d8a89bbad2",
+    "task_governance_task_match": "Yes",
+    "task_governance_tier": "HIGH",
+    "task_governance_review_level": "FULL",
     "task_governance_blocks_completion": "No",
     "unresolved_task_governance_blockers": [],
     "tier_completion_requirements_satisfied": "Yes",
     "minimal_verification_status": "RECORDED",
-    "targeted_verification_status": "NOT_APPLICABLE_WITH_REASON",
-    "high_impact_evidence_chain_complete": "N/A",
+    "targeted_verification_status": "RECORDED",
+    "high_impact_evidence_chain_complete": "Yes",
     "plain_user_blocker": "N/A"
   },
-  "operation": "ci",
-  "runtime_class": "CI_ENVIRONMENT_FAILURE",
-  "decision_state": "CAN_CONTINUE_AUTOMATICALLY",
-  "plain_user_summary": "The remote check failed for an environment or provider reason. The task stays open while I classify whether retry is safe.",
-  "plain_next_step": "Record the provider issue and retry only if project policy allows it.",
+  "operation": "push",
+  "runtime_class": "STRUCTURE_BUDGET_EXCEEDED",
+  "decision_state": "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR",
+  "plain_user_summary": "The code is not ready to push. The project blocked it because too much logic is concentrated in large files.",
+  "plain_next_step": "Split the new logic structurally and rerun the structure gate.",
   "technical_terms_required": "No",
   "git_context": {
     "branch": "main",
@@ -168,17 +168,17 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     "force_push_required": "No"
   },
   "gate_context": {
-    "gate_name": "N/A",
-    "exit_code": "Unknown",
-    "failure_class": "N/A",
-    "current_task_related": "Unknown",
+    "gate_name": "structure-budget",
+    "exit_code": "nonzero",
+    "failure_class": "STRUCTURE_BUDGET_EXCEEDED",
+    "current_task_related": "Yes",
     "bypass_recommended": "No"
   },
   "ci_context": {
-    "retry_policy_allowed": "Yes",
-    "production_side_effect_checked": "Yes",
-    "ci_log_ref": "ci:run-123",
-    "ci_log_digest": "sha256:0b298f65897f48e4c0f10f42f59c57e4d8e390392eb6774915eb8ccb30f6c75b"
+    "retry_policy_allowed": "Unknown",
+    "production_side_effect_checked": "Unknown",
+    "ci_log_ref": "N/A",
+    "ci_log_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "release_context": {
     "lane_state": "PREFLIGHT_ONLY",
@@ -202,16 +202,16 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "runtime_source_trace": [
     {
       "source_kind": "gate_output",
-      "source_ref": "N/A",
-      "source_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "source_present": "No",
+      "source_ref": "gate:structure-budget#run-1",
+      "source_digest": "sha256:e95cd58d205959e74972385e4198c42de19f223fb4dce468475e6e6bac361723",
+      "source_present": "Yes",
       "current_task_match": "Unknown"
     },
     {
       "source_kind": "ci_log",
-      "source_ref": "ci:run-123",
-      "source_digest": "sha256:0b298f65897f48e4c0f10f42f59c57e4d8e390392eb6774915eb8ccb30f6c75b",
-      "source_present": "Yes",
+      "source_ref": "N/A",
+      "source_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_present": "No",
       "current_task_match": "Unknown"
     },
     {
@@ -252,13 +252,13 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   },
   "task_continuation": {
     "task_remains_open": "Yes",
-    "resume_action": "Record the provider issue and retry only if project policy allows it.",
+    "resume_action": "Split the new logic structurally and rerun the structure gate.",
     "work_queue_update_required": "No"
   },
-  "outcome": "CAN_CONTINUE_AUTOMATICALLY"
+  "outcome": "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR"
 }
 ```
 
 ## Outcome
 
-`CAN_CONTINUE_AUTOMATICALLY`
+`CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR`
