@@ -53,7 +53,7 @@
           "rollback_required"
         ],
         "properties": {
-          "id": { "type": "string", "pattern": "^[A-Z]-?[0-9]{3}$" },
+          "id": { "type": "string", "pattern": "^[A-Z]-?[0-9]{3,}$" },
           "action_type": { "type": "string" },
           "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string" } },
           "risk_level": { "type": "string", "enum": ["LOW", "STANDARD", "HIGH", "HUMAN_ONLY", "BLOCKED"] },

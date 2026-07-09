@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { evaluateVerifiedAdoptionApplyChain } from "./lib/adoption-apply-chain.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -277,58 +278,7 @@ function surface(surfaceName, status, evidence, notes) {
 }
 
 function applyChainStateFor(root, signals) {
-  if (!signals.hasApplyChain) {
-    return {
-      status: "NOT_APPLICABLE_WITH_REASON",
-      evidence: "human-decision:no-target-writes",
-      notes: "No target writes were performed by this assurance report.",
-    };
-  }
-  const reportFiles = nonGitkeepFiles(root, ["apply-plans", "approval-records", "apply-readiness-reports"]);
-  if (reportFiles.length === 0) {
-    return {
-      status: "PRESENT_UNVERIFIED",
-      evidence: "checker:apply-readiness",
-      notes: "Apply-chain directories exist, but no non-placeholder apply plan, approval record, or readiness report was found.",
-    };
-  }
-  const hasPlan = reportFiles.some((file) => file.startsWith("apply-plans/"));
-  const hasApproval = reportFiles.some((file) => file.startsWith("approval-records/"));
-  const hasReadiness = reportFiles.some((file) => file.startsWith("apply-readiness-reports/"));
-  if (hasPlan && hasApproval && hasReadiness) {
-    return {
-      status: "VERIFIED",
-      evidence: "checker:apply-readiness",
-      notes: "Apply plan, approval record, and readiness report files are present.",
-    };
-  }
-  return {
-    status: "PRESENT_UNVERIFIED",
-    evidence: "checker:apply-readiness",
-    notes: "Apply-chain evidence is present but incomplete; plan, approval, and readiness records are all required before verified apply can be claimed.",
-  };
-}
-
-function nonGitkeepFiles(root, relativeDirs) {
-  const result = [];
-  for (const relativeDir of relativeDirs) {
-    const dir = path.join(root, relativeDir);
-    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) continue;
-    walkRelativeFiles(dir, (file) => {
-      const name = path.basename(file);
-      if (name === ".gitkeep" || name === ".DS_Store") return;
-      if (fs.statSync(file).isFile()) result.push(path.join(relativeDir, path.relative(dir, file)).replaceAll(path.sep, "/"));
-    });
-  }
-  return result;
-}
-
-function walkRelativeFiles(dir, visit) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walkRelativeFiles(full, visit);
-    else visit(full);
-  }
+  return evaluateVerifiedAdoptionApplyChain(root, { schemasRoot: kitRoot });
 }
 
 function simulationFor(root, signals) {
@@ -491,6 +441,8 @@ function pendingDecisionsFor(surfaces, dirty, sources) {
 
 function evidenceRefsFor(surfaces, sources, simulation) {
   const refs = surfaces.map((item) => item.evidence).filter(Boolean);
+  const applyChain = applyChainStateFor(projectRoot, collectSignals(projectRoot));
+  for (const ref of applyChain.refs || []) refs.push(ref);
   refs.push(simulation.id);
   for (const source of Object.values(sources)) refs.push(source.ref);
   return [...new Set(refs)];

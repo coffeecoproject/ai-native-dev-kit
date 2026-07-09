@@ -10,6 +10,7 @@ import { sourceRequiredPaths } from "./lib/manifest.mjs";
 import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, validateSchema } from "./lib/artifact-schema.mjs";
+import { initExecutableActions } from "./lib/adoption-apply-chain.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,6 +42,69 @@ function read(relativePath) {
 
 function fileDigest(file) {
   return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
+}
+
+function writeInitProjectApprovalRecord(planPath, options = {}) {
+  const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+  const actions = initExecutableActions(plan);
+  const approvalPath = options.approvalPath || `${planPath}.approval.md`;
+  const approval = {
+    schema_version: "1.41.0",
+    artifact_type: "approval_record",
+    artifact_id: path.basename(approvalPath).replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || "init-project-approval",
+    approval_status: "APPROVED",
+    approved_by: "IntentOS self-check human fixture",
+    approval_owner_type: "HUMAN",
+    approved_plan: {
+      path: path.basename(planPath),
+      plan_digest: plan.planDigest,
+    },
+    approved_action_ids: actions.map((action) => action.id),
+    approved_action_paths: actions.map((action) => ({
+      id: action.id,
+      target_paths: action.targetPaths,
+    })),
+    expires_at: "2099-12-31T23:59:00Z",
+    plan_changed_after_approval: false,
+    risk_acceptance: {
+      high_risk_action_included: false,
+      human_only_action_included: false,
+    },
+    rollback_reviewed: true,
+    verification_reviewed: true,
+    boundary: {
+      writes_files_now: false,
+      authorizes_automatic_apply: false,
+      approves_implementation: false,
+      approves_release_or_production: false,
+      installs_hooks_or_changes_ci: false,
+      enables_high_risk_actions: false,
+      lets_codex_proceed_without_readiness: false,
+    },
+  };
+  fs.writeFileSync(approvalPath, [
+    "# Approval Record: init-project self-check",
+    "",
+    "## Machine-Readable Evidence",
+    "",
+    "```json",
+    JSON.stringify(approval, null, 2),
+    "```",
+    "",
+  ].join("\n"));
+  return approvalPath;
+}
+
+function approvedInitProjectApplyArgs(planPath, extraArgs = []) {
+  const approvalPath = writeInitProjectApprovalRecord(planPath);
+  return [
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    planPath,
+    "--approval-record",
+    approvalPath,
+    ...extraArgs,
+  ];
 }
 
 function walkSourceFiles(dir) {
@@ -10443,10 +10507,11 @@ function checkSafetyEvidenceHardeningProtocol() {
       fail(`init-project write-plan failed during digest hardening smoke: ${writePlan.stderr || writePlan.stdout}`);
       return;
     }
+    const tamperedApprovalPath = writeInitProjectApprovalRecord(writePlanPath);
     const plan = JSON.parse(fs.readFileSync(writePlanPath, "utf8"));
     plan.actions.push({ id: "tampered", type: "noop", description: "tamper after digest" });
     fs.writeFileSync(writePlanPath, JSON.stringify(plan, null, 2));
-    const applyTampered = runNode(["scripts/init-project.mjs", "--apply-plan", writePlanPath]);
+    const applyTampered = runNode(["scripts/init-project.mjs", "--apply-plan", writePlanPath, "--approval-record", tamperedApprovalPath]);
     const applyTamperedOutput = `${applyTampered.stdout}\n${applyTampered.stderr}`;
     if (applyTampered.status !== 0 && applyTamperedOutput.includes("planDigest is missing or does not match")) {
       pass("init-project rejects tampered apply plan digest");
@@ -16649,11 +16714,7 @@ function checkGeneratedProjectE2E() {
     fail("init write-plan wrote target files");
     return;
   }
-  const applyInitPlan = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--apply-plan",
-    planOnlyPath,
-  ]);
+  const applyInitPlan = runNode(approvedInitProjectApplyArgs(planOnlyPath));
   if (applyInitPlan.status !== 0 || !fs.existsSync(path.join(planOnlyTarget, ".intentos", "version.json"))) {
     fail(`init apply-plan failed: ${applyInitPlan.stderr || applyInitPlan.stdout}`);
     return;
@@ -16677,11 +16738,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   fs.appendFileSync(path.join(stalePlanTarget, "AGENTS.md"), "\nChanged after plan.\n");
-  const staleApply = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--apply-plan",
-    stalePlanPath,
-  ]);
+  const staleApply = runNode(approvedInitProjectApplyArgs(stalePlanPath));
   if (staleApply.status !== 2 || !`${staleApply.stdout}\n${staleApply.stderr}`.includes("Plan precondition failed")) {
     fail(`stale update apply-plan did not fail on fingerprint change: ${staleApply.stderr || staleApply.stdout}`);
     return;
@@ -16715,11 +16772,7 @@ function checkGeneratedProjectE2E() {
     fail(`backup update write-plan failed: ${backupPlan.stderr || backupPlan.stdout}`);
     return;
   }
-  const backupApply = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--apply-plan",
-    backupPlanPath,
-  ]);
+  const backupApply = runNode(approvedInitProjectApplyArgs(backupPlanPath));
   const backedUpScript = path.join(backupTarget, backupDir, "scripts", "check-ai-workflow.mjs");
   if (backupApply.status !== 0 || !fs.existsSync(backedUpScript)) {
     fail(`backup update apply-plan did not preserve backup: ${backupApply.stderr || backupApply.stdout}`);
@@ -16762,11 +16815,7 @@ function checkGeneratedProjectE2E() {
     fail("legacy project write-plan wrote workflow version before apply-plan");
     return;
   }
-  const legacyUpdateResult = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--apply-plan",
-    legacyPlanPath,
-  ]);
+  const legacyUpdateResult = runNode(approvedInitProjectApplyArgs(legacyPlanPath));
   if (legacyUpdateResult.status !== 0) {
     fail(`legacy project apply-plan workflow update failed: ${legacyUpdateResult.stderr || legacyUpdateResult.stdout}`);
     return;
@@ -16867,11 +16916,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy no-AGENTS write-plan failed: ${legacyNoAgentsWritePlan.stderr || legacyNoAgentsWritePlan.stdout}`);
     return;
   }
-  const legacyNoAgentsUpdate = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--apply-plan",
-    legacyNoAgentsPlanPath,
-  ]);
+  const legacyNoAgentsUpdate = runNode(approvedInitProjectApplyArgs(legacyNoAgentsPlanPath));
   if (legacyNoAgentsUpdate.status !== 0) {
     fail(`legacy no-AGENTS apply-plan workflow update failed: ${legacyNoAgentsUpdate.stderr || legacyNoAgentsUpdate.stdout}`);
     return;
@@ -16922,11 +16967,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy custom PR template write-plan failed: ${legacyCustomPrWritePlan.stderr || legacyCustomPrWritePlan.stdout}`);
     return;
   }
-  const legacyCustomPrUpdate = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--apply-plan",
-    legacyCustomPrPlanPath,
-  ]);
+  const legacyCustomPrUpdate = runNode(approvedInitProjectApplyArgs(legacyCustomPrPlanPath));
   if (legacyCustomPrUpdate.status !== 0) {
     fail(`legacy custom PR template apply-plan workflow update failed: ${legacyCustomPrUpdate.stderr || legacyCustomPrUpdate.stdout}`);
     return;
@@ -16965,11 +17006,7 @@ function checkGeneratedProjectE2E() {
     fail(`legacy manual PR template write-plan failed: ${legacyManualPrWritePlan.stderr || legacyManualPrWritePlan.stdout}`);
     return;
   }
-  const legacyManualPrUpdate = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--apply-plan",
-    legacyManualPrPlanPath,
-  ]);
+  const legacyManualPrUpdate = runNode(approvedInitProjectApplyArgs(legacyManualPrPlanPath));
   if (legacyManualPrUpdate.status !== 0) {
     fail(`legacy manual PR template apply-plan workflow update failed: ${legacyManualPrUpdate.stderr || legacyManualPrUpdate.stdout}`);
     return;

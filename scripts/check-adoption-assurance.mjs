@@ -6,14 +6,16 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { evaluateVerifiedAdoptionApplyChain } from "./lib/adoption-apply-chain.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "require-structured-evidence", "require-simulation", "report"]);
+const knownFlags = new Set(["json", "require-structured-evidence", "require-simulation", "report", "allow-empty"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const requireSimulation = Boolean(args["require-simulation"]);
+const allowEmpty = Boolean(args["allow-empty"]);
 const explicitReport = args.report ? path.resolve(process.cwd(), String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -177,7 +179,13 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("adoption-assurance-reports");
   if (files.length === 0) {
-    pass("adoption assurance check skipped: no reports");
+    if (allowEmpty) {
+      pass("adoption assurance check skipped: no reports and --allow-empty was provided");
+    } else if (requireStructuredEvidence || requireSimulation) {
+      fail("no Adoption Assurance reports found while strict adoption assurance evidence was required");
+    } else {
+      pass("adoption assurance check skipped: no reports");
+    }
     return;
   }
   for (const file of files) {
@@ -606,6 +614,16 @@ function checkStateRules(content, label, summary, surfaces, evidence) {
 }
 
 function checkVerifiedActiveApplyChain(evidence, label) {
+  const verifiedChain = evaluateVerifiedAdoptionApplyChain(projectRoot, {
+    planSchema: applyPlanSchema,
+    approvalSchema: approvalRecordSchema,
+    readinessSchema: applyReadinessSchema,
+  });
+  if (verifiedChain.status === "VERIFIED") {
+    pass(`${label} project apply-chain artifacts are structurally verified`);
+  } else {
+    fail(`${label} VERIFIED_ACTIVE requires a structurally verified apply plan, human approval record, and controlled readiness chain`);
+  }
   const surfaces = Array.isArray(evidence?.surfaces) ? evidence.surfaces : [];
   const applyChain = surfaces.find((item) => item.surface === "apply_chain");
   if (applyChain?.status === "VERIFIED") pass(`${label} verified active has VERIFIED apply_chain surface`);

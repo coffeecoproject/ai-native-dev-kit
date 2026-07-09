@@ -6,6 +6,8 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "./lib/manifest.mjs";
+import { extractMachineReadableEvidence, loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
+import { formatActionId, validateApprovalRecordForInitApplyPlan } from "./lib/adoption-apply-chain.mjs";
 import {
   assertInsideRoot,
   assertNoSymlinkInPath,
@@ -1900,6 +1902,7 @@ function buildPlan(targetPath, options = {}) {
     willWrite: true,
     hashBefore: sha256File(path.join(targetPath, ".intentos", "version.json")),
   });
+  assignPlanActionIds(actions);
 
   const targetFingerprint = createTargetFingerprint(targetPath, actions);
   const plan = {
@@ -1927,6 +1930,12 @@ function buildPlan(targetPath, options = {}) {
   };
   plan.planDigest = planDigest(plan);
   return plan;
+}
+
+function assignPlanActionIds(actions) {
+  actions.forEach((action, index) => {
+    if (!action.id) action.id = formatActionId(index + 1);
+  });
 }
 
 function createTargetFingerprint(targetPath, actions) {
@@ -1973,6 +1982,9 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     }
     if (action.path) assertSafeRelativePath(action.path, "plan action path");
     if (action.source) assertSafeRelativePath(action.source, "plan action source");
+    if (!/^A-[0-9]{3,}$/.test(String(action.id || ""))) {
+      throw new Error("Invalid plan: every action must include a stable A-000 style id with at least three digits; regenerate the plan");
+    }
   }
   const forbiddenAction = plan.actions.find((action) => action.type === "FORBIDDEN");
   if (forbiddenAction) {
@@ -1997,6 +2009,50 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     }
   }
   return backupDir;
+}
+
+function readApprovalRecordForApply(recordPath) {
+  if (!recordPath) {
+    throw new Error("Approval record required: rerun with --approval-record <approval-record.md>");
+  }
+  const fullPath = path.resolve(process.cwd(), recordPath);
+  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+    throw new Error(`Approval record not found: ${fullPath}`);
+  }
+  const content = fs.readFileSync(fullPath, "utf8");
+  const extracted = extractMachineReadableEvidence(content);
+  if (!extracted) {
+    throw new Error("Approval record must include Machine-Readable Evidence");
+  }
+  if (!extracted.ok) {
+    throw new Error(`Approval record Machine-Readable Evidence invalid: ${extracted.errors.join("; ")}`);
+  }
+  const schema = loadSchema(kitRoot, "schemas/artifacts/approval-record.schema.json");
+  const validation = validateSchema(extracted.value, schema, { label: "approval record" });
+  if (!validation.ok) {
+    throw new Error(`Approval record schema validation failed: ${validation.errors.join("; ")}`);
+  }
+  return { fullPath, evidence: extracted.value };
+}
+
+function validateApprovalRecordForApply(plan, approvalRecord, applyPlanFullPath) {
+  const errors = validateApprovalRecordForInitApplyPlan(plan, approvalRecord.evidence);
+  if (!approvalPlanPathMatches(approvalRecord, applyPlanFullPath)) {
+    errors.push("approval record approved_plan.path must resolve to the apply plan being executed");
+  }
+  if (errors.length > 0) {
+    throw new Error(`Approval record precondition failed: ${errors.join("; ")}`);
+  }
+}
+
+function approvalPlanPathMatches(approvalRecord, applyPlanFullPath) {
+  const approvedPath = String(approvalRecord.evidence?.approved_plan?.path || "");
+  if (!approvedPath.trim()) return false;
+  const candidates = [
+    path.resolve(process.cwd(), approvedPath),
+    path.resolve(path.dirname(approvalRecord.fullPath), approvedPath),
+  ];
+  return candidates.some((candidate) => path.resolve(candidate) === path.resolve(applyPlanFullPath));
 }
 
 function writePlan(plan, planPath) {
@@ -2145,6 +2201,7 @@ const industrialPacks = args["industrial-packs"] || "";
 const dryRun = Boolean(args["dry-run"]);
 const writePlanPath = args["write-plan"];
 const applyPlanPath = args["apply-plan"];
+const approvalRecordPath = args["approval-record"];
 const backupDir = args["backup-dir"] || "";
 const forceNewProject = Boolean(args["force-new-project"]);
 
@@ -2154,8 +2211,8 @@ if (!target && !applyPlanPath) {
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --dry-run");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan ./init-update-plan.json");
-  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json");
-  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --backup-dir .intentos/backups/phase-001");
+  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --approval-record ./approval-record.md");
+  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --approval-record ./approval-record.md --backup-dir .intentos/backups/phase-001");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --industrial-packs web-app-industrial,backend-api-industrial");
   console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
@@ -2189,6 +2246,8 @@ if (applyPlanPath) {
   let planBackupDir;
   try {
     planBackupDir = validatePlanForApply(plan, backupDir || null);
+    const approvalRecord = readApprovalRecordForApply(approvalRecordPath);
+    validateApprovalRecordForApply(plan, approvalRecord, fullPlanPath);
   } catch (error) {
     console.error(error.message);
     process.exit(2);

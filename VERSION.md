@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.89.0`
+Current version: `1.89.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.89.0`
 
 ## Current Release
 
-`1.89.0`
+`1.89.1`
 
 Includes:
+
+- Adoption Assurance Apply Binding Hardening patch `1.89.1`: Adoption
+  Assurance resolver and checker now share the same verified apply-chain
+  interpretation; strict Adoption Assurance checks fail closed when no report
+  exists unless `--allow-empty` is explicit; and `init-project --apply-plan`
+  requires a structured human approval record that matches the exact plan
+  digest, executable action IDs, and target paths.
+- `1.89.1` remains non-authorizing. It blocks stale, unapproved, or mismatched
+  apply evidence from being treated as execution permission, but does not
+  approve implementation, native apply, commit, push, release, production,
+  tests, migrations, provider actions, or project-owner decisions.
 
 - Path And Evidence Hardening phase `1.89.0`: IntentOS-managed write paths now
   reject unsafe path traversal and symlink path components; init/update apply

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.89.0",
+  "intentOSVersion": "1.89.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.89.0"
+    "phase": "1.89.1"
   },
   "groups": {
     "sourceRequired": [
@@ -1723,6 +1723,9 @@
       "releases/1.89.0/known-limitations.md",
       "releases/1.89.0/release-record.md",
       "releases/1.89.0/self-check-report.md",
+      "releases/1.89.1/known-limitations.md",
+      "releases/1.89.1/release-record.md",
+      "releases/1.89.1/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -1912,6 +1915,7 @@
       "scripts/init-project.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -3389,6 +3393,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -4092,6 +4097,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -4816,6 +4822,7 @@
       "scripts/init-project.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -6251,6 +6258,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
@@ -8260,6 +8268,10 @@
       {
         "source": "scripts/lib/artifact-schema.mjs",
         "target": "scripts/lib/artifact-schema.mjs"
+      },
+      {
+        "source": "scripts/lib/adoption-apply-chain.mjs",
+        "target": "scripts/lib/adoption-apply-chain.mjs"
       },
       {
         "source": "scripts/lib/check-result.mjs",

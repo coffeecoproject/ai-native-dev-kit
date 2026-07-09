@@ -322,7 +322,7 @@ function checkApprovedRecord(content, label) {
   const statement = sectionBody(content, "Human Approval Statement");
   if (broadApproval.test(statement)) fail(`${label} human approval statement must not be blanket approval`);
   else pass(`${label} human approval statement is bounded`);
-  const statementIds = [...new Set([...statement.matchAll(/\b[A-Z]-?\d{3}\b/g)].map((match) => match[0]))];
+  const statementIds = [...new Set([...statement.matchAll(/\b[A-Z]-?\d{3,}\b/g)].map((match) => match[0]))];
   const missingStatementIds = approvedIds.filter((id) => !statementIds.includes(id));
   const extraStatementIds = statementIds.filter((id) => !approvedIds.includes(id));
   if (approvedIds.length > 0 && missingStatementIds.length === 0 && extraStatementIds.length === 0) {
@@ -461,7 +461,7 @@ function approvedActionRows(section) {
     .map((line) => line.trim())
     .filter((line) => line.startsWith("|") && !/^\|\s*-+/.test(line))
     .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()))
-    .filter((cells) => cells.length >= 5 && /\b[A-Z]-?\d{3}\b/.test(cells[0]) && /^yes$/i.test(cells[3]))
+    .filter((cells) => cells.length >= 5 && /\b[A-Z]-?\d{3,}\b/.test(cells[0]) && /^yes$/i.test(cells[3]))
     .map((cells) => ({
       id: cells[0].replace(/`/g, ""),
       type: cells[1].replace(/`/g, ""),

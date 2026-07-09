@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.89.0`。
+当前版本：`1.89.1`。
 
-发布记录：[releases/1.89.0/release-record.md](releases/1.89.0/release-record.md)。
+发布记录：[releases/1.89.1/release-record.md](releases/1.89.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -75,6 +75,16 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.89.1 继续加严 1.89 的接入和 apply 链路：Adoption Assurance 的
+resolver 和 checker 现在使用同一套 verified apply-chain 规则；严格
+Adoption Assurance 检查在没有报告时会失败，除非显式使用 `--allow-empty`；
+`init-project --apply-plan` 现在必须绑定结构化人工批准记录，且批准记录要匹配
+具体 plan digest、action ID 和目标路径。
+
+1.89.1 仍然不授权执行。它防止过期、未批准或不匹配的 apply 证据被当成
+可执行许可，但不批准代码实现、native apply、提交、推送、发布、生产、测试、
+迁移、外部平台动作或项目负责人决策。
 
 1.89.0 加严写入路径和证据可靠性：IntentOS 管理的写入路径会拒绝
 不安全相对路径、绝对路径、路径穿越和软链路径；init/update apply plan

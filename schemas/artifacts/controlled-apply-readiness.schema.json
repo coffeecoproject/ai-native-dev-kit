@@ -81,7 +81,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[A-Z]-?[0-9]{3}$"
+            "pattern": "^[A-Z]-?[0-9]{3,}$"
           },
           "classification": {
             "type": "string",

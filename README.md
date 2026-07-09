@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.89.0`.
+Current release: `1.89.1`.
 
-Release record: [releases/1.89.0/release-record.md](releases/1.89.0/release-record.md).
+Release record: [releases/1.89.1/release-record.md](releases/1.89.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -75,6 +75,18 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.89.1 hardens the 1.89 adoption/apply chain. Adoption Assurance now uses the
+same verified apply-chain rules in resolver and checker; strict Adoption
+Assurance checks fail closed when no report exists unless `--allow-empty` is
+explicitly provided; and `init-project --apply-plan` now requires a structured
+human approval record bound to the exact plan digest, action IDs, and target
+paths.
+
+1.89.1 remains non-authorizing. It prevents stale, unapproved, or mismatched
+apply evidence from being treated as executable permission, but still does not
+approve implementation, native apply, commit, push, release, production, tests,
+migrations, provider actions, or project-owner decisions.
 
 1.89.0 hardens write-path safety and evidence reliability. IntentOS-managed
 write paths now reject unsafe relative paths, absolute paths, traversal, and
