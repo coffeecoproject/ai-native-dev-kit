@@ -48,7 +48,7 @@ function writeInitProjectApprovalRecord(planPath, options = {}) {
   const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   const actions = initExecutableActions(plan);
   const approvalPath = options.approvalPath || `${planPath}.approval.md`;
-  const approval = {
+  let approval = {
     schema_version: "1.41.0",
     artifact_type: "approval_record",
     artifact_id: path.basename(approvalPath).replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || "init-project-approval",
@@ -82,6 +82,9 @@ function writeInitProjectApprovalRecord(planPath, options = {}) {
       lets_codex_proceed_without_readiness: false,
     },
   };
+  if (typeof options.mutate === "function") {
+    approval = options.mutate(approval, plan, actions) || approval;
+  }
   fs.writeFileSync(approvalPath, [
     "# Approval Record: init-project self-check",
     "",
@@ -105,6 +108,20 @@ function approvedInitProjectApplyArgs(planPath, extraArgs = []) {
     approvalPath,
     ...extraArgs,
   ];
+}
+
+function rewriteMachineEvidence(file, mutate) {
+  const content = fs.readFileSync(file, "utf8");
+  const match = content.match(/```json\s*([\s\S]*?)```/i);
+  if (!match) throw new Error(`Machine-Readable Evidence JSON block not found: ${file}`);
+  const evidence = JSON.parse(match[1]);
+  const nextEvidence = mutate(evidence) || evidence;
+  const nextContent = content.replace(match[0], [
+    "```json",
+    JSON.stringify(nextEvidence, null, 2),
+    "```",
+  ].join("\n"));
+  fs.writeFileSync(file, nextContent);
 }
 
 function walkSourceFiles(dir) {
@@ -7887,7 +7904,7 @@ function checkApprovalRecordGovernanceProtocol() {
     ["wildcard path", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-wildcard-path"], "must use exact bounded target paths"],
     ["parent traversal", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-parent-traversal"], "must use exact bounded target paths"],
     ["symlink path", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-symlink-path"], "must use exact bounded target paths"],
-    ["expired approval", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-expired"], "approval is expired"],
+    ["expired approval", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-expired"], "is expired and must be re-approved"],
     ["ambiguous owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ambiguous-owner"], "approval owner must be a specific human owner"],
     ["mismatched action ID", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-mismatched-action-id"], "human approval statement must match approved action IDs"],
     ["plan changed", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-plan-changed"], "plan changed after approval"],
@@ -10423,9 +10440,17 @@ function checkSafetyEvidenceHardeningProtocol() {
   const required = [
     "docs/plans/safety-evidence-hardening-1.89-plan.md",
     "scripts/lib/path-safety.mjs",
+    "scripts/lib/approval-record-validation.mjs",
+    "scripts/lib/adoption-apply-chain.mjs",
     "releases/1.89.0/release-record.md",
     "releases/1.89.0/known-limitations.md",
     "releases/1.89.0/self-check-report.md",
+    "releases/1.89.1/release-record.md",
+    "releases/1.89.1/known-limitations.md",
+    "releases/1.89.1/self-check-report.md",
+    "releases/1.89.2/release-record.md",
+    "releases/1.89.2/known-limitations.md",
+    "releases/1.89.2/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.89 safety/evidence hardening asset exists ${file}`);
@@ -10435,6 +10460,8 @@ function checkSafetyEvidenceHardeningProtocol() {
   const combined = [
     read("docs/plans/safety-evidence-hardening-1.89-plan.md"),
     read("scripts/lib/path-safety.mjs"),
+    read("scripts/lib/approval-record-validation.mjs"),
+    read("scripts/lib/adoption-apply-chain.mjs"),
     read("scripts/init-project.mjs"),
     read("scripts/check-manifest.mjs"),
     read("scripts/new-workflow-item.mjs"),
@@ -10450,6 +10477,12 @@ function checkSafetyEvidenceHardeningProtocol() {
     read("releases/1.89.0/release-record.md"),
     read("releases/1.89.0/known-limitations.md"),
     read("releases/1.89.0/self-check-report.md"),
+    read("releases/1.89.1/release-record.md"),
+    read("releases/1.89.1/known-limitations.md"),
+    read("releases/1.89.1/self-check-report.md"),
+    read("releases/1.89.2/release-record.md"),
+    read("releases/1.89.2/known-limitations.md"),
+    read("releases/1.89.2/self-check-report.md"),
   ].join("\n");
   for (const marker of [
     "Path And Evidence Hardening",
@@ -10463,6 +10496,10 @@ function checkSafetyEvidenceHardeningProtocol() {
     "apply_chain",
     "VERIFIED_ACTIVE requires verified apply chain",
     "structured approval",
+    "specific human owner",
+    "expires_at must be a parseable date/time",
+    "approved_action_ids must exactly match approved_action_paths row IDs",
+    "Adoption Assurance apply-chain helper rejects forged apply-plan digest",
     "Underlying command:",
   ]) {
     if (combined.includes(marker)) pass(`1.89 hardening includes ${marker}`);
@@ -10474,6 +10511,12 @@ function checkSafetyEvidenceHardeningProtocol() {
     pass("path-safety helper syntax check");
   } else {
     fail(`path-safety helper syntax failed: ${syntax.stderr || syntax.stdout}`);
+  }
+  const approvalSyntax = runNode(["--check", "scripts/lib/approval-record-validation.mjs"]);
+  if (approvalSyntax.status === 0) {
+    pass("approval-record-validation helper syntax check");
+  } else {
+    fail(`approval-record-validation helper syntax failed: ${approvalSyntax.stderr || approvalSyntax.stdout}`);
   }
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1-89-"));
@@ -10517,6 +10560,78 @@ function checkSafetyEvidenceHardeningProtocol() {
       pass("init-project rejects tampered apply plan digest");
     } else {
       fail(`init-project must reject tampered apply plan digest: ${applyTamperedOutput}`);
+    }
+
+    for (const [name, mutate, expected] of [
+      ["non-human approval owner", (approval) => ({ ...approval, approved_by: "Codex" }), "specific human owner"],
+      ["ambiguous approval owner", (approval) => ({ ...approval, approved_by: "human" }), "specific human owner"],
+      ["unparseable approval expiry", (approval) => ({ ...approval, expires_at: "next week maybe" }), "expires_at must be a parseable date/time"],
+      ["extra approval path row", (approval) => ({
+        ...approval,
+        approved_action_paths: [
+          ...approval.approved_action_paths,
+          { id: "A-999999", target_paths: ["docs/extra.md"] },
+        ],
+      }), "approved_action_ids must exactly match approved_action_paths row IDs"],
+    ]) {
+      const caseTarget = path.join(tempRoot, `approval-runtime-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`);
+      const casePlanPath = path.join(tempRoot, `approval-runtime-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`);
+      fs.mkdirSync(caseTarget, { recursive: true });
+      const casePlan = runNode([
+        "scripts/init-project.mjs",
+        "--target",
+        caseTarget,
+        "--write-plan",
+        casePlanPath,
+      ]);
+      if (casePlan.status !== 0) {
+        fail(`init-project write-plan failed during ${name} smoke: ${casePlan.stderr || casePlan.stdout}`);
+        continue;
+      }
+      const caseApprovalPath = writeInitProjectApprovalRecord(casePlanPath, { mutate });
+      const caseApply = runNode(["scripts/init-project.mjs", "--apply-plan", casePlanPath, "--approval-record", caseApprovalPath]);
+      const caseApplyOutput = `${caseApply.stdout}\n${caseApply.stderr}`;
+      if (caseApply.status !== 0 && caseApplyOutput.includes(expected)) {
+        pass(`init-project rejects ${name} before apply`);
+      } else {
+        fail(`init-project must reject ${name} before apply: ${caseApplyOutput}`);
+      }
+    }
+
+    const forgedApplyChain = path.join(tempRoot, "forged-apply-chain");
+    fs.mkdirSync(forgedApplyChain, { recursive: true });
+    for (const dir of ["apply-plans", "approval-records", "apply-readiness-reports"]) {
+      fs.cpSync(
+        path.join(kitRoot, "examples", "1.41-structured-evidence-schema", dir),
+        path.join(forgedApplyChain, dir),
+        { recursive: true },
+      );
+    }
+    for (const file of [
+      "apply-plans/001-structured-workflow-assets.md",
+      "approval-records/001-structured-workflow-assets.md",
+      "apply-readiness-reports/001-structured-workflow-assets.md",
+    ]) {
+      rewriteMachineEvidence(path.join(forgedApplyChain, file), (evidence) => {
+        const forgedDigest = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        if (evidence.plan_digest) evidence.plan_digest = forgedDigest;
+        if (evidence.approved_plan?.plan_digest) evidence.approved_plan.plan_digest = forgedDigest;
+        if (evidence.apply_plan?.plan_digest) evidence.apply_plan.plan_digest = forgedDigest;
+        return evidence;
+      });
+    }
+    const forgedAdoption = runNode(["scripts/resolve-adoption-assurance.mjs", forgedApplyChain, "--json"]);
+    const forgedOutput = `${forgedAdoption.stdout}\n${forgedAdoption.stderr}`;
+    try {
+      const parsed = JSON.parse(forgedAdoption.stdout);
+      const applySurface = (parsed.surfaces || []).find((item) => item.surface === "apply_chain");
+      if (forgedAdoption.status === 0 && applySurface?.status !== "VERIFIED" && parsed.humanSummary?.canClaimFullAdoption === "No") {
+        pass("Adoption Assurance helper rejects forged apply plan digest before VERIFIED_ACTIVE");
+      } else {
+        fail(`Adoption Assurance helper must reject forged apply plan digest: ${forgedOutput}`);
+      }
+    } catch (error) {
+      fail(`forged adoption assurance JSON invalid: ${error.message}: ${forgedOutput}`);
     }
 
     const symlinkTarget = path.join(tempRoot, "symlink-target");
@@ -10571,6 +10686,31 @@ function checkSafetyEvidenceHardeningProtocol() {
       pass("strict controlled apply readiness fails closed when reports are absent");
     } else {
       fail(`strict controlled apply readiness must fail closed when reports are absent: ${strictApplyReadinessOutput}`);
+    }
+
+    const strictApprovalNoReport = runNode([
+      "scripts/check-approval-record.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+    ]);
+    const strictApprovalOutput = `${strictApprovalNoReport.stdout}\n${strictApprovalNoReport.stderr}`;
+    if (strictApprovalNoReport.status !== 0 && strictApprovalOutput.includes("no approval records found")) {
+      pass("strict approval record check fails closed when reports are absent");
+    } else {
+      fail(`strict approval record check must fail closed when reports are absent: ${strictApprovalOutput}`);
+    }
+
+    const allowEmptyApproval = runNode([
+      "scripts/check-approval-record.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+      "--allow-empty",
+    ]);
+    const allowEmptyApprovalOutput = `${allowEmptyApproval.stdout}\n${allowEmptyApproval.stderr}`;
+    if (allowEmptyApproval.status === 0 && allowEmptyApprovalOutput.includes("--allow-empty")) {
+      pass("approval record --allow-empty remains explicit maintainer override");
+    } else {
+      fail(`approval record --allow-empty should permit empty source checks: ${allowEmptyApprovalOutput}`);
     }
 
     const schema = {

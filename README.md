@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.89.1`.
+Current release: `1.89.2`.
 
-Release record: [releases/1.89.1/release-record.md](releases/1.89.1/release-record.md).
+Release record: [releases/1.89.2/release-record.md](releases/1.89.2/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -75,6 +75,17 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.89.2 tightens runtime approval validation. `init-project --apply-plan` now
+uses the same specific-human-owner, parseable future expiry, action ID, and
+target-path binding rules as the approval checker. Adoption apply-chain
+verification also recomputes the apply plan digest before any resolver can
+report a verified apply chain.
+
+1.89.2 remains non-authorizing. It rejects weak, stale, forged, or
+machine-approved apply evidence, but still does not approve implementation,
+native apply, commit, push, release, production, tests, migrations, provider
+actions, or project-owner decisions.
 
 1.89.1 hardens the 1.89 adoption/apply chain. Adoption Assurance now uses the
 same verified apply-chain rules in resolver and checker; strict Adoption

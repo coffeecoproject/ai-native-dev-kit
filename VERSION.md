@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.89.1`
+Current version: `1.89.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.89.1`
 
 ## Current Release
 
-`1.89.1`
+`1.89.2`
 
 Includes:
+
+- Approval Runtime Validation Hardening patch `1.89.2`: runtime apply now
+  shares approval validation rules with the approval checker, requiring a
+  specific human owner, parseable future expiry, exact action/path row binding,
+  and canonical apply-plan digest verification in the shared adoption
+  apply-chain helper.
+- `1.89.2` remains non-authorizing. It rejects weak, stale, forged, or
+  machine-approved apply evidence, but does not approve implementation, native
+  apply, commit, push, release, production, tests, migrations, provider
+  actions, or project-owner decisions.
 
 - Adoption Assurance Apply Binding Hardening patch `1.89.1`: Adoption
   Assurance resolver and checker now share the same verified apply-chain

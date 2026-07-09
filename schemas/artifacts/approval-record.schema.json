@@ -23,13 +23,13 @@
     "artifact_type": { "type": "string", "enum": ["approval_record"] },
     "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "approval_status": { "type": "string", "enum": ["DRAFT", "PENDING_REVIEW", "APPROVED", "REVOKED", "EXPIRED"] },
-    "approved_by": { "type": "string" },
+    "approved_by": { "type": "string", "minLength": 1 },
     "approval_owner_type": { "type": "string", "enum": ["HUMAN"] },
     "approved_plan": {
       "type": "object",
       "required": ["path", "plan_digest"],
       "properties": {
-        "path": { "type": "string" },
+        "path": { "type": "string", "minLength": 1 },
         "plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
       }
     },
@@ -46,11 +46,11 @@
         "required": ["id", "target_paths"],
         "properties": {
           "id": { "type": "string", "pattern": "^[A-Z]-?[0-9]{3,}$" },
-          "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+          "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
         }
       }
     },
-    "expires_at": { "type": "string" },
+    "expires_at": { "type": "string", "minLength": 1 },
     "plan_changed_after_approval": { "type": "boolean" },
     "risk_acceptance": {
       "type": "object",

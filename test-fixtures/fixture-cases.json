@@ -1740,7 +1740,7 @@
     ],
     "expectStatus": "nonzero",
     "expectStderrIncludes": [
-      "approval is expired"
+      "is expired and must be re-approved"
     ],
     "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
   },

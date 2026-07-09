@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.89.1`
+`1.89.2`
 
 ## Project Version File
 
@@ -19,6 +19,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.89.2` tightens runtime approval validation: `init-project --apply-plan`
+  now uses specific-human-owner, parseable future expiry, exact action/path row
+  binding, and canonical apply-plan digest verification before any apply.
+- `1.89.2` remains non-authorizing. It rejects weak, stale, forged, or
+  machine-approved apply evidence, but does not approve implementation, native
+  apply, commit, push, release, production, tests, migrations, provider
+  actions, or project-owner decisions.
 - `1.89.1` hardens the adoption apply chain: Adoption Assurance now verifies
   active apply plans only when apply plan, approval record, and controlled apply
   readiness are schema-valid and bound by matching plan digest, action IDs,

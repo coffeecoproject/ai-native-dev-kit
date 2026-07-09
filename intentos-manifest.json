@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.89.1",
+  "intentOSVersion": "1.89.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.89.1"
+    "phase": "1.89.2"
   },
   "groups": {
     "sourceRequired": [
@@ -1915,6 +1915,7 @@
       "scripts/init-project.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -2867,7 +2868,10 @@
       "verification-plans/.gitkeep",
       "work-queue-takeover-reports/.gitkeep",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep"
+      "workflow-guidance-cards/.gitkeep",
+      "releases/1.89.2/known-limitations.md",
+      "releases/1.89.2/release-record.md",
+      "releases/1.89.2/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -3393,6 +3397,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -4097,6 +4102,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -4822,6 +4828,7 @@
       "scripts/init-project.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -6258,6 +6265,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -8268,6 +8276,10 @@
       {
         "source": "scripts/lib/artifact-schema.mjs",
         "target": "scripts/lib/artifact-schema.mjs"
+      },
+      {
+        "source": "scripts/lib/approval-record-validation.mjs",
+        "target": "scripts/lib/approval-record-validation.mjs"
       },
       {
         "source": "scripts/lib/adoption-apply-chain.mjs",

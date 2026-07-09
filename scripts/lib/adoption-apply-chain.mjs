@@ -1,6 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { extractMachineReadableEvidence, loadSchema, validateSchema } from "./artifact-schema.mjs";
+import { extractMachineReadableEvidence, loadSchema, validateEvidenceBlock, validateSchema } from "./artifact-schema.mjs";
+import {
+  normalizePathList,
+  sameSet,
+  validateApprovalEvidenceForActionSet,
+} from "./approval-record-validation.mjs";
 
 const ignoredNames = new Set([".gitkeep", ".DS_Store"]);
 
@@ -35,7 +40,7 @@ export function evaluateVerifiedAdoptionApplyChain(projectRoot, options = {}) {
     };
   }
 
-  const plans = planFiles.map((file) => readEvidenceFile(projectRoot, file, planSchema, "apply plan"));
+  const plans = planFiles.map((file) => readEvidenceFile(projectRoot, file, planSchema, "apply plan", { digestField: "plan_digest" }));
   const approvals = approvalFiles.map((file) => readEvidenceFile(projectRoot, file, approvalSchema, "approval record"));
   const readinessReports = readinessFiles.map((file) => readEvidenceFile(projectRoot, file, readinessSchema, "apply readiness"));
   const parseErrors = [...plans, ...approvals, ...readinessReports].flatMap((item) => item.errors);
@@ -78,39 +83,12 @@ export function evaluateVerifiedAdoptionApplyChain(projectRoot, options = {}) {
 }
 
 export function validateApprovalRecordForInitApplyPlan(plan, approvalEvidence) {
-  const errors = [];
-  if (!approvalEvidence || typeof approvalEvidence !== "object") return ["approval record evidence is required"];
-  if (approvalEvidence.approval_status !== "APPROVED") errors.push("approval record must be APPROVED");
-  if (approvalEvidence.approval_owner_type !== "HUMAN") errors.push("approval owner type must be HUMAN");
-  if (!String(approvalEvidence.approved_by || "").trim()) errors.push("approved_by must identify a human owner");
-  if (approvalEvidence.approved_plan?.plan_digest !== plan.planDigest) {
-    errors.push("approval record approved_plan.plan_digest must match init/update planDigest");
-  }
-  if (approvalEvidence.plan_changed_after_approval !== false) errors.push("approval record must confirm plan_changed_after_approval is false");
-  if (approvalEvidence.rollback_reviewed !== true) errors.push("approval record must acknowledge rollback review");
-  if (approvalEvidence.verification_reviewed !== true) errors.push("approval record must acknowledge verification review");
-  if (approvalEvidence.risk_acceptance?.high_risk_action_included !== false) errors.push("approval record must exclude high-risk actions");
-  if (approvalEvidence.risk_acceptance?.human_only_action_included !== false) errors.push("approval record must exclude human-only actions");
-  if (isExpired(approvalEvidence.expires_at)) errors.push("approval record is expired");
-  if (approvalEvidence.boundary && Object.values(approvalEvidence.boundary).some((value) => value !== false)) {
-    errors.push("approval record boundary must keep all authority flags false");
-  }
-
   const executableActions = initExecutableActions(plan);
-  const actionIds = executableActions.map((action) => action.id);
-  const approvedIds = Array.isArray(approvalEvidence.approved_action_ids) ? approvalEvidence.approved_action_ids.map(String) : [];
-  if (!sameSet(actionIds, approvedIds)) {
-    errors.push(`approval action IDs must exactly match executable plan actions: expected ${actionIds.join(", ") || "<none>"}`);
-  }
-  const approvedPathRows = Array.isArray(approvalEvidence.approved_action_paths) ? approvalEvidence.approved_action_paths : [];
-  const approvedById = new Map(approvedPathRows.map((item) => [String(item.id || ""), normalizePathList(item.target_paths)]));
-  for (const action of executableActions) {
-    const approvedPaths = approvedById.get(action.id) || [];
-    if (!sameSet(action.targetPaths, approvedPaths)) {
-      errors.push(`approval target paths for ${action.id} must exactly match plan paths: expected ${action.targetPaths.join(", ")}`);
-    }
-  }
-  return errors;
+  return validateApprovalEvidenceForActionSet(approvalEvidence, {
+    label: "approval record",
+    planDigest: plan.planDigest,
+    expectedActions: executableActions,
+  });
 }
 
 export function initExecutableActions(plan) {
@@ -150,9 +128,21 @@ function walk(dir, visit) {
   }
 }
 
-function readEvidenceFile(root, relativePath, schema, label) {
+function readEvidenceFile(root, relativePath, schema, label, options = {}) {
   const fullPath = path.join(root, relativePath);
   const content = fs.readFileSync(fullPath, "utf8");
+  if (options.digestField) {
+    const result = validateEvidenceBlock(content, schema, relativePath, {
+      require: true,
+      digestField: options.digestField,
+    });
+    return {
+      ok: result.ok,
+      relativePath,
+      value: result.value,
+      errors: result.errors,
+    };
+  }
   const extracted = extractMachineReadableEvidence(content);
   if (!extracted) return { ok: false, relativePath, value: null, errors: [`${relativePath}: ${label} missing Machine-Readable Evidence`] };
   if (!extracted.ok) return { ok: false, relativePath, value: null, errors: extracted.errors.map((error) => `${relativePath}: ${error}`) };
@@ -174,27 +164,11 @@ function normalizePlanActions(plan) {
 }
 
 function validateApprovalForPlan(approval, planDigest, planActions) {
-  const errors = [];
-  if (approval.approval_status !== "APPROVED") errors.push("approval not approved");
-  if (approval.approval_owner_type !== "HUMAN") errors.push("approval owner is not HUMAN");
-  if (approval.approved_plan?.plan_digest !== planDigest) errors.push("approval plan digest mismatch");
-  if (approval.plan_changed_after_approval !== false) errors.push("approval says plan changed");
-  if (approval.rollback_reviewed !== true || approval.verification_reviewed !== true) errors.push("approval lacks rollback/verification review");
-  if (approval.risk_acceptance?.high_risk_action_included !== false || approval.risk_acceptance?.human_only_action_included !== false) {
-    errors.push("approval includes high-risk or human-only actions");
-  }
-  if (isExpired(approval.expires_at)) errors.push("approval expired");
-  const approvedIds = Array.isArray(approval.approved_action_ids) ? approval.approved_action_ids.map(String) : [];
-  const planIds = planActions.map((action) => action.id);
-  if (!sameSet(planIds, approvedIds)) errors.push("approval action IDs do not match plan actions");
-  const approvedPathRows = Array.isArray(approval.approved_action_paths) ? approval.approved_action_paths : [];
-  const approvedById = new Map(approvedPathRows.map((item) => [String(item.id || ""), normalizePathList(item.target_paths)]));
-  for (const action of planActions) {
-    if (!sameSet(action.targetPaths, approvedById.get(action.id) || [])) {
-      errors.push(`approval target paths do not match ${action.id}`);
-    }
-  }
-  return errors;
+  return validateApprovalEvidenceForActionSet(approval, {
+    label: "approval record",
+    planDigest,
+    expectedActions: planActions,
+  });
 }
 
 function validateReadinessForPlan(readiness, planDigest, planActions) {
@@ -218,22 +192,4 @@ function validateReadinessForPlan(readiness, planDigest, planActions) {
     }
   }
   return errors;
-}
-
-function normalizePathList(paths) {
-  return (Array.isArray(paths) ? paths : [])
-    .map((item) => String(item || "").trim().replaceAll(path.sep, "/"))
-    .filter(Boolean)
-    .sort();
-}
-
-function sameSet(left, right) {
-  const a = [...new Set(left)].sort();
-  const b = [...new Set(right)].sort();
-  return a.length === b.length && a.every((item, index) => item === b[index]);
-}
-
-function isExpired(value) {
-  const timestamp = Date.parse(String(value || ""));
-  return Number.isFinite(timestamp) && timestamp <= Date.now();
 }

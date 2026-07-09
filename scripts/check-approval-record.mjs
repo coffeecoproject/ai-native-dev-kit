@@ -11,12 +11,20 @@ import {
   resolveEvidenceReference,
   validateEvidenceBlock,
 } from "./lib/artifact-schema.mjs";
+import {
+  ambiguousHumanApproverPattern,
+  nonHumanApproverPattern,
+  validateApprovalActionPathRows,
+  validateFutureApprovalExpiry,
+  validateSpecificHumanApprover,
+} from "./lib/approval-record-validation.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence"]));
+const unknown = unknownOptions(args, new Set(["json", "require-structured-evidence", "allow-empty"]));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const allowEmpty = Boolean(args["allow-empty"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -68,8 +76,6 @@ const highRiskActions = [
   "SECURITY_PRIVACY_COMPLIANCE_CHANGE",
   "LEGAL_LICENSE_POLICY_CHANGE",
 ];
-const nonHumanApprover = /\b(Codex|AI|LLM|model|reviewer|subagent|automation|system|bot)\b/i;
-const ambiguousHumanApprover = /^(human|owner|user|the user|someone|somebody|stakeholder|team|project team|approver|not specified|unknown|tbd|n\/a)$/i;
 const broadApproval = /\b(all actions|everything|entire repo|all files|any file|whatever Codex thinks|whatever is needed|future changes|blanket approval|\*)\b/i;
 const unsafePathPattern = /(^\/|^~\/|^[A-Za-z]:\\|(^|\/)\.\.(\/|$)|\\|[*?\[\]{}]|\bsymlink:)/i;
 const forbiddenClaims = [
@@ -136,7 +142,13 @@ function checkCoreContent() {
 function checkRecords() {
   const files = markdownFiles("approval-records");
   if (files.length === 0) {
-    pass("approval record check skipped: no approval records");
+    if (allowEmpty) {
+      pass("approval record check skipped: no approval records and --allow-empty was provided");
+    } else if (requireStructuredEvidence) {
+      fail("no approval records found while strict approval record evidence was required");
+    } else {
+      pass("approval record check skipped: no approval records");
+    }
     return;
   }
 
@@ -183,10 +195,11 @@ function checkStructuredEvidence(content, label, file) {
   pass(`${label} structured approval evidence matches schema`);
 
   if (evidence.approval_status === "APPROVED") {
-    if (evidence.approved_by && !nonHumanApprover.test(evidence.approved_by) && !ambiguousHumanApprover.test(evidence.approved_by)) {
+    const ownerErrors = validateSpecificHumanApprover(evidence.approved_by, label);
+    if (ownerErrors.length === 0) {
       pass(`${label} structured approval owner is specific human`);
     } else {
-      fail(`${label} structured approval owner must be a specific human owner`);
+      ownerErrors.forEach((error) => fail(error));
     }
     if (evidence.plan_changed_after_approval === false) pass(`${label} structured approval confirms plan unchanged`);
     else fail(`${label} structured approval must not approve a changed plan`);
@@ -203,17 +216,17 @@ function checkStructuredEvidence(content, label, file) {
     }
   }
 
-  const approvedPathIds = new Set((evidence.approved_action_paths || []).map((item) => item.id));
-  const approvedIds = new Set(evidence.approved_action_ids || []);
-  const idsMatch = approvedIds.size === approvedPathIds.size && [...approvedIds].every((id) => approvedPathIds.has(id));
-  if (idsMatch) pass(`${label} structured approval action IDs match action path rows`);
-  else fail(`${label} structured approval action IDs must match action path rows`);
-
-  if ((evidence.approved_action_paths || []).every((item) => exactStructuredPaths(item.target_paths))) {
+  const rowErrors = validateApprovalActionPathRows(evidence, { label });
+  if (rowErrors.length === 0) {
+    pass(`${label} structured approval action IDs match action path rows`);
     pass(`${label} structured approval paths are exact and bounded`);
   } else {
-    fail(`${label} structured approval target paths must be exact and bounded`);
+    rowErrors.forEach((error) => fail(error));
   }
+
+  const expiryErrors = validateFutureApprovalExpiry(evidence.expires_at, label);
+  if (expiryErrors.length === 0) pass(`${label} structured approval expiry is parseable and future-bounded`);
+  else expiryErrors.forEach((error) => fail(error));
 
   if (evidence.boundary && Object.values(evidence.boundary).every((value) => value === false)) {
     pass(`${label} structured approval boundary keeps approval non-executing`);
@@ -239,16 +252,11 @@ function checkStructuredEvidence(content, label, file) {
   }
 }
 
-function exactStructuredPaths(paths) {
-  if (!Array.isArray(paths) || paths.length === 0) return false;
-  return paths.every((item) => looksBoundedPathList(`\`${item}\``));
-}
-
 function checkApprovedRecord(content, label) {
   const identity = sectionBody(content, "Approval Identity");
   const approvedBy = strip(tableValue(identity, "Approved by"));
   const ownerType = strip(tableValue(identity, "Approval owner type")).replace(/`/g, "");
-  if (approvedBy && !placeholder(approvedBy) && !nonHumanApprover.test(approvedBy) && !ambiguousHumanApprover.test(approvedBy)) {
+  if (approvedBy && !placeholder(approvedBy) && !nonHumanApproverPattern.test(approvedBy) && !ambiguousHumanApproverPattern.test(approvedBy)) {
     pass(`${label} approved record has human approver`);
   } else {
     fail(`${label} approved record approval owner must be a specific human owner`);
@@ -307,8 +315,9 @@ function checkApprovedRecord(content, label) {
   } else {
     fail(`${label} approved records must include a bounded expiry`);
   }
-  if (isExpiredApproval(expiryValue)) fail(`${label} approval is expired and must be re-approved`);
-  else pass(`${label} approval is not expired`);
+  const expiryErrors = validateFutureApprovalExpiry(expiryValue, label);
+  if (expiryErrors.length === 0) pass(`${label} approval expiry is parseable and future-bounded`);
+  else expiryErrors.forEach((error) => fail(error));
   if (/Re-approval required after expiry\s*\|\s*Yes/i.test(expiry)) pass(`${label} requires re-approval after expiry`);
   else fail(`${label} must require re-approval after expiry`);
 
@@ -411,7 +420,7 @@ function checkSourceEvidence() {
     ["wildcard path", ["test-fixtures/bad/bad-approval-record-wildcard-path"], "must use exact bounded target paths"],
     ["parent traversal", ["test-fixtures/bad/bad-approval-record-parent-traversal"], "must use exact bounded target paths"],
     ["symlink path", ["test-fixtures/bad/bad-approval-record-symlink-path"], "must use exact bounded target paths"],
-    ["expired approval", ["test-fixtures/bad/bad-approval-record-expired"], "approval is expired"],
+    ["expired approval", ["test-fixtures/bad/bad-approval-record-expired"], "is expired and must be re-approved"],
     ["ambiguous owner", ["test-fixtures/bad/bad-approval-record-ambiguous-owner"], "approval owner must be a specific human owner"],
     ["mismatched action ID", ["test-fixtures/bad/bad-approval-record-mismatched-action-id"], "human approval statement must match approved action IDs"],
     ["plan changed", ["test-fixtures/bad/bad-approval-record-plan-changed"], "plan changed after approval"],
@@ -467,20 +476,6 @@ function approvedActionRows(section) {
       type: cells[1].replace(/`/g, ""),
       paths: cells[2],
     }));
-}
-
-function isExpiredApproval(value) {
-  const date = parseDateValue(value);
-  if (!date) return false;
-  return date.getTime() < Date.now();
-}
-
-function parseDateValue(value) {
-  const text = strip(value);
-  const match = text.match(/\b(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
-  if (!match) return null;
-  const [, year, month, day, hour = "23", minute = "59"] = match;
-  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute)));
 }
 
 function markdownPath(value) {
