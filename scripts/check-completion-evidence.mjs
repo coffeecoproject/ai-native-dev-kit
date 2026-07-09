@@ -160,7 +160,9 @@ function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("completion-evidence-reports");
   if (files.length === 0) {
     if (allowEmpty) pass("completion evidence check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport) fail("no Completion Evidence Gate reports found; run `completion-evidence --out <relative-report-path>` first");
+    else if (requireReport || explicitReport || requireStructuredEvidence || requireSourceRefs || requireReady || requireTaskGovernance || requireWorkQueue || strictTaskConsumer || requirePlanReview) {
+      fail("no Completion Evidence Gate reports found; run `completion-evidence --out <relative-report-path>` first");
+    }
     else pass("SKIPPED_NO_REPORT: no Completion Evidence Gate reports found; no completion claim made");
     return;
   }

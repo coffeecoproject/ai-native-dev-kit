@@ -5,6 +5,7 @@ import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
+import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-structured-evidence", "require-simulation", "report"]);
@@ -19,6 +20,10 @@ const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.jso
 const shouldRequireAssets = isSourceRepo
   || fs.existsSync(path.join(projectRoot, ".intentos", "intentos-manifest.json"))
   || fs.existsSync(path.join(projectRoot, ".intentos", "version.json"));
+const adoptionSchema = loadSchema(projectRoot, "schemas/artifacts/adoption-assurance.schema.json");
+const applyPlanSchema = loadSchema(projectRoot, "schemas/artifacts/unified-apply-plan.schema.json");
+const approvalRecordSchema = loadSchema(projectRoot, "schemas/artifacts/approval-record.schema.json");
+const applyReadinessSchema = loadSchema(projectRoot, "schemas/artifacts/controlled-apply-readiness.schema.json");
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -278,6 +283,12 @@ function checkStructuredEvidence(content, label) {
   } catch (error) {
     fail(`${label} Machine-Readable Evidence JSON invalid: ${error.message}`);
     return null;
+  }
+  const schemaResult = validateEvidenceBlock(content, adoptionSchema, label, { require: true });
+  if (schemaResult.ok) {
+    pass(`${label} structured adoption assurance evidence matches schema`);
+  } else {
+    for (const error of schemaResult.errors) fail(error);
   }
   const required = [
     "schema_version",
@@ -567,6 +578,7 @@ function checkStateRules(content, label, summary, surfaces, evidence) {
     else fail(`${label} VERIFIED_ACTIVE requires all upstream source systems to be RECORDED`);
     if (allSimulationStepsPassed) pass(`${label} verified active has a fully passed simulation trace`);
     else fail(`${label} VERIFIED_ACTIVE requires every simulation step to pass`);
+    checkVerifiedActiveApplyChain(evidence, label);
   } else if (fullClaim === "Yes" || claimsFullInText) {
     fail(`${label} cannot claim full adoption unless state is VERIFIED_ACTIVE`);
   }
@@ -591,6 +603,70 @@ function checkStateRules(content, label, summary, surfaces, evidence) {
   for (const pattern of absoluteForbiddenClaims) {
     if (pattern.test(content)) fail(`${label} contains absolutely forbidden claim: ${pattern.source}`);
   }
+}
+
+function checkVerifiedActiveApplyChain(evidence, label) {
+  const surfaces = Array.isArray(evidence?.surfaces) ? evidence.surfaces : [];
+  const applyChain = surfaces.find((item) => item.surface === "apply_chain");
+  if (applyChain?.status === "VERIFIED") pass(`${label} verified active has VERIFIED apply_chain surface`);
+  else fail(`${label} VERIFIED_ACTIVE requires verified apply chain surface status VERIFIED`);
+
+  const refs = Array.isArray(evidence?.evidence_refs) ? evidence.evidence_refs : [];
+  const applyPlanRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-plans/"));
+  const approvalRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("approval-records/"));
+  const readinessRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-readiness-reports/"));
+
+  const applyPlan = validateReferencedEvidenceFile(applyPlanRef, applyPlanSchema, `${label} apply plan`, "plan_digest");
+  const approval = validateReferencedEvidenceFile(approvalRef, approvalRecordSchema, `${label} approval record`);
+  const readiness = validateReferencedEvidenceFile(readinessRef, applyReadinessSchema, `${label} apply readiness`);
+  if (!applyPlan || !approval || !readiness) return;
+
+  const planDigest = applyPlan.plan_digest;
+  if (planDigest && approval.approved_plan?.plan_digest === planDigest) pass(`${label} approval record references current apply plan digest`);
+  else fail(`${label} approval record must reference current apply plan digest`);
+  if (planDigest && readiness.apply_plan?.plan_digest === planDigest) pass(`${label} apply readiness references current apply plan digest`);
+  else fail(`${label} apply readiness must reference current apply plan digest`);
+  if (approval.approval_status === "APPROVED") pass(`${label} approval record is APPROVED`);
+  else fail(`${label} VERIFIED_ACTIVE requires APPROVED approval record`);
+  if (readiness.readiness_state === "READY_FOR_HUMAN_APPROVED_APPLY") pass(`${label} apply readiness is ready for human approved apply`);
+  else fail(`${label} VERIFIED_ACTIVE requires READY_FOR_HUMAN_APPROVED_APPLY readiness`);
+}
+
+function validateReferencedEvidenceFile(ref, schema, label, digestField = "") {
+  const evidencePath = resolveEvidenceFile(ref);
+  if (!ref) {
+    fail(`${label} ref is required for VERIFIED_ACTIVE`);
+    return null;
+  }
+  if (!evidencePath) {
+    fail(`${label} ref does not resolve: ${ref}`);
+    return null;
+  }
+  const result = validateEvidenceBlock(fs.readFileSync(evidencePath, "utf8"), schema, label, {
+    require: true,
+    ...(digestField ? { digestField } : {}),
+  });
+  if (!result.ok) {
+    for (const error of result.errors) fail(error);
+    return null;
+  }
+  pass(`${label} structured evidence resolves and validates`);
+  return result.value;
+}
+
+function resolveEvidenceFile(ref) {
+  const normalized = normalizedEvidencePath(ref);
+  if (!normalized || path.isAbsolute(normalized) || normalized.includes("..")) return "";
+  const candidate = path.resolve(projectRoot, normalized);
+  const relative = path.relative(projectRoot, candidate);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) return "";
+  return fs.existsSync(candidate) && fs.statSync(candidate).isFile() ? candidate : "";
+}
+
+function normalizedEvidencePath(ref) {
+  return String(ref || "")
+    .replace(/^(artifact|file):/, "")
+    .replaceAll(path.sep, "/");
 }
 
 function requireSection(content, section, label) {

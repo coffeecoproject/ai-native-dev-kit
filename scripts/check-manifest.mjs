@@ -8,16 +8,16 @@ import {
   diffLists,
   kitRoot,
   manifestGroupNames,
-  normalizePath,
   readJson,
   readText,
   sortedUnique,
 } from "./lib/manifest.mjs";
+import { assertSafeRelativePath, normalizePortablePath } from "./lib/path-safety.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
-const manifestPath = args.manifest ? normalizePath(String(args.manifest)) : "intentos-manifest.json";
-const schemaPath = args.schema ? normalizePath(String(args.schema)) : "schemas/intentos-manifest.schema.json";
+const manifestPath = args.manifest ? normalizePortablePath(String(args.manifest)) : "intentos-manifest.json";
+const schemaPath = args.schema ? normalizePortablePath(String(args.schema)) : "schemas/intentos-manifest.schema.json";
 const outputJson = Boolean(args.json);
 const knownFlags = new Set(["manifest", "schema", "json"]);
 
@@ -140,8 +140,10 @@ function validatePathList(group, label) {
       fail(`manifest schema validation: ${label} contains a non-empty string violation`);
       continue;
     }
-    if (path.isAbsolute(item) || item.includes("\\")) {
-      fail(`manifest schema validation: ${label} contains non-portable path ${item}`);
+    try {
+      assertSafeRelativePath(item, `manifest schema validation: ${label}`);
+    } catch (error) {
+      fail(error.message);
     }
     if (seen.has(item)) {
       fail(`manifest schema validation: ${label} contains duplicate ${item}`);
@@ -162,8 +164,10 @@ function validateRuleList(rules, label) {
       continue;
     }
     for (const key of ["source", "target"]) {
-      if (typeof rule[key] !== "string" || rule[key].length === 0 || path.isAbsolute(rule[key]) || rule[key].includes("\\")) {
-        fail(`manifest schema validation: ${label}.${key} must be a portable non-empty path`);
+      try {
+        assertSafeRelativePath(rule[key], `manifest schema validation: ${label}.${key}`);
+      } catch (error) {
+        fail(error.message);
       }
     }
     const signature = `${rule.source} -> ${rule.target}`;
@@ -266,7 +270,7 @@ function walkFiles(relativeDir) {
   if (!fs.existsSync(absoluteDir)) return [];
   const output = [];
   for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
-    const relativePath = normalizePath(path.join(relativeDir, entry.name));
+    const relativePath = normalizePortablePath(path.join(relativeDir, entry.name));
     if (entry.isDirectory()) {
       output.push(...walkFiles(relativePath));
     } else {
@@ -305,7 +309,7 @@ function checkManifestReverseDrift(manifest) {
   const exactCoverage = new Set([
     ...(manifest.groups.sourceRequired || []),
     ...(manifest.copyRules.files || []).map((rule) => rule.source),
-  ].map(normalizePath));
+  ].map(normalizePortablePath));
   const directoryCoverage = sortedUnique((manifest.copyRules.directories || []).map((rule) => rule.source));
   const candidates = sortedUnique([
     ...[

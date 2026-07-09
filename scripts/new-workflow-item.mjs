@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addFrontmatter } from "./lib/frontmatter.mjs";
+import { assertSafeRelativePath, assertSafeWritePath, assertInsideRoot } from "./lib/path-safety.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -418,7 +419,9 @@ function nextNumber(root, dir) {
 
 function resolveRef(root, value, label) {
   if (!value) return null;
-  const full = path.resolve(root, value);
+  const safeValue = assertSafeRelativePath(String(value), `${label} ref`);
+  const full = path.resolve(root, safeValue);
+  assertInsideRoot(root, full, `${label} ref`);
   if (!fs.existsSync(full)) fail(`${label} does not exist: ${value}`);
   return path.relative(root, full).replaceAll(path.sep, "/");
 }
@@ -564,9 +567,9 @@ function siblingArtifactRef(root, dir, number, slug) {
 }
 
 function writeArtifact(root, dir, filename, content) {
-  const targetDir = path.join(root, dir);
+  const targetDir = assertSafeWritePath(root, dir, "workflow item directory");
   fs.mkdirSync(targetDir, { recursive: true });
-  const target = path.join(targetDir, filename);
+  const target = assertSafeWritePath(root, `${dir}/${filename}`, "workflow item file");
   if (fs.existsSync(target)) fail(`target already exists: ${path.relative(root, target)}`);
   fs.writeFileSync(target, `${content.trimEnd()}\n`);
   return path.relative(root, target).replaceAll(path.sep, "/");
@@ -2029,8 +2032,12 @@ if (["review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-prop
 const sourceForName = requestRef || specRef || taskRef || logRef;
 const slug = slugify(args.name || (sourceForName ? parseNameFromPath(sourceForName) : config.defaultName || "workflow-item"));
 const title = titleFromSlug(slug);
+const explicitNumber = args.number ? String(args.number) : "";
+if (explicitNumber && !/^\d+$/.test(explicitNumber)) {
+  fail("--number must contain digits only");
+}
 const number = args.number
-  ? String(args.number).padStart(3, "0")
+  ? explicitNumber.padStart(3, "0")
   : numberFromPath(sourceForName || "") || nextNumber(projectRoot, config.dir);
 const date = localDate();
 const filename = type === "log" ? `${date}-${slug}.md` : `${number}-${slug}.md`;

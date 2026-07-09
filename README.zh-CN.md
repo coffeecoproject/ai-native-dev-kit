@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.88.3`。
+当前版本：`1.89.0`。
 
-发布记录：[releases/1.88.3/release-record.md](releases/1.88.3/release-record.md)。
+发布记录：[releases/1.89.0/release-record.md](releases/1.89.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -13,6 +13,8 @@ IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规
 > 你说目标，AI 判断路径；你做确认，项目按规则推进。
 
 ## 30 秒开始
+
+前置要求：Node.js `>=22`。
 
 多数用户直接用自然语言开始：
 
@@ -73,6 +75,16 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.89.0 加严写入路径和证据可靠性：IntentOS 管理的写入路径会拒绝
+不安全相对路径、绝对路径、路径穿越和软链路径；init/update apply plan
+会带 digest，计划内容被改过就不能应用；严格证据检查在缺少必要报告时会
+失败；老项目没有 verified apply-chain 证据时，不能声称 verified active
+或 full adoption。
+
+1.89.0 仍然不授权执行。它只是让执行和接入证据更难被误用，不批准代码
+实现、native apply、提交、推送、发布、生产、测试、迁移、外部平台动作
+或项目负责人决策。
 
 1.88.3 加严 Plan Review consumer binding：下游消费者现在会重新计算被引用
 Plan Review 报告的 digest，并确认自己使用的 plan 引用或 plan digest 与通过

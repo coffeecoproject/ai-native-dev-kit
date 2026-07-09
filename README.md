@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.88.3`.
+Current release: `1.89.0`.
 
-Release record: [releases/1.88.3/release-record.md](releases/1.88.3/release-record.md).
+Release record: [releases/1.89.0/release-record.md](releases/1.89.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -13,6 +13,8 @@ It is not a prompt collection, code template, framework starter, or deploy tool.
 > You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
 
 ## Start In 30 Seconds
+
+Prerequisite: Node.js `>=22`.
 
 Most users should start with natural language:
 
@@ -73,6 +75,18 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.89.0 hardens write-path safety and evidence reliability. IntentOS-managed
+write paths now reject unsafe relative paths, absolute paths, traversal, and
+symlink path components; init/update apply plans include a digest and cannot be
+applied after tampering; strict evidence checks fail closed when required
+reports are absent; and old-project adoption cannot claim verified active/full
+adoption without a verified apply-chain evidence set.
+
+1.89.0 remains non-authorizing. It makes execution and adoption evidence harder
+to misuse, but still does not approve implementation, native apply, commit,
+push, release, production, tests, migrations, provider actions, or
+project-owner decisions.
 
 1.88.3 hardens Plan Review consumer binding. Downstream consumers now
 recalculate the referenced Plan Review digest and verify that their own plan

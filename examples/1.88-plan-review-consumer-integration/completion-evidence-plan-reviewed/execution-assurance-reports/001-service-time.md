@@ -93,8 +93,8 @@ This report is a read-only derived verification view. It does not write target f
 
 | Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| test_evidence | `RECORDED` | `artifact:test-evidence-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `TEST_EVIDENCE_COMPLETE` | `Yes` | `sha256:example` | Task-bound verification evidence. | Source system |
-| review_loop | `RECORDED` | `artifact:review-loop-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `REVIEW_CLOSED` | `Yes` | `sha256:example` | Independent review closure. | Source system |
+| test_evidence | `RECORDED` | `artifact:test-evidence-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `TEST_EVIDENCE_COMPLETE` | `Yes` | `sha256:462878dcdb2e7abe9ce8ff458fb1437243638cdc4e63860cefc990606faacf4f` | Task-bound verification evidence. | Source system |
+| review_loop | `RECORDED` | `artifact:review-loop-reports/001-service-time.md` | `tasks/001-appointment-requests-must-include-a-service-time.md` | `REVIEW_CLOSED` | `Yes` | `sha256:242656f9762bc1d060f7eedf315da331f5e784bc71505381ddf3b547cefd7c95` | Independent review closure. | Source system |
 
 ## Closure Decision
 
@@ -307,7 +307,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "source_task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
       "source_outcome": "TEST_EVIDENCE_COMPLETE",
       "current_task_match": "Yes",
-      "report_digest": "sha256:example",
+      "report_digest": "sha256:462878dcdb2e7abe9ce8ff458fb1437243638cdc4e63860cefc990606faacf4f",
       "contribution": "Task-bound verification evidence."
     },
     {
@@ -318,7 +318,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "source_task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
       "source_outcome": "REVIEW_CLOSED",
       "current_task_match": "Yes",
-      "report_digest": "sha256:example",
+      "report_digest": "sha256:242656f9762bc1d060f7eedf315da331f5e784bc71505381ddf3b547cefd7c95",
       "contribution": "Independent review closure."
     }
   ],

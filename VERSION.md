@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.88.3`
+Current version: `1.89.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.88.3`
 
 ## Current Release
 
-`1.88.3`
+`1.89.0`
 
 Includes:
+
+- Path And Evidence Hardening phase `1.89.0`: IntentOS-managed write paths now
+  reject unsafe path traversal and symlink path components; init/update apply
+  plans include a `planDigest`; strict evidence checks fail closed when required
+  reports are absent; artifact schemas enforce stricter keywords; and
+  old-project adoption cannot claim `VERIFIED_ACTIVE` without a verified apply
+  chain.
+- `1.89.0` remains non-authorizing. It hardens write safety and evidence
+  reliability, but does not approve implementation, native apply, commit, push,
+  release, production, tests, migrations, provider actions, or project-owner
+  decisions.
 
 - Plan Review Binding Hardening patch `1.88.3`: downstream consumers now
   recompute the referenced Plan Review digest and require the consumer's own

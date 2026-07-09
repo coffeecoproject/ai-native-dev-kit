@@ -6,6 +6,15 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "./lib/manifest.mjs";
+import {
+  assertInsideRoot,
+  assertNoSymlinkInPath,
+  assertSafeNameSegment,
+  assertSafeRelativePath,
+  assertSafeWritePath,
+  resolveBackupRoot,
+  resolveUnderRoot,
+} from "./lib/path-safety.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -98,12 +107,12 @@ function parseArgs(argv) {
 
 function backupFileIfNeeded(filePath, options = {}) {
   if (!options.backupDir || !options.targetPath || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return;
-  const backupRoot = path.isAbsolute(options.backupDir)
-    ? options.backupDir
-    : path.join(options.targetPath, options.backupDir);
+  const backupRoot = resolveBackupRoot(options.targetPath, options.backupDir);
   const relativePath = path.relative(options.targetPath, filePath);
   if (relativePath.startsWith("..")) return;
   const backupPath = path.join(backupRoot, relativePath);
+  assertInsideRoot(options.targetPath, backupPath, "backup file");
+  assertNoSymlinkInPath(options.targetPath, backupPath, "backup file");
   fs.mkdirSync(path.dirname(backupPath), { recursive: true });
   if (!fs.existsSync(backupPath)) {
     fs.copyFileSync(filePath, backupPath);
@@ -115,6 +124,10 @@ function copyDir(src, dest, options = {}) {
   const { overwrite = false } = options;
   if (!fs.existsSync(src)) {
     throw new Error(`Starter not found: ${src}`);
+  }
+  if (options.targetPath) {
+    assertInsideRoot(options.targetPath, dest, "copy directory destination");
+    assertNoSymlinkInPath(options.targetPath, dest, "copy directory destination");
   }
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
@@ -132,6 +145,10 @@ function copyDir(src, dest, options = {}) {
 
 function copyFile(src, dest, options = {}) {
   const { overwrite = false } = options;
+  if (options.targetPath) {
+    assertInsideRoot(options.targetPath, dest, "copy file destination");
+    assertNoSymlinkInPath(options.targetPath, dest, "copy file destination");
+  }
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   if (fs.existsSync(dest) && !overwrite) {
     console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
@@ -148,7 +165,9 @@ function readExistingStarter(targetPath) {
   if (!fs.existsSync(versionPath)) return null;
   try {
     const version = JSON.parse(fs.readFileSync(versionPath, "utf8"));
-    return typeof version.starter === "string" && version.starter ? version.starter : null;
+    return typeof version.starter === "string" && version.starter
+      ? assertSafeNameSegment(version.starter, "existing starter")
+      : null;
   } catch {
     return null;
   }
@@ -1151,21 +1170,19 @@ function ensureProjectOnboardingDocs(targetPath) {
   ];
 
   for (const [templateName, docName] of docs) {
-    const source = path.join(kitRoot, "templates", templateName);
-    const dest = path.join(targetPath, "docs", docName);
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    const source = resolveUnderRoot(kitRoot, `templates/${templateName}`, "onboarding template source");
+    const dest = assertSafeWritePath(targetPath, `docs/${docName}`, "onboarding document target");
     if (fs.existsSync(dest)) {
       console.log(`skip existing ${path.relative(process.cwd(), dest)}`);
       continue;
     }
-    fs.copyFileSync(source, dest);
-    console.log(`created ${path.relative(process.cwd(), dest)}`);
+    copyFile(source, dest, { targetPath });
   }
 }
 
 function copyIndustrialAssets(targetPath, options = {}) {
   const sourceRoot = path.join(kitRoot, "industrial-packs");
-  const destRoot = path.join(targetPath, ".intentos", "industrial-packs");
+  const destRoot = assertSafeWritePath(targetPath, ".intentos/industrial-packs", "industrial pack root");
   fs.mkdirSync(destRoot, { recursive: true });
 
   if (options.withIndustrialPacks) {
@@ -1187,6 +1204,7 @@ function copyIndustrialAssets(targetPath, options = {}) {
 
   const entriesById = new Map((sourceIndex?.packs || []).map((entry) => [entry.id, entry]));
   for (const packId of packIds) {
+    assertSafeNameSegment(packId, "industrial pack id");
     const entry = entriesById.get(packId);
     if (!entry) {
       throw new Error(`Unknown industrial pack: ${packId}`);
@@ -1197,7 +1215,8 @@ function copyIndustrialAssets(targetPath, options = {}) {
     if (!entry.path) {
       throw new Error(`Industrial pack has no source path: ${packId}`);
     }
-    copyDir(path.join(sourceRoot, entry.path), path.join(destRoot, entry.path), options);
+    const entryPath = assertSafeRelativePath(entry.path, `industrial pack path for ${packId}`);
+    copyDir(resolveUnderRoot(sourceRoot, entryPath, `industrial pack source for ${packId}`), assertSafeWritePath(destRoot, entryPath, `industrial pack target for ${packId}`), options);
   }
 }
 
@@ -1206,10 +1225,10 @@ function copySharedAssets(targetPath, options = {}) {
   const { starter = "generic-project", applyPrTemplateGovernance = false, applyAgentGovernance = false } = options;
   const copyRules = manifestCopyRules(kitRoot, { fallback: fallbackCopyRules() });
   for (const rule of copyRules.directories || []) {
-    copyDir(path.join(kitRoot, rule.source), path.join(targetPath, rule.target), options);
+    copyDir(resolveUnderRoot(kitRoot, rule.source, "manifest directory source"), assertSafeWritePath(targetPath, rule.target, "manifest directory target"), options);
   }
   for (const rule of copyRules.files || []) {
-    copyFile(path.join(kitRoot, rule.source), path.join(targetPath, rule.target), options);
+    copyFile(resolveUnderRoot(kitRoot, rule.source, "manifest file source"), assertSafeWritePath(targetPath, rule.target, "manifest file target"), options);
   }
   copyIndustrialAssets(targetPath, options);
 
@@ -1629,6 +1648,27 @@ function sha256File(filePath) {
   return `sha256:${createHash("sha256").update(fs.readFileSync(filePath)).digest("hex")}`;
 }
 
+function planDigest(plan) {
+  const normalized = JSON.stringify(sortForStableJson(omitPlanDigest(plan)));
+  return `sha256:${createHash("sha256").update(normalized).digest("hex")}`;
+}
+
+function omitPlanDigest(value) {
+  if (Array.isArray(value)) return value.map(omitPlanDigest);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => key !== "planDigest")
+    .map(([key, child]) => [key, omitPlanDigest(child)]));
+}
+
+function sortForStableJson(value) {
+  if (Array.isArray(value)) return value.map(sortForStableJson);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.keys(value)
+    .sort()
+    .map((key) => [key, sortForStableJson(value[key])]));
+}
+
 function walkSourceFiles(sourceRoot) {
   if (!fs.existsSync(sourceRoot)) return [];
   const results = [];
@@ -1670,17 +1710,19 @@ function gitFingerprint(targetPath) {
 }
 
 function addFilePlanAction(actions, targetPath, sourcePath, targetRel, options = {}) {
-  const destPath = path.join(targetPath, targetRel);
+  const safeTargetRel = assertSafeRelativePath(targetRel, "plan action target path");
+  const destPath = assertSafeWritePath(targetPath, safeTargetRel, "plan action target path");
   const existed = fs.existsSync(destPath);
   const overwrite = Boolean(options.overwrite);
+  const sourceRel = assertSafeRelativePath(path.relative(kitRoot, sourcePath).replaceAll(path.sep, "/"), "plan action source path");
   let type;
   if (!existed) type = "CREATE";
   else if (!overwrite) type = "SKIP_EXISTING";
   else type = options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED";
   actions.push({
     type,
-    path: targetRel,
-    source: path.relative(kitRoot, sourcePath).replaceAll(path.sep, "/"),
+    path: safeTargetRel,
+    source: sourceRel,
     reason: options.reason || "managed workflow asset",
     willWrite: type !== "SKIP_EXISTING",
     hashBefore: sha256File(destPath),
@@ -1820,6 +1862,7 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
 }
 
 function buildPlan(targetPath, options = {}) {
+  if (options.backupDir) resolveBackupRoot(targetPath, options.backupDir);
   const operation = options.update ? "UPDATE_WORKFLOW_ASSETS" : "INIT_PROJECT";
   const actions = [];
   if (!options.update) {
@@ -1859,7 +1902,7 @@ function buildPlan(targetPath, options = {}) {
   });
 
   const targetFingerprint = createTargetFingerprint(targetPath, actions);
-  return {
+  const plan = {
     planVersion: "1.0",
     intentOSVersion: currentIntentOSVersion,
     manifestVersion: readJsonIfExists(path.join(kitRoot, "intentos-manifest.json"))?.intentOSVersion || currentIntentOSVersion,
@@ -1882,14 +1925,21 @@ function buildPlan(targetPath, options = {}) {
     },
     actions,
   };
+  plan.planDigest = planDigest(plan);
+  return plan;
 }
 
 function createTargetFingerprint(targetPath, actions) {
   const fileHashes = {};
   for (const action of actions) {
-    const rel = action.path;
-    if (!rel || rel.startsWith("../")) continue;
-    const full = path.join(targetPath, rel);
+    if (!action.path) continue;
+    let rel;
+    try {
+      rel = assertSafeRelativePath(action.path, "plan fingerprint action path");
+    } catch {
+      continue;
+    }
+    const full = assertSafeWritePath(targetPath, rel, "plan fingerprint action path");
     if (fs.existsSync(full) && fs.statSync(full).isFile()) {
       fileHashes[rel] = sha256File(full);
     }
@@ -1911,14 +1961,25 @@ function validatePlanForApply(plan, backupDirOverride = null) {
   if (plan.intentOSVersion !== currentIntentOSVersion) {
     throw new Error(`Plan intentOSVersion ${plan.intentOSVersion} does not match current ${currentIntentOSVersion}`);
   }
+  if (!plan.planDigest || plan.planDigest !== planDigest(plan)) {
+    throw new Error("Plan precondition failed: planDigest is missing or does not match current plan content; regenerate the plan");
+  }
   if (!Array.isArray(plan.actions) || plan.actions.length === 0) {
     throw new Error("Invalid plan: actions must be a non-empty array");
+  }
+  for (const action of plan.actions) {
+    if (!action || typeof action !== "object") {
+      throw new Error("Invalid plan: every action must be an object");
+    }
+    if (action.path) assertSafeRelativePath(action.path, "plan action path");
+    if (action.source) assertSafeRelativePath(action.source, "plan action source");
   }
   const forbiddenAction = plan.actions.find((action) => action.type === "FORBIDDEN");
   if (forbiddenAction) {
     throw new Error(`Plan contains forbidden action for ${forbiddenAction.path}: ${forbiddenAction.reason}`);
   }
   const backupDir = backupDirOverride || plan.arguments?.backupDir || null;
+  if (backupDir) resolveBackupRoot(plan.targetRoot, backupDir);
   const currentFingerprint = createTargetFingerprint(plan.targetRoot, plan.actions);
   if (currentFingerprint.targetExists !== plan.targetFingerprint?.targetExists) {
     throw new Error("Plan precondition failed: target existence changed");
@@ -1978,6 +2039,7 @@ function workflowNextGate(targetPath) {
 }
 
 function executeUpdate(targetPath, starter, options = {}) {
+  if (options.backupDir) resolveBackupRoot(targetPath, options.backupDir);
   copySharedAssets(targetPath, {
     overwrite: true,
     starter,
@@ -1997,6 +2059,7 @@ function executeUpdate(targetPath, starter, options = {}) {
 }
 
 function executeInit(targetPath, starter, options = {}) {
+  if (options.backupDir) resolveBackupRoot(targetPath, options.backupDir);
   copyDir(path.join(kitRoot, "starters", starter), targetPath, { targetPath, backupDir: options.backupDir });
   copySharedAssets(targetPath, {
     starter,
@@ -2044,6 +2107,11 @@ function isIgnorableNewProjectEntry(name) {
 function assertDirectInitTargetIsSafe(targetPath, options = {}) {
   if (options.forceNewProject) return;
   if (!fs.existsSync(targetPath)) return;
+  const lstat = fs.lstatSync(targetPath);
+  if (lstat.isSymbolicLink()) {
+    console.error(`Target must not be a symlink: ${targetPath}`);
+    process.exit(2);
+  }
   const stat = fs.statSync(targetPath);
   if (!stat.isDirectory()) {
     console.error(`Target exists and is not a directory: ${targetPath}`);
@@ -2057,6 +2125,14 @@ function assertDirectInitTargetIsSafe(targetPath, options = {}) {
   console.error("Use --dry-run or --write-plan first for existing projects, then review and apply the plan.");
   console.error("If this is intentionally a new project directory, rerun with --force-new-project.");
   process.exit(2);
+}
+
+function assertExistingTargetRootIsSafe(targetPath) {
+  if (!fs.existsSync(targetPath)) return;
+  const stat = fs.lstatSync(targetPath);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`Target root must not be a symlink: ${targetPath}`);
+  }
 }
 
 const args = parseArgs(process.argv.slice(2));
@@ -2104,6 +2180,12 @@ if (applyPlanPath) {
     console.error(`--target does not match plan targetRoot: ${target} != ${plan.targetRoot}`);
     process.exit(1);
   }
+  try {
+    assertExistingTargetRootIsSafe(plan.targetRoot);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(2);
+  }
   let planBackupDir;
   try {
     planBackupDir = validatePlanForApply(plan, backupDir || null);
@@ -2112,7 +2194,7 @@ if (applyPlanPath) {
     process.exit(2);
   }
   const planArgs = plan.arguments || {};
-  const planStarter = planArgs.starter || readExistingStarter(plan.targetRoot) || "generic-project";
+  const planStarter = assertSafeNameSegment(planArgs.starter || readExistingStarter(plan.targetRoot) || "generic-project", "plan starter");
   if (plan.operation === "UPDATE_WORKFLOW_ASSETS") {
     executeUpdate(plan.targetRoot, planStarter, {
       applyPrTemplateGovernance: planArgs.applyPrTemplateGovernance,
@@ -2134,8 +2216,8 @@ if (applyPlanPath) {
 }
 
 const targetPath = path.resolve(process.cwd(), target);
-const starter = args.starter || readExistingStarter(targetPath) || "generic-project";
-const starterPath = path.join(kitRoot, "starters", starter);
+const starter = assertSafeNameSegment(args.starter || readExistingStarter(targetPath) || "generic-project", "starter");
+const starterPath = resolveUnderRoot(path.join(kitRoot, "starters"), starter, "starter path");
 
 if (!fs.existsSync(starterPath)) {
   console.error(`Starter not found: ${starterPath}`);
@@ -2145,6 +2227,12 @@ if (!fs.existsSync(starterPath)) {
 if (updateWorkflowAssets && !fs.existsSync(targetPath)) {
   console.error(`Target does not exist for workflow update: ${targetPath}`);
   process.exit(1);
+}
+try {
+  assertExistingTargetRootIsSafe(targetPath);
+} catch (error) {
+  console.error(error.message);
+  process.exit(2);
 }
 
 const commonOptions = {

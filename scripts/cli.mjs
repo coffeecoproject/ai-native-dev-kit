@@ -944,7 +944,7 @@ function runCommand(name, command, args, options) {
     printDisplayCommand(command.script, builtArgs);
     return { status: 0 };
   }
-  if (command.writes) {
+  if (command.writes || builtArgs.includes("--out")) {
     console.log(`Underlying command: ${displayCommand(command.script, builtArgs)}`);
   }
   return runScript(command.script, builtArgs, { showCommand: false, commandName: name });

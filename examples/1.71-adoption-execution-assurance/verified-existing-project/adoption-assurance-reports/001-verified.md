@@ -7,14 +7,14 @@ This report is a read-only evidence-bound verification view. It does not write t
 | Field | Value |
 | --- | --- |
 | Target Project Profile | `existing_governed_project` |
-| Assurance State | `VERIFIED_ACTIVE` |
+| Assurance State | `PARTIAL_ADOPTION` |
 | IntentOS Operating Mode | `ACTIVE` |
-| Can Claim Full Adoption | `Yes` |
+| Can Claim Full Adoption | `No` |
 | Can Codex Write Now | `No` |
 
 ## Assurance State
 
-`VERIFIED_ACTIVE`
+`PARTIAL_ADOPTION`
 
 ## Target Project State
 
@@ -70,7 +70,7 @@ Governance convergence covers workflow, baseline, audit, release, CI/hooks, docu
 
 ## Pending Human Decisions
 
-- None blocking full adoption.
+- No target-write apply chain is recorded, so this remains partial adoption.
 
 ## Forbidden Claims
 
@@ -90,9 +90,9 @@ Governance convergence covers workflow, baseline, audit, release, CI/hooks, docu
   "schema_version": "1.71.3",
   "artifact_type": "adoption_assurance_report",
   "target_project_profile": "existing_governed_project",
-  "assurance_state": "VERIFIED_ACTIVE",
+  "assurance_state": "PARTIAL_ADOPTION",
   "intent_os_operating_mode": "ACTIVE",
-  "can_claim_full_adoption": "Yes",
+  "can_claim_full_adoption": "No",
   "can_codex_write_now": "No",
   "surfaces": [
     {
@@ -320,6 +320,6 @@ Governance convergence covers workflow, baseline, audit, release, CI/hooks, docu
     "transfers_project_authority_to_intentos": "No",
     "proves_product_correctness": "No"
   },
-  "outcome": "VERIFIED_ACTIVE"
+  "outcome": "PARTIAL_ADOPTION"
 }
 ```

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.88.3",
+  "intentOSVersion": "1.89.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.88.3"
+    "phase": "1.89.0"
   },
   "groups": {
     "sourceRequired": [
@@ -366,6 +366,7 @@
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
       "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
+      "docs/plans/safety-evidence-hardening-1.89-plan.md",
       "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
       "docs/plans/plan-review-gate-1.88-plan.md",
       "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
@@ -1719,6 +1720,9 @@
       "releases/1.88.3/known-limitations.md",
       "releases/1.88.3/release-record.md",
       "releases/1.88.3/self-check-report.md",
+      "releases/1.89.0/known-limitations.md",
+      "releases/1.89.0/release-record.md",
+      "releases/1.89.0/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -1913,6 +1917,7 @@
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
@@ -3389,6 +3394,7 @@
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
@@ -4091,6 +4097,7 @@
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
@@ -4814,6 +4821,7 @@
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
@@ -6248,6 +6256,7 @@
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
@@ -8691,6 +8700,10 @@
       {
         "source": "scripts/resolve-plan-review.mjs",
         "target": "scripts/resolve-plan-review.mjs"
+      },
+      {
+        "source": "scripts/lib/path-safety.mjs",
+        "target": "scripts/lib/path-safety.mjs"
       }
     ]
   },

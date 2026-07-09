@@ -132,7 +132,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare mini program review handoff",
   "intent_digest": "sha256:87bd161358b3bd4a7ef2fa40bee0d8d5892fc8155afd562439344616c5466d50",
-  "release_evidence_digest": "sha256:11733677967e1c12d49f4f5924a35604d947e626647062f5edbb6b3f0a06fa3b",
+  "release_evidence_digest": "sha256:633bf1aef9c6e32c0af94f31b81e24ef035b094446b5ff6c8851631e280e09d6",
   "release_target": "mini_program_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-mini-program-review.md",
@@ -157,7 +157,7 @@
       "name": "completion_evidence",
       "status": "RECORDED",
       "ref": "artifact:completion-evidence-reports/001-mini-program-completion.md",
-      "digest": "sha256:901989d8723ef333cf69511d9e61a2f2d2fb0f221634004e526317bbe4f5c5a5",
+      "digest": "sha256:5500e8ece57ff02b91df69a4c30a5d0708e44b987d37ae55bada4f5dc2a78c93",
       "source_outcome": "COMPLETION_EVIDENCE_READY",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -274,7 +274,7 @@
     {
       "ref": "artifact:completion-evidence-reports/001-mini-program-completion.md",
       "status": "RECORDED",
-      "digest": "sha256:901989d8723ef333cf69511d9e61a2f2d2fb0f221634004e526317bbe4f5c5a5",
+      "digest": "sha256:5500e8ece57ff02b91df69a4c30a5d0708e44b987d37ae55bada4f5dc2a78c93",
       "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
       "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
       "completion_state": "COMPLETION_EVIDENCE_READY",

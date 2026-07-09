@@ -136,7 +136,7 @@ function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("plan-review-reports");
   if (files.length === 0) {
     if (allowEmpty) pass("plan review check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport) fail("no Plan Review reports found");
+    else if (requireReport || explicitReport || requireStructuredEvidence) fail("no Plan Review reports found");
     else pass("SKIPPED_NO_REPORT: no Plan Review reports found");
     return;
   }

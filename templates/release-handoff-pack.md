@@ -9,7 +9,7 @@
 | Release Target | `<preview/staging/production/review>` |
 | Execution Level | `<PREVIEW_ASSIST/STAGING_HANDOFF/PRODUCTION_HANDOFF>` |
 | Release Owner | `<HUMAN_REQUIRED or EXTERNAL_RELEASE_SYSTEM>` |
-| Handoff State | `<BLOCKED_BY_STRUCTURED_APPROVAL/READY_FOR_HANDOFF_REVIEW>` |
+| Handoff State | `<BLOCKED_BY_STRUCTURED_APPROVAL>` |
 | Meaning | Ready state means handoff review only, not release approval |
 
 ## Selected Recipe
@@ -120,12 +120,12 @@
     "recipe_id": "<recipe-id>",
     "release_target": "<target>",
     "execution_level": "PREVIEW_ASSIST",
-    "handoff_state": "READY_FOR_HANDOFF_REVIEW",
+    "handoff_state": "BLOCKED_BY_STRUCTURED_APPROVAL",
     "handoff_review_only": true
   },
   "structured_approval": {
     "approval_type": "RELEASE_APPROVAL",
-    "approval_status": "APPROVED",
+    "approval_status": "PENDING",
     "release_target": "<target>",
     "approved_scope": "<scope>",
     "approved_by": "<human owner>",
@@ -164,7 +164,7 @@
     "codex_release_owner": false,
     "high_risk_actions_human_or_external": true
   },
-  "outcome": "READY_FOR_HANDOFF_REVIEW"
+  "outcome": "BLOCKED_BY_STRUCTURED_APPROVAL"
 }
 ```
 

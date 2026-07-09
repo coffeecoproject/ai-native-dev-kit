@@ -74,8 +74,7 @@ export function checkPlanReviewBinding({
 
   const resolved = resolveEvidenceReference(projectRoot, currentFile, binding.plan_review_ref);
   if (!resolved) {
-    if (mustBePassed) fail(`${label} required plan_review_ref does not resolve: ${binding.plan_review_ref || "<missing>"}`);
-    else pass(`${label} optional plan_review_ref unresolved; strict cross-check skipped`);
+    fail(`${label} plan_review_ref does not resolve: ${binding.plan_review_ref || "<missing>"}`);
     return;
   }
   pass(`${label} plan_review_ref resolves`);

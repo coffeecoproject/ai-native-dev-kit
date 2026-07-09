@@ -141,7 +141,11 @@ function checkCoreContent() {
 function checkReports() {
   const files = markdownFiles("apply-readiness-reports");
   if (files.length === 0) {
-    pass("controlled apply readiness check skipped: no readiness reports");
+    if (requireStructuredEvidence || requirePlanReview) {
+      fail("no Controlled Apply Readiness reports found while strict evidence or plan review was required");
+    } else {
+      pass("controlled apply readiness check skipped: no readiness reports");
+    }
     return;
   }
 

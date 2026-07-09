@@ -192,10 +192,9 @@ function dispositionsFor(taskClass, sources) {
   if (taskClass === "UNSAFE_TO_TAKE_OVER") {
     return sources.map((source) => disposition(source, source.status === "RISKY" ? "NEEDS_CLARIFICATION" : "ARCHIVE_SOURCE_ONLY", "N/A", "Project state is unsafe for task takeover; sources remain read-only evidence."));
   }
-  const scopedSources = sources.slice(0, 20);
-  const currentCandidate = scopedSources.find((source) => source.status === "CURRENT" && canPromoteToCurrent(source))
-    || scopedSources.find((source) => canPromoteToCurrent(source));
-  return scopedSources.map((source) => {
+  const currentCandidate = sources.find((source) => source.status === "CURRENT" && canPromoteToCurrent(source))
+    || sources.find((source) => canPromoteToCurrent(source));
+  return sources.map((source) => {
     if (source.status === "STALE") return disposition(source, "MARK_STALE", "N/A", "Source looks stale or completed; preserve as history.");
     if (source.status === "RISKY") return disposition(source, "NEEDS_CLARIFICATION", "BLOCKED", "Source carries risk signals and cannot become the current task.");
     if (isAmbiguousSource(source)) return disposition(source, "NEEDS_CLARIFICATION", "BLOCKED", "Source is ambiguous and should not be executed directly.");

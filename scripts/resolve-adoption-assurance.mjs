@@ -461,13 +461,14 @@ function assuranceStateFor({ surfaces, simulation, dirty, sources }) {
     return "BLOCKED_BY_PROJECT_AUTHORITY";
   }
   if (hasBlockingSources(sources)) return "BLOCKED_BY_UPSTREAM_EVIDENCE";
+  const applyChain = surfaces.find((item) => item.surface === "apply_chain");
   const hasMissing = surfaces.some((item) => item.status === "MISSING");
   const hasPending = surfaces.some((item) => item.status === "PENDING_APPLY" || item.status === "PENDING_HUMAN_DECISION" || item.status === "BLOCKED" || item.status === "PRESENT_UNVERIFIED");
   const allSourcesRecorded = Object.values(sources).every((source) => source.status === "RECORDED");
   const allSimulationStepsPassed = Array.isArray(simulation.steps)
     && simulation.steps.length > 0
     && simulation.steps.every((step) => step.status === "PASSED" && step.exit_code === 0 && step.writes_target_files === "No" && step.target_diff_status === "UNCHANGED");
-  if (!hasMissing && !hasPending && simulation.state === "SIMULATION_PASSED" && allSourcesRecorded && allSimulationStepsPassed) return "VERIFIED_ACTIVE";
+  if (!hasMissing && !hasPending && applyChain?.status === "VERIFIED" && simulation.state === "SIMULATION_PASSED" && allSourcesRecorded && allSimulationStepsPassed) return "VERIFIED_ACTIVE";
   if (simulation.state === "SIMULATION_FAILED") return "FAILED_ASSURANCE";
   return hasMissing ? "READ_ONLY_DIAGNOSIS_ONLY" : "PARTIAL_ADOPTION";
 }

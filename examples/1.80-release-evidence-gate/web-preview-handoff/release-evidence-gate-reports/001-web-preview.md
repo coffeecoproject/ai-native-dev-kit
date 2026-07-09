@@ -129,7 +129,7 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare web preview release review",
   "intent_digest": "sha256:1ec073c4075da41f71c1b103224082b01ec4249ff0b3d496b533b8911cba39d7",
-  "release_evidence_digest": "sha256:59162103a846555fa64d45a305bfa1d3f15e7708d5a14111a6ecccf57436b9dc",
+  "release_evidence_digest": "sha256:81cb8157e87549fbb5c6333d7c1a3250904b3c19d6b58e3c8e784fd9a7ef9218",
   "release_target": "preview",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-web-preview.md",
@@ -155,7 +155,7 @@
       "name": "completion_evidence",
       "status": "RECORDED",
       "ref": "artifact:completion-evidence-reports/001-web-preview-completion.md",
-      "digest": "sha256:6a93943d7c82d102cc8a2fcf6b3e9cc539bad09f6ef7e5fcd39e3c11a818afbd",
+      "digest": "sha256:b89ffe49d58314a925aff35ca71e409fab4ac29ddd442f4e9e24b602bb5d0b1c",
       "source_outcome": "COMPLETION_EVIDENCE_READY",
       "current_release_match": "Yes",
       "reason": "Source artifact has machine-readable evidence."
@@ -264,7 +264,7 @@
     {
       "ref": "artifact:completion-evidence-reports/001-web-preview-completion.md",
       "status": "RECORDED",
-      "digest": "sha256:6a93943d7c82d102cc8a2fcf6b3e9cc539bad09f6ef7e5fcd39e3c11a818afbd",
+      "digest": "sha256:b89ffe49d58314a925aff35ca71e409fab4ac29ddd442f4e9e24b602bb5d0b1c",
       "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
       "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
       "completion_state": "COMPLETION_EVIDENCE_READY",
@@ -277,7 +277,7 @@
     {
       "ref": "artifact:completion-evidence-reports/002-web-preview-completion.md",
       "status": "RECORDED",
-      "digest": "sha256:e1f86cde770f9b349f312698c83a43c522c6cc0241bbf8a4f38bb5e0e0bcc662",
+      "digest": "sha256:6fa11441ed340eb82a2f4c344b34b97a2f1b63c5bc3487de46ad9c23d75583a3",
       "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
       "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
       "completion_state": "COMPLETION_EVIDENCE_READY",

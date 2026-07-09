@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { sourceRequiredPaths } from "./lib/manifest.mjs";
 import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
-import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -599,6 +599,7 @@ function checkVersionMetadata() {
     "scripts/check-subagent-orchestration.mjs",
     "scripts/lib/manifest.mjs",
     "scripts/lib/risk-surfaces.mjs",
+    "scripts/lib/path-safety.mjs",
     "scripts/new-workflow-item.mjs",
     "scripts/start-project.mjs",
     "scripts/workflow-next.mjs",
@@ -1369,6 +1370,7 @@ function checkManifestProtocol() {
     "scripts/lib/markdown.mjs",
     "scripts/lib/project-signals.mjs",
     "scripts/lib/manifest.mjs",
+    "scripts/lib/path-safety.mjs",
     "scripts/start-project.mjs",
     "scripts/check-guided-adoption.mjs",
     ".intentos/docs/first-hour.md",
@@ -1535,6 +1537,7 @@ function checkCliFrontDoor() {
     .join("\n");
   for (const marker of [
     "node scripts/check-manifest.mjs",
+    "node --check scripts/lib/path-safety.mjs",
     "node scripts/check-intentos.mjs",
     "node --check scripts/check-guided-delivery-loop.mjs",
     "node --check scripts/check-change-boundary.mjs",
@@ -10352,6 +10355,198 @@ function checkPlanReviewGateProtocol() {
   }
 }
 
+function checkSafetyEvidenceHardeningProtocol() {
+  const required = [
+    "docs/plans/safety-evidence-hardening-1.89-plan.md",
+    "scripts/lib/path-safety.mjs",
+    "releases/1.89.0/release-record.md",
+    "releases/1.89.0/known-limitations.md",
+    "releases/1.89.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.89 safety/evidence hardening asset exists ${file}`);
+    else fail(`1.89 safety/evidence hardening asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/safety-evidence-hardening-1.89-plan.md"),
+    read("scripts/lib/path-safety.mjs"),
+    read("scripts/init-project.mjs"),
+    read("scripts/check-manifest.mjs"),
+    read("scripts/new-workflow-item.mjs"),
+    read("scripts/lib/artifact-schema.mjs"),
+    read("scripts/check-adoption-assurance.mjs"),
+    read("scripts/resolve-adoption-assurance.mjs"),
+    read("scripts/resolve-work-queue-takeover.mjs"),
+    read("scripts/check-plan-review.mjs"),
+    read("scripts/check-completion-evidence.mjs"),
+    read("scripts/check-controlled-apply-readiness.mjs"),
+    read("scripts/cli.mjs"),
+    read("templates/release-handoff-pack.md"),
+    read("releases/1.89.0/release-record.md"),
+    read("releases/1.89.0/known-limitations.md"),
+    read("releases/1.89.0/self-check-report.md"),
+  ].join("\n");
+  for (const marker of [
+    "Path And Evidence Hardening",
+    "assertSafeWritePath",
+    "assertNoSymlinkInPath",
+    "planDigest",
+    "planDigest is missing or does not match current plan content",
+    "safe relative path",
+    "no Controlled Apply Readiness reports found while strict evidence",
+    "no Plan Review reports found",
+    "apply_chain",
+    "VERIFIED_ACTIVE requires verified apply chain",
+    "structured approval",
+    "Underlying command:",
+  ]) {
+    if (combined.includes(marker)) pass(`1.89 hardening includes ${marker}`);
+    else fail(`1.89 hardening missing ${marker}`);
+  }
+
+  const syntax = runNode(["--check", "scripts/lib/path-safety.mjs"]);
+  if (syntax.status === 0) {
+    pass("path-safety helper syntax check");
+  } else {
+    fail(`path-safety helper syntax failed: ${syntax.stderr || syntax.stdout}`);
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1-89-"));
+  try {
+    const unsafeManifestPath = path.join(tempRoot, "unsafe-manifest.json");
+    const manifest = JSON.parse(read("intentos-manifest.json"));
+    manifest.copyRules.files.push({
+      source: "README.md",
+      target: "../escape.md",
+    });
+    fs.writeFileSync(unsafeManifestPath, JSON.stringify(manifest, null, 2));
+    const unsafeManifest = runNode(["scripts/check-manifest.mjs", kitRoot, "--manifest", unsafeManifestPath]);
+    const unsafeManifestOutput = `${unsafeManifest.stdout}\n${unsafeManifest.stderr}`;
+    if (unsafeManifest.status !== 0 && unsafeManifestOutput.includes("safe relative path")) {
+      pass("manifest rejects unsafe copy rule target path");
+    } else {
+      fail(`manifest must reject unsafe copy rule target path: ${unsafeManifestOutput}`);
+    }
+
+    const target = path.join(tempRoot, "target");
+    const writePlanPath = path.join(tempRoot, "plan.json");
+    fs.mkdirSync(target, { recursive: true });
+    const writePlan = runNode([
+      "scripts/init-project.mjs",
+      "--target",
+      target,
+      "--write-plan",
+      writePlanPath,
+    ]);
+    if (writePlan.status !== 0) {
+      fail(`init-project write-plan failed during digest hardening smoke: ${writePlan.stderr || writePlan.stdout}`);
+      return;
+    }
+    const plan = JSON.parse(fs.readFileSync(writePlanPath, "utf8"));
+    plan.actions.push({ id: "tampered", type: "noop", description: "tamper after digest" });
+    fs.writeFileSync(writePlanPath, JSON.stringify(plan, null, 2));
+    const applyTampered = runNode(["scripts/init-project.mjs", "--apply-plan", writePlanPath]);
+    const applyTamperedOutput = `${applyTampered.stdout}\n${applyTampered.stderr}`;
+    if (applyTampered.status !== 0 && applyTamperedOutput.includes("planDigest is missing or does not match")) {
+      pass("init-project rejects tampered apply plan digest");
+    } else {
+      fail(`init-project must reject tampered apply plan digest: ${applyTamperedOutput}`);
+    }
+
+    const symlinkTarget = path.join(tempRoot, "symlink-target");
+    const symlinkEscape = path.join(tempRoot, "outside.txt");
+    fs.mkdirSync(path.join(symlinkTarget, "scripts"), { recursive: true });
+    fs.writeFileSync(symlinkEscape, "outside");
+    fs.symlinkSync(symlinkEscape, path.join(symlinkTarget, "scripts", "check-ai-workflow.mjs"));
+    const symlinkUpdate = runNode([
+      "scripts/init-project.mjs",
+      "--target",
+      symlinkTarget,
+      "--force-new-project",
+    ]);
+    const symlinkUpdateOutput = `${symlinkUpdate.stdout}\n${symlinkUpdate.stderr}`;
+    if (symlinkUpdate.status !== 0 && symlinkUpdateOutput.includes("symlink")) {
+      pass("init-project refuses workflow asset write through symlink path");
+    } else {
+      fail(`init-project must refuse workflow asset write through symlink path: ${symlinkUpdateOutput}`);
+    }
+
+    const strictNoReport = runNode([
+      "scripts/check-plan-review.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+    ]);
+    const strictNoReportOutput = `${strictNoReport.stdout}\n${strictNoReport.stderr}`;
+    if (strictNoReport.status !== 0 && strictNoReportOutput.includes("no Plan Review reports found")) {
+      pass("strict plan review fails closed when reports are absent");
+    } else {
+      fail(`strict plan review must fail closed when reports are absent: ${strictNoReportOutput}`);
+    }
+
+    const strictCompletionNoReport = runNode([
+      "scripts/check-completion-evidence.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+    ]);
+    const strictCompletionNoReportOutput = `${strictCompletionNoReport.stdout}\n${strictCompletionNoReport.stderr}`;
+    if (strictCompletionNoReport.status !== 0 && strictCompletionNoReportOutput.includes("no Completion Evidence Gate reports found")) {
+      pass("strict completion evidence fails closed when reports are absent");
+    } else {
+      fail(`strict completion evidence must fail closed when reports are absent: ${strictCompletionNoReportOutput}`);
+    }
+
+    const strictApplyReadinessNoReport = runNode([
+      "scripts/check-controlled-apply-readiness.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+    ]);
+    const strictApplyReadinessOutput = `${strictApplyReadinessNoReport.stdout}\n${strictApplyReadinessNoReport.stderr}`;
+    if (strictApplyReadinessNoReport.status !== 0 && strictApplyReadinessOutput.includes("no Controlled Apply Readiness reports found")) {
+      pass("strict controlled apply readiness fails closed when reports are absent");
+    } else {
+      fail(`strict controlled apply readiness must fail closed when reports are absent: ${strictApplyReadinessOutput}`);
+    }
+
+    const schema = {
+      type: "object",
+      required: ["kind", "items"],
+      additionalProperties: false,
+      properties: {
+        kind: { const: "demo" },
+        items: {
+          type: "array",
+          minItems: 1,
+          uniqueItems: true,
+          contains: { const: "required" },
+          items: { type: "string", minLength: 3 },
+        },
+      },
+    };
+    const goodSchema = validateSchema({ kind: "demo", items: ["required", "other"] }, schema);
+    const badSchema = validateSchema({ kind: "wrong", items: ["x"] }, schema);
+    if (goodSchema.ok && !badSchema.ok && badSchema.errors.some((error) => error.includes("must equal"))) {
+      pass("artifact schema validator enforces const/minLength/contains/uniqueItems");
+    } else {
+      fail(`artifact schema validator must enforce stricter keywords: ${badSchema.errors.join("; ")}`);
+    }
+
+    const adoption = runNode([
+      "scripts/check-adoption-assurance.mjs",
+      "examples/1.71-adoption-execution-assurance/verified-existing-project",
+      "--require-structured-evidence",
+    ]);
+    const adoptionOutput = `${adoption.stdout}\n${adoption.stderr}`;
+    if (adoption.status === 0 && adoptionOutput.includes("Adoption Assurance check passed")) {
+      pass("read-only adoption assurance example remains partial and valid");
+    } else {
+      fail(`read-only adoption assurance example should remain valid partial adoption: ${adoptionOutput}`);
+    }
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+}
+
 function checkUserDeliveryConsoleProtocol() {
   const required = [
     "core/user-delivery-console.md",
@@ -10596,7 +10791,7 @@ function checkUserDeliveryConsoleProtocol() {
   }
 }
 
-function generatedExecutionAssuranceReportText({ taskRef, testEvidenceRef }) {
+function generatedExecutionAssuranceReportText({ taskRef, testEvidenceRef, testEvidenceDigest }) {
   return `# Execution Assurance Report
 
 This report is a read-only derived verification view. It does not write target files, authorize writes, approve release, or replace source systems.
@@ -10683,7 +10878,7 @@ This report is a read-only derived verification view. It does not write target f
 
 | Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| test_evidence | \`RECORDED\` | \`${testEvidenceRef}\` | \`${taskRef}\` | \`TEST_EVIDENCE_COMPLETE\` | \`Yes\` | \`sha256:generated\` | Generated smoke Test Evidence. | Source system |
+| test_evidence | \`RECORDED\` | \`${testEvidenceRef}\` | \`${taskRef}\` | \`TEST_EVIDENCE_COMPLETE\` | \`Yes\` | \`${testEvidenceDigest}\` | Generated smoke Test Evidence. | Source system |
 
 ## Closure Decision
 
@@ -10773,7 +10968,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "source_task_ref": "${taskRef}",
       "source_outcome": "TEST_EVIDENCE_COMPLETE",
       "current_task_match": "Yes",
-      "report_digest": "sha256:generated",
+      "report_digest": "${testEvidenceDigest}",
       "contribution": "Generated smoke Test Evidence."
     }
   ],
@@ -14743,6 +14938,7 @@ function checkGeneratedProjectE2E() {
   fs.writeFileSync(path.join(target, generatedExecutionAssuranceReport), generatedExecutionAssuranceReportText({
     taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
     testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
+    testEvidenceDigest: fileDigest(path.join(target, generatedTestEvidenceReport)),
   }));
   const generatedCompletionReport = "completion-evidence-reports/001-generated-service-time.md";
   const generatedCompletionResolve = runNode([
@@ -16261,6 +16457,7 @@ function checkGeneratedProjectE2E() {
   fs.writeFileSync(path.join(target, generatedExecutionAssuranceReport), generatedExecutionAssuranceReportText({
     taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
     testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
+    testEvidenceDigest: fileDigest(path.join(target, generatedTestEvidenceReport)),
   }));
   const generatedCompletionResolveAfterUpdate = runNode([
     path.join(target, "scripts", "resolve-completion-evidence.mjs"),
@@ -16890,6 +17087,7 @@ checkCompletionEvidenceGateProtocol();
 checkReleaseEvidenceGateProtocol();
 checkReleaseChannelDecouplingProtocol();
 checkPlanReviewGateProtocol();
+checkSafetyEvidenceHardeningProtocol();
 checkUserDeliveryConsoleProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
