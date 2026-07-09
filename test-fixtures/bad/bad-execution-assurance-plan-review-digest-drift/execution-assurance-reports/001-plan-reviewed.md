@@ -223,7 +223,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "source_task_ref": "task:change-permission-delete-behavior",
       "source_outcome": "PLAN_REVIEW_PASSED",
       "current_task_match": "Yes",
-      "report_digest": "sha256:55a64db6c405e6eb3bc949a1de67985b44d5e878fe3116a23014c35d9bc2a68e"
+      "report_digest": "sha256:dc4bea55cba20780abe2e4ec77acfd64e21c3c8c91893ff776ed027620ad2717"
     },
     {
       "name": "task_governance",
@@ -240,7 +240,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "plan_review_binding": {
     "required": "Yes",
     "plan_review_ref": "artifact:plan-review-reports/001-passed.md",
-    "plan_review_digest": "sha256:fc998e2eb19dde056cb1aa4bcb2cc6a122bc947a35587e5f7f96964c75601716",
+    "plan_review_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
     "plan_review_state": "PLAN_REVIEW_PASSED",
     "plan_ref": "docs/example-plan.md",
     "plan_digest": "sha256:92fbfc7e505af46ce750614be97656d0910c5a2632b5ac2c07bf0e986c7f8b28",

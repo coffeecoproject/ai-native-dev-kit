@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.88.2`
+`1.88.3`
 
 ## Project Version File
 
@@ -19,6 +19,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.88.3` hardens Plan Review consumer binding: downstream consumers
+  recalculate referenced Plan Review digest, require their own plan reference
+  or plan digest to match the reviewed plan, and bind Completion Evidence to
+  referenced Execution Assurance Plan Review binding.
+- `1.88.3` remains non-authorizing. It verifies evidence identity and plan
+  consistency only; it does not approve implementation, apply, commit, push,
+  release, production, tests, migrations, or project-owner decisions.
 - `1.88.2` connects Plan Review Gate to downstream consumers: Execution
   Assurance, Completion Evidence, and Controlled Apply Readiness can require
   `plan_review_binding` before claiming done, complete, or ready.

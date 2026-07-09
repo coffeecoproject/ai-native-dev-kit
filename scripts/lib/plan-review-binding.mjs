@@ -2,9 +2,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {
-  extractMachineReadableEvidence,
   loadSchema,
-  validateSchema,
+  validateEvidenceBlock,
 } from "./artifact-schema.mjs";
 
 const readyStates = new Set(["PLAN_REVIEW_PASSED", "NO_PLAN_REQUIRED"]);
@@ -16,6 +15,9 @@ export function checkPlanReviewBinding({
   label,
   requirePlanReview,
   consumer,
+  consumerPlanRef,
+  consumerPlanDigest,
+  consumerPlanLabel = "consumer plan",
   pass,
   fail,
 }) {
@@ -78,22 +80,24 @@ export function checkPlanReviewBinding({
   }
   pass(`${label} plan_review_ref resolves`);
 
-  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved, "utf8"));
-  if (!extracted?.ok) {
-    fail(`${label} referenced Plan Review report has invalid Machine-Readable Evidence`);
+  const schema = loadSchema(projectRoot, "schemas/artifacts/plan-review.schema.json");
+  const result = validateEvidenceBlock(fs.readFileSync(resolved, "utf8"), schema, `${label} referenced Plan Review`, {
+    require: true,
+    digestField: "plan_review_digest",
+  });
+  if (!result.ok) {
+    result.errors.forEach((error) => fail(error));
     return;
   }
-  const planReviewEvidence = extracted.value;
-  const schema = loadSchema(projectRoot, "schemas/artifacts/plan-review.schema.json");
-  const validation = validateSchema(planReviewEvidence, schema, { label: `${label} referenced plan review` });
-  if (validation.ok) pass(`${label} referenced Plan Review schema is valid`);
-  else validation.errors.forEach((error) => fail(error));
+  const planReviewEvidence = result.value;
+  pass(`${label} referenced Plan Review schema and digest are valid`);
 
   compare(label, "plan_review_digest", binding.plan_review_digest, planReviewEvidence.plan_review_digest, fail, pass);
   compare(label, "plan_review_state", binding.plan_review_state, planReviewEvidence.plan_review_state, fail, pass);
   compare(label, "plan_ref", binding.plan_ref, planReviewEvidence.plan_ref, fail, pass);
   compare(label, "plan_digest", binding.plan_digest, planReviewEvidence.plan_digest, fail, pass);
   compare(label, "task_ref", binding.task_ref, planReviewEvidence.task_ref, fail, pass);
+  compareConsumerPlan(label, binding, { consumerPlanRef, consumerPlanDigest, consumerPlanLabel, fail, pass });
 
   if (evidence.task_ref) {
     if (binding.task_ref === evidence.task_ref && planReviewEvidence.task_ref === evidence.task_ref) {
@@ -178,6 +182,31 @@ function resolveEvidenceReference(projectRoot, currentFile, value) {
 function compare(label, field, actual, expected, fail, pass) {
   if (actual === expected) pass(`${label} plan review binding ${field} matches referenced report`);
   else fail(`${label} plan review binding ${field} ${actual || "<missing>"} must match referenced report ${expected || "<missing>"}`);
+}
+
+function compareConsumerPlan(label, binding, { consumerPlanRef, consumerPlanDigest, consumerPlanLabel, fail, pass }) {
+  if (consumerPlanRef !== undefined) {
+    if (sameReference(consumerPlanRef, binding.plan_ref)) {
+      pass(`${label} ${consumerPlanLabel} ref matches plan_review_binding.plan_ref`);
+    } else {
+      fail(`${label} ${consumerPlanLabel} ref ${consumerPlanRef || "<missing>"} must match plan_review_binding.plan_ref ${binding.plan_ref || "<missing>"}`);
+    }
+  }
+  if (consumerPlanDigest !== undefined) {
+    if (consumerPlanDigest === binding.plan_digest) {
+      pass(`${label} ${consumerPlanLabel} digest matches plan_review_binding.plan_digest`);
+    } else {
+      fail(`${label} ${consumerPlanLabel} digest ${consumerPlanDigest || "<missing>"} must match plan_review_binding.plan_digest ${binding.plan_digest || "<missing>"}`);
+    }
+  }
+}
+
+function sameReference(actual, expected) {
+  return normalizeReference(actual) === normalizeReference(expected);
+}
+
+function normalizeReference(value) {
+  return String(value || "").trim().replace(/^(artifact|file):/, "");
 }
 
 export function fileDigest(file) {

@@ -116,10 +116,10 @@ What I need from you: Explicit approval or rejection of A-001.
   "plan_review_binding": {
     "required": "Yes",
     "plan_review_ref": "artifact:plan-review-reports/001-passed.md",
-    "plan_review_digest": "sha256:08542282f8b469098eae3c818c56f8cd6a09fa17307b55a5cd4f839514ab692f",
+    "plan_review_digest": "sha256:63ce592e933270f3c2aeae852b4ac9ea56e3b58f637b14d5a7bbbb8b27e93785",
     "plan_review_state": "PLAN_REVIEW_PASSED",
-    "plan_ref": "apply-plans/001-structured-workflow-assets.md",
-    "plan_digest": "sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96",
+    "plan_ref": "docs/other-reviewed-plan.md",
+    "plan_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "task_ref": "task:change-permission-delete-behavior",
     "current_task_match": "Yes",
     "ready_for_implementation_review": "Yes",

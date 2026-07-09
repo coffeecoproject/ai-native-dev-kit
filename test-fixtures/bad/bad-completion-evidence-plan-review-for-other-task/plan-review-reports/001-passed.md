@@ -130,8 +130,8 @@
   "schema_version": "1.88.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/001-passed.md",
-  "plan_review_digest": "sha256:08542282f8b469098eae3c818c56f8cd6a09fa17307b55a5cd4f839514ab692f",
-  "task_ref": "task:change-permission-delete-behavior",
+  "plan_review_digest": "sha256:757cd91edef3cd9c3aa31c746252658c3daae5477d58d96bbb5c3874ce327cce",
+  "task_ref": "tasks/other-task.md",
   "work_queue_item_ref": "N/A",
   "work_queue_item_digest": "N/A",
   "review_surface_analysis": {
@@ -145,7 +145,7 @@
   "task_governance": {
     "ref": "artifact:task-governance-reports/generated.md",
     "digest": "sha256:fed85532ebb425a2ce4cbd438995cd85019e914cb8a49bc55d583a9d7db359c6",
-    "task_ref": "task:change-permission-delete-behavior",
+    "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
     "task_impact": "HIGH",
     "plan_review_required": "Yes",
     "current_task_match": "Yes"
@@ -202,8 +202,8 @@
       "contradicts_plan": "No"
     }
   ],
-  "plan_ref": "apply-plans/001-structured-workflow-assets.md",
-  "plan_digest": "sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96",
+  "plan_ref": "docs/example-plan.md",
+  "plan_digest": "sha256:92fbfc7e505af46ce750614be97656d0910c5a2632b5ac2c07bf0e986c7f8b28",
   "plan_task_match": "Yes",
   "plan_review_state": "PLAN_REVIEW_PASSED",
   "pre_implementation_review_prerequisite_satisfied": "Yes",

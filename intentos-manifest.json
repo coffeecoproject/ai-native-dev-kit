@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.88.2",
+  "intentOSVersion": "1.88.3",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.88.2"
+    "phase": "1.88.3"
   },
   "groups": {
     "sourceRequired": [
@@ -365,6 +365,7 @@
       "docs/plans/native-migration-parser-calibration-1.64-plan.md",
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
+      "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
       "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
       "docs/plans/plan-review-gate-1.88-plan.md",
       "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
@@ -1715,6 +1716,9 @@
       "releases/1.88.2/known-limitations.md",
       "releases/1.88.2/release-record.md",
       "releases/1.88.2/self-check-report.md",
+      "releases/1.88.3/known-limitations.md",
+      "releases/1.88.3/release-record.md",
+      "releases/1.88.3/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -2352,6 +2356,7 @@
       "test-fixtures/bad/bad-completion-evidence-execution-not-verified/completion-evidence-reports/001-bad.md",
       "test-fixtures/bad/bad-completion-evidence-missing-plan-review-binding/completion-evidence-reports/001-possible-high-blocked.md",
       "test-fixtures/bad/bad-completion-evidence-missing-test-evidence/completion-evidence-reports/001-bad.md",
+      "test-fixtures/bad/bad-completion-evidence-plan-review-for-other-task/completion-evidence-reports/001-service-time.md",
       "test-fixtures/bad/bad-completion-evidence-task-mismatch/completion-evidence-reports/001-bad.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/context-governance-review.md",
       "test-fixtures/bad/bad-context-correction-missing-evidence/checklists/git-boundary-review.md",
@@ -2368,6 +2373,7 @@
       "test-fixtures/bad/bad-controlled-apply-authorizes-apply/apply-readiness-reports/001-bad.md",
       "test-fixtures/bad/bad-controlled-apply-high-risk-ready/apply-readiness-reports/001-bad.md",
       "test-fixtures/bad/bad-controlled-apply-plan-review-not-passed/apply-readiness-reports/001-structured-workflow-assets.md",
+      "test-fixtures/bad/bad-controlled-apply-plan-review-other-plan/apply-readiness-reports/001-structured-workflow-assets.md",
       "test-fixtures/bad/bad-controlled-apply-proceeds-without-approval/apply-readiness-reports/001-bad.md",
       "test-fixtures/bad/bad-controlled-native-adoption-review-dirty-plan-only/native-adoption-review-reports/001-bad.md",
       "test-fixtures/bad/bad-controlled-native-adoption-review-maturity-depth-drift/native-adoption-review-reports/001-bad.md",
@@ -2396,6 +2402,7 @@
       "test-fixtures/bad/bad-execution-assurance-missing-review/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-no-completion-contract/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-patch-smell-verified/execution-assurance-reports/001-bad.md",
+      "test-fixtures/bad/bad-execution-assurance-plan-review-digest-drift/execution-assurance-reports/001-plan-reviewed.md",
       "test-fixtures/bad/bad-execution-assurance-planned-path-mismatch/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-release-overclaim/execution-assurance-reports/001-bad.md",
       "test-fixtures/bad/bad-execution-assurance-safe-patch-broad-diff/execution-assurance-reports/001-bad.md",

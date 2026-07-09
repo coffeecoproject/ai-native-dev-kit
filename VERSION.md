@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.88.2`
+Current version: `1.88.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.88.2`
 
 ## Current Release
 
-`1.88.2`
+`1.88.3`
 
 Includes:
+
+- Plan Review Binding Hardening patch `1.88.3`: downstream consumers now
+  recompute the referenced Plan Review digest and require the consumer's own
+  plan reference or plan digest to match the plan that passed Plan Review.
+  Completion Evidence also checks that its Plan Review binding matches the
+  referenced Execution Assurance binding.
+- `1.88.3` remains non-authorizing. It verifies evidence identity and plan
+  consistency only; it does not approve implementation, apply, commit, push,
+  release, production, tests, migrations, or project-owner decisions.
 
 - Plan Review Consumer Integration patch `1.88.2`: Execution Assurance,
   Completion Evidence, and Controlled Apply Readiness can now require

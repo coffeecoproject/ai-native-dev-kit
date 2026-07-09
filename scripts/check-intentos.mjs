@@ -10105,6 +10105,7 @@ function checkPlanReviewGateProtocol() {
     "docs/plans/plan-review-gate-1.88-plan.md",
     "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
     "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
+    "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
     "templates/plan-review-report.md",
     "checklists/plan-review-gate-review.md",
     "prompts/plan-review-gate-agent.md",
@@ -10155,6 +10156,9 @@ function checkPlanReviewGateProtocol() {
     "test-fixtures/bad/bad-execution-assurance-missing-plan-review-binding/execution-assurance-reports/001-plan-reviewed.md",
     "test-fixtures/bad/bad-completion-evidence-missing-plan-review-binding/completion-evidence-reports/001-possible-high-blocked.md",
     "test-fixtures/bad/bad-controlled-apply-plan-review-not-passed/apply-readiness-reports/001-structured-workflow-assets.md",
+    "test-fixtures/bad/bad-execution-assurance-plan-review-digest-drift/execution-assurance-reports/001-plan-reviewed.md",
+    "test-fixtures/bad/bad-controlled-apply-plan-review-other-plan/apply-readiness-reports/001-structured-workflow-assets.md",
+    "test-fixtures/bad/bad-completion-evidence-plan-review-for-other-task/completion-evidence-reports/001-service-time.md",
     "releases/1.88.0/release-record.md",
     "releases/1.88.0/known-limitations.md",
     "releases/1.88.0/self-check-report.md",
@@ -10164,6 +10168,9 @@ function checkPlanReviewGateProtocol() {
     "releases/1.88.2/release-record.md",
     "releases/1.88.2/known-limitations.md",
     "releases/1.88.2/self-check-report.md",
+    "releases/1.88.3/release-record.md",
+    "releases/1.88.3/known-limitations.md",
+    "releases/1.88.3/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.88 plan review asset exists ${file}`);
@@ -10179,6 +10186,7 @@ function checkPlanReviewGateProtocol() {
     read("docs/plans/plan-review-gate-1.88-plan.md"),
     read("docs/plans/plan-review-gate-hardening-1.88.1-plan.md"),
     read("docs/plans/plan-review-consumer-integration-1.88.2-plan.md"),
+    read("docs/plans/plan-review-binding-hardening-1.88.3-plan.md"),
     read("templates/plan-review-report.md"),
     read("templates/execution-assurance-report.md"),
     read("templates/completion-evidence-report.md"),
@@ -10199,6 +10207,7 @@ function checkPlanReviewGateProtocol() {
     read("releases/1.88.0/release-record.md"),
     read("releases/1.88.1/release-record.md"),
     read("releases/1.88.2/release-record.md"),
+    read("releases/1.88.3/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Plan Review Gate",
@@ -10222,6 +10231,9 @@ function checkPlanReviewGateProtocol() {
     "plan_review_binding",
     "--require-plan-review",
     "Plan Review Consumer Integration",
+    "Plan Review Binding Hardening",
+    "referenced Plan Review schema and digest are valid",
+    "must match plan_review_binding.plan_ref",
     "required plan review must be PLAN_REVIEW_PASSED",
   ]) {
     if (combined.includes(marker)) pass(`1.88 plan review includes ${marker}`);
@@ -10307,6 +10319,9 @@ function checkPlanReviewGateProtocol() {
     ["bad-execution-assurance-missing-plan-review-binding", ["scripts/check-execution-assurance.mjs", "test-fixtures/bad/bad-execution-assurance-missing-plan-review-binding", "--require-structured-evidence", "--require-plan-review", "--require-actual-diff", "--require-precise-evidence"], "requires plan_review_binding"],
     ["bad-completion-evidence-missing-plan-review-binding", ["scripts/check-completion-evidence.mjs", "test-fixtures/bad/bad-completion-evidence-missing-plan-review-binding", "--report", "completion-evidence-reports/001-possible-high-blocked.md", "--require-structured-evidence", "--require-plan-review"], "requires plan_review_binding"],
     ["bad-controlled-apply-plan-review-not-passed", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-controlled-apply-plan-review-not-passed", "--require-structured-evidence", "--require-plan-review"], "required plan review must be PLAN_REVIEW_PASSED"],
+    ["bad-execution-assurance-plan-review-digest-drift", ["scripts/check-execution-assurance.mjs", "test-fixtures/bad/bad-execution-assurance-plan-review-digest-drift", "--require-structured-evidence", "--require-plan-review", "--require-actual-diff", "--require-precise-evidence"], "plan_review_digest does not match canonical evidence digest"],
+    ["bad-controlled-apply-plan-review-other-plan", ["scripts/check-controlled-apply-readiness.mjs", "test-fixtures/bad/bad-controlled-apply-plan-review-other-plan", "--require-structured-evidence", "--require-plan-review"], "must match plan_review_binding.plan_ref"],
+    ["bad-completion-evidence-plan-review-for-other-task", ["scripts/check-completion-evidence.mjs", "test-fixtures/bad/bad-completion-evidence-plan-review-for-other-task", "--report", "completion-evidence-reports/001-service-time.md", "--require-structured-evidence", "--require-source-refs", "--require-ready", "--require-plan-review"], "Completion Evidence plan_review_binding task_ref"],
   ];
   for (const [name, command, expected] of badConsumerCases) {
     const result = runNode(command);

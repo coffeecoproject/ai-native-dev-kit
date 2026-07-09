@@ -69,7 +69,7 @@ This report is a read-only completion gate. It does not run tests, write target 
   "intent": "appointment requests must include a service time",
   "intent_digest": "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
   "completion_evidence_ref": "artifact:completion-evidence-reports/001-service-time.md",
-  "completion_gate_digest": "sha256:e0c20fcb40ef66582724e1944c629aaab4a2dfe941ea65dcee2701c376585962",
+  "completion_gate_digest": "sha256:1af67dcc461331aca61609a5adea28a6634e28b54e21dce6b087c7bfeb88f522",
   "completion_state": "COMPLETION_EVIDENCE_READY",
   "can_claim_complete": "Yes",
   "source_chain": [
@@ -211,11 +211,11 @@ This report is a read-only completion gate. It does not run tests, write target 
   "plan_review_binding": {
     "required": "Yes",
     "plan_review_ref": "artifact:plan-review-reports/001-passed.md",
-    "plan_review_digest": "sha256:76d735f37318f81b76e018fc36ec179ed5cc6c74356f6ba6097c08b8e015e01c",
+    "plan_review_digest": "sha256:757cd91edef3cd9c3aa31c746252658c3daae5477d58d96bbb5c3874ce327cce",
     "plan_review_state": "PLAN_REVIEW_PASSED",
     "plan_ref": "docs/example-plan.md",
     "plan_digest": "sha256:92fbfc7e505af46ce750614be97656d0910c5a2632b5ac2c07bf0e986c7f8b28",
-    "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
+    "task_ref": "tasks/other-task.md",
     "current_task_match": "Yes",
     "ready_for_implementation_review": "Yes",
     "implementation_authorized_by_this_report": "No",

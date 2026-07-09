@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.88.2`.
+Current release: `1.88.3`.
 
-Release record: [releases/1.88.2/release-record.md](releases/1.88.2/release-record.md).
+Release record: [releases/1.88.3/release-record.md](releases/1.88.3/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -73,6 +73,16 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.88.3 hardens Plan Review consumer binding. Downstream consumers now
+recalculate the referenced Plan Review digest and verify that their own plan
+reference or plan digest matches the plan that passed Plan Review. Completion
+Evidence also checks that its binding matches the referenced Execution
+Assurance binding.
+
+1.88.3 remains non-authorizing. It verifies evidence identity and plan
+consistency, but still does not approve code changes, apply, commit, push,
+release, production, tests, migrations, or project-owner decisions.
 
 1.88.2 connects Plan Review Gate to downstream consumers. Execution Assurance,
 Completion Evidence, and Controlled Apply Readiness can now run in strict

@@ -1,0 +1,153 @@
+# Approval Record: structured workflow assets
+
+## Human Decision Summary
+
+Approval status: `APPROVED`
+
+Conclusion: `Approve A-001 for the exact listed workflow governance files only.`
+
+Can Codex apply now: No
+
+What I need from you: `No additional approval is recorded by this example. Future apply still needs the controlled apply path.`
+
+## Approval Identity
+
+| Field | Value |
+|---|---|
+| Approved by | Liushan |
+| Approval owner type | HUMAN |
+| Approval captured from | conversation |
+| Approval captured at | 2026-06-30 10:00 +0800 |
+| Recorded by | Codex |
+
+## Approved Plan
+
+| Field | Value |
+|---|---|
+| Unified Apply Plan | `apply-plans/001-structured-workflow-assets.md` |
+| Controlled Apply Readiness Report | `apply-readiness-reports/001-structured-workflow-assets.md` |
+| Plan hash | `sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96` |
+| Plan version/date | 2026-06-30 |
+| Plan changed after approval | No |
+
+## Approved Action IDs
+
+| Action ID | Action type | Target paths | Approved? | Notes |
+|---|---|---|---|---|
+| A-001 | WORKFLOW_ASSET_UPDATE | `docs/structured-evidence-schema.md`, `schemas/artifacts/unified-apply-plan.schema.json`, `schemas/artifacts/controlled-apply-readiness.schema.json`, `schemas/artifacts/approval-record.schema.json`, `scripts/lib/artifact-schema.mjs` | Yes | Add schema-backed workflow governance evidence |
+
+## Machine-Readable Evidence
+
+```json
+{
+  "schema_version": "1.41.0",
+  "artifact_type": "approval_record",
+  "artifact_id": "001-structured-workflow-assets",
+  "approval_status": "APPROVED",
+  "approved_by": "Liushan",
+  "approval_owner_type": "HUMAN",
+  "approved_plan": {
+    "path": "apply-plans/001-structured-workflow-assets.md",
+    "plan_digest": "sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96"
+  },
+  "approved_action_ids": ["A-001"],
+  "approved_action_paths": [
+    {
+      "id": "A-001",
+      "target_paths": [
+        "docs/structured-evidence-schema.md",
+        "schemas/artifacts/unified-apply-plan.schema.json",
+        "schemas/artifacts/controlled-apply-readiness.schema.json",
+        "schemas/artifacts/approval-record.schema.json",
+        "scripts/lib/artifact-schema.mjs"
+      ]
+    }
+  ],
+  "expires_at": "2099-12-31T15:59:00Z",
+  "plan_changed_after_approval": false,
+  "risk_acceptance": {
+    "high_risk_action_included": false,
+    "human_only_action_included": false
+  },
+  "rollback_reviewed": true,
+  "verification_reviewed": true,
+  "boundary": {
+    "writes_files_now": false,
+    "authorizes_automatic_apply": false,
+    "approves_implementation": false,
+    "approves_release_or_production": false,
+    "installs_hooks_or_changes_ci": false,
+    "enables_high_risk_actions": false,
+    "lets_codex_proceed_without_readiness": false
+  }
+}
+```
+
+## Approval Scope
+
+| Field | Value |
+|---|---|
+| Included target paths | `docs/structured-evidence-schema.md`, `schemas/artifacts/unified-apply-plan.schema.json`, `schemas/artifacts/controlled-apply-readiness.schema.json`, `schemas/artifacts/approval-record.schema.json`, `scripts/lib/artifact-schema.mjs` |
+| Excluded target paths | business source files, production config, CI, hooks |
+| Max change size | 5 files |
+| Timebox | 2026-06-30 only |
+| Applies to future changes | No |
+
+## Risk Acceptance
+
+| Field | Value |
+|---|---|
+| Risk level | LOW_RISK |
+| High-risk action included | No |
+| Human-only action included | No |
+| Risk accepted by human | Yes |
+
+## Expiry
+
+| Field | Value |
+|---|---|
+| Approval expires at | 2099-12-31 23:59 +0800 |
+| Re-approval required after expiry | Yes |
+
+## Rollback Acknowledgement
+
+| Field | Value |
+|---|---|
+| Rollback plan reviewed | Yes |
+| Rollback owner | Human |
+| Rollback evidence | `apply-plans/001-structured-workflow-assets.md` |
+
+## Verification Acknowledgement
+
+| Field | Value |
+|---|---|
+| Verification plan reviewed | Yes |
+| Required post-apply verification | `node scripts/check-intentos.mjs` |
+| Evidence path | `releases/1.41.0/self-check-report.md` |
+
+## Human Approval Statement
+
+Liushan approves A-001 for `docs/structured-evidence-schema.md`, `schemas/artifacts/unified-apply-plan.schema.json`, `schemas/artifacts/controlled-apply-readiness.schema.json`, `schemas/artifacts/approval-record.schema.json`, and `scripts/lib/artifact-schema.mjs` only.
+
+## Non-Authorizations
+
+- This approval record writes files now: No
+- This approval record authorizes automatic apply: No
+- This approval record approves implementation: No
+- This approval record approves release or production: No
+- This approval record installs hooks or changes CI: No
+- This approval record changes source of truth: No
+- This approval record enables high-risk actions: No
+- This approval record lets Codex proceed without readiness: No
+
+## Evidence Links
+
+| Evidence | Path |
+|---|---|
+| Apply plan | `apply-plans/001-structured-workflow-assets.md` |
+| Readiness report | `apply-readiness-reports/001-structured-workflow-assets.md` |
+| Conversation / ticket | `conversation:2026-06-30-structured-evidence` |
+
+## Audit Notes
+
+This example is repository evidence only. It is not real target-project approval.

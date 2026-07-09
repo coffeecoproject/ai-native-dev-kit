@@ -395,6 +395,7 @@ function checkCrossSourceBinding(label, completionEvidence, sourceRecords) {
 
   if (executionAssuranceBindsTestEvidence(ea.evidence, te.source)) pass(`${label} Execution Assurance binds referenced Test Evidence`);
   else fail(`${label} Execution Assurance must bind referenced Test Evidence ${te.source.ref || "<missing>"}`);
+  if (requirePlanReview) checkPlanReviewBindingMatchesExecutionAssurance(label, completionEvidence, ea.evidence);
   if (completionEvidence.intent_digest === brc.source.intent_digest
     && completionEvidence.intent_digest === vp.source.intent_digest
     && completionEvidence.intent_digest === te.source.intent_digest
@@ -426,6 +427,26 @@ function executionAssuranceBindsTestEvidence(evidence, testEvidenceSource) {
     && item.source_outcome === testEvidenceSource.source_outcome);
   if (sourceMatch) return true;
   return collectEvidenceRefs(evidence).some((ref) => sameRef(ref, testEvidenceSource.ref));
+}
+
+function checkPlanReviewBindingMatchesExecutionAssurance(label, completionEvidence, executionEvidence) {
+  const completionBinding = completionEvidence.plan_review_binding;
+  const executionBinding = executionEvidence.plan_review_binding;
+  if (!completionBinding) {
+    fail(`${label} Completion Evidence requires plan_review_binding before comparing Execution Assurance plan review binding`);
+    return;
+  }
+  if (!executionBinding) {
+    fail(`${label} referenced Execution Assurance must include plan_review_binding when Completion Evidence requires plan review`);
+    return;
+  }
+  for (const field of ["plan_review_ref", "plan_review_digest", "plan_review_state", "plan_ref", "plan_digest", "task_ref"]) {
+    if (completionBinding[field] === executionBinding[field]) {
+      pass(`${label} Completion Evidence plan_review_binding ${field} matches referenced Execution Assurance`);
+    } else {
+      fail(`${label} Completion Evidence plan_review_binding ${field} ${completionBinding[field] || "<missing>"} must match referenced Execution Assurance ${executionBinding[field] || "<missing>"}`);
+    }
+  }
 }
 
 function collectEvidenceRefs(value) {

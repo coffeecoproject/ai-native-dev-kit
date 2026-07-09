@@ -341,6 +341,8 @@ function checkStructuredEvidence(content, label, file) {
     label,
     requirePlanReview,
     consumer: "execution assurance",
+    consumerPlanRef: parsed.execution_plan?.plan_ref,
+    consumerPlanLabel: "execution_plan",
     pass,
     fail,
   });

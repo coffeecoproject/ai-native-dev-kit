@@ -250,6 +250,9 @@ function checkStructuredEvidence(content, label, file) {
     label,
     requirePlanReview,
     consumer: "controlled apply readiness",
+    consumerPlanRef: evidence.apply_plan?.path,
+    consumerPlanDigest: evidence.apply_plan?.plan_digest,
+    consumerPlanLabel: "apply_plan",
     pass,
     fail,
   });
