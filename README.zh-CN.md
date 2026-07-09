@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.86.1`。
+当前版本：`1.87.0`。
 
-发布记录：[releases/1.86.1/release-record.md](releases/1.86.1/release-record.md)。
+发布记录：[releases/1.87.0/release-record.md](releases/1.87.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -30,6 +30,7 @@ node scripts/cli.mjs queue-takeover <老项目> --intent "<继续处理老项目
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<你想做什么>"
+node scripts/cli.mjs release-channel <project> --intent "<判断发布通道策略>"
 ```
 
 这些命令都是只读入口，不批准实现、发布、生产、CI、hook、密钥、迁移、支付、权限或治理替换。
@@ -49,6 +50,11 @@ node scripts/cli.mjs status <project> --intent "<你想做什么>"
 CI、发布通道、制品配额和发布包体积问题，但不批准提交、推送、发布、生产、
 删除制品、绕过门禁或强推。
 
+`release-channel` 用来区分“代码和证据放在哪里”和“到底通过什么方式发布”。
+GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHub Actions
+制品、平台部署、镜像仓库、包仓库、小程序/应用商店提交、发布负责人、成本负责人
+和保留策略必须分开判断。
+
 `1.86.1` 加强了这部分：如果是 CI 环境问题，只有在项目允许重试并确认没有
 生产副作用时，Codex 才能自动继续；严格模式下还会检查这个阻断是否真的属于
 当前任务，并记录日志、门禁、制品或发布事件的来源证据。
@@ -62,6 +68,15 @@ CI、发布通道、制品配额和发布包体积问题，但不批准提交、
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.87.0 新增 Release Channel Decoupling：Git、tag 和 GitHub 可以继续作为
+源码与证据系统，但 Codex 不能默认把 GitHub Release、GitHub Actions 制品、
+平台部署、镜像/包仓库、应用商店/小程序提交或服务器脚本当作发布通道。它会
+先检查发布负责人、成本负责人、保留策略和发布包身份。
+
+1.87.0 仍然不授权执行。它不执行发布、不上传 GitHub Release 资产、不运行
+GitHub-hosted 发布 workflow、不删除制品、不改 CI、不改生产、不碰密钥、
+不批准发布，也不批准成本。
 
 1.86.1 加严 Execution And Release Runtime Hygiene：运行时报告可以记录门禁输出、
 CI 日志、制品错误、发布包摘要和发布事件的来源引用与 digest；严格检查可以把

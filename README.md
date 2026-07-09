@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.86.1`.
+Current release: `1.87.0`.
 
-Release record: [releases/1.86.1/release-record.md](releases/1.86.1/release-record.md).
+Release record: [releases/1.87.0/release-record.md](releases/1.87.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -30,6 +30,7 @@ node scripts/cli.mjs queue-takeover <existing-project> --intent "<continue old p
 node scripts/cli.mjs next <project>
 node scripts/cli.mjs doctor <project>
 node scripts/cli.mjs status <project> --intent "<what you want>"
+node scripts/cli.mjs release-channel <project> --intent "<decide release channel policy>"
 ```
 
 Those commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
@@ -51,6 +52,12 @@ pre-push gates, CI failures, release lanes, artifact quota, and bundle bloat
 without approving commit, push, release, production, deletion, gate bypass, or
 force push.
 
+`release-channel` separates Git/GitHub source identity from release package and
+release execution. GitHub can remain the code and evidence system, but GitHub
+Release assets, GitHub Actions artifacts, provider deploys, registries,
+app-store or mini-program uploads, release owners, cost owners, and retention
+policies are decided separately.
+
 Start here:
 
 - [Start Here](docs/start-here.md)
@@ -60,6 +67,16 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.87.0 adds Release Channel Decoupling. It keeps Git, tags, and GitHub usable
+as source/evidence while preventing Codex from silently treating GitHub
+Releases, GitHub Actions artifacts, provider deploys, registries, app-store
+submissions, mini-program submissions, or server scripts as the release channel
+without owner, cost, retention, and package-identity evidence.
+
+1.87.0 remains non-authorizing. It does not execute release, upload GitHub
+Release assets, run GitHub-hosted release workflows, delete artifacts, change
+CI, change production, touch secrets, approve release, or approve cost.
 
 1.86.1 hardens Execution And Release Runtime Hygiene. Runtime reports can now
 carry source refs/digests for gate output, CI logs, artifact errors, bundle

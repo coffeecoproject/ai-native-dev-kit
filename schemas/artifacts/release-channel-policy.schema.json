@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/release-channel-policy.schema.json",
+  "title": "Release Channel Policy Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "release_channel_policy_ref",
+    "release_channel_policy_digest",
+    "intent",
+    "intent_digest",
+    "project_type",
+    "source_identity",
+    "effective_release_channel",
+    "github_release_policy",
+    "github_actions_policy",
+    "github_actions_billing_profile",
+    "cost_risk",
+    "owners",
+    "release_package_identity",
+    "artifact_policy",
+    "source_chain",
+    "decision",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.87.0" },
+    "artifact_type": { "const": "release_channel_policy" },
+    "release_channel_policy_ref": { "type": "string", "minLength": 1 },
+    "release_channel_policy_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "project_type": { "enum": ["new_project", "existing_project", "unknown"] },
+    "source_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_ref",
+        "source_ref_role",
+        "git_allowed",
+        "tag_allowed_as_identity",
+        "tag_used",
+        "tag_triggers_release_workflow",
+        "tag_trigger_workflow_ref"
+      ],
+      "properties": {
+        "source_ref": { "type": "string", "minLength": 1 },
+        "source_ref_role": { "enum": ["identity_only", "release_trigger", "unknown"] },
+        "git_allowed": { "const": "Yes" },
+        "tag_allowed_as_identity": { "const": "Yes" },
+        "tag_used": { "enum": ["Yes", "No", "Unknown"] },
+        "tag_triggers_release_workflow": { "enum": ["Yes", "No", "Unknown"] },
+        "tag_trigger_workflow_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "effective_release_channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "recommendation_class",
+        "blocked",
+        "blocked_by",
+        "current_channel_detected",
+        "current_channel_summary",
+        "recommended_channel_summary"
+      ],
+      "properties": {
+        "channel": {
+          "enum": [
+            "source_only",
+            "local_handoff",
+            "provider_direct_deploy",
+            "app_store_or_mini_program",
+            "docker_registry",
+            "package_registry",
+            "github_release",
+            "github_actions_artifact",
+            "server_release_sop",
+            "manual_release_owner_process",
+            "unknown"
+          ]
+        },
+        "recommendation_class": {
+          "enum": [
+            "KEEP_EXISTING_APPROVED_CHANNEL",
+            "KEEP_GIT_SOURCE_ONLY_AND_EXTERNAL_RELEASE",
+            "RECOMMEND_DECOUPLING_FROM_GITHUB_RELEASE_ASSETS",
+            "RECOMMEND_DECOUPLING_FROM_ACTIONS_ARTIFACT_PACKAGE",
+            "REQUIRE_RELEASE_OWNER_DECISION",
+            "BLOCK_RELEASE_CHANNEL_POLICY"
+          ]
+        },
+        "blocked": { "enum": ["Yes", "No"] },
+        "blocked_by": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "current_channel_detected": { "enum": ["Yes", "No", "Unknown"] },
+        "current_channel_summary": { "type": "string", "minLength": 1 },
+        "recommended_channel_summary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "github_release_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "github_release_used",
+        "github_release_assets_uploaded",
+        "github_release_assets_allowed",
+        "github_release_notes_only",
+        "release_event_workflow_detected",
+        "policy_state"
+      ],
+      "properties": {
+        "github_release_used": { "enum": ["Yes", "No", "Unknown"] },
+        "github_release_assets_uploaded": { "enum": ["Yes", "No", "Unknown"] },
+        "github_release_assets_allowed": { "enum": ["Yes", "No", "NeedsOwnerDecision", "Unknown"] },
+        "github_release_notes_only": { "enum": ["Yes", "No", "Unknown"] },
+        "release_event_workflow_detected": { "enum": ["Yes", "No", "Unknown"] },
+        "policy_state": {
+          "enum": [
+            "DISABLED",
+            "NOT_USED",
+            "NOTES_ONLY",
+            "ASSET_CHANNEL_REVIEW_REQUIRED",
+            "ALLOWED_WITH_OWNER_POLICY",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "github_actions_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_workflow_detected",
+        "github_hosted_runner_used",
+        "self_hosted_runner_used",
+        "actions_artifact_used_as_release_package",
+        "github_packages_used_as_release_package",
+        "artifact_retention_policy_ref",
+        "policy_state"
+      ],
+      "properties": {
+        "release_workflow_detected": { "enum": ["Yes", "No", "Unknown"] },
+        "github_hosted_runner_used": { "enum": ["Yes", "No", "Unknown"] },
+        "self_hosted_runner_used": { "enum": ["Yes", "No", "Unknown"] },
+        "actions_artifact_used_as_release_package": { "enum": ["Yes", "No", "Unknown"] },
+        "github_packages_used_as_release_package": { "enum": ["Yes", "No", "Unknown"] },
+        "artifact_retention_policy_ref": { "type": "string", "minLength": 1 },
+        "policy_state": {
+          "enum": [
+            "DISABLED",
+            "SHORT_LIVED_HANDOFF_ONLY",
+            "BLOCKED_LONG_LIVED_PACKAGE",
+            "ALLOWED_WITH_RETENTION_POLICY",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "github_actions_billing_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_visibility",
+        "runner_type",
+        "uses_larger_runner",
+        "actions_minutes_cost_risk",
+        "artifact_storage_cost_risk",
+        "cache_storage_cost_risk",
+        "cost_owner_ref"
+      ],
+      "properties": {
+        "repository_visibility": { "enum": ["public", "private", "internal", "unknown"] },
+        "runner_type": { "enum": ["github_hosted", "self_hosted", "mixed", "unknown"] },
+        "uses_larger_runner": { "enum": ["Yes", "No", "Unknown"] },
+        "actions_minutes_cost_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "artifact_storage_cost_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "cache_storage_cost_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "cost_owner_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "cost_risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "github_actions_minutes_risk",
+        "github_actions_artifact_storage_risk",
+        "github_actions_cache_storage_risk",
+        "github_packages_risk",
+        "external_provider_cost_risk",
+        "registry_storage_cost_risk",
+        "app_store_or_platform_fee_risk",
+        "cost_owner_required",
+        "cost_owner_ref"
+      ],
+      "properties": {
+        "github_actions_minutes_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "github_actions_artifact_storage_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "github_actions_cache_storage_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "github_packages_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "external_provider_cost_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "registry_storage_cost_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "app_store_or_platform_fee_risk": { "enum": ["Yes", "No", "Unknown"] },
+        "cost_owner_required": { "enum": ["Yes", "No"] },
+        "cost_owner_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_owner_required",
+        "release_owner_ref",
+        "cost_owner_ref",
+        "platform_owner_ref",
+        "production_owner_ref"
+      ],
+      "properties": {
+        "release_owner_required": { "enum": ["Yes", "No"] },
+        "release_owner_ref": { "type": "string", "minLength": 1 },
+        "cost_owner_ref": { "type": "string", "minLength": 1 },
+        "platform_owner_ref": { "type": "string", "minLength": 1 },
+        "production_owner_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "release_package_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity_type", "identity_ref", "digest_or_id", "not_applicable_reason"],
+      "properties": {
+        "identity_type": {
+          "enum": [
+            "file_digest",
+            "docker_digest",
+            "registry_version",
+            "provider_build_id",
+            "app_store_build",
+            "mini_program_upload_id",
+            "source_archive",
+            "none",
+            "unknown"
+          ]
+        },
+        "identity_ref": { "type": "string", "minLength": 1 },
+        "digest_or_id": { "type": "string", "minLength": 1 },
+        "not_applicable_reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "artifact_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_package_location",
+        "evidence_preserved_outside_runtime_bundle",
+        "release_evidence_deleted_to_reduce_bundle"
+      ],
+      "properties": {
+        "release_package_location": {
+          "enum": ["external_provider", "local_handoff", "registry", "github_release_asset", "github_actions_artifact", "unknown", "none"]
+        },
+        "evidence_preserved_outside_runtime_bundle": { "enum": ["Yes", "No", "Unknown"] },
+        "release_evidence_deleted_to_reduce_bundle": { "enum": ["Yes", "No", "Unknown"] }
+      }
+    },
+    "source_chain": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_kind",
+          "source_ref",
+          "source_digest",
+          "source_scope_match",
+          "current_release_candidate_match",
+          "project_match"
+        ],
+        "properties": {
+          "source_kind": {
+            "enum": [
+              "release_evidence_gate",
+              "runtime_hygiene",
+              "release_plan",
+              "project_sop",
+              "ci_workflow",
+              "package_config",
+              "docker_config",
+              "provider_config",
+              "manual_observation"
+            ]
+          },
+          "source_ref": { "type": "string", "minLength": 1 },
+          "source_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "source_scope_match": { "enum": ["current_task", "release_candidate", "project", "unknown", "not_applicable"] },
+          "current_release_candidate_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+          "project_match": { "enum": ["Yes", "No", "Unknown"] }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_prepare_release_channel_policy",
+        "can_use_github_as_release_channel",
+        "can_use_github_as_source_and_evidence_only",
+        "needs_release_owner_decision",
+        "needs_cost_owner_decision",
+        "blocks_release_review",
+        "plain_user_summary"
+      ],
+      "properties": {
+        "can_prepare_release_channel_policy": { "enum": ["Yes", "No"] },
+        "can_use_github_as_release_channel": { "enum": ["Yes", "No", "NeedsOwnerDecision", "Unknown"] },
+        "can_use_github_as_source_and_evidence_only": { "enum": ["Yes", "No", "Unknown"] },
+        "needs_release_owner_decision": { "enum": ["Yes", "No"] },
+        "needs_cost_owner_decision": { "enum": ["Yes", "No"] },
+        "blocks_release_review": { "enum": ["Yes", "No"] },
+        "plain_user_summary": { "type": "string", "minLength": 1 }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approves_release",
+        "executes_release",
+        "uploads_github_release_asset",
+        "runs_github_hosted_release_workflow",
+        "deletes_artifacts",
+        "changes_ci",
+        "changes_production",
+        "changes_secrets"
+      ],
+      "properties": {
+        "approves_release": { "const": "No" },
+        "executes_release": { "const": "No" },
+        "uploads_github_release_asset": { "const": "No" },
+        "runs_github_hosted_release_workflow": { "const": "No" },
+        "deletes_artifacts": { "const": "No" },
+        "changes_ci": { "const": "No" },
+        "changes_production": { "const": "No" },
+        "changes_secrets": { "const": "No" }
+      }
+    },
+    "outcome": {
+      "enum": ["RELEASE_CHANNEL_POLICY_RECORDED", "BLOCKED_RELEASE_CHANNEL_POLICY"]
+    }
+  }
+}

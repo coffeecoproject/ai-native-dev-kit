@@ -9933,6 +9933,154 @@ function checkReleaseEvidenceGateProtocol() {
   }
 }
 
+function checkReleaseChannelDecouplingProtocol() {
+  const required = [
+    "core/release-channel-decoupling.md",
+    "docs/release-channel-decoupling.md",
+    "docs/plans/release-channel-decoupling-1.87-plan.md",
+    "templates/release-channel-policy-report.md",
+    "checklists/release-channel-policy-review.md",
+    "prompts/release-channel-policy-agent.md",
+    "schemas/artifacts/release-channel-policy.schema.json",
+    "release-channel-policies/.gitkeep",
+    "scripts/resolve-release-channel-policy.mjs",
+    "scripts/check-release-channel-policy.mjs",
+    "examples/1.87-release-channel-decoupling/README.md",
+    "examples/1.87-release-channel-decoupling/new-project-source-only/release-channel-policies/001-source-only.md",
+    "examples/1.87-release-channel-decoupling/existing-provider-release-sop/release-channel-policies/001-provider-sop.md",
+    "examples/1.87-release-channel-decoupling/github-release-assets-review-needed/release-channel-policies/001-github-release-assets.md",
+    "examples/1.87-release-channel-decoupling/actions-artifact-package-blocked/release-channel-policies/001-actions-artifact-blocked.md",
+    "examples/1.87-release-channel-decoupling/tag-source-identity-only/release-channel-policies/001-tag-identity-only.md",
+    "test-fixtures/bad/bad-release-channel-github-release-auto-approved/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-actions-artifact-long-lived/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-tag-push-production/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-missing-cost-owner/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-deletes-evidence/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-technical-user-burden/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-source-release-confusion/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-notes-only-release-workflow/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-github-source-only-conflict/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-provider-owner-missing/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-package-identity-unknown/release-channel-policies/001-bad.md",
+    "releases/1.87.0/release-record.md",
+    "releases/1.87.0/known-limitations.md",
+    "releases/1.87.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.87 release channel asset exists ${file}`);
+    else fail(`1.87 release channel asset missing ${file}`);
+  }
+
+  const combined = [
+    read("README.md"),
+    read("README.zh-CN.md"),
+    read("VERSION.md"),
+    read("core/release-channel-decoupling.md"),
+    read("docs/release-channel-decoupling.md"),
+    read("docs/plans/release-channel-decoupling-1.87-plan.md"),
+    read("templates/release-channel-policy-report.md"),
+    read("checklists/release-channel-policy-review.md"),
+    read("prompts/release-channel-policy-agent.md"),
+    read("schemas/artifacts/release-channel-policy.schema.json"),
+    read("scripts/resolve-release-channel-policy.mjs"),
+    read("scripts/check-release-channel-policy.mjs"),
+    read("scripts/cli.mjs"),
+    exists("releases/1.87.0/release-record.md") ? read("releases/1.87.0/release-record.md") : "",
+  ].join("\n");
+  for (const marker of [
+    "Release Channel Decoupling",
+    "release_channel_policy",
+    "release-channel",
+    "release-channel-check",
+    "source identity",
+    "GitHub source and evidence",
+    "GitHub Release Policy",
+    "GitHub Actions Policy",
+    "GitHub Release assets",
+    "Actions artifacts",
+    "tag-triggered release workflow",
+    "release package identity",
+    "cost owner",
+    "retention policy",
+    "does not approve release",
+    "does not execute release",
+    "does not upload GitHub Release assets",
+    "does not run GitHub-hosted release workflows",
+    "does not delete artifacts",
+  ]) {
+    if (combined.includes(marker)) pass(`1.87 release channel includes ${marker}`);
+    else fail(`1.87 release channel missing ${marker}`);
+  }
+
+  const examples = [
+    ["new-project-source-only", "release-channel-policies/001-source-only.md", []],
+    ["existing-provider-release-sop", "release-channel-policies/001-provider-sop.md", []],
+    ["github-release-assets-review-needed", "release-channel-policies/001-github-release-assets.md", []],
+    ["actions-artifact-package-blocked", "release-channel-policies/001-actions-artifact-blocked.md", []],
+    ["tag-source-identity-only", "release-channel-policies/001-tag-identity-only.md", []],
+  ];
+  for (const [name, report, extra] of examples) {
+    const result = runNode([
+      "scripts/check-release-channel-policy.mjs",
+      `examples/1.87-release-channel-decoupling/${name}`,
+      "--report",
+      report,
+      "--require-structured-evidence",
+      ...extra,
+    ]);
+    if (result.status === 0 && result.stdout.includes("has valid structured evidence")) {
+      pass(`1.87 release channel example ${name} passes checker`);
+    } else {
+      fail(`1.87 release channel example ${name} failed: ${result.stderr || result.stdout}`);
+    }
+  }
+
+  const badFixtureCases = [
+    ["bad-release-channel-github-release-auto-approved", "GitHub Release assets require release owner policy"],
+    ["bad-release-channel-actions-artifact-long-lived", "Actions artifact release package requires retention policy"],
+    ["bad-release-channel-tag-push-production", "tag-triggered release workflow requires release owner evidence"],
+    ["bad-release-channel-missing-cost-owner", "cost-risk channel must have cost owner or block release review"],
+    ["bad-release-channel-deletes-evidence", "release evidence must not be deleted to reduce bundle"],
+    ["bad-release-channel-technical-user-burden", "plain summary must not ask user to choose technical release channel primitives"],
+    ["bad-release-channel-source-release-confusion", "cannot claim GitHub source/evidence-only while release assets are uploaded"],
+    ["bad-release-channel-notes-only-release-workflow", "notes-only GitHub Release with on: release workflow requires release owner review"],
+    ["bad-release-channel-github-source-only-conflict", "cannot claim GitHub source/evidence-only while release assets are uploaded"],
+    ["bad-release-channel-provider-owner-missing", "provider_direct_deploy requires release owner or blocked state"],
+    ["bad-release-channel-package-identity-unknown", "release package channel requires package identity before ready state"],
+  ];
+  for (const [name, expected] of badFixtureCases) {
+    const result = runNode([
+      "scripts/check-release-channel-policy.mjs",
+      `test-fixtures/bad/${name}`,
+      "--report",
+      "release-channel-policies/001-bad.md",
+      "--require-structured-evidence",
+    ]);
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (result.status !== 0 && output.includes(expected)) {
+      pass(`1.87 release channel rejects ${name}`);
+    } else {
+      fail(`1.87 release channel must reject ${name}: ${output}`);
+    }
+  }
+
+  const releaseChannelPackage = JSON.parse(read("package.json"));
+  const releaseChannelVerifySurface = Object.entries(releaseChannelPackage.scripts || {})
+    .filter(([name]) => name === "verify" || name.startsWith("verify:"))
+    .map(([, value]) => value)
+    .join("\n");
+  for (const marker of [
+    "node --check scripts/resolve-release-channel-policy.mjs",
+    "node --check scripts/check-release-channel-policy.mjs",
+    "node scripts/cli.mjs release-channel . --intent \"decide release channel policy\"",
+    "node scripts/cli.mjs release-channel-check . --allow-empty",
+    "node scripts/check-release-channel-policy.mjs examples/1.87-release-channel-decoupling/new-project-source-only --require-structured-evidence",
+  ]) {
+    if (releaseChannelVerifySurface.includes(marker)) pass(`1.87 package verify includes ${marker}`);
+    else fail(`1.87 package verify missing ${marker}`);
+  }
+}
+
 function checkUserDeliveryConsoleProtocol() {
   const required = [
     "core/user-delivery-console.md",
@@ -16469,6 +16617,7 @@ checkVerificationPlanGovernanceProtocol();
 checkTestEvidenceBindingProtocol();
 checkCompletionEvidenceGateProtocol();
 checkReleaseEvidenceGateProtocol();
+checkReleaseChannelDecouplingProtocol();
 checkUserDeliveryConsoleProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();

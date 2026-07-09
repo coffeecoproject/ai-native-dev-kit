@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.86.1`
+`1.87.0`
 
 ## Project Version File
 
@@ -19,6 +19,14 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.87.0` adds Release Channel Decoupling: Git and GitHub can remain source
+  and evidence systems while GitHub Release assets, GitHub Actions artifacts,
+  provider deploys, registries, app-store or mini-program submissions, release
+  owners, cost owners, retention, and release package identity are decided
+  separately.
+- `1.87.0` remains non-authorizing. It does not execute release, upload GitHub
+  Release assets, run GitHub-hosted release workflows, delete artifacts, change
+  CI, change production, touch secrets, approve release, or approve cost.
 - `1.86.1` hardens Runtime Hygiene source and task binding: reports can record
   runtime source refs/digests, strict checks can bind blockers to the current
   Work Queue item and Task Governance record, and CI environment retries require

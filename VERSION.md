@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.86.1`
+Current version: `1.87.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.86.1`
 
 ## Current Release
 
-`1.86.1`
+`1.87.0`
 
 Includes:
+
+- Release Channel Decoupling phase `1.87.0`: Git, tags, and GitHub can stay
+  source/evidence systems while release packages, GitHub Release assets,
+  GitHub Actions artifacts, provider deploys, registries, app-store or
+  mini-program submissions, release owners, cost owners, and retention policies
+  are classified separately.
+- `1.87.0` remains non-authorizing. It does not execute release, upload GitHub
+  Release assets, run GitHub-hosted release workflows, delete artifacts, change
+  CI, change production, touch secrets, approve release, or approve cost.
 
 - Execution Runtime Hygiene Source And Task Binding patch `1.86.1`: Runtime
   Hygiene reports can record source refs/digests for gate output, CI logs,

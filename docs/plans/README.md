@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Release Channel Decoupling 1.87](release-channel-decoupling-1.87-plan.md)
 - [Execution And Release Runtime Hygiene 1.86](execution-release-runtime-hygiene-1.86-plan.md)
 - [Task Governance Consumer Integration 1.85](task-governance-consumer-integration-1.85-plan.md)
 - [Work Queue Takeover Hardening 1.84.1](work-queue-takeover-hardening-1.84.1-plan.md)
