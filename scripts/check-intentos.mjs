@@ -10103,6 +10103,7 @@ function checkPlanReviewGateProtocol() {
     "core/plan-review-gate.md",
     "docs/plan-review-gate.md",
     "docs/plans/plan-review-gate-1.88-plan.md",
+    "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
     "templates/plan-review-report.md",
     "checklists/plan-review-gate-review.md",
     "prompts/plan-review-gate-agent.md",
@@ -10142,9 +10143,15 @@ function checkPlanReviewGateProtocol() {
     "test-fixtures/bad/bad-plan-review-rewrites-original-plan/plan-review-reports/001-bad.md",
     "test-fixtures/bad/bad-plan-review-repeated-failure-not-blocked/plan-review-reports/001-bad.md",
     "test-fixtures/bad/bad-plan-review-technical-user-burden/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-derived-surface-pass/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-missing-source-verification/plan-review-reports/001-bad.md",
+    "test-fixtures/bad/bad-plan-review-subagent-fallback-pass/plan-review-reports/001-bad.md",
     "releases/1.88.0/release-record.md",
     "releases/1.88.0/known-limitations.md",
     "releases/1.88.0/self-check-report.md",
+    "releases/1.88.1/release-record.md",
+    "releases/1.88.1/known-limitations.md",
+    "releases/1.88.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.88 plan review asset exists ${file}`);
@@ -10158,6 +10165,7 @@ function checkPlanReviewGateProtocol() {
     read("core/plan-review-gate.md"),
     read("docs/plan-review-gate.md"),
     read("docs/plans/plan-review-gate-1.88-plan.md"),
+    read("docs/plans/plan-review-gate-hardening-1.88.1-plan.md"),
     read("templates/plan-review-report.md"),
     read("checklists/plan-review-gate-review.md"),
     read("prompts/plan-review-gate-agent.md"),
@@ -10166,6 +10174,7 @@ function checkPlanReviewGateProtocol() {
     read("scripts/check-plan-review.mjs"),
     read("scripts/cli.mjs"),
     read("releases/1.88.0/release-record.md"),
+    read("releases/1.88.1/release-record.md"),
   ].join("\n");
   for (const marker of [
     "Plan Review Gate",
@@ -10177,11 +10186,14 @@ function checkPlanReviewGateProtocol() {
     "PLAN_REVISION_REQUIRED",
     "Task Governance remains the source of truth",
     "Review Surface Governance remains the source of truth",
+    "derived review surface matrix cannot satisfy high-impact PLAN_REVIEW_PASSED",
+    "Review Surface authority",
     "pre-implementation plan-review prerequisite",
     "does not authorize implementation",
     "does not execute tests",
     "commands_executed_by_this_report",
     "subagent_output_is_authority",
+    "PLAN_REVIEW_PASSED cannot use fallback as substitute",
     "rewrites_original_plan",
   ]) {
     if (combined.includes(marker)) pass(`1.88 plan review includes ${marker}`);
@@ -10231,6 +10243,9 @@ function checkPlanReviewGateProtocol() {
     ["bad-plan-review-rewrites-original-plan", "review loop must not rewrite original plan"],
     ["bad-plan-review-repeated-failure-not-blocked", "repeated plan review failure must be blocked after max rounds"],
     ["bad-plan-review-technical-user-burden", "user-facing text exposes technical workflow burden"],
+    ["bad-plan-review-derived-surface-pass", "derived review surface matrix cannot satisfy high-impact PLAN_REVIEW_PASSED"],
+    ["bad-plan-review-missing-source-verification", "requires source_chain kind verification_plan"],
+    ["bad-plan-review-subagent-fallback-pass", "cannot use fallback as substitute"],
   ];
   for (const [name, expected] of badFixtureCases) {
     const result = runNode([

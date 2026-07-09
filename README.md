@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.88.0`.
+Current release: `1.88.1`.
 
-Release record: [releases/1.88.0/release-record.md](releases/1.88.0/release-record.md).
+Release record: [releases/1.88.1/release-record.md](releases/1.88.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -73,6 +73,16 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.88.1 hardens Plan Review Gate. High-impact `PLAN_REVIEW_PASSED` reports now
+need source-chain evidence from Task Governance, Review Surface authority,
+Verification Plan, and required Business Rule / Change Impact sources. A
+derived review-surface matrix alone cannot pass, and fallback cannot substitute
+for recommended subagent review.
+
+1.88.1 remains non-authorizing. It tightens plan review evidence, but still
+does not approve code changes, commit, push, release, production, tests,
+migrations, or project-owner decisions.
 
 1.88.0 adds Plan Review Gate. Implementation plans now become reviewable
 artifacts: high-impact work cannot move from "plan written" to "coding" until

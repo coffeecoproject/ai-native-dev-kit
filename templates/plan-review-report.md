@@ -45,8 +45,13 @@
 
 ## Source Chain
 
-| Source kind | Ref | Digest | State | Current task match | Project-native equivalent | Owner |
-| --- | --- | --- | --- | --- | --- | --- |
+| Source kind | Ref | Digest | State | Current task match | Project-native equivalent | Owner | Contradicts plan |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+
+For `HIGH` or `POSSIBLE_HIGH` `PLAN_REVIEW_PASSED`, source chain must include
+Task Governance, Review Surface authority, Verification Plan, and any required
+Business Rule Closure / Change Impact Coverage evidence. A derived review
+surface matrix alone is not enough.
 
 ## Reviewed Surfaces
 
@@ -85,9 +90,15 @@
 | --- | --- |
 | Subagent review recommended |  |
 | Run plan required |  |
+| Run plan ref |  |
 | All subagents read-only | Yes |
 | Subagent output is authority | No |
 | All subagents closed or skipped |  |
+| Fallback used |  |
+| Fallback reason |  |
+
+Fallback cannot substitute for recommended subagent review when the outcome is
+`PLAN_REVIEW_PASSED`.
 
 ## Boundaries
 
@@ -109,4 +120,3 @@
 ```json
 {}
 ```
-

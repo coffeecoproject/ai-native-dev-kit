@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.88.0",
+  "intentOSVersion": "1.88.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.88.0"
+    "phase": "1.88.1"
   },
   "groups": {
     "sourceRequired": [
@@ -366,6 +366,7 @@
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
       "docs/plans/plan-review-gate-1.88-plan.md",
+      "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
       "docs/plans/platform-release-recipes-1.59-plan.md",
       "docs/plans/platform-standard-baseline-packs-1.15-plan.md",
       "docs/plans/product-adoption-simplification-1.68-plan.md",
@@ -1703,6 +1704,9 @@
       "releases/1.88.0/known-limitations.md",
       "releases/1.88.0/release-record.md",
       "releases/1.88.0/self-check-report.md",
+      "releases/1.88.1/known-limitations.md",
+      "releases/1.88.1/release-record.md",
+      "releases/1.88.1/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
@@ -2539,6 +2543,8 @@
       "test-fixtures/bad/bad-plan-review-claims-test-executed/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-codex-accepted-p2/docs/example-plan.md",
       "test-fixtures/bad/bad-plan-review-codex-accepted-p2/plan-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-plan-review-derived-surface-pass/docs/example-plan.md",
+      "test-fixtures/bad/bad-plan-review-derived-surface-pass/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-fake-test-command/docs/example-plan.md",
       "test-fixtures/bad/bad-plan-review-fake-test-command/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-high-without-review-surface-analysis/docs/example-plan.md",
@@ -2549,6 +2555,8 @@
       "test-fixtures/bad/bad-plan-review-missing-review-surface-matrix/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-missing-source-chain/docs/example-plan.md",
       "test-fixtures/bad/bad-plan-review-missing-source-chain/plan-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-plan-review-missing-source-verification/docs/example-plan.md",
+      "test-fixtures/bad/bad-plan-review-missing-source-verification/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-passed-claims-full-authority/docs/example-plan.md",
       "test-fixtures/bad/bad-plan-review-passed-claims-full-authority/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-passed-without-prerequisite-satisfied/docs/example-plan.md",
@@ -2565,6 +2573,8 @@
       "test-fixtures/bad/bad-plan-review-source-chain-digest-mismatch/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-stale-plan-digest/docs/example-plan.md",
       "test-fixtures/bad/bad-plan-review-stale-plan-digest/plan-review-reports/001-bad.md",
+      "test-fixtures/bad/bad-plan-review-subagent-fallback-pass/docs/example-plan.md",
+      "test-fixtures/bad/bad-plan-review-subagent-fallback-pass/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-subagent-left-running/docs/example-plan.md",
       "test-fixtures/bad/bad-plan-review-subagent-left-running/plan-review-reports/001-bad.md",
       "test-fixtures/bad/bad-plan-review-subagent-output-treated-as-authority/docs/example-plan.md",

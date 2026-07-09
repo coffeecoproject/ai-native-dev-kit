@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.88.0`
+`1.88.1`
 
 ## Project Version File
 
@@ -19,6 +19,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ## Notes
 
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
+- `1.88.1` hardens Plan Review Gate: high-impact `PLAN_REVIEW_PASSED`
+  reports now require source-chain evidence from Task Governance, Review
+  Surface authority, Verification Plan, and required Business Rule / Change
+  Impact sources. A derived matrix alone cannot pass, and fallback cannot
+  substitute for recommended subagent review.
+- `1.88.1` remains non-authorizing and keeps the `plan_review` artifact schema
+  compatible with `1.88.0`.
 - `1.88.0` adds Plan Review Gate: implementation plans become reviewable
   artifacts before coding. High-impact plans must pass the pre-implementation
   plan-review prerequisite before Codex moves to implementation review.

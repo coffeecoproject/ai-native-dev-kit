@@ -123,6 +123,7 @@ function checkCoreContent() {
     "PLAN_REVISION_REQUIRED",
     "Task Governance remains the source of truth",
     "Review Surface Governance remains the source of truth",
+    "A derived review-surface matrix is helper evidence only",
     "does not authorize implementation",
     "does not execute tests",
   ]) {
@@ -306,6 +307,11 @@ function checkReviewSurfaces(label, evidence) {
     else fail(`${label} must not ask user to choose technical review surfaces`);
   }
   const surfaceMap = new Map(matrix.map((item) => [item.surface, item]));
+  for (const item of matrix) {
+    if (item.required === "Yes" && !required.includes(item.surface)) {
+      fail(`${label} required review surface matrix entry is missing from required_review_surfaces: ${item.surface}`);
+    }
+  }
   for (const surface of required) {
     const item = surfaceMap.get(surface);
     if (!item) {
@@ -319,20 +325,68 @@ function checkReviewSurfaces(label, evidence) {
   if ((evidence.reviewed_surfaces || []).some((item) => item.surface === "review_surface_card_approval")) {
     fail(`${label} treats Review Surface Card as implementation approval`);
   }
+  if (evidence.plan_review_state === "PLAN_REVIEW_PASSED" && ["HIGH", "POSSIBLE_HIGH"].includes(evidence.task_impact)) {
+    const analysis = evidence.review_surface_analysis || {};
+    const sourceKinds = new Set((evidence.source_chain || []).map((source) => source.source_kind));
+    const hasAuthoritativeSurfaceSource = ["review_surface_card", "project_native_review_surface", "project_native_equivalent"]
+      .some((kind) => sourceKinds.has(kind))
+      || ["review_surface_card", "project_native_equivalent"].includes(analysis.source);
+    if (analysis.source === "derived_plan_review_matrix" || analysis.derived_by_plan_review === "Yes") {
+      if (hasAuthoritativeSurfaceSource) {
+        pass(`${label} derived review surface matrix is backed by project-native Review Surface source`);
+      } else {
+        fail(`${label} derived review surface matrix cannot satisfy high-impact PLAN_REVIEW_PASSED without project-native Review Surface source`);
+      }
+    } else if (hasAuthoritativeSurfaceSource) {
+      pass(`${label} high-impact pass has project-native Review Surface source`);
+    } else {
+      fail(`${label} high-impact PLAN_REVIEW_PASSED requires project-native Review Surface source`);
+    }
+  }
 }
 
 function checkSourceChain(label, evidence) {
   const chain = evidence.source_chain || [];
-  if (evidence.task_impact === "HIGH" && evidence.plan_review_state === "PLAN_REVIEW_PASSED") {
+  if (["HIGH", "POSSIBLE_HIGH"].includes(evidence.task_impact) && evidence.plan_review_state === "PLAN_REVIEW_PASSED") {
     if (chain.length > 0) pass(`${label} high-impact pass has source chain`);
     else fail(`${label} high-impact PLAN_REVIEW_PASSED requires source chain`);
+    const kinds = new Set(chain.map((source) => source.source_kind));
+    for (const requiredKind of ["task_governance", "verification_plan"]) {
+      if (kinds.has(requiredKind)) pass(`${label} high-impact pass has source_chain kind ${requiredKind}`);
+      else fail(`${label} high-impact PLAN_REVIEW_PASSED requires source_chain kind ${requiredKind}`);
+    }
+    if (["review_surface_card", "project_native_review_surface", "project_native_equivalent"].some((kind) => kinds.has(kind))) {
+      pass(`${label} high-impact pass has source_chain Review Surface authority`);
+    } else {
+      fail(`${label} high-impact PLAN_REVIEW_PASSED requires source_chain Review Surface authority`);
+    }
+    const requiredSurfaces = new Set(evidence.required_review_surfaces || []);
+    if (requiredSurfaces.has("business_rule")) {
+      if (kinds.has("business_rule_closure")) pass(`${label} business-rule surface has source_chain business_rule_closure`);
+      else fail(`${label} business-rule surface requires source_chain business_rule_closure`);
+    }
+    if (requiredSurfaces.has("data_destructive") || requiredSurfaces.has("frontend_backend_consistency")) {
+      if (kinds.has("change_impact_coverage")) pass(`${label} impact-sensitive surface has source_chain change_impact_coverage`);
+      else fail(`${label} impact-sensitive surface requires source_chain change_impact_coverage`);
+    }
   }
+  const seenKinds = new Set();
   for (const source of chain) {
+    if (seenKinds.has(source.source_kind)) fail(`${label} duplicate source_chain kind ${source.source_kind}`);
+    else seenKinds.add(source.source_kind);
+    if (/^sha256:[a-f0-9]{64}$/.test(source.source_digest)) pass(`${label} source ${source.source_kind} has sha256 digest`);
+    else fail(`${label} source ${source.source_kind} must have sha256 digest`);
+    if (source.source_ref === "N/A" || path.isAbsolute(source.source_ref) || source.source_ref.includes("..")) {
+      fail(`${label} source ${source.source_kind} has unsafe source_ref`);
+    }
     if (source.current_task_match === "Yes" || source.current_task_match === "N/A") pass(`${label} source ${source.source_kind} current task match is acceptable`);
     else fail(`${label} source ${source.source_kind} current_task_match must be Yes or N/A`);
     if (source.source_digest === zeroDigest()) fail(`${label} source ${source.source_kind} digest mismatch sentinel is blocked`);
     if (/STALE|EXPIRED|OUTDATED/i.test(source.source_state)) fail(`${label} source ${source.source_kind} is stale`);
     if (source.contradicts_plan === "Yes") fail(`${label} source ${source.source_kind} contradicts plan`);
+    if (source.source_kind === "business_rule_closure" && source.owner === "codex") {
+      fail(`${label} business_rule_closure source cannot be owned by Codex`);
+    }
   }
 }
 
@@ -372,11 +426,24 @@ function checkSubagents(label, evidence) {
   else fail(`${label} subagent output must not be authority`);
   if (routing.writer_subagent_used === "No") pass(`${label} no writer subagent used for plan review`);
   else fail(`${label} plan review must not use writer subagent`);
+  if (routing.subagent_review_recommended === "Yes") {
+    if (routing.run_plan_required === "Yes") pass(`${label} recommended subagent review requires run plan`);
+    else fail(`${label} recommended subagent review must require a run plan`);
+    if (routing.run_plan_ref && routing.run_plan_ref !== "N/A") pass(`${label} recommended subagent review has run_plan_ref`);
+    else fail(`${label} recommended subagent review requires run_plan_ref`);
+    if (routing.all_subagents_read_only === "Yes") pass(`${label} recommended subagent review is read-only`);
+    else fail(`${label} recommended subagent review must be read-only`);
+  }
   if (evidence.plan_review_state === "PLAN_REVIEW_PASSED"
     && routing.subagent_review_recommended === "Yes"
     && routing.all_subagents_closed_or_skipped !== "Yes"
     && !(routing.fallback_used === "Yes" && routing.fallback_reason && routing.fallback_reason !== "N/A")) {
     fail(`${label} PLAN_REVIEW_PASSED cannot leave recommended subagent review unknown`);
+  }
+  if (evidence.plan_review_state === "PLAN_REVIEW_PASSED"
+    && routing.subagent_review_recommended === "Yes"
+    && routing.fallback_used === "Yes") {
+    fail(`${label} PLAN_REVIEW_PASSED cannot use fallback as substitute for recommended subagent review`);
   }
 }
 

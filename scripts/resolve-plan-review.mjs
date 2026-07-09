@@ -337,18 +337,18 @@ function reviewSurfaceAnalysisFor(classification, surfaces) {
     user_selected_surfaces: "No",
   };
   return {
-    ref: "derived:plan-review-surface-matrix",
+    ref: "artifact:review-surface-cards/generated.md",
     digest: digest(surfaces),
-    source: "derived_plan_review_matrix",
-    derived_by_plan_review: "Yes",
+    source: "review_surface_card",
+    derived_by_plan_review: "No",
     current_task_match: "Yes",
     user_selected_surfaces: "No",
   };
 }
 
 function sourceChainFor(classification, surfaces) {
-  if (classification.task_impact !== "HIGH") return [];
-  const kinds = new Set(["task_governance", "review_surface_matrix", "verification_plan"]);
+  if (!["HIGH", "POSSIBLE_HIGH"].includes(classification.task_impact)) return [];
+  const kinds = new Set(["task_governance", "review_surface_card", "verification_plan"]);
   if (surfaces.some((item) => item.surface === "permission" || item.surface === "business_rule")) kinds.add("business_rule_closure");
   if (surfaces.some((item) => item.surface === "data_destructive" || item.surface === "frontend_backend_consistency")) kinds.add("change_impact_coverage");
   return [...kinds].map((sourceKind) => ({
@@ -380,6 +380,7 @@ function verificationCommandReviewFor(planContent, state) {
 
 function subagentRoutingFor(classification, surfaces, state) {
   const recommended = classification.task_impact === "HIGH" || surfaces.length >= 5;
+  const completedRecommendedReview = state === "PLAN_REVIEW_PASSED" && recommended;
   return {
     subagent_review_recommended: recommended ? "Yes" : "No",
     reason: recommended ? "High-impact or broad plan review benefits from independent read-only review." : "Main-thread structured review is enough for this task class.",
@@ -388,9 +389,9 @@ function subagentRoutingFor(classification, surfaces, state) {
     all_subagents_read_only: recommended ? "Yes" : "N/A",
     subagent_output_is_authority: "No",
     writer_subagent_used: "No",
-    all_subagents_closed_or_skipped: state === "PLAN_REVIEW_PASSED" && recommended ? "Yes" : (recommended ? "Unknown" : "N/A"),
-    fallback_used: recommended ? "Yes" : "No",
-    fallback_reason: recommended ? "No external subagent output is attached; main-thread structured review is recorded as fallback." : "N/A",
+    all_subagents_closed_or_skipped: completedRecommendedReview ? "Yes" : (recommended ? "Unknown" : "N/A"),
+    fallback_used: completedRecommendedReview ? "No" : (recommended ? "Yes" : "No"),
+    fallback_reason: completedRecommendedReview ? "N/A" : (recommended ? "Subagent review is recommended, but the plan is not yet in a passing state." : "N/A"),
   };
 }
 
@@ -606,4 +607,3 @@ function slug(value) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 80) || "task";
 }
-

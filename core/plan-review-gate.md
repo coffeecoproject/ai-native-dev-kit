@@ -33,6 +33,16 @@ Inputs can include:
 Task Governance remains the source of truth for task impact. Review Surface Governance remains the source of truth for review surfaces. Plan Review Gate
 checks whether the implementation plan covers those requirements.
 
+For `HIGH` and `POSSIBLE_HIGH` tasks, `PLAN_REVIEW_PASSED` requires a concrete
+source chain. The chain must include Task Governance, a project-native Review
+Surface source or equivalent, and Verification Plan evidence. When the required
+surfaces include business rules, destructive data behavior, or frontend/backend
+consistency, the source chain must also include Business Rule Closure or Change
+Impact Coverage evidence as appropriate.
+
+A derived review-surface matrix is helper evidence only. It cannot be the only
+authority for a high-impact passing plan review.
+
 ## State Model
 
 | State | Meaning |
@@ -115,9 +125,12 @@ read-only inputs only.
 
 Rules:
 
+- recommended subagent review requires a concrete read-only run plan;
 - reviewer subagents do not write implementation files;
 - subagent output is not authority;
 - launched subagents must be closed or skipped before `PLAN_REVIEW_PASSED`;
+- fallback cannot be used as a substitute for recommended subagent review when
+  the report claims `PLAN_REVIEW_PASSED`;
 - subagents do not approve implementation, release, risk, or scope expansion.
 
 ## Verification Command Review

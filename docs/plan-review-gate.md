@@ -46,6 +46,26 @@ Even when the state is `PLAN_REVIEW_PASSED`, Codex must still respect Task
 Governance, project authority, approvals, apply plans, readiness records,
 runtime gates, and human-owned decisions.
 
+## What Must Back A High-Impact Pass
+
+For high-impact or possible-high-impact tasks, a passing plan review must be
+backed by:
+
+- Task Governance;
+- project-native Review Surface authority or equivalent;
+- Verification Plan evidence;
+- Business Rule Closure when business-rule surfaces are required;
+- Change Impact Coverage when destructive data or frontend/backend consistency
+  surfaces are required.
+
+The report may include a derived review-surface matrix, but that matrix is not
+enough by itself. It is a helper view, not the authority.
+
+When read-only subagent review is recommended, `PLAN_REVIEW_PASSED` requires the
+subagent route to be closed or explicitly skipped through the approved route. A
+fallback explanation is not enough to turn an unfinished recommended subagent
+review into a passing plan review.
+
 ## User Experience
 
 For a plan with gaps:
@@ -78,4 +98,3 @@ Plan Review Gate does not:
 - approve implementation;
 - approve release or production;
 - ask users to choose technical review surfaces.
-

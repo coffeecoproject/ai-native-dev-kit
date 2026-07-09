@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.88.0`
+Current version: `1.88.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.88.0`
 
 ## Current Release
 
-`1.88.0`
+`1.88.1`
 
 Includes:
+
+- Plan Review Gate Hardening patch `1.88.1`: high-impact
+  `PLAN_REVIEW_PASSED` reports now require source-chain evidence from Task
+  Governance, Review Surface authority, Verification Plan, and required
+  Business Rule / Change Impact sources. A derived review-surface matrix alone
+  cannot satisfy a high-impact pass, and fallback cannot substitute for
+  recommended subagent review.
+- `1.88.1` remains non-authorizing and keeps the `plan_review` artifact schema
+  compatible with `1.88.0`. It tightens checker interpretation and resolver
+  output without approving implementation, commit, push, release, production,
+  tests, migrations, or project-owner decisions.
 
 - Plan Review Gate phase `1.88.0`: implementation plans are now reviewable
   artifacts before coding. High-impact tasks must bind to Task Governance,
