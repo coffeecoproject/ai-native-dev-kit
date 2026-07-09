@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.87.0`。
+当前版本：`1.87.1`。
 
-发布记录：[releases/1.87.0/release-record.md](releases/1.87.0/release-record.md)。
+发布记录：[releases/1.87.1/release-record.md](releases/1.87.1/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -68,6 +68,15 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.87.1 加严 Release Channel Decoupling：严格来源绑定会解析项目内
+`file:` 引用并重新计算 source digest；没有发布通道风险的 source-only 项目
+不再默认要求发布负责人或成本负责人；发布负责人也区分“记录策略时是否需要”
+和“进入发布评审前必须需要”。
+
+1.87.1 仍然不授权执行。它不执行发布、不上传 GitHub Release 资产、不运行
+GitHub-hosted 发布 workflow、不删除制品、不改 CI、不改生产、不碰密钥、
+不批准发布，也不批准成本。
 
 1.87.0 新增 Release Channel Decoupling：Git、tag 和 GitHub 可以继续作为
 源码与证据系统，但 Codex 不能默认把 GitHub Release、GitHub Actions 制品、

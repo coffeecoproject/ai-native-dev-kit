@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.87.0",
+  "intentOSVersion": "1.87.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.87.0"
+    "phase": "1.87.1"
   },
   "groups": {
     "sourceRequired": [
@@ -362,6 +362,7 @@
       "docs/plans/native-migration-parser-calibration-1.64-plan.md",
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
+      "docs/plans/plan-review-gate-1.88-plan.md",
       "docs/plans/platform-release-recipes-1.59-plan.md",
       "docs/plans/platform-standard-baseline-packs-1.15-plan.md",
       "docs/plans/product-adoption-simplification-1.68-plan.md",
@@ -1681,6 +1682,9 @@
       "releases/1.87.0/known-limitations.md",
       "releases/1.87.0/release-record.md",
       "releases/1.87.0/self-check-report.md",
+      "releases/1.87.1/known-limitations.md",
+      "releases/1.87.1/release-record.md",
+      "releases/1.87.1/self-check-report.md",
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",

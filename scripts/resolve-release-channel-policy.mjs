@@ -93,14 +93,16 @@ function buildEvidence() {
   const sourceIdentity = sourceIdentityFor(detected);
   const githubReleasePolicy = githubReleasePolicyFor(detected);
   const githubActionsPolicy = githubActionsPolicyFor(detected);
-  const billingProfile = githubActionsBillingProfileFor(detected);
+  const billingProfile = githubActionsBillingProfileFor(detected, githubActionsPolicy);
   const costRisk = costRiskFor(detected, githubActionsPolicy, billingProfile);
-  const owners = ownersFor();
   const releasePackageIdentity = releasePackageIdentityFor(detected);
   const artifactPolicy = artifactPolicyFor(releasePackageIdentity);
+  const channel = args.channel ? String(args.channel) : inferChannel({ detected, githubReleasePolicy, githubActionsPolicy, releasePackageIdentity });
+  const owners = ownersFor({ channel, githubReleasePolicy, githubActionsPolicy });
   const effectiveReleaseChannel = effectiveReleaseChannelFor({
     projectType,
     detected,
+    channel,
     githubReleasePolicy,
     githubActionsPolicy,
     costRisk,
@@ -120,7 +122,7 @@ function buildEvidence() {
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "release-channel-policies/generated.md";
   const base = {
-    schema_version: "1.87.0",
+    schema_version: "1.87.1",
     artifact_type: "release_channel_policy",
     release_channel_policy_ref: policyRef,
     release_channel_policy_digest: "sha256:pending",
@@ -226,7 +228,7 @@ function githubReleasePolicyFor(detected) {
 function githubActionsPolicyFor(detected) {
   const workflowDetected = normalizeYesNoUnknown(args["release-workflow-detected"] || (detected.hasTagTrigger || detected.hasReleaseEvent || detected.hasWorkflowDispatch ? "Yes" : "No"));
   const uploadArtifact = normalizeYesNoUnknown(args["actions-artifact-used-as-release-package"] || (detected.hasUploadArtifact ? "Yes" : "No"));
-  const packages = normalizeYesNoUnknown(args["github-packages-used-as-release-package"] || "Unknown");
+  const packages = normalizeYesNoUnknown(args["github-packages-used-as-release-package"] || (detected.hasPackagePublish ? "Unknown" : "No"));
   const hosted = normalizeYesNoUnknown(args["github-hosted-runner-used"] || (workflowDetected === "Yes" ? "Unknown" : "No"));
   const selfHosted = normalizeYesNoUnknown(args["self-hosted-runner-used"] || "Unknown");
   const retention = String(args["artifact-retention-policy-ref"] || (uploadArtifact === "Yes" ? "missing" : "not_applicable"));
@@ -241,15 +243,21 @@ function githubActionsPolicyFor(detected) {
   };
 }
 
-function githubActionsBillingProfileFor() {
+function githubActionsBillingProfileFor(detected, actionsPolicy) {
   const runnerType = String(args["runner-type"] || "unknown");
+  const hasGithubHostedReleaseWork = actionsPolicy.release_workflow_detected === "Yes" || actionsPolicy.actions_artifact_used_as_release_package === "Yes";
+  const defaultActionsMinutesRisk = runnerType === "self_hosted" ? "No"
+    : hasGithubHostedReleaseWork ? "Unknown"
+      : "No";
+  const defaultStorageRisk = actionsPolicy.actions_artifact_used_as_release_package === "Yes" ? "Unknown" : "No";
+  const defaultCacheRisk = detected.hasUploadArtifact || hasGithubHostedReleaseWork ? "Unknown" : "No";
   return {
     repository_visibility: String(args["repository-visibility"] || "unknown"),
     runner_type: runnerType,
     uses_larger_runner: normalizeYesNoUnknown(args["uses-larger-runner"] || "Unknown"),
-    actions_minutes_cost_risk: normalizeYesNoUnknown(args["actions-minutes-cost-risk"] || (runnerType === "self_hosted" ? "No" : "Unknown")),
-    artifact_storage_cost_risk: normalizeYesNoUnknown(args["artifact-storage-cost-risk"] || "Unknown"),
-    cache_storage_cost_risk: normalizeYesNoUnknown(args["cache-storage-cost-risk"] || "Unknown"),
+    actions_minutes_cost_risk: normalizeYesNoUnknown(args["actions-minutes-cost-risk"] || defaultActionsMinutesRisk),
+    artifact_storage_cost_risk: normalizeYesNoUnknown(args["artifact-storage-cost-risk"] || defaultStorageRisk),
+    cache_storage_cost_risk: normalizeYesNoUnknown(args["cache-storage-cost-risk"] || defaultCacheRisk),
     cost_owner_ref: String(args["cost-owner-ref"] || "missing"),
   };
 }
@@ -257,7 +265,7 @@ function githubActionsBillingProfileFor() {
 function costRiskFor(detected, actionsPolicy, billingProfile) {
   const externalRisk = normalizeYesNoUnknown(args["external-provider-cost-risk"] || (detected.hasProviderDeploy ? "Unknown" : "No"));
   const registryRisk = normalizeYesNoUnknown(args["registry-storage-cost-risk"] || (detected.hasDockerPush || detected.hasPackagePublish ? "Unknown" : "No"));
-  const platformRisk = normalizeYesNoUnknown(args["platform-fee-risk"] || "Unknown");
+  const platformRisk = normalizeYesNoUnknown(args["platform-fee-risk"] || (detected.hasProviderDeploy ? "Unknown" : "No"));
   const anyRisk = [
     billingProfile.actions_minutes_cost_risk,
     billingProfile.artifact_storage_cost_risk,
@@ -280,10 +288,13 @@ function costRiskFor(detected, actionsPolicy, billingProfile) {
   };
 }
 
-function ownersFor() {
+function ownersFor({ channel, githubReleasePolicy, githubActionsPolicy }) {
+  const requiredForPolicy = requiresReleaseOwner(channel, githubReleasePolicy, githubActionsPolicy) ? "Yes" : "No";
   return {
-    release_owner_required: "Yes",
-    release_owner_ref: String(args["release-owner-ref"] || "missing"),
+    release_owner_required: requiredForPolicy,
+    release_owner_required_for_policy: requiredForPolicy,
+    release_owner_required_before_release_review: "Yes",
+    release_owner_ref: String(args["release-owner-ref"] || (requiredForPolicy === "Yes" ? "missing" : "not_applicable_until_release_review")),
     cost_owner_ref: String(args["cost-owner-ref"] || "missing"),
     platform_owner_ref: String(args["platform-owner-ref"] || "not_applicable"),
     production_owner_ref: String(args["production-owner-ref"] || "not_applicable"),
@@ -312,9 +323,7 @@ function artifactPolicyFor(releasePackageIdentity) {
   };
 }
 
-function effectiveReleaseChannelFor({ projectType, detected, githubReleasePolicy, githubActionsPolicy, costRisk, owners, releasePackageIdentity }) {
-  const explicitChannel = args.channel ? String(args.channel) : "";
-  const channel = explicitChannel || inferChannel({ detected, githubReleasePolicy, githubActionsPolicy, releasePackageIdentity });
+function effectiveReleaseChannelFor({ projectType, detected, channel, githubReleasePolicy, githubActionsPolicy, costRisk, owners, releasePackageIdentity }) {
   const recommendationClass = String(args["recommendation-class"] || recommendationFor({ projectType, channel, githubReleasePolicy, githubActionsPolicy, detected }));
   const blockedBy = [];
   if (owners.release_owner_ref === "missing" && requiresReleaseOwner(channel, githubReleasePolicy, githubActionsPolicy)) blockedBy.push("missing_release_owner");
@@ -354,13 +363,14 @@ function sourceChainFor(detected) {
 
 function sourceRecord(kind, refValue, scope) {
   const ref = String(refValue || "").trim() || "missing";
+  const projectMatch = scope === "project" && !["missing", "unknown", "not_applicable"].includes(ref) ? "Yes" : "Unknown";
   return {
     source_kind: kind,
     source_ref: ref,
     source_digest: digestSource(ref),
     source_scope_match: scope,
     current_release_candidate_match: scope === "release_candidate" ? "Unknown" : "N/A",
-    project_match: scope === "project" ? "Yes" : "Unknown",
+    project_match: projectMatch,
   };
 }
 
@@ -461,6 +471,8 @@ function renderMarkdown(evidence) {
 | Field | Value |
 | --- | --- |
 | Release owner required | ${evidence.owners.release_owner_required} |
+| Release owner required for policy | ${evidence.owners.release_owner_required_for_policy} |
+| Release owner required before release review | ${evidence.owners.release_owner_required_before_release_review} |
 | Release owner ref | ${evidence.owners.release_owner_ref} |
 | Cost owner ref | ${evidence.owners.cost_owner_ref} |
 | Platform owner ref | ${evidence.owners.platform_owner_ref} |
@@ -669,5 +681,8 @@ function readText(file) {
 }
 
 function digest(value) {
-  return `sha256:${crypto.createHash("sha256").update(String(value)).digest("hex")}`;
+  const hash = crypto.createHash("sha256");
+  if (Buffer.isBuffer(value)) hash.update(value);
+  else hash.update(String(value));
+  return `sha256:${hash.digest("hex")}`;
 }

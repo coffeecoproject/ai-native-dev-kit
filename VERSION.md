@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.87.0`
+Current version: `1.87.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.87.0`
 
 ## Current Release
 
-`1.87.0`
+`1.87.1`
 
 Includes:
+
+- Release Channel Source Binding And Reference Polish patch `1.87.1`: strict
+  release-channel checks now resolve project `file:` refs, recompute
+  `source_digest`, split release-owner timing between policy recording and
+  later release review, and calibrate source-only owner/cost defaults.
+- `1.87.1` remains non-authorizing. It does not execute release, upload GitHub
+  Release assets, run GitHub-hosted release workflows, delete artifacts, change
+  CI, change production, touch secrets, approve release, or approve cost.
 
 - Release Channel Decoupling phase `1.87.0`: Git, tags, and GitHub can stay
   source/evidence systems while release packages, GitHub Release assets,

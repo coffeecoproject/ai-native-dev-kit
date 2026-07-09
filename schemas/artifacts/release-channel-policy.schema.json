@@ -27,7 +27,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.87.0" },
+    "schema_version": { "const": "1.87.1" },
     "artifact_type": { "const": "release_channel_policy" },
     "release_channel_policy_ref": { "type": "string", "minLength": 1 },
     "release_channel_policy_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -216,6 +216,8 @@
       "additionalProperties": false,
       "required": [
         "release_owner_required",
+        "release_owner_required_for_policy",
+        "release_owner_required_before_release_review",
         "release_owner_ref",
         "cost_owner_ref",
         "platform_owner_ref",
@@ -223,6 +225,8 @@
       ],
       "properties": {
         "release_owner_required": { "enum": ["Yes", "No"] },
+        "release_owner_required_for_policy": { "enum": ["Yes", "No"] },
+        "release_owner_required_before_release_review": { "enum": ["Yes", "No"] },
         "release_owner_ref": { "type": "string", "minLength": 1 },
         "cost_owner_ref": { "type": "string", "minLength": 1 },
         "platform_owner_ref": { "type": "string", "minLength": 1 },

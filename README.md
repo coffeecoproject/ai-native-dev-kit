@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.87.0`.
+Current release: `1.87.1`.
 
-Release record: [releases/1.87.0/release-record.md](releases/1.87.0/release-record.md).
+Release record: [releases/1.87.1/release-record.md](releases/1.87.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -67,6 +67,16 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.87.1 hardens Release Channel Decoupling. Strict source binding now resolves
+project `file:` refs and recomputes source digests, source-only projects no
+longer default to release/cost owners when no release channel risk is present,
+and release-owner wording is split between policy recording and later release
+review.
+
+1.87.1 remains non-authorizing. It does not execute release, upload GitHub
+Release assets, run GitHub-hosted release workflows, delete artifacts, change
+CI, change production, touch secrets, approve release, or approve cost.
 
 1.87.0 adds Release Channel Decoupling. It keeps Git, tags, and GitHub usable
 as source/evidence while preventing Codex from silently treating GitHub

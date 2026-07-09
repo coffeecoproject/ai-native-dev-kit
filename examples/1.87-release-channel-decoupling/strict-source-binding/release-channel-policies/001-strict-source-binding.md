@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| Plain user summary | Please choose SOURCE_ONLY_NO_RELEASE_CHANNEL or GITHUB_ACTIONS_ARTIFACT_HANDOFF enum before I continue. |
-| Project type | new_project |
+| Plain user summary | I will keep GitHub for code and evidence, and will not treat GitHub Release assets or Actions artifacts as the release package by default. |
+| Project type | existing_project |
 | Effective release channel | source_only |
-| Recommendation | KEEP_GIT_SOURCE_ONLY_AND_EXTERNAL_RELEASE |
+| Recommendation | KEEP_EXISTING_APPROVED_CHANNEL |
 | Blocked | No |
 | Blocks release review | No |
 | Release approved | No |
@@ -53,13 +53,13 @@
 | --- | --- |
 | Repository visibility | unknown |
 | Runner type | unknown |
-| Actions minutes risk | Unknown |
-| Artifact storage risk | Unknown |
-| Cache storage risk | Unknown |
+| Actions minutes risk | No |
+| Artifact storage risk | No |
+| Cache storage risk | No |
 | External provider cost risk | No |
 | Registry storage cost risk | No |
 | Platform fee risk | No |
-| Cost owner required | Yes |
+| Cost owner required | No |
 | Cost owner ref | not_applicable |
 
 ## Release Package Identity
@@ -80,7 +80,7 @@
 | Release owner required | No |
 | Release owner required for policy | No |
 | Release owner required before release review | Yes |
-| Release owner ref | human-decision:release-owner |
+| Release owner ref | human:release-owner |
 | Cost owner ref | not_applicable |
 | Platform owner ref | not_applicable |
 | Production owner ref | not_applicable |
@@ -91,7 +91,7 @@
 | --- | --- | --- | --- | --- | --- |
 | release_evidence_gate | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | release_candidate | Unknown | Unknown |
 | runtime_hygiene | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | current_task | N/A | Unknown |
-| project_sop | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| project_sop | file:docs/release-sop.md | sha256:8678c17b0f0bb2615c9eea90cbd851579b91ffe080ade1541780de95e1b2c00d | project | N/A | Yes |
 | ci_workflow | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
 | package_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
 | docker_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
@@ -116,11 +116,11 @@
 {
   "schema_version": "1.87.1",
   "artifact_type": "release_channel_policy",
-  "release_channel_policy_ref": "release-channel-policies/001-bad.md",
-  "release_channel_policy_digest": "sha256:2dbdca530fc8a8de7e42f1188f37c42e5fd2f1afe2b852cd7c636d3b35e5160d",
-  "intent": "decide release channel policy",
-  "intent_digest": "sha256:cd325117ede5d7c7bb350b32798d4e75e4297f78144203f5bf9eaa4583b8a130",
-  "project_type": "new_project",
+  "release_channel_policy_ref": "release-channel-policies/001-strict-source-binding.md",
+  "release_channel_policy_digest": "sha256:5d46ad5fbf49e8cca4e6afc59bd7fcea92ddadd06505fb26846b4b79472d8874",
+  "intent": "decide release channel policy with strict source binding",
+  "intent_digest": "sha256:278d339d2b7c76a8fbb0ba4be1667af926901b99dfb0d557d3cebabf3c99c533",
+  "project_type": "existing_project",
   "source_identity": {
     "source_ref": "unknown",
     "source_ref_role": "identity_only",
@@ -132,12 +132,12 @@
   },
   "effective_release_channel": {
     "channel": "source_only",
-    "recommendation_class": "KEEP_GIT_SOURCE_ONLY_AND_EXTERNAL_RELEASE",
+    "recommendation_class": "KEEP_EXISTING_APPROVED_CHANNEL",
     "blocked": "No",
     "blocked_by": [],
-    "current_channel_detected": "No",
-    "current_channel_summary": "No release channel signal detected.",
-    "recommended_channel_summary": "source_only with recommendation KEEP_GIT_SOURCE_ONLY_AND_EXTERNAL_RELEASE."
+    "current_channel_detected": "Yes",
+    "current_channel_summary": "release SOP",
+    "recommended_channel_summary": "source_only with recommendation KEEP_EXISTING_APPROVED_CHANNEL."
   },
   "github_release_policy": {
     "github_release_used": "No",
@@ -166,24 +166,24 @@
     "cost_owner_ref": "not_applicable"
   },
   "cost_risk": {
-    "github_actions_minutes_risk": "Unknown",
-    "github_actions_artifact_storage_risk": "Unknown",
-    "github_actions_cache_storage_risk": "Unknown",
+    "github_actions_minutes_risk": "No",
+    "github_actions_artifact_storage_risk": "No",
+    "github_actions_cache_storage_risk": "No",
     "github_packages_risk": "No",
     "external_provider_cost_risk": "No",
     "registry_storage_cost_risk": "No",
     "app_store_or_platform_fee_risk": "No",
-    "cost_owner_required": "Yes",
+    "cost_owner_required": "No",
     "cost_owner_ref": "not_applicable"
   },
   "owners": {
     "release_owner_required": "No",
-    "release_owner_ref": "human-decision:release-owner",
+    "release_owner_required_for_policy": "No",
+    "release_owner_required_before_release_review": "Yes",
+    "release_owner_ref": "human:release-owner",
     "cost_owner_ref": "not_applicable",
     "platform_owner_ref": "not_applicable",
-    "production_owner_ref": "not_applicable",
-    "release_owner_required_for_policy": "No",
-    "release_owner_required_before_release_review": "Yes"
+    "production_owner_ref": "not_applicable"
   },
   "release_package_identity": {
     "identity_type": "none",
@@ -215,11 +215,11 @@
     },
     {
       "source_kind": "project_sop",
-      "source_ref": "missing",
-      "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
+      "source_ref": "file:docs/release-sop.md",
+      "source_digest": "sha256:8678c17b0f0bb2615c9eea90cbd851579b91ffe080ade1541780de95e1b2c00d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Unknown"
+      "project_match": "Yes"
     },
     {
       "source_kind": "ci_workflow",
@@ -269,7 +269,7 @@
     "needs_release_owner_decision": "No",
     "needs_cost_owner_decision": "No",
     "blocks_release_review": "No",
-    "plain_user_summary": "Please choose SOURCE_ONLY_NO_RELEASE_CHANNEL or GITHUB_ACTIONS_ARTIFACT_HANDOFF enum before I continue."
+    "plain_user_summary": "I will keep GitHub for code and evidence, and will not treat GitHub Release assets or Actions artifacts as the release package by default."
   },
   "boundaries": {
     "approves_release": "No",

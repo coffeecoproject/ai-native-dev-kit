@@ -9951,6 +9951,8 @@ function checkReleaseChannelDecouplingProtocol() {
     "examples/1.87-release-channel-decoupling/github-release-assets-review-needed/release-channel-policies/001-github-release-assets.md",
     "examples/1.87-release-channel-decoupling/actions-artifact-package-blocked/release-channel-policies/001-actions-artifact-blocked.md",
     "examples/1.87-release-channel-decoupling/tag-source-identity-only/release-channel-policies/001-tag-identity-only.md",
+    "examples/1.87-release-channel-decoupling/strict-source-binding/docs/release-sop.md",
+    "examples/1.87-release-channel-decoupling/strict-source-binding/release-channel-policies/001-strict-source-binding.md",
     "test-fixtures/bad/bad-release-channel-github-release-auto-approved/release-channel-policies/001-bad.md",
     "test-fixtures/bad/bad-release-channel-actions-artifact-long-lived/release-channel-policies/001-bad.md",
     "test-fixtures/bad/bad-release-channel-tag-push-production/release-channel-policies/001-bad.md",
@@ -9962,9 +9964,15 @@ function checkReleaseChannelDecouplingProtocol() {
     "test-fixtures/bad/bad-release-channel-github-source-only-conflict/release-channel-policies/001-bad.md",
     "test-fixtures/bad/bad-release-channel-provider-owner-missing/release-channel-policies/001-bad.md",
     "test-fixtures/bad/bad-release-channel-package-identity-unknown/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-source-digest-mismatch/docs/release-sop.md",
+    "test-fixtures/bad/bad-release-channel-source-digest-mismatch/release-channel-policies/001-bad.md",
+    "test-fixtures/bad/bad-release-channel-required-source-missing/release-channel-policies/001-bad.md",
     "releases/1.87.0/release-record.md",
     "releases/1.87.0/known-limitations.md",
     "releases/1.87.0/self-check-report.md",
+    "releases/1.87.1/release-record.md",
+    "releases/1.87.1/known-limitations.md",
+    "releases/1.87.1/self-check-report.md",
   ];
   for (const file of required) {
     if (exists(file)) pass(`1.87 release channel asset exists ${file}`);
@@ -9986,6 +9994,7 @@ function checkReleaseChannelDecouplingProtocol() {
     read("scripts/check-release-channel-policy.mjs"),
     read("scripts/cli.mjs"),
     exists("releases/1.87.0/release-record.md") ? read("releases/1.87.0/release-record.md") : "",
+    exists("releases/1.87.1/release-record.md") ? read("releases/1.87.1/release-record.md") : "",
   ].join("\n");
   for (const marker of [
     "Release Channel Decoupling",
@@ -10002,6 +10011,9 @@ function checkReleaseChannelDecouplingProtocol() {
     "release package identity",
     "cost owner",
     "retention policy",
+    "strict-source-binding",
+    "source_digest",
+    "release_owner_required_for_policy",
     "does not approve release",
     "does not execute release",
     "does not upload GitHub Release assets",
@@ -10018,6 +10030,7 @@ function checkReleaseChannelDecouplingProtocol() {
     ["github-release-assets-review-needed", "release-channel-policies/001-github-release-assets.md", []],
     ["actions-artifact-package-blocked", "release-channel-policies/001-actions-artifact-blocked.md", []],
     ["tag-source-identity-only", "release-channel-policies/001-tag-identity-only.md", []],
+    ["strict-source-binding", "release-channel-policies/001-strict-source-binding.md", ["--strict-source-binding"]],
   ];
   for (const [name, report, extra] of examples) {
     const result = runNode([
@@ -10046,15 +10059,18 @@ function checkReleaseChannelDecouplingProtocol() {
     ["bad-release-channel-notes-only-release-workflow", "notes-only GitHub Release with on: release workflow requires release owner review"],
     ["bad-release-channel-github-source-only-conflict", "cannot claim GitHub source/evidence-only while release assets are uploaded"],
     ["bad-release-channel-provider-owner-missing", "provider_direct_deploy requires release owner or blocked state"],
-    ["bad-release-channel-package-identity-unknown", "release package channel requires package identity before ready state"],
+    ["bad-release-channel-package-identity-unknown", "release package channel requires package identity before ready state", []],
+    ["bad-release-channel-source-digest-mismatch", "source project_sop digest mismatch", ["--strict-source-binding"]],
+    ["bad-release-channel-required-source-missing", "strict source binding requires project_sop with resolved ref", ["--strict-source-binding"]],
   ];
-  for (const [name, expected] of badFixtureCases) {
+  for (const [name, expected, extra = []] of badFixtureCases) {
     const result = runNode([
       "scripts/check-release-channel-policy.mjs",
       `test-fixtures/bad/${name}`,
       "--report",
       "release-channel-policies/001-bad.md",
       "--require-structured-evidence",
+      ...extra,
     ]);
     const output = `${result.stdout}\n${result.stderr}`;
     if (result.status !== 0 && output.includes(expected)) {
@@ -10075,6 +10091,7 @@ function checkReleaseChannelDecouplingProtocol() {
     "node scripts/cli.mjs release-channel . --intent \"decide release channel policy\"",
     "node scripts/cli.mjs release-channel-check . --allow-empty",
     "node scripts/check-release-channel-policy.mjs examples/1.87-release-channel-decoupling/new-project-source-only --require-structured-evidence",
+    "node scripts/check-release-channel-policy.mjs examples/1.87-release-channel-decoupling/strict-source-binding --require-structured-evidence --strict-source-binding",
   ]) {
     if (releaseChannelVerifySurface.includes(marker)) pass(`1.87 package verify includes ${marker}`);
     else fail(`1.87 package verify missing ${marker}`);

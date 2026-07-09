@@ -43,7 +43,7 @@
 | GitHub-hosted runner used | No |
 | Self-hosted runner used | Unknown |
 | Actions artifact used as release package | No |
-| GitHub Packages used as release package | Unknown |
+| GitHub Packages used as release package | No |
 | Artifact retention policy ref | not_applicable |
 | Policy state | DISABLED |
 
@@ -77,8 +77,10 @@
 
 | Field | Value |
 | --- | --- |
-| Release owner required | Yes |
-| Release owner ref | human-decision:release-owner-later |
+| Release owner required | No |
+| Release owner required for policy | No |
+| Release owner required before release review | Yes |
+| Release owner ref | not_applicable_until_release_review |
 | Cost owner ref | not_applicable |
 | Platform owner ref | not_applicable |
 | Production owner ref | not_applicable |
@@ -89,11 +91,11 @@
 | --- | --- | --- | --- | --- | --- |
 | release_evidence_gate | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | release_candidate | Unknown | Unknown |
 | runtime_hygiene | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | current_task | N/A | Unknown |
-| project_sop | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| ci_workflow | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| package_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| docker_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| provider_config | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | project | N/A | Yes |
+| project_sop | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| ci_workflow | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| package_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| docker_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| provider_config | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | project | N/A | Unknown |
 | manual_observation | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | not_applicable | N/A | Unknown |
 
 ## Boundaries
@@ -112,10 +114,10 @@
 
 ```json
 {
-  "schema_version": "1.87.0",
+  "schema_version": "1.87.1",
   "artifact_type": "release_channel_policy",
   "release_channel_policy_ref": "release-channel-policies/001-source-only.md",
-  "release_channel_policy_digest": "sha256:973c6c13073ecbc853237f964658fec091fdf42eb9eb9bbeca6129a7feb512cc",
+  "release_channel_policy_digest": "sha256:b00b93911fd0d4cce0b905d8ce142d203ed784c8e428db66f90ab31f590d4593",
   "intent": "decide release channel policy",
   "intent_digest": "sha256:cd325117ede5d7c7bb350b32798d4e75e4297f78144203f5bf9eaa4583b8a130",
   "project_type": "new_project",
@@ -150,7 +152,7 @@
     "github_hosted_runner_used": "No",
     "self_hosted_runner_used": "Unknown",
     "actions_artifact_used_as_release_package": "No",
-    "github_packages_used_as_release_package": "Unknown",
+    "github_packages_used_as_release_package": "No",
     "artifact_retention_policy_ref": "not_applicable",
     "policy_state": "DISABLED"
   },
@@ -175,11 +177,13 @@
     "cost_owner_ref": "not_applicable"
   },
   "owners": {
-    "release_owner_required": "Yes",
-    "release_owner_ref": "human-decision:release-owner-later",
+    "release_owner_required": "No",
+    "release_owner_ref": "not_applicable_until_release_review",
     "cost_owner_ref": "not_applicable",
     "platform_owner_ref": "not_applicable",
-    "production_owner_ref": "not_applicable"
+    "production_owner_ref": "not_applicable",
+    "release_owner_required_for_policy": "No",
+    "release_owner_required_before_release_review": "Yes"
   },
   "release_package_identity": {
     "identity_type": "none",
@@ -215,7 +219,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "ci_workflow",
@@ -223,7 +227,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "package_config",
@@ -231,7 +235,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "docker_config",
@@ -239,7 +243,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "provider_config",
@@ -247,7 +251,7 @@
       "source_digest": "sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "manual_observation",

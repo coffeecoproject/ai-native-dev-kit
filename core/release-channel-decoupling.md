@@ -37,3 +37,22 @@ mapped. Unsafe or unclear GitHub Release assets, Actions artifacts, tag-triggere
 release workflows, provider deploys, registries, or server release scripts are
 blocked until owner, cost, retention, and production-side-effect evidence exists.
 
+## Strict Source Binding
+
+Strict checks must resolve project `file:` refs and compare the recorded
+`source_digest` with the current file bytes. Listing a source kind is not enough.
+If a release SOP, CI workflow, package config, Docker config, or provider config
+is required by the selected channel, the report must point to the concrete
+project source or stay blocked.
+
+## Owner Timing
+
+Release ownership has two separate meanings:
+
+- policy recording ownership: whether the current release-channel policy report
+  itself needs a release owner;
+- release review ownership: whether a future release review needs a release
+  owner before any handoff, upload, production action, or external release step.
+
+Source-only policy records can be unblocked without a release owner. Release
+review still requires a release owner later.

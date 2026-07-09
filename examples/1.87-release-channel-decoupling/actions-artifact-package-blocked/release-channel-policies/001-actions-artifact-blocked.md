@@ -58,7 +58,7 @@
 | Cache storage risk | Unknown |
 | External provider cost risk | No |
 | Registry storage cost risk | No |
-| Platform fee risk | Unknown |
+| Platform fee risk | No |
 | Cost owner required | Yes |
 | Cost owner ref | human-decision:cost-owner-review |
 
@@ -78,6 +78,8 @@
 | Field | Value |
 | --- | --- |
 | Release owner required | Yes |
+| Release owner required for policy | Yes |
+| Release owner required before release review | Yes |
 | Release owner ref | human-decision:release-owner-review |
 | Cost owner ref | human-decision:cost-owner-review |
 | Platform owner ref | not_applicable |
@@ -89,11 +91,11 @@
 | --- | --- | --- | --- | --- | --- |
 | release_evidence_gate | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | release_candidate | Unknown | Unknown |
 | runtime_hygiene | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | current_task | N/A | Unknown |
-| project_sop | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| ci_workflow | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| package_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| docker_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| provider_config | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | project | N/A | Yes |
+| project_sop | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| ci_workflow | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| package_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| docker_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| provider_config | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | project | N/A | Unknown |
 | manual_observation | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | not_applicable | N/A | Unknown |
 
 ## Boundaries
@@ -112,10 +114,10 @@
 
 ```json
 {
-  "schema_version": "1.87.0",
+  "schema_version": "1.87.1",
   "artifact_type": "release_channel_policy",
   "release_channel_policy_ref": "release-channel-policies/001-actions-artifact-blocked.md",
-  "release_channel_policy_digest": "sha256:25f0e49133be4c3a96f59fefc73ce701e800bbec245a1efbb7e7995e5b230086",
+  "release_channel_policy_digest": "sha256:7d52d4186cf348e33080bee519cc2e2309cd07062c97d7971e356c93650db991",
   "intent": "decide release channel policy",
   "intent_digest": "sha256:cd325117ede5d7c7bb350b32798d4e75e4297f78144203f5bf9eaa4583b8a130",
   "project_type": "existing_project",
@@ -172,7 +174,7 @@
     "github_packages_risk": "No",
     "external_provider_cost_risk": "No",
     "registry_storage_cost_risk": "No",
-    "app_store_or_platform_fee_risk": "Unknown",
+    "app_store_or_platform_fee_risk": "No",
     "cost_owner_required": "Yes",
     "cost_owner_ref": "human-decision:cost-owner-review"
   },
@@ -181,7 +183,9 @@
     "release_owner_ref": "human-decision:release-owner-review",
     "cost_owner_ref": "human-decision:cost-owner-review",
     "platform_owner_ref": "not_applicable",
-    "production_owner_ref": "not_applicable"
+    "production_owner_ref": "not_applicable",
+    "release_owner_required_for_policy": "Yes",
+    "release_owner_required_before_release_review": "Yes"
   },
   "release_package_identity": {
     "identity_type": "file_digest",
@@ -217,7 +221,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "ci_workflow",
@@ -225,7 +229,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "package_config",
@@ -233,7 +237,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "docker_config",
@@ -241,7 +245,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "provider_config",
@@ -249,7 +253,7 @@
       "source_digest": "sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "manual_observation",

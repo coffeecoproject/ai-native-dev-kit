@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
@@ -183,8 +184,8 @@ function checkStructuredEvidence(content, label, file, evidence) {
 
   if (evidence.artifact_type === "release_channel_policy") pass(`${label} artifact_type is release_channel_policy`);
   else fail(`${label} artifact_type must be release_channel_policy`);
-  if (evidence.schema_version === "1.87.0") pass(`${label} schema_version is 1.87.0`);
-  else fail(`${label} schema_version must be 1.87.0`);
+  if (evidence.schema_version === "1.87.1") pass(`${label} schema_version is 1.87.1`);
+  else fail(`${label} schema_version must be 1.87.1`);
   if (stripMarkdown(sectionBody(content, "Outcome") || "").includes(evidence.outcome)) pass(`${label} Outcome includes structured state`);
   else fail(`${label} Outcome must include structured state`);
 
@@ -220,6 +221,20 @@ function checkPolicyConsistency(label, evidence) {
   const artifact = evidence.artifact_policy || {};
   const decision = evidence.decision || {};
 
+  if (owners.release_owner_required === owners.release_owner_required_for_policy) {
+    pass(`${label} release owner policy timing is explicit`);
+  } else {
+    fail(`${label} release_owner_required must match release_owner_required_for_policy`);
+  }
+  if (owners.release_owner_required_before_release_review === "Yes") {
+    pass(`${label} release owner is required before release review`);
+  } else {
+    fail(`${label} release_owner_required_before_release_review must be Yes`);
+  }
+  if (channel.channel === "source_only" && actionsPolicy.release_workflow_detected !== "Yes" && releasePolicy.release_event_workflow_detected !== "Yes") {
+    if (owners.release_owner_required_for_policy === "No") pass(`${label} source-only policy does not require release owner to record policy`);
+    else fail(`${label} source-only policy should not require release owner until release review`);
+  }
   if (evidence.source_identity?.source_ref_role === "release_trigger" || evidence.source_identity?.tag_triggers_release_workflow === "Yes") {
     if (owners.release_owner_ref !== "missing") pass(`${label} tag-triggered release has release owner`);
     else fail(`${label} tag-triggered release workflow requires release owner evidence`);
@@ -275,22 +290,82 @@ function checkPolicyConsistency(label, evidence) {
 
 function checkSourceBinding(label, evidence) {
   const sources = Array.isArray(evidence.source_chain) ? evidence.source_chain : [];
-  const sourceKinds = new Set(sources.map((source) => source.source_kind));
+  const sourcesByKind = new Map(sources.map((source) => [source.source_kind, source]));
   const actions = evidence.github_actions_policy || {};
   const channel = evidence.effective_release_channel || {};
-  if (actions.release_workflow_detected === "Yes") requireSource(sourceKinds, "ci_workflow", label);
-  if (["package_registry"].includes(channel.channel)) requireSource(sourceKinds, "package_config", label);
-  if (["docker_registry"].includes(channel.channel)) requireSource(sourceKinds, "docker_config", label);
-  if (evidence.effective_release_channel?.recommendation_class === "KEEP_EXISTING_APPROVED_CHANNEL") requireSource(sourceKinds, "project_sop", label);
+  if (actions.release_workflow_detected === "Yes") requireResolvedSource(sourcesByKind, "ci_workflow", label);
+  if (["package_registry"].includes(channel.channel)) requireResolvedSource(sourcesByKind, "package_config", label);
+  if (["docker_registry"].includes(channel.channel)) requireResolvedSource(sourcesByKind, "docker_config", label);
+  if (evidence.effective_release_channel?.recommendation_class === "KEEP_EXISTING_APPROVED_CHANNEL") requireResolvedSource(sourcesByKind, "project_sop", label);
   for (const source of sources) {
     if (["current_task", "release_candidate", "project", "unknown", "not_applicable"].includes(source.source_scope_match)) pass(`${label} source ${source.source_kind} uses valid scope match`);
     else fail(`${label} source ${source.source_kind} has invalid scope match`);
+    checkSourceRefDigest(label, source, { required: false });
   }
 }
 
-function requireSource(sourceKinds, kind, label) {
-  if (sourceKinds.has(kind)) pass(`${label} strict source binding includes ${kind}`);
-  else fail(`${label} strict source binding requires ${kind}`);
+function requireResolvedSource(sourcesByKind, kind, label) {
+  const source = sourcesByKind.get(kind);
+  if (!source) {
+    fail(`${label} strict source binding requires ${kind}`);
+    return;
+  }
+  if (isMissingSourceRef(source.source_ref)) {
+    fail(`${label} strict source binding requires ${kind} with resolved ref`);
+    return;
+  }
+  checkSourceRefDigest(label, source, { required: true });
+}
+
+function checkSourceRefDigest(label, source, { required }) {
+  const ref = String(source.source_ref || "");
+  if (isMissingSourceRef(ref)) {
+    if (required) fail(`${label} source ${source.source_kind} has missing required source_ref`);
+    else pass(`${label} source ${source.source_kind} has optional unresolved source_ref`);
+    return;
+  }
+  if (ref === "not_applicable") {
+    if (required) fail(`${label} source ${source.source_kind} cannot use not_applicable for required source`);
+    else pass(`${label} source ${source.source_kind} is not applicable`);
+    return;
+  }
+  if (ref.startsWith("file:")) {
+    const resolved = resolveFileSource(ref);
+    if (!resolved.ok) {
+      fail(`${label} source ${source.source_kind} ${resolved.error}`);
+      return;
+    }
+    const actualDigest = digest(fs.readFileSync(resolved.file));
+    if (source.source_digest === actualDigest) pass(`${label} source ${source.source_kind} file digest matches`);
+    else fail(`${label} source ${source.source_kind} digest mismatch: expected ${actualDigest}, got ${source.source_digest}`);
+    if (source.source_scope_match === "project" && source.project_match === "Yes") pass(`${label} source ${source.source_kind} belongs to project`);
+    else if (source.source_scope_match === "project") fail(`${label} source ${source.source_kind} project source must have project_match Yes`);
+    return;
+  }
+  const expectedDigest = digest(ref);
+  if (source.source_digest === expectedDigest) pass(`${label} source ${source.source_kind} ref digest matches`);
+  else fail(`${label} source ${source.source_kind} ref digest mismatch: expected ${expectedDigest}, got ${source.source_digest}`);
+}
+
+function isMissingSourceRef(ref) {
+  return !ref || ref === "missing" || ref === "unknown";
+}
+
+function resolveFileSource(ref) {
+  const raw = ref.slice("file:".length);
+  if (!raw || path.isAbsolute(raw) || raw.includes("\0")) return { ok: false, error: "file source must be a relative file path" };
+  const resolved = path.resolve(projectRoot, raw);
+  const relative = path.relative(projectRoot, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) return { ok: false, error: "file source escapes project root" };
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) return { ok: false, error: `file source does not exist: ${ref}` };
+  return { ok: true, file: resolved };
+}
+
+function digest(value) {
+  const hash = crypto.createHash("sha256");
+  if (Buffer.isBuffer(value)) hash.update(value);
+  else hash.update(String(value));
+  return `sha256:${hash.digest("hex")}`;
 }
 
 function hasTechnicalBurden(value) {

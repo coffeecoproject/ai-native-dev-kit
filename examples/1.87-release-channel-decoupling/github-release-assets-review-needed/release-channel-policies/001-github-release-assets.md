@@ -78,6 +78,8 @@
 | Field | Value |
 | --- | --- |
 | Release owner required | Yes |
+| Release owner required for policy | Yes |
+| Release owner required before release review | Yes |
 | Release owner ref | missing |
 | Cost owner ref | missing |
 | Platform owner ref | not_applicable |
@@ -89,11 +91,11 @@
 | --- | --- | --- | --- | --- | --- |
 | release_evidence_gate | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | release_candidate | Unknown | Unknown |
 | runtime_hygiene | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | current_task | N/A | Unknown |
-| project_sop | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| ci_workflow | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| package_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| docker_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Yes |
-| provider_config | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | project | N/A | Yes |
+| project_sop | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| ci_workflow | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| package_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| docker_config | missing | sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d | project | N/A | Unknown |
+| provider_config | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | project | N/A | Unknown |
 | manual_observation | not_applicable | sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e | not_applicable | N/A | Unknown |
 
 ## Boundaries
@@ -112,10 +114,10 @@
 
 ```json
 {
-  "schema_version": "1.87.0",
+  "schema_version": "1.87.1",
   "artifact_type": "release_channel_policy",
   "release_channel_policy_ref": "release-channel-policies/001-github-release-assets.md",
-  "release_channel_policy_digest": "sha256:cd359999c9a44da161c0a85d5c4242ddc8e317f7232dbca611b0d223731e59cc",
+  "release_channel_policy_digest": "sha256:6f81d161b4b1f0926d40a8100445913ab128276c0d13fe3176aff12f2b13f8c5",
   "intent": "decide release channel policy",
   "intent_digest": "sha256:cd325117ede5d7c7bb350b32798d4e75e4297f78144203f5bf9eaa4583b8a130",
   "project_type": "existing_project",
@@ -182,7 +184,9 @@
     "release_owner_ref": "missing",
     "cost_owner_ref": "missing",
     "platform_owner_ref": "not_applicable",
-    "production_owner_ref": "not_applicable"
+    "production_owner_ref": "not_applicable",
+    "release_owner_required_for_policy": "Yes",
+    "release_owner_required_before_release_review": "Yes"
   },
   "release_package_identity": {
     "identity_type": "file_digest",
@@ -218,7 +222,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "ci_workflow",
@@ -226,7 +230,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "package_config",
@@ -234,7 +238,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "docker_config",
@@ -242,7 +246,7 @@
       "source_digest": "sha256:ffa63583dfa6706b87d284b86b0d693a161e4840aad2c5cf6b5d27c3b9621f7d",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "provider_config",
@@ -250,7 +254,7 @@
       "source_digest": "sha256:243ffa2eeced1cbfa18357fe8edf03833381b9a83359bf0930ae5e8e862ab30e",
       "source_scope_match": "project",
       "current_release_candidate_match": "N/A",
-      "project_match": "Yes"
+      "project_match": "Unknown"
     },
     {
       "source_kind": "manual_observation",
