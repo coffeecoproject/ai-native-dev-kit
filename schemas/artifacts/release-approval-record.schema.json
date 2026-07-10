@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "1.93.0",
+  "artifactType": "release_approval_record",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "release_approval_digest",
+    "project_identity",
+    "release_candidate",
+    "trust_sources",
+    "release_controls",
+    "human_approval",
+    "allowed_codex_actions",
+    "blocked_actions",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.93.0" },
+    "artifact_type": { "const": "release_approval_record" },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "release_approval_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "project_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fingerprint", "revision"],
+      "properties": {
+        "kind": { "enum": ["GIT", "NON_GIT"] },
+        "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "release_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_target", "candidate_ref", "candidate_digest", "source_revision", "package_identity_type", "package_identity_ref", "package_identity_digest_or_id"],
+      "properties": {
+        "release_target": { "enum": ["preview", "internal_trial", "staging", "production_review", "app_store_review", "mini_program_review"] },
+        "candidate_ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
+        "candidate_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "source_revision": { "type": "string", "minLength": 1 },
+        "package_identity_type": { "enum": ["none", "file_digest", "docker_digest", "package_version", "store_build_id", "mini_program_version", "provider_deployment_id"] },
+        "package_identity_ref": { "type": "string", "minLength": 1 },
+        "package_identity_digest_or_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "trust_sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_evidence_gate", "runtime_hygiene", "release_channel_policy", "platform_recipe", "release_handoff_pack"],
+      "properties": {
+        "release_evidence_gate": { "$ref": "#/$defs/requiredSource" },
+        "runtime_hygiene": { "$ref": "#/$defs/requiredSource" },
+        "release_channel_policy": { "$ref": "#/$defs/requiredSource" },
+        "platform_recipe": { "$ref": "#/$defs/optionalSource" },
+        "release_handoff_pack": { "$ref": "#/$defs/optionalSource" }
+      }
+    },
+    "release_controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_owner_ref", "release_sop_ref", "release_sop_digest", "rollback_ref", "rollback_digest", "monitoring_ref", "monitoring_digest", "post_release_smoke_ref", "post_release_smoke_digest"],
+      "properties": {
+        "release_owner_ref": { "type": "string", "pattern": "^(human|team|role):[^\\s]+$" },
+        "release_sop_ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
+        "release_sop_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "rollback_ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
+        "rollback_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "monitoring_ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
+        "monitoring_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "post_release_smoke_ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
+        "post_release_smoke_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "human_approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approval_status", "approval_owner_type", "approved_by", "approved_at", "expires_at", "approved_scope"],
+      "properties": {
+        "approval_status": { "enum": ["PENDING", "APPROVED", "REJECTED", "EXPIRED", "INVALIDATED"] },
+        "approval_owner_type": { "const": "HUMAN" },
+        "approved_by": { "type": "string", "minLength": 1 },
+        "approved_at": { "type": "string", "minLength": 1 },
+        "expires_at": { "type": "string", "minLength": 1 },
+        "approved_scope": { "type": "string", "minLength": 1 }
+      }
+    },
+    "allowed_codex_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["VERIFY", "BUILD", "PACKAGE", "EVIDENCE_CAPTURE", "HANDOFF_PREPARATION", "POST_RELEASE_READ_ONLY_SMOKE"] }
+    },
+    "blocked_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["PRODUCTION_DEPLOY", "STORE_SUBMISSION", "MINI_PROGRAM_RELEASE", "PRODUCTION_MIGRATION", "SECRETS", "DNS", "PAYMENT", "PERMISSIONS", "PRODUCTION_CONFIG", "ROLLBACK_EXECUTION"] }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codex_release_owner", "automatic_production_deploy", "codex_store_or_mini_program_submission", "codex_high_risk_production_changes", "proves_product_or_production_safety"],
+      "properties": {
+        "codex_release_owner": { "const": "No" },
+        "automatic_production_deploy": { "const": "No" },
+        "codex_store_or_mini_program_submission": { "const": "No" },
+        "codex_high_risk_production_changes": { "const": "No" },
+        "proves_product_or_production_safety": { "const": "No" }
+      }
+    },
+    "outcome": { "enum": ["RELEASE_APPROVAL_PENDING", "RELEASE_APPROVAL_VALID", "RELEASE_APPROVAL_REJECTED", "RELEASE_APPROVAL_EXPIRED", "RELEASE_APPROVAL_INVALIDATED"] }
+  },
+  "$defs": {
+    "requiredSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest"],
+      "properties": {
+        "ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
+        "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "optionalSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "ref", "digest"],
+      "properties": {
+        "required": { "enum": ["Yes", "No"] },
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "additionalProperties": false
+}

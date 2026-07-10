@@ -29,7 +29,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "enum": ["1.86.0", "1.86.1"] },
+    "schema_version": { "enum": ["1.86.0", "1.86.1", "1.93.0"] },
     "artifact_type": { "const": "runtime_hygiene" },
     "runtime_hygiene_ref": { "type": "string", "minLength": 1 },
     "runtime_hygiene_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -100,6 +100,7 @@
         "STRUCTURE_BUDGET_EXCEEDED",
         "CI_CODE_FAILURE",
         "CI_ENVIRONMENT_FAILURE",
+        "RELEASE_PREFLIGHT_READY",
         "RELEASE_PREFLIGHT_FAILED",
         "ARTIFACT_QUOTA_BLOCKED",
         "RELEASE_BUNDLE_OVERSIZED",
@@ -111,6 +112,7 @@
       "enum": [
         "CAN_CONTINUE_AUTOMATICALLY",
         "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR",
+        "CAN_CONTINUE_TO_RELEASE_REVIEW",
         "NEEDS_PLAIN_USER_APPROVAL",
         "NEEDS_RELEASE_OWNER_APPROVAL",
         "BLOCKED_BY_IRREVERSIBLE_ACTION",
@@ -295,6 +297,16 @@
         "approval_scope": { "type": "string", "minLength": 1 }
       }
     },
+    "release_trust_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_candidate_ref", "release_candidate_digest", "source_revision"],
+      "properties": {
+        "release_candidate_ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
+        "release_candidate_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "source_revision": { "type": "string", "minLength": 1 }
+      }
+    },
     "task_continuation": {
       "type": "object",
       "additionalProperties": false,
@@ -309,6 +321,7 @@
       "enum": [
         "CAN_CONTINUE_AUTOMATICALLY",
         "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR",
+        "CAN_CONTINUE_TO_RELEASE_REVIEW",
         "NEEDS_PLAIN_USER_APPROVAL",
         "NEEDS_RELEASE_OWNER_APPROVAL",
         "BLOCKED_BY_IRREVERSIBLE_ACTION",

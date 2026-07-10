@@ -82,8 +82,9 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs release-recipe-check <project>` | Check recorded Platform Release Recipes | No |
 | `node scripts/cli.mjs release-handoff <project> --intent "<goal>"` | Prepare a bounded release handoff pack without executing release commands | No |
 | `node scripts/cli.mjs release-handoff-check <project>` | Check recorded Release Handoff Packs | No |
-| `node scripts/cli.mjs release-execution <project> --intent "<goal>" --mode PLAN_ONLY` | Plan bounded release execution after launch review and human release approval | No |
-| `node scripts/cli.mjs release-execution-check <project>` | Check recorded Release Execution Plans | No |
+| `node scripts/cli.mjs release-approval-check <project> --require-structured-evidence --require-approved` | Verify one project-bound human Release Approval Record and its exact strict authority chain | No |
+| `node scripts/cli.mjs release-execution <project> --intent "<goal>" --mode PLAN_ONLY` | Derive a bounded release execution plan from the strict release trust chain | No |
+| `node scripts/cli.mjs release-execution-check <project> --require-release-trust` | Check recorded Release Execution Plans and rerun their exact release authority inputs | No |
 | `node scripts/cli.mjs release-plan <project> --intent "<goal>"` | Summarize release source systems into one pure-view Release Plan without approving or executing release | No |
 | `node scripts/cli.mjs release-check <project>` | Check recorded Release Plans for pure-view, trace, and existing-project rule-comparison boundaries | No |
 | `node scripts/cli.mjs release-evidence <project> --intent "<goal>" --release-target preview` | Prepare a Release Evidence Gate report for release-owner review without approving release | No by default; writes only the requested report file with `--out` |
@@ -295,9 +296,11 @@ project-owned rules.
 
 `scripts/check-launch-review-view.mjs` checks recorded Launch Review Views. It rejects missing Unified Closure input, invented launch labels, `READY_FOR_RELEASE_REVIEW` without `DONE` closure, missing rollback/monitoring/release-owner/post-launch-smoke evidence for release review, release/production approval claims, deploy/publish/submit claims, and attempts to replace Unified Closure, Safe Launch, or project release SOPs.
 
-`scripts/resolve-release-execution.mjs` is the 1.56 release execution entry. It reads or generates Launch Review View input, reads optional human approval evidence, classifies the execution mode, lists preconditions, classifies step ownership, and prints one Release Execution Plan. It does not write target-project files, approve release, deploy, publish, submit review, run migrations, change production configuration, change secrets/DNS/CI/hooks/payment/permissions/app-store/mini-program settings, or make Codex the release owner.
+`scripts/resolve-release-execution.mjs` is the release execution entry. From 1.93, only a current structured Release Approval Record can unlock a handoff or bounded assisted mode. The resolver binds and reuses its exact Release Evidence Gate, Runtime Hygiene, Release Channel Policy, recipe, handoff, candidate, package, project, and revision inputs. It does not write target-project files, approve release, deploy, publish, submit review, run migrations, change production configuration, change secrets/DNS/CI/hooks/payment/permissions/app-store/mini-program settings, or make Codex the release owner.
 
-`scripts/check-release-execution.mjs` checks recorded Release Execution Plans. It rejects missing Launch Review input, real execution without scoped Human Release Approval, unsafe `ASSISTED_EXECUTION`, high-risk production steps assigned to Codex, release/production approval claims, and attempts to treat Launch Review View as release approval.
+`scripts/check-release-approval-record.mjs` validates one exact human Release Approval Record, recomputes project and Git identity, candidate and source digests, expiry, owner, target, package, allowed action bounds, and reruns every required strict upstream checker.
+
+`scripts/check-release-execution.mjs` checks recorded Release Execution Plans. With `--require-release-trust`, it rejects missing, copied, stale, mismatched, expired, non-human, or weak release authority; unsafe `ASSISTED_EXECUTION`; high-risk production steps assigned to Codex; release/production approval claims; and attempts to treat Launch Review View, prose, tags, or command-line flags as approval.
 
 `scripts/resolve-release-adapter.mjs` is the 1.57 beginner release adapter entry. It reads project files, detects platform/build/test/deployment signals, recommends a safe first release target, records missing inputs, and prints one Release Adapter Profile. It does not write target-project files, approve release, deploy production, ask for secrets, mutate CI/CD/hooks/DNS/payment/permissions/app-store/mini-program/production config, or make Codex the release owner.
 

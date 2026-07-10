@@ -8,11 +8,13 @@ import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "strict"]);
+const knownFlags = new Set(["json", "strict", "report", "require-report"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const strictMode = Boolean(args.strict);
+const requireReport = Boolean(args["require-report"]);
+const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -126,9 +128,10 @@ function checkCoreContent() {
 }
 
 function checkRecipes() {
-  const files = markdownFiles("release-recipes");
+  const files = explicitReport ? [explicitReport] : markdownFiles("release-recipes");
   if (files.length === 0) {
-    pass("platform release recipe check skipped: no recipes");
+    if (requireReport) fail("Platform Release Recipe is required but no report exists");
+    else pass("platform release recipe check skipped: no recipes");
     return;
   }
 
@@ -186,12 +189,26 @@ function checkRecipes() {
     }
   }
 
-  if (isSourceRepo) {
+  if (isSourceRepo && !explicitReport) {
     for (const id of strictRecipeIds) {
       if (seenStrict.has(id)) pass(`1.59 strict recipe exists: ${id}`);
       else fail(`1.59 strict recipe missing: ${id}`);
     }
   }
+}
+
+function resolveReportPath(value) {
+  const full = path.resolve(projectRoot, value);
+  const relative = path.relative(projectRoot, full);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !/\.md$/i.test(full)) {
+    console.error("FAIL --report must be a project-relative Markdown file");
+    process.exit(1);
+  }
+  if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
+    console.error(`FAIL missing explicit Platform Release Recipe ${full}`);
+    process.exit(1);
+  }
+  return full;
 }
 
 function checkStrictRecipe(content, label) {

@@ -397,6 +397,12 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "release-approval-check": {
+    description: "Check project-bound structured human Release Approval Records and their strict authority chain.",
+    script: "scripts/check-release-approval-record.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "release-adapter": {
     description: "Discover and explain a project-specific beginner release path.",
     script: "scripts/resolve-release-adapter.mjs",
@@ -887,6 +893,7 @@ function printHelp() {
   console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");
   console.log("  node scripts/cli.mjs release-evidence ../my-project --intent 'prepare release review'");
   console.log("  node scripts/cli.mjs release-channel ../my-project --intent 'decide release channel policy'");
+  console.log("  node scripts/cli.mjs release-approval-check ../my-project --require-structured-evidence --require-approved");
   console.log("  node scripts/cli.mjs apply-plan ../my-project --intent '接入 IntentOS 工作流' --action workflow-assets");
   console.log("");
   console.log("Docs:");

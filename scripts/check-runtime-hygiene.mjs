@@ -7,6 +7,7 @@ import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -192,8 +193,8 @@ function checkStructuredEvidence(content, label, file, evidence) {
 
   if (evidence.artifact_type === "runtime_hygiene") pass(`${label} artifact_type is runtime_hygiene`);
   else fail(`${label} artifact_type must be runtime_hygiene`);
-  if (["1.86.0", "1.86.1"].includes(evidence.schema_version)) pass(`${label} schema_version is supported`);
-  else fail(`${label} schema_version must be 1.86.0 or 1.86.1`);
+  if (["1.86.0", "1.86.1", "1.93.0"].includes(evidence.schema_version)) pass(`${label} schema_version is supported`);
+  else fail(`${label} schema_version must be 1.86.0, 1.86.1, or 1.93.0`);
   if (evidence.outcome === evidence.decision_state) pass(`${label} outcome matches decision_state`);
   else fail(`${label} outcome must match decision_state`);
   if (stripMarkdown(sectionBody(content, "Outcome") || "").includes(evidence.outcome)) pass(`${label} Outcome includes structured state`);
@@ -259,6 +260,27 @@ function checkRuntimeConsistency(label, evidence) {
       pass(`${label} CI environment failure is not automatically continued without complete safety proof`);
     }
   }
+  if (evidence.runtime_class === "RELEASE_PREFLIGHT_READY") {
+    requireDecision(label, evidence, "CAN_CONTINUE_TO_RELEASE_REVIEW", "release preflight ready decision");
+    if (evidence.operation === "release") pass(`${label} release preflight ready operation is release`);
+    else fail(`${label} RELEASE_PREFLIGHT_READY requires release operation`);
+    if (evidence.gate_context?.exit_code === "0") pass(`${label} release preflight gate passed`);
+    else fail(`${label} RELEASE_PREFLIGHT_READY requires gate exit code 0`);
+    if (evidence.release_context?.production_touched === "No" && new Set(["PREFLIGHT_ONLY", "BUNDLE_CREATED"]).has(evidence.release_context?.lane_state)) {
+      pass(`${label} release preflight stayed before production`);
+    } else {
+      fail(`${label} RELEASE_PREFLIGHT_READY requires a pre-production lane with production untouched`);
+    }
+    if (evidence.git_context?.current_task_commit_isolated === "Yes" && evidence.git_context?.force_push_required === "No") {
+      pass(`${label} release preflight uses an isolated non-force-push revision`);
+    } else {
+      fail(`${label} RELEASE_PREFLIGHT_READY requires isolated task revision and no force push`);
+    }
+    checkReleaseTrustBinding(label, evidence);
+  }
+  if (evidence.runtime_class === "RELEASE_PREFLIGHT_FAILED" && evidence.decision_state === "CAN_CONTINUE_AUTOMATICALLY") {
+    fail(`${label} failed release preflight must not continue automatically`);
+  }
   if (evidence.runtime_class === "ARTIFACT_QUOTA_BLOCKED") {
     requireDecision(label, evidence, "NEEDS_RELEASE_OWNER_APPROVAL", "artifact quota decision");
     requireApproval(label, evidence, "Artifact quota cleanup");
@@ -318,6 +340,16 @@ function checkRuntimeSourceTrace(label, evidence) {
     else if (source.source_present === "Yes") fail(`${label} present source ${source.source_kind} requires a source_ref`);
     if (/^sha256:[a-f0-9]{64}$/.test(String(source.source_digest || ""))) pass(`${label} source ${source.source_kind} has sha256 digest`);
     else fail(`${label} source ${source.source_kind} requires sha256 digest`);
+    if (requireRuntimeSources && source.source_present === "Yes") {
+      const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", source.source_ref || "");
+      if (!resolved.ok) {
+        fail(`${label} source ${source.source_kind} is unsafe or unresolved: ${resolved.error}`);
+      } else if (canonicalFileDigest(resolved.file) === source.source_digest) {
+        pass(`${label} source ${source.source_kind} digest matches current file`);
+      } else {
+        fail(`${label} source ${source.source_kind} digest does not match current file`);
+      }
+    }
   }
   if (!requireRuntimeSources) return;
   for (const kind of requiredSourceKindsFor(evidence.runtime_class)) {
@@ -332,8 +364,21 @@ function requiredSourceKindsFor(runtimeClass) {
   if (runtimeClass === "PRE_PUSH_GATE_FAILED" || runtimeClass === "STRUCTURE_BUDGET_EXCEEDED") return ["gate_output"];
   if (runtimeClass === "ARTIFACT_QUOTA_BLOCKED") return ["artifact_error"];
   if (runtimeClass === "RELEASE_BUNDLE_OVERSIZED") return ["bundle_summary"];
-  if (runtimeClass === "RELEASE_PREFLIGHT_FAILED" || runtimeClass === "PRODUCTION_SIDE_EFFECT_UNKNOWN" || runtimeClass === "PRODUCTION_SIDE_EFFECT_PRESENT") return ["release_event"];
+  if (runtimeClass === "RELEASE_PREFLIGHT_READY" || runtimeClass === "RELEASE_PREFLIGHT_FAILED" || runtimeClass === "PRODUCTION_SIDE_EFFECT_UNKNOWN" || runtimeClass === "PRODUCTION_SIDE_EFFECT_PRESENT") return ["release_event"];
   return [];
+}
+
+function checkReleaseTrustBinding(label, evidence) {
+  const binding = evidence.release_trust_binding || {};
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", binding.release_candidate_ref || "");
+  if (!resolved.ok) {
+    fail(`${label} release candidate is unsafe or unresolved: ${resolved.error}`);
+    return;
+  }
+  if (canonicalFileDigest(resolved.file) === binding.release_candidate_digest) pass(`${label} release candidate digest matches`);
+  else fail(`${label} release candidate digest does not match current file`);
+  if (projectIdentity(projectRoot).revision === binding.source_revision) pass(`${label} release candidate source revision matches current project`);
+  else fail(`${label} release candidate source revision does not match current project`);
 }
 
 function requireDecision(label, evidence, expected, context) {

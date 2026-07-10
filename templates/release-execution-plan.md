@@ -13,6 +13,9 @@ Safe next step:
 | Gate | Status | Ref / Evidence | Notes |
 |---|---|---|---|
 | Launch Review View | `MISSING` | N/A | Must be `READY_FOR_RELEASE_REVIEW` before real release execution. |
+| Release Evidence Gate | `MISSING` | N/A | Strict current-candidate release evidence required. |
+| Runtime Hygiene | `MISSING` | N/A | Candidate-bound release preflight required. |
+| Release Channel Policy | `MISSING` | N/A | Strict channel and package identity required. |
 | Human Release Approval | `MISSING` | N/A | Approval must be explicit and scoped. |
 | Release owner | `MISSING` | N/A | Human owner required. |
 | Release SOP | `MISSING` | N/A | Project release procedure required. |
@@ -61,6 +64,11 @@ Safe next step:
 |---|---|---|
 | Launch Review View | Yes | N/A |
 | Human Release Approval | Yes | N/A |
+| Release Evidence Gate | Yes | N/A |
+| Runtime Hygiene | Yes | N/A |
+| Release Channel Policy | Yes | N/A |
+| Platform Release Recipe | Conditional | N/A |
+| Release Handoff Pack | Conditional | N/A |
 | Preflight verification | Yes | N/A |
 | Build output | Conditional | N/A |
 | Release handoff evidence | Yes | N/A |
@@ -96,6 +104,13 @@ Safe next step:
 - This plan treats Launch Review View as release approval: No
 - This plan makes Codex the release owner: No
 - This plan approves legal/security/privacy/compliance/tax/finance/payment decisions: No
+
+## Machine-Readable Evidence
+
+Use `schemas/artifacts/release-execution-plan.schema.json`. A real handoff or
+assisted state must bind the current project, revision, candidate, structured
+Release Approval Record, Release Evidence Gate, Runtime Hygiene, Release
+Channel Policy, and any required recipe or handoff pack.
 
 ## Outcome
 

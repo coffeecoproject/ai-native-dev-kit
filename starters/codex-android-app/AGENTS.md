@@ -120,6 +120,10 @@ A Unified Apply Plan records proposed writes, source evidence, human-only or blo
 
 After a controlled IntentOS init/update apply, run `node scripts/cli.mjs apply-receipt-check . --require-structured-evidence` before claiming that approved adoption writes were executed or remain active. The receipt proves exact governance replay and read-only workflow activation only; it does not approve implementation, CI/hooks, release, production, or authority changes.
 
+## Release Approval Record
+
+Before any real release handoff or assisted execution state, run `node scripts/cli.mjs release-approval-check . --require-structured-evidence --require-approved`. Only a current project-bound structured human approval for the exact revision, candidate, target, package identity, and strict release evidence chain is release authority. High-risk release actions remain human or external-system owned.
+
 ## Controlled Apply Readiness
 
 Use `.intentos/core/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future human-approved controlled apply step.

@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.92.0`。
+当前版本：`1.93.0`。
 
-发布记录：[releases/1.92.0/release-record.md](releases/1.92.0/release-record.md)。
+发布记录：[releases/1.93.0/release-record.md](releases/1.93.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -75,6 +75,14 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.93.0 收口发布授权可信链。现在只有结构化的人工 Release Approval Record，
+并且它与当前项目、Git 版本、候选包、发布目标、包身份和严格发布证据完全一致时，
+才能进入受限发布协助。聊天里写“同意发布”、命令行自报 `APPROVED`、Git tag，
+或复制旧项目的批准记录，都不能解锁发布执行。
+
+这仍不代表 IntentOS 批准或保证生产发布。部署、应用商店/小程序提交、迁移、
+密钥、DNS、支付、权限、生产配置和回滚执行，继续由发布负责人或项目外部发布系统负责。
 
 1.92.0 补齐老项目接入后的实际执行闭环。用户接受 AI 给出的受控建议后，IntentOS
 只能执行计划、批准和 readiness 三者共同确认的治理动作；执行后会自动记录改了什么、

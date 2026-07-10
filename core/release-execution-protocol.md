@@ -13,14 +13,20 @@ It creates a bounded release execution plan. It does not execute release by itse
 ```text
 Unified Closure Decision
   -> Launch Review View
-  -> Human Release Approval
+  -> Release Evidence Gate
+  -> Runtime Hygiene
+  -> Release Channel Policy
+  -> strict Platform Recipe / Handoff when required
+  -> structured human Release Approval Record
   -> Release Execution Plan
   -> Controlled Execution / Human Handoff
   -> Release Evidence
   -> Post-launch Close-out
 ```
 
-Release Execution depends on Launch Review View.
+Release Execution depends on the exact structured Human Release Approval
+Record. The record binds the current project and Git revision to one release
+candidate, target, package identity, and strict upstream evidence set.
 
 From 1.61 onward, Release Execution also consumes Release Handoff Pack facts when a handoff pack exists.
 
@@ -33,7 +39,10 @@ Release Execution must not redefine release owner, rollback, monitoring, post-re
 
 If Launch Review View is not `READY_FOR_RELEASE_REVIEW`, real release execution is blocked.
 
-If human release approval is missing, Release Execution may produce a plan, but real release execution is not allowed.
+If the matching structured approval is missing, expired, copied, stale, or
+invalidated, Release Execution may produce a blocked plan, but real release
+execution is not allowed. Ordinary prose and command-line status flags are not
+approval authority.
 
 ## Modes
 
@@ -48,8 +57,13 @@ If human release approval is missing, Release Execution may produce a plan, but 
 
 Real release execution readiness requires:
 
-- Launch Review View: `READY_FOR_RELEASE_REVIEW`
-- Human Release Approval: `APPROVED`
+- current project and Git identity
+- exact release candidate, target, source revision, and package identity
+- strict Release Evidence Gate: ready
+- strict Runtime Hygiene: `RELEASE_PREFLIGHT_READY`
+- strict Release Channel Policy: source-bound
+- strict Platform Recipe and Release Handoff Pack when required
+- human Release Approval Record: current `APPROVED`
 - release owner
 - release SOP / project release procedure
 - rollback path
@@ -82,8 +96,8 @@ Release Execution Protocol does not:
 
 A Release Execution Plan must show:
 
-- launch review input
-- human release approval
+- exact release trust inputs and their explanation trace
+- structured human Release Approval Record
 - execution mode
 - release owner and SOP
 - execution steps and executor

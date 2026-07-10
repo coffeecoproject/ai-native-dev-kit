@@ -5,6 +5,9 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { projectIdentity } from "./lib/evidence-authority.mjs";
+import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -61,8 +64,8 @@ if (outputFormat === "json") console.log(JSON.stringify(report, null, 2));
 else printHuman(report);
 
 function buildReleaseExecutionPlan(root, options) {
-  const launchReview = resolveLaunchReview(root, options);
   const approval = resolveApproval(root, options);
+  const launchReview = resolveLaunchReview(root, options, approval);
   const preconditions = collectPreconditions(options, launchReview, approval);
   const mode = chooseMode(options.requestedMode, launchReview, approval, preconditions);
   const realReleaseExecutionAllowed = realExecutionAllowed(mode, launchReview, approval, preconditions);
@@ -70,7 +73,7 @@ function buildReleaseExecutionPlan(root, options) {
   const executionSteps = buildExecutionSteps(mode);
   const outcome = outcomeFor(mode, realReleaseExecutionAllowed, launchReview, approval);
 
-  return {
+  const report = {
     reportType: "RELEASE_EXECUTION_PLAN",
     generatedBy: "scripts/resolve-release-execution.mjs",
     generatedAt: new Date().toISOString(),
@@ -117,9 +120,19 @@ function buildReleaseExecutionPlan(root, options) {
     },
     outcome,
   };
+  report.machineEvidence = buildMachineEvidence(root, report, approval);
+  return report;
 }
 
-function resolveLaunchReview(root, options) {
+function resolveLaunchReview(root, options, approval) {
+  if (approval.verified) {
+    return {
+      safeLaunchLabel: "READY_FOR_RELEASE_REVIEW",
+      launchReviewCanProceed: "Yes",
+      ref: approval.evidence.trust_sources.release_evidence_gate.ref,
+      source: "verified-release-trust",
+    };
+  }
   if (options.launchViewRef) {
     const resolved = resolveRef(root, options.launchViewRef);
     if (resolved) {
@@ -179,57 +192,52 @@ function resolveLaunchReview(root, options) {
 }
 
 function resolveApproval(root, options) {
-  let approvalStatus = normalizeApprovalStatus(options.approvalStatus);
-  let owner = options.releaseOwner || "N/A";
-  let scope = options.intent || "N/A";
-  let ref = options.approvalRef || "N/A";
-
-  if (options.approvalRef) {
-    const resolved = resolveRef(root, options.approvalRef);
-    if (resolved) {
-      ref = resolved;
-      const content = fs.readFileSync(path.join(root, resolved), "utf8");
-      approvalStatus = normalizeApprovalStatus(
-        options.approvalStatus
-          || tableValue(content, "Approval Status")
-          || tableValue(content, "Decision")
-          || (/\bapproved\b/i.test(content) ? "APPROVED" : ""),
-      );
-      owner = options.releaseOwner
-        || tableValue(content, "Owner")
-        || tableValue(content, "Approved By")
-        || tableValue(content, "Release Owner")
-        || "N/A";
-      scope = tableValue(content, "Scope") || options.intent || "N/A";
-    } else {
-      approvalStatus = "MISSING";
-    }
+  if (!options.approvalRef) return { approvalStatus: "MISSING", owner: "N/A", ref: "N/A", scope: "N/A", verified: false, evidence: null, errors: ["structured release approval record is missing"] };
+  const checked = readReleaseApprovalRecord(root, options.approvalRef, { requireApproved: true });
+  if (!checked.ok) {
+    return {
+      approvalStatus: "INVALID",
+      owner: "N/A",
+      ref: options.approvalRef,
+      scope: "N/A",
+      verified: false,
+      evidence: checked.evidence,
+      errors: checked.errors,
+    };
   }
-
+  const evidence = checked.evidence;
   return {
-    approvalStatus,
-    owner,
-    ref,
-    scope,
+    approvalStatus: "APPROVED",
+    owner: evidence.release_controls.release_owner_ref,
+    ref: `artifact:${checked.relativePath}`,
+    scope: evidence.human_approval.approved_scope,
+    verified: true,
+    evidence,
+    errors: [],
   };
 }
 
 function collectPreconditions(options, launchReview, approval) {
+  const controls = approval.evidence?.release_controls || {};
+  const sources = approval.evidence?.trust_sources || {};
   return [
     precondition("Launch Review View", launchReview.safeLaunchLabel === "READY_FOR_RELEASE_REVIEW" && launchReview.launchReviewCanProceed === "Yes", launchReview.ref, "Must be READY_FOR_RELEASE_REVIEW before real release execution."),
-    precondition("Human Release Approval", approval.approvalStatus === "APPROVED", approval.ref, "Approval must be explicit and scoped."),
-    precondition("Release owner", approval.owner !== "N/A" || Boolean(options.releaseOwner), approval.owner !== "N/A" ? approval.owner : options.releaseOwner, "Human release owner required."),
-    precondition("Release SOP", Boolean(options.releaseSop), options.releaseSop, "Project release procedure required."),
-    precondition("Rollback", Boolean(options.rollback), options.rollback, "Rollback or fallback path required."),
-    precondition("Monitoring", Boolean(options.monitoring), options.monitoring, "Observation path required."),
-    precondition("Post-launch smoke", Boolean(options.postLaunchSmoke), options.postLaunchSmoke, "Post-launch verification required."),
+    precondition("Release Evidence Gate", approval.verified, sources.release_evidence_gate?.ref, "Strict current release evidence required."),
+    precondition("Runtime Hygiene", approval.verified, sources.runtime_hygiene?.ref, "Current candidate runtime preflight required."),
+    precondition("Release Channel Policy", approval.verified, sources.release_channel_policy?.ref, "Strict channel and package identity required."),
+    precondition("Human Release Approval", approval.verified, approval.ref, "Approval must be structured, current, human-owned, and scoped."),
+    precondition("Release owner", approval.verified && Boolean(controls.release_owner_ref), controls.release_owner_ref, "Human release owner required."),
+    precondition("Release SOP", approval.verified && Boolean(controls.release_sop_ref), controls.release_sop_ref, "Project release procedure required."),
+    precondition("Rollback", approval.verified && Boolean(controls.rollback_ref), controls.rollback_ref, "Rollback or fallback path required."),
+    precondition("Monitoring", approval.verified && Boolean(controls.monitoring_ref), controls.monitoring_ref, "Observation path required."),
+    precondition("Post-launch smoke", approval.verified && Boolean(controls.post_release_smoke_ref), controls.post_release_smoke_ref, "Post-launch verification required."),
   ];
 }
 
 function chooseMode(requestedMode, launchReview, approval, preconditions) {
   if (launchReview.safeLaunchLabel !== "READY_FOR_RELEASE_REVIEW" || launchReview.launchReviewCanProceed !== "Yes") return "BLOCKED";
   if (requestedMode === "PLAN_ONLY") return "PLAN_ONLY";
-  if (approval.approvalStatus !== "APPROVED") return "BLOCKED";
+  if (!approval.verified) return "BLOCKED";
   const missingRequired = preconditions.some((item) => item.status !== "PASS");
   if (missingRequired) return "BLOCKED";
   if (requestedMode === "ASSISTED_EXECUTION") return "ASSISTED_EXECUTION";
@@ -240,7 +248,7 @@ function chooseMode(requestedMode, launchReview, approval, preconditions) {
 function realExecutionAllowed(mode, launchReview, approval, preconditions) {
   if (!new Set(["HUMAN_EXECUTION_HANDOFF", "ASSISTED_EXECUTION"]).has(mode)) return "No";
   if (launchReview.safeLaunchLabel !== "READY_FOR_RELEASE_REVIEW" || launchReview.launchReviewCanProceed !== "Yes") return "No";
-  if (approval.approvalStatus !== "APPROVED") return "No";
+  if (!approval.verified) return "No";
   if (preconditions.some((item) => item.status !== "PASS")) return "No";
   return "Yes";
 }
@@ -252,8 +260,8 @@ function reasonFor(mode, launchReview, approval, preconditions) {
   if (mode === "PLAN_ONLY") {
     return "Release execution is being planned only; no real release action is allowed.";
   }
-  if (approval.approvalStatus !== "APPROVED") {
-    return "Human Release Approval is missing or not approved.";
+  if (!approval.verified) {
+    return `Structured Release Approval is missing or invalid${approval.errors?.length ? `: ${approval.errors[0]}` : "."}`;
   }
   const missing = preconditions.filter((item) => item.status !== "PASS").map((item) => item.gate);
   if (missing.length > 0) {
@@ -285,25 +293,81 @@ function buildExecutionSteps(mode) {
 }
 
 function buildEvidenceCapture(launchReview, approval, options) {
+  const sources = approval.evidence?.trust_sources || {};
+  const controls = approval.evidence?.release_controls || {};
   return [
     evidence("Launch Review View", "Yes", launchReview.ref || "N/A"),
     evidence("Human Release Approval", "Yes", approval.ref || "N/A"),
+    evidence("Release Evidence Gate", "Yes", sources.release_evidence_gate?.ref || "N/A"),
+    evidence("Runtime Hygiene", "Yes", sources.runtime_hygiene?.ref || "N/A"),
+    evidence("Release Channel Policy", "Yes", sources.release_channel_policy?.ref || "N/A"),
+    evidence("Platform Release Recipe", sources.platform_recipe?.required || "Conditional", sources.platform_recipe?.ref || "N/A"),
+    evidence("Release Handoff Pack", sources.release_handoff_pack?.required || "Conditional", sources.release_handoff_pack?.ref || "N/A"),
     evidence("Preflight verification", "Yes", options.verification || "N/A"),
     evidence("Build output", "Conditional", "N/A"),
     evidence("Release handoff evidence", "Yes", options.deployment || "N/A"),
-    evidence("Monitoring observation", "Yes", options.monitoring || "N/A"),
-    evidence("Post-launch smoke result", "Yes", options.postLaunchSmoke || "N/A"),
-    evidence("Rollback path / owner", "Yes", options.rollback || approval.owner || "N/A"),
+    evidence("Monitoring observation", "Yes", controls.monitoring_ref || "N/A"),
+    evidence("Post-launch smoke result", "Yes", controls.post_release_smoke_ref || "N/A"),
+    evidence("Rollback path / owner", "Yes", controls.rollback_ref || approval.owner || "N/A"),
   ];
 }
 
 function outcomeFor(mode, realAllowed, launchReview, approval) {
   if (launchReview.safeLaunchLabel !== "READY_FOR_RELEASE_REVIEW") return "BLOCKED_PENDING_LAUNCH_REVIEW";
   if (mode === "PLAN_ONLY") return "RELEASE_EXECUTION_PLAN_RECORDED";
-  if (approval.approvalStatus !== "APPROVED") return "BLOCKED_PENDING_RELEASE_APPROVAL";
+  if (!approval.verified) return "BLOCKED_PENDING_RELEASE_APPROVAL";
   if (mode === "ASSISTED_EXECUTION" && realAllowed === "Yes") return "READY_FOR_ASSISTED_EXECUTION";
   if (mode === "HUMAN_EXECUTION_HANDOFF" && realAllowed === "Yes") return "READY_FOR_HUMAN_EXECUTION_HANDOFF";
   return "BLOCKED_PENDING_RELEASE_APPROVAL";
+}
+
+function buildMachineEvidence(root, report, approval) {
+  const candidate = approval.evidence?.release_candidate || {};
+  const sources = approval.evidence?.trust_sources || {};
+  const evidence = {
+    schema_version: "1.93.0",
+    artifact_type: "release_execution_plan",
+    artifact_id: "generated-release-execution-plan",
+    release_execution_digest: "sha256:pending",
+    project_identity: projectIdentity(root),
+    release_candidate: {
+      release_target: candidate.release_target || "N/A",
+      candidate_ref: candidate.candidate_ref || "N/A",
+      candidate_digest: candidate.candidate_digest || "N/A",
+      source_revision: candidate.source_revision || "N/A",
+      package_identity_type: candidate.package_identity_type || "none",
+      package_identity_ref: candidate.package_identity_ref || "N/A",
+      package_identity_digest_or_id: candidate.package_identity_digest_or_id || "N/A",
+    },
+    trust_inputs: {
+      release_approval_ref: approval.ref || "N/A",
+      release_approval_digest: approval.evidence?.release_approval_digest || "N/A",
+      release_evidence_gate_ref: sources.release_evidence_gate?.ref || "N/A",
+      release_evidence_gate_digest: sources.release_evidence_gate?.digest || "N/A",
+      runtime_hygiene_ref: sources.runtime_hygiene?.ref || "N/A",
+      runtime_hygiene_digest: sources.runtime_hygiene?.digest || "N/A",
+      release_channel_policy_ref: sources.release_channel_policy?.ref || "N/A",
+      release_channel_policy_digest: sources.release_channel_policy?.digest || "N/A",
+      platform_recipe_ref: sources.platform_recipe?.ref || "N/A",
+      platform_recipe_digest: sources.platform_recipe?.digest || "N/A",
+      release_handoff_pack_ref: sources.release_handoff_pack?.ref || "N/A",
+      release_handoff_pack_digest: sources.release_handoff_pack?.digest || "N/A",
+    },
+    execution_mode: {
+      mode: report.executionMode.mode,
+      real_release_execution_allowed: report.executionMode.realReleaseExecutionAllowed,
+    },
+    allowed_codex_actions: approval.evidence?.allowed_codex_actions || [],
+    boundaries: {
+      approves_release: "No",
+      executes_release_by_itself: "No",
+      codex_high_risk_release_action: "No",
+      changes_project_release_authority: "No",
+    },
+    outcome: report.outcome,
+  };
+  evidence.release_execution_digest = evidenceDigest(evidence, ["release_execution_digest"]);
+  return evidence;
 }
 
 function precondition(gate, passed, ref, notes) {
@@ -411,6 +475,13 @@ function printHuman(report) {
   console.log(`- This plan treats Launch Review View as release approval: ${report.boundaries.treatsLaunchReviewAsReleaseApproval}`);
   console.log(`- This plan makes Codex the release owner: ${report.boundaries.makesCodexReleaseOwner}`);
   console.log(`- This plan approves legal/security/privacy/compliance/tax/finance/payment decisions: ${report.boundaries.approvesLegalSecurityPrivacyComplianceTaxFinancePaymentDecisions}`);
+  console.log("");
+
+  console.log("## Machine-Readable Evidence");
+  console.log("");
+  console.log("```json");
+  console.log(JSON.stringify(report.machineEvidence, null, 2));
+  console.log("```");
   console.log("");
 
   console.log("## Outcome");

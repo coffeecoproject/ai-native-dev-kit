@@ -87,7 +87,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Source | Ref | Digest | Present | Current task match |
 | --- | --- | --- | --- | --- |
 | `gate_output` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
-| `ci_log` | `ci:run-123` | `sha256:0b298f65897f48e4c0f10f42f59c57e4d8e390392eb6774915eb8ccb30f6c75b` | `Yes` | `Unknown` |
+| `ci_log` | `file:evidence/ci-run-123.log` | `sha256:0c454bd4475239a817cd31c7933e9f46d5fb546ab3bb16eb0a454e22060d04a8` | `Yes` | `Unknown` |
 | `artifact_error` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `bundle_summary` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `release_event` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
@@ -125,7 +125,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.86.1",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/001-ci-environment-retry.md",
-  "runtime_hygiene_digest": "sha256:d2a5e5784c70a2c539ec5b98e64d4006e739997c96b9595e5dc49f787cc42b3d",
+  "runtime_hygiene_digest": "sha256:d3a4fa29c3a418fd28b80277a9b160c2c4e19aea44d05e8f2aa7e01a77110f2e",
   "task_ref": "task:current",
   "work_queue_item_ref": "N/A",
   "task_governance_ref": "N/A",
@@ -177,8 +177,8 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "ci_context": {
     "retry_policy_allowed": "Yes",
     "production_side_effect_checked": "Yes",
-    "ci_log_ref": "ci:run-123",
-    "ci_log_digest": "sha256:0b298f65897f48e4c0f10f42f59c57e4d8e390392eb6774915eb8ccb30f6c75b"
+    "ci_log_ref": "file:evidence/ci-run-123.log",
+    "ci_log_digest": "sha256:0c454bd4475239a817cd31c7933e9f46d5fb546ab3bb16eb0a454e22060d04a8"
   },
   "release_context": {
     "lane_state": "PREFLIGHT_ONLY",
@@ -209,8 +209,8 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     },
     {
       "source_kind": "ci_log",
-      "source_ref": "ci:run-123",
-      "source_digest": "sha256:0b298f65897f48e4c0f10f42f59c57e4d8e390392eb6774915eb8ccb30f6c75b",
+      "source_ref": "file:evidence/ci-run-123.log",
+      "source_digest": "sha256:0c454bd4475239a817cd31c7933e9f46d5fb546ab3bb16eb0a454e22060d04a8",
       "source_present": "Yes",
       "current_task_match": "Unknown"
     },

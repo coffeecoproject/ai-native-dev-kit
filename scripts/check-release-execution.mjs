@@ -3,15 +3,25 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { projectIdentity } from "./lib/evidence-authority.mjs";
+import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json"]);
+const knownFlags = new Set(["json", "report", "require-report", "require-structured-evidence", "require-release-trust"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const outputJson = Boolean(args.json);
+const requireReport = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-release-trust"]);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-release-trust"]);
+const requireReleaseTrust = Boolean(args["require-release-trust"]);
+const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
+const releaseExecutionSchema = loadSchema(projectRoot, "schemas/artifacts/release-execution-plan.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -31,6 +41,9 @@ const requiredAssets = [
   "prompts/release-execution-agent.md",
   "scripts/resolve-release-execution.mjs",
   "scripts/check-release-execution.mjs",
+  "schemas/artifacts/release-execution-plan.schema.json",
+  "schemas/artifacts/release-approval-record.schema.json",
+  "scripts/check-release-approval-record.mjs",
 ];
 const requiredDirectories = ["release-execution-plans"];
 const sections = [
@@ -122,9 +135,10 @@ function checkCoreContent() {
 }
 
 function checkReleaseExecutionPlans() {
-  const files = markdownFiles("release-execution-plans");
+  const files = explicitReport ? [explicitReport] : markdownFiles("release-execution-plans");
   if (files.length === 0) {
-    pass("release execution check skipped: no Release Execution Plans");
+    if (requireReport) fail("Release Execution Plan is required but no report exists");
+    else pass("release execution check skipped: no Release Execution Plans");
     return;
   }
 
@@ -145,6 +159,12 @@ function checkReleaseExecutionPlans() {
     const mode = tableValue(sectionBody(content, "Execution Mode"), "Mode");
     const realAllowed = tableValue(sectionBody(content, "Execution Mode"), "Real release execution allowed");
     const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
+    const structured = validateEvidenceBlock(content, releaseExecutionSchema, label, {
+      require: requireStructuredEvidence,
+      digestField: "release_execution_digest",
+    });
+    if (!structured.ok) structured.errors.forEach((error) => fail(error));
+    else if (structured.present) pass(`${label} has valid structured release execution evidence`);
 
     if (launchLabel) pass(`${label} references Launch Review input`);
     else fail(`${label} must reference Launch Review input`);
@@ -174,6 +194,9 @@ function checkReleaseExecutionPlans() {
     }
 
     checkExecutionStepOwnership(content, label);
+    if (requireReleaseTrust && structured.ok && structured.present) {
+      checkReleaseTrust(content, file, label, structured.value, mode, realAllowed, outcome);
+    }
 
     for (const boundary of [
       "This plan approves release",
@@ -187,6 +210,70 @@ function checkReleaseExecutionPlans() {
     ]) {
       requireBoundaryNo(content, label, boundary);
     }
+  }
+}
+
+function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, outcome) {
+  if (JSON.stringify(evidence.project_identity) === JSON.stringify(projectIdentity(projectRoot))) pass(`${label} matches current project and revision`);
+  else fail(`${label} project identity or revision is stale`);
+  if (evidence.execution_mode?.mode === mode && evidence.execution_mode?.real_release_execution_allowed === realAllowed) pass(`${label} structured execution mode matches Markdown`);
+  else fail(`${label} structured execution mode does not match Markdown`);
+  if (evidence.outcome === outcome) pass(`${label} structured outcome matches Markdown`);
+  else fail(`${label} structured outcome does not match Markdown`);
+
+  const approvalRef = evidence.trust_inputs?.release_approval_ref;
+  const approval = readReleaseApprovalRecord(projectRoot, approvalRef, { fromFile: file, requireApproved: true });
+  if (!approval.ok) {
+    approval.errors.forEach((error) => fail(`${label}: ${error}`));
+    return;
+  }
+  pass(`${label} consumes a valid current Release Approval Record`);
+  if (approval.evidence.release_approval_digest === evidence.trust_inputs.release_approval_digest) pass(`${label} release approval digest matches`);
+  else fail(`${label} release approval digest mismatch`);
+  if (JSON.stringify(approval.evidence.release_candidate) === JSON.stringify(evidence.release_candidate)) pass(`${label} release candidate identity matches approval`);
+  else fail(`${label} release candidate identity does not match approval`);
+
+  const expectedTrust = {
+    release_evidence_gate_ref: approval.evidence.trust_sources.release_evidence_gate.ref,
+    release_evidence_gate_digest: approval.evidence.trust_sources.release_evidence_gate.digest,
+    runtime_hygiene_ref: approval.evidence.trust_sources.runtime_hygiene.ref,
+    runtime_hygiene_digest: approval.evidence.trust_sources.runtime_hygiene.digest,
+    release_channel_policy_ref: approval.evidence.trust_sources.release_channel_policy.ref,
+    release_channel_policy_digest: approval.evidence.trust_sources.release_channel_policy.digest,
+    platform_recipe_ref: approval.evidence.trust_sources.platform_recipe.ref,
+    platform_recipe_digest: approval.evidence.trust_sources.platform_recipe.digest,
+    release_handoff_pack_ref: approval.evidence.trust_sources.release_handoff_pack.ref,
+    release_handoff_pack_digest: approval.evidence.trust_sources.release_handoff_pack.digest,
+  };
+  for (const [key, expected] of Object.entries(expectedTrust)) {
+    if (evidence.trust_inputs?.[key] === expected) pass(`${label} ${key} matches approval`);
+    else fail(`${label} ${key} does not match approval`);
+  }
+  if (JSON.stringify(evidence.allowed_codex_actions) === JSON.stringify(approval.evidence.allowed_codex_actions)) pass(`${label} allowed Codex actions match approval`);
+  else fail(`${label} allowed Codex actions do not match approval`);
+
+  const approvalCheck = spawnSync(process.execPath, [
+    path.join(scriptDir, "check-release-approval-record.mjs"),
+    projectRoot,
+    "--report",
+    approval.relativePath,
+    "--require-structured-evidence",
+    "--require-approved",
+  ], { encoding: "utf8" });
+  if (approvalCheck.status === 0) pass(`${label} Release Approval authority chain passed strict checkers`);
+  else fail(`${label} Release Approval authority chain failed: ${firstUsefulLine(approvalCheck.stderr || approvalCheck.stdout)}`);
+
+  if (new Set(["ASSISTED_EXECUTION", "HUMAN_EXECUTION_HANDOFF"]).has(mode) && realAllowed === "Yes") pass(`${label} trusted execution mode is eligible for review`);
+  else fail(`${label} --require-release-trust requires an eligible assisted or human handoff mode`);
+
+  for (const [gate, ref] of [
+    ["Release Evidence Gate", approval.evidence.trust_sources.release_evidence_gate.ref],
+    ["Runtime Hygiene", approval.evidence.trust_sources.runtime_hygiene.ref],
+    ["Release Channel Policy", approval.evidence.trust_sources.release_channel_policy.ref],
+  ]) {
+    const row = tableRow(sectionBody(content, "Preconditions"), gate);
+    if (/\|\s*`PASS`\s*\|/i.test(row) && row.includes(ref)) pass(`${label} ${gate} precondition matches approval`);
+    else fail(`${label} ${gate} precondition must be PASS and match approval ref`);
   }
 }
 
@@ -305,6 +392,24 @@ function tableRow(content, firstCell) {
 
 function codeOrTextValue(value) {
   return String(value || "").replace(/`/g, "").trim();
+}
+
+function resolveReportPath(value) {
+  const full = path.resolve(projectRoot, value);
+  const relative = path.relative(projectRoot, full);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !/\.md$/i.test(full)) {
+    console.error("FAIL --report must be a project-relative Markdown file");
+    process.exit(1);
+  }
+  if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
+    console.error(`FAIL missing explicit Release Execution Plan ${full}`);
+    process.exit(1);
+  }
+  return full;
+}
+
+function firstUsefulLine(value) {
+  return String(value || "").split(/\r?\n/).map((line) => line.trim()).find(Boolean) || "unknown failure";
 }
 
 function markdownFiles(dir) {

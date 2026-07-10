@@ -39,7 +39,8 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | `release-guides/` | Unified beginner-facing release guide cards that route adapter, launch review, structured approval, and release execution planning |
 | `release-recipes/` | Platform release recipes that map platform-specific release prerequisites without executing release actions |
 | `release-handoff-packs/` | Bounded release handoff packages that separate Codex, human, and external-system release responsibilities |
-| `release-execution-plans/` | Bounded release execution plans after launch review and human release approval |
+| `release-approval-records/` | Project-, revision-, candidate-, target-, package-, and evidence-bound human release approval records |
+| `release-execution-plans/` | Derived bounded release execution plans after strict release trust validation |
 | `release-plans/` | Pure-view Release Plans that summarize release source systems and existing-project rule comparison without becoming release authority |
 | `release-evidence-gate-reports/` | Release-review evidence gate reports that decide whether a release candidate can be handed to a human release owner without approving release |
 | `execution-assurance-reports/` | Task-bound proof chains that bind intent, completion contract, impact, actual diff, evidence, review, patch classification, and source-system trace before Codex claims execution-class work is complete |
@@ -81,7 +82,7 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `doc-lifecycle-reports/` | Source-of-truth, stale, duplicate, archive, and deprecation candidate reports |
 | `archive-apply-plans/` | Plan-only archive action, link-check, archive index, rollback, and human-decision records |
 | `apply-readiness-reports/` | Pre-execution readiness reports for reviewed Unified Apply Plans |
-| `approval-records/` | Human-owned approval evidence for exact action IDs, target paths, expiry, rollback, verification, and structured release approval |
+| `approval-records/` | Human-owned apply approval evidence for exact action IDs, target paths, expiry, rollback, and verification |
 | `apply-execution-plans/` | Executable init/update plans bound to the current project, source manifest, source hashes, target preconditions, exact action graph, backup paths, and expected target hashes |
 | `apply-receipts/` | Post-apply receipts that bind the executed action graph to the current project and Git identity, current target hashes, unexpected-write scan, rollback records, and read-only activation proof |
 | `work-queue/` | Current task, paused tasks, backlog / parking lot, and resume review records |
@@ -102,7 +103,7 @@ Goal Card is not approval to implement. Subagent output is not authority. Human 
 
 Assumption Register is a report section or template, not a mandatory directory. Use it when a report, review, or handoff depends on inferred or unconfirmed facts.
 
-Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence Report, Completion Evidence Gate, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
+Structured evidence blocks are not separate artifact directories. Use `docs/structured-evidence-schema.md` and `schemas/artifacts/` for the machine-readable JSON evidence inside Unified Apply Plan, Controlled Apply Readiness, Approval Record, Release Approval Record, Low-Risk Controlled Apply Candidate, Business Rule Closure, Change Impact Coverage, Verification Plan, Test Evidence Report, Completion Evidence Gate, Native Migration, Existing Rule Reconciliation, Governance Convergence, Release Plan, Adoption Assurance, and Execution Assurance artifacts. Product completeness can also cite structured JSON evidence files through `--evidence`. Schema files alone are not the complete safety boundary; run the corresponding checker, use `--require-structured-evidence` when new artifacts must be strict, and use `--resolve-evidence-refs` when Change Impact Coverage `DONE` evidence must point to real local evidence or accepted recorded refs.
 
 Completion Evidence Gate structured evidence uses `completion_evidence_gate` and
 lives in `completion-evidence-reports/`. Under strict 1.78.2+ checks, older

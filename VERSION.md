@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.92.0`
+Current version: `1.93.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.92.0`
 
 ## Current Release
 
-`1.92.0`
+`1.93.0`
 
 Includes:
+
+- Release Trust Closure `1.93.0`: Release Execution now accepts only a current
+  structured human Release Approval Record bound to the exact project, Git
+  revision, release candidate, target, package identity, Release Evidence
+  Gate, Runtime Hygiene, Release Channel Policy, and required strict platform
+  handoff evidence. Plain approval text, CLI status flags, tags, copied records,
+  stale candidates, and mismatched revisions fail closed.
+- `1.93.0` permits only approval-listed low-risk build, verification, packaging,
+  evidence, and handoff assistance. It does not approve or execute production
+  deploys, store or mini-program submissions, migrations, secrets, DNS,
+  payments, permissions, production configuration, or rollback.
 
 - Apply & Adoption Closure `1.92.0`: the controlled IntentOS init/update path
   now replays the immutable approved execution graph instead of regenerating a

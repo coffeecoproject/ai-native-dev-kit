@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.92.0",
+  "intentOSVersion": "1.93.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.92.0"
+    "phase": "1.93.0"
   },
   "groups": {
     "sourceRequired": [
@@ -212,6 +212,7 @@
       "core/real-mvp-example-evidence.md",
       "core/real-project-adoption-trial.md",
       "core/release-adapter.md",
+      "core/release-approval-record.md",
       "core/release-channel-decoupling.md",
       "core/release-core-model.md",
       "core/release-evidence-gate.md",
@@ -397,6 +398,7 @@
       "docs/plans/release-path-consolidation-1.58-1.60-plan.md",
       "docs/plans/release-path-consolidation-1.58-plan.md",
       "docs/plans/release-path-hardening-1.61-plan.md",
+      "docs/plans/release-trust-closure-1.93-plan.md",
       "docs/plans/repository-information-architecture-1.36-plan.md",
       "docs/plans/safety-evidence-hardening-1.89-plan.md",
       "docs/plans/standard-baseline-pack-registry-1.14-plan.md",
@@ -433,6 +435,7 @@
       "docs/reference/scripts.md",
       "docs/reference/standard-baseline-packs.md",
       "docs/release-adapter.md",
+      "docs/release-approval-record.md",
       "docs/release-channel-decoupling.md",
       "docs/release-core-model.md",
       "docs/release-evidence-gate.md",
@@ -846,11 +849,13 @@
       "examples/1.85-task-governance-consumer-integration/possible-high-blocked/task-governance-reports/001-task-governance.md",
       "examples/1.85-task-governance-consumer-integration/possible-high-blocked/work-queue-takeover-reports/001-current.md",
       "examples/1.86-runtime-hygiene/README.md",
+      "examples/1.86-runtime-hygiene/ci-environment-retry/evidence/ci-run-123.log",
       "examples/1.86-runtime-hygiene/ci-environment-retry/runtime-hygiene-reports/001-ci-environment-retry.md",
       "examples/1.86-runtime-hygiene/git-old-branch-rebase-plan/runtime-hygiene-reports/001-git-old-branch.md",
       "examples/1.86-runtime-hygiene/pre-push-structure-gate/runtime-hygiene-reports/001-pre-push-structure-gate.md",
       "examples/1.86-runtime-hygiene/release-artifact-quota-preflight/runtime-hygiene-reports/001-artifact-quota.md",
       "examples/1.86-runtime-hygiene/release-bundle-evidence-bloat/runtime-hygiene-reports/001-bundle-evidence-bloat.md",
+      "examples/1.86-runtime-hygiene/strict-task-entry/evidence/gate-structure-budget-run-1.txt",
       "examples/1.86-runtime-hygiene/strict-task-entry/runtime-hygiene-reports/001-strict-task-entry.md",
       "examples/1.86-runtime-hygiene/strict-task-entry/task-governance-reports/001-task-governance.md",
       "examples/1.86-runtime-hygiene/strict-task-entry/work-queue-takeover-reports/001-current.md",
@@ -1274,6 +1279,7 @@
       "real-adoption-trials/.gitkeep",
       "real-adoption-trials/180-governed-web-readonly.md",
       "release-adapters/.gitkeep",
+      "release-approval-records/.gitkeep",
       "release-candidates/.gitkeep",
       "release-channel-policies/.gitkeep",
       "release-evidence-gate-reports/.gitkeep",
@@ -1753,6 +1759,9 @@
       "releases/1.92.0/known-limitations.md",
       "releases/1.92.0/release-record.md",
       "releases/1.92.0/self-check-report.md",
+      "releases/1.93.0/known-limitations.md",
+      "releases/1.93.0/release-record.md",
+      "releases/1.93.0/self-check-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",
@@ -1836,8 +1845,10 @@
       "schemas/artifacts/plan-review.schema.json",
       "schemas/artifacts/preflight.schema.json",
       "schemas/artifacts/product-completeness-evidence.schema.json",
+      "schemas/artifacts/release-approval-record.schema.json",
       "schemas/artifacts/release-channel-policy.schema.json",
       "schemas/artifacts/release-evidence-gate.schema.json",
+      "schemas/artifacts/release-execution-plan.schema.json",
       "schemas/artifacts/release-handoff-evidence.schema.json",
       "schemas/artifacts/release-plan.schema.json",
       "schemas/artifacts/request.schema.json",
@@ -1916,6 +1927,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-release-adapter.mjs",
+      "scripts/check-release-approval-record.mjs",
       "scripts/check-release-channel-policy.mjs",
       "scripts/check-release-evidence-gate.mjs",
       "scripts/check-release-execution.mjs",
@@ -1953,6 +1965,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/migrate-project.mjs",
@@ -3441,6 +3454,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/new-workflow-item.mjs",
@@ -3721,6 +3735,7 @@
       ".intentos/docs/real-adoption-usage.md",
       ".intentos/docs/real-mvp-example-evidence.md",
       ".intentos/docs/release-adapter.md",
+      ".intentos/docs/release-approval-record.md",
       ".intentos/docs/release-core-model.md",
       ".intentos/docs/release-evidence-gate.md",
       ".intentos/docs/release-path-hardening.md",
@@ -3845,7 +3860,9 @@
       ".intentos/schemas/artifacts/governance-convergence.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
+      ".intentos/schemas/artifacts/release-approval-record.schema.json",
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
+      ".intentos/schemas/artifacts/release-execution-plan.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
       ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
@@ -4047,6 +4064,7 @@
       "product-completeness-reports",
       "real-adoption-trials",
       "release-adapters",
+      "release-approval-records",
       "release-candidates",
       "release-evidence-gate-reports",
       "release-execution-plans/.gitkeep",
@@ -4120,6 +4138,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-release-adapter.mjs",
+      "scripts/check-release-approval-record.mjs",
       "scripts/check-release-evidence-gate.mjs",
       "scripts/check-release-guide.mjs",
       "scripts/check-release-handoff-pack.mjs",
@@ -4154,6 +4173,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/new-workflow-item.mjs",
@@ -4349,6 +4369,7 @@
       "core/real-mvp-example-evidence.md",
       "core/real-project-adoption-trial.md",
       "core/release-adapter.md",
+      "core/release-approval-record.md",
       "core/release-execution-protocol.md",
       "core/review-surface-governance.md",
       "core/safe-launch.md",
@@ -4761,6 +4782,7 @@
       "product-completeness-reports",
       "real-adoption-trials",
       "release-adapters",
+      "release-approval-records",
       "release-execution-plans",
       "release-guides",
       "release-handoff-packs",
@@ -4850,6 +4872,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-release-adapter.mjs",
+      "scripts/check-release-approval-record.mjs",
       "scripts/check-release-execution.mjs",
       "scripts/check-release-guide.mjs",
       "scripts/check-release-handoff-pack.mjs",
@@ -4886,6 +4909,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/migrate-project.mjs",
@@ -5905,6 +5929,7 @@
       ".intentos/core/real-mvp-example-evidence.md",
       ".intentos/core/real-project-adoption-trial.md",
       ".intentos/core/release-adapter.md",
+      ".intentos/core/release-approval-record.md",
       ".intentos/core/release-core-model.md",
       ".intentos/core/release-evidence-gate.md",
       ".intentos/core/release-execution-protocol.md",
@@ -5982,6 +6007,7 @@
       ".intentos/docs/real-adoption-usage.md",
       ".intentos/docs/real-mvp-example-evidence.md",
       ".intentos/docs/release-adapter.md",
+      ".intentos/docs/release-approval-record.md",
       ".intentos/docs/release-core-model.md",
       ".intentos/docs/release-evidence-gate.md",
       ".intentos/docs/release-execution-protocol.md",
@@ -6078,7 +6104,9 @@
       ".intentos/schemas/artifacts/governance-convergence.schema.json",
       ".intentos/schemas/artifacts/native-migration-plan.schema.json",
       ".intentos/schemas/artifacts/plan-review.schema.json",
+      ".intentos/schemas/artifacts/release-approval-record.schema.json",
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
+      ".intentos/schemas/artifacts/release-execution-plan.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
       ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
@@ -6228,6 +6256,7 @@
       "product-completeness-reports",
       "real-adoption-trials",
       "release-adapters",
+      "release-approval-records",
       "release-candidates",
       "release-evidence-gate-reports",
       "release-execution-plans",
@@ -6296,6 +6325,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-release-adapter.mjs",
+      "scripts/check-release-approval-record.mjs",
       "scripts/check-release-evidence-gate.mjs",
       "scripts/check-release-execution.mjs",
       "scripts/check-release-handoff-pack.mjs",
@@ -6331,6 +6361,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
       "scripts/new-workflow-item.mjs",
@@ -6504,6 +6535,7 @@
       ".intentos/core/real-mvp-example-evidence.md",
       ".intentos/core/real-project-adoption-trial.md",
       ".intentos/core/release-adapter.md",
+      ".intentos/core/release-approval-record.md",
       ".intentos/core/release-core-model.md",
       ".intentos/core/release-execution-protocol.md",
       ".intentos/core/release-path-hardening.md",
@@ -6562,6 +6594,7 @@
       ".intentos/docs/real-adoption-usage.md",
       ".intentos/docs/real-mvp-example-evidence.md",
       ".intentos/docs/release-adapter.md",
+      ".intentos/docs/release-approval-record.md",
       ".intentos/docs/release-core-model.md",
       ".intentos/docs/release-execution-protocol.md",
       ".intentos/docs/release-path-hardening.md",
@@ -6648,6 +6681,8 @@
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
+      ".intentos/schemas/artifacts/release-approval-record.schema.json",
+      ".intentos/schemas/artifacts/release-execution-plan.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
       ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
@@ -6714,6 +6749,7 @@
       ".intentos/templates/real-adoption-trial-report.md",
       ".intentos/templates/real-mvp-example-record.md",
       ".intentos/templates/release-adapter-profile.md",
+      ".intentos/templates/release-approval-record.md",
       ".intentos/templates/release-execution-plan.md",
       ".intentos/templates/release-plan.md",
       ".intentos/templates/review-loop-report.md",
@@ -6796,6 +6832,7 @@
       "product-completeness-reports",
       "real-adoption-trials",
       "release-adapters",
+      "release-approval-records",
       "release-guides",
       "release-handoff-packs",
       "release-plans",
@@ -6856,6 +6893,7 @@
       "scripts/check-project-onboarding.mjs",
       "scripts/check-real-adoption-trial.mjs",
       "scripts/check-release-adapter.mjs",
+      "scripts/check-release-approval-record.mjs",
       "scripts/check-release-execution.mjs",
       "scripts/check-release-handoff-pack.mjs",
       "scripts/check-release-plan.mjs",
@@ -7100,6 +7138,10 @@
       {
         "source": "release-adapters",
         "target": "release-adapters"
+      },
+      {
+        "source": "release-approval-records",
+        "target": "release-approval-records"
       },
       {
         "source": "release-candidates",
@@ -7460,6 +7502,10 @@
         "target": ".intentos/core/release-adapter.md"
       },
       {
+        "source": "core/release-approval-record.md",
+        "target": ".intentos/core/release-approval-record.md"
+      },
+      {
         "source": "core/release-execution-protocol.md",
         "target": ".intentos/core/release-execution-protocol.md"
       },
@@ -7748,6 +7794,10 @@
         "target": ".intentos/docs/release-adapter.md"
       },
       {
+        "source": "docs/release-approval-record.md",
+        "target": ".intentos/docs/release-approval-record.md"
+      },
+      {
         "source": "docs/release-core-model.md",
         "target": ".intentos/docs/release-core-model.md"
       },
@@ -8020,6 +8070,14 @@
         "target": ".intentos/schemas/artifacts/native-migration-plan.schema.json"
       },
       {
+        "source": "schemas/artifacts/release-approval-record.schema.json",
+        "target": ".intentos/schemas/artifacts/release-approval-record.schema.json"
+      },
+      {
+        "source": "schemas/artifacts/release-execution-plan.schema.json",
+        "target": ".intentos/schemas/artifacts/release-execution-plan.schema.json"
+      },
+      {
         "source": "schemas/artifacts/release-handoff-evidence.schema.json",
         "target": ".intentos/schemas/artifacts/release-handoff-evidence.schema.json"
       },
@@ -8268,6 +8326,10 @@
         "target": "scripts/check-release-adapter.mjs"
       },
       {
+        "source": "scripts/check-release-approval-record.mjs",
+        "target": "scripts/check-release-approval-record.mjs"
+      },
+      {
         "source": "scripts/check-release-evidence-gate.mjs",
         "target": "scripts/check-release-evidence-gate.mjs"
       },
@@ -8406,6 +8468,10 @@
       {
         "source": "scripts/lib/project-signals.mjs",
         "target": "scripts/lib/project-signals.mjs"
+      },
+      {
+        "source": "scripts/lib/release-trust.mjs",
+        "target": "scripts/lib/release-trust.mjs"
       },
       {
         "source": "scripts/lib/risk-surfaces.mjs",

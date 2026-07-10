@@ -9,11 +9,13 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "require-structured-evidence"]);
+const knownFlags = new Set(["json", "require-structured-evidence", "report", "require-report"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const requireReport = Boolean(args["require-report"]);
+const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const releaseHandoffEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/release-handoff-evidence.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -139,9 +141,9 @@ function checkCoreContent() {
 }
 
 function checkHandoffPacks() {
-  const files = markdownFiles("release-handoff-packs");
+  const files = explicitReport ? [explicitReport] : markdownFiles("release-handoff-packs");
   if (files.length === 0) {
-    if (requireStructuredEvidence) {
+    if (requireReport || requireStructuredEvidence) {
       fail("no Release Handoff Pack reports found while strict handoff evidence was required");
     } else {
       pass("release handoff pack check skipped: no handoff packs");
@@ -205,6 +207,20 @@ function checkHandoffPacks() {
       requireBoundaryNo(content, label, boundary);
     }
   }
+}
+
+function resolveReportPath(value) {
+  const full = path.resolve(projectRoot, value);
+  const relative = path.relative(projectRoot, full);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !/\.md$/i.test(full)) {
+    console.error("FAIL --report must be a project-relative Markdown file");
+    process.exit(1);
+  }
+  if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
+    console.error(`FAIL missing explicit Release Handoff Pack ${full}`);
+    process.exit(1);
+  }
+  return full;
 }
 
 function checkRequiredApproval(content, label) {

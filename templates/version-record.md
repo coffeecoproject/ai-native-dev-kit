@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.92.0`
+`1.93.0`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.93.0` requires a project-, revision-, candidate-, target-, package-, and
+  evidence-bound human Release Approval Record before Release Execution can
+  enter a handoff or bounded assisted mode.
+- `1.93.0` does not authorize production deploy, publication, submission,
+  migration, secrets, DNS, payment, permissions, production configuration, or
+  rollback execution.
 
 - `1.92.0` adds exact approved init/update graph replay, readiness-bound apply,
   project-bound Apply Receipts, target before/after hashes, rollback evidence,

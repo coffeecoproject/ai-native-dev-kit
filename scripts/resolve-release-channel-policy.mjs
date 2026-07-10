@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -52,6 +52,7 @@ const knownFlags = new Set([
   "release-evidence-deleted-to-reduce-bundle",
   "release-evidence-gate-ref",
   "runtime-hygiene-ref",
+  "release-candidate-ref",
   "project-sop-ref",
   "ci-workflow-ref",
   "package-config-ref",
@@ -351,7 +352,7 @@ function effectiveReleaseChannelFor({ projectType, detected, channel, githubRele
 function sourceChainFor(detected) {
   return [
     sourceRecord("release_evidence_gate", args["release-evidence-gate-ref"], "release_candidate"),
-    sourceRecord("runtime_hygiene", args["runtime-hygiene-ref"], "current_task"),
+    sourceRecord("runtime_hygiene", args["runtime-hygiene-ref"], "release_candidate"),
     sourceRecord("project_sop", args["project-sop-ref"] || sourceRefForFirst(detected.releaseDocs), "project"),
     sourceRecord("ci_workflow", args["ci-workflow-ref"] || sourceRefForFirst(detected.workflowFiles), "project"),
     sourceRecord("package_config", args["package-config-ref"] || (fs.existsSync(path.join(projectRoot, "package.json")) ? "file:package.json" : ""), "project"),
@@ -369,9 +370,29 @@ function sourceRecord(kind, refValue, scope) {
     source_ref: ref,
     source_digest: digestSource(ref),
     source_scope_match: scope,
-    current_release_candidate_match: scope === "release_candidate" ? "Unknown" : "N/A",
+    current_release_candidate_match: scope === "release_candidate" ? currentReleaseCandidateMatch(kind, ref) : "N/A",
     project_match: projectMatch,
   };
+}
+
+function currentReleaseCandidateMatch(kind, sourceRef) {
+  const expected = normalizeCandidateRef(args["release-candidate-ref"]);
+  if (!expected || ["missing", "unknown", "not_applicable"].includes(sourceRef)) return "Unknown";
+  if (!sourceRef.startsWith("file:") && !sourceRef.startsWith("artifact:")) return "Unknown";
+  const raw = sourceRef.replace(/^(file|artifact):/, "");
+  const file = path.resolve(projectRoot, raw);
+  const relative = path.relative(projectRoot, file);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return "Unknown";
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+  if (!extracted?.ok) return "Unknown";
+  const actual = kind === "release_evidence_gate"
+    ? extracted.value.release_scope?.release_candidate_ref
+    : extracted.value.release_trust_binding?.release_candidate_ref;
+  return normalizeCandidateRef(actual) === expected ? "Yes" : "No";
+}
+
+function normalizeCandidateRef(value) {
+  return String(value || "").trim().replace(/^(file|artifact):/, "");
 }
 
 function decisionFor({ effectiveReleaseChannel, githubReleasePolicy, githubActionsPolicy, costRisk, owners }) {

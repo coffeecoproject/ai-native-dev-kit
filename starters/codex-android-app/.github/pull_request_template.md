@@ -23,6 +23,7 @@
 - [ ] Document Archive Apply Plan is linked or marked not applicable when archive suggestions are ready for controlled apply
 - [ ] Unified Apply Plan is linked or marked not applicable before applying workflow assets, baseline docs, AGENTS/PR template governance, archive actions, hooks, CI, industrial packs, or other target-project writes
 - [ ] Apply Execution Receipt is linked after any controlled IntentOS init/update apply, or marked not applicable when no target writes occurred
+- [ ] Release Approval Record is linked and strictly checked before any real release handoff or assisted execution state
 - [ ] Controlled Apply Readiness is linked or marked not applicable after a Unified Apply Plan is reviewed and before any future human-approved controlled apply step
 - [ ] Project Hook Policy is linked or marked not applicable before hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks are proposed
 - [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed

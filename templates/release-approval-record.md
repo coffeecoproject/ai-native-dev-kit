@@ -1,27 +1,34 @@
-# Release Approval Record
+# Release Approval Record: <id>
 
-## Structured Release Approval
+## Human Summary
 
 | Field | Value |
 |---|---|
-| Approval Type | `RELEASE_APPROVAL` |
 | Approval Status | `PENDING` |
-| Release Target | N/A |
-| Approved Scope | N/A |
-| Approved By | N/A |
-| Approval Time | N/A |
-| Allowed Codex Actions | N/A |
-| Blocked Actions | production deploy; store submit; mini-program release; production migration; DNS; payment; permissions; production config; secrets |
-| Evidence Path | N/A |
-| Expiry / Reconfirm By | N/A |
+| Release Target | `<target>` |
+| Release Candidate | `artifact:<project-relative-path>` |
+| Approved By | `<human owner>` |
+| Expires At | `<ISO-8601 timestamp>` |
 
-## Human Statement
+## Approval Scope
 
-No release is approved until the structured fields above are complete and current.
+State what the human is approving, which low-risk Codex actions are allowed,
+and which human or external release system owns the actual release action.
+
+## Machine-Readable Evidence
+
+Use `schemas/artifacts/release-approval-record.schema.json`. Codex must compute
+the project identity and all file digests from current project evidence. Do not
+paste secret values into this record.
 
 ## Boundaries
 
-- This record approves release only for the listed target and scope.
-- This record does not make Codex the release owner.
-- This record does not allow Codex to handle secrets.
-- This record does not authorize production deploy, store submission, mini-program release, production migration, DNS, payment, permission, or production config changes unless explicitly listed and human-owned.
+- This record makes Codex the release owner: No
+- This record authorizes automatic production deploy: No
+- This record authorizes store or mini-program submission by Codex: No
+- This record authorizes migrations, secrets, DNS, payment, permissions, or production config changes by Codex: No
+- This record proves product correctness or production safety: No
+
+## Outcome
+
+`RELEASE_APPROVAL_PENDING`

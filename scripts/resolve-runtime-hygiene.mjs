@@ -18,6 +18,9 @@ const knownFlags = new Set([
   "release-lane",
   "release-event",
   "release-event-ref",
+  "release-candidate-ref",
+  "release-candidate-digest",
+  "source-revision",
   "artifact-error",
   "artifact-error-ref",
   "bundle-summary",
@@ -89,7 +92,7 @@ function buildEvidence() {
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "runtime-hygiene-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.86.1",
+    schema_version: "1.93.0",
     artifact_type: "runtime_hygiene",
     runtime_hygiene_ref: runtimeRef,
     runtime_hygiene_digest: "sha256:pending",
@@ -123,6 +126,13 @@ function buildEvidence() {
     task_continuation: taskContinuation,
     outcome: decisionState,
   };
+  if (runtimeClass === "RELEASE_PREFLIGHT_READY") {
+    baseEvidence.release_trust_binding = {
+      release_candidate_ref: String(args["release-candidate-ref"]),
+      release_candidate_digest: String(args["release-candidate-digest"]),
+      source_revision: String(args["source-revision"]),
+    };
+  }
   baseEvidence.runtime_hygiene_digest = evidenceDigest(baseEvidence, ["runtime_hygiene_digest"]);
   return baseEvidence;
 }
@@ -145,6 +155,13 @@ function runtimeClassFor({ operation, intent: intentText, gateText, ciText, arti
   const combined = `${intentText}\n${gateText}\n${ciText}\n${artifactText}\n${bundleText}\n${releaseLane}\n${releaseEventText}`;
   if (/production side effect|prod touched|deploy started|deploy done/i.test(combined)) return "PRODUCTION_SIDE_EFFECT_PRESENT";
   if (/unknown production|cannot prove production|unclear production/i.test(combined)) return "PRODUCTION_SIDE_EFFECT_UNKNOWN";
+  const readyReleaseLane = new Set(["PREFLIGHT_ONLY", "BUNDLE_CREATED"]).has(normalizeLane(releaseLane));
+  const readyReleaseEvidence = /\b(pass|passed|ready|succeeded|success)\b/i.test(releaseEventText || "")
+    && !/\b(fail|failed|error|blocked|unknown)\b/i.test(releaseEventText || "");
+  const releaseBindingPresent = /^(artifact|file):/.test(String(args["release-candidate-ref"] || ""))
+    && /^sha256:[a-f0-9]{64}$/.test(String(args["release-candidate-digest"] || ""))
+    && String(args["source-revision"] || "").trim();
+  if (operation === "release" && readyReleaseLane && readyReleaseEvidence && releaseBindingPresent) return "RELEASE_PREFLIGHT_READY";
   if (/artifact.*quota|quota.*artifact|storage.*full|storage quota|exceeded.*storage/i.test(artifactText || combined)) return "ARTIFACT_QUOTA_BLOCKED";
   if (/bundle|evidence archive|docs\/evidence|screenshots|videos|oversized|too large/i.test(bundleText || combined)) return "RELEASE_BUNDLE_OVERSIZED";
   if (/structure budget|structure gate|large file|file too large/i.test(gateText || combined)) return "STRUCTURE_BUDGET_EXCEEDED";
@@ -167,9 +184,8 @@ function decisionStateFor(runtimeClass, releaseLane, ci) {
     }
     return "NEEDS_PLAIN_USER_APPROVAL";
   }
-  if (runtimeClass === "RELEASE_PREFLIGHT_FAILED") {
-    return "CAN_CONTINUE_AUTOMATICALLY";
-  }
+  if (runtimeClass === "RELEASE_PREFLIGHT_READY") return "CAN_CONTINUE_TO_RELEASE_REVIEW";
+  if (runtimeClass === "RELEASE_PREFLIGHT_FAILED") return "CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR";
   if (runtimeClass === "ARTIFACT_QUOTA_BLOCKED") return "NEEDS_RELEASE_OWNER_APPROVAL";
   if (runtimeClass === "RELEASE_BUNDLE_OVERSIZED") return "NEEDS_PLAIN_USER_APPROVAL";
   if (runtimeClass === "PRODUCTION_SIDE_EFFECT_UNKNOWN" || /UNKNOWN/i.test(releaseLane || "")) return "BLOCKED_BY_PRODUCTION_SIDE_EFFECT";
@@ -195,10 +211,11 @@ function gitContext(root, runtimeClass) {
   return {
     branch,
     upstream: upstreamName,
-    origin_main_fresh: "Unknown",
+    origin_main_fresh: runtimeClass === "RELEASE_PREFLIGHT_READY" && behind === 0 ? "Yes" : "Unknown",
     ahead_count: ahead,
     behind_count: behind,
-    current_task_commit_isolated: runtimeClass === "GIT_LINEAGE_DIRTY" || runtimeClass === "COMMIT_SCOPE_MIXED" ? "No" : "Unknown",
+    current_task_commit_isolated: runtimeClass === "RELEASE_PREFLIGHT_READY" ? "Yes"
+      : runtimeClass === "GIT_LINEAGE_DIRTY" || runtimeClass === "COMMIT_SCOPE_MIXED" ? "No" : "Unknown",
     force_push_required: runtimeClass === "GIT_LINEAGE_DIRTY" ? "Unknown" : "No",
   };
 }
@@ -208,7 +225,7 @@ function gateContext(runtimeClass, gateText) {
   const failed = ["PRE_PUSH_GATE_FAILED", "STRUCTURE_BUDGET_EXCEEDED", "CI_CODE_FAILURE"].includes(runtimeClass);
   return {
     gate_name: gateName,
-    exit_code: failed ? "nonzero" : "Unknown",
+    exit_code: failed ? "nonzero" : runtimeClass === "RELEASE_PREFLIGHT_READY" ? "0" : "Unknown",
     failure_class: failed ? runtimeClass : "N/A",
     current_task_related: failed ? "Yes" : "Unknown",
     bypass_recommended: "No",
@@ -229,7 +246,7 @@ function releaseContext(runtimeClass, releaseLane) {
   const productionTouched = runtimeClass === "PRODUCTION_SIDE_EFFECT_PRESENT" || lane === "PROD_DEPLOY_STARTED" || lane === "PROD_DEPLOY_DONE" ? "Yes"
     : runtimeClass === "PRODUCTION_SIDE_EFFECT_UNKNOWN" || lane === "UNKNOWN" ? "Unknown"
       : "No";
-  const ownerRequired = productionTouched !== "No" || runtimeClass === "ARTIFACT_QUOTA_BLOCKED" ? "Yes" : "No";
+  const ownerRequired = productionTouched !== "No" || runtimeClass === "ARTIFACT_QUOTA_BLOCKED" || runtimeClass === "RELEASE_PREFLIGHT_READY" ? "Yes" : "No";
   const reusable = productionTouched === "No" && ["PREFLIGHT_ONLY", "BUNDLE_CREATED"].includes(lane) ? "Yes"
     : productionTouched === "Yes" ? "No"
       : "Unknown";
@@ -375,6 +392,7 @@ function plainSummary(runtimeClass) {
     STRUCTURE_BUDGET_EXCEEDED: "The code is not ready to push. The project blocked it because too much logic is concentrated in large files.",
     CI_CODE_FAILURE: "The remote check failed because the code or tests still need repair.",
     CI_ENVIRONMENT_FAILURE: "The remote check failed for an environment or provider reason. The task stays open while I classify whether retry is safe.",
+    RELEASE_PREFLIGHT_READY: "The exact release candidate passed preflight checks without touching production. It can move to release-owner review.",
     RELEASE_PREFLIGHT_FAILED: "The release stopped before production was touched. I need to diagnose the preflight failure before trying again.",
     ARTIFACT_QUOTA_BLOCKED: "The release has not touched production. Storage for build bundles is full, and cleanup needs approval because deletion is irreversible.",
     RELEASE_BUNDLE_OVERSIZED: "The release bundle is too large because it appears to include non-runtime files. Evidence must be preserved outside the runtime bundle.",
@@ -391,6 +409,7 @@ function plainNextStep(runtimeClass) {
     STRUCTURE_BUDGET_EXCEEDED: "Split the new logic structurally and rerun the structure gate.",
     CI_CODE_FAILURE: "Return to task repair and rerun the failing tests or checks.",
     CI_ENVIRONMENT_FAILURE: "Record the provider issue and retry only if project policy allows it.",
+    RELEASE_PREFLIGHT_READY: "Verify the release approval record for this exact candidate, then prepare the bounded release handoff.",
     RELEASE_PREFLIGHT_FAILED: "Fix the preflight issue and rerun release review before any handoff.",
     ARTIFACT_QUOTA_BLOCKED: "Ask the release owner to approve cleanup of old non-authoritative bundles while preserving evidence.",
     RELEASE_BUNDLE_OVERSIZED: "Narrow the runtime bundle and keep evidence indexed and hashed outside the bundle.",

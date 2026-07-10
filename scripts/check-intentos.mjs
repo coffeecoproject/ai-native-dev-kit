@@ -11,6 +11,7 @@ import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, validateSchema } from "./lib/artifact-schema.mjs";
 import { initExecutableActions } from "./lib/adoption-apply-chain.mjs";
+import { projectIdentity } from "./lib/evidence-authority.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17672,6 +17673,279 @@ function checkApplyAdoptionClosureProtocol() {
   }
 }
 
+function checkReleaseTrustClosureProtocol() {
+  for (const file of [
+    "docs/plans/release-trust-closure-1.93-plan.md",
+    "core/release-approval-record.md",
+    "docs/release-approval-record.md",
+    "templates/release-approval-record.md",
+    "schemas/artifacts/release-approval-record.schema.json",
+    "schemas/artifacts/release-execution-plan.schema.json",
+    "scripts/lib/release-trust.mjs",
+    "scripts/check-release-approval-record.mjs",
+  ]) {
+    if (exists(file)) pass(`1.93 release trust closure asset exists ${file}`);
+    else fail(`1.93 release trust closure asset missing ${file}`);
+  }
+
+  const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.93-empty-approval-"));
+  const emptyCheck = runNode(["scripts/check-release-approval-record.mjs", emptyRoot, "--require-approved"]);
+  if (emptyCheck.status !== 0 && `${emptyCheck.stdout}\n${emptyCheck.stderr}`.includes("record is required")) pass("1.93 release approval fails closed when evidence is absent");
+  else fail(`1.93 release approval must fail closed when evidence is absent: ${emptyCheck.stderr || emptyCheck.stdout}`);
+
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.93-release-trust-"));
+  fs.cpSync(path.join(kitRoot, "examples", "1.80-release-evidence-gate", "web-preview-handoff"), root, { recursive: true });
+  for (const [relative, content] of [
+    ["docs/release-sop.md", "# Release SOP\n\nHuman release owner performs the provider handoff.\n"],
+    ["evidence/release-preflight.txt", "PASS release preflight succeeded before production.\n"],
+    ["evidence/rollback-current.md", "# Rollback\n\nRestore the previous preview candidate.\n"],
+    ["evidence/monitoring-current.md", "# Monitoring\n\nObserve preview health and error logs.\n"],
+    ["evidence/post-release-smoke-current.md", "# Post-release Smoke\n\nRead-only preview smoke procedure.\n"],
+  ]) {
+    fs.mkdirSync(path.dirname(path.join(root, relative)), { recursive: true });
+    fs.writeFileSync(path.join(root, relative), content);
+  }
+  for (const gitArgs of [
+    ["init"],
+    ["config", "user.email", "intentos-self-check@example.com"],
+    ["config", "user.name", "IntentOS Self Check"],
+    ["add", "."],
+    ["commit", "-m", "release candidate"],
+  ]) {
+    const result = spawnSync("git", ["-C", root, ...gitArgs], { encoding: "utf8" });
+    if (result.status !== 0) {
+      fail(`1.93 release trust fixture Git setup failed: ${result.stderr || result.stdout}`);
+      return;
+    }
+  }
+  const revision = spawnSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
+  const candidateRef = "release-candidates/001-web-preview.md";
+  const candidateFile = path.join(root, candidateRef);
+  const candidateOriginal = fs.readFileSync(candidateFile, "utf8");
+  const candidateDigest = fileDigest(candidateFile);
+  const releaseEvidenceRef = "release-evidence-gate-reports/001-web-preview.md";
+  const releaseEvidenceFile = path.join(root, releaseEvidenceRef);
+  const releaseEvidenceText = fs.readFileSync(releaseEvidenceFile, "utf8")
+    .replaceAll("git:1111111111111111111111111111111111111111", revision);
+  fs.writeFileSync(releaseEvidenceFile, releaseEvidenceText);
+  rewriteMachineEvidence(releaseEvidenceFile, (evidence) => {
+    evidence.release_scope.source_revision = revision;
+    evidence.release_evidence_digest = evidenceDigest(evidence, ["release_evidence_digest"]);
+    return evidence;
+  });
+  const releaseEvidenceCheck = runNode([
+    "scripts/check-release-evidence-gate.mjs", root, "--report", releaseEvidenceRef,
+    "--require-report", "--require-structured-evidence", "--require-ready", "--strict-source-binding",
+  ]);
+  if (releaseEvidenceCheck.status !== 0) {
+    fail(`1.93 release trust fixture Release Evidence failed: ${releaseEvidenceCheck.stderr || releaseEvidenceCheck.stdout}`);
+    return;
+  }
+
+  const runtimeRef = "runtime-hygiene-reports/001-release-ready.md";
+  fs.mkdirSync(path.join(root, "runtime-hygiene-reports"), { recursive: true });
+  const runtimeResolve = runNode([
+    "scripts/resolve-runtime-hygiene.mjs", root,
+    "--operation", "release",
+    "--release-lane", "PREFLIGHT_ONLY",
+    "--release-event", "evidence/release-preflight.txt",
+    "--release-event-ref", "artifact:evidence/release-preflight.txt",
+    "--release-candidate-ref", `artifact:${candidateRef}`,
+    "--release-candidate-digest", candidateDigest,
+    "--source-revision", revision,
+    "--out", runtimeRef,
+  ]);
+  if (runtimeResolve.status !== 0) {
+    fail(`1.93 release trust fixture Runtime Hygiene resolver failed: ${runtimeResolve.stderr || runtimeResolve.stdout}`);
+    return;
+  }
+  const runtimeCheck = runNode([
+    "scripts/check-runtime-hygiene.mjs", root, "--report", runtimeRef,
+    "--require-report", "--require-structured-evidence", "--require-runtime-sources",
+  ]);
+  if (runtimeCheck.status !== 0) {
+    fail(`1.93 release trust fixture Runtime Hygiene failed: ${runtimeCheck.stderr || runtimeCheck.stdout}`);
+    return;
+  }
+
+  const channelRef = "release-channel-policies/001-current-preview.md";
+  fs.mkdirSync(path.join(root, "release-channel-policies"), { recursive: true });
+  const channelResolve = runNode([
+    "scripts/resolve-release-channel-policy.mjs", root,
+    "--intent", "select source-only preview release channel",
+    "--project-type", "existing_project",
+    "--channel", "source_only",
+    "--recommendation-class", "KEEP_EXISTING_APPROVED_CHANNEL",
+    "--release-owner-ref", "human:release-owner",
+    "--package-identity-type", "none",
+    "--package-identity-ref", "not_applicable",
+    "--package-digest-or-id", "not_applicable",
+    "--release-candidate-ref", `artifact:${candidateRef}`,
+    "--release-evidence-gate-ref", `file:${releaseEvidenceRef}`,
+    "--runtime-hygiene-ref", `file:${runtimeRef}`,
+    "--project-sop-ref", "file:docs/release-sop.md",
+    "--out", channelRef,
+  ]);
+  if (channelResolve.status !== 0) {
+    fail(`1.93 release trust fixture Release Channel resolver failed: ${channelResolve.stderr || channelResolve.stdout}`);
+    return;
+  }
+  const channelCheck = runNode([
+    "scripts/check-release-channel-policy.mjs", root, "--report", channelRef,
+    "--require-report", "--require-structured-evidence", "--strict-source-binding",
+  ]);
+  if (channelCheck.status !== 0) {
+    fail(`1.93 release trust fixture Release Channel failed: ${channelCheck.stderr || channelCheck.stdout}`);
+    return;
+  }
+
+  const approvalRef = "release-approval-records/001-preview.md";
+  fs.mkdirSync(path.join(root, "release-approval-records"), { recursive: true });
+  const approval = {
+    schema_version: "1.93.0",
+    artifact_type: "release_approval_record",
+    artifact_id: "preview-release-approval",
+    release_approval_digest: "sha256:pending",
+    project_identity: projectIdentity(root),
+    release_candidate: {
+      release_target: "preview",
+      candidate_ref: `artifact:${candidateRef}`,
+      candidate_digest: candidateDigest,
+      source_revision: revision,
+      package_identity_type: "none",
+      package_identity_ref: "not_applicable",
+      package_identity_digest_or_id: "not_applicable",
+    },
+    trust_sources: {
+      release_evidence_gate: { ref: `artifact:${releaseEvidenceRef}`, digest: fileDigest(releaseEvidenceFile) },
+      runtime_hygiene: { ref: `artifact:${runtimeRef}`, digest: fileDigest(path.join(root, runtimeRef)) },
+      release_channel_policy: { ref: `artifact:${channelRef}`, digest: fileDigest(path.join(root, channelRef)) },
+      platform_recipe: { required: "No", ref: "N/A", digest: "N/A" },
+      release_handoff_pack: { required: "No", ref: "N/A", digest: "N/A" },
+    },
+    release_controls: {
+      release_owner_ref: "human:release-owner",
+      release_sop_ref: "artifact:docs/release-sop.md",
+      release_sop_digest: fileDigest(path.join(root, "docs/release-sop.md")),
+      rollback_ref: "artifact:evidence/rollback-current.md",
+      rollback_digest: fileDigest(path.join(root, "evidence/rollback-current.md")),
+      monitoring_ref: "artifact:evidence/monitoring-current.md",
+      monitoring_digest: fileDigest(path.join(root, "evidence/monitoring-current.md")),
+      post_release_smoke_ref: "artifact:evidence/post-release-smoke-current.md",
+      post_release_smoke_digest: fileDigest(path.join(root, "evidence/post-release-smoke-current.md")),
+    },
+    human_approval: {
+      approval_status: "APPROVED",
+      approval_owner_type: "HUMAN",
+      approved_by: "Release Owner Dana",
+      approved_at: "2026-07-10T10:00:00Z",
+      expires_at: "2099-12-31T23:59:00Z",
+      approved_scope: "Preview release candidate review and bounded low-risk assistance only.",
+    },
+    allowed_codex_actions: ["VERIFY", "BUILD", "EVIDENCE_CAPTURE", "HANDOFF_PREPARATION", "POST_RELEASE_READ_ONLY_SMOKE"],
+    blocked_actions: ["PRODUCTION_DEPLOY", "STORE_SUBMISSION", "MINI_PROGRAM_RELEASE", "PRODUCTION_MIGRATION", "SECRETS", "DNS", "PAYMENT", "PERMISSIONS", "PRODUCTION_CONFIG", "ROLLBACK_EXECUTION"],
+    boundaries: {
+      codex_release_owner: "No",
+      automatic_production_deploy: "No",
+      codex_store_or_mini_program_submission: "No",
+      codex_high_risk_production_changes: "No",
+      proves_product_or_production_safety: "No",
+    },
+    outcome: "RELEASE_APPROVAL_VALID",
+  };
+  approval.release_approval_digest = evidenceDigest(approval, ["release_approval_digest"]);
+  fs.writeFileSync(path.join(root, approvalRef), [
+    "# Release Approval Record: preview-release-approval", "", "## Machine-Readable Evidence", "", "```json",
+    JSON.stringify(approval, null, 2), "```", "", "## Outcome", "", "`RELEASE_APPROVAL_VALID`", "",
+  ].join("\n"));
+  const approvalCheck = runNode([
+    "scripts/check-release-approval-record.mjs", root, "--report", approvalRef,
+    "--require-structured-evidence", "--require-approved",
+  ]);
+  if (approvalCheck.status !== 0) {
+    fail(`1.93 release trust fixture approval failed: ${approvalCheck.stderr || approvalCheck.stdout}`);
+    return;
+  }
+  pass("1.93 current project-bound Release Approval Record passes strict authority chain");
+
+  const executionRef = "release-execution-plans/001-preview.md";
+  fs.mkdirSync(path.join(root, "release-execution-plans"), { recursive: true });
+  const executionResolve = runNode([
+    "scripts/resolve-release-execution.mjs", root,
+    "--intent", "prepare preview release handoff",
+    "--mode", "ASSISTED_EXECUTION",
+    "--approval-ref", `artifact:${approvalRef}`,
+  ]);
+  fs.writeFileSync(path.join(root, executionRef), executionResolve.stdout);
+  const executionCheck = runNode([
+    "scripts/check-release-execution.mjs", root, "--report", executionRef, "--require-release-trust",
+  ]);
+  if (executionResolve.status !== 0 || executionCheck.status !== 0) {
+    fail(`1.93 trusted Release Execution failed: ${executionResolve.stderr || executionCheck.stderr || executionCheck.stdout}`);
+    return;
+  }
+  pass("1.93 Release Execution consumes the exact strict release authority chain");
+
+  const weakRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.93-weak-approval-"));
+  fs.mkdirSync(path.join(weakRoot, "release-execution-plans"), { recursive: true });
+  const weakResolve = runNode([
+    "scripts/resolve-release-execution.mjs", weakRoot,
+    "--intent", "prepare release", "--mode", "ASSISTED_EXECUTION", "--approval-status", "APPROVED",
+  ]);
+  fs.writeFileSync(path.join(weakRoot, "release-execution-plans/001.md"), weakResolve.stdout);
+  const weakCheck = runNode(["scripts/check-release-execution.mjs", weakRoot, "--require-release-trust"]);
+  if (weakCheck.status !== 0 && weakResolve.stdout.includes("BLOCKED_PENDING_LAUNCH_REVIEW")) pass("1.93 self-declared CLI approval cannot unlock Release Execution");
+  else fail(`1.93 weak CLI approval must fail closed: ${weakCheck.stderr || weakCheck.stdout}`);
+
+  const copiedRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.93-copied-approval-"));
+  fs.mkdirSync(path.join(copiedRoot, "release-approval-records"), { recursive: true });
+  fs.copyFileSync(path.join(root, approvalRef), path.join(copiedRoot, approvalRef));
+  const copiedCheck = runNode(["scripts/check-release-approval-record.mjs", copiedRoot, "--report", approvalRef, "--require-approved"]);
+  if (copiedCheck.status !== 0 && `${copiedCheck.stdout}\n${copiedCheck.stderr}`.includes("project_identity")) pass("1.93 copied release approval is rejected");
+  else fail(`1.93 copied release approval must be rejected: ${copiedCheck.stderr || copiedCheck.stdout}`);
+
+  const unsafeApprovalRef = "release-approval-records/002-unsafe-action.md";
+  const unsafeApproval = structuredClone(approval);
+  unsafeApproval.artifact_id = "unsafe-release-approval";
+  unsafeApproval.allowed_codex_actions.push("PRODUCTION_DEPLOY");
+  unsafeApproval.release_approval_digest = evidenceDigest(unsafeApproval, ["release_approval_digest"]);
+  fs.writeFileSync(path.join(root, unsafeApprovalRef), [
+    "# Release Approval Record: unsafe-release-approval", "", "## Machine-Readable Evidence", "", "```json",
+    JSON.stringify(unsafeApproval, null, 2), "```", "", "## Outcome", "", "`RELEASE_APPROVAL_VALID`", "",
+  ].join("\n"));
+  const unsafeApprovalCheck = runNode([
+    "scripts/check-release-approval-record.mjs", root, "--report", unsafeApprovalRef, "--require-approved",
+  ]);
+  if (unsafeApprovalCheck.status !== 0 && `${unsafeApprovalCheck.stdout}\n${unsafeApprovalCheck.stderr}`.includes("allowed_codex_actions")) pass("1.93 approval cannot assign high-risk release actions to Codex");
+  else fail(`1.93 high-risk Codex release action must be rejected: ${unsafeApprovalCheck.stderr || unsafeApprovalCheck.stdout}`);
+
+  const expiredApprovalRef = "release-approval-records/003-expired.md";
+  const expiredApproval = structuredClone(approval);
+  expiredApproval.artifact_id = "expired-release-approval";
+  expiredApproval.human_approval.expires_at = "2020-01-01T00:00:00Z";
+  expiredApproval.release_approval_digest = evidenceDigest(expiredApproval, ["release_approval_digest"]);
+  fs.writeFileSync(path.join(root, expiredApprovalRef), [
+    "# Release Approval Record: expired-release-approval", "", "## Machine-Readable Evidence", "", "```json",
+    JSON.stringify(expiredApproval, null, 2), "```", "", "## Outcome", "", "`RELEASE_APPROVAL_VALID`", "",
+  ].join("\n"));
+  const expiredApprovalCheck = runNode([
+    "scripts/check-release-approval-record.mjs", root, "--report", expiredApprovalRef, "--require-approved",
+  ]);
+  if (expiredApprovalCheck.status !== 0 && `${expiredApprovalCheck.stdout}\n${expiredApprovalCheck.stderr}`.includes("expired")) pass("1.93 expired release approval is rejected");
+  else fail(`1.93 expired release approval must be rejected: ${expiredApprovalCheck.stderr || expiredApprovalCheck.stdout}`);
+
+  fs.appendFileSync(candidateFile, "\nCandidate changed after approval.\n");
+  const staleCandidateCheck = runNode(["scripts/check-release-approval-record.mjs", root, "--report", approvalRef, "--require-approved"]);
+  if (staleCandidateCheck.status !== 0 && `${staleCandidateCheck.stdout}\n${staleCandidateCheck.stderr}`.includes("release candidate digest")) pass("1.93 candidate drift invalidates release approval");
+  else fail(`1.93 candidate drift must invalidate approval: ${staleCandidateCheck.stderr || staleCandidateCheck.stdout}`);
+  fs.writeFileSync(candidateFile, candidateOriginal);
+
+  const headChange = spawnSync("git", ["-C", root, "commit", "--allow-empty", "-m", "revision changed"], { encoding: "utf8" });
+  const staleRevisionCheck = runNode(["scripts/check-release-approval-record.mjs", root, "--report", approvalRef, "--require-approved"]);
+  if (headChange.status === 0 && staleRevisionCheck.status !== 0 && `${staleRevisionCheck.stdout}\n${staleRevisionCheck.stderr}`.includes("project_identity")) pass("1.93 project revision change invalidates release approval");
+  else fail(`1.93 project revision drift must invalidate approval: ${headChange.stderr || staleRevisionCheck.stderr || staleRevisionCheck.stdout}`);
+}
+
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
@@ -17742,6 +18016,7 @@ checkUnifiedClosureModelProtocol();
 checkExecutionTruthHardcutProtocol();
 checkEvidenceAuthorityCoreProtocol();
 checkApplyAdoptionClosureProtocol();
+checkReleaseTrustClosureProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

@@ -86,7 +86,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 
 | Source | Ref | Digest | Present | Current task match |
 | --- | --- | --- | --- | --- |
-| `gate_output` | `gate:structure-budget#run-1` | `sha256:e95cd58d205959e74972385e4198c42de19f223fb4dce468475e6e6bac361723` | `Yes` | `Unknown` |
+| `gate_output` | `file:evidence/gate-structure-budget-run-1.txt` | `sha256:c406b1a9ae361ad6e31e49c506ed231d7df02820e7377141e1e48679ecc1a850` | `Yes` | `Unknown` |
 | `ci_log` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `artifact_error` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
 | `bundle_summary` | `N/A` | `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | `No` | `Unknown` |
@@ -125,7 +125,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "schema_version": "1.86.1",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/001-strict-task-entry.md",
-  "runtime_hygiene_digest": "sha256:0a46f3346f0f3943c4fd8a1fdc1bbf0179dd56de829b46601f1280770076bd20",
+  "runtime_hygiene_digest": "sha256:653747637bdf072ea8cbb6e1a64faf720a14f63bb942789613a44184a4debd32",
   "task_ref": "task:change-review-workflow-step-policy-after-task-submission",
   "work_queue_item_ref": "artifact:work-queue-takeover-reports/001-current.md#WQ-001",
   "task_governance_ref": "artifact:task-governance-reports/001-task-governance.md",
@@ -202,8 +202,8 @@ It does not approve commit, push, release, production, artifact deletion, gate b
   "runtime_source_trace": [
     {
       "source_kind": "gate_output",
-      "source_ref": "gate:structure-budget#run-1",
-      "source_digest": "sha256:e95cd58d205959e74972385e4198c42de19f223fb4dce468475e6e6bac361723",
+      "source_ref": "file:evidence/gate-structure-budget-run-1.txt",
+      "source_digest": "sha256:c406b1a9ae361ad6e31e49c506ed231d7df02820e7377141e1e48679ecc1a850",
       "source_present": "Yes",
       "current_task_match": "Unknown"
     },

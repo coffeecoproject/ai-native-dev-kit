@@ -31,6 +31,12 @@ In strict use, the report also records:
 - whether a CI environment retry is allowed by project policy and whether
   production side effects were checked.
 
+For release preflight, strict runtime hygiene also binds the exact project-local
+release candidate, its current digest, and the current Git revision. Only a
+successful pre-production lane with those bindings may report
+`RELEASE_PREFLIGHT_READY`. Changing the candidate or Git revision invalidates
+that result.
+
 The report does not approve:
 
 - implementation;

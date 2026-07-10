@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "1.93.0",
+  "artifactType": "release_execution_plan",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "release_execution_digest",
+    "project_identity",
+    "release_candidate",
+    "trust_inputs",
+    "execution_mode",
+    "allowed_codex_actions",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.93.0" },
+    "artifact_type": { "const": "release_execution_plan" },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "release_execution_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "project_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fingerprint", "revision"],
+      "properties": {
+        "kind": { "enum": ["GIT", "NON_GIT"] },
+        "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "release_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_target", "candidate_ref", "candidate_digest", "source_revision", "package_identity_type", "package_identity_ref", "package_identity_digest_or_id"],
+      "properties": {
+        "release_target": { "type": "string", "minLength": 1 },
+        "candidate_ref": { "type": "string", "minLength": 1 },
+        "candidate_digest": { "type": "string", "minLength": 1 },
+        "source_revision": { "type": "string", "minLength": 1 },
+        "package_identity_type": { "type": "string", "minLength": 1 },
+        "package_identity_ref": { "type": "string", "minLength": 1 },
+        "package_identity_digest_or_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "trust_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_approval_ref", "release_approval_digest", "release_evidence_gate_ref", "release_evidence_gate_digest", "runtime_hygiene_ref", "runtime_hygiene_digest", "release_channel_policy_ref", "release_channel_policy_digest", "platform_recipe_ref", "platform_recipe_digest", "release_handoff_pack_ref", "release_handoff_pack_digest"],
+      "properties": {
+        "release_approval_ref": { "type": "string", "minLength": 1 },
+        "release_approval_digest": { "type": "string", "minLength": 1 },
+        "release_evidence_gate_ref": { "type": "string", "minLength": 1 },
+        "release_evidence_gate_digest": { "type": "string", "minLength": 1 },
+        "runtime_hygiene_ref": { "type": "string", "minLength": 1 },
+        "runtime_hygiene_digest": { "type": "string", "minLength": 1 },
+        "release_channel_policy_ref": { "type": "string", "minLength": 1 },
+        "release_channel_policy_digest": { "type": "string", "minLength": 1 },
+        "platform_recipe_ref": { "type": "string", "minLength": 1 },
+        "platform_recipe_digest": { "type": "string", "minLength": 1 },
+        "release_handoff_pack_ref": { "type": "string", "minLength": 1 },
+        "release_handoff_pack_digest": { "type": "string", "minLength": 1 }
+      }
+    },
+    "execution_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "real_release_execution_allowed"],
+      "properties": {
+        "mode": { "enum": ["PLAN_ONLY", "BLOCKED", "HUMAN_EXECUTION_HANDOFF", "ASSISTED_EXECUTION"] },
+        "real_release_execution_allowed": { "enum": ["Yes", "No"] }
+      }
+    },
+    "allowed_codex_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["VERIFY", "BUILD", "PACKAGE", "EVIDENCE_CAPTURE", "HANDOFF_PREPARATION", "POST_RELEASE_READ_ONLY_SMOKE"] }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approves_release", "executes_release_by_itself", "codex_high_risk_release_action", "changes_project_release_authority"],
+      "properties": {
+        "approves_release": { "const": "No" },
+        "executes_release_by_itself": { "const": "No" },
+        "codex_high_risk_release_action": { "const": "No" },
+        "changes_project_release_authority": { "const": "No" }
+      }
+    },
+    "outcome": {
+      "enum": ["RELEASE_EXECUTION_PLAN_RECORDED", "BLOCKED_PENDING_LAUNCH_REVIEW", "BLOCKED_PENDING_RELEASE_APPROVAL", "READY_FOR_HUMAN_EXECUTION_HANDOFF", "READY_FOR_ASSISTED_EXECUTION"]
+    }
+  },
+  "additionalProperties": false
+}

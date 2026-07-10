@@ -301,6 +301,10 @@ function checkSourceBinding(label, evidence) {
     if (["current_task", "release_candidate", "project", "unknown", "not_applicable"].includes(source.source_scope_match)) pass(`${label} source ${source.source_kind} uses valid scope match`);
     else fail(`${label} source ${source.source_kind} has invalid scope match`);
     checkSourceRefDigest(label, source, { required: false });
+    if (["release_evidence_gate", "runtime_hygiene"].includes(source.source_kind) && !isMissingSourceRef(source.source_ref) && source.source_ref !== "not_applicable") {
+      if (source.current_release_candidate_match === "Yes") pass(`${label} source ${source.source_kind} matches current release candidate`);
+      else fail(`${label} source ${source.source_kind} must match current release candidate`);
+    }
   }
 }
 

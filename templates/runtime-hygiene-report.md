@@ -64,6 +64,16 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 | Release ID reusable | `<Yes/No/Unknown>` |
 | Release owner required | `<Yes/No>` |
 
+## Release Trust Binding
+
+Use this section for `RELEASE_PREFLIGHT_READY`; otherwise record `N/A` values.
+
+| Field | Value |
+| --- | --- |
+| Release candidate ref | `<project-relative file ref or N/A>` |
+| Release candidate digest | `sha256:<64 hex>` |
+| Candidate source revision | `<current Git revision or N/A>` |
+
 ## Artifact Context
 
 | Field | Value |
@@ -123,7 +133,7 @@ It does not approve commit, push, release, production, artifact deletion, gate b
 
 ```json
 {
-  "schema_version": "1.86.1",
+  "schema_version": "1.93.0",
   "artifact_type": "runtime_hygiene",
   "runtime_hygiene_ref": "runtime-hygiene-reports/generated.md",
   "runtime_hygiene_digest": "sha256:<64 hex>",
@@ -186,6 +196,11 @@ It does not approve commit, push, release, production, artifact deletion, gate b
     "production_touched": "No",
     "release_id_reusable": "Unknown",
     "release_owner_required": "No"
+  },
+  "release_trust_binding": {
+    "release_candidate_ref": "N/A",
+    "release_candidate_digest": "sha256:<64 hex>",
+    "source_revision": "N/A"
   },
   "artifact_context": {
     "artifact_quota_blocked": "No",

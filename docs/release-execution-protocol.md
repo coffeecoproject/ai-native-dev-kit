@@ -1,12 +1,15 @@
 # Release Execution Protocol
 
-Release Execution Protocol is the step after Launch Review View.
+Release Execution Protocol is the derived consumer after the strict release
+trust chain. Launch Review View remains an explanatory input; it is not release
+authority.
 
 In plain language:
 
 ```text
 1.55 answers: can this enter launch review?
-1.56 answers: after human approval, what is the safe release execution path?
+1.93 answers: does one current human approval match this exact project,
+candidate, target, package, and strict release evidence chain?
 ```
 
 It does not mean Codex automatically publishes or deploys.
@@ -29,21 +32,34 @@ Check recorded plans:
 node scripts/cli.mjs release-execution-check .
 ```
 
-When a release owner approves a release, provide the approval reference:
+After a human release owner records the exact structured approval, provide that
+Release Approval Record:
 
 ```bash
 node scripts/cli.mjs release-execution . \
-  --launch-view-ref launch-review-views/001-launch.md \
-  --approval-ref approval-records/001-release.md \
+  --approval-ref release-approval-records/001-release.md \
   --mode HUMAN_EXECUTION_HANDOFF
 ```
+
+Check the approval authority before planning execution:
+
+```bash
+node scripts/cli.mjs release-approval-check . \
+  --report release-approval-records/001-release.md \
+  --require-structured-evidence \
+  --require-approved
+```
+
+Free-form approval text and `--approval-status APPROVED` do not authorize
+release execution.
 
 ## What It Produces
 
 A Release Execution Plan tells the user:
 
-- whether Launch Review View is ready
-- whether human release approval exists
+- whether the exact Release Approval Record is current and valid
+- whether Release Evidence Gate, Runtime Hygiene, Release Channel Policy, and
+  required platform handoff evidence all still pass
 - which mode is allowed
 - which steps Codex may help with
 - which steps must stop for a human
@@ -81,4 +97,6 @@ What proof do we need?
 Where must Codex stop?
 ```
 
-If the previous step says `READY_FOR_HANDOFF_REVIEW`, that means ready for handoff review, not release approval.
+If the previous step says `READY_FOR_HANDOFF_REVIEW`, that means ready for
+handoff review, not release approval. A passing Release Approval Record still
+does not execute or guarantee production release.

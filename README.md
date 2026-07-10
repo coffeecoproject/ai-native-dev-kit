@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.92.0`.
+Current release: `1.93.0`.
 
-Release record: [releases/1.92.0/release-record.md](releases/1.92.0/release-record.md).
+Release record: [releases/1.93.0/release-record.md](releases/1.93.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -75,6 +75,17 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.93.0 closes release authorization trust. IntentOS now accepts only a
+structured human Release Approval Record bound to the current project, Git
+revision, exact candidate, target, package identity, and strict release
+evidence chain. Plain text such as “approved”, a CLI status flag, a tag, or a
+copied old record cannot unlock release execution.
+
+This still does not approve or guarantee production release. Deployments,
+store and mini-program submissions, migrations, secrets, DNS, payments,
+permissions, production configuration, and rollback execution remain owned by
+the human release owner or the project's external release system.
 
 1.92.0 closes the old-project apply loop. Once the user accepts the bounded
 professional recommendation, IntentOS applies only the exact approved
