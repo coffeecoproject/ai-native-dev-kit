@@ -3,10 +3,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const scriptDir = path.dirname(__filename);
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "require-task-governance", "require-work-queue", "strict-task-consumer"]);
@@ -209,19 +213,143 @@ function checkClosureDecisions() {
 
 function requireDoneEvidence(content, label) {
   const evidence = sectionBody(content, "Evidence Map") || "";
-  for (const marker of [
-    "Verification | `PASS`",
-    "Execution closure | `PASS`",
-  ]) {
-    if (evidence.includes(marker)) pass(`${label} DONE evidence includes ${marker}`);
-    else fail(`${label} cannot be DONE without ${marker}`);
-  }
-  const impactRow = tableRow(evidence, "Impact coverage");
-  if (/\|\s*`(PASS|N\/A)`\s*\|/i.test(impactRow)) pass(`${label} DONE impact coverage is PASS or N/A`);
+  const verification = parseInputVerification(content, label);
+  const verificationEvidence = evidenceRow(evidence, "Verification");
+  const executionEvidence = evidenceRow(evidence, "Execution Closure");
+  const impactEvidence = evidenceRow(evidence, "Change Impact Coverage") || evidenceRow(evidence, "Impact coverage");
+  const humanEvidence = evidenceRow(evidence, "Human decision");
+  if (verificationEvidence?.status === "PASS") pass(`${label} DONE evidence includes Verification PASS`);
+  else fail(`${label} cannot be DONE without Verification PASS`);
+  if (executionEvidence?.status === "PASS") pass(`${label} DONE evidence includes Execution Closure PASS`);
+  else fail(`${label} cannot be DONE without Execution Closure PASS`);
+  if (["PASS", "N/A"].includes(impactEvidence?.status)) pass(`${label} DONE impact coverage is PASS or N/A`);
   else fail(`${label} cannot be DONE with missing impact coverage`);
-  const humanRow = tableRow(evidence, "Human decision");
-  if (/\|\s*`(PASS|N\/A)`\s*\|/i.test(humanRow)) pass(`${label} DONE human decision is PASS or N/A`);
+  if (["PASS", "N/A"].includes(humanEvidence?.status)) pass(`${label} DONE human decision is PASS or N/A`);
   else fail(`${label} cannot be DONE with missing human decision`);
+
+  requireVerifiedInput(verification, label, "Verification", { required: "Yes" });
+  const execution = requireVerifiedInput(verification, label, "Execution Closure", { required: "Yes" });
+  const impact = requireVerifiedInput(verification, label, "Change Impact Coverage", {
+    required: impactEvidence?.status === "PASS" ? "Yes" : "No",
+  });
+  const human = requireVerifiedInput(verification, label, "Human Decision", {
+    required: humanEvidence?.status === "PASS" ? "Yes" : "No",
+  });
+
+  if (execution?.verified === "Yes") requireVerifiedExecutionClosure(execution, label);
+  if (impact?.required === "Yes" && impact?.verified === "Yes") requireVerifiedImpactCoverage(impact, label);
+  if (human?.required === "Yes" && human?.verified === "Yes") requireDistinctHumanDecision(human, [execution, impact], label);
+}
+
+function evidenceRow(content, name) {
+  const line = tableRow(content, name);
+  if (!line) return null;
+  const cells = line.split("|").slice(1, -1).map((cell) => cell.trim().replace(/`/g, ""));
+  if (cells.length < 3) return null;
+  return {
+    evidence: cells[0],
+    status: cells[1],
+    verified: cells[2],
+    ref: cells[3] || "N/A",
+    checker: cells[4] || "N/A",
+  };
+}
+
+function parseInputVerification(content, label) {
+  const body = sectionBody(content, "Input Verification");
+  if (body === null) {
+    fail(`${label} DONE requires Input Verification`);
+    return new Map();
+  }
+  const rows = body.split("\n")
+    .filter((line) => line.trim().startsWith("|"))
+    .slice(2)
+    .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim().replace(/`/g, "")))
+    .filter((cells) => cells.length >= 5 && cells[0]);
+  const entries = new Map(rows.map((cells) => [cells[0].toLowerCase(), {
+    input: cells[0],
+    required: cells[1],
+    verified: cells[2],
+    ref: cells[3],
+    checker: cells[4],
+  }]));
+  if (entries.size > 0) pass(`${label} DONE includes Input Verification entries`);
+  else fail(`${label} DONE Input Verification must include evidence entries`);
+  return entries;
+}
+
+function requireVerifiedInput(entries, label, name, options = {}) {
+  const entry = entries.get(name.toLowerCase());
+  if (!entry) {
+    fail(`${label} DONE Input Verification is missing ${name}`);
+    return null;
+  }
+  const expectedRequired = options.required || "Yes";
+  if (entry.required === expectedRequired) pass(`${label} ${name} Input Verification required state matches evidence map`);
+  else fail(`${label} ${name} Input Verification required state must be ${expectedRequired}`);
+  if (expectedRequired === "Yes") {
+    if (entry.verified === "Yes") pass(`${label} ${name} Input Verification is verified`);
+    else fail(`${label} ${name} Input Verification must be verified Yes for DONE`);
+    if (entry.ref && entry.ref !== "N/A") pass(`${label} ${name} Input Verification has an evidence ref`);
+    else fail(`${label} ${name} Input Verification requires an evidence ref`);
+    if (entry.checker && entry.checker !== "N/A") pass(`${label} ${name} Input Verification names its checker`);
+    else fail(`${label} ${name} Input Verification requires a checker`);
+  } else if (["N/A", "No"].includes(entry.verified)) {
+    pass(`${label} ${name} Input Verification is not required`);
+  } else {
+    fail(`${label} ${name} Input Verification must be N/A or No when not required`);
+  }
+  return entry;
+}
+
+function requireVerifiedExecutionClosure(entry, label) {
+  const check = runNode([
+    "scripts/check-execution-closure.mjs",
+    projectRoot,
+    "--report",
+    entry.ref,
+    "--require-impact-coverage",
+    "--require-precise-evidence",
+  ]);
+  if (check.status === 0) pass(`${label} verified Execution Closure passes exact strict checker`);
+  else fail(`${label} verified Execution Closure fails exact strict checker: ${firstFailure(check)}`);
+}
+
+function requireVerifiedImpactCoverage(entry, label) {
+  const check = runNode([
+    "scripts/check-change-impact-coverage.mjs",
+    projectRoot,
+    "--report",
+    entry.ref,
+    "--require-structured-evidence",
+    "--mode",
+    "closure",
+    "--strict-evidence",
+    "--resolve-evidence-refs",
+    "--require-precise-evidence",
+  ]);
+  if (check.status === 0) pass(`${label} verified Change Impact Coverage passes exact strict checker`);
+  else fail(`${label} verified Change Impact Coverage fails exact strict checker: ${firstFailure(check)}`);
+}
+
+function requireDistinctHumanDecision(entry, evidenceEntries, label) {
+  const ref = String(entry.ref || "").trim();
+  const duplicated = evidenceEntries.filter(Boolean).some((item) => item.ref === ref);
+  if (duplicated) {
+    fail(`${label} verified Human Decision cannot reuse execution or impact evidence`);
+    return;
+  }
+  const file = resolveProjectFile(ref);
+  if (!file) {
+    fail(`${label} verified Human Decision ref is not a safe project-local file: ${ref || "<missing>"}`);
+    return;
+  }
+  const content = fs.readFileSync(file, "utf8").trim();
+  if (content.length >= 40 && /(human|owner|decision|approve|confirm|确认|决定|负责人)/i.test(content)) {
+    pass(`${label} verified Human Decision is a distinct meaningful record`);
+  } else {
+    fail(`${label} verified Human Decision record is too weak`);
+  }
 }
 
 function requireDecisionTrace(content, label) {
@@ -321,10 +449,17 @@ function checkSourceEvidence() {
   }
 
   const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.53-unified-closure-model"]);
-  if (example.status === 0 && example.stdout.includes("Unified Closure Decision check passed")) {
-    pass("1.53 unified closure example passes checker");
+  if (example.status !== 0 && `${example.stdout}\n${example.stderr}`.includes("DONE requires Input Verification")) {
+    pass("1.53 legacy unified closure example cannot claim verified DONE after 1.90");
   } else {
-    fail(`1.53 unified closure example failed: ${example.stderr || example.stdout}`);
+    fail(`1.53 legacy unified closure example must be rejected as unverified DONE: ${example.stderr || example.stdout}`);
+  }
+
+  const verifiedExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.49-structured-impact-coverage/contract-input-rule"]);
+  if (verifiedExample.status === 0 && verifiedExample.stdout.includes("verified Execution Closure passes exact strict checker")) {
+    pass("1.90 verified unified closure example passes checker");
+  } else {
+    fail(`1.90 verified unified closure example failed: ${verifiedExample.stderr || verifiedExample.stdout}`);
   }
 
   const explainExample = runNode(["scripts/check-closure-decision.mjs", "examples/1.54-decision-explain-trace"]);
@@ -431,7 +566,7 @@ function tableValue(content, label) {
 }
 
 function tableRow(content, label) {
-  return String(content || "").split("\n").find((line) => line.includes(`| ${label} |`)) || "";
+  return String(content || "").split("\n").find((line) => new RegExp(`\\|\\s*${escapeRegExp(label)}\\s*\\|`, "i").test(line)) || "";
 }
 
 function codeOrTextValue(body) {
@@ -445,10 +580,37 @@ function escapeRegExp(value) {
 }
 
 function runNode(commandArgs) {
-  return spawnSync(process.execPath, commandArgs, {
+  const resolvedArgs = commandArgs.slice();
+  if (/^scripts\/[^/]+\.mjs$/.test(resolvedArgs[0] || "")) {
+    resolvedArgs[0] = path.join(scriptDir, path.basename(resolvedArgs[0]));
+  }
+  return spawnSync(process.execPath, resolvedArgs, {
     cwd: projectRoot,
     encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 16,
   });
+}
+
+function resolveProjectFile(ref) {
+  const normalized = String(ref || "").trim().replace(/^(artifact|file):/, "").replaceAll("\\", "/");
+  if (!normalized || path.isAbsolute(normalized) || normalized.includes("\0") || normalized.split("/").some((part) => !part || part === "." || part === "..")) return null;
+  const candidate = path.resolve(projectRoot, normalized);
+  const relative = path.relative(projectRoot, candidate);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !fs.existsSync(candidate) || !fs.statSync(candidate).isFile()) return null;
+  try {
+    const realRoot = fs.realpathSync(projectRoot);
+    const realFile = fs.realpathSync(candidate);
+    const realRelative = path.relative(realRoot, realFile);
+    if (realRelative.startsWith("..") || path.isAbsolute(realRelative)) return null;
+  } catch {
+    return null;
+  }
+  return candidate;
+}
+
+function firstFailure(result) {
+  const line = `${result.stdout || ""}\n${result.stderr || ""}`.split(/\r?\n/).find((item) => /^FAIL\s+/i.test(item));
+  return line ? line.replace(/^FAIL\s+/i, "") : "checker did not pass";
 }
 
 function rel(filePath) {

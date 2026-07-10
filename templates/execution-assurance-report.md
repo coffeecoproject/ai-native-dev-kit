@@ -2,6 +2,10 @@
 
 This report is a read-only derived verification view. It does not write target files, authorize writes, approve release, or replace source systems.
 
+> When strict evidence authority is required, its Machine-Readable Evidence
+> includes an `authority_binding` for the current project, task, and consumed
+> local source files. This binding is not execution or release approval.
+
 ## Human Summary
 
 | Field | Value |

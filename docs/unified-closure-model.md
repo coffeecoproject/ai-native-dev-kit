@@ -33,10 +33,19 @@ They are useful, but they should not produce competing final answers.
 ## Mental Model
 
 ```text
-impact coverage + execution closure + guided closure + evidence precision
+verified impact coverage + verified execution closure + guided closure + evidence precision
 -> Unified Closure Decision
 -> plain user answer
 ```
+
+From 1.90, a source file being present is not enough for `DONE`. IntentOS
+checks the selected Execution Closure with its own strict checker. For a
+behavior-changing task, it also checks the exact linked Change Impact Coverage
+record and confirms that it matches the task being closed. The decision trace
+then shows which inputs were actually verified.
+
+This keeps the public question simple while preventing an old, unrelated, or
+invalid report from being reused as completion proof.
 
 ## User-Facing Command
 
@@ -72,6 +81,15 @@ Lower-level scripts remain available for exact evidence checks:
 node scripts/check-change-impact-coverage.mjs .
 node scripts/check-execution-closure.mjs .
 node scripts/check-guided-closure.mjs .
+```
+
+To validate one close-out record without mixing in older history:
+
+```bash
+node scripts/check-execution-closure.mjs . \
+  --report execution-closures/001-current-task.md \
+  --require-impact-coverage \
+  --require-precise-evidence
 ```
 
 ## Task Governance Consumer Integration

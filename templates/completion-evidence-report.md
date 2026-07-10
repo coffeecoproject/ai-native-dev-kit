@@ -2,6 +2,10 @@
 
 This report is a read-only completion gate. It does not run tests, write target files, approve commits, or approve release.
 
+> When strict evidence authority is required, its Machine-Readable Evidence
+> includes an `authority_binding` for the current project, task, and consumed
+> local source files. This binding is not execution or release approval.
+
 ## Human Summary
 
 | Field | Value |

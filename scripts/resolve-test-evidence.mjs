@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { createEvidenceAuthorityBinding, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -77,6 +78,15 @@ function buildReport(root) {
     verification_plan_digest: planEvidence?.verification_plan_digest || "not provided",
     verification_plan_state: planEvidence?.verification_state || "not provided",
     source_systems: sourceSystems,
+    authority_binding: createEvidenceAuthorityBinding(root, {
+      taskRef,
+      intentDigest,
+      sourceRefs: [
+        verificationPlan.ref,
+        ...sourceSystems.map((item) => item.ref),
+        ...evidenceItems.map((item) => item.ref),
+      ],
+    }),
     test_evidence_state: state,
     evidence_items: evidenceItems,
     coverage_map: coverageMap,
@@ -116,25 +126,12 @@ function buildReport(root) {
 }
 
 function resolveVerificationPlan(root, ref) {
-  const normalized = normalizeArtifactRef(ref);
-  if (!normalized) return { ref: "", file: "", evidence: null };
-  const candidates = [
-    path.resolve(root, normalized),
-    path.resolve(root, ".intentos", normalized),
-  ];
-  for (const candidate of candidates) {
-    const relative = path.relative(root, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
-    if (!fs.existsSync(candidate) || !fs.statSync(candidate).isFile()) continue;
-    const content = fs.readFileSync(candidate, "utf8");
-    const extracted = extractMachineReadableEvidence(content);
-    return {
-      ref,
-      file: candidate,
-      evidence: extracted?.ok ? extracted.value : null,
-    };
-  }
-  return { ref, file: "", evidence: null };
+  if (!normalizeArtifactRef(ref)) return { ref: "", file: "", evidence: null };
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", ref);
+  if (!resolved.ok) return { ref, file: "", evidence: null };
+  const content = fs.readFileSync(resolved.file, "utf8");
+  const extracted = extractMachineReadableEvidence(content);
+  return { ref, file: resolved.file, evidence: extracted?.ok ? extracted.value : null };
 }
 
 function sourceSystemsFor(verificationPlan) {
@@ -516,17 +513,9 @@ function normalizeArtifactRef(ref) {
 
 function resolveEvidenceFile(root, relativeOrRef) {
   const normalized = normalizeArtifactRef(relativeOrRef) || String(relativeOrRef || "").trim();
-  if (!normalized || path.isAbsolute(normalized)) return "";
-  const candidates = [
-    path.resolve(root, normalized),
-    path.resolve(root, ".intentos", normalized),
-  ];
-  for (const candidate of candidates) {
-    const relative = path.relative(root, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate;
-  }
-  return "";
+  const ref = /^artifact:/i.test(String(relativeOrRef || "")) ? relativeOrRef : `artifact:${normalized}`;
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", ref);
+  return resolved.ok ? resolved.file : "";
 }
 
 function artifactRefFromPath(root, fileOrRelative) {

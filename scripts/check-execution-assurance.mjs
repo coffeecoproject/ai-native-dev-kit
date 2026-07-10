@@ -9,6 +9,7 @@ import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { checkPlanReviewBinding } from "./lib/plan-review-binding.mjs";
+import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -22,6 +23,7 @@ const knownFlags = new Set([
   "require-work-queue",
   "strict-task-consumer",
   "require-plan-review",
+  "require-evidence-authority",
   "allow-empty",
   "report",
   "mode",
@@ -29,7 +31,8 @@ const knownFlags = new Set([
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
-const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || requireEvidenceAuthority);
 const requireEvidenceRefs = Boolean(args["require-evidence-refs"]);
 const requireReview = Boolean(args["require-review"]);
 const requireActualDiff = Boolean(args["require-actual-diff"]);
@@ -300,6 +303,7 @@ function checkStructuredEvidence(content, label, file) {
   else fail(`${label} evidence schema_version must be ${schemaVersion}`);
   if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
+  checkEvidenceAuthority(label, file, parsed);
   if (isShaDigest(parsed.intent_digest)) pass(`${label} evidence intent_digest is sha256`);
   else fail(`${label} evidence intent_digest must be sha256`);
   const expectedIntentDigest = digest(parsed.intent_lock?.user_intent || "");
@@ -348,6 +352,27 @@ function checkStructuredEvidence(content, label, file) {
   });
   checkBoundary(parsed, label);
   return parsed;
+}
+
+function checkEvidenceAuthority(label, file, evidence) {
+  if (!requireEvidenceAuthority) return;
+  const report = resolveAuthoritativeEvidenceReference(projectRoot, "", `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`, { markdownOnly: true });
+  if (!report.ok) {
+    fail(`${label} strict authority requires a project-local non-symlink report: ${report.error}`);
+    return;
+  }
+  const sourceRefs = (evidence.source_systems || [])
+    .filter((item) => item.status === "RECORDED")
+    .map((item) => item.source_system_ref || item.ref)
+    .filter(isFileEvidenceRef);
+  const binding = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+    sourceRefs,
+  });
+  if (binding.ok) pass(`${label} authority binding matches the current project, task, and source files`);
+  else binding.errors.forEach((error) => fail(`${label} ${error}`));
 }
 
 function checkIntentLock(parsed, label) {

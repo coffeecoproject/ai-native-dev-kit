@@ -12,6 +12,7 @@ import {
 } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { isFileEvidenceRef, resolveAuthoritativeEvidenceReference, validateEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -23,6 +24,7 @@ const knownFlags = new Set([
   "require-business-rule-ref",
   "require-impact-ref",
   "strict-source-binding",
+  "require-evidence-authority",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -33,6 +35,7 @@ const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const requireBusinessRuleRef = Boolean(args["require-business-rule-ref"]);
 const requireImpactRef = Boolean(args["require-impact-ref"]);
 const strictSourceBinding = Boolean(args["strict-source-binding"]);
+const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json");
 const businessRuleSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
@@ -118,11 +121,12 @@ checkReports();
 emitAndExit();
 
 function checkCoreContent() {
+  if (!shouldRequireAssets) return;
   const combined = [
     readResolved("core/verification-test-governance.md"),
     readResolved("docs/verification-test-governance.md"),
     readResolved("templates/verification-plan.md"),
-    readResolved("schemas/artifacts/verification-plan.schema.json"),
+    JSON.stringify(structuredEvidenceSchema || {}),
   ].join("\n");
   if (!combined.trim()) return;
   for (const marker of [
@@ -144,7 +148,7 @@ function checkReports() {
   if (files.length === 0) {
     if (allowEmpty) {
       pass("verification plan check skipped by explicit --allow-empty: no reports");
-    } else if (requireReport || explicitReport) {
+    } else if (requireReport || explicitReport || requireEvidenceAuthority) {
       fail("no verification plan reports found; run `verification-plan --out <relative-report-path>` first");
     } else {
       pass("SKIPPED_NO_REPORT: no verification plan reports found; no readiness claim made");
@@ -179,10 +183,10 @@ function checkReport(file) {
   requireBoundaryNo(content, label, "This plan proves real-environment behavior");
 
   const result = validateEvidenceBlock(content, structuredEvidenceSchema, label, {
-    require: requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding,
+    require: requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding || requireEvidenceAuthority,
     digestField: "verification_plan_digest",
   });
-  if (!result.present && !(requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding)) {
+  if (!result.present && !(requireStructuredEvidence || requireBusinessRuleRef || requireImpactRef || strictSourceBinding || requireEvidenceAuthority)) {
     pass(`${label} structured evidence optional and not present`);
     return;
   }
@@ -193,7 +197,30 @@ function checkReport(file) {
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
   const markdown = parseMarkdownEvidence(content);
+  checkEvidenceAuthority(label, file, evidence);
   checkStructuredEvidence(label, file, evidence, markdown);
+}
+
+function checkEvidenceAuthority(label, file, evidence) {
+  if (!requireEvidenceAuthority) return;
+  const report = resolveAuthoritativeEvidenceReference(projectRoot, "", `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`, { markdownOnly: true });
+  if (!report.ok) {
+    fail(`${label} strict authority requires a project-local non-symlink report: ${report.error}`);
+    return;
+  }
+  const sourceRefs = [
+    evidence.business_rule_ref,
+    evidence.impact_ref,
+    ...(evidence.source_systems || []).filter((item) => item.status === "RECORDED").map((item) => item.ref),
+  ].filter(isFileEvidenceRef);
+  const binding = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+    sourceRefs,
+  });
+  if (binding.ok) pass(`${label} authority binding matches the current project, task, and source files`);
+  else binding.errors.forEach((error) => fail(`${label} ${error}`));
 }
 
 function checkStructuredEvidence(label, file, evidence, markdown) {

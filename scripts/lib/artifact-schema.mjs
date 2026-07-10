@@ -2,17 +2,22 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveAuthoritativeEvidenceReference } from "./evidence-authority.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..", "..");
 
 export function loadSchema(projectRoot, relativePath) {
+  const source = path.join(kitRoot, relativePath);
+  const managed = path.join(projectRoot, ".intentos", relativePath);
+  if (relativePath.startsWith("schemas/artifacts/")) {
+    if (fs.existsSync(source)) return JSON.parse(fs.readFileSync(source, "utf8"));
+    return fs.existsSync(managed) ? JSON.parse(fs.readFileSync(managed, "utf8")) : null;
+  }
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct)) return JSON.parse(fs.readFileSync(direct, "utf8"));
-  const managed = path.join(projectRoot, ".intentos", relativePath);
   if (fs.existsSync(managed)) return JSON.parse(fs.readFileSync(managed, "utf8"));
-  const source = path.join(kitRoot, relativePath);
   if (fs.existsSync(source)) return JSON.parse(fs.readFileSync(source, "utf8"));
   return null;
 }
@@ -107,18 +112,8 @@ export function validateEvidenceBlock(content, schema, label, options = {}) {
 }
 
 export function resolveEvidenceReference(projectRoot, fromFile, referencePath) {
-  if (!referencePath || typeof referencePath !== "string") return null;
-  if (path.isAbsolute(referencePath)) return null;
-  const candidates = [
-    path.resolve(projectRoot, referencePath),
-    path.resolve(path.dirname(fromFile), referencePath),
-  ];
-  for (const candidate of candidates) {
-    const relative = path.relative(projectRoot, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate;
-  }
-  return null;
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, fromFile, referencePath);
+  return resolved.ok ? resolved.file : null;
 }
 
 const supportedSchemaKeywords = new Set([

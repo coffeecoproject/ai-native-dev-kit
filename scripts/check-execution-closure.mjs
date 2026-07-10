@@ -11,10 +11,11 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "require-impact-coverage", "require-precise-evidence"]);
+const knownFlags = new Set(["json", "report", "require-impact-coverage", "require-precise-evidence"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requestedReport = args.report ? String(args.report).trim() : "";
 const requireImpactCoverage = Boolean(args["require-impact-coverage"]);
 const requirePreciseEvidence = Boolean(args["require-precise-evidence"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -133,9 +134,10 @@ function checkCoreContent() {
 }
 
 function checkReports() {
-  const files = markdownFiles("execution-closures");
+  const files = requestedReport ? selectedReportFiles(requestedReport) : markdownFiles("execution-closures");
   if (files.length === 0) {
-    pass("execution closure check skipped: no Execution Closure Reports");
+    if (requestedReport) fail(`selected execution closure report is not resolvable: ${requestedReport}`);
+    else pass("execution closure check skipped: no Execution Closure Reports");
     return;
   }
 
@@ -553,6 +555,42 @@ function markdownFiles(dir) {
   const files = [];
   walk(base, files);
   return files.filter((file) => file.endsWith(".md")).sort();
+}
+
+function selectedReportFiles(reportRef) {
+  const normalized = String(reportRef || "").trim().replaceAll("\\", "/");
+  if (!normalized
+    || path.isAbsolute(normalized)
+    || normalized.includes("\0")
+    || normalized.split("/").some((part) => !part || part === "." || part === "..")) {
+    fail(`selected execution closure report path is unsafe: ${reportRef || "<empty>"}`);
+    return [];
+  }
+  if (!normalized.startsWith("execution-closures/") || !normalized.endsWith(".md")) {
+    fail(`selected execution closure report must be a Markdown file under execution-closures/: ${reportRef}`);
+    return [];
+  }
+
+  const candidate = path.resolve(projectRoot, normalized);
+  const relative = path.relative(projectRoot, candidate);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !fs.existsSync(candidate) || !fs.statSync(candidate).isFile()) {
+    return [];
+  }
+  if (containsSymlinkComponent(projectRoot, relative)) {
+    fail(`selected execution closure report cannot use a symlink path component: ${reportRef}`);
+    return [];
+  }
+  pass(`selected execution closure report found ${relative.replaceAll(path.sep, "/")}`);
+  return [candidate];
+}
+
+function containsSymlinkComponent(root, relativePath) {
+  let current = root;
+  for (const segment of relativePath.split(path.sep)) {
+    current = path.join(current, segment);
+    if (fs.lstatSync(current).isSymbolicLink()) return true;
+  }
+  return false;
 }
 
 function walk(dir, files) {

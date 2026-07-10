@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.89.2`
+Current version: `1.91.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,29 @@ Current version: `1.89.2`
 
 ## Current Release
 
-`1.89.2`
+`1.91.0`
 
 Includes:
+
+- Evidence Authority Core `1.91.0`: strict Verification Plan, Test Evidence,
+  Execution Assurance, and Completion Evidence checks can now recompute
+  project/task/source identity for file-backed evidence. IntentOS rejects
+  schema shadowing, project-external references, symlinked evidence paths,
+  stale raw file digests, and task-mismatched bindings in this strict mode.
+- `1.91.0` remains non-authorizing. It validates evidence identity and
+  integrity only; it does not approve implementation, apply, commit, push,
+  release, production, tests, migrations, provider actions, or project-owner
+  decisions.
+
+- Execution Truth Hardcut `1.90.0`: Unified Closure now validates the exact
+  selected Execution Closure before `DONE`, validates behavior-changing work
+  against the exact linked Change Impact Coverage report in strict precision
+  mode, and records Input Verification rather than treating source paths or
+  rendered `PASS` strings as proof.
+- `1.90.0` remains non-authorizing. It rejects stale, invalid, unrelated, or
+  duplicate close-out evidence, but does not approve implementation, apply,
+  commit, push, release, production, tests, migrations, provider actions, or
+  project-owner decisions.
 
 - Approval Runtime Validation Hardening patch `1.89.2`: runtime apply now
   shares approval validation rules with the approval checker, requiring a

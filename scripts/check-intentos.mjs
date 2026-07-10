@@ -11779,10 +11779,10 @@ function checkUnifiedClosureModelProtocol() {
   }
 
   const example = runNode(["scripts/check-closure-decision.mjs", "examples/1.53-unified-closure-model"]);
-  if (example.status === 0 && example.stdout.includes("Unified Closure Decision check passed")) {
-    pass("1.53 unified closure example passes checker");
+  if (example.status !== 0 && `${example.stdout}\n${example.stderr}`.includes("DONE requires Input Verification")) {
+    pass("1.53 legacy unified closure example cannot claim verified DONE after 1.90");
   } else {
-    fail(`1.53 unified closure example failed: ${example.stderr || example.stdout}`);
+    fail(`1.53 legacy unified closure example must be rejected as unverified DONE: ${example.stderr || example.stdout}`);
   }
 
   for (const [name, args, expected] of [
@@ -11796,6 +11796,283 @@ function checkUnifiedClosureModelProtocol() {
     } else {
       fail(`1.53 unified closure must reject ${name}: ${output}`);
     }
+  }
+}
+
+function checkExecutionTruthHardcutProtocol() {
+  const required = [
+    "docs/plans/execution-truth-hardcut-1.90-plan.md",
+    "examples/1.49-structured-impact-coverage/contract-input-rule/closure-decisions/001-contract-input-rule.md",
+    "releases/1.90.0/release-record.md",
+    "releases/1.90.0/known-limitations.md",
+    "releases/1.90.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.90 execution truth asset exists ${file}`);
+    else fail(`1.90 execution truth asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/execution-truth-hardcut-1.90-plan.md"),
+    read("templates/closure-decision.md"),
+    read("scripts/resolve-closure-decision.mjs"),
+    read("scripts/check-closure-decision.mjs"),
+    read("scripts/check-execution-closure.mjs"),
+  ].join("\n");
+  for (const marker of [
+    "Execution Truth Hardcut",
+    "Input Verification",
+    "selected execution closure report",
+    "--require-precise-evidence",
+    "verified Execution Closure",
+  ]) {
+    if (combined.includes(marker)) pass(`1.90 execution truth includes ${marker}`);
+    else fail(`1.90 execution truth missing ${marker}`);
+  }
+
+  const exampleRoot = "examples/1.49-structured-impact-coverage/contract-input-rule";
+  const exactClosure = runNode([
+    "scripts/check-execution-closure.mjs",
+    exampleRoot,
+    "--report",
+    "execution-closures/001-contract-input-rule.md",
+    "--require-impact-coverage",
+    "--require-precise-evidence",
+  ]);
+  if (exactClosure.status === 0 && exactClosure.stdout.includes("selected execution closure report found")) {
+    pass("1.90 exact Execution Closure report passes strict validation");
+  } else {
+    fail(`1.90 exact Execution Closure report failed: ${exactClosure.stderr || exactClosure.stdout}`);
+  }
+
+  const closureDecision = runNode(["scripts/check-closure-decision.mjs", exampleRoot]);
+  if (closureDecision.status === 0 && closureDecision.stdout.includes("verified Execution Closure passes exact strict checker")) {
+    pass("1.90 recorded DONE requires verified upstream sources");
+  } else {
+    fail(`1.90 verified Closure Decision example failed: ${closureDecision.stderr || closureDecision.stdout}`);
+  }
+
+  const validResolver = runNode([
+    "scripts/resolve-closure-decision.mjs",
+    exampleRoot,
+    "--intent",
+    "Add a contract input restriction that rejects blank contract titles.",
+    "--verification",
+    "targeted contract validation checks passed",
+    "--execution-closure",
+    "execution-closures/001-contract-input-rule.md",
+    "--impact-report",
+    "change-impact-coverage-reports/001-contract-input-rule.md",
+    "--json",
+  ]);
+  if (validResolver.status === 0) {
+    try {
+      const parsed = JSON.parse(validResolver.stdout);
+      if (parsed.closureDecision?.decision === "DONE"
+        && parsed.inputVerification?.some((item) => item.input === "Execution Closure" && item.verified === "Yes")
+        && parsed.inputVerification?.some((item) => item.input === "Change Impact Coverage" && item.verified === "Yes")) {
+        pass("1.90 resolver returns DONE only with verified matched evidence");
+      } else {
+        fail(`1.90 resolver valid decision missing verified inputs: ${validResolver.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.90 resolver valid decision JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.90 resolver valid decision failed: ${validResolver.stderr || validResolver.stdout}`);
+  }
+
+  const staleResolver = runNode([
+    "scripts/resolve-closure-decision.mjs",
+    "test-fixtures/bad/bad-execution-closure-stale-impact-report",
+    "--intent",
+    "unrelated current task",
+    "--verification",
+    "passed",
+    "--execution-closure",
+    "execution-closures/001-contract-input-rule.md",
+    "--human-decision",
+    "execution-closures/001-contract-input-rule.md",
+    "--json",
+  ]);
+  if (staleResolver.status === 0) {
+    try {
+      const parsed = JSON.parse(staleResolver.stdout);
+      if (parsed.closureDecision?.decision !== "DONE"
+        && parsed.decisionInputs?.some((item) => item.input === "Execution Closure" && item.status === "FAIL")) {
+        pass("1.90 stale Execution Closure cannot produce DONE");
+      } else {
+        fail(`1.90 stale Execution Closure must not produce DONE: ${staleResolver.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.90 stale resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.90 stale resolver failed unexpectedly: ${staleResolver.stderr || staleResolver.stdout}`);
+  }
+
+  const lowRiskResolver = runNode([
+    "scripts/resolve-closure-decision.mjs",
+    exampleRoot,
+    "--intent",
+    "Clarify a documentation sentence.",
+    "--verification",
+    "documentation review passed",
+    "--json",
+  ]);
+  if (lowRiskResolver.status === 0) {
+    try {
+      const parsed = JSON.parse(lowRiskResolver.stdout);
+      const humanDecision = parsed.decisionInputs?.find((item) => item.input === "Human Decision");
+      const executionClosure = parsed.decisionInputs?.find((item) => item.input === "Execution Closure");
+      const impactCoverage = parsed.decisionInputs?.find((item) => item.input === "Change Impact Coverage");
+      if (humanDecision?.status === "N/A" && executionClosure?.status === "MISSING" && impactCoverage?.status === "N/A") {
+        pass("1.90 low-risk intent is not escalated or bound to unrelated historical evidence");
+      } else {
+        fail(`1.90 low-risk intent must not require Human Decision or consume unrelated historical evidence: ${lowRiskResolver.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.90 low-risk resolver JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.90 low-risk resolver failed unexpectedly: ${lowRiskResolver.stderr || lowRiskResolver.stdout}`);
+  }
+
+  const unsafeReport = runNode([
+    "scripts/check-execution-closure.mjs",
+    exampleRoot,
+    "--report",
+    "../execution-closures/001-contract-input-rule.md",
+  ]);
+  if (unsafeReport.status !== 0 && `${unsafeReport.stdout}\n${unsafeReport.stderr}`.includes("path is unsafe")) {
+    pass("1.90 exact report checker rejects traversal");
+  } else {
+    fail(`1.90 exact report checker must reject traversal: ${unsafeReport.stderr || unsafeReport.stdout}`);
+  }
+}
+
+function checkEvidenceAuthorityCoreProtocol() {
+  const required = [
+    "docs/plans/evidence-authority-core-1.91-plan.md",
+    "scripts/lib/evidence-authority.mjs",
+    "releases/1.91.0/release-record.md",
+    "releases/1.91.0/known-limitations.md",
+    "releases/1.91.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.91 evidence authority asset exists ${file}`);
+    else fail(`1.91 evidence authority asset missing ${file}`);
+  }
+
+  const combined = [
+    read("docs/plans/evidence-authority-core-1.91-plan.md"),
+    read("scripts/lib/evidence-authority.mjs"),
+    read("scripts/lib/artifact-schema.mjs"),
+    read("scripts/lib/path-safety.mjs"),
+    read("scripts/check-verification-plan.mjs"),
+    read("scripts/check-test-evidence.mjs"),
+    read("scripts/check-execution-assurance.mjs"),
+    read("scripts/check-completion-evidence.mjs"),
+  ].join("\n");
+  for (const marker of [
+    "Evidence Authority Core",
+    "--require-evidence-authority",
+    "authority_binding",
+    "raw_file_digest",
+    "must not pass through or overwrite a symlink",
+  ]) {
+    if (combined.includes(marker)) pass(`1.91 evidence authority includes ${marker}`);
+    else fail(`1.91 evidence authority missing ${marker}`);
+  }
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-evidence-authority-"));
+  try {
+    fs.cpSync(path.join(kitRoot, "examples/1.76-verification-plan/appointment-service-time"), tempRoot, { recursive: true });
+    const planReport = "verification-plans/001-authority.md";
+    const resolve = runNode([
+      "scripts/resolve-verification-plan.mjs",
+      tempRoot,
+      "--intent",
+      "appointment requests must include a service time",
+      "--business-rule-ref",
+      "artifact:business-rule-closures/001-service-time.md",
+      "--impact-ref",
+      "artifact:change-impact-coverage-reports/001-service-time.md",
+      "--project-level",
+      "BL1",
+      "--platform",
+      "web,backend",
+      "--out",
+      planReport,
+    ]);
+    const strictArgs = [
+      "scripts/check-verification-plan.mjs",
+      tempRoot,
+      "--report",
+      planReport,
+      "--require-structured-evidence",
+      "--require-business-rule-ref",
+      "--require-impact-ref",
+      "--strict-source-binding",
+      "--require-evidence-authority",
+    ];
+    const strictCheck = runNode(strictArgs);
+    if (resolve.status === 0 && strictCheck.status === 0 && strictCheck.stdout.includes("authority binding matches the current project")) {
+      pass("1.91 generated Verification Plan passes strict evidence authority validation");
+    } else {
+      fail(`1.91 generated Verification Plan strict authority validation failed: ${strictCheck.stderr || strictCheck.stdout || resolve.stderr || resolve.stdout}`);
+      return;
+    }
+
+    const shadowPath = path.join(tempRoot, "schemas", "artifacts", "verification-plan.schema.json");
+    fs.mkdirSync(path.dirname(shadowPath), { recursive: true });
+    fs.writeFileSync(shadowPath, JSON.stringify({ type: "object" }, null, 2));
+    const shadowCheck = runNode(strictArgs);
+    if (shadowCheck.status === 0) pass("1.91 target schema shadow cannot weaken the authoritative artifact schema");
+    else fail(`1.91 target schema shadow must not affect authority: ${shadowCheck.stderr || shadowCheck.stdout}`);
+
+    const reportPath = path.join(tempRoot, planReport);
+    const original = fs.readFileSync(reportPath, "utf8");
+    rewriteMachineEvidence(reportPath, (evidence) => {
+      evidence.authority_binding.sources[0].raw_file_digest = `sha256:${"0".repeat(64)}`;
+      evidence.verification_plan_digest = evidenceDigest(evidence, ["verification_plan_digest"]);
+      return evidence;
+    });
+    const staleDigestCheck = runNode(strictArgs);
+    if (staleDigestCheck.status !== 0 && `${staleDigestCheck.stdout}\n${staleDigestCheck.stderr}`.includes("raw_file_digest does not match")) {
+      pass("1.91 strict authority rejects a stale source file digest");
+    } else {
+      fail(`1.91 strict authority must reject stale source digest: ${staleDigestCheck.stderr || staleDigestCheck.stdout}`);
+    }
+
+    fs.writeFileSync(reportPath, original);
+    rewriteMachineEvidence(reportPath, (evidence) => {
+      evidence.authority_binding.task.task_ref = "tasks/other-task.md";
+      evidence.verification_plan_digest = evidenceDigest(evidence, ["verification_plan_digest"]);
+      return evidence;
+    });
+    const taskMismatchCheck = runNode(strictArgs);
+    if (taskMismatchCheck.status !== 0 && `${taskMismatchCheck.stdout}\n${taskMismatchCheck.stderr}`.includes("authority_binding.task.task_ref")) {
+      pass("1.91 strict authority rejects a task-mismatched binding");
+    } else {
+      fail(`1.91 strict authority must reject task mismatch: ${taskMismatchCheck.stderr || taskMismatchCheck.stdout}`);
+    }
+
+    fs.writeFileSync(reportPath, original);
+    const sourcePath = path.join(tempRoot, "business-rule-closures", "001-service-time.md");
+    const external = path.join(tempRoot, "..", `${path.basename(tempRoot)}-outside-evidence.md`);
+    fs.writeFileSync(external, "outside project evidence\n");
+    fs.rmSync(sourcePath);
+    fs.symlinkSync(external, sourcePath);
+    const symlinkCheck = runNode(strictArgs);
+    if (symlinkCheck.status !== 0 && `${symlinkCheck.stdout}\n${symlinkCheck.stderr}`.includes("symlink")) {
+      pass("1.91 strict authority rejects an evidence symlink escape");
+    } else {
+      fail(`1.91 strict authority must reject symlink evidence escape: ${symlinkCheck.stderr || symlinkCheck.stdout}`);
+    }
+    fs.rmSync(external, { force: true });
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
   }
 }
 
@@ -17269,6 +17546,8 @@ checkUserDeliveryConsoleProtocol();
 checkDeliveryPathGovernanceProtocol();
 checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();
+checkExecutionTruthHardcutProtocol();
+checkEvidenceAuthorityCoreProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

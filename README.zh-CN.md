@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.89.2`。
+当前版本：`1.91.0`。
 
-发布记录：[releases/1.89.2/release-record.md](releases/1.89.2/release-record.md)。
+发布记录：[releases/1.91.0/release-record.md](releases/1.91.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -75,6 +75,20 @@ GitHub 可以继续放代码、tag 和证据，但 GitHub Release 资产、GitHu
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.91.0 让严格模式下的证据引用可追溯。需要严格证明时，IntentOS 会重新读取
+被引用的本地文件，确认它仍在当前项目内、属于当前任务、内容摘要未过期，并且
+没有通过软链被重定向。用户不需要手工计算摘要或处理这些底层判断。
+
+1.91.0 仍然不授权执行。它只证明证据身份和完整性，不证明产品正确性，也不批准
+代码实现、apply、提交、推送、发布、生产、测试、迁移、外部平台动作或负责人决策。
+
+1.90.0 加严“任务是否真的完成”的最终判断。IntentOS 现在会检查被选中的
+Execution Closure；涉及行为变化时，还会检查与当前任务匹配的 Change Impact
+Coverage。旧报告、无效报告或别的任务报告，即使文件还在，也不能再被当作完成证明。
+
+1.90.0 仍然不授权执行。它不批准代码实现、apply、提交、推送、发布、生产、
+测试、迁移、外部平台动作或项目负责人决策。
 
 1.89.2 加严运行时 approval 校验：`init-project --apply-plan` 现在会复用
 approval checker 同等强度的具体人类负责人、可解析未来过期时间、action ID 和

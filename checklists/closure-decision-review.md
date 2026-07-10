@@ -7,6 +7,10 @@
 - [ ] Dominant Reason names the input that controls the final decision.
 - [ ] Conflict Summary explains whether lower-level inputs disagreed and why the stricter result won.
 - [ ] `DONE` is not claimed without passing verification evidence.
+- [ ] `DONE` includes Input Verification rows for Verification and Execution Closure.
+- [ ] The selected Execution Closure passed its exact strict checker; a path existing is not treated as proof.
+- [ ] A behavior-changing `DONE` is bound to the exact, task-matched Change Impact Coverage report.
+- [ ] A required Human Decision is a distinct record, not a reused execution or impact report.
 - [ ] `DONE` is not claimed when related surfaces are missing.
 - [ ] High-risk scope does not close without human decision.
 - [ ] Boundaries remain `No` for apply, commit, push, release, production, CI, hooks, and high-risk decisions.

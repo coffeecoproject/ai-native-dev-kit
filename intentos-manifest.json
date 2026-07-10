@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.89.2",
+  "intentOSVersion": "1.91.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.89.2"
+    "phase": "1.91.0"
   },
   "groups": {
     "sourceRequired": [
@@ -367,6 +367,7 @@
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
       "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
       "docs/plans/safety-evidence-hardening-1.89-plan.md",
+      "docs/plans/execution-truth-hardcut-1.90-plan.md",
       "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
       "docs/plans/plan-review-gate-1.88-plan.md",
       "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
@@ -1915,6 +1916,7 @@
       "scripts/init-project.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
@@ -2869,9 +2871,17 @@
       "work-queue-takeover-reports/.gitkeep",
       "workflow-adoption-maps/.gitkeep",
       "workflow-guidance-cards/.gitkeep",
-      "releases/1.89.2/known-limitations.md",
-      "releases/1.89.2/release-record.md",
-      "releases/1.89.2/self-check-report.md"
+      "releases/1.90.0/known-limitations.md",
+      "releases/1.90.0/release-record.md",
+      "releases/1.90.0/self-check-report.md",
+      "core/evidence-authority-core.md",
+      "docs/evidence-authority-core.md",
+      "docs/plans/evidence-authority-core-1.91-plan.md",
+      "checklists/evidence-authority-review.md",
+      "prompts/evidence-authority-agent.md",
+      "releases/1.91.0/release-record.md",
+      "releases/1.91.0/known-limitations.md",
+      "releases/1.91.0/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -3397,6 +3407,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
@@ -4102,6 +4113,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
@@ -4828,6 +4840,7 @@
       "scripts/init-project.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
@@ -6265,6 +6278,7 @@
       "scripts/cli.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
@@ -8278,6 +8292,10 @@
         "target": "scripts/lib/artifact-schema.mjs"
       },
       {
+        "source": "scripts/lib/evidence-authority.mjs",
+        "target": "scripts/lib/evidence-authority.mjs"
+      },
+      {
         "source": "scripts/lib/approval-record-validation.mjs",
         "target": "scripts/lib/approval-record-validation.mjs"
       },
@@ -9088,7 +9106,8 @@
       "test-fixtures/bad/bad-task-governance-no-verification-plan/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-possible-high-no-clarification/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-stronger-rule-not-preserved/task-governance-reports/001-bad.md",
-      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md"
+      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md",
+      "scripts/lib/evidence-authority.mjs"
     ]
   }
 }

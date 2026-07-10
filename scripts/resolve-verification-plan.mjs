@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { createEvidenceAuthorityBinding, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -118,6 +119,11 @@ function buildReport(root, userIntent) {
     impact_ref: impactRef || "not provided",
     impact_digest: impact.evidence?.impact_digest || "not provided",
     source_systems: sourceSystems,
+    authority_binding: createEvidenceAuthorityBinding(root, {
+      taskRef,
+      intentDigest,
+      sourceRefs: [businessRuleRef, impactRef, ...sourceSystems.map((item) => item.ref)],
+    }),
     project_level: projectLevel,
     platform_profiles: platformProfiles.length > 0 ? platformProfiles : inferPlatforms(root, resolvedIntent),
     change_kind: effectiveChangeKind,
@@ -358,25 +364,12 @@ function sourceRefsFor(businessRule, impact) {
 }
 
 function resolveArtifact(root, ref) {
-  const normalized = normalizeArtifactRef(ref);
-  if (!normalized) return { ref: "", file: "", evidence: null };
-  const candidates = [
-    path.resolve(root, normalized),
-    path.resolve(root, ".intentos", normalized),
-  ];
-  for (const candidate of candidates) {
-    const relative = path.relative(root, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
-    if (!fs.existsSync(candidate) || !fs.statSync(candidate).isFile()) continue;
-    const content = fs.readFileSync(candidate, "utf8");
-    const extracted = extractMachineReadableEvidence(content);
-    return {
-      ref,
-      file: candidate,
-      evidence: extracted?.ok ? extracted.value : null,
-    };
-  }
-  return { ref, file: "", evidence: null };
+  if (!normalizeArtifactRef(ref)) return { ref: "", file: "", evidence: null };
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", ref);
+  if (!resolved.ok) return { ref, file: "", evidence: null };
+  const content = fs.readFileSync(resolved.file, "utf8");
+  const extracted = extractMachineReadableEvidence(content);
+  return { ref, file: resolved.file, evidence: extracted?.ok ? extracted.value : null };
 }
 
 function normalizeArtifactRef(ref) {

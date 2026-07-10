@@ -56,6 +56,9 @@
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$"
     },
+    "authority_binding": {
+      "$ref": "#/$defs/authorityBinding"
+    },
     "assurance_state": {
       "$ref": "#/$defs/assuranceState"
     },
@@ -418,6 +421,46 @@
     }
   },
   "$defs": {
+    "authorityBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding_version", "project", "task", "sources"],
+      "properties": {
+        "binding_version": { "const": "1.91.0" },
+        "project": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "fingerprint", "revision"],
+          "properties": {
+            "kind": { "enum": ["GIT", "NON_GIT"] },
+            "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+            "revision": { "type": "string", "minLength": 1 }
+          }
+        },
+        "task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["task_ref", "intent_digest"],
+          "properties": {
+            "task_ref": { "type": "string", "minLength": 1 },
+            "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ref", "relative_path", "raw_file_digest"],
+            "properties": {
+              "ref": { "type": "string", "minLength": 1 },
+              "relative_path": { "type": "string", "minLength": 1 },
+              "raw_file_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+            }
+          }
+        }
+      }
+    },
     "assuranceState": {
       "enum": [
         "VERIFIED_DONE",

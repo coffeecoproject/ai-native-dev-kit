@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.89.2`.
+Current release: `1.91.0`.
 
-Release record: [releases/1.89.2/release-record.md](releases/1.89.2/release-record.md).
+Release record: [releases/1.91.0/release-record.md](releases/1.91.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -75,6 +75,26 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.91.0 makes strict evidence references trustworthy. When a task needs strict
+proof, IntentOS now re-reads the cited local files and checks they are inside
+the current project, belong to the current task, match the recorded source
+content, and were not redirected through a symbolic link. Users do not need to
+manage these checks manually.
+
+1.91.0 remains non-authorizing. It proves evidence identity and integrity, not
+product correctness, implementation approval, apply, commit, push, release,
+production, tests, migrations, provider actions, or project-owner decisions.
+
+1.90.0 makes the final “is this task done?” answer evidence-aware. IntentOS
+now checks the exact selected execution close-out record and, for behavior
+changes, the matching impact record before it can say `DONE`. An old or
+unrelated report can no longer become completion proof just because its file
+exists.
+
+1.90.0 remains non-authorizing. It does not approve implementation, apply,
+commit, push, release, production, tests, migrations, provider actions, or
+project-owner decisions.
 
 1.89.2 tightens runtime approval validation. `init-project --apply-plan` now
 uses the same specific-human-owner, parseable future expiry, action ID, and

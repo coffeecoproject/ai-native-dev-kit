@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.89.2`
+`1.91.0`
 
 ## Project Version File
 
@@ -18,6 +18,20 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 
 ## Notes
 
+- `1.91.0` adds Evidence Authority Core. Strict evidence checks recompute
+  project/task/source identity for file-backed evidence and reject schema
+  shadowing, symlinked paths, stale raw digests, and task mismatches.
+- `1.91.0` remains non-authorizing. It proves evidence identity and integrity
+  only; it does not approve implementation, apply, commit, push, release,
+  production, tests, migrations, provider actions, or project-owner decisions.
+
+- `1.90.0` makes final task close-out evidence-aware: Unified Closure validates
+  the exact Execution Closure and, for behavior changes, the exact matched
+  Change Impact Coverage report before it can say `DONE`.
+- `1.90.0` remains non-authorizing. It rejects stale, invalid, unrelated, or
+  duplicate close-out evidence, but does not approve implementation, apply,
+  commit, push, release, production, tests, migrations, provider actions, or
+  project-owner decisions.
 - For governed, production, dirty, or unbootstrapped existing projects, generate a plan first with `--write-plan <file>` and apply it with `--apply-plan <file>` after review.
 - `1.89.2` tightens runtime approval validation: `init-project --apply-plan`
   now uses specific-human-owner, parseable future expiry, exact action/path row

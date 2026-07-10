@@ -68,6 +68,12 @@ Summarize the verification state in plain language.
 - This plan proves product correctness: No
 - This plan proves real-environment behavior: No
 
+## Evidence Authority
+
+For strict current-task evidence, include an `authority_binding` in the
+machine-readable record. It binds project identity, task identity, and the raw
+digests of consumed local source files. It is not approval or release authority.
+
 ## Machine-Readable Evidence
 
 ```json
@@ -81,4 +87,3 @@ Summarize the verification state in plain language.
 ## Next Step
 
 Use this plan during execution, then bind actual test evidence later.
-

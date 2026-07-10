@@ -20,13 +20,13 @@ What I need from you:
 
 ## Decision Inputs
 
-| Input | Status | Ref | Finding |
-|---|---|---|---|
-| Change Impact Coverage | `MISSING` | N/A | Related surfaces were not confirmed. |
-| Execution Closure | `MISSING` | N/A | Execution closure evidence was not confirmed. |
-| Guided Closure | `OPTIONAL` | N/A | User-facing summary can be prepared after decision. |
-| Verification | `MISSING` | N/A | Passing verification is not recorded. |
-| Human Decision | `N/A` | N/A | No high-risk decision is recorded. |
+| Input | Status | Required | Verified | Ref | Checker | Finding |
+|---|---|---|---|---|---|---|
+| Change Impact Coverage | `MISSING` | Yes / No | No / N/A | N/A | `check-change-impact-coverage` / N/A | Related surfaces were not confirmed. |
+| Execution Closure | `MISSING` | Yes | No | N/A | `check-execution-closure --report` | Execution closure evidence was not confirmed. |
+| Guided Closure | `OPTIONAL` | No | N/A | N/A | N/A | User-facing summary can be prepared after decision. |
+| Verification | `MISSING` | Yes | No | N/A | verification record | Passing verification is not recorded. |
+| Human Decision | `N/A` | Yes / No | No / N/A | N/A | distinct human decision record / N/A | No high-risk decision is recorded. |
 
 ## Decision Trace
 
@@ -89,14 +89,23 @@ If lower-level close-out artifacts disagree, this decision uses the stricter res
 
 1. Record or run verification.
 
+## Input Verification
+
+| Input | Required | Verified | Evidence ref | Checker |
+|---|---|---|---|---|
+| Change Impact Coverage | Yes / No | Yes / No / N/A | N/A | `check-change-impact-coverage --report --require-precise-evidence` / N/A |
+| Execution Closure | Yes | Yes / No | N/A | `check-execution-closure --report --require-impact-coverage --require-precise-evidence` |
+| Verification | Yes | Yes / No | N/A | verification record |
+| Human Decision | Yes / No | Yes / No / N/A | N/A | distinct human decision record / N/A |
+
 ## Evidence Map
 
-| Evidence | Status | Ref |
-|---|---|---|
-| Impact coverage | `MISSING` | N/A |
-| Execution closure | `MISSING` | N/A |
-| Verification | `MISSING` | N/A |
-| Human decision | `N/A` | N/A |
+| Evidence | Status | Verified | Ref | Checker |
+|---|---|---|---|---|
+| Impact coverage | `MISSING` | No / N/A | N/A | `check-change-impact-coverage` / N/A |
+| Execution closure | `MISSING` | No | N/A | `check-execution-closure --report` |
+| Verification | `MISSING` | No | N/A | verification record |
+| Human decision | `N/A` | N/A | N/A | distinct human decision record / N/A |
 
 ## Boundaries
 
