@@ -31,6 +31,20 @@ ADOPT_PROJECT
 
 They route to existing source systems. They do not replace those systems.
 
+## Operating Decision Contract
+
+The Operating State includes exactly one derived Operating Decision. It names
+one action code, reason, source inputs, blockers, current human-decision need,
+decision digest, and invalidation conditions.
+
+The decision selects the next safe source-system route. It is not a scheduler,
+task state, evidence authority, approval, or execution permission. Unknown
+blockers fail closed to governance preparation, and source-read failure
+outranks every easier action.
+
+The beginner next-step explanation is rendered from the same selected action,
+so human and machine output cannot choose different routes.
+
 ## Evidence Trace
 
 Evidence Trace explains which source systems were read, what they reported,

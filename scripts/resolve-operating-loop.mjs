@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -8,7 +9,17 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { hasProjectSignals } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "task"]);
+const knownFlags = new Set([
+  "json",
+  "format",
+  "intent",
+  "task",
+  "verification",
+  "impact-report",
+  "execution-closure",
+  "guided-closure",
+  "human-decision",
+]);
 const unknown = unknownOptions(args, knownFlags);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const kitRoot = path.resolve(scriptDir, "..");
@@ -81,26 +92,24 @@ function buildOperatingState() {
   });
   const evidenceTrace = buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, closure, release, adoption);
   const authorityRecommendation = authorityFor(operation, intent, taskImpact, sourceFailure);
-  const nextSafeAction = nextActionFor({
+  const sourceSystemTrace = sources.map(toSourceTrace);
+  const operatingDecision = buildOperatingDecision({
     operation,
     operatingState,
+    projectEntry,
+    taskImpact,
     taskGovernance,
     closure,
-    release,
-    adoption,
     sourceFailure,
-  });
-  const userDecision = decisionFor({
-    operation,
-    operatingState,
-    authorityRecommendation,
     dirtyWorktree,
-    sourceFailure,
+    evidenceTrace,
+    authorityRecommendation,
+    sourceSystemTrace,
   });
 
   return {
     reportType: "INTENTOS_OPERATING_STATE",
-    schemaVersion: "1.95.0",
+    schemaVersion: "1.96.0",
     generatedBy: "scripts/resolve-operating-loop.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -125,16 +134,17 @@ function buildOperatingState() {
       stricterApplicableProjectRuleRequirement: "PRESERVE_WHEN_APPLICABLE",
       stricterApplicableProjectRuleVerifiedByThisView: "No",
     },
+    operatingDecision,
     humanSummary: {
       conclusion: conclusionFor(operation, operatingState, projectEntry, outputLanguage),
       currentState: plainStateFor(operatingState, outputLanguage),
-      nextSafeAction,
-      decisionNeeded: userDecision,
+      nextSafeAction: operatingDecision.plainAction,
+      decisionNeeded: humanDecisionSummaryFor(operatingDecision, outputLanguage),
       internalCommandKnowledgeRequired: "No",
     },
     evidenceTrace,
     authorityRecommendation,
-    sourceSystemTrace: sources.map(toSourceTrace),
+    sourceSystemTrace,
     boundaries: {
       derivedViewOnly: "Yes",
       writesTargetFiles: "No",
@@ -163,6 +173,9 @@ function addOperationSources(sources, operation) {
   if (operation === "FINISH_TASK") {
     const closureArgs = [projectRoot, "--intent", intent, "--json"];
     if (taskRef) closureArgs.push("--task", taskRef);
+    for (const flag of ["verification", "impact-report", "execution-closure", "guided-closure", "human-decision"]) {
+      if (args[flag]) closureArgs.push(`--${flag}`, String(args[flag]));
+    }
     sources.push(runSource("UNIFIED_CLOSURE", "scripts/resolve-closure-decision.mjs", closureArgs));
   }
   if (operation === "PREPARE_RELEASE") {
@@ -186,18 +199,22 @@ function runSource(name, script, childArgs) {
       readStatus: "FAILED",
       outcome: "BLOCKED_BY_SOURCE_FAILURE",
       ref: `generated:${script}`,
+      semanticDigest: `sha256:${sha256(result.stderr || result.stdout || "source resolver failed")}`,
       value: null,
       error: firstUsefulLine(result.stderr || result.stdout || "source resolver failed"),
     };
   }
   try {
     const value = JSON.parse(result.stdout);
+    const semanticValue = { ...value };
+    delete semanticValue.generatedAt;
     return {
       name,
       script,
       readStatus: "CURRENT_RUN",
       outcome: sourceOutcome(value),
       ref: sourceRef(value, script),
+      semanticDigest: `sha256:${sha256(JSON.stringify(semanticValue))}`,
       value,
       error: "",
     };
@@ -208,6 +225,7 @@ function runSource(name, script, childArgs) {
       readStatus: "FAILED",
       outcome: "BLOCKED_BY_INVALID_SOURCE",
       ref: `generated:${script}`,
+      semanticDigest: `sha256:${sha256(result.stdout || error.message)}`,
       value: null,
       error: `invalid JSON: ${error.message}`,
     };
@@ -374,35 +392,214 @@ function lifecyclePhaseFor(operation) {
   return phases[operation];
 }
 
-function nextActionFor(context) {
-  const zh = outputLanguage === "zh";
-  if (context.sourceFailure) return zh ? "Codex 先修复或说明读取失败，再继续处理。" : "Codex should explain or repair the failed source read before continuing.";
-  if (context.operatingState === "NEEDS_GOAL") return zh ? "告诉 Codex 你想做成什么。" : "Tell Codex what outcome you want.";
-  if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return zh ? "先把现有未提交改动对应到当前任务，不覆盖也不丢弃。" : "Map current uncommitted work to this task without overwriting or discarding it.";
-  if (context.operation === "START_PROJECT") return zh ? "Codex 先准备项目方案和技术基线建议，不要求你选择内部编号。" : "Codex should prepare the project plan and technical baseline recommendation without asking you for internal IDs.";
-  if (context.operation === "ADOPT_PROJECT") return zh ? "Codex 先完成只读接入判断，再决定是否需要受控写入计划。" : "Codex should complete the read-only adoption review before proposing any controlled write plan.";
-  if (context.operation === "CHECK_STATUS") return zh ? "Codex 汇总当前证据，并用白话说明已完成、未完成和下一步。" : "Codex should summarize current evidence, what is done, what is missing, and the next step.";
-  if (context.operation === "FINISH_TASK") {
-    return context.operatingState === "READY_TO_REPORT_DONE"
-      ? (zh ? "Codex 可以生成完成说明，但仍不代表发布或生产批准。" : "Codex may report task completion, but this is not release or production approval.")
-      : (zh ? "Codex 先补齐缺失证据，再判断任务是否完成。" : "Codex should fill the missing evidence before deciding whether the task is done.");
-  }
-  if (context.operation === "PREPARE_RELEASE") return zh ? "Codex 先准备发布审查材料，不直接执行发布。" : "Codex should prepare release-review evidence without executing the release.";
-  return context.taskGovernance?.humanSummary?.plainNextStep
-    || (zh ? "Codex 按当前任务影响级别准备对应的实现审查。" : "Codex should prepare the implementation review required by the current task impact.");
+function buildOperatingDecision(context) {
+  const selected = selectOperatingAction(context);
+  const sourceInputs = context.sourceSystemTrace.map(({ sourceSystem, ref, outcome, readStatus, semanticDigest }) => ({
+    sourceSystem,
+    ref,
+    outcome,
+    readStatus,
+    semanticDigest,
+  }));
+  const blockedBy = decisionBlockers(context);
+  const humanDecision = humanDecisionFor(context, selected.actionCode);
+  const digestPayload = {
+    contractVersion: "1.96.0",
+    intentDigest: sha256(intent),
+    projectRootDigest: sha256(projectRoot),
+    taskRef: taskRef || "N/A",
+    projectEntry: context.projectEntry,
+    operation: context.operation,
+    operatingState: context.operatingState,
+    taskImpact: context.taskImpact,
+    actionCode: selected.actionCode,
+    actionClass: selected.actionClass,
+    decisionStatus: selected.decisionStatus,
+    reasonCode: selected.reasonCode,
+    blockedBy,
+    sourceInputs,
+  };
+  return {
+    contractVersion: "1.96.0",
+    derivedOnly: "Yes",
+    actionCode: selected.actionCode,
+    actionClass: selected.actionClass,
+    decisionStatus: selected.decisionStatus,
+    reasonCode: selected.reasonCode,
+    reason: reasonFor(selected.actionCode, blockedBy),
+    blockedBy,
+    sourceInputs,
+    requiresHumanDecisionNow: humanDecision.required ? "Yes" : "No",
+    humanDecisionPrompt: humanDecision.prompt,
+    canCodexContinueReadOnly: selected.canContinueReadOnly ? "Yes" : "No",
+    materialActionAuthorized: "No",
+    plainAction: plainActionFor(selected.actionCode, outputLanguage),
+    decisionDigest: `sha256:${sha256(JSON.stringify(digestPayload))}`,
+    invalidationConditions: [...context.evidenceTrace.invalidationConditions],
+  };
 }
 
-function decisionFor(context) {
-  const zh = outputLanguage === "zh";
-  if (context.sourceFailure) return zh ? "暂时不需要产品判断，Codex 先说明读取失败原因。" : "No product decision is needed yet; Codex should explain the source-read failure first.";
-  if (context.operatingState === "NEEDS_GOAL") return zh ? "你想做什么，或者想改变什么？" : "What do you want to build or change?";
-  if (context.dirtyWorktree) return zh ? "当前未提交改动是否属于这次任务？" : "Do the current uncommitted changes belong to this task?";
-  if (context.operation === "PREPARE_RELEASE") return zh ? "谁负责最终确认这次发布？" : "Who owns the final release decision?";
-  if (context.authorityRecommendation.recommendedRoles.length > 0
-    && ["CONTINUE_TASK", "FINISH_TASK"].includes(context.operation)) {
-    return zh ? "实际执行前，Codex 会从项目证据中识别负责人；你不需要选择内部权限名称。" : "Before material execution, Codex must resolve the responsible owner from project evidence; you do not need to choose an internal role name.";
+function selectOperatingAction(context) {
+  if (context.sourceFailure) return action("REPAIR_SOURCE_READ", "BLOCKED_RECOVERY", "BLOCKED", "SOURCE_READ_FAILED", false);
+  if (context.operatingState === "NEEDS_GOAL") return action("REQUEST_GOAL", "USER_INPUT", "NEEDS_USER_INPUT", "GOAL_REQUIRED", false);
+  if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return action("REVIEW_CURRENT_WORK", "READ_ONLY_REVIEW", "NEEDS_USER_INPUT", "DIRTY_WORKTREE_REVIEW_REQUIRED", true);
+  if (context.operation === "START_PROJECT") return action("PREPARE_PROJECT_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "PROJECT_PLAN_REQUIRED", true);
+  if (context.operation === "ADOPT_PROJECT") return action("RUN_ADOPTION_REVIEW", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "ADOPTION_REVIEW_REQUIRED", true);
+  if (context.operation === "CHECK_STATUS") return action("SUMMARIZE_CURRENT_STATUS", "REPORTING", "READY_TO_REPORT", "STATUS_SUMMARY_REQUESTED", true);
+  if (context.operation === "FINISH_TASK") {
+    return context.operatingState === "READY_TO_REPORT_DONE"
+      ? action("REPORT_TASK_COMPLETE", "REPORTING", "READY_TO_REPORT", "CLOSURE_SUPPORTS_DONE", true)
+      : action("COMPLETE_CLOSURE_EVIDENCE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "CLOSURE_EVIDENCE_INCOMPLETE", true);
   }
-  return zh ? "这一步是只读判断，不需要你额外决定。" : "This is a read-only decision; no additional choice is required from you.";
+  if (context.operation === "PREPARE_RELEASE") return action("PREPARE_RELEASE_REVIEW", "RELEASE_REVIEW_PREPARATION", "ACTION_REQUIRED", "RELEASE_REVIEW_REQUESTED", true);
+  if (context.taskImpact === "POSSIBLE_HIGH") return action("INSPECT_TASK_RISK", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "TASK_IMPACT_UNRESOLVED", true);
+
+  const blockers = arrayValue(context.taskGovernance?.readiness?.blocked_by);
+  if (blockers.length > 0) return actionForTaskBlocker(blockers);
+  if (context.taskGovernance?.readiness?.ready_for_implementation_review === "Yes") {
+    if (context.taskImpact === "LOW" && context.operatingState !== "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW") {
+      return action("PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW", "IMPLEMENTATION_REVIEW_PREPARATION", "READY_FOR_REVIEW_PREPARATION", "LOW_TASK_READY_FOR_REVIEW", true);
+    }
+    return action("PREPARE_IMPLEMENTATION_REVIEW", "IMPLEMENTATION_REVIEW_PREPARATION", "READY_FOR_REVIEW_PREPARATION", "TASK_READY_FOR_REVIEW", true);
+  }
+  return action("COMPLETE_TASK_GOVERNANCE_PREREQUISITES", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_UNRESOLVED", true);
+}
+
+function actionForTaskBlocker(blockers) {
+  const joined = blockers.join("\n").toLowerCase();
+  if (/adoption review/.test(joined)) return action("RESOLVE_ADOPTION_BLOCKER", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "ADOPTION_BLOCKS_TASK_GOVERNANCE", true);
+  if (/business rule/.test(joined)) return action("PREPARE_BUSINESS_RULE_CLOSURE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
+  if (/affected-surface|surface map/.test(joined)) return action("PREPARE_CHANGE_IMPACT_COVERAGE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
+  if (/execution plan/.test(joined)) return action("PREPARE_EXECUTION_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
+  if (/verification checklist|verification plan/.test(joined)) return action("PREPARE_VERIFICATION_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
+  return action("COMPLETE_TASK_GOVERNANCE_PREREQUISITES", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
+}
+
+function action(actionCode, actionClass, decisionStatus, reasonCode, canContinueReadOnly) {
+  return { actionCode, actionClass, decisionStatus, reasonCode, canContinueReadOnly };
+}
+
+function decisionBlockers(context) {
+  if (context.sourceFailure) {
+    return context.sourceSystemTrace
+      .filter((source) => source.readStatus === "FAILED")
+      .map((source) => `${source.sourceSystem}: ${source.error || "source read failed"}`);
+  }
+  if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return ["current worktree has uncommitted changes"];
+  if (context.operation === "CONTINUE_TASK") return arrayValue(context.taskGovernance?.readiness?.blocked_by);
+  if (context.operation === "FINISH_TASK" && context.operatingState !== "READY_TO_REPORT_DONE") {
+    return arrayValue(context.closure?.requiredNextAction);
+  }
+  if (["ADOPT_PROJECT", "PREPARE_RELEASE"].includes(context.operation)) {
+    return arrayValue(context.evidenceTrace.missingOrBlocking);
+  }
+  return [];
+}
+
+function humanDecisionFor(context, actionCode) {
+  const zh = outputLanguage === "zh";
+  if (actionCode === "REQUEST_GOAL") return {
+    required: true,
+    prompt: zh ? "你想做什么，或者想改变什么？" : "What do you want to build or change?",
+  };
+  if (actionCode === "REVIEW_CURRENT_WORK") return {
+    required: true,
+    prompt: zh ? "当前未提交改动是否属于这次任务？" : "Do the current uncommitted changes belong to this task?",
+  };
+  if (actionCode === "REPAIR_SOURCE_READ") return {
+    required: false,
+    prompt: zh ? "Codex 先说明来源读取失败的原因。" : "Codex should explain the source-read failure first.",
+  };
+  if (context.authorityRecommendation.recommendedRoles.length > 0) return {
+    required: false,
+    prompt: zh
+      ? "Codex 会先从项目证据中识别负责人，再提出实质动作。"
+      : "Codex must resolve the responsible owner from project evidence before proposing a material action.",
+  };
+  return {
+    required: false,
+    prompt: zh ? "Codex 可以按当前只读路径继续。" : "Codex can continue on the current read-only route.",
+  };
+}
+
+function humanDecisionSummaryFor(decision, language = "en") {
+  if (decision.requiresHumanDecisionNow === "Yes") return decision.humanDecisionPrompt;
+  return language === "zh"
+    ? `不需要。${decision.humanDecisionPrompt}`
+    : `No. ${decision.humanDecisionPrompt}`;
+}
+
+function reasonFor(actionCode, blockers) {
+  const firstBlocker = blockers[0] || "no blocking source input";
+  const values = {
+    REPAIR_SOURCE_READ: `A required source failed: ${firstBlocker}.`,
+    REQUEST_GOAL: "The Operating Model cannot select a safe route without a goal.",
+    REVIEW_CURRENT_WORK: "The worktree contains uncommitted work that must be mapped before continuation.",
+    PREPARE_PROJECT_PLAN: "The goal starts a project and requires a project plan and baseline recommendation.",
+    RUN_ADOPTION_REVIEW: "The goal requests existing-project adoption, which starts with read-only review.",
+    SUMMARIZE_CURRENT_STATUS: "The user requested current project or task status.",
+    INSPECT_TASK_RISK: "Task Governance classified the task as POSSIBLE_HIGH and requires clarification.",
+    RESOLVE_ADOPTION_BLOCKER: `Task Governance is blocked by adoption state: ${firstBlocker}.`,
+    PREPARE_BUSINESS_RULE_CLOSURE: `Task Governance requires business-rule clarification: ${firstBlocker}.`,
+    PREPARE_CHANGE_IMPACT_COVERAGE: `Task Governance requires an affected-surface map: ${firstBlocker}.`,
+    PREPARE_EXECUTION_PLAN: `Task Governance requires a durable execution plan: ${firstBlocker}.`,
+    PREPARE_VERIFICATION_PLAN: `Task Governance requires a verification plan: ${firstBlocker}.`,
+    COMPLETE_TASK_GOVERNANCE_PREREQUISITES: `Task Governance is not ready: ${firstBlocker}.`,
+    PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW: "Task Governance classified the task as LOW and permits lightweight review preparation.",
+    PREPARE_IMPLEMENTATION_REVIEW: "Task Governance prerequisites permit implementation-review preparation.",
+    COMPLETE_CLOSURE_EVIDENCE: `Unified Closure does not support a done claim: ${firstBlocker}.`,
+    REPORT_TASK_COMPLETE: "Unified Closure supports reporting the current task as done.",
+    PREPARE_RELEASE_REVIEW: "The goal requests release preparation; release execution remains unauthorized.",
+  };
+  return values[actionCode] || `The safe next route is ${actionCode}.`;
+}
+
+function plainActionFor(actionCode, language = "en") {
+  const zh = {
+    REPAIR_SOURCE_READ: "Codex 先说明或修复来源读取失败，再继续。",
+    REQUEST_GOAL: "告诉 Codex 你想做成什么。",
+    REVIEW_CURRENT_WORK: "Codex 先只读梳理现有未提交改动，不覆盖也不丢弃。",
+    PREPARE_PROJECT_PLAN: "Codex 先准备项目方案和技术基线建议，不要求你选择内部编号。",
+    RUN_ADOPTION_REVIEW: "Codex 先完成只读接入判断，再决定是否需要受控写入计划。",
+    SUMMARIZE_CURRENT_STATUS: "Codex 汇总当前证据，并用白话说明已完成、未完成和下一步。",
+    INSPECT_TASK_RISK: "Codex 先只读确认数据、状态、权限或接口影响，不直接改代码。",
+    RESOLVE_ADOPTION_BLOCKER: "Codex 先解释并处理当前项目接入阻断，不改项目资产。",
+    PREPARE_BUSINESS_RULE_CLOSURE: "Codex 先把业务规则、例外和完成条件梳理完整，再进入实现审查。",
+    PREPARE_CHANGE_IMPACT_COVERAGE: "Codex 先补齐前端、后端、数据和运行面的影响范围，再进入实现审查。",
+    PREPARE_EXECUTION_PLAN: "Codex 先准备完整执行计划，再进入实现审查。",
+    PREPARE_VERIFICATION_PLAN: "Codex 先明确需要验证什么以及如何证明，再进入实现审查。",
+    COMPLETE_TASK_GOVERNANCE_PREREQUISITES: "Codex 先补齐当前任务缺少的治理条件，再进入实现审查。",
+    PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW: "Codex 按低影响任务准备小范围实现和最小验证审查。",
+    PREPARE_IMPLEMENTATION_REVIEW: "Codex 按当前任务影响级别准备实现审查，暂不代表已获执行授权。",
+    COMPLETE_CLOSURE_EVIDENCE: "Codex 先补齐缺失证据，再判断任务是否完成。",
+    REPORT_TASK_COMPLETE: "Codex 可以生成任务完成说明，但这不代表发布或生产批准。",
+    PREPARE_RELEASE_REVIEW: "Codex 先准备发布审查材料，不直接执行发布。",
+  };
+  const en = {
+    REPAIR_SOURCE_READ: "Codex should explain or repair the failed source read before continuing.",
+    REQUEST_GOAL: "Tell Codex what outcome you want.",
+    REVIEW_CURRENT_WORK: "Codex should inspect and map current uncommitted work without overwriting or discarding it.",
+    PREPARE_PROJECT_PLAN: "Codex should prepare the project plan and technical baseline recommendation without asking for internal IDs.",
+    RUN_ADOPTION_REVIEW: "Codex should complete the read-only adoption review before proposing a controlled write plan.",
+    SUMMARIZE_CURRENT_STATUS: "Codex should summarize current evidence, completed work, missing work, and the next step.",
+    INSPECT_TASK_RISK: "Codex should inspect possible data, state, permission, or API impact before changing code.",
+    RESOLVE_ADOPTION_BLOCKER: "Codex should explain and resolve the adoption blocker without changing project assets.",
+    PREPARE_BUSINESS_RULE_CLOSURE: "Codex should clarify business rules, exceptions, and completion conditions before implementation review.",
+    PREPARE_CHANGE_IMPACT_COVERAGE: "Codex should map frontend, backend, data, and runtime impact before implementation review.",
+    PREPARE_EXECUTION_PLAN: "Codex should prepare the complete execution plan before implementation review.",
+    PREPARE_VERIFICATION_PLAN: "Codex should define what must be verified and how it will be proved before implementation review.",
+    COMPLETE_TASK_GOVERNANCE_PREREQUISITES: "Codex should complete the missing task-governance prerequisites before implementation review.",
+    PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW: "Codex should prepare a bounded implementation and minimal verification review for this low-impact task.",
+    PREPARE_IMPLEMENTATION_REVIEW: "Codex should prepare implementation review for the current task impact; execution is not authorized by this view.",
+    COMPLETE_CLOSURE_EVIDENCE: "Codex should complete the missing evidence before deciding whether the task is done.",
+    REPORT_TASK_COMPLETE: "Codex may report task completion, but this is not release or production approval.",
+    PREPARE_RELEASE_REVIEW: "Codex should prepare release-review evidence without executing the release.",
+  };
+  return (language === "zh" ? zh : en)[actionCode] || actionCode;
+}
+
+function sha256(value) {
+  return createHash("sha256").update(String(value || "")).digest("hex");
 }
 
 function sourceOutcome(value) {
@@ -433,6 +630,7 @@ function toSourceTrace(source) {
     readStatus: source.readStatus,
     outcome: source.outcome,
     error: source.error || "",
+    semanticDigest: source.semanticDigest,
     authority: "SOURCE_SYSTEM_REMAINS_AUTHORITATIVE",
   };
 }
@@ -451,7 +649,7 @@ function relationFor(name, operation) {
 function conclusionFor(operation, state, entry, language) {
   if (state === "NEEDS_GOAL") return language === "zh" ? "IntentOS 需要一个明确目标才能选择路径。" : "IntentOS needs one plain goal before choosing a route.";
   if (state === "BLOCKED_BY_SOURCE_FAILURE") return language === "zh" ? "IntentOS 无法安全读取必要来源，已经停止。" : "IntentOS could not safely read one required source and stopped.";
-  if (language === "zh") return `${plainOperation(operation, language)}，当前状态：${plainStateFor(state, language)}。`;
+  if (language === "zh") return `${plainOperation(operation, language)}：${plainStateFor(state, language)}。`;
   return `${plainOperation(operation, language)} for ${plainEntry(entry)} is in state: ${plainStateFor(state, language)}.`;
 }
 
@@ -540,6 +738,9 @@ function firstUsefulLine(value) {
 
 function printHuman(report) {
   const zh = outputLanguage === "zh";
+  const decisionLabel = report.operatingDecision.requiresHumanDecisionNow === "Yes"
+    ? (zh ? "需要你决定" : "Decision needed")
+    : (zh ? "当前无需你决定" : "No decision needed now");
   console.log(zh ? "# IntentOS 当前工作状态" : "# IntentOS Current Operating State");
   console.log("");
   console.log(`${zh ? "结论" : "Current status"}: ${report.humanSummary.currentState}`);
@@ -548,7 +749,7 @@ function printHuman(report) {
   console.log("");
   console.log(`${zh ? "下一步" : "Next safe step"}: ${report.humanSummary.nextSafeAction}`);
   console.log("");
-  console.log(`${zh ? "需要你决定" : "Decision needed"}: ${report.humanSummary.decisionNeeded}`);
+  console.log(`${decisionLabel}: ${report.humanSummary.decisionNeeded}`);
   console.log("");
   console.log(zh
     ? "这一步不会改文件，不会批准实现、发布或生产操作，也不会改变项目负责人。内部检查由 Codex 自己选择。"

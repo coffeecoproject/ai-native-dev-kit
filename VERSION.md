@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.95.0`
+Current version: `1.96.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.95.0`
 
 ## Current Release
 
-`1.95.0`
+`1.96.0`
 
 Includes:
+
+- Operating Decision Contract `1.96.0`: adds one structured, deterministic
+  next-action decision inside the existing read-only Operating State. It binds
+  one action code to its reason, source inputs, blockers, human-decision state,
+  digest, and invalidation conditions.
+- `1.96.0` renders the beginner next step from the same decision while keeping
+  source systems authoritative. It creates no new artifact family, grants no
+  authority, changes no task state, and does not approve implementation,
+  apply, commit, push, release, or production.
 
 - Operating Model Consolidation `1.95.0`: adds one read-only `work` entry that
   derives Project Entry and routes start, continue, status, finish, release

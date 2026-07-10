@@ -14,7 +14,7 @@ const version = manifest?.intentOSVersion || packageJson?.version || readVersion
 
 const commandRegistry = {
   work: {
-    description: "Turn one natural-language goal into the current read-only IntentOS Operating State.",
+    description: "Turn one natural-language goal into the current read-only IntentOS Operating State and Decision.",
     script: "scripts/resolve-operating-loop.mjs",
     writes: false,
     buildArgs: (args) => args,
@@ -955,6 +955,8 @@ function printWorkHelp() {
   console.log("  node scripts/cli.mjs work <project> --intent \"<what you want>\" --json");
   console.log("");
   console.log("Meanings: start a project, continue a task, check status, finish a task, prepare release, or adopt an existing project.");
+  console.log("");
+  console.log("The response contains one derived next action with its reason, blockers, source inputs, and no-authority boundary.");
   console.log("");
   console.log("Output options: --json or --format human|json");
   console.log("");

@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.95.0`
+`1.96.0`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.96.0` adds one structured Operating Decision Contract to the existing
+  read-only `work` response. The decision selects one action and records its
+  reason, source inputs, blockers, digest, and invalidation conditions.
+- `1.96.0` does not persist a new decision artifact, grant authority, change
+  task state, or approve implementation, apply, commit, push, release, or
+  production.
 
 - `1.95.0` adds one read-only Operating Model over Project Entry and the shared
   task lifecycle. `work` routes start, continue, status, finish, release

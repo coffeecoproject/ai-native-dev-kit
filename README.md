@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.95.0`.
+Current release: `1.96.0`.
 
-Release record: [releases/1.95.0/release-record.md](releases/1.95.0/release-record.md).
+Release record: [releases/1.96.0/release-record.md](releases/1.96.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -47,6 +47,15 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.96.0 adds one structured Operating Decision Contract inside the existing
+read-only `work` response. Codex now receives one stable action code, reason,
+source inputs, blockers, human-decision state, and invalidation conditions;
+the beginner summary is rendered from that same action selection.
+
+The decision remains a derived view. It does not become a scheduler, evidence
+authority, approval, task-state transition, or permission to implement, apply,
+commit, push, release, or operate production.
 
 1.95.0 consolidates project entry and daily work into one read-only Operating
 Model. A user gives one natural-language goal; IntentOS derives whether this is
@@ -588,6 +597,7 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 你想做什么 | 命令 |
 |---|---|
 | 判断项目状态 | `node scripts/cli.mjs start ../my-project` |
+| 查看底层工作流建议 | `node scripts/cli.mjs guide ../my-project` |
 | 选择项目基线 | `node scripts/cli.mjs baseline-decision ../my-project` |
 | 老项目先映射现有治理 | `node scripts/cli.mjs workflow-map ../my-project` |
 | 老项目生成原生迁移计划 | `node scripts/cli.mjs native-migration ../my-project` |
@@ -603,6 +613,7 @@ These commands are for maintainers, CI, audits, and explicit evidence:
 | 汇总发布源系统为统一视图 | `node scripts/cli.mjs release-plan ../my-project --intent "帮我上线"` |
 | 检查统一发布视图 | `node scripts/cli.mjs release-check ../my-project` |
 | 判断计划是否具备受控执行条件 | `node scripts/cli.mjs apply-readiness ../my-project --plan apply-plans/001-example.md` |
+| 生成受控写入计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "更新工作流资产" --action workflow-assets` |
 | 检查人工批准记录 | `node scripts/cli.mjs approval-record-check ../my-project` |
 | 处理中断任务 | `node scripts/cli.mjs work-queue ../my-project` |
 | 检查文档生命周期 | `node scripts/cli.mjs doc-lifecycle ../my-project` |

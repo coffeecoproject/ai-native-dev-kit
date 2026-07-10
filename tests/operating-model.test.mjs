@@ -18,10 +18,21 @@ function runNode(args) {
   });
 }
 
-function runWork(root, intent) {
-  const result = runNode(["scripts/resolve-operating-loop.mjs", root, "--intent", intent, "--json"]);
+function runWork(root, intent, extraArgs = []) {
+  const intentArgs = intent ? ["--intent", intent] : [];
+  const result = runNode(["scripts/resolve-operating-loop.mjs", root, ...intentArgs, ...extraArgs, "--json"]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
-  return JSON.parse(result.stdout);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.schemaVersion, "1.96.0");
+  assert.equal(report.operatingDecision.contractVersion, "1.96.0");
+  assert.equal(report.operatingDecision.derivedOnly, "Yes");
+  assert.equal(report.operatingDecision.materialActionAuthorized, "No");
+  assert.equal(report.humanSummary.nextSafeAction, report.operatingDecision.plainAction);
+  assert.match(report.operatingDecision.decisionDigest, /^sha256:[a-f0-9]{64}$/);
+  const sourceNames = new Set(report.sourceSystemTrace.map((source) => source.sourceSystem));
+  assert.ok(report.operatingDecision.sourceInputs.every((source) => sourceNames.has(source.sourceSystem)));
+  assert.ok(report.operatingDecision.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest)));
+  return report;
 }
 
 function withRoot(prefix, callback) {
@@ -63,6 +74,7 @@ test("new project goal enters the shared operating loop through START_PROJECT", 
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
   assert.equal(report.operatingLoop.operation, "START_PROJECT");
   assert.equal(report.operatingLoop.lifecyclePhase, "PROJECT_ENTRY");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_PROJECT_PLAN");
   assert.equal(report.boundaries.writesTargetFiles, "No");
 }));
 
@@ -72,6 +84,7 @@ test("existing project normal task uses CONTINUE_TASK without forcing high gover
   assert.match(report.projectEntry.state, /EXISTING_PROJECT_ENTRY|GOVERNED_PROJECT_ENTRY/);
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW");
   assert.equal(report.operatingLoop.projectBaselineControlsTaskImpact, "No");
   assert.ok(report.evidenceTrace.dependencies.every((item) => item.to === "OPERATING_STATE" && item.relation === "INPUT_TO_DERIVED_VIEW"));
   assert.equal(report.authorityRecommendation.namedOwnerResolution, "NOT_EVALUATED_BY_OPERATING_VIEW");
@@ -83,6 +96,7 @@ test("existing project adoption is a project-entry review and remains read-only"
   const report = runWork(root, "把这个老项目接入 IntentOS");
   assert.equal(report.operatingLoop.operation, "ADOPT_PROJECT");
   assert.equal(report.operatingLoop.lifecyclePhase, "PROJECT_ENTRY");
+  assert.equal(report.operatingDecision.actionCode, "RUN_ADOPTION_REVIEW");
   assert.equal(report.authorityRecommendation.grantsAuthority, "No");
   assert.deepEqual(snapshot(root), before);
 }));
@@ -91,6 +105,7 @@ test("release intent recommends release authority without approving release", ()
   makeExistingProject(root);
   const report = runWork(root, "准备发布内部测试版本");
   assert.equal(report.operatingLoop.operation, "PREPARE_RELEASE");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_RELEASE_REVIEW");
   assert.ok(report.authorityRecommendation.recommendedRoles.includes("RELEASE_OWNER"));
   assert.equal(report.authorityRecommendation.materialActionAllowedByThisView, "No");
   assert.equal(report.boundaries.approvesReleaseOrProduction, "No");
@@ -101,6 +116,7 @@ test("permission task recommends domain and security owners", () => withRoot("in
   const report = runWork(root, "新增管理员权限并限制敏感数据访问");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.match(report.operatingLoop.taskImpact, /HIGH|POSSIBLE_HIGH/);
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");
   assert.ok(report.authorityRecommendation.recommendedRoles.includes("DOMAIN_OWNER"));
   assert.ok(report.authorityRecommendation.recommendedRoles.includes("SECURITY_OWNER"));
   assert.equal(report.authorityRecommendation.grantsAuthority, "No");
@@ -130,6 +146,7 @@ test("initialized new project continues later tasks instead of restarting projec
   const report = runWork(root, "继续完成预约规则");
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
+  assert.equal(report.operatingDecision.actionCode, "INSPECT_TASK_RISK");
 }));
 
 test("business nouns do not hijack task routing", () => withRoot("intentos-operating-route-conflicts-", (root) => {
@@ -155,6 +172,7 @@ test("dirty worktree stops before task continuation", () => withRoot("intentos-o
   const report = runWork(root, "继续完成预约规则");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.state, "NEEDS_CURRENT_WORK_REVIEW");
+  assert.equal(report.operatingDecision.actionCode, "REVIEW_CURRENT_WORK");
 }));
 
 test("controlled plan records existing-project entry origin", () => withRoot("intentos-operating-plan-origin-", (root) => {
@@ -176,6 +194,7 @@ test("controlled plan records existing-project entry origin", () => withRoot("in
 test("English intent receives an English human summary", () => withRoot("intentos-operating-english-", (root) => {
   makeExistingProject(root);
   assert.equal(runWork(root, "检查当前项目状态").operatingLoop.operation, "CHECK_STATUS");
+  assert.equal(runWork(root, "检查当前项目状态").operatingDecision.actionCode, "SUMMARIZE_CURRENT_STATUS");
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, "--intent", "check current task progress"]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   assert.match(result.stdout, /IntentOS Current Operating State/);
@@ -200,6 +219,7 @@ test("production signals override original new-project entry without changing ta
   assert.equal(report.projectEntry.state, "PRODUCTION_SENSITIVE_ENTRY");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
   assert.equal(report.operatingLoop.state, "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_IMPLEMENTATION_REVIEW");
 }));
 
 test("controlled plan records new-project entry origin", () => withRoot("intentos-operating-new-plan-origin-", (root) => {
@@ -218,6 +238,7 @@ test("finish without valid completion evidence cannot report done", () => withRo
   const report = runWork(root, "这个任务做完了吗");
   assert.equal(report.operatingLoop.operation, "FINISH_TASK");
   assert.equal(report.operatingLoop.state, "NOT_DONE");
+  assert.equal(report.operatingDecision.actionCode, "COMPLETE_CLOSURE_EVIDENCE");
   assert.equal(report.boundaries.provesProductCorrectness, "No");
   assert.ok(report.evidenceTrace.nodes.some((item) => item.id === "UNIFIED_CLOSURE"));
 }));
@@ -227,6 +248,7 @@ test("source failure is visible and blocks the operating state", () => withRoot(
   fs.writeFileSync(targetFile, "not a directory\n");
   const report = runWork(targetFile, "继续任务");
   assert.equal(report.outcome, "BLOCKED_BY_SOURCE_FAILURE");
+  assert.equal(report.operatingDecision.actionCode, "REPAIR_SOURCE_READ");
   assert.ok(report.sourceSystemTrace.some((item) => item.readStatus === "FAILED"));
   assert.equal(report.authorityRecommendation.currentReadOnlyActionAllowed, "No");
 }));
@@ -244,3 +266,60 @@ test("default help is beginner-only while advanced help preserves lower-level co
   assert.match(advanced.stdout, /execution-assurance-check/);
   assert.match(advanced.stdout, /self-check/);
 });
+
+test("missing goal selects one user-input decision", () => withRoot("intentos-operating-no-goal-", (root) => {
+  const report = runWork(root, "");
+  assert.equal(report.operatingLoop.state, "NEEDS_GOAL");
+  assert.equal(report.operatingDecision.actionCode, "REQUEST_GOAL");
+  assert.equal(report.operatingDecision.decisionStatus, "NEEDS_USER_INPUT");
+  assert.equal(report.operatingDecision.requiresHumanDecisionNow, "Yes");
+  assert.equal(report.operatingDecision.canCodexContinueReadOnly, "No");
+}));
+
+test("possible-high task selects read-only risk inspection", () => withRoot("intentos-operating-possible-high-", (root) => {
+  makeExistingProject(root);
+  const report = runWork(root, "调整预约限制规则");
+  assert.equal(report.operatingLoop.taskImpact, "POSSIBLE_HIGH");
+  assert.equal(report.operatingDecision.actionCode, "INSPECT_TASK_RISK");
+  assert.equal(report.operatingDecision.decisionStatus, "READ_ONLY_ACTION_REQUIRED");
+  assert.ok(report.operatingDecision.blockedBy.length > 0);
+}));
+
+test("medium task selects targeted implementation-review preparation", () => withRoot("intentos-operating-medium-", (root) => {
+  makeExistingProject(root);
+  const report = runWork(root, "调整局部列表筛选展示");
+  assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_IMPLEMENTATION_REVIEW");
+  assert.equal(report.operatingDecision.decisionStatus, "READY_FOR_REVIEW_PREPARATION");
+}));
+
+test("high task selects the first authoritative governance prerequisite", () => withRoot("intentos-operating-high-", (root) => {
+  makeExistingProject(root);
+  const report = runWork(root, "新增管理员权限");
+  assert.equal(report.operatingLoop.taskImpact, "HIGH");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");
+  assert.ok(report.operatingDecision.blockedBy.includes("missing affected-surface map"));
+  assert.equal(report.operatingDecision.requiresHumanDecisionNow, "No");
+}));
+
+test("valid unified closure selects completion reporting without expanding authority", () => {
+  const root = path.join(kitRoot, "examples/1.49-structured-impact-coverage/contract-input-rule");
+  const report = runWork(root, "这个任务做完了吗", [
+    "--task", "examples/1.49-structured-impact-coverage/contract-input-rule",
+    "--verification", "strict checks passed",
+    "--execution-closure", "execution-closures/001-contract-input-rule.md",
+    "--impact-report", "change-impact-coverage-reports/001-contract-input-rule.md",
+  ]);
+  assert.equal(report.operatingLoop.state, "READY_TO_REPORT_DONE");
+  assert.equal(report.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
+  assert.equal(report.operatingDecision.decisionStatus, "READY_TO_REPORT");
+  assert.equal(report.boundaries.approvesReleaseOrProduction, "No");
+});
+
+test("decision digest is stable across repeated reads with unchanged semantic inputs", () => withRoot("intentos-operating-digest-", (root) => {
+  makeExistingProject(root);
+  const first = runWork(root, "修正文档中的一个错别字");
+  const second = runWork(root, "修正文档中的一个错别字");
+  assert.equal(first.operatingDecision.decisionDigest, second.operatingDecision.decisionDigest);
+  assert.notEqual(first.generatedAt, second.generatedAt);
+}));

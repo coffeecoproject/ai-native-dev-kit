@@ -19,6 +19,16 @@ recommendations remain available to Codex in JSON:
 node scripts/cli.mjs work . "检查当前状态" --json
 ```
 
+The JSON response includes one `operatingDecision` with a stable action code,
+reason, source inputs, blockers, human-decision state, digest, and invalidation
+conditions. Codex uses that decision internally; ordinary users do not choose
+the action code or lower-level command.
+
+The decision is derived and read-only. An action such as
+`PREPARE_BUSINESS_RULE_CLOSURE` means that business-rule clarification is the
+next safe route. It does not mean the clarification exists or implementation
+is approved.
+
 The output is read-only. It does not approve implementation, apply, commit,
 push, release, production, migration, secrets, permissions, payment, data, CI,
 hooks, or external provider actions.

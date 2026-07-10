@@ -18195,7 +18195,10 @@ function checkOperatingModelConsolidationProtocol() {
     if (!read("intentos-manifest.json").includes(forbidden)) pass(`1.95 does not add parallel artifact directory ${forbidden}`);
     else fail(`1.95 must not add parallel artifact directory ${forbidden}`);
   }
-  if (prWorkflow.includes("Expected CHECK_STATUS") && releaseWorkflow.includes("Expected CHECK_STATUS")) {
+  if (prWorkflow.includes("CHECK_STATUS")
+    && releaseWorkflow.includes("CHECK_STATUS")
+    && prWorkflow.includes("Operating Decision status route failed")
+    && releaseWorkflow.includes("Operating Decision status route failed")) {
     pass("1.95 PR and release CI assert the Operating Model route instead of only its exit code");
   } else {
     fail("1.95 PR and release CI must assert the CHECK_STATUS route");
@@ -18209,10 +18212,78 @@ function checkOperatingModelConsolidationProtocol() {
   }
 
   const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
-  if (tests.status === 0 && tests.stdout.includes("pass 16") && tests.stdout.includes("fail 0")) {
-    pass("1.95 Operating Model acceptance and negative tests");
+  if (tests.status === 0 && tests.stdout.includes("pass 22") && tests.stdout.includes("fail 0")) {
+    pass("1.95 Operating Model and current decision-contract regression tests");
   } else {
     fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
+  }
+}
+
+function checkOperatingDecisionContractProtocol() {
+  const plan = read("docs/plans/operating-decision-contract-1.96-plan.md");
+  const core = read("core/operating-model.md");
+  const usage = read("docs/operating-model.md");
+  const resolver = read("scripts/resolve-operating-loop.mjs");
+  const manifest = read("intentos-manifest.json");
+  const workflows = `${read(".github/workflows/intentos-pr-checks.yml")}\n${read(".github/workflows/intentos-release-checks.yml")}`;
+
+  for (const marker of [
+    "Operating Decision Contract",
+    "exactly one `actionCode`",
+    "materialActionAuthorized",
+    "sourceInputs",
+    "Project Identity Projection belongs to 1.97",
+    "Internal surface consolidation",
+  ]) {
+    if (plan.includes(marker)) pass(`1.96 plan includes ${marker}`);
+    else fail(`1.96 plan missing ${marker}`);
+  }
+  for (const marker of [
+    "operatingDecision",
+    "PREPARE_PROJECT_PLAN",
+    "INSPECT_TASK_RISK",
+    "PREPARE_BUSINESS_RULE_CLOSURE",
+    "COMPLETE_CLOSURE_EVIDENCE",
+    "REPORT_TASK_COMPLETE",
+    "materialActionAuthorized: \"No\"",
+    "decisionDigest",
+  ]) {
+    if (`${core}\n${usage}\n${resolver}`.includes(marker)) pass(`1.96 Operating Decision includes ${marker}`);
+    else fail(`1.96 Operating Decision missing ${marker}`);
+  }
+  for (const forbidden of ["operating-decision-reports", "decision-engine-reports", "authority-decision-records"]) {
+    if (!manifest.includes(forbidden)) pass(`1.96 does not add parallel artifact directory ${forbidden}`);
+    else fail(`1.96 must not add parallel artifact directory ${forbidden}`);
+  }
+  if (workflows.includes("SUMMARIZE_CURRENT_STATUS")
+    && workflows.includes("PREPARE_PROJECT_PLAN")
+    && workflows.includes("materialActionAuthorized")) {
+    pass("1.96 PR and release CI assert structured Operating Decisions");
+  } else {
+    fail("1.96 PR and release CI must assert structured Operating Decisions");
+  }
+
+  const operating = runNode(["scripts/cli.mjs", "work", ".", "检查当前项目状态", "--json"]);
+  try {
+    const parsed = JSON.parse(operating.stdout);
+    const decision = parsed.operatingDecision;
+    const sourceNames = new Set((parsed.sourceSystemTrace || []).map((source) => source.sourceSystem));
+    if (operating.status === 0
+      && parsed.schemaVersion === "1.96.0"
+      && decision?.contractVersion === "1.96.0"
+      && decision?.actionCode === "SUMMARIZE_CURRENT_STATUS"
+      && decision?.materialActionAuthorized === "No"
+      && parsed.humanSummary?.nextSafeAction === decision?.plainAction
+      && Array.isArray(decision?.sourceInputs)
+      && decision.sourceInputs.every((source) => sourceNames.has(source.sourceSystem))
+      && decision.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest || ""))
+      && /^sha256:[a-f0-9]{64}$/.test(decision?.decisionDigest || "")) {
+      pass("1.96 work returns one traceable, non-authorizing Operating Decision");
+    } else {
+      fail(`1.96 work returned an invalid Operating Decision: ${operating.stderr || operating.stdout}`);
+    }
+  } catch (error) {
+    fail(`1.96 work output is not valid JSON: ${error.message}`);
   }
 }
 
@@ -18289,6 +18360,7 @@ checkApplyAdoptionClosureProtocol();
 checkReleaseTrustClosureProtocol();
 checkBaselineManifestPublicEntryConsolidationProtocol();
 checkOperatingModelConsolidationProtocol();
+checkOperatingDecisionContractProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();
