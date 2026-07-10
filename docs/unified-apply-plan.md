@@ -50,6 +50,15 @@ Check recorded plans:
 node scripts/cli.mjs apply-plan-check .
 ```
 
+Maintainer or CI strict check:
+
+```bash
+node scripts/check-apply-plan.mjs . --require-structured-evidence
+```
+
+Strict mode fails when no Unified Apply Plan is recorded. The default check
+continues to allow an empty directory when no write-capable action is in scope.
+
 ## What It Does
 
 The plan records:

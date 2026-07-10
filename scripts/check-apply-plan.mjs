@@ -124,7 +124,11 @@ function checkCoreContent() {
 function checkPlans() {
   const files = markdownFiles("apply-plans");
   if (files.length === 0) {
-    pass("unified apply plan check skipped: no apply plans");
+    if (requireStructuredEvidence) {
+      fail("no Unified Apply Plan reports found while strict apply evidence was required");
+    } else {
+      pass("unified apply plan check skipped: no apply plans");
+    }
     return;
   }
 

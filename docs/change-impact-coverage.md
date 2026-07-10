@@ -44,6 +44,10 @@ For strict close-out, use:
 node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --mode closure --strict-evidence
 ```
 
+This strict invocation fails when no Change Impact Coverage report exists.
+Default checks without strict or closure options may still skip an empty report
+directory when no task currently requires coverage evidence.
+
 For rule-heavy work that has a saved Business Rule Closure Card, strict binding
 can require the impact report to consume that same READY rule:
 

@@ -17,7 +17,7 @@ export function gitWorktreeState(root) {
   const branch = spawnSync("git", ["-C", root, "branch", "--show-current"], {
     encoding: "utf8",
   });
-  const status = spawnSync("git", ["-C", root, "status", "--porcelain"], {
+  const status = spawnSync("git", ["-C", root, "status", "--porcelain", "--", "."], {
     encoding: "utf8",
   });
   const changedFiles = status.status === 0

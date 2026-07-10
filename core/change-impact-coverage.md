@@ -74,6 +74,8 @@ node scripts/check-change-impact-coverage.mjs . --require-structured-evidence --
 ```
 
 Strict mode rejects placeholder `DONE` evidence such as `TBD`, `placeholder`, `not recorded`, or example-only evidence.
+An explicit strict or closure invocation also requires at least one selected
+Change Impact Coverage report. Absence is not valid close-out evidence.
 
 For stricter evidence reliability, use:
 

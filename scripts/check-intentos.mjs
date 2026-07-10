@@ -5893,7 +5893,7 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
   if (resolver.status === 0
     && resolverHumanSummary.includes("Current state")
     && resolverHumanSummary.includes("IntentOS working mode")
-    && /The project can|The target project path was not found|The evidence is invalid or incomplete/.test(stripMarkdown(resolverHumanSummary))
+    && /The project can|The project has authority rules|The project has an unsafe current state|The target project path was not found|The evidence is invalid or incomplete/.test(stripMarkdown(resolverHumanSummary))
     && /Available as a read-only working method|Read-only diagnosis only|Not available until/.test(stripMarkdown(resolverHumanSummary))
     && !exposesRawSummaryEnum
     && resolver.stdout.includes('"adoption_state"')
@@ -10664,6 +10664,45 @@ function checkSafetyEvidenceHardeningProtocol() {
       fail(`strict plan review must fail closed when reports are absent: ${strictNoReportOutput}`);
     }
 
+    const strictImpactNoReport = runNode([
+      "scripts/check-change-impact-coverage.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+      "--mode",
+      "closure",
+      "--strict-evidence",
+    ]);
+    const strictImpactNoReportOutput = `${strictImpactNoReport.stdout}\n${strictImpactNoReport.stderr}`;
+    if (strictImpactNoReport.status !== 0 && strictImpactNoReportOutput.includes("no Change Impact Coverage reports found")) {
+      pass("strict change impact coverage fails closed when reports are absent");
+    } else {
+      fail(`strict change impact coverage must fail closed when reports are absent: ${strictImpactNoReportOutput}`);
+    }
+
+    const strictApplyPlanNoReport = runNode([
+      "scripts/check-apply-plan.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+    ]);
+    const strictApplyPlanNoReportOutput = `${strictApplyPlanNoReport.stdout}\n${strictApplyPlanNoReport.stderr}`;
+    if (strictApplyPlanNoReport.status !== 0 && strictApplyPlanNoReportOutput.includes("no Unified Apply Plan reports found")) {
+      pass("strict unified apply plan fails closed when reports are absent");
+    } else {
+      fail(`strict unified apply plan must fail closed when reports are absent: ${strictApplyPlanNoReportOutput}`);
+    }
+
+    const strictReleaseHandoffNoReport = runNode([
+      "scripts/check-release-handoff-pack.mjs",
+      tempRoot,
+      "--require-structured-evidence",
+    ]);
+    const strictReleaseHandoffNoReportOutput = `${strictReleaseHandoffNoReport.stdout}\n${strictReleaseHandoffNoReport.stderr}`;
+    if (strictReleaseHandoffNoReport.status !== 0 && strictReleaseHandoffNoReportOutput.includes("no Release Handoff Pack reports found")) {
+      pass("strict release handoff pack fails closed when reports are absent");
+    } else {
+      fail(`strict release handoff pack must fail closed when reports are absent: ${strictReleaseHandoffNoReportOutput}`);
+    }
+
     const strictCompletionNoReport = runNode([
       "scripts/check-completion-evidence.mjs",
       tempRoot,
@@ -11936,6 +11975,43 @@ function checkExecutionTruthHardcutProtocol() {
     }
   } else {
     fail(`1.90 low-risk resolver failed unexpectedly: ${lowRiskResolver.stderr || lowRiskResolver.stdout}`);
+  }
+
+  const scopedGitRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-closure-git-scope-"));
+  const scopedProjectRoot = path.join(scopedGitRoot, "target-project");
+  fs.mkdirSync(scopedProjectRoot, { recursive: true });
+  fs.writeFileSync(path.join(scopedProjectRoot, "README.md"), "# Scoped target project\n");
+  spawnSync("git", ["init"], { cwd: scopedGitRoot, encoding: "utf8" });
+  spawnSync("git", ["add", "."], { cwd: scopedGitRoot, encoding: "utf8" });
+  spawnSync("git", ["-c", "user.name=IntentOS Self Check", "-c", "user.email=intentos@example.invalid", "commit", "-m", "initial"], {
+    cwd: scopedGitRoot,
+    encoding: "utf8",
+  });
+  fs.writeFileSync(path.join(scopedGitRoot, "release-workflow-draft.md"), "dirty parent-only release note\n");
+  const scopedLowRiskResolver = runNode([
+    "scripts/resolve-closure-decision.mjs",
+    scopedProjectRoot,
+    "--intent",
+    "Clarify a documentation sentence.",
+    "--verification",
+    "documentation review passed",
+    "--json",
+  ]);
+  if (scopedLowRiskResolver.status === 0) {
+    try {
+      const parsed = JSON.parse(scopedLowRiskResolver.stdout);
+      const humanDecision = parsed.decisionInputs?.find((item) => item.input === "Human Decision");
+      const gitWorktree = parsed.decisionInputs?.find((item) => item.input === "Git worktree");
+      if (humanDecision?.status === "N/A" && gitWorktree?.status === "PASS") {
+        pass("1.91.1 closure Git risk signals stay scoped to the target subproject");
+      } else {
+        fail(`1.91.1 closure Git risk signals must ignore dirty parent-only files: ${scopedLowRiskResolver.stdout}`);
+      }
+    } catch (error) {
+      fail(`1.91.1 scoped Git closure JSON invalid: ${error.message}`);
+    }
+  } else {
+    fail(`1.91.1 scoped Git closure resolver failed: ${scopedLowRiskResolver.stderr || scopedLowRiskResolver.stdout}`);
   }
 
   const unsafeReport = runNode([

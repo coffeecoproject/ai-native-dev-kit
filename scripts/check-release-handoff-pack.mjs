@@ -141,7 +141,11 @@ function checkCoreContent() {
 function checkHandoffPacks() {
   const files = markdownFiles("release-handoff-packs");
   if (files.length === 0) {
-    pass("release handoff pack check skipped: no handoff packs");
+    if (requireStructuredEvidence) {
+      fail("no Release Handoff Pack reports found while strict handoff evidence was required");
+    } else {
+      pass("release handoff pack check skipped: no handoff packs");
+    }
     return;
   }
 

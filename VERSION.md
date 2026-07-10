@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.91.0`
+Current version: `1.91.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.91.0`
 
 ## Current Release
 
-`1.91.0`
+`1.91.1`
 
 Includes:
+
+- Evidence Authority Coverage Close-Out `1.91.1`: explicit strict Change
+  Impact Coverage, Unified Apply Plan, and Release Handoff Pack checks now fail
+  when no matching report exists. Default non-strict empty-project checks keep
+  their advisory skip behavior. The 1.81.3 plain-language self-check now
+  recognizes every supported adoption summary state, and Git risk signals are
+  scoped to the requested target project instead of dirty sibling paths.
+- `1.91.1` remains non-authorizing. It proves only that absence cannot satisfy
+  an explicit strict evidence request; it does not approve implementation,
+  apply, commit, push, release, production, tests, migrations, provider
+  actions, or project-owner decisions.
 
 - Evidence Authority Core `1.91.0`: strict Verification Plan, Test Evidence,
   Execution Assurance, and Completion Evidence checks can now recompute

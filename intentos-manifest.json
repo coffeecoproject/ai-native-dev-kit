@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.91.0",
+  "intentOSVersion": "1.91.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.91.0"
+    "phase": "1.91.1"
   },
   "groups": {
     "sourceRequired": [
@@ -2879,9 +2879,13 @@
       "docs/plans/evidence-authority-core-1.91-plan.md",
       "checklists/evidence-authority-review.md",
       "prompts/evidence-authority-agent.md",
+      "docs/plans/evidence-authority-coverage-closeout-1.91.1-plan.md",
       "releases/1.91.0/release-record.md",
       "releases/1.91.0/known-limitations.md",
-      "releases/1.91.0/self-check-report.md"
+      "releases/1.91.0/self-check-report.md",
+      "releases/1.91.1/release-record.md",
+      "releases/1.91.1/known-limitations.md",
+      "releases/1.91.1/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",

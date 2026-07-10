@@ -4,6 +4,10 @@ Unified Apply Plan Governance is the single review layer for any IntentOS action
 
 It does not execute writes. It turns proposed writes into a clear, reviewable plan so humans decide before Codex applies anything.
 
+When a consumer explicitly requires structured apply evidence, at least one
+Unified Apply Plan must exist. An empty plan directory cannot satisfy strict
+apply evidence.
+
 Machine-checkable boundary:
 
 - The plan writes files now: No

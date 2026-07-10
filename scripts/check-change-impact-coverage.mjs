@@ -39,6 +39,14 @@ const requireBusinessRuleRef = Boolean(args["require-business-rule-ref"] || args
 const requireBusinessRuleReady = Boolean(args["require-business-rule-ready"]);
 const effectiveRequireStructuredEvidence = requireStructuredEvidence || requireBusinessRuleRef || requireBusinessRuleReady;
 const resolveEvidenceRefs = Boolean(args["resolve-evidence-refs"] || requirePreciseEvidence);
+const requireCoverageReport = Boolean(
+  requestedReport
+  || requestedMode === "closure"
+  || effectiveRequireStructuredEvidence
+  || strictEvidence
+  || resolveEvidenceRefs
+  || requirePreciseEvidence
+);
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
 const businessRuleClosureSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -171,7 +179,11 @@ function checkCoreContent() {
 function checkReports() {
   const files = requestedReport ? selectedReportFiles(requestedReport) : markdownFiles("change-impact-coverage-reports");
   if (files.length === 0) {
-    pass("change impact coverage check skipped: no reports");
+    if (requireCoverageReport) {
+      fail("no Change Impact Coverage reports found while strict coverage evidence was required");
+    } else {
+      pass("change impact coverage check skipped: no reports");
+    }
     return;
   }
 

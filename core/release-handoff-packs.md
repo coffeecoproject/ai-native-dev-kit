@@ -30,6 +30,9 @@ Release Execution can consume a handoff pack. It must not redefine the owner/evi
 
 Handoff packs are not release approval, provider automation, CI/CD setup, secret validation, production execution, app-store submission, mini-program submission, or database migration execution.
 
+When structured handoff evidence is explicitly required, at least one Release
+Handoff Pack must exist. No pack means no strict handoff evidence.
+
 ## Pack Contract
 
 Each pack must define:

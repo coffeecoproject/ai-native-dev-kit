@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.91.0`
+`1.91.1`
 
 ## Project Version File
 
@@ -17,6 +17,14 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.91.1` closes strict empty-report gaps for Change Impact Coverage,
+  Unified Apply Plan, and Release Handoff Pack, and repairs the repository
+  plain-language self-verification regression. Git risk signals are also scoped
+  to the requested target subproject.
+- `1.91.1` keeps default empty-project checks compatible and remains
+  non-authorizing. It does not implement apply execution, release execution,
+  or project-owner approval.
 
 - `1.91.0` adds Evidence Authority Core. Strict evidence checks recompute
   project/task/source identity for file-backed evidence and reject schema

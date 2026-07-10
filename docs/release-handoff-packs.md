@@ -49,6 +49,8 @@ node scripts/cli.mjs release-handoff-check ../my-project --require-structured-ev
 ```
 
 Strict mode requires `Machine-Readable Evidence` matching `schemas/artifacts/release-handoff-evidence.schema.json`.
+It also fails when no Release Handoff Pack exists. The default non-strict check
+may still skip an empty handoff directory before release work is in scope.
 
 `READY_FOR_HANDOFF_REVIEW` means ready for handoff review, not release approval.
 
