@@ -31,6 +31,22 @@ ADOPT_PROJECT
 
 They route to existing source systems. They do not replace those systems.
 
+## Project Identity Projection
+
+Operating State includes one read-only Project Identity Projection. It
+consolidates the current project kind, observed governance and production
+posture, worktree state, IntentOS posture, baseline/platform state, and the
+Evidence Authority project/revision identity.
+
+The projection is not a project profile, classifier authority, baseline
+selection, adoption approval, or write permission. `NO_PRODUCTION_EVIDENCE`
+means only that the bounded current read did not observe production evidence;
+it is not proof that a project is not live.
+
+Operating Decision binds the current projection digest, so an identity or
+posture change invalidates the old decision without making the projection an
+execution authority.
+
 ## Operating Decision Contract
 
 The Operating State includes exactly one derived Operating Decision. It names

@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.96.0`
+`1.97.0`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.97.0` adds one read-only Project Identity Projection to Operating State,
+  reusing Evidence Authority for the project/revision fingerprint and binding
+  the current Operating Decision to the projection digest.
+- `1.97.0` does not create a project profile or report, select a baseline,
+  replace project rules, write files, or approve implementation, apply,
+  commit, push, release, or production.
 
 - `1.96.0` adds one structured Operating Decision Contract to the existing
   read-only `work` response. The decision selects one action and records its

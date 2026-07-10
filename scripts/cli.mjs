@@ -14,7 +14,7 @@ const version = manifest?.intentOSVersion || packageJson?.version || readVersion
 
 const commandRegistry = {
   work: {
-    description: "Turn one natural-language goal into the current read-only IntentOS Operating State and Decision.",
+    description: "Turn one natural-language goal into the current read-only IntentOS Project Identity, Operating State, and Decision.",
     script: "scripts/resolve-operating-loop.mjs",
     writes: false,
     buildArgs: (args) => args,

@@ -18212,7 +18212,7 @@ function checkOperatingModelConsolidationProtocol() {
   }
 
   const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
-  if (tests.status === 0 && tests.stdout.includes("pass 22") && tests.stdout.includes("fail 0")) {
+  if (tests.status === 0 && tests.stdout.includes("pass 25") && tests.stdout.includes("fail 0")) {
     pass("1.95 Operating Model and current decision-contract regression tests");
   } else {
     fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
@@ -18269,8 +18269,8 @@ function checkOperatingDecisionContractProtocol() {
     const decision = parsed.operatingDecision;
     const sourceNames = new Set((parsed.sourceSystemTrace || []).map((source) => source.sourceSystem));
     if (operating.status === 0
-      && parsed.schemaVersion === "1.96.0"
-      && decision?.contractVersion === "1.96.0"
+      && parsed.schemaVersion === "1.97.0"
+      && decision?.contractVersion === "1.97.0"
       && decision?.actionCode === "SUMMARIZE_CURRENT_STATUS"
       && decision?.materialActionAuthorized === "No"
       && parsed.humanSummary?.nextSafeAction === decision?.plainAction
@@ -18284,6 +18284,86 @@ function checkOperatingDecisionContractProtocol() {
     }
   } catch (error) {
     fail(`1.96 work output is not valid JSON: ${error.message}`);
+  }
+}
+
+function checkProjectIdentityProjectionProtocol() {
+  const plan = read("docs/plans/project-identity-projection-1.97-plan.md");
+  const core = read("core/operating-model.md");
+  const usage = read("docs/operating-model.md");
+  const resolver = read("scripts/resolve-operating-loop.mjs");
+  const workflowNext = read("scripts/workflow-next.mjs");
+  const manifest = read("intentos-manifest.json");
+  const workflows = `${read(".github/workflows/intentos-pr-checks.yml")}\n${read(".github/workflows/intentos-release-checks.yml")}`;
+
+  for (const marker of [
+    "Project Identity Projection",
+    "Evidence Authority keeps responsibility",
+    "NO_PRODUCTION_EVIDENCE",
+    "Operating Decision Binding",
+    "Internal command and source-system surface consolidation belongs to 1.98",
+  ]) {
+    if (plan.includes(marker)) pass(`1.97 plan includes ${marker}`);
+    else fail(`1.97 plan missing ${marker}`);
+  }
+  for (const marker of [
+    "projectIdentityProjection",
+    "projectKind",
+    "governancePosture",
+    "productionPosture",
+    "worktreePosture",
+    "evidenceIdentity",
+    "projectionDigest",
+    "grantsAuthority: \"No\"",
+  ]) {
+    if (`${core}\n${usage}\n${resolver}`.includes(marker)) pass(`1.97 Project Identity Projection includes ${marker}`);
+    else fail(`1.97 Project Identity Projection missing ${marker}`);
+  }
+  if (workflowNext.includes("selectedProfiles: platformBaseline.selectedProfiles")) {
+    pass("1.97 Workflow Next exposes selected profiles as structured source data");
+  } else {
+    fail("1.97 Workflow Next must expose selected profiles as structured source data");
+  }
+  for (const forbidden of ["project-identity-reports", "project-projection-reports", "project-classification-records"]) {
+    if (!manifest.includes(forbidden)) pass(`1.97 does not add parallel artifact directory ${forbidden}`);
+    else fail(`1.97 must not add parallel artifact directory ${forbidden}`);
+  }
+  if (workflows.includes("projectIdentityProjection")
+    && workflows.includes("INTENTOS_SOURCE")
+    && workflows.includes("NOT_ESTABLISHED")
+    && workflows.includes("grantsAuthority")) {
+    pass("1.97 PR and release CI assert source and generated Project Identity projections");
+  } else {
+    fail("1.97 PR and release CI must assert source and generated Project Identity projections");
+  }
+
+  const operating = runNode(["scripts/cli.mjs", "work", ".", "检查当前项目状态", "--json"]);
+  try {
+    const parsed = JSON.parse(operating.stdout);
+    const projection = parsed.projectIdentityProjection;
+    const actualIdentity = projectIdentity(kitRoot);
+    if (operating.status === 0
+      && parsed.schemaVersion === "1.97.0"
+      && projection?.contractVersion === "1.97.0"
+      && projection?.projectKind === "INTENTOS_SOURCE"
+      && projection?.governancePosture === "INTENTOS_SOURCE_GOVERNANCE"
+      && projection?.evidenceIdentity?.fingerprint === actualIdentity.fingerprint
+      && projection?.evidenceIdentity?.revision === actualIdentity.revision
+      && projection?.grantsAuthority === "No"
+      && projection?.writesProjectFiles === "No"
+      && Array.isArray(projection?.sourceInputs)
+      && projection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest || ""))
+      && /^sha256:[a-f0-9]{64}$/.test(projection?.projectionDigest || "")
+      && parsed.operatingDecision?.contractVersion === "1.97.0"
+      && /^sha256:[a-f0-9]{64}$/.test(parsed.operatingDecision?.decisionDigest || "")
+      && parsed.humanSummary?.projectIdentity
+      && !Object.hasOwn(projection, "changedFilesSample")) {
+      pass("1.97 work returns one current, traceable, non-authorizing Project Identity Projection");
+    } else {
+      fail(`1.97 work returned an invalid Project Identity Projection: ${operating.stderr || operating.stdout}`);
+    }
+  } catch (error) {
+    fail(`1.97 work output is not valid JSON: ${error.message}`);
   }
 }
 
@@ -18361,6 +18441,7 @@ checkReleaseTrustClosureProtocol();
 checkBaselineManifestPublicEntryConsolidationProtocol();
 checkOperatingModelConsolidationProtocol();
 checkOperatingDecisionContractProtocol();
+checkProjectIdentityProjectionProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

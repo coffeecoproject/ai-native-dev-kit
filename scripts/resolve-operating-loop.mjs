@@ -6,6 +6,8 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { projectIdentity } from "./lib/evidence-authority.mjs";
+import { gitWorktreeState } from "./lib/git.mjs";
 import { hasProjectSignals } from "./lib/project-signals.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -77,7 +79,10 @@ function buildOperatingState() {
   const release = sources.find((item) => item.name === "RELEASE_GUIDE")?.value || null;
   const adoption = sources.find((item) => item.name === "ADOPTION_AUTOPILOT")?.value || null;
   const sourceFailure = sources.some((item) => item.readStatus === "FAILED");
-  const dirtyWorktree = projectState === "DIRTY_WORKTREE_PROJECT" || projectStateTags.includes("DIRTY_WORKTREE_PROJECT");
+  const currentGit = gitWorktreeState(projectRoot);
+  const dirtyWorktree = currentGit.isDirty
+    || projectState === "DIRTY_WORKTREE_PROJECT"
+    || projectStateTags.includes("DIRTY_WORKTREE_PROJECT");
   const taskImpact = taskGovernance?.impactClassification?.task_impact
     || taskGovernance?.structuredEvidence?.impact_classification?.task_impact
     || "NOT_APPLICABLE";
@@ -93,6 +98,15 @@ function buildOperatingState() {
   const evidenceTrace = buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, closure, release, adoption);
   const authorityRecommendation = authorityFor(operation, intent, taskImpact, sourceFailure);
   const sourceSystemTrace = sources.map(toSourceTrace);
+  const projectIdentityProjection = buildProjectIdentityProjection({
+    workflowNext,
+    guidance,
+    projectEntry,
+    projectState,
+    projectStateTags,
+    sourceFailure,
+    currentGit,
+  });
   const operatingDecision = buildOperatingDecision({
     operation,
     operatingState,
@@ -105,11 +119,12 @@ function buildOperatingState() {
     evidenceTrace,
     authorityRecommendation,
     sourceSystemTrace,
+    projectIdentityProjection,
   });
 
   return {
     reportType: "INTENTOS_OPERATING_STATE",
-    schemaVersion: "1.96.0",
+    schemaVersion: "1.97.0",
     generatedBy: "scripts/resolve-operating-loop.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -124,6 +139,7 @@ function buildOperatingState() {
       entryIsLifecycleStage: "No",
       commonTaskLifecycleAfterEntry: "Yes",
     },
+    projectIdentityProjection,
     operatingLoop: {
       operation,
       lifecyclePhase: lifecyclePhaseFor(operation),
@@ -137,6 +153,7 @@ function buildOperatingState() {
     operatingDecision,
     humanSummary: {
       conclusion: conclusionFor(operation, operatingState, projectEntry, outputLanguage),
+      projectIdentity: projectIdentitySummaryFor(projectIdentityProjection, outputLanguage),
       currentState: plainStateFor(operatingState, outputLanguage),
       nextSafeAction: operatingDecision.plainAction,
       decisionNeeded: humanDecisionSummaryFor(operatingDecision, outputLanguage),
@@ -392,6 +409,197 @@ function lifecyclePhaseFor(operation) {
   return phases[operation];
 }
 
+function buildProjectIdentityProjection(context) {
+  const workflow = context.workflowNext.value || {};
+  const guidance = context.guidance.value || {};
+  const evidenceIdentity = projectIdentity(projectRoot);
+  const git = context.currentGit;
+  const projectKind = projectKindForEntry(context.projectEntry);
+  const governancePosture = governancePostureFor(context.projectEntry, context.projectStateTags, workflow.governanceSignals);
+  const productionPosture = productionPostureFor(projectKind, governancePosture, context.projectStateTags, workflow.governanceSignals);
+  const worktreePosture = git.isGitRepository ? (git.isDirty ? "DIRTY" : "CLEAN") : "NON_GIT";
+  const conflicts = projectIdentityConflicts({
+    projectKind,
+    entryState: context.projectEntry,
+    guidanceProjectState: guidance.projectReading?.projectState,
+    governancePosture,
+    productionPosture,
+    evidenceIdentity,
+    git,
+    governanceSignals: workflow.governanceSignals,
+  });
+  const projectionStatus = context.sourceFailure
+    ? "BLOCKED_BY_SOURCE_READ"
+    : projectKind === "UNKNOWN_PROJECT" ? "UNKNOWN"
+      : conflicts.length > 0 ? "CONFLICTED" : "CURRENT";
+  const confidence = confidenceForProjection({
+    projectionStatus,
+    projectKind,
+    governancePosture,
+    platformBaselineState: workflow.platformBaselineState,
+  });
+  const sourceInputs = [
+    ...[context.workflowNext, context.guidance].map(({ name, ref, outcome, readStatus, semanticDigest }) => ({
+      sourceSystem: name,
+      ref,
+      outcome,
+      readStatus,
+      semanticDigest,
+    })),
+    {
+      sourceSystem: "EVIDENCE_AUTHORITY",
+      ref: "current:project-identity",
+      outcome: evidenceIdentity.kind,
+      readStatus: "CURRENT_RUN",
+      semanticDigest: `sha256:${sha256(JSON.stringify(evidenceIdentity))}`,
+    },
+    {
+      sourceSystem: "LOCAL_GIT_STATE",
+      ref: "current:project-worktree",
+      outcome: worktreePosture,
+      readStatus: "CURRENT_RUN",
+      semanticDigest: `sha256:${sha256(JSON.stringify({
+        isGitRepository: git.isGitRepository,
+        isDirty: git.isDirty,
+        changedFileCount: git.changedFileCount,
+        changedFilesDigest: git.changedFilesDigest,
+      }))}`,
+    },
+  ];
+  const observedSignals = {
+    governanceSignalCount: arrayValue(workflow.governanceSignals?.basicSignals).length,
+    productionSignalCount: arrayValue(workflow.governanceSignals?.productionSignals).length,
+    governanceRefs: arrayValue(workflow.governanceSignals?.basicSignals).sort().slice(0, 12),
+    productionRefs: arrayValue(workflow.governanceSignals?.productionSignals).sort().slice(0, 12),
+  };
+  const intentosPosture = {
+    workflowState: String(workflow.workflowState || "UNKNOWN"),
+    versionState: String(workflow.versionState || "UNKNOWN"),
+    operatingMode: String(workflow.intentosOperatingMode || (projectKind === "INTENTOS_SOURCE" ? "NOT_APPLICABLE" : "UNKNOWN")),
+    adoptionMode: String(workflow.adoptionMode || "UNKNOWN"),
+    assetMigrationDepth: String(workflow.projectAssetMigrationDepth || "UNKNOWN"),
+  };
+  const baselinePosture = {
+    onboardingState: String(workflow.onboardingState || "UNKNOWN"),
+    platformBaselineState: String(workflow.platformBaselineState || "UNKNOWN"),
+    industrialBaselineState: String(workflow.industrialBaselineState || "UNKNOWN"),
+    baselineLevel: String(workflow.baselineLevel || "NOT_SELECTED"),
+    selectedProfiles: arrayValue(workflow.selectedProfiles).sort(),
+    selectedIndustrialPacks: arrayValue(workflow.selectedIndustrialPacks).sort(),
+  };
+  const digestPayload = {
+    contractVersion: "1.97.0",
+    projectKind,
+    entryState: context.projectEntry,
+    governancePosture,
+    productionPosture,
+    worktreePosture,
+    intentosPosture,
+    baselinePosture,
+    evidenceIdentity,
+    observedSignals,
+    projectionStatus,
+    confidence,
+    conflicts,
+    sourceInputs,
+  };
+  return {
+    contractVersion: "1.97.0",
+    derivedOnly: "Yes",
+    grantsAuthority: "No",
+    writesProjectFiles: "No",
+    projectKind,
+    entryState: context.projectEntry,
+    governancePosture,
+    productionPosture,
+    worktreePosture,
+    intentosPosture,
+    baselinePosture,
+    evidenceIdentity,
+    observedSignals,
+    projectionStatus,
+    confidence,
+    conflicts,
+    sourceInputs,
+    projectionDigest: `sha256:${sha256(JSON.stringify(digestPayload))}`,
+    invalidationConditions: [
+      "project root or Git revision changes",
+      "project entry or observed governance signals change",
+      "worktree cleanliness changes",
+      "selected platform or baseline state changes",
+      "a source input digest changes or source read fails",
+    ],
+  };
+}
+
+function projectKindForEntry(entryState) {
+  if (entryState === "NEW_PROJECT_ENTRY") return "NEW_PROJECT";
+  if (["EXISTING_PROJECT_ENTRY", "GOVERNED_PROJECT_ENTRY", "PRODUCTION_SENSITIVE_ENTRY"].includes(entryState)) return "EXISTING_PROJECT";
+  if (entryState === "INTENTOS_SOURCE_ENTRY") return "INTENTOS_SOURCE";
+  return "UNKNOWN_PROJECT";
+}
+
+function projectKindForSourceState(state) {
+  if (state === "NEW_PROJECT") return "NEW_PROJECT";
+  if (state === "INTENTOS_REPOSITORY") return "INTENTOS_SOURCE";
+  if ([
+    "EXISTING_PROJECT",
+    "EXISTING_LIGHT_PROJECT",
+    "EXISTING_GOVERNED_PROJECT",
+    "PRODUCTION_SENSITIVE_PROJECT",
+    "DIRTY_WORKTREE_PROJECT",
+    "BOOTSTRAPPED_PROJECT",
+    "PARTIALLY_BOOTSTRAPPED_PROJECT",
+  ].includes(state)) return "EXISTING_PROJECT";
+  return "UNKNOWN_PROJECT";
+}
+
+function governancePostureFor(entryState, projectStateTags, signals) {
+  if (entryState === "INTENTOS_SOURCE_ENTRY") return "INTENTOS_SOURCE_GOVERNANCE";
+  if (entryState === "NEW_PROJECT_ENTRY") return "NOT_ESTABLISHED";
+  if (projectStateTags.includes("PRODUCTION_GOVERNED_PROJECT") || signals?.isProductionGoverned) return "PRODUCTION_GOVERNED";
+  if (projectStateTags.includes("GOVERNED_EXISTING_PROJECT") || signals?.isGovernedExisting) return "GOVERNED";
+  if (["EXISTING_PROJECT_ENTRY", "GOVERNED_PROJECT_ENTRY", "PRODUCTION_SENSITIVE_ENTRY"].includes(entryState)) return "LIGHT_GOVERNANCE";
+  return "UNKNOWN";
+}
+
+function productionPostureFor(projectKind, governancePosture, projectStateTags, signals) {
+  if (projectKind === "INTENTOS_SOURCE") return "NOT_APPLICABLE";
+  if (projectKind === "NEW_PROJECT") return "NOT_ESTABLISHED";
+  if (governancePosture === "PRODUCTION_GOVERNED"
+    || projectStateTags.includes("PRODUCTION_GOVERNED_PROJECT")
+    || signals?.isProductionGoverned) return "PRODUCTION_SENSITIVE";
+  if (projectKind === "EXISTING_PROJECT") return "NO_PRODUCTION_EVIDENCE";
+  return "UNKNOWN";
+}
+
+function projectIdentityConflicts(context) {
+  const conflicts = [];
+  const guidanceKind = projectKindForSourceState(String(context.guidanceProjectState || "UNKNOWN_PROJECT"));
+  if (guidanceKind !== "UNKNOWN_PROJECT" && context.projectKind !== "UNKNOWN_PROJECT" && guidanceKind !== context.projectKind) {
+    conflicts.push(`Workflow Guidance describes ${guidanceKind} while Project Entry describes ${context.projectKind}`);
+  }
+  if (context.projectKind === "NEW_PROJECT" && arrayValue(context.governanceSignals?.basicSignals).length > 0) {
+    conflicts.push("New-project entry conflicts with observed project-owned governance signals");
+  }
+  if (context.productionPosture === "PRODUCTION_SENSITIVE"
+    && arrayValue(context.governanceSignals?.productionSignals).length === 0) {
+    conflicts.push("Production-sensitive posture has no current production-signal reference");
+  }
+  if ((context.evidenceIdentity.kind === "GIT") !== Boolean(context.git.isGitRepository)) {
+    conflicts.push("Evidence Authority and current Git observation disagree on repository kind");
+  }
+  return conflicts;
+}
+
+function confidenceForProjection(context) {
+  if (context.projectionStatus !== "CURRENT" || context.projectKind === "UNKNOWN_PROJECT") return "LOW";
+  if (context.governancePosture === "UNKNOWN") return "MEDIUM";
+  if (!["BASELINE_READY", "NOT_APPLICABLE"].includes(context.platformBaselineState)
+    && context.projectKind === "EXISTING_PROJECT") return "MEDIUM";
+  return "HIGH";
+}
+
 function buildOperatingDecision(context) {
   const selected = selectOperatingAction(context);
   const sourceInputs = context.sourceSystemTrace.map(({ sourceSystem, ref, outcome, readStatus, semanticDigest }) => ({
@@ -404,11 +612,12 @@ function buildOperatingDecision(context) {
   const blockedBy = decisionBlockers(context);
   const humanDecision = humanDecisionFor(context, selected.actionCode);
   const digestPayload = {
-    contractVersion: "1.96.0",
+    contractVersion: "1.97.0",
     intentDigest: sha256(intent),
     projectRootDigest: sha256(projectRoot),
     taskRef: taskRef || "N/A",
     projectEntry: context.projectEntry,
+    projectIdentityProjectionDigest: context.projectIdentityProjection.projectionDigest,
     operation: context.operation,
     operatingState: context.operatingState,
     taskImpact: context.taskImpact,
@@ -420,7 +629,7 @@ function buildOperatingDecision(context) {
     sourceInputs,
   };
   return {
-    contractVersion: "1.96.0",
+    contractVersion: "1.97.0",
     derivedOnly: "Yes",
     actionCode: selected.actionCode,
     actionClass: selected.actionClass,
@@ -653,6 +862,40 @@ function conclusionFor(operation, state, entry, language) {
   return `${plainOperation(operation, language)} for ${plainEntry(entry)} is in state: ${plainStateFor(state, language)}.`;
 }
 
+function projectIdentitySummaryFor(projection, language = "en") {
+  const dirtySuffix = projection.worktreePosture === "DIRTY"
+    ? (language === "zh" ? "当前还有未提交改动。" : " The current worktree has uncommitted changes.")
+    : "";
+  if (language === "zh") {
+    const values = {
+      INTENTOS_SOURCE: "这是 IntentOS 源码仓库。",
+      NEW_PROJECT: "这是一个新项目，工程治理尚未建立。",
+      UNKNOWN_PROJECT: "当前项目身份还不能安全确定。",
+    };
+    if (values[projection.projectKind]) return `${values[projection.projectKind]}${dirtySuffix}`;
+    if (projection.productionPosture === "PRODUCTION_SENSITIVE") {
+      return `这是一个已有项目，已观察到生产相关治理；后续必须保留项目原有权威。${dirtySuffix}`;
+    }
+    if (projection.governancePosture === "GOVERNED") {
+      return `这是一个已有项目，并且已经有自己的治理规则；IntentOS 不会直接覆盖它们。${dirtySuffix}`;
+    }
+    return `这是一个已有项目；当前没有观察到生产证据，但这不代表项目一定没有上线。${dirtySuffix}`;
+  }
+  const values = {
+    INTENTOS_SOURCE: "This is the IntentOS source repository.",
+    NEW_PROJECT: "This is a new project whose engineering governance is not established yet.",
+    UNKNOWN_PROJECT: "The project identity cannot yet be determined safely.",
+  };
+  if (values[projection.projectKind]) return `${values[projection.projectKind]}${dirtySuffix}`;
+  if (projection.productionPosture === "PRODUCTION_SENSITIVE") {
+    return `This is an existing project with observed production governance; its project-owned authority must remain in force.${dirtySuffix}`;
+  }
+  if (projection.governancePosture === "GOVERNED") {
+    return `This is an existing governed project; IntentOS will not overwrite its project-owned rules.${dirtySuffix}`;
+  }
+  return `This is an existing project. No production evidence was observed, which is not proof that the project is not live.${dirtySuffix}`;
+}
+
 function plainOperation(operation, language = "en") {
   const values = language === "zh" ? {
     START_PROJECT: "开始新项目",
@@ -746,6 +989,8 @@ function printHuman(report) {
   console.log(`${zh ? "结论" : "Current status"}: ${report.humanSummary.currentState}`);
   console.log("");
   console.log(`${zh ? "我理解的是" : "Understood goal"}: ${intent || (zh ? "你还没有说明目标" : "No goal was provided")}`);
+  console.log("");
+  console.log(`${zh ? "项目识别" : "Project reading"}: ${report.humanSummary.projectIdentity}`);
   console.log("");
   console.log(`${zh ? "下一步" : "Next safe step"}: ${report.humanSummary.nextSafeAction}`);
   console.log("");

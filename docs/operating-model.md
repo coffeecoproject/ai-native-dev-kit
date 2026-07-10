@@ -24,6 +24,16 @@ reason, source inputs, blockers, human-decision state, digest, and invalidation
 conditions. Codex uses that decision internally; ordinary users do not choose
 the action code or lower-level command.
 
+It also includes one `projectIdentityProjection`. This is how Codex keeps new,
+existing, governed, production-sensitive, non-Git, and IntentOS-source project
+facts consistent without asking the user to interpret them. The projection
+also records current worktree, IntentOS, baseline, selected-profile, and
+Evidence Authority identity state.
+
+The default human response renders the same facts as one `Project reading` or
+`项目识别` line. A statement that no production evidence was observed is not a
+claim that the project is not live.
+
 The decision is derived and read-only. An action such as
 `PREPARE_BUSINESS_RULE_CLOSURE` means that business-rule clarification is the
 next safe route. It does not mean the clarification exists or implementation

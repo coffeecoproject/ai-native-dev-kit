@@ -23,10 +23,18 @@ function runWork(root, intent, extraArgs = []) {
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, ...intentArgs, ...extraArgs, "--json"]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.schemaVersion, "1.96.0");
-  assert.equal(report.operatingDecision.contractVersion, "1.96.0");
+  assert.equal(report.schemaVersion, "1.97.0");
+  assert.equal(report.operatingDecision.contractVersion, "1.97.0");
   assert.equal(report.operatingDecision.derivedOnly, "Yes");
   assert.equal(report.operatingDecision.materialActionAuthorized, "No");
+  assert.equal(report.projectIdentityProjection.contractVersion, "1.97.0");
+  assert.equal(report.projectIdentityProjection.derivedOnly, "Yes");
+  assert.equal(report.projectIdentityProjection.grantsAuthority, "No");
+  assert.equal(report.projectIdentityProjection.writesProjectFiles, "No");
+  assert.match(report.projectIdentityProjection.projectionDigest, /^sha256:[a-f0-9]{64}$/);
+  assert.match(report.projectIdentityProjection.evidenceIdentity.fingerprint, /^sha256:[a-f0-9]{64}$/);
+  assert.ok(report.projectIdentityProjection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest)));
+  assert.ok(report.humanSummary.projectIdentity);
   assert.equal(report.humanSummary.nextSafeAction, report.operatingDecision.plainAction);
   assert.match(report.operatingDecision.decisionDigest, /^sha256:[a-f0-9]{64}$/);
   const sourceNames = new Set(report.sourceSystemTrace.map((source) => source.sourceSystem));
@@ -72,6 +80,8 @@ function snapshot(root) {
 test("new project goal enters the shared operating loop through START_PROJECT", () => withRoot("intentos-operating-new-", (root) => {
   const report = runWork(root, "我想从零做一个预约 App");
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
+  assert.equal(report.projectIdentityProjection.projectKind, "NEW_PROJECT");
+  assert.equal(report.projectIdentityProjection.governancePosture, "NOT_ESTABLISHED");
   assert.equal(report.operatingLoop.operation, "START_PROJECT");
   assert.equal(report.operatingLoop.lifecyclePhase, "PROJECT_ENTRY");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_PROJECT_PLAN");
@@ -82,6 +92,9 @@ test("existing project normal task uses CONTINUE_TASK without forcing high gover
   makeExistingProject(root);
   const report = runWork(root, "修改首页按钮文案");
   assert.match(report.projectEntry.state, /EXISTING_PROJECT_ENTRY|GOVERNED_PROJECT_ENTRY/);
+  assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
+  assert.equal(report.projectIdentityProjection.governancePosture, "LIGHT_GOVERNANCE");
+  assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "NON_GIT");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW");
@@ -173,6 +186,8 @@ test("dirty worktree stops before task continuation", () => withRoot("intentos-o
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.state, "NEEDS_CURRENT_WORK_REVIEW");
   assert.equal(report.operatingDecision.actionCode, "REVIEW_CURRENT_WORK");
+  assert.equal(report.projectIdentityProjection.worktreePosture, "DIRTY");
+  assert.doesNotMatch(JSON.stringify(report.projectIdentityProjection), /src\/index\.js/);
 }));
 
 test("controlled plan records existing-project entry origin", () => withRoot("intentos-operating-plan-origin-", (root) => {
@@ -199,6 +214,7 @@ test("English intent receives an English human summary", () => withRoot("intento
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   assert.match(result.stdout, /IntentOS Current Operating State/);
   assert.match(result.stdout, /Current status:/);
+  assert.match(result.stdout, /Project reading:/);
   assert.doesNotMatch(result.stdout, /当前工作状态|需要你决定/);
 }));
 
@@ -217,6 +233,9 @@ test("production signals override original new-project entry without changing ta
   fs.writeFileSync(path.join(root, "Dockerfile"), "FROM scratch\n");
   const report = runWork(root, "修正文档中的一个错别字");
   assert.equal(report.projectEntry.state, "PRODUCTION_SENSITIVE_ENTRY");
+  assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
+  assert.equal(report.projectIdentityProjection.governancePosture, "PRODUCTION_GOVERNED");
+  assert.equal(report.projectIdentityProjection.productionPosture, "PRODUCTION_SENSITIVE");
   assert.equal(report.operatingLoop.taskImpact, "LOW");
   assert.equal(report.operatingLoop.state, "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_IMPLEMENTATION_REVIEW");
@@ -248,6 +267,8 @@ test("source failure is visible and blocks the operating state", () => withRoot(
   fs.writeFileSync(targetFile, "not a directory\n");
   const report = runWork(targetFile, "继续任务");
   assert.equal(report.outcome, "BLOCKED_BY_SOURCE_FAILURE");
+  assert.equal(report.projectIdentityProjection.projectionStatus, "BLOCKED_BY_SOURCE_READ");
+  assert.equal(report.projectIdentityProjection.confidence, "LOW");
   assert.equal(report.operatingDecision.actionCode, "REPAIR_SOURCE_READ");
   assert.ok(report.sourceSystemTrace.some((item) => item.readStatus === "FAILED"));
   assert.equal(report.authorityRecommendation.currentReadOnlyActionAllowed, "No");
@@ -321,5 +342,45 @@ test("decision digest is stable across repeated reads with unchanged semantic in
   const first = runWork(root, "修正文档中的一个错别字");
   const second = runWork(root, "修正文档中的一个错别字");
   assert.equal(first.operatingDecision.decisionDigest, second.operatingDecision.decisionDigest);
+  assert.equal(first.projectIdentityProjection.projectionDigest, second.projectIdentityProjection.projectionDigest);
   assert.notEqual(first.generatedAt, second.generatedAt);
+}));
+
+test("IntentOS source repository has a source-specific identity projection", () => {
+  const report = runWork(kitRoot, "检查当前项目状态");
+  assert.equal(report.projectIdentityProjection.projectKind, "INTENTOS_SOURCE");
+  assert.equal(report.projectIdentityProjection.governancePosture, "INTENTOS_SOURCE_GOVERNANCE");
+  assert.equal(report.projectIdentityProjection.productionPosture, "NOT_APPLICABLE");
+  assert.equal(report.projectIdentityProjection.evidenceIdentity.kind, "GIT");
+});
+
+test("selected platform profiles are projected from structured Workflow Next output", () => withRoot("intentos-operating-profile-", (root) => {
+  makeExistingProject(root);
+  fs.mkdirSync(path.join(root, "docs"), { recursive: true });
+  fs.writeFileSync(path.join(root, "docs/project-profile.md"), [
+    "# Project Profile", "", "## Selected Profiles", "", "- web-app", "- backend-api", "",
+  ].join("\n"));
+  const report = runWork(root, "修改首页按钮文案");
+  assert.deepEqual(report.projectIdentityProjection.baselinePosture.selectedProfiles, ["backend-api", "web-app"]);
+  assert.equal(report.projectIdentityProjection.baselinePosture.platformBaselineState, "PROFILE_INVALID");
+}));
+
+test("project posture changes invalidate the identity projection and operating decision", () => withRoot("intentos-operating-identity-change-", (root) => {
+  makeExistingProject(root);
+  runGit(root, ["init"]);
+  runGit(root, ["config", "user.email", "intentos-test@example.invalid"]);
+  runGit(root, ["config", "user.name", "IntentOS Test"]);
+  runGit(root, ["add", "."]);
+  runGit(root, ["commit", "-m", "initial"]);
+  const clean = runWork(root, "修改首页按钮文案");
+  fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = false;\n");
+  const dirty = runWork(root, "修改首页按钮文案");
+  fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = 'changed-again';\n");
+  const changedAgain = runWork(root, "修改首页按钮文案");
+  assert.equal(clean.projectIdentityProjection.worktreePosture, "CLEAN");
+  assert.equal(dirty.projectIdentityProjection.worktreePosture, "DIRTY");
+  assert.notEqual(clean.projectIdentityProjection.projectionDigest, dirty.projectIdentityProjection.projectionDigest);
+  assert.notEqual(clean.operatingDecision.decisionDigest, dirty.operatingDecision.decisionDigest);
+  assert.notEqual(dirty.projectIdentityProjection.projectionDigest, changedAgain.projectIdentityProjection.projectionDigest);
+  assert.notEqual(dirty.operatingDecision.decisionDigest, changedAgain.operatingDecision.decisionDigest);
 }));

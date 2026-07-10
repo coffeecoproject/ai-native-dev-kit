@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.96.0",
+  "intentOSVersion": "1.97.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.96.0"
+    "phase": "1.97.0"
   },
   "groups": {
     "sourceRequired": [
@@ -380,6 +380,7 @@
       "docs/plans/native-migration-parser-calibration-1.64-plan.md",
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/operating-decision-contract-1.96-plan.md",
+      "docs/plans/project-identity-projection-1.97-plan.md",
       "docs/plans/operating-model-consolidation-1.95-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
       "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
@@ -1776,6 +1777,9 @@
       "releases/1.96.0/known-limitations.md",
       "releases/1.96.0/release-record.md",
       "releases/1.96.0/self-check-report.md",
+      "releases/1.97.0/known-limitations.md",
+      "releases/1.97.0/release-record.md",
+      "releases/1.97.0/self-check-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",

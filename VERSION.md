@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.96.0`
+Current version: `1.97.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.96.0`
 
 ## Current Release
 
-`1.96.0`
+`1.97.0`
 
 Includes:
+
+- Project Identity Projection `1.97.0`: adds one read-only project identity
+  view to Operating State, covering project kind, observed governance,
+  production sensitivity, worktree posture, IntentOS state, baseline/platform
+  state, and the current Evidence Authority identity.
+- `1.97.0` binds Operating Decision to the projection digest and renders one
+  matching beginner project summary. It creates no profile or report, grants
+  no authority, writes no project files, and does not approve implementation,
+  apply, commit, push, release, or production.
 
 - Operating Decision Contract `1.96.0`: adds one structured, deterministic
   next-action decision inside the existing read-only Operating State. It binds
