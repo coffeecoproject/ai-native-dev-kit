@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "1.92.0",
+  "artifactType": "apply_execution_receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "receipt_state",
+    "project_identity",
+    "execution_plan",
+    "approval_record",
+    "readiness_report",
+    "actions",
+    "unexpected_changed_paths",
+    "activation",
+    "rollback",
+    "boundary",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.92.0"] },
+    "artifact_type": { "type": "string", "enum": ["apply_execution_receipt"] },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "receipt_state": {
+      "type": "string",
+      "enum": [
+        "APPLY_VERIFIED",
+        "APPLY_PARTIAL_ROLLBACK_REQUIRED",
+        "APPLY_FAILED_NO_WRITE",
+        "APPLY_FAILED_ROLLED_BACK",
+        "ACTIVATION_NOT_VERIFIED"
+      ]
+    },
+    "project_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root_digest", "git_repository", "git_branch_before", "git_head_before", "git_head_after"],
+      "properties": {
+        "root_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "git_repository": { "type": "boolean" },
+        "git_branch_before": { "type": "string" },
+        "git_head_before": { "type": "string" },
+        "git_head_after": { "type": "string" }
+      }
+    },
+    "execution_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "plan_digest", "intentos_version", "manifest_digest"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "plan_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "intentos_version": { "type": "string", "minLength": 1 },
+        "manifest_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+      }
+    },
+    "approval_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "artifact_id", "approved_by", "expires_at"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "approved_by": { "type": "string", "minLength": 1 },
+        "expires_at": { "type": "string", "minLength": 1 }
+      }
+    },
+    "readiness_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "artifact_id", "evidence_digest", "readiness_state"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "readiness_state": { "type": "string", "enum": ["READY_FOR_HUMAN_APPROVED_APPLY"] }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "target_paths",
+          "result",
+          "hash_before",
+          "hash_after",
+          "expected_hash_after",
+          "source_hash"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^A-[0-9]{3,}$" },
+          "type": { "type": "string", "minLength": 1 },
+          "target_paths": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "result": { "type": "string", "enum": ["APPLIED", "SKIPPED", "RECEIPT_WRITTEN", "ROLLED_BACK", "FAILED"] },
+          "hash_before": { "type": "string" },
+          "hash_after": { "type": "string" },
+          "expected_hash_after": { "type": "string" },
+          "source_hash": { "type": "string" }
+        }
+      }
+    },
+    "unexpected_changed_paths": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "activation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "workflow_next_exit_code", "output_digest", "project_state", "next_action", "read_only"],
+      "properties": {
+        "status": { "type": "string", "enum": ["VERIFIED", "FAILED", "NOT_RUN"] },
+        "workflow_next_exit_code": { "type": "string" },
+        "output_digest": { "type": "string" },
+        "project_state": { "type": "string" },
+        "next_action": { "type": "string" },
+        "read_only": { "type": "boolean" }
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "attempted", "verified", "backup_paths"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "attempted": { "type": "boolean" },
+        "verified": { "type": "boolean" },
+        "backup_paths": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "only_approved_actions_executed",
+        "approves_business_implementation",
+        "approves_release_or_production",
+        "modifies_ci_or_hooks",
+        "changes_project_authority",
+        "proves_product_correctness"
+      ],
+      "properties": {
+        "only_approved_actions_executed": { "type": "boolean" },
+        "approves_business_implementation": { "type": "boolean" },
+        "approves_release_or_production": { "type": "boolean" },
+        "modifies_ci_or_hooks": { "type": "boolean" },
+        "changes_project_authority": { "type": "boolean" },
+        "proves_product_correctness": { "type": "boolean" }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "APPLY_VERIFIED",
+        "APPLY_PARTIAL_ROLLBACK_REQUIRED",
+        "APPLY_FAILED_NO_WRITE",
+        "APPLY_FAILED_ROLLED_BACK",
+        "ACTIVATION_NOT_VERIFIED"
+      ]
+    }
+  }
+}

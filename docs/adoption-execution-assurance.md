@@ -21,7 +21,7 @@ Adoption assurance checks whether the project has enough verified surfaces for C
 - work queue behavior;
 - AI logs / audit boundary;
 - protected risk authority;
-- apply-plan / approval / readiness chain when writes happened;
+- apply-plan / approval / readiness / execution-receipt chain when writes happened;
 - a read-only simulated task.
 
 ## Plain Meaning
@@ -36,6 +36,8 @@ It does not mean IntentOS owns production, release, business rules, secrets, dat
 
 `PRESENT_UNVERIFIED` means something exists but is not enough proof yet. For example, an empty apply-chain directory or `.gitkeep` is not verified apply evidence.
 
+A plan, approval, and readiness report without a valid Apply Execution Receipt are also `PRESENT_UNVERIFIED`. They prove that a write was reviewed, not that the approved graph was executed or remains active in the current project.
+
 ## Evidence Quality
 
 A passed simulation must show more than a route name. Each step needs an exit code, read-only marker, target-file write marker, target diff status, output digest, and outcome summary.
@@ -43,6 +45,8 @@ A passed simulation must show more than a route name. Each step needs an exit co
 In plain language: Codex must show that it actually walked the route and did not change the target project while doing so.
 
 Each surface evidence ref must also appear in `evidence_refs`. Unknown evidence prefixes fail, because an adoption report must not pass on evidence that no checker knows how to resolve.
+
+When project assets were written, the receipt must resolve inside the current project and match its project identity, plan digest, approved action IDs, readiness record, current target hashes, unexpected-write scan, and read-only activation result. Copying a valid receipt to another project or changing an applied target invalidates the adoption claim.
 
 ## Install Scope
 

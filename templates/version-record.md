@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.91.1`
+`1.92.0`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.92.0` adds exact approved init/update graph replay, readiness-bound apply,
+  project-bound Apply Receipts, target before/after hashes, rollback evidence,
+  and read-only installed-workflow activation proof.
+- `1.92.0` does not approve business implementation, CI/hooks, release,
+  production, migrations, secrets, industrial decisions, or project-authority
+  replacement.
 
 - `1.91.1` closes strict empty-report gaps for Change Impact Coverage,
   Unified Apply Plan, and Release Handoff Pack, and repairs the repository

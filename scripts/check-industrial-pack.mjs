@@ -73,6 +73,7 @@ function installSelectedPacksCommand(packIds) {
     `--target ${projectRoot}`,
     "--update-workflow-assets",
     `--industrial-packs ${[...new Set(packIds)].sort().join(",")}`,
+    `--write-plan ${path.join(projectRoot, "apply-execution-plans", "selected-industrial-packs.json")}`,
   ].join(" ");
 }
 
@@ -544,7 +545,7 @@ if (index) {
 }
 
 if (selectedOnly && missingInstalledSelectedPackIds.size > 0) {
-  hint(`Install missing selected industrial pack(s): ${installSelectedPacksCommand(missingInstalledSelectedPackIds)}`);
+  hint(`Prepare a bounded plan for missing selected industrial pack(s): ${installSelectedPacksCommand(missingInstalledSelectedPackIds)}`);
 }
 
 if (outputJson) {

@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Apply & Adoption Closure 1.92](apply-adoption-closure-1.92-plan.md)
 - [Evidence Authority Coverage Close-Out 1.91.1](evidence-authority-coverage-closeout-1.91.1-plan.md)
 - [Execution Truth Hardcut 1.90](execution-truth-hardcut-1.90-plan.md)
 - [Evidence Authority Core 1.91](evidence-authority-core-1.91-plan.md)

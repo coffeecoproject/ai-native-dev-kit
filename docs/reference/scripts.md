@@ -114,6 +114,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs apply-readiness <project> --plan <apply-plan>` | Evaluate whether an apply plan is eligible for a future human-approved controlled apply step | No |
 | `node scripts/cli.mjs apply-readiness-check <project>` | Check recorded Controlled Apply Readiness Reports | No |
 | `node scripts/cli.mjs approval-record-check <project>` | Check recorded Approval Records for human-owned bounded approval evidence | No |
+| `node scripts/cli.mjs apply-receipt-check <project>` | Verify that a controlled apply replayed the approved graph, changed only approved targets, preserved current hashes, and activated IntentOS read-only behavior | No |
 | `node scripts/cli.mjs work-queue <project>` | Recommend current, paused, backlog, and resume state without changing task state | No |
 | `node scripts/cli.mjs work-queue-check <project>` | Check recorded Work Queue Reports and single-current-task rules | No |
 | `node scripts/cli.mjs hook-plan <project>` | Recommend hook candidates without installing hooks, changing CI, or adding gates | No |
@@ -265,6 +266,8 @@ project-owned rules.
 `scripts/check-controlled-apply-readiness.mjs` checks recorded Controlled Apply Readiness Reports. It rejects apply authorization, write-now claims, proceeding without new approval, high-risk actions marked ready, missing rollback, missing verification, release/production/hook/CI/source-of-truth overclaims, structured readiness records with empty actions outside `NO_APPLY_PLAN`, and structured plan digest mismatches. Use `--require-structured-evidence` to require structured evidence and local apply-plan reference resolution.
 
 `scripts/check-approval-record.mjs` checks recorded Approval Records. It allows empty projects, but when records exist it rejects non-human or ambiguous approval, missing plan hash, blanket action approval, automatic apply authorization, wildcard, parent-traversal, absolute, backslash, symlink, or otherwise unbounded target paths, open-ended or expired approval, plan changes after approval, mismatched approved action IDs between the table and human statement, missing rollback or verification acknowledgement, high-risk action approval, structured plan digest mismatches, and implementation/release/production/hook/CI/source-of-truth overclaims. Use `--require-structured-evidence` to require structured evidence and local apply-plan reference resolution.
+
+`scripts/check-apply-execution-receipt.mjs` verifies the 1.92 controlled-apply result. It fails when no receipt exists, when the receipt belongs to another project or Git state, when its plan, approval, readiness, action set, target hashes, or activation trace do not match, or when unapproved targets changed. A valid receipt proves bounded execution of the approved graph; it does not approve business behavior, release, or production.
 
 `scripts/resolve-guided-baseline-selection.mjs` is the 1.17 guided baseline selection entry. It reads project state, platform signals, standard pack candidates, industrial pack candidates, production sensitivity, dirty-worktree state, and existing governance signals, then prints a plain-language Baseline Decision Card. It does not write target-project files, approve implementation, approve release, approve production, or activate BL2.
 

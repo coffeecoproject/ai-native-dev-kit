@@ -82,6 +82,8 @@ Review Loop is required for L2/L3 tasks and optional for smaller tasks.
 | `archive-apply-plans/` | Plan-only archive action, link-check, archive index, rollback, and human-decision records |
 | `apply-readiness-reports/` | Pre-execution readiness reports for reviewed Unified Apply Plans |
 | `approval-records/` | Human-owned approval evidence for exact action IDs, target paths, expiry, rollback, verification, and structured release approval |
+| `apply-execution-plans/` | Executable init/update plans bound to the current project, source manifest, source hashes, target preconditions, exact action graph, backup paths, and expected target hashes |
+| `apply-receipts/` | Post-apply receipts that bind the executed action graph to the current project and Git identity, current target hashes, unexpected-write scan, rollback records, and read-only activation proof |
 | `work-queue/` | Current task, paused tasks, backlog / parking lot, and resume review records |
 | `hook-orchestration-plans/` | Plan-first hook candidates, H0-H3 classification, approval requirements, and rollback notes |
 | `hook-policies/` | Project hook policy, allowed hook classes, approval owners, and rollback / disable rules |

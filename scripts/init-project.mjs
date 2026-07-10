@@ -6,8 +6,14 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { manifestCopyRules, manifestGroup, workflowVersionAssets } from "./lib/manifest.mjs";
-import { extractMachineReadableEvidence, loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
-import { formatActionId, validateApprovalRecordForInitApplyPlan } from "./lib/adoption-apply-chain.mjs";
+import { evidenceDigest, extractMachineReadableEvidence, loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
+import {
+  formatActionId,
+  initExecutableActions,
+  validateApprovalRecordForInitApplyPlan,
+  validateReadinessForInitApplyPlan,
+} from "./lib/adoption-apply-chain.mjs";
+import { projectIdentity } from "./lib/evidence-authority.mjs";
 import {
   assertInsideRoot,
   assertNoSymlinkInPath,
@@ -31,6 +37,7 @@ const requiredPullRequestTemplateMarkers = [
   "Debt / Knowledge Handoff",
   "Document Archive Apply",
   "Unified Apply Plan",
+  "Apply Execution Receipt",
   "Controlled Apply Readiness",
   "Hook Policy",
   "Project onboarding",
@@ -56,6 +63,7 @@ const requiredAgentGovernanceMarkers = [
   "Debt & Knowledge Handoff",
   "Document Archive Apply",
   "Unified Apply Plan",
+  "Apply Execution Receipt",
   "Controlled Apply Readiness",
   "Project Hook Policy",
   "Project Onboarding",
@@ -243,7 +251,8 @@ function pullRequestTemplateGovernanceAppendix() {
     "- [ ] Delivery Path was recorded or marked not applicable when claiming local-use, self-test, internal-trial, release-review, or blocked status",
     "- [ ] Debt / Knowledge Handoff is recorded or marked not applicable when work is interrupted, paused, leaves known debt, or needs a reliable next-run handoff",
     "- [ ] Document Archive Apply Plan is linked or marked not applicable when archive suggestions are ready to become an execution plan",
-    "- [ ] Unified Apply Plan is linked or marked not applicable before applying workflow assets, baseline docs, AGENTS/PR template governance, archive actions, hooks, CI, industrial packs, or other target-project writes",
+      "- [ ] Unified Apply Plan is linked or marked not applicable before applying workflow assets, baseline docs, AGENTS/PR template governance, archive actions, hooks, CI, industrial packs, or other target-project writes",
+    "- [ ] Apply Execution Receipt is linked after any controlled IntentOS init/update apply, or marked not applicable when no target writes occurred",
     "- [ ] Controlled Apply Readiness is linked or marked not applicable after a Unified Apply Plan is reviewed and before any future human-approved controlled apply step",
     "- [ ] Project Hook Policy is linked or marked not applicable before any hook installation, CI hook change, blocking gate, scheduled job, external reviewer hook, token use, or auto-fix hook is proposed",
     "- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed",
@@ -919,6 +928,20 @@ function agentGovernanceSectionContent() {
       "Run `node scripts/cli.mjs apply-readiness . --plan <apply-plan>` for a read-only readiness report and `node scripts/check-controlled-apply-readiness.mjs .` when reports exist.",
       "",
     ].join("\n")],
+    ["Apply Execution Receipt", [
+      "## Apply Execution Receipt",
+      "",
+      "After any controlled IntentOS init/update apply, require a project-bound receipt before claiming that adoption writes were executed or that IntentOS behavior is active.",
+      "",
+      "Run:",
+      "",
+      "```bash",
+      "node scripts/cli.mjs apply-receipt-check . --require-structured-evidence",
+      "```",
+      "",
+      "A receipt proves only exact approved governance replay and workflow activation. It does not approve business implementation, CI/hooks, release, production, or project authority changes.",
+      "",
+    ].join("\n")],
     ["Approval Record Governance", [
       "## Approval Record Governance",
       "",
@@ -1272,6 +1295,7 @@ function fallbackCopyRules() {
       { source: "docs/document-lifecycle.md", target: ".intentos/docs/document-lifecycle.md" },
       { source: "docs/document-archive-apply.md", target: ".intentos/docs/document-archive-apply.md" },
       { source: "docs/unified-apply-plan.md", target: ".intentos/docs/unified-apply-plan.md" },
+      { source: "docs/apply-execution-receipt.md", target: ".intentos/docs/apply-execution-receipt.md" },
       { source: "docs/controlled-apply-readiness.md", target: ".intentos/docs/controlled-apply-readiness.md" },
       { source: "docs/approval-record-governance.md", target: ".intentos/docs/approval-record-governance.md" },
       { source: "docs/beginner-entry.md", target: ".intentos/docs/beginner-entry.md" },
@@ -1333,6 +1357,7 @@ function fallbackCopyRules() {
       { source: "templates/document-lifecycle-report.md", target: ".intentos/templates/document-lifecycle-report.md" },
       { source: "templates/document-archive-apply-plan.md", target: ".intentos/templates/document-archive-apply-plan.md" },
       { source: "templates/unified-apply-plan.md", target: ".intentos/templates/unified-apply-plan.md" },
+      { source: "templates/apply-execution-receipt.md", target: ".intentos/templates/apply-execution-receipt.md" },
       { source: "templates/controlled-apply-readiness-report.md", target: ".intentos/templates/controlled-apply-readiness-report.md" },
       { source: "templates/beginner-entry-card.md", target: ".intentos/templates/beginner-entry-card.md" },
       { source: "templates/conversation-ask-card.md", target: ".intentos/templates/conversation-ask-card.md" },
@@ -1384,6 +1409,7 @@ function fallbackCopyRules() {
       { source: "scripts/check-document-archive-apply.mjs", target: "scripts/check-document-archive-apply.mjs" },
       { source: "scripts/resolve-apply-plan.mjs", target: "scripts/resolve-apply-plan.mjs" },
       { source: "scripts/check-apply-plan.mjs", target: "scripts/check-apply-plan.mjs" },
+      { source: "scripts/check-apply-execution-receipt.mjs", target: "scripts/check-apply-execution-receipt.mjs" },
       { source: "scripts/resolve-controlled-apply-readiness.mjs", target: "scripts/resolve-controlled-apply-readiness.mjs" },
       { source: "scripts/check-controlled-apply-readiness.mjs", target: "scripts/check-controlled-apply-readiness.mjs" },
       { source: "scripts/check-approval-record.mjs", target: "scripts/check-approval-record.mjs" },
@@ -1452,6 +1478,8 @@ function ensureWorkflowDirs(targetPath) {
     "doc-lifecycle-reports",
     "archive-apply-plans",
     "apply-plans",
+    "apply-execution-plans",
+    "apply-receipts",
     "apply-readiness-reports",
     "approval-records",
     "beginner-entry-cards",
@@ -1478,12 +1506,8 @@ function ensureWorkflowDirs(targetPath) {
   }
 }
 
-function writeVersionFile(targetPath, starter, options = {}) {
-  options = { ...options, targetPath };
-  const versionDir = path.join(targetPath, ".intentos");
-  fs.mkdirSync(versionDir, { recursive: true });
-  const versionPath = path.join(versionDir, "version.json");
-  const now = new Date().toISOString();
+function buildVersionRecord(targetPath, starter, options = {}, now = new Date().toISOString()) {
+  const versionPath = path.join(targetPath, ".intentos", "version.json");
   const existed = fs.existsSync(versionPath);
   let existing = {};
   if (existed) {
@@ -1521,6 +1545,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".intentos/docs/document-lifecycle.md",
       ".intentos/docs/document-archive-apply.md",
       ".intentos/docs/unified-apply-plan.md",
+      ".intentos/docs/apply-execution-receipt.md",
       ".intentos/docs/beginner-entry.md",
       ".intentos/docs/conversation-native-ask.md",
       ".intentos/docs/work-queue.md",
@@ -1565,6 +1590,7 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "scripts/check-document-archive-apply.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/check-apply-plan.mjs",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
       "scripts/check-controlled-apply-readiness.mjs",
       "scripts/resolve-beginner-entry.mjs",
@@ -1624,6 +1650,8 @@ function writeVersionFile(targetPath, starter, options = {}) {
       "doc-lifecycle-reports",
       "archive-apply-plans",
       "apply-plans",
+      "apply-execution-plans",
+      "apply-receipts",
       "apply-readiness-reports",
       "beginner-entry-cards",
       "conversation-ask-cards",
@@ -1640,6 +1668,16 @@ function writeVersionFile(targetPath, starter, options = {}) {
       ".github/workflows/ai-workflow-checks.yml",
     ] }),
   };
+  return version;
+}
+
+function writeVersionFile(targetPath, starter, options = {}) {
+  options = { ...options, targetPath };
+  const versionDir = path.join(targetPath, ".intentos");
+  fs.mkdirSync(versionDir, { recursive: true });
+  const versionPath = path.join(versionDir, "version.json");
+  const existed = fs.existsSync(versionPath);
+  const version = buildVersionRecord(targetPath, starter, options);
   if (existed) backupFileIfNeeded(versionPath, options);
   fs.writeFileSync(versionPath, `${JSON.stringify(version, null, 2)}\n`);
   console.log(`${existed ? "updated" : "created"} ${path.relative(process.cwd(), versionPath)}`);
@@ -1648,6 +1686,82 @@ function writeVersionFile(targetPath, starter, options = {}) {
 function sha256File(filePath) {
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return null;
   return `sha256:${createHash("sha256").update(fs.readFileSync(filePath)).digest("hex")}`;
+}
+
+function sha256Content(content) {
+  return `sha256:${createHash("sha256").update(content).digest("hex")}`;
+}
+
+function planRunId(createdAt) {
+  return createdAt.replace(/[^0-9A-Za-z]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+}
+
+function enrichExecutionActions(actions, targetPath, options, createdAt, receiptPath) {
+  const backupRoot = options.backupDir || `.intentos/backups/${planRunId(createdAt)}`;
+  for (const action of actions) {
+    action.executionSupported = true;
+    if (!action.willWrite) {
+      action.sourceHash = action.source ? sha256File(path.join(kitRoot, action.source)) : null;
+      action.expectedHashAfter = action.hashBefore;
+      continue;
+    }
+    if (action.source) {
+      const sourcePath = resolveUnderRoot(kitRoot, action.source, "plan action source");
+      action.sourceHash = sha256File(sourcePath);
+      action.expectedHashAfter = action.sourceHash;
+    } else if (action.path.endsWith("/.gitkeep")) {
+      action.inlineContentBase64 = Buffer.from("").toString("base64");
+      action.sourceHash = sha256Content("");
+      action.expectedHashAfter = action.sourceHash;
+    } else if (action.path === ".intentos/version.json") {
+      const record = buildVersionRecord(targetPath, options.starter, { update: options.update }, createdAt);
+      const content = `${JSON.stringify(record, null, 2)}\n`;
+      action.inlineContentBase64 = Buffer.from(content).toString("base64");
+      action.sourceHash = sha256Content(content);
+      action.expectedHashAfter = action.sourceHash;
+    } else {
+      action.executionSupported = false;
+      action.sourceHash = null;
+      action.expectedHashAfter = null;
+    }
+    if (action.hashBefore) {
+      action.backupPath = assertSafeRelativePath(`${backupRoot}/${action.path}`, "plan action backup path");
+    }
+  }
+  actions.push({
+    type: "WRITE_APPLY_RECEIPT",
+    path: receiptPath,
+    source: null,
+    reason: "runtime apply and activation evidence",
+    willWrite: true,
+    hashBefore: sha256File(path.join(targetPath, receiptPath)),
+    sourceHash: null,
+    expectedHashAfter: null,
+    executionSupported: true,
+    dynamicReceipt: true,
+  });
+}
+
+function boundControlledAdoptionActions(actions) {
+  for (const action of actions) {
+    if (!action.willWrite) {
+      if (action.type === "NEEDS_HUMAN_APPROVAL") {
+        action.originalType = action.type;
+        action.type = "HUMAN_ONLY";
+        action.executionSupported = false;
+        action.reason = `${action.reason}; excluded from the bounded 1.92 controlled apply graph`;
+      }
+      continue;
+    }
+    if (action.type === "WRITE_APPLY_RECEIPT") continue;
+    if (action.executionSupported === true && !isForbiddenControlledApplyAction(action)) continue;
+    action.originalType = action.type;
+    action.type = "HUMAN_ONLY";
+    action.willWrite = false;
+    action.executionSupported = false;
+    action.reason = `${action.reason}; excluded from the bounded 1.92 controlled apply graph`;
+    action.backupPath = null;
+  }
 }
 
 function planDigest(plan) {
@@ -1699,7 +1813,14 @@ function gitFingerprint(targetPath) {
   }
   const branch = spawnSync("git", ["-C", targetPath, "branch", "--show-current"], { encoding: "utf8" });
   const head = spawnSync("git", ["-C", targetPath, "rev-parse", "HEAD"], { encoding: "utf8" });
-  const status = spawnSync("git", ["-C", targetPath, "status", "--short"], { encoding: "utf8" });
+  const status = spawnSync("git", [
+    "-C", targetPath, "status", "--short", "--", ".",
+    ":(exclude)apply-execution-plans/**",
+    ":(exclude)approval-records/**",
+    ":(exclude)apply-readiness-reports/**",
+    ":(exclude)apply-receipts/**",
+    ":(exclude).intentos/backups/**",
+  ], { encoding: "utf8" });
   const changedFiles = status.stdout.split("\n").map((line) => line.trim()).filter(Boolean);
   return {
     isGitRepository: true,
@@ -1719,6 +1840,7 @@ function addFilePlanAction(actions, targetPath, sourcePath, targetRel, options =
   const sourceRel = assertSafeRelativePath(path.relative(kitRoot, sourcePath).replaceAll(path.sep, "/"), "plan action source path");
   let type;
   if (!existed) type = "CREATE";
+  else if (sha256File(destPath) === sha256File(sourcePath)) type = "SKIP_EXISTING";
   else if (!overwrite) type = "SKIP_EXISTING";
   else type = options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED";
   actions.push({
@@ -1902,16 +2024,24 @@ function buildPlan(targetPath, options = {}) {
     willWrite: true,
     hashBefore: sha256File(path.join(targetPath, ".intentos", "version.json")),
   });
+  collapseDuplicateTargetActions(actions);
+  const createdAt = new Date().toISOString();
+  const receiptPath = `apply-receipts/${planRunId(createdAt)}.md`;
+  enrichExecutionActions(actions, targetPath, options, createdAt, receiptPath);
+  boundControlledAdoptionActions(actions);
   assignPlanActionIds(actions);
 
   const targetFingerprint = createTargetFingerprint(targetPath, actions);
   const plan = {
-    planVersion: "1.0",
+    planVersion: "1.1",
     intentOSVersion: currentIntentOSVersion,
     manifestVersion: readJsonIfExists(path.join(kitRoot, "intentos-manifest.json"))?.intentOSVersion || currentIntentOSVersion,
+    manifestDigest: sha256File(path.join(kitRoot, "intentos-manifest.json")),
     operation,
     targetRoot: targetPath,
-    createdAt: new Date().toISOString(),
+    createdAt,
+    projectIdentity: projectIdentity(targetPath),
+    receiptPath,
     arguments: {
       starter: options.starter,
       updateWorkflowAssets: Boolean(options.update),
@@ -1920,6 +2050,7 @@ function buildPlan(targetPath, options = {}) {
       withIndustrialPacks: Boolean(options.withIndustrialPacks),
       industrialPacks: options.industrialPacks || "",
       backupDir: options.backupDir || null,
+      controlledAdoption: true,
     },
     targetFingerprint,
     expectedPreconditions: {
@@ -1928,6 +2059,7 @@ function buildPlan(targetPath, options = {}) {
     },
     actions,
   };
+  plan.receiptActionId = actions.find((action) => action.type === "WRITE_APPLY_RECEIPT")?.id || null;
   plan.planDigest = planDigest(plan);
   return plan;
 }
@@ -1936,6 +2068,15 @@ function assignPlanActionIds(actions) {
   actions.forEach((action, index) => {
     if (!action.id) action.id = formatActionId(index + 1);
   });
+}
+
+function collapseDuplicateTargetActions(actions) {
+  const lastIndexByPath = new Map();
+  actions.forEach((action, index) => {
+    if (action?.path) lastIndexByPath.set(action.path, index);
+  });
+  const collapsed = actions.filter((action, index) => !action?.path || lastIndexByPath.get(action.path) === index);
+  actions.splice(0, actions.length, ...collapsed);
 }
 
 function createTargetFingerprint(targetPath, actions) {
@@ -1961,14 +2102,20 @@ function createTargetFingerprint(targetPath, actions) {
 }
 
 function validatePlanForApply(plan, backupDirOverride = null) {
-  if (!plan || plan.planVersion !== "1.0") {
-    throw new Error("Invalid plan: planVersion must be 1.0");
+  if (!plan || plan.planVersion !== "1.1") {
+    throw new Error("Invalid plan: planVersion must be 1.1; regenerate the plan with IntentOS 1.92+");
   }
   if (!["INIT_PROJECT", "UPDATE_WORKFLOW_ASSETS"].includes(plan.operation)) {
     throw new Error(`Invalid plan operation: ${plan.operation}`);
   }
   if (plan.intentOSVersion !== currentIntentOSVersion) {
     throw new Error(`Plan intentOSVersion ${plan.intentOSVersion} does not match current ${currentIntentOSVersion}`);
+  }
+  if (plan.manifestDigest !== sha256File(path.join(kitRoot, "intentos-manifest.json"))) {
+    throw new Error("Plan precondition failed: IntentOS manifest changed; regenerate the plan");
+  }
+  if (plan.projectIdentity?.fingerprint !== projectIdentity(plan.targetRoot).fingerprint) {
+    throw new Error("Plan precondition failed: target project identity changed");
   }
   if (!plan.planDigest || plan.planDigest !== planDigest(plan)) {
     throw new Error("Plan precondition failed: planDigest is missing or does not match current plan content; regenerate the plan");
@@ -1985,12 +2132,32 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     if (!/^A-[0-9]{3,}$/.test(String(action.id || ""))) {
       throw new Error("Invalid plan: every action must include a stable A-000 style id with at least three digits; regenerate the plan");
     }
+    if (action.backupPath) assertSafeRelativePath(action.backupPath, "plan action backup path");
+    if (action.willWrite && action.type !== "WRITE_APPLY_RECEIPT" && action.executionSupported !== true) {
+      throw new Error(`Plan contains an unsupported generated action ${action.id} for ${action.path}; use a narrower selected migration plan`);
+    }
+    if (action.willWrite && isForbiddenControlledApplyAction(action)) {
+      throw new Error(`Plan contains a human-only or high-risk controlled apply action ${action.id} for ${action.path}`);
+    }
+    const currentHash = sha256File(assertSafeWritePath(plan.targetRoot, action.path, "plan action target"));
+    if (currentHash !== (action.hashBefore || null)) {
+      throw new Error(`Plan precondition failed: ${action.path} changed or appeared after planning`);
+    }
+    if (action.source && action.willWrite) {
+      const sourcePath = resolveUnderRoot(kitRoot, action.source, "plan action source");
+      if (sha256File(sourcePath) !== action.sourceHash || action.expectedHashAfter !== action.sourceHash) {
+        throw new Error(`Plan precondition failed: source for ${action.id} changed`);
+      }
+    }
   }
   const forbiddenAction = plan.actions.find((action) => action.type === "FORBIDDEN");
   if (forbiddenAction) {
     throw new Error(`Plan contains forbidden action for ${forbiddenAction.path}: ${forbiddenAction.reason}`);
   }
   const backupDir = backupDirOverride || plan.arguments?.backupDir || null;
+  if (backupDirOverride && backupDirOverride !== plan.arguments?.backupDir) {
+    throw new Error("Plan precondition failed: backupDir override is not allowed after approval");
+  }
   if (backupDir) resolveBackupRoot(plan.targetRoot, backupDir);
   const currentFingerprint = createTargetFingerprint(plan.targetRoot, plan.actions);
   if (currentFingerprint.targetExists !== plan.targetFingerprint?.targetExists) {
@@ -2009,6 +2176,18 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     }
   }
   return backupDir;
+}
+
+function isForbiddenControlledApplyAction(action) {
+  const target = String(action?.path || "");
+  const reason = String(action?.reason || "");
+  return target.startsWith(".github/workflows/")
+    || target.startsWith("hooks/")
+    || target.startsWith("migrations/")
+    || target.startsWith("deploy/")
+    || target.startsWith("src/")
+    || /^\.env/.test(target)
+    || /selected industrial pack|explicit full industrial pack/i.test(reason);
 }
 
 function readApprovalRecordForApply(recordPath) {
@@ -2037,7 +2216,7 @@ function readApprovalRecordForApply(recordPath) {
 
 function validateApprovalRecordForApply(plan, approvalRecord, applyPlanFullPath) {
   const errors = validateApprovalRecordForInitApplyPlan(plan, approvalRecord.evidence);
-  if (!approvalPlanPathMatches(approvalRecord, applyPlanFullPath)) {
+  if (!approvalPlanPathMatches(plan, approvalRecord, applyPlanFullPath)) {
     errors.push("approval record approved_plan.path must resolve to the apply plan being executed");
   }
   if (errors.length > 0) {
@@ -2045,14 +2224,374 @@ function validateApprovalRecordForApply(plan, approvalRecord, applyPlanFullPath)
   }
 }
 
-function approvalPlanPathMatches(approvalRecord, applyPlanFullPath) {
+function approvalPlanPathMatches(plan, approvalRecord, applyPlanFullPath) {
   const approvedPath = String(approvalRecord.evidence?.approved_plan?.path || "");
   if (!approvedPath.trim()) return false;
   const candidates = [
     path.resolve(process.cwd(), approvedPath),
     path.resolve(path.dirname(approvalRecord.fullPath), approvedPath),
+    path.resolve(plan.targetRoot, approvedPath),
   ];
   return candidates.some((candidate) => path.resolve(candidate) === path.resolve(applyPlanFullPath));
+}
+
+function readReadinessReportForApply(recordPath) {
+  if (!recordPath) {
+    throw new Error("Controlled Apply Readiness Report required: rerun with --readiness-report <readiness-report.md>");
+  }
+  const fullPath = path.resolve(process.cwd(), recordPath);
+  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+    throw new Error(`Controlled Apply Readiness Report not found: ${fullPath}`);
+  }
+  const content = fs.readFileSync(fullPath, "utf8");
+  const extracted = extractMachineReadableEvidence(content);
+  if (!extracted?.ok) {
+    throw new Error("Controlled Apply Readiness Report must include valid Machine-Readable Evidence");
+  }
+  const schema = loadSchema(kitRoot, "schemas/artifacts/controlled-apply-readiness.schema.json");
+  const validation = validateSchema(extracted.value, schema, { label: "controlled apply readiness" });
+  if (!validation.ok) {
+    throw new Error(`Controlled Apply Readiness schema validation failed: ${validation.errors.join("; ")}`);
+  }
+  return { fullPath, evidence: extracted.value };
+}
+
+function validateReadinessReportForApply(plan, readinessRecord, applyPlanFullPath) {
+  const errors = validateReadinessForInitApplyPlan(plan, readinessRecord.evidence);
+  if (!evidencePlanPathMatches(plan, readinessRecord, readinessRecord.evidence?.apply_plan?.path, applyPlanFullPath)) {
+    errors.push("controlled apply readiness apply_plan.path must resolve to the execution plan being replayed");
+  }
+  if (errors.length > 0) {
+    throw new Error(`Controlled Apply Readiness precondition failed: ${errors.join("; ")}`);
+  }
+}
+
+function evidencePlanPathMatches(plan, record, approvedPath, applyPlanFullPath) {
+  const value = String(approvedPath || "").trim();
+  if (!value) return false;
+  const candidates = [
+    path.resolve(process.cwd(), value),
+    path.resolve(path.dirname(record.fullPath), value),
+    path.resolve(plan.targetRoot, value),
+  ];
+  return candidates.some((candidate) => path.resolve(candidate) === path.resolve(applyPlanFullPath));
+}
+
+function requireProjectLocalEvidencePath(targetRoot, filePath, label) {
+  const root = fs.existsSync(targetRoot) ? fs.realpathSync(targetRoot) : path.resolve(targetRoot);
+  const file = fs.realpathSync(filePath);
+  const relative = path.relative(root, file);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`${label} must be stored inside the target project before controlled apply`);
+  }
+  assertNoSymlinkInPath(root, file, label);
+  return relative.replaceAll(path.sep, "/");
+}
+
+function snapshotTargetFiles(root) {
+  const snapshot = new Map();
+  if (!fs.existsSync(root)) return snapshot;
+  const walk = (dir, relativeDir = "") => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (!relativeDir && entry.name === ".git") continue;
+      const relative = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
+      const full = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) {
+        snapshot.set(relative, `symlink:${fs.readlinkSync(full)}`);
+      } else if (entry.isDirectory()) {
+        walk(full, relative);
+      } else if (entry.isFile()) {
+        snapshot.set(relative, sha256File(full));
+      }
+    }
+  };
+  walk(root);
+  return snapshot;
+}
+
+function changedSnapshotPaths(before, after) {
+  const keys = new Set([...before.keys(), ...after.keys()]);
+  return [...keys].filter((key) => before.get(key) !== after.get(key)).sort();
+}
+
+function actionTargetPaths(action) {
+  return [action.path, action.backupPath].filter(Boolean);
+}
+
+function replayApprovedPlan(plan, context) {
+  const beforeSnapshot = snapshotTargetFiles(plan.targetRoot);
+  const executable = initExecutableActions(plan);
+  const executableIds = new Set(executable.map((item) => item.id));
+  const receiptAction = plan.actions.find((action) => action.id === plan.receiptActionId && action.type === "WRITE_APPLY_RECEIPT");
+  if (!receiptAction || !executableIds.has(receiptAction.id)) {
+    throw new Error("Execution plan is missing its approved receipt action");
+  }
+  const results = new Map();
+  const applied = [];
+  let activation = activationNotRun();
+  let unexpectedChangedPaths = [];
+  let receiptState = "APPLY_FAILED_NO_WRITE";
+  let rollbackAttempted = false;
+  let rollbackVerified = true;
+  let executionError = null;
+
+  try {
+    for (const action of plan.actions) {
+      if (!action.willWrite || action.id === receiptAction.id) continue;
+      replayAction(plan, action);
+      const hashAfter = sha256File(path.join(plan.targetRoot, action.path));
+      if (hashAfter !== action.expectedHashAfter) {
+        throw new Error(`Post-write digest mismatch for ${action.id} ${action.path}`);
+      }
+      applied.push(action);
+      results.set(action.id, receiptActionResult(action, "APPLIED", hashAfter));
+    }
+
+    const afterReplay = snapshotTargetFiles(plan.targetRoot);
+    const allowed = new Set(plan.actions.flatMap(actionTargetPaths));
+    unexpectedChangedPaths = changedSnapshotPaths(beforeSnapshot, afterReplay).filter((item) => !allowed.has(item));
+    if (unexpectedChangedPaths.length > 0) {
+      throw new Error(`Unexpected target writes detected: ${unexpectedChangedPaths.join(", ")}`);
+    }
+
+    activation = verifyInstalledWorkflowActivation(plan.targetRoot);
+    if (activation.status !== "VERIFIED") {
+      throw new Error(`Installed workflow activation failed: ${activation.reason || "unknown error"}`);
+    }
+    receiptState = "APPLY_VERIFIED";
+  } catch (error) {
+    executionError = error;
+    if (applied.length > 0) {
+      rollbackAttempted = true;
+      rollbackVerified = rollbackActions(plan, applied, results);
+      receiptState = rollbackVerified ? "APPLY_FAILED_ROLLED_BACK" : "APPLY_PARTIAL_ROLLBACK_REQUIRED";
+    }
+  }
+
+  for (const action of plan.actions) {
+    if (!action.willWrite || results.has(action.id) || action.id === receiptAction.id) continue;
+    results.set(action.id, receiptActionResult(action, "FAILED", sha256File(path.join(plan.targetRoot, action.path))));
+  }
+  results.set(receiptAction.id, receiptActionResult(receiptAction, "RECEIPT_WRITTEN", "self"));
+
+  const receipt = buildApplyReceipt(plan, context, {
+    receiptState,
+    actions: executable.map((action) => results.get(action.id)),
+    unexpectedChangedPaths,
+    activation,
+    rollbackAttempted,
+    rollbackVerified,
+  });
+  writeApplyReceipt(plan, receipt);
+  if (executionError) throw new Error(`${executionError.message}; apply receipt: ${plan.receiptPath}`);
+  return receipt;
+}
+
+function replayAction(plan, action) {
+  const target = assertSafeWritePath(plan.targetRoot, action.path, `action ${action.id} target`);
+  if (action.backupPath) {
+    const backup = assertSafeWritePath(plan.targetRoot, action.backupPath, `action ${action.id} backup`);
+    if (fs.existsSync(backup)) throw new Error(`Backup path already exists for ${action.id}: ${action.backupPath}`);
+    fs.mkdirSync(path.dirname(backup), { recursive: true });
+    fs.copyFileSync(target, backup);
+    if (sha256File(backup) !== action.hashBefore) throw new Error(`Backup digest mismatch for ${action.id}`);
+  }
+  let content;
+  if (action.source) {
+    const source = resolveUnderRoot(kitRoot, action.source, `action ${action.id} source`);
+    if (sha256File(source) !== action.sourceHash) throw new Error(`Source digest changed for ${action.id}`);
+    content = fs.readFileSync(source);
+  } else if (typeof action.inlineContentBase64 === "string") {
+    content = Buffer.from(action.inlineContentBase64, "base64");
+    if (sha256Content(content) !== action.sourceHash) throw new Error(`Inline content digest mismatch for ${action.id}`);
+  } else {
+    throw new Error(`Action ${action.id} has no replayable source`);
+  }
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content);
+}
+
+function rollbackActions(plan, actions, results) {
+  let verified = true;
+  for (const action of [...actions].reverse()) {
+    try {
+      const target = assertSafeWritePath(plan.targetRoot, action.path, `rollback ${action.id} target`);
+      if (action.hashBefore) {
+        const backup = assertSafeWritePath(plan.targetRoot, action.backupPath, `rollback ${action.id} backup`);
+        fs.copyFileSync(backup, target);
+      } else if (fs.existsSync(target)) {
+        fs.unlinkSync(target);
+      }
+      const hashAfter = sha256File(target);
+      if (hashAfter !== (action.hashBefore || null)) verified = false;
+      results.set(action.id, receiptActionResult(action, verified ? "ROLLED_BACK" : "FAILED", hashAfter));
+    } catch {
+      verified = false;
+      results.set(action.id, receiptActionResult(action, "FAILED", sha256File(path.join(plan.targetRoot, action.path))));
+    }
+  }
+  return verified;
+}
+
+function verifyInstalledWorkflowActivation(targetRoot) {
+  const script = path.join(targetRoot, "scripts", "workflow-next.mjs");
+  if (!fs.existsSync(script)) return { ...activationNotRun(), status: "FAILED", reason: "installed workflow-next entry is missing" };
+  const before = snapshotTargetFiles(targetRoot);
+  const result = spawnSync(process.execPath, [script, targetRoot, "--json"], {
+    cwd: targetRoot,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 20,
+  });
+  const after = snapshotTargetFiles(targetRoot);
+  let parsed = null;
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch {
+    parsed = null;
+  }
+  const changed = changedSnapshotPaths(before, after);
+  const nextAction = String(parsed?.nextAction || "");
+  const projectState = typeof parsed?.projectState === "string"
+    ? parsed.projectState
+    : String(parsed?.projectState?.state || parsed?.projectStateTags?.[0] || "");
+  const ok = result.status === 0 && parsed && nextAction && projectState && changed.length === 0;
+  return {
+    status: ok ? "VERIFIED" : "FAILED",
+    workflow_next_exit_code: String(result.status ?? "N/A"),
+    output_digest: sha256Content(String(result.stdout || "")),
+    project_state: projectState || "N/A",
+    next_action: nextAction || "N/A",
+    read_only: changed.length === 0,
+    reason: ok ? "" : normalizeOutput(result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`),
+  };
+}
+
+function activationNotRun() {
+  return {
+    status: "NOT_RUN",
+    workflow_next_exit_code: "N/A",
+    output_digest: sha256Content(""),
+    project_state: "N/A",
+    next_action: "N/A",
+    read_only: true,
+    reason: "not run",
+  };
+}
+
+function receiptActionResult(action, result, hashAfter) {
+  return {
+    id: action.id,
+    type: action.type,
+    target_paths: actionTargetPaths(action),
+    result,
+    hash_before: action.hashBefore || "N/A",
+    hash_after: hashAfter || "N/A",
+    expected_hash_after: action.expectedHashAfter || (action.dynamicReceipt ? "dynamic" : "N/A"),
+    source_hash: action.sourceHash || "N/A",
+  };
+}
+
+function buildApplyReceipt(plan, context, result) {
+  const before = plan.targetFingerprint || {};
+  const after = gitFingerprint(plan.targetRoot);
+  const receipt = {
+    schema_version: "1.92.0",
+    artifact_type: "apply_execution_receipt",
+    artifact_id: path.basename(plan.receiptPath, ".md"),
+    receipt_state: result.receiptState,
+    project_identity: {
+      root_digest: plan.projectIdentity.fingerprint,
+      git_repository: Boolean(before.isGitRepository),
+      git_branch_before: before.gitBranch || "N/A",
+      git_head_before: before.gitHead || "N/A",
+      git_head_after: after.gitHead || "N/A",
+    },
+    execution_plan: {
+      path: context.planRelativePath,
+      plan_digest: plan.planDigest,
+      intentos_version: plan.intentOSVersion,
+      manifest_digest: plan.manifestDigest,
+    },
+    approval_record: {
+      path: context.approvalRelativePath,
+      artifact_id: context.approval.evidence.artifact_id,
+      approved_by: context.approval.evidence.approved_by,
+      expires_at: context.approval.evidence.expires_at,
+    },
+    readiness_report: {
+      path: context.readinessRelativePath,
+      artifact_id: context.readiness.evidence.artifact_id,
+      evidence_digest: evidenceDigest(context.readiness.evidence, []),
+      readiness_state: context.readiness.evidence.readiness_state,
+    },
+    actions: result.actions,
+    unexpected_changed_paths: result.unexpectedChangedPaths,
+    activation: {
+      status: result.activation.status,
+      workflow_next_exit_code: result.activation.workflow_next_exit_code,
+      output_digest: result.activation.output_digest,
+      project_state: result.activation.project_state,
+      next_action: result.activation.next_action,
+      read_only: result.activation.read_only,
+    },
+    rollback: {
+      required: result.actions.some((action) => action.hash_before !== "N/A" && action.type !== "WRITE_APPLY_RECEIPT"),
+      attempted: result.rollbackAttempted,
+      verified: result.rollbackVerified,
+      backup_paths: plan.actions.map((action) => action.backupPath).filter(Boolean),
+    },
+    boundary: {
+      only_approved_actions_executed: result.unexpectedChangedPaths.length === 0,
+      approves_business_implementation: false,
+      approves_release_or_production: false,
+      modifies_ci_or_hooks: false,
+      changes_project_authority: false,
+      proves_product_correctness: false,
+    },
+    outcome: result.receiptState,
+  };
+  return receipt;
+}
+
+function writeApplyReceipt(plan, receipt) {
+  const receiptPath = assertSafeWritePath(plan.targetRoot, plan.receiptPath, "apply receipt");
+  fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+  const humanResult = receipt.receipt_state === "APPLY_VERIFIED"
+    ? "The exact approved IntentOS governance plan was applied and workflow activation was verified."
+    : "The controlled apply did not complete as verified; review rollback and blocker evidence.";
+  const content = [
+    `# Apply Execution Receipt: ${receipt.artifact_id}`,
+    "",
+    "## Human Summary",
+    "",
+    `Result: \`${receipt.receipt_state}\``,
+    "",
+    humanResult,
+    "",
+    `Changed action count: ${receipt.actions.filter((item) => item.result === "APPLIED").length}`,
+    "",
+    `Unexpected changed paths: ${receipt.unexpected_changed_paths.length === 0 ? "none" : receipt.unexpected_changed_paths.join(", ")}`,
+    "",
+    "## Machine-Readable Evidence",
+    "",
+    "```json",
+    JSON.stringify(receipt, null, 2),
+    "```",
+    "",
+    "## Boundary",
+    "",
+    "- This receipt approves business implementation: No",
+    "- This receipt approves release or production: No",
+    "- This receipt modifies CI or hooks: No",
+    "- This receipt changes project authority: No",
+    "- This receipt proves product correctness: No",
+    "",
+  ].join("\n");
+  fs.writeFileSync(receiptPath, content);
+}
+
+function normalizeOutput(value) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, 500);
 }
 
 function writePlan(plan, planPath) {
@@ -2202,6 +2741,7 @@ const dryRun = Boolean(args["dry-run"]);
 const writePlanPath = args["write-plan"];
 const applyPlanPath = args["apply-plan"];
 const approvalRecordPath = args["approval-record"];
+const readinessReportPath = args["readiness-report"];
 const backupDir = args["backup-dir"] || "";
 const forceNewProject = Boolean(args["force-new-project"]);
 
@@ -2211,8 +2751,7 @@ if (!target && !applyPlanPath) {
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --dry-run");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan ./init-update-plan.json");
-  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --approval-record ./approval-record.md");
-  console.error("       node scripts/init-project.mjs --apply-plan ./init-update-plan.json --approval-record ./approval-record.md --backup-dir .intentos/backups/phase-001");
+  console.error("       node scripts/init-project.mjs --apply-plan ./apply-execution-plans/init-update-plan.json --approval-record ./approval-records/approval.md --readiness-report ./apply-readiness-reports/readiness.md");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --industrial-packs web-app-industrial,backend-api-industrial");
   console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
@@ -2244,33 +2783,37 @@ if (applyPlanPath) {
     process.exit(2);
   }
   let planBackupDir;
+  let approvalRecord;
+  let readinessRecord;
   try {
     planBackupDir = validatePlanForApply(plan, backupDir || null);
-    const approvalRecord = readApprovalRecordForApply(approvalRecordPath);
+    approvalRecord = readApprovalRecordForApply(approvalRecordPath);
     validateApprovalRecordForApply(plan, approvalRecord, fullPlanPath);
+    readinessRecord = readReadinessReportForApply(readinessReportPath);
+    validateReadinessReportForApply(plan, readinessRecord, fullPlanPath);
   } catch (error) {
     console.error(error.message);
     process.exit(2);
   }
-  const planArgs = plan.arguments || {};
-  const planStarter = assertSafeNameSegment(planArgs.starter || readExistingStarter(plan.targetRoot) || "generic-project", "plan starter");
-  if (plan.operation === "UPDATE_WORKFLOW_ASSETS") {
-    executeUpdate(plan.targetRoot, planStarter, {
-      applyPrTemplateGovernance: planArgs.applyPrTemplateGovernance,
-      applyAgentGovernance: planArgs.applyAgentGovernance,
-      withIndustrialPacks: planArgs.withIndustrialPacks,
-      industrialPacks: planArgs.industrialPacks,
+  try {
+    const planRelativePath = requireProjectLocalEvidencePath(plan.targetRoot, fullPlanPath, "execution plan");
+    const approvalRelativePath = requireProjectLocalEvidencePath(plan.targetRoot, approvalRecord.fullPath, "approval record");
+    const readinessRelativePath = requireProjectLocalEvidencePath(plan.targetRoot, readinessRecord.fullPath, "readiness report");
+    replayApprovedPlan(plan, {
+      planRelativePath,
+      approvalRelativePath,
+      readinessRelativePath,
+      approval: approvalRecord,
+      readiness: readinessRecord,
       backupDir: planBackupDir,
     });
-  } else {
-    executeInit(plan.targetRoot, planStarter, {
-      withIndustrialPacks: planArgs.withIndustrialPacks,
-      industrialPacks: planArgs.industrialPacks,
-      backupDir: planBackupDir,
-    });
+  } catch (error) {
+    console.error(error.message);
+    process.exit(2);
   }
   console.log("");
-  console.log(`Applied init/update plan: ${fullPlanPath}`);
+  console.log(`Applied exact approved init/update action graph: ${fullPlanPath}`);
+  console.log(`Apply receipt: ${path.join(plan.targetRoot, plan.receiptPath)}`);
   process.exit(0);
 }
 
@@ -2318,13 +2861,9 @@ if (dryRun || writePlanPath) {
 
 if (updateWorkflowAssets) {
   const gate = workflowNextGate(targetPath);
-  if (!gate.allowed) {
-    console.error(`Workflow update requires a plan-first path: ${gate.reason}`);
-    console.error("Run --write-plan, review the plan, then run --apply-plan.");
-    process.exit(2);
-  }
-  executeUpdate(targetPath, starter, commonOptions);
-  process.exit(0);
+  console.error(`Workflow update requires the 1.92 plan-first path${gate.reason ? `: ${gate.reason}` : "."}`);
+  console.error("Run --write-plan, record exact approval and readiness, then run --apply-plan with both records.");
+  process.exit(2);
 }
 
 assertDirectInitTargetIsSafe(targetPath, { forceNewProject });

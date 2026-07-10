@@ -144,8 +144,12 @@ Project asset changes require:
 
 1. Native Migration Plan;
 2. Existing Rule Reconciliation;
-3. Unified Apply Plan;
+3. an executable, project-bound apply plan with exact source and target digests;
 4. explicit human approval;
-5. Controlled Apply Readiness.
+5. Controlled Apply Readiness;
+6. exact approved-graph replay;
+7. an Apply Execution Receipt that still matches the current project, Git identity, target hashes, and read-only activation result.
 
 Until then, IntentOS Operating Mode is active for work guidance only.
+
+Direct `--update-workflow-assets` is no longer a migration shortcut. Init and update writes must use the same plan, approval, readiness, replay, and receipt chain. Existing project CI, release, runtime, business rules, and other protected authority remain project-owned unless an exact approved action says otherwise.

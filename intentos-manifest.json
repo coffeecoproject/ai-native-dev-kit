@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.91.1",
+  "intentOSVersion": "1.92.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.91.1"
+    "phase": "1.92.0"
   },
   "groups": {
     "sourceRequired": [
@@ -36,8 +36,10 @@
       "ai-logs/2026-06-27-industrial-maturity-license-boundary.md",
       "ai-logs/2026-06-27-project-memory-context-governance.md",
       "ai-logs/2026-06-27-release-evidence-adoption-entry.md",
+      "apply-execution-plans/.gitkeep",
       "apply-plans/.gitkeep",
       "apply-readiness-reports/.gitkeep",
+      "apply-receipts/.gitkeep",
       "approval-records/.gitkeep",
       "archive-apply-plans/.gitkeep",
       "baseline-calibration-reports/2026-06-28-local-ios-backend-project.md",
@@ -84,6 +86,7 @@
       "checklists/document-lifecycle-review.md",
       "checklists/engineering-baseline-review.md",
       "checklists/environment-baseline-review.md",
+      "checklists/evidence-authority-review.md",
       "checklists/execution-assurance-review.md",
       "checklists/execution-review-closure-review.md",
       "checklists/existing-project-adoption-autopilot-review.md",
@@ -145,6 +148,7 @@
       "conversation-ask-cards/.gitkeep",
       "conversation-turns/.gitkeep",
       "core/adoption-execution-assurance.md",
+      "core/apply-execution-receipt.md",
       "core/approval-record-governance.md",
       "core/assumption-register.md",
       "core/automation-governance.md",
@@ -171,6 +175,7 @@
       "core/document-lifecycle.md",
       "core/engineering-baseline.md",
       "core/environment-baseline.md",
+      "core/evidence-authority-core.md",
       "core/execution-assurance-chain.md",
       "core/execution-release-runtime-hygiene.md",
       "core/execution-review-closure.md",
@@ -251,6 +256,7 @@
       "docs/adoption-playbooks/governed-project-read-only.md",
       "docs/adoption-playbooks/new-project.md",
       "docs/adoption-playbooks/production-project-adapter.md",
+      "docs/apply-execution-receipt.md",
       "docs/approval-record-governance.md",
       "docs/artifact-decision-tree.md",
       "docs/artifact-lifecycle.md",
@@ -277,6 +283,7 @@
       "docs/document-archive-apply.md",
       "docs/document-lifecycle.md",
       "docs/document-ownership.md",
+      "docs/evidence-authority-core.md",
       "docs/execution-assurance-chain.md",
       "docs/execution-release-runtime-hygiene.md",
       "docs/execution-review-closure.md",
@@ -315,6 +322,7 @@
       "docs/plans/README.md",
       "docs/plans/adoption-autopilot-plain-language-reference-1.81.3-plan.md",
       "docs/plans/adoption-execution-assurance-1.71-plan.md",
+      "docs/plans/apply-adoption-closure-1.92-plan.md",
       "docs/plans/approval-record-governance-1.40-plan.md",
       "docs/plans/approval-record-hardening-1.40.1-plan.md",
       "docs/plans/baseline-pack-system-1.13-plan.md",
@@ -332,6 +340,8 @@
       "docs/plans/conversation-native-ask-1.37-plan.md",
       "docs/plans/decision-explain-trace-1.54-plan.md",
       "docs/plans/engineering-environment-baseline-1.2-plan.md",
+      "docs/plans/evidence-authority-core-1.91-plan.md",
+      "docs/plans/evidence-authority-coverage-closeout-1.91.1-plan.md",
       "docs/plans/evidence-linked-closure-1.33-plan.md",
       "docs/plans/evidence-reference-resolution-1.50-plan.md",
       "docs/plans/evidence-reliability-risk-calibration-1.47-plan.md",
@@ -342,6 +352,7 @@
       "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
       "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
       "docs/plans/execution-release-runtime-hygiene-1.86-plan.md",
+      "docs/plans/execution-truth-hardcut-1.90-plan.md",
       "docs/plans/existing-project-governance-convergence-1.70-plan.md",
       "docs/plans/existing-project-native-adoption-decision-1.69-plan.md",
       "docs/plans/existing-project-native-adoption-evidence-hardening-1.69.1-plan.md",
@@ -366,8 +377,6 @@
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
       "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
-      "docs/plans/safety-evidence-hardening-1.89-plan.md",
-      "docs/plans/execution-truth-hardcut-1.90-plan.md",
       "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
       "docs/plans/plan-review-gate-1.88-plan.md",
       "docs/plans/plan-review-gate-hardening-1.88.1-plan.md",
@@ -389,6 +398,7 @@
       "docs/plans/release-path-consolidation-1.58-plan.md",
       "docs/plans/release-path-hardening-1.61-plan.md",
       "docs/plans/repository-information-architecture-1.36-plan.md",
+      "docs/plans/safety-evidence-hardening-1.89-plan.md",
       "docs/plans/standard-baseline-pack-registry-1.14-plan.md",
       "docs/plans/structured-evidence-hardening-1.41.1-plan.md",
       "docs/plans/structured-evidence-schema-1.41-plan.md",
@@ -1218,6 +1228,7 @@
       "prompts/document-lifecycle-agent.md",
       "prompts/engineering-baseline-agent.md",
       "prompts/environment-baseline-agent.md",
+      "prompts/evidence-authority-agent.md",
       "prompts/execution-assurance-agent.md",
       "prompts/execution-closure-agent.md",
       "prompts/existing-project-adoption-autopilot-agent.md",
@@ -1730,6 +1741,18 @@
       "releases/1.9.0/known-limitations.md",
       "releases/1.9.0/release-record.md",
       "releases/1.9.0/self-check-report.md",
+      "releases/1.90.0/known-limitations.md",
+      "releases/1.90.0/release-record.md",
+      "releases/1.90.0/self-check-report.md",
+      "releases/1.91.0/known-limitations.md",
+      "releases/1.91.0/release-record.md",
+      "releases/1.91.0/self-check-report.md",
+      "releases/1.91.1/known-limitations.md",
+      "releases/1.91.1/release-record.md",
+      "releases/1.91.1/self-check-report.md",
+      "releases/1.92.0/known-limitations.md",
+      "releases/1.92.0/release-record.md",
+      "releases/1.92.0/self-check-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",
@@ -1795,6 +1818,7 @@
       "rule-reconciliation-calibration-reports/2026-07-04-anonymized-existing-project.md",
       "runtime-hygiene-reports/.gitkeep",
       "schemas/artifacts/adoption-assurance.schema.json",
+      "schemas/artifacts/apply-execution-receipt.schema.json",
       "schemas/artifacts/approval-record.schema.json",
       "schemas/artifacts/business-rule-closure.schema.json",
       "schemas/artifacts/change-impact-coverage.schema.json",
@@ -1833,6 +1857,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-adoption-assurance.mjs",
       "scripts/check-ai-workflow.mjs",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/check-apply-plan.mjs",
       "scripts/check-approval-record.mjs",
       "scripts/check-baseline-enforcement.mjs",
@@ -1914,18 +1939,18 @@
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
       "scripts/init-project.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
-      "scripts/lib/evidence-authority.mjs",
-      "scripts/lib/approval-record-validation.mjs",
-      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
-      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
@@ -2166,6 +2191,7 @@
       "templates/adoption-recommendation-report.md",
       "templates/adoption-trial-report.md",
       "templates/ai-task-log.md",
+      "templates/apply-execution-receipt.md",
       "templates/approval-record.md",
       "templates/archive-index.md",
       "templates/assumption-register.md",
@@ -2870,22 +2896,7 @@
       "verification-plans/.gitkeep",
       "work-queue-takeover-reports/.gitkeep",
       "workflow-adoption-maps/.gitkeep",
-      "workflow-guidance-cards/.gitkeep",
-      "releases/1.90.0/known-limitations.md",
-      "releases/1.90.0/release-record.md",
-      "releases/1.90.0/self-check-report.md",
-      "core/evidence-authority-core.md",
-      "docs/evidence-authority-core.md",
-      "docs/plans/evidence-authority-core-1.91-plan.md",
-      "checklists/evidence-authority-review.md",
-      "prompts/evidence-authority-agent.md",
-      "docs/plans/evidence-authority-coverage-closeout-1.91.1-plan.md",
-      "releases/1.91.0/release-record.md",
-      "releases/1.91.0/known-limitations.md",
-      "releases/1.91.0/self-check-report.md",
-      "releases/1.91.1/release-record.md",
-      "releases/1.91.1/known-limitations.md",
-      "releases/1.91.1/self-check-report.md"
+      "workflow-guidance-cards/.gitkeep"
     ],
     "targetCore": [
       ".github/pull_request_template.md",
@@ -2954,6 +2965,7 @@
       ".intentos/checklists/work-queue-review.md",
       ".intentos/checklists/workflow-adoption-map-review.md",
       ".intentos/checklists/workflow-guidance-review.md",
+      ".intentos/core/apply-execution-receipt.md",
       ".intentos/core/assumption-register.md",
       ".intentos/core/automation-governance.md",
       ".intentos/core/baseline-enforcement.md",
@@ -3025,6 +3037,7 @@
       ".intentos/core/verification-test-governance.md",
       ".intentos/core/work-queue.md",
       ".intentos/core/workflow.md",
+      ".intentos/docs/apply-execution-receipt.md",
       ".intentos/docs/artifact-decision-tree.md",
       ".intentos/docs/baseline-pack-system.md",
       ".intentos/docs/baseline-setup.md",
@@ -3150,6 +3163,7 @@
       ".intentos/prompts/workflow-adapter-agent.md",
       ".intentos/prompts/workflow-concierge-agent.md",
       ".intentos/schemas/artifacts",
+      ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
@@ -3166,6 +3180,7 @@
       ".intentos/templates/adoption-recommendation-report.md",
       ".intentos/templates/adoption-trial-report.md",
       ".intentos/templates/ai-task-log.md",
+      ".intentos/templates/apply-execution-receipt.md",
       ".intentos/templates/archive-index.md",
       ".intentos/templates/assumption-register.md",
       ".intentos/templates/baseline-decision-card.md",
@@ -3261,8 +3276,10 @@
       "adoption-recommendations",
       "adoption-trial-reports",
       "ai-logs",
+      "apply-execution-plans",
       "apply-plans",
       "apply-readiness-reports",
+      "apply-receipts",
       "archive-apply-plans",
       "automation-proposals",
       "baseline-decision-cards",
@@ -3345,6 +3362,7 @@
       "scope-change-reports",
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/check-apply-plan.mjs",
       "scripts/check-baseline-enforcement.mjs",
       "scripts/check-baseline-pack-selection.mjs",
@@ -3409,18 +3427,18 @@
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
-      "scripts/lib/evidence-authority.mjs",
-      "scripts/lib/approval-record-validation.mjs",
-      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
-      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
@@ -3564,6 +3582,7 @@
       ".intentos/checklists/workflow-adoption-map-review.md",
       ".intentos/checklists/workflow-guidance-review.md",
       ".intentos/core/adoption-execution-assurance.md",
+      ".intentos/core/apply-execution-receipt.md",
       ".intentos/core/approval-record-governance.md",
       ".intentos/core/assumption-register.md",
       ".intentos/core/automation-governance.md",
@@ -3645,6 +3664,7 @@
       ".intentos/core/work-queue.md",
       ".intentos/core/workflow.md",
       ".intentos/docs/adoption-execution-assurance.md",
+      ".intentos/docs/apply-execution-receipt.md",
       ".intentos/docs/approval-record-governance.md",
       ".intentos/docs/artifact-decision-tree.md",
       ".intentos/docs/artifact-lifecycle.md",
@@ -3716,8 +3736,8 @@
       ".intentos/docs/user-delivery-console.md",
       ".intentos/docs/verification-test-governance.md",
       ".intentos/docs/work-queue.md",
-      ".intentos/industrial-packs/index.json",
       ".intentos/industrial-packs/README.md",
+      ".intentos/industrial-packs/index.json",
       ".intentos/industrial-packs/schema/baseline-selection.schema.json",
       ".intentos/industrial-packs/schema/pack.schema.json",
       ".intentos/industrial-packs/selection-guide.md",
@@ -3815,6 +3835,7 @@
       ".intentos/prompts/workflow-concierge-agent.md",
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
+      ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/completion-evidence.schema.json",
       ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
@@ -3839,6 +3860,7 @@
       ".intentos/templates/adoption-recommendation-report.md",
       ".intentos/templates/adoption-trial-report.md",
       ".intentos/templates/ai-task-log.md",
+      ".intentos/templates/apply-execution-receipt.md",
       ".intentos/templates/approval-record.md",
       ".intentos/templates/archive-index.md",
       ".intentos/templates/assumption-register.md",
@@ -3943,15 +3965,17 @@
       ".intentos/templates/workflow-improvement.md",
       ".intentos/templates/workflow-retro.md",
       ".intentos/version.json",
+      "AGENTS.md",
       "active-work-threads",
       "adoption-assurance-reports",
       "adoption-autopilot-reports",
       "adoption-recommendations",
       "adoption-trial-reports",
-      "AGENTS.md",
       "ai-logs",
+      "apply-execution-plans",
       "apply-plans",
       "apply-readiness-reports",
+      "apply-receipts",
       "approval-records",
       "archive-apply-plans",
       "automation-proposals",
@@ -4041,6 +4065,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-adoption-assurance.mjs",
       "scripts/check-ai-workflow.mjs",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/check-apply-plan.mjs",
       "scripts/check-approval-record.mjs",
       "scripts/check-baseline-enforcement.mjs",
@@ -4115,18 +4140,18 @@
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
-      "scripts/lib/evidence-authority.mjs",
-      "scripts/lib/approval-record-validation.mjs",
-      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
-      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
@@ -4204,6 +4229,7 @@
       ".intentos/checklists/release-guide-review.md",
       ".intentos/checklists/release-handoff-pack-review.md",
       ".intentos/checklists/task-governance-review.md",
+      ".intentos/core/apply-execution-receipt.md",
       ".intentos/core/assumption-register.md",
       ".intentos/core/automation-governance.md",
       ".intentos/core/baseline-enforcement.md",
@@ -4354,6 +4380,7 @@
       "templates/native-migration-plan.md"
     ],
     "templates": [
+      ".intentos/templates/apply-execution-receipt.md",
       ".intentos/templates/business-rule-closure-card.md",
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/completion-evidence-report.md",
@@ -4677,8 +4704,10 @@
       "adoption-recommendations",
       "adoption-trial-reports",
       "ai-logs",
+      "apply-execution-plans",
       "apply-plans",
       "apply-readiness-reports",
+      "apply-receipts",
       "approval-records",
       "archive-apply-plans",
       "automation-proposals",
@@ -4764,6 +4793,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-adoption-assurance.mjs",
       "scripts/check-ai-workflow.mjs",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/check-apply-plan.mjs",
       "scripts/check-approval-record.mjs",
       "scripts/check-baseline-enforcement.mjs",
@@ -4842,18 +4872,18 @@
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
       "scripts/init-project.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
-      "scripts/lib/evidence-authority.mjs",
-      "scripts/lib/approval-record-validation.mjs",
-      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
-      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
@@ -5823,6 +5853,7 @@
       ".intentos/checklists/workflow-guidance-review.md",
       ".intentos/core",
       ".intentos/core/adoption-execution-assurance.md",
+      ".intentos/core/apply-execution-receipt.md",
       ".intentos/core/approval-record-governance.md",
       ".intentos/core/assumption-register.md",
       ".intentos/core/baseline-pack-system.md",
@@ -5892,6 +5923,7 @@
       ".intentos/core/verification-test-governance.md",
       ".intentos/core/work-queue.md",
       ".intentos/docs/adoption-execution-assurance.md",
+      ".intentos/docs/apply-execution-receipt.md",
       ".intentos/docs/approval-record-governance.md",
       ".intentos/docs/artifact-decision-tree.md",
       ".intentos/docs/artifact-lifecycle.md",
@@ -6036,6 +6068,7 @@
       ".intentos/prompts/workflow-concierge-agent.md",
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
+      ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/completion-evidence.schema.json",
       ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
@@ -6058,6 +6091,7 @@
       ".intentos/templates/active-work-thread.md",
       ".intentos/templates/adoption-assurance-report.md",
       ".intentos/templates/adoption-trial-report.md",
+      ".intentos/templates/apply-execution-receipt.md",
       ".intentos/templates/approval-record.md",
       ".intentos/templates/archive-index.md",
       ".intentos/templates/assumption-register.md",
@@ -6125,14 +6159,16 @@
       ".intentos/templates/work-queue-takeover-report.md",
       ".intentos/templates/workflow-adoption-map.md",
       ".intentos/templates/workflow-guidance-card.md",
+      "AGENTS.md",
       "active-work-threads",
       "adoption-assurance-reports",
       "adoption-autopilot-reports",
       "adoption-recommendations",
       "adoption-trial-reports",
-      "AGENTS.md",
+      "apply-execution-plans",
       "apply-plans",
       "apply-readiness-reports",
+      "apply-receipts",
       "approval-records",
       "archive-apply-plans",
       "baseline-decision-cards",
@@ -6206,6 +6242,7 @@
       "scripts/baseline-project.mjs",
       "scripts/check-adoption-assurance.mjs",
       "scripts/check-ai-workflow.mjs",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/check-apply-plan.mjs",
       "scripts/check-approval-record.mjs",
       "scripts/check-baseline-enforcement.mjs",
@@ -6280,18 +6317,18 @@
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
+      "scripts/lib/adoption-apply-chain.mjs",
+      "scripts/lib/approval-record-validation.mjs",
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
-      "scripts/lib/evidence-authority.mjs",
-      "scripts/lib/approval-record-validation.mjs",
-      "scripts/lib/adoption-apply-chain.mjs",
       "scripts/lib/check-result.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
       "scripts/lib/git.mjs",
       "scripts/lib/manifest.mjs",
       "scripts/lib/markdown.mjs",
-      "scripts/lib/path-safety.mjs",
       "scripts/lib/native-rule-extraction.mjs",
+      "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
       "scripts/lib/risk-surfaces.mjs",
@@ -6417,6 +6454,7 @@
       ".intentos/checklists/work-queue-review.md",
       ".intentos/checklists/workflow-adoption-map-review.md",
       ".intentos/checklists/workflow-guidance-review.md",
+      ".intentos/core/apply-execution-receipt.md",
       ".intentos/core/assumption-register.md",
       ".intentos/core/baseline-enforcement.md",
       ".intentos/core/baseline-state.md",
@@ -6480,6 +6518,7 @@
       ".intentos/core/verification-test-governance.md",
       ".intentos/core/work-queue.md",
       ".intentos/core/workflow.md",
+      ".intentos/docs/apply-execution-receipt.md",
       ".intentos/docs/artifact-decision-tree.md",
       ".intentos/docs/baseline-setup.md",
       ".intentos/docs/baseline-state.md",
@@ -6605,6 +6644,7 @@
       ".intentos/prompts/walkthrough-agent.md",
       ".intentos/prompts/work-queue-agent.md",
       ".intentos/prompts/workflow-concierge-agent.md",
+      ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
@@ -6619,6 +6659,7 @@
       ".intentos/templates/adoption-assessment.md",
       ".intentos/templates/adoption-recommendation-report.md",
       ".intentos/templates/adoption-trial-report.md",
+      ".intentos/templates/apply-execution-receipt.md",
       ".intentos/templates/archive-index.md",
       ".intentos/templates/assumption-register.md",
       ".intentos/templates/baseline-decision-card.md",
@@ -6698,8 +6739,10 @@
       "adoption-autopilot-reports",
       "adoption-recommendations",
       "adoption-trial-reports",
+      "apply-execution-plans",
       "apply-plans",
       "apply-readiness-reports",
+      "apply-receipts",
       "approval-records",
       "archive-apply-plans",
       "baseline-decision-cards",
@@ -6765,6 +6808,7 @@
       "scope-change-reports",
       "scripts/baseline-project.mjs",
       "scripts/check-ai-workflow.mjs",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/check-apply-plan.mjs",
       "scripts/check-approval-record.mjs",
       "scripts/check-baseline-enforcement.mjs",
@@ -6894,36 +6938,12 @@
   "copyRules": {
     "directories": [
       {
-        "source": "checklists",
-        "target": ".intentos/checklists"
-      },
-      {
-        "source": "core",
-        "target": ".intentos/core"
-      },
-      {
-        "source": "profiles",
-        "target": ".intentos/profiles"
-      },
-      {
-        "source": "prompts",
-        "target": ".intentos/prompts"
-      },
-      {
-        "source": "schemas/artifacts",
-        "target": ".intentos/schemas/artifacts"
-      },
-      {
-        "source": "standard-baseline-packs",
-        "target": ".intentos/standard-baseline-packs"
-      },
-      {
-        "source": "templates",
-        "target": ".intentos/templates"
-      },
-      {
         "source": "adoption-assurance-reports",
         "target": "adoption-assurance-reports"
+      },
+      {
+        "source": "apply-execution-plans",
+        "target": "apply-execution-plans"
       },
       {
         "source": "apply-plans",
@@ -6932,6 +6952,10 @@
       {
         "source": "apply-readiness-reports",
         "target": "apply-readiness-reports"
+      },
+      {
+        "source": "apply-receipts",
+        "target": "apply-receipts"
       },
       {
         "source": "approval-records",
@@ -6966,6 +6990,10 @@
         "target": "change-impact-coverage-reports"
       },
       {
+        "source": "checklists",
+        "target": ".intentos/checklists"
+      },
+      {
         "source": "closure-decisions",
         "target": "closure-decisions"
       },
@@ -6976,6 +7004,10 @@
       {
         "source": "controlled-apply-candidates",
         "target": "controlled-apply-candidates"
+      },
+      {
+        "source": "core",
+        "target": ".intentos/core"
       },
       {
         "source": "delivery-path-reports",
@@ -7030,6 +7062,10 @@
         "target": "mvp-example-reports"
       },
       {
+        "source": "native-adoption-review-reports",
+        "target": "native-adoption-review-reports"
+      },
+      {
         "source": "native-migration-plans",
         "target": "native-migration-plans"
       },
@@ -7042,8 +7078,20 @@
         "target": "patch-classifications"
       },
       {
+        "source": "plan-review-reports",
+        "target": "plan-review-reports"
+      },
+      {
         "source": "product-completeness-reports",
         "target": "product-completeness-reports"
+      },
+      {
+        "source": "profiles",
+        "target": ".intentos/profiles"
+      },
+      {
+        "source": "prompts",
+        "target": ".intentos/prompts"
       },
       {
         "source": "real-adoption-trials",
@@ -7052,6 +7100,14 @@
       {
         "source": "release-adapters",
         "target": "release-adapters"
+      },
+      {
+        "source": "release-candidates",
+        "target": "release-candidates"
+      },
+      {
+        "source": "release-evidence-gate-reports",
+        "target": "release-evidence-gate-reports"
       },
       {
         "source": "release-execution-plans",
@@ -7066,16 +7122,8 @@
         "target": "release-handoff-packs"
       },
       {
-        "source": "release-evidence-gate-reports",
-        "target": "release-evidence-gate-reports"
-      },
-      {
         "source": "release-plans",
         "target": "release-plans"
-      },
-      {
-        "source": "release-candidates",
-        "target": "release-candidates"
       },
       {
         "source": "release-recipes",
@@ -7086,8 +7134,24 @@
         "target": "review-surface-cards"
       },
       {
+        "source": "schemas/artifacts",
+        "target": ".intentos/schemas/artifacts"
+      },
+      {
+        "source": "standard-baseline-packs",
+        "target": ".intentos/standard-baseline-packs"
+      },
+      {
         "source": "standard-baseline-selections",
         "target": "standard-baseline-selections"
+      },
+      {
+        "source": "task-governance-reports",
+        "target": "task-governance-reports"
+      },
+      {
+        "source": "templates",
+        "target": ".intentos/templates"
       },
       {
         "source": "test-evidence-reports",
@@ -7108,18 +7172,6 @@
       {
         "source": "workflow-guidance-cards",
         "target": "workflow-guidance-cards"
-      },
-      {
-        "source": "native-adoption-review-reports",
-        "target": "native-adoption-review-reports"
-      },
-      {
-        "source": "task-governance-reports",
-        "target": "task-governance-reports"
-      },
-      {
-        "source": "plan-review-reports",
-        "target": "plan-review-reports"
       }
     ],
     "files": [
@@ -7462,6 +7514,10 @@
       {
         "source": "docs/adoption-execution-assurance.md",
         "target": ".intentos/docs/adoption-execution-assurance.md"
+      },
+      {
+        "source": "docs/apply-execution-receipt.md",
+        "target": ".intentos/docs/apply-execution-receipt.md"
       },
       {
         "source": "docs/approval-record-governance.md",
@@ -7992,6 +8048,10 @@
         "target": "scripts/check-ai-workflow.mjs"
       },
       {
+        "source": "scripts/check-apply-execution-receipt.mjs",
+        "target": "scripts/check-apply-execution-receipt.mjs"
+      },
+      {
         "source": "scripts/check-apply-plan.mjs",
         "target": "scripts/check-apply-plan.mjs"
       },
@@ -8176,6 +8236,10 @@
         "target": "scripts/check-patch-classification.mjs"
       },
       {
+        "source": "scripts/check-plan-review.mjs",
+        "target": "scripts/check-plan-review.mjs"
+      },
+      {
         "source": "scripts/check-platform-baseline.mjs",
         "target": "scripts/check-platform-baseline.mjs"
       },
@@ -8288,6 +8352,14 @@
         "target": "scripts/cli.mjs"
       },
       {
+        "source": "scripts/lib/adoption-apply-chain.mjs",
+        "target": "scripts/lib/adoption-apply-chain.mjs"
+      },
+      {
+        "source": "scripts/lib/approval-record-validation.mjs",
+        "target": "scripts/lib/approval-record-validation.mjs"
+      },
+      {
         "source": "scripts/lib/args.mjs",
         "target": "scripts/lib/args.mjs"
       },
@@ -8296,20 +8368,12 @@
         "target": "scripts/lib/artifact-schema.mjs"
       },
       {
-        "source": "scripts/lib/evidence-authority.mjs",
-        "target": "scripts/lib/evidence-authority.mjs"
-      },
-      {
-        "source": "scripts/lib/approval-record-validation.mjs",
-        "target": "scripts/lib/approval-record-validation.mjs"
-      },
-      {
-        "source": "scripts/lib/adoption-apply-chain.mjs",
-        "target": "scripts/lib/adoption-apply-chain.mjs"
-      },
-      {
         "source": "scripts/lib/check-result.mjs",
         "target": "scripts/lib/check-result.mjs"
+      },
+      {
+        "source": "scripts/lib/evidence-authority.mjs",
+        "target": "scripts/lib/evidence-authority.mjs"
       },
       {
         "source": "scripts/lib/frontmatter.mjs",
@@ -8330,6 +8394,10 @@
       {
         "source": "scripts/lib/native-rule-extraction.mjs",
         "target": "scripts/lib/native-rule-extraction.mjs"
+      },
+      {
+        "source": "scripts/lib/path-safety.mjs",
+        "target": "scripts/lib/path-safety.mjs"
       },
       {
         "source": "scripts/lib/plan-review-binding.mjs",
@@ -8466,6 +8534,10 @@
       {
         "source": "scripts/resolve-native-migration.mjs",
         "target": "scripts/resolve-native-migration.mjs"
+      },
+      {
+        "source": "scripts/resolve-plan-review.mjs",
+        "target": "scripts/resolve-plan-review.mjs"
       },
       {
         "source": "scripts/resolve-platform-baseline.mjs",
@@ -8738,24 +8810,14 @@
       {
         "source": "templates/workflow-guidance-card.md",
         "target": ".intentos/templates/workflow-guidance-card.md"
-      },
-      {
-        "source": "scripts/check-plan-review.mjs",
-        "target": "scripts/check-plan-review.mjs"
-      },
-      {
-        "source": "scripts/resolve-plan-review.mjs",
-        "target": "scripts/resolve-plan-review.mjs"
-      },
-      {
-        "source": "scripts/lib/path-safety.mjs",
-        "target": "scripts/lib/path-safety.mjs"
       }
     ]
   },
   "assets": {
     "sourceRequired": [
+      "apply-execution-plans/.gitkeep",
       "apply-plans/.gitkeep",
+      "apply-receipts/.gitkeep",
       "checklists/controlled-native-adoption-review.md",
       "checklists/conversation-native-ask-review.md",
       "checklists/execution-assurance-review.md",
@@ -8769,6 +8831,7 @@
       "checklists/release-plan-review.md",
       "checklists/task-governance-review.md",
       "checklists/unified-apply-plan-review.md",
+      "core/apply-execution-receipt.md",
       "core/behavior-complete-existing-project-adoption.md",
       "core/controlled-native-adoption-autopilot-review.md",
       "core/conversation-native-ask.md",
@@ -8784,6 +8847,7 @@
       "core/release-guide.md",
       "core/task-governance-consumer-integration.md",
       "core/unified-apply-plan.md",
+      "docs/apply-execution-receipt.md",
       "docs/behavior-complete-existing-project-adoption.md",
       "docs/controlled-native-adoption-autopilot-review.md",
       "docs/conversation-native-ask.md",
@@ -8792,6 +8856,7 @@
       "docs/low-risk-controlled-apply-candidate.md",
       "docs/natural-language-orchestrator.md",
       "docs/ordinary-user-first-slice.md",
+      "docs/plans/apply-adoption-closure-1.92-plan.md",
       "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
       "docs/plans/controlled-native-adoption-autopilot-review-1.82-plan.md",
       "docs/plans/conversation-native-ask-1.37-plan.md",
@@ -8987,11 +9052,13 @@
       "releases/1.85.1/known-limitations.md",
       "releases/1.85.1/release-record.md",
       "releases/1.85.1/self-check-report.md",
+      "schemas/artifacts/apply-execution-receipt.schema.json",
       "schemas/artifacts/change-impact-coverage.schema.json",
       "schemas/artifacts/controlled-native-adoption-review.schema.json",
       "schemas/artifacts/execution-assurance.schema.json",
       "schemas/artifacts/release-plan.schema.json",
       "schemas/artifacts/task-governance.schema.json",
+      "scripts/check-apply-execution-receipt.mjs",
       "scripts/check-apply-plan.mjs",
       "scripts/check-controlled-native-adoption-review.mjs",
       "scripts/check-conversation-native-ask.mjs",
@@ -9006,8 +9073,9 @@
       "scripts/check-release-plan.mjs",
       "scripts/check-task-governance.mjs",
       "scripts/check-workflow-guidance.mjs",
-      "scripts/lib/task-entry-binding.mjs",
+      "scripts/lib/evidence-authority.mjs",
       "scripts/lib/plan-review-binding.mjs",
+      "scripts/lib/task-entry-binding.mjs",
       "scripts/resolve-apply-plan.mjs",
       "scripts/resolve-controlled-native-adoption-review.mjs",
       "scripts/resolve-execution-assurance.mjs",
@@ -9021,6 +9089,7 @@
       "scripts/resolve-task-governance.mjs",
       "scripts/resolve-workflow-guidance.mjs",
       "task-governance-reports/.gitkeep",
+      "templates/apply-execution-receipt.md",
       "templates/controlled-native-adoption-review-report.md",
       "templates/conversation-ask-card.md",
       "templates/execution-assurance-report.md",
@@ -9110,8 +9179,7 @@
       "test-fixtures/bad/bad-task-governance-no-verification-plan/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-possible-high-no-clarification/task-governance-reports/001-bad.md",
       "test-fixtures/bad/bad-task-governance-stronger-rule-not-preserved/task-governance-reports/001-bad.md",
-      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md",
-      "scripts/lib/evidence-authority.mjs"
+      "test-fixtures/bad/bad-task-governance-technical-user-prompt/task-governance-reports/001-bad.md"
     ]
   }
 }

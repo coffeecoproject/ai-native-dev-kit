@@ -772,7 +772,7 @@
     ],
     "expectStatus": 0,
     "expectStdoutIncludes": [
-      "\"planVersion\": \"1.0\"",
+      "\"planVersion\": \"1.1\"",
       "\"operation\": \"INIT_PROJECT\""
     ],
     "howToFix": "Init dry-run must keep producing a reviewable plan without writing target files."

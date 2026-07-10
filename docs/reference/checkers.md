@@ -92,6 +92,7 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `resolve-controlled-apply-readiness.mjs` | Read-only readiness classifier for reviewed Unified Apply Plans |
 | `check-controlled-apply-readiness.mjs` | Controlled Apply Readiness boundary, approval, high-risk, rollback, verification, structured evidence digest, strict structured evidence, and empty-action checks |
 | `check-approval-record.mjs` | Approval Record human-owner, action ID, target path, plan hash, expiry, rollback, verification, structured evidence, strict local plan reference, and non-authorization checks |
+| `check-apply-execution-receipt.mjs` | Fail-closed project, Git, plan, approval, readiness, action, target-hash, unexpected-write, and read-only activation verification for an executed controlled apply |
 | `resolve-work-queue.mjs` | Read-only Work Queue recommendation for current, paused, backlog, and resume state |
 | `check-work-queue.mjs` | Work Queue Report boundary, single-current-task, paused resume review, and backlog parking checks |
 | `resolve-hook-orchestration.mjs` | Read-only hook candidate inventory and H0-H3 risk recommendation |

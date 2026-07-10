@@ -116,6 +116,10 @@ node scripts/cli.mjs apply-plan-check .
 
 A Unified Apply Plan records proposed writes, source evidence, human-only or blocked actions, preconditions, backup, rollback, verification, and boundaries. It does not write files, authorize apply, approve implementation, approve release or production, modify CI/hooks, delete/archive files, change source of truth, or grant permission to continue beyond scope.
 
+## Apply Execution Receipt
+
+After a controlled IntentOS init/update apply, run `node scripts/cli.mjs apply-receipt-check . --require-structured-evidence` before claiming that approved adoption writes were executed or remain active. The receipt proves exact governance replay and read-only workflow activation only; it does not approve implementation, CI/hooks, release, production, or authority changes.
+
 ## Controlled Apply Readiness
 
 Use `.intentos/core/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future human-approved controlled apply step.

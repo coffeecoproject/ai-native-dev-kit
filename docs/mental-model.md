@@ -37,10 +37,12 @@ For target-project writes that need plan-first control, use this separate chain:
 Unified Apply Plan
   -> Controlled Apply Readiness
   -> Approval Record
-  -> Future controlled apply candidate, if ever implemented
+  -> Exact approved-graph replay
+  -> Apply Execution Receipt
+  -> Post-apply read-only activation check
 ```
 
-The Approval Record records exact human approval evidence. It is not automatic apply authority.
+The Approval Record records exact human approval evidence. It is not automatic apply authority. A completed write can count as verified adoption evidence only after the Apply Execution Receipt still matches the current project, Git identity, action graph, and target hashes.
 
 ## Workflow
 

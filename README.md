@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.91.1`.
+Current release: `1.92.0`.
 
-Release record: [releases/1.91.1/release-record.md](releases/1.91.1/release-record.md).
+Release record: [releases/1.92.0/release-record.md](releases/1.92.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -75,6 +75,16 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.92.0 closes the old-project apply loop. Once the user accepts the bounded
+professional recommendation, IntentOS applies only the exact approved
+governance actions, records what changed, checks the final file hashes, and
+proves the installed workflow entry can be used on the next task. Users do not
+need to inspect internal action IDs or calculate evidence digests.
+
+This does not approve business code, CI/hooks, release, production,
+migrations, secrets, industrial decisions, or replacement of project-owned
+rules. Those remain separate owner decisions.
 
 1.91.1 closes strict empty-evidence gaps. When a consumer explicitly requires
 structured or closure evidence, an empty Change Impact Coverage, Unified Apply

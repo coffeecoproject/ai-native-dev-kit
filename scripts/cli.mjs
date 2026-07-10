@@ -295,6 +295,12 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "apply-receipt-check": {
+    description: "Verify project-bound controlled apply and workflow activation receipts.",
+    script: "scripts/check-apply-execution-receipt.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   start: {
     description: "Read-only project orientation; it classifies the target but does not enter adoption or write flow.",
     script: "scripts/start-project.mjs",

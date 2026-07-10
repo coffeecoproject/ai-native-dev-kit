@@ -56,7 +56,7 @@ function writeInitProjectApprovalRecord(planPath, options = {}) {
     approved_by: "IntentOS self-check human fixture",
     approval_owner_type: "HUMAN",
     approved_plan: {
-      path: path.basename(planPath),
+      path: options.planRef || path.basename(planPath),
       plan_digest: plan.planDigest,
     },
     approved_action_ids: actions.map((action) => action.id),
@@ -98,14 +98,80 @@ function writeInitProjectApprovalRecord(planPath, options = {}) {
   return approvalPath;
 }
 
+function writeInitProjectReadinessRecord(planPath, options = {}) {
+  const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+  const actions = initExecutableActions(plan);
+  const readinessPath = options.readinessPath || `${planPath}.readiness.md`;
+  const readiness = {
+    schema_version: "1.41.0",
+    artifact_type: "controlled_apply_readiness",
+    artifact_id: path.basename(readinessPath).replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || "init-project-readiness",
+    readiness_state: "READY_FOR_HUMAN_APPROVED_APPLY",
+    can_codex_apply_now: false,
+    requires_explicit_human_approval: true,
+    can_proceed_without_new_approval: false,
+    apply_plan: { path: options.planRef || path.basename(planPath), plan_digest: plan.planDigest },
+    actions: actions.map((action) => ({ id: action.id, classification: "LOW_RISK_CANDIDATE", target_paths: action.targetPaths })),
+    preconditions: [
+      { name: "Apply plan exists", status: "pass" },
+      { name: "Git state safe", status: "pass" },
+      { name: "Target paths bounded", status: "pass" },
+      { name: "Rollback ready", status: "pass" },
+      { name: "Verification ready", status: "pass" }
+    ],
+    rollback: { required: true, path: ".intentos/backups", step: "Restore exact plan-bound backups", verification: "Compare pre-apply hashes" },
+    verification: { pre_apply: "validate exact graph", post_apply: "workflow-next --json", evidence_path: plan.receiptPath },
+    boundary: {
+      writes_files_now: false,
+      authorizes_apply: false,
+      approves_implementation: false,
+      approves_release_or_production: false,
+      installs_hooks_or_changes_ci: false,
+      enables_high_risk_actions: false,
+    },
+    outcome: "READINESS_RECORDED",
+  };
+  fs.writeFileSync(readinessPath, [
+    "# Controlled Apply Readiness: init-project self-check",
+    "",
+    "## Machine-Readable Evidence",
+    "",
+    "```json",
+    JSON.stringify(readiness, null, 2),
+    "```",
+    "",
+  ].join("\n"));
+  return readinessPath;
+}
+
 function approvedInitProjectApplyArgs(planPath, extraArgs = []) {
-  const approvalPath = writeInitProjectApprovalRecord(planPath);
+  const originalPlan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+  fs.mkdirSync(originalPlan.targetRoot, { recursive: true });
+  const localPlanDir = path.join(originalPlan.targetRoot, "apply-execution-plans");
+  const approvalDir = path.join(originalPlan.targetRoot, "approval-records");
+  const readinessDir = path.join(originalPlan.targetRoot, "apply-readiness-reports");
+  fs.mkdirSync(localPlanDir, { recursive: true });
+  fs.mkdirSync(approvalDir, { recursive: true });
+  fs.mkdirSync(readinessDir, { recursive: true });
+  const localPlanPath = path.join(localPlanDir, path.basename(planPath));
+  fs.copyFileSync(planPath, localPlanPath);
+  const planRef = `apply-execution-plans/${path.basename(planPath)}`;
+  const approvalPath = writeInitProjectApprovalRecord(localPlanPath, {
+    approvalPath: path.join(approvalDir, `${path.basename(planPath)}.approval.md`),
+    planRef,
+  });
+  const readinessPath = writeInitProjectReadinessRecord(localPlanPath, {
+    readinessPath: path.join(readinessDir, `${path.basename(planPath)}.readiness.md`),
+    planRef,
+  });
   return [
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--apply-plan",
-    planPath,
+    localPlanPath,
     "--approval-record",
     approvalPath,
+    "--readiness-report",
+    readinessPath,
     ...extraArgs,
   ];
 }
@@ -15804,7 +15870,8 @@ function checkGeneratedProjectE2E() {
   if (selectedPackMissingCheck.status === 0
     || !selectedPackMissingOutput.includes("missing pack.md")
     || !selectedPackMissingOutput.includes("--update-workflow-assets")
-    || !selectedPackMissingOutput.includes("--industrial-packs web-app-industrial")) {
+    || !selectedPackMissingOutput.includes("--industrial-packs web-app-industrial")
+    || !selectedPackMissingOutput.includes("--write-plan")) {
     fail(`generated project selected industrial pack check should reject missing selected pack: ${selectedPackMissingCheck.stderr || selectedPackMissingCheck.stdout}`);
     return;
   }
@@ -15819,25 +15886,41 @@ function checkGeneratedProjectE2E() {
   if (selectedPackMissingBaselineCheck.status === 0
     || !selectedPackMissingBaselineOutput.includes("selected industrial pack is invalid: web-app-industrial")
     || !selectedPackMissingBaselineOutput.includes("--update-workflow-assets")
-    || !selectedPackMissingBaselineOutput.includes("--industrial-packs web-app-industrial")) {
+    || !selectedPackMissingBaselineOutput.includes("--industrial-packs web-app-industrial")
+    || !selectedPackMissingBaselineOutput.includes("--write-plan")) {
     fail(`generated project industrial baseline check should reject missing selected pack with repair hint: ${selectedPackMissingBaselineCheck.stderr || selectedPackMissingBaselineCheck.stdout}`);
     return;
   }
   pass("generated project industrial baseline check rejects missing selected pack with repair hint");
 
-  const installSelectedPack = runNode([
+  const selectedPackPlanPath = path.join(tempRoot, "selected-industrial-pack-plan.json");
+  const planSelectedPack = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     target,
     "--update-workflow-assets",
     "--industrial-packs",
     "web-app-industrial",
+    "--write-plan",
+    selectedPackPlanPath,
   ]);
-  if (installSelectedPack.status !== 0 || !fs.existsSync(path.join(target, ".intentos", "industrial-packs", "web-app", "pack.json"))) {
-    fail(`generated project selected industrial pack install failed: ${installSelectedPack.stderr || installSelectedPack.stdout}`);
+  if (planSelectedPack.status !== 0 || !fs.existsSync(selectedPackPlanPath)) {
+    fail(`generated project selected industrial pack plan failed: ${planSelectedPack.stderr || planSelectedPack.stdout}`);
     return;
   }
-  pass("generated project selected industrial pack install");
+  const selectedPackPlan = JSON.parse(fs.readFileSync(selectedPackPlanPath, "utf8"));
+  const selectedPackActions = selectedPackPlan.actions.filter((action) => action.path.startsWith(".intentos/industrial-packs/web-app/"));
+  if (selectedPackActions.length === 0 || selectedPackActions.some((action) => action.type !== "HUMAN_ONLY" || action.willWrite !== false)) {
+    fail("generated project selected industrial pack plan must keep industrial installation human-only");
+    return;
+  }
+  pass("generated project selected industrial pack plan is human-only");
+  fs.cpSync(
+    path.join(kitRoot, "industrial-packs", "web-app"),
+    path.join(target, ".intentos", "industrial-packs", "web-app"),
+    { recursive: true },
+  );
+  pass("generated project BL2 fixture simulates owner-installed selected industrial pack");
 
   const baselineEvidencePath = path.join(target, "docs", "baseline-evidence.md");
   const evidenceRecordPath = path.join(target, "releases", "generated-bl2-evidence.md");
@@ -16917,17 +17000,25 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project implementation mode accepts approved human approval");
 
-  const updateResult = runNode([
+  const generatedUpdatePlanPath = path.join(tempRoot, "generated-workflow-update-plan.json");
+  const generatedUpdatePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     target,
     "--update-workflow-assets",
+    "--write-plan",
+    generatedUpdatePlanPath,
   ]);
+  if (generatedUpdatePlan.status !== 0 || !fs.existsSync(generatedUpdatePlanPath)) {
+    fail(`generated project workflow update plan failed: ${generatedUpdatePlan.stderr || generatedUpdatePlan.stdout}`);
+    return;
+  }
+  const updateResult = runNode(approvedInitProjectApplyArgs(generatedUpdatePlanPath));
   if (updateResult.status !== 0) {
     fail(`generated project workflow update failed: ${updateResult.stderr || updateResult.stdout}`);
     return;
   }
-  pass("generated project workflow asset update");
+  pass("generated project workflow asset update uses exact approved plan replay");
 
   const projectCheckAfterUpdate = runNode([
     path.join(target, "scripts", "check-ai-workflow.mjs"),
@@ -17192,6 +17283,7 @@ function checkGeneratedProjectE2E() {
 
   const planOnlyTarget = path.join(tempRoot, "plan-only-project");
   const planOnlyPath = path.join(tempRoot, "plan-only-init.json");
+  fs.mkdirSync(planOnlyTarget, { recursive: true });
   const writeInitPlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
@@ -17203,16 +17295,96 @@ function checkGeneratedProjectE2E() {
     fail(`init write-plan failed: ${writeInitPlan.stderr || writeInitPlan.stdout}`);
     return;
   }
-  if (fs.existsSync(planOnlyTarget)) {
-    fail("init write-plan wrote target files");
+  if (fs.existsSync(path.join(planOnlyTarget, ".intentos", "version.json"))) {
+    fail("init write-plan wrote workflow target files");
     return;
   }
+  const missingReadinessApproval = writeInitProjectApprovalRecord(planOnlyPath);
+  const missingReadinessApply = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--apply-plan",
+    planOnlyPath,
+    "--approval-record",
+    missingReadinessApproval,
+  ]);
+  if (missingReadinessApply.status !== 2
+    || !`${missingReadinessApply.stdout}\n${missingReadinessApply.stderr}`.includes("Controlled Apply Readiness Report required")) {
+    fail(`controlled apply must require readiness evidence: ${missingReadinessApply.stderr || missingReadinessApply.stdout}`);
+    return;
+  }
+  pass("1.92 controlled apply fails closed without readiness evidence");
   const applyInitPlan = runNode(approvedInitProjectApplyArgs(planOnlyPath));
   if (applyInitPlan.status !== 0 || !fs.existsSync(path.join(planOnlyTarget, ".intentos", "version.json"))) {
     fail(`init apply-plan failed: ${applyInitPlan.stderr || applyInitPlan.stdout}`);
     return;
   }
   pass("init write-plan/apply-plan initializes target after reviewable plan");
+  const receiptCheck = runNode([
+    path.join(kitRoot, "scripts", "check-apply-execution-receipt.mjs"),
+    planOnlyTarget,
+    "--require-structured-evidence",
+  ]);
+  if (receiptCheck.status !== 0 || !receiptCheck.stdout.includes("Apply Execution Receipt check passed")) {
+    fail(`1.92 applied init receipt did not verify: ${receiptCheck.stderr || receiptCheck.stdout}`);
+    return;
+  }
+  pass("1.92 exact plan replay produces a valid project-bound receipt");
+  const copiedReceiptTarget = path.join(tempRoot, "copied-receipt-project");
+  fs.mkdirSync(copiedReceiptTarget, { recursive: true });
+  fs.cpSync(path.join(planOnlyTarget, "apply-receipts"), path.join(copiedReceiptTarget, "apply-receipts"), { recursive: true });
+  const copiedReceiptCheck = runNode([
+    path.join(kitRoot, "scripts", "check-apply-execution-receipt.mjs"),
+    copiedReceiptTarget,
+    "--require-structured-evidence",
+  ]);
+  if (copiedReceiptCheck.status === 0 || !`${copiedReceiptCheck.stdout}\n${copiedReceiptCheck.stderr}`.includes("belongs to another project")) {
+    fail(`1.92 receipt checker must reject evidence copied from another project: ${copiedReceiptCheck.stderr || copiedReceiptCheck.stdout}`);
+    return;
+  }
+  pass("1.92 receipt checker rejects evidence copied from another project");
+  const staleReceiptTarget = path.join(planOnlyTarget, "docs", "project-onboarding.md");
+  fs.appendFileSync(staleReceiptTarget, "\nReceipt stale mutation.\n");
+  const staleReceiptCheck = runNode([
+    path.join(kitRoot, "scripts", "check-apply-execution-receipt.mjs"),
+    planOnlyTarget,
+    "--require-structured-evidence",
+  ]);
+  if (staleReceiptCheck.status === 0 || !`${staleReceiptCheck.stdout}\n${staleReceiptCheck.stderr}`.includes("stale or mismatched")) {
+    fail(`1.92 receipt checker must reject post-apply target drift: ${staleReceiptCheck.stderr || staleReceiptCheck.stdout}`);
+    return;
+  }
+  pass("1.92 receipt checker rejects post-apply target drift");
+
+  const sourceDriftTarget = path.join(tempRoot, "source-drift-project");
+  const sourceDriftPlanPath = path.join(tempRoot, "source-drift-init.json");
+  fs.mkdirSync(sourceDriftTarget, { recursive: true });
+  const sourceDriftWritePlan = runNode([
+    path.join(kitRoot, "scripts", "init-project.mjs"),
+    "--target",
+    sourceDriftTarget,
+    "--write-plan",
+    sourceDriftPlanPath,
+  ]);
+  if (sourceDriftWritePlan.status !== 0) {
+    fail(`1.92 source-drift write-plan failed: ${sourceDriftWritePlan.stderr || sourceDriftWritePlan.stdout}`);
+    return;
+  }
+  const sourceDriftPlan = JSON.parse(fs.readFileSync(sourceDriftPlanPath, "utf8"));
+  const sourceBoundAction = sourceDriftPlan.actions.find((action) => action.source && action.willWrite === true);
+  if (!sourceBoundAction) {
+    fail("1.92 source-drift fixture could not find a source-bound executable action");
+    return;
+  }
+  sourceBoundAction.sourceHash = `sha256:${"0".repeat(64)}`;
+  sourceBoundAction.expectedHashAfter = sourceBoundAction.sourceHash;
+  sourceDriftPlan.planDigest = evidenceDigest(sourceDriftPlan, ["planDigest"]);
+  fs.writeFileSync(sourceDriftPlanPath, `${JSON.stringify(sourceDriftPlan, null, 2)}\n`);
+  const sourceDriftApply = runNode(approvedInitProjectApplyArgs(sourceDriftPlanPath));
+  if (sourceDriftApply.status !== 2 || !`${sourceDriftApply.stdout}\n${sourceDriftApply.stderr}`.includes("source for")) {
+    fail(`1.92 controlled apply must reject source drift after planning: ${sourceDriftApply.stderr || sourceDriftApply.stdout}`);
+    return;
+  }
+  pass("1.92 controlled apply rejects source drift after planning");
 
   const stalePlanTarget = path.join(tempRoot, "stale-plan-project");
   fs.mkdirSync(stalePlanTarget, { recursive: true });
@@ -17346,27 +17518,12 @@ function checkGeneratedProjectE2E() {
     fail("legacy project AGENTS.md was modified without explicit approval");
     return;
   }
-  const legacyAgentsReport = path.join(legacyTarget, ".intentos", "migration-reports", "agents-governance.md");
-  if (!fs.existsSync(legacyAgentsReport)) {
-    fail("legacy project update missing AGENTS.md governance migration report");
+  const legacyPlan = JSON.parse(fs.readFileSync(legacyPlanPath, "utf8"));
+  if (!legacyPlan.actions.some((action) => action.type === "HUMAN_ONLY" && action.path === "AGENTS.md")) {
+    fail("legacy project plan must keep existing AGENTS.md migration human-only");
     return;
   }
-  const legacyAgentsReportContent = fs.readFileSync(legacyAgentsReport, "utf8");
-  if (!legacyAgentsReportContent.includes("PENDING_HUMAN_APPROVAL") || !legacyAgentsReportContent.includes("--apply-agent-governance")) {
-    fail("legacy project AGENTS.md governance report missing pending status or apply command");
-    return;
-  }
-  pass("legacy project workflow update creates AGENTS.md migration report without modifying AGENTS.md");
-
-  const legacyNext = runNode([
-    path.join(kitRoot, "scripts", "workflow-next.mjs"),
-    legacyTarget,
-  ]);
-  if (legacyNext.status !== 0 || !legacyNext.stdout.includes("NEXT_ACTION: REVIEW_GOVERNANCE_MIGRATION")) {
-    fail(`legacy project workflow next did not report governance migration: ${legacyNext.stderr || legacyNext.stdout}`);
-    return;
-  }
-  pass("legacy project workflow next reports pending governance migration");
+  pass("legacy project plan preserves AGENTS.md and records its migration as human-only");
 
   const legacyAgentsApply = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
@@ -17375,23 +17532,16 @@ function checkGeneratedProjectE2E() {
     "--update-workflow-assets",
     "--apply-agent-governance",
   ]);
-  if (legacyAgentsApply.status !== 0) {
-    fail(`legacy project AGENTS.md explicit governance apply failed: ${legacyAgentsApply.stderr || legacyAgentsApply.stdout}`);
+  if (legacyAgentsApply.status !== 2 || !`${legacyAgentsApply.stdout}\n${legacyAgentsApply.stderr}`.includes("plan-first")) {
+    fail(`legacy project direct AGENTS.md governance apply must be blocked: ${legacyAgentsApply.stderr || legacyAgentsApply.stdout}`);
     return;
   }
   const appliedLegacyAgents = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
-  for (const marker of ["Bootstrap Entry", "Project Onboarding", "Engineering Baseline", "Platform Baseline", "Industrial Baseline", "Workflow Artifact Generation", "Review Loop", "Bounded Next-Step", "Skill Governance", "Automation Governance", "Final Report"]) {
-    if (!appliedLegacyAgents.includes(marker)) {
-      fail(`legacy project AGENTS.md explicit apply missing ${marker}`);
-      return;
-    }
-  }
-  const appliedLegacyAgentsReport = fs.readFileSync(legacyAgentsReport, "utf8");
-  if (!appliedLegacyAgentsReport.includes("APPLIED")) {
-    fail("legacy project AGENTS.md governance report missing applied status after explicit apply");
+  if (appliedLegacyAgents !== "# Legacy\n") {
+    fail("blocked direct governance apply changed legacy AGENTS.md");
     return;
   }
-  pass("legacy project AGENTS.md explicit governance apply updates AGENTS.md");
+  pass("legacy project direct AGENTS.md governance apply is blocked without a new exact plan");
 
   const legacyNoAgentsTarget = path.join(tempRoot, "legacy-no-agents");
   fs.mkdirSync(legacyNoAgentsTarget, { recursive: true });
@@ -17470,64 +17620,12 @@ function checkGeneratedProjectE2E() {
     fail("legacy custom PR template was modified without explicit approval");
     return;
   }
-  const migrationReport = path.join(legacyCustomPrTarget, ".intentos", "migration-reports", "pr-template-governance.md");
-  if (!fs.existsSync(migrationReport)) {
-    fail("legacy custom PR template update missing migration report");
+  const legacyCustomPrPlan = JSON.parse(fs.readFileSync(legacyCustomPrPlanPath, "utf8"));
+  if (!legacyCustomPrPlan.actions.some((action) => action.type === "HUMAN_ONLY" && action.path === ".github/pull_request_template.md")) {
+    fail("legacy custom PR template plan must keep governance migration human-only");
     return;
   }
-  const migrationReportContent = fs.readFileSync(migrationReport, "utf8");
-  if (!migrationReportContent.includes("PENDING_HUMAN_APPROVAL") || !migrationReportContent.includes("--apply-pr-template-governance")) {
-    fail("legacy custom PR template migration report missing pending status or apply command");
-    return;
-  }
-  pass("legacy custom PR template update creates migration report without modifying template");
-
-  const legacyManualPrTarget = path.join(tempRoot, "legacy-manual-pr-template");
-  fs.mkdirSync(path.join(legacyManualPrTarget, ".github"), { recursive: true });
-  const legacyManualPrTemplate = path.join(legacyManualPrTarget, ".github", "pull_request_template.md");
-  fs.writeFileSync(legacyManualPrTemplate, originalCustomPrTemplate);
-  const legacyManualPrPlanPath = path.join(tempRoot, "legacy-manual-pr-update-plan.json");
-  const legacyManualPrWritePlan = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--target",
-    legacyManualPrTarget,
-    "--update-workflow-assets",
-    "--write-plan",
-    legacyManualPrPlanPath,
-  ]);
-  if (legacyManualPrWritePlan.status !== 0) {
-    fail(`legacy manual PR template write-plan failed: ${legacyManualPrWritePlan.stderr || legacyManualPrWritePlan.stdout}`);
-    return;
-  }
-  const legacyManualPrUpdate = runNode(approvedInitProjectApplyArgs(legacyManualPrPlanPath));
-  if (legacyManualPrUpdate.status !== 0) {
-    fail(`legacy manual PR template apply-plan workflow update failed: ${legacyManualPrUpdate.stderr || legacyManualPrUpdate.stdout}`);
-    return;
-  }
-  const manualMigrationReport = path.join(legacyManualPrTarget, ".intentos", "migration-reports", "pr-template-governance.md");
-  const manualMigrationReportContent = fs.readFileSync(manualMigrationReport, "utf8");
-  const proposedAppendixMatch = manualMigrationReportContent.match(/```md\n([\s\S]*?)\n```/);
-  if (!proposedAppendixMatch) {
-    fail("legacy manual PR template migration report missing proposed appendix");
-    return;
-  }
-  fs.appendFileSync(legacyManualPrTemplate, `\n${proposedAppendixMatch[1]}\n`);
-  const legacyManualPrResolve = runNode([
-    path.join(kitRoot, "scripts", "init-project.mjs"),
-    "--target",
-    legacyManualPrTarget,
-    "--update-workflow-assets",
-  ]);
-  if (legacyManualPrResolve.status !== 0) {
-    fail(`legacy manual PR template resolution failed: ${legacyManualPrResolve.stderr || legacyManualPrResolve.stdout}`);
-    return;
-  }
-  const resolvedMigrationReportContent = fs.readFileSync(manualMigrationReport, "utf8");
-  if (!resolvedMigrationReportContent.includes("RESOLVED_MANUALLY") || resolvedMigrationReportContent.includes("PENDING_HUMAN_APPROVAL")) {
-    fail("legacy manual PR template migration report was not resolved after manual appendix merge");
-    return;
-  }
-  pass("legacy manual PR template merge resolves pending migration report");
+  pass("legacy custom PR template stays unchanged and its migration remains human-only");
 
   const legacyCustomPrApply = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
@@ -17536,23 +17634,42 @@ function checkGeneratedProjectE2E() {
     "--update-workflow-assets",
     "--apply-pr-template-governance",
   ]);
-  if (legacyCustomPrApply.status !== 0) {
-    fail(`legacy custom PR template explicit governance apply failed: ${legacyCustomPrApply.stderr || legacyCustomPrApply.stdout}`);
+  if (legacyCustomPrApply.status !== 2 || !`${legacyCustomPrApply.stdout}\n${legacyCustomPrApply.stderr}`.includes("plan-first")) {
+    fail(`legacy custom PR template direct governance apply must be blocked: ${legacyCustomPrApply.stderr || legacyCustomPrApply.stdout}`);
     return;
   }
   const appliedCustomPrTemplate = fs.readFileSync(legacyCustomPrTemplate, "utf8");
-  for (const marker of ["Human Summary", "Bootstrap state", "Project onboarding", "Engineering baseline", "Workflow Evidence", "Workflow artifact quality", "Review Packet / Review Loop Report", "Subagent Run Plan", "Next-Step Suggestions", "Skill / Automation Governance", "irreversible operation"]) {
-    if (!appliedCustomPrTemplate.includes(marker)) {
-      fail(`legacy custom PR template explicit apply missing ${marker}`);
-      return;
-    }
-  }
-  const appliedMigrationReportContent = fs.readFileSync(migrationReport, "utf8");
-  if (!appliedMigrationReportContent.includes("APPLIED")) {
-    fail("legacy custom PR template migration report missing applied status after explicit apply");
+  if (appliedCustomPrTemplate !== originalCustomPrTemplate) {
+    fail("blocked direct PR governance apply changed the project template");
     return;
   }
-  pass("legacy custom PR template explicit governance apply updates template");
+  pass("legacy custom PR governance apply requires a new exact approved plan");
+}
+
+function checkApplyAdoptionClosureProtocol() {
+  const required = [
+    "docs/plans/apply-adoption-closure-1.92-plan.md",
+    "core/apply-execution-receipt.md",
+    "docs/apply-execution-receipt.md",
+    "templates/apply-execution-receipt.md",
+    "schemas/artifacts/apply-execution-receipt.schema.json",
+    "scripts/check-apply-execution-receipt.mjs",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.92 apply and adoption closure asset exists ${file}`);
+    else fail(`1.92 apply and adoption closure asset missing ${file}`);
+  }
+  const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.92-empty-receipt-"));
+  const strictEmpty = runNode([
+    "scripts/check-apply-execution-receipt.mjs",
+    emptyRoot,
+    "--require-structured-evidence",
+  ]);
+  if (strictEmpty.status !== 0 && `${strictEmpty.stdout}\n${strictEmpty.stderr}`.includes("receipt is required")) {
+    pass("1.92 strict apply receipt check fails closed when evidence is absent");
+  } else {
+    fail(`1.92 strict apply receipt check must fail closed when absent: ${strictEmpty.stderr || strictEmpty.stdout}`);
+  }
 }
 
 checkRequiredFiles();
@@ -17624,6 +17741,7 @@ checkDebtKnowledgeHandoffProtocol();
 checkUnifiedClosureModelProtocol();
 checkExecutionTruthHardcutProtocol();
 checkEvidenceAuthorityCoreProtocol();
+checkApplyAdoptionClosureProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

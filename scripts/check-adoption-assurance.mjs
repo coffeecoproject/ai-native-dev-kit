@@ -26,6 +26,7 @@ const adoptionSchema = loadSchema(projectRoot, "schemas/artifacts/adoption-assur
 const applyPlanSchema = loadSchema(projectRoot, "schemas/artifacts/unified-apply-plan.schema.json");
 const approvalRecordSchema = loadSchema(projectRoot, "schemas/artifacts/approval-record.schema.json");
 const applyReadinessSchema = loadSchema(projectRoot, "schemas/artifacts/controlled-apply-readiness.schema.json");
+const applyReceiptSchema = loadSchema(projectRoot, "schemas/artifacts/apply-execution-receipt.schema.json");
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -630,24 +631,19 @@ function checkVerifiedActiveApplyChain(evidence, label) {
   else fail(`${label} VERIFIED_ACTIVE requires verified apply chain surface status VERIFIED`);
 
   const refs = Array.isArray(evidence?.evidence_refs) ? evidence.evidence_refs : [];
-  const applyPlanRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-plans/"));
+  const receiptRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-receipts/"));
+  const executionPlanRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-execution-plans/"));
   const approvalRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("approval-records/"));
   const readinessRef = refs.find((ref) => normalizedEvidencePath(ref).startsWith("apply-readiness-reports/"));
-
-  const applyPlan = validateReferencedEvidenceFile(applyPlanRef, applyPlanSchema, `${label} apply plan`, "plan_digest");
-  const approval = validateReferencedEvidenceFile(approvalRef, approvalRecordSchema, `${label} approval record`);
-  const readiness = validateReferencedEvidenceFile(readinessRef, applyReadinessSchema, `${label} apply readiness`);
-  if (!applyPlan || !approval || !readiness) return;
-
-  const planDigest = applyPlan.plan_digest;
-  if (planDigest && approval.approved_plan?.plan_digest === planDigest) pass(`${label} approval record references current apply plan digest`);
-  else fail(`${label} approval record must reference current apply plan digest`);
-  if (planDigest && readiness.apply_plan?.plan_digest === planDigest) pass(`${label} apply readiness references current apply plan digest`);
-  else fail(`${label} apply readiness must reference current apply plan digest`);
-  if (approval.approval_status === "APPROVED") pass(`${label} approval record is APPROVED`);
-  else fail(`${label} VERIFIED_ACTIVE requires APPROVED approval record`);
-  if (readiness.readiness_state === "READY_FOR_HUMAN_APPROVED_APPLY") pass(`${label} apply readiness is ready for human approved apply`);
-  else fail(`${label} VERIFIED_ACTIVE requires READY_FOR_HUMAN_APPROVED_APPLY readiness`);
+  const receipt = validateReferencedEvidenceFile(receiptRef, applyReceiptSchema, `${label} apply execution receipt`);
+  if (!receipt) return;
+  if (executionPlanRef && approvalRef && readinessRef) pass(`${label} verified receipt source chain is referenced`);
+  else fail(`${label} VERIFIED_ACTIVE requires execution plan, approval, readiness, and receipt refs`);
+  if (receipt.receipt_state === "APPLY_VERIFIED" && receipt.activation?.status === "VERIFIED") {
+    pass(`${label} apply receipt proves verified replay and activation`);
+  } else {
+    fail(`${label} VERIFIED_ACTIVE requires APPLY_VERIFIED receipt and activation`);
+  }
 }
 
 function validateReferencedEvidenceFile(ref, schema, label, digestField = "") {

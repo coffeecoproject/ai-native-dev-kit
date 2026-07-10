@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.91.1`
+Current version: `1.92.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,21 @@ Current version: `1.91.1`
 
 ## Current Release
 
-`1.91.1`
+`1.92.0`
 
 Includes:
+
+- Apply & Adoption Closure `1.92.0`: the controlled IntentOS init/update path
+  now replays the immutable approved execution graph instead of regenerating a
+  broader copy operation. Apply requires matching human Approval and
+  Controlled Apply Readiness records, records plan-bound backups and
+  before/after hashes, rejects hidden/high-risk writes, generates a
+  project-bound Apply Receipt, and verifies the installed workflow entry
+  read-only before applied adoption can count as active.
+- `1.92.0` authorizes only the exact bounded low-risk IntentOS governance graph
+  selected by the plan, approval, and readiness chain. It does not approve
+  business implementation, CI/hooks, release, production, migrations,
+  secrets, industrial decisions, or project-authority replacement.
 
 - Evidence Authority Coverage Close-Out `1.91.1`: explicit strict Change
   Impact Coverage, Unified Apply Plan, and Release Handoff Pack checks now fail
