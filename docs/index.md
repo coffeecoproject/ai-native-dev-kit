@@ -20,6 +20,7 @@ This index separates current operating documents from reference material, histor
 
 ## Entry And Routing
 
+- [Operating Model](operating-model.md)
 - [Beginner Entry](beginner-entry.md)
 - [Conversation-Native Ask](conversation-native-ask.md)
 - [Natural Language Orchestrator](natural-language-orchestrator.md)

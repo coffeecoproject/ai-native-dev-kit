@@ -1,6 +1,7 @@
 {
-  "intentOSVersion": "1.94.0",
+  "intentOSVersion": "1.95.0",
   "starter": "<starter-name>",
+  "projectEntryOrigin": "<NEW_PROJECT|EXISTING_PROJECT|UNKNOWN_PROJECT_ORIGIN>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
   "workflowAssets": [
@@ -113,6 +114,7 @@
     ".intentos/core/low-risk-controlled-apply-candidate.md",
     ".intentos/core/native-first-existing-project-migration.md",
     ".intentos/core/natural-language-orchestrator.md",
+    ".intentos/core/operating-model.md",
     ".intentos/core/ordinary-user-first-slice.md",
     ".intentos/core/outcome-baseline.md",
     ".intentos/core/patch-classification.md",
@@ -191,6 +193,7 @@
     ".intentos/docs/native-first-existing-project-migration.md",
     ".intentos/docs/natural-language-orchestrator.md",
     ".intentos/docs/o0-bl0-lightweight-path.md",
+    ".intentos/docs/operating-model.md",
     ".intentos/docs/ordinary-user-first-slice.md",
     ".intentos/docs/plan-review-gate.md",
     ".intentos/docs/platform-release-recipes.md",
@@ -590,6 +593,7 @@
     "scripts/resolve-launch-review-view.mjs",
     "scripts/resolve-low-risk-apply-candidate.mjs",
     "scripts/resolve-native-migration.mjs",
+    "scripts/resolve-operating-loop.mjs",
     "scripts/resolve-plan-review.mjs",
     "scripts/resolve-platform-baseline.mjs",
     "scripts/resolve-product-completeness.mjs",

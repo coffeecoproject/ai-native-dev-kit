@@ -45,30 +45,26 @@ Codex should not require you to know internal commands before starting.
 
 ## Public Entry Commands
 
-When command evidence is useful, start with these:
+When command evidence is useful, use one entry:
 
 | Need | Command |
 |---|---|
-| Understand the project only | `node scripts/cli.mjs start <project>` |
-| Enter safe old-project adoption | `node scripts/cli.mjs adopt <existing-project> --intent "<what you want>"` |
-| See the next safe workflow action | `node scripts/cli.mjs next <project>` |
-| Check the current workflow health | `node scripts/cli.mjs doctor <project>` |
-| Check whether an old project really adopted IntentOS | `node scripts/cli.mjs adoption-assurance <project>` |
+| Start, continue, check, finish, prepare release, or adopt | `node scripts/cli.mjs work <project> "<what you want>"` |
 
-These commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
+The command is read-only. It does not approve implementation, release,
+production, CI, hooks, secrets, migrations, payment, permissions, or governance
+replacement. IntentOS selects the lower-level source systems internally.
 
-`start` is only orientation: it reads and classifies the target. It does not
-install `.intentos/`, write a plan file, apply workflow assets, or start safe
-adoption. Use `adopt` when the user wants an existing project to begin the
-IntentOS safe adoption flow.
+Maintainers can inspect those systems with `node scripts/cli.mjs
+--help-advanced`; ordinary users do not need to choose them.
 
 ## Then What?
 
 - New project: Codex derives the technical baseline, prepares the controlled
   setup plan, asks for one meaningful confirmation when required, and then
   continues to the first useful slice.
-- Existing project: run `adopt` first; it summarizes the safe adoption path and
-  required rule comparison before any workflow asset change.
+- Existing project: `work` routes internally to the adoption and rule-comparison
+  sources before any workflow asset change.
 - Governed or production project: stay read-only until Native Migration, Existing Rule Reconciliation, apply plan, approval, and readiness checks are complete.
 
 For the shortest setup path, see [Minimal Adoption](minimal-adoption.md).
@@ -78,3 +74,5 @@ For the current GitHub clone path, see [Source-Only Adoption](source-only-adopti
 For old projects, see [For Existing Projects](for-existing-projects.md).
 
 For maintainers and CI, see [For Maintainers](for-maintainers.md).
+
+For the six-operation model and its boundaries, see [Operating Model](operating-model.md).

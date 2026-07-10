@@ -1825,6 +1825,34 @@ function checkCliFrontDoor() {
     "Command: intentos",
     currentVersion(),
     "Manifest: intentos-manifest.json",
+    "One public operating loop",
+    "Plain-language meanings",
+    "work",
+    "Start a project",
+    "Continue a task",
+    "Check status",
+    "Finish a task",
+    "Prepare release",
+    "Adopt old project",
+    "--help-advanced",
+    "docs/operating-model.md",
+    "Lower-level commands remain supported",
+  ]) {
+    if (helpOutput.includes(marker)) pass(`CLI beginner help includes ${marker}`);
+    else fail(`CLI beginner help missing ${marker}`);
+  }
+  for (const hiddenMarker of ["business-rule-check", "execution-assurance-check", "release-execution-check", "self-check"]) {
+    if (!helpOutput.includes(hiddenMarker)) pass(`CLI beginner help hides ${hiddenMarker}`);
+    else fail(`CLI beginner help exposes advanced command ${hiddenMarker}`);
+  }
+
+  const advancedHelp = runNode(["scripts/cli.mjs", "--help-advanced"]);
+  const advancedHelpOutput = `${advancedHelp.stdout}\n${advancedHelp.stderr}`;
+  if (advancedHelp.status !== 0) {
+    fail(`CLI advanced help failed: ${advancedHelpOutput}`);
+    return;
+  }
+  for (const marker of [
     "Primary entry commands",
     "Common user-facing decisions",
     "Advanced commands remain available",
@@ -1891,8 +1919,24 @@ function checkCliFrontDoor() {
     "--dry-run",
     "Lower-level scripts remain supported",
   ]) {
-    if (helpOutput.includes(marker)) pass(`CLI help includes ${marker}`);
-    else fail(`CLI help missing ${marker}`);
+    if (advancedHelpOutput.includes(marker)) pass(`CLI advanced help includes ${marker}`);
+    else fail(`CLI advanced help missing ${marker}`);
+  }
+
+  const operating = runNode(["scripts/cli.mjs", "work", ".", "检查当前项目状态", "--json"]);
+  try {
+    const parsed = JSON.parse(operating.stdout);
+    if (operating.status === 0
+      && parsed.reportType === "INTENTOS_OPERATING_STATE"
+      && parsed.readOnly === true
+      && parsed.operatingLoop?.operation === "CHECK_STATUS"
+      && parsed.boundaries?.authorizesImplementation === "No") {
+      pass("CLI work delegates to the read-only Operating Model");
+    } else {
+      fail(`CLI work returned an invalid Operating State: ${operating.stderr || operating.stdout}`);
+    }
+  } catch (error) {
+    fail(`CLI work output is not valid JSON: ${error.message}`);
   }
 
   const version = runNode(["scripts/cli.mjs", "--version"]);
@@ -5918,7 +5962,7 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     "Technical Trace",
     "read-only orientation only",
     "safe adoption entry",
-    "Use `adopt` when the user wants an existing project",
+    "Maintainers may use `adopt`",
     "node scripts/cli.mjs adopt <existing-project> --intent",
     "node scripts/cli.mjs adopt-check <project>",
     "plain-language adoption state",
@@ -6065,15 +6109,15 @@ function checkExistingProjectAdoptionAutopilotProtocol() {
     else fail(`1.81 adoption autopilot must reject ${target}`);
   }
 
-  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  const cliHelp = runNode(["scripts/cli.mjs", "--help-advanced"]);
   if (cliHelp.status === 0
     && cliHelp.stdout.includes("Primary entry commands:")
     && cliHelp.stdout.includes("adopt")
     && cliHelp.stdout.includes("Read-only project orientation")
     && cliHelp.stdout.includes("Enter read-only existing-project safe adoption autopilot")) {
-    pass("1.81.2 public entry help exposes start/adopt distinction");
+    pass("1.81.2 advanced entry reference preserves start/adopt distinction");
   } else {
-    fail(`1.81.2 public entry help missing start/adopt distinction: ${cliHelp.stderr || cliHelp.stdout}`);
+    fail(`1.81.2 advanced entry reference missing start/adopt distinction: ${cliHelp.stderr || cliHelp.stdout}`);
   }
 
   const startHuman = runNode(["scripts/cli.mjs", "start", "."]);
@@ -6261,7 +6305,7 @@ function checkControlledNativeAdoptionReviewProtocol() {
     else fail(`1.82 controlled native adoption review must reject ${fixture}`);
   }
 
-  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  const cliHelp = runNode(["scripts/cli.mjs", "--help-advanced"]);
   if (cliHelp.status === 0
     && cliHelp.stdout.includes("adopt-review")
     && cliHelp.stdout.includes("Review whether an existing project should stay partial")) {
@@ -6457,7 +6501,7 @@ function checkTaskGovernanceProtocol() {
     else fail(`1.83 task governance must reject ${fixture}`);
   }
 
-  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  const cliHelp = runNode(["scripts/cli.mjs", "--help-advanced"]);
   if (cliHelp.status === 0
     && cliHelp.stdout.includes("task-governance")
     && cliHelp.stdout.includes("Classify task impact")) {
@@ -6630,7 +6674,7 @@ function checkWorkQueueTakeoverProtocol() {
     else fail(`1.84 work queue takeover must reject ${fixture}`);
   }
 
-  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  const cliHelp = runNode(["scripts/cli.mjs", "--help-advanced"]);
   if (cliHelp.status === 0
     && cliHelp.stdout.includes("queue-takeover")
     && cliHelp.stdout.includes("old project's task records")) {
@@ -6950,7 +6994,7 @@ function checkRuntimeHygieneProtocol() {
     else fail(`1.86 runtime hygiene must reject ${fixture}`);
   }
 
-  const cliHelp = runNode(["scripts/cli.mjs", "--help"]);
+  const cliHelp = runNode(["scripts/cli.mjs", "--help-advanced"]);
   if (cliHelp.status === 0
     && cliHelp.stdout.includes("runtime-hygiene")
     && cliHelp.stdout.includes("Git, push, CI, artifact, bundle, or release-runtime blockers")) {
@@ -15115,6 +15159,48 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project init");
 
+  const operatingModelAssets = [
+    "scripts/resolve-operating-loop.mjs",
+    ".intentos/core/operating-model.md",
+    ".intentos/docs/operating-model.md",
+  ];
+  const missingOperatingModelAssets = operatingModelAssets.filter((relativePath) => !fs.existsSync(path.join(target, relativePath)));
+  if (missingOperatingModelAssets.length > 0) {
+    fail(`generated project missing operating model assets: ${missingOperatingModelAssets.join(", ")}`);
+    return;
+  }
+  const generatedVersion = JSON.parse(fs.readFileSync(path.join(target, ".intentos", "version.json"), "utf8"));
+  if (generatedVersion.projectEntryOrigin !== "NEW_PROJECT") {
+    fail(`generated project entry origin is not durable: ${generatedVersion.projectEntryOrigin || "missing"}`);
+    return;
+  }
+  const operatingLoop = runNode([
+    path.join(target, "scripts", "resolve-operating-loop.mjs"),
+    target,
+    "--intent",
+    "我想做一个预约 App",
+    "--json",
+  ]);
+  if (operatingLoop.status !== 0) {
+    fail(`generated project operating loop failed: ${operatingLoop.stderr || operatingLoop.stdout}`);
+    return;
+  }
+  let operatingState;
+  try {
+    operatingState = JSON.parse(operatingLoop.stdout);
+  } catch (error) {
+    fail(`generated project operating loop returned invalid JSON: ${error.message}`);
+    return;
+  }
+  if (operatingState.projectEntry?.state !== "NEW_PROJECT_ENTRY"
+    || operatingState.operatingLoop?.operation !== "START_PROJECT"
+    || operatingState.readOnly !== true
+    || operatingState.boundaries?.writesTargetFiles !== "No") {
+    fail(`generated project operating loop misrouted the new project: ${operatingLoop.stdout}`);
+    return;
+  }
+  pass("generated project operating model entry and routing");
+
   const projectCheck = runNode([
     path.join(target, "scripts", "check-ai-workflow.mjs"),
     target,
@@ -18069,6 +18155,67 @@ function checkBaselineManifestPublicEntryConsolidationProtocol() {
   else fail(`1.94 baseline installation verification failed: ${installedCheck.stderr || installedCheck.stdout}`);
 }
 
+function checkOperatingModelConsolidationProtocol() {
+  const plan = read("docs/plans/operating-model-consolidation-1.95-plan.md");
+  const core = read("core/operating-model.md");
+  const usage = read("docs/operating-model.md");
+  const resolver = read("scripts/resolve-operating-loop.mjs");
+  const prWorkflow = read(".github/workflows/intentos-pr-checks.yml");
+  const releaseWorkflow = read(".github/workflows/intentos-release-checks.yml");
+
+  for (const marker of [
+    "Project Entry",
+    "Operating Loop",
+    "Evidence Trace",
+    "Authority Recommendation",
+    "BL2 must not automatically classify every task as HIGH",
+    "does not add a new governance authority",
+  ]) {
+    if (plan.includes(marker)) pass(`1.95 plan includes ${marker}`);
+    else fail(`1.95 plan missing ${marker}`);
+  }
+  for (const marker of [
+    "START_PROJECT",
+    "CONTINUE_TASK",
+    "CHECK_STATUS",
+    "FINISH_TASK",
+    "PREPARE_RELEASE",
+    "ADOPT_PROJECT",
+    "derived read-only view",
+  ]) {
+    if (`${core}\n${resolver}`.includes(marker)) pass(`1.95 operating model includes ${marker}`);
+    else fail(`1.95 operating model missing ${marker}`);
+  }
+  if (usage.includes("cli.mjs work") && usage.includes("--help-advanced")) {
+    pass("1.95 usage exposes one natural-language work entry and advanced maintenance help");
+  } else {
+    fail("1.95 usage must expose work and explicit advanced help");
+  }
+  for (const forbidden of ["evidence-graph-reports", "operating-state-reports", "authority-recommendation-records"]) {
+    if (!read("intentos-manifest.json").includes(forbidden)) pass(`1.95 does not add parallel artifact directory ${forbidden}`);
+    else fail(`1.95 must not add parallel artifact directory ${forbidden}`);
+  }
+  if (prWorkflow.includes("Expected CHECK_STATUS") && releaseWorkflow.includes("Expected CHECK_STATUS")) {
+    pass("1.95 PR and release CI assert the Operating Model route instead of only its exit code");
+  } else {
+    fail("1.95 PR and release CI must assert the CHECK_STATUS route");
+  }
+  if (releaseWorkflow.includes("Release tag matches package version")
+    && releaseWorkflow.includes("GITHUB_REF_NAME")
+    && releaseWorkflow.includes("package.json")) {
+    pass("1.95 release CI enforces tag and package version parity");
+  } else {
+    fail("1.95 release CI must enforce tag and package version parity");
+  }
+
+  const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
+  if (tests.status === 0 && tests.stdout.includes("pass 16") && tests.stdout.includes("fail 0")) {
+    pass("1.95 Operating Model acceptance and negative tests");
+  } else {
+    fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
+  }
+}
+
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
@@ -18141,6 +18288,7 @@ checkEvidenceAuthorityCoreProtocol();
 checkApplyAdoptionClosureProtocol();
 checkReleaseTrustClosureProtocol();
 checkBaselineManifestPublicEntryConsolidationProtocol();
+checkOperatingModelConsolidationProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

@@ -7,10 +7,11 @@ Most users should start with [Start Here](start-here.md).
 ## Primary Public Entry
 
 ```bash
-node scripts/cli.mjs start <project>
-node scripts/cli.mjs next <project>
-node scripts/cli.mjs doctor <project>
+node scripts/cli.mjs work <project> "<plain-language goal>"
 ```
+
+Use `node scripts/cli.mjs --help-advanced` before selecting a lower-level
+source-system command for debugging, CI, or exact evidence work.
 
 ## Natural-Language Evidence
 

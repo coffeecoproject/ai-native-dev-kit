@@ -13,6 +13,12 @@ const packageJson = readJsonIfExists(path.join(kitRoot, "package.json"));
 const version = manifest?.intentOSVersion || packageJson?.version || readVersionFile();
 
 const commandRegistry = {
+  work: {
+    description: "Turn one natural-language goal into the current read-only IntentOS Operating State.",
+    script: "scripts/resolve-operating-loop.mjs",
+    writes: false,
+    buildArgs: (args) => args,
+  },
   ask: {
     description: "Accept one natural-language goal and return a beginner-friendly entry card.",
     script: "scripts/resolve-beginner-entry.mjs",
@@ -778,10 +784,16 @@ const commandName = commandIndex === -1 ? null : argv[commandIndex];
 const commandArgs = commandIndex === -1 ? [] : argv.slice(commandIndex + 1);
 const globalArgs = commandIndex === -1 ? argv : argv.slice(0, commandIndex);
 const dryRun = globalArgs.includes("--dry-run");
-const unknownGlobalArgs = globalArgs.filter((item) => item !== "--dry-run" && item !== "--help" && item !== "-h" && item !== "--version" && item !== "-v");
+const advancedHelp = globalArgs.includes("--help-advanced");
+const unknownGlobalArgs = globalArgs.filter((item) => item !== "--dry-run" && item !== "--help" && item !== "-h" && item !== "--help-advanced" && item !== "--version" && item !== "-v");
 
 if (globalArgs.includes("--version") || globalArgs.includes("-v")) {
   console.log(version);
+  process.exit(0);
+}
+
+if (advancedHelp) {
+  printAdvancedHelp();
   process.exit(0);
 }
 
@@ -842,65 +854,60 @@ function printHelp() {
   console.log(`IntentOS CLI ${version}`);
   console.log("Command: intentos");
   console.log("");
-  console.log("IntentOS helps AI coding agents work through a project without bypassing human decisions.");
+  console.log("Describe the outcome. IntentOS chooses the internal workflow and keeps material decisions with the responsible human.");
   console.log("");
   console.log("Usage:");
-  console.log("  node scripts/cli.mjs <command> [args]");
+  console.log("  node scripts/cli.mjs work <project> \"<what you want>\"");
   console.log("");
   console.log("Global options:");
   console.log("  --help       Show help");
+  console.log("  --help-advanced  Show maintainer, CI, evidence, and debugging commands");
   console.log("  --version    Print intentos version");
-  console.log("  --dry-run    Preview routing; doctor may run read-only workflow-next before printing checks");
+  console.log("  --dry-run    Preview command routing without running the selected source command");
+  console.log("");
+  console.log(`Manifest: ${manifest ? `intentos-manifest.json (${manifest.mode}, ${manifest.intentOSVersion})` : "not found"}`);
+  console.log("");
+  console.log("One public operating loop:");
+  printCommandGroup(["work"]);
+  console.log("");
+  console.log("Plain-language meanings:");
+  console.log("  Start a project       work . \"我想从零做一个预约 App\"");
+  console.log("  Continue a task       work . \"继续完成预约时间规则\"");
+  console.log("  Check status          work . \"检查当前任务做到哪里了\"");
+  console.log("  Finish a task         work . \"这个任务做完了吗\"");
+  console.log("  Prepare release       work . \"准备发布内部测试版本\"");
+  console.log("  Adopt old project     work ../old-project \"把这个项目接入 IntentOS\"");
+  console.log("");
+  console.log("Docs:");
+  console.log("  docs/start-here.md");
+  console.log("  docs/operating-model.md");
+  console.log("");
+  console.log("Lower-level commands remain supported. Run `node scripts/cli.mjs --help-advanced` only for maintenance, CI, or debugging.");
+}
+
+function printAdvancedHelp() {
+  console.log(`IntentOS CLI ${version} - Advanced Reference`);
+  console.log("Command: intentos");
+  console.log("");
+  console.log("These commands are implementation details for Codex, maintainers, CI, evidence review, and debugging.");
+  console.log("Ordinary users should use: node scripts/cli.mjs work <project> \"<what you want>\"");
+  console.log("");
+  console.log("Global options: --help, --help-advanced, --version, --dry-run");
   console.log("");
   console.log(`Manifest: ${manifest ? `intentos-manifest.json (${manifest.mode}, ${manifest.intentOSVersion})` : "not found"}`);
   console.log("");
   console.log("Primary entry commands:");
-  printCommandGroup(["start", "adopt", "adopt-review", "next", "doctor"]);
+  printCommandGroup(["work", "start", "adopt", "adopt-review", "next", "doctor"]);
   console.log("");
   console.log("Common user-facing decisions:");
   printCommandGroup(["ask", "guide", "task-governance", "status", "finish", "completion-evidence", "execution-assurance", "runtime-hygiene", "release-guide", "release-plan", "release-evidence", "release-channel", "apply-plan"]);
   console.log("");
   console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
-    "start",
-    "adopt",
-    "adopt-review",
-    "next",
-    "doctor",
-    "ask",
-    "guide",
-    "task-governance",
-    "status",
-    "finish",
-    "completion-evidence",
-    "execution-assurance",
-    "runtime-hygiene",
-    "release-guide",
-    "release-plan",
-    "release-evidence",
-    "release-channel",
-    "apply-plan",
+    "work", "start", "adopt", "adopt-review", "next", "doctor", "ask", "guide",
+    "task-governance", "status", "finish", "completion-evidence", "execution-assurance",
+    "runtime-hygiene", "release-guide", "release-plan", "release-evidence", "release-channel", "apply-plan",
   ].includes(name)));
-  console.log("");
-  console.log("Examples:");
-  console.log("  node scripts/cli.mjs start ../my-project            # read-only orientation only");
-  console.log("  node scripts/cli.mjs adopt ../existing-project --intent 'connect this project under IntentOS'");
-  console.log("  node scripts/cli.mjs adopt-review ../existing-project --intent 'review deeper IntentOS adoption'");
-  console.log("  node scripts/cli.mjs next ../my-project");
-  console.log("  node scripts/cli.mjs doctor ../my-project");
-  console.log("  node scripts/cli.mjs ask ../my-project '我想做一个预约 App'");
-  console.log("  node scripts/cli.mjs task-governance ../my-project --intent '新增审批状态规则'");
-  console.log("  node scripts/cli.mjs status ../my-project --intent '我想做一个预约 App'");
-  console.log("  node scripts/cli.mjs completion-evidence ../my-project --intent '完成预约时间规则' --out completion-evidence-reports/001-service-time.md");
-  console.log("  node scripts/cli.mjs completion-evidence-check ../my-project --require-structured-evidence --require-ready");
-  console.log("  node scripts/cli.mjs execution-assurance ../my-project --intent '完成合同录入限制' --out execution-assurance-reports/001-contract-limit.md");
-  console.log("  node scripts/cli.mjs execution-assurance-check ../my-project --require-structured-evidence");
-  console.log("  node scripts/cli.mjs runtime-hygiene ../my-project --intent 'push current task'");
-  console.log("  node scripts/cli.mjs release-guide ../my-project --intent 'help me launch'");
-  console.log("  node scripts/cli.mjs release-evidence ../my-project --intent 'prepare release review'");
-  console.log("  node scripts/cli.mjs release-channel ../my-project --intent 'decide release channel policy'");
-  console.log("  node scripts/cli.mjs release-approval-check ../my-project --require-structured-evidence --require-approved");
-  console.log("  node scripts/cli.mjs apply-plan ../my-project --intent '接入 IntentOS 工作流' --action workflow-assets");
   console.log("");
   console.log("Docs:");
   console.log("  docs/start-here.md");
@@ -908,6 +915,7 @@ function printHelp() {
   console.log("  docs/source-only-adoption.md");
   console.log("  docs/for-existing-projects.md");
   console.log("  docs/for-maintainers.md");
+  console.log("  docs/reference/scripts.md");
   console.log("");
   console.log("Lower-level scripts remain supported for debugging and exact CI references.");
 }
@@ -921,6 +929,10 @@ function printCommandGroup(names) {
 }
 
 function printCommandHelp(name, command) {
+  if (name === "work") {
+    printWorkHelp();
+    return;
+  }
   console.log(`IntentOS command: ${name}`);
   console.log("Command: intentos");
   console.log("");
@@ -932,6 +944,21 @@ function printCommandHelp(name, command) {
     return;
   }
   printDisplayCommand(command.script, command.buildArgs([]));
+}
+
+function printWorkHelp() {
+  console.log("IntentOS command: work");
+  console.log("Command: intentos");
+  console.log("");
+  console.log("Usage:");
+  console.log("  node scripts/cli.mjs work <project> \"<what you want>\"");
+  console.log("  node scripts/cli.mjs work <project> --intent \"<what you want>\" --json");
+  console.log("");
+  console.log("Meanings: start a project, continue a task, check status, finish a task, prepare release, or adopt an existing project.");
+  console.log("");
+  console.log("Output options: --json or --format human|json");
+  console.log("");
+  console.log("Boundary: read-only. This command does not write files, change task state, authorize implementation or apply, or approve release or production.");
 }
 
 function runCommand(name, command, args, options) {

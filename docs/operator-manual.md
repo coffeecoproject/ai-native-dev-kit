@@ -23,6 +23,17 @@ Codex may draft and execute. Humans keep responsibility for decisions, risk acce
 
 ## Entry Rule
 
+The public entry is the read-only Operating Model:
+
+```bash
+node scripts/cli.mjs work <project> "<plain-language goal>"
+```
+
+It derives Project Entry, the current operation, Evidence Trace, and Authority
+Recommendation. It does not replace or authorize the lower-level source
+systems. Use `--help-advanced` only for maintainer diagnosis and direct evidence
+work.
+
 When a user gives a plain project goal in conversation, treat it as Conversation-Native Ask unless the user clearly says they only want to discuss, review, compare, inspect, pause, or stop.
 
 The user should not need to know the command name before Codex can route the work:
@@ -31,22 +42,22 @@ The user should not need to know the command name before Codex can route the wor
 我想做一个预约 App，你帮我开始。
 ```
 
-For durable evidence and maintainer debugging, the equivalent command remains:
+For durable user-facing evidence, use the same Operating Model:
 
 ```bash
-node scripts/cli.mjs ask <project> "<goal>"
-node scripts/cli.mjs conversation-ask-check <project>
+node scripts/cli.mjs work <project> "<goal>"
 ```
 
 Conversation-Native Ask is routing only. It does not authorize writes, apply, implementation, release, production, CI, hooks, document cleanup, task-state changes, baseline activation, or high-risk decisions.
 
-Always start by reading project state before writing files:
+The Operating Model reads project state before any write is considered:
 
 ```bash
-node scripts/cli.mjs start <project>
+node scripts/cli.mjs work <project> "<goal>"
 ```
 
-`start` is read-only by default. It classifies the project, recommends the adoption path, and lists human decisions. Use `node scripts/cli.mjs next <project>` only when you need the lower-level `workflow-next` state.
+Maintainers may use `start` or `next` from `--help-advanced` to inspect the
+lower-level project-state source. They do not replace the public entry.
 
 Decision-heavy output must start with `Human Decision Summary`. The user should see one recommended choice, alternatives, whether each choice writes project files, the risk, and what happens if they do nothing before any technical fields.
 

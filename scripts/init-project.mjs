@@ -1616,6 +1616,7 @@ function buildVersionRecord(targetPath, starter, options = {}, now = new Date().
   const version = {
     intentOSVersion: currentIntentOSVersion,
     starter: existing.starter || starter,
+    projectEntryOrigin: existing.projectEntryOrigin || options.projectEntryOrigin || "UNKNOWN_PROJECT_ORIGIN",
     baselineSelection: options.baselineConfig?.configured ? {
       level: options.baselineConfig.baselineLevel,
       profiles: options.baselineConfig.profiles,
@@ -1823,6 +1824,7 @@ function enrichExecutionActions(actions, targetPath, options, createdAt, receipt
       const record = buildVersionRecord(targetPath, options.starter, {
         update: options.update,
         baselineConfig: options.baselineConfig,
+        projectEntryOrigin: options.projectEntryOrigin,
       }, createdAt);
       const content = `${JSON.stringify(record, null, 2)}\n`;
       action.inlineContentBase64 = Buffer.from(content).toString("base64");
@@ -2139,7 +2141,12 @@ function buildPlan(targetPath, options = {}) {
   const operation = options.update ? "UPDATE_WORKFLOW_ASSETS" : "INIT_PROJECT";
   const actions = [];
   const baselineConfig = baselineConfigurationForPlan(targetPath, options);
-  options = { ...options, baselineConfig };
+  const projectEntryOrigin = fs.existsSync(targetPath)
+    && fs.statSync(targetPath).isDirectory()
+    && fs.readdirSync(targetPath).some((entry) => !isIgnorableNewProjectEntry(entry))
+    ? "EXISTING_PROJECT"
+    : "NEW_PROJECT";
+  options = { ...options, baselineConfig, projectEntryOrigin };
   if (!options.update) {
     addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, "starters", options.starter), ".", {
       overwrite: false,
@@ -2834,7 +2841,10 @@ function executeInit(targetPath, starter, options = {}) {
     industrialPacks: options.industrialPacks,
     backupDir: options.backupDir,
   });
-  writeVersionFile(targetPath, starter, { backupDir: options.backupDir });
+  writeVersionFile(targetPath, starter, {
+    backupDir: options.backupDir,
+    projectEntryOrigin: "NEW_PROJECT",
+  });
   console.log("");
   console.log(`Initialized ${starter} at ${targetPath}`);
   printNextSteps();

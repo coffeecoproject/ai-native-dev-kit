@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.94.0`.
+Current release: `1.95.0`.
 
-Release record: [releases/1.94.0/release-record.md](releases/1.94.0/release-record.md).
+Release record: [releases/1.95.0/release-record.md](releases/1.95.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -22,59 +22,44 @@ Most users should start with natural language:
 I want to build a booking app. Start this project for me.
 ```
 
-When command evidence is useful, use only these first:
+When command evidence is useful, use one public operating loop:
 
 ```bash
-node scripts/cli.mjs start <project>
-node scripts/cli.mjs adopt <existing-project> --intent "<connect this project>"
-node scripts/cli.mjs adopt-review <existing-project> --intent "<review deeper adoption>"
-node scripts/cli.mjs queue-takeover <existing-project> --intent "<continue old project work>"
-node scripts/cli.mjs next <project>
-node scripts/cli.mjs doctor <project>
-node scripts/cli.mjs status <project> --intent "<what you want>"
-node scripts/cli.mjs plan-review <project> --plan <plan.md> --intent "<review this plan>"
-node scripts/cli.mjs release-channel <project> --intent "<decide release channel policy>"
+node scripts/cli.mjs work <project> "<what you want>"
 ```
 
-Those commands are read-only. They do not approve implementation, release, production, CI, hooks, secrets, migrations, payment, permissions, or governance replacement.
+`work` identifies the project entry and routes six ordinary meanings: start,
+continue, check status, finish, prepare release, or adopt an existing project.
+It is read-only and does not approve implementation, apply, release,
+production, CI, hooks, secrets, migrations, payment, permissions, or
+governance replacement.
 
-`start` is only orientation. It reads and classifies the target. For an existing
-project, use `adopt` to enter the safe adoption flow.
-
-`adopt-review` is the next read-only step when an existing project asks whether
-it should stay partial, repair governance first, or prepare a deeper adoption
-plan. It recommends adoption depth, but still does not write project files.
-
-`queue-takeover` is the old-project task-entry review. It checks whether the
-project already has a reliable task system, has messy TODO/session records, has
-no task system, or is unsafe to take over. It can recommend IntentOS Work Queue
-as the future task authority, but it still does not authorize implementation.
-
-`runtime-hygiene` is the delivery-runtime review. It classifies Git lineage,
-pre-push gates, CI failures, release lanes, artifact quota, and bundle bloat
-without approving commit, push, release, production, deletion, gate bypass, or
-force push.
-
-`release-channel` separates Git/GitHub source identity from release package and
-release execution. GitHub can remain the code and evidence system, but GitHub
-Release assets, GitHub Actions artifacts, provider deploys, registries,
-app-store or mini-program uploads, release owners, cost owners, and retention
-policies are decided separately.
-
-`plan-review` reviews an implementation plan before coding. For important
-tasks, especially permission, deletion, workflow, business-rule, data, API, or
-release-related work, a plan being written is not enough. The plan must pass a
-pre-implementation review gate before Codex moves to implementation review.
+Maintainers can use `node scripts/cli.mjs --help-advanced` for the lower-level
+source-system commands. Ordinary users do not need to select them.
 
 Start here:
 
 - [Start Here](docs/start-here.md)
+- [Operating Model](docs/operating-model.md)
 - [Minimal Adoption](docs/minimal-adoption.md)
 - [Source-Only Adoption](docs/source-only-adoption.md)
 - [For Existing Projects](docs/for-existing-projects.md)
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.95.0 consolidates project entry and daily work into one read-only Operating
+Model. A user gives one natural-language goal; IntentOS derives whether this is
+a new project, existing-project adoption, normal task, status check, task
+close-out, or release preparation, then shows one current state, one safe next
+step, and at most one meaningful decision. Existing evidence, approval,
+baseline, task, adoption, and release systems remain authoritative and visible
+through a derived Evidence Trace and Authority Recommendation.
+
+The operating view does not create a new evidence artifact, grant authority,
+write files, change task state, approve implementation, or approve release.
+BL2 project depth also does not automatically turn a genuinely low-impact task
+into high-impact work.
 
 1.94.0 consolidates project baselines and the distributable manifest. Codex
 now derives the technical profile, BL level, and concrete packs, places the
@@ -469,21 +454,23 @@ Most users should start here:
 我想做一个预约 App，你帮我开始。
 ```
 
-Codex should treat a natural-language project goal as the default IntentOS entry and route it through Beginner Entry behavior.
+Codex should treat a natural-language project goal as the default IntentOS entry
+and route it through the shared Operating Model. Beginner Entry remains an
+internal source system for applicable project-start tasks.
 
 For maintainers, CI, or explicit command-line evidence, the equivalent command is:
 
 ```bash
-node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
+node scripts/cli.mjs work ../my-project "我想做一个预约 App"
 ```
 
 或者在当前项目里：
 
 ```bash
-node scripts/cli.mjs ask "我想把当前项目接入 IntentOS"
+node scripts/cli.mjs work . "我想把当前项目接入 IntentOS"
 ```
 
-`ask` 会输出一张 Beginner Entry Card，说明：
+`work` outputs one current Operating State that explains:
 
 - AI 理解了什么；
 - 建议先走哪条路径；
@@ -493,7 +480,8 @@ node scripts/cli.mjs ask "我想把当前项目接入 IntentOS"
 
 你不需要先知道 `workflow-map`、`baseline-decision`、`apply-plan`、`BL2` 或 hook policy 是什么。Codex 会自己选择内部路径，并把结果翻译成人能判断的内容。
 
-1.37 adds Conversation-Native Ask: the command is implementation evidence, not something the user must know before starting.
+The historical `ask` command remains available to maintainers as a lower-level
+Beginner Entry source-system command. It is no longer a separate public entry.
 
 ## When To Use It
 
@@ -584,12 +572,12 @@ For durable command-line evidence, use:
 
 | 你想做什么 | 命令 |
 |---|---|
-| 用一句话开始 | `node scripts/cli.mjs ask ../my-project "我想做一个预约 App"` |
-| 看更完整的下一步建议 | `node scripts/cli.mjs guide ../my-project --deep --intent "我要加支付预约"` |
-| 判断任务能不能收口 | `node scripts/cli.mjs finish ../my-project --intent "新增合同录入限制" --verification "npm run verify passed"` |
-| 准备发布路径 | `node scripts/cli.mjs release-guide ../my-project --intent "帮我上线"` |
-| 看统一发布视图 | `node scripts/cli.mjs release-plan ../my-project --intent "帮我上线"` |
-| 写入前生成统一计划 | `node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS"` |
+| 开始新项目 | `node scripts/cli.mjs work ../new-project "我想做一个预约 App"` |
+| 继续当前任务 | `node scripts/cli.mjs work ../my-project "继续完成预约时间规则"` |
+| 查看进度 | `node scripts/cli.mjs work ../my-project "检查当前任务做到哪里了"` |
+| 判断任务能不能收口 | `node scripts/cli.mjs work ../my-project "这个任务做完了吗"` |
+| 准备发布 | `node scripts/cli.mjs work ../my-project "准备发布内部测试版本"` |
+| 接入老项目 | `node scripts/cli.mjs work ../old-project "让这个项目按 IntentOS 工作"` |
 
 You do not need to choose internal workflow commands before starting.
 
@@ -665,31 +653,22 @@ IntentOS 默认保护这些边界：
 新项目可以直接从自然语言目标开始：
 
 ```bash
-node scripts/cli.mjs ask ../new-project "我想做一个中小企业管理中台"
+node scripts/cli.mjs work ../new-project "我想做一个中小企业管理中台"
 ```
 
-已有项目应该先读项目，再决定接入方式：
+已有项目也使用同一个入口，IntentOS 自己选择规则对比和接入来源：
 
 ```bash
-node scripts/cli.mjs start ../existing-project
-node scripts/cli.mjs workflow-map ../existing-project
-node scripts/cli.mjs native-migration ../existing-project
-node scripts/cli.mjs reconcile-rules ../existing-project
+node scripts/cli.mjs work ../existing-project "让这个项目按 IntentOS 工作"
 ```
 
-已上线或强治理项目默认只读：
+已上线或强治理项目仍使用同一入口，但保持只读，直到受控证据允许下一步：
 
 ```bash
-node scripts/cli.mjs guide ../production-project --deep --intent "接入 IntentOS"
-node scripts/cli.mjs native-migration ../production-project
-node scripts/cli.mjs reconcile-rules ../production-project
+node scripts/cli.mjs work ../production-project "让这个已上线项目按 IntentOS 工作"
 ```
 
-如果后续确实需要写入，先生成计划：
-
-```bash
-node scripts/cli.mjs apply-plan ../my-project --intent "接入 IntentOS 工作流"
-```
+底层接入、规则对比和写入计划命令只用于维护者证据，不要求普通用户选择。
 
 ## Verify This Repository
 

@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.94.0`
+`1.95.0`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.95.0` adds one read-only Operating Model over Project Entry and the shared
+  task lifecycle. `work` routes start, continue, status, finish, release
+  preparation, and existing-project adoption from one natural-language goal.
+- `1.95.0` exposes a derived Evidence Trace and Authority Recommendation but
+  creates no parallel evidence, grants no authority, writes no target files,
+  and does not approve implementation, apply, release, or production.
 
 - `1.94.0` binds selected profiles, canonical BL level, standard packs,
   selected BL2 industrial packs, and generated baseline records to the exact

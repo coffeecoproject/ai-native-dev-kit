@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.94.0`
+Current version: `1.95.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,18 @@ Current version: `1.94.0`
 
 ## Current Release
 
-`1.94.0`
+`1.95.0`
 
 Includes:
+
+- Operating Model Consolidation `1.95.0`: adds one read-only `work` entry that
+  derives Project Entry and routes start, continue, status, finish, release
+  preparation, or existing-project adoption from a natural-language goal.
+- `1.95.0` records durable new-versus-existing project origin during controlled
+  initialization, keeps task impact separate from BL2 project depth, and
+  exposes derived Evidence Trace and Authority Recommendation views without
+  adding evidence authority, write permission, task-state mutation,
+  implementation approval, apply approval, or release approval.
 
 - Baseline, Manifest And Public Entry Consolidation `1.94.0`: canonical BL
   levels now resolve consistently, managed `.intentos` assets no longer

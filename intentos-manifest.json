@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.94.0",
+  "intentOSVersion": "1.95.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.94.0"
+    "phase": "1.95.0"
   },
   "groups": {
     "sourceRequired": [
@@ -199,6 +199,7 @@
       "core/native-first-existing-project-migration.md",
       "core/natural-language-orchestrator.md",
       "core/next-step-boundary.md",
+      "core/operating-model.md",
       "core/ordinary-user-first-slice.md",
       "core/outcome-baseline.md",
       "core/output-protocol.md",
@@ -317,6 +318,7 @@
       "docs/native-first-existing-project-migration.md",
       "docs/natural-language-orchestrator.md",
       "docs/o0-bl0-lightweight-path.md",
+      "docs/operating-model.md",
       "docs/operator-manual.md",
       "docs/ordinary-user-first-slice.md",
       "docs/plan-review-gate.md",
@@ -377,6 +379,7 @@
       "docs/plans/native-migration-classification-calibration-1.65-plan.md",
       "docs/plans/native-migration-parser-calibration-1.64-plan.md",
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
+      "docs/plans/operating-model-consolidation-1.95-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
       "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
       "docs/plans/plan-review-consumer-integration-1.88.2-plan.md",
@@ -1766,6 +1769,9 @@
       "releases/1.94.0/known-limitations.md",
       "releases/1.94.0/release-record.md",
       "releases/1.94.0/self-check-report.md",
+      "releases/1.95.0/known-limitations.md",
+      "releases/1.95.0/release-record.md",
+      "releases/1.95.0/self-check-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",
@@ -2004,6 +2010,7 @@
       "scripts/resolve-launch-review-view.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-native-migration.mjs",
+      "scripts/resolve-operating-loop.mjs",
       "scripts/resolve-plan-review.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-platform-release-recipe.mjs",
@@ -3029,6 +3036,7 @@
       ".intentos/core/native-first-existing-project-migration.md",
       ".intentos/core/natural-language-orchestrator.md",
       ".intentos/core/next-step-boundary.md",
+      ".intentos/core/operating-model.md",
       ".intentos/core/ordinary-user-first-slice.md",
       ".intentos/core/outcome-baseline.md",
       ".intentos/core/output-protocol.md",
@@ -3098,6 +3106,7 @@
       ".intentos/docs/minimal-commit-set.md",
       ".intentos/docs/native-first-existing-project-migration.md",
       ".intentos/docs/natural-language-orchestrator.md",
+      ".intentos/docs/operating-model.md",
       ".intentos/docs/ordinary-user-first-slice.md",
       ".intentos/docs/platform-standard-baseline-packs.md",
       ".intentos/docs/product-baseline.md",
@@ -3491,6 +3500,7 @@
       "scripts/resolve-launch-review-view.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-native-migration.mjs",
+      "scripts/resolve-operating-loop.mjs",
       "scripts/resolve-platform-release-recipe.mjs",
       "scripts/resolve-product-completeness.mjs",
       "scripts/resolve-release-adapter.mjs",
@@ -3654,6 +3664,7 @@
       ".intentos/core/native-first-existing-project-migration.md",
       ".intentos/core/natural-language-orchestrator.md",
       ".intentos/core/next-step-boundary.md",
+      ".intentos/core/operating-model.md",
       ".intentos/core/ordinary-user-first-slice.md",
       ".intentos/core/outcome-baseline.md",
       ".intentos/core/output-protocol.md",
@@ -3734,6 +3745,7 @@
       ".intentos/docs/native-first-existing-project-migration.md",
       ".intentos/docs/natural-language-orchestrator.md",
       ".intentos/docs/o0-bl0-lightweight-path.md",
+      ".intentos/docs/operating-model.md",
       ".intentos/docs/ordinary-user-first-slice.md",
       ".intentos/docs/plan-review-gate.md",
       ".intentos/docs/platform-standard-baseline-packs.md",
@@ -4216,6 +4228,7 @@
       "scripts/resolve-launch-review-view.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-native-migration.mjs",
+      "scripts/resolve-operating-loop.mjs",
       "scripts/resolve-plan-review.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-platform-release-recipe.mjs",
@@ -4292,6 +4305,7 @@
       ".intentos/core/low-risk-controlled-apply-candidate.md",
       ".intentos/core/natural-language-orchestrator.md",
       ".intentos/core/next-step-boundary.md",
+      ".intentos/core/operating-model.md",
       ".intentos/core/ordinary-user-first-slice.md",
       ".intentos/core/outcome-baseline.md",
       ".intentos/core/output-protocol.md",
@@ -4373,6 +4387,7 @@
       "core/low-risk-controlled-apply-candidate.md",
       "core/native-first-existing-project-migration.md",
       "core/natural-language-orchestrator.md",
+      "core/operating-model.md",
       "core/ordinary-user-first-slice.md",
       "core/patch-classification.md",
       "core/product-completeness-gate.md",
@@ -4955,6 +4970,7 @@
       "scripts/resolve-launch-review-view.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-native-migration.mjs",
+      "scripts/resolve-operating-loop.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-platform-release-recipe.mjs",
       "scripts/resolve-product-completeness.mjs",
@@ -5931,6 +5947,7 @@
       ".intentos/core/low-risk-controlled-apply-candidate.md",
       ".intentos/core/native-first-existing-project-migration.md",
       ".intentos/core/natural-language-orchestrator.md",
+      ".intentos/core/operating-model.md",
       ".intentos/core/ordinary-user-first-slice.md",
       ".intentos/core/outcome-baseline.md",
       ".intentos/core/patch-classification.md",
@@ -6009,6 +6026,7 @@
       ".intentos/docs/native-first-existing-project-migration.md",
       ".intentos/docs/natural-language-orchestrator.md",
       ".intentos/docs/o0-bl0-lightweight-path.md",
+      ".intentos/docs/operating-model.md",
       ".intentos/docs/ordinary-user-first-slice.md",
       ".intentos/docs/plan-review-gate.md",
       ".intentos/docs/platform-release-recipes.md",
@@ -6408,6 +6426,7 @@
       "scripts/resolve-launch-review-view.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-native-migration.mjs",
+      "scripts/resolve-operating-loop.mjs",
       "scripts/resolve-plan-review.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
@@ -6539,6 +6558,7 @@
       ".intentos/core/native-first-existing-project-migration.md",
       ".intentos/core/natural-language-orchestrator.md",
       ".intentos/core/next-step-boundary.md",
+      ".intentos/core/operating-model.md",
       ".intentos/core/ordinary-user-first-slice.md",
       ".intentos/core/outcome-baseline.md",
       ".intentos/core/output-protocol.md",
@@ -6602,6 +6622,7 @@
       ".intentos/docs/minimal-commit-set.md",
       ".intentos/docs/native-first-existing-project-migration.md",
       ".intentos/docs/natural-language-orchestrator.md",
+      ".intentos/docs/operating-model.md",
       ".intentos/docs/ordinary-user-first-slice.md",
       ".intentos/docs/product-baseline.md",
       ".intentos/docs/product-completeness-gate.md",
@@ -6953,6 +6974,7 @@
       "scripts/resolve-launch-review-view.mjs",
       "scripts/resolve-low-risk-apply-candidate.mjs",
       "scripts/resolve-native-migration.mjs",
+      "scripts/resolve-operating-loop.mjs",
       "scripts/resolve-platform-baseline.mjs",
       "scripts/resolve-product-completeness.mjs",
       "scripts/resolve-release-adapter.mjs",
@@ -7231,6 +7253,10 @@
     ],
     "files": [
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
         "source": "docs/adoption-execution-assurance.md",
         "target": ".intentos/docs/adoption-execution-assurance.md"
       },
@@ -7431,6 +7457,10 @@
         "target": ".intentos/docs/o0-bl0-lightweight-path.md"
       },
       {
+        "source": "docs/operating-model.md",
+        "target": ".intentos/docs/operating-model.md"
+      },
+      {
         "source": "docs/ordinary-user-first-slice.md",
         "target": ".intentos/docs/ordinary-user-first-slice.md"
       },
@@ -7549,10 +7579,6 @@
       {
         "source": "intentos-manifest.json",
         "target": ".intentos/intentos-manifest.json"
-      },
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
       },
       {
         "source": "scripts/baseline-project.mjs",
@@ -7855,12 +7881,12 @@
         "target": "scripts/check-verification-plan.mjs"
       },
       {
-        "source": "scripts/check-work-queue.mjs",
-        "target": "scripts/check-work-queue.mjs"
-      },
-      {
         "source": "scripts/check-work-queue-takeover.mjs",
         "target": "scripts/check-work-queue-takeover.mjs"
+      },
+      {
+        "source": "scripts/check-work-queue.mjs",
+        "target": "scripts/check-work-queue.mjs"
       },
       {
         "source": "scripts/check-workflow-adoption-map.mjs",
@@ -7899,6 +7925,10 @@
         "target": "scripts/lib/artifact-schema.mjs"
       },
       {
+        "source": "scripts/lib/baseline-selection.mjs",
+        "target": "scripts/lib/baseline-selection.mjs"
+      },
+      {
         "source": "scripts/lib/check-result.mjs",
         "target": "scripts/lib/check-result.mjs"
       },
@@ -7917,10 +7947,6 @@
       {
         "source": "scripts/lib/manifest.mjs",
         "target": "scripts/lib/manifest.mjs"
-      },
-      {
-        "source": "scripts/lib/baseline-selection.mjs",
-        "target": "scripts/lib/baseline-selection.mjs"
       },
       {
         "source": "scripts/lib/markdown.mjs",
@@ -8075,6 +8101,10 @@
         "target": "scripts/resolve-native-migration.mjs"
       },
       {
+        "source": "scripts/resolve-operating-loop.mjs",
+        "target": "scripts/resolve-operating-loop.mjs"
+      },
+      {
         "source": "scripts/resolve-plan-review.mjs",
         "target": "scripts/resolve-plan-review.mjs"
       },
@@ -8143,12 +8173,12 @@
         "target": "scripts/resolve-verification-plan.mjs"
       },
       {
-        "source": "scripts/resolve-work-queue.mjs",
-        "target": "scripts/resolve-work-queue.mjs"
-      },
-      {
         "source": "scripts/resolve-work-queue-takeover.mjs",
         "target": "scripts/resolve-work-queue-takeover.mjs"
+      },
+      {
+        "source": "scripts/resolve-work-queue.mjs",
+        "target": "scripts/resolve-work-queue.mjs"
       },
       {
         "source": "scripts/resolve-workflow-guidance.mjs",

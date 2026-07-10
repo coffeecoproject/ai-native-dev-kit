@@ -24,98 +24,31 @@ plain goal
 -> low-risk apply candidate only when a small later write is being considered
 ```
 
-For command-line evidence, use:
+For command-line evidence, use the shared operating loop:
 
 ```bash
-node scripts/cli.mjs ask ../my-project "我想做一个预约 App"
-node scripts/cli.mjs first-slice ../my-project "我想做一个预约 App"
-node scripts/cli.mjs product-completeness ../my-project --evidence evidence/smoke-output.json
+node scripts/cli.mjs work ../my-project "我想做一个预约 App"
 ```
 
-If the project already has a small local change candidate, record it without writing files:
+IntentOS chooses the required first-slice, baseline, task-governance, evidence,
+or adoption source systems internally. Maintainers can inspect the lower-level
+commands with `node scripts/cli.mjs --help-advanced`.
+
+Use the same command as the goal changes:
 
 ```bash
-node scripts/cli.mjs apply-candidate ../my-project \
-  --intent "update local demo copy" \
-  --path src/example.js
+node scripts/cli.mjs work ../my-project "继续完成预约时间规则"
+node scripts/cli.mjs work ../my-project "检查当前任务做到哪里了"
+node scripts/cli.mjs work ../my-project "这个任务做完了吗"
+node scripts/cli.mjs work ../my-project "准备发布内部测试版本"
+node scripts/cli.mjs work ../old-project "让这个项目按 IntentOS 工作"
 ```
 
-These commands are read-only. They do not approve implementation, release, production, CI, hooks, payment, permissions, migrations, secrets, or data changes.
-
-When you want to know whether a task can be treated as done, ask naturally:
-
-```text
-这个任务能算完成了吗？
-```
-
-For command-line evidence, use:
-
-```bash
-node scripts/cli.mjs finish ../my-project \
-  --intent "新增合同录入限制" \
-  --verification "npm run verify passed"
-```
-
-`finish` returns one Unified Closure Decision and explains why that decision was selected. It treats impact coverage, execution closure, guided closure, and evidence precision as inputs. It does not approve commit, push, release, or production.
-
-When you want to know whether closed work can enter launch review, ask naturally:
-
-```text
-这个版本可以上线了吗？
-```
-
-For command-line evidence, use:
-
-```bash
-node scripts/cli.mjs launch-view ../my-project \
-  --intent "准备上线评审" \
-  --verification "npm run verify passed"
-```
-
-`launch-view` returns one Launch Review View. It depends on Unified Closure and Safe Launch labels, lists launch-specific gaps, and keeps the final release decision outside IntentOS.
-
-When a beginner user wants to prepare release but does not know the deployment path, ask naturally:
-
-```text
-帮我看看这个项目怎么上线。
-```
-
-For command-line evidence, use:
-
-```bash
-node scripts/cli.mjs release-guide ../my-project \
-  --intent "帮我上线"
-```
-
-`release-guide` returns one Release Guide Card. It routes internally across release adapter, launch review, structured release approval, platform release recipes, release handoff packs, and release execution planning. It does not approve release, deploy production, run provider API commands, ask for secrets, or mutate release infrastructure.
-From 1.59 onward, it can select or suggest a Platform Release Recipe so Codex can explain what this platform usually needs before release execution planning.
-From 1.60 onward, it can also bridge into a Release Handoff Pack so Codex, human, and external-system responsibilities are separated before any execution plan.
-From 1.61 onward, it defers the Release Handoff Pack until prerequisite release-guide route steps are ready, and strict handoff checks require machine-readable evidence. `READY_FOR_HANDOFF_REVIEW` means handoff review only; it is not release approval.
-
-Maintainers can still call lower-level release evidence commands directly:
-
-```bash
-node scripts/cli.mjs release-adapter ../my-project --intent "准备发布适配"
-node scripts/cli.mjs release-recipe ../my-project --intent "帮我上线"
-node scripts/cli.mjs release-handoff ../my-project --intent "帮我上线"
-node scripts/cli.mjs release-execution ../my-project --intent "准备发布执行" --mode PLAN_ONLY
-```
-
-After a human release owner approves release, ask naturally:
-
-```text
-那接下来怎么发布？
-```
-
-For command-line evidence, use:
-
-```bash
-node scripts/cli.mjs release-execution ../my-project \
-  --intent "准备发布执行" \
-  --mode PLAN_ONLY
-```
-
-`release-execution` returns one Release Execution Plan. It uses Launch Review View and Human Release Approval as inputs, then lists release steps, owners, stop conditions, and evidence. It does not approve release, deploy by itself, submit app review, run migrations, or change production configuration.
+Each result is read-only. IntentOS selects the underlying task, closure,
+release, baseline, or adoption sources and keeps their evidence and authority
+rules intact. It does not approve implementation, commit, push, release,
+production, CI, hooks, payment, permissions, migrations, secrets, or data
+changes.
 
 Use the built-in local examples to see the path end to end:
 
@@ -133,17 +66,20 @@ When using Codex, you can provide the intentos path, repo URL, archive, or copie
 Read this IntentOS / IntentOS and configure the current project yourself.
 ```
 
-Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to review or discuss first, it should not write files. If you ask it to configure, it should run `start` first so the human sees a guided adoption recommendation:
+Codex should classify intent with `prompts/bootstrap-agent.md`. If you ask to review or discuss first, it should not write files. If you ask it to configure, it should enter through the Operating Model first:
 
 ```bash
-node intentos/scripts/start-project.mjs .
+node intentos/scripts/cli.mjs work . "configure this project under IntentOS"
 ```
 
-`start` is read-only by default. It calls `workflow-next`, classifies the project, lists the decisions needed from the human, and recommends safe next actions.
+The Operating Model is read-only and selects the required lower-level project,
+adoption, or baseline sources. `start` and `baseline` remain advanced source
+commands, not user-selected stages.
 
 The first section should be `Human Decision Summary`: it gives the recommended option, alternatives, whether each option writes files, the risk, and what happens if you do nothing. You should not need to interpret `NEXT_ACTION` fields to decide.
 
-After `start`, use `baseline` to recommend the project's engineering and environment rules:
+When the Evidence Trace requires baseline detail, maintainers can inspect the
+lower-level baseline recommendation:
 
 ```bash
 node intentos/scripts/cli.mjs baseline .

@@ -7,6 +7,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 ## Start Here
 
 - [Start Here](start-here.md)
+- [Operating Model](operating-model.md)
 - [Minimal Adoption](minimal-adoption.md)
 - [Source-Only Adoption](source-only-adoption.md)
 - [For Existing Projects](for-existing-projects.md)

@@ -4,34 +4,21 @@ This is the 10-minute IntentOS path.
 
 It is intentionally smaller than the full operator manual.
 
-## 1. Start Read-Only
+## 1. Say What You Want
 
 ```bash
-node scripts/cli.mjs start <project>
+node scripts/cli.mjs work <project> "<what you want>"
 ```
 
-Read the human summary first. It should tell you:
+Read the human summary first. It tells you:
 
-- what kind of project this is;
-- whether Codex can write now;
-- which decisions are needed;
-- what happens if you do nothing.
+- what IntentOS understood;
+- the current state;
+- the next safe step;
+- the one meaningful decision, when one is actually needed.
 
-## 2. Ask For The Next Safe Step
-
-```bash
-node scripts/cli.mjs next <project>
-```
-
-Use this when you are not sure whether to initialize, continue, migrate, review, or stop for a human decision.
-
-## 3. Check Health
-
-```bash
-node scripts/cli.mjs doctor <project>
-```
-
-Use this after setup, before important changes, or before handoff.
+IntentOS decides internally whether this means starting, continuing, checking
+status, finishing, preparing release, or adopting an existing project.
 
 ## New Project
 

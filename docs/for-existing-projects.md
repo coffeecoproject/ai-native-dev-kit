@@ -37,24 +37,20 @@ Codex must not automatically replace:
 ## First Commands
 
 ```bash
-node scripts/cli.mjs start <project>
-node scripts/cli.mjs adopt <project> --intent "work under IntentOS safely"
-node scripts/cli.mjs next <project>
-node scripts/cli.mjs doctor <project>
+node scripts/cli.mjs work <project> "让这个老项目按 IntentOS 工作"
 ```
 
-`start` is read-only orientation only. It should not write a plan file, apply
-workflow assets, install `.intentos/`, or treat the project as adopted.
+The Operating Model selects the adoption sources and returns a read-only
+recommendation. It should not write a plan file, apply workflow assets, install
+`.intentos/`, or claim that the project is adopted.
 
-`adopt` is the public safe adoption entry for old projects. It may run the
-read-only adoption autopilot and summarize migration, reconciliation,
-convergence, and assurance status as one user-facing result. It still does not
-write target files.
+Maintainers may use `adopt`, `native-migration`, `reconcile-rules`,
+`convergence`, and `adoption-assurance` directly through `--help-advanced` when
+they need exact source evidence. The user does not choose those stages.
 
 If the project is governed, dirty, already online, or production-sensitive,
 these commands should keep writes blocked and recommend migration or
-reconciliation work through `adopt` instead of asking the user to choose
-internal commands.
+reconciliation work internally instead of asking the user to choose commands.
 
 For governed or production-sensitive old projects, `doctor` should stop at the adoption diagnosis layer. It should not flood the user with missing `.intentos` asset errors before a migration plan exists.
 

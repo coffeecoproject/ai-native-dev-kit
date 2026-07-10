@@ -23,6 +23,13 @@ jobs:
         with:
           node-version: 22
 
+      - name: Release tag matches package version
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          expected="v$(node -p "require('./package.json').version")"
+          test "$GITHUB_REF_NAME" = "$expected"
+
       - name: IntentOS self-check
         run: node scripts/check-intentos.mjs
 
@@ -100,6 +107,14 @@ jobs:
 
       - name: Beginner entry smoke
         run: node scripts/cli.mjs ask . "maintain IntentOS beginner entry"
+
+      - name: Operating model tests
+        run: node --test tests/operating-model.test.mjs
+
+      - name: Operating model source smoke
+        run: |
+          node scripts/cli.mjs work . "检查当前项目状态" --json > "$RUNNER_TEMP/operating-state.json"
+          node --input-type=module -e 'import fs from "node:fs"; const state = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); if (state.operatingLoop?.operation !== "CHECK_STATUS") throw new Error(`Expected CHECK_STATUS, got ${state.operatingLoop?.operation ?? "missing"}`);' "$RUNNER_TEMP/operating-state.json"
 
       - name: Conversation-native ask check
         run: node scripts/check-conversation-native-ask.mjs .
@@ -269,6 +284,8 @@ jobs:
           node "$tmp/project/scripts/resolve-controlled-apply-readiness.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-beginner-entry.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-beginner-entry.mjs" "$tmp/project" --goal "build an appointment app"
+          node "$tmp/project/scripts/resolve-operating-loop.mjs" "$tmp/project" --intent "我想做一个预约 App" --json > "$tmp/operating-state.json"
+          node --input-type=module -e 'import fs from "node:fs"; const state=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if (state.projectEntry?.state!=="NEW_PROJECT_ENTRY" || state.operatingLoop?.operation!=="START_PROJECT" || state.boundaries?.writesTargetFiles!=="No") throw new Error("generated operating model misrouted new project");' "$tmp/operating-state.json"
           node "$tmp/project/scripts/check-conversation-native-ask.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-work-queue.mjs" "$tmp/project"
           node "$tmp/project/scripts/resolve-work-queue.mjs" "$tmp/project"

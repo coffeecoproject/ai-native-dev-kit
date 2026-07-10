@@ -2,9 +2,18 @@
 
 This reference lists the stable command surface and the lower-level scripts that remain available for CI and evidence.
 
-## CLI Front Door
+## Public Entry
 
 Use `scripts/cli.mjs` for daily operation.
+
+| Command | Purpose | Writes |
+|---|---|---|
+| `node scripts/cli.mjs work <project> "<goal>"` | Derive Project Entry and route start, continue, status, finish, release preparation, or adoption through one read-only Operating Model | No |
+
+## Advanced Source-System Commands
+
+The commands below remain stable for Codex internals, maintainers, CI, and
+exact evidence work. Ordinary users should not choose among them.
 
 | Command | Purpose | Writes |
 |---|---|---|

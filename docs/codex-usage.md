@@ -4,7 +4,17 @@ Use this guide when Codex is the main implementation agent.
 
 ## Operating Model
 
-Codex should do four things:
+Codex should begin from one user goal:
+
+```bash
+node scripts/cli.mjs work <project> "<plain-language goal>"
+```
+
+The command derives Project Entry and the current operation, then routes to the
+existing task, evidence, adoption, baseline, closure, or release sources. The
+user does not choose those sources.
+
+Codex should do five things:
 
 1. Classify the human goal before choosing a path.
 2. Turn conversation into workflow artifacts.
@@ -16,7 +26,7 @@ Humans decide:
 
 - project onboarding acceptance
 - project-wide engineering conventions
-- task priority and task level
+- material product priority or scope tradeoffs
 - high-risk approval
 - technology strategy
 - release readiness
@@ -35,11 +45,13 @@ Stop for any migration report that needs my approval.
 
 Expected Codex behavior:
 
+- Start with the shared `work` entry; use lower-level commands only when its
+  Evidence Trace or a maintainer investigation needs them.
 - Classify intent with `prompts/bootstrap-agent.md`.
 - If the user asked only to review, discuss, evaluate, or look first, do not write files.
-- If the user clearly asked to configure, run `scripts/start-project.mjs <project-root>` or `scripts/cli.mjs start <project-root>` first.
-- Treat `start` as read-only by default: it recommends adoption path and decisions, but does not write target project files.
-- After `start`, use `scripts/cli.mjs baseline <project-root>` when the project needs Engineering and Environment Baseline recommendations.
+- If the user clearly asked to configure, run `scripts/cli.mjs work <project-root> "<goal>"` first.
+- Let the Operating Model select `start`, adoption, baseline, or task sources internally; do not ask the user to choose them.
+- Use `scripts/cli.mjs baseline <project-root>` only as a lower-level maintainer source when the Evidence Trace requires Engineering and Environment Baseline evidence.
 - Treat `baseline` as read-only by default: it must include `Can AI write now: No`.
 - Use `scripts/baseline-project.mjs <project-root> --write-plan baseline-recommendations/<file>.json` for a project-local proposal only. Convert accepted actions into the exact controlled init/update plan; direct baseline apply is retired.
 - Use `scripts/workflow-next.mjs <project-root>` as the lower-level technical state detector when needed.
@@ -228,19 +240,22 @@ Expected Codex behavior:
 ## Existing Project Prompt
 
 ```text
-Inject the IntentOS workflow into this existing project.
-Use update-workflow-assets only.
-Do not overwrite existing project docs, specs, tasks, logs, or business code.
-After that, run the baseline checks and tell me what decisions remain.
+Read this existing project and make it work under IntentOS.
+Compare current rules before proposing changes.
+Do not overwrite existing governance or business code.
+Give me only the professional recommendation and any material decision I own.
 ```
 
-Expected Codex command:
+Expected first command:
 
 ```bash
-node intentos/scripts/workflow-next.mjs .
-node intentos/scripts/init-project.mjs --target . --update-workflow-assets --backup-dir .intentos/backups/first-adoption --write-plan /tmp/intentos-update-plan.json
-node intentos/scripts/init-project.mjs --apply-plan /tmp/intentos-update-plan.json
+node intentos/scripts/cli.mjs work . "让这个项目按 IntentOS 工作"
 ```
+
+Codex may call workflow mapping, native migration, rule reconciliation,
+convergence, assurance, or controlled apply sources after this read-only entry.
+Those are internal stages, not user-selected commands or automatic write
+permission.
 
 For governed, production-sensitive, or dirty projects, the first command may return:
 
