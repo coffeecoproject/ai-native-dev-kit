@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.93.0`
+`1.94.0`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.94.0` binds selected profiles, canonical BL level, standard packs,
+  selected BL2 industrial packs, and generated baseline records to the exact
+  controlled init/update action graph, then verifies installed baseline state.
+- `1.94.0` strictly validates and normalizes the manifest, ignores managed
+  `.intentos` project signals, retires direct baseline apply, and keeps draft
+  maturity and project-owned authority explicit.
 
 - `1.93.0` requires a project-, revision-, candidate-, target-, package-, and
   evidence-bound human Release Approval Record before Release Execution can
@@ -439,7 +446,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 - `1.4.0` adds Project Memory & Context Governance assets: Context Governance, Git Boundary, Learning Candidate, Context Correction Report, Git Boundary Report, and context governance checks.
 - `1.4.0` keeps project memory candidate-first: Codex may propose context updates, but humans confirm before source-of-truth changes.
 - `1.2.0` adds `intentos baseline` / `node scripts/cli.mjs baseline <project>` as a read-only baseline recommendation entry after `start`.
-- `baseline` keeps `Can AI write now: No`; writes require `baseline-project --write-plan` and reviewed `--apply-plan`.
+- `baseline` keeps `Can AI write now: No`; `baseline-project --write-plan` is
+  proposal-only, and current writes require the exact controlled init/update
+  plan, Approval Record, Controlled Apply Readiness, replay, and receipt chain.
 - Generated projects include Environment Baseline assets, baseline recommendation folders, and artifact-level baseline enforcement checks.
 - `1.1.0` adds `intentos start` / `node scripts/cli.mjs start <project>` as a read-only guided adoption entry.
 - `start` classifies the project, recommends a safe adoption path, and keeps target project writes behind dry-run, write-plan, and human confirmation.

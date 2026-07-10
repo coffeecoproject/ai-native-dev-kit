@@ -38,8 +38,9 @@ Use this after setup, before important changes, or before handoff.
 For a new project, Codex should:
 
 1. clarify the goal and first useful version;
-2. recommend platform and baseline level;
-3. prepare a plan before writing workflow assets;
+2. derive and recommend the platform, baseline level, and concrete packs without
+   asking the user to understand their internal IDs;
+3. prepare an exact controlled plan before writing workflow or baseline assets;
 4. build only the agreed first slice;
 5. verify and close the task with evidence.
 
@@ -49,9 +50,10 @@ For an existing project, Codex should:
 
 1. read existing project files and rules;
 2. enter IntentOS Operating Mode for planning, routing, review, and comparison;
-3. avoid replacing existing governance by default;
-4. compare existing rules against IntentOS references;
-5. prepare a reviewed apply plan before workflow asset changes.
+3. compare existing rules against IntentOS references and recommend the safer,
+   more complete valid rule;
+4. preserve stronger project rules and plan only selected gaps;
+5. prepare a reviewed controlled apply plan before workflow asset changes.
 
 ## Governed Or Production Project
 

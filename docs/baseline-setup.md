@@ -45,9 +45,22 @@ Can AI write now: No
 Writing baseline docs requires a plan:
 
 ```bash
-node scripts/baseline-project.mjs ../project --write-plan baseline-plan.json
-node scripts/baseline-project.mjs --apply-plan baseline-plan.json
+node scripts/baseline-project.mjs ../project --write-plan baseline-recommendations/baseline-plan.json
+node scripts/init-project.mjs --target ../project --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan ../project/apply-execution-plans/baseline.json
 ```
+
+The first command writes a proposal only. Direct `baseline-project --apply-plan`
+is retired. Codex converts the accepted selection into the exact init/update
+plan, Approval Record, Controlled Apply Readiness, replay, and Apply Receipt.
+
+After controlled apply, verify the installed selection:
+
+```bash
+node scripts/cli.mjs baseline-installation ../project --require-selection
+```
+
+This verifies installation identity. It does not certify product correctness or
+production readiness.
 
 The apply step may write only:
 

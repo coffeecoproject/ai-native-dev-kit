@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.93.0`.
+Current release: `1.94.0`.
 
-Release record: [releases/1.93.0/release-record.md](releases/1.93.0/release-record.md).
+Release record: [releases/1.94.0/release-record.md](releases/1.94.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -75,6 +75,18 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.94.0 consolidates project baselines and the distributable manifest. Codex
+now derives the technical profile, BL level, and concrete packs, places the
+selection in the exact controlled setup plan, and can verify that the selected
+baseline was actually installed. Existing projects keep stricter valid rules
+and receive selected gap plans rather than blanket replacement.
+
+The manifest is now checked against its real strict schema, duplicate copy
+expressions are removed, managed `.intentos` files cannot classify the host
+project, and the old direct baseline apply path no longer writes files. Draft
+packs remain draft and baseline installation is not product or production
+certification.
 
 1.93.0 closes release authorization trust. IntentOS now accepts only a
 structured human Release Approval Record bound to the current project, Git

@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.93.0",
+  "intentOSVersion": "1.94.0",
   "starter": "<starter-name>",
   "initializedAt": "<ISO-8601 timestamp>",
   "lastWorkflowAssetUpdateAt": "<ISO-8601 timestamp>",
@@ -469,6 +469,7 @@
     "scripts/check-apply-plan.mjs",
     "scripts/check-approval-record.mjs",
     "scripts/check-baseline-enforcement.mjs",
+    "scripts/check-baseline-installation.mjs",
     "scripts/check-baseline-pack-selection.mjs",
     "scripts/check-baseline-state.mjs",
     "scripts/check-beginner-entry.mjs",
@@ -545,6 +546,7 @@
     "scripts/lib/approval-record-validation.mjs",
     "scripts/lib/args.mjs",
     "scripts/lib/artifact-schema.mjs",
+    "scripts/lib/baseline-selection.mjs",
     "scripts/lib/check-result.mjs",
     "scripts/lib/evidence-authority.mjs",
     "scripts/lib/frontmatter.mjs",

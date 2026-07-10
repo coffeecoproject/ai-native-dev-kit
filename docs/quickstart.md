@@ -158,9 +158,13 @@ Can AI write now: No
 Writing baseline docs requires plan-first flow:
 
 ```bash
-node intentos/scripts/baseline-project.mjs . --write-plan baseline-plan.json
-node intentos/scripts/baseline-project.mjs --apply-plan baseline-plan.json
+node intentos/scripts/baseline-project.mjs . --write-plan baseline-recommendations/baseline-plan.json
+node intentos/scripts/init-project.mjs --target . --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan ./apply-execution-plans/baseline.json
 ```
+
+The baseline recommendation plan is not executable. Codex must prepare and
+apply the exact controlled init/update graph with structured approval and
+readiness evidence.
 
 Apply scope is limited to baseline docs and baseline reports.
 

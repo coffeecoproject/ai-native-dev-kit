@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { walkRelativePaths } from "./lib/project-signals.mjs";
+import { assertSafeRelativePath, assertSafeWritePath } from "./lib/path-safety.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,8 +21,9 @@ if (unknown.length > 0) {
 }
 
 if (args["apply-plan"]) {
-  applyPlan(path.resolve(process.cwd(), String(args["apply-plan"])));
-  process.exit(0);
+  console.error("FAIL direct baseline plan apply was retired in IntentOS 1.94");
+  console.error("Generate an exact init/update execution plan, then use the structured Approval Record and Controlled Apply Readiness path.");
+  process.exit(2);
 }
 
 const outputFormat = args.json ? "json" : String(args.format || "human");
@@ -35,14 +37,25 @@ const workflow = runWorkflowNext(projectRoot);
 const recommendation = buildRecommendation(projectRoot, workflow);
 
 if (args["write-plan"]) {
-  const planPath = path.resolve(process.cwd(), String(args["write-plan"]));
+  let planPath;
+  try {
+    const planRel = assertSafeRelativePath(String(args["write-plan"]), "baseline proposal path");
+    if (!planRel.startsWith("baseline-recommendations/") || !planRel.endsWith(".json")) {
+      throw new Error("baseline proposal path must match baseline-recommendations/*.json");
+    }
+    planPath = assertSafeWritePath(projectRoot, planRel, "baseline proposal path");
+    if (fs.existsSync(planPath)) throw new Error(`baseline proposal already exists: ${planRel}`);
+  } catch (error) {
+    console.error(`FAIL ${error.message}`);
+    process.exit(2);
+  }
   const plan = buildWritePlan(recommendation);
   fs.mkdirSync(path.dirname(planPath), { recursive: true });
   fs.writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`);
   recommendation.planWritten = {
     path: planPath,
     writesTargetProject: "No",
-    applyCommand: `node scripts/baseline-project.mjs --apply-plan ${shellQuote(planPath)}`,
+    applyCommand: "N/A - proposal only; convert selected actions into an init-project controlled execution plan",
   };
 }
 
@@ -111,7 +124,7 @@ function buildRecommendation(targetRoot, workflow) {
       "Do not enable BL2 or install industrial packs without explicit human confirmation.",
       "Do not invent staging, production, rollback, monitoring, or release ownership when evidence is missing.",
     ],
-    suggestedWritePlanCommand: `node scripts/baseline-project.mjs ${shellQuote(targetRoot)} --write-plan baseline-plan.json`,
+    suggestedWritePlanCommand: `node scripts/baseline-project.mjs ${shellQuote(targetRoot)} --write-plan baseline-recommendations/baseline-plan.json`,
     workflowNext: {
       status: workflow.status || "PASS",
       projectState: workflow.projectState,
@@ -283,16 +296,13 @@ function baselineGaps(level, engineeringBaseline, environmentBaseline) {
 }
 
 function pendingHumanDecisions(classification, profiles, level, gaps) {
-  const decisions = [
-    "Confirm project goal and risk level.",
-    "Confirm platform profile candidates.",
-    "Confirm baseline level: BL0, BL1, or BL2.",
-  ];
-  if (profiles.some((item) => item.id === "unknown")) decisions.push("Confirm project platform before writing baseline docs.");
-  if (gaps.some((item) => item.includes("Engineering"))) decisions.push("Confirm engineering rules that Codex must follow before structure, API, data, or dependency work.");
-  if (gaps.some((item) => item.includes("Environment"))) decisions.push("Confirm environment facts and mark unknown release, rollback, CI, secret, or monitoring items as PENDING_CONFIRMATION.");
-  if (classification === "PRODUCTION_SENSITIVE_PROJECT") decisions.push("Confirm production, release, rollback, secret, and deployment ownership before any apply.");
-  if (/BL2/.test(level.level)) decisions.push("Explicitly approve BL2 and selected industrial packs; none are enabled by baseline recommendation.");
+  const decisions = [];
+  if (profiles.some((item) => item.id === "unknown")) decisions.push("Describe the product target in plain language because Codex cannot yet identify a platform safely.");
+  if (classification === "PRODUCTION_SENSITIVE_PROJECT") decisions.push("Confirm the unresolved production owner or material-risk recommendation before any apply.");
+  if (/BL2/.test(level.level)) decisions.push("Accept or reject Codex's plain-language BL2 recommendation and its concrete industrial scope.");
+  if (decisions.length === 0 && gaps.some((item) => /Engineering|Environment/.test(item))) {
+    decisions.push("No technical choice is required from you now; Codex should prepare the bounded baseline gap plan and ask only if project evidence cannot resolve a material decision.");
+  }
   return decisions;
 }
 
@@ -319,8 +329,8 @@ function highRiskAreas(classification, targetRoot) {
 function safeNextActions(targetRoot) {
   return [
     action("Read baseline recommendation", `node scripts/cli.mjs baseline ${shellQuote(targetRoot)}`, "No", "No"),
-    action("Write baseline plan only", `node scripts/baseline-project.mjs ${shellQuote(targetRoot)} --write-plan baseline-plan.json`, "Plan file only", "Yes"),
-    action("Apply reviewed baseline plan", "node scripts/baseline-project.mjs --apply-plan baseline-plan.json", "Approved baseline docs/reports only", "Yes"),
+    action("Write baseline plan only", `node scripts/baseline-project.mjs ${shellQuote(targetRoot)} --write-plan baseline-recommendations/baseline-plan.json`, "Plan file only", "Yes"),
+    action("Prepare controlled baseline apply", "node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json", "Plan file only", "Yes"),
     action("Check environment baseline", `node scripts/check-environment-baseline.mjs ${shellQuote(targetRoot)}`, "No", "No"),
     action("Check task baseline references", `node scripts/check-baseline-enforcement.mjs ${shellQuote(targetRoot)} --mode ready`, "No", "No"),
   ];
@@ -390,65 +400,6 @@ function fillTemplate(templateRel, report) {
   return content;
 }
 
-function applyPlan(planPath) {
-  if (!fs.existsSync(planPath)) throwUserError(`plan not found: ${planPath}`);
-  const plan = readJson(planPath);
-  if (plan.planType !== "BASELINE_WRITE_PLAN") throwUserError("planType must be BASELINE_WRITE_PLAN");
-  if (!plan.targetRoot) throwUserError("plan.targetRoot is required");
-  const targetRoot = path.resolve(plan.targetRoot);
-  const writes = Array.isArray(plan.writes) ? plan.writes : [];
-  if (writes.length === 0) throwUserError("plan.writes is empty");
-
-  const applied = [];
-  const skipped = [];
-  for (const write of writes) {
-    const rel = normalizePlanPath(write.path);
-    assertAllowedWrite(rel);
-    if (containsForbiddenSecretValue(write.content || "")) {
-      throwUserError(`refusing to write ${rel}: content appears to contain a secret value`);
-    }
-    const dest = path.join(targetRoot, rel);
-    if (fs.existsSync(dest) && !write.overwrite) {
-      skipped.push({ path: rel, reason: "exists and overwrite is false" });
-      continue;
-    }
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.writeFileSync(dest, String(write.content || ""));
-    applied.push(rel);
-  }
-
-  console.log("# Baseline Plan Apply Result");
-  console.log("");
-  console.log(`Target: ${targetRoot}`);
-  console.log(`Applied: ${applied.length}`);
-  for (const rel of applied) console.log(`- ${rel}`);
-  console.log(`Skipped: ${skipped.length}`);
-  for (const item of skipped) console.log(`- ${item.path}: ${item.reason}`);
-}
-
-function normalizePlanPath(value) {
-  const rel = String(value || "").replace(/\\/g, "/").replace(/^\/+/, "");
-  if (!rel || rel.includes("..")) throwUserError(`unsafe plan path: ${value}`);
-  return rel;
-}
-
-function assertAllowedWrite(rel) {
-  const allowed = rel === "docs/engineering-baseline.md"
-    || rel === "docs/environment-baseline.md"
-    || rel.startsWith("baseline-recommendations/")
-    || rel.startsWith("baseline-gap-reports/");
-  if (!allowed) throwUserError(`write is outside baseline apply scope: ${rel}`);
-}
-
-function containsForbiddenSecretValue(content) {
-  return /-----BEGIN [A-Z ]*PRIVATE KEY-----/i.test(content)
-    || /\bgithub_pat_[A-Za-z0-9_]{20,}\b/.test(content)
-    || /\bghp_[A-Za-z0-9]{20,}\b/.test(content)
-    || /\bAKIA[0-9A-Z]{16}\b/.test(content)
-    || /\b(password|secret|api_key|apikey)\s*=\s*[^<\s][^\s]+/i.test(content)
-    || /:\/\/[^/\s:@]+:[^/\s:@]+@/.test(content);
-}
-
 function printRecommendation(report) {
   console.log(renderRecommendationMarkdown(report));
   if (report.planWritten) {
@@ -457,7 +408,7 @@ function printRecommendation(report) {
     console.log("");
     console.log(`Plan file: ${report.planWritten.path}`);
     console.log(`Writes target project now: ${report.planWritten.writesTargetProject}`);
-    console.log(`Apply after review: \`${report.planWritten.applyCommand}\``);
+    console.log(`Controlled apply route: \`${report.planWritten.applyCommand}\``);
   }
 }
 
@@ -592,7 +543,7 @@ function baselineActionRisk(report, item) {
 function baselineActionWhen(report, item) {
   if (item.label === "Read baseline recommendation") return "Choose when you only want diagnosis.";
   if (item.label === "Write baseline plan only") return "Choose when gaps exist and you want a reviewable plan before files change.";
-  if (item.label === "Apply reviewed baseline plan") return "Choose only after reviewing the baseline plan.";
+  if (item.label === "Prepare controlled baseline apply") return "Choose only after Codex has converted selected gaps into the exact controlled action graph.";
   if (item.label === "Check environment baseline") return "Choose when environment facts may already be recorded.";
   return "Choose when the project baseline is already ready enough for task work.";
 }
@@ -606,14 +557,6 @@ function mdCell(value) {
   return String(value || "").replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
-function readJson(filePath) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch (error) {
-    throwUserError(`invalid JSON in ${filePath}: ${error.message}`);
-  }
-}
-
 function readJsonIfExists(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try {
@@ -621,11 +564,6 @@ function readJsonIfExists(filePath) {
   } catch {
     return null;
   }
-}
-
-function throwUserError(message) {
-  console.error(`FAIL ${message}`);
-  process.exit(1);
 }
 
 function shellQuote(value) {

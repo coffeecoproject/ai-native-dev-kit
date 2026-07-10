@@ -231,11 +231,11 @@ function pathForClassification(classification, workflow) {
     return {
       recommendedPath: {
         oLevel: "O0/O1",
-        blLevel: "BL0 first; BL1/BL2 only after platform and risk confirmation",
-        profiles: "Decide platform profile from project intent before init",
-        industrialPacks: "None by default",
+        blLevel: "Codex recommends BL1 for maintained products, BL0 only for genuinely disposable work, and BL2 only for concrete industrial risk",
+        profiles: "Codex derives platform profiles from the product goal and selected starter",
+        industrialPacks: "Codex selects only concrete BL2 packs justified by the product risk; none are installed broadly",
         goalMode: "ADOPTION",
-        planFirstRequired: false,
+        planFirstRequired: true,
         adoptionMode: "guided-init",
         riskLevel: classification.riskLevel,
       },
@@ -244,9 +244,7 @@ function pathForClassification(classification, workflow) {
         "start can orient the project, but setup still requires explicit setup intent and a separate reviewed plan before writing.",
       ],
       decisionsNeededFromHuman: [
-        "Confirm this is the intended new project directory.",
-        "Choose platform scope, such as web, iOS, Android, WeChat mini program, backend API, or mixed.",
-        "Confirm whether to initialize workflow assets now.",
+        "Confirm the plain-language product goal and accept or reject Codex's recommended setup when it materially changes cost or risk.",
       ],
       safeNextActions: [
         action("Stay in read-only orientation", `node scripts/cli.mjs start ${shellQuote(workflow.projectRoot)}`, "No", "No"),
@@ -255,7 +253,7 @@ function pathForClassification(classification, workflow) {
       ],
       actionsAiMustNotTakeYet: commonMustNot,
       generatedPlanReportRefs: baseRefs,
-      finalRecommendation: "Ask the human to confirm project type and platform. If setup is requested, prepare a separate reviewed apply plan; start itself must not apply anything.",
+      finalRecommendation: "Codex should choose the technical profile, baseline level, and concrete packs from the product goal, prepare the exact controlled plan, and ask only for one meaningful approval before apply. start itself remains read-only.",
     };
   }
 
@@ -263,8 +261,8 @@ function pathForClassification(classification, workflow) {
     return {
       recommendedPath: {
         oLevel: "O1",
-        blLevel: "BL0 first; BL1 after current stack is understood",
-        profiles: "Infer candidate profiles from code, then ask human to confirm",
+        blLevel: "Codex compares the current project baseline and recommends the safer valid level",
+        profiles: "Codex derives profiles from current code and project-owned rules",
         industrialPacks: "None by default",
         goalMode: "ADOPTION",
         planFirstRequired: true,
@@ -276,9 +274,7 @@ function pathForClassification(classification, workflow) {
         "The safe path is to write a reviewable adoption plan before adding workflow assets.",
       ],
       decisionsNeededFromHuman: [
-        "Confirm whether AI should only assess first or prepare a write plan.",
-        "Confirm which project areas are in scope for initial workflow adoption.",
-        "Confirm platform profile candidates before any baseline setup.",
+        "Confirm only an unresolved product, ownership, or material-risk decision that project evidence cannot answer.",
       ],
       safeNextActions: [
         action("Run safe adoption autopilot", `node scripts/cli.mjs adopt ${shellQuote(workflow.projectRoot)} --intent "connect this existing project under IntentOS"`, "No", "No"),
@@ -402,8 +398,8 @@ function governedPath(classification, workflow, reason) {
   return {
     recommendedPath: {
       oLevel: "O0/O1 read-only adoption",
-      blLevel: "Do not change baseline until existing governance is mapped",
-      profiles: "Infer only; confirm with human before writing",
+      blLevel: "Codex maps and compares existing governance before recommending selected baseline gaps",
+      profiles: "Codex derives profiles from project-owned evidence; the user does not select technical IDs",
       industrialPacks: "None by default; BL2 requires explicit human confirmation",
       intentosOperatingMode: "ACTIVE",
       projectAssetMigrationDepth: "ADAPTER_ONLY",
@@ -419,9 +415,7 @@ function governedPath(classification, workflow, reason) {
       "Project asset migration remains adapter-only until existing rules are reconciled and an apply plan is approved.",
     ],
     decisionsNeededFromHuman: [
-      "Confirm who owns the existing governance rules and current changes.",
-      "Confirm whether AI may prepare a read-only adoption assessment.",
-      "Confirm whether any workflow write plan is allowed after assessment.",
+      "Confirm only an unresolved owner decision or material-risk recommendation that cannot be proven from project evidence.",
     ],
     safeNextActions: [
       action("Run safe adoption autopilot", `node scripts/cli.mjs adopt ${shellQuote(workflow.projectRoot)} --intent "connect this existing project under IntentOS"`, "No", "No"),

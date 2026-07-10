@@ -68,8 +68,8 @@ Recommendation:
 | Action | Command | Writes | Requires human confirmation |
 |---|---|---|---|
 | Read baseline recommendation | `node scripts/cli.mjs baseline <project>` | No | No |
-| Write plan | `node scripts/baseline-project.mjs <project> --write-plan baseline-plan.json` | Plan file only | Yes |
-| Apply reviewed plan | `node scripts/baseline-project.mjs --apply-plan baseline-plan.json` | Approved baseline docs/reports only | Yes |
+| Write proposal | `node scripts/baseline-project.mjs <project> --write-plan baseline-recommendations/baseline-plan.json` | Project-local proposal file only | Yes |
+| Prepare controlled apply | `node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json` | Exact plan file only | Yes |
 
 ## Actions AI Must Not Take Yet
 
@@ -79,4 +79,3 @@ Recommendation:
 - Do not enable BL2 or install industrial packs without explicit human confirmation.
 
 ## Final Recommendation
-

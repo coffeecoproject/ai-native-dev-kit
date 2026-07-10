@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [Baseline, Manifest And Public Entry Consolidation 1.94](baseline-manifest-public-entry-consolidation-1.94-plan.md)
 - [Release Trust Closure 1.93](release-trust-closure-1.93-plan.md)
 - [Apply & Adoption Closure 1.92](apply-adoption-closure-1.92-plan.md)
 - [Evidence Authority Coverage Close-Out 1.91.1](evidence-authority-coverage-closeout-1.91.1-plan.md)

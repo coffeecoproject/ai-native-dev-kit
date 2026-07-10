@@ -6,12 +6,14 @@ Use it when you want Codex or another AI agent to help build, change, review, or
 
 ## What You Do
 
-You provide the goal and make judgment decisions:
+You provide the goal and make only meaningful judgment decisions:
 
 - what you want to build or change;
-- whether a recommendation is acceptable;
-- which risk you accept;
-- whether a write, migration, release, or production action is approved.
+- whether Codex's plain-language recommendation is acceptable when it changes
+  product scope, material risk, cost, release, or production authority.
+
+You do not need to choose profile IDs, BL levels, pack IDs, checker commands,
+action IDs, schemas, or migration mechanics.
 
 ## What Codex Does
 
@@ -20,6 +22,7 @@ Codex uses IntentOS to:
 - read the project before changing files;
 - decide whether the project is new, existing, governed, dirty, or production-sensitive;
 - recommend the safest path;
+- derive the technical platform profile, baseline level, and required packs;
 - prepare plans and evidence;
 - execute only after the needed approval exists;
 - verify, review, and close the work.
@@ -61,7 +64,9 @@ IntentOS safe adoption flow.
 
 ## Then What?
 
-- New project: continue with the recommended baseline and first useful slice.
+- New project: Codex derives the technical baseline, prepares the controlled
+  setup plan, asks for one meaningful confirmation when required, and then
+  continues to the first useful slice.
 - Existing project: run `adopt` first; it summarizes the safe adoption path and
   required rule comparison before any workflow asset change.
 - Governed or production project: stay read-only until Native Migration, Existing Rule Reconciliation, apply plan, approval, and readiness checks are complete.

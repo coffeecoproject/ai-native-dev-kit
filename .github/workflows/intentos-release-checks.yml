@@ -191,6 +191,12 @@ jobs:
       - name: Baseline state check
         run: node scripts/check-baseline-state.mjs .
 
+      - name: Baseline installation check
+        run: node scripts/check-baseline-installation.mjs .
+
+      - name: Baseline installation CLI smoke
+        run: node scripts/cli.mjs baseline-installation .
+
       - name: Baseline decision smoke
         run: node scripts/cli.mjs baseline-decision .
 
@@ -241,6 +247,8 @@ jobs:
           node "$tmp/project/scripts/check-guided-adoption.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-project-onboarding.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-engineering-baseline.mjs" "$tmp/project"
+          node "$tmp/project/scripts/check-baseline-installation.mjs" "$tmp/project"
+          node "$tmp/project/scripts/cli.mjs" baseline-installation "$tmp/project"
           node "$tmp/project/scripts/check-product-baseline.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-claim-control.mjs" "$tmp/project"
           node "$tmp/project/scripts/check-context-governance.mjs" "$tmp/project"

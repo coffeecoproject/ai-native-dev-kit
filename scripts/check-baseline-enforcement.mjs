@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { normalizeBaselineLevel } from "./lib/baseline-selection.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["mode", "task", "json"]);
@@ -66,8 +67,10 @@ function detectBaselineLevel(root) {
       return fs.existsSync(full) ? fs.readFileSync(full, "utf8") : "";
     })
     .join("\n");
-  if (/\bBL2(?:_INDUSTRIAL)?\b/i.test(text)) return "BL2";
-  if (/\bBL1\b/i.test(text)) return "BL1";
+  const tokens = text.match(/\bBL[0-2](?:_(?:LIGHTWEIGHT|STANDARD|INDUSTRIAL))?\b/gi) || [];
+  const levels = new Set(tokens.map(normalizeBaselineLevel).filter(Boolean));
+  if (levels.has("BL2_INDUSTRIAL")) return "BL2";
+  if (levels.has("BL1_STANDARD")) return "BL1";
   return "BL0";
 }
 

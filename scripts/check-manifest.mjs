@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "./lib/args.mjs";
+import { validateSchema } from "./lib/artifact-schema.mjs";
 import {
   currentIntentOSVersion,
   diffLists,
@@ -75,105 +76,124 @@ function loadJsonOrFail(relativePath, label) {
 function validateSchemaFile(schema) {
   if (!schema) return;
   if (schema.type !== "object") fail("manifest schema file must define type object");
-  if (!Array.isArray(schema.required)) fail("manifest schema file must define required array");
-  if (!schema.required.includes("copyRules")) fail("manifest schema file must require copyRules");
-  if (!schema.properties?.groups?.properties) fail("manifest schema file must define groups properties");
+  if (!Array.isArray(schema.required)) {
+    fail("manifest schema file must define required array");
+  } else if (!schema.required.includes("copyRules")) {
+    fail("manifest schema file must require copyRules");
+  }
+  const groupProperties = schema.properties?.groups?.properties;
+  if (!groupProperties) {
+    fail("manifest schema file must define groups properties");
+    return;
+  }
   if (!schema.properties?.copyRules?.properties) fail("manifest schema file must define copyRules properties");
+  const acceptedGroups = new Set(manifestGroupNames);
+  const requiredGroups = schema.properties.groups.required;
+  if (!Array.isArray(requiredGroups)) fail("manifest schema file must define required groups");
   for (const groupName of manifestGroupNames) {
-    if (!schema.properties?.groups?.properties?.[groupName]) {
+    if (!groupProperties[groupName]) {
       fail(`manifest schema file missing group property: ${groupName}`);
+    }
+    if (Array.isArray(requiredGroups) && !requiredGroups.includes(groupName)) {
+      fail(`manifest schema file must require group: ${groupName}`);
+    }
+  }
+  for (const groupName of Object.keys(groupProperties)) {
+    if (!acceptedGroups.has(groupName)) {
+      fail(`manifest schema file contains unsupported group property: ${groupName}`);
     }
   }
 }
 
-function validateManifestShape(manifest) {
-  if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
-    fail("manifest schema validation: manifest must be an object");
-    return;
-  }
-  if (manifest.schemaVersion !== "1.0") {
-    fail("manifest schema validation: schemaVersion must be 1.0");
-  }
-  if (typeof manifest.intentOSVersion !== "string" || manifest.intentOSVersion.length === 0) {
-    fail("manifest schema validation: intentOSVersion must be a non-empty string");
-  }
-  if (manifest.mode !== "authoritative") {
-    fail("manifest schema validation: mode must be authoritative for phase 0.37.0");
-  }
-  if (manifest.compatibilityPolicy?.readOnly !== false) {
-    fail("manifest schema validation: compatibilityPolicy.readOnly must be false");
-  }
-  if (manifest.compatibilityPolicy?.authoritative !== true) {
-    fail("manifest schema validation: compatibilityPolicy.authoritative must be true");
-  }
-  if (manifest.compatibilityPolicy?.changesRuntimeBehavior !== true) {
-    fail("manifest schema validation: compatibilityPolicy.changesRuntimeBehavior must be true");
-  }
+function validateManifestAgainstSchema(manifest, schema) {
+  if (!manifest || !schema) return;
+  const validation = validateSchema(manifest, schema, { label: "manifest schema validation" });
+  for (const error of validation.errors) fail(error);
+  if (validation.ok) pass(`manifest validates against ${schemaPath} with strict artifact schema validation`);
+}
+
+function validateManifestDomain(manifest) {
   if (manifest.compatibilityPolicy?.phase !== manifest.intentOSVersion) {
     fail(`manifest schema validation: compatibilityPolicy.phase ${manifest.compatibilityPolicy?.phase || "<missing>"} must match intentOSVersion ${manifest.intentOSVersion}`);
   }
-  if (!manifest.groups || typeof manifest.groups !== "object" || Array.isArray(manifest.groups)) {
-    fail("manifest schema validation: groups must be an object");
-    return;
-  }
 
   for (const groupName of manifestGroupNames) {
-    validatePathList(manifest.groups[groupName], `groups.${groupName}`);
+    validatePathList(manifest.groups[groupName], `manifest domain validation: groups.${groupName}`);
   }
 
-  if (!manifest.copyRules || typeof manifest.copyRules !== "object" || Array.isArray(manifest.copyRules)) {
-    fail("manifest schema validation: copyRules must be an object");
-    return;
-  }
-  validateRuleList(manifest.copyRules.directories, "copyRules.directories");
-  validateRuleList(manifest.copyRules.files, "copyRules.files");
+  validateRuleList(manifest.copyRules.directories, "manifest domain validation: copyRules.directories");
+  validateRuleList(manifest.copyRules.files, "manifest domain validation: copyRules.files");
 }
 
 function validatePathList(group, label) {
-  if (!Array.isArray(group)) {
-    fail(`manifest schema validation: ${label} must be an array`);
-    return;
-  }
-  const seen = new Set();
   for (const item of group) {
-    if (typeof item !== "string" || item.length === 0) {
-      fail(`manifest schema validation: ${label} contains a non-empty string violation`);
-      continue;
-    }
     try {
-      assertSafeRelativePath(item, `manifest schema validation: ${label}`);
+      assertSafeRelativePath(item, label);
     } catch (error) {
       fail(error.message);
     }
-    if (seen.has(item)) {
-      fail(`manifest schema validation: ${label} contains duplicate ${item}`);
-    }
-    seen.add(item);
   }
 }
 
 function validateRuleList(rules, label) {
-  if (!Array.isArray(rules)) {
-    fail(`manifest schema validation: ${label} must be an array`);
-    return;
-  }
-  const seen = new Set();
   for (const rule of rules) {
-    if (!rule || typeof rule !== "object" || Array.isArray(rule)) {
-      fail(`manifest schema validation: ${label} contains non-object rule`);
-      continue;
-    }
     for (const key of ["source", "target"]) {
       try {
-        assertSafeRelativePath(rule[key], `manifest schema validation: ${label}.${key}`);
+        assertSafeRelativePath(rule[key], `${label}.${key}`);
       } catch (error) {
         fail(error.message);
       }
     }
-    const signature = `${rule.source} -> ${rule.target}`;
-    if (seen.has(signature)) fail(`manifest schema validation: ${label} contains duplicate ${signature}`);
-    seen.add(signature);
   }
+}
+
+function checkCopyRuleNormalization(manifest) {
+  const directoryRules = manifest.copyRules.directories.map((rule, index) => ({
+    ...rule,
+    source: normalizePortablePath(rule.source),
+    target: normalizePortablePath(rule.target),
+    kind: "directory",
+    index,
+  }));
+  const fileRules = manifest.copyRules.files.map((rule, index) => ({
+    ...rule,
+    source: normalizePortablePath(rule.source),
+    target: normalizePortablePath(rule.target),
+    kind: "file",
+    index,
+  }));
+  const rules = [...directoryRules, ...fileRules];
+  const targetOwners = new Map();
+
+  for (const rule of rules) {
+    const existing = targetOwners.get(rule.target);
+    if (!existing) {
+      targetOwners.set(rule.target, rule);
+      continue;
+    }
+    if (existing.source === rule.source) {
+      fail(`manifest copy rules contain exact duplicate target ${rule.target}: ${rule.source}`);
+    } else {
+      fail(`manifest copy rules contain conflicting target ${rule.target}: ${existing.source} and ${rule.source}`);
+    }
+  }
+
+  for (const parent of directoryRules) {
+    const targetPrefix = `${parent.target.replace(/\/$/, "")}/`;
+    for (const child of rules) {
+      if (child.kind === parent.kind && child.index === parent.index) continue;
+      if (!child.target.startsWith(targetPrefix)) continue;
+      const relativeTarget = child.target.slice(targetPrefix.length);
+      const inheritedSource = path.posix.join(parent.source, relativeTarget);
+      if (child.source === inheritedSource) {
+        fail(`manifest copy rules contain redundant ancestor-child mapping: ${parent.source} -> ${parent.target} covers ${child.source} -> ${child.target}`);
+      } else {
+        fail(`manifest copy rules contain conflicting target-space overlap: ${parent.source} -> ${parent.target} covers target ${child.target}, but the nested rule uses source ${child.source} instead of ${inheritedSource}`);
+      }
+    }
+  }
+
+  if (!failed) pass("manifest copy rule targets are unique and ancestor-normalized");
 }
 
 function checkVersion(manifest) {
@@ -372,11 +392,15 @@ if (projectRoot !== kitRoot && !fs.existsSync(path.join(projectRoot, "scripts", 
 }
 
 const schema = loadJsonOrFail(schemaPath, "manifest schema");
-validateSchemaFile(schema);
+const manifest = loadJsonOrFail(manifestPath, "manifest");
 exitIfFailed();
 
-const manifest = loadJsonOrFail(manifestPath, "manifest");
-validateManifestShape(manifest);
+validateManifestAgainstSchema(manifest, schema);
+exitIfFailed();
+
+validateSchemaFile(schema);
+validateManifestDomain(manifest);
+checkCopyRuleNormalization(manifest);
 exitIfFailed();
 
 checkVersion(manifest);

@@ -227,9 +227,13 @@ Use baseline setup after `start` and before non-trivial work.
 
 ```bash
 node scripts/cli.mjs baseline <project>
-node scripts/baseline-project.mjs <project> --write-plan baseline-plan.json
-node scripts/baseline-project.mjs --apply-plan baseline-plan.json
+node scripts/baseline-project.mjs <project> --write-plan baseline-recommendations/baseline-plan.json
+node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json
 ```
+
+`baseline-project --write-plan` is proposal-only. Baseline writes use the
+structured Approval Record and Controlled Apply Readiness path of the exact
+init/update execution plan; direct baseline apply is retired.
 
 Apply scope is limited to:
 

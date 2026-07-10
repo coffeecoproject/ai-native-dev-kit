@@ -62,6 +62,7 @@ Use `scripts/cli.mjs` for daily operation.
 | `node scripts/cli.mjs queue-takeover <existing-project> --intent "<continue safely>"` | Classify old-project task records as reliable, messy, missing, or unsafe; map reliable systems or recommend IntentOS Work Queue without authorizing execution | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs queue-takeover-check <project>` | Check Work Queue Takeover reports for source digests, stale/risky-source blocking, pending Task Governance binding, no-execution boundaries, and no-authority claims | No |
 | `node scripts/cli.mjs baseline <project>` | Read-only engineering/environment baseline recommendation | No |
+| `node scripts/cli.mjs baseline-installation <project>` | Verify that the selected profiles, BL level, packs, baseline records, and managed version are installed | No |
 | `node scripts/cli.mjs baseline-decision <project>` | Produce a plain-language Baseline Decision Card | No |
 | `node scripts/cli.mjs baseline-decision-check <project>` | Check recorded Baseline Decision Cards | No |
 | `node scripts/cli.mjs standard-baseline <project>` | Read-only standard baseline pack recommendation | No |
@@ -159,7 +160,7 @@ Governed, production, dirty, or unbootstrapped existing projects must use plan-f
 
 `scripts/start-project.mjs` is the first-hour adoption entry. It calls `workflow-next`, classifies the target project, lists decisions needed from the human, and recommends safe next actions. It is read-only by default and must not write target project files.
 
-`scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. Use `--write-plan <file>` to write a reviewable plan and `--apply-plan <file>` to apply only approved baseline docs and baseline reports.
+`scripts/baseline-project.mjs` is the second guided entry. It recommends Engineering and Environment Baseline setup and is read-only by default. `--write-plan <file>` writes a proposal only. Direct `--apply-plan` was retired in 1.94; Codex must convert selected baseline actions into the exact `init-project --write-plan` graph and use the structured Approval Record, Controlled Apply Readiness, replay, receipt, and activation chain.
 
 `scripts/resolve-workflow-guidance.mjs` is the natural-language front door. It reads project state and prints one Workflow Guidance Card with a delivery path state, next step, distance to useful use, limited questions, internal routing, and explicit no-write/no-CI/no-hook/no-release boundaries. With `--deep`, it selectively runs read-only downstream resolvers such as review surface, delivery path, work queue, document lifecycle, workflow mapping, baseline decision, debt handoff, execution closure, and hook policy, then compresses them back into one card. With `--intent`, it classifies the user's goal and passes it to downstream resolvers that accept intent. It does not write target-project files.
 

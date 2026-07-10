@@ -15,6 +15,14 @@ import {
 } from "./lib/adoption-apply-chain.mjs";
 import { projectIdentity } from "./lib/evidence-authority.mjs";
 import {
+  normalizeBaselineLevel,
+  parseSelectionIds,
+  renderBaselineEvidence,
+  renderBaselineSelection,
+  renderProjectProfile,
+  resolveBaselineConfiguration,
+} from "./lib/baseline-selection.mjs";
+import {
   assertInsideRoot,
   assertNoSymlinkInPath,
   assertSafeNameSegment,
@@ -195,11 +203,81 @@ function readJsonIfExists(filePath) {
 }
 
 function parseIndustrialPackIds(value) {
-  if (!value || value === true) return [];
-  return String(value)
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return parseSelectionIds(value);
+}
+
+function selectedListFromProjectDoc(targetPath, fileName, heading) {
+  const file = path.join(targetPath, "docs", fileName);
+  if (!fs.existsSync(file)) return [];
+  const body = markdownSectionBody(fs.readFileSync(file, "utf8"), heading);
+  return [...new Set(body.split("\n")
+    .map((line) => line.match(/^\s*-\s+([a-z0-9][a-z0-9-]*)\s*$/i)?.[1])
+    .filter(Boolean))].sort();
+}
+
+function selectedBaselineLevelFromProject(targetPath) {
+  const file = path.join(targetPath, "docs", "baseline-selection.md");
+  if (!fs.existsSync(file)) return null;
+  const body = markdownSectionBody(fs.readFileSync(file, "utf8"), "Baseline Level");
+  const token = body.match(/\bBL[0-2](?:_(?:LIGHTWEIGHT|STANDARD|INDUSTRIAL))?\b/i)?.[0];
+  return normalizeBaselineLevel(token);
+}
+
+function baselineConfigurationForPlan(targetPath, options = {}) {
+  if (options.withIndustrialPacks) {
+    throw new Error("Full industrial-pack installation is not supported; select only concrete risk-justified industrial pack IDs");
+  }
+  const profiles = parseSelectionIds(options.profiles).length > 0
+    ? options.profiles
+    : selectedListFromProjectDoc(targetPath, "project-profile.md", "Selected Profiles").join(",");
+  const standardPacks = parseSelectionIds(options.standardPacks).length > 0
+    ? options.standardPacks
+    : selectedListFromProjectDoc(targetPath, "baseline-selection.md", "Selected Standard Packs").join(",");
+  const industrialPacks = parseSelectionIds(options.industrialPacks).length > 0
+    ? options.industrialPacks
+    : selectedIndustrialPackIdsFromProject(targetPath).join(",");
+  const config = resolveBaselineConfiguration(kitRoot, {
+    starter: options.starter,
+    baselineLevel: options.baselineLevel || selectedBaselineLevelFromProject(targetPath),
+    profiles,
+    standardPacks,
+    industrialPacks,
+  });
+  assertExistingBaselineConfigurationCompatible(targetPath, config);
+  return config;
+}
+
+function assertExistingBaselineConfigurationCompatible(targetPath, config) {
+  if (!config.configured) return;
+  const profileFile = path.join(targetPath, "docs", "project-profile.md");
+  const selectionFile = path.join(targetPath, "docs", "baseline-selection.md");
+  const profileValues = selectedListFromProjectDoc(targetPath, "project-profile.md", "Selected Profiles");
+  if (fs.existsSync(profileFile) && profileValues.length === 0) {
+    throw new Error("Existing project profile is incomplete; use existing-rule reconciliation and a selected gap plan instead of replacing the document");
+  }
+  if (profileValues.length > 0 && JSON.stringify(profileValues) !== JSON.stringify(config.profiles)) {
+    throw new Error("Existing project profile conflicts with the requested profile selection; run existing-rule reconciliation before changing it");
+  }
+  const level = selectedBaselineLevelFromProject(targetPath);
+  if (fs.existsSync(selectionFile) && !level) {
+    throw new Error("Existing baseline selection is incomplete; use existing-rule reconciliation and a selected gap plan instead of replacing the document");
+  }
+  if (level && level !== config.baselineLevel) {
+    throw new Error("Existing baseline level conflicts with the requested selection; run existing-rule reconciliation before changing it");
+  }
+  const selectionProfiles = selectedListFromProjectDoc(targetPath, "baseline-selection.md", "Selected Profiles");
+  if (fs.existsSync(selectionFile) && JSON.stringify(selectionProfiles) !== JSON.stringify(config.profiles)) {
+    throw new Error("Existing baseline selected profiles are incomplete or conflicting; run existing-rule reconciliation before changing them");
+  }
+  for (const [heading, expected] of [
+    ["Selected Standard Packs", config.standardPacks],
+    ["Selected Industrial Packs", config.industrialPacks],
+  ]) {
+    const actual = selectedListFromProjectDoc(targetPath, "baseline-selection.md", heading);
+    if (fs.existsSync(selectionFile) && JSON.stringify(actual) !== JSON.stringify(expected)) {
+      throw new Error(`Existing ${heading.toLowerCase()} are incomplete or conflicting; run existing-rule reconciliation before changing them`);
+    }
+  }
 }
 
 function markdownSectionBody(content, heading) {
@@ -1538,6 +1616,12 @@ function buildVersionRecord(targetPath, starter, options = {}, now = new Date().
   const version = {
     intentOSVersion: currentIntentOSVersion,
     starter: existing.starter || starter,
+    baselineSelection: options.baselineConfig?.configured ? {
+      level: options.baselineConfig.baselineLevel,
+      profiles: options.baselineConfig.profiles,
+      standardPacks: options.baselineConfig.standardPacks,
+      industrialPacks: options.baselineConfig.industrialPacks,
+    } : existing.baselineSelection || null,
     initializedAt: existing.initializedAt || now,
     lastWorkflowAssetUpdateAt: options.update ? now : existing.lastWorkflowAssetUpdateAt || now,
     workflowAssets: workflowVersionAssets(kitRoot, { fallback: [
@@ -1727,12 +1811,19 @@ function enrichExecutionActions(actions, targetPath, options, createdAt, receipt
       const sourcePath = resolveUnderRoot(kitRoot, action.source, "plan action source");
       action.sourceHash = sha256File(sourcePath);
       action.expectedHashAfter = action.sourceHash;
+    } else if (typeof action.inlineContentBase64 === "string") {
+      const content = Buffer.from(action.inlineContentBase64, "base64");
+      action.sourceHash = sha256Content(content);
+      action.expectedHashAfter = action.sourceHash;
     } else if (action.path.endsWith("/.gitkeep")) {
       action.inlineContentBase64 = Buffer.from("").toString("base64");
       action.sourceHash = sha256Content("");
       action.expectedHashAfter = action.sourceHash;
     } else if (action.path === ".intentos/version.json") {
-      const record = buildVersionRecord(targetPath, options.starter, { update: options.update }, createdAt);
+      const record = buildVersionRecord(targetPath, options.starter, {
+        update: options.update,
+        baselineConfig: options.baselineConfig,
+      }, createdAt);
       const content = `${JSON.stringify(record, null, 2)}\n`;
       action.inlineContentBase64 = Buffer.from(content).toString("base64");
       action.sourceHash = sha256Content(content);
@@ -1872,6 +1963,28 @@ function addFilePlanAction(actions, targetPath, sourcePath, targetRel, options =
   });
 }
 
+function addGeneratedFilePlanAction(actions, targetPath, targetRel, content, options = {}) {
+  const safeTargetRel = assertSafeRelativePath(targetRel, "generated plan action target path");
+  const destPath = assertSafeWritePath(targetPath, safeTargetRel, "generated plan action target path");
+  const existed = fs.existsSync(destPath);
+  const currentHash = sha256File(destPath);
+  const nextHash = sha256Content(content);
+  let type;
+  if (!existed) type = "CREATE";
+  else if (currentHash === nextHash) type = "SKIP_EXISTING";
+  else if (!options.overwrite) type = "SKIP_EXISTING";
+  else type = options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED";
+  actions.push({
+    type,
+    path: safeTargetRel,
+    source: null,
+    reason: options.reason || "plan-bound generated project record",
+    willWrite: type !== "SKIP_EXISTING",
+    hashBefore: currentHash,
+    inlineContentBase64: Buffer.from(content).toString("base64"),
+  });
+}
+
 function addDirectoryPlanActions(actions, targetPath, sourceDir, targetRel, options = {}) {
   for (const sourceFile of walkSourceFiles(sourceDir)) {
     const nestedRel = path.relative(sourceDir, sourceFile).replaceAll(path.sep, "/");
@@ -1910,6 +2023,23 @@ function addOnboardingDocPlanActions(actions, targetPath) {
     addFilePlanAction(actions, targetPath, path.join(kitRoot, "templates", docName), `docs/${docName}`, {
       overwrite: false,
       reason: "project onboarding document",
+    });
+  }
+}
+
+function addBaselineConfigurationPlanActions(actions, targetPath, config, options = {}) {
+  if (!config?.configured) return;
+  const projectName = path.basename(targetPath) || "project";
+  const generated = [
+    ["docs/project-profile.md", renderProjectProfile(config, { projectName })],
+    ["docs/baseline-selection.md", renderBaselineSelection(config)],
+    ["docs/baseline-evidence.md", renderBaselineEvidence(config)],
+  ];
+  for (const [targetRel, content] of generated) {
+    addGeneratedFilePlanAction(actions, targetPath, targetRel, content, {
+      overwrite: false,
+      backupDir: options.backupDir,
+      reason: "selected baseline configuration bound to controlled init plan",
     });
   }
 }
@@ -2008,6 +2138,8 @@ function buildPlan(targetPath, options = {}) {
   if (options.backupDir) resolveBackupRoot(targetPath, options.backupDir);
   const operation = options.update ? "UPDATE_WORKFLOW_ASSETS" : "INIT_PROJECT";
   const actions = [];
+  const baselineConfig = baselineConfigurationForPlan(targetPath, options);
+  options = { ...options, baselineConfig };
   if (!options.update) {
     addDirectoryPlanActions(actions, targetPath, path.join(kitRoot, "starters", options.starter), ".", {
       overwrite: false,
@@ -2031,6 +2163,7 @@ function buildPlan(targetPath, options = {}) {
   }
   addIndustrialPlanActions(actions, targetPath, options);
   addOnboardingDocPlanActions(actions, targetPath);
+  addBaselineConfigurationPlanActions(actions, targetPath, baselineConfig, options);
   addGovernancePlanActions(actions, targetPath, options.starter, options);
   addWorkflowDirPlanActions(actions, targetPath);
   actions.push({
@@ -2068,6 +2201,10 @@ function buildPlan(targetPath, options = {}) {
       applyAgentGovernance: Boolean(options.applyAgentGovernance),
       withIndustrialPacks: Boolean(options.withIndustrialPacks),
       industrialPacks: options.industrialPacks || "",
+      profiles: baselineConfig.profiles,
+      baselineLevel: baselineConfig.baselineLevel,
+      standardPacks: baselineConfig.standardPacks,
+      selectedIndustrialPacks: baselineConfig.industrialPacks,
       backupDir: options.backupDir || null,
       controlledAdoption: true,
     },
@@ -2206,7 +2343,7 @@ function isForbiddenControlledApplyAction(action) {
     || target.startsWith("deploy/")
     || target.startsWith("src/")
     || /^\.env/.test(target)
-    || /selected industrial pack|explicit full industrial pack/i.test(reason);
+    || /explicit full industrial pack/i.test(reason);
 }
 
 function readApprovalRecordForApply(recordPath) {
@@ -2373,7 +2510,7 @@ function replayApprovedPlan(plan, context) {
       throw new Error(`Unexpected target writes detected: ${unexpectedChangedPaths.join(", ")}`);
     }
 
-    activation = verifyInstalledWorkflowActivation(plan.targetRoot);
+    activation = verifyInstalledWorkflowActivation(plan.targetRoot, plan);
     if (activation.status !== "VERIFIED") {
       throw new Error(`Installed workflow activation failed: ${activation.reason || "unknown error"}`);
     }
@@ -2452,7 +2589,7 @@ function rollbackActions(plan, actions, results) {
   return verified;
 }
 
-function verifyInstalledWorkflowActivation(targetRoot) {
+function verifyInstalledWorkflowActivation(targetRoot, plan) {
   const script = path.join(targetRoot, "scripts", "workflow-next.mjs");
   if (!fs.existsSync(script)) return { ...activationNotRun(), status: "FAILED", reason: "installed workflow-next entry is missing" };
   const before = snapshotTargetFiles(targetRoot);
@@ -2461,6 +2598,17 @@ function verifyInstalledWorkflowActivation(targetRoot) {
     encoding: "utf8",
     maxBuffer: 1024 * 1024 * 20,
   });
+  let baselineResult = null;
+  if (plan?.arguments?.baselineLevel && Array.isArray(plan?.arguments?.profiles) && plan.arguments.profiles.length > 0) {
+    const baselineScript = path.join(targetRoot, "scripts", "check-baseline-installation.mjs");
+    baselineResult = fs.existsSync(baselineScript)
+      ? spawnSync(process.execPath, [baselineScript, targetRoot, "--require-selection", "--allow-pending-receipt"], {
+        cwd: targetRoot,
+        encoding: "utf8",
+        maxBuffer: 1024 * 1024 * 20,
+      })
+      : { status: 1, stdout: "", stderr: "installed baseline checker is missing" };
+  }
   const after = snapshotTargetFiles(targetRoot);
   let parsed = null;
   try {
@@ -2473,7 +2621,8 @@ function verifyInstalledWorkflowActivation(targetRoot) {
   const projectState = typeof parsed?.projectState === "string"
     ? parsed.projectState
     : String(parsed?.projectState?.state || parsed?.projectStateTags?.[0] || "");
-  const ok = result.status === 0 && parsed && nextAction && projectState && changed.length === 0;
+  const baselineOk = !baselineResult || baselineResult.status === 0;
+  const ok = result.status === 0 && parsed && nextAction && projectState && changed.length === 0 && baselineOk;
   return {
     status: ok ? "VERIFIED" : "FAILED",
     workflow_next_exit_code: String(result.status ?? "N/A"),
@@ -2481,7 +2630,11 @@ function verifyInstalledWorkflowActivation(targetRoot) {
     project_state: projectState || "N/A",
     next_action: nextAction || "N/A",
     read_only: changed.length === 0,
-    reason: ok ? "" : normalizeOutput(result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`),
+    reason: ok ? "" : normalizeOutput(
+      baselineResult && baselineResult.status !== 0
+        ? baselineResult.stderr || baselineResult.stdout
+        : result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`,
+    ),
   };
 }
 
@@ -2689,29 +2842,11 @@ function executeInit(targetPath, starter, options = {}) {
 
 function printNextSteps() {
   console.log("Next steps:");
-  console.log("1. Run project onboarding by using .intentos/prompts/project-onboarding-agent.md.");
-  console.log("2. Let AI draft docs/project-onboarding.md, project-profile, tech-stack strategy, business spec index, sample policy, and decisions from conversation.");
-  console.log("3. Human confirms decisions; then run node scripts/check-project-onboarding.mjs . --strict when ready.");
-  console.log("4. Draft docs/engineering-baseline.md before structural, schema, contract, permission, migration, dependency, or cross-module state decisions.");
-  console.log("5. Run node scripts/check-engineering-baseline.mjs . and route pending engineering decisions to humans before high-impact code changes.");
-  console.log("6. Select platform profiles, then run node scripts/check-platform-baseline.mjs .");
-  console.log("7. Run node scripts/cli.mjs baseline-decision . so Codex explains BL level, standard packs, industrial candidates, and human decisions in plain language.");
-  console.log("8. Run node scripts/resolve-standard-baseline.mjs . to review standard packs before considering BL2 industrial overlays.");
-  console.log("9. For BL2 industrial work, install selected packs with --industrial-packs, then run node scripts/check-industrial-pack.mjs . --selected-only and node scripts/check-industrial-baseline.mjs . --bl2-only.");
-  console.log("10. Create the first request card only after onboarding is ready.");
-  console.log("11. Use scripts/new-workflow-item.mjs to create request/spec/eval/task files.");
-  console.log("12. Run scripts/check-workflow-artifacts.mjs . --mode ready before implementation.");
-  console.log("13. After L2/L3 work or independent review, create review packet / review loop report assets when required.");
-  console.log("14. Run scripts/check-review-loop.mjs . --task <task-card> when a Review Loop Report exists.");
-  console.log("15. Run scripts/check-next-step-boundary.mjs . --task <task-card> when next-step suggestions are recorded.");
-  console.log("16. Before turning document archive suggestions into action, run node scripts/cli.mjs archive-apply . and review the plan.");
-  console.log("17. Before proposing hook installation, CI hook changes, blocking gates, scheduled jobs, external reviewer hooks, token use, or auto-fix hooks, run node scripts/cli.mjs hook-policy . and review the policy.");
-  console.log("18. Use scripts/new-workflow-item.mjs --type goal-card when the route is ambiguous, high-risk, or multi-step.");
-  console.log("19. Run scripts/check-goal-mode.mjs . when Goal Cards exist.");
-  console.log("20. When helper agents are used, create a subagent run plan and close or skip every subagent before final response.");
-  console.log("21. Run scripts/check-subagent-orchestration.mjs . when Subagent Run Plans exist.");
-  console.log("22. When a task is paused, interrupted, or leaves known debt, run node scripts/cli.mjs debt-handoff . and record the handoff.");
-  console.log("23. After L1/L2/L3 work, write ai-logs and run scripts/summarize-ai-logs.mjs.");
+  console.log("1. Tell Codex the product goal in plain language.");
+  console.log("2. Codex reads the project, derives the platform and baseline, and prepares any required controlled setup plan.");
+  console.log("3. You confirm only a meaningful product, cost, ownership, or material-risk recommendation when one is needed.");
+  console.log("4. Codex completes onboarding, builds the first useful slice, runs the required review and verification, and records evidence.");
+  console.log("5. Codex reports one plain result: done, limited, blocked, or one decision needed.");
 }
 
 function isIgnorableNewProjectEntry(name) {
@@ -2756,6 +2891,9 @@ const applyPrTemplateGovernance = Boolean(args["apply-pr-template-governance"]);
 const applyAgentGovernance = Boolean(args["apply-agent-governance"]);
 const withIndustrialPacks = Boolean(args["with-industrial-packs"]);
 const industrialPacks = args["industrial-packs"] || "";
+const profiles = args.profiles || "";
+const baselineLevel = args["baseline-level"] || "";
+const standardPacks = args["standard-packs"] || "";
 const dryRun = Boolean(args["dry-run"]);
 const writePlanPath = args["write-plan"];
 const applyPlanPath = args["apply-plan"];
@@ -2772,6 +2910,8 @@ if (!target && !applyPlanPath) {
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan ./init-update-plan.json");
   console.error("       node scripts/init-project.mjs --apply-plan ./apply-execution-plans/init-update-plan.json --approval-record ./approval-records/approval.md --readiness-report ./apply-readiness-reports/readiness.md");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --industrial-packs web-app-industrial,backend-api-industrial");
+  console.error("       node scripts/init-project.mjs --starter codex-web-app --target ../my-project --profiles web-app --baseline-level BL1_STANDARD --write-plan ../my-project/apply-execution-plans/init.json");
+  console.error("       node scripts/init-project.mjs --starter codex-web-app --target ../my-project --profiles web-app --baseline-level BL2_INDUSTRIAL --standard-packs web-runtime-standard,environment-standard --industrial-packs web-app-industrial --write-plan ../my-project/apply-execution-plans/init.json");
   console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance");
@@ -2862,14 +3002,23 @@ const commonOptions = {
   applyAgentGovernance,
   withIndustrialPacks,
   industrialPacks,
+  profiles,
+  baselineLevel,
+  standardPacks,
   backupDir,
 };
 
 if (dryRun || writePlanPath) {
-  const plan = buildPlan(targetPath, {
-    ...commonOptions,
-    update: updateWorkflowAssets,
-  });
+  let plan;
+  try {
+    plan = buildPlan(targetPath, {
+      ...commonOptions,
+      update: updateWorkflowAssets,
+    });
+  } catch (error) {
+    console.error(`FAIL ${error.message}`);
+    process.exit(2);
+  }
   if (dryRun) {
     printPlan(plan);
     process.exit(0);
@@ -2881,6 +3030,12 @@ if (dryRun || writePlanPath) {
 if (updateWorkflowAssets) {
   const gate = workflowNextGate(targetPath);
   console.error(`Workflow update requires the 1.92 plan-first path${gate.reason ? `: ${gate.reason}` : "."}`);
+  console.error("Run --write-plan, record exact approval and readiness, then run --apply-plan with both records.");
+  process.exit(2);
+}
+
+if (profiles || baselineLevel || standardPacks || industrialPacks || withIndustrialPacks) {
+  console.error("Selected baseline/profile/pack setup requires the controlled plan-first path.");
   console.error("Run --write-plan, record exact approval and readiness, then run --apply-plan with both records.");
   process.exit(2);
 }

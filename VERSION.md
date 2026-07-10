@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.93.0`
+Current version: `1.94.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,22 @@ Current version: `1.93.0`
 
 ## Current Release
 
-`1.93.0`
+`1.94.0`
 
 Includes:
+
+- Baseline, Manifest And Public Entry Consolidation `1.94.0`: canonical BL
+  levels now resolve consistently, managed `.intentos` assets no longer
+  classify the host project, and a controlled new-project plan can bind exact
+  profiles, baseline level, standard packs, selected BL2 industrial packs, and
+  generated baseline records. Installed baseline state is independently
+  checkable.
+- `1.94.0` validates the authoritative manifest against its real strict schema,
+  removes obsolete groups and redundant copy mappings, retires direct baseline
+  apply, and keeps technical profile/BL/pack selection inside Codex. It does not
+  certify draft packs, overwrite stricter project rules, or authorize runtime,
+  release, production, secret, migration, payment, permission, or compliance
+  decisions.
 
 - Release Trust Closure `1.93.0`: Release Execution now accepts only a current
   structured human Release Approval Record bound to the exact project, Git

@@ -313,6 +313,12 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "baseline-installation": {
+    description: "Verify that the selected project baseline and packs are actually installed.",
+    script: "scripts/check-baseline-installation.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "baseline-packs": {
     description: "Show standard baseline packs first, then optional industrial overlays.",
     script: "scripts/resolve-standard-baseline.mjs",

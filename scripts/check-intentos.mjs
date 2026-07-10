@@ -212,6 +212,8 @@ function checkIntentOSNamingHardcut() {
   ];
   const allowedExceptions = new Set([
     "docs/plans/intentos-naming-hardcut-1.73-plan.md",
+    "docs/plans/baseline-manifest-public-entry-consolidation-1.94-plan.md",
+    "docs/source-only-adoption.md",
   ]);
   const extensions = [".md", ".mjs", ".json", ".yml", ".yaml"];
   const files = [];
@@ -434,6 +436,8 @@ function checkRequiredFiles() {
     "scripts/check-engineering-baseline.mjs",
     "scripts/check-environment-baseline.mjs",
     "scripts/check-baseline-enforcement.mjs",
+    "scripts/check-baseline-installation.mjs",
+    "scripts/lib/baseline-selection.mjs",
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
     "scripts/check-context-governance.mjs",
@@ -694,6 +698,7 @@ function checkVersionMetadata() {
     "scripts/check-engineering-baseline.mjs",
     "scripts/check-environment-baseline.mjs",
     "scripts/check-baseline-enforcement.mjs",
+    "scripts/check-baseline-installation.mjs",
     "scripts/check-product-baseline.mjs",
     "scripts/check-claim-control.mjs",
     "scripts/check-context-governance.mjs",
@@ -746,6 +751,7 @@ function checkVersionMetadata() {
     "scripts/check-goal-mode.mjs",
     "scripts/check-subagent-orchestration.mjs",
     "scripts/lib/manifest.mjs",
+    "scripts/lib/baseline-selection.mjs",
     "scripts/lib/risk-surfaces.mjs",
     "scripts/lib/path-safety.mjs",
     "scripts/new-workflow-item.mjs",
@@ -955,6 +961,7 @@ function checkIntentOSFirstPartyCi() {
     "npm run verify",
     "node scripts/check-manifest.mjs",
     "node scripts/check-product-baseline.mjs .",
+    "node scripts/check-baseline-installation.mjs .",
     "node scripts/check-claim-control.mjs .",
     "node scripts/check-context-governance.mjs .",
     "node scripts/check-launch-readiness.mjs .",
@@ -1012,6 +1019,7 @@ function checkIntentOSFirstPartyCi() {
     "check-guided-adoption.mjs",
     "check-project-onboarding.mjs",
     "check-engineering-baseline.mjs",
+    "check-baseline-installation.mjs",
     "check-product-baseline.mjs",
     "check-claim-control.mjs",
     "check-context-governance.mjs",
@@ -1080,6 +1088,7 @@ function checkIntentOSFirstPartyCi() {
     "delivery-status-cards/001-generated-status.md",
     "done-check",
     "verify-execution",
+    "baseline-installation",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -1219,6 +1228,7 @@ function checkIntentOSFirstPartyCi() {
     "delivery-path-check",
     "debt-handoff",
     "debt-handoff-check",
+    "baseline-installation",
     "baseline-decision",
     "baseline-decision-check",
     "workflow-map",
@@ -15855,6 +15865,8 @@ function checkGeneratedProjectE2E() {
   const baselineSelectionPath = path.join(target, "docs", "baseline-selection.md");
   const baselineSelectionContent = fs.readFileSync(baselineSelectionPath, "utf8")
     .replace("BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL:", "BL2_INDUSTRIAL:")
+    .replace("- <profile-id>", "- web-app")
+    .replace("- <standard-pack-id>", "- environment-standard\n- web-runtime-standard")
     .replace("- <industrial-pack-id>", "- web-app-industrial")
     .replace("Status: PENDING / APPROVED / REJECTED", "Status: APPROVED")
     .replace("|  |  | Yes / No |", "| web-app-industrial | production-grade web delivery | Yes |")
@@ -15911,11 +15923,11 @@ function checkGeneratedProjectE2E() {
   }
   const selectedPackPlan = JSON.parse(fs.readFileSync(selectedPackPlanPath, "utf8"));
   const selectedPackActions = selectedPackPlan.actions.filter((action) => action.path.startsWith(".intentos/industrial-packs/web-app/"));
-  if (selectedPackActions.length === 0 || selectedPackActions.some((action) => action.type !== "HUMAN_ONLY" || action.willWrite !== false)) {
-    fail("generated project selected industrial pack plan must keep industrial installation human-only");
+  if (selectedPackActions.length === 0 || selectedPackActions.some((action) => action.willWrite !== true || action.executionSupported !== true || action.type === "HUMAN_ONLY")) {
+    fail("generated project selected industrial pack plan must bind exact pack assets to the controlled action graph");
     return;
   }
-  pass("generated project selected industrial pack plan is human-only");
+  pass("generated project selected industrial pack plan binds exact approved pack assets");
   fs.cpSync(
     path.join(kitRoot, "industrial-packs", "web-app"),
     path.join(target, ".intentos", "industrial-packs", "web-app"),
@@ -17946,6 +17958,117 @@ function checkReleaseTrustClosureProtocol() {
   else fail(`1.93 project revision drift must invalidate approval: ${headChange.stderr || staleRevisionCheck.stderr || staleRevisionCheck.stdout}`);
 }
 
+function checkBaselineManifestPublicEntryConsolidationProtocol() {
+  const plan = read("docs/plans/baseline-manifest-public-entry-consolidation-1.94-plan.md");
+  for (const marker of [
+    "BL1_STANDARD",
+    "Managed IntentOS assets",
+    "controlled init/update plan",
+    "real schema validation",
+    "The user is not expected",
+  ]) {
+    if (plan.toLowerCase().includes(marker.toLowerCase())) pass(`1.94 plan includes ${marker}`);
+    else fail(`1.94 plan missing ${marker}`);
+  }
+
+  const bl1Root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.94-bl1-"));
+  fs.mkdirSync(path.join(bl1Root, "docs"), { recursive: true });
+  fs.writeFileSync(path.join(bl1Root, "docs/baseline-selection.md"), "# Baseline Selection\n\n## Baseline Level\n\nBL1_STANDARD\n");
+  const bl1Check = runNode(["scripts/check-baseline-enforcement.mjs", bl1Root, "--json"]);
+  let bl1Evidence = null;
+  try { bl1Evidence = JSON.parse(bl1Check.stdout); } catch {}
+  if (bl1Check.status === 0 && bl1Evidence?.baselineLevel === "BL1") pass("1.94 BL1_STANDARD is enforced as BL1");
+  else fail(`1.94 BL1_STANDARD classification failed: ${bl1Check.stderr || bl1Check.stdout}`);
+
+  const managedSignalRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.94-managed-signals-"));
+  fs.mkdirSync(path.join(managedSignalRoot, ".intentos", "managed-web-app"), { recursive: true });
+  fs.writeFileSync(path.join(managedSignalRoot, ".intentos/managed-web-app/package.json"), JSON.stringify({ dependencies: { react: "1.0.0" } }));
+  const signalCheck = runNode(["scripts/baseline-project.mjs", managedSignalRoot, "--json"]);
+  let signalEvidence = null;
+  try { signalEvidence = JSON.parse(signalCheck.stdout); } catch {}
+  if (signalCheck.status === 0 && signalEvidence?.detectedProfileCandidates?.every((item) => item.id !== "web-app")) {
+    pass("1.94 managed .intentos assets do not classify the host platform");
+  } else {
+    fail(`1.94 managed asset signal isolation failed: ${signalCheck.stderr || signalCheck.stdout}`);
+  }
+
+  const bl2Root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.94-bl2-missing-pack-"));
+  fs.mkdirSync(bl2Root, { recursive: true });
+  const bl2Plan = path.join(os.tmpdir(), `intentos-1.94-bl2-${Date.now()}.json`);
+  const bl2Check = runNode([
+    "scripts/init-project.mjs", "--starter", "codex-web-app", "--target", bl2Root,
+    "--profiles", "web-app", "--baseline-level", "BL2_INDUSTRIAL", "--write-plan", bl2Plan,
+  ]);
+  if (bl2Check.status !== 0 && `${bl2Check.stdout}\n${bl2Check.stderr}`.includes("requires at least one concrete selected industrial pack")) {
+    pass("1.94 BL2 without a concrete industrial pack fails closed");
+  } else {
+    fail(`1.94 BL2 missing-pack path must fail: ${bl2Check.stderr || bl2Check.stdout}`);
+  }
+
+  const legacyRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.94-legacy-baseline-"));
+  const legacyPlan = path.join(legacyRoot, "baseline-plan.json");
+  fs.writeFileSync(legacyPlan, JSON.stringify({
+    planType: "BASELINE_WRITE_PLAN",
+    targetRoot: legacyRoot,
+    writes: [{ path: "docs/should-not-exist.md", content: "forbidden legacy write" }],
+  }));
+  const legacyApply = runNode(["scripts/baseline-project.mjs", "--apply-plan", legacyPlan]);
+  if (legacyApply.status !== 0 && !fs.existsSync(path.join(legacyRoot, "docs/should-not-exist.md"))) {
+    pass("1.94 retired direct baseline apply performs no target write");
+  } else {
+    fail("1.94 retired direct baseline apply wrote a target file");
+  }
+
+  const outsideProposal = path.join(path.dirname(legacyRoot), `${path.basename(legacyRoot)}-outside.json`);
+  const unsafeProposal = runNode([
+    "scripts/baseline-project.mjs", legacyRoot, "--write-plan", `../${path.basename(outsideProposal)}`,
+  ]);
+  if (unsafeProposal.status !== 0 && !fs.existsSync(outsideProposal)) {
+    pass("1.94 baseline proposal output cannot escape the target project");
+  } else {
+    fail("1.94 baseline proposal output escaped the target project");
+  }
+
+  const installRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.94-install-"));
+  const installPlan = path.join(os.tmpdir(), `intentos-1.94-install-${Date.now()}.json`);
+  const planResult = runNode([
+    "scripts/init-project.mjs", "--starter", "codex-web-app", "--target", installRoot,
+    "--profiles", "web-app", "--baseline-level", "BL1_STANDARD", "--write-plan", installPlan,
+  ]);
+  if (planResult.status !== 0) {
+    fail(`1.94 controlled baseline plan generation failed: ${planResult.stderr || planResult.stdout}`);
+    return;
+  }
+  const generatedPlan = JSON.parse(fs.readFileSync(installPlan, "utf8"));
+  const generatedDocs = new Set(generatedPlan.actions
+    .filter((action) => action.willWrite && typeof action.inlineContentBase64 === "string")
+    .map((action) => action.path));
+  if (["docs/project-profile.md", "docs/baseline-selection.md", "docs/baseline-evidence.md"].every((item) => generatedDocs.has(item))) {
+    pass("1.94 controlled plan binds generated baseline records");
+  } else {
+    fail("1.94 controlled plan is missing generated baseline records");
+  }
+  const applyResult = runNode(approvedInitProjectApplyArgs(installPlan));
+  if (applyResult.status !== 0) {
+    fail(`1.94 controlled baseline apply failed: ${applyResult.stderr || applyResult.stdout}`);
+    return;
+  }
+  const receiptPath = path.join(installRoot, generatedPlan.receiptPath);
+  const heldReceiptPath = `${receiptPath}.held`;
+  fs.renameSync(receiptPath, heldReceiptPath);
+  const missingReceiptCheck = runNode(["scripts/check-baseline-installation.mjs", installRoot, "--require-selection"]);
+  fs.renameSync(heldReceiptPath, receiptPath);
+  if (missingReceiptCheck.status !== 0
+    && `${missingReceiptCheck.stdout}\n${missingReceiptCheck.stderr}`.includes("no valid current-project Apply Receipt")) {
+    pass("1.94 baseline installation fails closed without its exact Apply Receipt");
+  } else {
+    fail(`1.94 baseline installation accepted missing receipt evidence: ${missingReceiptCheck.stderr || missingReceiptCheck.stdout}`);
+  }
+  const installedCheck = runNode(["scripts/check-baseline-installation.mjs", installRoot, "--require-selection"]);
+  if (installedCheck.status === 0) pass("1.94 controlled baseline installation is verifiable after apply");
+  else fail(`1.94 baseline installation verification failed: ${installedCheck.stderr || installedCheck.stdout}`);
+}
+
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
@@ -18017,6 +18140,7 @@ checkExecutionTruthHardcutProtocol();
 checkEvidenceAuthorityCoreProtocol();
 checkApplyAdoptionClosureProtocol();
 checkReleaseTrustClosureProtocol();
+checkBaselineManifestPublicEntryConsolidationProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

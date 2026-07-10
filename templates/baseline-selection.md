@@ -16,6 +16,10 @@ Rationale:
 
 - <profile-id>
 
+## Selected Standard Packs
+
+- <standard-pack-id>
+
 ## Selected Industrial Packs
 
 - <industrial-pack-id>
@@ -47,4 +51,3 @@ Approval scope:
 ## Review Cadence
 
 - 
-

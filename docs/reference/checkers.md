@@ -39,7 +39,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `resolve-guided-closure.mjs` | Read-only guided close-out entry that answers whether a task can be treated as done without user-facing strict command burden |
 | `check-guided-closure.mjs` | Guided Closure Card state, checked-area, question-count, plain-language, and overclaim checks |
 | `start-project.mjs` | Read-only guided adoption recommendation |
-| `baseline-project.mjs` | Read-only engineering/environment baseline recommendation and plan-first baseline apply |
+| `baseline-project.mjs` | Read-only engineering/environment baseline recommendation and proposal-only plan output; direct apply is retired |
+| `check-baseline-installation.mjs` | Selected profile, BL level, standard/industrial pack, project document, managed version, and exact valid Apply Receipt installation proof |
 | `resolve-guided-baseline-selection.mjs` | Plain-language Baseline Decision Card recommendation |
 | `check-guided-baseline-selection.mjs` | Baseline Decision Card boundary and safety checks |
 | `check-baseline-selection-precision.mjs` | Baseline Selection precision scoreboard and synthetic calibration fixture checks |
@@ -243,6 +244,7 @@ node scripts/check-project-onboarding.mjs .
 node scripts/check-engineering-baseline.mjs .
 node scripts/check-environment-baseline.mjs .
 node scripts/check-baseline-enforcement.mjs . --mode ready
+node scripts/check-baseline-installation.mjs . --require-selection
 node scripts/check-product-baseline.mjs .
 node scripts/check-claim-control.mjs .
 node scripts/check-context-governance.mjs .

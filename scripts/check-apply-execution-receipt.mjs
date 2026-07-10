@@ -22,7 +22,7 @@ import {
 } from "./lib/adoption-apply-chain.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["require-structured-evidence", "allow-empty"]);
+const knownFlags = new Set(["require-structured-evidence", "allow-empty", "receipt"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const requireEvidence = Boolean(args["require-structured-evidence"]);
@@ -34,7 +34,9 @@ let failures = 0;
 
 if (unknown.length > 0) fail(`unknown option: --${unknown.join(", --")}`);
 
-const files = markdownFiles(path.join(projectRoot, "apply-receipts"));
+const files = args.receipt
+  ? selectedReceiptFiles(String(args.receipt))
+  : markdownFiles(path.join(projectRoot, "apply-receipts"));
 if (files.length === 0) {
   if (requireEvidence && !allowEmpty) fail("apply execution receipt is required but no report exists");
   else pass("apply execution receipt check skipped: no reports");
@@ -212,6 +214,19 @@ function markdownFiles(dir) {
     .map((name) => path.join(dir, name))
     .filter((file) => fs.statSync(file).isFile())
     .sort();
+}
+
+function selectedReceiptFiles(reference) {
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", reference, { markdownOnly: true });
+  if (!resolved.ok) {
+    fail(`selected apply receipt is unsafe or unresolved: ${resolved.error}`);
+    return [];
+  }
+  if (!resolved.relativePath.startsWith("apply-receipts/") || path.dirname(resolved.relativePath) !== "apply-receipts") {
+    fail("selected apply receipt must be a direct child of apply-receipts/");
+    return [];
+  }
+  return [resolved.file];
 }
 
 function fileForLabel(label) {

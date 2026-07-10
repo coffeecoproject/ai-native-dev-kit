@@ -3,6 +3,7 @@ import path from "node:path";
 
 export const defaultIgnoredDirs = new Set([
   ".git",
+  ".intentos",
   ".DS_Store",
   "node_modules",
   ".pnpm-store",

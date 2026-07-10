@@ -41,7 +41,7 @@ Expected Codex behavior:
 - Treat `start` as read-only by default: it recommends adoption path and decisions, but does not write target project files.
 - After `start`, use `scripts/cli.mjs baseline <project-root>` when the project needs Engineering and Environment Baseline recommendations.
 - Treat `baseline` as read-only by default: it must include `Can AI write now: No`.
-- Use `scripts/baseline-project.mjs <project-root> --write-plan <file>` and reviewed `--apply-plan <file>` before writing baseline docs.
+- Use `scripts/baseline-project.mjs <project-root> --write-plan baseline-recommendations/<file>.json` for a project-local proposal only. Convert accepted actions into the exact controlled init/update plan; direct baseline apply is retired.
 - Use `scripts/workflow-next.mjs <project-root>` as the lower-level technical state detector when needed.
 - Report `workflow-next` results with `Human Decision Summary` first, then human summary, then technical state fields. The decision summary must include the recommended option, alternatives, whether each option writes files, risk, and what happens if the human does nothing. Use `--format technical` only when the user or automation asks for raw technical output.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce a real adoption report, existing governance map, and patch classification first.
