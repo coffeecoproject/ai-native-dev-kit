@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import {
   evidenceDigest,
@@ -17,16 +18,17 @@ import {
 } from "./lib/evidence-authority.mjs";
 import {
   initExecutableActions,
+  isWorkflowActivationState,
   validateApprovalRecordForInitApplyPlan,
   validateReadinessForInitApplyPlan,
 } from "./lib/adoption-apply-chain.mjs";
+import { gitWorktreeState } from "./lib/git.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["require-structured-evidence", "allow-empty", "receipt"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const requireEvidence = Boolean(args["require-structured-evidence"]);
-const allowEmpty = Boolean(args["allow-empty"]);
 const receiptSchema = loadSchema(projectRoot, "schemas/artifacts/apply-execution-receipt.schema.json");
 const approvalSchema = loadSchema(projectRoot, "schemas/artifacts/approval-record.schema.json");
 const readinessSchema = loadSchema(projectRoot, "schemas/artifacts/controlled-apply-readiness.schema.json");
@@ -38,7 +40,7 @@ const files = args.receipt
   ? selectedReceiptFiles(String(args.receipt))
   : markdownFiles(path.join(projectRoot, "apply-receipts"));
 if (files.length === 0) {
-  if (requireEvidence && !allowEmpty) fail("apply execution receipt is required but no report exists");
+  if (requireEvidence) fail("apply execution receipt is required but no report exists");
   else pass("apply execution receipt check skipped: no reports");
 } else {
   for (const file of files) checkReceipt(file);
@@ -99,7 +101,7 @@ function checkReceipt(file) {
   else fail(`${relative} readiness evidence digest mismatch`);
 
   checkActionSet(receipt, plan, relative);
-  checkActivation(receipt, relative);
+  checkActivation(receipt, plan, relative);
 }
 
 function checkBoundary(receipt, label) {
@@ -161,7 +163,7 @@ function checkActionSet(receipt, plan, label) {
   }
 }
 
-function checkActivation(receipt, label) {
+function checkActivation(receipt, plan, label) {
   if (receipt.receipt_state !== "APPLY_VERIFIED") return;
   if (receipt.activation.status === "VERIFIED" && receipt.activation.read_only === true && receipt.activation.workflow_next_exit_code === "0") {
     pass(`${label} activation is verified and read-only`);
@@ -173,6 +175,80 @@ function checkActivation(receipt, label) {
   } else {
     fail(`${label} activation route evidence is incomplete`);
   }
+
+  const version = readJson(path.join(projectRoot, ".intentos", "version.json"), `${label} installed IntentOS version`);
+  if (version?.intentOSVersion === plan.intentOSVersion) pass(`${label} installed IntentOS version remains current`);
+  else fail(`${label} installed IntentOS version no longer matches the approved plan`);
+
+  const workflowNext = path.join(projectRoot, "scripts", "workflow-next.mjs");
+  if (!fs.existsSync(workflowNext)) {
+    fail(`${label} installed workflow-next entry is missing`);
+    return;
+  }
+  const before = gitWorktreeState(projectRoot);
+  const result = spawnSync(process.execPath, [workflowNext, projectRoot, "--json"], {
+    cwd: projectRoot,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 20,
+  });
+  const after = gitWorktreeState(projectRoot);
+  let current = null;
+  try {
+    current = JSON.parse(result.stdout);
+  } catch {
+    current = null;
+  }
+  const nextAction = String(current?.nextAction || "");
+  const projectState = typeof current?.projectState === "string"
+    ? current.projectState
+    : String(current?.projectState?.state || current?.projectStateTags?.[0] || "");
+  if (result.status === 0 && current && isWorkflowActivationState(current, plan) && projectState) {
+    pass(`${label} current workflow activation remains ready`);
+  } else {
+    fail(`${label} current workflow activation is no longer ready`);
+  }
+  if (before.observationStatus === after.observationStatus && before.changedFilesDigest === after.changedFilesDigest) {
+    pass(`${label} activation recheck is read-only`);
+  } else {
+    fail(`${label} activation recheck changed the project or Git observation failed`);
+  }
+  if (nextAction === receipt.activation.next_action && projectState === receipt.activation.project_state) {
+    pass(`${label} current activation route matches the recorded receipt`);
+  } else {
+    fail(`${label} current activation route differs from the recorded receipt`);
+  }
+
+  if (plan?.arguments?.baselineLevel && Array.isArray(plan?.arguments?.profiles) && plan.arguments.profiles.length > 0) {
+    runCurrentBaselineCheck(plan, label);
+  }
+}
+
+function runCurrentBaselineCheck(plan, label) {
+  const baselineChecker = path.join(projectRoot, "scripts", "check-baseline-installation.mjs");
+  if (!fs.existsSync(baselineChecker)) {
+    fail(`${label} installed baseline checker is missing`);
+    return;
+  }
+  const baseline = spawnSync(process.execPath, [
+    baselineChecker,
+    projectRoot,
+    "--require-selection",
+    "--allow-pending-receipt",
+  ], { cwd: projectRoot, encoding: "utf8", maxBuffer: 1024 * 1024 * 20 });
+  if (baseline.status === 0) pass(`${label} current baseline installation remains structurally valid`);
+  else fail(`${label} current baseline installation is invalid`);
+
+  if (plan.arguments.baselineLevel !== "BL2_INDUSTRIAL") return;
+  const industrialChecker = path.join(projectRoot, "scripts", "check-industrial-baseline.mjs");
+  const industrial = fs.existsSync(industrialChecker)
+    ? spawnSync(process.execPath, [industrialChecker, projectRoot, "--strict"], {
+      cwd: projectRoot,
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024 * 20,
+    })
+    : { status: 1 };
+  if (industrial.status === 0) pass(`${label} current BL2 industrial evidence remains valid`);
+  else fail(`${label} current BL2 industrial evidence is invalid`);
 }
 
 function resolveLocal(fromFile, reference, label) {

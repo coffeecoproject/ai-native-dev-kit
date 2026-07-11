@@ -74,3 +74,29 @@ export function hasProjectSignals(root, options = {}) {
   return files.some((rel) => fs.existsSync(path.join(root, rel)))
     || dirs.some((rel) => fs.existsSync(path.join(root, rel)));
 }
+
+export function filterIntentOSManagedPaths(root, relativePaths) {
+  const manifestPath = path.join(root, ".intentos", "intentos-manifest.json");
+  if (!fs.existsSync(manifestPath)) return [...relativePaths];
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  } catch {
+    return [...relativePaths];
+  }
+  const fileTargets = new Set((manifest.copyRules?.files || [])
+    .map((rule) => normalizeSignalPath(rule.target))
+    .filter(Boolean));
+  const directoryTargets = (manifest.copyRules?.directories || [])
+    .map((rule) => normalizeSignalPath(rule.target))
+    .filter(Boolean);
+  return relativePaths.filter((relativePath) => {
+    const normalized = normalizeSignalPath(relativePath);
+    if (fileTargets.has(normalized)) return false;
+    return !directoryTargets.some((target) => normalized === target || normalized.startsWith(`${target}/`));
+  });
+}
+
+function normalizeSignalPath(value) {
+  return String(value || "").replaceAll(path.sep, "/").replace(/^\.\//, "").replace(/\/$/, "");
+}

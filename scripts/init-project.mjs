@@ -10,6 +10,7 @@ import { evidenceDigest, extractMachineReadableEvidence, loadSchema, validateSch
 import {
   formatActionId,
   initExecutableActions,
+  isWorkflowActivationState,
   validateApprovalRecordForInitApplyPlan,
   validateReadinessForInitApplyPlan,
 } from "./lib/adoption-apply-chain.mjs";
@@ -2021,6 +2022,7 @@ function addOnboardingDocPlanActions(actions, targetPath) {
     "onboarding-decisions.md",
     "verification-matrix.md",
     "engineering-baseline.md",
+    "environment-baseline.md",
   ]) {
     addFilePlanAction(actions, targetPath, path.join(kitRoot, "templates", docName), `docs/${docName}`, {
       overwrite: false,
@@ -2260,8 +2262,31 @@ function createTargetFingerprint(targetPath, actions) {
   return {
     targetExists: fs.existsSync(targetPath),
     ...gitFingerprint(targetPath),
+    sourceStateDigest: targetSourceStateDigest(targetPath),
     fileHashes,
   };
+}
+
+function targetSourceStateDigest(targetPath) {
+  if (!fs.existsSync(targetPath)) return sha256Content("TARGET_MISSING");
+  const ignored = [
+    ".git/",
+    "node_modules/",
+    "apply-execution-plans/",
+    "approval-records/",
+    "release-approval-records/",
+    "apply-readiness-reports/",
+    "apply-receipts/",
+    ".intentos/apply-plans/",
+    ".intentos/backups/",
+  ];
+  const rows = [];
+  for (const [relative, digest] of snapshotTargetFiles(targetPath)) {
+    const normalized = relative.replaceAll(path.sep, "/");
+    if (ignored.some((prefix) => normalized === prefix.slice(0, -1) || normalized.startsWith(prefix))) continue;
+    rows.push(`${normalized}:${digest}`);
+  }
+  return sha256Content(rows.sort().join("\n"));
 }
 
 function validatePlanForApply(plan, backupDirOverride = null) {
@@ -2330,6 +2355,9 @@ function validatePlanForApply(plan, backupDirOverride = null) {
     if (currentFingerprint[key] !== plan.targetFingerprint?.[key]) {
       throw new Error(`Plan precondition failed: target fingerprint ${key} changed`);
     }
+  }
+  if (currentFingerprint.sourceStateDigest !== plan.targetFingerprint?.sourceStateDigest) {
+    throw new Error("Plan precondition failed: target source state changed after planning");
   }
   const expectedHashes = plan.targetFingerprint?.fileHashes || {};
   for (const [rel, expected] of Object.entries(expectedHashes)) {
@@ -2491,6 +2519,7 @@ function replayApprovedPlan(plan, context) {
   }
   const results = new Map();
   const applied = [];
+  const attempted = [];
   let activation = activationNotRun();
   let unexpectedChangedPaths = [];
   let receiptState = "APPLY_FAILED_NO_WRITE";
@@ -2501,6 +2530,7 @@ function replayApprovedPlan(plan, context) {
   try {
     for (const action of plan.actions) {
       if (!action.willWrite || action.id === receiptAction.id) continue;
+      attempted.push(action);
       replayAction(plan, action);
       const hashAfter = sha256File(path.join(plan.targetRoot, action.path));
       if (hashAfter !== action.expectedHashAfter) {
@@ -2524,9 +2554,9 @@ function replayApprovedPlan(plan, context) {
     receiptState = "APPLY_VERIFIED";
   } catch (error) {
     executionError = error;
-    if (applied.length > 0) {
+    if (attempted.length > 0) {
       rollbackAttempted = true;
-      rollbackVerified = rollbackActions(plan, applied, results);
+      rollbackVerified = rollbackActions(plan, attempted, results);
       receiptState = rollbackVerified ? "APPLY_FAILED_ROLLED_BACK" : "APPLY_PARTIAL_ROLLBACK_REQUIRED";
     }
   }
@@ -2571,7 +2601,17 @@ function replayAction(plan, action) {
     throw new Error(`Action ${action.id} has no replayable source`);
   }
   fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, content);
+  atomicWriteFile(target, content);
+}
+
+function atomicWriteFile(target, content) {
+  const temp = path.join(path.dirname(target), `.${path.basename(target)}.intentos-${process.pid}-${Date.now()}.tmp`);
+  try {
+    fs.writeFileSync(temp, content, { flag: "wx" });
+    fs.renameSync(temp, target);
+  } finally {
+    if (fs.existsSync(temp)) fs.unlinkSync(temp);
+  }
 }
 
 function rollbackActions(plan, actions, results) {
@@ -2599,6 +2639,14 @@ function rollbackActions(plan, actions, results) {
 function verifyInstalledWorkflowActivation(targetRoot, plan) {
   const script = path.join(targetRoot, "scripts", "workflow-next.mjs");
   if (!fs.existsSync(script)) return { ...activationNotRun(), status: "FAILED", reason: "installed workflow-next entry is missing" };
+  const trustedWorkflowNext = path.join(kitRoot, "scripts", "workflow-next.mjs");
+  if (sha256File(script) !== sha256File(trustedWorkflowNext)) {
+    return { ...activationNotRun(), status: "FAILED", reason: "installed workflow-next entry does not match the approved IntentOS source" };
+  }
+  const versionRecord = readJsonIfExists(path.join(targetRoot, ".intentos", "version.json"));
+  if (versionRecord?.intentOSVersion !== plan.intentOSVersion) {
+    return { ...activationNotRun(), status: "FAILED", reason: "installed IntentOS version does not match the approved plan" };
+  }
   const before = snapshotTargetFiles(targetRoot);
   const result = spawnSync(process.execPath, [script, targetRoot, "--json"], {
     cwd: targetRoot,
@@ -2606,6 +2654,7 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
     maxBuffer: 1024 * 1024 * 20,
   });
   let baselineResult = null;
+  let industrialResult = null;
   if (plan?.arguments?.baselineLevel && Array.isArray(plan?.arguments?.profiles) && plan.arguments.profiles.length > 0) {
     const baselineScript = path.join(targetRoot, "scripts", "check-baseline-installation.mjs");
     baselineResult = fs.existsSync(baselineScript)
@@ -2615,6 +2664,16 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
         maxBuffer: 1024 * 1024 * 20,
       })
       : { status: 1, stdout: "", stderr: "installed baseline checker is missing" };
+  }
+  if (plan?.arguments?.baselineLevel === "BL2_INDUSTRIAL") {
+    const industrialScript = path.join(targetRoot, "scripts", "check-industrial-baseline.mjs");
+    industrialResult = fs.existsSync(industrialScript)
+      ? spawnSync(process.execPath, [industrialScript, targetRoot, "--strict"], {
+        cwd: targetRoot,
+        encoding: "utf8",
+        maxBuffer: 1024 * 1024 * 20,
+      })
+      : { status: 1, stdout: "", stderr: "installed industrial baseline checker is missing" };
   }
   const after = snapshotTargetFiles(targetRoot);
   let parsed = null;
@@ -2629,7 +2688,8 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
     ? parsed.projectState
     : String(parsed?.projectState?.state || parsed?.projectStateTags?.[0] || "");
   const baselineOk = !baselineResult || baselineResult.status === 0;
-  const ok = result.status === 0 && parsed && nextAction && projectState && changed.length === 0 && baselineOk;
+  const industrialOk = !industrialResult || industrialResult.status === 0;
+  const ok = result.status === 0 && parsed && isWorkflowActivationState(parsed, plan) && projectState && changed.length === 0 && baselineOk && industrialOk;
   return {
     status: ok ? "VERIFIED" : "FAILED",
     workflow_next_exit_code: String(result.status ?? "N/A"),
@@ -2640,6 +2700,8 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
     reason: ok ? "" : normalizeOutput(
       baselineResult && baselineResult.status !== 0
         ? baselineResult.stderr || baselineResult.stdout
+        : industrialResult && industrialResult.status !== 0
+          ? industrialResult.stderr || industrialResult.stdout
         : result.stderr || result.stdout || `activation changed: ${changed.join(", ")}`,
     ),
   };
@@ -2774,9 +2836,17 @@ function normalizeOutput(value) {
 }
 
 function writePlan(plan, planPath) {
-  const fullPath = path.resolve(process.cwd(), planPath);
+  if (path.isAbsolute(String(planPath || ""))) throw new Error("--write-plan must use a project-local relative path");
+  const fullPath = path.resolve(plan.targetRoot, planPath);
+  assertInsideRoot(plan.targetRoot, fullPath, "--write-plan");
+  const relative = path.relative(plan.targetRoot, fullPath).split(path.sep).join("/");
+  if (!relative.startsWith("apply-execution-plans/") && !relative.startsWith(".intentos/apply-plans/")) {
+    throw new Error("--write-plan must stay under apply-execution-plans/ or .intentos/apply-plans/ in the target project");
+  }
+  assertNoSymlinkInPath(plan.targetRoot, fullPath, "--write-plan");
+  if (fs.existsSync(fullPath)) throw new Error(`--write-plan refuses to overwrite existing file: ${relative}`);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  fs.writeFileSync(fullPath, `${JSON.stringify(plan, null, 2)}\n`);
+  fs.writeFileSync(fullPath, `${JSON.stringify(plan, null, 2)}\n`, { flag: "wx" });
   console.log(`Wrote init/update plan: ${fullPath}`);
 }
 
@@ -2917,11 +2987,11 @@ if (!target && !applyPlanPath) {
   console.error("       node scripts/init-project.mjs --starter generic-project --target ../my-project --force-new-project");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --dry-run");
-  console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan ./init-update-plan.json");
+  console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --write-plan apply-execution-plans/init-update-plan.json");
   console.error("       node scripts/init-project.mjs --apply-plan ./apply-execution-plans/init-update-plan.json --approval-record ./approval-records/approval.md --readiness-report ./apply-readiness-reports/readiness.md");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --industrial-packs web-app-industrial,backend-api-industrial");
-  console.error("       node scripts/init-project.mjs --starter codex-web-app --target ../my-project --profiles web-app --baseline-level BL1_STANDARD --write-plan ../my-project/apply-execution-plans/init.json");
-  console.error("       node scripts/init-project.mjs --starter codex-web-app --target ../my-project --profiles web-app --baseline-level BL2_INDUSTRIAL --standard-packs web-runtime-standard,environment-standard --industrial-packs web-app-industrial --write-plan ../my-project/apply-execution-plans/init.json");
+  console.error("       node scripts/init-project.mjs --starter codex-web-app --target ../my-project --profiles web-app --baseline-level BL1_STANDARD --write-plan apply-execution-plans/init.json");
+  console.error("       node scripts/init-project.mjs --starter codex-web-app --target ../my-project --profiles web-app --baseline-level BL2_INDUSTRIAL --standard-packs web-runtime-standard,environment-standard --industrial-packs web-app-industrial --write-plan apply-execution-plans/init.json");
   console.error("       node scripts/init-project.mjs --target ../my-project --with-industrial-packs");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-pr-template-governance");
   console.error("       node scripts/init-project.mjs --target ../my-project --update-workflow-assets --apply-agent-governance");

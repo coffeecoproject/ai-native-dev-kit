@@ -274,6 +274,18 @@ function checkPolicyConsistency(label, evidence) {
     else if (channel.blocked === "Yes") pass(`${label} registry channel is blocked without owner`);
     else fail(`${label} registry channel requires registry/platform owner or blocked state`);
   }
+  if (pkg.identity_type === "unknown") {
+    fail(`${label} release package identity must not be unknown`);
+  }
+  if (pkg.identity_type === "none") {
+    if (channel.channel === "source_only" && pkg.identity_ref === "not_applicable" && pkg.digest_or_id === "not_applicable") {
+      pass(`${label} source-only channel explicitly records no release package`);
+    } else {
+      fail(`${label} package identity none is allowed only for a source-only channel with not_applicable values`);
+    }
+  } else if (pkg.identity_ref === "not_applicable" || pkg.digest_or_id === "not_applicable") {
+    fail(`${label} concrete release package identity cannot use not_applicable values`);
+  }
   if (channel.channel !== "source_only" && pkg.identity_type !== "none") {
     if (pkg.identity_ref !== "missing" && pkg.digest_or_id !== "missing") pass(`${label} release package identity is recorded`);
     else if (channel.blocked === "Yes") pass(`${label} missing package identity blocks release review`);

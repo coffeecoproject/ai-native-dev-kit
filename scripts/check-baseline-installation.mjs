@@ -176,14 +176,14 @@ function matchingVerifiedReceipt(selection) {
 }
 
 function checkReceiptBinding(selection) {
+  if (allowPendingReceipt) {
+    wait("baseline structure is installed; Apply Receipt validation is delegated to the calling receipt checker");
+    return;
+  }
   const match = matchingVerifiedReceipt(selection);
   if (match) {
     pass(`baseline installation is bound to verified apply receipt: ${match.receiptRel}`);
     pass(`verified apply receipt binds exact baseline plan: ${match.planRel}`);
-    return;
-  }
-  if (allowPendingReceipt) {
-    wait("baseline structure is installed but the post-apply receipt is not available yet");
     return;
   }
   fail("no valid current-project Apply Receipt binds the exact installed baseline selection and current target hashes");

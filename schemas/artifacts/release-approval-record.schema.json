@@ -40,7 +40,7 @@
         "candidate_ref": { "type": "string", "pattern": "^(artifact|file):[^\\s]+$" },
         "candidate_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
         "source_revision": { "type": "string", "minLength": 1 },
-        "package_identity_type": { "enum": ["none", "file_digest", "docker_digest", "package_version", "store_build_id", "mini_program_version", "provider_deployment_id"] },
+        "package_identity_type": { "enum": ["none", "file_digest", "docker_digest", "registry_version", "provider_build_id", "app_store_build", "mini_program_upload_id", "source_archive"] },
         "package_identity_ref": { "type": "string", "minLength": 1 },
         "package_identity_digest_or_id": { "type": "string", "minLength": 1 }
       }

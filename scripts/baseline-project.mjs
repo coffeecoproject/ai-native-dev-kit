@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { walkRelativePaths } from "./lib/project-signals.mjs";
+import { filterIntentOSManagedPaths, walkRelativePaths } from "./lib/project-signals.mjs";
 import { assertSafeRelativePath, assertSafeWritePath } from "./lib/path-safety.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -148,12 +148,13 @@ function classify(workflow, tags) {
 }
 
 function detectProfileCandidates(targetRoot) {
-  const rels = new Set(walkRelativePaths(targetRoot, ".", { maxDepth: 3 }).map((item) => item.replace(/\\/g, "/")));
+  const discovered = walkRelativePaths(targetRoot, ".", { maxDepth: 3 }).map((item) => item.replace(/\\/g, "/"));
+  const rels = new Set(filterIntentOSManagedPaths(targetRoot, discovered));
   const packageJson = readJsonIfExists(path.join(targetRoot, "package.json"));
   const packageText = packageJson ? JSON.stringify({ dependencies: packageJson.dependencies || {}, devDependencies: packageJson.devDependencies || {}, scripts: packageJson.scripts || {} }) : "";
   const candidates = [];
 
-  if (packageJson || rels.has("vite.config.ts") || rels.has("next.config.js") || /react|next|vue|vite|svelte/i.test(packageText)) {
+  if (rels.has("index.html") || rels.has("vite.config.ts") || rels.has("vite.config.js") || rels.has("next.config.js") || rels.has("next.config.mjs") || /react|next|vue|vite|svelte|solid-js|@angular/i.test(packageText)) {
     candidates.push(profile("web-app", "Web app signals found in package.json, frontend config, or source layout."));
   }
   if (rels.has("project.config.json") || rels.has("app.json") || rels.has("miniprogram") || rels.has("cloudfunctions")) {

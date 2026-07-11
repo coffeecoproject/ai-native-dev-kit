@@ -155,7 +155,7 @@ function approvedInitProjectApplyArgs(planPath, extraArgs = []) {
   fs.mkdirSync(approvalDir, { recursive: true });
   fs.mkdirSync(readinessDir, { recursive: true });
   const localPlanPath = path.join(localPlanDir, path.basename(planPath));
-  fs.copyFileSync(planPath, localPlanPath);
+  if (path.resolve(planPath) !== path.resolve(localPlanPath)) fs.copyFileSync(planPath, localPlanPath);
   const planRef = `apply-execution-plans/${path.basename(planPath)}`;
   const approvalPath = writeInitProjectApprovalRecord(localPlanPath, {
     approvalPath: path.join(approvalDir, `${path.basename(planPath)}.approval.md`),
@@ -10658,14 +10658,14 @@ function checkSafetyEvidenceHardeningProtocol() {
     }
 
     const target = path.join(tempRoot, "target");
-    const writePlanPath = path.join(tempRoot, "plan.json");
+    const writePlanPath = path.join(target, "apply-execution-plans", "plan.json");
     fs.mkdirSync(target, { recursive: true });
     const writePlan = runNode([
       "scripts/init-project.mjs",
       "--target",
       target,
       "--write-plan",
-      writePlanPath,
+      path.relative(target, writePlanPath),
     ]);
     if (writePlan.status !== 0) {
       fail(`init-project write-plan failed during digest hardening smoke: ${writePlan.stderr || writePlan.stdout}`);
@@ -10696,14 +10696,14 @@ function checkSafetyEvidenceHardeningProtocol() {
       }), "approved_action_ids must exactly match approved_action_paths row IDs"],
     ]) {
       const caseTarget = path.join(tempRoot, `approval-runtime-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`);
-      const casePlanPath = path.join(tempRoot, `approval-runtime-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`);
+      const casePlanPath = path.join(caseTarget, "apply-execution-plans", `approval-runtime-${name.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.json`);
       fs.mkdirSync(caseTarget, { recursive: true });
       const casePlan = runNode([
         "scripts/init-project.mjs",
         "--target",
         caseTarget,
         "--write-plan",
-        casePlanPath,
+        path.relative(caseTarget, casePlanPath),
       ]);
       if (casePlan.status !== 0) {
         fail(`init-project write-plan failed during ${name} smoke: ${casePlan.stderr || casePlan.stdout}`);
@@ -15201,6 +15201,31 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project operating model entry and routing");
 
+  const generatedReleaseChannel = runNode([
+    path.join(target, "scripts", "cli.mjs"),
+    "release-channel",
+    target,
+    "--intent", "review source-only release channel",
+    "--project-type", "new_project",
+    "--channel", "source_only",
+    "--package-identity-type", "none",
+    "--package-identity-ref", "not_applicable",
+    "--package-digest-or-id", "not_applicable",
+    "--json",
+  ]);
+  if (generatedReleaseChannel.status !== 0) {
+    fail(`generated project release-channel command failed: ${generatedReleaseChannel.stderr || generatedReleaseChannel.stdout}`);
+    return;
+  }
+  try {
+    const channel = JSON.parse(generatedReleaseChannel.stdout);
+    if (channel.outcome === "RELEASE_CHANNEL_POLICY_RECORDED") pass("generated project release-channel command and dependencies");
+    else fail(`generated project release-channel returned unexpected outcome: ${generatedReleaseChannel.stdout}`);
+  } catch (error) {
+    fail(`generated project release-channel returned invalid JSON: ${error.message}`);
+    return;
+  }
+
   const projectCheck = runNode([
     path.join(target, "scripts", "check-ai-workflow.mjs"),
     target,
@@ -15992,7 +16017,7 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project industrial baseline check rejects missing selected pack with repair hint");
 
-  const selectedPackPlanPath = path.join(tempRoot, "selected-industrial-pack-plan.json");
+  const selectedPackPlanPath = path.join(target, "apply-execution-plans", "selected-industrial-pack-plan.json");
   const planSelectedPack = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
@@ -16001,7 +16026,7 @@ function checkGeneratedProjectE2E() {
     "--industrial-packs",
     "web-app-industrial",
     "--write-plan",
-    selectedPackPlanPath,
+    path.relative(target, selectedPackPlanPath),
   ]);
   if (planSelectedPack.status !== 0 || !fs.existsSync(selectedPackPlanPath)) {
     fail(`generated project selected industrial pack plan failed: ${planSelectedPack.stderr || planSelectedPack.stdout}`);
@@ -17099,14 +17124,14 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project implementation mode accepts approved human approval");
 
-  const generatedUpdatePlanPath = path.join(tempRoot, "generated-workflow-update-plan.json");
+  const generatedUpdatePlanPath = path.join(target, "apply-execution-plans", "generated-workflow-update-plan.json");
   const generatedUpdatePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     target,
     "--update-workflow-assets",
     "--write-plan",
-    generatedUpdatePlanPath,
+    path.relative(target, generatedUpdatePlanPath),
   ]);
   if (generatedUpdatePlan.status !== 0 || !fs.existsSync(generatedUpdatePlanPath)) {
     fail(`generated project workflow update plan failed: ${generatedUpdatePlan.stderr || generatedUpdatePlan.stdout}`);
@@ -17381,14 +17406,14 @@ function checkGeneratedProjectE2E() {
   pass("init dry-run emits plan without writing target files");
 
   const planOnlyTarget = path.join(tempRoot, "plan-only-project");
-  const planOnlyPath = path.join(tempRoot, "plan-only-init.json");
+  const planOnlyPath = path.join(planOnlyTarget, "apply-execution-plans", "plan-only-init.json");
   fs.mkdirSync(planOnlyTarget, { recursive: true });
   const writeInitPlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     planOnlyTarget,
     "--write-plan",
-    planOnlyPath,
+    path.relative(planOnlyTarget, planOnlyPath),
   ]);
   if (writeInitPlan.status !== 0 || !fs.existsSync(planOnlyPath)) {
     fail(`init write-plan failed: ${writeInitPlan.stderr || writeInitPlan.stdout}`);
@@ -17455,14 +17480,14 @@ function checkGeneratedProjectE2E() {
   pass("1.92 receipt checker rejects post-apply target drift");
 
   const sourceDriftTarget = path.join(tempRoot, "source-drift-project");
-  const sourceDriftPlanPath = path.join(tempRoot, "source-drift-init.json");
+  const sourceDriftPlanPath = path.join(sourceDriftTarget, "apply-execution-plans", "source-drift-init.json");
   fs.mkdirSync(sourceDriftTarget, { recursive: true });
   const sourceDriftWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     sourceDriftTarget,
     "--write-plan",
-    sourceDriftPlanPath,
+    path.relative(sourceDriftTarget, sourceDriftPlanPath),
   ]);
   if (sourceDriftWritePlan.status !== 0) {
     fail(`1.92 source-drift write-plan failed: ${sourceDriftWritePlan.stderr || sourceDriftWritePlan.stdout}`);
@@ -17488,14 +17513,14 @@ function checkGeneratedProjectE2E() {
   const stalePlanTarget = path.join(tempRoot, "stale-plan-project");
   fs.mkdirSync(stalePlanTarget, { recursive: true });
   fs.writeFileSync(path.join(stalePlanTarget, "AGENTS.md"), "# Stale\n");
-  const stalePlanPath = path.join(tempRoot, "stale-update-plan.json");
+  const stalePlanPath = path.join(stalePlanTarget, "apply-execution-plans", "stale-update-plan.json");
   const staleWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     stalePlanTarget,
     "--update-workflow-assets",
     "--write-plan",
-    stalePlanPath,
+    path.relative(stalePlanTarget, stalePlanPath),
   ]);
   if (staleWritePlan.status !== 0) {
     fail(`stale update write-plan failed: ${staleWritePlan.stderr || staleWritePlan.stdout}`);
@@ -17520,7 +17545,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   fs.appendFileSync(path.join(backupTarget, "scripts", "check-ai-workflow.mjs"), "\n// local backup sentinel\n");
-  const backupPlanPath = path.join(tempRoot, "backup-update-plan.json");
+  const backupPlanPath = path.join(backupTarget, "apply-execution-plans", "backup-update-plan.json");
   const backupDir = ".intentos/backups/0.38-test";
   const backupPlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
@@ -17530,7 +17555,7 @@ function checkGeneratedProjectE2E() {
     "--backup-dir",
     backupDir,
     "--write-plan",
-    backupPlanPath,
+    path.relative(backupTarget, backupPlanPath),
   ]);
   if (backupPlan.status !== 0) {
     fail(`backup update write-plan failed: ${backupPlan.stderr || backupPlan.stdout}`);
@@ -17562,14 +17587,14 @@ function checkGeneratedProjectE2E() {
     fail(`legacy project direct workflow update was not blocked: ${legacyDirectUpdateResult.stderr || legacyDirectUpdateResult.stdout}`);
     return;
   }
-  const legacyPlanPath = path.join(tempRoot, "legacy-update-plan.json");
+  const legacyPlanPath = path.join(legacyTarget, "apply-execution-plans", "legacy-update-plan.json");
   const legacyWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     legacyTarget,
     "--update-workflow-assets",
     "--write-plan",
-    legacyPlanPath,
+    path.relative(legacyTarget, legacyPlanPath),
   ]);
   if (legacyWritePlan.status !== 0 || !fs.existsSync(legacyPlanPath)) {
     fail(`legacy project write-plan failed: ${legacyWritePlan.stderr || legacyWritePlan.stdout}`);
@@ -17645,14 +17670,14 @@ function checkGeneratedProjectE2E() {
   const legacyNoAgentsTarget = path.join(tempRoot, "legacy-no-agents");
   fs.mkdirSync(legacyNoAgentsTarget, { recursive: true });
   fs.writeFileSync(path.join(legacyNoAgentsTarget, "README.md"), "# Existing Project\n");
-  const legacyNoAgentsPlanPath = path.join(tempRoot, "legacy-no-agents-update-plan.json");
+  const legacyNoAgentsPlanPath = path.join(legacyNoAgentsTarget, "apply-execution-plans", "legacy-no-agents-update-plan.json");
   const legacyNoAgentsWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     legacyNoAgentsTarget,
     "--update-workflow-assets",
     "--write-plan",
-    legacyNoAgentsPlanPath,
+    path.relative(legacyNoAgentsTarget, legacyNoAgentsPlanPath),
   ]);
   if (legacyNoAgentsWritePlan.status !== 0) {
     fail(`legacy no-AGENTS write-plan failed: ${legacyNoAgentsWritePlan.stderr || legacyNoAgentsWritePlan.stdout}`);
@@ -17696,14 +17721,14 @@ function checkGeneratedProjectE2E() {
   const legacyCustomPrTemplate = path.join(legacyCustomPrTarget, ".github", "pull_request_template.md");
   const originalCustomPrTemplate = "# Existing PR Template\n\n- [ ] Existing project checklist\n";
   fs.writeFileSync(legacyCustomPrTemplate, originalCustomPrTemplate);
-  const legacyCustomPrPlanPath = path.join(tempRoot, "legacy-custom-pr-update-plan.json");
+  const legacyCustomPrPlanPath = path.join(legacyCustomPrTarget, "apply-execution-plans", "legacy-custom-pr-update-plan.json");
   const legacyCustomPrWritePlan = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
     "--target",
     legacyCustomPrTarget,
     "--update-workflow-assets",
     "--write-plan",
-    legacyCustomPrPlanPath,
+    path.relative(legacyCustomPrTarget, legacyCustomPrPlanPath),
   ]);
   if (legacyCustomPrWritePlan.status !== 0) {
     fail(`legacy custom PR template write-plan failed: ${legacyCustomPrWritePlan.stderr || legacyCustomPrWritePlan.stdout}`);
@@ -17966,6 +17991,25 @@ function checkReleaseTrustClosureProtocol() {
   }
   pass("1.93 current project-bound Release Approval Record passes strict authority chain");
 
+  const launchViewRef = "launch-review-views/001-preview-ready.md";
+  fs.mkdirSync(path.join(root, "launch-review-views"), { recursive: true });
+  fs.writeFileSync(path.join(root, launchViewRef), [
+    "# Launch Review View", "", "## Human Summary", "", "Launch review view: READY_FOR_RELEASE_REVIEW", "",
+    "## Unified Closure Input", "", "| Field | Value |", "|---|---|", "| Closure Decision | `DONE` |", "| Can count as done | Yes |", "",
+    "## Safe Launch View", "", "| Field | Value |", "|---|---|", "| Safe Launch Label | `READY_FOR_RELEASE_REVIEW` |", "| Launch review can proceed | Yes |", "| Release approval | No |", "",
+    "## Platform View", "", "| Field | Value |", "|---|---|", "| Platform | `web` |", "",
+    "## Launch Surface Gaps", "", "| Surface | Status | Evidence / Decision | Finding |", "|---|---|---|---|",
+    "| Environment | `PASS` | docs/release-sop.md | ready |", "| Monitoring | `PASS` | evidence/monitoring-current.md | ready |",
+    "| Rollback | `PASS` | evidence/rollback-current.md | ready |", "| Release ownership | `PASS` | human:release-owner | ready |",
+    "| Post-launch smoke | `PASS` | evidence/post-release-smoke-current.md | ready |", "",
+    "## Human Release Decisions", "", "Human release approval remains external.", "", "## Evidence Map", "", "Current project evidence only.", "",
+    "## Recommended Next Step", "", "Hand off to the human release owner.", "", "## Boundaries", "",
+    "- This view writes target files: No", "- This view deploys, publishes, or submits release: No", "- This view approves release or production: No",
+    "- This view modifies CI/CD or hooks: No", "- This view changes production config, secrets, DNS, app-store state, payment, permissions, or migrations: No",
+    "- This view replaces Unified Closure: No", "- This view replaces Safe Launch: No", "- This view replaces project release SOPs: No",
+    "- This view approves security/privacy/compliance/legal/tax/finance/payment decisions: No", "", "## Outcome", "", "`LAUNCH_REVIEW_VIEW_RECORDED`", "",
+  ].join("\n"));
+
   const executionRef = "release-execution-plans/001-preview.md";
   fs.mkdirSync(path.join(root, "release-execution-plans"), { recursive: true });
   const executionResolve = runNode([
@@ -17973,16 +18017,31 @@ function checkReleaseTrustClosureProtocol() {
     "--intent", "prepare preview release handoff",
     "--mode", "ASSISTED_EXECUTION",
     "--approval-ref", `artifact:${approvalRef}`,
+    "--launch-view-ref", `artifact:${launchViewRef}`,
   ]);
   fs.writeFileSync(path.join(root, executionRef), executionResolve.stdout);
   const executionCheck = runNode([
     "scripts/check-release-execution.mjs", root, "--report", executionRef, "--require-release-trust",
   ]);
-  if (executionResolve.status !== 0 || executionCheck.status !== 0) {
+  if (executionResolve.status !== 0 || executionCheck.status !== 0 || !executionResolve.stdout.includes("READY_FOR_ASSISTED_EXECUTION")) {
     fail(`1.93 trusted Release Execution failed: ${executionResolve.stderr || executionCheck.stderr || executionCheck.stdout}`);
     return;
   }
   pass("1.93 Release Execution consumes the exact strict release authority chain");
+
+  const missingLaunch = runNode([
+    "scripts/resolve-release-execution.mjs", root,
+    "--intent", "prepare preview release handoff",
+    "--mode", "ASSISTED_EXECUTION",
+    "--approval-ref", `artifact:${approvalRef}`,
+  ]);
+  if (missingLaunch.status === 0
+    && missingLaunch.stdout.includes("BLOCKED_PENDING_LAUNCH_REVIEW")
+    && !missingLaunch.stdout.includes("READY_FOR_ASSISTED_EXECUTION")) {
+    pass("1.98 approval cannot substitute for an independent Launch Review View");
+  } else {
+    fail(`1.98 missing Launch Review must block release execution: ${missingLaunch.stderr || missingLaunch.stdout}`);
+  }
 
   const weakRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.93-weak-approval-"));
   fs.mkdirSync(path.join(weakRoot, "release-execution-plans"), { recursive: true });
@@ -18080,10 +18139,10 @@ function checkBaselineManifestPublicEntryConsolidationProtocol() {
 
   const bl2Root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.94-bl2-missing-pack-"));
   fs.mkdirSync(bl2Root, { recursive: true });
-  const bl2Plan = path.join(os.tmpdir(), `intentos-1.94-bl2-${Date.now()}.json`);
+  const bl2Plan = path.join(bl2Root, "apply-execution-plans", `intentos-1.94-bl2-${Date.now()}.json`);
   const bl2Check = runNode([
     "scripts/init-project.mjs", "--starter", "codex-web-app", "--target", bl2Root,
-    "--profiles", "web-app", "--baseline-level", "BL2_INDUSTRIAL", "--write-plan", bl2Plan,
+    "--profiles", "web-app", "--baseline-level", "BL2_INDUSTRIAL", "--write-plan", path.relative(bl2Root, bl2Plan),
   ]);
   if (bl2Check.status !== 0 && `${bl2Check.stdout}\n${bl2Check.stderr}`.includes("requires at least one concrete selected industrial pack")) {
     pass("1.94 BL2 without a concrete industrial pack fails closed");
@@ -18116,10 +18175,10 @@ function checkBaselineManifestPublicEntryConsolidationProtocol() {
   }
 
   const installRoot = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.94-install-"));
-  const installPlan = path.join(os.tmpdir(), `intentos-1.94-install-${Date.now()}.json`);
+  const installPlan = path.join(installRoot, "apply-execution-plans", `intentos-1.94-install-${Date.now()}.json`);
   const planResult = runNode([
     "scripts/init-project.mjs", "--starter", "codex-web-app", "--target", installRoot,
-    "--profiles", "web-app", "--baseline-level", "BL1_STANDARD", "--write-plan", installPlan,
+    "--profiles", "web-app", "--baseline-level", "BL1_STANDARD", "--write-plan", path.relative(installRoot, installPlan),
   ]);
   if (planResult.status !== 0) {
     fail(`1.94 controlled baseline plan generation failed: ${planResult.stderr || planResult.stdout}`);
@@ -18269,8 +18328,8 @@ function checkOperatingDecisionContractProtocol() {
     const decision = parsed.operatingDecision;
     const sourceNames = new Set((parsed.sourceSystemTrace || []).map((source) => source.sourceSystem));
     if (operating.status === 0
-      && parsed.schemaVersion === "1.97.0"
-      && decision?.contractVersion === "1.97.0"
+      && parsed.schemaVersion === "1.98.0"
+      && decision?.contractVersion === "1.98.0"
       && decision?.actionCode === "SUMMARIZE_CURRENT_STATUS"
       && decision?.materialActionAuthorized === "No"
       && parsed.humanSummary?.nextSafeAction === decision?.plainAction
@@ -18343,8 +18402,8 @@ function checkProjectIdentityProjectionProtocol() {
     const projection = parsed.projectIdentityProjection;
     const actualIdentity = projectIdentity(kitRoot);
     if (operating.status === 0
-      && parsed.schemaVersion === "1.97.0"
-      && projection?.contractVersion === "1.97.0"
+      && parsed.schemaVersion === "1.98.0"
+      && projection?.contractVersion === "1.98.0"
       && projection?.projectKind === "INTENTOS_SOURCE"
       && projection?.governancePosture === "INTENTOS_SOURCE_GOVERNANCE"
       && projection?.evidenceIdentity?.fingerprint === actualIdentity.fingerprint
@@ -18354,7 +18413,7 @@ function checkProjectIdentityProjectionProtocol() {
       && Array.isArray(projection?.sourceInputs)
       && projection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest || ""))
       && /^sha256:[a-f0-9]{64}$/.test(projection?.projectionDigest || "")
-      && parsed.operatingDecision?.contractVersion === "1.97.0"
+      && parsed.operatingDecision?.contractVersion === "1.98.0"
       && /^sha256:[a-f0-9]{64}$/.test(parsed.operatingDecision?.decisionDigest || "")
       && parsed.humanSummary?.projectIdentity
       && !Object.hasOwn(projection, "changedFilesSample")) {

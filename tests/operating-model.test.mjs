@@ -23,11 +23,11 @@ function runWork(root, intent, extraArgs = []) {
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, ...intentArgs, ...extraArgs, "--json"]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.schemaVersion, "1.97.0");
-  assert.equal(report.operatingDecision.contractVersion, "1.97.0");
+  assert.equal(report.schemaVersion, "1.98.0");
+  assert.equal(report.operatingDecision.contractVersion, "1.98.0");
   assert.equal(report.operatingDecision.derivedOnly, "Yes");
   assert.equal(report.operatingDecision.materialActionAuthorized, "No");
-  assert.equal(report.projectIdentityProjection.contractVersion, "1.97.0");
+  assert.equal(report.projectIdentityProjection.contractVersion, "1.98.0");
   assert.equal(report.projectIdentityProjection.derivedOnly, "Yes");
   assert.equal(report.projectIdentityProjection.grantsAuthority, "No");
   assert.equal(report.projectIdentityProjection.writesProjectFiles, "No");
@@ -194,7 +194,7 @@ test("controlled plan records existing-project entry origin", () => withRoot("in
   makeExistingProject(root);
   const planPath = path.join(root, "apply-execution-plans", "init.json");
   fs.mkdirSync(path.dirname(planPath), { recursive: true });
-  const result = runNode(["scripts/init-project.mjs", "--target", root, "--write-plan", planPath]);
+  const result = runNode(["scripts/init-project.mjs", "--target", root, "--write-plan", path.relative(root, planPath)]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   const versionAction = plan.actions.find((item) => item.path === ".intentos/version.json");
@@ -243,8 +243,8 @@ test("production signals override original new-project entry without changing ta
 
 test("controlled plan records new-project entry origin", () => withRoot("intentos-operating-new-plan-origin-", (root) => {
   const target = path.join(root, "new-project");
-  const planPath = path.join(root, "new-project-plan.json");
-  const result = runNode(["scripts/init-project.mjs", "--target", target, "--write-plan", planPath]);
+  const planPath = path.join(target, "apply-execution-plans", "new-project-plan.json");
+  const result = runNode(["scripts/init-project.mjs", "--target", target, "--write-plan", path.relative(target, planPath)]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   const versionAction = plan.actions.find((item) => item.path === ".intentos/version.json");
@@ -323,7 +323,7 @@ test("high task selects the first authoritative governance prerequisite", () => 
   assert.equal(report.operatingDecision.requiresHumanDecisionNow, "No");
 }));
 
-test("valid unified closure selects completion reporting without expanding authority", () => {
+test("legacy closure cannot report completion without strict Completion Evidence", () => {
   const root = path.join(kitRoot, "examples/1.49-structured-impact-coverage/contract-input-rule");
   const report = runWork(root, "这个任务做完了吗", [
     "--task", "examples/1.49-structured-impact-coverage/contract-input-rule",
@@ -331,9 +331,9 @@ test("valid unified closure selects completion reporting without expanding autho
     "--execution-closure", "execution-closures/001-contract-input-rule.md",
     "--impact-report", "change-impact-coverage-reports/001-contract-input-rule.md",
   ]);
-  assert.equal(report.operatingLoop.state, "READY_TO_REPORT_DONE");
-  assert.equal(report.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
-  assert.equal(report.operatingDecision.decisionStatus, "READY_TO_REPORT");
+  assert.notEqual(report.operatingLoop.state, "READY_TO_REPORT_DONE");
+  assert.notEqual(report.operatingDecision.actionCode, "REPORT_TASK_COMPLETE");
+  assert.notEqual(report.operatingDecision.decisionStatus, "READY_TO_REPORT");
   assert.equal(report.boundaries.approvesReleaseOrProduction, "No");
 });
 

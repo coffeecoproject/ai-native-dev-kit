@@ -10,6 +10,31 @@ import {
 
 const ignoredNames = new Set([".gitkeep", ".DS_Store"]);
 
+export const workflowActivationActions = new Set([
+  "RUN_PROJECT_ONBOARDING",
+  "RUN_PLATFORM_BASELINE_SETUP",
+  "RUN_INDUSTRIAL_BASELINE_SETUP",
+  "READY_FOR_FIRST_REQUEST",
+  "READY_FOR_TASK_EXECUTION",
+]);
+
+export function isWorkflowActivationAction(value) {
+  return workflowActivationActions.has(String(value || ""));
+}
+
+export function isWorkflowActivationState(state, plan = null) {
+  if (isWorkflowActivationAction(state?.nextAction)) return true;
+  if (state?.nextAction !== "RUN_WORKFLOW_ASSET_UPDATE") return false;
+  const missingAssets = Array.isArray(state?.missingWorkflowAssets) ? state.missingWorkflowAssets : [];
+  const missingAgentSections = Array.isArray(state?.missingAgentSections) ? state.missingAgentSections : [];
+  const agentAuthorityPreserved = Array.isArray(plan?.actions) && plan.actions.some((action) => (
+    action?.path === "AGENTS.md"
+      && action?.type === "HUMAN_ONLY"
+      && action?.willWrite === false
+  ));
+  return missingAssets.length === 0 && missingAgentSections.length > 0 && agentAuthorityPreserved;
+}
+
 export function evaluateVerifiedAdoptionApplyChain(projectRoot, options = {}) {
   const schemasRoot = options.schemasRoot || projectRoot;
   const planSchema = options.planSchema || loadSchema(schemasRoot, "schemas/artifacts/unified-apply-plan.schema.json");
@@ -314,6 +339,25 @@ function validateReadinessForPlan(readiness, planDigest, planActions) {
     if (!sameSet(action.targetPaths, readinessById.get(action.id) || [])) {
       errors.push(`readiness target paths do not match ${action.id}`);
     }
+  }
+  for (const action of readiness.actions || []) {
+    if (action.classification !== "LOW_RISK_CANDIDATE") {
+      errors.push(`readiness action ${action.id || "<unknown>"} is not a low-risk candidate`);
+    }
+  }
+  for (const precondition of readiness.preconditions || []) {
+    if (precondition.status === "fail") errors.push(`readiness precondition failed: ${precondition.name || "<unknown>"}`);
+  }
+  if (readiness.rollback?.required !== true) errors.push("readiness rollback must be required");
+  for (const field of ["path", "step", "verification"]) {
+    if (!String(readiness.rollback?.[field] || "").trim()) errors.push(`readiness rollback.${field} is required`);
+  }
+  for (const field of ["pre_apply", "post_apply", "evidence_path"]) {
+    if (!String(readiness.verification?.[field] || "").trim()) errors.push(`readiness verification.${field} is required`);
+  }
+  if (readiness.outcome !== "READINESS_RECORDED") errors.push("readiness outcome must be READINESS_RECORDED");
+  for (const [field, value] of Object.entries(readiness.boundary || {})) {
+    if (value !== false) errors.push(`readiness boundary ${field} must be false`);
   }
   return errors;
 }

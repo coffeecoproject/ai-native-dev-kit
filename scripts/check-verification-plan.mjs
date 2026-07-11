@@ -36,6 +36,8 @@ const requireBusinessRuleRef = Boolean(args["require-business-rule-ref"]);
 const requireImpactRef = Boolean(args["require-impact-ref"]);
 const strictSourceBinding = Boolean(args["strict-source-binding"]);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
+const strictRequested = requireReport || requireStructuredEvidence || requireBusinessRuleRef
+  || requireImpactRef || strictSourceBinding || requireEvidenceAuthority || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json");
 const businessRuleSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
@@ -146,9 +148,9 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("verification-plans");
   if (files.length === 0) {
-    if (allowEmpty) {
+    if (allowEmpty && !strictRequested) {
       pass("verification plan check skipped by explicit --allow-empty: no reports");
-    } else if (requireReport || explicitReport || requireEvidenceAuthority) {
+    } else if (strictRequested) {
       fail("no verification plan reports found; run `verification-plan --out <relative-report-path>` first");
     } else {
       pass("SKIPPED_NO_REPORT: no verification plan reports found; no readiness claim made");

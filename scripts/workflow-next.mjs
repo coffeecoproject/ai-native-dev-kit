@@ -3,12 +3,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { parseArgs } from "./lib/args.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
 import { workflowRequiredPaths as manifestWorkflowRequiredPaths } from "./lib/manifest.mjs";
 import {
   defaultIgnoredDirs,
+  filterIntentOSManagedPaths,
   hasProjectSignals as hasProjectSignalsForRoot,
   projectSignalDirs,
   projectSignalFiles,
@@ -423,7 +425,10 @@ function hasProjectSignals() {
 }
 
 function projectRelativePaths(relDir = ".", maxDepth = 4) {
-  return walkRelativePathsForRoot(projectRoot, relDir, { maxDepth, ignoredDirs: ignoredSignalDirs });
+  return filterIntentOSManagedPaths(
+    projectRoot,
+    walkRelativePathsForRoot(projectRoot, relDir, { maxDepth, ignoredDirs: ignoredSignalDirs }),
+  );
 }
 
 function matchedExistingPaths(paths) {
@@ -437,6 +442,7 @@ function isWorkflowInternalProductionSignal(rel) {
     || rel.startsWith("release-recipes/")
     || rel.startsWith("release-handoff-packs/")
     || rel.startsWith("release-guides/")
+    || rel.startsWith("release-channel-policies/")
     || rel.startsWith("release-execution-plans/")
     || rel.startsWith("release-approval-records/")
     || rel.startsWith("release-plans/")
@@ -684,7 +690,28 @@ function industrialBaselineState() {
   if (humanApprovalStatus !== "APPROVED") {
     return { ...base, state: "NEEDS_HUMAN_APPROVAL", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
   }
+  const strictIndustrial = spawnSync(process.execPath, [
+    path.join(__dirname, "check-industrial-baseline.mjs"),
+    projectRoot,
+    "--strict",
+  ], { encoding: "utf8", maxBuffer: 1024 * 1024 * 20 });
+  if (strictIndustrial.status !== 0) {
+    return {
+      ...base,
+      state: "EVIDENCE_INVALID",
+      unknownPacks,
+      plannedPacks,
+      invalidPacks,
+      incompatiblePacks,
+      missingProjectDocs,
+      strictEvidenceError: firstUsefulLine(strictIndustrial.stderr || strictIndustrial.stdout),
+    };
+  }
   return { ...base, state: "BASELINE_READY", unknownPacks, plannedPacks, invalidPacks, incompatiblePacks, missingProjectDocs };
+}
+
+function firstUsefulLine(value) {
+  return String(value || "").split(/\r?\n/).map((line) => line.trim()).find(Boolean) || "strict industrial baseline validation failed";
 }
 
 function platformBaselineState() {
@@ -837,6 +864,7 @@ function buildResult() {
   }
 
   const version = readJson(".intentos/version.json");
+  const nativeNewProject = version?.projectEntryOrigin === "NEW_PROJECT";
   const entries = rootEntries();
   const emptyLike = entries.length === 0;
   const projectHasSignals = hasProjectSignals();
@@ -865,7 +893,7 @@ function buildResult() {
 
   const projectStateTags = [projectState];
   if (version) projectStateTags.push("INTENTOS_BOOTSTRAPPED_PROJECT");
-  if (signals.isGovernedExisting) projectStateTags.push("GOVERNED_EXISTING_PROJECT");
+  if (!nativeNewProject && signals.isGovernedExisting) projectStateTags.push("GOVERNED_EXISTING_PROJECT");
   if (signals.isProductionGoverned) projectStateTags.push("PRODUCTION_GOVERNED_PROJECT");
   if (signals.isDirtyWorktree) projectStateTags.push("DIRTY_WORKTREE_PROJECT");
 
@@ -929,6 +957,7 @@ function buildResult() {
 
   const governedProtectionApplies = projectState !== "NEW_PROJECT"
     && projectState !== "INTENTOS_REPOSITORY"
+    && !nativeNewProject
     && (signals.isProductionGoverned || signals.isDirtyWorktree || (signals.isGovernedExisting && !version));
   if (governedProtectionApplies
     && ["INIT_WITH_STARTER", "RUN_WORKFLOW_ASSET_UPDATE", "RUN_PROJECT_ONBOARDING", "RUN_PLATFORM_BASELINE_SETUP", "RUN_INDUSTRIAL_BASELINE_SETUP"].includes(nextAction)) {
@@ -944,7 +973,8 @@ function buildResult() {
     ? "ADAPTER_ONLY"
     : nextAction === "REVIEW_DIRTY_WORKTREE" ? "PLAN_REQUIRED"
       : version ? "PROJECT_SELECTED" : projectState === "NEW_PROJECT" ? "FULL_INTENTOS_NATIVE_CANDIDATE" : "RECOMMEND_ONLY";
-  const existingRuleComparisonRequired = signals.isGovernedExisting || signals.isProductionGoverned || signals.isDirtyWorktree;
+  const existingRuleComparisonRequired = !nativeNewProject
+    && (signals.isGovernedExisting || signals.isProductionGoverned || signals.isDirtyWorktree);
 
   const notes = [];
   if (version?.intentOSVersion) notes.push(`Project intentos version: ${version.intentOSVersion}`);
@@ -969,7 +999,7 @@ function buildResult() {
   if (industrialBaseline.state === "EVIDENCE_MISSING") notes.push(`${industrialBaseline.missingProjectDocs.length} BL2 project evidence doc(s) are missing.`);
   if (industrialBaseline.state === "NEEDS_HUMAN_APPROVAL") notes.push("BL2 industrial baseline still needs explicit human approval.");
   if (artifactCount > 0) notes.push(`${artifactCount} workflow artifact file(s) exist.`);
-  if (signals.isGovernedExisting) notes.push(`${signals.basicSignals.length} existing governance signal(s) detected.`);
+  if (!nativeNewProject && signals.isGovernedExisting) notes.push(`${signals.basicSignals.length} existing governance signal(s) detected.`);
   if (signals.isProductionGoverned) notes.push(`${signals.productionSignals.length} production governance signal(s) detected.`);
   if (signals.isDirtyWorktree) notes.push(`Git worktree has ${signals.git.changedFileCount} changed or untracked file(s).`);
   if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("Governed, production-sensitive, or dirty project protection is active; execution intent does not allow workflow writes yet.");

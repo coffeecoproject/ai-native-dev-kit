@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { createEvidenceAuthorityBinding } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -108,8 +109,15 @@ function buildReport(root) {
   };
   const structuredEvidence = {
     ...base,
+    authority_binding: createEvidenceAuthorityBinding(root, {
+      fromFile: outputPath,
+      taskRef,
+      intentDigest: base.intent_digest,
+      sourceRefs: sources.filter((source) => source.status === "RECORDED").map((source) => source.ref),
+    }),
     completion_gate_digest: evidenceDigest(base, ["completion_gate_digest"]),
   };
+  structuredEvidence.completion_gate_digest = evidenceDigest(structuredEvidence, ["completion_gate_digest"]);
   return {
     reportType: "COMPLETION_EVIDENCE_GATE",
     schemaVersion: "1.78.0",

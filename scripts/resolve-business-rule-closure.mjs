@@ -236,6 +236,14 @@ function dimensionsFor(userIntent, classification, signals, conflicts) {
       notes: options.notes || "",
     });
   };
+  if (classification.primary === "UNKNOWN") {
+    add("ACTOR", "NEEDS_USER_CONFIRMATION", "Who is affected by this rule?");
+    add("TRIGGER_SCENARIO", "NEEDS_USER_CONFIRMATION", "When should this rule run?");
+    add("INPUT_CONDITION", "NEEDS_USER_CONFIRMATION", "What exact condition should be accepted or rejected?");
+    add("SUCCESS_PATH", "NEEDS_USER_CONFIRMATION", "What should happen when the rule passes?");
+    add("FAILURE_PATH", "NEEDS_USER_CONFIRMATION", "What should happen when the rule fails?");
+    return [...dims.values()];
+  }
   add("ACTOR", "CLOSED", "Customer, operator, or authorized user triggers the rule.");
   add("TRIGGER_SCENARIO", "CLOSED", signals.hasAppointment ? "Appointment create and reschedule flows." : "Create, edit, submit, import, API, or workflow trigger depending on the project surface.");
   add("INPUT_CONDITION", "CLOSED", userIntent);

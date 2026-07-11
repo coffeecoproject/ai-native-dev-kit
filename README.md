@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.97.0`.
+Current release: `1.98.0`.
 
-Release record: [releases/1.97.0/release-record.md](releases/1.97.0/release-record.md).
+Release record: [releases/1.98.0/release-record.md](releases/1.98.0/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -47,6 +47,20 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.98.0 hardens execution and distribution trust without adding another public
+workflow. `work` now fails closed when queue, resume, task impact, business
+rules, source checks, or strict Completion Evidence are unresolved. Strict
+checks cannot be weakened with an empty-report flag or a replaced installed
+schema.
+
+Controlled setup plans stay inside the target project, bind the full current
+source state, roll back attempted writes, and produce receipts that re-run the
+installed entry and baseline checks. Release approval no longer substitutes
+for Launch Review, package identities use one vocabulary, baseline packs must
+match the selected platform, and generated projects execute the same published
+release-channel command. These checks still do not approve implementation,
+apply, release, or production.
 
 1.97.0 adds one read-only Project Identity Projection to the existing
 Operating State. Codex now receives one consistent account of whether it is

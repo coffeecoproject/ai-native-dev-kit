@@ -7,19 +7,64 @@ import { resolveAuthoritativeEvidenceReference } from "./evidence-authority.mjs"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..", "..");
+const trustedArtifactSchemaDigests = {
+  "schemas/artifacts/adoption-assurance.schema.json": "sha256:5afc832e7a3dbb502fbb4c338badcd2ef15f8703f7d4bc0aad365dca1917d355",
+  "schemas/artifacts/apply-execution-receipt.schema.json": "sha256:850c8523e0618381a97142aa3647851faa1cbcc04f2b2725b21ef8dd41dc547b",
+  "schemas/artifacts/approval-record.schema.json": "sha256:f0037bb2bf6402b6e57e2bbdd29542f4ab834d35bd2ea0979cc5872a491cd26b",
+  "schemas/artifacts/business-rule-closure.schema.json": "sha256:3a25cdebee49a5c41efd7b13fe356acc3ea7edc790140fc7ec636691b6d8f214",
+  "schemas/artifacts/change-impact-coverage.schema.json": "sha256:c9f4728b2e4427350effd421e7c4d6215975f24d15057fac813c734206286a8b",
+  "schemas/artifacts/completion-evidence.schema.json": "sha256:992c47a69f93e30d1bf8cb23173cba4b665ba902bb167446fe7bc9430bcb0583",
+  "schemas/artifacts/controlled-apply-readiness.schema.json": "sha256:3656d706351810a3fc335f1896681f1fd88837cd3c64b2dae4c5daca4786063d",
+  "schemas/artifacts/controlled-native-adoption-review.schema.json": "sha256:b627a57d8b6d1d7be3073b0ffd7957f8af5d60b35e7dc408464313eda65ca14c",
+  "schemas/artifacts/eval.schema.json": "sha256:fb926d3be8f7ad2d3ac2a646bdcf5ca2af26f7cd80461513bf8a860ae2b75416",
+  "schemas/artifacts/execution-assurance.schema.json": "sha256:8e44a6fa34c5406ba0b693e017018e5bac11c112424356efe0739399ea0e9624",
+  "schemas/artifacts/existing-project-adoption-autopilot.schema.json": "sha256:a8d535d4a84b0d97ca1f8a73ea0e4a8db9ab80d226a1616e544dfaab235d17af",
+  "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:84184ca5a057c5678872a030111d9d8c83da5e9212931d97ff7cb05632de5d37",
+  "schemas/artifacts/goal-card.schema.json": "sha256:1ff608263461e0c4939c410441537edd0bcaeb0841857e6234dcd4963f55d4dd",
+  "schemas/artifacts/governance-convergence.schema.json": "sha256:0326e03e1917b86998721e1cee502c184eaf3bfc8cf06ff50204cda0d417cfa6",
+  "schemas/artifacts/low-risk-apply-candidate.schema.json": "sha256:6c6f64f687995bad99311732bceed926d2810b19f868fb9c4b0f8b53f5562b9f",
+  "schemas/artifacts/native-migration-plan.schema.json": "sha256:38cee2775d4ddb56bfa71545ad2c811013b71edbfbe6ef6704094b6d4a5d860d",
+  "schemas/artifacts/plan-review.schema.json": "sha256:374f07e2d62b2d2e9e5e348fbfe6ea4ff88ed2b5ae7498faf9d774922427fbec",
+  "schemas/artifacts/preflight.schema.json": "sha256:d0c928569a2d8c6a4776df78307b310a4c7420e56b5bb89964367f69a251f353",
+  "schemas/artifacts/product-completeness-evidence.schema.json": "sha256:71da81e0c9202d4b8b15c409b1d957e2741219dd064301b83fbdea8750c2c7c2",
+  "schemas/artifacts/release-approval-record.schema.json": "sha256:ab7799a56065715d2819fcbf5b5a0c34c4517dd33081d94e783f7a49b231e269",
+  "schemas/artifacts/release-channel-policy.schema.json": "sha256:755cb9093a51a1ff8a1ccb83831822072225c6c91364631f2c8a0b0168310224",
+  "schemas/artifacts/release-evidence-gate.schema.json": "sha256:4df14e3a8f853372728c53b4928f2893aa4e188e0c374866ba7df7803e80966d",
+  "schemas/artifacts/release-execution-plan.schema.json": "sha256:b86b1712e550d00b1f69345d6cd34dd7912f1fc2867d90008d447ec7268f11e3",
+  "schemas/artifacts/release-handoff-evidence.schema.json": "sha256:fab83cdf8d3fad0e1dfe324240b33d134853480c3fd09b58b3dbec824a936deb",
+  "schemas/artifacts/release-plan.schema.json": "sha256:a410c8111e56ed763f15e6c753f2275de31b2510a7b8105f20bf326aa6790781",
+  "schemas/artifacts/request.schema.json": "sha256:7210c949f6c9373d1b0edb688f4853504ea982392f2cb6dd6d7ab1ba06ec6d57",
+  "schemas/artifacts/review-loop-report.schema.json": "sha256:2b6b97889061d9018327a0b164c9541c6214788841f2cddc075befb85df0d4d3",
+  "schemas/artifacts/runtime-hygiene.schema.json": "sha256:8dac3c44670bf2f941ef7e88544d859a66268b76891b948446ba17b1571a4980",
+  "schemas/artifacts/spec.schema.json": "sha256:0052829a51f2ca0aa6da86fc3f66bb605801c8f32e0e4fb411ee206278dd7e57",
+  "schemas/artifacts/subagent-run-plan.schema.json": "sha256:f17e70305b6d4245233fa094f6e657dc67d16c13da6decd93d10955b7173d354",
+  "schemas/artifacts/task-governance.schema.json": "sha256:b5e5e90d73f7882a31a17f026c492a6b1fe5772a39bb0fc943970de203665c68",
+  "schemas/artifacts/task.schema.json": "sha256:6e30ca37ab7251a7c1bfd20ce13c387e573b800273b6d45852aaf9a560b5f67c",
+  "schemas/artifacts/test-evidence.schema.json": "sha256:3cd816807d56e10907fc28c6c3533b61b81fa59e08c77f6156b9b378fc794677",
+  "schemas/artifacts/unified-apply-plan.schema.json": "sha256:03ac3d64e92156d4772256f61d35f1b02b8f05a84760b6473d4a58228e0e9eac",
+  "schemas/artifacts/verification-plan.schema.json": "sha256:794d50e1955e9402ccd37cbf2d5adace58981d0dcd990f681265b16f89de96fb",
+  "schemas/artifacts/work-queue-takeover.schema.json": "sha256:0d6c56331085c61c308b9e24cef243ff50febd74f436787d409d867707a9a538",
+};
 
 export function loadSchema(projectRoot, relativePath) {
   const source = path.join(kitRoot, relativePath);
   const managed = path.join(projectRoot, ".intentos", relativePath);
   if (relativePath.startsWith("schemas/artifacts/")) {
-    if (fs.existsSync(source)) return JSON.parse(fs.readFileSync(source, "utf8"));
-    return fs.existsSync(managed) ? JSON.parse(fs.readFileSync(managed, "utf8")) : null;
+    if (fs.existsSync(source)) return readTrustedArtifactSchema(source, relativePath);
+    return fs.existsSync(managed) ? readTrustedArtifactSchema(managed, relativePath) : null;
   }
   const direct = path.join(projectRoot, relativePath);
   if (fs.existsSync(direct)) return JSON.parse(fs.readFileSync(direct, "utf8"));
   if (fs.existsSync(managed)) return JSON.parse(fs.readFileSync(managed, "utf8"));
   if (fs.existsSync(source)) return JSON.parse(fs.readFileSync(source, "utf8"));
   return null;
+}
+
+function readTrustedArtifactSchema(file, relativePath) {
+  const content = fs.readFileSync(file);
+  const actual = `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`;
+  if (!trustedArtifactSchemaDigests[relativePath] || trustedArtifactSchemaDigests[relativePath] !== actual) return null;
+  return JSON.parse(content.toString("utf8"));
 }
 
 export function extractMachineReadableEvidence(content) {

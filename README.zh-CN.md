@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.97.0`。
+当前版本：`1.98.0`。
 
-发布记录：[releases/1.97.0/release-record.md](releases/1.97.0/release-record.md)。
+发布记录：[releases/1.98.0/release-record.md](releases/1.98.0/release-record.md)。
 
 IntentOS 是给 AI 编码代理使用的软件交付治理系统：让 AI 能规划、执行、复查和收口，但不能绕过人的决策、风险接受、发布审批和项目既有规则。
 
@@ -44,6 +44,15 @@ node scripts/cli.mjs work <project> "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.98.0 对执行可信度和项目分发做硬切收口，但不再增加新的用户流程。任务队列冲突、
+暂停恢复、任务风险、业务规则、上游检查或严格 Completion Evidence 没有解决时，
+`work` 会明确阻断；严格检查也不能再被空报告参数或替换后的本地 schema 绕过。
+
+受控配置计划只能留在目标项目内，并绑定完整当前状态；执行失败会回滚已尝试写入，
+Apply Receipt 还会重新运行安装入口和基线检查。发布批准不能替代 Launch Review，
+发布包身份使用统一词汇，基线包必须匹配平台，生成项目也会真实运行公开的
+release-channel 命令。这些能力仍不批准代码实现、apply、发布或生产操作。
 
 1.97.0 在现有 Operating State 中增加只读 Project Identity Projection。
 Codex 现在会统一判断这是新项目、已有项目、强治理项目、生产敏感项目、非 Git 项目，

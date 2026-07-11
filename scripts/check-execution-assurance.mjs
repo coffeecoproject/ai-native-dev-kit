@@ -42,6 +42,10 @@ const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const requirePlanReview = Boolean(args["require-plan-review"]);
 const allowEmptyReports = Boolean(args["allow-empty"]);
+const strictRequested = requireStructuredEvidence || requireEvidenceRefs || requireReview
+  || requireActualDiff || requirePreciseEvidence || requireTaskGovernance
+  || requireWorkQueue || strictTaskConsumer || requirePlanReview
+  || requireEvidenceAuthority || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schemaVersion = "1.74.0";
 const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
@@ -197,7 +201,7 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("execution-assurance-reports");
   if (files.length === 0) {
-    if (allowEmptyReports) {
+    if (allowEmptyReports && !strictRequested) {
       pass("execution assurance check skipped by explicit --allow-empty: no reports");
     } else {
       fail("no execution assurance reports found; run `execution-assurance --out <relative-report-path>` or pass `--allow-empty` only for asset-only checks");
@@ -361,10 +365,7 @@ function checkEvidenceAuthority(label, file, evidence) {
     fail(`${label} strict authority requires a project-local non-symlink report: ${report.error}`);
     return;
   }
-  const sourceRefs = (evidence.source_systems || [])
-    .filter((item) => item.status === "RECORDED")
-    .map((item) => item.source_system_ref || item.ref)
-    .filter(isFileEvidenceRef);
+  const sourceRefs = collectAuthorityFileRefs(evidence);
   const binding = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
     fromFile: file,
     taskRef: evidence.task_ref,
@@ -373,6 +374,26 @@ function checkEvidenceAuthority(label, file, evidence) {
   });
   if (binding.ok) pass(`${label} authority binding matches the current project, task, and source files`);
   else binding.errors.forEach((error) => fail(`${label} ${error}`));
+}
+
+function collectAuthorityFileRefs(evidence) {
+  const refs = new Set();
+  const visit = (value, key = "") => {
+    if (key === "authority_binding") return;
+    if (typeof value === "string") {
+      if (isFileEvidenceRef(value)) refs.add(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item) => visit(item));
+      return;
+    }
+    if (value && typeof value === "object") {
+      Object.entries(value).forEach(([childKey, child]) => visit(child, childKey));
+    }
+  };
+  visit(evidence);
+  return [...refs];
 }
 
 function checkIntentLock(parsed, label) {

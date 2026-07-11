@@ -2,9 +2,13 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { assertNoSymlinkInPath, isSafeRelativePath, normalizePortablePath } from "./path-safety.mjs";
 
 const BINDING_VERSION = "1.91.0";
+const moduleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const workflowOutputDirectories = readWorkflowOutputDirectories();
+const authorityIgnoredPathPrefixes = ["schemas/artifacts"];
 
 export function isFileEvidenceRef(value) {
   return /^(artifact|file):/i.test(String(value || "").trim());
@@ -145,8 +149,51 @@ export function projectIdentity(projectRoot) {
   return {
     kind: "NON_GIT",
     fingerprint: digest(`project-root:${root}`),
-    revision: digest(`non-git-source:${root}`),
+    revision: nonGitRevision(root),
   };
+}
+
+function nonGitRevision(root) {
+  if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) return digest("non-git-source:missing");
+  const rows = [];
+  const ignored = new Set([".git", "node_modules", ".pnpm-store", "dist", "build", "coverage", ".next", ".cache"]);
+  const walk = (dir, relative = "") => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      if (entry.isDirectory() && ignored.has(entry.name)) continue;
+      if (!relative && entry.isDirectory() && workflowOutputDirectories.has(entry.name)) continue;
+      const rel = relative ? `${relative}/${entry.name}` : entry.name;
+      if (authorityIgnoredPathPrefixes.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) rows.push(`${rel}:symlink:${fs.readlinkSync(full)}`);
+      else if (entry.isDirectory()) walk(full, rel);
+      else if (entry.isFile()) rows.push(`${rel}:${canonicalFileDigest(full)}`);
+    }
+  };
+  walk(root);
+  return digest(rows.join("\n"));
+}
+
+function readWorkflowOutputDirectories() {
+  for (const manifestPath of [
+    path.join(moduleRoot, "intentos-manifest.json"),
+    path.join(moduleRoot, ".intentos", "intentos-manifest.json"),
+  ]) {
+    try {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+      const values = Array.isArray(manifest?.groups?.workflowDirs) ? manifest.groups.workflowDirs : [];
+      return new Set(values.map((value) => String(value || "").split("/")[0]).filter(Boolean));
+    } catch {
+      // Try the next trusted installation layout.
+    }
+  }
+  return new Set([
+    "business-rule-closures",
+    "change-impact-coverage-reports",
+    "completion-evidence-reports",
+    "execution-assurance-reports",
+    "test-evidence-reports",
+    "verification-plans",
+  ]);
 }
 
 function realProjectRoot(projectRoot) {

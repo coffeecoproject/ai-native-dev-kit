@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { releaseEvidenceRequirementsFor } from "./lib/release-evidence-requirements.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -100,7 +101,7 @@ function buildReport(root) {
   const buildArtifactDigest = String(args["build-artifact-digest"] || artifactDigestOrEmpty(root, buildArtifactRef) || digest(`${releaseCandidateRef}:${sourceRevision}:${buildArtifactRef}`));
   const sourceChain = buildSourceChain(root, completionRefs);
   const completionEvidenceSet = buildCompletionEvidenceSet(root, completionRefs, taskRefs);
-  const targetRequirements = requirementsFor(releaseTarget);
+  const targetRequirements = releaseEvidenceRequirementsFor(releaseTarget);
   const ownerState = ownerStateFor(releaseTarget);
   const runtime = runtimeReadiness(root);
   const rollback = rollbackReadiness(root, releaseTarget);
@@ -312,22 +313,6 @@ function missingEvidenceFor(input) {
     }
   }
   return Array.from(new Set(missing));
-}
-
-function requirementsFor(target) {
-  const matrix = {
-    preview: ["completion-evidence", "build-or-preview-evidence", "runtime-smoke", "release-owner"],
-    internal_trial: ["completion-evidence", "runtime-smoke", "rollback", "release-owner"],
-    staging: ["completion-evidence", "environment-config", "runtime-smoke", "monitoring", "rollback", "release-owner"],
-    production_review: ["completion-evidence", "release-owner", "risk-owner", "environment-owner", "rollback", "monitoring", "runtime-smoke", "incident-owner", "data-migration-decision", "release-handoff-pack"],
-    app_store_review: ["completion-evidence", "platform-recipe", "release-owner", "risk-owner", "environment-owner", "runtime-smoke", "rollback", "release-handoff-pack"],
-    mini_program_review: ["completion-evidence", "platform-recipe", "release-owner", "risk-owner", "environment-owner", "runtime-smoke", "rollback", "release-handoff-pack"],
-    unknown: ["release-target", "release-owner"],
-  };
-  return {
-    target,
-    required_evidence_ids: matrix[target] || matrix.unknown,
-  };
 }
 
 function ownerStateFor(target) {

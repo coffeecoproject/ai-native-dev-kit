@@ -118,8 +118,8 @@ function classifyIntent(value, taskKindOverride) {
   const possibleMatches = matchPatterns(text, possibleHighPatterns());
   const mediumMatches = matchPatterns(text, mediumPatterns());
   const lowMatches = matchPatterns(text, lowPatterns());
-  let taskImpact = "LOW";
-  let confidence = "medium";
+  let taskImpact = taskKind === "code_behavior" ? "POSSIBLE_HIGH" : "LOW";
+  let confidence = taskKind === "code_behavior" ? "low" : "medium";
   if (highMatches.length > 0) {
     taskImpact = "HIGH";
     confidence = "high";
@@ -133,13 +133,21 @@ function classifyIntent(value, taskKindOverride) {
     taskImpact = "LOW";
     confidence = "high";
   }
-  const surfaces = surfacesFor(taskImpact, highMatches, mediumMatches, lowMatches, possibleMatches);
+  const unresolvedCodeBehavior = taskKind === "code_behavior"
+    && highMatches.length === 0
+    && possibleMatches.length === 0
+    && mediumMatches.length === 0
+    && lowMatches.length === 0;
+  const effectivePossibleMatches = unresolvedCodeBehavior
+    ? ["unclassified code behavior"]
+    : possibleMatches;
+  const surfaces = surfacesFor(taskImpact, highMatches, mediumMatches, lowMatches, effectivePossibleMatches);
   return {
     task_impact: taskImpact,
     confidence,
     task_kind: taskKind,
     triggered_surfaces: surfaces,
-    trigger_evidence: triggerEvidenceFor(taskImpact, highMatches, mediumMatches, lowMatches, possibleMatches),
+    trigger_evidence: triggerEvidenceFor(taskImpact, highMatches, mediumMatches, lowMatches, effectivePossibleMatches),
     excluded_high_impact_surfaces: excludedHighImpactSurfacesFor(taskImpact, surfaces),
     low_impact_reason: taskImpact === "LOW" ? "Only local non-behavioral text, docs, or visual surface is indicated; no high-impact surface is detected." : "",
     medium_impact_reason: taskImpact === "MEDIUM" ? "The task appears bounded to one local behavior surface with no public API, DB, permission, runtime-state, release, or production impact." : "",
@@ -149,7 +157,9 @@ function classifyIntent(value, taskKindOverride) {
           resolution: "NEEDS_CLARIFICATION_OR_READ_ONLY_INSPECTION",
           inspection_ref: "",
           inspection_digest: "",
-          reason: "The intent contains credible high-impact signals but not enough evidence to safely downgrade.",
+          reason: unresolvedCodeBehavior
+            ? "The request changes code behavior but does not provide enough evidence to safely classify it as low or medium impact."
+            : "The intent contains credible high-impact signals but not enough evidence to safely downgrade.",
         }
       : {
           initial_state: "N/A",

@@ -335,7 +335,13 @@ function effectiveReleaseChannelFor({ projectType, detected, channel, githubRele
   if (githubActionsPolicy.actions_artifact_used_as_release_package === "Yes" && githubActionsPolicy.artifact_retention_policy_ref === "missing") {
     blockedBy.push("missing_artifact_retention_policy");
   }
-  if (channel !== "source_only" && releasePackageIdentity.identity_type !== "none" && (releasePackageIdentity.identity_ref === "missing" || releasePackageIdentity.digest_or_id === "missing")) {
+  if (releasePackageIdentity.identity_type === "unknown") {
+    blockedBy.push("unknown_release_package_identity");
+  }
+  if (channel !== "source_only" && releasePackageIdentity.identity_type === "none") {
+    blockedBy.push("release_channel_requires_package_identity");
+  }
+  if (releasePackageIdentity.identity_type !== "none" && (releasePackageIdentity.identity_ref === "missing" || releasePackageIdentity.digest_or_id === "missing")) {
     blockedBy.push("missing_release_package_identity");
   }
   return {

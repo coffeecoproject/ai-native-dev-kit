@@ -21,6 +21,7 @@ const knownFlags = new Set([
   "execution-closure",
   "guided-closure",
   "human-decision",
+  "completion-evidence",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -76,10 +77,12 @@ function buildOperatingState() {
   const taskGovernance = sources.find((item) => item.name === "TASK_GOVERNANCE")?.value || null;
   const deliveryStatus = sources.find((item) => item.name === "USER_DELIVERY_CONSOLE")?.value || null;
   const closure = sources.find((item) => item.name === "UNIFIED_CLOSURE")?.value || null;
+  const completionEvidence = sources.find((item) => item.name === "COMPLETION_EVIDENCE")?.value || null;
+  const workQueue = sources.find((item) => item.name === "WORK_QUEUE")?.value || null;
   const release = sources.find((item) => item.name === "RELEASE_GUIDE")?.value || null;
   const adoption = sources.find((item) => item.name === "ADOPTION_AUTOPILOT")?.value || null;
-  const sourceFailure = sources.some((item) => item.readStatus === "FAILED");
   const currentGit = gitWorktreeState(projectRoot);
+  const sourceFailure = sources.some((item) => item.readStatus === "FAILED") || currentGit.observationStatus === "FAILED";
   const dirtyWorktree = currentGit.isDirty
     || projectState === "DIRTY_WORKTREE_PROJECT"
     || projectStateTags.includes("DIRTY_WORKTREE_PROJECT");
@@ -94,6 +97,10 @@ function buildOperatingState() {
     taskImpact,
     taskGovernance,
     closure,
+    completionEvidence,
+    workQueue,
+    discussionOnly: operation === "DISCUSS_ONLY",
+    resumeRequested: operation === "RESUME_TASK",
   });
   const evidenceTrace = buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, closure, release, adoption);
   const authorityRecommendation = authorityFor(operation, intent, taskImpact, sourceFailure);
@@ -114,6 +121,8 @@ function buildOperatingState() {
     taskImpact,
     taskGovernance,
     closure,
+    completionEvidence,
+    workQueue,
     sourceFailure,
     dirtyWorktree,
     evidenceTrace,
@@ -124,7 +133,7 @@ function buildOperatingState() {
 
   return {
     reportType: "INTENTOS_OPERATING_STATE",
-    schemaVersion: "1.97.0",
+    schemaVersion: "1.98.0",
     generatedBy: "scripts/resolve-operating-loop.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -181,8 +190,11 @@ function addOperationSources(sources, operation) {
   if (["START_PROJECT", "CONTINUE_TASK"].includes(operation)) {
     sources.push(runSource("BEGINNER_ENTRY", "scripts/resolve-beginner-entry.mjs", [projectRoot, intent, "--json"]));
   }
-  if (["CONTINUE_TASK", "CHECK_STATUS", "FINISH_TASK"].includes(operation)) {
+  if (["CONTINUE_TASK", "CHECK_STATUS", "FINISH_TASK", "RESUME_TASK"].includes(operation)) {
     sources.push(runSource("TASK_GOVERNANCE", "scripts/resolve-task-governance.mjs", [projectRoot, "--intent", intent, "--json"]));
+  }
+  if (["CONTINUE_TASK", "CHECK_STATUS", "FINISH_TASK", "RESUME_TASK", "DISCUSS_ONLY"].includes(operation)) {
+    sources.push(runSource("WORK_QUEUE", "scripts/resolve-work-queue.mjs", [projectRoot, "--json"]));
   }
   if (["CHECK_STATUS", "FINISH_TASK", "PREPARE_RELEASE"].includes(operation)) {
     sources.push(runSource("USER_DELIVERY_CONSOLE", "scripts/resolve-user-delivery-console.mjs", [projectRoot, "--intent", intent, "--json"]));
@@ -194,6 +206,16 @@ function addOperationSources(sources, operation) {
       if (args[flag]) closureArgs.push(`--${flag}`, String(args[flag]));
     }
     sources.push(runSource("UNIFIED_CLOSURE", "scripts/resolve-closure-decision.mjs", closureArgs));
+    const completionArgs = [
+      projectRoot,
+      "--json",
+      "--require-report",
+      "--require-structured-evidence",
+      "--require-source-refs",
+      "--require-ready",
+    ];
+    if (args["completion-evidence"]) completionArgs.push("--report", String(args["completion-evidence"]));
+    sources.push(runGateSource("COMPLETION_EVIDENCE", "scripts/check-completion-evidence.mjs", completionArgs));
   }
   if (operation === "PREPARE_RELEASE") {
     sources.push(runSource("RELEASE_GUIDE", "scripts/resolve-release-guide.mjs", [projectRoot, "--intent", intent, "--json"]));
@@ -223,17 +245,22 @@ function runSource(name, script, childArgs) {
   }
   try {
     const value = JSON.parse(result.stdout);
+    const nestedFailures = name === "WORKFLOW_GUIDANCE"
+      ? (value.deepOrchestration?.failures || [])
+      : [];
     const semanticValue = { ...value };
     delete semanticValue.generatedAt;
     return {
       name,
       script,
-      readStatus: "CURRENT_RUN",
-      outcome: sourceOutcome(value),
+      readStatus: nestedFailures.length > 0 ? "FAILED" : "CURRENT_RUN",
+      outcome: nestedFailures.length > 0 ? "BLOCKED_BY_NESTED_SOURCE_FAILURE" : sourceOutcome(value),
       ref: sourceRef(value, script),
       semanticDigest: `sha256:${sha256(JSON.stringify(semanticValue))}`,
       value,
-      error: "",
+      error: nestedFailures.length > 0
+        ? nestedFailures.map((item) => `${item.id}: ${item.reason}`).join("; ")
+        : "",
     };
   } catch (error) {
     return {
@@ -249,13 +276,47 @@ function runSource(name, script, childArgs) {
   }
 }
 
+function runGateSource(name, script, childArgs) {
+  const result = spawnSync(process.execPath, [path.join(kitRoot, script), ...childArgs], {
+    cwd: kitRoot,
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 32,
+  });
+  try {
+    const value = JSON.parse(result.stdout);
+    return {
+      name,
+      script,
+      readStatus: "CURRENT_RUN",
+      outcome: value.ok === true ? "PASS" : "FAIL",
+      ref: args["completion-evidence"] ? `artifact:${String(args["completion-evidence"])}` : `generated:${script}`,
+      semanticDigest: `sha256:${sha256(JSON.stringify(value))}`,
+      value,
+      error: value.ok === true ? "" : firstUsefulLine(value.checks?.find((item) => item.status === "FAIL")?.message || "gate failed"),
+    };
+  } catch (error) {
+    return {
+      name,
+      script,
+      readStatus: "FAILED",
+      outcome: "BLOCKED_BY_INVALID_SOURCE",
+      ref: `generated:${script}`,
+      semanticDigest: `sha256:${sha256(result.stderr || result.stdout || error.message)}`,
+      value: null,
+      error: firstUsefulLine(result.stderr || result.stdout || error.message),
+    };
+  }
+}
+
 function operationFor(value, projectEntry) {
   const text = String(value || "").toLowerCase();
-  if (/(?:接入|采用|迁移到|切换到|整合).{0,20}intentos|intentos.{0,20}(?:接入|采用|迁移|工作模式)|\b(?:adopt|migrate|connect).{0,24}\bintentos\b|\bwork under intentos\b/.test(text)) return "ADOPT_PROJECT";
+  if (/(?:接入|采用|迁移到|切换到|整合|按照|按).{0,20}intentos|intentos.{0,20}(?:接入|采用|迁移|工作模式|工作)|\b(?:adopt|migrate|connect).{0,24}\bintentos\b|\bwork under intentos\b/.test(text)) return "ADOPT_PROJECT";
+  if (/\b(?:just|only)\s+(?:discuss|review|talk)\b|\bdo not (?:implement|change|edit|write)\b|只(?:讨论|沟通|评审)|先(?:讨论|沟通)|不要(?:实现|修改|写代码)/.test(text)) return "DISCUSS_ONLY";
+  if (/\bresume\b|\bcontinue the paused\b|恢复.{0,12}(?:暂停|任务)|继续.{0,12}暂停/.test(text)) return "RESUME_TASK";
   if (/(?:任务|这个|这项|工作).{0,12}(?:做完|完成).{0,6}(?:吗|没有|了没|\?|？)|(?:能否|是否|可以).{0,12}(?:算|视为|认为)?(?:做完|完成|收口)|\b(?:is|can|has).{0,24}(?:done|finished|complete|close[ -]?out)\b/.test(text)) return "FINISH_TASK";
   if (/(?:查看|检查|告诉我|当前|现在|请问).{0,20}(?:进度|做到哪|完成情况|任务状态|项目状态)|(?:进度|任务状态|项目状态).{0,8}(?:如何|怎样|是什么|吗|\?|？)|\b(?:check|show|review|what is|where are we).{0,24}\b(?:status|progress)\b/.test(text)) return "CHECK_STATUS";
   if (/(?:准备|开始|执行|安排|帮我|我要|需要|可以|怎么|如何).{0,16}(?:发布|上线|提交审核)|(?:发布|上线).{0,12}(?:准备|计划|流程|执行|审核)|\b(?:prepare|start|perform|how to|ready for).{0,16}\b(?:release|deployment|publish)\b/.test(text)) return "PREPARE_RELEASE";
-  if (/新项目|从\s*0|从零|\bnew project\b|\bbuild.{0,40}from scratch\b|(?:我想|帮我|请).{0,8}(?:创建|搭建|开发|做一个).{0,24}(?:app|应用|网站|系统)(?:\s|$|[，。,.!?！？])/.test(text)) return "START_PROJECT";
+  if (/新项目|从\s*0|从零|\bnew project\b|\bbuild.{0,40}from scratch\b|\bi want to build\b|\bstart this project\b|(?:我想|帮我|请).{0,8}(?:创建|搭建|开发|做一个).{0,24}(?:app|应用|网站|系统)(?:\s|$|[，。,.!?！？])/.test(text)) return "START_PROJECT";
   return "CONTINUE_TASK";
 }
 
@@ -299,6 +360,9 @@ function readProjectEntryOrigin(root) {
 function operatingStateFor(context) {
   if (!intent) return "NEEDS_GOAL";
   if (context.sourceFailure) return "BLOCKED_BY_SOURCE_FAILURE";
+  if ((context.workQueue?.currentTaskCount || 0) > 1) return "BLOCKED_BY_WORK_QUEUE";
+  if (context.discussionOnly) return "DISCUSSION_ONLY";
+  if (context.resumeRequested) return "NEEDS_RESUME_REVIEW";
   if (context.dirtyWorktree && ["START_PROJECT", "CONTINUE_TASK"].includes(context.operation)) {
     return "NEEDS_CURRENT_WORK_REVIEW";
   }
@@ -307,7 +371,9 @@ function operatingStateFor(context) {
   if (context.operation === "ADOPT_PROJECT") return "ADOPTION_REVIEW_ACTIVE";
   if (context.operation === "PREPARE_RELEASE") return "RELEASE_REVIEW_ONLY";
   if (context.operation === "FINISH_TASK") {
-    return context.closure?.closureDecision?.decision === "DONE" ? "READY_TO_REPORT_DONE" : "NOT_DONE";
+    return context.closure?.closureDecision?.decision === "DONE" && context.completionEvidence?.ok === true
+      ? "READY_TO_REPORT_DONE"
+      : "NOT_DONE";
   }
   const impact = context.taskImpact || "POSSIBLE_HIGH";
   const ready = context.taskGovernance?.readiness?.ready_for_implementation_review === "Yes";
@@ -325,7 +391,7 @@ function buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, 
     outcome: source.outcome,
     relation: relationFor(source.name, operation),
     strictCheckerStatus: "NOT_EVALUATED_BY_OPERATING_VIEW",
-    blocksCurrentOperation: source.readStatus === "FAILED" ? "Yes" : "No",
+    blocksCurrentOperation: source.readStatus === "FAILED" || source.outcome === "FAIL" ? "Yes" : "No",
   }));
   const dependencies = nodes.map((node) => ({
     from: node.id,
@@ -337,7 +403,7 @@ function buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, 
     ...(deliveryStatus?.missingItems || []),
     ...(closure?.requiredNextAction || []),
     ...arrayValue(release?.humanDecisions),
-    ...arrayValue(adoption?.humanDecisions),
+    ...humanDecisionTexts(adoption?.humanDecisions),
   ]).filter((item) => !/^none|n\/a$/i.test(item));
   return {
     derivedOnly: "Yes",
@@ -402,6 +468,8 @@ function lifecyclePhaseFor(operation) {
     START_PROJECT: "PROJECT_ENTRY",
     ADOPT_PROJECT: "PROJECT_ENTRY",
     CONTINUE_TASK: "TASK_GOVERNANCE_AND_PLANNING",
+    RESUME_TASK: "TASK_RESUME_REVIEW",
+    DISCUSS_ONLY: "DISCUSSION_ONLY",
     CHECK_STATUS: "TASK_STATUS",
     FINISH_TASK: "TASK_CLOSURE",
     PREPARE_RELEASE: "RELEASE_PREPARATION",
@@ -417,7 +485,9 @@ function buildProjectIdentityProjection(context) {
   const projectKind = projectKindForEntry(context.projectEntry);
   const governancePosture = governancePostureFor(context.projectEntry, context.projectStateTags, workflow.governanceSignals);
   const productionPosture = productionPostureFor(projectKind, governancePosture, context.projectStateTags, workflow.governanceSignals);
-  const worktreePosture = git.isGitRepository ? (git.isDirty ? "DIRTY" : "CLEAN") : "NON_GIT";
+  const worktreePosture = git.observationStatus === "FAILED"
+    ? "UNKNOWN"
+    : git.isGitRepository ? (git.isDirty ? "DIRTY" : "CLEAN") : "NON_GIT";
   const conflicts = projectIdentityConflicts({
     projectKind,
     entryState: context.projectEntry,
@@ -450,7 +520,7 @@ function buildProjectIdentityProjection(context) {
       sourceSystem: "EVIDENCE_AUTHORITY",
       ref: "current:project-identity",
       outcome: evidenceIdentity.kind,
-      readStatus: "CURRENT_RUN",
+      readStatus: git.observationStatus === "FAILED" ? "FAILED" : "CURRENT_RUN",
       semanticDigest: `sha256:${sha256(JSON.stringify(evidenceIdentity))}`,
     },
     {
@@ -463,6 +533,7 @@ function buildProjectIdentityProjection(context) {
         isDirty: git.isDirty,
         changedFileCount: git.changedFileCount,
         changedFilesDigest: git.changedFilesDigest,
+        observationStatus: git.observationStatus,
       }))}`,
     },
   ];
@@ -488,7 +559,7 @@ function buildProjectIdentityProjection(context) {
     selectedIndustrialPacks: arrayValue(workflow.selectedIndustrialPacks).sort(),
   };
   const digestPayload = {
-    contractVersion: "1.97.0",
+    contractVersion: "1.98.0",
     projectKind,
     entryState: context.projectEntry,
     governancePosture,
@@ -504,7 +575,7 @@ function buildProjectIdentityProjection(context) {
     sourceInputs,
   };
   return {
-    contractVersion: "1.97.0",
+    contractVersion: "1.98.0",
     derivedOnly: "Yes",
     grantsAuthority: "No",
     writesProjectFiles: "No",
@@ -568,7 +639,8 @@ function productionPostureFor(projectKind, governancePosture, projectStateTags, 
   if (projectKind === "NEW_PROJECT") return "NOT_ESTABLISHED";
   if (governancePosture === "PRODUCTION_GOVERNED"
     || projectStateTags.includes("PRODUCTION_GOVERNED_PROJECT")
-    || signals?.isProductionGoverned) return "PRODUCTION_SENSITIVE";
+    || signals?.isProductionGoverned
+    || arrayValue(signals?.productionSignals).length > 0) return "PRODUCTION_SENSITIVE";
   if (projectKind === "EXISTING_PROJECT") return "NO_PRODUCTION_EVIDENCE";
   return "UNKNOWN";
 }
@@ -581,6 +653,11 @@ function projectIdentityConflicts(context) {
   }
   if (context.projectKind === "NEW_PROJECT" && arrayValue(context.governanceSignals?.basicSignals).length > 0) {
     conflicts.push("New-project entry conflicts with observed project-owned governance signals");
+  }
+  const guidanceProduction = String(context.guidanceProjectState || "") === "PRODUCTION_SENSITIVE_PROJECT";
+  const projectedProduction = context.productionPosture === "PRODUCTION_SENSITIVE";
+  if (guidanceProduction !== projectedProduction && context.projectKind === "EXISTING_PROJECT") {
+    conflicts.push(`Workflow Guidance production posture (${guidanceProduction ? "sensitive" : "not-sensitive"}) disagrees with observed project production posture (${context.productionPosture})`);
   }
   if (context.productionPosture === "PRODUCTION_SENSITIVE"
     && arrayValue(context.governanceSignals?.productionSignals).length === 0) {
@@ -612,7 +689,7 @@ function buildOperatingDecision(context) {
   const blockedBy = decisionBlockers(context);
   const humanDecision = humanDecisionFor(context, selected.actionCode);
   const digestPayload = {
-    contractVersion: "1.97.0",
+    contractVersion: "1.98.0",
     intentDigest: sha256(intent),
     projectRootDigest: sha256(projectRoot),
     taskRef: taskRef || "N/A",
@@ -629,7 +706,7 @@ function buildOperatingDecision(context) {
     sourceInputs,
   };
   return {
-    contractVersion: "1.97.0",
+    contractVersion: "1.98.0",
     derivedOnly: "Yes",
     actionCode: selected.actionCode,
     actionClass: selected.actionClass,
@@ -652,6 +729,9 @@ function selectOperatingAction(context) {
   if (context.sourceFailure) return action("REPAIR_SOURCE_READ", "BLOCKED_RECOVERY", "BLOCKED", "SOURCE_READ_FAILED", false);
   if (context.operatingState === "NEEDS_GOAL") return action("REQUEST_GOAL", "USER_INPUT", "NEEDS_USER_INPUT", "GOAL_REQUIRED", false);
   if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return action("REVIEW_CURRENT_WORK", "READ_ONLY_REVIEW", "NEEDS_USER_INPUT", "DIRTY_WORKTREE_REVIEW_REQUIRED", true);
+  if (context.operatingState === "BLOCKED_BY_WORK_QUEUE") return action("REPAIR_WORK_QUEUE", "BLOCKED_RECOVERY", "BLOCKED", "MULTIPLE_CURRENT_TASKS", true);
+  if (context.operatingState === "DISCUSSION_ONLY") return action("DISCUSS_WITHOUT_EXECUTION", "DISCUSSION", "READY_TO_DISCUSS", "DISCUSSION_ONLY_REQUESTED", true);
+  if (context.operatingState === "NEEDS_RESUME_REVIEW") return action("REVIEW_PAUSED_TASK", "READ_ONLY_REVIEW", "NEEDS_USER_INPUT", "PAUSED_TASK_REVIEW_REQUIRED", true);
   if (context.operation === "START_PROJECT") return action("PREPARE_PROJECT_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "PROJECT_PLAN_REQUIRED", true);
   if (context.operation === "ADOPT_PROJECT") return action("RUN_ADOPTION_REVIEW", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "ADOPTION_REVIEW_REQUIRED", true);
   if (context.operation === "CHECK_STATUS") return action("SUMMARIZE_CURRENT_STATUS", "REPORTING", "READY_TO_REPORT", "STATUS_SUMMARY_REQUESTED", true);
@@ -695,6 +775,8 @@ function decisionBlockers(context) {
       .map((source) => `${source.sourceSystem}: ${source.error || "source read failed"}`);
   }
   if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return ["current worktree has uncommitted changes"];
+  if (context.operatingState === "BLOCKED_BY_WORK_QUEUE") return ["Work Queue has more than one CURRENT task"];
+  if (context.operatingState === "NEEDS_RESUME_REVIEW") return ["paused task requires current-state, worktree, evidence, and resume review"];
   if (context.operation === "CONTINUE_TASK") return arrayValue(context.taskGovernance?.readiness?.blocked_by);
   if (context.operation === "FINISH_TASK" && context.operatingState !== "READY_TO_REPORT_DONE") {
     return arrayValue(context.closure?.requiredNextAction);
@@ -714,6 +796,14 @@ function humanDecisionFor(context, actionCode) {
   if (actionCode === "REVIEW_CURRENT_WORK") return {
     required: true,
     prompt: zh ? "当前未提交改动是否属于这次任务？" : "Do the current uncommitted changes belong to this task?",
+  };
+  if (actionCode === "REPAIR_WORK_QUEUE") return {
+    required: true,
+    prompt: zh ? "只能有一个当前任务。你希望继续哪一个目标？" : "Only one task can be current. Which goal should remain current?",
+  };
+  if (actionCode === "REVIEW_PAUSED_TASK") return {
+    required: true,
+    prompt: zh ? "Codex 会先核对暂停任务的当前状态、未提交改动和证据，再请你确认是否恢复。" : "Codex must review current state, worktree, and evidence before you confirm resumption.",
   };
   if (actionCode === "REPAIR_SOURCE_READ") return {
     required: false,
@@ -744,6 +834,9 @@ function reasonFor(actionCode, blockers) {
     REPAIR_SOURCE_READ: `A required source failed: ${firstBlocker}.`,
     REQUEST_GOAL: "The Operating Model cannot select a safe route without a goal.",
     REVIEW_CURRENT_WORK: "The worktree contains uncommitted work that must be mapped before continuation.",
+    REPAIR_WORK_QUEUE: `The Work Queue is ambiguous: ${firstBlocker}.`,
+    DISCUSS_WITHOUT_EXECUTION: "The user explicitly requested discussion without implementation or project writes.",
+    REVIEW_PAUSED_TASK: "Paused work requires a current-state, worktree, evidence, and human resume review.",
     PREPARE_PROJECT_PLAN: "The goal starts a project and requires a project plan and baseline recommendation.",
     RUN_ADOPTION_REVIEW: "The goal requests existing-project adoption, which starts with read-only review.",
     SUMMARIZE_CURRENT_STATUS: "The user requested current project or task status.",
@@ -768,6 +861,9 @@ function plainActionFor(actionCode, language = "en") {
     REPAIR_SOURCE_READ: "Codex 先说明或修复来源读取失败，再继续。",
     REQUEST_GOAL: "告诉 Codex 你想做成什么。",
     REVIEW_CURRENT_WORK: "Codex 先只读梳理现有未提交改动，不覆盖也不丢弃。",
+    REPAIR_WORK_QUEUE: "Codex 先整理任务队列，只保留一个当前任务，再继续。",
+    DISCUSS_WITHOUT_EXECUTION: "Codex 只沟通和分析，不进入实现、不修改项目。",
+    REVIEW_PAUSED_TASK: "Codex 先核对暂停任务的当前状态、改动和旧证据，再决定是否恢复。",
     PREPARE_PROJECT_PLAN: "Codex 先准备项目方案和技术基线建议，不要求你选择内部编号。",
     RUN_ADOPTION_REVIEW: "Codex 先完成只读接入判断，再决定是否需要受控写入计划。",
     SUMMARIZE_CURRENT_STATUS: "Codex 汇总当前证据，并用白话说明已完成、未完成和下一步。",
@@ -788,6 +884,9 @@ function plainActionFor(actionCode, language = "en") {
     REPAIR_SOURCE_READ: "Codex should explain or repair the failed source read before continuing.",
     REQUEST_GOAL: "Tell Codex what outcome you want.",
     REVIEW_CURRENT_WORK: "Codex should inspect and map current uncommitted work without overwriting or discarding it.",
+    REPAIR_WORK_QUEUE: "Codex should repair the queue so exactly one task remains current before continuing.",
+    DISCUSS_WITHOUT_EXECUTION: "Codex should discuss and analyze only, without implementation or project writes.",
+    REVIEW_PAUSED_TASK: "Codex should review current state, worktree, and prior evidence before resuming paused work.",
     PREPARE_PROJECT_PLAN: "Codex should prepare the project plan and technical baseline recommendation without asking for internal IDs.",
     RUN_ADOPTION_REVIEW: "Codex should complete the read-only adoption review before proposing a controlled write plan.",
     SUMMARIZE_CURRENT_STATUS: "Codex should summarize current evidence, completed work, missing work, and the next step.",
@@ -904,6 +1003,8 @@ function plainOperation(operation, language = "en") {
     FINISH_TASK: "收口当前任务",
     PREPARE_RELEASE: "准备发布审查",
     ADOPT_PROJECT: "接入已有项目",
+    RESUME_TASK: "复核并恢复暂停任务",
+    DISCUSS_ONLY: "只讨论，不执行",
   } : {
     START_PROJECT: "Starting the project",
     CONTINUE_TASK: "Continuing the task",
@@ -911,6 +1012,8 @@ function plainOperation(operation, language = "en") {
     FINISH_TASK: "Finishing the task",
     PREPARE_RELEASE: "Preparing release",
     ADOPT_PROJECT: "Connecting the existing project",
+    RESUME_TASK: "Reviewing paused work before resumption",
+    DISCUSS_ONLY: "Discussing without execution",
   };
   return values[operation] || operation;
 }
@@ -931,6 +1034,9 @@ function plainStateFor(state, language = "en") {
     NEEDS_GOAL: "需要先说明目标",
     BLOCKED_BY_SOURCE_FAILURE: "读取失败，已经停止",
     NEEDS_CURRENT_WORK_REVIEW: "需要先确认当前未完成改动",
+    BLOCKED_BY_WORK_QUEUE: "任务队列存在多个当前任务，已经停止",
+    DISCUSSION_ONLY: "只进行沟通和分析",
+    NEEDS_RESUME_REVIEW: "恢复暂停任务前需要复核",
     READY_FOR_PROJECT_PLAN: "可以准备项目方案",
     STATUS_AVAILABLE: "当前状态已整理",
     ADOPTION_REVIEW_ACTIVE: "正在进行只读接入判断",
@@ -947,6 +1053,9 @@ function plainStateFor(state, language = "en") {
     NEEDS_GOAL: "A goal is required",
     BLOCKED_BY_SOURCE_FAILURE: "Stopped because a required source could not be read",
     NEEDS_CURRENT_WORK_REVIEW: "Current uncommitted work must be reviewed first",
+    BLOCKED_BY_WORK_QUEUE: "Stopped because the Work Queue has multiple current tasks",
+    DISCUSSION_ONLY: "Discussion and analysis only",
+    NEEDS_RESUME_REVIEW: "Paused work requires review before resumption",
     READY_FOR_PROJECT_PLAN: "Ready for project planning",
     STATUS_AVAILABLE: "Current status is available",
     ADOPTION_REVIEW_ACTIVE: "Read-only adoption review is active",
@@ -969,6 +1078,16 @@ function authorityReason(operation, taskImpact, roles) {
 
 function arrayValue(value) {
   return Array.isArray(value) ? value.map(String) : [];
+}
+
+function humanDecisionTexts(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => typeof item === "string" || item?.required_now === "Yes")
+    .map((item) => typeof item === "string"
+      ? item
+      : item.plain_question || item.question || item.id || "human decision required")
+    .filter(Boolean);
 }
 
 function unique(values) {

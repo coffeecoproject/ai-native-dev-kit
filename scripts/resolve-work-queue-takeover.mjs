@@ -144,7 +144,9 @@ function sourceTypeFor(relativePath) {
 }
 
 function statusForSource(relativePath, content) {
-  if (/UNSAFE_TO_TAKE_OVER|production incident|dirty worktree|release conflict/i.test(content)) return "RISKY";
+  const currentRows = (content.match(/\|\s*`?CURRENT`?\s*\|/gi) || []).length;
+  if (currentRows > 1) return "RISKY";
+  if (/UNSAFE_TO_TAKE_OVER|production incident|release conflict|dirty worktree\s*[:|]\s*(yes|dirty|unreviewed)/i.test(content)) return "RISKY";
   if (/CURRENT|active task|in progress/i.test(content)) return "CURRENT";
   if (/done|completed|closed/i.test(content)) return "STALE";
   if (/stale|archive|archived|deprecated/i.test(content)) return "STALE";

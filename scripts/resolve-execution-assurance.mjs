@@ -6,6 +6,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { createEvidenceAuthorityBinding, isFileEvidenceRef } from "./lib/evidence-authority.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
@@ -100,6 +101,12 @@ function buildReport(root, options) {
     },
     outcome: state,
   };
+  structuredEvidence.authority_binding = createEvidenceAuthorityBinding(root, {
+    fromFile: outputPath,
+    taskRef: structuredEvidence.task_ref,
+    intentDigest: structuredEvidence.intent_digest,
+    sourceRefs: collectFileEvidenceRefs(structuredEvidence),
+  });
   return {
     reportType: "EXECUTION_ASSURANCE",
     schemaVersion,
@@ -117,6 +124,26 @@ function buildReport(root, options) {
     structuredEvidence,
     outcome: state,
   };
+}
+
+function collectFileEvidenceRefs(value) {
+  const refs = new Set();
+  const visit = (item, key = "") => {
+    if (key === "authority_binding") return;
+    if (typeof item === "string") {
+      if (isFileEvidenceRef(item)) refs.add(item);
+      return;
+    }
+    if (Array.isArray(item)) {
+      item.forEach((child) => visit(child));
+      return;
+    }
+    if (item && typeof item === "object") {
+      Object.entries(item).forEach(([childKey, child]) => visit(child, childKey));
+    }
+  };
+  visit(value);
+  return [...refs];
 }
 
 function classifyExecutionKind(root, options) {

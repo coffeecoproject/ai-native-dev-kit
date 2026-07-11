@@ -39,6 +39,9 @@ const strictSourceBinding = Boolean(args["strict-source-binding"]);
 const requireCurrentEvidence = Boolean(args["require-current-evidence"]);
 const requireTestQualityControls = Boolean(args["require-test-quality-controls"]);
 const requireEvidenceAuthority = Boolean(args["require-evidence-authority"]);
+const strictRequested = requireReport || requireStructuredEvidence || requireVerificationPlanRef
+  || strictSourceBinding || requireCurrentEvidence || requireTestQualityControls
+  || requireEvidenceAuthority || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json");
 const verificationPlanSchema = loadSchema(projectRoot, "schemas/artifacts/verification-plan.schema.json");
@@ -159,9 +162,9 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("test-evidence-reports");
   if (files.length === 0) {
-    if (allowEmpty) {
+    if (allowEmpty && !strictRequested) {
       pass("test evidence check skipped by explicit --allow-empty: no reports");
-    } else if (requireReport || explicitReport || requireEvidenceAuthority) {
+    } else if (strictRequested) {
       fail("no Test Evidence reports found; run `test-evidence --out <relative-report-path>` first");
     } else {
       pass("SKIPPED_NO_REPORT: no Test Evidence reports found; no completion claim made");

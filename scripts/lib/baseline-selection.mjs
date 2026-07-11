@@ -128,6 +128,13 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
   if (incompatibleStandard.length > 0) {
     throw new Error(`Standard baseline pack(s) incompatible with ${baselineLevel}: ${incompatibleStandard.join(", ")}`);
   }
+  const profileIncompatibleStandard = standardPacks.filter((id) => {
+    const applies = standardById.get(id)?.appliesToProfiles;
+    return Array.isArray(applies) && applies.length > 0 && !applies.some((profile) => profiles.includes(profile));
+  });
+  if (profileIncompatibleStandard.length > 0) {
+    throw new Error(`Standard baseline pack(s) incompatible with selected profiles ${profiles.join(", ")}: ${profileIncompatibleStandard.join(", ")}`);
+  }
 
   const industrialIndex = loadPackIndex(kitRoot, "industrial-packs");
   const industrialById = new Map(industrialIndex.packs.map((entry) => [entry.id, entry]));
@@ -142,6 +149,16 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
   if (baselineLevel === "BL2_INDUSTRIAL" && industrialPacks.length === 0) {
     throw new Error("BL2_INDUSTRIAL requires at least one concrete selected industrial pack");
   }
+  const profileIncompatibleIndustrial = industrialPacks.filter((id) => {
+    const applies = industrialById.get(id)?.appliesToProfiles;
+    return Array.isArray(applies) && applies.length > 0 && !applies.some((profile) => profiles.includes(profile));
+  });
+  if (profileIncompatibleIndustrial.length > 0) {
+    throw new Error(`Industrial pack(s) incompatible with selected profiles ${profiles.join(", ")}: ${profileIncompatibleIndustrial.join(", ")}`);
+  }
+
+  const evidencePending = standardPacks.some((id) => standardById.get(id)?.requiresEvidenceForConfirmed === true)
+    || industrialPacks.some((id) => (industrialById.get(id)?.maturityStage || industrialById.get(id)?.status) !== "stable");
 
   return {
     configured: Boolean(baselineLevel && profiles.length > 0),
@@ -151,6 +168,7 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
     industrialPacks,
     standardPackMaturity: Object.fromEntries(standardPacks.map((id) => [id, standardById.get(id)?.maturityStage || standardById.get(id)?.status || "unknown"])),
     industrialPackMaturity: Object.fromEntries(industrialPacks.map((id) => [id, industrialById.get(id)?.maturityStage || industrialById.get(id)?.status || "unknown"])),
+    evidencePending,
   };
 }
 
@@ -225,6 +243,7 @@ Business, data, release, and production facts remain pending until supported by 
 }
 
 export function renderBaselineSelection(config) {
+  const approvalStatus = config.evidencePending ? "PENDING" : "APPROVED";
   const maturityRows = [
     ...config.standardPacks.map((id) => `| ${id} | standard | ${config.standardPackMaturity[id]} | selected by approved plan |`),
     ...config.industrialPacks.map((id) => `| ${id} | industrial | ${config.industrialPackMaturity[id]} | selected by approved plan |`),
@@ -233,9 +252,9 @@ export function renderBaselineSelection(config) {
 
 ## Status
 
-Draft status: CONFIRMED
+Draft status: ${config.evidencePending ? "PENDING_EVIDENCE" : "CONFIRMED"}
 
-Human decision status: CONFIRMED
+Human decision status: ${config.evidencePending ? "PENDING_EVIDENCE" : "CONFIRMED"}
 
 ## Baseline Level
 
@@ -263,7 +282,7 @@ ${maturityRows.length > 0 ? maturityRows.join("\n") : "| None | N/A | N/A | N/A 
 
 ## Human Approval
 
-Status: APPROVED
+Status: ${approvalStatus}
 
 Approval scope: exact baseline selection bound to the approved IntentOS initialization action graph.
 
@@ -304,9 +323,9 @@ One-sentence conclusion: IntentOS baseline assets are configured; product and pr
 
 ## Decision Needed
 
-Does baseline evidence need human confirmation before AI continues: No
+Does baseline evidence need human confirmation before AI continues: ${config.evidencePending ? "Yes" : "No"}
 
-Decision: technical baseline installation may continue; high-risk project decisions remain separate.
+Decision: ${config.evidencePending ? "selected packs remain pending until required project evidence is recorded." : "technical baseline installation may continue; high-risk project decisions remain separate."}
 
 ## Next Safe Step
 
@@ -314,9 +333,9 @@ Next action: complete product, engineering, environment, and business onboarding
 
 ## Status
 
-Draft status: CONFIRMED
+Draft status: ${config.evidencePending ? "PENDING_EVIDENCE" : "CONFIRMED"}
 
-Human decision status: CONFIRMED
+Human decision status: ${config.evidencePending ? "PENDING_EVIDENCE" : "CONFIRMED"}
 
 ## Evidence Index
 

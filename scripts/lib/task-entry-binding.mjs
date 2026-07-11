@@ -58,7 +58,7 @@ export function checkTaskEntryBinding({
   if (strictTaskConsumer && workQueueBinding?.item && taskGovernanceBinding?.evidence) {
     checkJointBinding({ binding, workQueueItem: workQueueBinding.item, label, pass, fail });
   }
-  checkTierRules({ binding, tier, label, consumer, evidence, pass, fail });
+  checkTierRules({ binding, tier, label, consumer, evidence, projectRoot, pass, fail });
 }
 
 function checkWorkQueueBinding({ binding, label, projectRoot, strictTaskConsumer, pass, fail }) {
@@ -72,7 +72,7 @@ function checkWorkQueueBinding({ binding, label, projectRoot, strictTaskConsumer
   else fail(`${label} requires work_queue_item_ref`);
   if (SHA_RE.test(digest)) pass(`${label} work queue item digest is sha256`);
   else fail(`${label} requires sha256 work_queue_item_digest`);
-  if (state === "CURRENT" || resume === "Yes") pass(`${label} work queue item is current or has approved resume review`);
+  if (state === "CURRENT" || (state === "PAUSED" && resume === "Yes")) pass(`${label} work queue item is current or is PAUSED with approved resume review`);
   else fail(`${label} work queue item must be CURRENT unless approved resume review is recorded`);
   if (taskMatch === "Yes") pass(`${label} work queue item matches current task`);
   else fail(`${label} work queue item must match current task`);
@@ -188,7 +188,7 @@ function checkJointBinding({ binding, workQueueItem, label, pass, fail }) {
   }
 }
 
-function checkResumeReviewBinding({ binding, label, pass, fail }) {
+function checkResumeReviewBinding({ binding, label, projectRoot, pass, fail }) {
   if (String(binding.approved_resume_review || "").trim() !== "Yes") return;
   const ref = String(binding.resume_review_ref || "").trim();
   const digest = String(binding.resume_review_digest || "").trim();
@@ -198,14 +198,18 @@ function checkResumeReviewBinding({ binding, label, pass, fail }) {
   else fail(`${label} approved resume review requires resume_review_ref`);
   if (SHA_RE.test(digest)) pass(`${label} approved resume review has sha256 digest`);
   else fail(`${label} approved resume review requires sha256 resume_review_digest`);
+  const resolved = resolveArtifact(projectRoot, ref);
+  if (!resolved) fail(`${label} approved resume review ref does not resolve to a project-local file`);
+  else if (fileDigest(resolved.file) === digest) pass(`${label} approved resume review digest matches its project-local artifact`);
+  else fail(`${label} approved resume review digest does not match its project-local artifact`);
   if (owner && owner !== "N/A") pass(`${label} approved resume review has owner`);
   else fail(`${label} approved resume review requires resume_review_owner`);
   if (taskMatch === "Yes") pass(`${label} approved resume review matches current task`);
   else fail(`${label} approved resume review requires resume_review_task_match Yes`);
 }
 
-function checkTierRules({ binding, tier, label, consumer, evidence, pass, fail }) {
-  checkResumeReviewBinding({ binding, label, pass, fail });
+function checkTierRules({ binding, tier, label, consumer, evidence, projectRoot, pass, fail }) {
+  checkResumeReviewBinding({ binding, label, projectRoot, pass, fail });
   const blockers = Array.isArray(binding.unresolved_task_governance_blockers)
     ? binding.unresolved_task_governance_blockers
     : parseList(binding.unresolved_task_governance_blockers);

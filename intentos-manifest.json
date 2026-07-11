@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.97.0",
+  "intentOSVersion": "1.98.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.97.0"
+    "phase": "1.98.0"
   },
   "groups": {
     "sourceRequired": [
@@ -355,6 +355,7 @@
       "docs/plans/execution-assurance-runtime-plan-ref-binding-1.74.2-plan.md",
       "docs/plans/execution-assurance-strict-binding-1.74-plan.md",
       "docs/plans/execution-assurance-vocabulary-docs-sync-1.74.1-plan.md",
+      "docs/plans/execution-distribution-trust-hardcut-1.98-plan.md",
       "docs/plans/execution-release-runtime-hygiene-1.86-plan.md",
       "docs/plans/execution-truth-hardcut-1.90-plan.md",
       "docs/plans/existing-project-governance-convergence-1.70-plan.md",
@@ -380,7 +381,6 @@
       "docs/plans/native-migration-parser-calibration-1.64-plan.md",
       "docs/plans/native-migration-precision-hardening-1.63-plan.md",
       "docs/plans/operating-decision-contract-1.96-plan.md",
-      "docs/plans/project-identity-projection-1.97-plan.md",
       "docs/plans/operating-model-consolidation-1.95-plan.md",
       "docs/plans/ordinary-user-product-loop-hardening-1.46-plan.md",
       "docs/plans/plan-review-binding-hardening-1.88.3-plan.md",
@@ -393,6 +393,7 @@
       "docs/plans/product-adoption-trust-finalization-1.68.2-plan.md",
       "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
+      "docs/plans/project-identity-projection-1.97-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
       "docs/plans/public-entry-adoption-integration-1.81.2-plan.md",
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
@@ -1780,6 +1781,9 @@
       "releases/1.97.0/known-limitations.md",
       "releases/1.97.0/release-record.md",
       "releases/1.97.0/self-check-report.md",
+      "releases/1.98.0/known-limitations.md",
+      "releases/1.98.0/release-record.md",
+      "releases/1.98.0/self-check-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",
@@ -6469,7 +6473,6 @@
       "workflow-guidance-cards"
     ],
     "workflowReadiness": [
-      ".github/workflows/ai-workflow-checks.yml",
       ".intentos/checklists/baseline-decision-review.md",
       ".intentos/checklists/baseline-enforcement-review.md",
       ".intentos/checklists/baseline-state-review.md",
@@ -7015,6 +7018,34 @@
   "copyRules": {
     "directories": [
       {
+        "source": "checklists",
+        "target": ".intentos/checklists"
+      },
+      {
+        "source": "core",
+        "target": ".intentos/core"
+      },
+      {
+        "source": "profiles",
+        "target": ".intentos/profiles"
+      },
+      {
+        "source": "prompts",
+        "target": ".intentos/prompts"
+      },
+      {
+        "source": "schemas/artifacts",
+        "target": ".intentos/schemas/artifacts"
+      },
+      {
+        "source": "standard-baseline-packs",
+        "target": ".intentos/standard-baseline-packs"
+      },
+      {
+        "source": "templates",
+        "target": ".intentos/templates"
+      },
+      {
         "source": "adoption-assurance-reports",
         "target": "adoption-assurance-reports"
       },
@@ -7067,10 +7098,6 @@
         "target": "change-impact-coverage-reports"
       },
       {
-        "source": "checklists",
-        "target": ".intentos/checklists"
-      },
-      {
         "source": "closure-decisions",
         "target": "closure-decisions"
       },
@@ -7081,10 +7108,6 @@
       {
         "source": "controlled-apply-candidates",
         "target": "controlled-apply-candidates"
-      },
-      {
-        "source": "core",
-        "target": ".intentos/core"
       },
       {
         "source": "delivery-path-reports",
@@ -7163,14 +7186,6 @@
         "target": "product-completeness-reports"
       },
       {
-        "source": "profiles",
-        "target": ".intentos/profiles"
-      },
-      {
-        "source": "prompts",
-        "target": ".intentos/prompts"
-      },
-      {
         "source": "real-adoption-trials",
         "target": "real-adoption-trials"
       },
@@ -7185,6 +7200,10 @@
       {
         "source": "release-candidates",
         "target": "release-candidates"
+      },
+      {
+        "source": "release-channel-policies",
+        "target": "release-channel-policies"
       },
       {
         "source": "release-evidence-gate-reports",
@@ -7215,24 +7234,12 @@
         "target": "review-surface-cards"
       },
       {
-        "source": "schemas/artifacts",
-        "target": ".intentos/schemas/artifacts"
-      },
-      {
-        "source": "standard-baseline-packs",
-        "target": ".intentos/standard-baseline-packs"
-      },
-      {
         "source": "standard-baseline-selections",
         "target": "standard-baseline-selections"
       },
       {
         "source": "task-governance-reports",
         "target": "task-governance-reports"
-      },
-      {
-        "source": "templates",
-        "target": ".intentos/templates"
       },
       {
         "source": "test-evidence-reports",
@@ -7243,12 +7250,12 @@
         "target": "verification-plans"
       },
       {
-        "source": "work-queue",
-        "target": "work-queue"
-      },
-      {
         "source": "work-queue-takeover-reports",
         "target": "work-queue-takeover-reports"
+      },
+      {
+        "source": "work-queue",
+        "target": "work-queue"
       },
       {
         "source": "workflow-adoption-maps",
@@ -7511,6 +7518,10 @@
       {
         "source": "docs/release-approval-record.md",
         "target": ".intentos/docs/release-approval-record.md"
+      },
+      {
+        "source": "docs/release-channel-decoupling.md",
+        "target": ".intentos/docs/release-channel-decoupling.md"
       },
       {
         "source": "docs/release-core-model.md",
@@ -7829,6 +7840,10 @@
         "target": "scripts/check-release-approval-record.mjs"
       },
       {
+        "source": "scripts/check-release-channel-policy.mjs",
+        "target": "scripts/check-release-channel-policy.mjs"
+      },
+      {
         "source": "scripts/check-release-evidence-gate.mjs",
         "target": "scripts/check-release-evidence-gate.mjs"
       },
@@ -7975,6 +7990,10 @@
       {
         "source": "scripts/lib/project-signals.mjs",
         "target": "scripts/lib/project-signals.mjs"
+      },
+      {
+        "source": "scripts/lib/release-evidence-requirements.mjs",
+        "target": "scripts/lib/release-evidence-requirements.mjs"
       },
       {
         "source": "scripts/lib/release-trust.mjs",
@@ -8131,6 +8150,10 @@
       {
         "source": "scripts/resolve-release-adapter.mjs",
         "target": "scripts/resolve-release-adapter.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-channel-policy.mjs",
+        "target": "scripts/resolve-release-channel-policy.mjs"
       },
       {
         "source": "scripts/resolve-release-evidence-gate.mjs",

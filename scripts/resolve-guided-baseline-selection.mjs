@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { walkRelativePaths } from "./lib/project-signals.mjs";
+import { filterIntentOSManagedPaths, walkRelativePaths } from "./lib/project-signals.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import { buildStandardBaselineRecommendation } from "./resolve-standard-baseline.mjs";
 
@@ -125,7 +125,8 @@ function runWorkflowNext(targetRoot) {
 }
 
 function detectSignals(targetRoot) {
-  const rels = new Set(walkRelativePaths(targetRoot, ".", { maxDepth: 4 }).map((item) => item.replace(/\\/g, "/")));
+  const discovered = walkRelativePaths(targetRoot, ".", { maxDepth: 4 }).map((item) => item.replace(/\\/g, "/"));
+  const rels = new Set(filterIntentOSManagedPaths(targetRoot, discovered));
   const packageJson = readJsonIfExists(path.join(targetRoot, "package.json"));
   const packageText = packageJson ? JSON.stringify({
     dependencies: packageJson.dependencies || {},
@@ -174,7 +175,7 @@ function hasAny(rels, needles) {
 
 function detectProfiles(rels, packageText) {
   const profiles = [];
-  if (rels.has("package.json") || rels.has("vite.config.ts") || rels.has("vite.config.js") || rels.has("next.config.js") || rels.has("next.config.mjs") || /react|next|vue|vite|svelte/i.test(packageText)) {
+  if (rels.has("index.html") || rels.has("vite.config.ts") || rels.has("vite.config.js") || rels.has("next.config.js") || rels.has("next.config.mjs") || /react|next|vue|vite|svelte|solid-js|@angular/i.test(packageText)) {
     profiles.push(profile("web-app", "Web app signals found."));
   }
   if (rels.has("project.config.json") || rels.has("app.json") || rels.has("miniprogram") || rels.has("cloudfunctions")) {

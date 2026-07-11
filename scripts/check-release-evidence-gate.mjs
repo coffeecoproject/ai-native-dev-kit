@@ -9,6 +9,8 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { extractMachineReadableEvidence, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { releaseEvidenceRequirementsFor } from "./lib/release-evidence-requirements.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -32,6 +34,8 @@ const requireCurrentCompletion = Boolean(args["require-current-completion"] || a
 const strictSourceBinding = Boolean(args["strict-source-binding"] || args["require-ready"]);
 const requirePlatformRecipe = Boolean(args["require-platform-recipe"]);
 const requireReady = Boolean(args["require-ready"]);
+const strictRequested = requireReport || requireStructuredEvidence || requireCurrentCompletion
+  || strictSourceBinding || requirePlatformRecipe || requireReady || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/release-evidence-gate.schema.json");
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -147,8 +151,8 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("release-evidence-gate-reports");
   if (files.length === 0) {
-    if (allowEmpty) pass("release evidence gate check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport) fail("no Release Evidence Gate reports found; run `release-evidence --out <relative-report-path>` first");
+    if (allowEmpty && !strictRequested) pass("release evidence gate check skipped by explicit --allow-empty: no reports");
+    else if (strictRequested) fail("no Release Evidence Gate reports found; run `release-evidence --out <relative-report-path>` first");
     else pass("SKIPPED_NO_REPORT: no Release Evidence Gate reports found; no release-review claim made");
     return;
   }
@@ -307,6 +311,9 @@ function checkStructuredEvidence(label, evidence) {
   else fail(`${label} must record target-specific requirements`);
   if (evidence.release_target_requirements?.[0]?.target === evidence.release_target) pass(`${label} target requirements match release target`);
   else fail(`${label} target requirements must match release target`);
+  const trustedRequirements = releaseEvidenceRequirementsFor(evidence.release_target).required_evidence_ids;
+  if (sameStringSet(requirements, trustedRequirements)) pass(`${label} target requirements match trusted IntentOS matrix`);
+  else fail(`${label} target requirements do not match trusted IntentOS matrix`);
 
   const scope = evidence.release_scope || {};
   if (isConcrete(scope.release_candidate_ref)) pass(`${label} records release candidate ref`);
@@ -579,7 +586,7 @@ function checkCompletionEvidenceStrict(label, completion) {
     fail(`${label} --require-current-completion could not resolve Completion Evidence: ${completion.ref}`);
     return;
   }
-  const report = path.relative(projectRoot, resolved);
+  const report = path.relative(realProjectRoot(), resolved);
   if (report.startsWith("..") || path.isAbsolute(report)) {
     fail(`${label} Completion Evidence report must stay inside target project`);
     return;
@@ -604,7 +611,7 @@ function checkCompletionRefStrict(label, ref, context) {
     fail(`${label} ${context} could not resolve Completion Evidence: ${ref || "<missing>"}`);
     return;
   }
-  const report = path.relative(projectRoot, resolved);
+  const report = path.relative(realProjectRoot(), resolved);
   if (report.startsWith("..") || path.isAbsolute(report)) {
     fail(`${label} ${context} report must stay inside target project`);
     return;
@@ -771,17 +778,18 @@ function resolveDirectory(relativePath) {
 }
 
 function resolveArtifact(reference) {
-  const value = String(reference || "").replace(/^artifact:/, "");
+  const value = String(reference || "").trim();
   if (!value || value === "missing" || value === "out_of_scope") return "";
-  if (path.isAbsolute(value)) return "";
-  const candidates = [
-    path.join(projectRoot, value),
-    path.join(projectRoot, ".intentos", value),
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate;
-  }
-  return "";
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", value);
+  return resolved.ok ? resolved.file : "";
+}
+
+function realProjectRoot() {
+  return fs.existsSync(projectRoot) ? fs.realpathSync(projectRoot) : projectRoot;
+}
+
+function sameStringSet(left, right) {
+  return JSON.stringify([...new Set(left)].sort()) === JSON.stringify([...new Set(right)].sort());
 }
 
 function resolveReportPath(value) {

@@ -176,6 +176,12 @@ function checkReleaseEvidence(approval, resolved, errors) {
       || approval.release_candidate.package_identity_digest_or_id !== "not_applicable") {
       errors.push("package identity must be not_applicable when package_identity_type is none");
     }
+    if (approval.release_candidate.release_target !== "preview") {
+      errors.push("package identity none is allowed only for preview release review");
+    }
+  } else if (approval.release_candidate.package_identity_ref === "not_applicable"
+    || approval.release_candidate.package_identity_digest_or_id === "not_applicable") {
+    errors.push("concrete package identity cannot use not_applicable values");
   } else {
     if (normalizeComparableRef(evidence.release_scope?.build_artifact_ref) !== normalizeComparableRef(approval.release_candidate.package_identity_ref)) {
       errors.push("Release Evidence Gate build artifact ref does not match approval package identity");

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.97.0`
+Current version: `1.98.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.97.0`
 
 ## Current Release
 
-`1.97.0`
+`1.98.0`
 
 Includes:
+
+- Execution And Distribution Trust Hardcut `1.98.0`: public work routing now
+  fails closed on queue conflict, paused-task resume, unknown code behavior,
+  open business rules, nested source failure, and missing strict Completion
+  Evidence. Strict evidence cannot be bypassed by `--allow-empty` or a replaced
+  installed schema.
+- `1.98.0` also binds complete target state before controlled apply, rechecks
+  activation and baseline state from Apply Receipts, separates Launch Review
+  from release approval, normalizes release package identity, enforces
+  pack/profile compatibility, and proves generated release-channel command
+  parity. It does not approve implementation, apply, release, or production.
 
 - Project Identity Projection `1.97.0`: adds one read-only project identity
   view to Operating State, covering project kind, observed governance,

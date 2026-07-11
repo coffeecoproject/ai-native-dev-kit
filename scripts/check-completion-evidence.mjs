@@ -44,6 +44,9 @@ const requireTaskGovernance = Boolean(args["require-task-governance"]);
 const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
 const requirePlanReview = Boolean(args["require-plan-review"]);
+const strictRequested = requireReport || requireStructuredEvidence || requireSourceRefs || requireReady
+  || requireTaskGovernance || requireWorkQueue || strictTaskConsumer || requirePlanReview
+  || requireEvidenceAuthority || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/completion-evidence.schema.json");
 const sourceSchemas = {
@@ -162,8 +165,8 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("completion-evidence-reports");
   if (files.length === 0) {
-    if (allowEmpty) pass("completion evidence check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport || requireStructuredEvidence || requireSourceRefs || requireReady || requireTaskGovernance || requireWorkQueue || strictTaskConsumer || requirePlanReview) {
+    if (allowEmpty && !strictRequested) pass("completion evidence check skipped by explicit --allow-empty: no reports");
+    else if (strictRequested) {
       fail("no Completion Evidence Gate reports found; run `completion-evidence --out <relative-report-path>` first");
     }
     else pass("SKIPPED_NO_REPORT: no Completion Evidence Gate reports found; no completion claim made");
@@ -352,6 +355,9 @@ function checkReferencedSource(label, source, file, completionEvidence) {
     if (validation.ok) pass(`${label} source ${source.name} has valid source schema evidence`);
     else validation.errors.forEach((error) => fail(error));
   }
+  if (requireEvidenceAuthority && source.name !== "business_rule_closure") {
+    checkReferencedSourceAuthority(label, source.name, file, evidence);
+  }
   if (source.task_ref === evidence.task_ref) pass(`${label} source ${source.name} task_ref matches referenced evidence`);
   else fail(`${label} source ${source.name} task_ref ${source.task_ref || "<missing>"} must match referenced evidence ${evidence.task_ref || "<missing>"}`);
   const expected = expectedOutcomeFor(source.name, evidence);
@@ -372,6 +378,30 @@ function checkReferencedSource(label, source, file, completionEvidence) {
     fail(`${label} execution assurance ready source requires can_claim_done Yes`);
   }
   return { source, file, evidence };
+}
+
+function checkReferencedSourceAuthority(label, sourceName, file, evidence) {
+  const sourceRefs = sourceName === "verification_plan"
+    ? [
+      evidence.business_rule_ref,
+      evidence.impact_ref,
+      ...(evidence.source_systems || []).filter((item) => item.status === "RECORDED").map((item) => item.ref),
+    ]
+    : sourceName === "test_evidence"
+      ? [
+        evidence.verification_plan_ref,
+        ...(evidence.source_systems || []).filter((item) => item.status === "RECORDED").map((item) => item.ref),
+        ...(evidence.evidence_items || []).map((item) => item.ref),
+      ]
+      : collectEvidenceRefs(evidence);
+  const binding = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
+    fromFile: file,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+    sourceRefs: sourceRefs.filter(isFileEvidenceRef),
+  });
+  if (binding.ok) pass(`${label} source ${sourceName} authority binding is current`);
+  else binding.errors.forEach((error) => fail(`${label} source ${sourceName} ${error}`));
 }
 
 function expectedOutcomeFor(name, evidence) {

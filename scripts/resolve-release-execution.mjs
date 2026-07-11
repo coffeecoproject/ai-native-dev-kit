@@ -2,15 +2,11 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
-import { projectIdentity } from "./lib/evidence-authority.mjs";
+import { projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
-const __filename = fileURLToPath(import.meta.url);
-const scriptDir = path.dirname(__filename);
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
   "json",
@@ -65,7 +61,7 @@ else printHuman(report);
 
 function buildReleaseExecutionPlan(root, options) {
   const approval = resolveApproval(root, options);
-  const launchReview = resolveLaunchReview(root, options, approval);
+  const launchReview = resolveLaunchReview(root, options);
   const preconditions = collectPreconditions(options, launchReview, approval);
   const mode = chooseMode(options.requestedMode, launchReview, approval, preconditions);
   const realReleaseExecutionAllowed = realExecutionAllowed(mode, launchReview, approval, preconditions);
@@ -124,26 +120,25 @@ function buildReleaseExecutionPlan(root, options) {
   return report;
 }
 
-function resolveLaunchReview(root, options, approval) {
-  if (approval.verified) {
-    return {
-      safeLaunchLabel: "READY_FOR_RELEASE_REVIEW",
-      launchReviewCanProceed: "Yes",
-      ref: approval.evidence.trust_sources.release_evidence_gate.ref,
-      source: "verified-release-trust",
-    };
-  }
+function resolveLaunchReview(root, options) {
   if (options.launchViewRef) {
-    const resolved = resolveRef(root, options.launchViewRef);
-    if (resolved) {
-      const content = fs.readFileSync(path.join(root, resolved), "utf8");
+    const resolved = resolveAuthoritativeEvidenceReference(root, "", options.launchViewRef, { markdownOnly: true });
+    if (resolved.ok && resolved.relativePath.startsWith("launch-review-views/")) {
+      const content = fs.readFileSync(resolved.file, "utf8");
       const safeLabel = tableValue(content, "Safe Launch Label") || "NOT_READY";
       const canProceed = tableValue(content, "Launch review can proceed") || (safeLabel === "READY_FOR_RELEASE_REVIEW" ? "Yes" : "No");
+      const valid = safeLabel === "READY_FOR_RELEASE_REVIEW"
+        && canProceed === "Yes"
+        && tableValue(content, "Closure Decision") === "DONE"
+        && tableValue(content, "Can count as done") === "Yes"
+        && tableValue(content, "Release approval") === "No"
+        && ["Rollback", "Monitoring", "Release ownership", "Post-launch smoke"]
+          .every((surface) => launchSurfaceStatus(content, surface) === "PASS");
       return {
-        safeLaunchLabel: safeLabel,
-        launchReviewCanProceed: canProceed,
-        ref: resolved,
-        source: "recorded",
+        safeLaunchLabel: valid ? safeLabel : "BLOCKED",
+        launchReviewCanProceed: valid ? canProceed : "No",
+        ref: resolved.relativePath,
+        source: valid ? "recorded" : "invalid",
       };
     }
     return {
@@ -154,41 +149,18 @@ function resolveLaunchReview(root, options, approval) {
     };
   }
 
-  const result = spawnSync(process.execPath, [
-    path.join(scriptDir, "resolve-launch-review-view.mjs"),
-    root,
-    "--intent",
-    options.intent || "prepare release execution",
-    "--verification",
-    options.verification || "",
-    "--json",
-  ], { encoding: "utf8" });
+  return {
+    safeLaunchLabel: "BLOCKED",
+    launchReviewCanProceed: "No",
+    ref: "N/A",
+    source: "missing",
+  };
+}
 
-  if (result.status !== 0) {
-    return {
-      safeLaunchLabel: "BLOCKED",
-      launchReviewCanProceed: "No",
-      ref: "scripts/resolve-launch-review-view.mjs",
-      source: "generated",
-    };
-  }
-
-  try {
-    const parsed = JSON.parse(result.stdout);
-    return {
-      safeLaunchLabel: parsed.safeLaunchView?.safeLaunchLabel || "NOT_READY",
-      launchReviewCanProceed: parsed.safeLaunchView?.launchReviewCanProceed || "No",
-      ref: "generated:resolve-launch-review-view",
-      source: "generated",
-    };
-  } catch {
-    return {
-      safeLaunchLabel: "BLOCKED",
-      launchReviewCanProceed: "No",
-      ref: "scripts/resolve-launch-review-view.mjs",
-      source: "generated",
-    };
-  }
+function launchSurfaceStatus(content, surface) {
+  const escaped = surface.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = String(content || "").match(new RegExp(`^\\|\\s*${escaped}\\s*\\|\\s*\`?([A-Z_/ -]+)\`?\\s*\\|`, "im"));
+  return match ? match[1].trim() : "";
 }
 
 function resolveApproval(root, options) {

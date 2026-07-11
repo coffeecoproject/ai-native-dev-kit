@@ -2,12 +2,14 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "./lib/args.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const allowedKeys = new Set(["_", "target", "from", "to", "dry-run", "write-plan", "json"]);
 const supportedFrom = new Set(["0.33.0"]);
 const supportedTo = new Set(["1.0.0"]);
+const currentIntentOSVersion = readCurrentVersion();
 
 for (const key of Object.keys(args)) {
   if (!allowedKeys.has(key)) {
@@ -31,7 +33,10 @@ function fail(message, status = 1) {
 if (!targetArg) fail("migrate requires --target <project>");
 if (!fromVersion) fail("migrate requires --from <version>");
 if (!toVersion) fail("migrate requires --to <version>");
-if (!supportedFrom.has(fromVersion) || !supportedTo.has(toVersion)) {
+const legacyMigration = supportedFrom.has(fromVersion) && supportedTo.has(toVersion);
+const controlledOneXUpdate = /^1\.\d+(?:\.\d+)?$/.test(String(fromVersion || ""))
+  && toVersion === currentIntentOSVersion;
+if (!legacyMigration && !controlledOneXUpdate) {
   fail(`unsupported migration range: ${fromVersion} -> ${toVersion}`);
 }
 if (dryRun && writePlan) fail("use either --dry-run or --write-plan, not both");
@@ -48,7 +53,7 @@ if (writePlan && !isSafePlanPath(writePlan)) {
   fail("--write-plan must be a safe local .json path");
 }
 
-const plan = buildPlan(projectRoot, fromVersion, toVersion);
+const plan = buildPlan(projectRoot, fromVersion, toVersion, controlledOneXUpdate ? "CONTROLLED_1X_UPDATE" : "LEGACY_033_TO_100");
 
 if (dryRun) {
   printPlan(plan, outputJson);
@@ -67,7 +72,7 @@ if (outputJson) {
   console.log(`Human decisions: ${plan.humanDecisions.length}`);
 }
 
-function buildPlan(target, from, to) {
+function buildPlan(target, from, to, migrationKind) {
   const versionFile = readJson(path.join(target, ".intentos", "version.json"));
   const hasIntentOS = fs.existsSync(path.join(target, ".intentos"));
   const hasAgents = fs.existsSync(path.join(target, "AGENTS.md"));
@@ -103,15 +108,15 @@ function buildPlan(target, from, to) {
 
   actions.push(planAction(
     "SYNC_DOCS_IA",
-    "0.42.0 adds operator manual, references, playbooks, migration docs, FAQ, and troubleshooting.",
+    `${to} workflow assets, evidence rules, and public entry must be replayed from the current trusted manifest.`,
     "Update workflow assets through a reviewed plan; do not hand-copy partial docs.",
     false,
   ));
 
   actions.push(planAction(
     "CHECK_ARTIFACT_FRONTMATTER",
-    "0.39+ generated artifacts include frontmatter.",
-    "Run workflow artifact checks and create migration reports for old ready artifacts.",
+    "Existing artifacts may use an older evidence contract.",
+    "Run current strict artifact checks and keep legacy records diagnostic-only until rebound.",
     false,
   ));
 
@@ -139,13 +144,14 @@ function buildPlan(target, from, to) {
 
   humanDecisions.push(decision(
     "Apply migration",
-    "0.42 migrate is plan-only.",
+    "IntentOS migrate is plan-only.",
     "Use init/update plan review; do not apply from migrate.",
   ));
 
   return {
     schemaVersion: "1.0",
     command: "migrate",
+    migrationKind,
     fromVersion: from,
     toVersion: to,
     generatedAt: new Date().toISOString(),
@@ -170,16 +176,22 @@ function buildPlan(target, from, to) {
     actions,
     humanDecisions,
     blockedApply: true,
-    blockedReason: "0.42 migrate only produces dry-run output or a reviewable plan. It never applies changes.",
+    blockedReason: "migrate only produces dry-run output or a reviewable routing plan. It never applies changes.",
     nextCommand: [
       "node scripts/init-project.mjs",
       "--target",
       target,
       hasIntentOS ? "--update-workflow-assets" : "--starter generic-project",
       "--write-plan",
-      "<reviewed-plan.json>",
+      `apply-execution-plans/intentos-${to}.json`,
     ].join(" "),
   };
+}
+
+function readCurrentVersion() {
+  const file = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "VERSION.md");
+  if (!fs.existsSync(file)) return "";
+  return fs.readFileSync(file, "utf8").match(/Current version:\s*`([^`]+)`/i)?.[1] || "";
 }
 
 function planAction(id, reason, recommendation, willWrite) {

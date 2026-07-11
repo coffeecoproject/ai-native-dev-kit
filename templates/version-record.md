@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.97.0`
+`1.98.0`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.98.0` makes public completion, strict evidence, controlled apply,
+  activation, baseline selection, generated-project distribution, and release
+  review consumers fail closed on unresolved or mismatched authoritative
+  inputs.
+- `1.98.0` does not approve implementation, apply, commit, push, release,
+  production, provider actions, or project-owner decisions.
 
 - `1.97.0` adds one read-only Project Identity Projection to Operating State,
   reusing Evidence Authority for the project/revision fingerprint and binding
