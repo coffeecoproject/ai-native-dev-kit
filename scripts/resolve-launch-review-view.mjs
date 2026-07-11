@@ -5,6 +5,8 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { defaultIgnoredDirs, walkRelativePaths } from "./lib/project-signals.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -62,7 +64,7 @@ function buildLaunchReviewView(root, options) {
   const label = chooseSafeLaunchLabel(closure, launchInputs);
   const launchReviewCanProceed = label === "READY_FOR_RELEASE_REVIEW" ? "Yes" : "No";
   const summaryReason = summaryFor(label, closure, launchInputs);
-  return {
+  const report = {
     reportType: "LAUNCH_REVIEW_VIEW",
     generatedBy: "scripts/resolve-launch-review-view.mjs",
     generatedAt: new Date().toISOString(),
@@ -116,20 +118,60 @@ function buildLaunchReviewView(root, options) {
     },
     outcome: "LAUNCH_REVIEW_VIEW_RECORDED",
   };
+  const machineEvidence = {
+    schema_version: "1.98.1",
+    artifact_type: "launch_review_view",
+    artifact_id: "generated-launch-review-view",
+    launch_review_digest: "sha256:pending",
+    project_identity: projectIdentity(root),
+    intent: options.intent || "prepare launch review",
+    closure_input: {
+      ref: closure.ref || "N/A",
+      digest: closure.digest || "N/A",
+      decision: closure.decision,
+      can_count_as_done: closure.canCountAsDone,
+      durable: closure.durable === true ? "Yes" : "No",
+    },
+    safe_launch_label: label,
+    launch_review_can_proceed: launchReviewCanProceed,
+    surfaces: Object.fromEntries(launchInputs.map((item) => [surfaceKey(item.surface), item.status])),
+    surface_evidence: Object.fromEntries(launchInputs.map((item) => [surfaceKey(item.surface), {
+      ref: item.evidence,
+      digest: item.digest,
+    }])),
+    boundaries: {
+      approves_release: "No",
+      executes_release: "No",
+      changes_production: "No",
+      replaces_closure: "No",
+    },
+    outcome: "LAUNCH_REVIEW_VIEW_RECORDED",
+  };
+  machineEvidence.launch_review_digest = evidenceDigest(machineEvidence, ["launch_review_digest"]);
+  report.machineEvidence = machineEvidence;
+  return report;
 }
 
 function resolveClosure(root, options) {
   if (options.closureRef) {
-    const resolved = resolveRef(root, options.closureRef);
-    if (resolved) {
-      const content = fs.readFileSync(path.join(root, resolved), "utf8");
+    const resolved = resolveAuthoritativeEvidenceReference(root, "", options.closureRef, { markdownOnly: true });
+    if (resolved.ok) {
+      const content = fs.readFileSync(resolved.file, "utf8");
       const decision = tableValue(content, "Decision") || "NEEDS_EVIDENCE";
       const canCountAsDone = tableValue(content, "Can count as done") || (decision === "DONE" ? "Yes" : "No");
+      const checked = spawnSync(process.execPath, [
+        path.join(scriptDir, "check-closure-decision.mjs"), root,
+        "--report", resolved.relativePath,
+      ], { encoding: "utf8", timeout: 30000, maxBuffer: 1024 * 1024 * 20 });
       return {
-        decision,
-        canCountAsDone,
-        ref: resolved,
-        reason: tableValue(content, "Plain reason") || "Closure decision record was supplied.",
+        decision: checked.status === 0 ? decision : "BLOCKED",
+        canCountAsDone: checked.status === 0 ? canCountAsDone : "No",
+        ref: resolved.relativePath,
+        digest: canonicalFileDigest(resolved.file),
+        durable: checked.status === 0,
+        reason: checked.status === 0
+          ? tableValue(content, "Plain reason") || "Closure decision record passed its strict checker."
+          : `Closure decision failed strict validation: ${firstUsefulLine(checked.stderr || checked.stdout)}`,
       };
     }
   }
@@ -149,6 +191,8 @@ function resolveClosure(root, options) {
       decision: "BLOCKED",
       canCountAsDone: "No",
       ref: "scripts/resolve-closure-decision.mjs",
+      digest: "N/A",
+      durable: false,
       reason: result.stderr || result.stdout || "Unified Closure could not be resolved.",
     };
   }
@@ -159,6 +203,8 @@ function resolveClosure(root, options) {
       decision: parsed.closureDecision?.decision || "NEEDS_EVIDENCE",
       canCountAsDone: parsed.closureDecision?.canCountAsDone || "No",
       ref: "generated:resolve-closure-decision",
+      digest: "N/A",
+      durable: false,
       reason: parsed.closureDecision?.plainReason || parsed.humanSummary?.conclusion || "Unified Closure generated.",
     };
   } catch (error) {
@@ -166,31 +212,39 @@ function resolveClosure(root, options) {
       decision: "BLOCKED",
       canCountAsDone: "No",
       ref: "scripts/resolve-closure-decision.mjs",
+      digest: "N/A",
+      durable: false,
       reason: `Unified Closure JSON could not be parsed: ${error.message}`,
     };
   }
 }
 
 function collectLaunchInputs(root, options) {
-  const surfaces = [
-    surface("Environment", statusFrom(options.environment), options.environment || findEvidence(root, ["environment-baseline.md", "env", "runtime"]), "Runtime or environment ownership"),
-    surface("Monitoring", statusFrom(options.monitoring), options.monitoring || findEvidence(root, ["monitor", "observability", "sentry", "logging"]), "Failure observation and owner"),
-    surface("Rollback", statusFrom(options.rollback), options.rollback || findEvidence(root, ["rollback", "recovery", "feature-flag"]), "Rollback, fallback, or feature-disable path"),
-    surface("Release ownership", statusFrom(options.releaseOwner), options.releaseOwner || findEvidence(root, ["release", "owner", "promotion"]), "Release approver and rollback owner"),
-    surface("Post-launch smoke", statusFrom(options.postLaunchSmoke), options.postLaunchSmoke || findEvidence(root, ["smoke", "post-launch", "verification"]), "Post-launch smoke or observation"),
+  return [
+    boundSurface(root, "Environment", options.environment || findEvidence(root, ["environment-baseline.md", "env", "runtime"]), "Runtime or environment ownership"),
+    boundSurface(root, "Monitoring", options.monitoring || findEvidence(root, ["monitor", "observability", "sentry", "logging"]), "Failure observation and owner"),
+    boundSurface(root, "Rollback", options.rollback || findEvidence(root, ["rollback", "recovery", "feature-flag"]), "Rollback, fallback, or feature-disable path"),
+    ownerSurface("Release ownership", options.releaseOwner, "Release approver and rollback owner"),
+    boundSurface(root, "Post-launch smoke", options.postLaunchSmoke || findEvidence(root, ["smoke", "post-launch", "verification"]), "Post-launch smoke or observation"),
   ];
+}
 
-  return surfaces.map((item) => {
-    if (item.status !== "PASS" && item.evidence !== "N/A") {
-      return { ...item, status: "PASS", finding: `${item.surface} evidence is visible.` };
-    }
-    return item;
-  });
+function boundSurface(root, name, reference, finding) {
+  if (!reference || reference === "N/A") return surface(name, "MISSING", "N/A", finding, "N/A");
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", reference);
+  if (!resolved.ok) return surface(name, "MISSING", String(reference), `${finding}; evidence is unresolved or unsafe.`, "N/A");
+  return surface(name, "PASS", resolved.relativePath, `${name} evidence resolves to a current project file.`, canonicalFileDigest(resolved.file));
+}
+
+function ownerSurface(name, reference, finding) {
+  const value = String(reference || "").trim();
+  if (/^(?:human|team|role):[^\s]+$/i.test(value)) return surface(name, "PASS", value, `${name} identifies a concrete external owner.`, "N/A");
+  return surface(name, "MISSING", value || "N/A", finding, "N/A");
 }
 
 function chooseSafeLaunchLabel(closure, inputs) {
   if (closure.decision === "BLOCKED" || closure.decision === "NEEDS_HUMAN_DECISION") return "BLOCKED";
-  if (closure.decision !== "DONE" || closure.canCountAsDone !== "Yes") return "NOT_READY";
+  if (closure.decision !== "DONE" || closure.canCountAsDone !== "Yes" || closure.durable !== true) return "NOT_READY";
   const required = ["Monitoring", "Rollback", "Release ownership", "Post-launch smoke"];
   const missingRequired = inputs.some((item) => required.includes(item.surface) && item.status !== "PASS");
   if (!missingRequired) return "READY_FOR_RELEASE_REVIEW";
@@ -275,12 +329,13 @@ function findEvidence(root, needles) {
   return found || "N/A";
 }
 
-function surface(surfaceName, status, evidence, finding) {
+function surface(surfaceName, status, evidence, finding, digest = "N/A") {
   return {
     surface: surfaceName,
     status,
     evidence: evidence || "N/A",
-    finding: status === "PASS" ? `${surfaceName} evidence is visible.` : `${finding} is not confirmed.`,
+    digest,
+    finding: status === "PASS" ? finding : `${finding} is not confirmed.`,
   };
 }
 
@@ -307,6 +362,16 @@ function tableValue(content, field) {
 
 function strip(value) {
   return String(value || "").replace(/`/g, "").trim();
+}
+
+function surfaceKey(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+}
+
+function firstUsefulLine(value) {
+  return String(value || "").split(/\r?\n/).map((line) => line.trim()).find((line) => /^FAIL\b/i.test(line))
+    || String(value || "").split(/\r?\n/).map((line) => line.trim()).find(Boolean)
+    || "checker failed";
 }
 
 function stringArg(name) {
@@ -394,4 +459,10 @@ function printHuman(report) {
   console.log("## Outcome");
   console.log("");
   console.log(`\`${report.outcome}\``);
+  console.log("");
+  console.log("## Machine-Readable Evidence");
+  console.log("");
+  console.log("```json");
+  console.log(JSON.stringify(report.machineEvidence, null, 2));
+  console.log("```");
 }

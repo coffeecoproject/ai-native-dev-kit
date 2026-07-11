@@ -168,6 +168,7 @@ function checkReleaseEvidence(approval, resolved, errors) {
   if (!new Set(["READY_FOR_INTERNAL_TRIAL_REVIEW", "READY_FOR_RELEASE_OWNER_REVIEW"]).has(evidence.gate_state)) errors.push("Release Evidence Gate must be ready for review");
   if (evidence.release_target !== approval.release_candidate.release_target) errors.push("Release Evidence Gate target does not match approval");
   if (normalizeComparableRef(evidence.release_scope?.release_candidate_ref) !== normalizeComparableRef(approval.release_candidate.candidate_ref)) errors.push("Release Evidence Gate candidate does not match approval");
+  if (evidence.release_scope?.release_candidate_digest !== approval.release_candidate.candidate_digest) errors.push("Release Evidence Gate candidate digest does not match approval");
   if (evidence.release_scope?.source_revision !== approval.release_candidate.source_revision) errors.push("Release Evidence Gate source revision does not match approval");
   if (evidence.can_handoff_to_release_owner !== "Yes") errors.push("Release Evidence Gate must allow release-owner handoff");
   const packageType = approval.release_candidate.package_identity_type;
@@ -210,6 +211,10 @@ function checkReleaseChannel(approval, resolved, errors) {
   const evidence = readEvidence(resolved, "Release Channel Policy", errors);
   if (!evidence) return;
   const pkg = evidence.release_package_identity || {};
+  if (evidence.effective_release_channel?.blocked === "Yes"
+    || evidence.effective_release_channel?.recommendation_class === "BLOCK_RELEASE_CHANNEL_POLICY") {
+    errors.push("Release Channel Policy is blocked and cannot authorize release review");
+  }
   if (pkg.identity_type !== approval.release_candidate.package_identity_type) errors.push("Release Channel Policy package identity type does not match approval");
   if (pkg.identity_ref !== approval.release_candidate.package_identity_ref) errors.push("Release Channel Policy package identity ref does not match approval");
   if (pkg.digest_or_id !== approval.release_candidate.package_identity_digest_or_id) errors.push("Release Channel Policy package identity does not match approval");

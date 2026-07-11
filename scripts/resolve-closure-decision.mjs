@@ -14,6 +14,7 @@ const knownFlags = new Set([
   "json",
   "format",
   "intent",
+  "intent-digest",
   "task",
   "verification",
   "impact-report",
@@ -25,6 +26,7 @@ const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const intent = String(args.intent || args._[1] || "").trim();
+const intentDigest = String(args["intent-digest"] || "").trim();
 const task = String(args.task || "").trim();
 const verification = String(args.verification || "").trim();
 const refs = {
@@ -44,7 +46,7 @@ if (!new Set(["human", "json"]).has(outputFormat)) {
   process.exit(1);
 }
 
-const decision = buildClosureDecision(projectRoot, { intent, task, verification, refs });
+const decision = buildClosureDecision(projectRoot, { intent, intentDigest, task, verification, refs });
 
 if (outputFormat === "json") console.log(JSON.stringify(decision, null, 2));
 else printHuman(decision);
@@ -83,6 +85,7 @@ function buildClosureDecision(root, context) {
       required: item.required || "No",
       verified: item.verified || "N/A",
       checker: item.checker || "N/A",
+      intentDigest: item.intentDigest || "N/A",
     })),
     decisionTrace,
     dominantReason,
@@ -146,7 +149,7 @@ function collectInputs(root, context, git) {
 
   return [
     input("Project path", fs.existsSync(root) ? "PASS" : "FAIL", root, fs.existsSync(root) ? "Project path is readable." : "Project path cannot be read."),
-    input("Task intent", context.intent || context.task ? "PASS" : "MISSING", context.task || "N/A", context.intent || context.task ? "Task intent is present." : "Task intent is missing.", { required: "Yes", verified: context.intent || context.task ? "Yes" : "No", checker: "intent-input" }),
+    input("Task intent", context.task && /^sha256:[a-f0-9]{64}$/i.test(context.intentDigest) ? "PASS" : "MISSING", context.task || "N/A", context.task && context.intentDigest ? "Canonical task reference and intent digest are present." : "Canonical task reference or intent digest is missing.", { required: "Yes", verified: context.task && context.intentDigest ? "Yes" : "No", checker: "work-queue-task-identity", intentDigest: context.intentDigest }),
     input("Verification", verificationStatus === "pass" ? "PASS" : verificationStatus === "fail" ? "FAIL" : "MISSING", context.verification || "N/A", verificationFinding(verificationStatus), { required: "Yes", verified: verificationStatus === "pass" ? "Yes" : "No", checker: "explicit-verification-summary" }),
     input("Change Impact Coverage", impactInput.status, impactRef || "N/A", impactInput.finding, impactInput),
     input("Execution Closure", executionInput.status, executionRef || "N/A", executionInput.finding, executionInput),
@@ -476,6 +479,7 @@ function input(name, status, ref, finding, metadata = {}) {
     required: metadata.required || "No",
     verified: metadata.verified || "N/A",
     checker: metadata.checker || "N/A",
+    intentDigest: metadata.intentDigest || "N/A",
   };
 }
 
@@ -618,11 +622,11 @@ function linkedEvidenceRef(root, sourceFile, content, evidenceName) {
 }
 
 function matchesCurrentTask(context, sourceValues) {
-  const currentValues = [context.task, context.intent].map(normalizeComparable).filter(Boolean);
+  const currentValues = [context.task].map(normalizeComparable).filter(Boolean);
   const candidates = sourceValues.map(normalizeComparable).filter(Boolean);
   if (currentValues.length === 0) return false;
   if (candidates.length === 0) return false;
-  return currentValues.some((current) => candidates.some((candidate) => textMatches(current, candidate)));
+  return currentValues.some((current) => candidates.some((candidate) => current === candidate));
 }
 
 function textMatches(left, right) {

@@ -135,6 +135,18 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
   if (profileIncompatibleStandard.length > 0) {
     throw new Error(`Standard baseline pack(s) incompatible with selected profiles ${profiles.join(", ")}: ${profileIncompatibleStandard.join(", ")}`);
   }
+  if (["BL1_STANDARD", "BL2_INDUSTRIAL"].includes(baselineLevel)) {
+    const selectedStandardEntries = standardPacks.map((id) => standardById.get(id)).filter(Boolean);
+    if (!selectedStandardEntries.some((entry) => entry.type === "environment")) {
+      throw new Error(`${baselineLevel} requires an environment standard pack`);
+    }
+    const uncovered = profiles.filter((profile) => !selectedStandardEntries.some((entry) => {
+      return entry.type !== "environment" && (entry.appliesToProfiles || []).includes(profile);
+    }));
+    if (uncovered.length > 0) {
+      throw new Error(`Standard baseline has no platform/capability pack for selected profile(s): ${uncovered.join(", ")}`);
+    }
+  }
 
   const industrialIndex = loadPackIndex(kitRoot, "industrial-packs");
   const industrialById = new Map(industrialIndex.packs.map((entry) => [entry.id, entry]));
@@ -155,6 +167,15 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
   });
   if (profileIncompatibleIndustrial.length > 0) {
     throw new Error(`Industrial pack(s) incompatible with selected profiles ${profiles.join(", ")}: ${profileIncompatibleIndustrial.join(", ")}`);
+  }
+  if (baselineLevel === "BL2_INDUSTRIAL") {
+    const selectedIndustrialEntries = industrialPacks.map((id) => industrialById.get(id)).filter(Boolean);
+    const uncovered = profiles.filter((profile) => !selectedIndustrialEntries.some((entry) => {
+      return (entry.appliesToProfiles || []).includes(profile);
+    }));
+    if (uncovered.length > 0) {
+      throw new Error(`Industrial baseline has no platform/capability pack for selected profile(s): ${uncovered.join(", ")}`);
+    }
   }
 
   const evidencePending = standardPacks.some((id) => standardById.get(id)?.requiresEvidenceForConfirmed === true)

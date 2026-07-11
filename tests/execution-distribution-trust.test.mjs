@@ -72,9 +72,37 @@ test("non-Git authority identity ignores generated evidence and target schema sh
   assert.deepEqual(projectIdentity(root), before);
   fs.writeFileSync(path.join(root, "src/index.mjs"), "export const value = 2;\n");
   assert.notDeepEqual(projectIdentity(root), before);
+  const afterSourceChange = projectIdentity(root);
+  fs.mkdirSync(path.join(root, "specs"));
+  fs.writeFileSync(path.join(root, "specs/product.json"), "{\"rule\":1}\n");
+  assert.notDeepEqual(projectIdentity(root), afterSourceChange);
 });
 
-test("existing AGENTS authority can remain deferred only after core activation", async () => {
+test("Git authority identity changes with staged, unstaged, and untracked business content", async () => {
+  const root = tempRoot("intentos-198-git-authority-");
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src/index.mjs"), "export const value = 1;\n");
+  for (const args of [["init"], ["config", "user.email", "test@example.invalid"], ["config", "user.name", "IntentOS Test"], ["add", "."], ["commit", "-m", "initial"]]) {
+    const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, combined(result));
+  }
+  const { projectIdentity } = await import(`${pathToFileURL(path.join(kitRoot, "scripts/lib/evidence-authority.mjs")).href}?test=${Date.now()}`);
+  const clean = projectIdentity(root);
+  fs.writeFileSync(path.join(root, "src/index.mjs"), "export const value = 2;\n");
+  const unstaged = projectIdentity(root);
+  assert.notDeepEqual(unstaged, clean);
+  spawnSync("git", ["-C", root, "add", "src/index.mjs"]);
+  const staged = projectIdentity(root);
+  assert.notDeepEqual(staged, clean);
+  fs.writeFileSync(path.join(root, "src/new.mjs"), "export const added = true;\n");
+  assert.notDeepEqual(projectIdentity(root), staged);
+  const beforeSpec = projectIdentity(root);
+  fs.mkdirSync(path.join(root, "specs"));
+  fs.writeFileSync(path.join(root, "specs/product.json"), "{\"rule\":1}\n");
+  assert.notDeepEqual(projectIdentity(root), beforeSpec);
+});
+
+test("deferred agent authority cannot count as verified workflow activation", async () => {
   const moduleUrl = `${pathToFileURL(path.join(kitRoot, "scripts/lib/adoption-apply-chain.mjs")).href}?test=${Date.now()}`;
   const { isWorkflowActivationState } = await import(moduleUrl);
   const plan = { actions: [{ path: "AGENTS.md", type: "HUMAN_ONLY", willWrite: false }] };
@@ -82,12 +110,18 @@ test("existing AGENTS authority can remain deferred only after core activation",
     nextAction: "RUN_WORKFLOW_ASSET_UPDATE",
     missingWorkflowAssets: [],
     missingAgentSections: ["Mission"],
-  }, plan), true);
+  }, plan), false);
   assert.equal(isWorkflowActivationState({
     nextAction: "RUN_WORKFLOW_ASSET_UPDATE",
     missingWorkflowAssets: ["scripts/workflow-next.mjs"],
     missingAgentSections: ["Mission"],
   }, plan), false);
+  const legacyPlan = { actions: [{ path: "agent.md", type: "HUMAN_ONLY", willWrite: false }] };
+  assert.equal(isWorkflowActivationState({
+    nextAction: "RUN_WORKFLOW_ASSET_UPDATE",
+    missingWorkflowAssets: [],
+    missingAgentSections: ["Mission"],
+  }, legacyPlan), false);
 });
 
 test("controlled plan output rejects absolute and protected paths", () => {
@@ -120,6 +154,28 @@ test("baseline pack must apply to the selected platform profile", () => {
   assert.notEqual(result.status, 0);
   assert.match(combined(result), /incompatible with selected profiles/i);
   assert.equal(fs.existsSync(path.join(root, "apply-execution-plans/incompatible.json")), false);
+});
+
+test("baseline planning rejects incomplete environment and profile coverage", () => {
+  const missingEnvironmentRoot = tempRoot("intentos-198-pack-noenv-");
+  const missingEnvironment = run("scripts/init-project.mjs", [
+    "--starter", "codex-web-app", "--target", missingEnvironmentRoot,
+    "--profiles", "web-app", "--baseline-level", "BL1_STANDARD",
+    "--standard-packs", "web-runtime-standard",
+    "--write-plan", "apply-execution-plans/noenv.json",
+  ]);
+  assert.notEqual(missingEnvironment.status, 0);
+  assert.match(combined(missingEnvironment), /requires an environment standard pack/i);
+
+  const missingIndustrialRoot = tempRoot("intentos-198-pack-industrial-gap-");
+  const missingIndustrial = run("scripts/init-project.mjs", [
+    "--starter", "generic-project", "--target", missingIndustrialRoot,
+    "--profiles", "web-app,backend-api", "--baseline-level", "BL2_INDUSTRIAL",
+    "--industrial-packs", "web-app-industrial",
+    "--write-plan", "apply-execution-plans/gap.json",
+  ]);
+  assert.notEqual(missingIndustrial.status, 0);
+  assert.match(combined(missingIndustrial), /industrial baseline has no platform\/capability pack.*backend-api/i);
 });
 
 test("backend-only Node package is not classified as a Web frontend", () => {
@@ -184,6 +240,47 @@ test("generated project installs and runs release-channel command", () => {
   const state = JSON.parse(operating.stdout);
   assert.equal(state.projectEntry.state, "NEW_PROJECT_ENTRY");
   assert.equal(state.operatingLoop.operation, "START_PROJECT");
+  const baselineDecision = spawnSync(process.execPath, [
+    path.join(root, "scripts/cli.mjs"), "baseline-decision", root, "--json",
+  ], { cwd: root, encoding: "utf8", maxBuffer: 1024 * 1024 * 40 });
+  assert.equal(baselineDecision.status, 0, combined(baselineDecision));
+  assert.notEqual(JSON.parse(baselineDecision.stdout).projectState.internal, "PRODUCTION_SENSITIVE_PROJECT");
+  const version = spawnSync(process.execPath, [path.join(root, "scripts/cli.mjs"), "--version"], { cwd: root, encoding: "utf8" });
+  assert.equal(version.status, 0, combined(version));
+  assert.notEqual(version.stdout.trim(), "0.0.0");
+  const sourceOnly = spawnSync(process.execPath, [path.join(root, "scripts/cli.mjs"), "self-check"], { cwd: root, encoding: "utf8" });
+  assert.notEqual(sourceOnly.status, 0);
+  assert.match(combined(sourceOnly), /source repository/i);
+  const advanced = spawnSync(process.execPath, [path.join(root, "scripts/cli.mjs"), "--help-advanced"], { cwd: root, encoding: "utf8" });
+  assert.equal(advanced.status, 0, combined(advanced));
+  assert.doesNotMatch(advanced.stdout, /^\s+(?:init|update|migrate|fixtures|self-check)\s+/m);
+  assert.match(advanced.stdout, /must run from the IntentOS source checkout/i);
+});
+
+test("strict baseline selection fails closed when no report exists", () => {
+  const root = tempRoot("intentos-198-baseline-empty-");
+  assert.notEqual(run("scripts/check-baseline-pack-selection.mjs", [root, "--strict"]).status, 0);
+  assert.notEqual(run("scripts/check-standard-baseline-selection.mjs", [root, "--strict"]).status, 0);
+});
+
+test("existing agent.md remains the project authority during planning", () => {
+  const root = tempRoot("intentos-198-agent-entry-");
+  fs.writeFileSync(path.join(root, "agent.md"), "# Existing project authority\n");
+  const result = run("scripts/init-project.mjs", ["--target", root, "--write-plan", "apply-execution-plans/agent.json"]);
+  assert.equal(result.status, 0, combined(result));
+  const plan = JSON.parse(fs.readFileSync(path.join(root, "apply-execution-plans/agent.json"), "utf8"));
+  assert.equal(plan.actions.some((action) => action.path === "AGENTS.md" && action.willWrite), false);
+  assert.equal(plan.actions.some((action) => action.path === "agent.md" && action.type === "HUMAN_ONLY"), true);
+});
+
+test("existing .agent.md remains the project authority during planning", () => {
+  const root = tempRoot("intentos-198-dot-agent-entry-");
+  fs.writeFileSync(path.join(root, ".agent.md"), "# Existing project authority\n");
+  const result = run("scripts/init-project.mjs", ["--target", root, "--write-plan", "apply-execution-plans/agent.json"]);
+  assert.equal(result.status, 0, combined(result));
+  const plan = JSON.parse(fs.readFileSync(path.join(root, "apply-execution-plans/agent.json"), "utf8"));
+  assert.equal(plan.actions.some((action) => action.path === "AGENTS.md" && action.willWrite), false);
+  assert.equal(plan.actions.some((action) => action.path === ".agent.md" && action.type === "HUMAN_ONLY"), true);
 });
 
 test("release approval alone cannot replace Launch Review", () => {
@@ -207,4 +304,24 @@ test("current 1.x migration routes to controlled update planning", () => {
   assert.equal(plan.migrationKind, "CONTROLLED_1X_UPDATE");
   assert.equal(plan.blockedApply, true);
   assert.match(plan.nextCommand, /apply-execution-plans\//);
+
+  const outside = run("scripts/migrate-project.mjs", [
+    "--target", root, "--from", "1.80.2", "--to", version, "--write-plan", path.join(root, "outside.json"),
+  ]);
+  assert.notEqual(outside.status, 0);
+  const mismatch = run("scripts/migrate-project.mjs", [
+    "--target", root, "--from", "1.80.1", "--to", version, "--dry-run",
+  ]);
+  assert.notEqual(mismatch.status, 0);
+  assert.match(combined(mismatch), /does not match the installed IntentOS version/i);
+
+  const external = tempRoot("intentos-198-migrate-external-");
+  fs.symlinkSync(external, path.join(root, "apply-execution-plans"));
+  const symlinkEscape = run("scripts/migrate-project.mjs", [
+    "--target", root, "--from", "1.80.2", "--to", version,
+    "--write-plan", "apply-execution-plans/escaped.json",
+  ]);
+  assert.notEqual(symlinkEscape.status, 0);
+  assert.match(combined(symlinkEscape), /must not pass through or overwrite a symlink/i);
+  assert.equal(fs.existsSync(path.join(external, "escaped.json")), false);
 });

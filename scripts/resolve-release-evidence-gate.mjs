@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { releaseEvidenceRequirementsFor } from "./lib/release-evidence-requirements.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -94,6 +95,8 @@ function buildReport(root) {
   const sourceRevision = String(args["source-revision"] || git.revision || "unknown");
   const dirtyStatus = normalizeDirtyStatus(String(args["dirty-worktree-status"] || git.dirty || "unknown"));
   const releaseCandidateRef = String(args["release-candidate-ref"] || `artifact:release-candidates/001-${slugify(intent)}.md`);
+  const releaseCandidate = resolveAuthoritativeEvidenceReference(root, "", releaseCandidateRef);
+  const releaseCandidateDigest = releaseCandidate.ok ? canonicalFileDigest(releaseCandidate.file) : "missing";
   const taskRefs = splitList(args["task-ref"]);
   const completionRefs = splitList(args["completion-evidence-ref"]);
   const excluded = splitList(args["excluded-known-item"]);
@@ -134,7 +137,7 @@ function buildReport(root) {
     release_target: releaseTarget,
     release_scope: {
       release_candidate_ref: releaseCandidateRef,
-      release_candidate_digest: digest(`${releaseCandidateRef}:${sourceRevision}:${completionRefs.join(",")}`),
+      release_candidate_digest: releaseCandidateDigest,
       source_revision: sourceRevision,
       dirty_worktree_status: dirtyStatus,
       included_task_refs: taskRefs,

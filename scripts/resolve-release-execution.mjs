@@ -2,8 +2,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
@@ -26,8 +28,10 @@ const knownFlags = new Set([
   "deployment",
 ]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
 const outputFormat = args.json ? "json" : String(args.format || "human");
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 
 if (unknown.length > 0) {
   console.error(`FAIL unknown option: --${unknown.join(", --")}`);
@@ -125,26 +129,41 @@ function resolveLaunchReview(root, options) {
     const resolved = resolveAuthoritativeEvidenceReference(root, "", options.launchViewRef, { markdownOnly: true });
     if (resolved.ok && resolved.relativePath.startsWith("launch-review-views/")) {
       const content = fs.readFileSync(resolved.file, "utf8");
-      const safeLabel = tableValue(content, "Safe Launch Label") || "NOT_READY";
-      const canProceed = tableValue(content, "Launch review can proceed") || (safeLabel === "READY_FOR_RELEASE_REVIEW" ? "Yes" : "No");
-      const valid = safeLabel === "READY_FOR_RELEASE_REVIEW"
+      const checked = spawnSync(process.execPath, [
+        path.join(scriptDir, "check-launch-review-view.mjs"),
+        root,
+        "--report",
+        resolved.relativePath,
+        "--require-structured-evidence",
+      ], { encoding: "utf8", timeout: 30000, maxBuffer: 1024 * 1024 * 20 });
+      const schema = loadSchema(root, "schemas/artifacts/launch-review-view.schema.json");
+      const structured = validateEvidenceBlock(content, schema, resolved.relativePath, {
+        require: true,
+        digestField: "launch_review_digest",
+      });
+      const evidence = structured.ok ? structured.value : null;
+      const safeLabel = evidence?.safe_launch_label || "BLOCKED";
+      const canProceed = evidence?.launch_review_can_proceed || "No";
+      const valid = checked.status === 0
+        && safeLabel === "READY_FOR_RELEASE_REVIEW"
         && canProceed === "Yes"
-        && tableValue(content, "Closure Decision") === "DONE"
-        && tableValue(content, "Can count as done") === "Yes"
-        && tableValue(content, "Release approval") === "No"
-        && ["Rollback", "Monitoring", "Release ownership", "Post-launch smoke"]
-          .every((surface) => launchSurfaceStatus(content, surface) === "PASS");
+        && evidence?.closure_input?.decision === "DONE"
+        && evidence?.closure_input?.can_count_as_done === "Yes"
+        && evidence?.closure_input?.durable === "Yes";
       return {
         safeLaunchLabel: valid ? safeLabel : "BLOCKED",
         launchReviewCanProceed: valid ? canProceed : "No",
         ref: resolved.relativePath,
+        digest: valid ? evidence.launch_review_digest : "N/A",
         source: valid ? "recorded" : "invalid",
+        errors: valid ? [] : [firstUsefulLine(checked.stderr || checked.stdout) || "Launch Review evidence is invalid"],
       };
     }
     return {
       safeLaunchLabel: "BLOCKED",
       launchReviewCanProceed: "No",
       ref: options.launchViewRef,
+      digest: "N/A",
       source: "missing",
     };
   }
@@ -153,6 +172,7 @@ function resolveLaunchReview(root, options) {
     safeLaunchLabel: "BLOCKED",
     launchReviewCanProceed: "No",
     ref: "N/A",
+    digest: "N/A",
     source: "missing",
   };
 }
@@ -175,6 +195,25 @@ function resolveApproval(root, options) {
       verified: false,
       evidence: checked.evidence,
       errors: checked.errors,
+    };
+  }
+  const strictCheck = spawnSync(process.execPath, [
+    path.join(scriptDir, "check-release-approval-record.mjs"),
+    root,
+    "--report",
+    checked.relativePath,
+    "--require-structured-evidence",
+    "--require-approved",
+  ], { encoding: "utf8", timeout: 30000, maxBuffer: 1024 * 1024 * 20 });
+  if (strictCheck.status !== 0) {
+    return {
+      approvalStatus: "INVALID",
+      owner: "N/A",
+      ref: options.approvalRef,
+      scope: "N/A",
+      verified: false,
+      evidence: checked.evidence,
+      errors: [firstUsefulLine(strictCheck.stderr || strictCheck.stdout) || "strict release approval check failed"],
     };
   }
   const evidence = checked.evidence;
@@ -314,6 +353,8 @@ function buildMachineEvidence(root, report, approval) {
     trust_inputs: {
       release_approval_ref: approval.ref || "N/A",
       release_approval_digest: approval.evidence?.release_approval_digest || "N/A",
+      launch_review_ref: report.launchReviewInput.ref || "N/A",
+      launch_review_digest: report.launchReviewInput.digest || "N/A",
       release_evidence_gate_ref: sources.release_evidence_gate?.ref || "N/A",
       release_evidence_gate_digest: sources.release_evidence_gate?.digest || "N/A",
       runtime_hygiene_ref: sources.runtime_hygiene?.ref || "N/A",
@@ -509,4 +550,8 @@ function stringArg(name) {
 
 function code(value) {
   return `\`${value}\``;
+}
+
+function firstUsefulLine(value) {
+  return String(value || "").split(/\r?\n/).map((line) => line.trim()).find(Boolean) || "";
 }

@@ -8,13 +8,14 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
-import { projectIdentity } from "./lib/evidence-authority.mjs";
+import { projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "report", "require-report", "require-structured-evidence", "require-release-trust"]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const outputJson = Boolean(args.json);
 const requireReport = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-release-trust"]);
@@ -158,6 +159,7 @@ function checkReleaseExecutionPlans() {
     const approvalRef = tableValue(sectionBody(content, "Human Release Approval"), "Ref");
     const mode = tableValue(sectionBody(content, "Execution Mode"), "Mode");
     const realAllowed = tableValue(sectionBody(content, "Execution Mode"), "Real release execution allowed");
+    const realMode = mode === "ASSISTED_EXECUTION" || mode === "HUMAN_EXECUTION_HANDOFF" || realAllowed === "Yes";
     const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
     const structured = validateEvidenceBlock(content, releaseExecutionSchema, label, {
       require: requireStructuredEvidence,
@@ -173,7 +175,7 @@ function checkReleaseExecutionPlans() {
     if (allowedOutcomes.has(outcome)) pass(`${label} has valid Outcome`);
     else fail(`${label} has invalid Outcome: ${outcome || "<empty>"}`);
 
-    if (mode === "ASSISTED_EXECUTION" || mode === "HUMAN_EXECUTION_HANDOFF" || realAllowed === "Yes") {
+    if (realMode) {
       if (launchLabel === "READY_FOR_RELEASE_REVIEW" && launchCanProceed === "Yes") {
         pass(`${label} real release execution depends on ready Launch Review View`);
       } else {
@@ -194,7 +196,8 @@ function checkReleaseExecutionPlans() {
     }
 
     checkExecutionStepOwnership(content, label);
-    if (requireReleaseTrust && structured.ok && structured.present) {
+    if (realMode && !structured.present) fail(`${label} real release execution requires structured release trust evidence`);
+    if ((requireReleaseTrust || realMode) && structured.ok && structured.present) {
       checkReleaseTrust(content, file, label, structured.value, mode, realAllowed, outcome);
     }
 
@@ -220,6 +223,36 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
   else fail(`${label} structured execution mode does not match Markdown`);
   if (evidence.outcome === outcome) pass(`${label} structured outcome matches Markdown`);
   else fail(`${label} structured outcome does not match Markdown`);
+
+  const launchRef = evidence.trust_inputs?.launch_review_ref;
+  const launchResolved = resolveAuthoritativeEvidenceReference(projectRoot, file, launchRef, { markdownOnly: true });
+  if (!launchResolved.ok || !launchResolved.relativePath.startsWith("launch-review-views/")) {
+    fail(`${label} Launch Review ref is unsafe, missing, or outside launch-review-views/`);
+  } else {
+    const launchContent = fs.readFileSync(launchResolved.file, "utf8");
+    const launchSchema = loadSchema(projectRoot, "schemas/artifacts/launch-review-view.schema.json");
+    const launchEvidence = validateEvidenceBlock(launchContent, launchSchema, launchResolved.relativePath, {
+      require: true,
+      digestField: "launch_review_digest",
+    });
+    const launchCheck = spawnSync(process.execPath, [
+      path.join(scriptDir, "check-launch-review-view.mjs"), projectRoot,
+      "--report", launchResolved.relativePath,
+      "--require-structured-evidence",
+    ], { encoding: "utf8", timeout: 30000, maxBuffer: 1024 * 1024 * 20 });
+    if (launchEvidence.ok
+      && launchCheck.status === 0
+      && launchEvidence.value.safe_launch_label === "READY_FOR_RELEASE_REVIEW"
+      && launchEvidence.value.launch_review_can_proceed === "Yes"
+      && launchEvidence.value.launch_review_digest === evidence.trust_inputs?.launch_review_digest) {
+      pass(`${label} consumes the exact strict current Launch Review View`);
+    } else {
+      const reason = launchEvidence.ok
+        ? firstUsefulLine(launchCheck.stderr || launchCheck.stdout) || "Launch Review is not ready or its digest does not match"
+        : launchEvidence.errors?.[0] || "Launch Review structured evidence is invalid";
+      fail(`${label} Launch Review binding is stale, invalid, or not ready: ${reason}`);
+    }
+  }
 
   const approvalRef = evidence.trust_inputs?.release_approval_ref;
   const approval = readReleaseApprovalRecord(projectRoot, approvalRef, { fromFile: file, requireApproved: true });
@@ -340,10 +373,10 @@ function checkSourceEvidence() {
   pass("1.56 release execution checker is executing source repo checks");
 
   const example = runNode(["scripts/check-release-execution.mjs", "examples/1.56-release-execution/web-assisted-handoff"]);
-  if (example.status === 0 && example.stdout.includes("Release Execution check passed")) {
-    pass("1.56 release execution example passes checker");
+  if (example.status !== 0 && `${example.stdout}\n${example.stderr}`.includes("real release execution requires structured release trust evidence")) {
+    pass("1.56 legacy text-only real execution example remains readable but cannot authorize execution");
   } else {
-    fail(`1.56 release execution example failed: ${example.stderr || example.stdout}`);
+    fail(`1.56 legacy text-only real execution example must fail closed: ${example.stderr || example.stdout}`);
   }
 
   for (const [name, target, expected] of [

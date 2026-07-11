@@ -23,11 +23,11 @@ function runWork(root, intent, extraArgs = []) {
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, ...intentArgs, ...extraArgs, "--json"]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.schemaVersion, "1.98.0");
-  assert.equal(report.operatingDecision.contractVersion, "1.98.0");
+  assert.equal(report.schemaVersion, "1.98.1");
+  assert.equal(report.operatingDecision.contractVersion, "1.98.1");
   assert.equal(report.operatingDecision.derivedOnly, "Yes");
   assert.equal(report.operatingDecision.materialActionAuthorized, "No");
-  assert.equal(report.projectIdentityProjection.contractVersion, "1.98.0");
+  assert.equal(report.projectIdentityProjection.contractVersion, "1.98.1");
   assert.equal(report.projectIdentityProjection.derivedOnly, "Yes");
   assert.equal(report.projectIdentityProjection.grantsAuthority, "No");
   assert.equal(report.projectIdentityProjection.writesProjectFiles, "No");
@@ -56,6 +56,14 @@ function makeExistingProject(root) {
   fs.mkdirSync(path.join(root, "src"), { recursive: true });
   fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "existing-project", private: true }, null, 2));
   fs.writeFileSync(path.join(root, "src/index.js"), "export const ready = true;\n");
+}
+
+function makeCurrentWorkQueue(root, taskId = "TASK-001", title = "Current test task") {
+  fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
+  fs.writeFileSync(path.join(root, "work-queue/current.md"), [
+    "# Work Queue", "", "| Task ID | Title | State | Evidence | Resume Review | Notes |", "|---|---|---|---|---|---|",
+    `| ${taskId} | ${title} | CURRENT | test setup | N/A | current |`, "",
+  ].join("\n"));
 }
 
 function runGit(root, args) {
@@ -90,6 +98,7 @@ test("new project goal enters the shared operating loop through START_PROJECT", 
 
 test("existing project normal task uses CONTINUE_TASK without forcing high governance", () => withRoot("intentos-operating-existing-", (root) => {
   makeExistingProject(root);
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "修改首页按钮文案");
   assert.match(report.projectEntry.state, /EXISTING_PROJECT_ENTRY|GOVERNED_PROJECT_ENTRY/);
   assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
@@ -105,6 +114,7 @@ test("existing project normal task uses CONTINUE_TASK without forcing high gover
 
 test("existing project adoption is a project-entry review and remains read-only", () => withRoot("intentos-operating-adopt-", (root) => {
   makeExistingProject(root);
+  makeCurrentWorkQueue(root);
   const before = snapshot(root);
   const report = runWork(root, "把这个老项目接入 IntentOS");
   assert.equal(report.operatingLoop.operation, "ADOPT_PROJECT");
@@ -126,6 +136,7 @@ test("release intent recommends release authority without approving release", ()
 
 test("permission task recommends domain and security owners", () => withRoot("intentos-operating-permission-", (root) => {
   makeExistingProject(root);
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "新增管理员权限并限制敏感数据访问");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.match(report.operatingLoop.taskImpact, /HIGH|POSSIBLE_HIGH/);
@@ -134,6 +145,87 @@ test("permission task recommends domain and security owners", () => withRoot("in
   assert.ok(report.authorityRecommendation.recommendedRoles.includes("SECURITY_OWNER"));
   assert.equal(report.authorityRecommendation.grantsAuthority, "No");
 }));
+
+test("continuation without a durable current Work Queue item stops before implementation review", () => withRoot("intentos-operating-no-queue-", (root) => {
+  makeExistingProject(root);
+  const report = runWork(root, "修改首页按钮文案");
+  assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
+  assert.equal(report.operatingLoop.state, "NEEDS_WORK_QUEUE");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_WORK_QUEUE");
+}));
+
+test("multiple CURRENT Work Queue items fail closed", () => withRoot("intentos-operating-queue-conflict-", (root) => {
+  makeExistingProject(root);
+  fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
+  fs.writeFileSync(path.join(root, "work-queue/current.md"), [
+    "# Work Queue", "", "| Task ID | Title | State |", "|---|---|---|",
+    "| TASK-001 | First | CURRENT |", "| TASK-002 | Second | CURRENT |", "",
+  ].join("\n"));
+  const report = runWork(root, "继续任务");
+  assert.equal(report.operatingLoop.state, "BLOCKED_BY_WORK_QUEUE");
+  assert.equal(report.operatingDecision.actionCode, "REPAIR_WORK_QUEUE");
+}));
+
+test("a clearly different goal does not silently continue the current task", () => withRoot("intentos-operating-task-switch-", (root) => {
+  makeExistingProject(root);
+  makeCurrentWorkQueue(root, "TASK-BOOKING", "完善预约时间校验");
+  const switched = runWork(root, "新增财务发票导出功能");
+  assert.equal(switched.operatingLoop.operation, "CONTINUE_TASK");
+  assert.equal(switched.operatingLoop.state, "NEEDS_TASK_SWITCH_REVIEW");
+  assert.equal(switched.operatingDecision.actionCode, "REVIEW_TASK_SWITCH");
+  assert.equal(switched.operatingDecision.requiresHumanDecisionNow, "Yes");
+
+  const continued = runWork(root, "继续完善预约时间校验");
+  assert.notEqual(continued.operatingLoop.state, "NEEDS_TASK_SWITCH_REVIEW");
+}));
+
+test("Work Queue preserves canonical task identity and exposes active-thread conflicts", () => withRoot("intentos-operating-queue-identity-", (root) => {
+  const digest = `sha256:${"1".repeat(64)}`;
+  fs.mkdirSync(path.join(root, "work-queue"), { recursive: true });
+  fs.mkdirSync(path.join(root, "tasks"), { recursive: true });
+  fs.mkdirSync(path.join(root, "active-work-threads"), { recursive: true });
+  fs.writeFileSync(path.join(root, "tasks/profile-copy.md"), "# Profile copy task\n");
+  fs.writeFileSync(path.join(root, "work-queue/current.md"), [
+    "# Work Queue", "", "| Task ID | Title | State | Task ref | Intent digest | Resume review | Notes |", "|---|---|---|---|---|---|---|",
+    `| TASK-A | Fix profile copy | CURRENT | tasks/profile-copy.md | ${digest} | N/A | current |`, "",
+  ].join("\n"));
+  let result = runNode(["scripts/resolve-work-queue.mjs", root, "--json"]);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  let report = JSON.parse(result.stdout);
+  assert.equal(report.currentTaskCandidates[0].taskRef, "tasks/profile-copy.md");
+  assert.equal(report.currentTaskCandidates[0].intentDigest, digest);
+
+  fs.writeFileSync(path.join(root, "active-work-threads/task-b.md"), "# Another active task\n");
+  result = runNode(["scripts/resolve-work-queue.mjs", root, "--json"]);
+  report = JSON.parse(result.stdout);
+  assert.equal(report.currentTaskCount, 2);
+}));
+
+test("discussion, resume, compound release implementation, and scoped no-database language route explicitly", () => withRoot("intentos-operating-routing-hardening-", (root) => {
+  makeExistingProject(root);
+  assert.equal(runWork(root, "先沟通一下，不要改代码").operatingLoop.operation, "DISCUSS_ONLY");
+  assert.equal(runWork(root, "恢复暂停的任务").operatingLoop.operation, "RESUME_TASK");
+  assert.equal(runWork(root, "实现修复并准备发布").operatingLoop.operation, "CONTINUE_TASK");
+  assert.equal(runWork(root, "不要修改数据库，只改前端").operatingLoop.operation, "CONTINUE_TASK");
+  assert.equal(runWork(root, "Review the authentication flow, but do not edit anything").operatingLoop.operation, "DISCUSS_ONLY");
+  assert.equal(runWork(root, "This is not a new project; fix login").operatingLoop.operation, "CONTINUE_TASK");
+  assert.equal(runWork(root, "check status and implement the login fix").operatingLoop.operation, "CONTINUE_TASK");
+  assert.equal(runWork(root, "Just review login, then implement billing deletion").operatingLoop.operation, "CONTINUE_TASK");
+}));
+
+test("Closure cannot authorize DONE from fuzzy intent text without canonical task identity", () => {
+  const root = path.join(kitRoot, "examples/1.49-structured-impact-coverage/contract-input-rule");
+  const result = runNode([
+    "scripts/resolve-closure-decision.mjs", root,
+    "--intent", "change contract input icon color",
+    "--verification", "strict checks passed",
+    "--execution-closure", "execution-closures/001-contract-input-rule.md",
+    "--impact-report", "change-impact-coverage-reports/001-contract-input-rule.md",
+    "--json",
+  ]);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.notEqual(JSON.parse(result.stdout).closureDecision.decision, "DONE");
+});
 
 test("BL2 project still permits a genuinely low task classification", () => withRoot("intentos-operating-bl2-low-", (root) => {
   makeExistingProject(root);
@@ -156,6 +248,7 @@ test("initialized new project continues later tasks instead of restarting projec
     starter: "generic-project",
     projectEntryOrigin: "NEW_PROJECT",
   }, null, 2));
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "继续完成预约规则");
   assert.equal(report.projectEntry.state, "NEW_PROJECT_ENTRY");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
@@ -231,6 +324,7 @@ test("production signals override original new-project entry without changing ta
   fs.writeFileSync(path.join(root, ".github/workflows/release.yml"), "name: production release\n");
   fs.writeFileSync(path.join(root, "docs/runbooks/release.md"), "# Production release runbook\n");
   fs.writeFileSync(path.join(root, "Dockerfile"), "FROM scratch\n");
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "修正文档中的一个错别字");
   assert.equal(report.projectEntry.state, "PRODUCTION_SENSITIVE_ENTRY");
   assert.equal(report.projectIdentityProjection.projectKind, "EXISTING_PROJECT");
@@ -254,6 +348,7 @@ test("controlled plan records new-project entry origin", () => withRoot("intento
 
 test("finish without valid completion evidence cannot report done", () => withRoot("intentos-operating-finish-", (root) => {
   makeExistingProject(root);
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "这个任务做完了吗");
   assert.equal(report.operatingLoop.operation, "FINISH_TASK");
   assert.equal(report.operatingLoop.state, "NOT_DONE");
@@ -299,6 +394,7 @@ test("missing goal selects one user-input decision", () => withRoot("intentos-op
 
 test("possible-high task selects read-only risk inspection", () => withRoot("intentos-operating-possible-high-", (root) => {
   makeExistingProject(root);
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "调整预约限制规则");
   assert.equal(report.operatingLoop.taskImpact, "POSSIBLE_HIGH");
   assert.equal(report.operatingDecision.actionCode, "INSPECT_TASK_RISK");
@@ -308,6 +404,7 @@ test("possible-high task selects read-only risk inspection", () => withRoot("int
 
 test("medium task selects targeted implementation-review preparation", () => withRoot("intentos-operating-medium-", (root) => {
   makeExistingProject(root);
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "调整局部列表筛选展示");
   assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_IMPLEMENTATION_REVIEW");
@@ -316,6 +413,7 @@ test("medium task selects targeted implementation-review preparation", () => wit
 
 test("high task selects the first authoritative governance prerequisite", () => withRoot("intentos-operating-high-", (root) => {
   makeExistingProject(root);
+  makeCurrentWorkQueue(root);
   const report = runWork(root, "新增管理员权限");
   assert.equal(report.operatingLoop.taskImpact, "HIGH");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");

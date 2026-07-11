@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
+import { extractMachineReadableEvidence, loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
@@ -792,6 +792,7 @@ function checkSourceDigest(item, parsed, label, strictSourceBinding) {
         const actual = fileDigest(resolved);
         if (actual === reportDigest) pass(`${label} source system ${item.name} report_digest matches source file`);
         else fail(`${label} source system ${item.name} report_digest does not match source file`);
+        if (strictSourceBinding) checkSourceSemantics(item, parsed, label, resolved);
       }
     }
   }
@@ -812,6 +813,31 @@ function checkSourceDigest(item, parsed, label, strictSourceBinding) {
   if (!reportDigest && !evidenceDigest) {
     fail(`${label} source system ${item.name} requires report_digest or evidence_digest in precise mode`);
   }
+}
+
+function checkSourceSemantics(item, parsed, label, resolvedFile) {
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolvedFile, "utf8"));
+  if (!extracted?.ok) {
+    fail(`${label} source system ${item.name} must contain valid machine-readable evidence`);
+    return;
+  }
+  const source = extracted.value;
+  const expectedTypes = {
+    change_impact_coverage: "change_impact_coverage",
+    adoption_assurance: "adoption_assurance_report",
+    governance_convergence: "governance_convergence",
+    release_plan: "release_plan_evidence",
+    approval_record: "approval_record",
+  };
+  const expectedType = expectedTypes[item.name];
+  if (!expectedType || source.artifact_type === expectedType) pass(`${label} source system ${item.name} artifact type is valid`);
+  else fail(`${label} source system ${item.name} artifact_type must be ${expectedType}`);
+  const sourceTask = String(source.task_ref || source.task_governance_ref || "").trim();
+  if (sourceTask && sourceTask === item.source_task_ref) pass(`${label} source system ${item.name} embedded task matches source binding`);
+  else fail(`${label} source system ${item.name} embedded task must match source_task_ref`);
+  const sourceIntent = String(source.intent_digest || source.source_request_digest || "").trim();
+  if (!sourceIntent || sourceIntent === parsed.intent_digest) pass(`${label} source system ${item.name} intent matches current assurance`);
+  else fail(`${label} source system ${item.name} intent_digest must match current assurance`);
 }
 
 function isFileOrArtifactRef(ref) {

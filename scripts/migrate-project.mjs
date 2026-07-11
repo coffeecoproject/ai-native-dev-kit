@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "./lib/args.mjs";
+import { assertSafeWritePath } from "./lib/path-safety.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const allowedKeys = new Set(["_", "target", "from", "to", "dry-run", "write-plan", "json"]);
@@ -49,8 +50,16 @@ if (!fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
   fail(`target is not a directory: ${projectRoot}`);
 }
 
+if (controlledOneXUpdate) {
+  const installed = readJson(path.join(projectRoot, ".intentos", "version.json"));
+  const detected = installed?.intentOSVersion || installed?.workflowVersion || null;
+  if (detected !== fromVersion) {
+    fail(`--from ${fromVersion} does not match the installed IntentOS version ${detected || "none"}`);
+  }
+}
+
 if (writePlan && !isSafePlanPath(writePlan)) {
-  fail("--write-plan must be a safe local .json path");
+  fail("--write-plan must be a project-relative .json path under apply-execution-plans/ or .intentos/apply-plans/");
 }
 
 const plan = buildPlan(projectRoot, fromVersion, toVersion, controlledOneXUpdate ? "CONTROLLED_1X_UPDATE" : "LEGACY_033_TO_100");
@@ -60,7 +69,12 @@ if (dryRun) {
   process.exit(0);
 }
 
-const planPath = path.resolve(process.cwd(), writePlan);
+let planPath;
+try {
+  planPath = assertSafeWritePath(projectRoot, writePlan, "migration plan output");
+} catch (error) {
+  fail(error.message);
+}
 fs.mkdirSync(path.dirname(planPath), { recursive: true });
 fs.writeFileSync(planPath, `${JSON.stringify(plan, null, 2)}\n`);
 if (outputJson) {
@@ -219,8 +233,12 @@ function isSafePlanPath(value) {
   const text = String(value || "");
   if (!text.endsWith(".json")) return false;
   if (text.includes("\0")) return false;
+  if (path.isAbsolute(text)) return false;
   const normalized = path.normalize(text);
-  return !normalized.split(path.sep).includes("..");
+  if (normalized.split(path.sep).includes("..")) return false;
+  const portable = normalized.replaceAll(path.sep, "/");
+  return portable.startsWith("apply-execution-plans/")
+    || portable.startsWith(".intentos/apply-plans/");
 }
 
 function printPlan(plan, json) {

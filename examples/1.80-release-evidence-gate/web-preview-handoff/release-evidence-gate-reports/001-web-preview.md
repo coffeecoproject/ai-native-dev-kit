@@ -129,11 +129,11 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare web preview release review",
   "intent_digest": "sha256:1ec073c4075da41f71c1b103224082b01ec4249ff0b3d496b533b8911cba39d7",
-  "release_evidence_digest": "sha256:81cb8157e87549fbb5c6333d7c1a3250904b3c19d6b58e3c8e784fd9a7ef9218",
+  "release_evidence_digest": "sha256:be15c3bff2fcd6db5de3f4cedfcffb46d9c777b190e5858279bf518ebc837da8",
   "release_target": "preview",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-web-preview.md",
-    "release_candidate_digest": "sha256:c8106bd144686f64f5a25862932001a4debf80b463813506139cf2ec0cf718db",
+    "release_candidate_digest": "sha256:7971c1f64f8bb27f57c29b1143f5f61f67f2c02334638d474fdd9fc2473ec604",
     "source_revision": "git:1111111111111111111111111111111111111111",
     "dirty_worktree_status": "clean",
     "included_task_refs": [

@@ -7,8 +7,8 @@ This report is a read-only derived verification view. It does not write target f
 | Field | Value |
 | --- | --- |
 | Execution Kind | `ADOPTION_MIGRATION` |
-| Assurance State | `VERIFIED_DONE` |
-| Can Claim Done | `Yes` |
+| Assurance State | `PARTIAL_DONE` |
+| Can Claim Done | `No` |
 | Can Codex Write Now | `No` |
 | Safe Next Step | Continue project work in IntentOS Operating Mode; target-file writes still require apply governance. |
 
@@ -91,7 +91,7 @@ This report is a read-only derived verification view. It does not write target f
 
 ## Closure Decision
 
-`VERIFIED_DONE`
+`PARTIAL_DONE`
 
 ## Pending Human Decisions
 
@@ -120,8 +120,8 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "artifact_type": "execution_assurance_report",
   "execution_kind": "ADOPTION_MIGRATION",
   "task_ref": "adoption-assurance-reports/001-adoption.md",
-  "assurance_state": "VERIFIED_DONE",
-  "can_claim_done": "Yes",
+  "assurance_state": "PARTIAL_DONE",
+  "can_claim_done": "No",
   "can_codex_write_now": "No",
   "intent_lock": {
     "user_intent": "Verify old-project IntentOS adoption.",
@@ -267,7 +267,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "proves_product_correctness": "No",
     "transfers_project_authority_to_intentos": "No"
   },
-  "outcome": "VERIFIED_DONE",
+  "outcome": "PARTIAL_DONE",
   "intent_digest": "sha256:dd487f9383d2d717d4f159f7b9a19b61d092056af1a927904bcb59fc231a23eb"
 }
 ```

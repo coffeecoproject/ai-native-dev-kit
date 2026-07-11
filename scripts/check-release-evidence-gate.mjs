@@ -318,6 +318,12 @@ function checkStructuredEvidence(label, evidence) {
   const scope = evidence.release_scope || {};
   if (isConcrete(scope.release_candidate_ref)) pass(`${label} records release candidate ref`);
   else fail(`${label} must record release candidate ref`);
+  if (strictSourceBinding || readyStates.has(evidence.gate_state)) {
+    const candidate = resolveAuthoritativeEvidenceReference(projectRoot, "", scope.release_candidate_ref);
+    if (!candidate.ok) fail(`${label} release candidate does not resolve safely: ${scope.release_candidate_ref}`);
+    else if (scope.release_candidate_digest === fileDigest(candidate.file)) pass(`${label} release candidate digest matches current file`);
+    else fail(`${label} release candidate digest does not match current file`);
+  }
   if (Array.isArray(scope.included_completion_evidence_refs)) pass(`${label} records included Completion Evidence refs`);
   else fail(`${label} must record included Completion Evidence refs`);
 

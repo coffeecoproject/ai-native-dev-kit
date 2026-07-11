@@ -627,7 +627,7 @@ function possibleHighPatterns() {
 function mediumPatterns() {
   return [
     ["local frontend interaction", /\b(local|component|frontend|interaction|modal|tab|form)\b|局部|组件|前端交互/],
-    ["list filter display", /\b(filter|sort|display|list|validation)\b|筛选|排序|展示|校验/],
+    ["list filter display", /\b(filter|sort|display|list)\b|筛选|排序|展示/],
     ["internal parameter", /\binternal query|display parameter|non-critical parameter\b|内部参数/],
   ];
 }

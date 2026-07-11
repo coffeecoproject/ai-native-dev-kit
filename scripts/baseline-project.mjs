@@ -154,7 +154,7 @@ function detectProfileCandidates(targetRoot) {
   const packageText = packageJson ? JSON.stringify({ dependencies: packageJson.dependencies || {}, devDependencies: packageJson.devDependencies || {}, scripts: packageJson.scripts || {} }) : "";
   const candidates = [];
 
-  if (rels.has("index.html") || rels.has("vite.config.ts") || rels.has("vite.config.js") || rels.has("next.config.js") || rels.has("next.config.mjs") || /react|next|vue|vite|svelte|solid-js|@angular/i.test(packageText)) {
+  if (rels.has("index.html") || rels.has("vite.config.ts") || rels.has("vite.config.js") || rels.has("next.config.js") || rels.has("next.config.mjs") || /"(?:react|next|vue|vite|svelte|solid-js|@angular\/[^"\\]+)"\s*:/i.test(packageText)) {
     candidates.push(profile("web-app", "Web app signals found in package.json, frontend config, or source layout."));
   }
   if (rels.has("project.config.json") || rels.has("app.json") || rels.has("miniprogram") || rels.has("cloudfunctions")) {
@@ -328,10 +328,13 @@ function highRiskAreas(classification, targetRoot) {
 }
 
 function safeNextActions(targetRoot) {
+  const controlledApplyCommand = fs.existsSync(path.join(kitRoot, "scripts", "init-project.mjs"))
+    ? "node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json"
+    : "From the IntentOS source checkout, run: node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json";
   return [
     action("Read baseline recommendation", `node scripts/cli.mjs baseline ${shellQuote(targetRoot)}`, "No", "No"),
     action("Write baseline plan only", `node scripts/baseline-project.mjs ${shellQuote(targetRoot)} --write-plan baseline-recommendations/baseline-plan.json`, "Plan file only", "Yes"),
-    action("Prepare controlled baseline apply", "node scripts/init-project.mjs --target <project> --update-workflow-assets --profiles <profiles> --baseline-level <BL> --write-plan <project>/apply-execution-plans/baseline.json", "Plan file only", "Yes"),
+    action("Prepare controlled baseline apply", controlledApplyCommand, "Plan file only", "Yes"),
     action("Check environment baseline", `node scripts/check-environment-baseline.mjs ${shellQuote(targetRoot)}`, "No", "No"),
     action("Check task baseline references", `node scripts/check-baseline-enforcement.mjs ${shellQuote(targetRoot)} --mode ready`, "No", "No"),
   ];

@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.98.0`
+`1.98.1`
 
 ## Project Version File
 
@@ -17,6 +17,13 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.98.1` binds public completion to one durable current task and current Git
+  content, makes apply/rollback/Receipt transactional, requires structured
+  project-bound Launch Review, and verifies actual agent activation, complete
+  baseline packs, and target CLI distribution.
+- `1.98.1` adds no new implementation, apply, release, production, or project
+  authority.
 
 - `1.98.0` makes public completion, strict evidence, controlled apply,
   activation, baseline selection, generated-project distribution, and release

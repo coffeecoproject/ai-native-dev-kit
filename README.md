@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.98.0`.
+Current release: `1.98.1`.
 
-Release record: [releases/1.98.0/release-record.md](releases/1.98.0/release-record.md).
+Release record: [releases/1.98.1/release-record.md](releases/1.98.1/release-record.md).
 
 IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
 
@@ -47,6 +47,12 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.98.1 closes the independent trust review without adding another public
+workflow. Completion is bound to one current task and current project state;
+controlled apply is transactional; Launch Review is structured and
+project-bound; full adoption requires an active IntentOS-aware agent entry;
+and selected baselines and generated CLI assets are checked as complete.
 
 1.98.0 hardens execution and distribution trust without adding another public
 workflow. `work` now fails closed when queue, resume, task impact, business

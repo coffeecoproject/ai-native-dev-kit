@@ -3,15 +3,23 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { evidenceDigest, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json"]);
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const knownFlags = new Set(["json", "report", "require-structured-evidence"]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
 const outputJson = Boolean(args.json);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
+const explicitReport = args.report ? resolveExplicitReport(String(args.report)) : "";
+const launchReviewSchema = loadSchema(projectRoot, "schemas/artifacts/launch-review-view.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -31,6 +39,7 @@ const requiredAssets = [
   "prompts/launch-review-view-agent.md",
   "scripts/resolve-launch-review-view.mjs",
   "scripts/check-launch-review-view.mjs",
+  "schemas/artifacts/launch-review-view.schema.json",
 ];
 const requiredDirectories = ["launch-review-views"];
 const sections = [
@@ -121,7 +130,7 @@ function checkCoreContent() {
 }
 
 function checkLaunchReviewViews() {
-  const files = markdownFiles("launch-review-views");
+  const files = explicitReport ? [explicitReport] : markdownFiles("launch-review-views");
   if (files.length === 0) {
     pass("launch review view check skipped: no Launch Review View records");
     return;
@@ -174,7 +183,75 @@ function checkLaunchReviewViews() {
     const outcome = codeOrTextValue(sectionBody(content, "Outcome"));
     if (allowedOutcomes.has(outcome)) pass(`${label} has valid Outcome`);
     else fail(`${label} has invalid Outcome: ${outcome || "<empty>"}`);
+
+    const structured = validateEvidenceBlock(content, launchReviewSchema, label, {
+      require: requireStructuredEvidence,
+      digestField: "launch_review_digest",
+    });
+    if (!structured.present && !requireStructuredEvidence) continue;
+    if (!structured.ok) {
+      structured.errors.forEach((error) => fail(error));
+      continue;
+    }
+    validateStructuredLaunchView(file, label, structured.value, { safeLabel, closureDecision, canCountAsDone });
   }
+}
+
+function validateStructuredLaunchView(file, label, evidence, markdown) {
+  if (JSON.stringify(evidence.project_identity) === JSON.stringify(projectIdentity(projectRoot))) pass(`${label} matches current project identity`);
+  else fail(`${label} project identity is stale or belongs to another project`);
+  if (evidence.launch_review_digest === evidenceDigest(evidence, ["launch_review_digest"])) pass(`${label} launch review digest is current`);
+  else fail(`${label} launch review digest is stale`);
+  if (evidence.safe_launch_label === markdown.safeLabel
+    && evidence.closure_input?.decision === markdown.closureDecision
+    && evidence.closure_input?.can_count_as_done === markdown.canCountAsDone) {
+    pass(`${label} Markdown and structured decision fields match`);
+  } else {
+    fail(`${label} Markdown and structured decision fields differ`);
+  }
+  if (evidence.safe_launch_label !== "READY_FOR_RELEASE_REVIEW") return;
+  if (evidence.closure_input?.durable !== "Yes") {
+    fail(`${label} release review requires durable Unified Closure evidence`);
+    return;
+  }
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, evidence.closure_input.ref, { markdownOnly: true });
+  if (!resolved.ok) fail(`${label} closure input is unsafe or unresolved: ${resolved.error}`);
+  else if (canonicalFileDigest(resolved.file) !== evidence.closure_input.digest) fail(`${label} closure input digest is stale`);
+  else {
+    const closureCheck = spawnSync(process.execPath, [
+      path.join(scriptDir, "check-closure-decision.mjs"),
+      projectRoot,
+      "--report",
+      resolved.relativePath,
+    ], { encoding: "utf8", timeout: 30000, maxBuffer: 1024 * 1024 * 20 });
+    if (closureCheck.status === 0) pass(`${label} binds a strictly validated current durable Unified Closure record`);
+    else fail(`${label} Unified Closure input fails its exact checker: ${firstUsefulLine(closureCheck.stderr || closureCheck.stdout)}`);
+  }
+  for (const key of ["environment", "monitoring", "rollback", "post_launch_smoke"]) {
+    const item = evidence.surface_evidence?.[key];
+    if (evidence.surfaces?.[key] !== "PASS") fail(`${label} structured ${key} surface must be PASS for release review`);
+    const bound = resolveAuthoritativeEvidenceReference(projectRoot, file, item?.ref || "");
+    if (!bound.ok) fail(`${label} ${key} evidence is unsafe or unresolved`);
+    else if (canonicalFileDigest(bound.file) !== item.digest) fail(`${label} ${key} evidence digest is stale`);
+    else pass(`${label} binds current ${key} evidence`);
+  }
+  const owner = evidence.surface_evidence?.release_ownership;
+  if (evidence.surfaces?.release_ownership === "PASS"
+    && /^(?:human|team|role):[^\s]+$/i.test(String(owner?.ref || ""))
+    && owner?.digest === "N/A") {
+    pass(`${label} records a concrete external release owner`);
+  } else {
+    fail(`${label} release ownership must use a concrete human/team/role ref and N/A digest`);
+  }
+}
+
+function resolveExplicitReport(value) {
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", value, { markdownOnly: true });
+  if (!resolved.ok || !resolved.relativePath.startsWith("launch-review-views/")) {
+    console.error("FAIL --report must resolve to project-local launch-review-views/*.md");
+    process.exit(1);
+  }
+  return resolved.file;
 }
 
 function checkSourceEvidence() {
@@ -275,6 +352,15 @@ function tableRow(content, firstCell) {
 
 function codeOrTextValue(value) {
   return String(value || "").replace(/`/g, "").trim();
+}
+
+function firstUsefulLine(value) {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find((line) => /^(?:FAIL|ERROR|BLOCKED)\b/i.test(line))
+    || String(value || "").trim().split(/\r?\n/).find(Boolean)
+    || "strict Closure check failed";
 }
 
 function markdownFiles(dir) {

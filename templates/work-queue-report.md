@@ -25,9 +25,9 @@ What happens if you do nothing: `<no task state changes; no code changes>`
 
 ## Current Task
 
-| Task ID | Title | State | Task / spec reference | Last evidence | Notes |
-|---|---|---|---|---|---|
-| `<id>` | `<title>` | `CURRENT` | `<path or PENDING>` | `<path or PENDING>` | `<notes>` |
+| Task ID | Title | State | Task / spec reference | Intent digest | Last evidence | Notes |
+|---|---|---|---|---|---|---|
+| `<id>` | `<title>` | `CURRENT` | `<path or PENDING>` | `sha256:<canonical task intent digest>` | `<path or PENDING>` | `<notes>` |
 
 ## Paused Tasks
 
@@ -53,11 +53,11 @@ What happens if you do nothing: `<no task state changes; no code changes>`
 
 ## Work Items
 
-| Task ID | Title | State | Task ref | Resume review | Owner | Notes |
-|---|---|---|---|---|---|
-| `<id>` | `<title>` | `CURRENT` | `<path>` | `N/A` | `<owner>` | `<notes>` |
-| `<id>` | `<title>` | `PAUSED` | `<path>` | `Required` | `<owner>` | `<notes>` |
-| `<id>` | `<title>` | `BACKLOG` | `<path or PENDING>` | `Required before promotion` | `<owner>` | `<notes>` |
+| Task ID | Title | State | Task ref | Intent digest | Resume review | Owner | Notes |
+|---|---|---|---|---|---|---|---|
+| `<id>` | `<title>` | `CURRENT` | `<path>` | `sha256:<canonical task intent digest>` | `N/A` | `<owner>` | `<notes>` |
+| `<id>` | `<title>` | `PAUSED` | `<path>` | `sha256:<canonical task intent digest>` | `Required` | `<owner>` | `<notes>` |
+| `<id>` | `<title>` | `BACKLOG` | `<path or PENDING>` | `sha256:<canonical task intent digest or PENDING>` | `Required before promotion` | `<owner>` | `<notes>` |
 
 ## Human Decisions Needed
 

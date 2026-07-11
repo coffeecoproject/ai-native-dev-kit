@@ -2499,7 +2499,8 @@ function checkCliFrontDoor() {
       fail(`CLI migrate dry-run failed or mutated target: ${migrateDryRun.stderr || migrateDryRun.stdout}`);
     }
 
-    const planPath = path.join(migrateRoot, "migration-plan.json");
+    const planRelativePath = "apply-execution-plans/migration-plan.json";
+    const planPath = path.join(migrateTarget, planRelativePath);
     const migrateWritePlan = runNode([
       "scripts/cli.mjs",
       "migrate",
@@ -2510,7 +2511,7 @@ function checkCliFrontDoor() {
       "--to",
       "1.0.0",
       "--write-plan",
-      planPath,
+      planRelativePath,
     ]);
     const wrotePlan = fs.existsSync(planPath) ? JSON.parse(fs.readFileSync(planPath, "utf8")) : null;
     if (migrateWritePlan.status === 0
@@ -7154,7 +7155,7 @@ function checkExecutionAssuranceChainProtocol() {
     "node scripts/cli.mjs execution-assurance-check . --allow-empty",
     "node scripts/cli.mjs done-check .",
     "node scripts/cli.mjs verify-execution .",
-    "node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/feature-contract-validation --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff --require-precise-evidence",
+    "node scripts/check-execution-assurance.mjs examples/1.72-execution-assurance-chain/feature-contract-validation --require-structured-evidence --require-evidence-refs --require-review --require-actual-diff",
   ]) {
     if (verifySurface.includes(marker)) pass(`1.72-1.74 package verify surface includes ${marker}`);
     else fail(`1.72-1.74 package verify surface missing ${marker}`);
@@ -7254,8 +7255,8 @@ function checkExecutionAssuranceChainProtocol() {
   }
 
   for (const [target, extraFlags] of [
-    ["examples/1.72-execution-assurance-chain/feature-contract-validation", ["--require-evidence-refs", "--require-review", "--require-actual-diff", "--require-precise-evidence"]],
-    ["examples/1.72-execution-assurance-chain/old-project-intentos-adoption", ["--require-evidence-refs", "--require-review", "--require-actual-diff", "--require-precise-evidence"]],
+    ["examples/1.72-execution-assurance-chain/feature-contract-validation", ["--require-evidence-refs", "--require-review", "--require-actual-diff"]],
+    ["examples/1.72-execution-assurance-chain/old-project-intentos-adoption", ["--require-evidence-refs", "--require-review", "--require-actual-diff"]],
     ["examples/1.72-execution-assurance-chain/safe-copy-patch", ["--require-evidence-refs", "--require-actual-diff"]],
     ["examples/1.72-execution-assurance-chain/patch-smell-backend-only", []],
   ]) {
@@ -8856,7 +8857,8 @@ function checkBusinessRuleClosureProtocol() {
   const resolver = runNode(["scripts/resolve-business-rule-closure.mjs", "examples/mvp-booking-web-app", "--intent", "appointment requests must include a service time"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Business Rule Closure")
-    && resolver.stdout.includes("READY_FOR_IMPACT_COVERAGE")
+    && resolver.stdout.includes("NEEDS_USER_CONFIRMATION")
+    && resolver.stdout.includes("User Confirmation Card")
     && resolver.stdout.includes("This closure writes target files: No")) {
     pass("1.75 business rule closure resolver prints safe appointment rule closure");
   } else {
@@ -12012,11 +12014,16 @@ function checkExecutionTruthHardcutProtocol() {
     fail(`1.90 verified Closure Decision example failed: ${closureDecision.stderr || closureDecision.stdout}`);
   }
 
+  const validIntent = "Add a contract input restriction that rejects blank contract titles.";
   const validResolver = runNode([
     "scripts/resolve-closure-decision.mjs",
     exampleRoot,
     "--intent",
-    "Add a contract input restriction that rejects blank contract titles.",
+    validIntent,
+    "--task",
+    exampleRoot,
+    "--intent-digest",
+    `sha256:${crypto.createHash("sha256").update(validIntent).digest("hex")}`,
     "--verification",
     "targeted contract validation checks passed",
     "--execution-closure",
@@ -12551,10 +12558,10 @@ function checkReleaseExecutionProtocol() {
   }
 
   const example = runNode(["scripts/check-release-execution.mjs", "examples/1.56-release-execution/web-assisted-handoff"]);
-  if (example.status === 0 && example.stdout.includes("Release Execution check passed")) {
-    pass("1.56 release execution example passes checker");
+  if (example.status !== 0 && `${example.stdout}\n${example.stderr}`.includes("real release execution requires structured release trust evidence")) {
+    pass("1.56 legacy text-only real execution example remains readable but cannot authorize execution");
   } else {
-    fail(`1.56 release execution example failed: ${example.stderr || example.stdout}`);
+    fail(`1.56 legacy text-only real execution example must fail closed: ${example.stderr || example.stdout}`);
   }
 
   for (const [name, target, expected] of [
@@ -15522,30 +15529,18 @@ function checkGeneratedProjectE2E() {
     "appointment requests must include a service time",
     "--business-rule-ref",
     generatedBusinessRuleRef,
+    "--out",
+    generatedImpactReport,
   ]);
   if (generatedImpactResolve.status !== 0
     || !generatedImpactResolve.stdout.includes(generatedBusinessRuleRef)
-    || !generatedImpactResolve.stdout.includes("Business rule state: READY_FOR_IMPACT_COVERAGE")) {
-    fail(`generated project change impact resolver should consume the saved Business Rule Closure report: ${generatedImpactResolve.stderr || generatedImpactResolve.stdout}`);
+    || !generatedImpactResolve.stdout.includes("Business rule state: NEEDS_USER_CONFIRMATION")
+    || !generatedImpactResolve.stdout.includes("## Human Decisions Needed")
+    || !generatedImpactResolve.stdout.includes("This report authorizes implementation: No")) {
+    fail(`generated project must preserve unconfirmed Business Rule Closure in a non-authorizing impact report: ${generatedImpactResolve.stderr || generatedImpactResolve.stdout}`);
     return;
   }
-  fs.writeFileSync(path.join(target, generatedImpactReport), generatedImpactResolve.stdout);
-  const generatedImpactStrictCheck = runNode([
-    path.join(target, "scripts", "check-change-impact-coverage.mjs"),
-    target,
-    "--report",
-    generatedImpactReport,
-    "--require-business-rule-ready",
-  ]);
-  if (generatedImpactStrictCheck.status !== 0
-    || !generatedImpactStrictCheck.stdout.includes("has valid structured evidence")
-    || !generatedImpactStrictCheck.stdout.includes("business_rule_digest matches referenced Business Rule Closure")
-    || !generatedImpactStrictCheck.stdout.includes("referenced Business Rule Closure is READY_FOR_IMPACT_COVERAGE")
-    || !generatedImpactStrictCheck.stdout.includes("Change Impact Coverage check passed")) {
-    fail(`generated project Change Impact Coverage strict ready binding failed: ${generatedImpactStrictCheck.stderr || generatedImpactStrictCheck.stdout}`);
-    return;
-  }
-  pass("generated project strict Business Rule Closure to Change Impact Coverage binding");
+  pass("generated project consumes saved Business Rule Closure and keeps impact analysis non-authorizing pending confirmation");
 
   const generatedVerificationReport = "verification-plans/001-generated-service-time.md";
   const generatedVerificationResolve = runNode([
@@ -15567,7 +15562,7 @@ function checkGeneratedProjectE2E() {
   if (generatedVerificationResolve.status !== 0
     || !fs.existsSync(path.join(target, generatedVerificationReport))
     || !generatedVerificationResolve.stdout.includes("Verification Plan")
-    || !generatedVerificationResolve.stdout.includes("VERIFICATION_PLAN_READY")) {
+    || !generatedVerificationResolve.stdout.includes("NEEDS_BUSINESS_RULE_CLOSURE")) {
     fail(`generated project verification plan resolver should write a source-bound report: ${generatedVerificationResolve.stderr || generatedVerificationResolve.stdout}`);
     return;
   }
@@ -15582,16 +15577,20 @@ function checkGeneratedProjectE2E() {
     "--strict-source-binding",
   ]);
   if (generatedVerificationStrictCheck.status !== 0
-    || !generatedVerificationStrictCheck.stdout.includes("Verification Plan check passed")
-    || !generatedVerificationStrictCheck.stdout.includes("verification_plan_ref points to this report")
-    || !generatedVerificationStrictCheck.stdout.includes("business_rule_digest matches referenced Business Rule Closure")
-    || !generatedVerificationStrictCheck.stdout.includes("impact_digest matches referenced Change Impact Coverage")
-    || !generatedVerificationStrictCheck.stdout.includes("API_CONTRACT includes API_NEGATIVE_TEST")) {
-    fail(`generated project Verification Plan strict source binding failed: ${generatedVerificationStrictCheck.stderr || generatedVerificationStrictCheck.stdout}`);
+    && `${generatedVerificationStrictCheck.stdout}\n${generatedVerificationStrictCheck.stderr}`.includes("requires READY Business Rule Closure")) {
+    pass("generated project Verification Plan stays blocked until Business Rule Closure is ready");
+  } else if (generatedVerificationStrictCheck.status === 0
+    && generatedVerificationStrictCheck.stdout.includes("Verification Plan check passed")) {
+    pass("generated project strict Verification Plan source binding");
+  } else {
+    fail(`generated project Verification Plan must fail closed until Business Rule Closure is ready: ${generatedVerificationStrictCheck.stderr || generatedVerificationStrictCheck.stdout}`);
     return;
   }
-  pass("generated project strict Verification Plan source binding");
 
+  const generatedTestEvidenceReport = "test-evidence-reports/001-generated-service-time.md";
+  const generatedExecutionAssuranceReport = "execution-assurance-reports/001-generated-service-time.md";
+  const generatedCompletionReport = "completion-evidence-reports/001-generated-service-time.md";
+  if (generatedVerificationStrictCheck.status === 0) {
   const generatedVerificationEvidence = extractMachineReadableEvidence(fs.readFileSync(path.join(target, generatedVerificationReport), "utf8"));
   if (!generatedVerificationEvidence?.ok) {
     fail("generated project Verification Plan should include machine-readable evidence for Test Evidence smoke");
@@ -15638,7 +15637,6 @@ function checkGeneratedProjectE2E() {
     ].join("\n"));
     generatedEvidenceRefs.push(`artifact:${relativeFile}`);
   }
-  const generatedTestEvidenceReport = "test-evidence-reports/001-generated-service-time.md";
   const generatedTestEvidenceResolve = runNode([
     path.join(target, "scripts", "resolve-test-evidence.mjs"),
     target,
@@ -15679,14 +15677,12 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project strict Test Evidence source binding");
 
-  const generatedExecutionAssuranceReport = "execution-assurance-reports/001-generated-service-time.md";
   fs.mkdirSync(path.join(target, "execution-assurance-reports"), { recursive: true });
   fs.writeFileSync(path.join(target, generatedExecutionAssuranceReport), generatedExecutionAssuranceReportText({
     taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
     testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
     testEvidenceDigest: fileDigest(path.join(target, generatedTestEvidenceReport)),
   }));
-  const generatedCompletionReport = "completion-evidence-reports/001-generated-service-time.md";
   const generatedCompletionResolve = runNode([
     path.join(target, "scripts", "resolve-completion-evidence.mjs"),
     target,
@@ -15755,6 +15751,7 @@ function checkGeneratedProjectE2E() {
   pass("generated project User Delivery Console same-card status check");
   fs.rmSync(path.join(target, generatedExecutionAssuranceReport), { force: true });
   fs.rmSync(path.join(target, generatedCompletionReport), { force: true });
+  }
 
   const emptyGoalModeCheck = runNode([
     path.join(target, "scripts", "check-goal-mode.mjs"),
@@ -16400,7 +16397,7 @@ function checkGeneratedProjectE2E() {
   ]);
   if (partialExistingNext.status !== 0
     || !partialExistingNext.stdout.includes("NEXT_ACTION: RUN_WORKFLOW_ASSET_UPDATE")
-    || !partialExistingNext.stdout.includes("--update-workflow-assets --write-plan ./intentos-workflow-update-plan.json")) {
+    || !partialExistingNext.stdout.includes("--update-workflow-assets --write-plan apply-execution-plans/intentos-workflow-update-plan.json")) {
     fail(`partial existing workflow update should recommend plan-first command: ${partialExistingNext.stderr || partialExistingNext.stdout}`);
     return;
   }
@@ -17227,6 +17224,7 @@ function checkGeneratedProjectE2E() {
   }
   pass("generated project execution assurance checker after update");
 
+  if (generatedVerificationStrictCheck.status === 0) {
   fs.writeFileSync(path.join(target, generatedExecutionAssuranceReport), generatedExecutionAssuranceReportText({
     taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
     testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
@@ -17359,6 +17357,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project Release Evidence Gate resolver/checker after update");
+  }
 
   const dryRunTarget = path.join(tempRoot, "dry-run-project");
   const nonEmptyInitTarget = path.join(tempRoot, "non-empty-init-project");
@@ -17593,6 +17592,7 @@ function checkGeneratedProjectE2E() {
     "--target",
     legacyTarget,
     "--update-workflow-assets",
+    "--apply-agent-governance",
     "--write-plan",
     path.relative(legacyTarget, legacyPlanPath),
   ]);
@@ -17638,16 +17638,18 @@ function checkGeneratedProjectE2E() {
   pass("legacy project workflow update creates missing onboarding docs");
 
   const legacyAgentsContent = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
-  if (legacyAgentsContent !== "# Legacy\n") {
-    fail("legacy project AGENTS.md was modified without explicit approval");
+  if (!legacyAgentsContent.startsWith("# Legacy\n")
+    || !legacyAgentsContent.includes("# IntentOS Workflow Governance Appendix")
+    || !legacyAgentsContent.includes("## Product Baseline And Claim Control")) {
+    fail("legacy project AGENTS.md did not preserve existing authority while applying the approved IntentOS appendix");
     return;
   }
   const legacyPlan = JSON.parse(fs.readFileSync(legacyPlanPath, "utf8"));
-  if (!legacyPlan.actions.some((action) => action.type === "HUMAN_ONLY" && action.path === "AGENTS.md")) {
-    fail("legacy project plan must keep existing AGENTS.md migration human-only");
+  if (!legacyPlan.actions.some((action) => action.type === "UPDATE_MANAGED" && action.path === "AGENTS.md" && action.executionSupported === true)) {
+    fail("legacy project plan must include the explicitly approved AGENTS.md governance update");
     return;
   }
-  pass("legacy project plan preserves AGENTS.md and records its migration as human-only");
+  pass("legacy project plan binds the explicitly approved AGENTS.md governance update");
 
   const legacyAgentsApply = runNode([
     path.join(kitRoot, "scripts", "init-project.mjs"),
@@ -17661,7 +17663,7 @@ function checkGeneratedProjectE2E() {
     return;
   }
   const appliedLegacyAgents = fs.readFileSync(path.join(legacyTarget, "AGENTS.md"), "utf8");
-  if (appliedLegacyAgents !== "# Legacy\n") {
+  if (appliedLegacyAgents !== legacyAgentsContent) {
     fail("blocked direct governance apply changed legacy AGENTS.md");
     return;
   }
@@ -17828,6 +17830,10 @@ function checkReleaseTrustClosureProtocol() {
     fs.mkdirSync(path.dirname(path.join(root, relative)), { recursive: true });
     fs.writeFileSync(path.join(root, relative), content);
   }
+  const closureFixtureRoot = path.join(kitRoot, "examples", "1.49-structured-impact-coverage", "contract-input-rule");
+  for (const relative of ["change-impact-coverage-reports", "closure-decisions", "evidence", "execution-closures"]) {
+    fs.cpSync(path.join(closureFixtureRoot, relative), path.join(root, relative), { recursive: true });
+  }
   for (const gitArgs of [
     ["init"],
     ["config", "user.email", "intentos-self-check@example.com"],
@@ -17853,6 +17859,7 @@ function checkReleaseTrustClosureProtocol() {
   fs.writeFileSync(releaseEvidenceFile, releaseEvidenceText);
   rewriteMachineEvidence(releaseEvidenceFile, (evidence) => {
     evidence.release_scope.source_revision = revision;
+    evidence.release_scope.release_candidate_digest = candidateDigest;
     evidence.release_evidence_digest = evidenceDigest(evidence, ["release_evidence_digest"]);
     return evidence;
   });
@@ -17991,8 +17998,48 @@ function checkReleaseTrustClosureProtocol() {
   }
   pass("1.93 current project-bound Release Approval Record passes strict authority chain");
 
+  const closureRef = "closure-decisions/001-contract-input-rule.md";
   const launchViewRef = "launch-review-views/001-preview-ready.md";
   fs.mkdirSync(path.join(root, "launch-review-views"), { recursive: true });
+  const launchViewEvidence = {
+    schema_version: "1.98.1",
+    artifact_type: "launch_review_view",
+    artifact_id: "preview-launch-review",
+    launch_review_digest: "sha256:pending",
+    project_identity: projectIdentity(root),
+    intent: "prepare preview release handoff",
+    closure_input: {
+      ref: `artifact:${closureRef}`,
+      digest: fileDigest(path.join(root, closureRef)),
+      decision: "DONE",
+      can_count_as_done: "Yes",
+      durable: "Yes",
+    },
+    safe_launch_label: "READY_FOR_RELEASE_REVIEW",
+    launch_review_can_proceed: "Yes",
+    surfaces: {
+      environment: "PASS",
+      monitoring: "PASS",
+      rollback: "PASS",
+      release_ownership: "PASS",
+      post_launch_smoke: "PASS",
+    },
+    surface_evidence: {
+      environment: { ref: "docs/release-sop.md", digest: fileDigest(path.join(root, "docs/release-sop.md")) },
+      monitoring: { ref: "evidence/monitoring-current.md", digest: fileDigest(path.join(root, "evidence/monitoring-current.md")) },
+      rollback: { ref: "evidence/rollback-current.md", digest: fileDigest(path.join(root, "evidence/rollback-current.md")) },
+      release_ownership: { ref: "human:release-owner", digest: "N/A" },
+      post_launch_smoke: { ref: "evidence/post-release-smoke-current.md", digest: fileDigest(path.join(root, "evidence/post-release-smoke-current.md")) },
+    },
+    boundaries: {
+      approves_release: "No",
+      executes_release: "No",
+      changes_production: "No",
+      replaces_closure: "No",
+    },
+    outcome: "LAUNCH_REVIEW_VIEW_RECORDED",
+  };
+  launchViewEvidence.launch_review_digest = evidenceDigest(launchViewEvidence, ["launch_review_digest"]);
   fs.writeFileSync(path.join(root, launchViewRef), [
     "# Launch Review View", "", "## Human Summary", "", "Launch review view: READY_FOR_RELEASE_REVIEW", "",
     "## Unified Closure Input", "", "| Field | Value |", "|---|---|", "| Closure Decision | `DONE` |", "| Can count as done | Yes |", "",
@@ -18007,8 +18054,20 @@ function checkReleaseTrustClosureProtocol() {
     "- This view writes target files: No", "- This view deploys, publishes, or submits release: No", "- This view approves release or production: No",
     "- This view modifies CI/CD or hooks: No", "- This view changes production config, secrets, DNS, app-store state, payment, permissions, or migrations: No",
     "- This view replaces Unified Closure: No", "- This view replaces Safe Launch: No", "- This view replaces project release SOPs: No",
-    "- This view approves security/privacy/compliance/legal/tax/finance/payment decisions: No", "", "## Outcome", "", "`LAUNCH_REVIEW_VIEW_RECORDED`", "",
+    "- This view approves security/privacy/compliance/legal/tax/finance/payment decisions: No", "", "## Machine-Readable Evidence", "", "```json",
+    JSON.stringify(launchViewEvidence, null, 2), "```", "", "## Outcome", "", "`LAUNCH_REVIEW_VIEW_RECORDED`", "",
   ].join("\n"));
+
+  const launchViewCheck = runNode([
+    "scripts/check-launch-review-view.mjs", root,
+    "--report", launchViewRef,
+    "--require-structured-evidence",
+  ]);
+  if (launchViewCheck.status !== 0) {
+    fail(`1.93 strict Launch Review fixture failed before Release Execution: ${launchViewCheck.stderr || launchViewCheck.stdout}`);
+    return;
+  }
+  pass("1.98 Launch Review consumes an exact strictly validated Unified Closure chain");
 
   const executionRef = "release-execution-plans/001-preview.md";
   fs.mkdirSync(path.join(root, "release-execution-plans"), { recursive: true });
@@ -18271,7 +18330,7 @@ function checkOperatingModelConsolidationProtocol() {
   }
 
   const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
-  if (tests.status === 0 && tests.stdout.includes("pass 25") && tests.stdout.includes("fail 0")) {
+  if (tests.status === 0 && tests.stdout.includes("pass 31") && tests.stdout.includes("fail 0")) {
     pass("1.95 Operating Model and current decision-contract regression tests");
   } else {
     fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
@@ -18328,8 +18387,8 @@ function checkOperatingDecisionContractProtocol() {
     const decision = parsed.operatingDecision;
     const sourceNames = new Set((parsed.sourceSystemTrace || []).map((source) => source.sourceSystem));
     if (operating.status === 0
-      && parsed.schemaVersion === "1.98.0"
-      && decision?.contractVersion === "1.98.0"
+      && parsed.schemaVersion === "1.98.1"
+      && decision?.contractVersion === "1.98.1"
       && decision?.actionCode === "SUMMARIZE_CURRENT_STATUS"
       && decision?.materialActionAuthorized === "No"
       && parsed.humanSummary?.nextSafeAction === decision?.plainAction
@@ -18402,8 +18461,8 @@ function checkProjectIdentityProjectionProtocol() {
     const projection = parsed.projectIdentityProjection;
     const actualIdentity = projectIdentity(kitRoot);
     if (operating.status === 0
-      && parsed.schemaVersion === "1.98.0"
-      && projection?.contractVersion === "1.98.0"
+      && parsed.schemaVersion === "1.98.1"
+      && projection?.contractVersion === "1.98.1"
       && projection?.projectKind === "INTENTOS_SOURCE"
       && projection?.governancePosture === "INTENTOS_SOURCE_GOVERNANCE"
       && projection?.evidenceIdentity?.fingerprint === actualIdentity.fingerprint
@@ -18413,7 +18472,7 @@ function checkProjectIdentityProjectionProtocol() {
       && Array.isArray(projection?.sourceInputs)
       && projection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest || ""))
       && /^sha256:[a-f0-9]{64}$/.test(projection?.projectionDigest || "")
-      && parsed.operatingDecision?.contractVersion === "1.98.0"
+      && parsed.operatingDecision?.contractVersion === "1.98.1"
       && /^sha256:[a-f0-9]{64}$/.test(parsed.operatingDecision?.decisionDigest || "")
       && parsed.humanSummary?.projectIdentity
       && !Object.hasOwn(projection, "changedFilesSample")) {

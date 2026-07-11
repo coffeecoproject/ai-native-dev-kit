@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.98.0`
+Current version: `1.98.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.98.0`
 
 ## Current Release
 
-`1.98.0`
+`1.98.1`
 
 Includes:
+
+- Trust Review Close-Out `1.98.1`: binds public completion to one durable
+  Work Queue task, current Completion Evidence, exact Closure task, and current
+  Git business content; hardens migration plan paths, installed-version
+  matching, agent-entry preservation, transactional backup/rollback/Receipt,
+  and bounded source hashing.
+- `1.98.1` also requires structured project-bound Launch Review before release
+  execution, rejects blocked release channels, verifies actual IntentOS-aware
+  agent activation for full adoption, enforces complete profile baseline packs,
+  and aligns generated CLI/version/distribution assets. It grants no new
+  implementation, apply, release, or production authority.
 
 - Execution And Distribution Trust Hardcut `1.98.0`: public work routing now
   fails closed on queue conflict, paused-task resume, unknown code behavior,

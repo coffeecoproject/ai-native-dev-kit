@@ -155,7 +155,8 @@ if (!outputJson) {
 }
 
 if (reports.length === 0) {
-  pass("baseline pack selection check skipped: no reports");
+  if (strict) fail("strict baseline pack selection requires at least one report");
+  else pass("baseline pack selection check skipped: no reports");
 } else {
   for (const file of reports) validateReport(file);
 }
@@ -177,4 +178,3 @@ if (!outputJson) {
   if (pending) console.log("Baseline pack selection has pending decisions.");
   else console.log("Baseline pack selection check passed.");
 }
-

@@ -100,7 +100,9 @@ function checkReceipt(file) {
   if (receipt.readiness_report.evidence_digest === evidenceDigest(readiness, [])) pass(`${relative} readiness evidence digest matches`);
   else fail(`${relative} readiness evidence digest mismatch`);
 
+  const actionFailuresBefore = failures;
   checkActionSet(receipt, plan, relative);
+  if (failures > actionFailuresBefore) return;
   checkActivation(receipt, plan, relative);
 }
 
@@ -185,11 +187,16 @@ function checkActivation(receipt, plan, label) {
     fail(`${label} installed workflow-next entry is missing`);
     return;
   }
+  if (!matchesApprovedPlanTarget(plan, "scripts/workflow-next.mjs")) {
+    fail(`${label} installed workflow-next does not match the approved plan action`);
+    return;
+  }
   const before = gitWorktreeState(projectRoot);
   const result = spawnSync(process.execPath, [workflowNext, projectRoot, "--json"], {
     cwd: projectRoot,
     encoding: "utf8",
     maxBuffer: 1024 * 1024 * 20,
+    timeout: 30000,
   });
   const after = gitWorktreeState(projectRoot);
   let current = null;
@@ -229,26 +236,42 @@ function runCurrentBaselineCheck(plan, label) {
     fail(`${label} installed baseline checker is missing`);
     return;
   }
+  if (!matchesApprovedPlanTarget(plan, "scripts/check-baseline-installation.mjs")) {
+    fail(`${label} installed baseline checker does not match the approved plan action`);
+    return;
+  }
   const baseline = spawnSync(process.execPath, [
     baselineChecker,
     projectRoot,
     "--require-selection",
     "--allow-pending-receipt",
-  ], { cwd: projectRoot, encoding: "utf8", maxBuffer: 1024 * 1024 * 20 });
+  ], { cwd: projectRoot, encoding: "utf8", maxBuffer: 1024 * 1024 * 20, timeout: 30000 });
   if (baseline.status === 0) pass(`${label} current baseline installation remains structurally valid`);
   else fail(`${label} current baseline installation is invalid`);
 
   if (plan.arguments.baselineLevel !== "BL2_INDUSTRIAL") return;
   const industrialChecker = path.join(projectRoot, "scripts", "check-industrial-baseline.mjs");
+  if (fs.existsSync(industrialChecker) && !matchesApprovedPlanTarget(plan, "scripts/check-industrial-baseline.mjs")) {
+    fail(`${label} installed industrial checker does not match the approved plan action`);
+    return;
+  }
   const industrial = fs.existsSync(industrialChecker)
     ? spawnSync(process.execPath, [industrialChecker, projectRoot, "--strict"], {
       cwd: projectRoot,
       encoding: "utf8",
       maxBuffer: 1024 * 1024 * 20,
+      timeout: 30000,
     })
     : { status: 1 };
   if (industrial.status === 0) pass(`${label} current BL2 industrial evidence remains valid`);
   else fail(`${label} current BL2 industrial evidence is invalid`);
+}
+
+function matchesApprovedPlanTarget(plan, relativePath) {
+  const action = (plan.actions || []).find((item) => item.path === relativePath);
+  if (!action?.expectedHashAfter) return false;
+  const fullPath = path.join(projectRoot, relativePath);
+  return canonicalFileDigest(fullPath) === action.expectedHashAfter;
 }
 
 function resolveLocal(fromFile, reference, label) {

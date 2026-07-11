@@ -112,6 +112,7 @@ const forbiddenClaims = [
 
 let failed = false;
 const checks = [];
+const reports = [];
 
 if (!outputJson) {
   console.log("# Completion Evidence Gate Check");
@@ -216,6 +217,13 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
+  reports.push({
+    ref: `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`,
+    taskRef: evidence.task_ref,
+    intentDigest: evidence.intent_digest,
+    completionState: evidence.completion_state,
+    canClaimComplete: evidence.can_claim_complete,
+  });
   checkEvidenceAuthority(label, file, evidence);
   checkSummary(content, label, evidence);
   checkStructuredEvidence(label, file, evidence);
@@ -636,7 +644,7 @@ function fail(message) {
 
 function emitAndExit() {
   if (outputJson) {
-    process.stdout.write(`${JSON.stringify({ ok: !failed, checks }, null, 2)}\n`);
+    process.stdout.write(`${JSON.stringify({ ok: !failed, reports, checks }, null, 2)}\n`);
   } else if (!failed) {
     console.log("");
     console.log("Completion Evidence Gate check passed.");

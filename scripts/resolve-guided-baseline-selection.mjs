@@ -175,7 +175,7 @@ function hasAny(rels, needles) {
 
 function detectProfiles(rels, packageText) {
   const profiles = [];
-  if (rels.has("index.html") || rels.has("vite.config.ts") || rels.has("vite.config.js") || rels.has("next.config.js") || rels.has("next.config.mjs") || /react|next|vue|vite|svelte|solid-js|@angular/i.test(packageText)) {
+  if (rels.has("index.html") || rels.has("vite.config.ts") || rels.has("vite.config.js") || rels.has("next.config.js") || rels.has("next.config.mjs") || /"(?:react|next|vue|vite|svelte|solid-js|@angular\/[^"\\]+)"\s*:/i.test(packageText)) {
     profiles.push(profile("web-app", "Web app signals found."));
   }
   if (rels.has("project.config.json") || rels.has("app.json") || rels.has("miniprogram") || rels.has("cloudfunctions")) {

@@ -133,7 +133,7 @@ function buildOperatingState() {
 
   return {
     reportType: "INTENTOS_OPERATING_STATE",
-    schemaVersion: "1.98.0",
+    schemaVersion: "1.98.1",
     generatedBy: "scripts/resolve-operating-loop.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -200,8 +200,11 @@ function addOperationSources(sources, operation) {
     sources.push(runSource("USER_DELIVERY_CONSOLE", "scripts/resolve-user-delivery-console.mjs", [projectRoot, "--intent", intent, "--json"]));
   }
   if (operation === "FINISH_TASK") {
+    const currentQueueTask = sources.find((item) => item.name === "WORK_QUEUE")?.value?.currentTaskCandidates?.[0] || null;
+    const effectiveTaskRef = taskRef || currentQueueTask?.taskRef || currentQueueTask?.taskId || "";
     const closureArgs = [projectRoot, "--intent", intent, "--json"];
-    if (taskRef) closureArgs.push("--task", taskRef);
+    if (effectiveTaskRef) closureArgs.push("--task", effectiveTaskRef);
+    if (currentQueueTask?.intentDigest) closureArgs.push("--intent-digest", currentQueueTask.intentDigest);
     for (const flag of ["verification", "impact-report", "execution-closure", "guided-closure", "human-decision"]) {
       if (args[flag]) closureArgs.push(`--${flag}`, String(args[flag]));
     }
@@ -213,6 +216,7 @@ function addOperationSources(sources, operation) {
       "--require-structured-evidence",
       "--require-source-refs",
       "--require-ready",
+      "--require-evidence-authority",
     ];
     if (args["completion-evidence"]) completionArgs.push("--report", String(args["completion-evidence"]));
     sources.push(runGateSource("COMPLETION_EVIDENCE", "scripts/check-completion-evidence.mjs", completionArgs));
@@ -310,13 +314,26 @@ function runGateSource(name, script, childArgs) {
 
 function operationFor(value, projectEntry) {
   const text = String(value || "").toLowerCase();
+  const existingEntry = ["EXISTING_PROJECT_ENTRY", "GOVERNED_PROJECT_ENTRY", "PRODUCTION_SENSITIVE_ENTRY"].includes(projectEntry);
+  const negatedNewProject = /(?:不是|并非|不属于)新项目|\b(?:not|isn['’]?t)\s+(?:a\s+)?new project\b/.test(text);
+  const explicitNewProject = !negatedNewProject && /新项目|从\s*0|从零|\bnew project\b|\bfrom scratch\b/.test(text);
+  const implementationSignal = /(?:新增|增加|修改|调整|实现|开发|修复|重构|加入|添加)|\b(?:add|change|implement|build|fix|refactor|create)\b/.test(text);
+  const releaseSignal = /(?:发布|上线|提交审核)|\b(?:release|deployment|deploy|publish)\b/.test(text);
   if (/(?:接入|采用|迁移到|切换到|整合|按照|按).{0,20}intentos|intentos.{0,20}(?:接入|采用|迁移|工作模式|工作)|\b(?:adopt|migrate|connect).{0,24}\bintentos\b|\bwork under intentos\b/.test(text)) return "ADOPT_PROJECT";
-  if (/\b(?:just|only)\s+(?:discuss|review|talk)\b|\bdo not (?:implement|change|edit|write)\b|只(?:讨论|沟通|评审)|先(?:讨论|沟通)|不要(?:实现|修改|写代码)/.test(text)) return "DISCUSS_ONLY";
+  const globalNoWrite = /\bdo not (?:implement|change|edit|write)(?:\s+(?:anything|any files?|code|the project))?\b|不要(?:实现|改代码|写代码|修改任何|改任何)/.test(text);
+  if (globalNoWrite || (!implementationSignal && /^\s*(?:\b(?:just|only)\s+(?:discuss|review|talk)\b|只(?:讨论|沟通|评审)|先(?:讨论|沟通)(?:一下)?(?:，|,|。|\s|$))/.test(text))) return "DISCUSS_ONLY";
   if (/\bresume\b|\bcontinue the paused\b|恢复.{0,12}(?:暂停|任务)|继续.{0,12}暂停/.test(text)) return "RESUME_TASK";
   if (/(?:任务|这个|这项|工作).{0,12}(?:做完|完成).{0,6}(?:吗|没有|了没|\?|？)|(?:能否|是否|可以).{0,12}(?:算|视为|认为)?(?:做完|完成|收口)|\b(?:is|can|has).{0,24}(?:done|finished|complete|close[ -]?out)\b/.test(text)) return "FINISH_TASK";
+  if (implementationSignal && /(?:检查|查看).{0,12}(?:进度|状态)|\b(?:check|show|review).{0,24}\b(?:status|progress)\b/.test(text)) return "CONTINUE_TASK";
   if (/(?:查看|检查|告诉我|当前|现在|请问).{0,20}(?:进度|做到哪|完成情况|任务状态|项目状态)|(?:进度|任务状态|项目状态).{0,8}(?:如何|怎样|是什么|吗|\?|？)|\b(?:check|show|review|what is|where are we).{0,24}\b(?:status|progress)\b/.test(text)) return "CHECK_STATUS";
+  if (releaseSignal && implementationSignal) return "CONTINUE_TASK";
   if (/(?:准备|开始|执行|安排|帮我|我要|需要|可以|怎么|如何).{0,16}(?:发布|上线|提交审核)|(?:发布|上线).{0,12}(?:准备|计划|流程|执行|审核)|\b(?:prepare|start|perform|how to|ready for).{0,16}\b(?:release|deployment|publish)\b/.test(text)) return "PREPARE_RELEASE";
-  if (/新项目|从\s*0|从零|\bnew project\b|\bbuild.{0,40}from scratch\b|\bi want to build\b|\bstart this project\b|(?:我想|帮我|请).{0,8}(?:创建|搭建|开发|做一个).{0,24}(?:app|应用|网站|系统)(?:\s|$|[，。,.!?！？])/.test(text)) return "START_PROJECT";
+  const startSignal = explicitNewProject
+    || /\bbuild.{0,40}from scratch\b|\bi want to build\b|\bstart this project\b|(?:我想|帮我|请).{0,8}(?:创建|搭建|开发|做一个).{0,24}(?:app|应用|网站|系统)(?:\s|$|[，。,.!?！？])/.test(text);
+  if (startSignal) return existingEntry && !explicitNewProject ? "CONTINUE_TASK" : "START_PROJECT";
+  if (projectEntry === "NEW_PROJECT_ENTRY") {
+    return fs.existsSync(path.join(projectRoot, ".intentos", "version.json")) ? "CONTINUE_TASK" : "START_PROJECT";
+  }
   return "CONTINUE_TASK";
 }
 
@@ -360,18 +377,23 @@ function readProjectEntryOrigin(root) {
 function operatingStateFor(context) {
   if (!intent) return "NEEDS_GOAL";
   if (context.sourceFailure) return "BLOCKED_BY_SOURCE_FAILURE";
-  if ((context.workQueue?.currentTaskCount || 0) > 1) return "BLOCKED_BY_WORK_QUEUE";
-  if (context.discussionOnly) return "DISCUSSION_ONLY";
-  if (context.resumeRequested) return "NEEDS_RESUME_REVIEW";
   if (context.dirtyWorktree && ["START_PROJECT", "CONTINUE_TASK"].includes(context.operation)) {
     return "NEEDS_CURRENT_WORK_REVIEW";
   }
+  const queueState = workQueueStateFor(context);
+  if (queueState === "AMBIGUOUS") return "BLOCKED_BY_WORK_QUEUE";
+  if (queueState === "INTENT_MISMATCH") return "NEEDS_TASK_SWITCH_REVIEW";
+  if (queueState === "MISSING_OR_MISMATCHED") return "NEEDS_WORK_QUEUE";
+  if (context.discussionOnly) return "DISCUSSION_ONLY";
+  if (context.resumeRequested) return "NEEDS_RESUME_REVIEW";
   if (context.operation === "START_PROJECT") return "READY_FOR_PROJECT_PLAN";
   if (context.operation === "CHECK_STATUS") return "STATUS_AVAILABLE";
   if (context.operation === "ADOPT_PROJECT") return "ADOPTION_REVIEW_ACTIVE";
   if (context.operation === "PREPARE_RELEASE") return "RELEASE_REVIEW_ONLY";
   if (context.operation === "FINISH_TASK") {
-    return context.closure?.closureDecision?.decision === "DONE" && context.completionEvidence?.ok === true
+    return context.closure?.closureDecision?.decision === "DONE"
+      && context.completionEvidence?.ok === true
+      && completionMatchesCurrentTask(context)
       ? "READY_TO_REPORT_DONE"
       : "NOT_DONE";
   }
@@ -381,6 +403,64 @@ function operatingStateFor(context) {
   if (!ready) return "NEEDS_GOVERNANCE_EVIDENCE";
   if (context.productionSensitive) return "READY_FOR_PROJECT_GOVERNED_WORK_REVIEW";
   return impact === "LOW" ? "READY_FOR_LIGHTWEIGHT_WORK_REVIEW" : "READY_FOR_IMPLEMENTATION_REVIEW";
+}
+
+function workQueueStateFor(context) {
+  if (!new Set(["CONTINUE_TASK", "FINISH_TASK"]).has(context.operation)) return "NOT_REQUIRED";
+  const queue = context.workQueue;
+  if (!queue || queue.currentTaskCount !== 1) return queue?.currentTaskCount > 1 ? "AMBIGUOUS" : "MISSING_OR_MISMATCHED";
+  if ((queue.queueInventory?.queueReportCount || 0) < 1) return "MISSING_OR_MISMATCHED";
+  const current = Array.isArray(queue.currentTaskCandidates) ? queue.currentTaskCandidates[0] : null;
+  if (taskRef && current?.taskRef !== taskRef && current?.source !== taskRef && current?.taskId !== taskRef) return "MISSING_OR_MISMATCHED";
+  if (!taskRef && context.operation === "CONTINUE_TASK" && clearlyDifferentTaskIntent(intent, current)) return "INTENT_MISMATCH";
+  return "READY";
+}
+
+function clearlyDifferentTaskIntent(currentIntent, currentTask) {
+  const request = String(currentIntent || "").trim();
+  const title = String(currentTask?.title || "").trim();
+  if (!request || !title || /^(?:current\s+)?test\s+task$/i.test(title)) return false;
+  if (/(?:继续|接着|完成当前|这个任务|刚才|恢复).{0,12}(?:任务|工作|处理)?|\b(?:continue|resume|finish)\b.{0,24}\b(?:current|this|previous)?\s*(?:task|work)?\b/i.test(request)) return false;
+  const requestTerms = meaningfulIntentTerms(request);
+  const taskTerms = meaningfulIntentTerms(`${title} ${currentTask?.taskRef || ""}`);
+  if (requestTerms.size < 1 || taskTerms.size < 1) return false;
+  return ![...requestTerms].some((term) => taskTerms.has(term));
+}
+
+function meaningfulIntentTerms(value) {
+  const text = String(value || "").toLowerCase();
+  const ignored = new Set([
+    "app", "current", "task", "work", "change", "update", "modify", "fix", "add", "new",
+    "当前", "任务", "工作", "处理", "继续", "接着", "完成", "修改", "新增", "增加", "功能", "问题", "项目", "开始", "进行",
+  ]);
+  const terms = new Set(
+    (text.match(/[a-z0-9][a-z0-9_-]{2,}/g) || [])
+      .map((term) => term.replace(/\.(?:md|json|js|ts|tsx|jsx)$/i, ""))
+      .filter((term) => !ignored.has(term)),
+  );
+  for (const segment of text.match(/[\u3400-\u9fff]{2,}/g) || []) {
+    for (let index = 0; index < segment.length - 1; index += 1) {
+      const term = segment.slice(index, index + 2);
+      if (!ignored.has(term)) terms.add(term);
+    }
+  }
+  return terms;
+}
+
+function completionMatchesCurrentTask(context) {
+  const reports = Array.isArray(context.completionEvidence?.reports) ? context.completionEvidence.reports : [];
+  if (reports.length !== 1) return false;
+  const current = Array.isArray(context.workQueue?.currentTaskCandidates)
+    ? context.workQueue.currentTaskCandidates[0]
+    : null;
+  const expected = taskRef || current?.taskRef || current?.taskId || current?.source || "";
+  if (!expected || reports[0].taskRef !== expected) return false;
+  const closureTaskInput = (context.closure?.decisionInputs || []).find((item) => item.input === "Task intent") || {};
+  if (closureTaskInput.ref !== expected) return false;
+  const expectedIntentDigest = current?.intentDigest || "";
+  if (!expectedIntentDigest || reports[0].intentDigest !== expectedIntentDigest || closureTaskInput.intentDigest !== expectedIntentDigest) return false;
+  return reports[0].completionState === "COMPLETION_EVIDENCE_READY"
+    && reports[0].canClaimComplete === "Yes";
 }
 
 function buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, closure, release, adoption) {
@@ -559,7 +639,7 @@ function buildProjectIdentityProjection(context) {
     selectedIndustrialPacks: arrayValue(workflow.selectedIndustrialPacks).sort(),
   };
   const digestPayload = {
-    contractVersion: "1.98.0",
+    contractVersion: "1.98.1",
     projectKind,
     entryState: context.projectEntry,
     governancePosture,
@@ -575,7 +655,7 @@ function buildProjectIdentityProjection(context) {
     sourceInputs,
   };
   return {
-    contractVersion: "1.98.0",
+    contractVersion: "1.98.1",
     derivedOnly: "Yes",
     grantsAuthority: "No",
     writesProjectFiles: "No",
@@ -689,7 +769,7 @@ function buildOperatingDecision(context) {
   const blockedBy = decisionBlockers(context);
   const humanDecision = humanDecisionFor(context, selected.actionCode);
   const digestPayload = {
-    contractVersion: "1.98.0",
+    contractVersion: "1.98.1",
     intentDigest: sha256(intent),
     projectRootDigest: sha256(projectRoot),
     taskRef: taskRef || "N/A",
@@ -706,7 +786,7 @@ function buildOperatingDecision(context) {
     sourceInputs,
   };
   return {
-    contractVersion: "1.98.0",
+    contractVersion: "1.98.1",
     derivedOnly: "Yes",
     actionCode: selected.actionCode,
     actionClass: selected.actionClass,
@@ -730,6 +810,8 @@ function selectOperatingAction(context) {
   if (context.operatingState === "NEEDS_GOAL") return action("REQUEST_GOAL", "USER_INPUT", "NEEDS_USER_INPUT", "GOAL_REQUIRED", false);
   if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return action("REVIEW_CURRENT_WORK", "READ_ONLY_REVIEW", "NEEDS_USER_INPUT", "DIRTY_WORKTREE_REVIEW_REQUIRED", true);
   if (context.operatingState === "BLOCKED_BY_WORK_QUEUE") return action("REPAIR_WORK_QUEUE", "BLOCKED_RECOVERY", "BLOCKED", "MULTIPLE_CURRENT_TASKS", true);
+  if (context.operatingState === "NEEDS_TASK_SWITCH_REVIEW") return action("REVIEW_TASK_SWITCH", "READ_ONLY_REVIEW", "NEEDS_USER_INPUT", "NEW_GOAL_DIFFERS_FROM_CURRENT_TASK", true);
+  if (context.operatingState === "NEEDS_WORK_QUEUE") return action("PREPARE_WORK_QUEUE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "CURRENT_TASK_RECORD_REQUIRED", true);
   if (context.operatingState === "DISCUSSION_ONLY") return action("DISCUSS_WITHOUT_EXECUTION", "DISCUSSION", "READY_TO_DISCUSS", "DISCUSSION_ONLY_REQUESTED", true);
   if (context.operatingState === "NEEDS_RESUME_REVIEW") return action("REVIEW_PAUSED_TASK", "READ_ONLY_REVIEW", "NEEDS_USER_INPUT", "PAUSED_TASK_REVIEW_REQUIRED", true);
   if (context.operation === "START_PROJECT") return action("PREPARE_PROJECT_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "PROJECT_PLAN_REQUIRED", true);
@@ -776,6 +858,8 @@ function decisionBlockers(context) {
   }
   if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return ["current worktree has uncommitted changes"];
   if (context.operatingState === "BLOCKED_BY_WORK_QUEUE") return ["Work Queue has more than one CURRENT task"];
+  if (context.operatingState === "NEEDS_TASK_SWITCH_REVIEW") return ["the new goal does not match the single CURRENT task"];
+  if (context.operatingState === "NEEDS_WORK_QUEUE") return ["one durable CURRENT Work Queue item matching this task is required"];
   if (context.operatingState === "NEEDS_RESUME_REVIEW") return ["paused task requires current-state, worktree, evidence, and resume review"];
   if (context.operation === "CONTINUE_TASK") return arrayValue(context.taskGovernance?.readiness?.blocked_by);
   if (context.operation === "FINISH_TASK" && context.operatingState !== "READY_TO_REPORT_DONE") {
@@ -800,6 +884,16 @@ function humanDecisionFor(context, actionCode) {
   if (actionCode === "REPAIR_WORK_QUEUE") return {
     required: true,
     prompt: zh ? "只能有一个当前任务。你希望继续哪一个目标？" : "Only one task can be current. Which goal should remain current?",
+  };
+  if (actionCode === "REVIEW_TASK_SWITCH") return {
+    required: true,
+    prompt: zh
+      ? "这个目标和当前任务不同。Codex 会先保留当前进度并整理切换建议，你只需确认先做哪一个。"
+      : "This goal differs from the current task. Codex will preserve current progress and prepare a switch recommendation; you only confirm which goal comes first.",
+  };
+  if (actionCode === "PREPARE_WORK_QUEUE") return {
+    required: false,
+    prompt: zh ? "Codex 会先建立或修复唯一的当前任务记录。" : "Codex should establish or repair the single current task record first.",
   };
   if (actionCode === "REVIEW_PAUSED_TASK") return {
     required: true,
@@ -835,6 +929,8 @@ function reasonFor(actionCode, blockers) {
     REQUEST_GOAL: "The Operating Model cannot select a safe route without a goal.",
     REVIEW_CURRENT_WORK: "The worktree contains uncommitted work that must be mapped before continuation.",
     REPAIR_WORK_QUEUE: `The Work Queue is ambiguous: ${firstBlocker}.`,
+    REVIEW_TASK_SWITCH: `The requested goal appears different from the current task: ${firstBlocker}.`,
+    PREPARE_WORK_QUEUE: `The Work Queue is not durably bound to the current task: ${firstBlocker}.`,
     DISCUSS_WITHOUT_EXECUTION: "The user explicitly requested discussion without implementation or project writes.",
     REVIEW_PAUSED_TASK: "Paused work requires a current-state, worktree, evidence, and human resume review.",
     PREPARE_PROJECT_PLAN: "The goal starts a project and requires a project plan and baseline recommendation.",
@@ -862,6 +958,8 @@ function plainActionFor(actionCode, language = "en") {
     REQUEST_GOAL: "告诉 Codex 你想做成什么。",
     REVIEW_CURRENT_WORK: "Codex 先只读梳理现有未提交改动，不覆盖也不丢弃。",
     REPAIR_WORK_QUEUE: "Codex 先整理任务队列，只保留一个当前任务，再继续。",
+    REVIEW_TASK_SWITCH: "Codex 先保留当前任务进度并整理任务切换建议，你只需确认先做哪一个。",
+    PREPARE_WORK_QUEUE: "Codex 先建立唯一的当前任务记录，再继续任务治理或收口。",
     DISCUSS_WITHOUT_EXECUTION: "Codex 只沟通和分析，不进入实现、不修改项目。",
     REVIEW_PAUSED_TASK: "Codex 先核对暂停任务的当前状态、改动和旧证据，再决定是否恢复。",
     PREPARE_PROJECT_PLAN: "Codex 先准备项目方案和技术基线建议，不要求你选择内部编号。",
@@ -885,6 +983,8 @@ function plainActionFor(actionCode, language = "en") {
     REQUEST_GOAL: "Tell Codex what outcome you want.",
     REVIEW_CURRENT_WORK: "Codex should inspect and map current uncommitted work without overwriting or discarding it.",
     REPAIR_WORK_QUEUE: "Codex should repair the queue so exactly one task remains current before continuing.",
+    REVIEW_TASK_SWITCH: "Codex should preserve the current task and prepare a task-switch recommendation; the user only confirms which goal comes first.",
+    PREPARE_WORK_QUEUE: "Codex should establish one durable current task record before task governance or close-out continues.",
     DISCUSS_WITHOUT_EXECUTION: "Codex should discuss and analyze only, without implementation or project writes.",
     REVIEW_PAUSED_TASK: "Codex should review current state, worktree, and prior evidence before resuming paused work.",
     PREPARE_PROJECT_PLAN: "Codex should prepare the project plan and technical baseline recommendation without asking for internal IDs.",
@@ -1035,6 +1135,8 @@ function plainStateFor(state, language = "en") {
     BLOCKED_BY_SOURCE_FAILURE: "读取失败，已经停止",
     NEEDS_CURRENT_WORK_REVIEW: "需要先确认当前未完成改动",
     BLOCKED_BY_WORK_QUEUE: "任务队列存在多个当前任务，已经停止",
+    NEEDS_TASK_SWITCH_REVIEW: "新目标和当前任务不同，需要先整理任务切换",
+    NEEDS_WORK_QUEUE: "需要先建立唯一的当前任务记录",
     DISCUSSION_ONLY: "只进行沟通和分析",
     NEEDS_RESUME_REVIEW: "恢复暂停任务前需要复核",
     READY_FOR_PROJECT_PLAN: "可以准备项目方案",
@@ -1054,6 +1156,8 @@ function plainStateFor(state, language = "en") {
     BLOCKED_BY_SOURCE_FAILURE: "Stopped because a required source could not be read",
     NEEDS_CURRENT_WORK_REVIEW: "Current uncommitted work must be reviewed first",
     BLOCKED_BY_WORK_QUEUE: "Stopped because the Work Queue has multiple current tasks",
+    NEEDS_TASK_SWITCH_REVIEW: "The new goal differs from the current task and needs a task-switch review",
+    NEEDS_WORK_QUEUE: "One durable current task record is required",
     DISCUSSION_ONLY: "Discussion and analysis only",
     NEEDS_RESUME_REVIEW: "Paused work requires review before resumption",
     READY_FOR_PROJECT_PLAN: "Ready for project planning",

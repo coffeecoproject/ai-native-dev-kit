@@ -405,7 +405,8 @@ if (!outputJson) {
 }
 
 if (reports.length === 0) {
-  pass("standard baseline selection check skipped: no reports");
+  if (strict) fail("strict standard baseline selection requires at least one report");
+  else pass("standard baseline selection check skipped: no reports");
 } else {
   for (const file of reports) validateReport(file);
 }

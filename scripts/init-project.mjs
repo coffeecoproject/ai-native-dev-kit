@@ -82,6 +82,7 @@ const requiredAgentGovernanceMarkers = [
   "Environment Baseline",
   "Platform Baseline",
   "Industrial Baseline",
+  "Product Baseline And Claim Control",
   "Standard Baseline Packs",
   "Baseline Pack System",
   "Workflow Artifact Generation",
@@ -888,6 +889,14 @@ function agentGovernanceSectionContent() {
       "Use `.intentos/core/glossary.md` to translate internal workflow terms when the user may not know them.",
       "",
     ].join("\n")],
+    ["Product Baseline And Claim Control", [
+      "## Product Baseline And Claim Control",
+      "",
+      "Use `.intentos/core/outcome-baseline.md`, `.intentos/core/product-baseline.md`, `.intentos/core/claim-control.md`, and `.intentos/core/assumption-register.md` when changing workflow behavior, release wording, public summaries, final reports, or handoffs.",
+      "",
+      "Do not claim that a task, product, adoption, verification, release, or production outcome is complete unless the current task-bound evidence supports that exact claim.",
+      "",
+    ].join("\n")],
     ["Guided Decision & Delivery Loop", [
       "## Guided Decision & Delivery Loop",
       "",
@@ -1244,7 +1253,8 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
 
 function ensureAgentsGovernance(targetPath, options = {}) {
   const { applyAgentGovernance = false } = options;
-  const dest = path.join(targetPath, "AGENTS.md");
+  const entry = preferredAgentEntry(targetPath);
+  const dest = path.join(targetPath, entry);
   if (!fs.existsSync(dest)) {
     fs.copyFileSync(path.join(kitRoot, "platforms", "codex", "AGENTS.template.md"), dest);
     console.log(`created ${path.relative(process.cwd(), dest)}`);
@@ -1789,7 +1799,19 @@ function writeVersionFile(targetPath, starter, options = {}) {
 
 function sha256File(filePath) {
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) return null;
-  return `sha256:${createHash("sha256").update(fs.readFileSync(filePath)).digest("hex")}`;
+  const hash = createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  const fd = fs.openSync(filePath, "r");
+  try {
+    let bytesRead;
+    do {
+      bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null);
+      if (bytesRead > 0) hash.update(buffer.subarray(0, bytesRead));
+    } while (bytesRead > 0);
+  } finally {
+    fs.closeSync(fd);
+  }
+  return `sha256:${hash.digest("hex")}`;
 }
 
 function sha256Content(content) {
@@ -2099,7 +2121,13 @@ function addIndustrialPlanActions(actions, targetPath, options = {}) {
 }
 
 function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
-  const agentsPath = path.join(targetPath, "AGENTS.md");
+  const agentEntry = preferredAgentEntry(targetPath);
+  if (agentEntry !== "AGENTS.md") {
+    for (let index = actions.length - 1; index >= 0; index -= 1) {
+      if (actions[index]?.path === "AGENTS.md") actions.splice(index, 1);
+    }
+  }
+  const agentsPath = path.join(targetPath, agentEntry);
   if (!fs.existsSync(agentsPath)) {
     addFilePlanAction(actions, targetPath, path.join(kitRoot, "platforms", "codex", "AGENTS.template.md"), "AGENTS.md", {
       overwrite: false,
@@ -2109,12 +2137,21 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
     const content = fs.readFileSync(agentsPath, "utf8");
     const missingMarkers = requiredAgentGovernanceMarkers.filter((marker) => !content.includes(marker));
     if (missingMarkers.length === 0) {
-      actions.push({ type: "SKIP_EXISTING", path: "AGENTS.md", source: null, reason: "AGENTS.md already has required governance markers", willWrite: false, hashBefore: sha256File(agentsPath) });
+      actions.push({ type: "SKIP_EXISTING", path: agentEntry, source: null, reason: `${agentEntry} already has required governance markers`, willWrite: false, hashBefore: sha256File(agentsPath) });
     } else if (options.applyAgentGovernance) {
-      actions.push({ type: options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED", path: "AGENTS.md", source: null, reason: "explicit AGENTS.md governance apply", willWrite: true, hashBefore: sha256File(agentsPath) });
+      const merged = `${content.trimEnd()}\n\n${agentGovernanceAppendix(missingMarkers).trim()}\n`;
+      actions.push({
+        type: options.backupDir ? "BACKUP_THEN_UPDATE" : "UPDATE_MANAGED",
+        path: agentEntry,
+        source: null,
+        inlineContentBase64: Buffer.from(merged).toString("base64"),
+        reason: `explicit ${agentEntry} governance apply`,
+        willWrite: true,
+        hashBefore: sha256File(agentsPath),
+      });
     } else {
-      actions.push({ type: "NEEDS_HUMAN_APPROVAL", path: "AGENTS.md", source: null, reason: `missing markers: ${missingMarkers.join(", ")}`, willWrite: false, hashBefore: sha256File(agentsPath) });
-      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".intentos/migration-reports/agents-governance.md", source: null, reason: "AGENTS.md governance migration report", willWrite: true, hashBefore: sha256File(agentsGovernanceMigrationReportPath(targetPath)) });
+      actions.push({ type: "NEEDS_HUMAN_APPROVAL", path: agentEntry, source: null, reason: `missing markers: ${missingMarkers.join(", ")}`, willWrite: false, hashBefore: sha256File(agentsPath) });
+      actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".intentos/migration-reports/agents-governance.md", source: null, reason: `${agentEntry} governance migration report`, willWrite: true, hashBefore: sha256File(agentsGovernanceMigrationReportPath(targetPath)) });
     }
   }
 
@@ -2136,6 +2173,13 @@ function addGovernancePlanActions(actions, targetPath, starter, options = {}) {
       actions.push({ type: "WRITE_MIGRATION_REPORT", path: ".intentos/migration-reports/pr-template-governance.md", source: null, reason: "PR template governance migration report", willWrite: true, hashBefore: sha256File(pullRequestTemplateMigrationReportPath(targetPath)) });
     }
   }
+}
+
+function preferredAgentEntry(targetPath) {
+  for (const relative of ["AGENTS.md", "agent.md", ".agent.md"]) {
+    if (fs.existsSync(path.join(targetPath, relative))) return relative;
+  }
+  return "AGENTS.md";
 }
 
 function buildPlan(targetPath, options = {}) {
@@ -2281,9 +2325,12 @@ function targetSourceStateDigest(targetPath) {
     ".intentos/backups/",
   ];
   const rows = [];
-  for (const [relative, digest] of snapshotTargetFiles(targetPath)) {
+  const ignoreRelative = (relative) => {
     const normalized = relative.replaceAll(path.sep, "/");
-    if (ignored.some((prefix) => normalized === prefix.slice(0, -1) || normalized.startsWith(prefix))) continue;
+    return ignored.some((prefix) => normalized === prefix.slice(0, -1) || normalized.startsWith(prefix));
+  };
+  for (const [relative, digest] of snapshotTargetFiles(targetPath, { ignoreRelative })) {
+    const normalized = relative.replaceAll(path.sep, "/");
     rows.push(`${normalized}:${digest}`);
   }
   return sha256Content(rows.sort().join("\n"));
@@ -2479,19 +2526,30 @@ function requireProjectLocalEvidencePath(targetRoot, filePath, label) {
   return relative.replaceAll(path.sep, "/");
 }
 
-function snapshotTargetFiles(root) {
+function snapshotTargetFiles(root, options = {}) {
   const snapshot = new Map();
   if (!fs.existsSync(root)) return snapshot;
-  const walk = (dir, relativeDir = "") => {
+  const ignoredDirectories = new Set([".git", "node_modules"]);
+  const limits = { files: 100000, bytes: 20 * 1024 * 1024 * 1024, depth: 40 };
+  let fileCount = 0;
+  let totalBytes = 0;
+  const walk = (dir, relativeDir = "", depth = 0) => {
+    if (depth > limits.depth) throw new Error(`Target snapshot exceeds maximum depth ${limits.depth}`);
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (!relativeDir && entry.name === ".git") continue;
+      if (entry.isDirectory() && ignoredDirectories.has(entry.name)) continue;
       const relative = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
       const full = path.join(dir, entry.name);
+      if (options.ignoreRelative?.(relative, entry)) continue;
       if (entry.isSymbolicLink()) {
         snapshot.set(relative, `symlink:${fs.readlinkSync(full)}`);
       } else if (entry.isDirectory()) {
-        walk(full, relative);
+        walk(full, relative, depth + 1);
       } else if (entry.isFile()) {
+        fileCount += 1;
+        totalBytes += fs.statSync(full).size;
+        if (fileCount > limits.files || totalBytes > limits.bytes) {
+          throw new Error("Target snapshot exceeds bounded file or byte limits");
+        }
         snapshot.set(relative, sha256File(full));
       }
     }
@@ -2518,8 +2576,7 @@ function replayApprovedPlan(plan, context) {
     throw new Error("Execution plan is missing its approved receipt action");
   }
   const results = new Map();
-  const applied = [];
-  const attempted = [];
+  const replayed = [];
   let activation = activationNotRun();
   let unexpectedChangedPaths = [];
   let receiptState = "APPLY_FAILED_NO_WRITE";
@@ -2530,13 +2587,12 @@ function replayApprovedPlan(plan, context) {
   try {
     for (const action of plan.actions) {
       if (!action.willWrite || action.id === receiptAction.id) continue;
-      attempted.push(action);
       replayAction(plan, action);
+      replayed.push(action);
       const hashAfter = sha256File(path.join(plan.targetRoot, action.path));
       if (hashAfter !== action.expectedHashAfter) {
         throw new Error(`Post-write digest mismatch for ${action.id} ${action.path}`);
       }
-      applied.push(action);
       results.set(action.id, receiptActionResult(action, "APPLIED", hashAfter));
     }
 
@@ -2554,9 +2610,9 @@ function replayApprovedPlan(plan, context) {
     receiptState = "APPLY_VERIFIED";
   } catch (error) {
     executionError = error;
-    if (attempted.length > 0) {
+    if (replayed.length > 0) {
       rollbackAttempted = true;
-      rollbackVerified = rollbackActions(plan, attempted, results);
+      rollbackVerified = rollbackActions(plan, replayed, results);
       receiptState = rollbackVerified ? "APPLY_FAILED_ROLLED_BACK" : "APPLY_PARTIAL_ROLLBACK_REQUIRED";
     }
   }
@@ -2567,7 +2623,7 @@ function replayApprovedPlan(plan, context) {
   }
   results.set(receiptAction.id, receiptActionResult(receiptAction, "RECEIPT_WRITTEN", "self"));
 
-  const receipt = buildApplyReceipt(plan, context, {
+  let receipt = buildApplyReceipt(plan, context, {
     receiptState,
     actions: executable.map((action) => results.get(action.id)),
     unexpectedChangedPaths,
@@ -2575,7 +2631,30 @@ function replayApprovedPlan(plan, context) {
     rollbackAttempted,
     rollbackVerified,
   });
-  writeApplyReceipt(plan, receipt);
+  try {
+    writeApplyReceipt(plan, receipt);
+  } catch (receiptError) {
+    if (!executionError && replayed.length > 0) {
+      rollbackAttempted = true;
+      rollbackVerified = rollbackActions(plan, replayed, results);
+      receiptState = rollbackVerified ? "APPLY_FAILED_ROLLED_BACK" : "APPLY_PARTIAL_ROLLBACK_REQUIRED";
+    }
+    executionError ||= receiptError;
+    results.set(receiptAction.id, receiptActionResult(receiptAction, "FAILED", sha256File(path.join(plan.targetRoot, receiptAction.path))));
+    receipt = buildApplyReceipt(plan, context, {
+      receiptState,
+      actions: executable.map((action) => results.get(action.id)),
+      unexpectedChangedPaths,
+      activation,
+      rollbackAttempted,
+      rollbackVerified,
+    });
+    try {
+      writeApplyReceipt(plan, receipt);
+    } catch (failureReceiptError) {
+      throw new Error(`${executionError.message}; failed to persist failure receipt: ${failureReceiptError.message}`);
+    }
+  }
   if (executionError) throw new Error(`${executionError.message}; apply receipt: ${plan.receiptPath}`);
   return receipt;
 }
@@ -2586,7 +2665,7 @@ function replayAction(plan, action) {
     const backup = assertSafeWritePath(plan.targetRoot, action.backupPath, `action ${action.id} backup`);
     if (fs.existsSync(backup)) throw new Error(`Backup path already exists for ${action.id}: ${action.backupPath}`);
     fs.mkdirSync(path.dirname(backup), { recursive: true });
-    fs.copyFileSync(target, backup);
+    fs.copyFileSync(target, backup, fs.constants.COPYFILE_EXCL);
     if (sha256File(backup) !== action.hashBefore) throw new Error(`Backup digest mismatch for ${action.id}`);
   }
   let content;
@@ -2621,6 +2700,7 @@ function rollbackActions(plan, actions, results) {
       const target = assertSafeWritePath(plan.targetRoot, action.path, `rollback ${action.id} target`);
       if (action.hashBefore) {
         const backup = assertSafeWritePath(plan.targetRoot, action.backupPath, `rollback ${action.id} backup`);
+        if (sha256File(backup) !== action.hashBefore) throw new Error(`Rollback backup digest mismatch for ${action.id}`);
         fs.copyFileSync(backup, target);
       } else if (fs.existsSync(target)) {
         fs.unlinkSync(target);
@@ -2652,6 +2732,7 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
     cwd: targetRoot,
     encoding: "utf8",
     maxBuffer: 1024 * 1024 * 20,
+    timeout: 30000,
   });
   let baselineResult = null;
   let industrialResult = null;
@@ -2662,16 +2743,18 @@ function verifyInstalledWorkflowActivation(targetRoot, plan) {
         cwd: targetRoot,
         encoding: "utf8",
         maxBuffer: 1024 * 1024 * 20,
+        timeout: 30000,
       })
       : { status: 1, stdout: "", stderr: "installed baseline checker is missing" };
   }
   if (plan?.arguments?.baselineLevel === "BL2_INDUSTRIAL") {
     const industrialScript = path.join(targetRoot, "scripts", "check-industrial-baseline.mjs");
     industrialResult = fs.existsSync(industrialScript)
-      ? spawnSync(process.execPath, [industrialScript, targetRoot, "--strict"], {
+      ? spawnSync(process.execPath, [industrialScript, targetRoot], {
         cwd: targetRoot,
         encoding: "utf8",
         maxBuffer: 1024 * 1024 * 20,
+        timeout: 30000,
       })
       : { status: 1, stdout: "", stderr: "installed industrial baseline checker is missing" };
   }
@@ -2828,11 +2911,11 @@ function writeApplyReceipt(plan, receipt) {
     "- This receipt proves product correctness: No",
     "",
   ].join("\n");
-  fs.writeFileSync(receiptPath, content);
+  atomicWriteFile(receiptPath, content);
 }
 
 function normalizeOutput(value) {
-  return String(value || "").replace(/\s+/g, " ").trim().slice(0, 500);
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, 2000);
 }
 
 function writePlan(plan, planPath) {

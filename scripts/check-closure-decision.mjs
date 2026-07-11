@@ -13,13 +13,15 @@ const __filename = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(__filename);
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "require-task-governance", "require-work-queue", "strict-task-consumer"]);
+const knownFlags = new Set(["json", "report", "require-task-governance", "require-work-queue", "strict-task-consumer"]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
 const outputJson = Boolean(args.json);
 const requireTaskGovernance = Boolean(args["require-task-governance"]);
 const requireWorkQueue = Boolean(args["require-work-queue"]);
 const strictTaskConsumer = Boolean(args["strict-task-consumer"]);
+const explicitReport = args.report ? resolveSelectedReport(String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -140,7 +142,7 @@ function checkCoreContent() {
 }
 
 function checkClosureDecisions() {
-  const files = markdownFiles("closure-decisions");
+  const files = explicitReport ? [explicitReport] : markdownFiles("closure-decisions");
   if (files.length === 0) {
     pass("unified closure decision check skipped: no Closure Decision records");
     return;
@@ -209,6 +211,20 @@ function checkClosureDecisions() {
     if (allowedOutcomes.has(outcome)) pass(`${label} has valid Outcome`);
     else fail(`${label} has invalid Outcome: ${outcome || "<empty>"}`);
   }
+}
+
+function resolveSelectedReport(reference) {
+  const file = resolveProjectFile(reference);
+  if (!file) {
+    console.error("FAIL --report must resolve to a safe project-local Closure Decision Markdown file");
+    process.exit(1);
+  }
+  const relative = rel(file).replaceAll(path.sep, "/");
+  if (!relative.startsWith("closure-decisions/") || path.dirname(relative) !== "closure-decisions") {
+    console.error("FAIL --report must be a direct child of closure-decisions/");
+    process.exit(1);
+  }
+  return file;
 }
 
 function requireDoneEvidence(content, label) {

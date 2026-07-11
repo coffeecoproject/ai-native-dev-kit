@@ -7,8 +7,8 @@ This report is a read-only derived verification view. It does not write target f
 | Field | Value |
 | --- | --- |
 | Execution Kind | `FEATURE_IMPLEMENTATION` |
-| Assurance State | `VERIFIED_DONE` |
-| Can Claim Done | `Yes` |
+| Assurance State | `PARTIAL_DONE` |
+| Can Claim Done | `No` |
 | Can Codex Write Now | `No` |
 | Safe Next Step | Prepare final response with evidence summary; do not claim release or production approval. |
 
@@ -95,7 +95,7 @@ This report is a read-only derived verification view. It does not write target f
 
 ## Closure Decision
 
-`VERIFIED_DONE`
+`PARTIAL_DONE`
 
 ## Pending Human Decisions
 
@@ -124,8 +124,8 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "artifact_type": "execution_assurance_report",
   "execution_kind": "FEATURE_IMPLEMENTATION",
   "task_ref": "tasks/001-contract-validation.md",
-  "assurance_state": "VERIFIED_DONE",
-  "can_claim_done": "Yes",
+  "assurance_state": "PARTIAL_DONE",
+  "can_claim_done": "No",
   "can_codex_write_now": "No",
   "intent_lock": {
     "user_intent": "Add required contract number validation.",
@@ -304,7 +304,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
     "proves_product_correctness": "No",
     "transfers_project_authority_to_intentos": "No"
   },
-  "outcome": "VERIFIED_DONE",
+  "outcome": "PARTIAL_DONE",
   "intent_digest": "sha256:881870172460a2d38f0bb40c1d03f89120e8439e5c63be5ae3e3ae0bbd2a4767"
 }
 ```

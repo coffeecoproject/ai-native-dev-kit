@@ -514,7 +514,8 @@ function pendingMigrationReports() {
 }
 
 function missingAgentSections() {
-  const content = read("AGENTS.md");
+  const entry = ["AGENTS.md", "agent.md", ".agent.md"].find((candidate) => exists(candidate));
+  const content = entry ? read(entry) : "";
   if (!content) return requiredAgentSections;
   return requiredAgentSections.filter((section) => !content.includes(section));
 }
@@ -749,7 +750,7 @@ function commandFor(action, kitRoot, context = {}) {
   }
   if (action === "RUN_WORKFLOW_ASSET_UPDATE") {
     if (workflowAssetUpdateNeedsPlan(context)) {
-      return `${initProject} --target ${projectRoot} --update-workflow-assets --write-plan ./intentos-workflow-update-plan.json`;
+      return `${initProject} --target ${projectRoot} --update-workflow-assets --write-plan apply-execution-plans/intentos-workflow-update-plan.json`;
     }
     return `${initProject} --target ${projectRoot} --update-workflow-assets`;
   }
@@ -864,7 +865,7 @@ function buildResult() {
   }
 
   const version = readJson(".intentos/version.json");
-  const nativeNewProject = version?.projectEntryOrigin === "NEW_PROJECT";
+  const claimedNativeNewProject = version?.projectEntryOrigin === "NEW_PROJECT";
   const entries = rootEntries();
   const emptyLike = entries.length === 0;
   const projectHasSignals = hasProjectSignals();
@@ -877,6 +878,8 @@ function buildResult() {
   const industrialBaseline = industrialBaselineState();
   const artifactCount = workflowArtifactCount();
   const signals = governanceSignals();
+  const nativeNewProject = claimedNativeNewProject
+    && !signals.isProductionGoverned;
 
   let projectState;
   if (version) {
@@ -1002,6 +1005,7 @@ function buildResult() {
   if (!nativeNewProject && signals.isGovernedExisting) notes.push(`${signals.basicSignals.length} existing governance signal(s) detected.`);
   if (signals.isProductionGoverned) notes.push(`${signals.productionSignals.length} production governance signal(s) detected.`);
   if (signals.isDirtyWorktree) notes.push(`Git worktree has ${signals.git.changedFileCount} changed or untracked file(s).`);
+  if (claimedNativeNewProject && !nativeNewProject) notes.push("Recorded NEW_PROJECT origin was overridden by current project-owned governance or production evidence.");
   if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("Governed, production-sensitive, or dirty project protection is active; execution intent does not allow workflow writes yet.");
   if (nextAction === "RUN_ADOPTION_ASSESSMENT") notes.push("IntentOS Operating Mode is active for planning, routing, review, and comparison; project asset migration remains adapter-only until existing rules are reconciled and an apply plan is approved.");
   if (existingRuleComparisonRequired) notes.push("Existing baselines, release rules, CI, hooks, guard scripts, and governance files must be compared against IntentOS before any replacement or merge.");

@@ -46,7 +46,7 @@ if (shouldRequireAssets) {
 
 const reports = explicitReport ? [explicitReport] : markdownFiles(path.join(projectRoot, "release-approval-records"));
 if (reports.length === 0) {
-  if (requireReport && !allowEmpty) fail("release approval record is required but no report exists");
+  if (requireReport) fail("release approval record is required but no report exists");
   else pass("release approval record check skipped: no reports");
 } else {
   for (const report of reports) checkReport(report);

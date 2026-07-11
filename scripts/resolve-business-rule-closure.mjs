@@ -193,7 +193,7 @@ function projectTextSignals(root) {
 
 function classifyBusinessRule(userIntent, signals) {
   const types = new Set();
-  if (/\b(required|must|cannot|limit|validate|validation|restriction|不能为空|必须|限制|校验)\b/i.test(userIntent)) {
+  if (/\b(required|must|cannot|limit|validate|validation|restriction)\b|不能为空|必须|限制|校验/i.test(userIntent)) {
     types.add("VALIDATION_RULE");
   }
   if (signals.hasPermission) types.add("PERMISSION_RULE");
@@ -244,8 +244,8 @@ function dimensionsFor(userIntent, classification, signals, conflicts) {
     add("FAILURE_PATH", "NEEDS_USER_CONFIRMATION", "What should happen when the rule fails?");
     return [...dims.values()];
   }
-  add("ACTOR", "CLOSED", "Customer, operator, or authorized user triggers the rule.");
-  add("TRIGGER_SCENARIO", "CLOSED", signals.hasAppointment ? "Appointment create and reschedule flows." : "Create, edit, submit, import, API, or workflow trigger depending on the project surface.");
+  add("ACTOR", "NEEDS_USER_CONFIRMATION", "Who is affected by this rule?");
+  add("TRIGGER_SCENARIO", "NEEDS_USER_CONFIRMATION", signals.hasAppointment ? "Does this rule apply to appointment creation, rescheduling, or both?" : "Which create, edit, submit, import, API, or workflow entry points must apply this rule?");
   add("INPUT_CONDITION", "CLOSED", userIntent);
   add("SUCCESS_PATH", "CLOSED", "Valid input continues through the normal user flow.");
   add("FAILURE_PATH", "CLOSED", "Invalid input is blocked with a user-facing explanation.");

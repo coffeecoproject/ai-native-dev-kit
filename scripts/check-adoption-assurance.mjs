@@ -625,6 +625,19 @@ function checkVerifiedActiveApplyChain(evidence, label) {
   } else {
     fail(`${label} VERIFIED_ACTIVE requires a structurally verified apply plan, human approval record, and controlled readiness chain`);
   }
+  const agentEntry = ["AGENTS.md", "agent.md", ".agent.md"]
+    .map((relative) => ({ relative, full: path.join(projectRoot, relative) }))
+    .find((entry) => fs.existsSync(entry.full) && fs.statSync(entry.full).isFile());
+  const agentContent = agentEntry ? fs.readFileSync(agentEntry.full, "utf8") : "";
+  const positiveSections = /^##\s+Review Loop\s*$/im.test(agentContent)
+    && /^##\s+Work Queue\s*$/im.test(agentContent)
+    && /IntentOS/i.test(agentContent)
+    && !/(?:do not|disable|ignore|禁止|禁用|不要).{0,24}IntentOS/i.test(agentContent);
+  if (agentEntry && positiveSections) {
+    pass(`${label} active agent authority ${agentEntry.relative} contains IntentOS operating markers`);
+  } else {
+    fail(`${label} VERIFIED_ACTIVE requires an actual IntentOS-aware AGENTS.md/agent.md authority entry`);
+  }
   const surfaces = Array.isArray(evidence?.surfaces) ? evidence.surfaces : [];
   const applyChain = surfaces.find((item) => item.surface === "apply_chain");
   if (applyChain?.status === "VERIFIED") pass(`${label} verified active has VERIFIED apply_chain surface`);

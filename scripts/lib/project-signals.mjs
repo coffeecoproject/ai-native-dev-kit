@@ -90,11 +90,53 @@ export function filterIntentOSManagedPaths(root, relativePaths) {
   const directoryTargets = (manifest.copyRules?.directories || [])
     .map((rule) => normalizeSignalPath(rule.target))
     .filter(Boolean);
+  const version = readJson(path.join(root, ".intentos", "version.json"));
+  const versionManagedTargets = new Set((version?.workflowAssets || [])
+    .map((value) => normalizeSignalPath(value))
+    .filter(Boolean));
+  const versionManagedDirectories = [...versionManagedTargets].filter((value) => !path.posix.extname(value));
+  const nativeBootstrapPaths = version?.projectEntryOrigin === "NEW_PROJECT" ? new Set([
+    "README.md",
+    "AGENTS.md",
+    ".github/pull_request_template.md",
+    ".github/workflows/ai-workflow-checks.yml",
+    "scripts/verify.sh",
+    "docs/ai-workflow.md",
+    "docs/architecture.md",
+    "docs/domain-model.md",
+    "docs/engineering-baseline.md",
+    "docs/engineering-principles.md",
+    "docs/environment-baseline.md",
+    "docs/permission-model.md",
+    "docs/product-vision.md",
+    "docs/risk-policy.md",
+    "docs/test-strategy.md",
+    "docs/project-profile.md",
+    "docs/baseline-selection.md",
+    "docs/baseline-evidence.md",
+  ]) : new Set();
+  const managedTargets = new Set([...fileTargets, ...directoryTargets, ...versionManagedTargets, ...nativeBootstrapPaths]);
+  const normalizedPaths = relativePaths.map((value) => normalizeSignalPath(value));
+  const placeholderDirectories = new Set(normalizedPaths
+    .filter((value) => value.endsWith("/.gitkeep"))
+    .map((value) => path.posix.dirname(value))
+    .filter((dir) => !normalizedPaths.some((value) => value.startsWith(`${dir}/`) && value !== `${dir}/.gitkeep`)));
   return relativePaths.filter((relativePath) => {
     const normalized = normalizeSignalPath(relativePath);
-    if (fileTargets.has(normalized)) return false;
-    return !directoryTargets.some((target) => normalized === target || normalized.startsWith(`${target}/`));
+    if (normalized.endsWith("/.gitkeep") || placeholderDirectories.has(normalized)) return false;
+    if (managedTargets.has(normalized)) return false;
+    if ([...managedTargets].some((target) => target.startsWith(`${normalized}/`))) return false;
+    return ![...directoryTargets, ...versionManagedDirectories]
+      .some((target) => normalized === target || normalized.startsWith(`${target}/`));
   });
+}
+
+function readJson(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
 }
 
 function normalizeSignalPath(value) {

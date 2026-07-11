@@ -131,12 +131,12 @@ function collectMarkdown(root, paths, pattern) {
 
 function inferWorkItems(queueReports, taskCards, activeThreads, parkingArtifacts) {
   const reportItems = queueReports.flatMap((report) => parseWorkItems(report));
-  if (reportItems.length > 0) return reportItems;
-
-  const items = [];
+  const items = [...reportItems];
   for (const thread of activeThreads) {
     items.push({
       taskId: idFromPath(thread.path),
+      taskRef: thread.path,
+      intentDigest: intentDigestFromContent(thread.content),
       title: thread.title,
       state: "CURRENT",
       source: thread.path,
@@ -146,10 +146,12 @@ function inferWorkItems(queueReports, taskCards, activeThreads, parkingArtifacts
     });
   }
 
-  if (items.length === 0 && taskCards.length > 0) {
+  if (reportItems.length === 0 && activeThreads.length === 0 && taskCards.length > 0) {
     const first = taskCards[0];
     items.push({
       taskId: idFromPath(first.path),
+      taskRef: first.path,
+      intentDigest: intentDigestFromContent(first.content),
       title: first.title,
       state: "CURRENT",
       source: first.path,
@@ -160,6 +162,8 @@ function inferWorkItems(queueReports, taskCards, activeThreads, parkingArtifacts
     for (const task of taskCards.slice(1, 10)) {
       items.push({
         taskId: idFromPath(task.path),
+        taskRef: task.path,
+        intentDigest: intentDigestFromContent(task.content),
         title: task.title,
         state: "BACKLOG",
         source: task.path,
@@ -170,9 +174,11 @@ function inferWorkItems(queueReports, taskCards, activeThreads, parkingArtifacts
     }
   }
 
-  for (const artifact of parkingArtifacts.slice(0, 10)) {
+  for (const artifact of (reportItems.length === 0 ? parkingArtifacts : []).slice(0, 10)) {
     items.push({
       taskId: idFromPath(artifact.path),
+      taskRef: artifact.path,
+      intentDigest: intentDigestFromContent(artifact.content),
       title: artifact.title,
       state: "BACKLOG",
       source: artifact.path,
@@ -199,8 +205,12 @@ function parseWorkItems(report) {
     const taskId = cells[0] || idFromPath(report.path);
     const title = cells[1] || report.title;
     const state = stateFor(cells[stateIndex]);
+    const taskRef = normalizedTaskRef(cells[stateIndex + 1]);
+    const intentDigest = normalizedIntentDigest(cells[stateIndex + 2]);
     items.push({
       taskId,
+      taskRef,
+      intentDigest,
       title,
       state,
       source: report.path,
@@ -223,12 +233,28 @@ function dedupeItems(items) {
   const seen = new Set();
   const result = [];
   for (const item of items) {
-    const key = `${item.taskId}:${item.state}:${item.source}`;
+    const key = `${item.taskRef || item.taskId}:${item.state}`;
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(item);
   }
   return result;
+}
+
+function normalizedTaskRef(value) {
+  const text = strip(value);
+  if (!text || /^(?:pending|n\/a|none|<)/i.test(text)) return "";
+  return text.replace(/^artifact:/i, "");
+}
+
+function normalizedIntentDigest(value) {
+  const text = strip(value);
+  return /^sha256:[a-f0-9]{64}$/i.test(text) ? text.toLowerCase() : "";
+}
+
+function intentDigestFromContent(content) {
+  const match = String(content || "").match(/(?:^|\|)\s*(?:Intent digest|intent_digest)\s*(?:\||:)\s*`?(sha256:[a-f0-9]{64})`?/im);
+  return match ? match[1].toLowerCase() : "";
 }
 
 function actionsFor({ exists, current, paused, backlog, blocked, queueReports, taskCards, gitState }) {

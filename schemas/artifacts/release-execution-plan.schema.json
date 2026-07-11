@@ -46,10 +46,12 @@
     "trust_inputs": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["release_approval_ref", "release_approval_digest", "release_evidence_gate_ref", "release_evidence_gate_digest", "runtime_hygiene_ref", "runtime_hygiene_digest", "release_channel_policy_ref", "release_channel_policy_digest", "platform_recipe_ref", "platform_recipe_digest", "release_handoff_pack_ref", "release_handoff_pack_digest"],
+      "required": ["release_approval_ref", "release_approval_digest", "launch_review_ref", "launch_review_digest", "release_evidence_gate_ref", "release_evidence_gate_digest", "runtime_hygiene_ref", "runtime_hygiene_digest", "release_channel_policy_ref", "release_channel_policy_digest", "platform_recipe_ref", "platform_recipe_digest", "release_handoff_pack_ref", "release_handoff_pack_digest"],
       "properties": {
         "release_approval_ref": { "type": "string", "minLength": 1 },
         "release_approval_digest": { "type": "string", "minLength": 1 },
+        "launch_review_ref": { "type": "string", "minLength": 1 },
+        "launch_review_digest": { "type": "string", "minLength": 1 },
         "release_evidence_gate_ref": { "type": "string", "minLength": 1 },
         "release_evidence_gate_digest": { "type": "string", "minLength": 1 },
         "runtime_hygiene_ref": { "type": "string", "minLength": 1 },

@@ -8,9 +8,11 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const kitRoot = path.resolve(__dirname, "..");
-const manifest = readJsonIfExists(path.join(kitRoot, "intentos-manifest.json"));
+const manifest = readJsonIfExists(path.join(kitRoot, "intentos-manifest.json"))
+  || readJsonIfExists(path.join(kitRoot, ".intentos", "intentos-manifest.json"));
 const packageJson = readJsonIfExists(path.join(kitRoot, "package.json"));
-const version = manifest?.intentOSVersion || packageJson?.version || readVersionFile();
+const installedVersion = readJsonIfExists(path.join(kitRoot, ".intentos", "version.json"));
+const version = manifest?.intentOSVersion || installedVersion?.intentOSVersion || packageJson?.version || readVersionFile();
 
 const commandRegistry = {
   work: {
@@ -713,12 +715,14 @@ const commandRegistry = {
     description: "Initialize workflow assets in a target project.",
     script: "scripts/init-project.mjs",
     writes: true,
+    sourceOnly: true,
     buildArgs: (args) => args,
   },
   update: {
     description: "Update workflow assets in an already configured target project.",
     script: "scripts/init-project.mjs",
     writes: true,
+    sourceOnly: true,
     buildArgs: (args) => ["--update-workflow-assets", ...args],
   },
   next: {
@@ -762,18 +766,21 @@ const commandRegistry = {
     description: "Inspect a project and produce a non-mutating migration plan.",
     script: "scripts/migrate-project.mjs",
     writes: false,
+    sourceOnly: true,
     buildArgs: (args) => args,
   },
   fixtures: {
     description: "Run intentos fixture checks.",
     script: "scripts/check-fixtures.mjs",
     writes: false,
+    sourceOnly: true,
     buildArgs: (args) => args,
   },
   "self-check": {
     description: "Run full intentos self-check.",
     script: "scripts/check-intentos.mjs",
     writes: false,
+    sourceOnly: true,
     buildArgs: (args) => args,
   },
 };
@@ -812,6 +819,10 @@ const command = commandRegistry[commandName];
 if (!command) {
   console.error(`Unknown command: ${commandName}`);
   printShortUsage();
+  process.exit(1);
+}
+if (command.sourceOnly && !isIntentOSSourceTarget(".")) {
+  console.error(`Command ${commandName} is available only in the IntentOS source repository.`);
   process.exit(1);
 }
 
@@ -886,11 +897,13 @@ function printHelp() {
 }
 
 function printAdvancedHelp() {
+  const sourceCheckout = isIntentOSSourceTarget(".");
   console.log(`IntentOS CLI ${version} - Advanced Reference`);
   console.log("Command: intentos");
   console.log("");
   console.log("These commands are implementation details for Codex, maintainers, CI, evidence review, and debugging.");
   console.log("Ordinary users should use: node scripts/cli.mjs work <project> \"<what you want>\"");
+  console.log("Advanced commands remain available for exact maintenance and evidence workflows.");
   console.log("");
   console.log("Global options: --help, --help-advanced, --version, --dry-run");
   console.log("");
@@ -902,12 +915,18 @@ function printAdvancedHelp() {
   console.log("Common user-facing decisions:");
   printCommandGroup(["ask", "guide", "task-governance", "status", "finish", "completion-evidence", "execution-assurance", "runtime-hygiene", "release-guide", "release-plan", "release-evidence", "release-channel", "apply-plan"]);
   console.log("");
-  console.log("Advanced commands remain available for maintainers, CI, release evidence, and debugging:");
+  console.log(sourceCheckout
+    ? "Advanced commands available in this source checkout:"
+    : "Advanced target-project commands available in this installed distribution:");
   printCommandGroup(Object.keys(commandRegistry).filter((name) => ![
     "work", "start", "adopt", "adopt-review", "next", "doctor", "ask", "guide",
     "task-governance", "status", "finish", "completion-evidence", "execution-assurance",
     "runtime-hygiene", "release-guide", "release-plan", "release-evidence", "release-channel", "apply-plan",
-  ].includes(name)));
+  ].includes(name) && (sourceCheckout || !commandRegistry[name].sourceOnly)));
+  if (!sourceCheckout) {
+    console.log("");
+    console.log("Source maintenance commands such as init, update, migrate, fixtures, and self-check must run from the IntentOS source checkout.");
+  }
   console.log("");
   console.log("Docs:");
   console.log("  docs/start-here.md");

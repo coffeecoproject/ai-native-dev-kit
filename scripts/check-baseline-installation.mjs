@@ -232,6 +232,18 @@ if (selection === null) {
     fail(`${baselineLevel} requires at least one selected standard baseline pack`);
   }
   for (const packId of standardPacks) ensureInstalledRegistryPack("standard-baseline-packs", packId, standardById);
+  if (["BL1_STANDARD", "BL2_INDUSTRIAL"].includes(baselineLevel)) {
+    const selectedEntries = standardPacks.map((packId) => standardById.get(packId)).filter(Boolean);
+    if (selectedEntries.some((entry) => entry.type === "environment")) pass("standard baseline includes an environment pack");
+    else fail(`${baselineLevel} requires an environment standard pack`);
+    for (const profile of profiles) {
+      if (selectedEntries.some((entry) => (entry.appliesToProfiles || []).includes(profile) && entry.type !== "environment")) {
+        pass(`standard baseline covers selected profile: ${profile}`);
+      } else {
+        fail(`standard baseline has no platform/capability pack for selected profile: ${profile}`);
+      }
+    }
+  }
 
   const industrialIndex = readJson(".intentos/industrial-packs/index.json");
   const industrialById = new Map((industrialIndex?.packs || []).map((entry) => [entry.id, entry]));
@@ -243,6 +255,13 @@ if (selection === null) {
     fail(`industrial packs cannot be selected for ${baselineLevel || "an unknown baseline level"}`);
   }
   for (const packId of industrialPacks) ensureInstalledRegistryPack("industrial-packs", packId, industrialById);
+  if (baselineLevel === "BL2_INDUSTRIAL") {
+    const selectedEntries = industrialPacks.map((packId) => industrialById.get(packId)).filter(Boolean);
+    for (const profile of profiles) {
+      if (selectedEntries.some((entry) => (entry.appliesToProfiles || []).includes(profile))) pass(`industrial baseline covers selected profile: ${profile}`);
+      else fail(`industrial baseline has no platform/capability pack for selected profile: ${profile}`);
+    }
+  }
 
   const version = readJson(".intentos/version.json");
   if (!version) {

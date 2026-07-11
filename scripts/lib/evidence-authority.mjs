@@ -2,12 +2,38 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import { assertNoSymlinkInPath, isSafeRelativePath, normalizePortablePath } from "./path-safety.mjs";
 
 const BINDING_VERSION = "1.91.0";
-const moduleRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const workflowOutputDirectories = readWorkflowOutputDirectories();
+const workflowOutputDirectories = new Set([
+  "adoption-assurance-reports", "adoption-autopilot-reports",
+  "adoption-recommendations", "adoption-trial-reports", "ai-logs", "apply-execution-plans",
+  "apply-plans", "apply-readiness-reports", "apply-receipts", "approval-records",
+  "archive-apply-plans", "automation-proposals", "baseline-decision-cards",
+  "baseline-gap-reports", "baseline-pack-selections", "baseline-recommendations",
+  "baseline-state-reports", "beginner-entry-cards", "business-rule-closures",
+  "change-boundary-reports", "change-impact-coverage-reports", "closure-decisions",
+  "completion-evidence-reports", "context-corrections", "controlled-apply-candidates",
+  "conversation-ask-cards", "conversation-turns", "customer-handoffs", "debt-handoff-reports",
+  "decision-briefs", "delivery-path-reports", "delivery-status-cards", "doc-lifecycle-reports",
+  "execution-assurance-reports", "execution-closures", "existing-rule-reconciliations",
+  "final-reports", "follow-up-proposals", "git-boundary-reports", "goal-cards",
+  "governance-convergence-reports", "governance-maps", "gpt-review-prompts",
+  "guided-closure-cards", "guided-decision-summaries", "hook-orchestration-plans",
+  "hook-policies", "intentos-proposals", "launch-readiness", "launch-review-views",
+  "learning-candidates", "mvp-example-reports", "native-adoption-review-reports",
+  "native-migration-plans", "ordinary-first-slices", "patch-classification-false-positives",
+  "patch-classifications", "product-completeness-reports", "real-adoption-trials",
+  "release-adapters", "release-approval-records", "release-candidates", "release-channel-policies",
+  "release-evidence-gate-reports", "release-execution-plans", "release-guides",
+  "release-handoff-packs", "release-plans", "release-recipes",
+  "review-loop-reports", "review-packets", "review-summaries", "review-surface-cards",
+  "runtime-hygiene-reports", "scope-change-reports", "skill-candidates",
+  "standard-baseline-selections", "status-reports", "subagent-run-plans",
+  "task-governance-reports", "test-evidence-reports", "verification-plans",
+  "workflow-adoption-maps", "workflow-guidance-cards", "workflow-improvements",
+  "workflow-retros",
+]);
 const authorityIgnoredPathPrefixes = ["schemas/artifacts"];
 
 export function isFileEvidenceRef(value) {
@@ -15,7 +41,19 @@ export function isFileEvidenceRef(value) {
 }
 
 export function canonicalFileDigest(file) {
-  return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
+  const hash = crypto.createHash("sha256");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  const fd = fs.openSync(file, "r");
+  try {
+    let bytesRead;
+    do {
+      bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null);
+      if (bytesRead > 0) hash.update(buffer.subarray(0, bytesRead));
+    } while (bytesRead > 0);
+  } finally {
+    fs.closeSync(fd);
+  }
+  return `sha256:${hash.digest("hex")}`;
 }
 
 export function resolveAuthoritativeEvidenceReference(projectRoot, fromFile, referencePath, options = {}) {
@@ -137,13 +175,13 @@ export function projectIdentity(projectRoot) {
   const gitTop = runGit(root, ["rev-parse", "--show-toplevel"]);
   if (gitTop) {
     const gitRoot = fs.realpathSync(gitTop);
-    const revision = runGit(root, ["rev-parse", "HEAD"]);
+    const head = runGit(root, ["rev-parse", "HEAD"]) || "NO_COMMIT";
     const remote = runGit(root, ["config", "--get", "remote.origin.url"]);
     const scope = path.relative(gitRoot, root).split(path.sep).join("/") || ".";
     return {
       kind: "GIT",
       fingerprint: digest(`git-root:${gitRoot}|scope:${scope}|remote:${remote || "none"}`),
-      revision: revision || "NO_COMMIT",
+      revision: gitRevision(root, head),
     };
   }
   return {
@@ -153,47 +191,76 @@ export function projectIdentity(projectRoot) {
   };
 }
 
+function gitRevision(root, head) {
+  const result = spawnSync("git", ["-C", root, "status", "--porcelain=v1", "-z", "--untracked-files=all", "--", "."], {
+    encoding: null,
+    maxBuffer: 1024 * 1024 * 64,
+  });
+  if (result.status !== 0) return digest(`git:${head}|status-error`);
+  const entries = parseGitStatus(result.stdout);
+  const rows = [];
+  for (const entry of entries) {
+    for (const relative of entry.paths) {
+      const normalized = normalizePortablePath(relative);
+      if (isAuthorityIgnoredPath(normalized)) continue;
+      const full = path.join(root, normalized);
+      if (!fs.existsSync(full)) rows.push(`${entry.status}:${normalized}:deleted`);
+      else if (fs.lstatSync(full).isSymbolicLink()) rows.push(`${entry.status}:${normalized}:symlink:${fs.readlinkSync(full)}`);
+      else if (fs.lstatSync(full).isFile()) rows.push(`${entry.status}:${normalized}:${canonicalFileDigest(full)}`);
+    }
+  }
+  return rows.length === 0 ? head : digest(`git:${head}\n${rows.sort().join("\n")}`);
+}
+
+function parseGitStatus(buffer) {
+  const items = buffer.toString("utf8").split("\0");
+  const entries = [];
+  for (let index = 0; index < items.length;) {
+    const item = items[index++];
+    if (!item) continue;
+    const status = item.slice(0, 2);
+    const paths = [item.slice(3)];
+    if (/[RC]/.test(status) && items[index]) paths.push(items[index++]);
+    entries.push({ status, paths: paths.filter(Boolean) });
+  }
+  return entries;
+}
+
 function nonGitRevision(root) {
   if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) return digest("non-git-source:missing");
   const rows = [];
   const ignored = new Set([".git", "node_modules", ".pnpm-store", "dist", "build", "coverage", ".next", ".cache"]);
-  const walk = (dir, relative = "") => {
+  const limits = { files: 100000, bytes: 20 * 1024 * 1024 * 1024, depth: 40 };
+  let fileCount = 0;
+  let totalBytes = 0;
+  const walk = (dir, relative = "", depth = 0) => {
+    if (depth > limits.depth) throw new Error(`Project identity exceeds maximum depth ${limits.depth}`);
     for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       if (entry.isDirectory() && ignored.has(entry.name)) continue;
       if (!relative && entry.isDirectory() && workflowOutputDirectories.has(entry.name)) continue;
       const rel = relative ? `${relative}/${entry.name}` : entry.name;
-      if (authorityIgnoredPathPrefixes.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) continue;
+      if (isAuthorityIgnoredPath(rel)) continue;
       const full = path.join(dir, entry.name);
       if (entry.isSymbolicLink()) rows.push(`${rel}:symlink:${fs.readlinkSync(full)}`);
-      else if (entry.isDirectory()) walk(full, rel);
-      else if (entry.isFile()) rows.push(`${rel}:${canonicalFileDigest(full)}`);
+      else if (entry.isDirectory()) walk(full, rel, depth + 1);
+      else if (entry.isFile()) {
+        fileCount += 1;
+        totalBytes += fs.statSync(full).size;
+        if (fileCount > limits.files || totalBytes > limits.bytes) throw new Error("Project identity exceeds bounded file or byte limits");
+        rows.push(`${rel}:${canonicalFileDigest(full)}`);
+      }
     }
   };
   walk(root);
   return digest(rows.join("\n"));
 }
 
-function readWorkflowOutputDirectories() {
-  for (const manifestPath of [
-    path.join(moduleRoot, "intentos-manifest.json"),
-    path.join(moduleRoot, ".intentos", "intentos-manifest.json"),
-  ]) {
-    try {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-      const values = Array.isArray(manifest?.groups?.workflowDirs) ? manifest.groups.workflowDirs : [];
-      return new Set(values.map((value) => String(value || "").split("/")[0]).filter(Boolean));
-    } catch {
-      // Try the next trusted installation layout.
-    }
-  }
-  return new Set([
-    "business-rule-closures",
-    "change-impact-coverage-reports",
-    "completion-evidence-reports",
-    "execution-assurance-reports",
-    "test-evidence-reports",
-    "verification-plans",
-  ]);
+function isAuthorityIgnoredPath(relativePath) {
+  const normalized = normalizePortablePath(relativePath);
+  const [top] = normalized.split("/");
+  return top === ".intentos"
+    || workflowOutputDirectories.has(top)
+    || authorityIgnoredPathPrefixes.some((prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`));
 }
 
 function realProjectRoot(projectRoot) {

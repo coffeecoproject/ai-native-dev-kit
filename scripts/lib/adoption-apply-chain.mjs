@@ -24,15 +24,7 @@ export function isWorkflowActivationAction(value) {
 
 export function isWorkflowActivationState(state, plan = null) {
   if (isWorkflowActivationAction(state?.nextAction)) return true;
-  if (state?.nextAction !== "RUN_WORKFLOW_ASSET_UPDATE") return false;
-  const missingAssets = Array.isArray(state?.missingWorkflowAssets) ? state.missingWorkflowAssets : [];
-  const missingAgentSections = Array.isArray(state?.missingAgentSections) ? state.missingAgentSections : [];
-  const agentAuthorityPreserved = Array.isArray(plan?.actions) && plan.actions.some((action) => (
-    action?.path === "AGENTS.md"
-      && action?.type === "HUMAN_ONLY"
-      && action?.willWrite === false
-  ));
-  return missingAssets.length === 0 && missingAgentSections.length > 0 && agentAuthorityPreserved;
+  return false;
 }
 
 export function evaluateVerifiedAdoptionApplyChain(projectRoot, options = {}) {

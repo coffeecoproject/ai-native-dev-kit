@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/launch-review-view.schema.json",
+  "title": "Launch Review View Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "artifact_id",
+    "launch_review_digest",
+    "project_identity",
+    "intent",
+    "closure_input",
+    "safe_launch_label",
+    "launch_review_can_proceed",
+    "surfaces",
+    "surface_evidence",
+    "boundaries",
+    "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.98.1" },
+    "artifact_type": { "const": "launch_review_view" },
+    "artifact_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "launch_review_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "project_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fingerprint", "revision"],
+      "properties": {
+        "kind": { "enum": ["GIT", "NON_GIT"] },
+        "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "intent": { "type": "string", "minLength": 1 },
+    "closure_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest", "decision", "can_count_as_done", "durable"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 },
+        "decision": { "enum": ["DONE", "NEEDS_EVIDENCE", "NEEDS_HUMAN_DECISION", "BLOCKED"] },
+        "can_count_as_done": { "enum": ["Yes", "No"] },
+        "durable": { "enum": ["Yes", "No"] }
+      }
+    },
+    "safe_launch_label": { "enum": ["NOT_READY", "READY_FOR_DEMO", "READY_FOR_INTERNAL_HANDOFF", "READY_FOR_RELEASE_REVIEW", "BLOCKED"] },
+    "launch_review_can_proceed": { "enum": ["Yes", "No"] },
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment", "monitoring", "rollback", "release_ownership", "post_launch_smoke"],
+      "properties": {
+        "environment": { "enum": ["PASS", "MISSING", "N/A"] },
+        "monitoring": { "enum": ["PASS", "MISSING", "N/A"] },
+        "rollback": { "enum": ["PASS", "MISSING", "N/A"] },
+        "release_ownership": { "enum": ["PASS", "MISSING", "N/A"] },
+        "post_launch_smoke": { "enum": ["PASS", "MISSING", "N/A"] }
+      }
+    },
+    "surface_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment", "monitoring", "rollback", "release_ownership", "post_launch_smoke"],
+      "properties": {
+        "environment": { "$ref": "#/$defs/surfaceEvidence" },
+        "monitoring": { "$ref": "#/$defs/surfaceEvidence" },
+        "rollback": { "$ref": "#/$defs/surfaceEvidence" },
+        "release_ownership": { "$ref": "#/$defs/surfaceEvidence" },
+        "post_launch_smoke": { "$ref": "#/$defs/surfaceEvidence" }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approves_release", "executes_release", "changes_production", "replaces_closure"],
+      "properties": {
+        "approves_release": { "const": "No" },
+        "executes_release": { "const": "No" },
+        "changes_production": { "const": "No" },
+        "replaces_closure": { "const": "No" }
+      }
+    },
+    "outcome": { "const": "LAUNCH_REVIEW_VIEW_RECORDED" }
+  },
+  "$defs": {
+    "surfaceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^(?:N/A|sha256:[a-f0-9]{64})$" }
+      }
+    }
+  }
+}

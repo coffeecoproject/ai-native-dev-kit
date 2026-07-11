@@ -132,11 +132,11 @@
   "artifact_type": "release_evidence_gate",
   "intent": "prepare mini program review handoff",
   "intent_digest": "sha256:87bd161358b3bd4a7ef2fa40bee0d8d5892fc8155afd562439344616c5466d50",
-  "release_evidence_digest": "sha256:633bf1aef9c6e32c0af94f31b81e24ef035b094446b5ff6c8851631e280e09d6",
+  "release_evidence_digest": "sha256:45b6565e63eff8e3e4d22839eb916736a05df80f07c1af5e46fcec7dcbcb07bf",
   "release_target": "mini_program_review",
   "release_scope": {
     "release_candidate_ref": "artifact:release-candidates/001-mini-program-review.md",
-    "release_candidate_digest": "sha256:9d92bd05cf5f7cebb137e78e4eaad0152f7f73de4f6d4c1e645f705b4555850c",
+    "release_candidate_digest": "sha256:260a2c9841418fcfa70e0e856007349e08cf764b57c612437d0bca1b557dd6cb",
     "source_revision": "git:2222222222222222222222222222222222222222",
     "dirty_worktree_status": "clean",
     "included_task_refs": [
