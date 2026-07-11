@@ -479,8 +479,8 @@ function renderMarkdown(evidence) {
 | External provider cost risk | ${evidence.cost_risk.external_provider_cost_risk} |
 | Registry storage cost risk | ${evidence.cost_risk.registry_storage_cost_risk} |
 | Platform fee risk | ${evidence.cost_risk.app_store_or_platform_fee_risk} |
-| Cost owner required | ${evidence.cost_risk.cost_owner_required} |
-| Cost owner ref | ${evidence.cost_risk.cost_owner_ref} |
+| Concrete cost consent required | ${evidence.cost_risk.cost_owner_required} |
+| Cost consent ref | ${evidence.cost_risk.cost_owner_ref} |
 
 ## Release Package Identity
 
@@ -493,17 +493,17 @@ function renderMarkdown(evidence) {
 | Evidence preserved outside runtime bundle | ${evidence.artifact_policy.evidence_preserved_outside_runtime_bundle} |
 | Release evidence deleted to reduce bundle | ${evidence.artifact_policy.release_evidence_deleted_to_reduce_bundle} |
 
-## Owners
+## Consent And External References
 
 | Field | Value |
 | --- | --- |
-| Release owner required | ${evidence.owners.release_owner_required} |
-| Release owner required for policy | ${evidence.owners.release_owner_required_for_policy} |
-| Release owner required before release review | ${evidence.owners.release_owner_required_before_release_review} |
-| Release owner ref | ${evidence.owners.release_owner_ref} |
-| Cost owner ref | ${evidence.owners.cost_owner_ref} |
-| Platform owner ref | ${evidence.owners.platform_owner_ref} |
-| Production owner ref | ${evidence.owners.production_owner_ref} |
+| Concrete release consent required | ${evidence.owners.release_owner_required} |
+| Consent required for this policy | ${evidence.owners.release_owner_required_for_policy} |
+| Consent required before release review | ${evidence.owners.release_owner_required_before_release_review} |
+| Consent confirmer ref | ${evidence.owners.release_owner_ref} |
+| Cost consent ref | ${evidence.owners.cost_owner_ref} |
+| Platform/provider ref | ${evidence.owners.platform_owner_ref} |
+| Production consent ref | ${evidence.owners.production_owner_ref} |
 
 ## Source Chain
 
@@ -536,8 +536,8 @@ ${evidence.outcome}
 ## Next Step
 
 ${evidence.effective_release_channel.blocked === "Yes"
-  ? "Keep release review blocked until the listed owner, cost, retention, or package identity gaps are resolved."
-  : "Use this policy as release-channel evidence before release-owner review."}
+  ? "Keep release review blocked while Codex resolves technical gaps; ask the user only for missing cost consent, a concrete external effect, or an external provider fact."
+  : "Use this policy as release-channel evidence. Request current-user consent only when the exact external release action is ready."}
 `;
 }
 
@@ -650,9 +650,9 @@ function plainSummary(channel, releasePolicy, actionsPolicy, costRisk) {
     return "I will keep GitHub for code and evidence, and will not treat GitHub Release assets or Actions artifacts as the release package by default.";
   }
   if (costRisk.cost_owner_required === "Yes") {
-    return "I found a release channel with possible cost or retention impact. A release/cost owner must decide before release review.";
+    return "I found a release channel with possible cost or retention impact. I will prepare the safest option and ask you only whether you accept the stated real cost before release.";
   }
-  return "Release channel policy is recorded for release-owner review. This does not approve release or production.";
+  return "Release channel policy is recorded. Codex will handle the technical path and will ask only for consent to the exact external release effect.";
 }
 
 function packageLocationFor(identityType) {

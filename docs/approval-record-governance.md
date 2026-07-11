@@ -5,32 +5,35 @@ Approval Record Governance is the step after Controlled Apply Readiness.
 In plain language:
 
 ```text
-The plan looks ready. What exactly did the human approve?
+The plan looks ready. Which exact low-risk actions are already covered by the user's request?
 ```
 
 It still does not write files.
 
 ## When To Use
 
-Use it when the user says things like:
+For a zero-experience solo developer, the normal input is the original request:
 
 ```text
-我批准 A001 和 A002。
+把 IntentOS 接入这个项目，你自己按规范处理。
 ```
 
 or:
 
 ```text
-这份计划可以执行，但只限这些文件。
+增加预约取消功能，并把前后端和测试完整处理好。
 ```
 
-Codex should record the decision as an Approval Record, check it, and stop before any future apply step.
+Codex converts that request into an exact bounded plan, records
+`CURRENT_CONVERSATION_USER`, checks the evidence, and continues only when every
+action is reversible, low-risk, project-local, and inside the original request.
+The user is not asked to inspect action IDs or technical paths.
 
 ## What Codex Should Do
 
 Codex should capture:
 
-- which specific human owner approved;
+- that the current conversation user supplied the explicit request;
 - which apply plan was approved;
 - the plan hash;
 - exact approved action IDs;
@@ -69,7 +72,8 @@ node scripts/cli.mjs approval-record-check .
 node scripts/new-workflow-item.mjs --type approval-record --name workflow-assets
 ```
 
-For ordinary users, Codex should not require these commands. Codex can record the approval details and explain the result.
+For ordinary users, Codex must not require these commands, action IDs, hashes,
+or target-path review. Codex records and checks them internally.
 
 ## Relationship To Earlier Steps
 
@@ -88,7 +92,7 @@ Is the plan eligible for a human-approved apply step?
 Approval Record answers:
 
 ```text
-What exactly did the human approve?
+Which exact low-risk actions are covered by the user's explicit request?
 ```
 
 None of these steps is an executor.

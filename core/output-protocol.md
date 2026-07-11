@@ -225,12 +225,12 @@ Different audiences need different detail.
 
 | Mode | Audience | Goal |
 |---|---|---|
-| owner | project owner, product owner, client, or non-technical collaborator | understand status, decision, risk, and next step |
+| plain | zero-experience solo developer or non-technical collaborator | understand business status, any missing fact or real-world consent, and what Codex does next |
 | developer | engineer or implementing agent | understand exact files, commands, checks, and repair path |
 | reviewer | human reviewer, GPT Pro, second model, or subagent | focus on findings, evidence, and decision routing |
 | audit | release, compliance, retrospective, or project governance | preserve evidence, approval, exceptions, and residual risk |
 
-Default interactive output should behave like `owner` first and `developer` second.
+Default interactive output should behave like `plain` first and `developer` second. Compatibility callers may still request the historical `owner` mode; render it using the same solo-developer contract.
 
 ## Required Assets
 

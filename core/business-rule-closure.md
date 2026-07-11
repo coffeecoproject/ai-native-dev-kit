@@ -17,11 +17,11 @@ whether the product is ready to release.
 Codex performs the internal completeness scan. Users should see only:
 
 - what Codex understands;
-- what still needs a business decision;
+- the one business or external fact that still cannot be inferred;
 - the safest default when the user is unsure.
 
 Codex should not ask ordinary users to fill a full specification. A Business
-Rule Closure card should ask no more than three user-facing questions in one
+Rule Closure card should ask no more than one user-facing question in one
 turn.
 
 ## Required Boundary
@@ -42,8 +42,8 @@ It does not write target files, does not authorize implementation, and does not 
 | State | Meaning |
 | --- | --- |
 | `READY_FOR_IMPACT_COVERAGE` | Business meaning is clear enough to map surfaces |
-| `NEEDS_USER_CONFIRMATION` | A user decision changes behavior or customer impact |
-| `NEEDS_DOMAIN_OWNER` | A specialist owner must decide before impact coverage |
+| `NEEDS_USER_CONFIRMATION` | A real business fact or product preference is missing |
+| `NEEDS_DOMAIN_OWNER` | Legacy machine state: an authoritative business/external fact is missing; it does not require a separate person |
 | `BLOCKED_INCOMPLETE_RULE` | The rule is incomplete or contradictory |
 | `OUT_OF_SCOPE_FOR_CURRENT_TASK` | The request belongs to another task |
 
@@ -56,8 +56,8 @@ read-only step: Change Impact Coverage.
 | --- | --- |
 | `CLOSED` | The dimension is clear enough to feed impact coverage |
 | `DEFAULTED_WITH_REASON` | A safe default is recorded with a concrete reason |
-| `NEEDS_USER_CONFIRMATION` | A user decision is needed |
-| `NEEDS_DOMAIN_OWNER` | A domain owner decision is needed |
+| `NEEDS_USER_CONFIRMATION` | A real business fact or product preference is needed |
+| `NEEDS_DOMAIN_OWNER` | Legacy machine status for a missing authoritative business/external fact |
 | `BLOCKED_CONTRADICTORY` | The rule conflicts with itself or known rules |
 | `OUT_OF_SCOPE_WITH_REASON` | The dimension belongs to another task |
 | `NOT_APPLICABLE_WITH_REASON` | The dimension does not apply and the reason is concrete |
@@ -97,5 +97,6 @@ For existing projects, Codex should look for project rule sources such as
 existing rule reconciliation reports.
 
 If a conflict is found, Business Rule Closure cannot be
-`READY_FOR_IMPACT_COVERAGE` until the conflict is resolved by the user or the
-proper domain owner.
+`READY_FOR_IMPACT_COVERAGE` until Codex reconciles the technical rules and the
+current user supplies any remaining real business fact. External legal, tax,
+compliance, or provider facts block only the dependent capability or claim.

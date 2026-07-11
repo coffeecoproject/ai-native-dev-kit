@@ -16,7 +16,7 @@ const version = manifest?.intentOSVersion || installedVersion?.intentOSVersion |
 
 const commandRegistry = {
   work: {
-    description: "Turn one natural-language goal into the current read-only IntentOS Project Identity, Operating State, and Decision.",
+    description: "Let one zero-experience solo developer describe a business goal while IntentOS chooses the technical workflow.",
     script: "scripts/resolve-operating-loop.mjs",
     writes: false,
     buildArgs: (args) => args,
@@ -32,6 +32,13 @@ const commandRegistry = {
     script: "scripts/check-beginner-entry.mjs",
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
+  },
+  "solo-model-check": {
+    description: "Check that public entry keeps technical judgment inside IntentOS and assumes no team roles.",
+    script: "scripts/check-solo-operating-model.mjs",
+    writes: false,
+    sourceOnly: true,
+    buildArgs: (args) => args,
   },
   "conversation-ask-check": {
     description: "Check recorded Conversation Ask Cards for conversation-native entry boundaries.",
@@ -865,7 +872,7 @@ function printHelp() {
   console.log(`IntentOS CLI ${version}`);
   console.log("Command: intentos");
   console.log("");
-  console.log("Describe the outcome. IntentOS chooses the internal workflow and keeps material decisions with the responsible human.");
+  console.log("Describe the real business outcome. IntentOS makes the technical decisions and asks only for missing business facts or consent to concrete real-world effects.");
   console.log("");
   console.log("Usage:");
   console.log("  node scripts/cli.mjs work <project> \"<what you want>\"");
@@ -892,6 +899,7 @@ function printHelp() {
   console.log("Docs:");
   console.log("  docs/start-here.md");
   console.log("  docs/operating-model.md");
+  console.log(`  ${isIntentOSSourceTarget(".") ? "core" : ".intentos/core"}/zero-experience-solo-operating-model.md`);
   console.log("");
   console.log("Lower-level commands remain supported. Run `node scripts/cli.mjs --help-advanced` only for maintenance, CI, or debugging.");
 }

@@ -5,7 +5,8 @@ Use this checklist before treating any approval record as valid evidence.
 ## Required
 
 - Approval status is explicit.
-- Approved records identify a specific human approver or accountable role.
+- Approved records identify `CURRENT_CONVERSATION_USER` or another specific
+  human confirmer and link to an explicit request or consent statement.
 - Approval owner type is `HUMAN`.
 - One Unified Apply Plan is referenced.
 - Plan hash is present.
@@ -14,7 +15,8 @@ Use this checklist before treating any approval record as valid evidence.
 - Expiry is present and not open-ended.
 - Approval is not expired.
 - Plan did not change after approval.
-- Human approval statement matches the approved action IDs table.
+- The generated approval statement and exact action table match the current
+  user's request; the user was not required to inspect technical identifiers.
 - Rollback acknowledgement is present.
 - Verification acknowledgement is present.
 - Non-authorizations all say `No`.
@@ -36,4 +38,6 @@ Use this checklist before treating any approval record as valid evidence.
 
 ## Human Handoff
 
-If approval is incomplete, Codex should ask for the missing human decision in plain language and stop.
+If approval is incomplete, Codex first narrows the technical plan itself. It
+asks the user only for a missing business fact or consent to a concrete
+real-world effect, then records the resulting statement internally.

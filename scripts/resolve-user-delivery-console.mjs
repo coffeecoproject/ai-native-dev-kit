@@ -217,18 +217,18 @@ function missingItemsFor(stateValue, input) {
     missing.push("Create the final completion record before claiming the task is done.");
   }
   if (!input.launchReviewReady) missing.push("Prepare launch review evidence before moving toward release.");
-  if (input.risk.high) missing.push("Confirm the risk owner for sensitive surfaces.");
+  if (input.risk.high) missing.push("Let Codex complete the stricter risk, verification, review, evidence, and rollback checks for sensitive surfaces.");
   if (stateValue.name === "TASK_DONE_WITH_EVIDENCE" && missing.length === 0) return ["No task-completion blocker found; this is still not release or production approval."];
   return missing.slice(0, 6);
 }
 
 function safeActionsFor(stateValue, missing) {
   if (stateValue.name === "NO_PROJECT") return ["Confirm the project path, then rerun status."];
-  if (stateValue.name === "BLOCKED_BY_RISK") return ["Pause execution and confirm the risk boundary before changing files."];
+  if (stateValue.name === "BLOCKED_BY_RISK") return ["Pause file changes while Codex completes the stricter risk boundary and verification plan."];
   if (stateValue.name === "PROJECT_HAS_OTHER_COMPLETION_RECORD") return ["Match the request to the correct completion record before calling this task done."];
   if (stateValue.name === "NEEDS_COMPLETION_EVIDENCE_CHECK") return ["Review the final completion record and fix any failed strict completion checks."];
   if (stateValue.name === "TASK_DONE_WITH_EVIDENCE") return ["Prepare review summary or launch-review input without approving release."];
-  if (stateValue.name === "READY_FOR_LAUNCH_REVIEW") return ["Hand this to the release owner for review; do not treat it as production approval."];
+  if (stateValue.name === "READY_FOR_LAUNCH_REVIEW") return ["Codex can prepare the release review evidence; ask for consent only before a concrete production or external-platform effect."];
   if (missing.length > 0) return [`Handle this first: ${missing[0]}`];
   return ["Keep the next step read-only until a bounded task is selected."];
 }
@@ -237,8 +237,8 @@ function humanDecisionsFor(stateValue, risk, missing) {
   const decisions = [];
   if (stateValue.name === "NO_PROJECT") decisions.push("Confirm the project path.");
   if (missing.some((item) => /first useful version/i.test(item))) decisions.push("Confirm the first useful version.");
-  if (risk.high) decisions.push("Confirm the owner for sensitive or production-risk decisions.");
-  if (missing.some((item) => /launch review/i.test(item))) decisions.push("Confirm whether launch review is in scope now or later.");
+  if (risk.high) decisions.push("No technical risk decision is required from you; provide only missing business facts or consent to a concrete real-world effect.");
+  if (missing.some((item) => /launch review/i.test(item))) decisions.push("No decision is needed yet; Codex should prepare launch-review evidence first.");
   if (decisions.length === 0) decisions.push("No decision needed for this read-only status card.");
   return decisions.slice(0, risk.high ? 5 : 3);
 }

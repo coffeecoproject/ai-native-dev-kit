@@ -2,15 +2,19 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.98.1`.
+Current release: `1.99.0`.
 
-Release record: [releases/1.98.1/release-record.md](releases/1.98.1/release-record.md).
+Release record: [releases/1.99.0/release-record.md](releases/1.99.0/release-record.md).
 
-IntentOS helps AI coding agents plan, review, migrate, and close software delivery work without bypassing human authority.
+IntentOS lets one zero-experience solo developer describe real business goals
+while the AI handles technical planning, implementation, testing, review,
+evidence, repair, migration, and delivery coordination.
 
 It is not a prompt collection, code template, framework starter, or deploy tool. It is a workflow and governance layer for Codex and other AI coding agents.
 
-> You describe the goal. AI reads the project, recommends the path, asks for the few decisions that matter, and only then helps move the work forward.
+> You describe the goal and the real business. AI makes the technical decisions and completes
+> the internal workflow. You supply only missing business facts and consent to
+> concrete real-world effects.
 
 ## Start In 30 Seconds
 
@@ -30,9 +34,10 @@ node scripts/cli.mjs work <project> "<what you want>"
 
 `work` identifies the project entry and routes six ordinary meanings: start,
 continue, check status, finish, prepare release, or adopt an existing project.
-It is read-only and does not approve implementation, apply, release,
-production, CI, hooks, secrets, migrations, payment, permissions, or
-governance replacement.
+The entry itself is read-only. Ordinary reversible engineering may proceed
+after internal gates without another technical approval. Production, cost,
+real-user communication, real account/provider, and irreversible real-data
+effects still require explicit consent to the concrete effect.
 
 Maintainers can use `node scripts/cli.mjs --help-advanced` for the lower-level
 source-system commands. Ordinary users do not need to select them.
@@ -47,6 +52,20 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.99.0 hardcuts the default user model to one zero-experience solo developer.
+Public entry no longer asks the user to choose technical architecture,
+baselines, packs, tests, review systems, workflow commands, or enterprise owner
+roles. IntentOS derives internal responsibility domains and capability coverage,
+continues ordinary reversible engineering after internal gates, and asks only
+for missing business facts or consent to concrete real-world effects. Strict
+evidence, apply, rollback, completion, and release trust remain unchanged.
+
+Historical release notes below retain earlier machine terms such as “owner” or
+“human approval” for audit compatibility. Under 1.99, those terms do not ask a
+solo user to assemble a team: public interaction translates them into a missing
+business/external fact, current-user consent to one concrete real-world effect,
+or an internal responsibility domain.
 
 1.98.1 closes the independent trust review without adding another public
 workflow. Completion is bound to one current task and current project state;

@@ -60,21 +60,21 @@
 | Prepare Existing Rule Reconciliation | Compare existing rules and IntentOS gaps. |
 | Prepare Unified Apply Plan | Only after a proposed change is understood. |
 
-## Human Must Decide
+## User Input Boundary
 
-| Decision | Why |
+| Input | Why |
 |---|---|
-| Release approval | IntentOS cannot approve production or release risk. |
-| Existing rule replacement | Project-owned rules require owner review. |
-| High-risk migration | Production, data, permissions, payment, security, compliance, or legal surfaces require human authority. |
+| Concrete release effect | Codex prepares the exact action and rollback; the current user consents only when production, cost, provider, or real-user impact is ready. |
+| Conflicting business behavior | Codex reconciles technical rules and asks one business question only when project evidence cannot establish intended behavior. |
+| External policy fact | Keep the dependent capability blocked until the legal, tax, compliance, or provider fact is available. |
 
-## External System Actions
+## Real-World Actions
 
-| Action | Owner |
+| Action | Execution boundary |
 |---|---|
-| Production deploy / publish / submit | Human or external release system |
-| Store / mini-program review submission | Human or external release system |
-| DNS / payment / provider-state change | Human or external release system |
+| Production deploy / publish / submit | Codex may execute the exact approved action after structured consent and strict gates; otherwise use the existing release system. |
+| Store / mini-program review submission | Current-user consent plus complete platform evidence and provider access. |
+| DNS / payment / provider-state change | Exact current-user consent to the named external effect. |
 
 ## Evidence Requirements
 
@@ -109,7 +109,7 @@
 - This plan lets trace control execution: No
 - This plan lets summary state drive execution: No
 - This plan treats IntentOS Operating Mode as write permission: No
-- This plan makes Codex the release owner: No
+- This plan treats technical readiness as user consent: No
 - This plan replaces existing governance: No
 - This plan modifies CI or hooks: No
 - This plan asks for or stores secrets: No
@@ -174,4 +174,3 @@
 ## Outcome
 
 `NEEDS_RELEASE_SHAPE`
-

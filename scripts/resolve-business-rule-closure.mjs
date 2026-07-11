@@ -244,39 +244,39 @@ function dimensionsFor(userIntent, classification, signals, conflicts) {
     add("FAILURE_PATH", "NEEDS_USER_CONFIRMATION", "What should happen when the rule fails?");
     return [...dims.values()];
   }
-  add("ACTOR", "NEEDS_USER_CONFIRMATION", "Who is affected by this rule?");
-  add("TRIGGER_SCENARIO", "NEEDS_USER_CONFIRMATION", signals.hasAppointment ? "Does this rule apply to appointment creation, rescheduling, or both?" : "Which create, edit, submit, import, API, or workflow entry points must apply this rule?");
+  add("ACTOR", "CLOSED", signals.hasAppointment ? "People or operators creating or changing an appointment are affected." : "Codex must infer affected actors from active UI, API, backend, and workflow entry points.");
+  add("TRIGGER_SCENARIO", "CLOSED", signals.hasAppointment ? "Apply during appointment creation and every later edit or reschedule that can change the relevant value." : "Apply at every active create, edit, submit, import, API, or workflow entry point discovered by impact coverage.");
   add("INPUT_CONDITION", "CLOSED", userIntent);
   add("SUCCESS_PATH", "CLOSED", "Valid input continues through the normal user flow.");
   add("FAILURE_PATH", "CLOSED", "Invalid input is blocked with a user-facing explanation.");
   add("USER_FEEDBACK", "CLOSED", "Show a clear inline error, toast, or operator-facing message.");
   add("SERVER_ENFORCEMENT", "CLOSED", "Backend/domain/API enforcement is expected; UI-only validation is not enough.");
-  add("DATA_BEHAVIOR", "DEFAULTED_WITH_REASON", "Do not batch-change existing records unless a user/domain owner explicitly approves it.", {
+  add("DATA_BEHAVIOR", "DEFAULTED_WITH_REASON", "Do not batch-change existing records unless the user explicitly consents to that irreversible data effect.", {
     safeDefaultRefs: ["default:existing-records"],
   });
   add("EFFECTIVE_TIME", "DEFAULTED_WITH_REASON", "Apply the rule to new records and future edits/reschedules/submissions.", {
     safeDefaultRefs: ["default:effective-time"],
   });
-  add("EXCEPTION_POLICY", "DEFAULTED_WITH_REASON", "No bypass or exemption is assumed unless the user/domain owner confirms it.", {
+  add("EXCEPTION_POLICY", "DEFAULTED_WITH_REASON", "No bypass or exemption is assumed unless the user states the corresponding business exception.", {
     safeDefaultRefs: ["default:no-implicit-exemptions"],
   });
   add("PRECEDENCE", "NOT_APPLICABLE_WITH_REASON", "No conflicting priority rule is known from the current request.");
-  add("ROLE_PERMISSION", signals.hasPermission ? "NEEDS_DOMAIN_OWNER" : "NOT_APPLICABLE_WITH_REASON", signals.hasPermission ? "Permission behavior needs a domain owner." : "No role-specific behavior is explicit in the request.", {
-    decisionRefs: signals.hasPermission ? ["decision:permission-owner"] : [],
+  add("ROLE_PERMISSION", signals.hasPermission ? "NEEDS_USER_CONFIRMATION" : "NOT_APPLICABLE_WITH_REASON", signals.hasPermission ? "The intended role behavior is a business fact; Codex owns the technical permission design." : "No role-specific behavior is explicit in the request.", {
+    decisionRefs: signals.hasPermission ? ["decision:role_permission"] : [],
   });
   add("CROSS_SURFACE_CONSISTENCY", "CLOSED", signals.hasMultipleClients ? "Multiple active clients or backend/API signals exist; impact coverage must map each surface." : "No multi-client conflict is known; impact coverage must still check project signals.");
-  add("AUDIT_LOGGING", signals.hasPermission || classification.types.includes("STATUS_TRANSITION") ? "NEEDS_DOMAIN_OWNER" : "NOT_APPLICABLE_WITH_REASON", signals.hasPermission ? "Permission or status rules may require audit evidence." : "No audit-specific behavior is explicit.");
-  add("IDEMPOTENCY_CONCURRENCY", signals.hasIntegration ? "NEEDS_DOMAIN_OWNER" : "NOT_APPLICABLE_WITH_REASON", signals.hasIntegration ? "Integration/import/export behavior may require retry and idempotency decisions." : "No retry or concurrent workflow is explicit.");
+  add("AUDIT_LOGGING", signals.hasPermission || classification.types.includes("STATUS_TRANSITION") ? "CLOSED" : "NOT_APPLICABLE_WITH_REASON", signals.hasPermission ? "Codex must include audit evidence for permission or status behavior." : "No audit-specific behavior is explicit.");
+  add("IDEMPOTENCY_CONCURRENCY", signals.hasIntegration ? "CLOSED" : "NOT_APPLICABLE_WITH_REASON", signals.hasIntegration ? "Codex must design and verify retry, deduplication, and concurrency behavior for integrations." : "No retry or concurrent workflow is explicit.");
   add("DOWNSTREAM_EFFECT", "CLOSED", "Reports, exports, notifications, dashboards, and integrations must be checked during impact coverage.");
   add("TENANCY_DATA_BOUNDARY", "NOT_APPLICABLE_WITH_REASON", "No tenant or data-isolation change is explicit in the request.");
-  add("LOCALIZATION_REGION", signals.hasTaxField ? "NEEDS_DOMAIN_OWNER" : "NOT_APPLICABLE_WITH_REASON", signals.hasTaxField ? "Tax or regional identifier meaning needs domain-owner review." : "No regional variation is explicit.");
+  add("LOCALIZATION_REGION", signals.hasTaxField ? "NEEDS_DOMAIN_OWNER" : "NOT_APPLICABLE_WITH_REASON", signals.hasTaxField ? "Tax or regional meaning needs an authoritative external fact; the user does not make the technical design decision." : "No regional variation is explicit.");
   add("SOURCE_RULE_CONFLICT", conflicts.some((conflict) => conflict.status === "UNRESOLVED") ? "BLOCKED_CONTRADICTORY" : "CLOSED", conflicts.some((conflict) => conflict.status === "UNRESOLVED") ? "Existing rule conflict is unresolved." : "No existing rule conflict is recorded.");
   add("REAL_ENVIRONMENT_VALIDATION", "CLOSED", "Local smoke evidence first; staging or internal trial before release review when available.");
   add("OUT_OF_SCOPE", "CLOSED", "Release, production, and batch data mutation are out of scope for this closure.");
   add("HUMAN_DECISION", "CLOSED", "No blocking human decision remains for low-risk validation semantics.");
   if (classification.riskDomains.includes("high-risk-domain")) {
-    add("HUMAN_DECISION", "NEEDS_DOMAIN_OWNER", "High-risk business meaning needs domain-owner confirmation.", {
-      decisionRefs: ["decision:domain-owner"],
+    add("HUMAN_DECISION", "NEEDS_DOMAIN_OWNER", "A high-risk business or external-policy fact is missing; no additional technical choice is delegated to the user.", {
+      decisionRefs: ["decision:external-business-fact"],
     });
   }
   return [...dims.values()];
@@ -315,9 +315,9 @@ function decisionItemsFor(classification, signals, conflicts, dimensions, safeDe
   const decisions = [];
   if (classification.riskDomains.includes("high-risk-domain")) {
     decisions.push({
-      id: "decision:domain-owner",
-      question: "A high-risk finance, tax, HR, legal, payment, privacy, compliance, migration, production, or customer-data meaning may be involved. Which domain owner should decide it?",
-      owner: "domain-owner",
+      id: "decision:external-business-fact",
+      question: "What real business outcome is intended here, and is there an authoritative external rule or provider requirement that must be followed?",
+      owner: "CURRENT_CONVERSATION_USER_OR_EXTERNAL_SOURCE",
       blocking: "Yes",
       status: "PENDING",
     });
@@ -326,7 +326,7 @@ function decisionItemsFor(classification, signals, conflicts, dimensions, safeDe
     decisions.push({
       id: "decision:tax-field-boundary",
       question: "Is this only a field-entry validation, not a tax compliance, invoice validity, filing, or legal decision?",
-      owner: "domain-owner",
+      owner: "CURRENT_CONVERSATION_USER_OR_EXTERNAL_SOURCE",
       blocking: "Yes",
       status: "PENDING",
     });
@@ -334,8 +334,8 @@ function decisionItemsFor(classification, signals, conflicts, dimensions, safeDe
   if (conflicts.some((conflict) => conflict.status === "UNRESOLVED")) {
     decisions.push({
       id: "decision:existing-rule-conflict",
-      question: "An existing project rule may conflict with this request. Which rule is authoritative?",
-      owner: "domain-owner",
+      question: "The request conflicts with an existing business rule. What real behavior should the product preserve? Codex will reconcile the technical rules.",
+      owner: "CURRENT_CONVERSATION_USER",
       blocking: "Yes",
       status: "PENDING",
     });
@@ -385,7 +385,7 @@ function understandingFor(userIntent, signals, classification) {
   if (classification.riskDomains.includes("tax-sensitive-field")) {
     return [
       "This may be a field-entry validation only, but tax/compliance meaning is not assumed.",
-      "Domain-owner confirmation is required before treating it as ready.",
+      "An authoritative tax or external-policy fact is required before the dependent claim can be treated as ready; unaffected engineering may continue.",
       "No tax compliance, invoice validity, filing, or legal meaning is approved by this closure.",
     ];
   }
@@ -397,7 +397,7 @@ function understandingFor(userIntent, signals, classification) {
 }
 
 function userQuestionsFor(decisionItems) {
-  return decisionItems.filter((item) => item.status === "PENDING").slice(0, 3).map((item) => item.question);
+  return decisionItems.filter((item) => item.status === "PENDING").slice(0, 1).map((item) => item.question);
 }
 
 function sourceRuleRefsFor(root) {
@@ -428,7 +428,7 @@ function conflictsFor(userIntent, sourceRuleRefs) {
 
 function unknownAuthorityItemsFor(classification) {
   if (classification.riskDomains.includes("high-risk-domain")) {
-    return ["High-risk domain owner is not confirmed."];
+    return ["An authoritative business or external-policy fact is not yet available for the dependent capability or claim."];
   }
   return [];
 }
@@ -454,7 +454,7 @@ function boundariesFor() {
 
 function nextStepFor(state) {
   if (state === "READY_FOR_IMPACT_COVERAGE") return "Run Change Impact Coverage with this business_rule_ref.";
-  if (state === "NEEDS_DOMAIN_OWNER") return "Ask the domain owner to resolve the high-risk business meaning.";
+  if (state === "NEEDS_DOMAIN_OWNER") return "Ask only for the missing business or external-policy fact; continue unaffected technical work internally.";
   if (state === "BLOCKED_INCOMPLETE_RULE") return "Resolve contradictory or missing business-rule facts before implementation.";
   if (state === "OUT_OF_SCOPE_FOR_CURRENT_TASK") return "Move this request to the Work Queue.";
   return "Ask the user to confirm the pending business decision.";
@@ -464,7 +464,7 @@ function humanReportText(report) {
   const evidence = report.structuredEvidence;
   return `# Business Rule Closure Card
 
-This card is a read-only business-rule interpretation. It does not write target files, authorize implementation, approve release, or replace domain-owner decisions.
+This card is a read-only business-rule interpretation. It does not write target files or approve release. Codex owns technical interpretation and implementation planning; the user supplies only missing business facts or consent to concrete real-world effects.
 
 ## Human Summary
 

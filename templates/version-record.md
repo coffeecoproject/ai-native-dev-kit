@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.98.1`
+`1.99.0`
 
 ## Project Version File
 
@@ -17,6 +17,14 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.99.0` makes one zero-experience solo developer the default public user.
+- The user supplies business goals, missing business facts, preferences, and
+  consent to concrete real-world effects; IntentOS/Codex owns technical
+  choices, baselines, implementation, testing, review, evidence, and repair.
+- Public output no longer requires enterprise owner roles, technical approval,
+  workflow commands, BL levels, or pack selection. Strict evidence, controlled
+  apply, rollback, completion, and release trust remain active.
 
 - `1.98.1` binds public completion to one durable current task and current Git
   content, makes apply/rollback/Receipt transactional, requires structured

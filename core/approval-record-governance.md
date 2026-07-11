@@ -5,7 +5,7 @@ Approval Record Governance is the human approval evidence layer after Controlled
 It answers one question:
 
 ```text
-What exactly did a human approve?
+Which exact low-risk actions remain inside the current user's explicit business request?
 ```
 
 It does not execute the plan.
@@ -23,7 +23,15 @@ Machine-checkable boundary:
 
 ## Purpose
 
-Use this protocol when a human has reviewed an Apply Plan and gives explicit approval for selected actions.
+Use this protocol after Codex has converted the current user's explicit natural-language request into an exact low-risk Apply Plan.
+
+The default zero-experience solo developer does not inspect action IDs, file
+digests, or technical plan details. Codex may record
+`CURRENT_CONVERSATION_USER` and bind only actions that are reversible,
+project-local, low-risk, covered by readiness, and inside the original request.
+If any action expands scope or creates a concrete real-world effect, do not
+infer approval; ask for the business impact or real-world consent in plain
+language.
 
 The record is evidence. It is not an executor, release gate, or blanket permission.
 
@@ -32,8 +40,8 @@ The record is evidence. It is not an executor, release gate, or blanket permissi
 | State | Meaning | Codex action |
 |---|---|---|
 | `DRAFT` | Approval record is being prepared | do not treat as approval |
-| `PENDING_REVIEW` | Approval is requested but not given | stop for human |
-| `APPROVED` | A human approved explicit action IDs and bounded scope | record evidence and stop before apply |
+| `PENDING_REVIEW` | The original request does not clearly cover one or more actions | explain the business or real-world effect, not action IDs |
+| `APPROVED` | Exact low-risk actions are bound to the current user's explicit request | record evidence and continue through readiness/apply gates |
 | `REVOKED` | Prior approval was withdrawn | do not apply |
 | `EXPIRED` | Approval is no longer valid | request fresh approval |
 
@@ -41,7 +49,7 @@ The record is evidence. It is not an executor, release gate, or blanket permissi
 
 An approved record must include:
 
-- specific human approver identity or accountable role;
+- `CURRENT_CONVERSATION_USER` or another specific human confirmer;
 - approval owner type set to `HUMAN`;
 - one referenced Unified Apply Plan;
 - one plan hash;
@@ -53,7 +61,9 @@ An approved record must include:
 - verification acknowledgement;
 - non-authorizations.
 
-Ambiguous approvers such as `someone`, `owner`, `human`, `team`, or `unknown` are not valid approval owners.
+Ambiguous values such as `someone`, `owner`, `human`, `team`, or `unknown` are
+not valid. The reserved current-conversation identity is valid only when an
+explicit user request or consent statement is present in the active interaction.
 
 ## Approved Action Rules
 
@@ -75,7 +85,9 @@ entire repo
 all files
 ```
 
-The human approval statement must name the same approved action IDs as the action table. If the table says `A001` but the statement says `A002`, the record is invalid.
+The generated approval statement must bind the same approved action IDs as the
+action table and the same task intent as the current user request. The user is
+not asked to read or repeat those IDs.
 
 ## Target Path Rules
 
@@ -115,7 +127,9 @@ Approval Record Governance cannot approve these action classes:
 - `SECURITY_PRIVACY_COMPLIANCE_CHANGE`
 - `LEGAL_LICENSE_POLICY_CHANGE`
 
-These may be planned, reviewed, or assigned to a human owner. They must not become Codex-controlled writes through this layer.
+These may be planned and reviewed. They must not become Codex-controlled writes
+through this layer. Ask only for the missing business fact or concrete
+real-world effect; do not ask the user to judge the technical action class.
 
 ## Allowed Claims
 

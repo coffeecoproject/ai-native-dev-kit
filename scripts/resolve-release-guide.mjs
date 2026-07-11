@@ -489,23 +489,23 @@ function routeValue(state, recommendedRoute, outcome) {
 
 function nextStepFor(routeValue, adapter, launchReview, approval, evidenceQuality) {
   if (routeValue.state === "NEEDS_RELEASE_ADAPTER") {
-    return "Review the Release Adapter output and confirm the first safe release target.";
+    return "Codex should inspect the Release Adapter output and select the safest first release target.";
   }
   if (routeValue.state === "NEEDS_PLATFORM_RELEASE_RECIPE") {
-    return "Confirm the platform release recipe before a handoff pack is generated.";
+    return "Codex should select and verify the matching platform release recipe before generating a handoff pack.";
   }
   if (routeValue.state === "NEEDS_LAUNCH_REVIEW") {
     return `Close Launch Review gaps before release approval. Current launch label: ${launchReview.safeLaunchLabel}.`;
   }
   if (routeValue.state === "NEEDS_STRUCTURED_RELEASE_APPROVAL") {
-    return "Create a structured Release Approval Record with target, scope, owner, allowed actions, blocked actions, evidence, and expiry.";
+    return "Codex should prepare the exact release action, evidence, and rollback, then request current-user consent to that concrete effect.";
   }
   if (routeValue.state === "NEEDS_RELEASE_EVIDENCE_QUALITY") {
     const missing = evidenceQuality.filter((item) => item.status !== "PASS").map((item) => item.evidence).join(", ");
     return `Improve release evidence quality before execution planning: ${missing}.`;
   }
   if (routeValue.state === "READY_FOR_RELEASE_EXECUTION_PLAN") {
-    return "Prepare a Release Execution Plan in PLAN_ONLY mode; high-risk release actions remain human/external-system-owned.";
+    return "Codex should prepare a Release Execution Plan; external actions remain blocked until exact current-user consent and strict gates pass.";
   }
   if (routeValue.state === "NEEDS_RELEASE_HANDOFF") {
     return "Prepare a Release Handoff Pack first; execution planning must consume handoff facts instead of redefining them.";
@@ -514,13 +514,6 @@ function nextStepFor(routeValue, adapter, launchReview, approval, evidenceQualit
 }
 
 function beginnerCard(routeValue, adapter, recipe, launchReview, approval, evidenceQuality, safeNextStep) {
-  const questions = [];
-  if (adapter.status !== "PASS") questions.push("Confirm the safest first release target: preview/test, staging, or production review.");
-  if (recipe.status !== "PASS") questions.push("Confirm which platform release recipe matches this project.");
-  if (launchReview.status !== "PASS") questions.push("Confirm where rollback, monitoring, release owner, and post-launch smoke evidence live.");
-  if (approval.structured !== "Yes") questions.push("Who can approve release risk, for which target and scope, and until when?");
-  if (questions.length === 0) questions.push("Confirm whether Codex may prepare a PLAN_ONLY release execution record.");
-
   return {
     recommendedSafeNextStep: safeNextStep,
     whatIFound: [
@@ -531,12 +524,12 @@ function beginnerCard(routeValue, adapter, recipe, launchReview, approval, evide
       `Structured approval: ${approval.structured}.`,
       `Missing evidence quality: ${evidenceQuality.filter((item) => item.status !== "PASS").map((item) => item.evidence).join(", ") || "none"}.`,
     ],
-    questions: questions.slice(0, 3),
+    questions: [],
     codexCanPrepare: [
       "Release Adapter review.",
       "Platform Release Recipe selection.",
       "Launch Review gap summary.",
-      "Structured release approval template.",
+      "Exact current-user consent record for the concrete release effect when it is ready.",
       "PLAN_ONLY Release Execution bridge.",
     ],
     codexMustNotDo: [

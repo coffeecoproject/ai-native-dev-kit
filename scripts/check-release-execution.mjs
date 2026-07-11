@@ -51,7 +51,6 @@ const sections = [
   "Human Summary",
   "Preconditions",
   "Launch Review Input",
-  "Human Release Approval",
   "Execution Mode",
   "Execution Steps",
   "Evidence Capture",
@@ -126,9 +125,9 @@ function checkCoreContent() {
   for (const marker of [
     "Release Execution Protocol",
     "Launch Review View",
-    "Human Release Approval",
+    "current user consented to the exact external effect",
     "ASSISTED_EXECUTION",
-    "does not execute release by itself",
+    "does not mean technical readiness automatically publishes or deploys",
   ]) {
     if (combined.includes(marker)) pass(`release execution docs include ${marker}`);
     else fail(`release execution docs missing ${marker}`);
@@ -147,6 +146,8 @@ function checkReleaseExecutionPlans() {
     const content = fs.readFileSync(file, "utf8");
     const label = rel(file);
     for (const section of sections) requireSection(content, section, label);
+    const consentSection = content.includes("## Structured Release Consent") ? "Structured Release Consent" : "Human Release Approval";
+    requireSection(content, consentSection, label);
     if (containsSecretLikeValue(content)) fail(`${label} contains secret-like content`);
     for (const pattern of forbiddenClaims) {
       if (pattern.test(content)) fail(`${label} contains forbidden release execution claim: ${pattern.source}`);
@@ -154,9 +155,10 @@ function checkReleaseExecutionPlans() {
 
     const launchLabel = tableValue(sectionBody(content, "Launch Review Input"), "Safe Launch Label");
     const launchCanProceed = tableValue(sectionBody(content, "Launch Review Input"), "Launch review can proceed");
-    const approvalStatus = tableValue(sectionBody(content, "Human Release Approval"), "Approval Status");
-    const approvalOwner = tableValue(sectionBody(content, "Human Release Approval"), "Owner");
-    const approvalRef = tableValue(sectionBody(content, "Human Release Approval"), "Ref");
+    const consentBody = sectionBody(content, consentSection);
+    const approvalStatus = tableValue(consentBody, "Approval Status");
+    const approvalOwner = tableValue(consentBody, "Confirmer") || tableValue(consentBody, "Owner");
+    const approvalRef = tableValue(consentBody, "Ref");
     const mode = tableValue(sectionBody(content, "Execution Mode"), "Mode");
     const realAllowed = tableValue(sectionBody(content, "Execution Mode"), "Real release execution allowed");
     const realMode = mode === "ASSISTED_EXECUTION" || mode === "HUMAN_EXECUTION_HANDOFF" || realAllowed === "Yes";
@@ -182,9 +184,9 @@ function checkReleaseExecutionPlans() {
         fail(`${label} real release execution requires READY_FOR_RELEASE_REVIEW`);
       }
       if (approvalStatus === "APPROVED" && approvalOwner && approvalOwner !== "N/A" && approvalRef && approvalRef !== "N/A") {
-        pass(`${label} real release execution has scoped human approval`);
+        pass(`${label} real release execution has scoped current-user consent`);
       } else {
-        fail(`${label} real release execution requires scoped Human Release Approval`);
+        fail(`${label} real release execution requires scoped structured release consent`);
       }
       for (const gate of ["Release SOP", "Rollback", "Monitoring", "Post-launch smoke"]) {
         requirePreconditionPass(content, label, gate);
@@ -195,7 +197,9 @@ function checkReleaseExecutionPlans() {
       fail(`${label} ASSISTED_EXECUTION must only appear when real release execution is allowed`);
     }
 
-    checkExecutionStepOwnership(content, label);
+    checkExecutionStepOwnership(content, label, {
+      trustedAssistedExecution: mode === "ASSISTED_EXECUTION" && realAllowed === "Yes" && structured.ok && structured.present,
+    });
     if (realMode && !structured.present) fail(`${label} real release execution requires structured release trust evidence`);
     if ((requireReleaseTrust || realMode) && structured.ok && structured.present) {
       checkReleaseTrust(content, file, label, structured.value, mode, realAllowed, outcome);
@@ -310,7 +314,7 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
   }
 }
 
-function checkExecutionStepOwnership(content, label) {
+function checkExecutionStepOwnership(content, label, options = {}) {
   const body = sectionBody(content, "Execution Steps") || "";
   const rows = body.split(/\r?\n/).filter((line) => /^\|/.test(line) && !/---/.test(line) && !/\|\s*Step\s*\|/i.test(line));
   if (rows.length > 0) pass(`${label} records execution steps`);
@@ -318,7 +322,7 @@ function checkExecutionStepOwnership(content, label) {
 
   for (const row of rows) {
     if (unsafeExecutorPattern.test(row)) fail(`${label} contains unsafe executor in step row: ${row}`);
-    if (highRiskStepPattern.test(row) && /\|\s*`?CODEX_MAY_RUN_AFTER_APPROVAL`?\s*\|/i.test(row)) {
+    if (highRiskStepPattern.test(row) && /\|\s*`?CODEX_MAY_RUN_AFTER_APPROVAL`?\s*\|/i.test(row) && options.trustedAssistedExecution !== true) {
       fail(`${label} assigns high-risk release step to Codex: ${row}`);
     }
   }
@@ -381,7 +385,7 @@ function checkSourceEvidence() {
 
   for (const [name, target, expected] of [
     ["missing launch view", "test-fixtures/bad/bad-release-execution-missing-launch-view", "must reference Launch Review input"],
-    ["assisted without approval", "test-fixtures/bad/bad-release-execution-assisted-without-approval", "requires scoped Human Release Approval"],
+    ["assisted without approval", "test-fixtures/bad/bad-release-execution-assisted-without-approval", "requires scoped structured release consent"],
     ["auto production deploy", "test-fixtures/bad/bad-release-execution-auto-production-deploy", "assigns high-risk release step to Codex"],
   ]) {
     const result = runNode(["scripts/check-release-execution.mjs", target]);

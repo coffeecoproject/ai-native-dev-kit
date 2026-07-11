@@ -12,7 +12,10 @@ In plain language:
 candidate, target, package, and strict release evidence chain?
 ```
 
-It does not mean Codex automatically publishes or deploys.
+It does not mean technical readiness automatically publishes or deploys. After
+the exact current-user consent and every strict gate pass, Codex may execute the
+approved action only when the project release protocol and available provider
+access allow it.
 
 From 1.61 onward, Release Execution should consume a Release Handoff Pack when one exists. The handoff pack owns release owner, approval, rollback, monitoring, smoke, and responsibility facts. Release Execution remains a plan-only layer and should not create a second source of truth.
 
@@ -32,13 +35,15 @@ Check recorded plans:
 node scripts/cli.mjs release-execution-check .
 ```
 
-After a human release owner records the exact structured approval, provide that
+After the current user consents to the exact concrete effect, record that
+consent as a structured approval (using `CURRENT_CONVERSATION_USER` when
+appropriate) and provide that
 Release Approval Record:
 
 ```bash
 node scripts/cli.mjs release-execution . \
   --approval-ref release-approval-records/001-release.md \
-  --mode HUMAN_EXECUTION_HANDOFF
+  --mode ASSISTED_EXECUTION
 ```
 
 Check the approval authority before planning execution:
@@ -62,7 +67,7 @@ A Release Execution Plan tells the user:
   required platform handoff evidence all still pass
 - which mode is allowed
 - which steps Codex may help with
-- which steps must stop for a human
+- which concrete external effects still need current-user consent
 - what evidence must be captured
 - what must happen after release
 
@@ -71,18 +76,18 @@ A Release Execution Plan tells the user:
 | Mode | Meaning |
 |---|---|
 | `PLAN_ONLY` | Safe default. Codex only prepares a plan. |
-| `HUMAN_EXECUTION_HANDOFF` | Human or existing release system executes release. |
-| `ASSISTED_EXECUTION` | Codex may assist with explicitly allowed low-risk commands after approval. |
+| `HUMAN_EXECUTION_HANDOFF` | Existing release system executes the approved action. |
+| `ASSISTED_EXECUTION` | Codex may execute the exact approved actions under the project release protocol. |
 | `BLOCKED` | Required release-review or approval evidence is missing. |
 
 ## Hard Boundary
 
-Even with human approval, Codex must stop before:
+Even with current-user consent, Codex must stop before:
 
-- production deployment when project policy does not explicitly allow Codex execution
-- app-store / mini-program / Play Store submission
-- database migrations
-- production secrets, DNS, payment, permissions, or config changes
+- production deployment when the approval or project policy does not explicitly allow the exact Codex action
+- app-store / mini-program / Play Store submission that is outside the approved provider action
+- database migrations without verified backup and rollback
+- production secrets, DNS, payment, permissions, or config changes outside the exact consented scope
 - release rollback risk acceptance
 - legal, tax, security, privacy, compliance, or finance decisions
 
@@ -92,7 +97,7 @@ A good Release Execution Plan should let a non-technical user understand:
 
 ```text
 What can happen now?
-Who must do it?
+What will Codex do, and what must an existing external system do?
 What proof do we need?
 Where must Codex stop?
 ```

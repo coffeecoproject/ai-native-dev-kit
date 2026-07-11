@@ -91,16 +91,16 @@ function buildLaunchReviewView(root, options) {
     launchSurfaceGaps: launchInputs,
     humanReleaseDecisions: [
       {
-        decision: "Release approval",
-        status: label === "READY_FOR_RELEASE_REVIEW" ? "NEEDS_HUMAN_DECISION" : "PENDING",
+        decision: "Concrete release effect consent",
+        status: label === "READY_FOR_RELEASE_REVIEW" ? "REAL_WORLD_CONSENT_NEEDED" : "NOT_NEEDED_YET",
         ownerOrRef: options.releaseOwner || "N/A",
-        notes: "IntentOS does not approve release.",
+        notes: "Technical readiness is not consent. Ask only when the exact external action and rollback are ready.",
       },
       {
-        decision: "Production risk acceptance",
-        status: label === "READY_FOR_RELEASE_REVIEW" ? "NEEDS_HUMAN_DECISION" : "PENDING",
-        ownerOrRef: options.releaseOwner || "N/A",
-        notes: "Human owner must accept release risk outside IntentOS.",
+        decision: "External policy or provider fact",
+        status: platform.platformBlocker === "None recorded." ? "NOT_APPLICABLE" : "EXTERNAL_FACT_NEEDED",
+        ownerOrRef: "N/A",
+        notes: "Keep only the dependent release action blocked; continue technical evidence preparation.",
       },
     ],
     evidenceMap: buildEvidenceMap(closure, launchInputs, options),
@@ -221,10 +221,10 @@ function resolveClosure(root, options) {
 
 function collectLaunchInputs(root, options) {
   return [
-    boundSurface(root, "Environment", options.environment || findEvidence(root, ["environment-baseline.md", "env", "runtime"]), "Runtime or environment ownership"),
-    boundSurface(root, "Monitoring", options.monitoring || findEvidence(root, ["monitor", "observability", "sentry", "logging"]), "Failure observation and owner"),
+    boundSurface(root, "Environment", options.environment || findEvidence(root, ["environment-baseline.md", "env", "runtime"]), "Runtime or environment evidence"),
+    boundSurface(root, "Monitoring", options.monitoring || findEvidence(root, ["monitor", "observability", "sentry", "logging"]), "Failure observation evidence"),
     boundSurface(root, "Rollback", options.rollback || findEvidence(root, ["rollback", "recovery", "feature-flag"]), "Rollback, fallback, or feature-disable path"),
-    ownerSurface("Release ownership", options.releaseOwner, "Release approver and rollback owner"),
+    ownerSurface("Release consent", options.releaseOwner, "Current-user consent reference for the concrete external release effect"),
     boundSurface(root, "Post-launch smoke", options.postLaunchSmoke || findEvidence(root, ["smoke", "post-launch", "verification"]), "Post-launch smoke or observation"),
   ];
 }
@@ -238,14 +238,14 @@ function boundSurface(root, name, reference, finding) {
 
 function ownerSurface(name, reference, finding) {
   const value = String(reference || "").trim();
-  if (/^(?:human|team|role):[^\s]+$/i.test(value)) return surface(name, "PASS", value, `${name} identifies a concrete external owner.`, "N/A");
+  if (value === "CURRENT_CONVERSATION_USER" || /^(?:human|team|role):[^\s]+$/i.test(value)) return surface(name, "PASS", value, `${name} identifies the specific confirmer of the real-world effect.`, "N/A");
   return surface(name, "MISSING", value || "N/A", finding, "N/A");
 }
 
 function chooseSafeLaunchLabel(closure, inputs) {
   if (closure.decision === "BLOCKED" || closure.decision === "NEEDS_HUMAN_DECISION") return "BLOCKED";
   if (closure.decision !== "DONE" || closure.canCountAsDone !== "Yes" || closure.durable !== true) return "NOT_READY";
-  const required = ["Monitoring", "Rollback", "Release ownership", "Post-launch smoke"];
+  const required = ["Monitoring", "Rollback", "Release consent", "Post-launch smoke"];
   const missingRequired = inputs.some((item) => required.includes(item.surface) && item.status !== "PASS");
   if (!missingRequired) return "READY_FOR_RELEASE_REVIEW";
   const anyLaunchEvidence = inputs.some((item) => item.status === "PASS");
@@ -253,7 +253,7 @@ function chooseSafeLaunchLabel(closure, inputs) {
 }
 
 function summaryFor(label, closure, inputs) {
-  if (label === "BLOCKED") return `Unified Closure is ${closure.decision}; a human decision or blocker prevents launch review.`;
+  if (label === "BLOCKED") return `Unified Closure is ${closure.decision}; missing evidence, a business/external fact, or another blocker prevents launch review.`;
   if (label === "NOT_READY") return `Unified Closure is ${closure.decision}; the task/version is not closed enough for launch review.`;
   if (label === "READY_FOR_RELEASE_REVIEW") return "Unified Closure is DONE and required launch review surfaces have visible evidence. Human release approval is still outside IntentOS.";
   const missing = inputs.filter((item) => item.status !== "PASS").map((item) => item.surface).join(", ");
@@ -261,7 +261,7 @@ function summaryFor(label, closure, inputs) {
 }
 
 function nextStepFor(label, closure, inputs) {
-  if (label === "READY_FOR_RELEASE_REVIEW") return "Ask the release owner to review this evidence using the project release SOP.";
+  if (label === "READY_FOR_RELEASE_REVIEW") return "Codex should prepare the exact release action, evidence, and rollback, then ask the current user to consent to that real-world effect.";
   if (closure.decision !== "DONE") return "Close the task with Unified Closure before launch review.";
   const missing = inputs.filter((item) => item.status !== "PASS").map((item) => item.surface);
   return `Record missing launch evidence before release review: ${missing.join(", ") || "none"}.`;
@@ -270,8 +270,8 @@ function nextStepFor(label, closure, inputs) {
 function recommendedNextStep(label, closure, inputs) {
   if (label === "READY_FOR_RELEASE_REVIEW") {
     return [
-      "Hand the Launch Review View to the human release owner.",
-      "Use the project release SOP for release approval, deployment, rollback, and post-launch checks.",
+      "Codex prepares the exact release action and follows the project release SOP.",
+      "Ask the current user only for consent to the concrete external effect, then execute only the approved scope and capture evidence.",
     ];
   }
   if (closure.decision !== "DONE") {
@@ -308,18 +308,18 @@ function detectPlatform(root, explicitPlatform) {
   const paths = fs.existsSync(root) ? walkRelativePaths(root, ".", { maxDepth: 3, ignoredDirs: defaultIgnoredDirs }) : [];
   const joined = paths.join("\n").toLowerCase();
   if (/project\.config\.json|app\.json/.test(joined) && /miniprogram|微信|小程序/.test(joined)) {
-    return { platform: "wechat-miniprogram", signals: "mini program config signals", platformBlocker: "Submission review owner must be human-confirmed." };
+    return { platform: "wechat-miniprogram", signals: "mini program config signals", platformBlocker: "Mini-program submission requires current-user consent to the concrete provider action." };
   }
   if (/xcodeproj|package\.swift|\.swift$/.test(joined)) {
-    return { platform: "ios", signals: "iOS project signals", platformBlocker: "Signing and App Store release owner must be human-confirmed." };
+    return { platform: "ios", signals: "iOS project signals", platformBlocker: "Signing and App Store submission require current-user consent and valid provider access." };
   }
   if (/build\.gradle|androidmanifest\.xml/.test(joined)) {
-    return { platform: "android", signals: "Android project signals", platformBlocker: "Signing and Play Store release owner must be human-confirmed." };
+    return { platform: "android", signals: "Android project signals", platformBlocker: "Signing and Play Store submission require current-user consent and valid provider access." };
   }
   if (/package\.json|vite\.config|next\.config|src\/app/.test(joined)) {
-    return { platform: "web", signals: "web project signals", platformBlocker: "Deploy target, env, monitoring, and rollback owner must be confirmed." };
+    return { platform: "web", signals: "web project signals", platformBlocker: "Deploy target, environment, monitoring, and rollback evidence must be ready before requesting production consent." };
   }
-  return { platform: "generic", signals: paths.length > 0 ? "generic project files" : "N/A", platformBlocker: "Platform release owner must be confirmed." };
+  return { platform: "generic", signals: paths.length > 0 ? "generic project files" : "N/A", platformBlocker: "The concrete platform action and rollback must be known before requesting real-world consent." };
 }
 
 function findEvidence(root, needles) {

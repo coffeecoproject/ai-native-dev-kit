@@ -23,10 +23,17 @@ function runWork(root, intent, extraArgs = []) {
   const result = runNode(["scripts/resolve-operating-loop.mjs", root, ...intentArgs, ...extraArgs, "--json"]);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.schemaVersion, "1.98.1");
-  assert.equal(report.operatingDecision.contractVersion, "1.98.1");
+  assert.equal(report.schemaVersion, "1.99.0");
+  assert.equal(report.operatingDecision.contractVersion, "1.99.0");
   assert.equal(report.operatingDecision.derivedOnly, "Yes");
   assert.equal(report.operatingDecision.materialActionAuthorized, "No");
+  assert.equal(report.operatingDecision.separateTechnicalApprovalRequired, "No");
+  assert.equal(report.decisionResponsibility.operatingModel, "ZERO_EXPERIENCE_SOLO_DEVELOPER");
+  assert.equal(report.decisionResponsibility.technicalDecisionRequiredFromUser, "No");
+  assert.equal(report.decisionResponsibility.workflowKnowledgeRequiredFromUser, "No");
+  assert.equal(report.decisionResponsibility.internalRoleSelectionRequiredFromUser, "No");
+  assert.equal(report.decisionResponsibility.domainsArePeople, "No");
+  assert.match(report.decisionResponsibility.responsibilityDigest, /^sha256:[a-f0-9]{64}$/);
   assert.equal(report.projectIdentityProjection.contractVersion, "1.98.1");
   assert.equal(report.projectIdentityProjection.derivedOnly, "Yes");
   assert.equal(report.projectIdentityProjection.grantsAuthority, "No");
@@ -36,6 +43,7 @@ function runWork(root, intent, extraArgs = []) {
   assert.ok(report.projectIdentityProjection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest)));
   assert.ok(report.humanSummary.projectIdentity);
   assert.equal(report.humanSummary.nextSafeAction, report.operatingDecision.plainAction);
+  assert.equal(report.humanSummary.technicalDecisionRequiredFromUser, "No");
   assert.match(report.operatingDecision.decisionDigest, /^sha256:[a-f0-9]{64}$/);
   const sourceNames = new Set(report.sourceSystemTrace.map((source) => source.sourceSystem));
   assert.ok(report.operatingDecision.sourceInputs.every((source) => sourceNames.has(source.sourceSystem)));
@@ -93,6 +101,8 @@ test("new project goal enters the shared operating loop through START_PROJECT", 
   assert.equal(report.operatingLoop.operation, "START_PROJECT");
   assert.equal(report.operatingLoop.lifecyclePhase, "PROJECT_ENTRY");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_PROJECT_PLAN");
+  assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
+  assert.equal(report.decisionResponsibility.userActionRequiredNow, "No");
   assert.equal(report.boundaries.writesTargetFiles, "No");
 }));
 
@@ -109,7 +119,8 @@ test("existing project normal task uses CONTINUE_TASK without forcing high gover
   assert.equal(report.operatingDecision.actionCode, "PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW");
   assert.equal(report.operatingLoop.projectBaselineControlsTaskImpact, "No");
   assert.ok(report.evidenceTrace.dependencies.every((item) => item.to === "OPERATING_STATE" && item.relation === "INPUT_TO_DERIVED_VIEW"));
-  assert.equal(report.authorityRecommendation.namedOwnerResolution, "NOT_EVALUATED_BY_OPERATING_VIEW");
+  assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
+  assert.equal(report.operatingDecision.routineEngineeringMayProceedAfterInternalGates, "Yes");
 }));
 
 test("existing project adoption is a project-entry review and remains read-only", () => withRoot("intentos-operating-adopt-", (root) => {
@@ -120,30 +131,34 @@ test("existing project adoption is a project-entry review and remains read-only"
   assert.equal(report.operatingLoop.operation, "ADOPT_PROJECT");
   assert.equal(report.operatingLoop.lifecyclePhase, "PROJECT_ENTRY");
   assert.equal(report.operatingDecision.actionCode, "RUN_ADOPTION_REVIEW");
-  assert.equal(report.authorityRecommendation.grantsAuthority, "No");
+  assert.equal(report.decisionResponsibility.grantsExternalAuthority, "No");
+  assert.equal(report.decisionResponsibility.internalRoleSelectionRequiredFromUser, "No");
   assert.deepEqual(snapshot(root), before);
 }));
 
-test("release intent recommends release authority without approving release", () => withRoot("intentos-operating-release-", (root) => {
+test("release preparation remains automatic while real-world consent stays explicit", () => withRoot("intentos-operating-release-", (root) => {
   makeExistingProject(root);
   const report = runWork(root, "准备发布内部测试版本");
   assert.equal(report.operatingLoop.operation, "PREPARE_RELEASE");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_RELEASE_REVIEW");
-  assert.ok(report.authorityRecommendation.recommendedRoles.includes("RELEASE_OWNER"));
-  assert.equal(report.authorityRecommendation.materialActionAllowedByThisView, "No");
+  assert.ok(report.decisionResponsibility.responsibilityDomains.includes("RELEASE_SAFETY"));
+  assert.equal(report.decisionResponsibility.userResponsibilityClass, "REAL_WORLD_CONSENT_NEEDED");
+  assert.equal(report.decisionResponsibility.userActionRequiredNow, "No");
+  assert.equal(report.decisionResponsibility.technicalDecisionRequiredFromUser, "No");
   assert.equal(report.boundaries.approvesReleaseOrProduction, "No");
 }));
 
-test("permission task recommends domain and security owners", () => withRoot("intentos-operating-permission-", (root) => {
+test("permission task remains a technical responsibility domain instead of a people-selection task", () => withRoot("intentos-operating-permission-", (root) => {
   makeExistingProject(root);
   makeCurrentWorkQueue(root);
   const report = runWork(root, "新增管理员权限并限制敏感数据访问");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.match(report.operatingLoop.taskImpact, /HIGH|POSSIBLE_HIGH/);
   assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");
-  assert.ok(report.authorityRecommendation.recommendedRoles.includes("DOMAIN_OWNER"));
-  assert.ok(report.authorityRecommendation.recommendedRoles.includes("SECURITY_OWNER"));
-  assert.equal(report.authorityRecommendation.grantsAuthority, "No");
+  assert.ok(report.decisionResponsibility.responsibilityDomains.includes("ACCESS_CONTROL"));
+  assert.ok(report.decisionResponsibility.responsibilityDomains.includes("DATA_SAFETY"));
+  assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
+  assert.equal(report.decisionResponsibility.internalRoleSelectionRequiredFromUser, "No");
 }));
 
 test("continuation without a durable current Work Queue item stops before implementation review", () => withRoot("intentos-operating-no-queue-", (root) => {
@@ -174,6 +189,7 @@ test("a clearly different goal does not silently continue the current task", () 
   assert.equal(switched.operatingLoop.state, "NEEDS_TASK_SWITCH_REVIEW");
   assert.equal(switched.operatingDecision.actionCode, "REVIEW_TASK_SWITCH");
   assert.equal(switched.operatingDecision.requiresHumanDecisionNow, "Yes");
+  assert.equal(switched.decisionResponsibility.userResponsibilityClass, "BUSINESS_FACT_NEEDED");
 
   const continued = runWork(root, "继续完善预约时间校验");
   assert.notEqual(continued.operatingLoop.state, "NEEDS_TASK_SWITCH_REVIEW");
@@ -279,6 +295,8 @@ test("dirty worktree stops before task continuation", () => withRoot("intentos-o
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(report.operatingLoop.state, "NEEDS_CURRENT_WORK_REVIEW");
   assert.equal(report.operatingDecision.actionCode, "REVIEW_CURRENT_WORK");
+  assert.equal(report.operatingDecision.requiresHumanDecisionNow, "No");
+  assert.equal(report.decisionResponsibility.userResponsibilityClass, "NO_USER_ACTION");
   assert.equal(report.projectIdentityProjection.worktreePosture, "DIRTY");
   assert.doesNotMatch(JSON.stringify(report.projectIdentityProjection), /src\/index\.js/);
 }));
@@ -366,7 +384,8 @@ test("source failure is visible and blocks the operating state", () => withRoot(
   assert.equal(report.projectIdentityProjection.confidence, "LOW");
   assert.equal(report.operatingDecision.actionCode, "REPAIR_SOURCE_READ");
   assert.ok(report.sourceSystemTrace.some((item) => item.readStatus === "FAILED"));
-  assert.equal(report.authorityRecommendation.currentReadOnlyActionAllowed, "No");
+  assert.equal(report.decisionResponsibility.routineEngineeringMayProceedAfterInternalGates, "No");
+  assert.equal(report.decisionResponsibility.technicalDecisionRequiredFromUser, "No");
 }));
 
 test("default help is beginner-only while advanced help preserves lower-level commands", () => {
@@ -419,6 +438,38 @@ test("high task selects the first authoritative governance prerequisite", () => 
   assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");
   assert.ok(report.operatingDecision.blockedBy.includes("missing affected-surface map"));
   assert.equal(report.operatingDecision.requiresHumanDecisionNow, "No");
+}));
+
+test("external policy facts block only the dependent claim and never become a technical-choice prompt", () => withRoot("intentos-operating-external-fact-", (root) => {
+  makeExistingProject(root);
+  makeCurrentWorkQueue(root, "TASK-TAX", "实现税务发票规则");
+  const report = runWork(root, "实现税务发票规则并满足当地合规要求");
+  assert.equal(report.decisionResponsibility.userResponsibilityClass, "EXTERNAL_FACT_NEEDED");
+  assert.ok(report.decisionResponsibility.responsibilityDomains.includes("EXTERNAL_POLICY"));
+  assert.equal(report.decisionResponsibility.unaffectedEngineeringMayContinue, "Yes");
+  assert.equal(report.decisionResponsibility.technicalDecisionRequiredFromUser, "No");
+  assert.match(report.decisionResponsibility.publicPrompt, /外部政策事实/);
+}));
+
+test("zero-experience solo model never requires multiple internal people", () => withRoot("intentos-operating-solo-roles-", (root) => {
+  makeExistingProject(root);
+  makeCurrentWorkQueue(root, "TASK-SAFE-RELEASE", "升级权限数据并准备发布");
+  const report = runWork(root, "升级权限数据并准备正式发布");
+  assert.deepEqual(report.decisionResponsibility.responsibilityDomains.sort(), ["ACCESS_CONTROL", "DATA_SAFETY", "ENGINEERING", "RELEASE_SAFETY"].sort());
+  assert.equal(report.decisionResponsibility.domainsArePeople, "No");
+  assert.equal(report.decisionResponsibility.internalRoleSelectionRequiredFromUser, "No");
+  assert.doesNotMatch(JSON.stringify(report.decisionResponsibility), /DATA_OWNER|SECURITY_OWNER|RELEASE_OWNER|DOMAIN_OWNER/);
+}));
+
+test("real-world effects are expressed as consent to impact, not approval of a technical strategy", () => withRoot("intentos-operating-real-world-consent-", (root) => {
+  makeExistingProject(root);
+  const report = runWork(root, "现在部署到生产环境并向真实用户发送通知");
+  assert.equal(report.operatingLoop.operation, "PREPARE_RELEASE");
+  assert.equal(report.decisionResponsibility.userResponsibilityClass, "REAL_WORLD_CONSENT_NEEDED");
+  assert.ok(report.decisionResponsibility.responsibilityDomains.includes("REAL_USER_COMMUNICATION"));
+  assert.equal(report.decisionResponsibility.technicalDecisionRequiredFromUser, "No");
+  assert.equal(report.decisionResponsibility.silenceCountsAsConsent, "No");
+  assert.match(report.decisionResponsibility.publicPrompt, /现实影响/);
 }));
 
 test("legacy closure cannot report completion without strict Completion Evidence", () => {

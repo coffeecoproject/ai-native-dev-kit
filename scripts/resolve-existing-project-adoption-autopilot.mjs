@@ -301,21 +301,21 @@ function humanDecisionsFor(state) {
   if (state === "READY_FOR_RULE_ENTRY_REVIEW") {
     return [{
       decision: "collaboration_file_review",
-      plain_question: "Codex can prepare a plan to update collaboration instructions while preserving stricter project rules. Should Codex prepare that plan?",
+      plain_question: "No technical decision is needed. Codex will prepare the bounded collaboration-instruction plan while preserving stricter project rules.",
       required_now: "No",
     }];
   }
   if (state === "BLOCKED_BY_PROJECT_AUTHORITY") {
     return [{
-      decision: "project_owner_review",
-      plain_question: "This project has rules that require owner review before deeper adoption. Should Codex prepare an owner review plan?",
+      decision: "project_rule_reconciliation",
+      plain_question: "No technical decision is needed. Codex will compare the existing rules, keep the stricter safe behavior, and prepare a bounded adoption plan.",
       required_now: "No",
     }];
   }
   if (state === "BLOCKED_BY_UNSAFE_PROJECT_STATE") {
     return [{
       decision: "worktree_review",
-      plain_question: "The project has existing changes. Should Codex first classify those changes without writing files?",
+      plain_question: "No technical decision is needed. Codex will first classify the existing changes without writing files.",
       required_now: "No",
     }];
   }
@@ -339,7 +339,7 @@ function checkedItemsFor(exists) {
 function nextStepFor(state) {
   if (state === "SAFE_READ_ONLY_ADOPTION_COMPLETE") return "Use IntentOS for the next task in read-only guided mode.";
   if (state === "READY_FOR_RULE_ENTRY_REVIEW") return "Prepare a separate plan for collaboration-instruction updates before any project file changes.";
-  if (state === "BLOCKED_BY_PROJECT_AUTHORITY") return "Ask the project owner whether Codex may prepare an adoption review plan.";
+  if (state === "BLOCKED_BY_PROJECT_AUTHORITY") return "Codex should automatically prepare a read-only rule reconciliation and bounded adoption plan; ask only if a real business conflict remains.";
   if (state === "BLOCKED_BY_UNSAFE_PROJECT_STATE") return "Classify the existing project changes before any adoption writes.";
   if (state === "BLOCKED_BY_PROJECT_NOT_FOUND") return "Provide a valid project path.";
   return "Fix invalid evidence before continuing.";

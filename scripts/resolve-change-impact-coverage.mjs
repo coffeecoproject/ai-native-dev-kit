@@ -316,12 +316,9 @@ function affectedSurfaces(signals, risk) {
 }
 
 function questionsFor(signals, risk) {
-  const questions = [];
-  if (signals.isValidationRule) questions.push("Should this rule be enforced in both UI and backend/API, or only one layer?");
-  if (signals.hasPermission || signals.hasPaymentOrCompliance || risk.high) questions.push("Does this touch permissions, payment, data, production, compliance, or privacy?");
-  if (signals.hasRelease) questions.push("Is release, rollback, migration, or production rollout in scope?");
-  if (questions.length === 0) questions.push("Can I record the impact map before implementation without writing files?");
-  return questions.slice(0, risk.high ? 5 : 3);
+  void signals;
+  void risk;
+  return [];
 }
 
 function highRiskNeedsDecision(surfaces) {
@@ -384,7 +381,8 @@ function printHuman(report) {
   console.log("");
   console.log("## Human Decisions Needed");
   console.log("");
-  report.humanDecisionsNeeded.forEach((question, index) => console.log(`${index + 1}. ${question}`));
+  if (report.humanDecisionsNeeded.length === 0) console.log("None. Codex derives technical surface coverage and asks only for a missing business fact or concrete real-world consent.");
+  else report.humanDecisionsNeeded.forEach((question, index) => console.log(`${index + 1}. ${question}`));
   console.log("");
   console.log("## Implementation Coverage");
   console.log("");
@@ -472,7 +470,8 @@ function humanReportText(report) {
   log("");
   log("## Human Decisions Needed");
   log("");
-  report.humanDecisionsNeeded.forEach((question, index) => log(`${index + 1}. ${question}`));
+  if (report.humanDecisionsNeeded.length === 0) log("None. Codex derives technical surface coverage and asks only for a missing business fact or concrete real-world consent.");
+  else report.humanDecisionsNeeded.forEach((question, index) => log(`${index + 1}. ${question}`));
   log("");
   log("## Implementation Coverage");
   log("");

@@ -16,14 +16,15 @@ finish
   -> Unified Closure Decision
   -> Safe Launch label
   -> Launch Review View
-  -> human release owner decides outside IntentOS
+  -> Codex prepares one exact external release action and rollback
+  -> current user consents to that concrete effect
 ```
 
 So the rule is simple:
 
 - If `finish` is not `DONE`, launch review cannot be ready.
-- If `finish` is `DONE`, Launch Review View checks launch-specific gaps such as owner, rollback, monitoring, platform review, and post-launch smoke.
-- Even when the view says `READY_FOR_RELEASE_REVIEW`, it only means a human release owner can review. It is not approval.
+- If `finish` is `DONE`, Launch Review View checks launch-specific gaps such as consent reference, rollback, monitoring, platform review, and post-launch smoke.
+- Even when the view says `READY_FOR_RELEASE_REVIEW`, it only means Codex can present one exact real-world action for consent. It is not consent or execution authority by itself.
 
 ## User Flow
 
@@ -47,7 +48,7 @@ The view should answer in plain language:
 - why that label was chosen
 - whether Unified Closure is done
 - which launch surfaces are missing
-- what needs human decision
+- what concrete real-world effect needs current-user consent
 - what evidence exists
 - what the safest next step is
 
@@ -66,4 +67,4 @@ Launch Review View never:
 
 Use this after implementation and close-out evidence exists, or when the user asks whether a version can move toward release review.
 
-For existing production projects, use it as a read-only adapter view. Do not copy workflow assets, change CI, or add gates unless a separate human-approved apply plan exists.
+For existing production projects, use it as a read-only adapter view. Codex prepares bounded technical changes through the controlled apply chain; it asks the user only for unresolved business facts or consent to concrete production effects.

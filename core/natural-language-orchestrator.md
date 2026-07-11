@@ -144,17 +144,17 @@ Deep Guide Orchestration must remain read-only and must not:
 
 ## Question Limit
 
-Codex may ask at most 3 questions by default.
-
-Codex may ask at most 5 questions only when high-risk scope is detected.
+Codex asks at most one plain business question in one turn and asks none when
+project evidence or a conservative technical default can answer it. Technical
+risk never increases the number of user questions; it increases internal
+planning, testing, review, evidence, and rollback depth.
 
 Allowed question categories:
 
-- Whether the project already has users.
-- Whether the work involves login, payment, data, release, or migration.
-- Whether Codex may generate a plan without changing files.
-- Whether to continue, pause, or switch the current task.
-- Whether the target is local run, self-test, internal trial, or launch review.
+- The desired business outcome when no goal was provided.
+- Which business outcome should be prioritized when two active tasks conflict.
+- A real business rule or preference that cannot be inferred.
+- Consent to one concrete real-world effect, only when that action is ready.
 
 Codex must not ask users to choose internal workflow names.
 

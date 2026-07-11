@@ -6,14 +6,31 @@ This repository follows an AI-native, spec-first development workflow.
 
 Do not implement vague requests directly.
 
+## Zero-Experience Solo Developer
+
+The default user is one zero-experience solo developer. The user describes the
+real business goal and supplies missing business facts. Codex owns technical
+choices, workflow routing, architecture, baselines, implementation, testing,
+review, evidence, repair, and rollback preparation.
+
+Do not ask the user to choose technical stacks, BL levels, packs, schemas,
+database representations, migration strategies, test types, review surfaces,
+subagent plans, hook classes, workflow commands, or internal owner roles.
+
+A normal natural-language implementation request is sufficient execution intent
+for ordinary, reversible, task-bounded project-local engineering after internal
+IntentOS gates pass. Ask again only for a missing business fact or consent to a
+concrete production, cost, real-user communication, account/provider, or
+irreversible real-data effect. Silence is not consent.
+
 ## Core Rules
 
 1. Perform preflight before coding when the request is vague, large, cross-module, or high-risk.
 2. Every non-trivial feature must have acceptance criteria before implementation.
 3. Prefer vertical slices over broad rewrites.
 4. Keep changes minimal and scoped.
-5. Do not add production dependencies without explicit approval.
-6. Do not modify auth, permission, migration, production config, secrets, high-risk, or security-sensitive logic without a risk report and explicit approval.
+5. Select production dependencies from project evidence and safe engineering defaults; surface cost, licensing, provider, or irreversible external impact before it occurs.
+6. For auth, permission, migration, production config, secrets, high-risk, or security-sensitive logic, perform the full internal risk, test, review, evidence, and rollback path. Ask the user only for missing business rules or concrete real-world consent.
 7. Every implementation must include tests or explain why tests are not applicable.
 8. If the same verification failure repeats twice, stop and report instead of blindly retrying.
 9. After implementation, produce a bounded final report:
@@ -66,7 +83,7 @@ node scripts/cli.mjs ask . "<user goal>"
 node scripts/cli.mjs ask-check .
 ```
 
-Beginner Entry returns one plain card with what Codex understood, the recommended path, a small set of human decisions, safe next actions, blocked actions, routing evidence, and explicit boundaries. It does not write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.
+Beginner Entry returns one plain card with what Codex understood, the recommended path, missing business facts, safe next actions, blocked external effects, routing evidence, and explicit boundaries. It does not write files or perform external effects. It also does not require a separate technical approval: after this read-only entry, ordinary reversible engineering may continue through internal IntentOS gates.
 
 ## Natural Language Workflow Guidance
 
@@ -466,11 +483,11 @@ Allowed suggestion types:
 
 - `IN_SCOPE_NEXT_STEP`: inside current task scope and safe to do now when no new approval is needed.
 - `DIRECT_FOLLOW_UP`: related but outside current scope; create a new request or `follow-up-proposal`.
-- `RISK_DECISION`: requires human decision and preflight before implementation.
+- `RISK_DECISION`: a real business fact, external fact, or concrete real-world effect needs user input; technical risk alone triggers stricter internal preflight, review, tests, evidence, and rollback.
 - `OUT_OF_SCOPE_OBSERVATION`: record as context only, not immediate work.
 - `DO_NOT_PROCEED`: unsafe or unauthorized under current scope.
 
-Only `IN_SCOPE_NEXT_STEP` may be handled inside the current task. Do not implement `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED` unless the human opens a new entry point and approves the needed scope.
+Only `IN_SCOPE_NEXT_STEP` may be handled inside the current task. Record `DIRECT_FOLLOW_UP` in Work Queue rather than silently expanding scope. For `RISK_DECISION`, ask only for the missing business/external fact or consent to the concrete effect; do not ask for a technical strategy choice. Do not implement `OUT_OF_SCOPE_OBSERVATION` or `DO_NOT_PROCEED` as part of the current task.
 
 When next-step suggestions are recorded, run `node scripts/check-next-step-boundary.mjs . --task <task-card>`.
 
@@ -500,21 +517,25 @@ Do not treat reports, Review Packets, Goal Cards, or subagent output as approval
 
 Use `.intentos/core/context-governance.md` and `.intentos/core/git-boundary.md` when Codex observes reusable project context, finds stale context, or decides whether IntentOS artifacts should enter Git.
 
-Codex may draft Learning Candidates, Context Correction Reports, and Git Boundary Reports. Humans confirm before project source of truth changes. Model memory must not override Git-backed source of truth.
+Codex may draft Learning Candidates, Context Correction Reports, and Git Boundary Reports. Technical source-of-truth changes use the controlled apply chain; ask the user only when the change alters real business meaning. Model memory must not override Git-backed source of truth.
 
 ## High-risk Boundaries
 
-Stop and ask before:
+Stop the external or irreversible action and strengthen internal planning before:
 
 - production release or deployment
 - production environment variables or secrets
-- authentication, session, token, cookie, or permission policy changes
-- database schema changes with production compatibility risk
+- authentication, session, token, cookie, or permission policy changes; Codex owns the technical design and asks only for missing business access rules
+- database schema changes with production compatibility risk; Codex owns migration, test, backup, and rollback design
 - destructive database migration or data cleanup
 - production data access, export, repair, or migration
 - irreversible, regulated, value-transfer, identity, safety-critical, or destructive decisions
-- adding production dependencies
-- changing infrastructure, DNS, TLS, CDN, WAF, hosting, or equivalent runtime config
+- adding production dependencies; Codex owns necessity, compatibility, security, and rollback checks, and asks only about concrete cost/account effects
+- changing infrastructure, DNS, TLS, CDN, WAF, hosting, or equivalent runtime config outside the local project
+
+Ask the current user only when the next action creates a concrete production,
+cost, real-user communication, provider-account, or irreversible real-data
+effect. Do not ask the user to approve the technical plan itself.
 
 ## Review Focus
 
@@ -529,7 +550,7 @@ When reviewing changes, focus on:
 - excessive dependencies
 - unclear rollback
 
-For dirty production-governed projects, respect `workflow-next` when it returns `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`. Stop before task execution until the human confirms ownership and handling of existing changes.
+For dirty production-governed projects, respect `workflow-next` when it returns `REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`. Codex must classify and preserve existing changes before task execution; ask the user only if two real business tasks conflict and priority cannot be inferred.
 
 ## Self-iteration Rules
 

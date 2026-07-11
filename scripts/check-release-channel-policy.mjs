@@ -55,7 +55,6 @@ const requiredSections = [
   "GitHub Actions Policy",
   "Cost And Retention",
   "Release Package Identity",
-  "Owners",
   "Source Chain",
   "Boundaries",
   "Machine-Readable Evidence",
@@ -159,6 +158,9 @@ function checkReport(file) {
     if (sectionBody(content, section)) pass(`${label} includes ${section}`);
     else fail(`${label} missing section ${section}`);
   }
+  const consentSection = sectionBody(content, "Consent And External References") || sectionBody(content, "Owners");
+  if (consentSection) pass(`${label} includes consent/external references`);
+  else fail(`${label} missing section Consent And External References`);
   for (const pattern of forbiddenClaims) {
     if (pattern.test(content)) fail(`${label} contains forbidden release channel claim: ${pattern.source}`);
   }

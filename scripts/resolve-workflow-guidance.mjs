@@ -391,21 +391,8 @@ function deliveryStateFor(project, signals) {
 function questionsFor(project, signals, delivery, intent) {
   const questions = [];
   if (intent.classification === "NOT_PROVIDED") questions.push("这次你想先推进什么目标？");
-  if (project.existingUsersAssumed !== "No") questions.push("这个项目现在是否已经有人在用？");
-  if (project.riskLevel === "high" || signals.hasRiskSignals || intent.riskLevel === "high") {
-    questions.push(intent.rawIntent
-      ? "这个目标是否涉及真实用户、真实数据、线上环境或不可回滚风险？"
-      : "这次是否涉及登录、支付、数据、发布或迁移？");
-  }
   if (project.state === "DIRTY_WORKTREE_PROJECT") questions.push("当前未完成改动是继续、暂停，还是先切换到新任务？");
-  if (signals.hasDocumentIntent) questions.push("是否只需要归档建议，暂不移动或删除文档？");
-  if (signals.hasReleaseIntent) questions.push("这次目标是上线前检查，还是已经准备发布？");
-  questions.push("是否允许我先生成计划，不直接改文件？");
-  if (!questions.some((item) => item.includes("先做到"))) {
-    questions.push("你希望先做到本地可跑、自己试用，还是上线前检查？");
-  }
-  const maxQuestions = project.riskLevel === "high" ? 5 : 3;
-  return questions.slice(0, maxQuestions);
+  return questions.slice(0, 1);
 }
 
 function routingFor(project, signals, delivery, intent) {

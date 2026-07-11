@@ -1628,7 +1628,7 @@
     ],
     "expectStatus": "nonzero",
     "expectStderrIncludes": [
-      "approval owner must be a specific human owner"
+      "current conversation user or another specific human confirmer"
     ],
     "howToFix": "Approval Records must identify human approval, not Codex, AI, reviewers, subagents, automation, or system output."
   },
@@ -1754,7 +1754,7 @@
     ],
     "expectStatus": "nonzero",
     "expectStderrIncludes": [
-      "approval owner must be a specific human owner"
+      "current conversation user or another specific human confirmer"
     ],
     "howToFix": "Approval Record checker must keep rejecting unsafe approval evidence boundaries."
   },

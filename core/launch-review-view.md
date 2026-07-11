@@ -20,7 +20,8 @@ The dependency direction is:
 Unified Closure Decision
   -> Safe Launch readiness label
   -> Launch Review View
-  -> Human Release Decision outside IntentOS
+  -> Current-user consent to the concrete external effect
+  -> Controlled execution under the project release protocol
 ```
 
 Launch Review View must not override Unified Closure.
@@ -35,7 +36,7 @@ Launch Review View translates close-out evidence into a release-review perspecti
 - whether Unified Closure is done
 - which Safe Launch label applies
 - which launch surfaces are still missing
-- which human release decisions are required
+- which concrete real-world effect, if any, needs current-user consent
 - what evidence is available
 - what the next safe step is
 
@@ -47,9 +48,9 @@ Launch Review View reuses Safe Launch labels:
 |---|---|
 | `NOT_READY` | Closure is not done, evidence is missing, or launch gaps block review. |
 | `READY_FOR_DEMO` | A controlled demo may be acceptable, but launch review is not ready. |
-| `READY_FOR_INTERNAL_HANDOFF` | Internal owner review may proceed with known launch gaps. |
-| `READY_FOR_RELEASE_REVIEW` | Evidence appears sufficient for a human release owner to review. This is not release approval. |
-| `BLOCKED` | A human decision, platform blocker, production risk, or missing owner blocks progress. |
+| `READY_FOR_INTERNAL_HANDOFF` | Internal evidence preparation may proceed with known launch gaps. |
+| `READY_FOR_RELEASE_REVIEW` | Evidence appears sufficient to present one concrete release effect for current-user consent. This is not consent. |
+| `BLOCKED` | A missing business/external fact, platform blocker, production risk, or evidence gap blocks progress. |
 
 Do not add separate launch states for this view.
 
@@ -61,14 +62,14 @@ The view should annotate these surfaces when relevant:
 |---|---|
 | Product scope | What version is being considered? |
 | Platform | Web, Mini Program, iOS, Android, backend, internal admin, or mixed? |
-| Environment | Is runtime and environment ownership visible? |
+| Environment | Is runtime and environment evidence visible? |
 | Data | Are migration, backup, retention, and privacy concerns visible? |
 | Identity/permission | Are roles, login, admin access, and sensitive actions visible? |
 | Payment/value transfer | Are payment, refund, wallet, invoice, finance, or tax concerns visible? |
 | Verification | Is local, staging, platform, or smoke evidence available? |
-| Monitoring | Can failures be observed and owned? |
+| Monitoring | Can failures be observed and acted on? |
 | Rollback | Is rollback, fallback, or feature-disable path identified? |
-| Release ownership | Who approves launch and who rolls back? |
+| Release consent | Is the concrete external effect ready for current-user consent, with an executable rollback path? |
 | Post-launch | Is post-launch smoke or observation defined? |
 | Communication | Are release notes, support, or handoff notes needed? |
 

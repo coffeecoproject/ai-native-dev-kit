@@ -9,6 +9,7 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { projectIdentity } from "./lib/evidence-authority.mjs";
 import { gitWorktreeState } from "./lib/git.mjs";
 import { hasProjectSignals } from "./lib/project-signals.mjs";
+import { buildSoloOperatingModel } from "./lib/solo-operating-model.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -103,7 +104,6 @@ function buildOperatingState() {
     resumeRequested: operation === "RESUME_TASK",
   });
   const evidenceTrace = buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, closure, release, adoption);
-  const authorityRecommendation = authorityFor(operation, intent, taskImpact, sourceFailure);
   const sourceSystemTrace = sources.map(toSourceTrace);
   const projectIdentityProjection = buildProjectIdentityProjection({
     workflowNext,
@@ -126,14 +126,15 @@ function buildOperatingState() {
     sourceFailure,
     dirtyWorktree,
     evidenceTrace,
-    authorityRecommendation,
     sourceSystemTrace,
     projectIdentityProjection,
+    selectedProfiles: workflowNext.value?.selectedProfiles || [],
   });
+  const decisionResponsibility = operatingDecision.decisionResponsibility;
 
   return {
     reportType: "INTENTOS_OPERATING_STATE",
-    schemaVersion: "1.98.1",
+    schemaVersion: "1.99.0",
     generatedBy: "scripts/resolve-operating-loop.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -166,16 +167,19 @@ function buildOperatingState() {
       currentState: plainStateFor(operatingState, outputLanguage),
       nextSafeAction: operatingDecision.plainAction,
       decisionNeeded: humanDecisionSummaryFor(operatingDecision, outputLanguage),
+      userResponsibility: decisionResponsibility.publicPrompt,
+      technicalDecisionRequiredFromUser: "No",
       internalCommandKnowledgeRequired: "No",
     },
     evidenceTrace,
-    authorityRecommendation,
+    decisionResponsibility,
     sourceSystemTrace,
     boundaries: {
       derivedViewOnly: "Yes",
       writesTargetFiles: "No",
       changesTaskState: "No",
       authorizesImplementation: "No",
+      requiresSeparateTechnicalApprovalAfterInternalGates: "No",
       authorizesApply: "No",
       approvesReleaseOrProduction: "No",
       changesProjectAuthority: "No",
@@ -326,6 +330,7 @@ function operationFor(value, projectEntry) {
   if (/(?:任务|这个|这项|工作).{0,12}(?:做完|完成).{0,6}(?:吗|没有|了没|\?|？)|(?:能否|是否|可以).{0,12}(?:算|视为|认为)?(?:做完|完成|收口)|\b(?:is|can|has).{0,24}(?:done|finished|complete|close[ -]?out)\b/.test(text)) return "FINISH_TASK";
   if (implementationSignal && /(?:检查|查看).{0,12}(?:进度|状态)|\b(?:check|show|review).{0,24}\b(?:status|progress)\b/.test(text)) return "CONTINUE_TASK";
   if (/(?:查看|检查|告诉我|当前|现在|请问).{0,20}(?:进度|做到哪|完成情况|任务状态|项目状态)|(?:进度|任务状态|项目状态).{0,8}(?:如何|怎样|是什么|吗|\?|？)|\b(?:check|show|review|what is|where are we).{0,24}\b(?:status|progress)\b/.test(text)) return "CHECK_STATUS";
+  if (/(?:现在|立即|直接|正式).{0,16}(?:发布|上线|部署|提交审核)|\b(?:now|immediately|directly)\b.{0,20}\b(?:release|deploy|publish|submit)\b/.test(text)) return "PREPARE_RELEASE";
   if (releaseSignal && implementationSignal) return "CONTINUE_TASK";
   if (/(?:准备|开始|执行|安排|帮我|我要|需要|可以|怎么|如何).{0,16}(?:发布|上线|提交审核)|(?:发布|上线).{0,12}(?:准备|计划|流程|执行|审核)|\b(?:prepare|start|perform|how to|ready for).{0,16}\b(?:release|deployment|publish)\b/.test(text)) return "PREPARE_RELEASE";
   const startSignal = explicitNewProject
@@ -501,45 +506,6 @@ function buildEvidenceTrace(sources, operation, taskGovernance, deliveryStatus, 
       "approval expires or authority changes",
       "release candidate or package identity changes",
     ],
-  };
-}
-
-function authorityFor(operation, value, taskImpact, sourceFailure) {
-  const text = String(value || "").toLowerCase();
-  const roles = new Set();
-  if (operation === "START_PROJECT" || operation === "ADOPT_PROJECT") roles.add("PROJECT_OWNER");
-  if (["CONTINUE_TASK", "FINISH_TASK"].includes(operation) && ["HIGH", "POSSIBLE_HIGH"].includes(taskImpact)) roles.add("TASK_SCOPE_OWNER");
-  if (/权限|角色|认证|授权|auth|permission|role|security|安全/.test(text)) {
-    roles.add("DOMAIN_OWNER");
-    roles.add("SECURITY_OWNER");
-  }
-  if (/数据|数据库|迁移|删除|清理|恢复|database|\bdb\b|migration|delete|restore/.test(text)) {
-    roles.add("DATA_OWNER");
-    roles.add("PRODUCTION_OWNER");
-  }
-  if (/隐私|合规|法律|税务|财务|支付|privacy|compliance|legal|tax|finance|payment/.test(text)) {
-    roles.add("DOMAIN_OWNER");
-    roles.add("COMPLIANCE_OWNER");
-  }
-  if (operation === "PREPARE_RELEASE") roles.add("RELEASE_OWNER");
-  if (/生产|正式发布|production/.test(text)) roles.add("PRODUCTION_OWNER");
-  if (/云平台|应用商店|app\s*store|provider|dns|外部系统/.test(text)) roles.add("EXTERNAL_SYSTEM_OWNER");
-  const recommendedRoles = [...roles];
-  return {
-    derivedOnly: "Yes",
-    grantsAuthority: "No",
-    changesProjectAuthority: "No",
-    currentReadOnlyActionAllowed: sourceFailure ? "No" : "Yes",
-    materialActionAllowedByThisView: "No",
-    recommendedRoles,
-    recommendationReason: authorityReason(operation, taskImpact, recommendedRoles),
-    namedOwnerResolution: "NOT_EVALUATED_BY_OPERATING_VIEW",
-    projectRuleAuthorityResolution: "SOURCE_SYSTEMS_REMAIN_AUTHORITATIVE",
-    existingApprovalEvidence: "NOT_EVALUATED_BY_OPERATING_VIEW",
-    humanDecisionRequiredBeforeMaterialAction: recommendedRoles.length > 0 ? "Yes" : "OnlyIfProjectRulesRequireIt",
-    requiredApprovalEvidence: operation === "PREPARE_RELEASE"
-      ? "Current structured human Release Approval Record before release execution"
-      : "Project-native approval or the existing IntentOS controlled approval chain when a material write is proposed",
   };
 }
 
@@ -767,9 +733,17 @@ function buildOperatingDecision(context) {
     semanticDigest,
   }));
   const blockedBy = decisionBlockers(context);
-  const humanDecision = humanDecisionFor(context, selected.actionCode);
+  const decisionResponsibility = buildSoloOperatingModel({
+    intent,
+    operation: context.operation,
+    actionCode: selected.actionCode,
+    sourceFailure: context.sourceFailure,
+    language: outputLanguage,
+    selectedProfiles: context.selectedProfiles,
+  });
+  const humanDecision = humanDecisionFor(selected.actionCode, decisionResponsibility);
   const digestPayload = {
-    contractVersion: "1.98.1",
+    contractVersion: "1.99.0",
     intentDigest: sha256(intent),
     projectRootDigest: sha256(projectRoot),
     taskRef: taskRef || "N/A",
@@ -784,9 +758,10 @@ function buildOperatingDecision(context) {
     reasonCode: selected.reasonCode,
     blockedBy,
     sourceInputs,
+    responsibilityDigest: decisionResponsibility.responsibilityDigest,
   };
   return {
-    contractVersion: "1.98.1",
+    contractVersion: "1.99.0",
     derivedOnly: "Yes",
     actionCode: selected.actionCode,
     actionClass: selected.actionClass,
@@ -795,10 +770,13 @@ function buildOperatingDecision(context) {
     reason: reasonFor(selected.actionCode, blockedBy),
     blockedBy,
     sourceInputs,
+    decisionResponsibility,
     requiresHumanDecisionNow: humanDecision.required ? "Yes" : "No",
     humanDecisionPrompt: humanDecision.prompt,
     canCodexContinueReadOnly: selected.canContinueReadOnly ? "Yes" : "No",
     materialActionAuthorized: "No",
+    separateTechnicalApprovalRequired: "No",
+    routineEngineeringMayProceedAfterInternalGates: decisionResponsibility.routineEngineeringMayProceedAfterInternalGates,
     plainAction: plainActionFor(selected.actionCode, outputLanguage),
     decisionDigest: `sha256:${sha256(JSON.stringify(digestPayload))}`,
     invalidationConditions: [...context.evidenceTrace.invalidationConditions],
@@ -871,47 +849,11 @@ function decisionBlockers(context) {
   return [];
 }
 
-function humanDecisionFor(context, actionCode) {
+function humanDecisionFor(actionCode, responsibility) {
   const zh = outputLanguage === "zh";
-  if (actionCode === "REQUEST_GOAL") return {
-    required: true,
-    prompt: zh ? "你想做什么，或者想改变什么？" : "What do you want to build or change?",
-  };
-  if (actionCode === "REVIEW_CURRENT_WORK") return {
-    required: true,
-    prompt: zh ? "当前未提交改动是否属于这次任务？" : "Do the current uncommitted changes belong to this task?",
-  };
-  if (actionCode === "REPAIR_WORK_QUEUE") return {
-    required: true,
-    prompt: zh ? "只能有一个当前任务。你希望继续哪一个目标？" : "Only one task can be current. Which goal should remain current?",
-  };
-  if (actionCode === "REVIEW_TASK_SWITCH") return {
-    required: true,
-    prompt: zh
-      ? "这个目标和当前任务不同。Codex 会先保留当前进度并整理切换建议，你只需确认先做哪一个。"
-      : "This goal differs from the current task. Codex will preserve current progress and prepare a switch recommendation; you only confirm which goal comes first.",
-  };
-  if (actionCode === "PREPARE_WORK_QUEUE") return {
-    required: false,
-    prompt: zh ? "Codex 会先建立或修复唯一的当前任务记录。" : "Codex should establish or repair the single current task record first.",
-  };
-  if (actionCode === "REVIEW_PAUSED_TASK") return {
-    required: true,
-    prompt: zh ? "Codex 会先核对暂停任务的当前状态、未提交改动和证据，再请你确认是否恢复。" : "Codex must review current state, worktree, and evidence before you confirm resumption.",
-  };
-  if (actionCode === "REPAIR_SOURCE_READ") return {
-    required: false,
-    prompt: zh ? "Codex 先说明来源读取失败的原因。" : "Codex should explain the source-read failure first.",
-  };
-  if (context.authorityRecommendation.recommendedRoles.length > 0) return {
-    required: false,
-    prompt: zh
-      ? "Codex 会先从项目证据中识别负责人，再提出实质动作。"
-      : "Codex must resolve the responsible owner from project evidence before proposing a material action.",
-  };
   return {
-    required: false,
-    prompt: zh ? "Codex 可以按当前只读路径继续。" : "Codex can continue on the current read-only route.",
+    required: responsibility.userActionRequiredNow === "Yes",
+    prompt: responsibility.publicPrompt || (zh ? "不需要你做技术判断。" : "No technical decision is required from you."),
   };
 }
 
@@ -956,14 +898,14 @@ function plainActionFor(actionCode, language = "en") {
   const zh = {
     REPAIR_SOURCE_READ: "Codex 先说明或修复来源读取失败，再继续。",
     REQUEST_GOAL: "告诉 Codex 你想做成什么。",
-    REVIEW_CURRENT_WORK: "Codex 先只读梳理现有未提交改动，不覆盖也不丢弃。",
+    REVIEW_CURRENT_WORK: "Codex 自动梳理现有未提交改动并绑定到正确任务，不需要你判断技术差异。",
     REPAIR_WORK_QUEUE: "Codex 先整理任务队列，只保留一个当前任务，再继续。",
     REVIEW_TASK_SWITCH: "Codex 先保留当前任务进度并整理任务切换建议，你只需确认先做哪一个。",
     PREPARE_WORK_QUEUE: "Codex 先建立唯一的当前任务记录，再继续任务治理或收口。",
     DISCUSS_WITHOUT_EXECUTION: "Codex 只沟通和分析，不进入实现、不修改项目。",
-    REVIEW_PAUSED_TASK: "Codex 先核对暂停任务的当前状态、改动和旧证据，再决定是否恢复。",
-    PREPARE_PROJECT_PLAN: "Codex 先准备项目方案和技术基线建议，不要求你选择内部编号。",
-    RUN_ADOPTION_REVIEW: "Codex 先完成只读接入判断，再决定是否需要受控写入计划。",
+    REVIEW_PAUSED_TASK: "Codex 自动核对暂停任务的状态、改动和旧证据，安全时继续恢复。",
+    PREPARE_PROJECT_PLAN: "Codex 自动准备项目方案、技术架构和完整基线，不要求你做技术选择。",
+    RUN_ADOPTION_REVIEW: "Codex 自动读取并接入已有项目；需要写入时走内部受控计划，不要求你选择接入模式。",
     SUMMARIZE_CURRENT_STATUS: "Codex 汇总当前证据，并用白话说明已完成、未完成和下一步。",
     INSPECT_TASK_RISK: "Codex 先只读确认数据、状态、权限或接口影响，不直接改代码。",
     RESOLVE_ADOPTION_BLOCKER: "Codex 先解释并处理当前项目接入阻断，不改项目资产。",
@@ -972,23 +914,23 @@ function plainActionFor(actionCode, language = "en") {
     PREPARE_EXECUTION_PLAN: "Codex 先准备完整执行计划，再进入实现审查。",
     PREPARE_VERIFICATION_PLAN: "Codex 先明确需要验证什么以及如何证明，再进入实现审查。",
     COMPLETE_TASK_GOVERNANCE_PREREQUISITES: "Codex 先补齐当前任务缺少的治理条件，再进入实现审查。",
-    PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW: "Codex 按低影响任务准备小范围实现和最小验证审查。",
-    PREPARE_IMPLEMENTATION_REVIEW: "Codex 按当前任务影响级别准备实现审查，暂不代表已获执行授权。",
+    PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW: "Codex 按低影响任务自动完成小范围实现、验证和复查。",
+    PREPARE_IMPLEMENTATION_REVIEW: "Codex 按当前任务影响级别自动完成实现、验证和复查，不需要额外技术批准。",
     COMPLETE_CLOSURE_EVIDENCE: "Codex 先补齐缺失证据，再判断任务是否完成。",
     REPORT_TASK_COMPLETE: "Codex 可以生成任务完成说明，但这不代表发布或生产批准。",
-    PREPARE_RELEASE_REVIEW: "Codex 先准备发布审查材料，不直接执行发布。",
+    PREPARE_RELEASE_REVIEW: "Codex 自动准备发布、验证、备份和回滚材料；真正产生外部影响前再说明现实影响。",
   };
   const en = {
     REPAIR_SOURCE_READ: "Codex should explain or repair the failed source read before continuing.",
     REQUEST_GOAL: "Tell Codex what outcome you want.",
-    REVIEW_CURRENT_WORK: "Codex should inspect and map current uncommitted work without overwriting or discarding it.",
+    REVIEW_CURRENT_WORK: "Codex should map current uncommitted work to the correct task without asking the user to judge technical differences.",
     REPAIR_WORK_QUEUE: "Codex should repair the queue so exactly one task remains current before continuing.",
     REVIEW_TASK_SWITCH: "Codex should preserve the current task and prepare a task-switch recommendation; the user only confirms which goal comes first.",
     PREPARE_WORK_QUEUE: "Codex should establish one durable current task record before task governance or close-out continues.",
     DISCUSS_WITHOUT_EXECUTION: "Codex should discuss and analyze only, without implementation or project writes.",
-    REVIEW_PAUSED_TASK: "Codex should review current state, worktree, and prior evidence before resuming paused work.",
-    PREPARE_PROJECT_PLAN: "Codex should prepare the project plan and technical baseline recommendation without asking for internal IDs.",
-    RUN_ADOPTION_REVIEW: "Codex should complete the read-only adoption review before proposing a controlled write plan.",
+    REVIEW_PAUSED_TASK: "Codex should review current state, worktree, and prior evidence and resume safely when the evidence permits.",
+    PREPARE_PROJECT_PLAN: "Codex should select the project plan, architecture, and complete technical baseline without asking the user to choose them.",
+    RUN_ADOPTION_REVIEW: "Codex should read and connect the existing project automatically, using the internal controlled plan when writes are needed.",
     SUMMARIZE_CURRENT_STATUS: "Codex should summarize current evidence, completed work, missing work, and the next step.",
     INSPECT_TASK_RISK: "Codex should inspect possible data, state, permission, or API impact before changing code.",
     RESOLVE_ADOPTION_BLOCKER: "Codex should explain and resolve the adoption blocker without changing project assets.",
@@ -997,11 +939,11 @@ function plainActionFor(actionCode, language = "en") {
     PREPARE_EXECUTION_PLAN: "Codex should prepare the complete execution plan before implementation review.",
     PREPARE_VERIFICATION_PLAN: "Codex should define what must be verified and how it will be proved before implementation review.",
     COMPLETE_TASK_GOVERNANCE_PREREQUISITES: "Codex should complete the missing task-governance prerequisites before implementation review.",
-    PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW: "Codex should prepare a bounded implementation and minimal verification review for this low-impact task.",
-    PREPARE_IMPLEMENTATION_REVIEW: "Codex should prepare implementation review for the current task impact; execution is not authorized by this view.",
+    PREPARE_LIGHTWEIGHT_IMPLEMENTATION_REVIEW: "Codex should complete the bounded implementation, verification, and review for this low-impact task.",
+    PREPARE_IMPLEMENTATION_REVIEW: "Codex should complete implementation, verification, and review at the required depth without a separate technical approval.",
     COMPLETE_CLOSURE_EVIDENCE: "Codex should complete the missing evidence before deciding whether the task is done.",
     REPORT_TASK_COMPLETE: "Codex may report task completion, but this is not release or production approval.",
-    PREPARE_RELEASE_REVIEW: "Codex should prepare release-review evidence without executing the release.",
+    PREPARE_RELEASE_REVIEW: "Codex should prepare release, verification, backup, and rollback evidence, then explain the real-world effect before external execution.",
   };
   return (language === "zh" ? zh : en)[actionCode] || actionCode;
 }
@@ -1175,11 +1117,6 @@ function plainStateFor(state, language = "en") {
   return (language === "zh" ? zh : en)[state] || state;
 }
 
-function authorityReason(operation, taskImpact, roles) {
-  if (roles.length === 0) return "The current step is read-only and no material owner decision is required now.";
-  return `${operation} with task impact ${taskImpact} may require ${roles.join(", ")} before a material action. This view only recommends the route.`;
-}
-
 function arrayValue(value) {
   return Array.isArray(value) ? value.map(String) : [];
 }
@@ -1220,6 +1157,6 @@ function printHuman(report) {
   console.log(`${decisionLabel}: ${report.humanSummary.decisionNeeded}`);
   console.log("");
   console.log(zh
-    ? "这一步不会改文件，不会批准实现、发布或生产操作，也不会改变项目负责人。内部检查由 Codex 自己选择。"
-    : "This step does not write files, approve implementation, release, or production, or change project authority. Codex chooses the internal checks.");
+    ? "你不需要选择技术方案、工作流、基线、测试或审查方式。这个入口本身只读；进入执行后由 Codex 完成内部门禁，真实外部影响仍需明确同意。"
+    : "You do not choose the technical plan, workflow, baseline, tests, or review method. This entry is read-only; Codex handles internal gates during execution, while real external effects still require explicit consent.");
 }

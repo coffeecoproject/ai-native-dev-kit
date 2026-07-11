@@ -14,7 +14,7 @@ What I need from you: `<approval details / missing scope / no action>`
 
 | Field | Value |
 |---|---|
-| Approved by | `<human name or role>` |
+| Approved by | `CURRENT_CONVERSATION_USER` |
 | Approval owner type | HUMAN |
 | Approval captured from | `<conversation / issue / PR / ticket>` |
 | Approval captured at | `<YYYY-MM-DD HH:mm TZ>` |
@@ -44,7 +44,7 @@ What I need from you: `<approval details / missing scope / no action>`
   "artifact_type": "approval_record",
   "artifact_id": "<approval-record-id>",
   "approval_status": "PENDING_REVIEW",
-  "approved_by": "<specific human owner>",
+  "approved_by": "CURRENT_CONVERSATION_USER",
   "approval_owner_type": "HUMAN",
   "approved_plan": {
     "path": "<apply-plan-path>",

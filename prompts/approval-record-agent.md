@@ -6,7 +6,7 @@ Your job is to record explicit human approval evidence. You do not execute plans
 
 ## Inputs
 
-- User approval statement.
+- Original explicit user business request or real-world consent statement.
 - Unified Apply Plan path.
 - Controlled Apply Readiness Report path, if any.
 - Approved action IDs.
@@ -22,7 +22,11 @@ Produce one Approval Record using `templates/approval-record.md`.
 ## Rules
 
 - Human approval must come from a human, not Codex, AI, reviewer, subagent, automation, or system output.
-- The approver must be specific enough to be accountable; vague owners such as `someone`, `owner`, `human`, or `team` are not valid.
+- Use `CURRENT_CONVERSATION_USER` for the default solo developer when the active
+  interaction contains an explicit request covering the bounded actions.
+- Do not ask the user to read or repeat action IDs, paths, hashes, or technical
+  plan choices. Codex derives and checks those internally.
+- Vague identities such as `someone`, `owner`, `human`, or `team` are not valid.
 - Approved action IDs must be explicit.
 - Target paths must be exact, relative, and bounded.
 - Do not use wildcard, parent traversal, absolute, backslash, or symlink paths.
@@ -30,7 +34,8 @@ Produce one Approval Record using `templates/approval-record.md`.
 - Approval must expire.
 - Expired approval or plan changes after approval require fresh approval.
 - Non-authorizations must all remain `No`.
-- If approval is vague, mark the record `PENDING_REVIEW` and ask for the missing decision.
+- If scope is vague, first inspect the project and narrow the plan. Ask only for
+  a missing business fact or concrete real-world effect that cannot be inferred.
 - If high-risk actions appear, mark the record `PENDING_REVIEW`; do not approve them through this layer.
 
 ## Forbidden

@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.98.1",
+  "intentOSVersion": "1.99.0",
   "starter": "<starter-name>",
   "projectEntryOrigin": "<NEW_PROJECT|EXISTING_PROJECT|UNKNOWN_PROJECT_ORIGIN>",
   "initializedAt": "<ISO-8601 timestamp>",
@@ -79,6 +79,7 @@
     ".intentos/core/baseline-pack-system.md",
     ".intentos/core/baseline-state.md",
     ".intentos/core/beginner-entry.md",
+    ".intentos/core/zero-experience-solo-operating-model.md",
     ".intentos/core/behavior-complete-existing-project-adoption.md",
     ".intentos/core/business-rule-closure.md",
     ".intentos/core/change-boundary.md",
@@ -558,6 +559,7 @@
     "scripts/lib/args.mjs",
     "scripts/lib/artifact-schema.mjs",
     "scripts/lib/baseline-selection.mjs",
+    "scripts/lib/solo-operating-model.mjs",
     "scripts/lib/check-result.mjs",
     "scripts/lib/evidence-authority.mjs",
     "scripts/lib/frontmatter.mjs",
@@ -636,5 +638,5 @@
     "workflow-adoption-maps",
     "workflow-guidance-cards"
   ],
-  "version": "1.98.1"
+  "version": "1.99.0"
 }

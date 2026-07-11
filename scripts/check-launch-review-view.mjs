@@ -120,7 +120,7 @@ function checkCoreContent() {
     "Launch Review View",
     "Unified Closure Decision",
     "Safe Launch readiness labels",
-    "Human Release Decision outside IntentOS",
+    "Current-user consent to the concrete external effect",
     "must not override Unified Closure",
     "does not",
   ]) {

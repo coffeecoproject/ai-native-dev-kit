@@ -88,7 +88,7 @@ function buildReleaseAdapter(root, options) {
     evidence: [
       { evidence: "Release discovery", ref: "generated:resolve-release-adapter" },
       { evidence: "Release SOP", ref: options.sopRef || "N/A" },
-      { evidence: "Human release owner", ref: options.releaseOwner || "N/A" },
+      { evidence: "Release consent confirmer", ref: options.releaseOwner || "N/A" },
       { evidence: "Environment source", ref: options.environmentRef || discovery.environmentEvidence || "N/A" },
       { evidence: "Rollback source", ref: options.rollbackRef || discovery.rollbackEvidence || "N/A" },
       { evidence: "Monitoring source", ref: options.monitoringRef || discovery.monitoringEvidence || "N/A" },
@@ -150,10 +150,10 @@ function recommendTarget(discovery, options) {
   const recommendedTarget = requested || "PREVIEW_OR_TEST";
   const deploymentKnown = discovery.deploymentMethod !== "UNKNOWN";
   const why = requested
-    ? `User requested ${requested}; adapter will still keep production actions human-owned.`
+    ? `The goal implies ${requested}; production actions still require exact current-user consent and strict gates.`
     : deploymentKnown
       ? `Detected ${discovery.deploymentMethod}; safest next step is a preview/test release path.`
-      : "No clear deployment provider was found; safest next step is choosing a preview/test release path.";
+      : "No clear deployment provider was found; Codex defaults to a preview/test release path.";
   return {
     recommendedTarget,
     deploymentKnown,
@@ -161,8 +161,8 @@ function recommendTarget(discovery, options) {
     options: [
       option("PREVIEW_OR_TEST", "Validate in a non-production place first", "low", recommendedTarget === "PREVIEW_OR_TEST" ? "Recommended" : "Available"),
       option("STAGING_OR_INTERNAL", "Hand off to internal release review", "medium", recommendedTarget === "STAGING_OR_INTERNAL" ? "Recommended" : "Optional"),
-      option("PRODUCTION_REVIEW", "Prepare for production approval without deploying", "high", recommendedTarget === "PRODUCTION_REVIEW" ? "Needs human release owner" : "Only after launch review"),
-      option("APP_OR_MINI_PROGRAM_REVIEW", "Prepare store or mini-program review materials", "medium/high", recommendedTarget === "APP_OR_MINI_PROGRAM_REVIEW" ? "Needs platform owner" : "Platform-specific"),
+      option("PRODUCTION_REVIEW", "Prepare production evidence without deploying", "high", recommendedTarget === "PRODUCTION_REVIEW" ? "Needs exact real-world consent later" : "Only after launch review"),
+      option("APP_OR_MINI_PROGRAM_REVIEW", "Prepare store or mini-program review materials", "medium/high", recommendedTarget === "APP_OR_MINI_PROGRAM_REVIEW" ? "Needs current-user consent and provider access later" : "Platform-specific"),
       option("PAUSE", "Stop until account/platform details are known", "low", "Use if unclear"),
     ],
   };
@@ -173,7 +173,6 @@ function collectMissingInputs(discovery, options, recommendation) {
   if (discovery.deploymentMethod === "UNKNOWN" && !options.explicitDeployment) missing.push("Deployment method or platform account is not known.");
   if (!discovery.buildCommand) missing.push("Build command is not known.");
   if (!discovery.testCommand) missing.push("Verification command is not known.");
-  if (!options.releaseOwner) missing.push("Human release owner is not known.");
   if (!options.sopRef) missing.push("Project release SOP is not linked.");
   if (recommendation.recommendedTarget === "PRODUCTION_REVIEW") {
     if (!options.environmentRef && discovery.environmentEvidence === "N/A") missing.push("Production environment source is not linked.");
@@ -185,7 +184,7 @@ function collectMissingInputs(discovery, options, recommendation) {
 
 function chooseAdapterState(recommendation, missingInputs, options) {
   const realMissing = missingInputs.filter((item) => item !== "N/A");
-  if (recommendation.recommendedTarget === "PRODUCTION_REVIEW" && (!options.releaseOwner || !options.sopRef)) {
+  if (recommendation.recommendedTarget === "PRODUCTION_REVIEW" && !options.sopRef) {
     return "NEEDS_BEGINNER_RELEASE_DECISION";
   }
   if (realMissing.length > 0) return "NEEDS_BEGINNER_RELEASE_DECISION";
@@ -196,23 +195,17 @@ function chooseAdapterState(recommendation, missingInputs, options) {
 }
 
 function beginnerCard(adapterState, recommendation, missingInputs, options) {
-  const questions = [];
-  if (!recommendation.deploymentKnown && !options.explicitDeployment) questions.push("Where should this project be released first: preview/test, staging, or production review?");
-  if (!options.releaseOwner) questions.push("Who is the person that can approve release risk?");
-  if (!options.sopRef) questions.push("Is there an existing release checklist or should Codex draft one for review?");
-  if (questions.length === 0) questions.push("Confirm whether Codex may prepare the Release Execution Plan.");
-
   return {
     recommendedChoice: recommendation.recommendedTarget,
     adapterState,
-    questions: questions.slice(0, 3),
+    questions: [],
     codexCanDoNext: [
       "Generate a Release Execution Plan in PLAN_ONLY mode.",
-      "Run local build or test only after confirmation.",
+      "Run local build and tests after internal gates without a separate technical confirmation.",
       "Record missing release inputs as a checklist.",
     ],
     codexMustNotDo: [
-      "Deploy production by itself.",
+      "Deploy production without exact current-user consent and strict release gates.",
       "Ask for or store secrets.",
       "Change CI/CD, hooks, DNS, payment, permissions, app-store, mini-program, or production config.",
     ],
@@ -243,7 +236,7 @@ function executionBoundary(options, recommendation) {
     action("LOCAL_TEST", localTestOwner, "CONDITIONAL", "Only local, non-production verification."),
     action("PREVIEW_DEPLOY", "HUMAN_APPROVAL_REQUIRED", "CONDITIONAL", "Requires project SOP and platform/account context."),
     action("PRODUCTION_DEPLOY", "HUMAN_REQUIRED", "BLOCKED", "Not automated by this adapter."),
-    action("STORE_OR_MINI_PROGRAM_SUBMIT", "HUMAN_REQUIRED", "BLOCKED", "Human platform owner must submit."),
+    action("STORE_OR_MINI_PROGRAM_SUBMIT", "HUMAN_REQUIRED", "BLOCKED", "Requires exact current-user consent and valid provider access; the legacy executor label does not imply another person."),
     action("SECRETS_OR_DNS_OR_PAYMENT", "HUMAN_REQUIRED", "BLOCKED", "Never collected or changed by this adapter."),
     action("RELEASE_EXECUTION_PLAN", "CODEX_MAY_PREPARE", recommendation.recommendedTarget === "PRODUCTION_REVIEW" ? "CONDITIONAL" : "ALLOWED", "Plan only until approval exists."),
   ];
@@ -251,10 +244,10 @@ function executionBoundary(options, recommendation) {
 
 function nextStepFor(adapterState, recommendation, missingInputs) {
   if (adapterState === "READY_FOR_RELEASE_EXECUTION_PLAN") {
-    return "Generate a Release Execution Plan in PLAN_ONLY mode and keep real release actions human-approved.";
+    return "Codex generates the Release Execution Plan and keeps real release actions blocked until exact current-user consent and strict gates pass.";
   }
   const missing = missingInputs.filter((item) => item !== "N/A");
-  return `Ask the user to choose the release target and confirm missing inputs: ${missing.join("; ") || recommendation.recommendedTarget}.`;
+  return `Codex should resolve or prepare safe defaults for the remaining release inputs: ${missing.join("; ") || recommendation.recommendedTarget}. Ask the user only when a business/external fact or concrete real-world consent is actually required.`;
 }
 
 function detectPlatform(files, packageInfo) {

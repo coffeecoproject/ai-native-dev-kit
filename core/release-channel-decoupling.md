@@ -15,8 +15,8 @@ artifact channel, or production approval system.
   long-lived release package storage;
 - whether an existing provider, registry, app-store, mini-program, server, or
   package release path should be preserved;
-- whether release owner, cost owner, retention, rollback, and package identity
-  evidence is missing.
+- whether current-user release/cost consent, external-provider facts, retention,
+  rollback, and package identity evidence is missing.
 
 ## What It Does Not Do
 
@@ -28,14 +28,14 @@ change CI, change production, or touch secrets.
 
 New projects default to GitHub as source and evidence repository only. Release
 packages, platform uploads, production release, and long-lived artifacts remain
-external release-owner decisions.
+external effects that require current-user consent when the exact action is ready.
 
 ## Existing Projects
 
 Existing projects are read first. Safe existing release SOPs are preserved and
 mapped. Unsafe or unclear GitHub Release assets, Actions artifacts, tag-triggered
 release workflows, provider deploys, registries, or server release scripts are
-blocked until owner, cost, retention, and production-side-effect evidence exists.
+blocked until consent, cost, retention, and production-side-effect evidence exists.
 
 ## Strict Source Binding
 
@@ -45,14 +45,14 @@ If a release SOP, CI workflow, package config, Docker config, or provider config
 is required by the selected channel, the report must point to the concrete
 project source or stay blocked.
 
-## Owner Timing
+## Consent Timing And Compatibility
 
-Release ownership has two separate meanings:
+Historical machine fields use release-owner wording with two timings:
 
-- policy recording ownership: whether the current release-channel policy report
-  itself needs a release owner;
-- release review ownership: whether a future release review needs a release
-  owner before any handoff, upload, production action, or external release step.
+- policy recording: technical channel analysis, which Codex performs internally;
+- release review: current-user consent before a concrete handoff, upload,
+  production action, cost, or external release step.
 
-Source-only policy records can be unblocked without a release owner. Release
-review still requires a release owner later.
+Source-only policy records can be unblocked without user input. Release review
+later requires one specific consent reference, normally
+`CURRENT_CONVERSATION_USER`; it does not require a separate enterprise role.

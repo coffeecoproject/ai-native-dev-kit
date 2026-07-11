@@ -7633,7 +7633,7 @@ function checkBeginnerEntryProtocol() {
   for (const marker of [
     "Beginner Entry Governance",
     "users who should not need to know IntentOS workflow commands",
-    "ask at most 3 human questions by default",
+    "ask at most 2 plain business questions by default",
     "Beginner Entry Card",
     "What Codex Must Not Do Yet",
     "This entry writes target files: No",
@@ -7946,7 +7946,7 @@ function checkApprovalRecordGovernanceProtocol() {
 
   for (const marker of [
     "Approval Record Governance",
-    "What exactly did a human approve?",
+    "Which exact low-risk actions remain inside the current user's explicit business request?",
     "Approval owner type",
     "Plan hash",
     "Approved action IDs must be explicit",
@@ -8018,7 +8018,7 @@ function checkApprovalRecordGovernanceProtocol() {
   }
 
   for (const [name, args, expected] of [
-    ["AI owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ai-owner"], "approval owner must be a specific human owner"],
+    ["AI owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ai-owner"], "current conversation user or another specific human confirmer"],
     ["missing plan hash", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-missing-plan-hash"], "must include a plan hash"],
     ["all actions", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-all-actions"], "approved action ids must be explicit"],
     ["auto apply", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-auto-apply"], "forbidden approval record claim"],
@@ -8027,7 +8027,7 @@ function checkApprovalRecordGovernanceProtocol() {
     ["parent traversal", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-parent-traversal"], "must use exact bounded target paths"],
     ["symlink path", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-symlink-path"], "must use exact bounded target paths"],
     ["expired approval", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-expired"], "is expired and must be re-approved"],
-    ["ambiguous owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ambiguous-owner"], "approval owner must be a specific human owner"],
+    ["ambiguous owner", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-ambiguous-owner"], "current conversation user or another specific human confirmer"],
     ["mismatched action ID", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-mismatched-action-id"], "human approval statement must match approved action IDs"],
     ["plan changed", ["scripts/check-approval-record.mjs", "test-fixtures/bad/bad-approval-record-plan-changed"], "plan changed after approval"],
     ["structured apply digest", ["scripts/check-apply-plan.mjs", "test-fixtures/bad/bad-structured-apply-plan-digest"], "plan_digest does not match canonical evidence digest"],
@@ -8520,7 +8520,7 @@ function checkNaturalLanguageOrchestratorProtocol() {
     "Workflow Guidance Card",
     "Default output mode is `plain`",
     "Delivery Path State",
-    "Codex may ask at most 3 questions by default",
+    "Codex asks at most one plain business question in one turn",
     "This guidance writes target files: No",
     "This guidance modifies CI: No",
     "This guidance installs hooks: No",
@@ -8857,8 +8857,9 @@ function checkBusinessRuleClosureProtocol() {
   const resolver = runNode(["scripts/resolve-business-rule-closure.mjs", "examples/mvp-booking-web-app", "--intent", "appointment requests must include a service time"]);
   if (resolver.status === 0
     && resolver.stdout.includes("Business Rule Closure")
-    && resolver.stdout.includes("NEEDS_USER_CONFIRMATION")
+    && resolver.stdout.includes("READY_FOR_IMPACT_COVERAGE")
     && resolver.stdout.includes("User Confirmation Card")
+    && resolver.stdout.includes("No user confirmation is required")
     && resolver.stdout.includes("This closure writes target files: No")) {
     pass("1.75 business rule closure resolver prints safe appointment rule closure");
   } else {
@@ -10619,7 +10620,7 @@ function checkSafetyEvidenceHardeningProtocol() {
     "apply_chain",
     "VERIFIED_ACTIVE requires verified apply chain",
     "structured approval",
-    "specific human owner",
+    "current conversation user or another specific human confirmer",
     "expires_at must be a parseable date/time",
     "approved_action_ids must exactly match approved_action_paths row IDs",
     "Adoption Assurance apply-chain helper rejects forged apply-plan digest",
@@ -10686,8 +10687,8 @@ function checkSafetyEvidenceHardeningProtocol() {
     }
 
     for (const [name, mutate, expected] of [
-      ["non-human approval owner", (approval) => ({ ...approval, approved_by: "Codex" }), "specific human owner"],
-      ["ambiguous approval owner", (approval) => ({ ...approval, approved_by: "human" }), "specific human owner"],
+      ["non-human approval owner", (approval) => ({ ...approval, approved_by: "Codex" }), "current conversation user or another specific human confirmer"],
+      ["ambiguous approval owner", (approval) => ({ ...approval, approved_by: "human" }), "current conversation user or another specific human confirmer"],
       ["unparseable approval expiry", (approval) => ({ ...approval, expires_at: "next week maybe" }), "expires_at must be a parseable date/time"],
       ["extra approval path row", (approval) => ({
         ...approval,
@@ -12402,7 +12403,7 @@ function checkLaunchReviewViewProtocol() {
     "Launch Review View",
     "Unified Closure Decision",
     "Safe Launch readiness labels",
-    "Human Release Decision outside IntentOS",
+    "Current-user consent to the concrete external effect",
     "must not override Unified Closure",
     "does not create a second launch decision system",
     "READY_FOR_RELEASE_REVIEW",
@@ -12509,9 +12510,9 @@ function checkReleaseExecutionProtocol() {
   for (const marker of [
     "Release Execution Protocol",
     "Launch Review View",
-    "Human Release Approval",
+    "current user consented to the exact external effect",
     "ASSISTED_EXECUTION",
-    "does not execute release by itself",
+    "does not mean technical readiness automatically publishes or deploys",
     "This plan approves release: No",
     "This plan executes release by itself: No",
     "does not make Codex the release owner",
@@ -12566,7 +12567,7 @@ function checkReleaseExecutionProtocol() {
 
   for (const [name, target, expected] of [
     ["missing launch view", "test-fixtures/bad/bad-release-execution-missing-launch-view", "must reference Launch Review input"],
-    ["assisted without approval", "test-fixtures/bad/bad-release-execution-assisted-without-approval", "requires scoped Human Release Approval"],
+    ["assisted without approval", "test-fixtures/bad/bad-release-execution-assisted-without-approval", "requires scoped structured release consent"],
     ["auto production deploy", "test-fixtures/bad/bad-release-execution-auto-production-deploy", "assigns high-risk release step to Codex"],
   ]) {
     const result = runNode(["scripts/check-release-execution.mjs", target]);
@@ -14153,7 +14154,7 @@ function checkStarters() {
     const agents = path.join(starterRoot, entry.name, "AGENTS.md");
     if (fs.existsSync(agents)) {
       const content = fs.readFileSync(agents, "utf8");
-      for (const section of ["Mission", "Core Rules", "Bootstrap Entry", "Beginner Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Business Rule Closure", "Change Impact Coverage", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
+      for (const section of ["Mission", "Zero-Experience Solo Developer", "Core Rules", "Bootstrap Entry", "Beginner Entry", "Natural Language Workflow Guidance", "Delivery Path Governance", "Debt & Knowledge Handoff", "Document Archive Apply", "Unified Apply Plan", "Project Hook Policy", "Project Onboarding", "Engineering Baseline", "Environment Baseline", "Platform Baseline", "Industrial Baseline", "Product Baseline", "Claim Control", "Workflow Artifact Generation", "Guided Decision & Delivery Loop", "Change Boundary And Baseline State", "Goal Mode", "Subagent Orchestration", "Review Surface Governance", "Business Rule Closure", "Change Impact Coverage", "Review Loop", "Bounded Next-Step", "Output Experience", "Task Execution Rules", "High-risk Boundaries", "Skill Governance", "Automation Governance", "Final Report"]) {
         if (!content.includes(section)) {
           fail(`starter ${entry.name} AGENTS.md missing ${section}`);
         }
@@ -15534,13 +15535,14 @@ function checkGeneratedProjectE2E() {
   ]);
   if (generatedImpactResolve.status !== 0
     || !generatedImpactResolve.stdout.includes(generatedBusinessRuleRef)
-    || !generatedImpactResolve.stdout.includes("Business rule state: NEEDS_USER_CONFIRMATION")
+    || !generatedImpactResolve.stdout.includes("Business rule state: READY_FOR_IMPACT_COVERAGE")
     || !generatedImpactResolve.stdout.includes("## Human Decisions Needed")
+    || !generatedImpactResolve.stdout.includes("Codex derives technical surface coverage")
     || !generatedImpactResolve.stdout.includes("This report authorizes implementation: No")) {
     fail(`generated project must preserve unconfirmed Business Rule Closure in a non-authorizing impact report: ${generatedImpactResolve.stderr || generatedImpactResolve.stdout}`);
     return;
   }
-  pass("generated project consumes saved Business Rule Closure and keeps impact analysis non-authorizing pending confirmation");
+  pass("generated project consumes saved Business Rule Closure and keeps impact analysis non-authorizing without technical user questions");
 
   const generatedVerificationReport = "verification-plans/001-generated-service-time.md";
   const generatedVerificationResolve = runNode([
@@ -15562,7 +15564,7 @@ function checkGeneratedProjectE2E() {
   if (generatedVerificationResolve.status !== 0
     || !fs.existsSync(path.join(target, generatedVerificationReport))
     || !generatedVerificationResolve.stdout.includes("Verification Plan")
-    || !generatedVerificationResolve.stdout.includes("NEEDS_BUSINESS_RULE_CLOSURE")) {
+    || !generatedVerificationResolve.stdout.includes("VERIFICATION_PLAN_READY")) {
     fail(`generated project verification plan resolver should write a source-bound report: ${generatedVerificationResolve.stderr || generatedVerificationResolve.stdout}`);
     return;
   }
@@ -18330,7 +18332,7 @@ function checkOperatingModelConsolidationProtocol() {
   }
 
   const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
-  if (tests.status === 0 && tests.stdout.includes("pass 31") && tests.stdout.includes("fail 0")) {
+  if (tests.status === 0 && tests.stdout.includes("pass 34") && tests.stdout.includes("fail 0")) {
     pass("1.95 Operating Model and current decision-contract regression tests");
   } else {
     fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
@@ -18387,8 +18389,8 @@ function checkOperatingDecisionContractProtocol() {
     const decision = parsed.operatingDecision;
     const sourceNames = new Set((parsed.sourceSystemTrace || []).map((source) => source.sourceSystem));
     if (operating.status === 0
-      && parsed.schemaVersion === "1.98.1"
-      && decision?.contractVersion === "1.98.1"
+      && parsed.schemaVersion === "1.99.0"
+      && decision?.contractVersion === "1.99.0"
       && decision?.actionCode === "SUMMARIZE_CURRENT_STATUS"
       && decision?.materialActionAuthorized === "No"
       && parsed.humanSummary?.nextSafeAction === decision?.plainAction
@@ -18461,7 +18463,7 @@ function checkProjectIdentityProjectionProtocol() {
     const projection = parsed.projectIdentityProjection;
     const actualIdentity = projectIdentity(kitRoot);
     if (operating.status === 0
-      && parsed.schemaVersion === "1.98.1"
+      && parsed.schemaVersion === "1.99.0"
       && projection?.contractVersion === "1.98.1"
       && projection?.projectKind === "INTENTOS_SOURCE"
       && projection?.governancePosture === "INTENTOS_SOURCE_GOVERNANCE"
@@ -18472,7 +18474,7 @@ function checkProjectIdentityProjectionProtocol() {
       && Array.isArray(projection?.sourceInputs)
       && projection.sourceInputs.every((source) => /^sha256:[a-f0-9]{64}$/.test(source.semanticDigest || ""))
       && /^sha256:[a-f0-9]{64}$/.test(projection?.projectionDigest || "")
-      && parsed.operatingDecision?.contractVersion === "1.98.1"
+      && parsed.operatingDecision?.contractVersion === "1.99.0"
       && /^sha256:[a-f0-9]{64}$/.test(parsed.operatingDecision?.decisionDigest || "")
       && parsed.humanSummary?.projectIdentity
       && !Object.hasOwn(projection, "changedFilesSample")) {
@@ -18482,6 +18484,56 @@ function checkProjectIdentityProjectionProtocol() {
     }
   } catch (error) {
     fail(`1.97 work output is not valid JSON: ${error.message}`);
+  }
+}
+
+function checkZeroExperienceSoloOperatingModelProtocol() {
+  const required = [
+    "core/zero-experience-solo-operating-model.md",
+    "docs/plans/zero-experience-solo-operating-model-1.99-plan.md",
+    "scripts/lib/solo-operating-model.mjs",
+    "scripts/check-solo-operating-model.mjs",
+    "releases/1.99.0/release-record.md",
+    "releases/1.99.0/known-limitations.md",
+    "releases/1.99.0/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.99 solo operating-model asset exists: ${file}`);
+    else fail(`1.99 solo operating-model asset missing: ${file}`);
+  }
+
+  const combined = [
+    read("core/zero-experience-solo-operating-model.md"),
+    read("docs/plans/zero-experience-solo-operating-model-1.99-plan.md"),
+    read("scripts/lib/solo-operating-model.mjs"),
+    read("scripts/resolve-operating-loop.mjs"),
+    read("scripts/resolve-beginner-entry.mjs"),
+    read("platforms/codex/AGENTS.template.md"),
+    read("templates/approval-record.md"),
+    read("README.md"),
+    read("README.zh-CN.md"),
+  ].join("\n");
+  for (const marker of [
+    "ZERO_EXPERIENCE_SOLO_DEVELOPER",
+    "NO_USER_ACTION",
+    "BUSINESS_FACT_NEEDED",
+    "REAL_WORLD_CONSENT_NEEDED",
+    "EXTERNAL_FACT_NEEDED",
+    "technicalDecisionRequiredFromUser",
+    "internalRoleSelectionRequiredFromUser",
+    "capabilityCoverage",
+    "CURRENT_CONVERSATION_USER",
+    "Silence is not consent",
+  ]) {
+    if (combined.includes(marker)) pass(`1.99 solo operating model includes ${marker}`);
+    else fail(`1.99 solo operating model missing ${marker}`);
+  }
+
+  const checker = runNode(["scripts/check-solo-operating-model.mjs"]);
+  if (checker.status === 0 && checker.stdout.includes("Zero-experience solo operating model check passed")) {
+    pass("1.99 zero-experience solo operating-model checker");
+  } else {
+    fail(`1.99 zero-experience solo operating-model checker failed: ${checker.stderr || checker.stdout}`);
   }
 }
 
@@ -18560,6 +18612,7 @@ checkBaselineManifestPublicEntryConsolidationProtocol();
 checkOperatingModelConsolidationProtocol();
 checkOperatingDecisionContractProtocol();
 checkProjectIdentityProjectionProtocol();
+checkZeroExperienceSoloOperatingModelProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

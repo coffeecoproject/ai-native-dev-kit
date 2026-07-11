@@ -10,7 +10,11 @@ Conversation-Native Ask defines when Codex should apply this behavior automatica
 
 - Let users describe the desired outcome in natural language.
 - Let Codex choose the internal workflow route.
-- Keep the user responsible only for judgment, confirmation, and risk acceptance.
+- Treat the user as one zero-experience solo developer by default.
+- Keep the user responsible only for real business facts, product preferences,
+  and consent to concrete real-world effects.
+- Keep all technical judgment, routing, baseline, implementation, testing,
+  review, evidence, and repair responsibility inside IntentOS/Codex.
 - Hide internal command names from the default user-facing surface.
 - Preserve all existing safety boundaries.
 
@@ -33,7 +37,8 @@ Beginner Entry must:
 
 - summarize what the user wants;
 - state the safest next path in non-technical wording;
-- ask at most 3 human questions by default;
+- ask at most 2 plain business questions by default and ask none when project
+  evidence already answers them;
 - explain what Codex can safely do next;
 - explain what Codex cannot do yet;
 - keep technical routing available for Codex/reviewer evidence;
@@ -62,9 +67,11 @@ These internal routes are not user approvals.
 The default card should talk in human terms:
 
 ```text
-I can first read the project and prepare a safe plan.
-I should not change files until you confirm the scope.
-I need you to confirm whether this is a new project or an existing/live project.
+I will read the project, choose the technical path, and prepare the complete
+engineering work automatically.
+I only need a business fact when it cannot be inferred from the project.
+Before a real production, cost, communication, account, or irreversible data
+effect, I will explain the concrete impact and ask for consent to that effect.
 ```
 
 Avoid making the user learn internal labels such as `BL2`, `workflow-map`, `apply-plan`, `hook orchestration`, `source of truth`, or `dirty worktree`.
@@ -106,3 +113,7 @@ If the recommended next path may write files, Beginner Entry must stop at a plan
 The next write-capable step must go through Unified Apply Plan or an existing specialized plan/apply protocol.
 
 Beginner Entry itself is never the apply approval.
+
+Ordinary reversible engineering does not require a separate user-facing
+technical approval after the user has requested the task. IntentOS still runs
+its internal task, evidence, review, apply, and completion gates.

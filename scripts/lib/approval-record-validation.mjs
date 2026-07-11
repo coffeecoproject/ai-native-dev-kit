@@ -2,17 +2,19 @@ import path from "node:path";
 
 export const nonHumanApproverPattern = /\b(Codex|AI|LLM|model|reviewer|subagent|automation|system|bot)\b/i;
 export const ambiguousHumanApproverPattern = /^(human|owner|user|the user|someone|somebody|stakeholder|team|project team|approver|not specified|unknown|tbd|n\/a)$/i;
+export const currentConversationUserIdentity = "CURRENT_CONVERSATION_USER";
 
 const unsafePathPattern = /(^\/|^~\/|^[A-Za-z]:\\|(^|\/)\.\.(\/|$)|\\|[*?\[\]{}]|\bsymlink:)/i;
 
 export function isSpecificHumanApprover(value) {
   const text = String(value || "").trim();
+  if (text === currentConversationUserIdentity) return true;
   return Boolean(text) && !nonHumanApproverPattern.test(text) && !ambiguousHumanApproverPattern.test(text);
 }
 
 export function validateSpecificHumanApprover(value, label = "approval record") {
   if (isSpecificHumanApprover(value)) return [];
-  return [`${label} approved_by must identify a specific human owner`];
+  return [`${label} approved_by must identify the current conversation user or another specific human confirmer`];
 }
 
 export function parseApprovalExpiry(value) {

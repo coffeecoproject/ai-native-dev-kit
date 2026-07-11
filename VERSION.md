@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.98.1`
+Current version: `1.99.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,19 @@ Current version: `1.98.1`
 
 ## Current Release
 
-`1.98.1`
+`1.99.0`
 
 Includes:
+
+- Zero-Experience Solo Developer Operating Model `1.99.0`: makes one
+  zero-experience solo developer the default user, delegates all technical
+  choices and internal workflow routing to IntentOS/Codex, and exposes only
+  missing business facts or concrete real-world consent.
+- `1.99.0` replaces public enterprise-role recommendations with internal
+  responsibility domains, derives capability and baseline coverage without
+  user pack selection, accepts the current conversation user as a structured
+  consent identity, and preserves strict evidence, apply, rollback, completion,
+  and release gates.
 
 - Trust Review Close-Out `1.98.1`: binds public completion to one durable
   Work Queue task, current Completion Evidence, exact Closure task, and current

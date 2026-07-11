@@ -59,8 +59,8 @@
 | External provider cost risk | `<Yes/No/Unknown>` |
 | Registry storage cost risk | `<Yes/No/Unknown>` |
 | Platform fee risk | `<Yes/No/Unknown>` |
-| Cost owner required | `<Yes/No>` |
-| Cost owner ref | `<ref/missing/not_applicable>` |
+| Concrete cost consent required | `<Yes/No>` |
+| Cost consent ref | `<ref/missing/not_applicable>` |
 
 ## Release Package Identity
 
@@ -73,15 +73,18 @@
 | Evidence preserved outside runtime bundle | Yes |
 | Release evidence deleted to reduce bundle | No |
 
-## Owners
+## Consent And External References
 
 | Field | Value |
 | --- | --- |
-| Release owner required | `<Yes/No>` |
-| Release owner ref | `<ref/missing>` |
-| Cost owner ref | `<ref/missing/not_applicable>` |
-| Platform owner ref | `<ref/missing/not_applicable>` |
-| Production owner ref | `<ref/missing/not_applicable>` |
+| Concrete release consent required | `<Yes/No>` |
+| Consent confirmer ref | `<ref/missing>` |
+| Cost consent ref | `<ref/missing/not_applicable>` |
+| Platform/provider ref | `<ref/missing/not_applicable>` |
+| Production consent ref | `<ref/missing/not_applicable>` |
+
+Machine-readable fields retain historical `*_owner_ref` names for compatibility;
+they do not require a solo user to find separate people.
 
 ## Source Chain
 
@@ -122,4 +125,3 @@
 ## Next Step
 
 `<plain next step>`
-

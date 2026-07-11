@@ -55,12 +55,12 @@ Conversation-Native Ask must:
 
 - restate what Codex understood;
 - identify the safest plain-language path;
-- ask at most 3 human decision questions;
+- ask at most one plain business question and ask none for technical choices;
 - say what Codex can safely do next;
 - say what Codex must not do yet;
 - keep internal workflow names out of the default user surface;
 - route writes through Unified Apply Plan or a specialized plan-first protocol;
-- stop for human approval before implementation, release, production, CI, hook, document cleanup, baseline activation, or high-risk decisions.
+- run implementation, CI-safe project work, document governance, baseline selection, and technical risk controls through internal gates; ask only for missing business/external facts or consent to a concrete production/external effect.
 
 ## Relationship To Beginner Entry
 

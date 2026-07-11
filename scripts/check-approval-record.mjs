@@ -129,7 +129,7 @@ function checkCoreContent() {
   if (!core) return;
   for (const marker of [
     "Approval Record Governance",
-    "What exactly did a human approve?",
+    "Which exact low-risk actions remain inside the current user's explicit business request?",
     "This approval record authorizes automatic apply: No",
     "Approved action IDs must be explicit",
     "High-Risk Action Rules",
@@ -197,7 +197,7 @@ function checkStructuredEvidence(content, label, file) {
   if (evidence.approval_status === "APPROVED") {
     const ownerErrors = validateSpecificHumanApprover(evidence.approved_by, label);
     if (ownerErrors.length === 0) {
-      pass(`${label} structured approval owner is specific human`);
+      pass(`${label} structured approval identifies a specific human confirmer`);
     } else {
       ownerErrors.forEach((error) => fail(error));
     }
@@ -259,9 +259,9 @@ function checkApprovedRecord(content, label) {
   if (approvedBy && !placeholder(approvedBy) && !nonHumanApproverPattern.test(approvedBy) && !ambiguousHumanApproverPattern.test(approvedBy)) {
     pass(`${label} approved record has human approver`);
   } else {
-    fail(`${label} approved record approval owner must be a specific human owner`);
+    fail(`${label} approved record must identify the current conversation user or another specific human confirmer`);
   }
-  if (ownerType === "HUMAN") pass(`${label} approval owner type is HUMAN`);
+  if (ownerType === "HUMAN") pass(`${label} approval confirmer type is HUMAN`);
   else fail(`${label} approved record must set Approval owner type to HUMAN`);
 
   const plan = sectionBody(content, "Approved Plan");
@@ -412,7 +412,7 @@ function checkSourceEvidence() {
   }
 
   for (const [name, targetArgs, expected] of [
-    ["AI owner", ["test-fixtures/bad/bad-approval-record-ai-owner"], "approval owner must be a specific human owner"],
+    ["AI owner", ["test-fixtures/bad/bad-approval-record-ai-owner"], "current conversation user or another specific human confirmer"],
     ["missing plan hash", ["test-fixtures/bad/bad-approval-record-missing-plan-hash"], "must include a plan hash"],
     ["all actions", ["test-fixtures/bad/bad-approval-record-all-actions"], "approved action ids must be explicit"],
     ["auto apply", ["test-fixtures/bad/bad-approval-record-auto-apply"], "forbidden approval record claim"],
@@ -421,7 +421,7 @@ function checkSourceEvidence() {
     ["parent traversal", ["test-fixtures/bad/bad-approval-record-parent-traversal"], "must use exact bounded target paths"],
     ["symlink path", ["test-fixtures/bad/bad-approval-record-symlink-path"], "must use exact bounded target paths"],
     ["expired approval", ["test-fixtures/bad/bad-approval-record-expired"], "is expired and must be re-approved"],
-    ["ambiguous owner", ["test-fixtures/bad/bad-approval-record-ambiguous-owner"], "approval owner must be a specific human owner"],
+    ["ambiguous owner", ["test-fixtures/bad/bad-approval-record-ambiguous-owner"], "current conversation user or another specific human confirmer"],
     ["mismatched action ID", ["test-fixtures/bad/bad-approval-record-mismatched-action-id"], "human approval statement must match approved action IDs"],
     ["plan changed", ["test-fixtures/bad/bad-approval-record-plan-changed"], "plan changed after approval"],
     ["structured digest", ["test-fixtures/bad/bad-structured-approval-plan-digest"], "approved_plan.plan_digest does not match referenced apply plan evidence"],

@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
+import { buildSoloOperatingModel } from "./lib/solo-operating-model.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "goal", "mode"]);
@@ -39,7 +40,15 @@ else printHuman(card);
 function buildBeginnerEntryCard(root, goal, mode) {
   const guidance = readWorkflowGuidance(root, goal, mode);
   const route = routeFromGuidance(guidance, goal);
-  const questions = questionsFor(guidance, goal, route);
+  const soloOperatingModel = buildSoloOperatingModel({
+    intent: goal,
+    operation: operationForRoute(route),
+    actionCode: actionForRoute(route),
+    sourceFailure: guidance?.outcome === "BLOCKED",
+    language: /[\u3400-\u9fff]/.test(goal) ? "zh" : "en",
+    selectedProfiles: guidance?.projectReading?.selectedProfiles || [],
+  });
+  const questions = questionsFor(guidance, goal, route, soloOperatingModel);
   const safeActions = safeActionsFor(guidance, goal, route);
   const blockedActions = blockedActionsFor(route);
   const outcome = outcomeFor(guidance, goal);
@@ -51,13 +60,16 @@ function buildBeginnerEntryCard(root, goal, mode) {
     projectRoot: root,
     readOnly: true,
     userMode: mode,
+    operatingModel: soloOperatingModel.operatingModel,
+    decisionResponsibility: soloOperatingModel,
     userGoal: goal || "not provided",
     humanDecisionSummary: {
       conclusion: conclusionFor(guidance, goal, route),
       recommendedPath: route.recommendedPath,
       canCodexChangeFilesNow: "No",
-      needFromHuman: questions.join(" / "),
-      ifNothing: "No files are changed. No CI, hooks, documents, task state, release, or production behavior is changed.",
+      separateTechnicalApprovalRequired: "No",
+      needFromHuman: questions.length > 0 ? questions.join(" / ") : "No technical decision is required. Codex can continue after internal checks.",
+      ifNothing: "This entry remains read-only. Ordinary engineering can continue after internal gates without another technical approval; real-world external effects remain disabled without explicit consent.",
     },
     whatIUnderstood: understoodFor(guidance, goal, route),
     recommendedPath: route.recommendedPath,
@@ -85,6 +97,9 @@ function buildBeginnerEntryCard(root, goal, mode) {
       enablesBaselineOrIndustrialPacks: "No",
       approvesHighRiskDecisions: "No",
       grantsPermissionBeyondGoal: "No",
+      requiresTechnicalChoiceFromUser: "No",
+      requiresWorkflowKnowledgeFromUser: "No",
+      requiresMultiplePeople: "No",
     },
     outcome,
   };
@@ -206,7 +221,7 @@ function routeFromGuidance(guidance, goal) {
   if (intent === "RELEASE_OR_DEPLOY") {
     return {
       plainRoute: "release-guide-first",
-      recommendedPath: "先做一张上线引导卡，把发布目标、人工审批、证据和哪些动作必须由人执行说清楚。",
+      recommendedPath: "Codex 先自动准备构建、验证、备份、回滚和发布材料；真正产生外部影响前再说明现实影响。",
     };
   }
   if (intent === "TASK_SWITCH_OR_RESUME") {
@@ -224,33 +239,29 @@ function routeFromGuidance(guidance, goal) {
   if (highRisk) {
     return {
       plainRoute: "risk-first-plan",
-      recommendedPath: "先确认风险边界和审查范围，再生成最小可验证计划。",
+      recommendedPath: "Codex 先自动识别风险边界、影响范围和验证要求，再选择安全实现方案。",
     };
   }
   if (state === "NEW_PROJECT" || intent === "BUILD_NEW_PRODUCT") {
     return {
       plainRoute: "new-project-first-slice",
-      recommendedPath: "先把第一版目标、使用对象、核心流程和基础工程规则定清楚，再做最小可用版本。",
+      recommendedPath: "Codex 根据业务目标自动选择技术架构和工程基线，并围绕第一个完整业务流程开始实现。",
     };
   }
   if (state === "EXISTING_GOVERNED_PROJECT" || state === "PRODUCTION_SENSITIVE_PROJECT") {
     return {
       plainRoute: "read-existing-rules-first",
-      recommendedPath: "先读已有规则和发布边界，把新流程映射进去，不直接覆盖项目。",
+      recommendedPath: "Codex 先自动读取已有代码、规则和发布边界，再把后续工作统一到 IntentOS，不要求你选择接入模式。",
     };
   }
   return {
     plainRoute: "small-safe-plan",
-    recommendedPath: "先整理一个不改文件的安全计划，再按最小可验证的一步推进。",
+    recommendedPath: "Codex 自动整理完整影响范围、实现方案和验证路径，然后按内部门禁推进。",
   };
 }
 
-function questionsFor(guidance, goal, route) {
+function questionsFor(guidance, goal, route, soloOperatingModel) {
   if (!goal) return ["你想先做成什么？"];
-  const base = Array.isArray(guidance?.questionsForHuman) ? guidance.questionsForHuman : [];
-  const cleaned = base
-    .map((item) => simplifyQuestion(item))
-    .filter(Boolean);
   const preferred = [];
 
   if (route.plainRoute === "new-project-first-slice") {
@@ -258,45 +269,43 @@ function questionsFor(guidance, goal, route) {
     preferred.push("第一版只需要先完成哪一个核心流程？");
   }
   if (route.plainRoute === "release-guide-first") {
-    preferred.push("这次是预览测试、内部试用，还是正式发布？");
-    preferred.push("谁负责最终确认发布？");
-  }
-  if (route.plainRoute === "read-existing-rules-first" || route.plainRoute === "risk-first-plan") {
-    preferred.push("这个项目现在是否已经有人在用？");
-    preferred.push("这次是否涉及真实数据、线上环境或不可回滚风险？");
+    if (!/(预览|测试|内部|正式|preview|test|internal|production)/i.test(goal)) {
+      preferred.push("你希望先自己试用，还是准备给真实用户使用？");
+    }
   }
   if (route.plainRoute === "review-current-work" || route.plainRoute === "manage-interrupted-work") {
     preferred.push("当前未完成内容是继续、暂停，还是先切换任务？");
   }
-  preferred.push("是否允许我先只读整理计划，不直接改文件？");
-
-  return unique([...preferred, ...cleaned]).slice(0, 3);
+  if (soloOperatingModel.userResponsibilityClass === "EXTERNAL_FACT_NEEDED") {
+    preferred.push("这项外部政策事实目前是否已有明确结论？没有也可以，Codex 会先完成不受影响的部分。");
+  }
+  return unique(preferred).slice(0, 2);
 }
 
 function safeActionsFor(guidance, goal, route) {
   if (!goal) return ["等待你补充目标后，再只读判断项目状态。"];
   const actions = [];
   if (route.plainRoute === "new-project-first-slice") {
-    actions.push("把目标拆成第一版最小可用范围。");
-    actions.push("只读推荐项目档位、平台和基础工程规则。");
+    actions.push("自动识别平台、技术架构、项目档位和完整工程基线。");
+    actions.push("围绕第一个完整业务流程准备实现、测试和验收。");
   } else if (route.plainRoute === "read-existing-rules-first") {
-    actions.push("只读梳理项目已有规则、发布边界和风险点。");
-    actions.push("整理一份接入建议，不覆盖现有治理。");
+    actions.push("自动梳理已有代码、规则、任务、发布边界和风险点。");
+    actions.push("保留更严格的有效规则，并准备受控接入和后续执行。");
   } else if (route.plainRoute === "review-current-work" || route.plainRoute === "manage-interrupted-work") {
-    actions.push("只读整理当前任务、暂停任务和恢复点。");
-    actions.push("给出继续、暂停或切换的建议。");
+    actions.push("自动整理当前任务、暂停任务和恢复点，并保留全部进度。");
+    actions.push("能安全恢复时直接继续；业务目标冲突时只询问优先级。");
   } else if (route.plainRoute === "close-current-work") {
     actions.push("只读检查改动范围、验证证据和遗留问题。");
     actions.push("判断是否可以进入提交审查。");
   } else if (route.plainRoute === "release-guide-first") {
-    actions.push("只读生成上线引导卡，整理发布目标、审批、证据和人工执行边界。");
-    actions.push("判断是否可以进入发布执行计划，而不是直接发布。");
+    actions.push("自动准备构建、测试、备份、回滚、监控和发布证据。");
+    actions.push("真正产生外部影响前，用白话说明影响并记录明确同意。");
   } else if (route.plainRoute === "review-documents") {
     actions.push("只读列出可能过期、重复或需要归档建议的文档。");
     actions.push("先给建议，不移动、不删除。");
   } else {
-    actions.push("只读读取项目并整理下一步安全计划。");
-    actions.push("确认风险和审查范围后再推进。");
+    actions.push("自动读取项目并整理完整影响范围、实现方案和验证路径。");
+    actions.push("通过内部门禁后继续工程执行，不要求额外技术确认。");
   }
   if (guidance?.outcome === "BLOCKED") actions.unshift("先解决只读判断里的阻塞。");
   return unique(actions).slice(0, 3);
@@ -304,15 +313,15 @@ function safeActionsFor(guidance, goal, route) {
 
 function blockedActionsFor(route) {
   const common = [
-    "不能因为这张卡就直接改项目文件。",
-    "不能跳过确认直接进入实现、发布、自动化或高风险改动。",
+    "这张入口卡本身只读；后续普通工程由 Codex 通过内部门禁后执行。",
+    "不能把业务事实、真实费用、生产影响或不可逆外部操作当作已默认同意。",
   ];
   if (route.plainRoute === "review-documents") common.push("不能直接移动、删除或重写文档。");
   if (route.plainRoute === "read-existing-rules-first" || route.plainRoute === "risk-first-plan") {
     common.push("不能覆盖已有规则、发布配置或自动触发器。");
   }
   if (route.plainRoute === "release-guide-first") {
-    common.push("不能替你批准发布、填写密钥、调用云平台或提交应用商店审核。");
+    common.push("不能在没有明确现实影响同意时调用云平台、使用真实账号或提交应用商店审核。");
   }
   return common.slice(0, 3);
 }
@@ -344,12 +353,6 @@ function outcomeFor(guidance, goal) {
   if (guidance?.outcome === "BLOCKED") return "BLOCKED";
   if (guidance?.outcome === "NEEDS_HUMAN_DECISION") return "NEEDS_HUMAN_DECISION";
   return "ENTRY_RECORDED";
-}
-
-function simplifyQuestion(question) {
-  return String(question || "")
-    .replace("是否允许我先生成计划，不直接改文件？", "是否允许我先只读整理计划，不直接改文件？")
-    .trim();
 }
 
 function unique(items) {
@@ -414,8 +417,34 @@ function printHuman(card) {
   console.log(`- This entry changes task state: ${card.boundary.changesTaskState}`);
   console.log(`- This entry enables baseline or industrial packs: ${card.boundary.enablesBaselineOrIndustrialPacks}`);
   console.log(`- This entry approves high-risk decisions: ${card.boundary.approvesHighRiskDecisions}`);
+  console.log(`- This entry requires technical choices from the user: ${card.boundary.requiresTechnicalChoiceFromUser}`);
+  console.log(`- This entry requires multiple people: ${card.boundary.requiresMultiplePeople}`);
   console.log("");
   console.log("## Outcome");
   console.log("");
   console.log(`\`${card.outcome}\``);
+}
+
+function operationForRoute(route) {
+  if (route.plainRoute === "new-project-first-slice") return "START_PROJECT";
+  if (route.plainRoute === "release-guide-first") return "PREPARE_RELEASE";
+  if (route.plainRoute === "manage-interrupted-work") return "RESUME_TASK";
+  if (route.plainRoute === "need-goal") return "START_PROJECT";
+  return "CONTINUE_TASK";
+}
+
+function actionForRoute(route) {
+  const actions = {
+    "need-goal": "REQUEST_GOAL",
+    "review-current-work": "REVIEW_CURRENT_WORK",
+    "close-current-work": "COMPLETE_CLOSURE_EVIDENCE",
+    "release-guide-first": "PREPARE_RELEASE_REVIEW",
+    "manage-interrupted-work": "REVIEW_PAUSED_TASK",
+    "review-documents": "PREPARE_EXECUTION_PLAN",
+    "risk-first-plan": "INSPECT_TASK_RISK",
+    "new-project-first-slice": "PREPARE_PROJECT_PLAN",
+    "read-existing-rules-first": "RUN_ADOPTION_REVIEW",
+    "small-safe-plan": "PREPARE_EXECUTION_PLAN",
+  };
+  return actions[route.plainRoute] || "PREPARE_EXECUTION_PLAN";
 }

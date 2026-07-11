@@ -21,7 +21,7 @@ Work Queue -> Task Governance -> Execution / Completion Consumers
 and before:
 
 ```text
-Delivery status, release handoff, or release owner decision
+Delivery status, release handoff, or current-user consent to a concrete external effect
 ```
 
 ## Runtime Classes
@@ -46,10 +46,10 @@ Delivery status, release handoff, or release owner decision
 | --- | --- |
 | `CAN_CONTINUE_AUTOMATICALLY` | Codex can continue read-only or reversible work inside the current task |
 | `CAN_CONTINUE_AFTER_PROJECT_GATE_REPAIR` | Codex should repair the current task until project gates pass |
-| `NEEDS_PLAIN_USER_APPROVAL` | A plain non-technical user approval is required |
-| `NEEDS_RELEASE_OWNER_APPROVAL` | Release authority or irreversible cleanup requires the release owner |
+| `NEEDS_PLAIN_USER_APPROVAL` | Legacy state: a real business fact or concrete real-world consent is required |
+| `NEEDS_RELEASE_OWNER_APPROVAL` | Legacy state: current-user consent to the exact release or irreversible cleanup effect is required; no separate role is implied |
 | `BLOCKED_BY_IRREVERSIBLE_ACTION` | The proposed action cannot continue without explicit approval |
-| `BLOCKED_BY_PRODUCTION_SIDE_EFFECT` | Production may have been touched; use release-owner or incident process |
+| `BLOCKED_BY_PRODUCTION_SIDE_EFFECT` | Production may have been touched; use the project incident process and request current-user consent before any new external action |
 | `BLOCKED_BY_UNCLEAR_TASK_SCOPE` | Runtime state suggests mixed commits, stale branch state, or unrelated work |
 
 ## Git Lineage Rules
@@ -88,7 +88,7 @@ CI failures must be classified before Codex claims status:
 For `CI_ENVIRONMENT_FAILURE`, `CAN_CONTINUE_AUTOMATICALLY` is allowed only when
 the report records both project retry-policy permission and a production
 side-effect check. Without those two facts, the safe result is user or owner
-approval, not automatic continuation.
+  consent to the concrete real-world effect, not a technical strategy choice.
 
 Runtime Hygiene reports should preserve source trace for the observed blocker:
 gate output, CI log, artifact error, bundle summary, or release event. Strict
@@ -108,8 +108,8 @@ Runtime Hygiene distinguishes release lanes:
 | `PREFLIGHT_ONLY` | Diagnose and retry only if reversible |
 | `BUNDLE_CREATED` | Rebuild if evidence is preserved |
 | `TEST_LANE_STARTED` | Preserve test evidence before retry |
-| `PROD_FREEZE_ENTERED` | Release-owner approval required |
-| `PROD_DEPLOY_STARTED` | Stop for release-owner path |
+| `PROD_FREEZE_ENTERED` | Exact production effect needs current-user consent |
+| `PROD_DEPLOY_STARTED` | Stop for the project incident/release protocol; do not invent additional roles |
 | `PROD_DEPLOY_DONE` | Use post-release or rollback rules |
 | `UNKNOWN` | Stop |
 

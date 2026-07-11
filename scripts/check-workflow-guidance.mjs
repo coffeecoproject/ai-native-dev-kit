@@ -128,7 +128,7 @@ function checkCoreContent() {
     "Delivery Path State",
     "Intent-Aware Deep Guide",
     "guide --deep --intent",
-    "Codex may ask at most 3 questions by default",
+    "Codex asks at most one plain business question in one turn",
     "A Workflow Guidance Card does not",
   ]) {
     if (core.includes(marker)) pass(`workflow guidance core includes ${marker}`);

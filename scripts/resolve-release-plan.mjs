@@ -358,7 +358,7 @@ function buildExistingRuleComparison(root, projectProfile, ruleReconciliation) {
   if (rows.length === 0) {
     rows.push(ruleRow("Engineering baseline", "N/A", "core/engineering-baseline.md", "GAP_SUGGESTION", "No existing engineering baseline marker found; recommend a gap review, not automatic write.", true));
     rows.push(ruleRow("Environment baseline", "N/A", "core/environment-baseline.md", "GAP_SUGGESTION", "No existing environment baseline marker found; recommend a gap review, not automatic write.", true));
-    rows.push(ruleRow("Release / rollback", "N/A", "core/release-core-model.md", projectProfile.projectState === "NEW_OR_EMPTY_PROJECT" ? "GAP_SUGGESTION" : "NEEDS_HUMAN_DECISION", "Release and rollback rules require owner confirmation.", true));
+    rows.push(ruleRow("Release / rollback", "N/A", "core/release-core-model.md", projectProfile.projectState === "NEW_OR_EMPTY_PROJECT" ? "GAP_SUGGESTION" : "NEEDS_HUMAN_DECISION", "Codex must prepare release and rollback rules; the user confirms only the later concrete external effect.", true));
   }
   if (ruleReconciliation.status === "PASS") {
     rows.push(ruleRow("Existing Rule Reconciliation", ruleReconciliation.ref, "core/existing-rule-reconciliation.md", "KEEP_EXISTING_AS_STRICTER", "Structured reconciliation already exists and remains the source system.", true));
@@ -403,18 +403,18 @@ function codexMayDoRows(projectProfile) {
 
 function humanMustDecideRows() {
   return [
-    decision("Release approval", "HUMAN_REQUIRED", "Release risk is human-owned.", "Record structured approval or stop."),
-    decision("Existing rule replacement", "HUMAN_REQUIRED", "Existing project rules are project-owned.", "Use apply plan after review."),
-    decision("High-risk domains", "HUMAN_REQUIRED", "Production, data, security, privacy, compliance, payment, tax, finance, HR, legal, customer, permission, migration, and provider-state surfaces are protected.", "Ask owner."),
+    decision("Concrete release effect", "REAL_WORLD_CONSENT_NEEDED", "Production, publication, provider, cost, or real-user effects require explicit consent.", "Codex prepares the exact action and rollback, then asks the current user for consent."),
+    decision("Conflicting business behavior", "BUSINESS_FACT_NEEDED", "Codex reconciles technical rules, but cannot invent the intended real business behavior.", "Ask one plain business question only if project evidence cannot resolve it."),
+    decision("External policy fact", "EXTERNAL_FACT_NEEDED", "Legal, tax, compliance, or provider facts cannot be proved by code.", "Keep only the dependent capability or claim blocked while unaffected work continues."),
   ];
 }
 
 function externalSystemRows() {
   return [
-    action("Production deploy / publish / submit", "Human or external release system."),
-    action("Store / mini-program review submission", "Human or external release system."),
-    action("DNS / payment / provider-state change", "Human or external release system."),
-    action("Production migration", "Human or external release system."),
+    action("Production deploy / publish / submit", "After structured current-user consent, Codex may execute the exact approved action when project policy and provider access allow; otherwise use the existing release system."),
+    action("Store / mini-program review submission", "After structured current-user consent and complete platform evidence."),
+    action("DNS / payment / provider-state change", "After structured current-user consent to the named external effect and only within the approved scope."),
+    action("Production migration", "After structured current-user consent, verified backup/rollback, and the project production protocol."),
   ];
 }
 
@@ -524,10 +524,10 @@ function safeNextStepFor(state, projectProfile, migrationDepth) {
   if (projectProfile.projectState === "EXISTING_GOVERNED_PROJECT" && migrationDepth !== "SELECTIVE_INTENTOS_NATIVE") {
     return "Keep Codex in IntentOS Operating Mode, then complete Native Migration and Existing Rule Reconciliation before changing governance files.";
   }
-  if (state === "NEEDS_PLATFORM_RECIPE") return "Select a platform release recipe before handoff planning.";
+  if (state === "NEEDS_PLATFORM_RECIPE") return "Codex selects and verifies the matching platform release recipe before handoff planning.";
   if (state === "NEEDS_LAUNCH_REVIEW") return "Close launch review evidence gaps before release approval.";
-  if (state === "NEEDS_STRUCTURED_APPROVAL") return "Record structured release approval or stop.";
-  if (state.startsWith("READY")) return "Prepare handoff review; release actions remain human/external-system owned.";
+  if (state === "NEEDS_STRUCTURED_APPROVAL") return "Codex prepares the exact release action; request current-user consent to the concrete external effect before execution.";
+  if (state.startsWith("READY")) return "Prepare the exact release action and rollback; request consent only when the real-world effect is ready to occur.";
   return "Clarify release shape and source-system blockers before any release-facing action.";
 }
 
@@ -563,8 +563,8 @@ function printHuman(report) {
     item.humanDecisionRequired,
   ]));
   printTable("Codex May Do", ["Action", "Condition"], report.codexMayDo.map((item) => [item.action, item.condition]));
-  printTable("Human Must Decide", ["Decision", "Why", "Next Step"], report.humanMustDecide.map((item) => [item.decision, item.reason, item.nextStep]));
-  printTable("External System Actions", ["Action", "Owner"], report.externalSystemActions.map((item) => [item.action, item.condition]));
+  printTable("User Input Boundary", ["Input", "Why", "Next Step"], report.humanMustDecide.map((item) => [item.decision, item.reason, item.nextStep]));
+  printTable("Real-World Actions", ["Action", "Execution Boundary"], report.externalSystemActions.map((item) => [item.action, item.condition]));
   printTable("Evidence Requirements", ["Evidence", "Required", "Status", "Ref"], report.evidenceRequirements.map((item) => [item.evidence, item.required, code(item.status), item.ref]));
   printTable("Rollback / Monitoring / Smoke", ["Surface", "Status", "Ref"], report.rollbackMonitoringSmoke.map((item) => [item.surface, code(item.status), item.ref]));
   printTable("Conflicts", ["Conflict", "Status", "Resolution"], report.conflicts.map((item) => [item.conflict, code(item.status), item.resolution]));
@@ -577,7 +577,7 @@ function printHuman(report) {
   console.log("- This plan lets trace control execution: No");
   console.log("- This plan lets summary state drive execution: No");
   console.log("- This plan treats IntentOS Operating Mode as write permission: No");
-  console.log("- This plan makes Codex the release owner: No");
+  console.log("- This plan makes technical readiness equal user consent: No");
   console.log("- This plan replaces existing governance: No");
   console.log("- This plan modifies CI or hooks: No");
   console.log("- This plan asks for or stores secrets: No");

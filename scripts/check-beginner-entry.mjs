@@ -109,7 +109,7 @@ function checkCoreContent() {
     "Beginner Entry Governance",
     "users who should not need to know IntentOS workflow commands",
     "Codex should not ask the user to choose between",
-    "ask at most 3 human questions by default",
+    "ask at most 2 plain business questions by default",
     "A Beginner Entry Card does not",
     "Unified Apply Plan",
   ]) {

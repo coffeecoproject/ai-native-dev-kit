@@ -65,6 +65,7 @@ const requiredPullRequestTemplateMarkers = [
 ];
 const requiredAgentGovernanceMarkers = [
   "Mission",
+  "Zero-Experience Solo Developer",
   "Core Rules",
   "Bootstrap Entry",
   "Beginner Entry",
@@ -541,6 +542,16 @@ function agentGovernanceSectionContent() {
       "Do not implement vague requests directly. Convert broad work into request, preflight, spec, eval, and task assets before implementation.",
       "",
     ].join("\n")],
+    ["Zero-Experience Solo Developer", [
+      "## Zero-Experience Solo Developer",
+      "",
+      "Treat the default user as one zero-experience solo developer. The user describes business goals and supplies missing business facts. Codex owns technical choices, workflow routing, architecture, baselines, implementation, testing, review, evidence, repair, and rollback preparation.",
+      "",
+      "Do not ask the user to choose technical stacks, BL levels, packs, database representations, migration strategies, test types, review surfaces, subagent plans, hook classes, workflow commands, or internal owner roles.",
+      "",
+      "A normal natural-language implementation request is sufficient execution intent for ordinary, reversible, task-bounded project-local engineering after internal IntentOS gates pass. Ask again only for a missing business fact or consent to a concrete production, cost, real-user communication, account/provider, or irreversible real-data effect. Silence is not consent.",
+      "",
+    ].join("\n")],
     ["Core Rules", [
       "## Core Rules",
       "",
@@ -548,8 +559,8 @@ function agentGovernanceSectionContent() {
       "2. Every non-trivial change must have acceptance criteria before implementation.",
       "3. Prefer vertical slices over broad rewrites.",
       "4. Keep changes minimal and scoped.",
-      "5. Do not add production dependencies without explicit approval.",
-      "6. Do not modify auth, permission, migration, production config, secrets, high-risk, safety-critical, or security-sensitive logic without a risk report and explicit approval.",
+      "5. Select production dependencies from project evidence and safe engineering defaults; surface cost, licensing, provider, or irreversible external impact before it occurs.",
+      "6. For auth, permission, migration, production config, secrets, high-risk, safety-critical, or security-sensitive logic, perform the full internal risk, test, review, evidence, and rollback path. Ask the user only for missing business rules or concrete real-world consent.",
       "7. Every implementation must include tests or explain why tests are not applicable.",
       "8. If the same verification failure repeats twice, stop and report instead of blindly retrying.",
       "9. After implementation, produce a final report with changed files, tests run, remaining risks, and next step.",
@@ -570,7 +581,7 @@ function agentGovernanceSectionContent() {
       "node scripts/workflow-next.mjs .",
       "```",
       "",
-      "Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.",
+      "Follow the reported `NEXT_ACTION`. A direct user request to configure IntentOS supplies the business execution intent for a bounded project-local setup. Codex must still generate and verify the exact plan, readiness, approval evidence, backup, rollback, and receipt internally; ask again only if scope or real-world impact exceeds that request.",
       "",
     ].join("\n")],
     ["Beginner Entry", [
@@ -585,7 +596,7 @@ function agentGovernanceSectionContent() {
       "node scripts/cli.mjs ask-check .",
       "```",
       "",
-      "Beginner Entry returns one plain card with what Codex understood, the recommended path, a small set of human decisions, safe next actions, blocked actions, routing evidence, and boundaries. It does not write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive documents, change task state, enable baseline/industrial packs, or approve high-risk decisions.",
+      "Beginner Entry returns one plain card with what Codex understood, the recommended path, missing business facts, safe next actions, blocked external effects, routing evidence, and boundaries. It does not write files or perform external effects. It does not require a separate technical approval: ordinary reversible engineering may continue through internal IntentOS gates after this read-only entry.",
       "",
     ].join("\n")],
     ["Conversation-Native Ask", [

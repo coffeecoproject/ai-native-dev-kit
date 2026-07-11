@@ -96,9 +96,9 @@ function buildReleaseExecutionPlan(root, options) {
     evidenceCapture: buildEvidenceCapture(launchReview, approval, options),
     stopConditions: [
       "Stop if Launch Review View is not READY_FOR_RELEASE_REVIEW.",
-      "Stop if human release approval is missing, ambiguous, or out of scope.",
+      "Stop if current-user consent to the concrete release effect is missing, ambiguous, or out of scope.",
       "Stop before production deploy, publication, app submission, mini-program publish, migration, secrets, DNS, payment, permissions, or production config changes unless the project SOP explicitly assigns that action.",
-      "Stop if rollback, monitoring, release owner, release SOP, or post-launch smoke evidence is missing.",
+      "Stop if rollback, monitoring, consent reference, release SOP, or post-launch smoke evidence is missing.",
       "Stop if verification, build, smoke, monitoring, or release handoff evidence fails.",
     ],
     postLaunchCloseOut: [
@@ -111,6 +111,7 @@ function buildReleaseExecutionPlan(root, options) {
     boundaries: {
       approvesRelease: "No",
       executesReleaseByItself: "No",
+      allowsCodexExecutionAfterStructuredConsentAndGates: "Yes",
       deploysPublishesSubmitsMigratesOrChangesProductionWithoutApproval: "No",
       changesCiHooksSecretsDnsPaymentPermissionsAppStoreMiniProgramOrProductionConfig: "No",
       replacesReleaseSopOrOwner: "No",
@@ -236,8 +237,8 @@ function collectPreconditions(options, launchReview, approval) {
     precondition("Release Evidence Gate", approval.verified, sources.release_evidence_gate?.ref, "Strict current release evidence required."),
     precondition("Runtime Hygiene", approval.verified, sources.runtime_hygiene?.ref, "Current candidate runtime preflight required."),
     precondition("Release Channel Policy", approval.verified, sources.release_channel_policy?.ref, "Strict channel and package identity required."),
-    precondition("Human Release Approval", approval.verified, approval.ref, "Approval must be structured, current, human-owned, and scoped."),
-    precondition("Release owner", approval.verified && Boolean(controls.release_owner_ref), controls.release_owner_ref, "Human release owner required."),
+    precondition("Real-world release consent", approval.verified, approval.ref, "Consent must be structured, current, supplied by the current user or another specific confirmer, and scoped to the concrete effect."),
+    precondition("Consent confirmer", approval.verified && Boolean(controls.release_owner_ref), controls.release_owner_ref, "A specific confirmer reference is required; this does not imply a separate enterprise role."),
     precondition("Release SOP", approval.verified && Boolean(controls.release_sop_ref), controls.release_sop_ref, "Project release procedure required."),
     precondition("Rollback", approval.verified && Boolean(controls.rollback_ref), controls.rollback_ref, "Rollback or fallback path required."),
     precondition("Monitoring", approval.verified && Boolean(controls.monitoring_ref), controls.monitoring_ref, "Observation path required."),
@@ -279,15 +280,15 @@ function reasonFor(mode, launchReview, approval, preconditions) {
     return `Release execution is blocked by missing preconditions: ${missing.join(", ")}.`;
   }
   if (mode === "ASSISTED_EXECUTION") {
-    return "Human approval and required launch evidence are present; Codex may assist only with explicitly allowed low-risk steps.";
+    return "Current-user consent and required launch evidence are present; Codex may execute only the explicitly approved steps under the project release protocol.";
   }
-  return "Human approval and required launch evidence are present; release should be executed by the human owner or existing release system.";
+  return "Current-user consent and required launch evidence are present; the existing release system may execute the approved action.";
 }
 
 function nextStepFor(mode, realAllowed, preconditions) {
-  if (mode === "PLAN_ONLY") return "Use this plan for human review; do not execute release actions yet.";
-  if (realAllowed === "Yes" && mode === "HUMAN_EXECUTION_HANDOFF") return "Hand this plan to the release owner or existing release system.";
-  if (realAllowed === "Yes" && mode === "ASSISTED_EXECUTION") return "Run only explicitly allowed low-risk steps and stop at production actions.";
+  if (mode === "PLAN_ONLY") return "Codex should finish the evidence and exact action plan; do not request consent or execute the external effect yet.";
+  if (realAllowed === "Yes" && mode === "HUMAN_EXECUTION_HANDOFF") return "Hand the exact approved action to the existing release system and capture its evidence.";
+  if (realAllowed === "Yes" && mode === "ASSISTED_EXECUTION") return "Codex may run only the explicitly approved actions, including the named production action when the approval and project SOP assign it, then capture smoke and monitoring evidence.";
   const missing = preconditions.filter((item) => item.status !== "PASS").map((item) => item.gate);
   return `Resolve missing release preconditions: ${missing.join(", ") || "none"}.`;
 }
@@ -297,9 +298,9 @@ function buildExecutionSteps(mode) {
   return [
     step("Preflight verification", "VERIFY", codexExecutor, "PENDING", "Verification output", "Stop if verification fails."),
     step("Build artifact", "BUILD", codexExecutor, "PENDING", "Build output", "Stop if build fails."),
-    step("Release handoff", "DEPLOY_OR_SUBMIT", "HUMAN_REQUIRED", "PENDING", "Release system evidence", "Stop before production action without project SOP."),
+    step("Release handoff", "DEPLOY_OR_SUBMIT", codexExecutor, "PENDING", "Release system evidence", "Stop before the concrete production action unless structured consent and the project SOP authorize it."),
     step("Post-launch smoke", "POST_LAUNCH_SMOKE", codexExecutor, "PENDING", "Smoke output", "Stop if smoke fails."),
-    step("Rollback readiness", "ROLLBACK_READY", "HUMAN_REQUIRED", "PENDING", "Rollback owner / path", "Stop if rollback owner is unavailable."),
+    step("Rollback readiness", "ROLLBACK_READY", codexExecutor, "PENDING", "Rollback path and evidence", "Stop if rollback cannot be executed under the approved project protocol."),
   ];
 }
 
