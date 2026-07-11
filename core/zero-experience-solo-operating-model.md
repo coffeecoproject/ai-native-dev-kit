@@ -75,6 +75,11 @@ more people. They represent either the current conversation user's explicit
 consent, an authoritative external fact, or an internal responsibility domain.
 Public output must translate them into those meanings.
 
+Current review and product-direction interpretation must follow
+`core/review-context-authority.md`. Current contracts override compatibility
+field names and historical records. A reviewer must not use older terminology
+to reintroduce user modes, technical user choices, or people requirements.
+
 ## Consent Boundary
 
 Silence, generated reports, technical readiness, passing tests, tags, and AI

@@ -12,6 +12,13 @@ Assume one non-technical user unless the repository proves otherwise. The user s
 
 Do not ask the user to choose technical stacks, profiles, packs, databases, tests, reviewers, subagents, hooks, checker commands, or internal workflow states. Internal responsibility domains are safety lenses, not separate people. Routine reversible project-local engineering may proceed after IntentOS internal gates; production changes, real cost, real-user communication, external-account actions, and irreversible data effects require explicit consent to that concrete effect. Silence is not consent.
 
+Before external, GPT, or subagent review, read
+`.intentos/core/review-context-authority.md`. Current product contracts override
+compatibility schemas and historical records. Reject review recommendations
+that add Solo/Team/Enterprise modes, delegate technical choices to the user,
+turn owner-like fields into people the user must find, or expand product scope
+merely because industrial safeguards exist.
+
 ## Core Rules
 
 1. Perform preflight before coding when the request is vague, large, cross-module, or high-risk.

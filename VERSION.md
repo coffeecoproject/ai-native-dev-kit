@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.99.0`
+Current version: `1.99.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.99.0`
 
 ## Current Release
 
-`1.99.0`
+`1.99.1`
 
 Includes:
+
+- Review Context Authority `1.99.1`: gives current product contracts explicit
+  priority over compatibility schemas and historical records, and prevents
+  reviewers from reintroducing team modes or technical user decisions.
+- `1.99.1` adds machine-readable context classification, GPT/reviewer
+  anti-drift rules, bounded current-user consent semantics, public history
+  separation, and generated-project review-context parity without weakening
+  evidence, apply, release, or production gates.
 
 - Zero-Experience Solo Developer Operating Model `1.99.0`: makes one
   zero-experience solo developer the default user, delegates all technical

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "1.99.1",
+  "artifactType": "review_context_authority",
+  "currentVersionSource": "VERSION.md",
+  "currentProductContract": {
+    "operatingModel": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
+    "defaultUserCount": 1,
+    "technicalDecisionOwner": "INTENTOS_CODEX",
+    "userResponsibilities": [
+      "BUSINESS_GOAL",
+      "UNAVAILABLE_BUSINESS_FACT",
+      "PRODUCT_PREFERENCE",
+      "CONCRETE_REAL_WORLD_CONSENT"
+    ],
+    "industrialDepthImpliesMultiplePeople": false,
+    "productSetupModes": [
+      "ZERO_EXPERIENCE_SOLO_DEVELOPER"
+    ]
+  },
+  "precedence": [
+    "CURRENT_PRODUCT_CONTRACT",
+    "CURRENT_RUNTIME_AND_GATES",
+    "COMPATIBILITY_SCHEMA",
+    "HISTORICAL_RECORD"
+  ],
+  "classifications": [
+    {
+      "status": "CURRENT",
+      "exact": [
+        "README.md",
+        "README.zh-CN.md",
+        "VERSION.md",
+        "core/zero-experience-solo-operating-model.md",
+        "core/review-context-authority.md",
+        "core/review-context-authority.json",
+        "docs/start-here.md",
+        "docs/operating-model.md",
+        "docs/plans/review-context-authority-1.99.1-plan.md",
+        "prompts/reviewer-agent.md",
+        "templates/gpt-review-prompt.md",
+        "releases/1.99.1/release-record.md",
+        "releases/1.99.1/known-limitations.md",
+        "releases/1.99.1/self-check-report.md"
+      ],
+      "prefixes": [
+        "scripts/",
+        "tests/",
+        "prompts/",
+        "templates/",
+        "checklists/",
+        "platforms/",
+        "starters/",
+        "standard-baseline-packs/",
+        "industrial-packs/"
+      ]
+    },
+    {
+      "status": "COMPATIBILITY",
+      "prefixes": [
+        "schemas/",
+        "test-fixtures/"
+      ]
+    },
+    {
+      "status": "HISTORICAL",
+      "prefixes": [
+        "ai-logs/",
+        "evals/",
+        "examples/",
+        "final-reports/",
+        "preflight/",
+        "requests/",
+        "specs/",
+        "tasks/"
+      ],
+      "versionedPrefixes": [
+        "docs/plans/",
+        "releases/"
+      ]
+    }
+  ],
+  "compatibilityFields": {
+    "owner": "INTERNAL_RESPONSIBILITY_OR_BOUNDED_CONSENT",
+    "reviewer": "INTERNAL_REVIEW_FUNCTION",
+    "human_decision": "BUSINESS_FACT_REAL_WORLD_CONSENT_OR_EXTERNAL_FACT",
+    "release_owner_ref": "CONCRETE_RELEASE_CONSENT_OR_EXTERNAL_RELEASE_AUTHORITY",
+    "cost_owner_ref": "CONCRETE_COST_CONSENT",
+    "platform_owner_ref": "EXTERNAL_PROVIDER_OR_ACCOUNT_AUTHORITY",
+    "production_owner_ref": "CONCRETE_PRODUCTION_CONSENT"
+  },
+  "forbiddenReviewInferences": [
+    "MULTI_MODE_PRODUCT_SETUP",
+    "INDUSTRIAL_DEPTH_IMPLIES_TEAM",
+    "TECHNICAL_DECISION_DELEGATED_TO_USER",
+    "INTERNAL_DOMAIN_REQUIRES_SEPARATE_PERSON",
+    "HISTORICAL_RECORD_DEFINES_CURRENT_DIRECTION",
+    "COMPATIBILITY_FIELD_DEFINES_PUBLIC_ROLE",
+    "AVAILABLE_CAPABILITY_EXPANDS_PRODUCT_SCOPE",
+    "CURRENT_USER_IS_UNIVERSAL_EXTERNAL_AUTHORITY"
+  ],
+  "boundaries": {
+    "changesTechnicalGates": false,
+    "changesApplyAuthority": false,
+    "changesReleaseAuthority": false,
+    "deletesHistoricalRecords": false,
+    "addsUserFacingWorkflowChoice": false
+  }
+}

@@ -23,6 +23,16 @@ IntentOS gates pass. Ask again only for a missing business fact or consent to a
 concrete production, cost, real-user communication, account/provider, or
 irreversible real-data effect. Silence is not consent.
 
+## Review Context Authority
+
+Before using an external reviewer, GPT reviewer, or review subagent, read
+`.intentos/core/review-context-authority.md`. Current product contracts override
+compatibility schemas and historical records. Owner-like compatibility fields
+are not instructions to create a team, and industrial depth does not change the
+one-user operating model. Reject review recommendations that delegate technical
+choices to the user, introduce Solo/Team/Enterprise modes, or expand product
+scope merely because safeguards exist.
+
 ## Core Rules
 
 1. Perform preflight before coding when the request is vague, large, cross-module, or high-risk.

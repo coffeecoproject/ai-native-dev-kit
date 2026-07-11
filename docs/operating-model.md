@@ -8,6 +8,10 @@ choose technical architecture, databases, baselines, packs, tests, reviewers,
 workflow commands, or internal responsibility roles. IntentOS derives and
 verifies those choices internally.
 
+Reviews follow [Review Context Authority](../core/review-context-authority.md):
+current product contracts override compatibility fields and historical release
+records. Industrial depth never changes the default one-user model.
+
 ```bash
 node scripts/cli.mjs work . "继续完成预约时间规则"
 node scripts/cli.mjs work . "检查这个任务做到哪里了"

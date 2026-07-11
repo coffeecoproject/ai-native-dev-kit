@@ -62,10 +62,15 @@ IntentOS should recommend one of these postures:
 
 - keep the existing rule;
 - keep the existing rule because it is stricter or production-proven;
-- adopt an IntentOS gap after review;
-- merge after review;
-- ask for a human decision;
-- block because project authority owns the decision.
+- adopt an IntentOS gap after internal review;
+- merge after internal review;
+- ask for one missing business fact or consent to one prepared real-world effect;
+- block only the dependent action when an external authority or fact cannot be
+  proven from the project.
+
+IntentOS/Codex selects the technical posture. The zero-experience user is not
+asked to choose migration depth, governance assets, baseline rules, or review
+commands.
 
 ## Native Migration
 

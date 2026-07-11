@@ -66,7 +66,10 @@ The plan must be reviewed before any apply step.
 
 For a new empty project, Codex may recommend starter initialization after confirming the goal and platform.
 
-This is still not production approval. Release, CI, hooks, secrets, migrations, payments, permissions, and production configuration remain separate human decisions.
+This is still not production approval. Release, CI, hooks, secrets, migrations,
+payments, permissions, and production configuration remain separately gated.
+IntentOS/Codex owns the technical judgment; only a missing business fact or the
+exact prepared real-world effect is routed to the user.
 
 ## Current Boundary
 

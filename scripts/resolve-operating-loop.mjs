@@ -330,7 +330,7 @@ function operationFor(value, projectEntry) {
   if (/(?:任务|这个|这项|工作).{0,12}(?:做完|完成).{0,6}(?:吗|没有|了没|\?|？)|(?:能否|是否|可以).{0,12}(?:算|视为|认为)?(?:做完|完成|收口)|\b(?:is|can|has).{0,24}(?:done|finished|complete|close[ -]?out)\b/.test(text)) return "FINISH_TASK";
   if (implementationSignal && /(?:检查|查看).{0,12}(?:进度|状态)|\b(?:check|show|review).{0,24}\b(?:status|progress)\b/.test(text)) return "CONTINUE_TASK";
   if (/(?:查看|检查|告诉我|当前|现在|请问).{0,20}(?:进度|做到哪|完成情况|任务状态|项目状态)|(?:进度|任务状态|项目状态).{0,8}(?:如何|怎样|是什么|吗|\?|？)|\b(?:check|show|review|what is|where are we).{0,24}\b(?:status|progress)\b/.test(text)) return "CHECK_STATUS";
-  if (/(?:现在|立即|直接|正式).{0,16}(?:发布|上线|部署|提交审核)|\b(?:now|immediately|directly)\b.{0,20}\b(?:release|deploy|publish|submit)\b/.test(text)) return "PREPARE_RELEASE";
+  if (/(?:现在|立即|立刻|直接|正式).{0,16}(?:发布|上线|部署|提交审核)|\b(?:now|immediately|directly)\b.{0,20}\b(?:release|deploy|publish|submit)\b/.test(text)) return "PREPARE_RELEASE";
   if (releaseSignal && implementationSignal) return "CONTINUE_TASK";
   if (/(?:准备|开始|执行|安排|帮我|我要|需要|可以|怎么|如何).{0,16}(?:发布|上线|提交审核)|(?:发布|上线).{0,12}(?:准备|计划|流程|执行|审核)|\b(?:prepare|start|perform|how to|ready for).{0,16}\b(?:release|deployment|publish)\b/.test(text)) return "PREPARE_RELEASE";
   const startSignal = explicitNewProject
