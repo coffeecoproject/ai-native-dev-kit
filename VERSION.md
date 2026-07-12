@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.99.3`
+Current version: `1.100.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.99.3`
 
 ## Current Release
 
-`1.99.3`
+`1.100.0`
 
 Includes:
+
+- Execution Authority And Consumer Hardcut `1.100.0`: makes release ownership,
+  public completion, evidence identity, controlled apply, existing-project
+  discovery, baseline compatibility, and installed-project CI enforce the
+  authority they already claim to consume.
+- `1.100.0` keeps one zero-experience solo developer as the only public user
+  model. Codex owns technical routing and verification; external production,
+  provider, cost, and irreversible effects still require concrete consent.
 
 - Review And Execution Trust Close-Out `1.99.3`: binds current Review Packets,
   GPT prompts, Plan Review sources, downstream completion/apply/release

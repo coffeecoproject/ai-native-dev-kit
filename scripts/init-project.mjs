@@ -13,6 +13,7 @@ import {
   isWorkflowActivationState,
   validateApprovalRecordForInitApplyPlan,
   validateReadinessForInitApplyPlan,
+  validateReadinessPlanReview,
 } from "./lib/adoption-apply-chain.mjs";
 import { projectIdentity } from "./lib/evidence-authority.mjs";
 import {
@@ -2507,6 +2508,7 @@ function readReadinessReportForApply(recordPath) {
 
 function validateReadinessReportForApply(plan, readinessRecord, applyPlanFullPath) {
   const errors = validateReadinessForInitApplyPlan(plan, readinessRecord.evidence);
+  errors.push(...validateReadinessPlanReview(plan.targetRoot, readinessRecord.fullPath, readinessRecord.evidence));
   if (!evidencePlanPathMatches(plan, readinessRecord, readinessRecord.evidence?.apply_plan?.path, applyPlanFullPath)) {
     errors.push("controlled apply readiness apply_plan.path must resolve to the execution plan being replayed");
   }
@@ -2598,8 +2600,8 @@ function replayApprovedPlan(plan, context) {
   try {
     for (const action of plan.actions) {
       if (!action.willWrite || action.id === receiptAction.id) continue;
-      replayAction(plan, action);
       replayed.push(action);
+      replayAction(plan, action);
       const hashAfter = sha256File(path.join(plan.targetRoot, action.path));
       if (hashAfter !== action.expectedHashAfter) {
         throw new Error(`Post-write digest mismatch for ${action.id} ${action.path}`);
@@ -2707,18 +2709,26 @@ function atomicWriteFile(target, content) {
 function rollbackActions(plan, actions, results) {
   let verified = true;
   for (const action of [...actions].reverse()) {
+    let actionVerified = true;
     try {
       const target = assertSafeWritePath(plan.targetRoot, action.path, `rollback ${action.id} target`);
       if (action.hashBefore) {
         const backup = assertSafeWritePath(plan.targetRoot, action.backupPath, `rollback ${action.id} backup`);
         if (sha256File(backup) !== action.hashBefore) throw new Error(`Rollback backup digest mismatch for ${action.id}`);
-        fs.copyFileSync(backup, target);
+        if (sha256File(target) !== action.hashBefore) atomicWriteFile(target, fs.readFileSync(backup));
       } else if (fs.existsSync(target)) {
         fs.unlinkSync(target);
       }
+      if (action.backupPath) {
+        const backup = assertSafeWritePath(plan.targetRoot, action.backupPath, `rollback ${action.id} backup cleanup`);
+        if (fs.existsSync(backup)) fs.unlinkSync(backup);
+      }
       const hashAfter = sha256File(target);
-      if (hashAfter !== (action.hashBefore || null)) verified = false;
-      results.set(action.id, receiptActionResult(action, verified ? "ROLLED_BACK" : "FAILED", hashAfter));
+      if (hashAfter !== (action.hashBefore || null)) {
+        actionVerified = false;
+        verified = false;
+      }
+      results.set(action.id, receiptActionResult(action, actionVerified ? "ROLLED_BACK" : "FAILED", hashAfter));
     } catch {
       verified = false;
       results.set(action.id, receiptActionResult(action, "FAILED", sha256File(path.join(plan.targetRoot, action.path))));

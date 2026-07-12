@@ -337,8 +337,21 @@ function validateEvidenceReferences(projectRoot, requiredEvidence, evidence) {
       for (const ref of refs) {
         if (path.isAbsolute(ref) || ref.split(/[\\/]/).includes("..")) {
           issues.push(`unsafe evidence ref for ${term}: ${ref}`);
-        } else if (!fs.existsSync(path.join(projectRoot, ref))) {
+          continue;
+        }
+        const evidencePath = path.resolve(projectRoot, ref);
+        const projectRelative = path.relative(projectRoot, evidencePath).replaceAll(path.sep, "/");
+        if (projectRelative === evidence.path) {
+          issues.push(`self-referential evidence ref for ${term}: ${ref}`);
+        } else if (!fs.existsSync(evidencePath)) {
           issues.push(`missing evidence ref for ${term}: ${ref}`);
+        } else if (!fs.lstatSync(evidencePath).isFile() || fs.lstatSync(evidencePath).isSymbolicLink()) {
+          issues.push(`evidence ref is not a regular project file for ${term}: ${ref}`);
+        } else {
+          const evidenceContent = fs.readFileSync(evidencePath, "utf8").trim();
+          if (!evidenceContent || /^(pending|tbd|todo|placeholder|not[_ -]?ready)$/i.test(evidenceContent)) {
+            issues.push(`empty or placeholder evidence ref for ${term}: ${ref}`);
+          }
         }
       }
     } else if (status === "not applicable") {

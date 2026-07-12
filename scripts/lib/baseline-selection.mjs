@@ -105,6 +105,10 @@ export function resolveBaselineConfiguration(kitRoot, options = {}) {
   if (unknownProfiles.length > 0) {
     throw new Error(`Unknown profile(s): ${unknownProfiles.join(", ")}`);
   }
+  const starterDefaults = defaultProfilesForStarter(options.starter);
+  if (starterDefaults.length > 0 && !starterDefaults.every((profile) => profiles.includes(profile))) {
+    throw new Error(`Starter ${options.starter} requires profile(s) ${starterDefaults.join(", ")}; selected profiles are ${profiles.join(", ") || "none"}`);
+  }
 
   const standardIndex = loadPackIndex(kitRoot, "standard-baseline-packs");
   const standardById = new Map(standardIndex.packs.map((entry) => [entry.id, entry]));

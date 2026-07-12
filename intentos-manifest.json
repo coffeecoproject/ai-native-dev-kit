@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.99.3",
+  "intentOSVersion": "1.100.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.99.3"
+    "phase": "1.100.0"
   },
   "groups": {
     "sourceRequired": [
@@ -401,6 +401,7 @@
       "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
       "docs/plans/project-identity-projection-1.97-plan.md",
+      "docs/plans/execution-authority-consumer-hardcut-1.100-plan.md",
       "docs/plans/review-execution-trust-closeout-1.99.3-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
       "docs/plans/public-entry-adoption-integration-1.81.2-plan.md",
@@ -1804,6 +1805,9 @@
       "releases/1.99.2/known-limitations.md",
       "releases/1.99.2/release-record.md",
       "releases/1.99.2/self-check-report.md",
+      "releases/1.100.0/known-limitations.md",
+      "releases/1.100.0/release-record.md",
+      "releases/1.100.0/self-check-report.md",
       "releases/1.99.3/known-limitations.md",
       "releases/1.99.3/release-record.md",
       "releases/1.99.3/self-check-report.md",
@@ -1995,6 +1999,7 @@
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue-takeover.mjs",
       "scripts/check-workflow-adoption-map.mjs",
+      "scripts/check-consumer-chain.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
@@ -2017,6 +2022,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -3497,6 +3503,7 @@
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
+      "scripts/check-consumer-chain.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
@@ -3518,6 +3525,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -4234,6 +4242,7 @@
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
+      "scripts/check-consumer-chain.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
@@ -4255,6 +4264,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -4985,6 +4995,7 @@
       "scripts/check-work-queue-takeover.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
+      "scripts/check-consumer-chain.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
@@ -5007,6 +5018,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -6457,6 +6469,7 @@
       "scripts/check-work-queue-takeover.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
+      "scripts/check-consumer-chain.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
@@ -6478,6 +6491,7 @@
       "scripts/lib/path-safety.mjs",
       "scripts/lib/plan-review-binding.mjs",
       "scripts/lib/project-signals.mjs",
+      "scripts/lib/release-action-authority.mjs",
       "scripts/lib/release-trust.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/task-entry-binding.mjs",
@@ -7040,6 +7054,7 @@
       "scripts/check-verification-plan.mjs",
       "scripts/check-work-queue.mjs",
       "scripts/check-workflow-adoption-map.mjs",
+      "scripts/check-consumer-chain.mjs",
       "scripts/check-workflow-artifacts.mjs",
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
@@ -8006,6 +8021,10 @@
         "target": "scripts/check-workflow-adoption-map.mjs"
       },
       {
+        "source": "scripts/check-consumer-chain.mjs",
+        "target": "scripts/check-consumer-chain.mjs"
+      },
+      {
         "source": "scripts/check-workflow-artifacts.mjs",
         "target": "scripts/check-workflow-artifacts.mjs"
       },
@@ -8092,6 +8111,10 @@
       {
         "source": "scripts/lib/release-evidence-requirements.mjs",
         "target": "scripts/lib/release-evidence-requirements.mjs"
+      },
+      {
+        "source": "scripts/lib/release-action-authority.mjs",
+        "target": "scripts/lib/release-action-authority.mjs"
       },
       {
         "source": "scripts/lib/release-trust.mjs",

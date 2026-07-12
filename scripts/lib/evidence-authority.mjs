@@ -17,6 +17,7 @@ const workflowOutputDirectories = new Set([
   "conversation-ask-cards", "conversation-turns", "customer-handoffs", "debt-handoff-reports",
   "decision-briefs", "delivery-path-reports", "delivery-status-cards", "doc-lifecycle-reports",
   "execution-assurance-reports", "execution-closures", "existing-rule-reconciliations",
+  "evidence",
   "final-reports", "follow-up-proposals", "git-boundary-reports", "goal-cards",
   "governance-convergence-reports", "governance-maps", "gpt-review-prompts",
   "guided-closure-cards", "guided-decision-summaries", "hook-orchestration-plans",
@@ -172,17 +173,24 @@ export function validateEvidenceAuthorityBinding(projectRoot, binding, options =
 
 export function projectIdentity(projectRoot) {
   const root = realProjectRoot(projectRoot);
-  const gitTop = runGit(root, ["rev-parse", "--show-toplevel"]);
-  if (gitTop) {
+  const gitTopResult = runGitResult(root, ["rev-parse", "--show-toplevel"]);
+  if (gitTopResult.ok) {
+    const gitTop = gitTopResult.stdout;
     const gitRoot = fs.realpathSync(gitTop);
-    const head = runGit(root, ["rev-parse", "HEAD"]) || "NO_COMMIT";
-    const remote = runGit(root, ["config", "--get", "remote.origin.url"]);
+    const headResult = runGitResult(root, ["rev-parse", "HEAD"]);
+    const head = headResult.ok ? headResult.stdout || "NO_COMMIT" : "NO_COMMIT";
+    const remote = runGitResult(root, ["config", "--get", "remote.origin.url"]).stdout;
     const scope = path.relative(gitRoot, root).split(path.sep).join("/") || ".";
+    const revision = gitRevision(root, head);
+    if (!revision) throw new Error("cannot establish current Git revision for evidence authority");
     return {
       kind: "GIT",
       fingerprint: digest(`git-root:${gitRoot}|scope:${scope}|remote:${remote || "none"}`),
-      revision: gitRevision(root, head),
+      revision,
     };
+  }
+  if (fs.existsSync(path.join(root, ".git"))) {
+    throw new Error(`cannot inspect Git repository for evidence authority: ${gitTopResult.error}`);
   }
   return {
     kind: "NON_GIT",
@@ -196,7 +204,7 @@ function gitRevision(root, head) {
     encoding: null,
     maxBuffer: 1024 * 1024 * 64,
   });
-  if (result.status !== 0) return digest(`git:${head}|status-error`);
+  if (result.status !== 0) return "";
   const entries = parseGitStatus(result.stdout);
   const rows = [];
   for (const entry of entries) {
@@ -207,9 +215,45 @@ function gitRevision(root, head) {
       if (!fs.existsSync(full)) rows.push(`${entry.status}:${normalized}:deleted`);
       else if (fs.lstatSync(full).isSymbolicLink()) rows.push(`${entry.status}:${normalized}:symlink:${fs.readlinkSync(full)}`);
       else if (fs.lstatSync(full).isFile()) rows.push(`${entry.status}:${normalized}:${canonicalFileDigest(full)}`);
+      else if (fs.lstatSync(full).isDirectory()) rows.push(`${entry.status}:${normalized}:${directoryGitState(full)}`);
     }
   }
+  rows.push(...ignoredProjectRows(root));
   return rows.length === 0 ? head : digest(`git:${head}\n${rows.sort().join("\n")}`);
+}
+
+function ignoredProjectRows(root) {
+  const result = spawnSync("git", ["-C", root, "ls-files", "--others", "--ignored", "--exclude-standard", "-z", "--", "."], {
+    encoding: null,
+    maxBuffer: 1024 * 1024 * 64,
+  });
+  if (result.status !== 0) throw new Error("cannot inspect ignored project files for evidence authority");
+  const rows = [];
+  for (const relative of result.stdout.toString("utf8").split("\0").filter(Boolean).sort()) {
+    const normalized = normalizePortablePath(relative);
+    if (isIgnoredBuildOrDependencyPath(normalized) || isAuthorityIgnoredPath(normalized)) continue;
+    const full = path.join(root, normalized);
+    if (!fs.existsSync(full)) continue;
+    const stat = fs.lstatSync(full);
+    if (stat.isSymbolicLink()) rows.push(`ignored:${normalized}:symlink:${fs.readlinkSync(full)}`);
+    else if (stat.isFile()) rows.push(`ignored:${normalized}:${canonicalFileDigest(full)}`);
+  }
+  return rows;
+}
+
+function isIgnoredBuildOrDependencyPath(relative) {
+  const [top] = normalizePortablePath(relative).split("/");
+  return new Set([".git", "node_modules", ".pnpm-store", "dist", "build", "coverage", ".next", ".cache"]).has(top);
+}
+
+function directoryGitState(directory) {
+  const head = runGitResult(directory, ["rev-parse", "HEAD"]);
+  const status = spawnSync("git", ["-C", directory, "status", "--porcelain=v1", "--untracked-files=all"], {
+    encoding: "utf8",
+    maxBuffer: 1024 * 1024 * 16,
+  });
+  if (!head.ok || status.status !== 0) throw new Error(`cannot inspect nested Git state at ${directory}`);
+  return digest(`${head.stdout}\n${status.stdout || ""}`);
 }
 
 function parseGitStatus(buffer) {
@@ -274,10 +318,13 @@ function uniqueFileRefs(values) {
     .filter((value) => isFileEvidenceRef(value)))];
 }
 
-function runGit(root, args) {
+function runGitResult(root, args) {
   const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
-  if (result.status !== 0) return "";
-  return String(result.stdout || "").trim();
+  return {
+    ok: result.status === 0,
+    stdout: result.status === 0 ? String(result.stdout || "").trim() : "",
+    error: String(result.stderr || result.error?.message || `git exited ${result.status}`).trim(),
+  };
 }
 
 function digest(value) {

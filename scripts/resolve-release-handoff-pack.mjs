@@ -291,7 +291,7 @@ function buildEvidence(options, approval) {
 
 function evaluateHandoff(recipe, approval, owner, evidence) {
   if (recipe.status !== "PASS") {
-    return state("BLOCKED_BY_SELECTED_RECIPE", "Confirm the selected platform recipe before preparing a handoff pack.");
+    return state("BLOCKED_BY_SELECTED_RECIPE", "Codex must resolve and verify the matching platform recipe before preparing a handoff pack; the user is not asked to choose technical recipe identifiers.");
   }
   if (approval.structured !== "Yes") {
     return state("BLOCKED_BY_STRUCTURED_APPROVAL", "Create structured release approval before any release handoff can be treated as ready.");

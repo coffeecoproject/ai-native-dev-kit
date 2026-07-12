@@ -77,7 +77,7 @@ A Release Execution Plan tells the user:
 |---|---|
 | `PLAN_ONLY` | Safe default. Codex only prepares a plan. |
 | `HUMAN_EXECUTION_HANDOFF` | Existing release system executes the approved action. |
-| `ASSISTED_EXECUTION` | Codex may execute the exact approved actions under the project release protocol. |
+| `ASSISTED_EXECUTION` | Codex may execute only approved local verification, build, packaging, evidence, and read-only smoke actions. External release effects stay with the current user or existing release system. |
 | `BLOCKED` | Required release-review or approval evidence is missing. |
 
 ## Hard Boundary

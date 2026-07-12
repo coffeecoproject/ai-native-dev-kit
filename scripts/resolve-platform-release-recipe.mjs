@@ -199,7 +199,7 @@ function outcomeFor(recipe, confidence) {
 function safeNextStepFor(recipe, confidence) {
   if (confidence === "CONFLICT") return "Choose the platform release recipe before preparing a release path.";
   if (recipe.status === "DRAFT") return "Treat this recipe as a draft and collect project-specific release SOP, owner, rollback, and monitoring evidence.";
-  if (confidence === "LOW" || confidence === "MEDIUM") return "Confirm the selected platform recipe before release execution planning.";
+  if (confidence === "LOW" || confidence === "MEDIUM") return "Codex should inspect project evidence and select the matching recipe; ask the user only for a missing real-world delivery fact or consent to the prepared external effect.";
   return "Use Release Guide with this recipe, then collect structured approval and launch evidence.";
 }
 

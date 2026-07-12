@@ -39,6 +39,34 @@ test("strict evidence checks cannot be weakened by --allow-empty", () => {
   }
 });
 
+test("assisted release execution never assigns external effects to Codex", async () => {
+  const moduleUrl = `${pathToFileURL(path.join(kitRoot, "scripts/lib/release-action-authority.mjs")).href}?test=${Date.now()}`;
+  const { expectedReleaseStepExecutor, releaseStepAuthorityErrors } = await import(moduleUrl);
+  const allowed = ["VERIFY", "BUILD", "HANDOFF_PREPARATION", "POST_RELEASE_READ_ONLY_SMOKE"];
+  const blocked = ["PRODUCTION_DEPLOY", "STORE_SUBMISSION", "MINI_PROGRAM_RELEASE", "ROLLBACK_EXECUTION"];
+
+  assert.equal(expectedReleaseStepExecutor("ASSISTED_EXECUTION", "VERIFY", allowed, blocked), "CODEX_MAY_RUN_AFTER_APPROVAL");
+  assert.equal(expectedReleaseStepExecutor("ASSISTED_EXECUTION", "DEPLOY_OR_SUBMIT", allowed, blocked), "HUMAN_REQUIRED");
+  assert.equal(expectedReleaseStepExecutor("ASSISTED_EXECUTION", "ROLLBACK_EXECUTION", allowed, blocked), "HUMAN_REQUIRED");
+  assert.notEqual(releaseStepAuthorityErrors({
+    mode: "ASSISTED_EXECUTION",
+    stepAction: "DEPLOY_OR_SUBMIT",
+    executor: "CODEX_MAY_RUN_AFTER_APPROVAL",
+    allowedCodexActions: allowed,
+    blockedActions: blocked,
+  }).length, 0);
+});
+
+test("platform release recipe must support the selected release target", async () => {
+  const moduleUrl = `${pathToFileURL(path.join(kitRoot, "scripts/lib/release-trust.mjs")).href}?test=${Date.now()}`;
+  const { recipeSupportsReleaseTarget } = await import(moduleUrl);
+  const webRecipe = fs.readFileSync(path.join(kitRoot, "release-recipes/web-hosted-preview.md"), "utf8");
+  const miniRecipe = fs.readFileSync(path.join(kitRoot, "release-recipes/mini-program-review-handoff.md"), "utf8");
+  assert.equal(recipeSupportsReleaseTarget(webRecipe, "preview"), true);
+  assert.equal(recipeSupportsReleaseTarget(webRecipe, "app_store_review"), false);
+  assert.equal(recipeSupportsReleaseTarget(miniRecipe, "mini_program_review"), true);
+});
+
 test("execution closure rejects arbitrary PASS prose without a passing Review Loop status", () => {
   const root = tempRoot("intentos-1993-closure-review-");
   fs.mkdirSync(path.join(root, "review-surface-cards"));
@@ -149,6 +177,70 @@ test("Git authority identity changes with staged, unstaged, and untracked busine
   assert.notDeepEqual(projectIdentity(root), beforeSpec);
 });
 
+test("Git authority identity includes ignored project files and submodule state", async () => {
+  const root = tempRoot("intentos-100-authority-extra-state-");
+  const child = tempRoot("intentos-100-authority-submodule-");
+  const { projectIdentity } = await import(`${pathToFileURL(path.join(kitRoot, "scripts/lib/evidence-authority.mjs")).href}?test=${Date.now()}`);
+  for (const target of [root, child]) {
+    for (const args of [["init"], ["config", "user.email", "test@example.invalid"], ["config", "user.name", "IntentOS Test"]]) {
+      const result = spawnSync("git", ["-C", target, ...args], { encoding: "utf8" });
+      assert.equal(result.status, 0, combined(result));
+    }
+  }
+  fs.writeFileSync(path.join(root, ".gitignore"), ".env.local\nnode_modules/\n");
+  fs.writeFileSync(path.join(root, "tracked.txt"), "tracked\n");
+  fs.writeFileSync(path.join(child, "child.txt"), "one\n");
+  for (const [target, args] of [[root, ["add", "."]], [root, ["commit", "-m", "root"]], [child, ["add", "."]], [child, ["commit", "-m", "child"]]]) {
+    const result = spawnSync("git", ["-C", target, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, combined(result));
+  }
+  const beforeIgnored = projectIdentity(root);
+  fs.writeFileSync(path.join(root, ".env.local"), "TOKEN=first\n");
+  const afterIgnored = projectIdentity(root);
+  assert.notDeepEqual(afterIgnored, beforeIgnored);
+  fs.mkdirSync(path.join(root, "node_modules", "pkg"), { recursive: true });
+  fs.writeFileSync(path.join(root, "node_modules", "pkg", "index.js"), "ignored dependency\n");
+  assert.deepEqual(projectIdentity(root), afterIgnored);
+  for (const args of [["-c", "protocol.file.allow=always", "submodule", "add", child, "vendor/child"], ["commit", "-am", "submodule"]]) {
+    const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, combined(result));
+  }
+  const beforeSubmodule = projectIdentity(root);
+  fs.writeFileSync(path.join(root, "vendor/child/child.txt"), "two\n");
+  assert.notDeepEqual(projectIdentity(root), beforeSubmodule);
+});
+
+test("Git authority identity excludes governed evidence output while binding evidence by digest", async () => {
+  const root = tempRoot("intentos-evidence-output-identity-");
+  for (const args of [["init", "-q"], ["config", "user.email", "intentos-test@example.com"], ["config", "user.name", "IntentOS Test"]]) {
+    const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, combined(result));
+  }
+  fs.writeFileSync(path.join(root, "app.js"), "export const value = 1;\n");
+  for (const args of [["add", "app.js"], ["commit", "-qm", "initial"]]) {
+    const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, combined(result));
+  }
+
+  const { createEvidenceAuthorityBinding } = await import(`${pathToFileURL(path.join(kitRoot, "scripts/lib/evidence-authority.mjs")).href}?test=${Date.now()}`);
+
+  const before = createEvidenceAuthorityBinding(root, {
+    taskRef: "tasks/001.md",
+    intentDigest: "sha256:test",
+  });
+  fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
+  fs.writeFileSync(path.join(root, "evidence", "runtime-smoke.txt"), "PASS runtime smoke\n");
+  const after = createEvidenceAuthorityBinding(root, {
+    taskRef: "tasks/001.md",
+    intentDigest: "sha256:test",
+    sourceRefs: ["artifact:evidence/runtime-smoke.txt"],
+  });
+
+  assert.deepEqual(after.project, before.project);
+  assert.equal(after.sources.length, 1);
+  assert.match(after.sources[0].raw_file_digest, /^sha256:[a-f0-9]{64}$/);
+});
+
 test("deferred agent authority cannot count as verified workflow activation", async () => {
   const moduleUrl = `${pathToFileURL(path.join(kitRoot, "scripts/lib/adoption-apply-chain.mjs")).href}?test=${Date.now()}`;
   const { isWorkflowActivationState } = await import(moduleUrl);
@@ -201,6 +293,19 @@ test("baseline pack must apply to the selected platform profile", () => {
   assert.notEqual(result.status, 0);
   assert.match(combined(result), /incompatible with selected profiles/i);
   assert.equal(fs.existsSync(path.join(root, "apply-execution-plans/incompatible.json")), false);
+});
+
+test("platform starter cannot be paired with a different platform profile", () => {
+  const root = tempRoot("intentos-100-starter-profile-");
+  const result = run("scripts/init-project.mjs", [
+    "--starter", "codex-web-app",
+    "--target", root,
+    "--profiles", "android-app",
+    "--baseline-level", "BL1_STANDARD",
+    "--write-plan", "apply-execution-plans/mismatch.json",
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(combined(result), /requires profile\(s\) web-app/);
 });
 
 test("baseline planning rejects incomplete environment and profile coverage", () => {
@@ -266,6 +371,8 @@ test("generated project installs and runs release-channel command", () => {
   for (const relative of [
     "scripts/resolve-release-channel-policy.mjs",
     "scripts/check-release-channel-policy.mjs",
+    "scripts/check-consumer-chain.mjs",
+    "scripts/lib/release-action-authority.mjs",
     "scripts/lib/release-evidence-requirements.mjs",
     ".intentos/docs/release-channel-decoupling.md",
   ]) {
@@ -302,6 +409,44 @@ test("generated project installs and runs release-channel command", () => {
   assert.equal(advanced.status, 0, combined(advanced));
   assert.doesNotMatch(advanced.stdout, /^\s+(?:init|update|migrate|fixtures|self-check)\s+/m);
   assert.match(advanced.stdout, /must run from the IntentOS source checkout/i);
+  const installedCi = fs.readFileSync(path.join(root, ".github/workflows/ai-workflow-checks.yml"), "utf8");
+  assert.match(installedCi, /check-consumer-chain\.mjs/);
+});
+
+test("installed CI consumer chain blocks implementation without current evidence", () => {
+  const root = tempRoot("intentos-100-installed-consumer-");
+  const init = run("scripts/init-project.mjs", ["--target", root]);
+  assert.equal(init.status, 0, combined(init));
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src/index.mjs"), "export const value = 1;\n");
+  fs.writeFileSync(path.join(root, "README.md"), "# Project\n");
+  for (const args of [["init"], ["config", "user.email", "test@example.invalid"], ["config", "user.name", "IntentOS Test"], ["add", "."], ["commit", "-m", "initial"]]) {
+    const result = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+    assert.equal(result.status, 0, combined(result));
+  }
+
+  fs.writeFileSync(path.join(root, "src/index.mjs"), "export const value = 2;\n");
+  const implementation = spawnSync(process.execPath, [path.join(root, "scripts/check-consumer-chain.mjs"), root, "--base", "HEAD"], { cwd: root, encoding: "utf8" });
+  assert.notEqual(implementation.status, 0);
+  assert.match(combined(implementation), /Work Queue requires exactly one changed current report/);
+
+  const lowTaskReport = "task-governance-reports/001-low-copy.md";
+  fs.mkdirSync(path.join(root, "task-governance-reports"), { recursive: true });
+  fs.copyFileSync(
+    path.join(kitRoot, "examples/1.83-task-governance/low-copy-change/task-governance-reports/001-task-governance.md"),
+    path.join(root, lowTaskReport),
+  );
+  const stageLowTask = spawnSync("git", ["-C", root, "add", lowTaskReport], { encoding: "utf8" });
+  assert.equal(stageLowTask.status, 0, combined(stageLowTask));
+  const lowTaskConsumer = spawnSync(process.execPath, [path.join(root, "scripts/check-consumer-chain.mjs"), root, "--base", "HEAD"], { cwd: root, encoding: "utf8" });
+  assert.match(combined(lowTaskConsumer), /LOW task does not require Plan Review/);
+  assert.doesNotMatch(combined(lowTaskConsumer), /Plan Review requires exactly one changed current report/);
+
+  const restore = spawnSync("git", ["-C", root, "restore", "src/index.mjs"], { encoding: "utf8" });
+  assert.equal(restore.status, 0, combined(restore));
+  fs.writeFileSync(path.join(root, "README.md"), "# Project\n\nDocumentation only.\n");
+  const docsOnly = spawnSync(process.execPath, [path.join(root, "scripts/check-consumer-chain.mjs"), root, "--base", "HEAD"], { cwd: root, encoding: "utf8" });
+  assert.equal(docsOnly.status, 0, combined(docsOnly));
 });
 
 test("strict baseline selection fails closed when no report exists", () => {
@@ -392,4 +537,19 @@ test("current 1.x migration routes to controlled update planning", () => {
   assert.notEqual(symlinkEscape.status, 0);
   assert.match(combined(symlinkEscape), /must not pass through or overwrite a symlink/i);
   assert.equal(fs.existsSync(path.join(external, "escaped.json")), false);
+});
+
+test("existing-project discovery finds nested agent and CI governance", () => {
+  const root = tempRoot("intentos-100-nested-governance-");
+  fs.mkdirSync(path.join(root, "services/api/.github/workflows"), { recursive: true });
+  fs.writeFileSync(path.join(root, "services/api/AGENTS.md"), "# Nested agent rules\n");
+  fs.writeFileSync(path.join(root, "services/api/.github/workflows/quality.yml"), "name: quality\n");
+  fs.writeFileSync(path.join(root, "package.json"), "{}\n");
+  const result = run("scripts/resolve-native-migration.mjs", [root, "--json"]);
+  assert.equal(result.status, 0, combined(result));
+  const report = JSON.parse(result.stdout);
+  const agent = report.existingGovernanceInventory.find((item) => item.area === "Agent rules");
+  const ci = report.existingGovernanceInventory.find((item) => item.area === "CI / gates");
+  assert.match(agent.source, /services\/api\/AGENTS\.md/);
+  assert.match(ci.source, /services\/api\/\.github\/workflows\/quality\.yml/);
 });

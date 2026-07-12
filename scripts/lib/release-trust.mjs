@@ -12,6 +12,7 @@ import {
   resolveAuthoritativeEvidenceReference,
 } from "./evidence-authority.mjs";
 import { sectionBody } from "./markdown.mjs";
+import { validateSpecificHumanApprover } from "./approval-record-validation.mjs";
 
 export const REQUIRED_BLOCKED_RELEASE_ACTIONS = [
   "PRODUCTION_DEPLOY",
@@ -28,6 +29,14 @@ export const REQUIRED_BLOCKED_RELEASE_ACTIONS = [
 
 const productionLikeTargets = new Set(["production_review", "app_store_review", "mini_program_review"]);
 const platformRecipeTargets = new Set(["app_store_review", "mini_program_review"]);
+const recipeTargetByReleaseTarget = new Map([
+  ["preview", "preview"],
+  ["internal_trial", "internal-testing"],
+  ["staging", "staging"],
+  ["production_review", "production"],
+  ["app_store_review", "app-store"],
+  ["mini_program_review", "review"],
+]);
 
 export function readReleaseApprovalRecord(projectRoot, reference, options = {}) {
   const root = path.resolve(projectRoot);
@@ -61,9 +70,7 @@ export function validateReleaseApprovalTrust(projectRoot, approvalFile, evidence
   }
 
   const approval = evidence.human_approval || {};
-  if (/\b(ai|codex|agent|automation|bot)\b/i.test(String(approval.approved_by || ""))) {
-    errors.push("approved_by must identify a human release decision owner");
-  }
+  errors.push(...validateSpecificHumanApprover(approval.approved_by, "release approval"));
   const approvedAt = Date.parse(String(approval.approved_at || ""));
   const expiresAt = Date.parse(String(approval.expires_at || ""));
   if (!Number.isFinite(approvedAt)) errors.push("approved_at must be a valid timestamp");
@@ -231,6 +238,15 @@ function checkPlatformRecipe(approval, resolved, errors) {
   if (!resolved) return;
   const content = fs.readFileSync(resolved.file, "utf8");
   if (tableValue(sectionBody(content, "Human Summary"), "Recipe Status") !== "STRICT") errors.push("Platform Release Recipe must be STRICT");
+  if (!recipeSupportsReleaseTarget(content, approval.release_candidate.release_target)) {
+    errors.push(`Platform Release Recipe does not support release target ${approval.release_candidate.release_target}`);
+  }
+}
+
+export function recipeSupportsReleaseTarget(content, releaseTarget) {
+  const supportedTargets = tableColumnValues(sectionBody(content, "Supported Targets"), "Target");
+  const requiredTarget = recipeTargetByReleaseTarget.get(String(releaseTarget || ""));
+  return Boolean(requiredTarget && supportedTargets.has(requiredTarget));
 }
 
 function checkReleaseHandoff(approval, resolved, errors) {
@@ -253,6 +269,19 @@ function tableValue(body, field) {
   const pattern = new RegExp(`^\\|\\s*${escapeRegExp(field)}\\s*\\|\\s*(.*?)\\s*\\|$`, "im");
   const match = String(body || "").match(pattern);
   return match ? match[1].replace(/`/g, "").trim() : "";
+}
+
+function tableColumnValues(body, columnName) {
+  const lines = String(body || "").split(/\r?\n/).filter((line) => /^\s*\|/.test(line));
+  if (lines.length < 3) return new Set();
+  const headers = splitTableRow(lines[0]);
+  const index = headers.findIndex((value) => value === columnName);
+  if (index < 0) return new Set();
+  return new Set(lines.slice(2).map(splitTableRow).map((row) => row[index]).filter(Boolean));
+}
+
+function splitTableRow(line) {
+  return String(line || "").trim().replace(/^\||\|$/g, "").split("|").map((value) => value.replace(/`/g, "").trim());
 }
 
 function escapeRegExp(value) {

@@ -50,7 +50,7 @@ approval authority.
 |---|---|
 | `PLAN_ONLY` | Create a plan and evidence checklist only. |
 | `HUMAN_EXECUTION_HANDOFF` | Existing release system executes; Codex prepares the handoff and evidence checklist. |
-| `ASSISTED_EXECUTION` | Codex may execute the exact approved actions, including a named production action when the approval and project SOP assign it. |
+| `ASSISTED_EXECUTION` | Codex may execute only approved local verification, build, packaging, evidence, and read-only smoke actions. The current user or existing release system performs the prepared external effect. |
 | `BLOCKED` | Required launch review, consent, rollback, monitoring, SOP, or smoke evidence is missing. |
 
 ## Required Gates

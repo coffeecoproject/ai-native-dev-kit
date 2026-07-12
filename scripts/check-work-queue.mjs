@@ -7,10 +7,11 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json"]);
+const knownFlags = new Set(["json", "require-report"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputJson = Boolean(args.json);
+const requireReport = Boolean(args["require-report"]);
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -130,7 +131,8 @@ function checkCoreContent() {
 function checkReports() {
   const files = markdownFiles("work-queue");
   if (files.length === 0) {
-    pass("work queue check skipped: no Work Queue reports");
+    if (requireReport) fail("no Work Queue reports found");
+    else pass("SKIPPED_NO_REPORT: no Work Queue reports found");
     return;
   }
 

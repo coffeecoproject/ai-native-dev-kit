@@ -220,7 +220,11 @@ test("Work Queue preserves canonical task identity and exposes active-thread con
 test("discussion, resume, compound release implementation, and scoped no-database language route explicitly", () => withRoot("intentos-operating-routing-hardening-", (root) => {
   makeExistingProject(root);
   assert.equal(runWork(root, "先沟通一下，不要改代码").operatingLoop.operation, "DISCUSS_ONLY");
+  assert.equal(runWork(root, "先看一下这个内容").operatingLoop.operation, "DISCUSS_ONLY");
+  assert.equal(runWork(root, "只查看这个方案").operatingLoop.operation, "DISCUSS_ONLY");
   assert.equal(runWork(root, "恢复暂停的任务").operatingLoop.operation, "RESUME_TASK");
+  assert.equal(runWork(root, "发布当前版本").operatingLoop.operation, "PREPARE_RELEASE");
+  assert.equal(runWork(root, "Release the current version").operatingLoop.operation, "PREPARE_RELEASE");
   assert.equal(runWork(root, "实现修复并准备发布").operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(runWork(root, "不要修改数据库，只改前端").operatingLoop.operation, "CONTINUE_TASK");
   assert.equal(runWork(root, "Review the authentication flow, but do not edit anything").operatingLoop.operation, "DISCUSS_ONLY");

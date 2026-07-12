@@ -361,14 +361,14 @@ function validateReadinessForPlan(readiness, planDigest, planActions) {
   return errors;
 }
 
-function validateReadinessPlanReview(projectRoot, readinessFile, readiness) {
+export function validateReadinessPlanReview(projectRoot, readinessFile, readiness) {
   const errors = [];
   checkPlanReviewBinding({
     projectRoot,
     currentFile: readinessFile,
     evidence: readiness,
     label: "apply readiness",
-    requirePlanReview: readiness.plan_review_binding?.required === "Yes",
+    requirePlanReview: readiness?.plan_review_binding?.required === "Yes",
     consumer: "adoption apply chain",
     consumerPlanRef: readiness.apply_plan?.path,
     consumerPlanDigest: readiness.apply_plan?.plan_digest,

@@ -174,7 +174,7 @@ function detectProfileCandidates(targetRoot) {
   }
 
   if (candidates.length === 0) {
-    candidates.push(profile("unknown", "No strong platform signal found. Human should confirm project platform before baseline setup."));
+    candidates.push(profile("unknown", "No strong platform signal was found. Codex should infer the user-facing delivery surface from the product goal, asking only where people will use the product when that business fact is unavailable."));
   }
   return candidates;
 }

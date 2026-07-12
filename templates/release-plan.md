@@ -72,7 +72,7 @@
 
 | Action | Execution boundary |
 |---|---|
-| Production deploy / publish / submit | Codex may execute the exact approved action after structured consent and strict gates; otherwise use the existing release system. |
+| Production deploy / publish / submit | The current user or existing release system performs the prepared external effect; Codex may prepare and verify it but does not execute it. |
 | Store / mini-program review submission | Current-user consent plus complete platform evidence and provider access. |
 | DNS / payment / provider-state change | Exact current-user consent to the named external effect. |
 

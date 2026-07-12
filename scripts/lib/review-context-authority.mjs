@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.99.3";
+export const REVIEW_CONTEXT_VERSION = "1.100.0";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
 
 export function normalizeReviewContextPath(relativePath) {

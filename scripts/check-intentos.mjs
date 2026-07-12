@@ -11,7 +11,7 @@ import { walkFiles as walkProjectFiles } from "./lib/project-signals.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import { evidenceDigest, extractMachineReadableEvidence, validateSchema } from "./lib/artifact-schema.mjs";
 import { initExecutableActions } from "./lib/adoption-apply-chain.mjs";
-import { projectIdentity } from "./lib/evidence-authority.mjs";
+import { createEvidenceAuthorityBinding, projectIdentity } from "./lib/evidence-authority.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import {
   loadReviewContextAuthority,
@@ -11164,7 +11164,7 @@ function checkUserDeliveryConsoleProtocol() {
   }
 }
 
-function generatedExecutionAssuranceReportText({ taskRef, testEvidenceRef, testEvidenceDigest }) {
+function generatedExecutionAssuranceReportText({ taskRef, testEvidenceRef, testEvidenceDigest, authorityBinding }) {
   return `# Execution Assurance Report
 
 This report is a read-only derived verification view. It does not write target files, authorize writes, approve release, or replace source systems.
@@ -11345,6 +11345,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "contribution": "Generated smoke Test Evidence."
     }
   ],
+  "authority_binding": ${JSON.stringify(authorityBinding, null, 2)},
   "pending_human_decisions": [],
   "forbidden_claims": [],
   "boundary": {
@@ -15465,6 +15466,7 @@ function checkGeneratedProjectE2E() {
   const generatedTestEvidenceReport = "test-evidence-reports/001-generated-service-time.md";
   const generatedExecutionAssuranceReport = "execution-assurance-reports/001-generated-service-time.md";
   const generatedCompletionReport = "completion-evidence-reports/001-generated-service-time.md";
+  const generatedEvidenceRefs = [];
   if (generatedVerificationStrictCheck.status === 0) {
   const generatedVerificationEvidence = extractMachineReadableEvidence(fs.readFileSync(path.join(target, generatedVerificationReport), "utf8"));
   if (!generatedVerificationEvidence?.ok) {
@@ -15487,7 +15489,6 @@ function checkGeneratedProjectE2E() {
     ["backend-rule.txt", "evidence:backend-rule", "COMMAND_OUTPUT", "npm run test:domain -- generated-service-time", ["BACKEND_RULE"], "Generated backend rule smoke evidence."],
     ["handoff.txt", "evidence:handoff", "COMMAND_OUTPUT", "npm run docs:check -- generated-service-time", ["DOCS_HANDOFF", "TEST_COVERAGE"], "Generated handoff smoke evidence."],
   ];
-  const generatedEvidenceRefs = [];
   for (const [fileName, evidenceId, type, command, surfaces, limitation] of generatedEvidenceFiles) {
     const covered = surfaces.flatMap((surface) => obligationsBySurface.get(surface) || []);
     if (covered.length === 0) continue;
@@ -15557,6 +15558,12 @@ function checkGeneratedProjectE2E() {
     taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
     testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
     testEvidenceDigest: fileDigest(path.join(target, generatedTestEvidenceReport)),
+    authorityBinding: createEvidenceAuthorityBinding(target, {
+      taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
+      intentDigest: "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+      sourceRefs: [`artifact:${generatedTestEvidenceReport}`],
+      fromFile: path.join(target, generatedExecutionAssuranceReport),
+    }),
   }));
   const generatedCompletionResolve = runNode([
     path.join(target, "scripts", "resolve-completion-evidence.mjs"),
@@ -17100,10 +17107,50 @@ function checkGeneratedProjectE2E() {
   pass("generated project execution assurance checker after update");
 
   if (generatedVerificationStrictCheck.status === 0) {
+  const generatedVerificationRefreshAfterUpdate = runNode([
+    path.join(target, "scripts", "resolve-verification-plan.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--business-rule-ref",
+    generatedBusinessRuleRef,
+    "--impact-ref",
+    `artifact:${generatedImpactReport}`,
+    "--out",
+    generatedVerificationReport,
+  ]);
+  if (generatedVerificationRefreshAfterUpdate.status !== 0
+    || !generatedVerificationRefreshAfterUpdate.stdout.includes("VERIFICATION_PLAN_READY")) {
+    fail(`generated project Verification Plan refresh after workflow update failed: ${generatedVerificationRefreshAfterUpdate.stderr || generatedVerificationRefreshAfterUpdate.stdout}`);
+    return;
+  }
+  const generatedTestEvidenceRefreshAfterUpdate = runNode([
+    path.join(target, "scripts", "resolve-test-evidence.mjs"),
+    target,
+    "--intent",
+    "appointment requests must include a service time",
+    "--verification-plan-ref",
+    `artifact:${generatedVerificationReport}`,
+    "--evidence",
+    generatedEvidenceRefs.join(","),
+    "--out",
+    generatedTestEvidenceReport,
+  ]);
+  if (generatedTestEvidenceRefreshAfterUpdate.status !== 0
+    || !generatedTestEvidenceRefreshAfterUpdate.stdout.includes("TEST_EVIDENCE_COMPLETE")) {
+    fail(`generated project Test Evidence refresh after workflow update failed: ${generatedTestEvidenceRefreshAfterUpdate.stderr || generatedTestEvidenceRefreshAfterUpdate.stdout}`);
+    return;
+  }
   fs.writeFileSync(path.join(target, generatedExecutionAssuranceReport), generatedExecutionAssuranceReportText({
     taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
     testEvidenceRef: `artifact:${generatedTestEvidenceReport}`,
     testEvidenceDigest: fileDigest(path.join(target, generatedTestEvidenceReport)),
+    authorityBinding: createEvidenceAuthorityBinding(target, {
+      taskRef: "tasks/001-appointment-requests-must-include-a-service-time.md",
+      intentDigest: "sha256:143276c5f789a88373a8f3de7c258b782f89df516ba8f5b4acb73f9cef38dd28",
+      sourceRefs: [`artifact:${generatedTestEvidenceReport}`],
+      fromFile: path.join(target, generatedExecutionAssuranceReport),
+    }),
   }));
   const generatedCompletionResolveAfterUpdate = runNode([
     path.join(target, "scripts", "resolve-completion-evidence.mjs"),
@@ -18469,6 +18516,81 @@ function checkReviewContextAuthorityProtocol() {
   else fail(`1.99.2 review-context authority regression tests failed: ${tests.stderr || tests.stdout}`);
 }
 
+function checkExecutionAuthorityConsumerHardcutProtocol() {
+  for (const file of [
+    "docs/plans/execution-authority-consumer-hardcut-1.100-plan.md",
+    "scripts/lib/release-action-authority.mjs",
+    "scripts/check-consumer-chain.mjs",
+    "tests/execution-distribution-trust.test.mjs",
+  ]) {
+    if (exists(file)) pass(`1.100 execution authority asset exists: ${file}`);
+    else fail(`1.100 execution authority asset missing: ${file}`);
+  }
+
+  const generatedCi = read("platforms/github/ci-ai-workflow.yml");
+  if (generatedCi.includes("scripts/check-consumer-chain.mjs")) pass("1.100 installed CI consumes the current task/completion/release chain");
+  else fail("1.100 installed CI is missing the current task/completion/release consumer chain");
+
+  const focused = runNode(["--test", "tests/execution-distribution-trust.test.mjs"]);
+  if (focused.status === 0) pass("1.100 execution and distribution trust regressions");
+  else fail(`1.100 execution and distribution trust regressions failed: ${focused.stderr || focused.stdout}`);
+
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.100-atomic-"));
+  const init = runNode([path.join(kitRoot, "scripts/init-project.mjs"), "--target", target]);
+  if (init.status !== 0) {
+    fail(`1.100 atomic rollback fixture init failed: ${init.stderr || init.stdout}`);
+    return;
+  }
+  const changedFiles = [".intentos/core/workflow.md", "scripts/check-ai-workflow.mjs"];
+  const before = new Map();
+  for (const relative of changedFiles) {
+    const file = path.join(target, relative);
+    fs.appendFileSync(file, `\n1.100 rollback sentinel for ${relative}\n`);
+    before.set(relative, fs.readFileSync(file));
+  }
+  const planPath = path.join(target, "apply-execution-plans", "atomic-update.json");
+  const writePlan = runNode([
+    path.join(kitRoot, "scripts/init-project.mjs"),
+    "--target", target,
+    "--update-workflow-assets",
+    "--backup-dir", ".intentos/backups/atomic-rollback",
+    "--write-plan", "apply-execution-plans/atomic-update.json",
+  ]);
+  if (writePlan.status !== 0) {
+    fail(`1.100 atomic rollback plan failed: ${writePlan.stderr || writePlan.stdout}`);
+    return;
+  }
+  const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+  const actions = (plan.actions || []).filter((action) => action.willWrite && changedFiles.includes(action.path));
+  if (actions.length < 2) {
+    fail("1.100 atomic rollback fixture requires two replayable changed actions");
+    return;
+  }
+  const failingAction = actions.find((action) => action.path === "scripts/check-ai-workflow.mjs");
+  if (!failingAction) {
+    fail("1.100 atomic rollback fixture requires the script action after the managed core action");
+    return;
+  }
+  const failingDirectory = path.dirname(path.join(target, failingAction.path));
+  let apply;
+  fs.chmodSync(failingDirectory, 0o555);
+  try {
+    apply = runNode(approvedInitProjectApplyArgs(planPath));
+  } finally {
+    fs.chmodSync(failingDirectory, 0o755);
+  }
+  const restored = changedFiles.every((relative) => fs.readFileSync(path.join(target, relative)).equals(before.get(relative)));
+  const receiptFiles = fs.existsSync(path.join(target, "apply-receipts"))
+    ? fs.readdirSync(path.join(target, "apply-receipts")).filter((file) => file.endsWith(".md"))
+    : [];
+  const receiptContent = receiptFiles.map((file) => fs.readFileSync(path.join(target, "apply-receipts", file), "utf8")).join("\n");
+  if (apply?.status === 2 && restored && receiptContent.includes("APPLY_FAILED_ROLLED_BACK")) {
+    pass("1.100 controlled apply restores all attempted writes after a later action fails");
+  } else {
+    fail(`1.100 controlled apply rollback was not atomic: ${apply?.stderr || apply?.stdout || "no apply result"}`);
+  }
+}
+
 checkRequiredFiles();
 checkDefaultStarter();
 checkVersionMetadata();
@@ -18546,6 +18668,7 @@ checkOperatingDecisionContractProtocol();
 checkProjectIdentityProjectionProtocol();
 checkReviewContextAuthorityProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
+checkExecutionAuthorityConsumerHardcutProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
 checkReleaseAdapterProtocol();

@@ -54,9 +54,9 @@ Safe next step:
 |---|---|---|---|---|---|
 | Preflight verification | `VERIFY` | `CODEX_MAY_RUN_AFTER_APPROVAL` | `PENDING` | Verification output | Stop if verification fails. |
 | Build artifact | `BUILD` | `CODEX_MAY_RUN_AFTER_APPROVAL` | `PENDING` | Build output | Stop if build fails. |
-| Release handoff | `DEPLOY_OR_SUBMIT` | `CODEX_MAY_RUN_AFTER_APPROVAL` | `PENDING` | Release system evidence | Stop unless exact consent and the project SOP authorize this action. |
+| Release handoff | `DEPLOY_OR_SUBMIT` | `HUMAN_REQUIRED` | `PENDING` | Release system evidence | The existing release system or current user performs the concrete external effect. |
 | Post-launch smoke | `POST_LAUNCH_SMOKE` | `CODEX_MAY_RUN_AFTER_APPROVAL` | `PENDING` | Smoke output | Stop if smoke fails. |
-| Rollback readiness | `ROLLBACK_READY` | `CODEX_MAY_RUN_AFTER_APPROVAL` | `PENDING` | Rollback path / evidence | Stop if rollback cannot be executed under the approved project protocol. |
+| Rollback readiness | `ROLLBACK_READY` | `CODEX_MAY_RUN_AFTER_APPROVAL` | `PENDING` | Rollback path / evidence | Prepare rollback evidence only; rollback execution remains externally owned. |
 
 ## Evidence Capture
 
@@ -98,7 +98,7 @@ Safe next step:
 
 - This plan approves release: No
 - This plan executes release from technical readiness alone: No
-- This plan allows Codex to execute the exact approved action after structured consent and all strict gates pass: Yes
+- This plan allows Codex to execute only approved local verification, build, packaging, evidence, and read-only smoke actions: Yes
 - This plan deploys, publishes, submits, migrates, or changes production without explicit human/project approval: No
 - This plan changes CI/CD, hooks, secrets, DNS, payment, permissions, app-store state, mini-program state, or production config: No
 - This plan replaces project release SOPs or consent authority: No

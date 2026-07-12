@@ -186,7 +186,7 @@ function buildOperatingState() {
       replacesSourceSystems: "No",
       provesProductCorrectness: "No",
     },
-    outcome: sourceFailure ? "BLOCKED_BY_SOURCE_FAILURE" : operatingState,
+    outcome: operation === "FINISH_TASK" ? operatingState : sourceFailure ? "BLOCKED_BY_SOURCE_FAILURE" : operatingState,
   };
 }
 
@@ -213,6 +213,43 @@ function addOperationSources(sources, operation) {
       if (args[flag]) closureArgs.push(`--${flag}`, String(args[flag]));
     }
     sources.push(runSource("UNIFIED_CLOSURE", "scripts/resolve-closure-decision.mjs", closureArgs));
+    sources.push(runGateSource("WORK_QUEUE_CHECK", "scripts/check-work-queue.mjs", [
+      projectRoot,
+      "--json",
+      "--require-report",
+    ]));
+    sources.push(runGateSource("TASK_GOVERNANCE_CHECK", "scripts/check-task-governance.mjs", [
+      projectRoot,
+      "--json",
+      "--require-report",
+      "--require-structured-evidence",
+    ]));
+    const impact = sources.find((item) => item.name === "TASK_GOVERNANCE")?.value
+      ?.structuredEvidence?.impact_classification?.task_impact || "POSSIBLE_HIGH";
+    const planReviewRequired = new Set(["MEDIUM", "HIGH"]).has(impact);
+    if (planReviewRequired) {
+      sources.push(runGateSource("PLAN_REVIEW_CHECK", "scripts/check-plan-review.mjs", [
+        projectRoot,
+        "--json",
+        "--require-report",
+        "--require-structured-evidence",
+      ]));
+    }
+    const executionArgs = [
+      projectRoot,
+      "--json",
+      "--require-structured-evidence",
+      "--require-evidence-refs",
+      "--require-review",
+      "--require-actual-diff",
+      "--require-precise-evidence",
+      "--require-evidence-authority",
+      "--require-task-governance",
+      "--require-work-queue",
+      "--strict-task-consumer",
+    ];
+    if (planReviewRequired) executionArgs.push("--require-plan-review");
+    sources.push(runGateSource("EXECUTION_ASSURANCE_CHECK", "scripts/check-execution-assurance.mjs", executionArgs));
     const completionArgs = [
       projectRoot,
       "--json",
@@ -221,7 +258,11 @@ function addOperationSources(sources, operation) {
       "--require-source-refs",
       "--require-ready",
       "--require-evidence-authority",
+      "--require-task-governance",
+      "--require-work-queue",
+      "--strict-task-consumer",
     ];
+    if (planReviewRequired) completionArgs.push("--require-plan-review");
     if (args["completion-evidence"]) completionArgs.push("--report", String(args["completion-evidence"]));
     sources.push(runGateSource("COMPLETION_EVIDENCE", "scripts/check-completion-evidence.mjs", completionArgs));
   }
@@ -230,6 +271,8 @@ function addOperationSources(sources, operation) {
   }
   if (operation === "ADOPT_PROJECT") {
     sources.push(runSource("ADOPTION_AUTOPILOT", "scripts/resolve-existing-project-adoption-autopilot.mjs", [projectRoot, "--intent", intent, "--json"]));
+    sources.push(runSource("NATIVE_MIGRATION", "scripts/resolve-native-migration.mjs", [projectRoot, "--intent", intent, "--json"]));
+    sources.push(runSource("WORK_QUEUE_TAKEOVER", "scripts/resolve-work-queue-takeover.mjs", [projectRoot, "--intent", intent, "--json"]));
   }
 }
 
@@ -295,7 +338,7 @@ function runGateSource(name, script, childArgs) {
     return {
       name,
       script,
-      readStatus: "CURRENT_RUN",
+      readStatus: value.ok === true ? "CURRENT_RUN" : "FAILED",
       outcome: value.ok === true ? "PASS" : "FAIL",
       ref: args["completion-evidence"] ? `artifact:${String(args["completion-evidence"])}` : `generated:${script}`,
       semanticDigest: `sha256:${sha256(JSON.stringify(value))}`,
@@ -325,12 +368,14 @@ function operationFor(value, projectEntry) {
   const releaseSignal = /(?:发布|上线|提交审核)|\b(?:release|deployment|deploy|publish)\b/.test(text);
   if (/(?:接入|采用|迁移到|切换到|整合|按照|按).{0,20}intentos|intentos.{0,20}(?:接入|采用|迁移|工作模式|工作)|\b(?:adopt|migrate|connect).{0,24}\bintentos\b|\bwork under intentos\b/.test(text)) return "ADOPT_PROJECT";
   const globalNoWrite = /\bdo not (?:implement|change|edit|write)(?:\s+(?:anything|any files?|code|the project))?\b|不要(?:实现|改代码|写代码|修改任何|改任何)/.test(text);
-  if (globalNoWrite || (!implementationSignal && /^\s*(?:\b(?:just|only)\s+(?:discuss|review|talk)\b|只(?:讨论|沟通|评审)|先(?:讨论|沟通)(?:一下)?(?:，|,|。|\s|$))/.test(text))) return "DISCUSS_ONLY";
+  const explicitReadOnlyDiscussion = /^\s*(?:\b(?:just|only)\s+(?:discuss|review|talk|look|read)\b|只(?:讨论|沟通|评审|看|查看|读)(?:一下)?(?:这个|这份|该|下)?(?:内容|方案|文件|结果)?|先(?:讨论|沟通|看|查看|读)(?:一下)?(?:这个|这份|该|下)?(?:内容|方案|文件|结果)?)/;
+  if (globalNoWrite || (!implementationSignal && explicitReadOnlyDiscussion.test(text))) return "DISCUSS_ONLY";
   if (/\bresume\b|\bcontinue the paused\b|恢复.{0,12}(?:暂停|任务)|继续.{0,12}暂停/.test(text)) return "RESUME_TASK";
   if (/(?:任务|这个|这项|工作).{0,12}(?:做完|完成).{0,6}(?:吗|没有|了没|\?|？)|(?:能否|是否|可以).{0,12}(?:算|视为|认为)?(?:做完|完成|收口)|\b(?:is|can|has).{0,24}(?:done|finished|complete|close[ -]?out)\b/.test(text)) return "FINISH_TASK";
   if (implementationSignal && /(?:检查|查看).{0,12}(?:进度|状态)|\b(?:check|show|review).{0,24}\b(?:status|progress)\b/.test(text)) return "CONTINUE_TASK";
   if (/(?:查看|检查|告诉我|当前|现在|请问).{0,20}(?:进度|做到哪|完成情况|任务状态|项目状态)|(?:进度|任务状态|项目状态).{0,8}(?:如何|怎样|是什么|吗|\?|？)|\b(?:check|show|review|what is|where are we).{0,24}\b(?:status|progress)\b/.test(text)) return "CHECK_STATUS";
   if (/(?:现在|立即|立刻|直接|正式).{0,16}(?:发布|上线|部署|提交审核)|\b(?:now|immediately|directly)\b.{0,20}\b(?:release|deploy|publish|submit)\b/.test(text)) return "PREPARE_RELEASE";
+  if (releaseSignal && /(?:当前|这个|本次|这一版|版本).{0,12}(?:发布|上线)|(?:发布|上线).{0,12}(?:当前|这个|本次|这一版|版本)|\b(?:release|publish)\s+(?:the\s+)?(?:current|this)\s+(?:version|build)\b/.test(text)) return "PREPARE_RELEASE";
   if (releaseSignal && implementationSignal) return "CONTINUE_TASK";
   if (/(?:准备|开始|执行|安排|帮我|我要|需要|可以|怎么|如何).{0,16}(?:发布|上线|提交审核)|(?:发布|上线).{0,12}(?:准备|计划|流程|执行|审核)|\b(?:prepare|start|perform|how to|ready for).{0,16}\b(?:release|deployment|publish)\b/.test(text)) return "PREPARE_RELEASE";
   const startSignal = explicitNewProject
@@ -381,6 +426,13 @@ function readProjectEntryOrigin(root) {
 
 function operatingStateFor(context) {
   if (!intent) return "NEEDS_GOAL";
+  if (context.operation === "FINISH_TASK") {
+    return context.closure?.closureDecision?.decision === "DONE"
+      && context.completionEvidence?.ok === true
+      && completionMatchesCurrentTask(context)
+      ? "READY_TO_REPORT_DONE"
+      : "NOT_DONE";
+  }
   if (context.sourceFailure) return "BLOCKED_BY_SOURCE_FAILURE";
   if (context.dirtyWorktree && ["START_PROJECT", "CONTINUE_TASK"].includes(context.operation)) {
     return "NEEDS_CURRENT_WORK_REVIEW";
@@ -395,13 +447,6 @@ function operatingStateFor(context) {
   if (context.operation === "CHECK_STATUS") return "STATUS_AVAILABLE";
   if (context.operation === "ADOPT_PROJECT") return "ADOPTION_REVIEW_ACTIVE";
   if (context.operation === "PREPARE_RELEASE") return "RELEASE_REVIEW_ONLY";
-  if (context.operation === "FINISH_TASK") {
-    return context.closure?.closureDecision?.decision === "DONE"
-      && context.completionEvidence?.ok === true
-      && completionMatchesCurrentTask(context)
-      ? "READY_TO_REPORT_DONE"
-      : "NOT_DONE";
-  }
   const impact = context.taskImpact || "POSSIBLE_HIGH";
   const ready = context.taskGovernance?.readiness?.ready_for_implementation_review === "Yes";
   if (impact === "POSSIBLE_HIGH") return "NEEDS_READ_ONLY_RISK_REVIEW";
@@ -784,6 +829,11 @@ function buildOperatingDecision(context) {
 }
 
 function selectOperatingAction(context) {
+  if (context.operation === "FINISH_TASK") {
+    return context.operatingState === "READY_TO_REPORT_DONE"
+      ? action("REPORT_TASK_COMPLETE", "REPORTING", "READY_TO_REPORT", "CLOSURE_SUPPORTS_DONE", true)
+      : action("COMPLETE_CLOSURE_EVIDENCE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "CLOSURE_EVIDENCE_INCOMPLETE", true);
+  }
   if (context.sourceFailure) return action("REPAIR_SOURCE_READ", "BLOCKED_RECOVERY", "BLOCKED", "SOURCE_READ_FAILED", false);
   if (context.operatingState === "NEEDS_GOAL") return action("REQUEST_GOAL", "USER_INPUT", "NEEDS_USER_INPUT", "GOAL_REQUIRED", false);
   if (context.operatingState === "NEEDS_CURRENT_WORK_REVIEW") return action("REVIEW_CURRENT_WORK", "READ_ONLY_REVIEW", "NEEDS_USER_INPUT", "DIRTY_WORKTREE_REVIEW_REQUIRED", true);
@@ -795,11 +845,6 @@ function selectOperatingAction(context) {
   if (context.operation === "START_PROJECT") return action("PREPARE_PROJECT_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "PROJECT_PLAN_REQUIRED", true);
   if (context.operation === "ADOPT_PROJECT") return action("RUN_ADOPTION_REVIEW", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "ADOPTION_REVIEW_REQUIRED", true);
   if (context.operation === "CHECK_STATUS") return action("SUMMARIZE_CURRENT_STATUS", "REPORTING", "READY_TO_REPORT", "STATUS_SUMMARY_REQUESTED", true);
-  if (context.operation === "FINISH_TASK") {
-    return context.operatingState === "READY_TO_REPORT_DONE"
-      ? action("REPORT_TASK_COMPLETE", "REPORTING", "READY_TO_REPORT", "CLOSURE_SUPPORTS_DONE", true)
-      : action("COMPLETE_CLOSURE_EVIDENCE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "CLOSURE_EVIDENCE_INCOMPLETE", true);
-  }
   if (context.operation === "PREPARE_RELEASE") return action("PREPARE_RELEASE_REVIEW", "RELEASE_REVIEW_PREPARATION", "ACTION_REQUIRED", "RELEASE_REVIEW_REQUESTED", true);
   if (context.taskImpact === "POSSIBLE_HIGH") return action("INSPECT_TASK_RISK", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "TASK_IMPACT_UNRESOLVED", true);
 

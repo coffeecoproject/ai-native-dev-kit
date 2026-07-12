@@ -31,7 +31,7 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/release-channel-policy.schema.json": "sha256:755cb9093a51a1ff8a1ccb83831822072225c6c91364631f2c8a0b0168310224",
   "schemas/artifacts/release-evidence-gate.schema.json": "sha256:4df14e3a8f853372728c53b4928f2893aa4e188e0c374866ba7df7803e80966d",
   "schemas/artifacts/launch-review-view.schema.json": "sha256:01ddf6b2f58326eaa4e156cdcd7ad1b3f8d6e01388469ed990c2da786f3c4db9",
-  "schemas/artifacts/release-execution-plan.schema.json": "sha256:1d759e6fb9d9ac70b021b612332cfadbebf36d51144d24bf1becbffb40fa63e8",
+  "schemas/artifacts/release-execution-plan.schema.json": "sha256:fbd19540bda4cb7affe44861b4d4d8079ed609a89e68edde8c6b9153020131fa",
   "schemas/artifacts/release-handoff-evidence.schema.json": "sha256:fab83cdf8d3fad0e1dfe324240b33d134853480c3fd09b58b3dbec824a936deb",
   "schemas/artifacts/release-plan.schema.json": "sha256:a410c8111e56ed763f15e6c753f2275de31b2510a7b8105f20bf326aa6790781",
   "schemas/artifacts/request.schema.json": "sha256:7210c949f6c9373d1b0edb688f4853504ea982392f2cb6dd6d7ab1ba06ec6d57",

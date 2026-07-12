@@ -647,7 +647,7 @@ function completionConsumerFlags(file) {
   if (evidence.task_entry_binding) {
     flags.push("--require-task-governance", "--require-work-queue", "--strict-task-consumer");
   }
-  if (evidence.evidence_authority_binding) flags.push("--require-evidence-authority");
+  if (evidence.authority_binding) flags.push("--require-evidence-authority");
   return flags;
 }
 

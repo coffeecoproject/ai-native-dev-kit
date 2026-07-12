@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.99.3",
+  "intentOSVersion": "1.100.0",
   "starter": "<starter-name>",
   "projectEntryOrigin": "<NEW_PROJECT|EXISTING_PROJECT|UNKNOWN_PROJECT_ORIGIN>",
   "initializedAt": "<ISO-8601 timestamp>",
@@ -553,6 +553,7 @@
     "scripts/check-work-queue-takeover.mjs",
     "scripts/check-work-queue.mjs",
     "scripts/check-workflow-adoption-map.mjs",
+    "scripts/check-consumer-chain.mjs",
     "scripts/check-workflow-artifacts.mjs",
     "scripts/check-workflow-guidance.mjs",
     "scripts/check-workflow-version.mjs",
@@ -574,6 +575,7 @@
     "scripts/lib/path-safety.mjs",
     "scripts/lib/plan-review-binding.mjs",
     "scripts/lib/project-signals.mjs",
+    "scripts/lib/release-action-authority.mjs",
     "scripts/lib/release-trust.mjs",
     "scripts/lib/risk-surfaces.mjs",
     "scripts/lib/task-entry-binding.mjs",

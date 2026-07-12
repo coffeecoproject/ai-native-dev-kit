@@ -43,7 +43,8 @@ function buildNativeMigration(root, options) {
   const exists = fs.existsSync(root);
   const git = exists ? gitWorktreeState(root) : null;
   const paths = exists ? walkRelativePaths(root, ".", {
-    maxDepth: 4,
+    maxDepth: 20,
+    maxEntries: 100000,
     ignoredDirs: defaultIgnoredDirs,
   }).sort() : [];
   const pathSet = new Set(paths);
@@ -98,13 +99,16 @@ function buildNativeMigration(root, options) {
 
 function collectSignals(root, pathSet) {
   const allPaths = Array.from(pathSet);
-  const matching = (patterns) => allPaths.filter((item) => patterns.some((pattern) => pattern.test(item))).sort().slice(0, 16);
+  const matching = (patterns) => {
+    const matches = allPaths.filter((item) => patterns.some((pattern) => pattern.test(item))).sort();
+    return matches;
+  };
   return {
     hasProjectSignals: hasProjectSignals(root),
     agentRules: matching([
-      /^AGENTS\.md$/i,
-      /^agent\.md$/i,
-      /^\.agent\.md$/i,
+      /(^|\/)AGENTS\.md$/i,
+      /(^|\/)agent\.md$/i,
+      /(^|\/)\.agent\.md$/i,
       /^\.codex(\/|$)/i,
       /^\.cursor(\/|$)/i,
       /^\.claude(\/|$)/i,
@@ -128,7 +132,7 @@ function collectSignals(root, pathSet) {
       /^\.github\/ISSUE_TEMPLATE(\/|$)/i,
     ]),
     ciGates: matching([
-      /^\.github\/workflows(\/|$)/i,
+      /(^|\/)\.github\/workflows(\/|$)/i,
       /^scripts\/guard(\/|$)/i,
       /^scripts\/check(\/|$)/i,
       /^scripts\/ci(\/|$)/i,
@@ -163,7 +167,7 @@ function collectSignals(root, pathSet) {
       /^native-migration-plans(\/|$)/i,
       /^apply-plans(\/|$)/i,
     ]),
-    productionSignals: allPaths.filter((item) => /\b(prod|production|release|deploy|rollback|incident|runbook|migration|backup|restore|staging)\b/i.test(item)).slice(0, 16),
+    productionSignals: matching([/\b(prod|production|release|deploy|rollback|incident|runbook|migration|backup|restore|staging)\b/i]),
   };
 }
 

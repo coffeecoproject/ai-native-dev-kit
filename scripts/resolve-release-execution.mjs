@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { expectedReleaseStepExecutor } from "./lib/release-action-authority.mjs";
 import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -70,7 +71,7 @@ function buildReleaseExecutionPlan(root, options) {
   const mode = chooseMode(options.requestedMode, launchReview, approval, preconditions);
   const realReleaseExecutionAllowed = realExecutionAllowed(mode, launchReview, approval, preconditions);
   const why = reasonFor(mode, launchReview, approval, preconditions);
-  const executionSteps = buildExecutionSteps(mode);
+  const executionSteps = buildExecutionSteps(mode, approval);
   const outcome = outcomeFor(mode, realReleaseExecutionAllowed, launchReview, approval);
 
   const report = {
@@ -288,19 +289,21 @@ function reasonFor(mode, launchReview, approval, preconditions) {
 function nextStepFor(mode, realAllowed, preconditions) {
   if (mode === "PLAN_ONLY") return "Codex should finish the evidence and exact action plan; do not request consent or execute the external effect yet.";
   if (realAllowed === "Yes" && mode === "HUMAN_EXECUTION_HANDOFF") return "Hand the exact approved action to the existing release system and capture its evidence.";
-  if (realAllowed === "Yes" && mode === "ASSISTED_EXECUTION") return "Codex may run only the explicitly approved actions, including the named production action when the approval and project SOP assign it, then capture smoke and monitoring evidence.";
+  if (realAllowed === "Yes" && mode === "ASSISTED_EXECUTION") return "Codex may run only the explicitly approved local verification, build, packaging, evidence, and read-only smoke actions. The existing release system or current user performs the prepared external release effect.";
   const missing = preconditions.filter((item) => item.status !== "PASS").map((item) => item.gate);
   return `Resolve missing release preconditions: ${missing.join(", ") || "none"}.`;
 }
 
-function buildExecutionSteps(mode) {
-  const codexExecutor = mode === "ASSISTED_EXECUTION" ? "CODEX_MAY_RUN_AFTER_APPROVAL" : "HUMAN_REQUIRED";
+function buildExecutionSteps(mode, approval) {
+  const allowed = approval.evidence?.allowed_codex_actions || [];
+  const blocked = approval.evidence?.blocked_actions || [];
+  const executor = (action) => expectedReleaseStepExecutor(mode, action, allowed, blocked);
   return [
-    step("Preflight verification", "VERIFY", codexExecutor, "PENDING", "Verification output", "Stop if verification fails."),
-    step("Build artifact", "BUILD", codexExecutor, "PENDING", "Build output", "Stop if build fails."),
-    step("Release handoff", "DEPLOY_OR_SUBMIT", codexExecutor, "PENDING", "Release system evidence", "Stop before the concrete production action unless structured consent and the project SOP authorize it."),
-    step("Post-launch smoke", "POST_LAUNCH_SMOKE", codexExecutor, "PENDING", "Smoke output", "Stop if smoke fails."),
-    step("Rollback readiness", "ROLLBACK_READY", codexExecutor, "PENDING", "Rollback path and evidence", "Stop if rollback cannot be executed under the approved project protocol."),
+    step("Preflight verification", "VERIFY", executor("VERIFY"), "PENDING", "Verification output", "Stop if verification fails."),
+    step("Build artifact", "BUILD", executor("BUILD"), "PENDING", "Build output", "Stop if build fails."),
+    step("Release handoff", "DEPLOY_OR_SUBMIT", executor("DEPLOY_OR_SUBMIT"), "PENDING", "Release system evidence", "The existing release system or current user performs the concrete external effect."),
+    step("Post-launch smoke", "POST_LAUNCH_SMOKE", executor("POST_LAUNCH_SMOKE"), "PENDING", "Smoke output", "Stop if smoke fails."),
+    step("Rollback readiness", "ROLLBACK_READY", executor("ROLLBACK_READY"), "PENDING", "Rollback path and evidence", "This prepares rollback evidence; rollback execution remains externally owned."),
   ];
 }
 
@@ -372,6 +375,7 @@ function buildMachineEvidence(root, report, approval) {
       real_release_execution_allowed: report.executionMode.realReleaseExecutionAllowed,
     },
     allowed_codex_actions: approval.evidence?.allowed_codex_actions || [],
+    blocked_actions: approval.evidence?.blocked_actions || [],
     boundaries: {
       approves_release: "No",
       executes_release_by_itself: "No",

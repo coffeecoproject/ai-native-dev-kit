@@ -9,6 +9,7 @@ import { sectionBody } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { releaseStepAuthorityErrors } from "./lib/release-action-authority.mjs";
 import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -198,7 +199,9 @@ function checkReleaseExecutionPlans() {
     }
 
     checkExecutionStepOwnership(content, label, {
-      trustedAssistedExecution: mode === "ASSISTED_EXECUTION" && realAllowed === "Yes" && structured.ok && structured.present,
+      mode,
+      allowedCodexActions: structured.value?.allowed_codex_actions || [],
+      blockedActions: structured.value?.blocked_actions || [],
     });
     if (realMode && !structured.present) fail(`${label} real release execution requires structured release trust evidence`);
     if ((requireReleaseTrust || realMode) && structured.ok && structured.present) {
@@ -322,9 +325,17 @@ function checkExecutionStepOwnership(content, label, options = {}) {
 
   for (const row of rows) {
     if (unsafeExecutorPattern.test(row)) fail(`${label} contains unsafe executor in step row: ${row}`);
-    if (highRiskStepPattern.test(row) && /\|\s*`?CODEX_MAY_RUN_AFTER_APPROVAL`?\s*\|/i.test(row) && options.trustedAssistedExecution !== true) {
-      fail(`${label} assigns high-risk release step to Codex: ${row}`);
-    }
+    const cells = row.split("|").slice(1, -1).map((item) => item.trim().replaceAll("`", ""));
+    const stepAction = cells[1] || "";
+    const executor = cells[2] || "";
+    releaseStepAuthorityErrors({
+      mode: options.mode,
+      stepAction,
+      executor,
+      allowedCodexActions: options.allowedCodexActions,
+      blockedActions: options.blockedActions,
+    }).forEach((error) => fail(`${label} ${error}`));
+    if (highRiskStepPattern.test(row) && executor === "CODEX_MAY_RUN_AFTER_APPROVAL") fail(`${label} assigns high-risk release step to Codex: ${row}`);
   }
 }
 

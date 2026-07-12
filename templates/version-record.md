@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.99.3`
+`1.100.0`
 
 ## Project Version File
 
@@ -18,6 +18,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 
 ## Notes
 
+- `1.100.0` makes release authority, completion consumers, evidence identity,
+  controlled apply rollback, existing-project discovery, baseline selection,
+  and installed-project CI fail closed at their final consumers.
 - `1.99.3` binds current review inputs and Plan Review consumers to project-local
   task, source, digest, installed-authority, and verification evidence. Weak
   prose cannot replace a structured Review Loop final state.

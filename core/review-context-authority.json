@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.99.3",
+  "schemaVersion": "1.100.0",
   "artifactType": "review_context_authority",
   "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
@@ -41,12 +41,12 @@
         "docs/source-only-adoption.md",
         "docs/start-here.md",
         "docs/operating-model.md",
-        "docs/plans/review-execution-trust-closeout-1.99.3-plan.md",
+        "docs/plans/execution-authority-consumer-hardcut-1.100-plan.md",
         "prompts/reviewer-agent.md",
         "templates/gpt-review-prompt.md",
-        "releases/1.99.3/release-record.md",
-        "releases/1.99.3/known-limitations.md",
-        "releases/1.99.3/self-check-report.md"
+        "releases/1.100.0/release-record.md",
+        "releases/1.100.0/known-limitations.md",
+        "releases/1.100.0/self-check-report.md"
       ],
       "prefixes": [
         "scripts/",

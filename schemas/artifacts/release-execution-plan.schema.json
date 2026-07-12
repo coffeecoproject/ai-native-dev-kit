@@ -11,6 +11,7 @@
     "trust_inputs",
     "execution_mode",
     "allowed_codex_actions",
+    "blocked_actions",
     "boundaries",
     "outcome"
   ],
@@ -77,6 +78,11 @@
       "type": "array",
       "uniqueItems": true,
       "items": { "enum": ["VERIFY", "BUILD", "PACKAGE", "EVIDENCE_CAPTURE", "HANDOFF_PREPARATION", "POST_RELEASE_READ_ONLY_SMOKE"] }
+    },
+    "blocked_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["PRODUCTION_DEPLOY", "STORE_SUBMISSION", "MINI_PROGRAM_RELEASE", "PRODUCTION_MIGRATION", "SECRETS", "DNS", "PAYMENT", "PERMISSIONS", "PRODUCTION_CONFIG", "ROLLBACK_EXECUTION"] }
     },
     "boundaries": {
       "type": "object",

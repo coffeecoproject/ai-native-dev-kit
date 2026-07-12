@@ -44,7 +44,8 @@ if (outputFormat === "json") {
 function buildReport() {
   const exists = fs.existsSync(projectRoot);
   const paths = exists ? walkRelativePaths(projectRoot, ".", {
-    maxDepth: 6,
+    maxDepth: 20,
+    maxEntries: 100000,
     ignoredDirs: defaultIgnoredDirs,
   }) : [];
   const sourceInventory = exists ? discoverTaskSources(projectRoot, paths) : [];
@@ -116,7 +117,7 @@ function discoverTaskSources(root, paths) {
       summary: summaryForSource(relativePath, content),
     });
   }
-  return candidates.slice(0, 40);
+  return candidates;
 }
 
 function isTaskSourcePath(relativePath) {

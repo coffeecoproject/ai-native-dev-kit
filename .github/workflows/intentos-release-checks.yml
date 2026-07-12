@@ -30,6 +30,20 @@ jobs:
           expected="v$(node -p "require('./package.json').version")"
           test "$GITHUB_REF_NAME" = "$expected"
 
+      - name: Release evidence bundle matches package version
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          test -s "releases/$version/release-record.md"
+          test -s "releases/$version/self-check-report.md"
+          test -s "releases/$version/known-limitations.md"
+          grep -Fq "IntentOS $version" "releases/$version/release-record.md"
+          grep -Fq "IntentOS $version" "releases/$version/self-check-report.md"
+          if grep -Eiq '\b(PENDING|NOT RUN|PLANNED ONLY)\b' "releases/$version/self-check-report.md"; then
+            echo "release self-check contains unresolved evidence" >&2
+            exit 1
+          fi
+
       - name: IntentOS self-check
         run: node scripts/check-intentos.mjs
 

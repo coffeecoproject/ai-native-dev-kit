@@ -56,4 +56,4 @@ may still skip an empty handoff directory before release work is in scope.
 
 ## Safety Rule
 
-`Codex May Run` defaults to none. Codex may only run explicitly approved local read, local build, or local test commands. Provider APIs, uploads, preview publication, remote mutation, production actions, and CI/CD triggers remain human-owned or external-system-owned unless a project policy separately approves a safe path.
+`Codex May Run` defaults to none. Codex may only run explicitly approved local read, local build, local test, packaging, evidence, and read-only smoke commands. Provider APIs, uploads, preview publication, remote mutation, production actions, and CI/CD triggers remain current-user-owned or external-system-owned.

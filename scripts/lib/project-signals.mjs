@@ -53,16 +53,20 @@ export function walkFiles(dir, options = {}) {
 
 export function walkRelativePaths(root, relDir = ".", options = {}) {
   const maxDepth = Number.isFinite(options.maxDepth) ? options.maxDepth : 4;
+  const maxEntries = Number.isFinite(options.maxEntries) ? options.maxEntries : 100000;
   const ignoredDirs = options.ignoredDirs || defaultIgnoredDirs;
+  const state = options._state || { entries: 0 };
   const fullDir = path.join(root, relDir);
   if (!fs.existsSync(fullDir) || maxDepth < 0) return [];
   const results = [];
   for (const entry of fs.readdirSync(fullDir, { withFileTypes: true })) {
     if (ignoredDirs.has(entry.name)) continue;
+    state.entries += 1;
+    if (state.entries > maxEntries) throw new Error(`Project discovery exceeds the safe ${maxEntries}-entry limit`);
     const relPath = relDir === "." ? entry.name : path.join(relDir, entry.name);
     results.push(relPath);
     if (entry.isDirectory()) {
-      results.push(...walkRelativePaths(root, relPath, { ...options, maxDepth: maxDepth - 1, ignoredDirs }));
+      results.push(...walkRelativePaths(root, relPath, { ...options, maxDepth: maxDepth - 1, ignoredDirs, maxEntries, _state: state }));
     }
   }
   return results;
