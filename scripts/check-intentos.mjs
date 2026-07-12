@@ -15020,7 +15020,7 @@ function checkGeneratedProjectE2E() {
   }
   const generatedReviewContextCheck = runNode([
     path.join(target, "scripts", "check-review-context-authority.mjs"),
-    target,
+    fs.realpathSync(target),
   ]);
   if (generatedReviewContextCheck.status !== 0
     || !generatedReviewContextCheck.stdout.includes("Review context authority check passed")) {

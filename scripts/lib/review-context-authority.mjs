@@ -24,11 +24,14 @@ function startsWithAny(value, prefixes = []) {
 export function loadReviewContextAuthority(root = defaultRoot) {
   const resolvedRoot = path.resolve(root);
   const authoritativeSourceRoot = fs.realpathSync(defaultRoot);
+  const resolvedRealRoot = fs.realpathSync(resolvedRoot);
   const installed = path.join(resolvedRoot, ".intentos", "core", "review-context-authority.json");
   const source = path.join(resolvedRoot, "core", "review-context-authority.json");
   const sourceCheckout = isIntentOSSourceCheckout(resolvedRoot);
-  const insideAuthoritativeSource = resolvedRoot === authoritativeSourceRoot
-    || resolvedRoot.startsWith(`${authoritativeSourceRoot}${path.sep}`);
+  const defaultRootIsSourceCheckout = isIntentOSSourceCheckout(authoritativeSourceRoot);
+  const insideAuthoritativeSource = defaultRootIsSourceCheckout
+    && (resolvedRealRoot === authoritativeSourceRoot
+      || resolvedRealRoot.startsWith(`${authoritativeSourceRoot}${path.sep}`));
   const candidates = sourceCheckout
     ? [source]
     : insideAuthoritativeSource
@@ -38,7 +41,7 @@ export function loadReviewContextAuthority(root = defaultRoot) {
   if (!file) throw new Error(`review context authority not found under ${resolvedRoot}`);
   const stat = fs.lstatSync(file);
   if (stat.isSymbolicLink()) throw new Error(`review context authority must not be a symlink: ${file}`);
-  const realRoot = insideAuthoritativeSource ? authoritativeSourceRoot : fs.realpathSync(resolvedRoot);
+  const realRoot = insideAuthoritativeSource ? authoritativeSourceRoot : resolvedRealRoot;
   const realFile = fs.realpathSync(file);
   if (realFile !== realRoot && !realFile.startsWith(`${realRoot}${path.sep}`)) {
     throw new Error(`review context authority escapes project root: ${file}`);
