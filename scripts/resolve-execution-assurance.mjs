@@ -212,6 +212,7 @@ function isGitRepo(root) {
 function collectSourceSystems(root, options) {
   const systems = [
     ["change_impact_coverage", "change-impact-coverage-reports"],
+    ["test_evidence", "test-evidence-reports"],
     ["execution_closure", "execution-closures"],
     ["closure_decision", "closure-decisions"],
     ["review_loop", "review-loop-reports"],
