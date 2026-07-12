@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.99.1`.
+Current release: `1.99.2`.
 
-Release record: [releases/1.99.1/release-record.md](releases/1.99.1/release-record.md).
+Release record: [releases/1.99.2/release-record.md](releases/1.99.2/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,11 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.99.2 makes that authority fail closed for unknown semantic sources, rejects
+directly conflicting active guidance, and binds newly generated Review Packets
+and GPT review prompts to one current context digest. It does not add user
+modes or duplicate the execution evidence chain.
 
 1.99.1 gives the current solo operating contract explicit authority over old
 release language and machine-compatibility fields. GPT, reviewer, and subagent

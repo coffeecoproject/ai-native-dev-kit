@@ -13,6 +13,11 @@ import { evidenceDigest, extractMachineReadableEvidence, validateSchema } from "
 import { initExecutableActions } from "./lib/adoption-apply-chain.mjs";
 import { projectIdentity } from "./lib/evidence-authority.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
+import {
+  loadReviewContextAuthority,
+  reviewContextBindingFromMarkdown,
+  validateReviewContextBinding,
+} from "./lib/review-context-authority.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15014,6 +15019,33 @@ function checkGeneratedProjectE2E() {
     return;
   }
   pass("generated project review context authority check");
+
+  for (const type of ["review-packet", "gpt-review-prompt"]) {
+    const generatedReviewInput = runNode([
+      path.join(target, "scripts", "new-workflow-item.mjs"),
+      "--root", target,
+      "--type", type,
+      "--name", "context-binding-smoke",
+    ]);
+    if (generatedReviewInput.status !== 0) {
+      fail(`generated project ${type} creation failed: ${generatedReviewInput.stderr || generatedReviewInput.stdout}`);
+      return;
+    }
+  }
+  const authority = loadReviewContextAuthority(target);
+  const generatedBindings = [
+    path.join(target, "review-packets", "001-context-binding-smoke.md"),
+    path.join(target, "gpt-review-prompts", "001-context-binding-smoke.md"),
+  ].map((file) => validateReviewContextBinding(
+    reviewContextBindingFromMarkdown(fs.readFileSync(file, "utf8")),
+    authority,
+  ));
+  if (generatedBindings.every((binding) => binding.ok)) {
+    pass("generated project review inputs carry current context binding");
+  } else {
+    fail(`generated project review input binding failed: ${generatedBindings.flatMap((binding) => binding.errors).join("; ")}`);
+    return;
+  }
   const operatingLoop = runNode([
     path.join(target, "scripts", "resolve-operating-loop.mjs"),
     target,
@@ -18374,16 +18406,20 @@ function checkReviewContextAuthorityProtocol() {
     "core/review-context-authority.md",
     "core/review-context-authority.json",
     "docs/plans/review-context-authority-1.99.1-plan.md",
+    "docs/plans/review-context-enforcement-1.99.2-plan.md",
     "scripts/lib/review-context-authority.mjs",
     "scripts/check-review-context-authority.mjs",
     "tests/review-context-authority.test.mjs",
     "releases/1.99.1/release-record.md",
     "releases/1.99.1/known-limitations.md",
     "releases/1.99.1/self-check-report.md",
+    "releases/1.99.2/release-record.md",
+    "releases/1.99.2/known-limitations.md",
+    "releases/1.99.2/self-check-report.md",
   ];
   for (const file of required) {
-    if (exists(file)) pass(`1.99.1 review-context authority asset exists: ${file}`);
-    else fail(`1.99.1 review-context authority asset missing: ${file}`);
+    if (exists(file)) pass(`1.99.2 review-context authority asset exists: ${file}`);
+    else fail(`1.99.2 review-context authority asset missing: ${file}`);
   }
 
   const combined = [
@@ -18400,26 +18436,28 @@ function checkReviewContextAuthorityProtocol() {
     "CURRENT_PRODUCT_CONTRACT",
     "COMPATIBILITY_SCHEMA",
     "HISTORICAL_RECORD",
+    "UNCLASSIFIED",
+    "CONFLICTING",
     "ZERO_EXPERIENCE_SOLO_DEVELOPER",
     "North-Star Alignment",
     "Compatibility / History Notes",
     "CURRENT_CONVERSATION_USER",
     "Industrial depth does not imply",
   ]) {
-    if (combined.includes(marker)) pass(`1.99.1 review-context authority includes ${marker}`);
-    else fail(`1.99.1 review-context authority missing ${marker}`);
+    if (combined.includes(marker)) pass(`1.99.2 review-context authority includes ${marker}`);
+    else fail(`1.99.2 review-context authority missing ${marker}`);
   }
 
   const checker = runNode(["scripts/check-review-context-authority.mjs"]);
   if (checker.status === 0 && checker.stdout.includes("Review context authority check passed")) {
-    pass("1.99.1 review-context authority checker");
+    pass("1.99.2 review-context authority checker");
   } else {
-    fail(`1.99.1 review-context authority checker failed: ${checker.stderr || checker.stdout}`);
+    fail(`1.99.2 review-context authority checker failed: ${checker.stderr || checker.stdout}`);
   }
 
   const tests = runNode(["--test", "tests/review-context-authority.test.mjs"]);
-  if (tests.status === 0) pass("1.99.1 review-context authority regression tests");
-  else fail(`1.99.1 review-context authority regression tests failed: ${tests.stderr || tests.stdout}`);
+  if (tests.status === 0) pass("1.99.2 review-context authority regression tests");
+  else fail(`1.99.2 review-context authority regression tests failed: ${tests.stderr || tests.stdout}`);
 }
 
 checkRequiredFiles();

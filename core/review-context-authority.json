@@ -1,7 +1,9 @@
 {
-  "schemaVersion": "1.99.1",
+  "schemaVersion": "1.99.2",
   "artifactType": "review_context_authority",
+  "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
+  "classificationFallback": "UNCLASSIFIED",
   "currentProductContract": {
     "operatingModel": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
     "defaultUserCount": 1,
@@ -35,12 +37,12 @@
         "core/review-context-authority.json",
         "docs/start-here.md",
         "docs/operating-model.md",
-        "docs/plans/review-context-authority-1.99.1-plan.md",
+        "docs/plans/review-context-enforcement-1.99.2-plan.md",
         "prompts/reviewer-agent.md",
         "templates/gpt-review-prompt.md",
-        "releases/1.99.1/release-record.md",
-        "releases/1.99.1/known-limitations.md",
-        "releases/1.99.1/self-check-report.md"
+        "releases/1.99.2/release-record.md",
+        "releases/1.99.2/known-limitations.md",
+        "releases/1.99.2/self-check-report.md"
       ],
       "prefixes": [
         "scripts/",
@@ -79,6 +81,26 @@
       ]
     }
   ],
+  "activeGuidance": [
+    { "source": "README.md" },
+    { "source": "README.zh-CN.md" },
+    { "source": "core/zero-experience-solo-operating-model.md", "installed": ".intentos/core/zero-experience-solo-operating-model.md" },
+    { "source": "core/review-context-authority.md", "installed": ".intentos/core/review-context-authority.md" },
+    { "source": "docs/start-here.md" },
+    { "source": "docs/operating-model.md", "installed": ".intentos/docs/operating-model.md" },
+    { "source": "prompts/reviewer-agent.md", "installed": ".intentos/prompts/reviewer-agent.md" },
+    { "source": "templates/gpt-review-prompt.md", "installed": ".intentos/templates/gpt-review-prompt.md" },
+    { "source": "platforms/codex/AGENTS.template.md", "installed": "AGENTS.md" },
+    { "source": "starters/generic-project/AGENTS.md" },
+    { "source": "starters/codex-web-app/AGENTS.md" },
+    { "source": "starters/codex-ios-app/AGENTS.md" },
+    { "source": "starters/codex-android-app/AGENTS.md" }
+  ],
+  "reviewBinding": {
+    "artifactTypes": ["review_packet", "gpt_review_prompt"],
+    "requiredFields": ["contract_id", "context_version", "context_digest"],
+    "legacyMissingBinding": "COMPATIBILITY_ONLY"
+  },
   "compatibilityFields": {
     "owner": "INTERNAL_RESPONSIBILITY_OR_BOUNDED_CONSENT",
     "reviewer": "INTERNAL_REVIEW_FUNCTION",

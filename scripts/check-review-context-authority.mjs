@@ -4,11 +4,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  analyzeActiveGuidanceConflicts,
   analyzeReviewRecommendation,
   classifyReviewContextAsset,
   evaluateCurrentConversationAuthority,
   loadReviewContextAuthority,
+  reviewContextBinding,
+  reviewContextBindingFromMarkdown,
   REVIEW_CONTEXT_VERSION,
+  validateReviewContextBinding,
 } from "./lib/review-context-authority.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -39,6 +43,8 @@ function check(condition, passMessage, failMessage = passMessage) {
 
 const authority = loadReviewContextAuthority(root);
 check(authority.schemaVersion === REVIEW_CONTEXT_VERSION, "review context registry version is current");
+check(authority.contractId === "ZERO_EXPERIENCE_SOLO_DEVELOPER", "registry has one stable review context contract ID");
+check(authority.classificationFallback === "UNCLASSIFIED", "unknown context sources fail closed as UNCLASSIFIED");
 check(authority.currentProductContract?.operatingModel === "ZERO_EXPERIENCE_SOLO_DEVELOPER", "registry binds the solo operating model");
 check(authority.currentProductContract?.defaultUserCount === 1, "registry binds one default user");
 check(authority.currentProductContract?.technicalDecisionOwner === "INTENTOS_CODEX", "registry delegates technical decisions to IntentOS/Codex");
@@ -53,15 +59,53 @@ check(JSON.stringify(authority.precedence) === JSON.stringify([
 const classificationCases = [
   ["core/review-context-authority.md", "CURRENT"],
   ["prompts/reviewer-agent.md", "CURRENT"],
-  ["releases/1.99.1/release-record.md", "CURRENT"],
+  ["releases/1.99.2/release-record.md", "CURRENT"],
+  ["releases/1.99.1/release-record.md", "HISTORICAL"],
   ["releases/1.80.0/release-record.md", "HISTORICAL"],
-  ["docs/plans/review-context-authority-1.99.1-plan.md", "CURRENT"],
+  ["docs/plans/review-context-enforcement-1.99.2-plan.md", "CURRENT"],
+  ["docs/plans/review-context-authority-1.99.1-plan.md", "HISTORICAL"],
   ["docs/plans/release-evidence-gate-1.80-plan.md", "HISTORICAL"],
   ["schemas/artifacts/approval-record.schema.json", "COMPATIBILITY"],
   ["test-fixtures/bad/bad-approval-record-ai-owner/approval-records/001-bad.md", "COMPATIBILITY"],
 ];
 for (const [file, expected] of classificationCases) {
   check(classifyReviewContextAsset(file, authority) === expected, `${file} is ${expected}`);
+}
+check(classifyReviewContextAsset("docs/new-unregistered-product-direction.md", authority) === "UNCLASSIFIED", "unknown semantic path has no current authority");
+check(
+  classifyReviewContextAsset("prompts/new-unregistered-reviewer.md", authority, { productDirection: true }) === "UNCLASSIFIED",
+  "unregistered current runtime prompt has no product-direction authority",
+);
+
+for (const row of authority.activeGuidance || []) {
+  const file = installedLayout ? row.installed : row.source;
+  if (!file) continue;
+  if (!fs.existsSync(path.join(root, file))) {
+    fail(`active guidance path is missing: ${file}`);
+    continue;
+  }
+  const content = read(file);
+  const classification = classifyReviewContextAsset(row.source, authority, { content, productDirection: true });
+  check(classification === "CURRENT", `${file} is registered, current, and non-conflicting`, `${file} active guidance classification is ${classification}`);
+}
+
+const conflictingGuidance = "IntentOS supports Solo / Team / Enterprise modes.";
+check(analyzeActiveGuidanceConflicts(conflictingGuidance).length > 0, "direct active-guidance contradiction is detected");
+check(
+  classifyReviewContextAsset("prompts/reviewer-agent.md", authority, { content: conflictingGuidance, productDirection: true }) === "CONFLICTING",
+  "contradictory current guidance is classified CONFLICTING",
+);
+check(
+  analyzeActiveGuidanceConflicts("IntentOS must not add Solo / Team / Enterprise modes.").length === 0,
+  "explicit prohibition is not misclassified as conflicting guidance",
+);
+
+const expectedBinding = reviewContextBinding(authority);
+check(/^sha256:[a-f0-9]{64}$/.test(expectedBinding.context_digest), "review context contract has a sha256 digest");
+for (const relativePath of ["templates/review-packet.md", "templates/gpt-review-prompt.md"].map(workflowPath)) {
+  const binding = reviewContextBindingFromMarkdown(read(relativePath));
+  const validation = validateReviewContextBinding(binding, authority);
+  check(validation.ok, `${relativePath} carries the current review context binding`, `${relativePath} binding mismatch: ${validation.errors.join("; ")}`);
 }
 
 for (const relativePath of ["prompts/reviewer-agent.md", "templates/gpt-review-prompt.md"]) {

@@ -4,11 +4,22 @@ Use this prompt with GPT Pro, a second model, or another read-only reviewer when
 
 Do not include secrets, credentials, production tokens, or sensitive runtime data.
 
+## Current Review Context Binding
+
+Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
+
+Context version: `1.99.2`
+
+Context digest: `sha256:b700a4e099c1bbf9dce89569e5d2db4536387895a637a397e8e478a9f747844f`
+
+The Review Packet must carry the same binding. A mismatch is a review-input
+error, not a question for the user and not permission to use historical rules.
+
 ## Prompt
 
 You are a read-only reviewer.
 
-Current IntentOS review context: `1.99.1`.
+Current IntentOS review context: `1.99.2`.
 
 - Default operating model: `ZERO_EXPERIENCE_SOLO_DEVELOPER`.
 - The default user is one zero-experience solo developer.
@@ -63,7 +74,7 @@ Output only this structure:
 
 ```text
 Current Review Context:
-- Version: 1.99.1
+- Version: 1.99.2
 - Operating model: ZERO_EXPERIENCE_SOLO_DEVELOPER
 
 Review Summary:

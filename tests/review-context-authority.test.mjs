@@ -5,21 +5,59 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import {
+  analyzeActiveGuidanceConflicts,
   analyzeReviewRecommendation,
   classifyReviewContextAsset,
   evaluateCurrentConversationAuthority,
   loadReviewContextAuthority,
+  reviewContextBinding,
+  validateReviewContextBinding,
 } from "../scripts/lib/review-context-authority.mjs";
 
 const authority = loadReviewContextAuthority();
 
 test("current product contract overrides compatibility and historical material", () => {
   assert.equal(classifyReviewContextAsset("core/review-context-authority.md", authority), "CURRENT");
-  assert.equal(classifyReviewContextAsset("docs/plans/review-context-authority-1.99.1-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/review-context-enforcement-1.99.2-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/review-context-authority-1.99.1-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/zero-experience-solo-operating-model-1.99-plan.md", authority), "HISTORICAL");
-  assert.equal(classifyReviewContextAsset("releases/1.99.1/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.99.2/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.99.1/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.99.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("schemas/artifacts/approval-record.schema.json", authority), "COMPATIBILITY");
+  assert.equal(classifyReviewContextAsset("docs/unregistered-product-direction.md", authority), "UNCLASSIFIED");
+  assert.equal(classifyReviewContextAsset("prompts/new-reviewer.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("prompts/new-reviewer.md", authority, { productDirection: true }), "UNCLASSIFIED");
+});
+
+test("direct contradictory active guidance fails closed", () => {
+  const contradictory = [
+    "IntentOS supports Solo / Team / Enterprise modes.",
+    "BL2 requires a security team.",
+    "The user must choose the architecture and test strategy.",
+    "The user must find a release owner.",
+    "CURRENT_CONVERSATION_USER authorizes production release.",
+  ];
+  for (const guidance of contradictory) {
+    assert.notEqual(analyzeActiveGuidanceConflicts(guidance).length, 0, guidance);
+    assert.equal(
+      classifyReviewContextAsset("prompts/reviewer-agent.md", authority, { content: guidance, productDirection: true }),
+      "CONFLICTING",
+    );
+  }
+  assert.deepEqual(analyzeActiveGuidanceConflicts(
+    "IntentOS must not add Solo / Team / Enterprise modes. The user does not choose architecture.",
+  ), []);
+});
+
+test("review inputs bind to the current context contract", () => {
+  const binding = reviewContextBinding(authority);
+  assert.match(binding.context_digest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(validateReviewContextBinding(binding, authority).ok, true);
+  assert.equal(validateReviewContextBinding({ ...binding, context_version: "1.99.1" }, authority).ok, false);
+  const missing = validateReviewContextBinding({}, authority);
+  assert.equal(missing.ok, false);
+  assert.equal(missing.legacy, true);
 });
 
 test("review recommendations cannot reintroduce organization modes or technical user choices", () => {

@@ -4,6 +4,17 @@ Use this file when a completed or in-progress change needs a stable review input
 
 This packet does not approve the change. It packages context, evidence, known risks, and open questions so a reviewer can inspect the work without reconstructing the whole conversation.
 
+## Current Review Context Binding
+
+Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
+
+Context version: `1.99.2`
+
+Context digest: `sha256:b700a4e099c1bbf9dce89569e5d2db4536387895a637a397e8e478a9f747844f`
+
+This binding identifies the product-direction contract used to prepare this
+review input. It is not implementation, apply, release, or production approval.
+
 ## Packet Status
 
 Status: DRAFT / READY_FOR_REVIEW / REVIEWED

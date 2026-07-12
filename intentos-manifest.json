@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.99.1",
+  "intentOSVersion": "1.99.2",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.99.1"
+    "phase": "1.99.2"
   },
   "groups": {
     "sourceRequired": [
@@ -362,6 +362,7 @@
       "docs/plans/execution-distribution-trust-review-closeout-1.98.1-plan.md",
       "docs/plans/zero-experience-solo-operating-model-1.99-plan.md",
       "docs/plans/review-context-authority-1.99.1-plan.md",
+      "docs/plans/review-context-enforcement-1.99.2-plan.md",
       "docs/plans/execution-release-runtime-hygiene-1.86-plan.md",
       "docs/plans/execution-truth-hardcut-1.90-plan.md",
       "docs/plans/existing-project-governance-convergence-1.70-plan.md",
@@ -1799,6 +1800,9 @@
       "releases/1.99.1/known-limitations.md",
       "releases/1.99.1/release-record.md",
       "releases/1.99.1/self-check-report.md",
+      "releases/1.99.2/known-limitations.md",
+      "releases/1.99.2/release-record.md",
+      "releases/1.99.2/self-check-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",

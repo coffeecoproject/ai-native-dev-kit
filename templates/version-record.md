@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.99.1`
+`1.99.2`
 
 ## Project Version File
 
@@ -18,6 +18,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 
 ## Notes
 
+- `1.99.2` makes Review Context Authority fail closed for unknown semantic
+  sources, rejects direct conflicting active guidance, and binds newly
+  generated Review Packets and GPT review prompts to the current contract.
 - `1.99.1` applies Review Context Authority. Current product contracts and
   active runtime rules override compatibility fields and historical records.
 - The default user remains one zero-experience solo developer. IntentOS/Codex

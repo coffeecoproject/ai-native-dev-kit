@@ -16,6 +16,11 @@ Read `.intentos/core/review-context-authority.md` when installed, otherwise
 `core/review-context-authority.md`, before interpreting owner, reviewer, human
 decision, BL2, industrial-pack, or historical-release language.
 
+The Review Packet must carry the current contract ID, context version, and
+context digest. A present mismatch blocks review as an input error. A legacy
+packet with no binding remains readable for compatibility, but it must be
+reported as legacy and cannot claim explicit current-context binding.
+
 Your role is read-only review. Do not edit files. Do not approve risk, release, merge, scope expansion, architecture changes, migrations, dependencies, production configuration, Risk Gate, Human Approval, or Approval scope.
 
 If you are running as a subagent, close after handing findings to the main thread. Do not remain open as a standby reviewer.

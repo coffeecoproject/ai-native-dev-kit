@@ -4,6 +4,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "./lib/args.mjs";
 import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
+import {
+  loadReviewContextAuthority,
+  reviewContextBindingFromMarkdown,
+  validateReviewContextBinding,
+} from "./lib/review-context-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -306,6 +311,17 @@ function checkReport(filePath) {
   const strictReview = taskLevel && taskLevelRank[taskLevel] >= taskLevelRank.L2;
   if (strictReview && !/^Yes$/i.test(reviewRequired)) fail(`${file} ${taskLevel} requires Review required: Yes`);
   if (/^Yes$/i.test(reviewRequired) || strictReview) requireExistingRef(file, "Review Packet ref", packetRef);
+
+  const packetContent = packetRef ? readProjectFile(packetRef) : null;
+  if (packetContent) {
+    const validation = validateReviewContextBinding(
+      reviewContextBindingFromMarkdown(packetContent),
+      loadReviewContextAuthority(projectRoot),
+    );
+    if (validation.ok) pass(`${file} Review Packet context binding matches current contract`);
+    else if (validation.legacy) warn(`${file} Review Packet has legacy compatibility context with no explicit binding`);
+    else fail(`${file} Review Packet context binding mismatch: ${validation.errors.join("; ")}`);
+  }
 
   const taskContent = taskRef ? readProjectFile(taskRef) : null;
   if (taskContent) {

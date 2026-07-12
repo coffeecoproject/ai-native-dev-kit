@@ -25,8 +25,14 @@ CURRENT_PRODUCT_CONTRACT
 
 `CURRENT` assets may define current product behavior. `COMPATIBILITY` assets
 may preserve machine readability but must be translated through the current
-contract. `HISTORICAL` assets are audit evidence only. `CONFLICTING` active
+contract. `HISTORICAL` assets are audit evidence only. `UNCLASSIFIED` assets
+have no product-direction authority until registered. `CONFLICTING` active
 guidance must fail review-context validation.
+
+Unknown files do not inherit product-direction authority. A runtime asset may
+remain current for execution while still being `UNCLASSIFIED` when interpreted
+as product-direction guidance. Active public, reviewer, GPT, and Agent guidance
+surfaces must be explicitly registered and must remain classified as `CURRENT`.
 
 ## Review Rule
 
@@ -78,9 +84,21 @@ the requested product scope. IntentOS selects the safeguards required by the
 current capability and keeps unrelated capabilities inactive. Missing external
 facts block only the dependent capability or claim.
 
+## Review Input Binding
+
+New Review Packets and GPT Review Prompts carry the current contract ID,
+context version, and context digest. The binding applies only to review inputs
+that interpret product direction. It does not duplicate task, intent, source,
+project, Git, approval, apply, completion, or release identity on execution
+evidence.
+
+A present review-context binding must match the current contract. Historical
+review inputs without the binding remain readable as compatibility evidence,
+but they cannot claim that the current context was explicitly bound when they
+were produced.
+
 ## Public Boundary
 
 These context classes are internal governance. The ordinary user is not asked
 to classify documents, select an interpretation source, or understand this
 precedence model.
-

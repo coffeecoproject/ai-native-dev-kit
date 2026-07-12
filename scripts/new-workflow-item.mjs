@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addFrontmatter } from "./lib/frontmatter.mjs";
 import { assertSafeRelativePath, assertSafeWritePath, assertInsideRoot } from "./lib/path-safety.mjs";
+import { loadReviewContextAuthority, reviewContextBinding } from "./lib/review-context-authority.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -693,6 +694,19 @@ function fillReviewPacket(content, context) {
   let output = setTitle(content, `# Review Packet: ${context.number}-${context.slug}`);
   output = setSection(
     output,
+    "Current Review Context Binding",
+    [
+      `Contract ID: \`${context.reviewContextBinding.contract_id}\``,
+      "",
+      `Context version: \`${context.reviewContextBinding.context_version}\``,
+      "",
+      `Context digest: \`${context.reviewContextBinding.context_digest}\``,
+      "",
+      "This binding identifies the product-direction contract used to prepare this review input. It is not implementation, apply, release, or production approval.",
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
     "Packet Status",
     [
       "Status: DRAFT",
@@ -825,6 +839,19 @@ function fillReviewLoopReport(content, context) {
 
 function fillGptReviewPrompt(content, context) {
   let output = setTitle(content, `# GPT Review Prompt: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Current Review Context Binding",
+    [
+      `Contract ID: \`${context.reviewContextBinding.contract_id}\``,
+      "",
+      `Context version: \`${context.reviewContextBinding.context_version}\``,
+      "",
+      `Context digest: \`${context.reviewContextBinding.context_digest}\``,
+      "",
+      "The Review Packet must carry the same binding. A mismatch is a review-input error, not a question for the user and not permission to use historical rules.",
+    ].join("\n"),
+  );
   output = setSection(
     output,
     "Review Packet Ref",
@@ -2071,6 +2098,7 @@ const baseContext = {
   agent: args.agent,
   goalMode: args["goal-mode"] || args.mode,
   subagentMode: args["subagent-mode"] || args.mode,
+  reviewContextBinding: reviewContextBinding(loadReviewContextAuthority(projectRoot)),
 };
 
 let content = readTemplate(projectRoot, config.template);

@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.99.1`
+Current version: `1.99.2`
 
 ## Versioning Policy
 
@@ -10,9 +10,16 @@ Current version: `1.99.1`
 
 ## Current Release
 
-`1.99.1`
+`1.99.2`
 
 Includes:
+
+- Review Context Enforcement `1.99.2`: unclassified semantic sources no longer
+  inherit current product authority, and registered public/reviewer/Agent
+  guidance fails when it directly contradicts the solo operating contract.
+- `1.99.2` binds newly generated Review Packets and GPT review prompts to one
+  current contract ID and digest while keeping historical review inputs
+  readable and leaving execution evidence schemas unchanged.
 
 - Review Context Authority `1.99.1`: gives current product contracts explicit
   priority over compatibility schemas and historical records, and prevents
