@@ -7,6 +7,7 @@ import {
   sameSet,
   validateApprovalEvidenceForActionSet,
 } from "./approval-record-validation.mjs";
+import { checkPlanReviewBinding } from "./plan-review-binding.mjs";
 
 const ignoredNames = new Set([".gitkeep", ".DS_Store"]);
 
@@ -89,6 +90,11 @@ export function evaluateVerifiedAdoptionApplyChain(projectRoot, options = {}) {
       if (approvalErrors.length > 0) continue;
       for (const readiness of readinessReports.filter((item) => item.ok)) {
         const readinessErrors = validateReadinessForPlan(readiness.value, planDigest, planActions);
+        readinessErrors.push(...validateReadinessPlanReview(
+          projectRoot,
+          path.join(projectRoot, readiness.relativePath),
+          readiness.value,
+        ));
         if (readinessErrors.length > 0) continue;
         return {
           status: "PRESENT_UNVERIFIED",
@@ -178,6 +184,7 @@ function validateReceiptAgainstProject(projectRoot, receiptFile, receipt, schema
   if (!approval || !readiness) return errors;
   errors.push(...validateApprovalRecordForInitApplyPlan(plan, approval));
   errors.push(...validateReadinessForInitApplyPlan(plan, readiness));
+  errors.push(...validateReadinessPlanReview(projectRoot, readinessRef.file, readiness));
   if (receipt.approval_record.artifact_id !== approval.artifact_id) errors.push("approval identity mismatch");
   if (receipt.readiness_report.artifact_id !== readiness.artifact_id) errors.push("readiness identity mismatch");
   if (receipt.readiness_report.evidence_digest !== evidenceDigest(readiness, [])) errors.push("readiness evidence digest mismatch");
@@ -351,5 +358,23 @@ function validateReadinessForPlan(readiness, planDigest, planActions) {
   for (const [field, value] of Object.entries(readiness.boundary || {})) {
     if (value !== false) errors.push(`readiness boundary ${field} must be false`);
   }
+  return errors;
+}
+
+function validateReadinessPlanReview(projectRoot, readinessFile, readiness) {
+  const errors = [];
+  checkPlanReviewBinding({
+    projectRoot,
+    currentFile: readinessFile,
+    evidence: readiness,
+    label: "apply readiness",
+    requirePlanReview: readiness.plan_review_binding?.required === "Yes",
+    consumer: "adoption apply chain",
+    consumerPlanRef: readiness.apply_plan?.path,
+    consumerPlanDigest: readiness.apply_plan?.plan_digest,
+    consumerPlanLabel: "apply_plan",
+    pass: () => {},
+    fail: (message) => errors.push(message),
+  });
   return errors;
 }

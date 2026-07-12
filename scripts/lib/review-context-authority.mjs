@@ -6,11 +6,15 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.99.2";
+export const REVIEW_CONTEXT_VERSION = "1.99.3";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
 
-function normalize(relativePath) {
-  return String(relativePath || "").trim().replaceAll("\\", "/").replace(/^\.\//, "");
+export function normalizeReviewContextPath(relativePath) {
+  const raw = String(relativePath || "").trim().replaceAll("\\", "/");
+  if (!raw || path.posix.isAbsolute(raw) || /^[A-Za-z]:\//.test(raw)) return "";
+  const normalized = path.posix.normalize(raw.replace(/^\.\//, ""));
+  if (normalized === ".." || normalized.startsWith("../")) return "";
+  return normalized === "." ? "" : normalized;
 }
 
 function startsWithAny(value, prefixes = []) {
@@ -18,19 +22,93 @@ function startsWithAny(value, prefixes = []) {
 }
 
 export function loadReviewContextAuthority(root = defaultRoot) {
-  const candidates = [
-    path.join(root, "core", "review-context-authority.json"),
-    path.join(root, ".intentos", "core", "review-context-authority.json"),
-    path.join(defaultRoot, "core", "review-context-authority.json"),
-    path.join(defaultRoot, ".intentos", "core", "review-context-authority.json"),
-  ];
+  const resolvedRoot = path.resolve(root);
+  const authoritativeSourceRoot = fs.realpathSync(defaultRoot);
+  const installed = path.join(resolvedRoot, ".intentos", "core", "review-context-authority.json");
+  const source = path.join(resolvedRoot, "core", "review-context-authority.json");
+  const sourceCheckout = isIntentOSSourceCheckout(resolvedRoot);
+  const insideAuthoritativeSource = resolvedRoot === authoritativeSourceRoot
+    || resolvedRoot.startsWith(`${authoritativeSourceRoot}${path.sep}`);
+  const candidates = sourceCheckout
+    ? [source]
+    : insideAuthoritativeSource
+      ? [path.join(defaultRoot, "core", "review-context-authority.json")]
+      : [installed];
   const file = candidates.find((candidate) => fs.existsSync(candidate));
-  if (!file) throw new Error(`review context authority not found under ${root}`);
+  if (!file) throw new Error(`review context authority not found under ${resolvedRoot}`);
+  const stat = fs.lstatSync(file);
+  if (stat.isSymbolicLink()) throw new Error(`review context authority must not be a symlink: ${file}`);
+  const realRoot = insideAuthoritativeSource ? authoritativeSourceRoot : fs.realpathSync(resolvedRoot);
+  const realFile = fs.realpathSync(file);
+  if (realFile !== realRoot && !realFile.startsWith(`${realRoot}${path.sep}`)) {
+    throw new Error(`review context authority escapes project root: ${file}`);
+  }
   return JSON.parse(fs.readFileSync(file, "utf8"));
 }
 
+function isIntentOSSourceCheckout(root) {
+  const manifestPath = path.join(root, "intentos-manifest.json");
+  const packagePath = path.join(root, "package.json");
+  if (!fs.existsSync(manifestPath) || !fs.existsSync(packagePath) || !fs.existsSync(path.join(root, "VERSION.md"))) {
+    return false;
+  }
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+    return manifest.mode === "authoritative"
+      && manifest.compatibilityPolicy?.authoritative === true
+      && packageJson.name === "intentos";
+  } catch {
+    return false;
+  }
+}
+
+function activeGuidanceRows(authority, root = defaultRoot, installedLayout = false) {
+  const rows = Array.isArray(authority.activeGuidance) ? [...authority.activeGuidance] : [];
+  for (const family of authority.activeGuidanceFamilies || []) {
+    const prefix = normalizeReviewContextPath(installedLayout ? family.installedPrefix : family.sourcePrefix);
+    const sourcePrefix = normalizeReviewContextPath(family.sourcePrefix);
+    if (!prefix || !sourcePrefix) continue;
+    const absolute = path.join(root, prefix);
+    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isDirectory()) continue;
+    const extension = String(family.extension || "");
+    for (const name of fs.readdirSync(absolute).sort()) {
+      if (extension && !name.endsWith(extension)) continue;
+      rows.push({
+        source: path.posix.join(sourcePrefix, name),
+        installed: family.installedPrefix ? path.posix.join(normalizeReviewContextPath(family.installedPrefix), name) : null,
+      });
+    }
+  }
+  return rows;
+}
+
+function canonicalGuidanceSource(value, authority, options = {}) {
+  const normalized = normalizeReviewContextPath(value);
+  const root = path.resolve(options.root || defaultRoot);
+  const installedLayout = Boolean(options.installedLayout);
+  for (const row of activeGuidanceRows(authority, root, installedLayout)) {
+    if (normalizeReviewContextPath(row.source) === normalized) return normalizeReviewContextPath(row.source);
+    if (normalizeReviewContextPath(row.installed) === normalized) return normalizeReviewContextPath(row.source);
+  }
+  for (const family of authority.activeGuidanceFamilies || []) {
+    const sourcePrefix = normalizeReviewContextPath(family.sourcePrefix);
+    const installedPrefix = normalizeReviewContextPath(family.installedPrefix);
+    if (sourcePrefix && normalized.startsWith(`${sourcePrefix}/`)
+      && fs.existsSync(path.join(defaultRoot, normalized))) return normalized;
+    if (installedPrefix && normalized.startsWith(`${installedPrefix}/`)) {
+      const candidate = `${sourcePrefix}/${normalized.slice(installedPrefix.length + 1)}`;
+      if (fs.existsSync(path.join(defaultRoot, candidate))) return candidate;
+    }
+  }
+  return "";
+}
+
 export function classifyReviewContextAsset(relativePath, authority = loadReviewContextAuthority(), options = {}) {
-  const value = normalize(relativePath);
+  const input = normalizeReviewContextPath(relativePath);
+  if (!input) return "UNCLASSIFIED";
+  const registeredSource = canonicalGuidanceSource(input, authority, options);
+  const value = registeredSource || input;
   const rows = Array.isArray(authority.classifications) ? authority.classifications : [];
   const current = rows.find((row) => row.status === "CURRENT") || {};
   const compatibility = rows.find((row) => row.status === "COMPATIBILITY") || {};
@@ -44,8 +122,7 @@ export function classifyReviewContextAsset(relativePath, authority = loadReviewC
   else if (startsWithAny(value, historical.prefixes)) classification = "HISTORICAL";
 
   if (options.productDirection === true) {
-    const registered = (authority.activeGuidance || []).some((row) => normalize(row.source) === value);
-    if (!registered) return "UNCLASSIFIED";
+    if (!registeredSource) return "UNCLASSIFIED";
   }
 
   if (classification === "CURRENT"
@@ -56,12 +133,11 @@ export function classifyReviewContextAsset(relativePath, authority = loadReviewC
   return classification;
 }
 
-export function activeGuidancePaths(authority = loadReviewContextAuthority(), installedLayout = false) {
-  const rows = Array.isArray(authority.activeGuidance) ? authority.activeGuidance : [];
-  return [...new Set(rows
+export function activeGuidancePaths(authority = loadReviewContextAuthority(), installedLayout = false, root = defaultRoot) {
+  return [...new Set(activeGuidanceRows(authority, root, installedLayout)
     .map((row) => installedLayout ? row.installed : row.source)
     .filter(Boolean)
-    .map(normalize))];
+    .map(normalizeReviewContextPath))];
 }
 
 const ACTIVE_GUIDANCE_CONFLICT_RULES = [
@@ -77,7 +153,7 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
   },
   {
     code: "TECHNICAL_DECISION_DELEGATED_TO_USER",
-    pattern: /(?:the\s+user|user|用户|你).{0,24}(?:must|should|needs?\s+to|必须|应该|需要).{0,24}(?:choose|select|decide|approve|选择|决定|批准).{0,45}(?:architecture|stack|database|schema|baseline|pack|test strategy|reviewer|subagent|hook|checker|workflow|架构|技术栈|数据库|数据结构|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流)/i,
+    pattern: /^(?:[-*]\s*)?(?:the\s+user|user|human|developer|用户|你|开发者)\s+(?:(?:must|should|needs?\s+to|必须|应该|需要).{0,24}(?:choose|select|decide|approve|confirm|选择|决定|批准|确认)|(?:confirms?|approves?|chooses?|selects?|decides?|确认|批准|选择|决定)).{0,50}(?:architecture|stack|database|schema|baseline|pack|test strategy|reviewer|subagent|hook|checker|workflow|架构|技术栈|数据库|数据结构|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流)/i,
     message: "Active guidance delegates a technical decision to the user.",
   },
   {
@@ -93,25 +169,46 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
 ];
 
 export function analyzeActiveGuidanceConflicts(text) {
-  const value = String(text || "");
-  return ACTIVE_GUIDANCE_CONFLICT_RULES
-    .filter((rule) => rule.pattern.test(value))
-    .map(({ code, message }) => ({ code, message }));
+  const segments = String(text || "").split(/(?<=[.!?。！？])|\r?\n/).map((item) => item.trim()).filter(Boolean);
+  const findings = [];
+  for (const rule of ACTIVE_GUIDANCE_CONFLICT_RULES) {
+    const matched = segments.find((segment) => rule.pattern.test(segment) && !isExplicitSafetyNegation(segment));
+    if (matched) findings.push({ code: rule.code, message: rule.message, evidence: matched });
+  }
+  return findings;
+}
+
+function isExplicitSafetyNegation(text) {
+  return /\b(?:must|should|does|do|is|are|can|cannot|can't|need)\s+not\b|\b(?:does not|do not|must not|should not|cannot|not required|never|no longer)\b|(?:不得|不应|不能|不需要|无需|禁止|不会|并不|不再)/i.test(text);
 }
 
 function contextContractPayload(authority) {
   return {
+    schemaVersion: authority.schemaVersion,
     contractId: authority.contractId,
+    classificationFallback: authority.classificationFallback,
     currentProductContract: authority.currentProductContract,
     precedence: authority.precedence,
+    classifications: authority.classifications,
+    activeGuidance: authority.activeGuidance,
+    activeGuidanceFamilies: authority.activeGuidanceFamilies,
+    reviewBinding: authority.reviewBinding,
     compatibilityFields: authority.compatibilityFields,
     forbiddenReviewInferences: authority.forbiddenReviewInferences,
     boundaries: authority.boundaries,
   };
 }
 
+function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 export function reviewContextDigest(authority = loadReviewContextAuthority()) {
-  return `sha256:${createHash("sha256").update(JSON.stringify(contextContractPayload(authority))).digest("hex")}`;
+  return `sha256:${createHash("sha256").update(stableStringify(contextContractPayload(authority))).digest("hex")}`;
 }
 
 export function reviewContextBinding(authority = loadReviewContextAuthority()) {
@@ -129,10 +226,21 @@ function markdownValue(content, label) {
 }
 
 export function reviewContextBindingFromMarkdown(content) {
+  const value = String(content || "");
+  const heading = /^## Current Review Context Binding\s*$/gim;
+  const matches = [...value.matchAll(heading)];
+  const sectionStart = matches.length === 1 ? matches[0].index + matches[0][0].length : -1;
+  const tail = sectionStart >= 0 ? value.slice(sectionStart) : "";
+  const nextHeading = tail.search(/^##\s+/m);
+  const section = sectionStart >= 0 ? (nextHeading >= 0 ? tail.slice(0, nextHeading) : tail) : "";
+  const labelsOutsideSection = ["Contract ID", "Context version", "Context digest"]
+    .filter((label) => markdownValue(value.replace(section, ""), label));
   return {
-    contract_id: markdownValue(content, "Contract ID"),
-    context_version: markdownValue(content, "Context version"),
-    context_digest: markdownValue(content, "Context digest"),
+    contract_id: markdownValue(section, "Contract ID"),
+    context_version: markdownValue(section, "Context version"),
+    context_digest: markdownValue(section, "Context digest"),
+    section_count: matches.length,
+    out_of_section_fields: labelsOutsideSection,
   };
 }
 
@@ -149,6 +257,12 @@ export function validateReviewContextBinding(binding, authority = loadReviewCont
     };
   }
   const errors = [];
+  if (observed.section_count !== undefined && observed.section_count !== 1) {
+    errors.push("exactly one Current Review Context Binding section is required");
+  }
+  if (Array.isArray(observed.out_of_section_fields) && observed.out_of_section_fields.length > 0) {
+    errors.push(`review context fields outside binding section: ${observed.out_of_section_fields.join(", ")}`);
+  }
   for (const field of ["contract_id", "context_version", "context_digest"]) {
     if (observed[field] !== expected[field]) {
       errors.push(`${field} must match current review context`);

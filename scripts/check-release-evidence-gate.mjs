@@ -606,6 +606,7 @@ function checkCompletionEvidenceStrict(label, completion) {
     "--require-structured-evidence",
     "--require-source-refs",
     "--require-ready",
+    ...completionConsumerFlags(resolved),
   ], { encoding: "utf8" });
   if (result.status === 0) pass(`${label} Completion Evidence strict checker passed`);
   else fail(`${label} Completion Evidence strict checker failed: ${firstUsefulLine(result.stderr || result.stdout)}`);
@@ -631,9 +632,23 @@ function checkCompletionRefStrict(label, ref, context) {
     "--require-structured-evidence",
     "--require-source-refs",
     "--require-ready",
+    ...completionConsumerFlags(resolved),
   ], { encoding: "utf8" });
   if (result.status === 0) pass(`${label} ${context} strict checker passed`);
   else fail(`${label} ${context} strict checker failed: ${firstUsefulLine(result.stderr || result.stdout)}`);
+}
+
+function completionConsumerFlags(file) {
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+  if (!extracted?.ok || !extracted.value) return [];
+  const evidence = extracted.value;
+  const flags = [];
+  if (evidence.plan_review_binding?.required === "Yes") flags.push("--require-plan-review");
+  if (evidence.task_entry_binding) {
+    flags.push("--require-task-governance", "--require-work-queue", "--strict-task-consumer");
+  }
+  if (evidence.evidence_authority_binding) flags.push("--require-evidence-authority");
+  return flags;
 }
 
 function checkSourceEvidence() {

@@ -60,7 +60,7 @@ Produce a Baseline Decision Card with these sections:
 
 Codex recommends.
 
-Human decides.
+IntentOS/Codex decides technical baseline depth from project evidence. The user supplies only an unavailable business fact or consent to a prepared real-world effect.
 
 Workflow controls whether Codex may write.
 

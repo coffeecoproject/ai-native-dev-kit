@@ -105,7 +105,7 @@ function collectSignals(root) {
   return {
     exists,
     dirty,
-    hasAgents: hasAny(["AGENTS.md", ".codex", ".cursor", ".claude"]),
+    hasAgents: hasAny(["AGENTS.md", "agent.md", ".agent.md", ".codex", ".cursor", ".claude"]),
     hasCi: hasAny([".github/workflows", "scripts/ci", "scripts/guard", ".husky"]),
     hasRelease: hasAny(["docs/WEB_RELEASE_ROLLBACK_BASELINE.md", "docs/release", "docs/releases", "docs/runbooks", "release-evidence-reports"]),
     hasEngineeringBaseline: hasAny(["docs/engineering-baseline.md", "docs/WEB_ENGINEERING_BASELINE.md", "core/engineering-baseline.md"]),

@@ -2,7 +2,7 @@
 
 This guide is for starting or upgrading a project with IntentOS.
 
-The workflow goal is simple: let AI draft and execute, while humans keep decisions, risk acceptance, and final review.
+The workflow goal is simple: the user describes real business needs while IntentOS and Codex own technical decisions, execution, testing, review, and repair. The user is involved only for unavailable business facts or consent to one prepared real-world effect.
 
 For the decision model behind workflow, profiles, BL levels, standard baseline packs, and industrial packs, see `docs/mental-model.md`.
 
@@ -76,7 +76,7 @@ The Operating Model is read-only and selects the required lower-level project,
 adoption, or baseline sources. `start` and `baseline` remain advanced source
 commands, not user-selected stages.
 
-The first section should be `Human Decision Summary`: it gives the recommended option, alternatives, whether each option writes files, the risk, and what happens if you do nothing. You should not need to interpret `NEXT_ACTION` fields to decide.
+The first section should be a plain-language recommendation. It states what Codex selected, what evidence supports it, whether a real-world effect still needs consent, and what happens next. The user should not need to interpret `NEXT_ACTION` fields or choose a technical route.
 
 When the Evidence Trace requires baseline detail, maintainers can inspect the
 lower-level baseline recommendation:
@@ -112,9 +112,9 @@ For a plain-language baseline decision:
 node intentos/scripts/cli.mjs baseline-decision .
 ```
 
-`baseline-decision` turns the project state into a Baseline Decision Card. It explains the recommended BL0/BL1/BL2 level, standard packs, industrial candidates, missing human decisions, and safe next actions. It does not authorize project writes, implementation, release, production, BL2 activation, or high-risk domain decisions.
+`baseline-decision` turns the project state into a Baseline Decision Card. It explains the derived BL0/BL1/BL2 level, standard packs, industrial candidates, missing evidence, unavailable business facts, and safe next actions. It does not authorize project writes, implementation, release, production, or a real-world effect.
 
-This command prints the card only. To save a reviewed record, ask Codex to create `new-workflow-item --type baseline-decision-card` after you confirm the card should be retained.
+This command prints the card only. Codex records it when the active workflow requires durable evidence; the user does not decide whether an internal technical record should exist.
 
 For platform standard baseline packs:
 
@@ -195,15 +195,15 @@ Use `node scripts/check-ai-workflow.mjs . --mode full` after installing or updat
 
 ## Onboarding Level
 
-Pick one level before the first implementation task:
+Codex derives one level before the first implementation task:
 
-| Level | Use When | Required Human Decision |
+| Level | Use When | Internal obligation |
 | --- | --- | --- |
-| O0 | Small experiment or local tool | Confirm the project goal, platform, first slice, and verification command |
-| O1 | Normal product or internal tool | Confirm project profile, technology strategy, sample policy, risks, and first slice |
-| O2 | Regulated, financial, privacy-sensitive, production-critical, or multi-team work | Confirm all O1 items plus compliance boundary, permission model, release policy, and rollback policy |
+| O0 | Small experiment or local tool | Derive the project goal, platform, first slice, and runnable verification |
+| O1 | Normal product or internal tool | Derive project profile, technology strategy, sample policy, risks, and first slice |
+| O2 | Regulated, financial, privacy-sensitive, or production-critical work | Derive all O1 controls plus compliance boundary, permission model, release policy, and rollback policy |
 
-AI may draft the onboarding documents. Human review decides whether they are accepted.
+IntentOS/Codex drafts and verifies onboarding records. Only unavailable business facts or prepared real-world effects return to the user.
 
 ## Engineering Baseline
 
@@ -214,7 +214,7 @@ This file answers:
 - where code belongs
 - which types are source of truth
 - how DTO / schema / domain boundaries work
-- when enum / string / lookup / state-machine choices need human decision
+- when enum / string / lookup / state-machine choices require stronger internal evidence or project-authority reconciliation
 - where API contracts, generated types, permissions, migrations, and cross-module state rules come from
 
 Default check:
@@ -374,7 +374,7 @@ BL2_INDUSTRIAL = workflow plus profiles, selected standard packs, and selected i
 
 Industrial packs are optional BL2 assets. They define production-grade evidence standards; they do not prove a real project is ready by themselves.
 
-Use `industrial-packs/selection-guide.md` before approving BL2. It explains the current draft packs and how to combine primary platform, capability, and risk-overlay packs without defaulting to Web or selecting everything.
+Use `industrial-packs/selection-guide.md` while deriving BL2. It explains how Codex combines primary platform, capability, and risk-overlay packs without defaulting to Web or selecting everything.
 
 ```bash
 node scripts/check-industrial-pack.mjs . --selected-only
@@ -382,7 +382,7 @@ node scripts/resolve-industrial-baseline.mjs .
 node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
-For BL2 projects, let AI draft `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.intentos/templates/`, then use `check-industrial-baseline.mjs --strict` only after the human has approved baseline level, selected packs, exceptions, and residual risks.
+For BL2 projects, Codex drafts `docs/baseline-selection.md` and `docs/baseline-evidence.md` from `.intentos/templates/`, reconciles them with stronger project rules, and runs `check-industrial-baseline.mjs --strict` only after selection, exceptions, residual risks, and evidence are internally resolved.
 
 `baseline-evidence.md` must reference real project evidence. Rows with `Status: Done` need an existing `Evidence Ref`; rows marked `Not applicable` need a reason.
 
@@ -444,7 +444,7 @@ For a high-risk implementation task, run the task-scoped implementation gate:
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task tasks/001-first-slice.md
 ```
 
-If any Risk Gate item is checked, the task card must include `## Human Approval` with a concrete `Approval scope` and `Status: Approved` before implementation.
+If any Risk Gate item is checked, the task card must include the structured compatibility approval section required by the checker. It may record the user's original bounded business request or prepared real-world consent, but it must not ask the user to approve technical architecture or internal safeguards.
 
 When independent review is needed, generate a Review Packet:
 
@@ -452,7 +452,7 @@ When independent review is needed, generate a Review Packet:
 node scripts/new-workflow-item.mjs --type review-packet --task tasks/001-first-slice.md
 ```
 
-Fill it with the diff summary, commands run, evidence refs, known risks, and open questions before handing it to a human reviewer, GPT Pro, or a second model. A Review Packet is not approval.
+Fill it with the diff summary, commands run, evidence refs, known risks, and open questions before independent read-only review by a reviewer agent, GPT Pro, or a second model. A Review Packet is not approval.
 
 For L2/L3 work, or whenever review findings need a recorded loop, generate a Review Loop Report:
 
@@ -466,7 +466,7 @@ If GPT Pro or a second model will review the packet, generate a read-only review
 node scripts/new-workflow-item.mjs --type gpt-review-prompt --task tasks/001-first-slice.md
 ```
 
-Codex may auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds. Scope, risk, permission, architecture, dependency, migration, production config, release, rollback, and approval changes require human decision.
+Codex may auto-fix only deterministic, low-risk findings inside the task boundary, for at most 2 rounds. It resolves technical scope, architecture, dependency, and test issues internally; unavailable business facts, protected project authority, and prepared real-world effects use their existing bounded decision paths.
 
 Check Review Loop semantics:
 

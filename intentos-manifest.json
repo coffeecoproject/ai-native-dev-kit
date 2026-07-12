@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.99.2",
+  "intentOSVersion": "1.99.3",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.99.2"
+    "phase": "1.99.3"
   },
   "groups": {
     "sourceRequired": [
@@ -401,6 +401,7 @@
       "docs/plans/product-adoption-trust-hardening-1.68.1-plan.md",
       "docs/plans/productization-hardcut-1.0-plan.md",
       "docs/plans/project-identity-projection-1.97-plan.md",
+      "docs/plans/review-execution-trust-closeout-1.99.3-plan.md",
       "docs/plans/project-memory-context-governance-1.4-plan.md",
       "docs/plans/public-entry-adoption-integration-1.81.2-plan.md",
       "docs/plans/real-project-adoption-trial-1.8-plan.md",
@@ -1803,6 +1804,9 @@
       "releases/1.99.2/known-limitations.md",
       "releases/1.99.2/release-record.md",
       "releases/1.99.2/self-check-report.md",
+      "releases/1.99.3/known-limitations.md",
+      "releases/1.99.3/release-record.md",
+      "releases/1.99.3/self-check-report.md",
       "requests/034-baseline-freeze-self-ci.md",
       "requests/035-readonly-manifest.md",
       "requests/036-cli-front-door.md",

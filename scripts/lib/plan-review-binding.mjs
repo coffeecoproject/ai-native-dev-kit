@@ -2,9 +2,12 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {
+  evidenceDigest,
+  extractMachineReadableEvidence,
   loadSchema,
   validateEvidenceBlock,
 } from "./artifact-schema.mjs";
+import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./evidence-authority.mjs";
 
 const readyStates = new Set(["PLAN_REVIEW_PASSED", "NO_PLAN_REQUIRED"]);
 
@@ -91,6 +94,10 @@ export function checkPlanReviewBinding({
   const planReviewEvidence = result.value;
   pass(`${label} referenced Plan Review schema and digest are valid`);
 
+  const sourceValidation = validatePlanReviewSourceEvidence(projectRoot, resolved, planReviewEvidence);
+  sourceValidation.errors.forEach((error) => fail(`${label} referenced Plan Review ${error}`));
+  if (sourceValidation.ok) pass(`${label} referenced Plan Review source chain resolves with current digests`);
+
   compare(label, "plan_review_digest", binding.plan_review_digest, planReviewEvidence.plan_review_digest, fail, pass);
   compare(label, "plan_review_state", binding.plan_review_state, planReviewEvidence.plan_review_state, fail, pass);
   compare(label, "plan_ref", binding.plan_ref, planReviewEvidence.plan_ref, fail, pass);
@@ -114,6 +121,51 @@ export function checkPlanReviewBinding({
   } else {
     fail(`${label} referenced Plan Review must not authorize implementation`);
   }
+}
+
+export function validatePlanReviewSourceEvidence(projectRoot, reportFile, evidence) {
+  const errors = [];
+  const check = (name, ref, digest, options = {}) => {
+    const value = String(ref || "").trim();
+    if (!value || value === "N/A" || value.startsWith("derived:")) {
+      if (options.required) errors.push(`${name} must resolve to a concrete project-local file`);
+      return;
+    }
+    const resolved = resolveAuthoritativeEvidenceReference(projectRoot, reportFile, value, { markdownOnly: true });
+    if (!resolved.ok) {
+      errors.push(`${name} ${value} is unsafe or unresolved: ${resolved.error}`);
+      return;
+    }
+    const acceptedDigests = new Set([canonicalFileDigest(resolved.file)]);
+    const sourceEvidence = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+    if (sourceEvidence?.ok && sourceEvidence.value && typeof sourceEvidence.value === "object") {
+      for (const field of ["plan_digest", "artifact_digest", "evidence_digest"]) {
+        const declaredDigest = sourceEvidence.value[field];
+        if (typeof declaredDigest !== "string") continue;
+        if (declaredDigest === evidenceDigest(sourceEvidence.value, [field])) acceptedDigests.add(declaredDigest);
+      }
+    }
+    if (!acceptedDigests.has(digest) && !options.allowStale) {
+      errors.push(`${name} digest ${digest || "<missing>"} does not match ${resolved.relativePath}`);
+    }
+  };
+
+  if (evidence.plan_ref !== "N/A") {
+    check("plan_ref", evidence.plan_ref, evidence.plan_digest, {
+      required: !["PLAN_REQUIRED", "PLAN_DRAFTED", "PLAN_REVIEW_REQUIRED"].includes(evidence.plan_review_state),
+      allowStale: evidence.plan_review_state === "BLOCKED_BY_STALE_PLAN",
+    });
+  }
+  check("task_governance.ref", evidence.task_governance?.ref, evidence.task_governance?.digest, {
+    required: ["HIGH", "POSSIBLE_HIGH"].includes(evidence.task_impact) || evidence.plan_review_state === "PLAN_REVIEW_PASSED",
+  });
+  check("review_surface_analysis.ref", evidence.review_surface_analysis?.ref, evidence.review_surface_analysis?.digest, {
+    required: evidence.plan_review_state === "PLAN_REVIEW_PASSED" && ["HIGH", "POSSIBLE_HIGH"].includes(evidence.task_impact),
+  });
+  for (const source of evidence.source_chain || []) {
+    check(`source_chain.${source.source_kind}`, source.source_ref, source.source_digest, { required: true });
+  }
+  return { ok: errors.length === 0, errors };
 }
 
 export function planReviewBindingSchema() {
@@ -164,18 +216,8 @@ export function planReviewBindingSchema() {
 }
 
 function resolveEvidenceReference(projectRoot, currentFile, value) {
-  const raw = String(value || "").replace(/^(artifact|file):/, "");
-  if (!raw || path.isAbsolute(raw) || raw.includes("..")) return "";
-  const candidates = [
-    path.resolve(projectRoot, raw),
-    currentFile ? path.resolve(path.dirname(currentFile), raw) : "",
-  ].filter(Boolean);
-  for (const candidate of candidates) {
-    const relative = path.relative(projectRoot, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) continue;
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate;
-  }
-  return "";
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, currentFile, value, { markdownOnly: true });
+  return resolved.ok ? resolved.file : "";
 }
 
 function compare(label, field, actual, expected, fail, pass) {
@@ -209,5 +251,5 @@ function normalizeReference(value) {
 }
 
 export function fileDigest(file) {
-  return `sha256:${crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
+  return canonicalFileDigest(file);
 }

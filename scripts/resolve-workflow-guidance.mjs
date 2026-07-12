@@ -272,7 +272,7 @@ function collectSignals(root, exists, pathSet, intent) {
     isEmptyish: exists && paths.filter((item) => !item.startsWith(".git/")).length <= 3,
     isIntentOS: has("intentos-manifest.json") && hasPrefix("core"),
     hasIntentOSAssets: hasPrefix(".intentos") || hasPrefix("workflow-adoption-maps") || hasPrefix("baseline-decision-cards"),
-    hasGovernance: has("AGENTS.md") || hasPrefix("docs") || hasPrefix(".github/workflows") || hasPrefix("scripts/guard"),
+    hasGovernance: ["AGENTS.md", "agent.md", ".agent.md"].some(has) || hasPrefix("docs") || hasPrefix(".github/workflows") || hasPrefix("scripts/guard"),
     hasDocs: hasPrefix("docs") || paths.some((item) => /\.md$/i.test(item)),
     hasWorkQueueSignals: hasPrefix("work-queue") || hasPrefix("active-work-threads") || hasPrefix("tasks"),
     hasHookOrCiSignals: hasPrefix(".github/workflows") || hasPrefix(".husky") || has(".pre-commit-config.yaml") || has(".pre-commit-config.yml"),

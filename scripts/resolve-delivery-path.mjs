@@ -116,7 +116,7 @@ function collectSignals(root, exists, pathSet, userIntent) {
     isEmptyish: exists && paths.filter((item) => !item.startsWith(".git/")).length <= 3,
     isIntentOS: has("intentos-manifest.json") && hasPrefix("core"),
     hasIntentOSAssets: hasPrefix(".intentos") || hasPrefix("workflow-guidance-cards") || hasPrefix("delivery-path-reports"),
-    hasGovernance: has("AGENTS.md") || hasPrefix("docs") || hasPrefix(".github/workflows") || hasPrefix("scripts/guard"),
+    hasGovernance: ["AGENTS.md", "agent.md", ".agent.md"].some(has) || hasPrefix("docs") || hasPrefix(".github/workflows") || hasPrefix("scripts/guard"),
     hasPackage: Boolean(packageJson),
     hasBuildScript: /\b(build|compile|typecheck)\b/i.test(scriptText),
     hasTestScript: /\b(test|e2e|check|lint)\b/i.test(scriptText),

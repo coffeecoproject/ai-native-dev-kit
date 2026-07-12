@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "./lib/args.mjs";
 import { sectionBody } from "./lib/markdown.mjs";
 import { buildStandardBaselineRecommendation } from "./resolve-standard-baseline.mjs";
@@ -16,6 +17,7 @@ const knownFlags = new Set(["report", "json", "strict", "compare-resolver"]);
 const results = [];
 let failed = false;
 let pending = false;
+const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 for (const key of Object.keys(args)) {
   if (key !== "_" && !knownFlags.has(key)) {
@@ -60,7 +62,7 @@ function registryRoot(root, registryName) {
   const candidates = [
     path.join(root, ".intentos", registryName),
     path.join(root, registryName),
-    path.resolve(process.cwd(), registryName),
+    ...(isInsideSourceCheckout(root) ? [path.join(kitRoot, registryName)] : []),
   ];
   return candidates.find((candidate) => fs.existsSync(path.join(candidate, "index.json"))) || candidates[0];
 }
@@ -74,8 +76,13 @@ function profileRoots(root) {
   return [
     path.join(root, ".intentos", "profiles"),
     path.join(root, "profiles"),
-    path.join(process.cwd(), "profiles"),
+    ...(isInsideSourceCheckout(root) ? [path.join(kitRoot, "profiles")] : []),
   ];
+}
+
+function isInsideSourceCheckout(root) {
+  const resolved = path.resolve(root);
+  return resolved === kitRoot || resolved.startsWith(`${kitRoot}${path.sep}`);
 }
 
 function loadProfileIds(root) {

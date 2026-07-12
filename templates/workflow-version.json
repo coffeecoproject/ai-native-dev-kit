@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.99.2",
+  "intentOSVersion": "1.99.3",
   "starter": "<starter-name>",
   "projectEntryOrigin": "<NEW_PROJECT|EXISTING_PROJECT|UNKNOWN_PROJECT_ORIGIN>",
   "initializedAt": "<ISO-8601 timestamp>",
@@ -641,6 +641,5 @@
     "work-queue-takeover-reports",
     "workflow-adoption-maps",
     "workflow-guidance-cards"
-  ],
-  "version": "1.99.0"
+  ]
 }

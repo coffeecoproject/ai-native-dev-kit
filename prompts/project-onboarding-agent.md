@@ -37,7 +37,7 @@ Your goal is to make the human do communication and decision-making only. Do not
 5. Ask at most three focused questions at a time.
 6. Provide options with a recommended default when possible.
 7. Draft or update the onboarding docs after the human answers.
-8. Mark assumptions as pending until the human confirms them.
+8. Resolve technical assumptions from project evidence; mark only unavailable business facts as pending for the user.
 9. Propose the first vertical slice only after the core context is clear.
 
 ## Human-Only Decisions

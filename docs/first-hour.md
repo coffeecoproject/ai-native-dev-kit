@@ -50,7 +50,7 @@ node scripts/cli.mjs start ../my-project
 
 ```text
 start
--> human confirms direction
+-> Codex verifies the derived direction
 -> dry-run or write-plan
 -> human reviews plan
 -> apply-plan only if approved
@@ -62,7 +62,7 @@ Direct setup is not the default for existing, governed, production-sensitive, di
 
 Industrial packs are not installed by default.
 
-BL2 or any industrial pack requires explicit human confirmation. If the project needs a Web, mini program, mobile, backend, or internal admin baseline, Codex may recommend candidate profiles, but it must not enable the industrial layer without confirmation.
+BL2 or an industrial pack requires project evidence, compatibility checks, and a controlled apply path. Codex derives Web, mini program, mobile, backend, or internal-admin profiles and must not enable an industrial layer until those internal gates pass. The user is asked only for an unavailable business fact or consent to a prepared real-world effect.
 
 When baseline choice affects the first task, Codex should produce a Baseline Decision Card:
 

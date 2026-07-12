@@ -10,6 +10,7 @@ import {
   classifyReviewContextAsset,
   evaluateCurrentConversationAuthority,
   loadReviewContextAuthority,
+  reviewContextBindingFromMarkdown,
   reviewContextBinding,
   validateReviewContextBinding,
 } from "../scripts/lib/review-context-authority.mjs";
@@ -18,10 +19,12 @@ const authority = loadReviewContextAuthority();
 
 test("current product contract overrides compatibility and historical material", () => {
   assert.equal(classifyReviewContextAsset("core/review-context-authority.md", authority), "CURRENT");
-  assert.equal(classifyReviewContextAsset("docs/plans/review-context-enforcement-1.99.2-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/review-execution-trust-closeout-1.99.3-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/review-context-enforcement-1.99.2-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-authority-1.99.1-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/zero-experience-solo-operating-model-1.99-plan.md", authority), "HISTORICAL");
-  assert.equal(classifyReviewContextAsset("releases/1.99.2/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.99.3/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.99.2/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.99.1/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.99.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("schemas/artifacts/approval-record.schema.json", authority), "COMPATIBILITY");
@@ -58,6 +61,20 @@ test("review inputs bind to the current context contract", () => {
   const missing = validateReviewContextBinding({}, authority);
   assert.equal(missing.ok, false);
   assert.equal(missing.legacy, true);
+});
+
+test("review context binding rejects duplicate and out-of-section fields", () => {
+  const binding = reviewContextBinding(authority);
+  const section = `## Current Review Context Binding\n\nContract ID: ${binding.contract_id}\nContext version: ${binding.context_version}\nContext digest: ${binding.context_digest}\n`;
+  assert.equal(validateReviewContextBinding(reviewContextBindingFromMarkdown(section), authority).ok, true);
+
+  const duplicate = reviewContextBindingFromMarkdown(`${section}\n${section}`);
+  assert.equal(validateReviewContextBinding(duplicate, authority).ok, false);
+  assert.equal(duplicate.section_count, 2);
+
+  const outside = reviewContextBindingFromMarkdown(`Context digest: ${binding.context_digest}\n\n${section}`);
+  assert.equal(validateReviewContextBinding(outside, authority).ok, false);
+  assert.deepEqual(outside.out_of_section_fields, ["Context digest"]);
 });
 
 test("review recommendations cannot reintroduce organization modes or technical user choices", () => {

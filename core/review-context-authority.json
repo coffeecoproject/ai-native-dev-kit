@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.99.2",
+  "schemaVersion": "1.99.3",
   "artifactType": "review_context_authority",
   "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
@@ -35,14 +35,18 @@
         "core/zero-experience-solo-operating-model.md",
         "core/review-context-authority.md",
         "core/review-context-authority.json",
+        "docs/README.md",
+        "docs/first-hour.md",
+        "docs/quickstart.md",
+        "docs/source-only-adoption.md",
         "docs/start-here.md",
         "docs/operating-model.md",
-        "docs/plans/review-context-enforcement-1.99.2-plan.md",
+        "docs/plans/review-execution-trust-closeout-1.99.3-plan.md",
         "prompts/reviewer-agent.md",
         "templates/gpt-review-prompt.md",
-        "releases/1.99.2/release-record.md",
-        "releases/1.99.2/known-limitations.md",
-        "releases/1.99.2/self-check-report.md"
+        "releases/1.99.3/release-record.md",
+        "releases/1.99.3/known-limitations.md",
+        "releases/1.99.3/self-check-report.md"
       ],
       "prefixes": [
         "scripts/",
@@ -84,6 +88,10 @@
   "activeGuidance": [
     { "source": "README.md" },
     { "source": "README.zh-CN.md" },
+    { "source": "docs/README.md" },
+    { "source": "docs/first-hour.md" },
+    { "source": "docs/quickstart.md" },
+    { "source": "docs/source-only-adoption.md" },
     { "source": "core/zero-experience-solo-operating-model.md", "installed": ".intentos/core/zero-experience-solo-operating-model.md" },
     { "source": "core/review-context-authority.md", "installed": ".intentos/core/review-context-authority.md" },
     { "source": "docs/start-here.md" },
@@ -92,9 +100,24 @@
     { "source": "templates/gpt-review-prompt.md", "installed": ".intentos/templates/gpt-review-prompt.md" },
     { "source": "platforms/codex/AGENTS.template.md", "installed": "AGENTS.md" },
     { "source": "starters/generic-project/AGENTS.md" },
+    { "source": "starters/generic-project/README.md" },
+    { "source": "starters/generic-project/docs/engineering-baseline.md" },
     { "source": "starters/codex-web-app/AGENTS.md" },
+    { "source": "starters/codex-web-app/README.md" },
+    { "source": "starters/codex-web-app/docs/engineering-baseline.md" },
     { "source": "starters/codex-ios-app/AGENTS.md" },
-    { "source": "starters/codex-android-app/AGENTS.md" }
+    { "source": "starters/codex-ios-app/README.md" },
+    { "source": "starters/codex-ios-app/docs/engineering-baseline.md" },
+    { "source": "starters/codex-android-app/AGENTS.md" },
+    { "source": "starters/codex-android-app/README.md" },
+    { "source": "starters/codex-android-app/docs/engineering-baseline.md" }
+  ],
+  "activeGuidanceFamilies": [
+    {
+      "sourcePrefix": "prompts",
+      "installedPrefix": ".intentos/prompts",
+      "extension": ".md"
+    }
   ],
   "reviewBinding": {
     "artifactTypes": ["review_packet", "gpt_review_prompt"],

@@ -22,7 +22,7 @@
 | Field | Value |
 | --- | --- |
 | Task Governance ref | artifact:task-governance-reports/generated.md |
-| Task Governance digest | sha256:7bcf98ac73191d2dcbc86aecbd4b22b9c8a0a29b60449e6c447f9cde5bdf31aa |
+| Task Governance digest | sha256:a6cc71ce2ced411e17eac953bf7ebfc5526d0a21d375437f5ddb41e68a9a4524 |
 | Task impact | MEDIUM |
 | Plan review required | Yes |
 | Current task match | Yes |
@@ -120,7 +120,7 @@
   "schema_version": "1.88.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/001-medium-ui.md",
-  "plan_review_digest": "sha256:b497b91e0319db30a6d55f5214cfd18e6b306e6b75f43f642864a3f1cf30a869",
+  "plan_review_digest": "sha256:175b2b295b72ead7f96d06a85806c56930fb6b3ed90d3c742b655bf66a8a5ab0",
   "task_ref": "task:update-appointment-list-ui-label",
   "work_queue_item_ref": "N/A",
   "work_queue_item_digest": "N/A",
@@ -134,7 +134,7 @@
   },
   "task_governance": {
     "ref": "artifact:task-governance-reports/generated.md",
-    "digest": "sha256:7bcf98ac73191d2dcbc86aecbd4b22b9c8a0a29b60449e6c447f9cde5bdf31aa",
+    "digest": "sha256:a6cc71ce2ced411e17eac953bf7ebfc5526d0a21d375437f5ddb41e68a9a4524",
     "task_ref": "task:update-appointment-list-ui-label",
     "task_impact": "MEDIUM",
     "plan_review_required": "Yes",

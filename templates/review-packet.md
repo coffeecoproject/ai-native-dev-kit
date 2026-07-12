@@ -8,12 +8,24 @@ This packet does not approve the change. It packages context, evidence, known ri
 
 Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
 
-Context version: `1.99.2`
+Context version: `1.99.3`
 
-Context digest: `sha256:b700a4e099c1bbf9dce89569e5d2db4536387895a637a397e8e478a9f747844f`
+Context digest: `sha256:38243afe850adc3c312fa060ae8f682ce7aa02d82491d0322cb849e46c0c00c3`
 
 This binding identifies the product-direction contract used to prepare this
 review input. It is not implementation, apply, release, or production approval.
+
+## Review Input Identity
+
+Lifecycle: CURRENT_IMPLEMENTATION / HISTORICAL_AUDIT
+
+Project fingerprint:
+
+Project revision:
+
+Task ref:
+
+Task digest:
 
 ## Packet Status
 

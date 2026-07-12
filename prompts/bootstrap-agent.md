@@ -62,7 +62,7 @@ Execution intent does not override governed-project protection.
 
 Before writing workflow assets, run or emulate `scripts/workflow-next.mjs <project-root>` and check `ADOPTION_MODE`, `NEXT_ACTION`, `PROJECT_STATE_TAGS`, and governance signals.
 
-If the project appears governed, production-sensitive, or dirty, Codex must treat setup as read-only until the human approves adapter setup. Signals include:
+If the project appears governed, production-sensitive, or dirty, Codex must begin read-only and derive a bounded reconciliation/apply path before writes. Signals include:
 
 - existing agent rules such as `AGENTS.md`, `agent.md`, `.agent.md`, `.codex/`, `.cursor/`, or `.claude/`
 - existing CI workflows, PR templates, guard scripts, check scripts, or verify scripts
@@ -80,7 +80,7 @@ If `workflow-next` returns `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT` or `ADOPTION_M
 6. Do not modify project docs, business code, production config, secrets, database migrations, deployment settings, or CI workflows.
 7. Produce a read-only adoption assessment using `templates/adoption-assessment.md`.
 8. Produce or describe an existing governance map using `templates/existing-governance-map.md`.
-9. Ask for human confirmation before any adapter setup or file writes.
+9. Continue through internal reconciliation and controlled-apply gates for reversible technical setup. Ask the user only when an unavailable business fact, protected project authority, or a prepared real-world effect requires bounded consent.
 
 For governed existing projects, the goal is not to initialize a parallel workflow. The goal is to map IntentOS concepts to existing governance, identify gaps, and wait for human approval.
 

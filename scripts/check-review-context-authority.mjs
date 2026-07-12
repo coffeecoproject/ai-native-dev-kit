@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  activeGuidancePaths,
   analyzeActiveGuidanceConflicts,
   analyzeReviewRecommendation,
   classifyReviewContextAsset,
@@ -15,7 +16,9 @@ import {
   validateReviewContextBinding,
 } from "./lib/review-context-authority.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const rootArg = process.argv.slice(2).find((arg) => !arg.startsWith("--"));
+const root = path.resolve(rootArg || sourceRoot);
 const installedLayout = fs.existsSync(path.join(root, ".intentos", "core", "review-context-authority.json"));
 let failed = false;
 
@@ -30,6 +33,18 @@ function fail(message) {
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8");
+}
+
+function isSafeRegularFile(relativePath) {
+  const absolute = path.resolve(root, relativePath);
+  const relative = path.relative(root, absolute);
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) return false;
+  let cursor = absolute;
+  while (cursor !== root) {
+    if (fs.lstatSync(cursor).isSymbolicLink()) return false;
+    cursor = path.dirname(cursor);
+  }
+  return fs.lstatSync(absolute).isFile();
 }
 
 function workflowPath(relativePath) {
@@ -59,10 +74,12 @@ check(JSON.stringify(authority.precedence) === JSON.stringify([
 const classificationCases = [
   ["core/review-context-authority.md", "CURRENT"],
   ["prompts/reviewer-agent.md", "CURRENT"],
-  ["releases/1.99.2/release-record.md", "CURRENT"],
+  ["releases/1.99.3/release-record.md", "CURRENT"],
+  ["releases/1.99.2/release-record.md", "HISTORICAL"],
   ["releases/1.99.1/release-record.md", "HISTORICAL"],
   ["releases/1.80.0/release-record.md", "HISTORICAL"],
-  ["docs/plans/review-context-enforcement-1.99.2-plan.md", "CURRENT"],
+  ["docs/plans/review-execution-trust-closeout-1.99.3-plan.md", "CURRENT"],
+  ["docs/plans/review-context-enforcement-1.99.2-plan.md", "HISTORICAL"],
   ["docs/plans/review-context-authority-1.99.1-plan.md", "HISTORICAL"],
   ["docs/plans/release-evidence-gate-1.80-plan.md", "HISTORICAL"],
   ["schemas/artifacts/approval-record.schema.json", "COMPATIBILITY"],
@@ -77,15 +94,22 @@ check(
   "unregistered current runtime prompt has no product-direction authority",
 );
 
-for (const row of authority.activeGuidance || []) {
-  const file = installedLayout ? row.installed : row.source;
-  if (!file) continue;
+for (const file of activeGuidancePaths(authority, installedLayout, root)) {
   if (!fs.existsSync(path.join(root, file))) {
     fail(`active guidance path is missing: ${file}`);
     continue;
   }
+  if (!isSafeRegularFile(file)) {
+    fail(`active guidance path must be a project-local regular file without symlinks: ${file}`);
+    continue;
+  }
   const content = read(file);
-  const classification = classifyReviewContextAsset(row.source, authority, { content, productDirection: true });
+  const classification = classifyReviewContextAsset(file, authority, {
+    content,
+    productDirection: true,
+    root,
+    installedLayout,
+  });
   check(classification === "CURRENT", `${file} is registered, current, and non-conflicting`, `${file} active guidance classification is ${classification}`);
 }
 
@@ -175,8 +199,10 @@ if (!installedLayout) {
     check(starterAgent.includes("review-context-authority"), `${starter} points review to current context authority`);
   }
 } else {
-  const agent = read("AGENTS.md");
-  check(agent.includes("Zero-Experience Solo Developer"), "installed project Agent preserves solo operating context");
+  const agentPath = ["AGENTS.md", "agent.md", ".agent.md"].find((candidate) => fs.existsSync(path.join(root, candidate)));
+  check(Boolean(agentPath), "installed project has a supported collaboration entry");
+  const agent = agentPath ? read(agentPath) : "";
+  check(agent.includes("Zero-Experience Solo Developer") || agent.includes("ZERO_EXPERIENCE_SOLO_DEVELOPER"), "installed project Agent preserves solo operating context");
   check(agent.includes("review-context-authority"), "installed project Agent points review to current context authority");
   check(fs.existsSync(path.join(root, ".intentos", "core", "review-context-authority.md")), "installed project contains review context contract");
 }

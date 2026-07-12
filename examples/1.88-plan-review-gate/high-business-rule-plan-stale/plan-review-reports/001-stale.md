@@ -22,7 +22,7 @@
 | Field | Value |
 | --- | --- |
 | Task Governance ref | artifact:task-governance-reports/generated.md |
-| Task Governance digest | sha256:4355f66a27f2e6381efada67f40ab63acea4e11eb2b3947dd13dfe23bea80ee3 |
+| Task Governance digest | sha256:404e3b4191b8cd438a4451f1044148f5d744ace00c9bdc7b9049b041f0139eee |
 | Task impact | POSSIBLE_HIGH |
 | Plan review required | Yes |
 | Current task match | Yes |
@@ -120,7 +120,7 @@
   "schema_version": "1.88.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/001-stale.md",
-  "plan_review_digest": "sha256:f131fd62892227ce91821947ee37fdef840b62c0aed69260b07388677cab827d",
+  "plan_review_digest": "sha256:adfb69e93a10d1193a9ef319cd9682b344284ab505bc378cc82b313053d09c9f",
   "task_ref": "task:change-business-approval-rule",
   "work_queue_item_ref": "N/A",
   "work_queue_item_digest": "N/A",
@@ -134,7 +134,7 @@
   },
   "task_governance": {
     "ref": "artifact:task-governance-reports/generated.md",
-    "digest": "sha256:4355f66a27f2e6381efada67f40ab63acea4e11eb2b3947dd13dfe23bea80ee3",
+    "digest": "sha256:404e3b4191b8cd438a4451f1044148f5d744ace00c9bdc7b9049b041f0139eee",
     "task_ref": "task:change-business-approval-rule",
     "task_impact": "POSSIBLE_HIGH",
     "plan_review_required": "Yes",

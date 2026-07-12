@@ -116,7 +116,7 @@ What I need from you: Explicit approval or rejection of A-001.
   "plan_review_binding": {
     "required": "Yes",
     "plan_review_ref": "artifact:plan-review-reports/001-passed.md",
-    "plan_review_digest": "sha256:08542282f8b469098eae3c818c56f8cd6a09fa17307b55a5cd4f839514ab692f",
+    "plan_review_digest": "sha256:3e1dc6a2b1c0dfad72574ebab045bfd0aa8ffabb4c859f17c48fad9ea771af03",
     "plan_review_state": "PLAN_REVIEW_PASSED",
     "plan_ref": "apply-plans/001-structured-workflow-assets.md",
     "plan_digest": "sha256:30367640e8ad8a78b31135c99636042f2de697212e3123fb9687d24622658e96",

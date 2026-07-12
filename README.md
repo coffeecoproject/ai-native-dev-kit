@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.99.2`.
+Current release: `1.99.3`.
 
-Release record: [releases/1.99.2/release-record.md](releases/1.99.2/release-record.md).
+Release record: [releases/1.99.3/release-record.md](releases/1.99.3/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,12 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.99.3 closes the current review and execution trust chain: review inputs are
+bound to the current task and project, Plan Review sources must resolve with
+current digests, downstream completion/apply/release checks retain strict
+requirements, installed projects use installed authority, and starter
+verification fails when no real verification path can run.
 
 1.99.2 makes that authority fail closed for unknown semantic sources, rejects
 directly conflicting active guidance, and binds newly generated Review Packets

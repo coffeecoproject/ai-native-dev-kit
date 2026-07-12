@@ -39,6 +39,53 @@ test("strict evidence checks cannot be weakened by --allow-empty", () => {
   }
 });
 
+test("execution closure rejects arbitrary PASS prose without a passing Review Loop status", () => {
+  const root = tempRoot("intentos-1993-closure-review-");
+  fs.mkdirSync(path.join(root, "review-surface-cards"));
+  fs.mkdirSync(path.join(root, "review-loop-reports"));
+  fs.mkdirSync(path.join(root, "change-boundary-reports"));
+  fs.mkdirSync(path.join(root, "debt-handoff-reports"));
+  fs.writeFileSync(path.join(root, "review-surface-cards/001.md"), [
+    "# Review Surface Card",
+    "",
+    "## Selected Review Surfaces",
+    "",
+    "| Surface | Reason |",
+    "|---|---|",
+    "| `FUNCTIONAL_REVIEW` | behavior changed |",
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(root, "review-loop-reports/001.md"), [
+    "# Review Loop Report",
+    "",
+    "The author wrote PASS in ordinary prose, but this is not closure evidence.",
+    "",
+    "## Status",
+    "",
+    "| Field | Value |",
+    "|---|---|",
+    "| Final status | OPEN |",
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(root, "change-boundary-reports/001.md"), "# Change Boundary\n\nDisposition: `PASS`\n");
+  fs.writeFileSync(path.join(root, "debt-handoff-reports/001.md"), "# Debt Handoff\n\n| Debt result | deferred |\n");
+
+  const result = run("scripts/resolve-execution-closure.mjs", [
+    root,
+    "--intent", "change booking behavior",
+    "--verification", "tests passed",
+    "--review-surface-ref", "review-surface-cards/001.md",
+    "--review-loop-ref", "review-loop-reports/001.md",
+    "--change-boundary-ref", "change-boundary-reports/001.md",
+    "--debt-handoff-ref", "debt-handoff-reports/001.md",
+    "--json",
+  ]);
+  assert.equal(result.status, 0, combined(result));
+  const report = JSON.parse(result.stdout);
+  assert.notEqual(report.commitReadiness.closureState, "READY_FOR_COMMIT_REVIEW");
+  assert.equal(report.reviewSurfaceClosure.find((item) => item.surface === "FUNCTIONAL_REVIEW")?.result, "not verified");
+});
+
 test("installed artifact schema replacement fails trusted loading", async () => {
   const root = tempRoot("intentos-198-schema-");
   for (const relative of [
@@ -261,6 +308,27 @@ test("strict baseline selection fails closed when no report exists", () => {
   const root = tempRoot("intentos-198-baseline-empty-");
   assert.notEqual(run("scripts/check-baseline-pack-selection.mjs", [root, "--strict"]).status, 0);
   assert.notEqual(run("scripts/check-standard-baseline-selection.mjs", [root, "--strict"]).status, 0);
+});
+
+test("strict target baseline checks do not borrow source registries", () => {
+  const root = tempRoot("intentos-1993-baseline-isolation-");
+  const fixture = path.join(kitRoot, "examples/1.14-standard-baseline-registry");
+  fs.cpSync(path.join(fixture, "docs"), path.join(root, "docs"), { recursive: true });
+  fs.cpSync(path.join(fixture, "standard-baseline-selections"), path.join(root, "standard-baseline-selections"), { recursive: true });
+  const result = run("scripts/check-standard-baseline-selection.mjs", [root, "--strict"]);
+  assert.notEqual(result.status, 0, combined(result));
+  assert.match(combined(result), /unknown standard pack|installed registry|pack.*not found/i);
+});
+
+test("starter verification fails when no project verification path exists", () => {
+  for (const starter of ["generic-project", "codex-web-app", "codex-ios-app", "codex-android-app"]) {
+    const root = tempRoot(`intentos-1993-${starter}-verify-`);
+    const result = spawnSync("bash", [path.join(kitRoot, "starters", starter, "scripts", "verify.sh")], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    assert.notEqual(result.status, 0, `${starter} unexpectedly accepted an empty project`);
+  }
 });
 
 test("existing agent.md remains the project authority during planning", () => {

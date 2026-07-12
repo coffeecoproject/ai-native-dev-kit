@@ -46,9 +46,30 @@ export function manifestPathForRoot(root = kitRoot, manifestPath = null) {
   if (manifestPath) {
     return path.isAbsolute(manifestPath) ? manifestPath : path.join(root, manifestPath);
   }
+  const installedManifest = path.join(root, ".intentos", "intentos-manifest.json");
+  if (fs.existsSync(installedManifest)) return installedManifest;
+
   const sourceManifest = path.join(root, "intentos-manifest.json");
-  if (fs.existsSync(sourceManifest)) return sourceManifest;
-  return path.join(root, ".intentos", "intentos-manifest.json");
+  if (isIntentOSSourceCheckout(root, sourceManifest)) return sourceManifest;
+  return installedManifest;
+}
+
+function isIntentOSSourceCheckout(root, sourceManifest) {
+  if (!fs.existsSync(sourceManifest)
+    || !fs.existsSync(path.join(root, "VERSION.md"))
+    || !fs.existsSync(path.join(root, "package.json"))) {
+    return false;
+  }
+
+  try {
+    const manifest = readJsonFile(sourceManifest);
+    const packageJson = readJsonFile(path.join(root, "package.json"));
+    return manifest.mode === "authoritative"
+      && manifest.compatibilityPolicy?.authoritative === true
+      && packageJson.name === "intentos";
+  } catch {
+    return false;
+  }
 }
 
 export function loadManifest(root = kitRoot, manifestPath = null) {

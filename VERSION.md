@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.99.2`
+Current version: `1.99.3`
 
 ## Versioning Policy
 
@@ -10,9 +10,16 @@ Current version: `1.99.2`
 
 ## Current Release
 
-`1.99.2`
+`1.99.3`
 
 Includes:
+
+- Review And Execution Trust Close-Out `1.99.3`: binds current Review Packets,
+  GPT prompts, Plan Review sources, downstream completion/apply/release
+  consumers, and installed authority to the same project-local evidence chain.
+- `1.99.3` also makes starter verification fail closed, prevents target checks
+  from borrowing source registries, supports existing agent entry names, and
+  keeps technical choices inside IntentOS for one zero-experience developer.
 
 - Review Context Enforcement `1.99.2`: unclassified semantic sources no longer
   inherit current product authority, and registered public/reviewer/Agent

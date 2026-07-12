@@ -589,7 +589,7 @@ const coreRequiredPaths = [
 
 const requiredPaths = targetRequiredPaths(projectRoot, workflowMode, {
   fallback: workflowMode === "core" ? coreRequiredPaths : fullRequiredPaths,
-});
+}).filter((relativePath) => relativePath !== "AGENTS.md");
 
 const requiredAgentSections = [
   "Mission",
@@ -704,14 +704,19 @@ for (const rel of requiredPaths) {
   }
 }
 
-const agentsPath = path.join(projectRoot, "AGENTS.md");
-if (fs.existsSync(agentsPath)) {
+const agentEntry = ["AGENTS.md", "agent.md", ".agent.md"]
+  .find((relativePath) => fs.existsSync(path.join(projectRoot, relativePath)));
+if (!agentEntry) {
+  fail("missing AGENTS.md, agent.md, or .agent.md collaboration entry");
+} else {
+  pass(`collaboration entry ${agentEntry}`);
+  const agentsPath = path.join(projectRoot, agentEntry);
   const content = fs.readFileSync(agentsPath, "utf8");
   for (const section of requiredAgentSections) {
     if (content.includes(section)) {
-      pass(`AGENTS.md contains ${section}`);
+      pass(`${agentEntry} contains ${section}`);
     } else {
-      fail(`AGENTS.md missing section: ${section}`);
+      fail(`${agentEntry} missing section: ${section}`);
     }
   }
 }

@@ -25,5 +25,5 @@ if [ -f package.json ]; then
   fi
 else
   echo "No package.json found. Update scripts/verify.sh for this project stack."
+  exit 1
 fi
-

@@ -8,18 +8,30 @@ Do not include secrets, credentials, production tokens, or sensitive runtime dat
 
 Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
 
-Context version: `1.99.2`
+Context version: `1.99.3`
 
-Context digest: `sha256:b700a4e099c1bbf9dce89569e5d2db4536387895a637a397e8e478a9f747844f`
+Context digest: `sha256:38243afe850adc3c312fa060ae8f682ce7aa02d82491d0322cb849e46c0c00c3`
 
 The Review Packet must carry the same binding. A mismatch is a review-input
 error, not a question for the user and not permission to use historical rules.
+
+## Review Input Identity
+
+Lifecycle: CURRENT_IMPLEMENTATION / HISTORICAL_AUDIT
+
+Project fingerprint:
+
+Project revision:
+
+Task ref:
+
+Task digest:
 
 ## Prompt
 
 You are a read-only reviewer.
 
-Current IntentOS review context: `1.99.2`.
+Current IntentOS review context: `1.99.3`.
 
 - Default operating model: `ZERO_EXPERIENCE_SOLO_DEVELOPER`.
 - The default user is one zero-experience solo developer.
@@ -74,7 +86,7 @@ Output only this structure:
 
 ```text
 Current Review Context:
-- Version: 1.99.2
+- Version: 1.99.3
 - Operating model: ZERO_EXPERIENCE_SOLO_DEVELOPER
 
 Review Summary:

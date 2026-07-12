@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { loadManifest, manifestPathForRoot } from "../scripts/lib/manifest.mjs";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const kitRoot = path.resolve(testDir, "..");
@@ -63,6 +64,36 @@ test("current manifest passes strict authority checks", () => {
   assert.equal(result.status, 0, checkerOutput(result));
   assert.match(result.stdout, /strict artifact schema validation/);
   assert.match(result.stdout, /copy rule targets are unique and ancestor-normalized/);
+});
+
+test("installed managed manifest overrides a stale root manifest", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-installed-manifest-"));
+  try {
+    fs.mkdirSync(path.join(root, ".intentos"), { recursive: true });
+    fs.writeFileSync(path.join(root, "intentos-manifest.json"), JSON.stringify({ intentOSVersion: "0.0.1" }));
+    fs.writeFileSync(path.join(root, ".intentos", "intentos-manifest.json"), JSON.stringify({ intentOSVersion: "9.9.9", mode: "installed" }));
+    assert.equal(manifestPathForRoot(root), path.join(root, ".intentos", "intentos-manifest.json"));
+    assert.equal(loadManifest(root).intentOSVersion, "9.9.9");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("an arbitrary project root manifest is not source authority", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-shadow-manifest-"));
+  try {
+    fs.writeFileSync(path.join(root, "VERSION.md"), "Current version: `9.9.9`\n");
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "business-project" }));
+    fs.writeFileSync(path.join(root, "intentos-manifest.json"), JSON.stringify({
+      mode: "authoritative",
+      compatibilityPolicy: { authoritative: true },
+      intentOSVersion: "9.9.9",
+    }));
+    assert.equal(manifestPathForRoot(root), path.join(root, ".intentos", "intentos-manifest.json"));
+    assert.throws(() => loadManifest(root), /ENOENT/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("strict schema rejects unknown fields at every manifest layer", async (t) => {

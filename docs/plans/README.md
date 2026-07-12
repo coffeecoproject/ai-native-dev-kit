@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [IntentOS 1.99.3 Review And Execution Trust Close-Out](review-execution-trust-closeout-1.99.3-plan.md)
 - [IntentOS 1.97 Project Identity Projection](project-identity-projection-1.97-plan.md)
 - [IntentOS 1.96 Operating Decision Contract](operating-decision-contract-1.96-plan.md)
 - [IntentOS 1.95 Operating Model Consolidation](operating-model-consolidation-1.95-plan.md)

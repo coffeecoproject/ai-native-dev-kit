@@ -22,7 +22,7 @@
 | Field | Value |
 | --- | --- |
 | Task Governance ref | artifact:task-governance-reports/generated.md |
-| Task Governance digest | sha256:ccd19cc99c3962633399b1ee8dbf2da15ae1c07f6f7125f921a2f70abb4aecac |
+| Task Governance digest | sha256:51fdc1b74962d2afc1427847e943ed060036db50e0760451984663a9a306ed24 |
 | Task impact | LOW |
 | Plan review required | No |
 | Current task match | Yes |
@@ -118,7 +118,7 @@
   "schema_version": "1.88.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/001-low-skip.md",
-  "plan_review_digest": "sha256:0ffa64c33855982e377af568bfd2db1ea94d184d171af3841421dd1ac41717d8",
+  "plan_review_digest": "sha256:58d9f3d7db32cdf3ad78df3102af841496d4f5a2ebb8b75b0110e8b794712b09",
   "task_ref": "task:update-readme-copy",
   "work_queue_item_ref": "N/A",
   "work_queue_item_digest": "N/A",
@@ -132,7 +132,7 @@
   },
   "task_governance": {
     "ref": "artifact:task-governance-reports/generated.md",
-    "digest": "sha256:ccd19cc99c3962633399b1ee8dbf2da15ae1c07f6f7125f921a2f70abb4aecac",
+    "digest": "sha256:51fdc1b74962d2afc1427847e943ed060036db50e0760451984663a9a306ed24",
     "task_ref": "task:update-readme-copy",
     "task_impact": "LOW",
     "plan_review_required": "No",

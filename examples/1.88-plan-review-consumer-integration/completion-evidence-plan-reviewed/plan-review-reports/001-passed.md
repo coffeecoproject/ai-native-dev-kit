@@ -22,7 +22,7 @@
 | Field | Value |
 | --- | --- |
 | Task Governance ref | artifact:task-governance-reports/generated.md |
-| Task Governance digest | sha256:fed85532ebb425a2ce4cbd438995cd85019e914cb8a49bc55d583a9d7db359c6 |
+| Task Governance digest | sha256:edf1d4633d2ac9cd0614dff8b13ce9337f5a8d4f7dacef89d0a7d40470b97dc1 |
 | Task impact | HIGH |
 | Plan review required | Yes |
 | Current task match | Yes |
@@ -32,7 +32,7 @@
 | Field | Value |
 | --- | --- |
 | Review surface ref | artifact:review-surface-cards/generated.md |
-| Review surface digest | sha256:7bbc389b1f90fe5ff320462765e2d11b2e725695141e55b8fac54bf417b5afc1 |
+| Review surface digest | sha256:c8357f92e2b0c299d24d2e0bb79942743b0119eb9623cecb4c0feb896ca4279f |
 | Source | review_surface_card |
 | Derived by Plan Review | No |
 | Current task match | Yes |
@@ -53,11 +53,11 @@
 
 | Source kind | Ref | Digest | State | Current task match | Project-native equivalent | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| task_governance | artifact:task_governance/generated.md | sha256:32c1b15b84beb97dbb7ebfd0f44f5be4b5165c7b6d0ea42275770e24f15b5fea | READY | Yes | Yes | codex |
-| review_surface_card | artifact:review_surface_card/generated.md | sha256:5bdce5151bc37faa6aeadaffe12d62e79d34d05bf459889bab224fcd3efde31b | READY | Yes | No | codex |
-| verification_plan | artifact:verification_plan/generated.md | sha256:316cc5d3b83a6d8b019e362f83efcee97d7894b68a7b1b7f9b1caa4a544558d0 | READY | Yes | No | codex |
-| business_rule_closure | artifact:business_rule_closure/generated.md | sha256:f542681857a9e6c8fc6f6c2883726385ef06f47392bc3256c7a395339ab47443 | READY | Yes | No | domain-owner |
-| change_impact_coverage | artifact:change_impact_coverage/generated.md | sha256:2bc4cc6ff5be3f89c37a311538f8c3dcbd81d51822185a40b507d3e93ef42508 | READY | Yes | No | codex |
+| task_governance | artifact:task_governance/generated.md | sha256:b6e9765fb99582bd1a8ad78baf3c939ddd59a72fbbb7dde2af9f6c60910c999a | READY | Yes | Yes | codex |
+| review_surface_card | artifact:review_surface_card/generated.md | sha256:17db363b5e050911d12c5a6010da7bc908119b4e56cf8476502f7b2fb3d99f22 | READY | Yes | No | codex |
+| verification_plan | artifact:verification_plan/generated.md | sha256:ab2f688dbefa3848e4433f4fdd3d5464560cf479ce8344bc971d12440bbeb87e | READY | Yes | No | codex |
+| business_rule_closure | artifact:business_rule_closure/generated.md | sha256:69bcd50544c479a92ae7a799df4bd6d088123fa0fab82056a33c9c823501e3ef | READY | Yes | No | internal-domain |
+| change_impact_coverage | artifact:change_impact_coverage/generated.md | sha256:026be7facbd8d7ab2a498fb002604e9e23686cbdc69d93585c4892d9b3c1f459 | READY | Yes | No | codex |
 
 ## Reviewed Surfaces
 
@@ -130,13 +130,13 @@
   "schema_version": "1.88.0",
   "artifact_type": "plan_review",
   "plan_review_ref": "plan-review-reports/001-passed.md",
-  "plan_review_digest": "sha256:76d735f37318f81b76e018fc36ec179ed5cc6c74356f6ba6097c08b8e015e01c",
+  "plan_review_digest": "sha256:42828e183497674a620df9f84f761ebc42f4315e50d299b8d89cafe2b7df664e",
   "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
   "work_queue_item_ref": "N/A",
   "work_queue_item_digest": "N/A",
   "review_surface_analysis": {
     "ref": "artifact:review-surface-cards/generated.md",
-    "digest": "sha256:7bbc389b1f90fe5ff320462765e2d11b2e725695141e55b8fac54bf417b5afc1",
+    "digest": "sha256:c8357f92e2b0c299d24d2e0bb79942743b0119eb9623cecb4c0feb896ca4279f",
     "source": "review_surface_card",
     "derived_by_plan_review": "No",
     "current_task_match": "Yes",
@@ -144,7 +144,7 @@
   },
   "task_governance": {
     "ref": "artifact:task-governance-reports/generated.md",
-    "digest": "sha256:fed85532ebb425a2ce4cbd438995cd85019e914cb8a49bc55d583a9d7db359c6",
+    "digest": "sha256:edf1d4633d2ac9cd0614dff8b13ce9337f5a8d4f7dacef89d0a7d40470b97dc1",
     "task_ref": "tasks/001-appointment-requests-must-include-a-service-time.md",
     "task_impact": "HIGH",
     "plan_review_required": "Yes",
@@ -154,7 +154,7 @@
     {
       "source_kind": "task_governance",
       "source_ref": "artifact:task_governance/generated.md",
-      "source_digest": "sha256:32c1b15b84beb97dbb7ebfd0f44f5be4b5165c7b6d0ea42275770e24f15b5fea",
+      "source_digest": "sha256:b6e9765fb99582bd1a8ad78baf3c939ddd59a72fbbb7dde2af9f6c60910c999a",
       "source_state": "READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "Yes",
@@ -164,7 +164,7 @@
     {
       "source_kind": "review_surface_card",
       "source_ref": "artifact:review_surface_card/generated.md",
-      "source_digest": "sha256:5bdce5151bc37faa6aeadaffe12d62e79d34d05bf459889bab224fcd3efde31b",
+      "source_digest": "sha256:17db363b5e050911d12c5a6010da7bc908119b4e56cf8476502f7b2fb3d99f22",
       "source_state": "READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -174,7 +174,7 @@
     {
       "source_kind": "verification_plan",
       "source_ref": "artifact:verification_plan/generated.md",
-      "source_digest": "sha256:316cc5d3b83a6d8b019e362f83efcee97d7894b68a7b1b7f9b1caa4a544558d0",
+      "source_digest": "sha256:ab2f688dbefa3848e4433f4fdd3d5464560cf479ce8344bc971d12440bbeb87e",
       "source_state": "READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
@@ -184,17 +184,17 @@
     {
       "source_kind": "business_rule_closure",
       "source_ref": "artifact:business_rule_closure/generated.md",
-      "source_digest": "sha256:f542681857a9e6c8fc6f6c2883726385ef06f47392bc3256c7a395339ab47443",
+      "source_digest": "sha256:69bcd50544c479a92ae7a799df4bd6d088123fa0fab82056a33c9c823501e3ef",
       "source_state": "READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",
-      "owner": "domain-owner",
+      "owner": "internal-domain",
       "contradicts_plan": "No"
     },
     {
       "source_kind": "change_impact_coverage",
       "source_ref": "artifact:change_impact_coverage/generated.md",
-      "source_digest": "sha256:2bc4cc6ff5be3f89c37a311538f8c3dcbd81d51822185a40b507d3e93ef42508",
+      "source_digest": "sha256:026be7facbd8d7ab2a498fb002604e9e23686cbdc69d93585c4892d9b3c1f459",
       "source_state": "READY",
       "current_task_match": "Yes",
       "project_native_equivalent": "No",

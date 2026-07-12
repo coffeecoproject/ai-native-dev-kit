@@ -339,7 +339,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "plan_review_binding": {
     "required": "Yes",
     "plan_review_ref": "artifact:plan-review-reports/001-passed.md",
-    "plan_review_digest": "sha256:76d735f37318f81b76e018fc36ec179ed5cc6c74356f6ba6097c08b8e015e01c",
+    "plan_review_digest": "sha256:42828e183497674a620df9f84f761ebc42f4315e50d299b8d89cafe2b7df664e",
     "plan_review_state": "PLAN_REVIEW_PASSED",
     "plan_ref": "docs/example-plan.md",
     "plan_digest": "sha256:92fbfc7e505af46ce750614be97656d0910c5a2632b5ac2c07bf0e986c7f8b28",

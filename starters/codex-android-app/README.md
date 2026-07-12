@@ -14,13 +14,13 @@ Request -> Preflight -> Spec -> Eval -> Task -> Execute -> Verify -> Review -> R
 
 1. Run project onboarding with `.intentos/prompts/project-onboarding-agent.md`.
 2. Let AI draft onboarding docs from conversation.
-3. Human confirms project direction, stack decisions, risk boundaries, first slice, and Android build assumptions.
+3. Codex derives the Android stack, baseline, risk controls, first slice, and build assumptions from the goal and project evidence.
 4. Run `node scripts/check-project-onboarding.mjs .`.
 5. Run `node scripts/check-engineering-baseline.mjs .` before structural engineering decisions.
-6. Run `node scripts/check-project-onboarding.mjs . --strict` after decisions are confirmed.
+6. Run `node scripts/check-project-onboarding.mjs . --strict` after the derived records are internally verified.
 7. Use `.intentos/templates/request-card.md` to create the first request card in `requests/`.
 
-AI drafts. Humans decide. Do not ask the human to manually fill all onboarding files.
+Codex drafts, checks, and applies technical decisions. Ask the user only for a business fact that cannot be inferred or consent to one prepared real-world effect.
 
 ## Verify
 

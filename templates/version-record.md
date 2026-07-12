@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.99.2`
+`1.99.3`
 
 ## Project Version File
 
@@ -18,6 +18,9 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 
 ## Notes
 
+- `1.99.3` binds current review inputs and Plan Review consumers to project-local
+  task, source, digest, installed-authority, and verification evidence. Weak
+  prose cannot replace a structured Review Loop final state.
 - `1.99.2` makes Review Context Authority fail closed for unknown semantic
   sources, rejects direct conflicting active guidance, and binds newly
   generated Review Packets and GPT review prompts to the current contract.

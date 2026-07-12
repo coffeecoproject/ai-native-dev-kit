@@ -7,6 +7,7 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { validatePlanReviewSourceEvidence } from "./lib/plan-review-binding.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence"]);
@@ -198,6 +199,9 @@ function checkStructuredEvidence(content, label, file, evidence) {
   checkSkipRules(label, evidence);
   checkReviewSurfaces(label, evidence);
   checkSourceChain(label, evidence);
+  const sourceValidation = validatePlanReviewSourceEvidence(projectRoot, file, evidence);
+  sourceValidation.errors.forEach((error) => fail(`${label} ${error}`));
+  if (sourceValidation.ok) pass(`${label} source refs resolve and digests match project files`);
   checkFindings(label, evidence);
   checkSubagents(label, evidence);
   checkVerificationReview(label, evidence);

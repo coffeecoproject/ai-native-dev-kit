@@ -116,7 +116,7 @@ function collectSignals(root) {
     intentOsOperatingMode: hasIntentOSAssets || has("native-migration-plans") || has("governance-convergence-reports")
       ? "ACTIVE"
       : "READ_ONLY_DIAGNOSIS",
-    hasAiRules: hasAny(["AGENTS.md", ".codex", ".cursor", ".claude"]),
+    hasAiRules: hasAny(["AGENTS.md", "agent.md", ".agent.md", ".codex", ".cursor", ".claude"]),
     hasEngineeringBaseline: hasAny([
       "docs/engineering-baseline.md",
       "docs/WEB_ENGINEERING_BASELINE.md",

@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { sectionBody, splitMarkdownRow } from "./lib/markdown.mjs";
 
@@ -15,6 +16,7 @@ const strict = Boolean(args.strict);
 const results = [];
 let failed = false;
 let pending = false;
+const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const platformProfiles = [
   "web-app",
@@ -92,9 +94,14 @@ function registryRoot(root, registryName) {
   const candidates = [
     path.join(root, ".intentos", registryName),
     path.join(root, registryName),
-    path.resolve(process.cwd(), registryName),
+    ...(isInsideSourceCheckout(root) ? [path.join(kitRoot, registryName)] : []),
   ];
   return candidates.find((candidate) => fs.existsSync(path.join(candidate, "index.json"))) || candidates[0];
+}
+
+function isInsideSourceCheckout(root) {
+  const resolved = path.resolve(root);
+  return resolved === kitRoot || resolved.startsWith(`${kitRoot}${path.sep}`);
 }
 
 function loadPackIds(root, registryName) {

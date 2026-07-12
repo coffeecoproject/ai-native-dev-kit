@@ -128,8 +128,11 @@ function registryRoot(root) {
   const candidates = [
     path.join(root, ".intentos", "standard-baseline-packs"),
     path.join(root, "standard-baseline-packs"),
-    path.join(kitRoot, "standard-baseline-packs"),
   ];
+  const relativeToKit = path.relative(kitRoot, path.resolve(root));
+  if (!relativeToKit.startsWith("..") && !path.isAbsolute(relativeToKit)) {
+    candidates.push(path.join(kitRoot, "standard-baseline-packs"));
+  }
   return candidates.find((candidate) => fs.existsSync(path.join(candidate, "index.json"))) || candidates[0];
 }
 

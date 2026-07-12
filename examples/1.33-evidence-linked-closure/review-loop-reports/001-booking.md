@@ -4,7 +4,7 @@
 
 Task: `tasks/001-booking-validation.md`
 
-Final status: PASS
+Final status: DONE
 
 ## Review Rounds
 

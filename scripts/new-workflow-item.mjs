@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addFrontmatter } from "./lib/frontmatter.mjs";
+import { canonicalFileDigest, projectIdentity } from "./lib/evidence-authority.mjs";
 import { assertSafeRelativePath, assertSafeWritePath, assertInsideRoot } from "./lib/path-safety.mjs";
 import { loadReviewContextAuthority, reviewContextBinding } from "./lib/review-context-authority.mjs";
 
@@ -694,6 +695,21 @@ function fillReviewPacket(content, context) {
   let output = setTitle(content, `# Review Packet: ${context.number}-${context.slug}`);
   output = setSection(
     output,
+    "Review Input Identity",
+    [
+      "Lifecycle: CURRENT_IMPLEMENTATION",
+      "",
+      `Project fingerprint: \`${context.projectIdentity.fingerprint}\``,
+      "",
+      `Project revision: \`${context.projectIdentity.revision}\``,
+      "",
+      `Task ref: \`${context.taskRef}\``,
+      "",
+      `Task digest: \`${context.taskDigest}\``,
+    ].join("\n"),
+  );
+  output = setSection(
+    output,
     "Current Review Context Binding",
     [
       `Contract ID: \`${context.reviewContextBinding.contract_id}\``,
@@ -839,6 +855,21 @@ function fillReviewLoopReport(content, context) {
 
 function fillGptReviewPrompt(content, context) {
   let output = setTitle(content, `# GPT Review Prompt: ${context.number}-${context.slug}`);
+  output = setSection(
+    output,
+    "Review Input Identity",
+    [
+      "Lifecycle: CURRENT_IMPLEMENTATION",
+      "",
+      `Project fingerprint: \`${context.projectIdentity.fingerprint}\``,
+      "",
+      `Project revision: \`${context.projectIdentity.revision}\``,
+      "",
+      `Task ref: \`${context.taskRef}\``,
+      "",
+      `Task digest: \`${context.taskDigest}\``,
+    ].join("\n"),
+  );
   output = setSection(
     output,
     "Current Review Context Binding",
@@ -2056,7 +2087,9 @@ if (["review-packet", "review-loop-report", "gpt-review-prompt", "follow-up-prop
   fail(`${type} requires --task, --from, or --name`);
 }
 
-const sourceForName = requestRef || specRef || taskRef || logRef;
+const sourceForName = taskBasedTypes.has(type)
+  ? taskRef || specRef || requestRef || logRef
+  : requestRef || specRef || taskRef || logRef;
 const slug = slugify(args.name || (sourceForName ? parseNameFromPath(sourceForName) : config.defaultName || "workflow-item"));
 const title = titleFromSlug(slug);
 const explicitNumber = args.number ? String(args.number) : "";
@@ -2099,6 +2132,8 @@ const baseContext = {
   goalMode: args["goal-mode"] || args.mode,
   subagentMode: args["subagent-mode"] || args.mode,
   reviewContextBinding: reviewContextBinding(loadReviewContextAuthority(projectRoot)),
+  projectIdentity: projectIdentity(projectRoot),
+  taskDigest: taskRef ? canonicalFileDigest(path.join(projectRoot, taskRef)) : "N/A",
 };
 
 let content = readTemplate(projectRoot, config.template);

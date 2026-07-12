@@ -232,7 +232,7 @@ Run:
 node scripts/check-project-onboarding.mjs .
 ```
 
-Use `--strict` only after the human confirms onboarding decisions.
+Use `--strict` only after onboarding decisions have been derived and internally verified.
 
 ## Engineering Baseline
 
@@ -275,7 +275,7 @@ Run:
 node scripts/check-platform-baseline.mjs .
 ```
 
-Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Use `--strict` only after the human confirms selected profiles and project docs.
+Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Use `--strict` only after selected profiles and project docs have been derived, reconciled, and internally verified.
 
 ## Industrial Baseline
 
@@ -289,7 +289,7 @@ node scripts/resolve-industrial-baseline.mjs .
 node scripts/check-industrial-baseline.mjs . --bl2-only
 ```
 
-Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until the human confirms baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` as project docs only after that decision.
+Concrete industrial packs are installed only when the derived project profile and evidence select them. Do not treat BL2 or an industrial pack as active until baseline level, selected packs, exceptions, residual risks, and `check-industrial-baseline` have been internally reconciled. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` only after that controlled decision. Ask the user only for an unavailable business fact or consent to a prepared real-world effect.
 
 ## Standard Baseline Packs
 

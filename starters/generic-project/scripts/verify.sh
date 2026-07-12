@@ -25,9 +25,10 @@ if [ -f package.json ]; then
   fi
 elif [ -f pyproject.toml ]; then
   echo "Python project detected. Update scripts/verify.sh with this project's lint/type/test commands."
+  exit 1
 elif [ -f go.mod ]; then
   go test ./...
 else
   echo "No known stack manifest found. Update scripts/verify.sh for this project stack."
+  exit 1
 fi
-

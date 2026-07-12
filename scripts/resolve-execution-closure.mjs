@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { defaultIgnoredDirs, walkRelativePaths } from "./lib/project-signals.mjs";
+import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -85,7 +86,7 @@ function buildReport(root, userIntent, taskRef, verificationEvidence, refs, diff
       conclusion: `Closure state is ${closure.state}.`,
       recommendedChoice: closure.recommendedChoice,
       canAiContinueNow: closure.canAiContinueNow,
-      needFromHuman: decisions.length > 0 ? decisions.join(" / ") : "No decision needed for read-only closure reporting.",
+      needFromHuman: "No technical decision is required from the user. IntentOS/Codex must complete the internal actions below.",
       ifNothing: "No files are changed. No task state, debt, commit, push, release, or production behavior is approved.",
     },
     evidenceLinks: evidenceLinksFor(evidence, diff),
@@ -104,7 +105,7 @@ function buildReport(root, userIntent, taskRef, verificationEvidence, refs, diff
       intendedScope: taskRef || userIntent || evidence.changeBoundary.intendedScope || "Not provided",
       outOfScopeChangesFound: outOfScopeValue(signals, evidence),
       highRiskSurfacesTouched: signals.highRisk ? "Yes" : "No",
-      requiresHumanDecision: closure.state === "NEEDS_HUMAN_DECISION" || closure.state === "BLOCKED" ? "Yes" : "No",
+      requiresHumanDecision: "No",
       changeBoundaryRef: evidence.changeBoundary.ref || "N/A",
     },
     debtClosure: {
@@ -119,7 +120,8 @@ function buildReport(root, userIntent, taskRef, verificationEvidence, refs, diff
       commitScopeReady: closure.state === "READY_FOR_COMMIT_REVIEW" ? "Yes" : "No",
       requiredBeforeCommitReview: closure.requiredBeforeCommitReview,
     },
-    humanDecisions: decisions,
+    humanDecisions: [],
+    internalNextActions: decisions,
     boundaries: {
       writesTargetFiles: "No",
       approvesImplementation: "No",
@@ -212,7 +214,7 @@ function classifyClosure(signals, evidence, userIntent, taskRef) {
     return closure("BLOCKED", "Resolve out-of-scope or forbidden changes before closure.", "no", "Change boundary failed.", "BLOCKED");
   }
   if (evidence.debtHandoff.debtStatus === "fail") {
-    return closure("NEEDS_HUMAN_DECISION", "Debt or handoff evidence needs human decision before closure.", "limited", "Resolve or explicitly route blocking debt.", "NEEDS_HUMAN_DECISION");
+    return closure("NEEDS_HUMAN_DECISION", "IntentOS must route blocking debt through its internal review path before closure.", "limited", "Resolve or explicitly route blocking debt.", "NEEDS_HUMAN_DECISION");
   }
 
   const hasExecutionContext = signals.changedFiles.length > 0 || userIntent || taskRef || evidence.hasAnyRef || evidence.verificationNote;
@@ -228,7 +230,7 @@ function classifyClosure(signals, evidence, userIntent, taskRef) {
     && evidence.debtHandoff.debtStatus === "pass";
 
   if (evidenceLinkedReady) {
-    return closure("READY_FOR_COMMIT_REVIEW", "Prepare a commit review summary; do not commit or push without the current workflow allowing it.", "limited", "Human review of commit scope.", "CLOSURE_RECORDED");
+    return closure("READY_FOR_COMMIT_REVIEW", "Prepare a commit review summary; do not commit or push without the current workflow allowing it.", "limited", "Internal review of commit scope.", "CLOSURE_RECORDED");
   }
 
   if (signals.changedFiles.length > 0 && signals.verificationPassed) {
@@ -236,14 +238,14 @@ function classifyClosure(signals, evidence, userIntent, taskRef) {
   }
 
   if (signals.highRisk && !signals.verificationPassed) {
-    return closure("NEEDS_HUMAN_DECISION", "High-risk work needs explicit verification and human decision before closure.", "limited", "Provide verification evidence and risk decision.", "NEEDS_HUMAN_DECISION");
+    return closure("NEEDS_HUMAN_DECISION", "IntentOS must complete explicit verification and internal risk review before closure.", "limited", "Provide verification evidence and internal risk review.", "NEEDS_HUMAN_DECISION");
   }
 
   if (signals.changedFiles.length > 0) {
     return closure("NOT_READY_TO_CLOSE", "Run or record verification before closing this execution.", "limited", "Verification evidence.", "NEEDS_HUMAN_DECISION");
   }
 
-  return closure("CLOSE_WITH_LIMITATIONS", "Record that no changed files were detected and keep closure limited to the supplied context.", "limited", "Confirm whether there was actually implementation work to close.", "CLOSURE_RECORDED");
+  return closure("CLOSE_WITH_LIMITATIONS", "Record that no changed files were detected and keep closure limited to the supplied context.", "limited", "IntentOS must determine whether implementation work actually exists before closure.", "CLOSURE_RECORDED");
 }
 
 function closure(state, recommendedChoice, canAiContinueNow, requiredBeforeCommitReview, outcome) {
@@ -291,7 +293,7 @@ function surface(surfaceName, result, evidence, unverifiedReasonOrOwner) {
 function verificationClosure(signals, evidence) {
   return [
     { check: "Verification commands", status: signals.verificationStatus, evidence: verificationEvidenceSummary(evidence, signals), owner: "Codex" },
-    { check: "Manual verification", status: "not verified", evidence: "manual verification was not provided to this read-only resolver", owner: "Codex / human" },
+    { check: "Real-world verification", status: "not verified", evidence: "real-world verification evidence was not provided to this read-only resolver", owner: "Codex; user supplies only observed business facts when needed" },
     { check: "Unverified items named", status: signals.verificationStatus === "pass" ? "pass" : "pass", evidence: signals.verificationStatus === "pass" ? "no unresolved verification items detected by provided evidence" : "unverified verification/manual checks are named", owner: "Codex" },
   ];
 }
@@ -356,21 +358,21 @@ function outOfScopeValue(signals, evidence) {
 
 function debtResultFor(evidence, signals) {
   if (evidence.debtHandoff.debtStatus === "pass") return "deferred";
-  if (evidence.debtHandoff.debtStatus === "fail") return "needs human decision";
+  if (evidence.debtHandoff.debtStatus === "fail") return "needs internal review";
   if (signals.changedFiles.length > 0) return "not reviewed";
   return "not reviewed";
 }
 
 function decisionsFor(closureInfo, signals, evidence, surfaces) {
   const decisions = [];
-  if (closureInfo.state === "BLOCKED") decisions.push("Confirm whether to stop and repair the blocking issue before any follow-up.");
-  if (closureInfo.state === "NEEDS_HUMAN_DECISION") decisions.push("Confirm whether the high-risk or unverified work may proceed to a separate review task.");
-  if (!signals.verificationPassed) decisions.push("Confirm the verification evidence required before closure.");
-  if (signals.changedFiles.length > 0 && evidence.changeBoundary.boundaryStatus !== "pass") decisions.push("Confirm the change-boundary evidence before commit review.");
-  if (surfaces.some((item) => item.result === "not verified")) decisions.push("Confirm owner for unverified review surfaces.");
-  if (evidence.debtHandoff.debtStatus !== "pass" && signals.changedFiles.length > 0) decisions.push("Confirm whether debt handoff is required before closure.");
-  if (closureInfo.state === "READY_FOR_COMMIT_REVIEW") decisions.push("Confirm whether Codex should prepare a commit summary; this does not approve commit or push.");
-  if (decisions.length === 0) decisions.push("Confirm whether this limited closure is enough for the current task.");
+  if (closureInfo.state === "BLOCKED") decisions.push("IntentOS/Codex must repair the blocking issue before any follow-up.");
+  if (closureInfo.state === "NEEDS_HUMAN_DECISION") decisions.push("IntentOS/Codex must route high-risk or unverified work through the required internal review task.");
+  if (!signals.verificationPassed) decisions.push("Run and bind the project-native verification required before closure.");
+  if (signals.changedFiles.length > 0 && evidence.changeBoundary.boundaryStatus !== "pass") decisions.push("Complete change-boundary evidence before commit review.");
+  if (surfaces.some((item) => item.result === "not verified")) decisions.push("Complete the missing internal review surfaces.");
+  if (evidence.debtHandoff.debtStatus !== "pass" && signals.changedFiles.length > 0) decisions.push("Record the required debt handoff before closure.");
+  if (closureInfo.state === "READY_FOR_COMMIT_REVIEW") decisions.push("Prepare the commit review summary under the current project authority.");
+  if (decisions.length === 0) decisions.push("Record the limited closure and continue under the current task boundary.");
   return decisions.slice(0, signals.highRisk ? 5 : 3);
 }
 
@@ -383,10 +385,12 @@ function classifyVerification(value) {
 }
 
 function classifyReviewLoop(content) {
-  const text = String(content || "");
-  if (!text) return "not verified";
-  if (/\b(FAIL|FAILED|BLOCKED|NEEDS_HUMAN_DECISION)\b/i.test(text)) return "fail";
-  if (/\b(PASS|PASSED|READY_FOR_COMMIT_REVIEW|REVIEW_PASSED)\b/i.test(text)) return "pass";
+  const finalStatus = parseTableValue(sectionBody(content, "Status"), "Final status")
+    || sectionBody(content, "Status").match(/^Final status:\s*`?([^`\n]+)`?/im)?.[1]
+    || "";
+  const normalized = String(finalStatus).trim().replace(/`/g, "").toUpperCase();
+  if (new Set(["BLOCKED", "NEEDS_HUMAN_DECISION"]).has(normalized)) return "fail";
+  if (new Set(["DONE", "AUTO_FIXED"]).has(normalized)) return "pass";
   return "not verified";
 }
 
@@ -489,15 +493,17 @@ function readEvidenceRef(root, ref, label) {
   if (!ref) {
     return { label, ref: "", status: "not provided", content: "", provided: false };
   }
-  const resolved = path.isAbsolute(ref) ? path.resolve(ref) : path.resolve(root, ref);
-  const rootWithSep = `${path.resolve(root)}${path.sep}`;
-  if (resolved !== path.resolve(root) && !resolved.startsWith(rootWithSep)) {
-    return { label, ref, status: "invalid", content: "", provided: true };
-  }
-  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", String(ref));
+  if (!resolved.ok) {
     return { label, ref, status: "missing", content: "", provided: true };
   }
-  return { label, ref: path.relative(root, resolved).replaceAll(path.sep, "/"), status: "found", content: fs.readFileSync(resolved, "utf8"), provided: true };
+  return {
+    label,
+    ref: resolved.relativePath,
+    status: "found",
+    content: fs.readFileSync(resolved.file, "utf8"),
+    provided: true,
+  };
 }
 
 function readJsonIfExists(filePath) {

@@ -83,7 +83,7 @@ This report is a read-only derived verification view. It does not write target f
 
 | Source System | Status | Ref | Source Task | Source Outcome | Current Task Match | Digest | Contribution | Authority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| plan_review | `RECORDED` | `artifact:plan-review-reports/001-passed.md` | `task:change-permission-delete-behavior` | `PLAN_REVIEW_PASSED` | `Yes` | `sha256:55a64db6c405e6eb3bc949a1de67985b44d5e878fe3116a23014c35d9bc2a68e` | Passed Plan Review Gate for high-impact implementation. | Source system |
+| plan_review | `RECORDED` | `artifact:plan-review-reports/001-passed.md` | `task:change-permission-delete-behavior` | `PLAN_REVIEW_PASSED` | `Yes` | `sha256:e70b072a82cedfac41d6a98072da82f5bcdc0ebcee2a95f2eb104a154028b2cc` | Passed Plan Review Gate for high-impact implementation. | Source system |
 | task_governance | `RECORDED` | `checker:check-intentos` | `task:change-permission-delete-behavior` | `HIGH_REQUIRES_FULL_GOVERNANCE` | `Yes` | `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` | High-impact task requires full governance and plan review. | Source system |
 
 ## Closure Decision
@@ -223,7 +223,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
       "source_task_ref": "task:change-permission-delete-behavior",
       "source_outcome": "PLAN_REVIEW_PASSED",
       "current_task_match": "Yes",
-      "report_digest": "sha256:55a64db6c405e6eb3bc949a1de67985b44d5e878fe3116a23014c35d9bc2a68e"
+      "report_digest": "sha256:e70b072a82cedfac41d6a98072da82f5bcdc0ebcee2a95f2eb104a154028b2cc"
     },
     {
       "name": "task_governance",
@@ -240,7 +240,7 @@ Execution Assurance is derived from recorded evidence and project facts. Source 
   "plan_review_binding": {
     "required": "Yes",
     "plan_review_ref": "artifact:plan-review-reports/001-passed.md",
-    "plan_review_digest": "sha256:fc998e2eb19dde056cb1aa4bcb2cc6a122bc947a35587e5f7f96964c75601716",
+    "plan_review_digest": "sha256:908e82d20c6e791f522885675344b7911a45d454039f2360ace782d9a7cf75bc",
     "plan_review_state": "PLAN_REVIEW_PASSED",
     "plan_ref": "docs/example-plan.md",
     "plan_digest": "sha256:92fbfc7e505af46ce750614be97656d0910c5a2632b5ac2c07bf0e986c7f8b28",

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "./lib/args.mjs";
 import { escapeRegExp, sectionBody } from "./lib/markdown.mjs";
+import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import {
   loadReviewContextAuthority,
   reviewContextBindingFromMarkdown,
@@ -150,9 +151,8 @@ function taskLevelFromContent(content) {
 }
 
 function readProjectFile(ref) {
-  const full = path.join(projectRoot, ref);
-  if (!fs.existsSync(full)) return null;
-  return fs.readFileSync(full, "utf8");
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", `file:${ref}`, { markdownOnly: true });
+  return resolved.ok ? fs.readFileSync(resolved.file, "utf8") : null;
 }
 
 function requireExistingRef(file, label, ref) {
@@ -160,7 +160,40 @@ function requireExistingRef(file, label, ref) {
     fail(`${file} missing ${label}`);
     return;
   }
-  if (!fs.existsSync(path.join(projectRoot, ref))) fail(`${file} references missing ${label}: ${ref}`);
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", `file:${ref}`, { markdownOnly: true });
+  if (!resolved.ok) fail(`${file} references unsafe or missing ${label}: ${ref} (${resolved.error})`);
+}
+
+function reviewIdentity(content) {
+  return {
+    lifecycle: labeledValue(content, "Review Input Identity", "Lifecycle"),
+    projectFingerprint: labeledValue(content, "Review Input Identity", "Project fingerprint"),
+    projectRevision: labeledValue(content, "Review Input Identity", "Project revision"),
+    taskRef: labeledValue(content, "Review Input Identity", "Task ref"),
+    taskDigest: labeledValue(content, "Review Input Identity", "Task digest"),
+  };
+}
+
+function validateReviewInput(file, content, expectedTaskRef, currentEvidence) {
+  const authority = loadReviewContextAuthority(projectRoot);
+  const binding = validateReviewContextBinding(reviewContextBindingFromMarkdown(content), authority);
+  if (!binding.ok) {
+    if (currentEvidence) fail(`${file} context binding mismatch: ${binding.errors.join("; ")}`);
+    else warn(`${file} is historical compatibility evidence and cannot count as current review input: ${binding.errors.join("; ")}`);
+  } else {
+    pass(`${file} context binding matches current contract`);
+  }
+
+  const identity = reviewIdentity(content);
+  if (!currentEvidence) return;
+  const expectedProject = projectIdentity(projectRoot);
+  if (identity.lifecycle !== "CURRENT_IMPLEMENTATION") fail(`${file} must declare Lifecycle: CURRENT_IMPLEMENTATION`);
+  if (identity.projectFingerprint !== expectedProject.fingerprint) fail(`${file} project fingerprint does not match current project`);
+  if (identity.projectRevision !== expectedProject.revision) fail(`${file} project revision does not match current project`);
+  if (normalizePath(identity.taskRef) !== normalizePath(expectedTaskRef)) fail(`${file} task ref does not match current task`);
+  const task = resolveAuthoritativeEvidenceReference(projectRoot, "", `file:${expectedTaskRef}`, { markdownOnly: true });
+  if (!task.ok) fail(`${file} current task cannot be resolved: ${task.error}`);
+  else if (identity.taskDigest !== canonicalFileDigest(task.file)) fail(`${file} task digest does not match current task`);
 }
 
 function numberValue(value) {
@@ -291,6 +324,7 @@ function checkReport(filePath) {
   const specRef = labeledRef(content, "Status", "Related Spec");
   const evalRef = labeledRef(content, "Status", "Related Eval");
   const packetRef = labeledRef(content, "Review Packet", "Review Packet ref");
+  const gptPromptRef = labeledRef(content, "Review Packet", "GPT Review Prompt ref");
   const taskLevel = taskLevelFromContent(content);
   const reviewRequired = labeledValue(content, "Status", "Review required");
   const currentRound = numberValue(labeledValue(content, "Status", "Current round"));
@@ -312,15 +346,21 @@ function checkReport(filePath) {
   if (strictReview && !/^Yes$/i.test(reviewRequired)) fail(`${file} ${taskLevel} requires Review required: Yes`);
   if (/^Yes$/i.test(reviewRequired) || strictReview) requireExistingRef(file, "Review Packet ref", packetRef);
 
+  const currentEvidence = mode === "implementation";
   const packetContent = packetRef ? readProjectFile(packetRef) : null;
   if (packetContent) {
-    const validation = validateReviewContextBinding(
-      reviewContextBindingFromMarkdown(packetContent),
-      loadReviewContextAuthority(projectRoot),
-    );
-    if (validation.ok) pass(`${file} Review Packet context binding matches current contract`);
-    else if (validation.legacy) warn(`${file} Review Packet has legacy compatibility context with no explicit binding`);
-    else fail(`${file} Review Packet context binding mismatch: ${validation.errors.join("; ")}`);
+    validateReviewInput(packetRef, packetContent, taskRef, currentEvidence);
+  }
+  if (currentEvidence && (/^Yes$/i.test(reviewRequired) || strictReview)) {
+    requireExistingRef(file, "GPT Review Prompt ref", gptPromptRef);
+  }
+  const gptPromptContent = gptPromptRef ? readProjectFile(gptPromptRef) : null;
+  if (gptPromptContent) {
+    validateReviewInput(gptPromptRef, gptPromptContent, taskRef, currentEvidence);
+    const promptPacketRef = labeledRef(gptPromptContent, "Review Packet Ref", "Review Packet");
+    if (currentEvidence && normalizePath(promptPacketRef) !== normalizePath(packetRef)) {
+      fail(`${gptPromptRef} Review Packet ref does not match ${packetRef}`);
+    }
   }
 
   const taskContent = taskRef ? readProjectFile(taskRef) : null;

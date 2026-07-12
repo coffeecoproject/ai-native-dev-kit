@@ -14182,6 +14182,14 @@ function checkStarters() {
       } else {
         fail(`starter ${entry.name}: verify.sh syntax failed: ${result.stderr || result.stdout}`);
       }
+      const emptyProject = fs.mkdtempSync(path.join(os.tmpdir(), `intentos-${entry.name}-verify-`));
+      const negative = spawnSync("bash", [verifyScript], { cwd: emptyProject, encoding: "utf8" });
+      fs.rmSync(emptyProject, { recursive: true, force: true });
+      if (negative.status !== 0) {
+        pass(`starter ${entry.name}: verify.sh fails closed without a runnable verification path`);
+      } else {
+        fail(`starter ${entry.name}: verify.sh must fail when no runnable verification path exists`);
+      }
     }
   }
 }
@@ -14755,7 +14763,7 @@ function checkReviewLoopL2DogfoodExample() {
     path.join(kitRoot, "scripts", "check-review-loop.mjs"),
     exampleRoot,
     "--mode",
-    "implementation",
+    "ready",
     "--task",
     "tasks/001-review-loop-l2-slice.md",
   ]);
@@ -15012,6 +15020,7 @@ function checkGeneratedProjectE2E() {
   }
   const generatedReviewContextCheck = runNode([
     path.join(target, "scripts", "check-review-context-authority.mjs"),
+    target,
   ]);
   if (generatedReviewContextCheck.status !== 0
     || !generatedReviewContextCheck.stdout.includes("Review context authority check passed")) {
