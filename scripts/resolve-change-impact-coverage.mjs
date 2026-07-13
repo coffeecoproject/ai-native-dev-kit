@@ -5,6 +5,11 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import {
+  coverageVerificationProjection,
+  resolveBoundBusinessUniverse,
+  universeScenarioProjection,
+} from "./lib/business-universe.mjs";
 import { analyzeRiskSurfaces } from "./lib/risk-surfaces.mjs";
 import {
   defaultIgnoredDirs,
@@ -81,10 +86,19 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
     includeProjectSignals: false,
   });
   const changeType = classifyChangeType(signals);
-  const surfaces = affectedSurfaces(signals, risk);
-  const questions = questionsFor(signals, risk);
-  const outcome = risk.high && highRiskNeedsDecision(surfaces) ? "NEEDS_HUMAN_DECISION" : "CHANGE_IMPACT_RECORDED";
   const businessRule = resolveBusinessRuleClosure(root, linkedBusinessRuleRef);
+  const businessUniverse = resolveBoundBusinessUniverse(root, businessRule.file, businessRule.evidence);
+  const surfaces = affectedSurfaces(signals, risk, businessUniverse.evidence);
+  const questions = questionsFor(signals, risk);
+  const universeBinding = impactUniverseBindingFor(businessRule.evidence?.business_universe_binding);
+  const impactScenarioMappings = impactScenarioMappingsFor(businessUniverse.evidence, surfaces);
+  const universeBlocks = universeBinding.required === "Unknown"
+    || (universeBinding.required === "Yes" && (universeBinding.business_universe_state !== "COVERAGE_READY"
+      || universeBinding.coverage_mapping_status !== "COMPLETE"
+      || impactScenarioMappings.length === 0));
+  const outcome = universeBlocks
+    ? "BLOCKED"
+    : risk.high && highRiskNeedsDecision(surfaces) ? "NEEDS_HUMAN_DECISION" : "CHANGE_IMPACT_RECORDED";
 
   return {
     reportType: "CHANGE_IMPACT_COVERAGE_REPORT",
@@ -97,6 +111,8 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
     businessRuleRef: linkedBusinessRuleRef || "Not provided",
     businessRuleDigest: businessRule.evidence?.business_rule_digest || "Not provided",
     businessRuleState: businessRule.evidence?.state || "Not provided",
+    businessUniverseBinding: universeBinding,
+    impactScenarioMappings,
     changedFiles: explicitChangedFiles,
     humanSummary: summaryFor(changeType, surfaces, risk),
     changeType: {
@@ -144,13 +160,14 @@ function buildReport(root, userIntent, explicitChangedFiles, requestedMode, link
       outcome,
       businessRuleRef: linkedBusinessRuleRef,
       businessRule,
+      businessUniverse,
     }),
   };
 }
 
-function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome, businessRuleRef, businessRule }) {
+function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeType, risk, explicitChangedFiles, surfaces, outcome, businessRuleRef, businessRule, businessUniverse }) {
   const evidence = {
-    schema_version: "1.49.0",
+    schema_version: "1.108.0",
     artifact_type: "change_impact_coverage",
     artifact_id: artifactId(userIntent, explicitChangedFiles),
     impact_digest: "",
@@ -163,6 +180,8 @@ function buildMachineReadableEvidence({ mode: requestedMode, userIntent, changeT
     business_rule_ref: businessRuleRef || "not provided",
     business_rule_digest: businessRule?.evidence?.business_rule_digest || "not provided",
     business_rule_state: businessRule?.evidence?.state || "not provided",
+    business_universe_binding: impactUniverseBindingFor(businessRule?.evidence?.business_universe_binding),
+    impact_scenario_mappings: impactScenarioMappingsFor(businessUniverse.evidence, surfaces),
     change_type: {
       primary_type: changeType,
       risk_level: risk.high ? "high" : "low",
@@ -265,7 +284,7 @@ function classifyChangeType(signals) {
   return "GENERAL_PRODUCT_CHANGE";
 }
 
-function affectedSurfaces(signals, risk) {
+function affectedSurfaces(signals, risk, universeEvidence = null) {
   const rows = new Map();
   const add = (surface, status, reason, evidence) => {
     rows.set(surface, {
@@ -282,8 +301,11 @@ function affectedSurfaces(signals, risk) {
     return [...rows.values()];
   }
 
+  const universeSurfaces = universeEvidence ? universeAffectedSurfaces(universeEvidence) : [];
   const crossSurfaceRule = signals.isValidationRule || signals.hasUserFlow || signals.hasFrontend || signals.hasBackend || signals.hasApi;
-  if (crossSurfaceRule) {
+  if (universeSurfaces.length > 0) {
+    for (const item of universeSurfaces) add(item.surface, "REQUIRED", item.reason, item.expectedEvidence);
+  } else if (crossSurfaceRule) {
     add("USER_FLOW", "REQUIRED", "The user-facing behavior or task flow may change.", "Screen, command, journey, or behavior evidence.");
     add("FRONTEND_UI", "REQUIRED", "Input, form, state, or visible behavior may need to match the rule.", "UI diff, screenshot, local behavior evidence, or not-applicable reason.");
     add("API_CONTRACT", "REQUIRED", "Client/server expectations may need to stay aligned.", "API/DTO/schema evidence or not-applicable reason.");
@@ -441,6 +463,17 @@ function humanReportText(report) {
   log(`- Business rule closure ref: ${report.businessRuleRef}`);
   log(`- Business rule digest: ${report.businessRuleDigest}`);
   log(`- Business rule state: ${report.businessRuleState}`);
+  log(`- Business Universe ref: ${report.businessUniverseBinding.business_universe_ref}`);
+  log(`- Business Universe digest: ${report.businessUniverseBinding.business_universe_digest}`);
+  log("");
+  log("## Business Universe Scenario Impact");
+  log("");
+  log("| Mapping ID | Source coverage scenarios | Affected surfaces | State |");
+  log("|---|---|---|---|");
+  if (report.impactScenarioMappings.length === 0) log("| N/A | N/A | N/A | NOT_REQUIRED |");
+  else for (const row of report.impactScenarioMappings) {
+    log(`| \`${row.impact_mapping_id}\` | ${row.source_coverage_scenario_ids.join(", ")} | ${row.affected_surfaces.join(", ")} | \`${row.mapping_state}\` |`);
+  }
   log("");
   log("## Change Type");
   log("");
@@ -576,6 +609,99 @@ function resolveBusinessRuleClosure(root, ref) {
     return { file: candidate, evidence: extracted.value };
   }
   return { file: "", evidence: null };
+}
+
+function impactUniverseBindingFor(binding) {
+  if (!binding) {
+    return {
+      required: "No",
+      routing_result: "NOT_REQUIRED_WITH_REASON",
+      business_universe_ref: "N/A",
+      business_universe_digest: "N/A",
+      business_universe_state: "NOT_REQUIRED_WITH_REASON",
+      coverage_scenario_ids: [],
+      coverage_mapping_status: "NOT_REQUIRED",
+    };
+  }
+  return {
+    required: binding.required,
+    routing_result: binding.routing_result,
+    business_universe_ref: binding.business_universe_ref,
+    business_universe_digest: binding.business_universe_digest,
+    business_universe_state: binding.business_universe_state,
+    coverage_scenario_ids: [...(binding.coverage_scenario_ids || [])],
+    coverage_mapping_status: binding.coverage_mapping_status,
+  };
+}
+
+function impactScenarioMappingsFor(universeEvidence, surfaces) {
+  const declaredSurfaces = new Set(surfaces
+    .filter((surface) => surface.status !== "NOT_APPLICABLE")
+    .map((surface) => surface.surface));
+  return universeScenarioProjection(universeEvidence).map((scenario, index) => ({
+    impact_mapping_id: `impact-mapping:${index + 1}-${scenario.coverage_scenario_id.slice(-8)}`,
+    source_coverage_scenario_ids: [scenario.coverage_scenario_id],
+    affected_surfaces: scenarioImpactSurfaces(universeEvidence, scenario)
+      .filter((surface) => declaredSurfaces.has(surface)),
+    mapping_state: universeEvidence?.outcome === "COVERAGE_READY" ? "MAPPED" : "BLOCKED",
+  }));
+}
+
+function universeAffectedSurfaces(universeEvidence) {
+  const surfaces = new Set(["TEST_COVERAGE", "DOCS_HANDOFF"]);
+  for (const scenario of universeEvidence?.coverage_scenarios || []) {
+    for (const surface of scenarioImpactSurfaces(universeEvidence, scenario)) surfaces.add(surface);
+  }
+  return [...surfaces].map((surface) => ({
+    surface,
+    reason: universeSurfaceReason(surface),
+    expectedEvidence: universeSurfaceEvidence(surface),
+  }));
+}
+
+function scenarioImpactSurfaces(universeEvidence, scenario) {
+  const projection = coverageVerificationProjection(universeEvidence, scenario);
+  const mapped = {
+    WEB_CLIENT_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
+    MINI_PROGRAM_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
+    MINI_PROGRAM_CLOUD_FUNCTION: ["USER_FLOW", "API_CONTRACT", "BACKEND_RULE", "TEST_COVERAGE"],
+    INTERNAL_ADMIN_WORKFLOW: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
+    IOS_LOCAL_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
+    ANDROID_LOCAL_BEHAVIOR: ["USER_FLOW", "FRONTEND_UI", "ERROR_COPY", "TEST_COVERAGE"],
+    API_OR_SERVICE_BEHAVIOR: ["USER_FLOW", "API_CONTRACT", "BACKEND_RULE", "TEST_COVERAGE"],
+    WORKER_OR_DATA_PATH: ["USER_FLOW", "BACKEND_RULE", "TEST_COVERAGE"],
+    LOCAL_STORAGE_OR_OFFLINE: ["USER_FLOW", "DATA_MODEL", "TEST_COVERAGE"],
+    PROJECT_NATIVE_BEHAVIOR: ["USER_FLOW", "TEST_COVERAGE"],
+  }[projection.source_surface] || ["USER_FLOW", "TEST_COVERAGE"];
+  return unique([...mapped, "DOCS_HANDOFF"]);
+}
+
+function universeSurfaceReason(surface) {
+  const reasons = {
+    USER_FLOW: "A task-bound Business Universe scenario changes project-native behavior.",
+    FRONTEND_UI: "At least one scenario is implemented on a project-owned user-interface path.",
+    API_CONTRACT: "At least one scenario crosses a project-owned API or cloud-function boundary.",
+    BACKEND_RULE: "At least one scenario runs in a project-owned service, worker, or domain path.",
+    DATA_MODEL: "At least one scenario depends on project-owned local or persistent state.",
+    ERROR_COPY: "At least one user-visible scenario has a negative, failure, or recovery behavior.",
+    TEST_COVERAGE: "Every required coverage scenario needs task-bound verification.",
+    DOCS_HANDOFF: "Scenario scope and evidence exclusions must remain traceable.",
+  };
+  return reasons[surface] || "The Business Universe maps this project-native surface.";
+}
+
+function universeSurfaceEvidence(surface) {
+  const evidence = {
+    USER_FLOW: "Project-native behavior evidence mapped to exact coverage scenario IDs.",
+    FRONTEND_UI: "Platform-appropriate interaction or UI-state evidence.",
+    API_CONTRACT: "Current API, platform-API, or cloud-function contract evidence.",
+    BACKEND_RULE: "Current service, worker, or domain-path behavior evidence.",
+    DATA_MODEL: "Current storage, state transition, recovery, or persistence evidence.",
+    ERROR_COPY: "Negative, reverse, failure, or recovery-state evidence.",
+    TEST_COVERAGE: "Verification obligations and evidence mapped to every required scenario.",
+    DOCS_HANDOFF: "Task-bound scenario and exclusion record.",
+  };
+  return evidence[surface] || "Task-bound project evidence.";
 }
 
 function unique(values) {

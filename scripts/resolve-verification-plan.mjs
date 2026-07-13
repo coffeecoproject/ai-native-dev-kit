@@ -6,6 +6,10 @@ import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
 import { createEvidenceAuthorityBinding, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import {
+  coverageVerificationProjection,
+  resolveBoundBusinessUniverse,
+} from "./lib/business-universe.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -65,20 +69,24 @@ if (outputFormat === "json") {
 function buildReport(root, userIntent) {
   const businessRule = resolveArtifact(root, businessRuleRef);
   const impact = resolveArtifact(root, impactRef);
+  const businessUniverse = resolveBoundBusinessUniverse(root, businessRule.file, businessRule.evidence);
   const resolvedIntent = userIntent
     || businessRule.evidence?.user_request
     || impact.evidence?.user_request?.intent
     || "Not provided";
   const inferredChangeKind = inferChangeKind(resolvedIntent, businessRule.evidence, impact.evidence);
   const effectiveChangeKind = changeKind || inferredChangeKind;
+  const effectivePlatformProfiles = platformProfiles.length > 0
+    ? platformProfiles
+    : inferPlatforms(root, resolvedIntent);
   const taskRef = taskRefFor(resolvedIntent, businessRule.evidence, impact.evidence);
   const intentDigest = businessRule.evidence?.source_request_digest || digest(resolvedIntent);
   const planSlug = slugify(resolvedIntent);
   const verificationPlanRef = verificationPlanRefForOutput(root, outputPath, planSlug);
   const surfaces = impact.evidence?.affected_surface_map?.length
     ? impact.evidence.affected_surface_map
-    : inferredSurfacesFor(resolvedIntent, effectiveChangeKind);
-  const sourceSystems = sourceSystemsFor(businessRule, impact);
+    : inferredSurfacesFor(resolvedIntent, effectiveChangeKind, effectivePlatformProfiles);
+  const sourceSystems = sourceSystemsFor(businessRule, impact, businessUniverse);
   const riskDomains = riskDomainsFor(resolvedIntent, businessRule.evidence, impact.evidence, surfaces);
   const obligations = obligationsFor({
     surfaces,
@@ -87,6 +95,8 @@ function buildReport(root, userIntent) {
     resolvedIntent,
     effectiveChangeKind,
     riskDomains,
+    businessUniverse,
+    platformProfiles: effectivePlatformProfiles,
   });
   const controls = testCorrectnessControlsFor({
     obligations,
@@ -96,17 +106,20 @@ function buildReport(root, userIntent) {
   });
   const manualVerification = manualVerificationFor(surfaces, riskDomains);
   const notApplicable = notApplicableFor(surfaces);
+  const universeBinding = verificationUniverseBindingFor(businessRule.evidence?.business_universe_binding);
   const state = stateFor({
     effectiveChangeKind,
     businessRule,
     impact,
+    businessUniverse,
+    universeBinding,
     surfaces,
     obligations,
     manualVerification,
   });
   const boundaries = boundariesFor();
   const structuredBase = {
-    schema_version: "1.76.0",
+    schema_version: "1.108.0",
     artifact_type: "verification_plan",
     task_ref: taskRef,
     intent: resolvedIntent,
@@ -116,6 +129,7 @@ function buildReport(root, userIntent) {
     business_rule_ref: businessRuleRef || "not provided",
     business_rule_digest: businessRule.evidence?.business_rule_digest || "not provided",
     business_rule_state: businessRule.evidence?.state || "not provided",
+    business_universe_binding: universeBinding,
     impact_ref: impactRef || "not provided",
     impact_digest: impact.evidence?.impact_digest || "not provided",
     source_systems: sourceSystems,
@@ -125,7 +139,7 @@ function buildReport(root, userIntent) {
       sourceRefs: [businessRuleRef, impactRef, ...sourceSystems.map((item) => item.ref)],
     }),
     project_level: projectLevel,
-    platform_profiles: platformProfiles.length > 0 ? platformProfiles : inferPlatforms(root, resolvedIntent),
+    platform_profiles: effectivePlatformProfiles,
     change_kind: effectiveChangeKind,
     risk_domains: riskDomains,
     verification_state: state,
@@ -149,7 +163,7 @@ function buildReport(root, userIntent) {
 
   return {
     reportType: "VERIFICATION_PLAN",
-    schemaVersion: "1.76.0",
+    schemaVersion: "1.108.0",
     generatedBy: "scripts/resolve-verification-plan.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -181,7 +195,7 @@ function buildReport(root, userIntent) {
   };
 }
 
-function obligationsFor({ surfaces, businessRule, impact, resolvedIntent, effectiveChangeKind, riskDomains }) {
+function obligationsFor({ surfaces, businessRule, impact, resolvedIntent, effectiveChangeKind, riskDomains, businessUniverse, platformProfiles }) {
   const obligations = [];
   const required = new Set(
     surfaces
@@ -191,7 +205,7 @@ function obligationsFor({ surfaces, businessRule, impact, resolvedIntent, effect
   const sourceRefs = sourceRefsFor(businessRule, impact);
   const add = (surface, type, behavior, evidence, options = {}) => {
     obligations.push({
-      id: `verify:${slugify(`${surface}-${type}-${behavior}`).slice(0, 80)}`,
+      id: options.id || `verify:${slugify(`${surface}-${type}-${behavior}`).slice(0, 80)}`,
       source_surface: surface,
       verification_type: type,
       required: options.required || "Yes",
@@ -205,8 +219,57 @@ function obligationsFor({ surfaces, businessRule, impact, resolvedIntent, effect
       owner: options.owner || "",
       decision_ref: options.decisionRef || "",
       not_applicable_reason: options.notApplicableReason || "",
+      source_coverage_scenario_ids: options.sourceCoverageScenarioIds || [],
+      required_proof_strength: options.requiredProofStrength || "NOT_APPLICABLE",
     });
   };
+
+  if (businessUniverse.required && businessUniverse.evidence) {
+    for (const scenario of businessUniverse.evidence.coverage_scenarios || []) {
+      const proofStrength = scenario.required_proof_strength;
+      const externalFact = (businessUniverse.evidence.fact_dependencies || [])
+        .find((item) => (item.dependent_coverage_scenario_ids || []).includes(scenario.coverage_scenario_id));
+      const common = {
+        sourceRefs: [businessUniverse.binding.business_universe_ref, ...(scenario.source_locator_refs || [])],
+        sourceCoverageScenarioIds: [scenario.coverage_scenario_id],
+        requiredProofStrength: proofStrength,
+        owner: proofStrength === "EXTERNAL_FACT_PROOF" ? "external-source" : "",
+        decisionRef: proofStrength === "EXTERNAL_FACT_PROOF" ? externalFact?.fact_dependency_id || "external-fact:unresolved" : "",
+      };
+      const expectedProjection = coverageVerificationProjection(
+        businessUniverse.evidence,
+        scenario,
+        platformProfiles,
+        "expected",
+      );
+      const reverseProjection = coverageVerificationProjection(
+        businessUniverse.evidence,
+        scenario,
+        platformProfiles,
+        "negative-or-reverse",
+      );
+      add(
+        expectedProjection.source_surface,
+        expectedProjection.verification_type,
+        scenario.expected_behavior,
+        expectedEvidenceForProof(proofStrength, "expected"),
+        {
+          ...common,
+          id: `verify:universe-${scenario.coverage_scenario_id.slice(-8)}-expected`,
+        },
+      );
+      add(
+        reverseProjection.source_surface,
+        reverseProjection.verification_type,
+        scenario.negative_or_reverse_behavior,
+        expectedEvidenceForProof(proofStrength, "negative-or-reverse"),
+        {
+          ...common,
+          id: `verify:universe-${scenario.coverage_scenario_id.slice(-8)}-negative`,
+        },
+      );
+    }
+  }
 
   if (required.has("USER_FLOW")) {
     add("USER_FLOW", "UI_INTERACTION_TEST", "The primary user flow follows the requested rule.", "Behavior, screen, or journey evidence for the success path.");
@@ -320,19 +383,24 @@ function notApplicableFor(surfaces) {
     }));
 }
 
-function stateFor({ effectiveChangeKind, businessRule, impact, surfaces, obligations }) {
+function stateFor({ effectiveChangeKind, businessRule, impact, businessUniverse, universeBinding, surfaces, obligations }) {
   if (effectiveChangeKind === "BUSINESS_RULE") {
     if (!businessRule.ref) return "NEEDS_BUSINESS_RULE_CLOSURE";
     if (businessRule.evidence?.state !== "READY_FOR_IMPACT_COVERAGE") return "NEEDS_BUSINESS_RULE_CLOSURE";
   }
   if (!impact.ref) return "NEEDS_IMPACT_COVERAGE";
   if (!impact.evidence) return "NEEDS_IMPACT_COVERAGE";
+  if (universeBinding.required === "Unknown") return "BLOCKED_BY_UNCLEAR_TEST_SCOPE";
+  if (universeBinding.required === "Yes" && (!businessUniverse.evidence
+    || businessUniverse.evidence.outcome !== "COVERAGE_READY"
+    || universeBinding.coverage_mapping_status !== "COMPLETE"
+    || !universeConsumerBindingsMatch(universeBinding, impact.evidence?.business_universe_binding))) return "BLOCKED_BY_UNCLEAR_TEST_SCOPE";
   if (surfaces.some((surface) => surface.status === "NEEDS_HUMAN_DECISION")) return "NEEDS_DOMAIN_OWNER";
   if (obligations.length === 0) return "BLOCKED_BY_UNCLEAR_TEST_SCOPE";
   return "VERIFICATION_PLAN_READY";
 }
 
-function sourceSystemsFor(businessRule, impact) {
+function sourceSystemsFor(businessRule, impact, businessUniverse) {
   const systems = [];
   if (businessRule.ref) {
     systems.push({
@@ -352,7 +420,64 @@ function sourceSystemsFor(businessRule, impact) {
       digest: impact.evidence?.impact_digest || "not provided",
     });
   }
+  if (businessUniverse.required) {
+    systems.push({
+      name: "business_universe_coverage",
+      status: businessUniverse.evidence ? "RECORDED" : "UNRESOLVED",
+      ref: businessUniverse.binding?.business_universe_ref || "not provided",
+      source_outcome: businessUniverse.evidence?.outcome || "UNRESOLVED",
+      digest: businessUniverse.binding?.business_universe_digest || "not provided",
+    });
+  }
   return systems;
+}
+
+function verificationUniverseBindingFor(binding) {
+  if (!binding) {
+    return {
+      required: "No",
+      routing_result: "NOT_REQUIRED_WITH_REASON",
+      business_universe_ref: "N/A",
+      business_universe_digest: "N/A",
+      business_universe_state: "NOT_REQUIRED_WITH_REASON",
+      coverage_scenario_ids: [],
+      coverage_mapping_status: "NOT_REQUIRED",
+    };
+  }
+  return {
+    required: binding.required,
+    routing_result: binding.routing_result,
+    business_universe_ref: binding.business_universe_ref,
+    business_universe_digest: binding.business_universe_digest,
+    business_universe_state: binding.business_universe_state,
+    coverage_scenario_ids: [...(binding.coverage_scenario_ids || [])],
+    coverage_mapping_status: binding.coverage_mapping_status,
+  };
+}
+
+function universeConsumerBindingsMatch(left, right) {
+  if (!right) return false;
+  for (const field of [
+    "required",
+    "routing_result",
+    "business_universe_ref",
+    "business_universe_digest",
+    "business_universe_state",
+    "coverage_mapping_status",
+  ]) {
+    if (left[field] !== right[field]) return false;
+  }
+  const a = [...new Set(left.coverage_scenario_ids || [])].sort();
+  const b = [...new Set(right.coverage_scenario_ids || [])].sort();
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function expectedEvidenceForProof(proofStrength, pathKind) {
+  const pathLabel = pathKind === "negative-or-reverse" ? "negative, reverse, failure, or compensation path" : "expected path";
+  if (proofStrength === "STRUCTURAL_SOURCE_PROOF") return `Current-source structural evidence proves the ${pathLabel}.`;
+  if (proofStrength === "PROJECT_NATIVE_BEHAVIOR_PROOF") return `A project-native test proves the ${pathLabel} against the current task and code.`;
+  if (proofStrength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF") return `A current Verification Run Manifest binds runtime-trusted evidence for the ${pathLabel}.`;
+  return `An authoritative external fact is bound before the ${pathLabel} can be treated as verified.`;
 }
 
 function sourceRefsFor(businessRule, impact) {
@@ -404,7 +529,7 @@ function inferChangeKind(userIntent, businessRule, impact) {
   return "BUSINESS_RULE";
 }
 
-function inferredSurfacesFor(userIntent, effectiveChangeKind) {
+function inferredSurfacesFor(userIntent, effectiveChangeKind, effectivePlatformProfiles = []) {
   const text = String(userIntent || "").toLowerCase();
   if (effectiveChangeKind === "DOCS_ONLY") {
     return [
@@ -412,12 +537,18 @@ function inferredSurfacesFor(userIntent, effectiveChangeKind) {
       surface("TEST_COVERAGE", "OPTIONAL", "No executable behavior is implied.", "Checker evidence or not-applicable reason."),
     ];
   }
+  const profiles = new Set(effectivePlatformProfiles);
+  const hasUi = ["web", "web-app", "mini-program", "miniprogram", "wechat-miniprogram", "ios", "ios-app", "android", "android-app", "internal-admin"]
+    .some((profile) => profiles.has(profile));
+  const hasBackend = ["backend", "backend-api"].some((profile) => profiles.has(profile));
   const surfaces = [
-    surface("USER_FLOW", "REQUIRED", "User-visible behavior may change.", "Behavior evidence."),
-    surface("FRONTEND_UI", "REQUIRED", "Visible form or screen behavior may change.", "UI evidence."),
-    surface("API_CONTRACT", "REQUIRED", "Client/server expectations may change.", "API evidence."),
-    surface("BACKEND_RULE", "REQUIRED", "Server/domain enforcement may be needed.", "Backend rule evidence."),
-    surface("ERROR_COPY", "REQUIRED", "Users need bounded feedback.", "Error copy evidence."),
+    surface("USER_FLOW", "REQUIRED", "The project-native behavior may change.", "Task-bound behavior evidence."),
+    ...(hasUi ? [surface("FRONTEND_UI", "REQUIRED", "A project-owned user interface is in scope.", "Platform-appropriate UI or interaction evidence.")] : []),
+    ...(hasBackend ? [
+      surface("API_CONTRACT", "REQUIRED", "A project-owned API or service boundary is in scope.", "API or service contract evidence."),
+      surface("BACKEND_RULE", "REQUIRED", "A project-owned server or domain path is in scope.", "Service or domain behavior evidence."),
+    ] : []),
+    ...(hasUi ? [surface("ERROR_COPY", "REQUIRED", "A user-visible failure path may need bounded feedback.", "Platform-appropriate failure-state evidence.")] : []),
     surface("TEST_COVERAGE", "REQUIRED", "Task-specific verification is needed.", "Test or smoke evidence."),
     surface("DOCS_HANDOFF", "REQUIRED", "Future work needs the rule recorded.", "Handoff evidence."),
   ];
@@ -475,7 +606,10 @@ function inferPlatforms(root, userIntent) {
   if (/\bmini-program|小程序\b/i.test(text)) platforms.add("mini-program");
   if (/\bios|swift|xcode\b/i.test(text)) platforms.add("ios");
   if (/\bandroid|gradle|kotlin\b/i.test(text)) platforms.add("android");
-  if (platforms.size === 0) platforms.add("web");
+  if (fs.existsSync(path.join(root, "project.config.json"))) platforms.add("mini-program");
+  if (fs.existsSync(path.join(root, "Package.swift"))) platforms.add("ios");
+  if (fs.existsSync(path.join(root, "build.gradle")) || fs.existsSync(path.join(root, "settings.gradle"))) platforms.add("android");
+  if (platforms.size === 0) platforms.add("generic");
   return [...platforms];
 }
 
@@ -578,9 +712,9 @@ ${report.affectedSurfaces.map((item) => `| \`${item.surface}\` | \`${item.status
 
 ## Verification Obligations
 
-| ID | Surface | Type | Required | Priority | Behavior Under Test | Expected Evidence | Broad Command Only | Source Refs |
-|---|---|---|---|---|---|---|---|---|
-${report.verificationObligations.map((item) => `| \`${item.id}\` | \`${item.source_surface}\` | \`${item.verification_type}\` | \`${item.required}\` | \`${item.priority}\` | ${item.behavior_under_test} | ${item.expected_evidence} | \`${item.broad_command_only}\` | ${item.source_refs.map((ref) => `\`${ref}\``).join(", ")} |`).join("\n")}
+| ID | Surface | Type | Required | Priority | Behavior Under Test | Expected Evidence | Broad Command Only | Source Refs | Coverage Scenario IDs | Required Proof Strength |
+|---|---|---|---|---|---|---|---|---|---|---|
+${report.verificationObligations.map((item) => `| \`${item.id}\` | \`${item.source_surface}\` | \`${item.verification_type}\` | \`${item.required}\` | \`${item.priority}\` | ${item.behavior_under_test} | ${item.expected_evidence} | \`${item.broad_command_only}\` | ${item.source_refs.map((ref) => `\`${ref}\``).join(", ")} | ${(item.source_coverage_scenario_ids || []).map((id) => `\`${id}\``).join(", ") || "N/A"} | \`${item.required_proof_strength}\` |`).join("\n")}
 
 ## Test Correctness Controls
 

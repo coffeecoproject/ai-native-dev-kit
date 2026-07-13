@@ -3,6 +3,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { extractMachineReadableEvidence, loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
@@ -15,6 +17,7 @@ import {
   validateRuntimeTrustBinding,
 } from "./lib/verification-runtime-consumer.mjs";
 
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
   "json",
@@ -53,9 +56,11 @@ const strictRequested = requireStructuredEvidence || requireEvidenceRefs || requ
   || requireWorkQueue || strictTaskConsumer || requirePlanReview
   || requireEvidenceAuthority || requireRuntimeTrust || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
-const currentSchemaVersion = "1.104.0";
-const readableSchemaVersions = new Set(["1.74.0", currentSchemaVersion]);
+const currentSchemaVersion = "1.108.0";
+const readableSchemaVersions = new Set(["1.74.0", "1.104.0", currentSchemaVersion]);
 const schemaPath = "schemas/artifacts/execution-assurance.schema.json";
+const businessUniverseSchema = loadSchema(projectRoot, "schemas/artifacts/business-universe-coverage.schema.json");
+const testEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -179,6 +184,7 @@ checkReports();
 emitAndExit();
 
 function checkCoreContent() {
+  if (!shouldRequireAssets) return;
   const combined = [
     readResolved("core/execution-assurance-chain.md"),
     readResolved("docs/execution-assurance-chain.md"),
@@ -313,7 +319,9 @@ function checkStructuredEvidence(content, label, file) {
   }
   if (readableSchemaVersions.has(parsed.schema_version)) pass(`${label} evidence schema_version is readable`);
   else fail(`${label} evidence schema_version must be one of ${[...readableSchemaVersions].join(", ")}`);
+  if (parsed.schema_version === currentSchemaVersion) requireSection(content, "Business Universe Assurance", label);
   checkRuntimeTrust(label, file, parsed);
+  checkBusinessUniverseAssurance(label, file, parsed);
   if (parsed.artifact_type === "execution_assurance_report") pass(`${label} evidence artifact_type is execution_assurance_report`);
   else fail(`${label} evidence artifact_type invalid`);
   checkEvidenceAuthority(label, file, parsed);
@@ -368,21 +376,31 @@ function checkStructuredEvidence(content, label, file) {
 }
 
 function checkRuntimeTrust(label, file, evidence) {
-  if (!requireRuntimeTrust) return;
-  if (evidence.schema_version !== currentSchemaVersion) {
+  if (!evidence.runtime_trust_binding && !requireRuntimeTrust) return;
+  const runtimeRequiredByScenario = (evidence.scenario_assurance_map || [])
+    .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
+  const runtimeRequired = requireRuntimeTrust || runtimeRequiredByScenario;
+  if (!runtimeRequired && evidence.runtime_trust_binding?.requirement === "NOT_REQUIRED") {
+    const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, { required: false });
+    if (validation.ok) pass(`${label} Runtime Trust is explicitly not required by the current scenario obligations`);
+    else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  } else {
+    const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
+      required: true,
+      fromFile: file,
+      taskRef: evidence.task_ref,
+      intentDigest: evidence.intent_digest,
+    });
+    if (!validation.ok) {
+      validation.errors.forEach((error) => fail(`${label} ${error}`));
+      return;
+    }
+    pass(`${label} Runtime Trust binding matches the authoritative current run`);
+  }
+  if (runtimeRequired && evidence.schema_version !== currentSchemaVersion) {
     fail(`${label} --require-runtime-trust requires Execution Assurance schema ${currentSchemaVersion}`);
     return;
   }
-  const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
-    fromFile: file,
-    taskRef: evidence.task_ref,
-    intentDigest: evidence.intent_digest,
-  });
-  if (!validation.ok) {
-    validation.errors.forEach((error) => fail(`${label} ${error}`));
-    return;
-  }
-  pass(`${label} Runtime Trust binding matches the authoritative current run`);
   for (const source of evidence.source_systems || []) {
     if (source.name !== "test_evidence" || source.status !== "RECORDED" || !isFileEvidenceRef(source.ref)) continue;
     const resolved = resolveAuthoritativeEvidenceReference(projectRoot, file, source.ref, { markdownOnly: true });
@@ -397,9 +415,160 @@ function checkRuntimeTrust(label, file, evidence) {
     else if (!agreement.ok) agreement.errors.forEach((error) => fail(`${label} ${error}`));
     else pass(`${label} Execution Assurance and Test Evidence use the same Runtime Trust run`);
   }
-  if (evidence.assurance_state === "VERIFIED_DONE" && evidence.runtime_trust_binding?.status !== "VERIFIED") {
+  if (runtimeRequired && evidence.assurance_state === "VERIFIED_DONE" && evidence.runtime_trust_binding?.status !== "VERIFIED") {
     fail(`${label} VERIFIED_DONE requires verified Runtime Trust`);
   }
+}
+
+function checkBusinessUniverseAssurance(label, file, evidence) {
+  if (evidence.schema_version !== "1.108.0") return;
+  const binding = evidence.business_universe_binding;
+  const assuranceRows = Array.isArray(evidence.scenario_assurance_map) ? evidence.scenario_assurance_map : [];
+  if (!binding) {
+    fail(`${label} schema 1.108.0 requires Business Universe binding`);
+    return;
+  }
+  if (binding.required === "No") {
+    if (binding.routing_result === "NOT_REQUIRED_WITH_REASON"
+      && binding.coverage_mapping_status === "NOT_REQUIRED"
+      && assuranceRows.length === 0) {
+      pass(`${label} non-required Business Universe has no scenario assurance rows`);
+    } else {
+      fail(`${label} non-required Business Universe must use NOT_REQUIRED_WITH_REASON with an empty scenario map`);
+    }
+    return;
+  }
+  if (binding.required !== "Yes") {
+    if (binding.routing_result === "TECHNICAL_INSPECTION_REQUIRED"
+      && binding.coverage_mapping_status === "BLOCKED"
+      && evidence.assurance_state !== "VERIFIED_DONE") {
+      pass(`${label} unresolved Business Universe blocks completion without asking the user for technical classification`);
+    } else {
+      fail(`${label} unresolved Business Universe must remain blocked and cannot support VERIFIED_DONE`);
+    }
+    return;
+  }
+
+  const universeRef = resolveAuthoritativeEvidenceReference(projectRoot, file, binding.business_universe_ref, { markdownOnly: true });
+  if (!universeRef.ok) {
+    fail(`${label} Business Universe reference is unsafe or unresolved: ${universeRef.error}`);
+    return;
+  }
+  const universeExtracted = extractMachineReadableEvidence(fs.readFileSync(universeRef.file, "utf8"));
+  if (!universeExtracted?.ok) {
+    fail(`${label} Business Universe reference has invalid structured evidence`);
+    return;
+  }
+  const universe = universeExtracted.value;
+  const universeValidation = validateSchema(universe, businessUniverseSchema, { label: `${label} Business Universe` });
+  if (universeValidation.ok) pass(`${label} Business Universe evidence matches its trusted schema`);
+  else universeValidation.errors.forEach((error) => fail(error));
+  const universeScenarioIds = (universe.coverage_scenarios || []).map((item) => item.coverage_scenario_id);
+  if (universe.coverage_digest === binding.business_universe_digest
+    && universe.outcome === binding.business_universe_state
+    && universe.outcome === "COVERAGE_READY"
+    && sameStringSet(universeScenarioIds, binding.coverage_scenario_ids || [])) {
+    pass(`${label} Business Universe binding matches the exact ready scenario set`);
+  } else {
+    fail(`${label} Business Universe binding must match the exact COVERAGE_READY report and scenario set`);
+  }
+
+  const testSource = (evidence.source_systems || []).find((item) => item.name === "test_evidence" && item.status === "RECORDED");
+  if (!testSource) {
+    fail(`${label} required Business Universe assurance needs a recorded Test Evidence source`);
+    return;
+  }
+  const testRef = resolveAuthoritativeEvidenceReference(projectRoot, file, testSource.source_system_ref || testSource.ref, { markdownOnly: true });
+  if (!testRef.ok) {
+    fail(`${label} Test Evidence source is unsafe or unresolved: ${testRef.error}`);
+    return;
+  }
+  const testExtracted = extractMachineReadableEvidence(fs.readFileSync(testRef.file, "utf8"));
+  if (!testExtracted?.ok) {
+    fail(`${label} Test Evidence source has invalid structured evidence`);
+    return;
+  }
+  const testEvidence = testExtracted.value;
+  const testValidation = validateSchema(testEvidence, testEvidenceSchema, { label: `${label} Test Evidence` });
+  if (testValidation.ok) pass(`${label} Test Evidence matches its trusted schema`);
+  else testValidation.errors.forEach((error) => fail(error));
+  const projectChecker = path.join(projectRoot, "scripts", "check-test-evidence.mjs");
+  const strictArgs = [
+    fs.existsSync(projectChecker) ? projectChecker : path.join(scriptDir, "check-test-evidence.mjs"),
+    projectRoot,
+    "--report", testRef.relativePath,
+    "--require-structured-evidence",
+    "--require-verification-plan-ref",
+    "--strict-source-binding",
+    "--require-current-evidence",
+    "--require-test-quality-controls",
+    "--require-evidence-authority",
+  ];
+  if ((universe.coverage_scenarios || []).some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF")) {
+    strictArgs.push("--require-runtime-trust");
+  }
+  const strictTestCheck = spawnSync(process.execPath, strictArgs, { cwd: projectRoot, encoding: "utf8" });
+  if (strictTestCheck.status === 0) pass(`${label} referenced Test Evidence passes its strict checker`);
+  else fail(`${label} referenced Test Evidence fails its strict checker`);
+
+  const testBinding = testEvidence.business_universe_binding;
+  if (testEvidence.task_ref === evidence.task_ref
+    && testEvidence.intent_digest === evidence.intent_digest
+    && testEvidence.test_evidence_state === "TEST_EVIDENCE_COMPLETE"
+    && testBinding?.business_universe_digest === binding.business_universe_digest
+    && testBinding?.business_universe_state === "COVERAGE_READY"
+    && sameStringSet(testBinding?.coverage_scenario_ids || [], universeScenarioIds)) {
+    pass(`${label} Test Evidence is current-task complete and binds the same Business Universe`);
+  } else {
+    fail(`${label} Test Evidence must be complete for the same task, intent, and Business Universe`);
+  }
+
+  const testRows = new Map((testEvidence.scenario_coverage_map || []).map((item) => [item.coverage_scenario_id, item]));
+  const assuranceById = new Map(assuranceRows.map((item) => [item.coverage_scenario_id, item]));
+  if (assuranceById.size === assuranceRows.length
+    && sameStringSet([...assuranceById.keys()], universeScenarioIds)) {
+    pass(`${label} scenario assurance map covers the exact Business Universe scenario set`);
+  } else {
+    fail(`${label} scenario assurance map must cover each Business Universe scenario exactly once`);
+  }
+  for (const scenario of universe.coverage_scenarios || []) {
+    const testRow = testRows.get(scenario.coverage_scenario_id);
+    const assurance = assuranceById.get(scenario.coverage_scenario_id);
+    if (!testRow || !assurance) {
+      fail(`${label} scenario ${scenario.coverage_scenario_id} is missing downstream assurance`);
+      continue;
+    }
+    const exact = sameStringSet(assurance.required_obligation_ids, testRow.required_obligation_ids)
+      && sameStringSet(assurance.covered_obligation_ids, testRow.covered_obligation_ids)
+      && sameStringSet(assurance.test_evidence_ids, testRow.evidence_ids)
+      && assurance.required_proof_strength === scenario.required_proof_strength
+      && assurance.required_proof_strength === testRow.required_proof_strength
+      && assurance.test_evidence_state === testRow.coverage_state;
+    if (exact) pass(`${label} scenario ${scenario.coverage_scenario_id} assurance matches Test Evidence exactly`);
+    else fail(`${label} scenario ${scenario.coverage_scenario_id} assurance must exactly reproduce Test Evidence coverage`);
+    const fullyCovered = testRow.coverage_state === "COVERED"
+      && (testRow.required_obligation_ids || []).length >= 2
+      && (testRow.required_obligation_ids || []).every((id) => (testRow.covered_obligation_ids || []).includes(id))
+      && (testRow.evidence_ids || []).length > 0;
+    if (fullyCovered && assurance.assurance_state === "ASSURED") {
+      pass(`${label} scenario ${scenario.coverage_scenario_id} is assured by positive and reverse-path evidence`);
+    } else if (!fullyCovered && assurance.assurance_state !== "ASSURED") {
+      pass(`${label} incomplete scenario ${scenario.coverage_scenario_id} remains blocked`);
+    } else {
+      fail(`${label} scenario ${scenario.coverage_scenario_id} assurance state contradicts its evidence`);
+    }
+  }
+  if (evidence.assurance_state === "VERIFIED_DONE"
+    && (binding.coverage_mapping_status !== "COMPLETE"
+      || assuranceRows.some((item) => item.assurance_state !== "ASSURED"))) {
+    fail(`${label} VERIFIED_DONE requires every Business Universe scenario to be ASSURED`);
+  }
+}
+
+function sameStringSet(left, right) {
+  const a = [...new Set((left || []).map(String))].sort();
+  const b = [...new Set((right || []).map(String))].sort();
+  return a.length === b.length && a.every((item, index) => item === b[index]);
 }
 
 function checkEvidenceAuthority(label, file, evidence) {

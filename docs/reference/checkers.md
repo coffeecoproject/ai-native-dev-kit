@@ -13,6 +13,8 @@ Checkers enforce workflow behavior. They are not a substitute for human risk acc
 | `check-review-surface.mjs` | Review Surface Card required-surface, post-execution contract, and overclaim checks |
 | `resolve-business-rule-closure.mjs` | Read-only business rule closure resolver that summarizes a user rule, required dimensions, safe defaults, and decisions before impact coverage |
 | `check-business-rule-closure.mjs` | Business Rule Closure completeness, structured evidence, digest, user-question, safe-default, existing-rule, high-risk, cross-surface, and no-authority checks |
+| `resolve-business-universe-coverage.mjs` | Conditional internal resolver for task-relevant scenarios, lifecycle applicability, project-path provenance, selection/consistency relationships, proof strength, and bounded resumable discovery |
+| `check-business-universe-coverage.mjs` | Strict current-task, scenario identity, lifecycle, provenance, discovery-resume, exclusion, Challenger, evidence-authority, digest, and no-authority checks |
 | `resolve-change-impact-coverage.mjs` | Read-only affected-surface mapper for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
 | `check-change-impact-coverage.mjs` | Change Impact Coverage report completeness, structured evidence, preflight/closure mode, cross-surface close-out, evidence, evidence reference resolution, precise evidence, changed-file implication, and overclaim checks |
 | `resolve-verification-plan.mjs` | Read-only verification planner that maps Business Rule Closure plus Change Impact Coverage into source-bound obligations and test-correctness controls |

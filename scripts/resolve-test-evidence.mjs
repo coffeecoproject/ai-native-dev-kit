@@ -66,14 +66,18 @@ function buildReport(root) {
   const testEvidenceRef = testEvidenceRefForOutput(root, outputPath, reportSlug);
   const sourceSystems = sourceSystemsFor(verificationPlan);
   const requiredObligations = requiredObligationsFor(planEvidence);
+  const runtimeTrustRequired = Boolean(runtimeManifestRef)
+    || requiredObligations.some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
   const runtimeTrust = resolveRuntimeTrustBinding(root, {
+    required: runtimeTrustRequired,
+    notRequiredReason: "The current Verification Plan does not require runtime-trusted behavior proof.",
     manifestRef: runtimeManifestRef,
     taskRef,
     intentDigest,
     verificationPlanRef: verificationPlan.ref,
     verificationPlanDigest: planEvidence?.verification_plan_digest,
   });
-  if (runtimeTrust.ok) {
+  if (runtimeTrust.manifest) {
     sourceSystems.push({
       name: "verification_run_manifest",
       status: "RECORDED",
@@ -87,13 +91,24 @@ function buildReport(root) {
     ...evidenceRefs.map((ref, index) => evidenceItemFor(root, ref, index + 1)),
   ];
   const coverageMap = coverageMapFor(requiredObligations, evidenceItems);
+  const universeBinding = testEvidenceUniverseBindingFor(planEvidence?.business_universe_binding);
+  const scenarioCoverageMap = scenarioCoverageMapFor(universeBinding, requiredObligations, coverageMap);
   const controls = testQualityControlsFor(planEvidence, evidenceItems, coverageMap);
   const manual = manualVerificationFor(planEvidence, evidenceItems);
   const gaps = knownGapsFor(requiredObligations, coverageMap, evidenceItems);
-  const state = stateFor(requiredObligations, coverageMap, evidenceItems, verificationPlan, runtimeTrust.binding);
+  const state = stateFor(
+    requiredObligations,
+    coverageMap,
+    scenarioCoverageMap,
+    universeBinding,
+    evidenceItems,
+    verificationPlan,
+    runtimeTrustRequired,
+    runtimeTrust.binding,
+  );
   const boundaries = boundariesFor();
   const structuredBase = {
-    schema_version: "1.104.0",
+    schema_version: "1.108.0",
     artifact_type: "test_evidence",
     task_ref: taskRef,
     intent: resolvedIntent,
@@ -117,6 +132,8 @@ function buildReport(root) {
     test_evidence_state: state,
     evidence_items: evidenceItems,
     coverage_map: coverageMap,
+    business_universe_binding: universeBinding,
+    scenario_coverage_map: scenarioCoverageMap,
     test_quality_controls: controls,
     known_gaps: gaps,
     manual_verification: manual,
@@ -130,7 +147,7 @@ function buildReport(root) {
   };
   return {
     reportType: "TEST_EVIDENCE_REPORT",
-    schemaVersion: "1.104.0",
+    schemaVersion: "1.108.0",
     generatedBy: "scripts/resolve-test-evidence.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -141,6 +158,8 @@ function buildReport(root) {
     verificationPlan,
     evidenceItems,
     coverageMap,
+    businessUniverseBinding: universeBinding,
+    scenarioCoverageMap,
     testQualityControls: controls,
     knownGaps: gaps,
     manualVerification: manual,
@@ -173,7 +192,7 @@ function sourceSystemsFor(verificationPlan) {
     });
   }
   for (const source of verificationPlan.evidence?.source_systems || []) {
-    if (source.name === "business_rule_closure" || source.name === "change_impact_coverage") {
+    if (["business_rule_closure", "business_universe_coverage", "change_impact_coverage"].includes(source.name)) {
       systems.push({
         name: source.name,
         status: source.status,
@@ -196,7 +215,57 @@ function requiredObligationsFor(planEvidence) {
       priority: item.priority,
       broad_command_only: item.broad_command_only,
       expected_evidence: item.expected_evidence,
+      source_coverage_scenario_ids: [...(item.source_coverage_scenario_ids || [])],
+      required_proof_strength: item.required_proof_strength || "NOT_APPLICABLE",
     }));
+}
+
+function testEvidenceUniverseBindingFor(binding) {
+  if (!binding) {
+    return {
+      required: "No",
+      routing_result: "NOT_REQUIRED_WITH_REASON",
+      business_universe_ref: "N/A",
+      business_universe_digest: "N/A",
+      business_universe_state: "NOT_REQUIRED_WITH_REASON",
+      coverage_scenario_ids: [],
+      coverage_mapping_status: "NOT_REQUIRED",
+    };
+  }
+  return {
+    required: binding.required,
+    routing_result: binding.routing_result,
+    business_universe_ref: binding.business_universe_ref,
+    business_universe_digest: binding.business_universe_digest,
+    business_universe_state: binding.business_universe_state,
+    coverage_scenario_ids: [...(binding.coverage_scenario_ids || [])],
+    coverage_mapping_status: binding.coverage_mapping_status,
+  };
+}
+
+function scenarioCoverageMapFor(binding, obligations, coverageMap) {
+  if (binding.required !== "Yes") return [];
+  const coverageByObligation = new Map(coverageMap.map((item) => [item.obligation_id, item]));
+  return (binding.coverage_scenario_ids || []).map((scenarioId) => {
+    const scenarioObligations = obligations.filter((item) => (item.source_coverage_scenario_ids || []).includes(scenarioId));
+    const requiredIds = scenarioObligations.map((item) => item.id);
+    const coveredIds = requiredIds.filter((id) => coverageByObligation.get(id)?.coverage_state === "COVERED");
+    const evidenceIds = [...new Set(requiredIds.flatMap((id) => coverageByObligation.get(id)?.evidence_ids || []))];
+    const proofStrengths = [...new Set(scenarioObligations.map((item) => item.required_proof_strength))];
+    const state = binding.coverage_mapping_status !== "COMPLETE" || requiredIds.length === 0
+      ? "BLOCKED"
+      : coveredIds.length === requiredIds.length
+        ? "COVERED"
+        : coveredIds.length > 0 ? "PARTIAL" : "NOT_COVERED";
+    return {
+      coverage_scenario_id: scenarioId,
+      required_obligation_ids: requiredIds,
+      covered_obligation_ids: coveredIds,
+      required_proof_strength: proofStrengths.length === 1 ? proofStrengths[0] : "MIXED_OR_INVALID",
+      coverage_state: state,
+      evidence_ids: evidenceIds,
+    };
+  });
 }
 
 function evidenceItemFor(root, ref, index) {
@@ -369,11 +438,15 @@ function knownGapsFor(requiredObligations, coverageMap) {
   return gaps;
 }
 
-function stateFor(requiredObligations, coverageMap, evidenceItems, verificationPlan, runtimeTrustBinding) {
-  if (runtimeTrustBinding?.status !== "VERIFIED") return "TEST_EVIDENCE_BLOCKED";
+function stateFor(requiredObligations, coverageMap, scenarioCoverageMap, universeBinding, evidenceItems, verificationPlan, runtimeTrustRequired, runtimeTrustBinding) {
+  if (runtimeTrustRequired && runtimeTrustBinding?.status !== "VERIFIED") return "TEST_EVIDENCE_BLOCKED";
+  if (!runtimeTrustRequired && runtimeTrustBinding?.status !== "NOT_REQUIRED") return "TEST_EVIDENCE_BLOCKED";
   if (!verificationPlan.ref || !verificationPlan.evidence) return "TEST_EVIDENCE_BLOCKED";
   if (requiredObligations.length === 0) return "TEST_EVIDENCE_BLOCKED";
   if (evidenceItems.length === 0) return "TEST_EVIDENCE_BLOCKED";
+  if (universeBinding.required === "Unknown" || universeBinding.coverage_mapping_status === "BLOCKED") return "TEST_EVIDENCE_BLOCKED";
+  if (universeBinding.required === "Yes" && (scenarioCoverageMap.length === 0
+    || scenarioCoverageMap.some((item) => item.coverage_state !== "COVERED"))) return "TEST_EVIDENCE_PARTIAL";
   if (coverageMap.every((item) => item.coverage_state === "COVERED")) return "TEST_EVIDENCE_COMPLETE";
   if (coverageMap.every((item) => item.coverage_state === "COVERED" || item.coverage_state === "WAIVED_BY_HUMAN_DECISION")) {
     return "TEST_EVIDENCE_WAIVED_WITH_DECISION";
@@ -472,6 +545,12 @@ ${evidence.source_systems.length > 0 ? evidence.source_systems.map((item) => `| 
 ## Runtime Trust Binding
 
 ${runtimeBindingMarkdown(evidence.runtime_trust_binding)}
+
+## Business Universe Scenario Coverage
+
+| Scenario ID | Required obligations | Covered obligations | Proof strength | Coverage state | Evidence IDs |
+|---|---|---|---|---|---|
+${evidence.scenario_coverage_map.length > 0 ? evidence.scenario_coverage_map.map((item) => `| \`${item.coverage_scenario_id}\` | ${item.required_obligation_ids.map((id) => `\`${id}\``).join(", ")} | ${item.covered_obligation_ids.map((id) => `\`${id}\``).join(", ") || "N/A"} | \`${item.required_proof_strength}\` | \`${item.coverage_state}\` | ${item.evidence_ids.map((id) => `\`${id}\``).join(", ") || "N/A"} |`).join("\n") : "| N/A | N/A | N/A | NOT_APPLICABLE | NOT_COVERED | N/A |"}
 
 ## Evidence Items
 

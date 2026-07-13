@@ -4,14 +4,17 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence, resolveEvidenceReference } from "./lib/artifact-schema.mjs";
+import { deriveBusinessUniverseRouting } from "./lib/business-universe.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "format", "intent", "out"]);
+const knownFlags = new Set(["json", "format", "intent", "out", "task-governance-ref", "business-universe-ref"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
 const intent = String(args.intent || args._.slice(1).join(" ") || "").trim();
+const taskGovernanceRef = String(args["task-governance-ref"] || "").trim();
+const businessUniverseRef = String(args["business-universe-ref"] || "").trim();
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
@@ -40,16 +43,27 @@ if (outputFormat === "json") {
 function buildReport(root, userIntent) {
   const signals = collectSignals(root, userIntent);
   const classification = classifyBusinessRule(userIntent, signals);
+  const taskGovernance = readStructuredEvidence(root, taskGovernanceRef);
+  const routing = taskGovernance.evidence?.business_universe_routing
+    || deriveBusinessUniverseRouting({
+      intent: userIntent,
+      projectRoot: root,
+      taskImpact: classification.riskDomains.includes("high-risk-domain") ? "HIGH" : "POSSIBLE_HIGH",
+      taskKind: "code_behavior",
+    });
+  const universe = readStructuredEvidence(root, businessUniverseRef);
+  const businessUniverseBinding = businessUniverseBindingFor({ routing, taskGovernance, universe, userIntent, businessUniverseRef });
+  const businessRuleScenarioMappings = businessRuleScenarioMappingsFor(universe.evidence, classification);
   const taskSlug = slugify(userIntent);
-  const taskRef = `tasks/001-${taskSlug}.md`;
+  const taskRef = taskGovernance.evidence?.task_ref || `tasks/001-${taskSlug}.md`;
   const businessRuleId = `business-rule:${taskSlug}`;
   const businessRuleRef = businessRuleRefForOutput(root, outputPath, taskSlug);
   const sourceRuleRefs = sourceRuleRefsFor(root);
   const conflicts = conflictsFor(userIntent, sourceRuleRefs);
-  const dimensions = dimensionsFor(userIntent, classification, signals, conflicts);
+  const dimensions = dimensionsFor(userIntent, classification, signals, conflicts, businessUniverseBinding);
   const safeDefaults = safeDefaultsFor(userIntent, signals);
   const decisionItems = decisionItemsFor(classification, signals, conflicts, dimensions, safeDefaults);
-  const state = stateFor({ classification, dimensions, decisionItems, safeDefaults, conflicts });
+  const state = stateFor({ classification, dimensions, decisionItems, safeDefaults, conflicts, businessUniverseBinding, businessRuleScenarioMappings });
   const canEnterImpactCoverage = state === "READY_FOR_IMPACT_COVERAGE" ? "Yes" : "No";
   const realEnvironmentValidation = {
     expectation: "Local smoke evidence first; staging or internal trial evidence when available before release review.",
@@ -70,12 +84,14 @@ function buildReport(root, userIntent) {
     conflicts,
     unknown_authority_items: unknownAuthorityItemsFor(classification),
     real_environment_validation: realEnvironmentValidation,
+    business_universe_binding: businessUniverseBinding,
+    business_rule_scenario_mappings: businessRuleScenarioMappings,
     state,
   };
   const sourceRequestDigest = digest(userIntent);
   const businessRuleDigest = evidenceDigest(ruleModel, []);
   const structuredEvidenceBase = {
-    schema_version: "1.75.0",
+    schema_version: "1.108.0",
     artifact_type: "business_rule_closure",
     task_ref: taskRef,
     user_request: userIntent,
@@ -87,6 +103,8 @@ function buildReport(root, userIntent) {
     primary_business_rule_type: classification.primary,
     business_rule_types: classification.types,
     risk_domains: classification.riskDomains,
+    business_universe_binding: businessUniverseBinding,
+    business_rule_scenario_mappings: businessRuleScenarioMappings,
     state,
     can_enter_impact_coverage: canEnterImpactCoverage,
     can_codex_write_now: "No",
@@ -98,7 +116,7 @@ function buildReport(root, userIntent) {
     conflicts,
     unknown_authority_items: unknownAuthorityItemsFor(classification),
     real_environment_validation: realEnvironmentValidation,
-    next_step: nextStepFor(state),
+    next_step: nextStepFor(state, businessUniverseBinding),
     boundaries: boundariesFor(),
   };
   const structuredEvidence = {
@@ -109,7 +127,7 @@ function buildReport(root, userIntent) {
   const boundaries = boundariesFor();
   return {
     reportType: "BUSINESS_RULE_CLOSURE",
-    schemaVersion: "1.75.0",
+    schemaVersion: "1.108.0",
     generatedBy: "scripts/resolve-business-rule-closure.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot: root,
@@ -119,7 +137,7 @@ function buildReport(root, userIntent) {
       primaryRuleType: classification.primary,
       canEnterImpactCoverage,
       canCodexWriteNow: "No",
-      safeNextStep: nextStepFor(state),
+      safeNextStep: nextStepFor(state, businessUniverseBinding),
     },
     userRequest: userIntent,
     codexUnderstanding: understandingFor(userIntent, signals, classification),
@@ -135,10 +153,12 @@ function buildReport(root, userIntent) {
     safeDefaults,
     sourceRuleRefs,
     conflicts,
+    businessUniverseBinding,
+    businessRuleScenarioMappings,
     decisionsNeeded: decisionItems,
     outOfScope: outOfScopeFor(),
     realEnvironmentValidation,
-    nextStep: nextStepFor(state),
+    nextStep: nextStepFor(state, businessUniverseBinding),
     boundaries: {
       ...boundaries,
       writesTargetFiles: boundaries.writes_target_files,
@@ -223,7 +243,7 @@ function riskDomainsFor(signals, userIntent) {
   return domains;
 }
 
-function dimensionsFor(userIntent, classification, signals, conflicts) {
+function dimensionsFor(userIntent, classification, signals, conflicts, businessUniverseBinding) {
   const dims = new Map();
   const add = (dimension, status, summary, options = {}) => {
     dims.set(dimension, {
@@ -244,8 +264,14 @@ function dimensionsFor(userIntent, classification, signals, conflicts) {
     add("FAILURE_PATH", "NEEDS_USER_CONFIRMATION", "What should happen when the rule fails?");
     return [...dims.values()];
   }
-  add("ACTOR", "CLOSED", signals.hasAppointment ? "People or operators creating or changing an appointment are affected." : "Codex must infer affected actors from active UI, API, backend, and workflow entry points.");
-  add("TRIGGER_SCENARIO", "CLOSED", signals.hasAppointment ? "Apply during appointment creation and every later edit or reschedule that can change the relevant value." : "Apply at every active create, edit, submit, import, API, or workflow entry point discovered by impact coverage.");
+  const universeReady = businessUniverseBinding.required === "No" || businessUniverseBinding.business_universe_state === "COVERAGE_READY";
+  const universeEvidence = businessUniverseBinding.business_universe_ref !== "N/A" ? [businessUniverseBinding.business_universe_ref] : [];
+  add("ACTOR", universeReady ? "CLOSED" : "BLOCKED_CONTRADICTORY", universeReady
+    ? signals.hasAppointment ? "Affected actors are bound through the current business-universe evidence." : "Affected actors are bound through current project evidence or a concrete not-required reason."
+    : "Business-universe evidence is required before affected actors can be closed.", { evidenceRefs: universeEvidence });
+  add("TRIGGER_SCENARIO", universeReady ? "CLOSED" : "BLOCKED_CONTRADICTORY", universeReady
+    ? signals.hasAppointment ? "Creation, edit, and reschedule entry paths are bound through the current business-universe evidence." : "Trigger scenarios are bound through current project evidence or a concrete not-required reason."
+    : "Business-universe evidence is required before trigger scenarios can be closed.", { evidenceRefs: universeEvidence });
   add("INPUT_CONDITION", "CLOSED", userIntent);
   add("SUCCESS_PATH", "CLOSED", "Valid input continues through the normal user flow.");
   add("FAILURE_PATH", "CLOSED", "Invalid input is blocked with a user-facing explanation.");
@@ -365,7 +391,10 @@ function decisionItemsFor(classification, signals, conflicts, dimensions, safeDe
   return decisions.slice(0, 3);
 }
 
-function stateFor({ dimensions, decisionItems, safeDefaults, conflicts }) {
+function stateFor({ dimensions, decisionItems, safeDefaults, conflicts, businessUniverseBinding, businessRuleScenarioMappings }) {
+  if (businessUniverseBinding.required === "Unknown") return "BLOCKED_INCOMPLETE_RULE";
+  if (businessUniverseBinding.required === "Yes" && businessUniverseBinding.business_universe_state !== "COVERAGE_READY") return "BLOCKED_INCOMPLETE_RULE";
+  if (businessUniverseBinding.required === "Yes" && (businessRuleScenarioMappings.length === 0 || businessRuleScenarioMappings.some((item) => item.mapping_state !== "MAPPED"))) return "BLOCKED_INCOMPLETE_RULE";
   if (dimensions.some((item) => item.status === "BLOCKED_CONTRADICTORY")) return "BLOCKED_INCOMPLETE_RULE";
   if (conflicts.some((conflict) => conflict.status === "UNRESOLVED")) return "BLOCKED_INCOMPLETE_RULE";
   if (dimensions.some((item) => item.status === "NEEDS_DOMAIN_OWNER")) return "NEEDS_DOMAIN_OWNER";
@@ -452,12 +481,67 @@ function boundariesFor() {
   };
 }
 
-function nextStepFor(state) {
+function nextStepFor(state, businessUniverseBinding = {}) {
   if (state === "READY_FOR_IMPACT_COVERAGE") return "Run Change Impact Coverage with this business_rule_ref.";
   if (state === "NEEDS_DOMAIN_OWNER") return "Ask only for the missing business or external-policy fact; continue unaffected technical work internally.";
+  if (state === "BLOCKED_INCOMPLETE_RULE" && ["Yes", "Unknown"].includes(businessUniverseBinding.required)) {
+    return "Codex must complete the internal coverage inspection before implementation; no technical choice is required from the user.";
+  }
   if (state === "BLOCKED_INCOMPLETE_RULE") return "Resolve contradictory or missing business-rule facts before implementation.";
   if (state === "OUT_OF_SCOPE_FOR_CURRENT_TASK") return "Move this request to the Work Queue.";
   return "Ask the user to confirm the pending business decision.";
+}
+
+function readStructuredEvidence(root, ref) {
+  if (!ref) return { file: "", evidence: null };
+  const file = resolveEvidenceReference(root, "", ref);
+  if (!file) return { file: "", evidence: null };
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(file, "utf8"));
+  return { file, evidence: extracted?.ok ? extracted.value : null };
+}
+
+function businessUniverseBindingFor({ routing, taskGovernance, universe, userIntent, businessUniverseRef: ref }) {
+  if (routing.required !== "Yes") {
+    return {
+      required: routing.required,
+      routing_result: routing.routing_result,
+      reason_codes: [],
+      business_universe_ref: "N/A",
+      business_universe_digest: "N/A",
+      business_universe_state: routing.routing_result,
+      coverage_scenario_ids: [],
+      coverage_mapping_status: routing.required === "No" ? "NOT_REQUIRED" : "BLOCKED",
+      current_task_match: "N/A",
+      intent_match: "N/A",
+      not_required_reason: routing.not_required_reason || routing.technical_inspection_reason || "Codex must continue technical inspection.",
+    };
+  }
+  const coverage = universe.evidence;
+  const currentTaskMatch = coverage && taskGovernance.evidence && coverage.task_ref === taskGovernance.evidence.task_ref ? "Yes" : "No";
+  const intentMatch = coverage?.intent_digest === digest(userIntent) ? "Yes" : "No";
+  return {
+    required: "Yes",
+    routing_result: "REQUIRED_WITH_EVIDENCE",
+    reason_codes: routing.reason_codes || [],
+    business_universe_ref: ref || "N/A",
+    business_universe_digest: coverage?.coverage_digest || "N/A",
+    business_universe_state: coverage?.outcome || "MISSING",
+    coverage_scenario_ids: (coverage?.coverage_scenarios || []).map((item) => item.coverage_scenario_id),
+    coverage_mapping_status: coverage?.outcome === "COVERAGE_READY" ? "COMPLETE" : "BLOCKED",
+    current_task_match: currentTaskMatch,
+    intent_match: intentMatch,
+    not_required_reason: "",
+  };
+}
+
+function businessRuleScenarioMappingsFor(universeEvidence, classification) {
+  return (universeEvidence?.coverage_scenarios || []).map((scenario, index) => ({
+    business_rule_mapping_id: `business-rule-mapping:${index + 1}-${scenario.coverage_scenario_id.slice(-8)}`,
+    source_coverage_scenario_ids: [scenario.coverage_scenario_id],
+    mapped_dimensions: ["ACTOR", "TRIGGER_SCENARIO", "SUCCESS_PATH", "FAILURE_PATH", "DOWNSTREAM_EFFECT"],
+    rule_summary: `${classification.primary} applies to ${scenario.expected_behavior}`,
+    mapping_state: universeEvidence.outcome === "COVERAGE_READY" ? "MAPPED" : "BLOCKED",
+  }));
 }
 
 function humanReportText(report) {
@@ -493,6 +577,30 @@ ${report.codexUnderstanding.map((item) => `- ${item}`).join("\n")}
 | Source Request Digest | \`${report.ruleIdentity.sourceRequestDigest}\` |
 | Business Rule Digest | \`${report.ruleIdentity.businessRuleDigest}\` |
 | Closure Digest | \`${report.ruleIdentity.closureDigest}\` |
+
+## Business Universe Binding
+
+| Field | Value |
+| --- | --- |
+| Required | \`${evidence.business_universe_binding.required}\` |
+| Routing result | \`${evidence.business_universe_binding.routing_result}\` |
+| Reason codes | ${evidence.business_universe_binding.reason_codes.join(", ") || "none"} |
+| Coverage ref | \`${evidence.business_universe_binding.business_universe_ref}\` |
+| Coverage digest | \`${evidence.business_universe_binding.business_universe_digest}\` |
+| Coverage state | \`${evidence.business_universe_binding.business_universe_state}\` |
+| Coverage scenarios | ${evidence.business_universe_binding.coverage_scenario_ids.join(", ") || "none"} |
+| Coverage mapping status | \`${evidence.business_universe_binding.coverage_mapping_status}\` |
+| Current task match | \`${evidence.business_universe_binding.current_task_match}\` |
+| Intent match | \`${evidence.business_universe_binding.intent_match}\` |
+| Not-required reason | ${evidence.business_universe_binding.not_required_reason || "N/A"} |
+
+## Business Rule Scenario Mappings
+
+| Mapping ID | Source coverage scenarios | Dimensions | State | Rule summary |
+| --- | --- | --- | --- | --- |
+${evidence.business_rule_scenario_mappings.length > 0
+  ? evidence.business_rule_scenario_mappings.map((item) => `| \`${item.business_rule_mapping_id}\` | ${item.source_coverage_scenario_ids.join(", ")} | ${item.mapped_dimensions.join(", ")} | \`${item.mapping_state}\` | ${item.rule_summary} |`).join("\n")
+  : "| N/A | N/A | N/A | NOT_REQUIRED | No Business Universe scenarios are required. |"}
 
 ## Business Rule Dimensions
 

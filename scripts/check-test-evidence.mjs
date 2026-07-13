@@ -227,12 +227,21 @@ function checkReport(file) {
 }
 
 function checkRuntimeTrust(label, file, evidence) {
-  if (!requireRuntimeTrust) return;
-  if (evidence.schema_version !== "1.104.0") {
-    fail(`${label} --require-runtime-trust requires Test Evidence schema 1.104.0`);
+  const runtimeRequiredByScenario = (evidence.scenario_coverage_map || [])
+    .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
+  const runtimeRequired = requireRuntimeTrust || runtimeRequiredByScenario;
+  if (!["1.104.0", "1.108.0"].includes(evidence.schema_version)) {
+    if (runtimeRequired) fail(`${label} --require-runtime-trust requires Test Evidence schema 1.104.0 or 1.108.0`);
+    return;
+  }
+  if (!runtimeRequired && evidence.runtime_trust_binding?.requirement === "NOT_REQUIRED") {
+    const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, { required: false });
+    if (validation.ok) pass(`${label} Runtime Trust is explicitly not required by the current Verification Plan`);
+    else validation.errors.forEach((error) => fail(`${label} ${error}`));
     return;
   }
   const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
+    required: true,
     fromFile: file,
     taskRef: evidence.task_ref,
     intentDigest: evidence.intent_digest,
@@ -244,10 +253,21 @@ function checkRuntimeTrust(label, file, evidence) {
     return;
   }
   pass(`${label} Runtime Trust binding matches the authoritative current run`);
+  if (!runtimeRequiredByScenario) return;
+  const planRef = resolveAuthoritativeEvidenceReference(projectRoot, file, evidence.verification_plan_ref, { markdownOnly: true });
+  const planExtracted = planRef.ok
+    ? extractMachineReadableEvidence(fs.readFileSync(planRef.file, "utf8"))
+    : null;
+  const verificationObligations = planExtracted?.ok && Array.isArray(planExtracted.value?.verification_obligations)
+    ? planExtracted.value.verification_obligations
+    : [];
+  const runtimeObligationIds = new Set(verificationObligations
+    .filter((item) => item.required === "Yes" && item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF")
+    .map((item) => item.id));
   const executionById = new Map((validation.manifest.verification_executions || []).map((item) => [`runtime:${item.id}`, item]));
   const evidenceById = new Map((evidence.evidence_items || []).map((item) => [item.id, item]));
   for (const row of evidence.coverage_map || []) {
-    if (row.coverage_state !== "COVERED") continue;
+    if (row.coverage_state !== "COVERED" || !runtimeObligationIds.has(row.obligation_id)) continue;
     const runtimeIds = (row.evidence_ids || []).filter((id) => executionById.has(id));
     if (runtimeIds.length === 0) {
       fail(`${label} covered obligation ${row.obligation_id} requires evidence from the bound Runtime Trust run`);
@@ -268,6 +288,112 @@ function checkRuntimeTrust(label, file, evidence) {
       }
     }
   }
+}
+
+function checkBusinessUniverseScenarioCoverage(label, evidence, verificationPlan) {
+  if (evidence.schema_version !== "1.108.0") return;
+  const binding = evidence.business_universe_binding;
+  const planBinding = verificationPlan?.business_universe_binding;
+  if (!binding) {
+    fail(`${label} 1.108.0 requires Business Universe bindings in Test Evidence and Verification Plan`);
+    return;
+  }
+  if (!planBinding) {
+    if (verificationPlan?.schema_version === "1.76.0"
+      && isBoundedNotRequiredUniverseProjection(binding, evidence)) {
+      pass(`${label} trusted legacy Verification Plan is projected as Business Universe not required`);
+    } else {
+      fail(`${label} 1.108.0 requires Business Universe bindings in Test Evidence and current Verification Plan`);
+    }
+    return;
+  }
+  if (planBinding.required === "No") {
+    if (isBoundedNotRequiredUniverseProjection(binding, evidence)) {
+      pass(`${label} non-required Business Universe has no synthetic Test Evidence scenario map`);
+    } else {
+      fail(`${label} non-required Business Universe must remain a bounded N/A projection`);
+    }
+    return;
+  }
+  if (planBinding.required === "Unknown") {
+    if (binding.required === "Unknown"
+      && binding.routing_result === "TECHNICAL_INSPECTION_REQUIRED"
+      && binding.coverage_mapping_status === "BLOCKED"
+      && evidence.test_evidence_state === "TEST_EVIDENCE_BLOCKED") {
+      pass(`${label} unresolved Business Universe inspection blocks Test Evidence`);
+    } else {
+      fail(`${label} unresolved Business Universe inspection must block Test Evidence`);
+    }
+    return;
+  }
+  for (const field of [
+    "required",
+    "routing_result",
+    "business_universe_ref",
+    "business_universe_digest",
+    "business_universe_state",
+    "coverage_mapping_status",
+  ]) {
+    if (binding[field] === planBinding[field]) pass(`${label} Business Universe ${field} matches Verification Plan`);
+    else fail(`${label} Business Universe ${field} must match Verification Plan`);
+  }
+  const expectedScenarioIds = uniqueStrings(planBinding.coverage_scenario_ids || []);
+  if (sameStringSet(binding.coverage_scenario_ids, expectedScenarioIds) && expectedScenarioIds.length > 0) {
+    pass(`${label} Test Evidence binds the exact Business Universe scenario set`);
+  } else {
+    fail(`${label} Test Evidence must bind the exact non-empty Business Universe scenario set`);
+  }
+  const rows = evidence.scenario_coverage_map || [];
+  const rowIds = rows.map((item) => item.coverage_scenario_id);
+  if (sameStringSet(rowIds, expectedScenarioIds) && new Set(rowIds).size === rows.length) {
+    pass(`${label} scenario_coverage_map contains every and only Business Universe scenario once`);
+  } else {
+    fail(`${label} scenario_coverage_map must contain every and only Business Universe scenario once`);
+  }
+  const coverageByObligation = new Map((evidence.coverage_map || []).map((item) => [item.obligation_id, item]));
+  const evidenceIds = new Set((evidence.evidence_items || []).map((item) => item.id));
+  for (const scenarioId of expectedScenarioIds) {
+    const row = rows.find((item) => item.coverage_scenario_id === scenarioId);
+    if (!row) continue;
+    const obligations = (verificationPlan.verification_obligations || [])
+      .filter((item) => item.required === "Yes" && (item.source_coverage_scenario_ids || []).includes(scenarioId));
+    const requiredIds = obligations.map((item) => item.id);
+    const coveredIds = requiredIds.filter((id) => coverageByObligation.get(id)?.coverage_state === "COVERED");
+    const expectedEvidenceIds = uniqueStrings(requiredIds.flatMap((id) => coverageByObligation.get(id)?.evidence_ids || []));
+    const proofStrengths = uniqueStrings(obligations.map((item) => item.required_proof_strength));
+    if (sameStringSet(row.required_obligation_ids, requiredIds) && requiredIds.length >= 2) {
+      pass(`${label} scenario ${scenarioId} binds all required Verification Plan obligations`);
+    } else {
+      fail(`${label} scenario ${scenarioId} must bind all expected and negative/reverse obligations`);
+    }
+    if (sameStringSet(row.covered_obligation_ids, coveredIds)) pass(`${label} scenario ${scenarioId} covered obligations match coverage_map`);
+    else fail(`${label} scenario ${scenarioId} covered obligations do not match coverage_map`);
+    if (proofStrengths.length === 1 && row.required_proof_strength === proofStrengths[0]) pass(`${label} scenario ${scenarioId} preserves proof strength`);
+    else fail(`${label} scenario ${scenarioId} has inconsistent proof strength`);
+    if (sameStringSet(row.evidence_ids, expectedEvidenceIds)
+      && row.evidence_ids.every((id) => evidenceIds.has(id))) pass(`${label} scenario ${scenarioId} evidence IDs are exact`);
+    else fail(`${label} scenario ${scenarioId} evidence IDs must match covered obligation evidence`);
+    const expectedState = binding.coverage_mapping_status !== "COMPLETE" || requiredIds.length === 0
+      ? "BLOCKED"
+      : coveredIds.length === requiredIds.length ? "COVERED" : coveredIds.length > 0 ? "PARTIAL" : "NOT_COVERED";
+    if (row.coverage_state === expectedState) pass(`${label} scenario ${scenarioId} coverage state is derived correctly`);
+    else fail(`${label} scenario ${scenarioId} coverage state must be ${expectedState}`);
+  }
+  if (evidence.test_evidence_state === "TEST_EVIDENCE_COMPLETE"
+    && rows.some((item) => item.coverage_state !== "COVERED")) {
+    fail(`${label} TEST_EVIDENCE_COMPLETE cannot leave a Business Universe scenario incomplete`);
+  }
+}
+
+function isBoundedNotRequiredUniverseProjection(binding, evidence) {
+  return binding.required === "No"
+    && binding.routing_result === "NOT_REQUIRED_WITH_REASON"
+    && binding.business_universe_ref === "N/A"
+    && binding.business_universe_digest === "N/A"
+    && binding.business_universe_state === "NOT_REQUIRED_WITH_REASON"
+    && binding.coverage_mapping_status === "NOT_REQUIRED"
+    && (binding.coverage_scenario_ids || []).length === 0
+    && (evidence.scenario_coverage_map || []).length === 0;
 }
 
 function checkEvidenceAuthority(label, file, evidence) {
@@ -308,6 +434,7 @@ function checkStructuredEvidence(label, file, evidence, markdown) {
   checkSourceSystemsConsistency(label, evidence, verificationPlan);
   checkEvidenceItems(label, file, evidence, verificationPlan);
   checkCoverageMap(label, evidence, verificationPlan);
+  checkBusinessUniverseScenarioCoverage(label, evidence, verificationPlan);
   checkTestQualityControls(label, evidence, verificationPlan);
   checkManualVerification(label, evidence);
   checkBoundaries(label, evidence);
@@ -365,6 +492,9 @@ function checkSourceSystemsConsistency(label, evidence, verificationPlan) {
     if (verificationPlan?.source_systems?.some((item) => item.name === "business_rule_closure")) {
       requireRecordedSource(label, byName.get("business_rule_closure"), "business_rule_closure");
     }
+    if (verificationPlan?.source_systems?.some((item) => item.name === "business_universe_coverage")) {
+      requireRecordedSource(label, byName.get("business_universe_coverage"), "business_universe_coverage");
+    }
     if (verificationPlan?.source_systems?.some((item) => item.name === "change_impact_coverage")) {
       requireRecordedSource(label, byName.get("change_impact_coverage"), "change_impact_coverage");
     }
@@ -374,7 +504,7 @@ function checkSourceSystemsConsistency(label, evidence, verificationPlan) {
   requireSourceField(label, planSource, "verification_plan", "source_outcome", evidence.verification_plan_state);
   if (strictSourceBinding && verificationPlan) {
     for (const source of verificationPlan.source_systems || []) {
-      if (!["business_rule_closure", "change_impact_coverage"].includes(source.name)) continue;
+      if (!["business_rule_closure", "business_universe_coverage", "change_impact_coverage"].includes(source.name)) continue;
       const carried = byName.get(source.name);
       if (!carried) {
         fail(`${label} source_systems must preserve ${source.name} from Verification Plan`);
@@ -587,6 +717,7 @@ function checkMarkdownJsonConsistency(label, evidence, markdown) {
   compareScalar(label, "Markdown identity verification_plan_digest", markdown.identity.verification_plan_digest, evidence.verification_plan_digest);
   compareScalar(label, "Markdown identity intent_digest", markdown.identity.intent_digest, evidence.intent_digest);
   checkMarkdownSourceSystems(label, evidence, markdown.sourceSystems);
+  compareScenarioCoverageRows(label, evidence.scenario_coverage_map || [], markdown.scenarioCoverageMap);
   compareEvidenceRows(label, evidence.evidence_items || [], markdown.evidenceItems);
   compareCoverageRows(label, evidence.coverage_map || [], markdown.coverageMap);
   compareQualityControlRows(label, evidence.test_quality_controls || [], markdown.testQualityControls);
@@ -619,6 +750,14 @@ function parseMarkdownEvidence(content) {
       verification_plan_digest: bulletValue(content, "Test Evidence Identity", "Verification plan digest"),
       intent_digest: bulletValue(content, "Test Evidence Identity", "Intent digest"),
     },
+    scenarioCoverageMap: tableRows(sectionBody(content, "Business Universe Scenario Coverage", { fallback: "" })).map((row) => ({
+      coverage_scenario_id: row.scenario_id,
+      required_obligation_ids: splitRefs(row.required_obligations),
+      covered_obligation_ids: splitRefs(row.covered_obligations),
+      required_proof_strength: row.proof_strength,
+      coverage_state: row.coverage_state,
+      evidence_ids: splitRefs(row.evidence_ids),
+    })),
     evidenceItems: tableRows(sectionBody(content, "Evidence Items", { fallback: "" })).map((row) => ({
       id: row.id,
       type: row.type,
@@ -669,6 +808,28 @@ function parseMarkdownEvidence(content) {
     },
     outcome: codeOrTextValue(sectionBody(content, "Outcome", { fallback: "" })),
   };
+}
+
+function compareScenarioCoverageRows(label, structuredRows, markdownRows) {
+  const markdownById = new Map(markdownRows.map((row) => [row.coverage_scenario_id, row]));
+  const structuredIds = new Set(structuredRows.map((row) => row.coverage_scenario_id));
+  for (const row of structuredRows) {
+    const markdown = markdownById.get(row.coverage_scenario_id);
+    if (!markdown) {
+      fail(`${label} Markdown Business Universe Scenario Coverage missing ${row.coverage_scenario_id}`);
+      continue;
+    }
+    compareSet(label, `Markdown scenario ${row.coverage_scenario_id} required obligations`, markdown.required_obligation_ids, row.required_obligation_ids || []);
+    compareSet(label, `Markdown scenario ${row.coverage_scenario_id} covered obligations`, markdown.covered_obligation_ids, row.covered_obligation_ids || []);
+    compareScalar(label, `Markdown scenario ${row.coverage_scenario_id} proof strength`, markdown.required_proof_strength, row.required_proof_strength);
+    compareScalar(label, `Markdown scenario ${row.coverage_scenario_id} state`, markdown.coverage_state, row.coverage_state);
+    compareSet(label, `Markdown scenario ${row.coverage_scenario_id} evidence ids`, markdown.evidence_ids, row.evidence_ids || []);
+  }
+  for (const row of markdownRows) {
+    if (!structuredIds.has(row.coverage_scenario_id) && row.coverage_scenario_id !== "N/A") {
+      fail(`${label} Markdown Business Universe Scenario Coverage has extra row ${row.coverage_scenario_id}`);
+    }
+  }
 }
 
 function checkMarkdownSourceSystems(label, evidence, rows) {
@@ -932,6 +1093,14 @@ function normalizeCell(value) {
 
 function sameArray(left, right) {
   return left.length === right.length && left.every((item, index) => item === right[index]);
+}
+
+function uniqueStrings(values) {
+  return normalizeSet(values);
+}
+
+function sameStringSet(left, right) {
+  return sameArray(uniqueStrings(left), uniqueStrings(right));
 }
 
 function hasSection(content, heading) {

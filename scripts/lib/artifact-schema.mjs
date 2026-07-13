@@ -11,20 +11,21 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/adoption-assurance.schema.json": "sha256:5afc832e7a3dbb502fbb4c338badcd2ef15f8703f7d4bc0aad365dca1917d355",
   "schemas/artifacts/apply-execution-receipt.schema.json": "sha256:850c8523e0618381a97142aa3647851faa1cbcc04f2b2725b21ef8dd41dc547b",
   "schemas/artifacts/approval-record.schema.json": "sha256:f0037bb2bf6402b6e57e2bbdd29542f4ab834d35bd2ea0979cc5872a491cd26b",
-  "schemas/artifacts/business-rule-closure.schema.json": "sha256:3a25cdebee49a5c41efd7b13fe356acc3ea7edc790140fc7ec636691b6d8f214",
-  "schemas/artifacts/change-impact-coverage.schema.json": "sha256:c9f4728b2e4427350effd421e7c4d6215975f24d15057fac813c734206286a8b",
-  "schemas/artifacts/completion-evidence.schema.json": "sha256:0e1e2cd35ce7fa1d14cf009e9e63b1eabf6d389282d1713634800f4d16186b54",
+  "schemas/artifacts/business-rule-closure.schema.json": "sha256:ca65aabb46d8b56162c0a51c1aba3a5142affa81bf20b02cfc7518851d8aeac9",
+  "schemas/artifacts/business-universe-coverage.schema.json": "sha256:8f8b4684f4ab262b4bbfe63d72f1f3bbf8777db27c90bdcbb9bb1b892c8b6637",
+  "schemas/artifacts/change-impact-coverage.schema.json": "sha256:74fd33e09d583b94417a577ea46276d7d985baef7158c3e51b4955893e08fdee",
+  "schemas/artifacts/completion-evidence.schema.json": "sha256:594e0bbf96f5dbe2584924ffd19a13b55f1d317425ec9d935ec5d17271813ebd",
   "schemas/artifacts/controlled-apply-readiness.schema.json": "sha256:3656d706351810a3fc335f1896681f1fd88837cd3c64b2dae4c5daca4786063d",
   "schemas/artifacts/controlled-native-adoption-review.schema.json": "sha256:b627a57d8b6d1d7be3073b0ffd7957f8af5d60b35e7dc408464313eda65ca14c",
   "schemas/artifacts/eval.schema.json": "sha256:fb926d3be8f7ad2d3ac2a646bdcf5ca2af26f7cd80461513bf8a860ae2b75416",
-  "schemas/artifacts/execution-assurance.schema.json": "sha256:bea26ef2dd12feddacb4d672ecdaa7768f45d96c723ed8aa8a9260dc19defaeb",
+  "schemas/artifacts/execution-assurance.schema.json": "sha256:6168005965db80bd7ba90d08e732ea273558429f677ab5fae563b926ea27c6bc",
   "schemas/artifacts/existing-project-adoption-autopilot.schema.json": "sha256:a8d535d4a84b0d97ca1f8a73ea0e4a8db9ab80d226a1616e544dfaab235d17af",
   "schemas/artifacts/existing-rule-reconciliation.schema.json": "sha256:84184ca5a057c5678872a030111d9d8c83da5e9212931d97ff7cb05632de5d37",
   "schemas/artifacts/goal-card.schema.json": "sha256:1ff608263461e0c4939c410441537edd0bcaeb0841857e6234dcd4963f55d4dd",
   "schemas/artifacts/governance-convergence.schema.json": "sha256:0326e03e1917b86998721e1cee502c184eaf3bfc8cf06ff50204cda0d417cfa6",
   "schemas/artifacts/low-risk-apply-candidate.schema.json": "sha256:6c6f64f687995bad99311732bceed926d2810b19f868fb9c4b0f8b53f5562b9f",
   "schemas/artifacts/native-migration-plan.schema.json": "sha256:38cee2775d4ddb56bfa71545ad2c811013b71edbfbe6ef6704094b6d4a5d860d",
-  "schemas/artifacts/plan-review.schema.json": "sha256:374f07e2d62b2d2e9e5e348fbfe6ea4ff88ed2b5ae7498faf9d774922427fbec",
+  "schemas/artifacts/plan-review.schema.json": "sha256:6923d6f8399413b4790ca471fb3691fe2ba96e417f8768930b73c57e771a49cb",
   "schemas/artifacts/preflight.schema.json": "sha256:d0c928569a2d8c6a4776df78307b310a4c7420e56b5bb89964367f69a251f353",
   "schemas/artifacts/product-completeness-evidence.schema.json": "sha256:71da81e0c9202d4b8b15c409b1d957e2741219dd064301b83fbdea8750c2c7c2",
   "schemas/artifacts/release-approval-record.schema.json": "sha256:321014436d4b00a48e1d48f39699facb1e16cffe9bd500c207c64ac0e0a4e832",
@@ -41,11 +42,11 @@ const trustedArtifactSchemaDigests = {
   "schemas/artifacts/runtime-hygiene.schema.json": "sha256:f2ef0a6e9cfaa87bae95249874cccd04612195dc4382449e849ee83f23ae6a9e",
   "schemas/artifacts/spec.schema.json": "sha256:0052829a51f2ca0aa6da86fc3f66bb605801c8f32e0e4fb411ee206278dd7e57",
   "schemas/artifacts/subagent-run-plan.schema.json": "sha256:f17e70305b6d4245233fa094f6e657dc67d16c13da6decd93d10955b7173d354",
-  "schemas/artifacts/task-governance.schema.json": "sha256:b5e5e90d73f7882a31a17f026c492a6b1fe5772a39bb0fc943970de203665c68",
+  "schemas/artifacts/task-governance.schema.json": "sha256:22a0d540cf3106f41decf0f610ed534fd0592df5f56c7bb4f3bf923968187688",
   "schemas/artifacts/task.schema.json": "sha256:6e30ca37ab7251a7c1bfd20ce13c387e573b800273b6d45852aaf9a560b5f67c",
-  "schemas/artifacts/test-evidence.schema.json": "sha256:310e4ad5c06959c1f06e2780138b204e98612a1e2d602bb2c184ad2e9d0ee55a",
+  "schemas/artifacts/test-evidence.schema.json": "sha256:98c63f06b86149ab5b7bc9485c745a025d13bb79ec7673eda4d8d69c3b37ea9e",
   "schemas/artifacts/unified-apply-plan.schema.json": "sha256:03ac3d64e92156d4772256f61d35f1b02b8f05a84760b6473d4a58228e0e9eac",
-  "schemas/artifacts/verification-plan.schema.json": "sha256:794d50e1955e9402ccd37cbf2d5adace58981d0dcd990f681265b16f89de96fb",
+  "schemas/artifacts/verification-plan.schema.json": "sha256:43ca7346150d1c8111f3d66bd4614a14f84763ba5179f7f445a0ba149bf80cb5",
   "schemas/artifacts/verification-run-manifest.schema.json": "sha256:1e764496818e0a3aa05edf6a11ee4cfdbb65ccbd0a94497e7138bcfad90f037c",
   "schemas/artifacts/verification-runtime-lifecycle-plan.schema.json": "sha256:5728eeebb3dd7d35d794c36b7cce5fe0377a34b1cc7d32fcc19276a11c1b8aff",
   "schemas/artifacts/verification-runtime-plan.schema.json": "sha256:8e20158e122c2eaa632f8e24221d65594bebaf0dbe5c9350e8e7ade9c01ac6cd",
@@ -190,6 +191,9 @@ const supportedSchemaKeywords = new Set([
   "items",
   "allOf",
   "contains",
+  "if",
+  "then",
+  "else",
 ]);
 
 function validateValue(value, schema, label, errors, rootSchema = schema, seenRefs = new Set()) {
@@ -218,6 +222,16 @@ function validateValue(value, schema, label, errors, rootSchema = schema, seenRe
 
   if (Array.isArray(schema.allOf)) {
     schema.allOf.forEach((childSchema, index) => validateValue(value, childSchema, `${label}.allOf[${index}]`, errors, rootSchema, seenRefs));
+  }
+
+  if (schema.if && typeof schema.if === "object") {
+    const conditionErrors = [];
+    validateValue(value, schema.if, `${label}.if`, conditionErrors, rootSchema, seenRefs);
+    if (conditionErrors.length === 0 && schema.then && typeof schema.then === "object") {
+      validateValue(value, schema.then, `${label}.then`, errors, rootSchema, seenRefs);
+    } else if (conditionErrors.length > 0 && schema.else && typeof schema.else === "object") {
+      validateValue(value, schema.else, `${label}.else`, errors, rootSchema, seenRefs);
+    }
   }
 
   if (schema.type && !matchesType(value, schema.type)) {

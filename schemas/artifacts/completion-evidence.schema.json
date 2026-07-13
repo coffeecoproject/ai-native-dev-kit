@@ -23,7 +23,7 @@
   ],
   "properties": {
     "schema_version": {
-      "enum": ["1.78.0", "1.104.0"]
+      "enum": ["1.78.0", "1.104.0", "1.108.0"]
     },
     "artifact_type": {
       "const": "completion_evidence_gate"
@@ -58,7 +58,8 @@
         "BLOCKED_BY_TEST_EVIDENCE",
         "BLOCKED_BY_EXECUTION_ASSURANCE",
         "BLOCKED_BY_TASK_MISMATCH",
-        "BLOCKED_BY_RUNTIME_TRUST"
+        "BLOCKED_BY_RUNTIME_TRUST",
+        "BLOCKED_BY_BUSINESS_UNIVERSE"
       ]
     },
     "can_claim_complete": {
@@ -211,6 +212,13 @@
     "runtime_trust_binding": {
       "$ref": "#/$defs/runtimeTrustBinding"
     },
+    "business_universe_binding": {
+      "$ref": "#/$defs/businessUniverseBinding"
+    },
+    "scenario_completion_map": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scenarioCompletion" }
+    },
     "missing_or_blocking_items": {
       "type": "array",
       "items": {
@@ -350,7 +358,47 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "schema_version": { "const": "1.108.0" } } },
+      "then": { "required": ["business_universe_binding", "scenario_completion_map", "runtime_trust_binding", "authority_binding"] }
+    }
+  ],
   "$defs": {
+    "businessUniverseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required", "routing_result", "business_universe_ref", "business_universe_digest",
+        "business_universe_state", "coverage_scenario_ids", "coverage_mapping_status"
+      ],
+      "properties": {
+        "required": { "enum": ["Yes", "No", "Unknown"] },
+        "routing_result": { "enum": ["REQUIRED_WITH_EVIDENCE", "TECHNICAL_INSPECTION_REQUIRED", "NOT_REQUIRED_WITH_REASON"] },
+        "business_universe_ref": { "type": "string", "minLength": 1 },
+        "business_universe_digest": { "type": "string", "minLength": 1 },
+        "business_universe_state": { "type": "string", "minLength": 1 },
+        "coverage_scenario_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "coverage_mapping_status": { "enum": ["COMPLETE", "NOT_REQUIRED", "BLOCKED"] }
+      }
+    },
+    "scenarioCompletion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage_scenario_id", "verification_obligation_ids", "test_evidence_ids",
+        "required_proof_strength", "test_evidence_state", "execution_assurance_state", "completion_state"
+      ],
+      "properties": {
+        "coverage_scenario_id": { "type": "string", "pattern": "^coverage-scenario:[a-f0-9]{24}$" },
+        "verification_obligation_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "test_evidence_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "required_proof_strength": { "enum": ["STRUCTURAL_SOURCE_PROOF", "PROJECT_NATIVE_BEHAVIOR_PROOF", "RUNTIME_TRUSTED_BEHAVIOR_PROOF", "EXTERNAL_FACT_PROOF"] },
+        "test_evidence_state": { "enum": ["COVERED", "PARTIAL", "NOT_COVERED", "BLOCKED"] },
+        "execution_assurance_state": { "enum": ["ASSURED", "BLOCKED_MISSING_TEST_EVIDENCE", "BLOCKED_WEAK_PROOF", "BLOCKED_SOURCE_MISMATCH"] },
+        "completion_state": { "enum": ["COMPLETE", "BLOCKED_TEST_EVIDENCE", "BLOCKED_EXECUTION_ASSURANCE", "BLOCKED_SOURCE_MISMATCH"] }
+      }
+    },
     "runtimeTrustBinding": {
       "type": "object",
       "additionalProperties": false,
@@ -362,8 +410,8 @@
         "current_verification_plan_match", "checker", "reason"
       ],
       "properties": {
-        "requirement": { "const": "REQUIRED" },
-        "status": { "enum": ["VERIFIED", "BLOCKED"] },
+        "requirement": { "enum": ["REQUIRED", "NOT_REQUIRED"] },
+        "status": { "enum": ["VERIFIED", "BLOCKED", "NOT_REQUIRED"] },
         "run_manifest_ref": { "type": "string", "minLength": 1 },
         "run_manifest_digest": { "type": "string", "minLength": 1 },
         "run_id": { "type": "string", "minLength": 1 },
@@ -376,13 +424,46 @@
         "lifecycle_plan_digest": { "type": "string", "minLength": 1 },
         "verification_plan_ref": { "type": "string", "minLength": 1 },
         "verification_plan_digest": { "type": "string", "minLength": 1 },
-        "current_project_match": { "enum": ["Yes", "No", "Unknown"] },
-        "current_task_match": { "enum": ["Yes", "No", "Unknown"] },
-        "current_intent_match": { "enum": ["Yes", "No", "Unknown"] },
-        "current_verification_plan_match": { "enum": ["Yes", "No", "Unknown"] },
-        "checker": { "const": "scripts/check-verification-run-manifest.mjs --require-complete" },
+        "current_project_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+        "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+        "current_intent_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+        "current_verification_plan_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
+        "checker": { "enum": ["scripts/check-verification-run-manifest.mjs --require-complete", "N/A"] },
         "reason": { "type": "string", "minLength": 1 }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "requirement": { "const": "NOT_REQUIRED" } }, "required": ["requirement"] },
+          "then": {
+            "properties": {
+              "status": { "const": "NOT_REQUIRED" },
+              "run_manifest_ref": { "const": "N/A" },
+              "run_manifest_digest": { "const": "N/A" },
+              "run_id": { "const": "N/A" },
+              "task_ref": { "const": "N/A" },
+              "intent_digest": { "const": "N/A" },
+              "runtime_trust_level": { "const": "N/A" },
+              "runtime_plan_ref": { "const": "N/A" },
+              "runtime_plan_digest": { "const": "N/A" },
+              "lifecycle_plan_ref": { "const": "N/A" },
+              "lifecycle_plan_digest": { "const": "N/A" },
+              "verification_plan_ref": { "const": "N/A" },
+              "verification_plan_digest": { "const": "N/A" },
+              "current_project_match": { "const": "N/A" },
+              "current_task_match": { "const": "N/A" },
+              "current_intent_match": { "const": "N/A" },
+              "current_verification_plan_match": { "const": "N/A" },
+              "checker": { "const": "N/A" }
+            }
+          },
+          "else": {
+            "properties": {
+              "status": { "enum": ["VERIFIED", "BLOCKED"] },
+              "checker": { "const": "scripts/check-verification-run-manifest.mjs --require-complete" }
+            }
+          }
+        }
+      ]
     },
     "authorityBinding": {
       "type": "object",

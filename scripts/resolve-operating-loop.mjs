@@ -205,8 +205,17 @@ function addOperationSources(sources, operation) {
   }
   if (operation === "FINISH_TASK") {
     const currentQueueTask = sources.find((item) => item.name === "WORK_QUEUE")?.value?.currentTaskCandidates?.[0] || null;
+    const currentTaskIntent = String(currentQueueTask?.title || intent).trim();
+    const taskGovernanceIndex = sources.findIndex((item) => item.name === "TASK_GOVERNANCE");
+    if (taskGovernanceIndex >= 0 && currentTaskIntent) {
+      sources[taskGovernanceIndex] = runSource("TASK_GOVERNANCE", "scripts/resolve-task-governance.mjs", [
+        projectRoot,
+        "--intent", currentTaskIntent,
+        "--json",
+      ]);
+    }
     const effectiveTaskRef = taskRef || currentQueueTask?.taskRef || currentQueueTask?.taskId || "";
-    const closureArgs = [projectRoot, "--intent", intent, "--json"];
+    const closureArgs = [projectRoot, "--intent", currentTaskIntent, "--json"];
     if (effectiveTaskRef) closureArgs.push("--task", effectiveTaskRef);
     if (currentQueueTask?.intentDigest) closureArgs.push("--intent-digest", currentQueueTask.intentDigest);
     for (const flag of ["verification", "impact-report", "execution-closure", "guided-closure", "human-decision"]) {
@@ -224,9 +233,20 @@ function addOperationSources(sources, operation) {
       "--require-report",
       "--require-structured-evidence",
     ]));
+    const universeRequired = sources.find((item) => item.name === "TASK_GOVERNANCE")?.value
+      ?.structuredEvidence?.business_universe_routing?.required === "Yes";
+    if (universeRequired) {
+      sources.push(runGateSource("BUSINESS_UNIVERSE_COVERAGE_CHECK", "scripts/check-business-universe-coverage.mjs", [
+        projectRoot,
+        "--json",
+        "--require-report",
+        "--require-structured-evidence",
+        "--require-ready",
+      ]));
+    }
     const impact = sources.find((item) => item.name === "TASK_GOVERNANCE")?.value
       ?.structuredEvidence?.impact_classification?.task_impact || "POSSIBLE_HIGH";
-    const planReviewRequired = new Set(["MEDIUM", "HIGH"]).has(impact);
+    const planReviewRequired = new Set(["MEDIUM", "POSSIBLE_HIGH", "HIGH"]).has(impact);
     if (planReviewRequired) {
       sources.push(runGateSource("PLAN_REVIEW_CHECK", "scripts/check-plan-review.mjs", [
         projectRoot,
@@ -862,6 +882,8 @@ function selectOperatingAction(context) {
 function actionForTaskBlocker(blockers) {
   const joined = blockers.join("\n").toLowerCase();
   if (/adoption review/.test(joined)) return action("RESOLVE_ADOPTION_BLOCKER", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "ADOPTION_BLOCKS_TASK_GOVERNANCE", true);
+  if (/omission-risk inspection/.test(joined)) return action("INSPECT_BUSINESS_UNIVERSE_RISK", "READ_ONLY_REVIEW", "READ_ONLY_ACTION_REQUIRED", "BUSINESS_UNIVERSE_INSPECTION_REQUIRED", true);
+  if (/business universe coverage/.test(joined)) return action("PREPARE_BUSINESS_UNIVERSE_COVERAGE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
   if (/business rule/.test(joined)) return action("PREPARE_BUSINESS_RULE_CLOSURE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
   if (/affected-surface|surface map/.test(joined)) return action("PREPARE_CHANGE_IMPACT_COVERAGE", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
   if (/execution plan/.test(joined)) return action("PREPARE_EXECUTION_PLAN", "GOVERNANCE_PREPARATION", "ACTION_REQUIRED", "TASK_GOVERNANCE_BLOCKED", true);
@@ -925,6 +947,8 @@ function reasonFor(actionCode, blockers) {
     SUMMARIZE_CURRENT_STATUS: "The user requested current project or task status.",
     INSPECT_TASK_RISK: "Task Governance classified the task as POSSIBLE_HIGH and requires clarification.",
     RESOLVE_ADOPTION_BLOCKER: `Task Governance is blocked by adoption state: ${firstBlocker}.`,
+    INSPECT_BUSINESS_UNIVERSE_RISK: `Task Governance requires a bounded omission-risk inspection: ${firstBlocker}.`,
+    PREPARE_BUSINESS_UNIVERSE_COVERAGE: `Task Governance requires evidence-backed Business Universe Coverage: ${firstBlocker}.`,
     PREPARE_BUSINESS_RULE_CLOSURE: `Task Governance requires business-rule clarification: ${firstBlocker}.`,
     PREPARE_CHANGE_IMPACT_COVERAGE: `Task Governance requires an affected-surface map: ${firstBlocker}.`,
     PREPARE_EXECUTION_PLAN: `Task Governance requires a durable execution plan: ${firstBlocker}.`,
@@ -954,6 +978,8 @@ function plainActionFor(actionCode, language = "en") {
     SUMMARIZE_CURRENT_STATUS: "Codex 汇总当前证据，并用白话说明已完成、未完成和下一步。",
     INSPECT_TASK_RISK: "Codex 先只读确认数据、状态、权限或接口影响，不直接改代码。",
     RESOLVE_ADOPTION_BLOCKER: "Codex 先解释并处理当前项目接入阻断，不改项目资产。",
+    INSPECT_BUSINESS_UNIVERSE_RISK: "Codex 先只读核对相关业务类别、来源和路径是否可能遗漏，不需要你判断技术范围。",
+    PREPARE_BUSINESS_UNIVERSE_COVERAGE: "Codex 先把相关业务类别、生命周期、真实路径和验证义务核对完整，再进入后续审查。",
     PREPARE_BUSINESS_RULE_CLOSURE: "Codex 先把业务规则、例外和完成条件梳理完整，再进入实现审查。",
     PREPARE_CHANGE_IMPACT_COVERAGE: "Codex 先补齐前端、后端、数据和运行面的影响范围，再进入实现审查。",
     PREPARE_EXECUTION_PLAN: "Codex 先准备完整执行计划，再进入实现审查。",
@@ -979,6 +1005,8 @@ function plainActionFor(actionCode, language = "en") {
     SUMMARIZE_CURRENT_STATUS: "Codex should summarize current evidence, completed work, missing work, and the next step.",
     INSPECT_TASK_RISK: "Codex should inspect possible data, state, permission, or API impact before changing code.",
     RESOLVE_ADOPTION_BLOCKER: "Codex should explain and resolve the adoption blocker without changing project assets.",
+    INSPECT_BUSINESS_UNIVERSE_RISK: "Codex should inspect task-relevant business classes, origins, and paths for omission risk without asking the user to judge technical scope.",
+    PREPARE_BUSINESS_UNIVERSE_COVERAGE: "Codex should bind the relevant business classes, lifecycle paths, provenance, and verification duties before downstream review.",
     PREPARE_BUSINESS_RULE_CLOSURE: "Codex should clarify business rules, exceptions, and completion conditions before implementation review.",
     PREPARE_CHANGE_IMPACT_COVERAGE: "Codex should map frontend, backend, data, and runtime impact before implementation review.",
     PREPARE_EXECUTION_PLAN: "Codex should prepare the complete execution plan before implementation review.",

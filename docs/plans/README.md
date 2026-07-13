@@ -10,6 +10,7 @@ Use plans to understand why a feature was introduced. Use current docs and scrip
 
 ## Recent Plans
 
+- [IntentOS 1.108 Business Universe Coverage](business-universe-coverage-1.108-plan.md)
 - [IntentOS 1.104.1 Active Guidance Semantic Hardcut](active-guidance-semantic-hardcut-1.104.1-plan.md)
 - [IntentOS 1.104 Runtime Trust Consumer Hardcut](runtime-trust-consumer-hardcut-1.104-plan.md)
 - [IntentOS 1.103 Verification Runtime Lifecycle](verification-runtime-lifecycle-1.103-plan.md)

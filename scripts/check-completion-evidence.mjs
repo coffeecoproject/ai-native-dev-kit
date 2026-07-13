@@ -3,6 +3,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import {
   extractMachineReadableEvidence,
@@ -19,7 +21,9 @@ import {
   runtimeTrustBindingsAgree,
   validateRuntimeTrustBinding,
 } from "./lib/verification-runtime-consumer.mjs";
+import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
 
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
   "json",
@@ -61,6 +65,7 @@ const sourceSchemas = {
   test_evidence: loadSchema(projectRoot, "schemas/artifacts/test-evidence.schema.json"),
   execution_assurance: loadSchema(projectRoot, "schemas/artifacts/execution-assurance.schema.json"),
 };
+const businessUniverseSchema = loadSchema(projectRoot, "schemas/artifacts/business-universe-coverage.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -145,6 +150,7 @@ checkReports();
 emitAndExit();
 
 function checkCoreContent() {
+  if (!shouldRequireAssets) return;
   const combined = [
     readResolved("core/completion-evidence-gate.md"),
     readResolved("docs/completion-evidence-gate.md"),
@@ -227,8 +233,12 @@ function checkReport(file) {
   }
   const evidence = result.value;
   pass(`${label} has valid structured evidence`);
-  if (requireRuntimeTrust && evidence.schema_version !== "1.104.0") {
-    fail(`${label} --require-runtime-trust requires Completion Evidence schema 1.104.0`);
+  if (evidence.schema_version === "1.108.0") {
+    if (hasSection(content, "Business Universe Completion")) pass(`${label} includes Business Universe Completion`);
+    else fail(`${label} missing section Business Universe Completion`);
+  }
+  if (requireRuntimeTrust && !["1.104.0", "1.108.0"].includes(evidence.schema_version)) {
+    fail(`${label} --require-runtime-trust requires Completion Evidence schema 1.104.0 or 1.108.0`);
   }
   reports.push({
     ref: `artifact:${path.relative(projectRoot, file).split(path.sep).join("/")}`,
@@ -253,6 +263,9 @@ function checkEvidenceAuthority(label, file, evidence) {
     .filter((item) => item.status === "RECORDED")
     .map((item) => item.ref)
     .filter(isFileEvidenceRef);
+  if (isFileEvidenceRef(evidence.business_universe_binding?.business_universe_ref)) {
+    sourceRefs.push(evidence.business_universe_binding.business_universe_ref);
+  }
   const binding = validateEvidenceAuthorityBinding(projectRoot, evidence.authority_binding, {
     fromFile: file,
     taskRef: evidence.task_ref,
@@ -299,9 +312,10 @@ function checkStructuredEvidence(label, file, evidence) {
     "check:source-digest-consistency",
     "check:intent-consistency",
     "check:source-chain-binding",
-    ...((requireRuntimeTrust || evidence.schema_version === "1.104.0")
+    ...((requireRuntimeTrust || ["1.104.0", "1.108.0"].includes(evidence.schema_version))
       ? ["check:runtime-trust", "check:runtime-consumer-agreement"]
       : []),
+    ...(evidence.schema_version === "1.108.0" ? ["check:business-universe"] : []),
   ]) {
     if (checksById.has(id)) pass(`${label} includes gate check ${id}`);
     else fail(`${label} missing gate check ${id}`);
@@ -351,22 +365,33 @@ function checkStructuredEvidence(label, file, evidence) {
 }
 
 function checkRuntimeTrust(label, file, evidence, sourceRecords) {
-  if (!requireRuntimeTrust) return;
+  if (!requireRuntimeTrust && evidence.schema_version !== "1.108.0") return;
   const verificationPlan = sourceRecords.get("verification_plan");
-  const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
-    fromFile: file,
-    taskRef: evidence.task_ref,
-    intentDigest: evidence.intent_digest,
-    verificationPlanRef: verificationPlan?.source?.ref,
-    verificationPlanDigest: verificationPlan?.source?.digest,
-  });
-  if (!validation.ok) {
-    validation.errors.forEach((error) => fail(`${label} ${error}`));
-    return;
-  }
-  pass(`${label} Runtime Trust binding matches the authoritative current run`);
   const testBinding = sourceRecords.get("test_evidence")?.evidence?.runtime_trust_binding;
   const executionBinding = sourceRecords.get("execution_assurance")?.evidence?.runtime_trust_binding;
+  const runtimeRequiredByScenario = (evidence.scenario_completion_map || [])
+    .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
+  const runtimeRequired = requireRuntimeTrust || runtimeRequiredByScenario
+    || testBinding?.requirement === "REQUIRED" || executionBinding?.requirement === "REQUIRED";
+  if (!runtimeRequired && evidence.runtime_trust_binding?.requirement === "NOT_REQUIRED") {
+    const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, { required: false });
+    if (validation.ok) pass(`${label} Runtime Trust is explicitly not required by the current completion obligations`);
+    else validation.errors.forEach((error) => fail(`${label} ${error}`));
+  } else {
+    const validation = validateRuntimeTrustBinding(projectRoot, evidence.runtime_trust_binding, {
+      required: true,
+      fromFile: file,
+      taskRef: evidence.task_ref,
+      intentDigest: evidence.intent_digest,
+      verificationPlanRef: verificationPlan?.source?.ref,
+      verificationPlanDigest: verificationPlan?.source?.digest,
+    });
+    if (!validation.ok) {
+      validation.errors.forEach((error) => fail(`${label} ${error}`));
+      return;
+    }
+    pass(`${label} Runtime Trust binding matches the authoritative current run`);
+  }
   if (!testBinding || !executionBinding) {
     fail(`${label} Test Evidence and Execution Assurance must both carry Runtime Trust bindings`);
     return;
@@ -374,7 +399,7 @@ function checkRuntimeTrust(label, file, evidence, sourceRecords) {
   const agreement = runtimeTrustBindingsAgree([evidence.runtime_trust_binding, testBinding, executionBinding]);
   if (agreement.ok) pass(`${label} all completion consumers use the same Runtime Trust run`);
   else agreement.errors.forEach((error) => fail(`${label} ${error}`));
-  if (evidence.completion_state === "COMPLETION_EVIDENCE_READY" && evidence.runtime_trust_binding.status !== "VERIFIED") {
+  if (runtimeRequired && evidence.completion_state === "COMPLETION_EVIDENCE_READY" && evidence.runtime_trust_binding.status !== "VERIFIED") {
     fail(`${label} COMPLETION_EVIDENCE_READY requires verified Runtime Trust`);
   }
 }
@@ -497,6 +522,7 @@ function checkCrossSourceBinding(label, completionEvidence, sourceRecords) {
   if (vp.evidence.business_rule_digest === brc.evidence.business_rule_digest) pass(`${label} Verification Plan business_rule_digest matches referenced BRC`);
   else fail(`${label} Verification Plan business_rule_digest ${vp.evidence.business_rule_digest || "<missing>"} must match referenced BRC ${brc.evidence.business_rule_digest || "<missing>"}`);
   checkSourceSystemBinding(label, vp.evidence.source_systems, "verification_plan", "business_rule_closure", brc.source.ref, brc.evidence.business_rule_digest, brc.source.source_outcome);
+  checkBusinessUniverseCompletionBinding(label, completionEvidence, brc, vp, te, ea);
 
   if (sameRef(te.evidence.verification_plan_ref, vp.source.ref)) pass(`${label} Test Evidence verification_plan_ref matches Completion Evidence Verification Plan ref`);
   else fail(`${label} Test Evidence verification_plan_ref ${te.evidence.verification_plan_ref || "<missing>"} must match ${vp.source.ref || "<missing>"}`);
@@ -515,6 +541,155 @@ function checkCrossSourceBinding(label, completionEvidence, sourceRecords) {
   } else {
     fail(`${label} source-chain intent digests must match completion intent ${completionEvidence.intent_digest || "<missing>"}`);
   }
+}
+
+function checkBusinessUniverseCompletionBinding(label, completionEvidence, brc, vp, te, ea) {
+  if (completionEvidence.schema_version !== "1.108.0") return;
+  const universe = resolveBoundBusinessUniverse(projectRoot, brc.file, brc.evidence);
+  const completionBinding = completionEvidence.business_universe_binding;
+  const completionRows = Array.isArray(completionEvidence.scenario_completion_map)
+    ? completionEvidence.scenario_completion_map
+    : [];
+  if (!completionBinding) {
+    fail(`${label} schema 1.108.0 requires Business Universe completion binding`);
+    return;
+  }
+  if (!universe.required) {
+    const legacyUpstream = brc.evidence.schema_version === "1.75.0"
+      && !brc.evidence.business_universe_binding
+      && vp.evidence.schema_version === "1.76.0"
+      && !vp.evidence.business_universe_binding;
+    const currentConsumers = [
+      te.evidence.business_universe_binding,
+      ea.evidence.business_universe_binding,
+      completionBinding,
+    ];
+    const upstreamCompatible = legacyUpstream
+      || [brc.evidence.business_universe_binding, vp.evidence.business_universe_binding]
+        .every(isBoundedNotRequiredUniverseBinding);
+    if (upstreamCompatible
+      && currentConsumers.every(isBoundedNotRequiredUniverseBinding)
+      && completionBinding.coverage_mapping_status === "NOT_REQUIRED"
+      && completionRows.length === 0) {
+      pass(`${label} non-required Business Universe remains consistently absent through completion${legacyUpstream ? " with trusted legacy upstream projection" : ""}`);
+    } else {
+      fail(`${label} non-required Business Universe must remain NOT_REQUIRED_WITH_REASON through every consumer`);
+    }
+    return;
+  }
+  if (!universe.evidence) {
+    fail(`${label} required Business Universe cannot be resolved at completion: ${universe.error}`);
+    return;
+  }
+  const validation = validateSchema(universe.evidence, businessUniverseSchema, { label: `${label} Business Universe` });
+  if (validation.ok) pass(`${label} completion revalidates Business Universe structured evidence`);
+  else validation.errors.forEach(fail);
+  if (universe.evidence.coverage_digest === universe.binding.business_universe_digest
+    && universe.evidence.outcome === "COVERAGE_READY") {
+    pass(`${label} completion uses the exact ready Business Universe report`);
+  } else {
+    fail(`${label} completion requires an exact COVERAGE_READY Business Universe binding`);
+  }
+  const projectChecker = path.join(projectRoot, "scripts", "check-business-universe-coverage.mjs");
+  const strictUniverseCheck = spawnSync(process.execPath, [
+    fs.existsSync(projectChecker) ? projectChecker : path.join(scriptDir, "check-business-universe-coverage.mjs"),
+    projectRoot,
+    "--report", universe.relativePath,
+    "--require-report",
+    "--require-structured-evidence",
+    "--require-ready",
+  ], { cwd: projectRoot, encoding: "utf8" });
+  if (strictUniverseCheck.status === 0) pass(`${label} Business Universe passes its strict checker at completion`);
+  else {
+    const detail = String(strictUniverseCheck.stdout || strictUniverseCheck.stderr || "")
+      .split(/\r?\n/)
+      .find((line) => line.startsWith("FAIL "))
+      ?.slice(0, 400);
+    fail(`${label} Business Universe fails its strict checker at completion${detail ? `: ${detail}` : ""}`);
+  }
+
+  const expectedIds = (universe.evidence.coverage_scenarios || []).map((item) => item.coverage_scenario_id);
+  const bindings = [
+    ["Business Rule Closure", brc.evidence.business_universe_binding],
+    ["Verification Plan", vp.evidence.business_universe_binding],
+    ["Test Evidence", te.evidence.business_universe_binding],
+    ["Execution Assurance", ea.evidence.business_universe_binding],
+    ["Completion Evidence", completionBinding],
+  ];
+  for (const [name, binding] of bindings) {
+    const exact = binding?.required === "Yes"
+      && binding?.routing_result === "REQUIRED_WITH_EVIDENCE"
+      && sameRef(binding?.business_universe_ref, universe.binding.business_universe_ref)
+      && binding?.business_universe_digest === universe.evidence.coverage_digest
+      && binding?.business_universe_state === "COVERAGE_READY"
+      && sameStringSet(binding?.coverage_scenario_ids || [], expectedIds);
+    if (exact) pass(`${label} ${name} binds the exact Business Universe scenario set`);
+    else fail(`${label} ${name} must bind the exact Business Universe scenario set`);
+  }
+
+  const verificationObligations = vp.evidence.verification_obligations || [];
+  const testRows = new Map((te.evidence.scenario_coverage_map || []).map((item) => [item.coverage_scenario_id, item]));
+  const assuranceRows = new Map((ea.evidence.scenario_assurance_map || []).map((item) => [item.coverage_scenario_id, item]));
+  const completionById = new Map(completionRows.map((item) => [item.coverage_scenario_id, item]));
+  if (completionById.size === completionRows.length && sameStringSet([...completionById.keys()], expectedIds)) {
+    pass(`${label} Completion Evidence covers every Business Universe scenario exactly once`);
+  } else {
+    fail(`${label} Completion Evidence must cover every Business Universe scenario exactly once`);
+  }
+  for (const scenario of universe.evidence.coverage_scenarios || []) {
+    const scenarioId = scenario.coverage_scenario_id;
+    const expectedObligations = verificationObligations
+      .filter((item) => item.required === "Yes" && (item.source_coverage_scenario_ids || []).includes(scenarioId))
+      .map((item) => item.id);
+    const testRow = testRows.get(scenarioId);
+    const assurance = assuranceRows.get(scenarioId);
+    const completion = completionById.get(scenarioId);
+    if (!testRow || !assurance || !completion) {
+      fail(`${label} scenario ${scenarioId} is missing a downstream completion record`);
+      continue;
+    }
+    const exact = expectedObligations.length >= 2
+      && sameStringSet(testRow.required_obligation_ids, expectedObligations)
+      && sameStringSet(assurance.required_obligation_ids, expectedObligations)
+      && sameStringSet(completion.verification_obligation_ids, expectedObligations)
+      && sameStringSet(completion.test_evidence_ids, testRow.evidence_ids)
+      && scenario.required_proof_strength === testRow.required_proof_strength
+      && scenario.required_proof_strength === assurance.required_proof_strength
+      && scenario.required_proof_strength === completion.required_proof_strength
+      && testRow.coverage_state === completion.test_evidence_state
+      && assurance.assurance_state === completion.execution_assurance_state;
+    if (exact) pass(`${label} scenario ${scenarioId} keeps exact obligations, proof strength, and evidence`);
+    else fail(`${label} scenario ${scenarioId} has stale, missing, or inconsistent downstream bindings`);
+    if (testRow.coverage_state === "COVERED"
+      && (testRow.evidence_ids || []).length > 0
+      && assurance.assurance_state === "ASSURED"
+      && completion.completion_state === "COMPLETE") {
+      pass(`${label} scenario ${scenarioId} is complete`);
+    } else {
+      fail(`${label} scenario ${scenarioId} cannot count as complete`);
+    }
+  }
+  if (completionEvidence.completion_state === "COMPLETION_EVIDENCE_READY"
+    && (completionBinding.coverage_mapping_status !== "COMPLETE"
+      || completionRows.some((item) => item.completion_state !== "COMPLETE"))) {
+    fail(`${label} COMPLETION_EVIDENCE_READY requires every Business Universe scenario to be COMPLETE`);
+  }
+}
+
+function isBoundedNotRequiredUniverseBinding(binding) {
+  return binding?.required === "No"
+    && binding.routing_result === "NOT_REQUIRED_WITH_REASON"
+    && binding.business_universe_ref === "N/A"
+    && binding.business_universe_digest === "N/A"
+    && binding.business_universe_state === "NOT_REQUIRED_WITH_REASON"
+    && binding.coverage_mapping_status === "NOT_REQUIRED"
+    && (binding.coverage_scenario_ids || []).length === 0;
+}
+
+function sameStringSet(left, right) {
+  const a = [...new Set((left || []).map(String))].sort();
+  const b = [...new Set((right || []).map(String))].sort();
+  return a.length === b.length && a.every((item, index) => item === b[index]);
 }
 
 function checkSourceSystemBinding(label, items, ownerName, sourceName, expectedRef, expectedDigest, expectedOutcome) {

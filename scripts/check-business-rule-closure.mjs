@@ -3,8 +3,10 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest, loadSchema, validateSchema } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence, loadSchema, resolveEvidenceReference, validateSchema } from "./lib/artifact-schema.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
@@ -18,7 +20,7 @@ const knownFlags = new Set([
   "require-business-rule-closure",
 ]);
 const unknown = unknownOptions(args, knownFlags);
-const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
+const projectRoot = canonicalProjectRoot(path.resolve(process.cwd(), args._[0] || "."));
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
 const requireReport = Boolean(args["require-report"] || args["require-business-rule-closure"]);
@@ -202,6 +204,7 @@ checkReports();
 emitAndExit();
 
 function checkCoreContent() {
+  if (!shouldRequireAssets) return;
   const combined = [
     readResolved("core/business-rule-closure.md"),
     readResolved("docs/business-rule-closure.md"),
@@ -381,6 +384,7 @@ function checkStateRules(content, label, summary, evidence) {
   const dimensions = Array.isArray(evidence.dimensions) ? evidence.dimensions : [];
   const dimensionMap = new Map(dimensions.map((item) => [item.dimension, item]));
   const types = Array.isArray(evidence.business_rule_types) ? evidence.business_rule_types : [];
+  if (evidence.schema_version === "1.108.0") checkBusinessUniverseBinding(label, evidence, dimensionMap);
   if (evidence.state === "READY_FOR_IMPACT_COVERAGE") {
     for (const type of types) {
       for (const dimension of requiredByType[type] || []) {
@@ -426,6 +430,109 @@ function checkStateRules(content, label, summary, evidence) {
   if (questionCount > 3) fail(`${label} asks more than three user-facing questions`);
 }
 
+function checkBusinessUniverseBinding(label, evidence, dimensionMap) {
+  const binding = evidence.business_universe_binding;
+  if (!binding) {
+    fail(`${label} 1.108.0 requires business_universe_binding`);
+    return;
+  }
+  if (binding.required === "No") {
+    if (binding.routing_result === "NOT_REQUIRED_WITH_REASON" && binding.not_required_reason) pass(`${label} records why Business Universe Coverage is not required`);
+    else fail(`${label} non-required Business Universe binding needs NOT_REQUIRED_WITH_REASON and a reason`);
+    if (binding.business_universe_ref === "N/A"
+      && binding.business_universe_digest === "N/A"
+      && binding.business_universe_state === "NOT_REQUIRED_WITH_REASON"
+      && binding.coverage_mapping_status === "NOT_REQUIRED"
+      && (binding.coverage_scenario_ids || []).length === 0) {
+      pass(`${label} non-required binding does not fabricate Universe evidence`);
+    }
+    else fail(`${label} non-required binding must use N/A evidence and NOT_REQUIRED_WITH_REASON`);
+    if ((evidence.business_rule_scenario_mappings || []).length === 0) pass(`${label} non-required binding has no fabricated scenario mappings`);
+    else fail(`${label} non-required binding cannot contain scenario mappings`);
+    return;
+  }
+
+  if (binding.required === "Unknown") {
+    if (binding.routing_result === "TECHNICAL_INSPECTION_REQUIRED"
+      && binding.business_universe_ref === "N/A"
+      && binding.business_universe_digest === "N/A"
+      && binding.business_universe_state === "TECHNICAL_INSPECTION_REQUIRED"
+      && binding.coverage_mapping_status === "BLOCKED") {
+      pass(`${label} unresolved routing remains Codex-owned technical inspection`);
+    } else {
+      fail(`${label} unresolved routing must remain TECHNICAL_INSPECTION_REQUIRED and blocked`);
+    }
+    if (evidence.state === "READY_FOR_IMPACT_COVERAGE") fail(`${label} unresolved Business Universe routing cannot be ready`);
+    return;
+  }
+
+  if (binding.routing_result === "REQUIRED_WITH_EVIDENCE") pass(`${label} required Business Universe binding uses evidence-backed routing`);
+  else fail(`${label} required Business Universe binding must use REQUIRED_WITH_EVIDENCE`);
+  const universeFile = resolveEvidenceReference(projectRoot, "", binding.business_universe_ref);
+  if (!universeFile) {
+    fail(`${label} required Business Universe ref is unsafe or unresolved: ${binding.business_universe_ref}`);
+    return;
+  }
+  const checker = path.join(path.dirname(fileURLToPath(import.meta.url)), "check-business-universe-coverage.mjs");
+  const universeReportRef = path.relative(projectRoot, universeFile).replaceAll(path.sep, "/");
+  const result = spawnSync(process.execPath, [checker, projectRoot, "--report", universeReportRef, "--require-structured-evidence", "--require-ready"], {
+    cwd: projectRoot,
+    encoding: "utf8",
+  });
+  if (result.status === 0) pass(`${label} referenced Business Universe Coverage passes strict ready check`);
+  else fail(`${label} referenced Business Universe Coverage failed strict ready check: ${(result.stderr || result.stdout).trim()}`);
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(universeFile, "utf8"));
+  if (!extracted?.ok) {
+    fail(`${label} referenced Business Universe Coverage lacks valid structured evidence`);
+    return;
+  }
+  const universe = extracted.value;
+  if (binding.business_universe_digest === universe.coverage_digest) pass(`${label} Business Universe digest matches`);
+  else fail(`${label} Business Universe digest mismatch`);
+  if (binding.business_universe_state === universe.outcome && universe.outcome === "COVERAGE_READY") pass(`${label} Business Universe state is COVERAGE_READY`);
+  else fail(`${label} required Business Universe state must be COVERAGE_READY`);
+  if (binding.current_task_match === "Yes" && universe.task_ref === evidence.task_ref) pass(`${label} Business Universe task matches Business Rule Closure`);
+  else fail(`${label} Business Universe current task must match Business Rule Closure`);
+  if (binding.intent_match === "Yes" && universe.intent_digest === evidence.source_request_digest) pass(`${label} Business Universe intent matches Business Rule Closure`);
+  else fail(`${label} Business Universe intent must match Business Rule Closure`);
+
+  const universeScenarioIds = uniqueStrings((universe.coverage_scenarios || []).map((item) => item.coverage_scenario_id));
+  const boundScenarioIds = uniqueStrings(binding.coverage_scenario_ids || []);
+  if (sameStringSet(boundScenarioIds, universeScenarioIds) && universeScenarioIds.length > 0) {
+    pass(`${label} Business Universe binding contains the exact coverage scenario set`);
+  } else {
+    fail(`${label} Business Universe binding must contain the exact non-empty coverage scenario set`);
+  }
+  if (binding.coverage_mapping_status === "COMPLETE") pass(`${label} Business Universe scenario mapping is marked complete`);
+  else fail(`${label} required Business Universe scenario mapping must be COMPLETE`);
+
+  const mappings = evidence.business_rule_scenario_mappings || [];
+  const mappedScenarioIds = mappings.flatMap((item) => item.source_coverage_scenario_ids || []);
+  const unknownScenarioIds = uniqueStrings(mappedScenarioIds).filter((id) => !universeScenarioIds.includes(id));
+  const missingScenarioIds = universeScenarioIds.filter((id) => !mappedScenarioIds.includes(id));
+  if (unknownScenarioIds.length === 0) pass(`${label} business-rule mappings do not invent coverage scenarios`);
+  else fail(`${label} business-rule mappings contain unknown coverage scenarios: ${unknownScenarioIds.join(", ")}`);
+  if (missingScenarioIds.length === 0 && mappings.length > 0) pass(`${label} every coverage scenario reaches Business Rule Closure`);
+  else fail(`${label} Business Rule Closure drops coverage scenarios: ${missingScenarioIds.join(", ") || "all"}`);
+  if (mappings.every((item) => item.mapping_state === "MAPPED")) pass(`${label} all business-rule scenario mappings are complete`);
+  else fail(`${label} every business-rule scenario mapping must be MAPPED`);
+  if (mappings.every((item) => (item.source_coverage_scenario_ids || []).length > 0
+    && (item.mapped_dimensions || []).length > 0
+    && String(item.rule_summary || "").trim())) {
+    pass(`${label} scenario mappings bind local rule dimensions and summaries`);
+  } else {
+    fail(`${label} scenario mappings require source scenarios, dimensions, and rule summaries`);
+  }
+  for (const dimension of ["ACTOR", "TRIGGER_SCENARIO"]) {
+    const row = dimensionMap.get(dimension);
+    if ((row?.evidence_refs || []).includes(binding.business_universe_ref)) pass(`${label} ${dimension} binds exact Business Universe evidence`);
+    else fail(`${label} ${dimension} must bind exact Business Universe ref`);
+    if (/all active|every active|所有.*入口|全部.*入口/i.test(row?.summary || "") && !(row?.evidence_refs || []).includes(binding.business_universe_ref)) {
+      fail(`${label} ${dimension} cannot close through generic completeness prose`);
+    }
+  }
+}
+
 function businessRuleModelFrom(evidence) {
   return {
     task_ref: evidence.task_ref,
@@ -441,8 +548,24 @@ function businessRuleModelFrom(evidence) {
     conflicts: evidence.conflicts,
     unknown_authority_items: evidence.unknown_authority_items,
     real_environment_validation: evidence.real_environment_validation,
+    business_universe_binding: evidence.business_universe_binding,
+    business_rule_scenario_mappings: evidence.business_rule_scenario_mappings,
     state: evidence.state,
   };
+}
+
+function uniqueStrings(values) {
+  return [...new Set((values || []).map((value) => String(value || "").trim()).filter(Boolean))].sort();
+}
+
+function sameStringSet(left, right) {
+  const a = uniqueStrings(left);
+  const b = uniqueStrings(right);
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function canonicalProjectRoot(root) {
+  return fs.existsSync(root) ? fs.realpathSync(root) : root;
 }
 
 function checkQuestionLimit(content, label) {

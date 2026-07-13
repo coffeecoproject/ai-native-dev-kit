@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.107.1",
+  "intentOSVersion": "1.108.0",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.107.1"
+    "phase": "1.108.0"
   },
   "groups": {
     "sourceRequired": [
@@ -15,7 +15,6 @@
       ".github/workflows/intentos-pr-checks.yml",
       ".github/workflows/intentos-release-checks.yml",
       "CONTRIBUTING.md",
-      "docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md",
       "LICENSE-COMMERCIAL.md",
       "LICENSE-FAQ.md",
       "LICENSE.md",
@@ -59,6 +58,7 @@
       "baseline-recommendations/.gitkeep",
       "beginner-entry-cards/.gitkeep",
       "business-rule-closures/.gitkeep",
+      "business-universe-coverage-reports/.gitkeep",
       "change-impact-coverage-reports/.gitkeep",
       "checklists/adoption-assurance-review.md",
       "checklists/approval-record-review.md",
@@ -69,6 +69,7 @@
       "checklists/baseline-state-review.md",
       "checklists/beginner-entry-review.md",
       "checklists/business-rule-closure-review.md",
+      "checklists/business-universe-coverage-review.md",
       "checklists/change-boundary-review.md",
       "checklists/change-impact-coverage-review.md",
       "checklists/claim-control-review.md",
@@ -120,12 +121,12 @@
       "checklists/release-evidence-gate-review.md",
       "checklists/release-execution-review.md",
       "checklists/release-execution-topology-review.md",
-      "checklists/release-topology-consumer-review.md",
-      "checklists/release-topology-migration-review.md",
       "checklists/release-gate.md",
       "checklists/release-guide-review.md",
       "checklists/release-handoff-pack-review.md",
       "checklists/release-plan-review.md",
+      "checklists/release-topology-consumer-review.md",
+      "checklists/release-topology-migration-review.md",
       "checklists/review-loop-review.md",
       "checklists/review-surface-review.md",
       "checklists/risk-gate.md",
@@ -166,6 +167,7 @@
       "core/beginner-entry.md",
       "core/behavior-complete-existing-project-adoption.md",
       "core/business-rule-closure.md",
+      "core/business-universe-coverage.md",
       "core/change-boundary.md",
       "core/change-impact-coverage.md",
       "core/claim-control.md",
@@ -227,11 +229,11 @@
       "core/release-evidence-gate.md",
       "core/release-execution-protocol.md",
       "core/release-execution-topology.md",
-      "core/release-topology-consumer-binding.md",
-      "core/release-topology-migration.md",
       "core/release-guide.md",
       "core/release-handoff-packs.md",
       "core/release-path-hardening.md",
+      "core/release-topology-consumer-binding.md",
+      "core/release-topology-migration.md",
       "core/review-context-authority.json",
       "core/review-context-authority.md",
       "core/review-loop.md",
@@ -287,6 +289,7 @@
       "docs/behavior-complete-existing-project-adoption.md",
       "docs/bl2-industrial-baseline-deepening.md",
       "docs/business-rule-closure.md",
+      "docs/business-universe-coverage.md",
       "docs/change-boundary.md",
       "docs/change-impact-coverage.md",
       "docs/claim-control.md",
@@ -341,6 +344,7 @@
       "docs/ordinary-user-first-slice.md",
       "docs/plan-review-gate.md",
       "docs/plans/README.md",
+      "docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md",
       "docs/plans/active-guidance-semantic-hardcut-1.104.1-plan.md",
       "docs/plans/adoption-autopilot-plain-language-reference-1.81.3-plan.md",
       "docs/plans/adoption-execution-assurance-1.71-plan.md",
@@ -354,6 +358,7 @@
       "docs/plans/behavior-complete-existing-project-adoption-1.83-plan.md",
       "docs/plans/bl2-industrial-baseline-deepening-1.16-plan.md",
       "docs/plans/business-rule-closure-1.75-plan.md",
+      "docs/plans/business-universe-coverage-1.108-plan.md",
       "docs/plans/change-boundary-baseline-state-1.12-plan.md",
       "docs/plans/change-impact-coverage-1.48-plan.md",
       "docs/plans/closeout-evidence-precision-1.51-plan.md",
@@ -478,11 +483,11 @@
       "docs/release-evidence-gate.md",
       "docs/release-execution-protocol.md",
       "docs/release-execution-topology.md",
-      "docs/release-topology-consumer-binding.md",
-      "docs/release-topology-migration.md",
       "docs/release-guide.md",
       "docs/release-handoff-packs.md",
       "docs/release-path-hardening.md",
+      "docs/release-topology-consumer-binding.md",
+      "docs/release-topology-migration.md",
       "docs/repository-structure.md",
       "docs/review-surface-governance.md",
       "docs/roadmaps/README.md",
@@ -918,6 +923,7 @@
       "examples/1.88-plan-review-gate/low-docs-plan-skip/plan-review-reports/001-low-skip.md",
       "examples/1.88-plan-review-gate/medium-ui-plan-reviewed/docs/example-plan.md",
       "examples/1.88-plan-review-gate/medium-ui-plan-reviewed/plan-review-reports/001-medium-ui.md",
+      "examples/1.108-business-universe-coverage/README.md",
       "examples/engineering-baseline-api-dto-domain/README.md",
       "examples/engineering-baseline-api-dto-domain/decision-briefs/001-dto-domain-boundary.md",
       "examples/engineering-baseline-api-dto-domain/docs/engineering-baseline.md",
@@ -1260,6 +1266,7 @@
       "prompts/beginner-entry-agent.md",
       "prompts/bootstrap-agent.md",
       "prompts/business-rule-closure-agent.md",
+      "prompts/business-universe-coverage-agent.md",
       "prompts/change-boundary-agent.md",
       "prompts/change-impact-coverage-agent.md",
       "prompts/claim-control-agent.md",
@@ -1305,10 +1312,10 @@
       "prompts/release-evidence-gate-agent.md",
       "prompts/release-execution-agent.md",
       "prompts/release-execution-topology-agent.md",
-      "prompts/release-topology-migration-agent.md",
       "prompts/release-guide-agent.md",
       "prompts/release-handoff-pack-agent.md",
       "prompts/release-plan-agent.md",
+      "prompts/release-topology-migration-agent.md",
       "prompts/reporter-agent.md",
       "prompts/review-surface-agent.md",
       "prompts/reviewer-agent.md",
@@ -1331,7 +1338,6 @@
       "release-evidence-gate-reports/.gitkeep",
       "release-execution-plans/.gitkeep",
       "release-execution-topologies/.gitkeep",
-      "release-topology-migrations/.gitkeep",
       "release-guides/.gitkeep",
       "release-handoff-packs/.gitkeep",
       "release-plans/.gitkeep",
@@ -1343,6 +1349,7 @@
       "release-recipes/draft-web-container-release.md",
       "release-recipes/mini-program-review-handoff.md",
       "release-recipes/web-hosted-preview.md",
+      "release-topology-migrations/.gitkeep",
       "releases/0.33.0/baseline-freeze.md",
       "releases/0.33.0/self-check-report.md",
       "releases/0.34.0/phase-report.md",
@@ -1400,6 +1407,9 @@
       "releases/1.107.1/known-limitations.md",
       "releases/1.107.1/release-record.md",
       "releases/1.107.1/self-check-report.md",
+      "releases/1.108.0/known-limitations.md",
+      "releases/1.108.0/release-record.md",
+      "releases/1.108.0/self-check-report.md",
       "releases/1.11.0/known-limitations.md",
       "releases/1.11.0/release-record.md",
       "releases/1.11.0/self-check-report.md",
@@ -1938,6 +1948,7 @@
       "schemas/artifacts/apply-execution-receipt.schema.json",
       "schemas/artifacts/approval-record.schema.json",
       "schemas/artifacts/business-rule-closure.schema.json",
+      "schemas/artifacts/business-universe-coverage.schema.json",
       "schemas/artifacts/change-impact-coverage.schema.json",
       "schemas/artifacts/completion-evidence.schema.json",
       "schemas/artifacts/controlled-apply-readiness.schema.json",
@@ -1959,9 +1970,9 @@
       "schemas/artifacts/release-evidence-gate.schema.json",
       "schemas/artifacts/release-execution-plan.schema.json",
       "schemas/artifacts/release-execution-topology.schema.json",
-      "schemas/artifacts/release-topology-migration.schema.json",
       "schemas/artifacts/release-handoff-evidence.schema.json",
       "schemas/artifacts/release-plan.schema.json",
+      "schemas/artifacts/release-topology-migration.schema.json",
       "schemas/artifacts/request.schema.json",
       "schemas/artifacts/review-loop-report.schema.json",
       "schemas/artifacts/runtime-hygiene.schema.json",
@@ -1992,6 +2003,7 @@
       "scripts/check-baseline-state.mjs",
       "scripts/check-beginner-entry.mjs",
       "scripts/check-business-rule-closure.mjs",
+      "scripts/check-business-universe-coverage.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
@@ -2047,11 +2059,11 @@
       "scripts/check-release-channel-policy.mjs",
       "scripts/check-release-evidence-gate.mjs",
       "scripts/check-release-execution-topology.mjs",
-      "scripts/check-release-topology-migration.mjs",
       "scripts/check-release-execution.mjs",
       "scripts/check-release-guide.mjs",
       "scripts/check-release-handoff-pack.mjs",
       "scripts/check-release-plan.mjs",
+      "scripts/check-release-topology-migration.mjs",
       "scripts/check-review-context-authority.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
@@ -2079,6 +2091,7 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -2109,6 +2122,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-business-rule-closure.mjs",
+      "scripts/resolve-business-universe-coverage.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-completion-evidence.mjs",
@@ -2141,11 +2155,11 @@
       "scripts/resolve-release-channel-policy.mjs",
       "scripts/resolve-release-evidence-gate.mjs",
       "scripts/resolve-release-execution-topology.mjs",
-      "scripts/resolve-release-topology-migration.mjs",
       "scripts/resolve-release-execution.mjs",
       "scripts/resolve-release-guide.mjs",
       "scripts/resolve-release-handoff-pack.mjs",
       "scripts/resolve-release-plan.mjs",
+      "scripts/resolve-release-topology-migration.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-runtime-hygiene.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -2276,19 +2290,23 @@
       "standard-baseline-packs/web-runtime/templates/web-runtime-evidence.md",
       "standard-baseline-selections/.gitkeep",
       "starters/codex-android-app/business-rule-closures/.gitkeep",
+      "starters/codex-android-app/business-universe-coverage-reports/.gitkeep",
       "starters/codex-android-app/change-impact-coverage-reports/.gitkeep",
       "starters/codex-android-app/delivery-path-reports/.gitkeep",
       "starters/codex-android-app/review-surface-cards/.gitkeep",
       "starters/codex-ios-app/business-rule-closures/.gitkeep",
+      "starters/codex-ios-app/business-universe-coverage-reports/.gitkeep",
       "starters/codex-ios-app/change-impact-coverage-reports/.gitkeep",
       "starters/codex-ios-app/delivery-path-reports/.gitkeep",
       "starters/codex-ios-app/review-surface-cards/.gitkeep",
       "starters/codex-web-app/business-rule-closures/.gitkeep",
+      "starters/codex-web-app/business-universe-coverage-reports/.gitkeep",
       "starters/codex-web-app/change-impact-coverage-reports/.gitkeep",
       "starters/codex-web-app/delivery-path-reports/.gitkeep",
       "starters/codex-web-app/review-surface-cards/.gitkeep",
       "starters/generic-project/AGENTS.md",
       "starters/generic-project/business-rule-closures/.gitkeep",
+      "starters/generic-project/business-universe-coverage-reports/.gitkeep",
       "starters/generic-project/change-impact-coverage-reports/.gitkeep",
       "starters/generic-project/debt-handoff-reports/.gitkeep",
       "starters/generic-project/delivery-path-reports/.gitkeep",
@@ -2358,6 +2376,7 @@
       "templates/beginner-entry-card.md",
       "templates/business-rule-closure-card.md",
       "templates/business-spec-index.md",
+      "templates/business-universe-coverage-report.md",
       "templates/change-boundary-report.md",
       "templates/change-impact-coverage-report.md",
       "templates/claim-control-report.md",
@@ -2425,10 +2444,10 @@
       "templates/release-evidence-gate-report.md",
       "templates/release-execution-plan.md",
       "templates/release-execution-topology-report.md",
-      "templates/release-topology-migration-report.md",
       "templates/release-guide-card.md",
       "templates/release-handoff-pack.md",
       "templates/release-plan.md",
+      "templates/release-topology-migration-report.md",
       "templates/request-card.md",
       "templates/review-loop-report.md",
       "templates/review-packet.md",
@@ -3052,6 +3071,9 @@
       "test-fixtures/migrations/workflow-version-mismatch/.intentos/version.json",
       "test-fixtures/output-quality/README.md",
       "tests/active-guidance-semantic-hardcut.test.mjs",
+      "tests/business-universe-consumer-chain.test.mjs",
+      "tests/business-universe-coverage.test.mjs",
+      "tests/business-universe-existing-project-scan.test.mjs",
       "tests/release-execution-topology.test.mjs",
       "tests/release-topology-consumer.test.mjs",
       "tests/release-topology-migration.test.mjs",
@@ -3077,6 +3099,7 @@
       ".intentos/checklists/baseline-state-review.md",
       ".intentos/checklists/beginner-entry-review.md",
       ".intentos/checklists/business-rule-closure-review.md",
+      ".intentos/checklists/business-universe-coverage-review.md",
       ".intentos/checklists/change-boundary-review.md",
       ".intentos/checklists/change-impact-coverage-review.md",
       ".intentos/checklists/claim-control-review.md",
@@ -3147,6 +3170,7 @@
       ".intentos/core/beginner-entry.md",
       ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
+      ".intentos/core/business-universe-coverage.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
@@ -3226,6 +3250,7 @@
       ".intentos/docs/beginner-entry.md",
       ".intentos/docs/behavior-complete-existing-project-adoption.md",
       ".intentos/docs/business-rule-closure.md",
+      ".intentos/docs/business-universe-coverage.md",
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
@@ -3298,6 +3323,7 @@
       ".intentos/prompts/bootstrap-agent.md",
       ".intentos/prompts/builder-agent.md",
       ".intentos/prompts/business-rule-closure-agent.md",
+      ".intentos/prompts/business-universe-coverage-agent.md",
       ".intentos/prompts/change-boundary-agent.md",
       ".intentos/prompts/change-impact-coverage-agent.md",
       ".intentos/prompts/claim-control-agent.md",
@@ -3351,6 +3377,7 @@
       ".intentos/schemas/artifacts",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
+      ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
@@ -3381,6 +3408,7 @@
       ".intentos/templates/beginner-entry-card.md",
       ".intentos/templates/business-rule-closure-card.md",
       ".intentos/templates/business-spec-index.md",
+      ".intentos/templates/business-universe-coverage-report.md",
       ".intentos/templates/change-boundary-report.md",
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/claim-control-report.md",
@@ -3481,6 +3509,7 @@
       "baseline-state-reports",
       "beginner-entry-cards",
       "business-rule-closures",
+      "business-universe-coverage-reports",
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
@@ -3562,6 +3591,7 @@
       "scripts/check-baseline-state.mjs",
       "scripts/check-beginner-entry.mjs",
       "scripts/check-business-rule-closure.mjs",
+      "scripts/check-business-universe-coverage.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
@@ -3630,6 +3660,7 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -3655,6 +3686,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-business-rule-closure.mjs",
+      "scripts/resolve-business-universe-coverage.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-completion-evidence.mjs",
@@ -3727,6 +3759,7 @@
       ".intentos/checklists/baseline-state-review.md",
       ".intentos/checklists/beginner-entry-review.md",
       ".intentos/checklists/business-rule-closure-review.md",
+      ".intentos/checklists/business-universe-coverage-review.md",
       ".intentos/checklists/change-boundary-review.md",
       ".intentos/checklists/change-impact-coverage-review.md",
       ".intentos/checklists/claim-control-review.md",
@@ -3776,10 +3809,10 @@
       ".intentos/checklists/release-channel-policy-review.md",
       ".intentos/checklists/release-evidence-gate-review.md",
       ".intentos/checklists/release-execution-topology-review.md",
-      ".intentos/checklists/release-topology-consumer-review.md",
-      ".intentos/checklists/release-topology-migration-review.md",
       ".intentos/checklists/release-gate.md",
       ".intentos/checklists/release-plan-review.md",
+      ".intentos/checklists/release-topology-consumer-review.md",
+      ".intentos/checklists/release-topology-migration-review.md",
       ".intentos/checklists/review-loop-review.md",
       ".intentos/checklists/review-surface-review.md",
       ".intentos/checklists/risk-gate.md",
@@ -3814,6 +3847,7 @@
       ".intentos/core/beginner-entry.md",
       ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
+      ".intentos/core/business-universe-coverage.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
@@ -3870,9 +3904,9 @@
       ".intentos/core/release-core-model.md",
       ".intentos/core/release-evidence-gate.md",
       ".intentos/core/release-execution-topology.md",
+      ".intentos/core/release-path-hardening.md",
       ".intentos/core/release-topology-consumer-binding.md",
       ".intentos/core/release-topology-migration.md",
-      ".intentos/core/release-path-hardening.md",
       ".intentos/core/review-context-authority.json",
       ".intentos/core/review-context-authority.md",
       ".intentos/core/review-loop.md",
@@ -3908,6 +3942,7 @@
       ".intentos/docs/beginner-entry.md",
       ".intentos/docs/behavior-complete-existing-project-adoption.md",
       ".intentos/docs/business-rule-closure.md",
+      ".intentos/docs/business-universe-coverage.md",
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
@@ -3961,9 +3996,9 @@
       ".intentos/docs/release-core-model.md",
       ".intentos/docs/release-evidence-gate.md",
       ".intentos/docs/release-execution-topology.md",
+      ".intentos/docs/release-path-hardening.md",
       ".intentos/docs/release-topology-consumer-binding.md",
       ".intentos/docs/release-topology-migration.md",
-      ".intentos/docs/release-path-hardening.md",
       ".intentos/docs/review-surface-governance.md",
       ".intentos/docs/runtime-trust-consumer-hardcut.md",
       ".intentos/docs/safe-launch.md",
@@ -4019,6 +4054,7 @@
       ".intentos/prompts/bootstrap-agent.md",
       ".intentos/prompts/builder-agent.md",
       ".intentos/prompts/business-rule-closure-agent.md",
+      ".intentos/prompts/business-universe-coverage-agent.md",
       ".intentos/prompts/change-boundary-agent.md",
       ".intentos/prompts/change-impact-coverage-agent.md",
       ".intentos/prompts/claim-control-agent.md",
@@ -4063,8 +4099,8 @@
       ".intentos/prompts/release-channel-policy-agent.md",
       ".intentos/prompts/release-evidence-gate-agent.md",
       ".intentos/prompts/release-execution-topology-agent.md",
-      ".intentos/prompts/release-topology-migration-agent.md",
       ".intentos/prompts/release-plan-agent.md",
+      ".intentos/prompts/release-topology-migration-agent.md",
       ".intentos/prompts/repair-agent.md",
       ".intentos/prompts/reporter-agent.md",
       ".intentos/prompts/review-surface-agent.md",
@@ -4084,6 +4120,7 @@
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
+      ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
       ".intentos/schemas/artifacts/completion-evidence.schema.json",
       ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
@@ -4098,9 +4135,9 @@
       ".intentos/schemas/artifacts/release-evidence-gate.schema.json",
       ".intentos/schemas/artifacts/release-execution-plan.schema.json",
       ".intentos/schemas/artifacts/release-execution-topology.schema.json",
-      ".intentos/schemas/artifacts/release-topology-migration.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
+      ".intentos/schemas/artifacts/release-topology-migration.schema.json",
       ".intentos/schemas/artifacts/runtime-hygiene.schema.json",
       ".intentos/schemas/artifacts/task-governance.schema.json",
       ".intentos/schemas/artifacts/test-evidence.schema.json",
@@ -4130,6 +4167,7 @@
       ".intentos/templates/beginner-entry-card.md",
       ".intentos/templates/business-rule-closure-card.md",
       ".intentos/templates/business-spec-index.md",
+      ".intentos/templates/business-universe-coverage-report.md",
       ".intentos/templates/change-boundary-report.md",
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/claim-control-report.md",
@@ -4193,8 +4231,8 @@
       ".intentos/templates/release-adapter-profile.md",
       ".intentos/templates/release-evidence-gate-report.md",
       ".intentos/templates/release-execution-topology-report.md",
-      ".intentos/templates/release-topology-migration-report.md",
       ".intentos/templates/release-plan.md",
+      ".intentos/templates/release-topology-migration-report.md",
       ".intentos/templates/request-card.md",
       ".intentos/templates/review-loop-report.md",
       ".intentos/templates/review-packet.md",
@@ -4246,6 +4284,7 @@
       "baseline-state-reports",
       "beginner-entry-cards",
       "business-rule-closures",
+      "business-universe-coverage-reports",
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
@@ -4313,11 +4352,11 @@
       "release-evidence-gate-reports",
       "release-execution-plans/.gitkeep",
       "release-execution-topologies",
-      "release-topology-migrations",
       "release-guides",
       "release-handoff-packs",
       "release-plans",
       "release-recipes",
+      "release-topology-migrations",
       "releases",
       "requests",
       "review-loop-reports",
@@ -4338,6 +4377,7 @@
       "scripts/check-baseline-state.mjs",
       "scripts/check-beginner-entry.mjs",
       "scripts/check-business-rule-closure.mjs",
+      "scripts/check-business-universe-coverage.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
@@ -4390,10 +4430,10 @@
       "scripts/check-release-channel-policy.mjs",
       "scripts/check-release-evidence-gate.mjs",
       "scripts/check-release-execution-topology.mjs",
-      "scripts/check-release-topology-migration.mjs",
       "scripts/check-release-guide.mjs",
       "scripts/check-release-handoff-pack.mjs",
       "scripts/check-release-plan.mjs",
+      "scripts/check-release-topology-migration.mjs",
       "scripts/check-review-context-authority.mjs",
       "scripts/check-review-loop.mjs",
       "scripts/check-review-surface.mjs",
@@ -4419,6 +4459,7 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -4448,6 +4489,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-business-rule-closure.mjs",
+      "scripts/resolve-business-universe-coverage.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-completion-evidence.mjs",
@@ -4481,10 +4523,10 @@
       "scripts/resolve-release-channel-policy.mjs",
       "scripts/resolve-release-evidence-gate.mjs",
       "scripts/resolve-release-execution-topology.mjs",
-      "scripts/resolve-release-topology-migration.mjs",
       "scripts/resolve-release-guide.mjs",
       "scripts/resolve-release-handoff-pack.mjs",
       "scripts/resolve-release-plan.mjs",
+      "scripts/resolve-release-topology-migration.mjs",
       "scripts/resolve-review-surface.mjs",
       "scripts/resolve-runtime-hygiene.mjs",
       "scripts/resolve-standard-baseline.mjs",
@@ -4534,6 +4576,7 @@
       ".intentos/core/beginner-entry.md",
       ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
+      ".intentos/core/business-universe-coverage.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
@@ -4589,6 +4632,7 @@
       ".intentos/core/workflow.md",
       ".intentos/core/zero-experience-solo-operating-model.md",
       ".intentos/docs/behavior-complete-existing-project-adoption.md",
+      ".intentos/docs/business-universe-coverage.md",
       ".intentos/docs/existing-project-safe-adoption-autopilot.md",
       ".intentos/docs/platform-release-recipes.md",
       ".intentos/docs/release-core-model.md",
@@ -4602,6 +4646,7 @@
       ".intentos/prompts/release-handoff-pack-agent.md",
       ".intentos/prompts/task-governance-agent.md",
       ".intentos/schemas/artifacts",
+      ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/release-handoff-evidence.schema.json",
       ".intentos/schemas/artifacts/release-plan.schema.json",
@@ -4620,6 +4665,7 @@
       "core/baseline-state.md",
       "core/beginner-entry.md",
       "core/business-rule-closure.md",
+      "core/business-universe-coverage.md",
       "core/change-boundary.md",
       "core/change-impact-coverage.md",
       "core/controlled-apply-readiness.md",
@@ -4667,6 +4713,7 @@
       "core/verification-test-governance.md",
       "core/zero-experience-solo-operating-model.md",
       "docs/adoption-execution-assurance.md",
+      "docs/business-universe-coverage.md",
       "docs/completion-evidence-gate.md",
       "docs/execution-assurance-chain.md",
       "docs/existing-project-governance-convergence.md",
@@ -4691,6 +4738,7 @@
     "templates": [
       ".intentos/templates/apply-execution-receipt.md",
       ".intentos/templates/business-rule-closure-card.md",
+      ".intentos/templates/business-universe-coverage-report.md",
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/completion-evidence-report.md",
       ".intentos/templates/controlled-native-adoption-review-report.md",
@@ -4722,6 +4770,7 @@
       "templates/beginner-entry-card.md",
       "templates/business-rule-closure-card.md",
       "templates/business-spec-index.md",
+      "templates/business-universe-coverage-report.md",
       "templates/change-boundary-report.md",
       "templates/change-impact-coverage-report.md",
       "templates/claim-control-report.md",
@@ -4820,6 +4869,7 @@
     ],
     "prompts": [
       ".intentos/prompts/business-rule-closure-agent.md",
+      ".intentos/prompts/business-universe-coverage-agent.md",
       ".intentos/prompts/change-impact-coverage-agent.md",
       ".intentos/prompts/completion-evidence-agent.md",
       ".intentos/prompts/controlled-native-adoption-review-agent.md",
@@ -4841,6 +4891,7 @@
       "prompts/beginner-entry-agent.md",
       "prompts/bootstrap-agent.md",
       "prompts/business-rule-closure-agent.md",
+      "prompts/business-universe-coverage-agent.md",
       "prompts/change-boundary-agent.md",
       "prompts/change-impact-coverage-agent.md",
       "prompts/claim-control-agent.md",
@@ -4897,6 +4948,7 @@
     ],
     "checklists": [
       ".intentos/checklists/business-rule-closure-review.md",
+      ".intentos/checklists/business-universe-coverage-review.md",
       ".intentos/checklists/change-impact-coverage-review.md",
       ".intentos/checklists/completion-evidence-review.md",
       ".intentos/checklists/controlled-native-adoption-review.md",
@@ -4917,6 +4969,7 @@
       "checklists/baseline-state-review.md",
       "checklists/beginner-entry-review.md",
       "checklists/business-rule-closure-review.md",
+      "checklists/business-universe-coverage-review.md",
       "checklists/change-boundary-review.md",
       "checklists/change-impact-coverage-review.md",
       "checklists/claim-control-review.md",
@@ -5034,6 +5087,7 @@
       "baseline-state-reports",
       "beginner-entry-cards",
       "business-rule-closures",
+      "business-universe-coverage-reports",
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
@@ -5122,6 +5176,7 @@
       "scripts/check-baseline-state.mjs",
       "scripts/check-beginner-entry.mjs",
       "scripts/check-business-rule-closure.mjs",
+      "scripts/check-business-universe-coverage.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
@@ -5205,6 +5260,7 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -5232,6 +5288,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-business-rule-closure.mjs",
+      "scripts/resolve-business-universe-coverage.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-completion-evidence.mjs",
@@ -6135,6 +6192,7 @@
       ".intentos/checklists/baseline-state-review.md",
       ".intentos/checklists/beginner-entry-review.md",
       ".intentos/checklists/business-rule-closure-review.md",
+      ".intentos/checklists/business-universe-coverage-review.md",
       ".intentos/checklists/change-boundary-review.md",
       ".intentos/checklists/change-impact-coverage-review.md",
       ".intentos/checklists/claim-control-review.md",
@@ -6205,6 +6263,7 @@
       ".intentos/core/beginner-entry.md",
       ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
+      ".intentos/core/business-universe-coverage.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
@@ -6287,6 +6346,7 @@
       ".intentos/docs/beginner-entry.md",
       ".intentos/docs/behavior-complete-existing-project-adoption.md",
       ".intentos/docs/business-rule-closure.md",
+      ".intentos/docs/business-universe-coverage.md",
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
@@ -6373,6 +6433,7 @@
       ".intentos/prompts/baseline-state-agent.md",
       ".intentos/prompts/beginner-entry-agent.md",
       ".intentos/prompts/business-rule-closure-agent.md",
+      ".intentos/prompts/business-universe-coverage-agent.md",
       ".intentos/prompts/change-boundary-agent.md",
       ".intentos/prompts/change-impact-coverage-agent.md",
       ".intentos/prompts/claim-control-agent.md",
@@ -6432,6 +6493,7 @@
       ".intentos/schemas/artifacts/adoption-assurance.schema.json",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
+      ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
       ".intentos/schemas/artifacts/completion-evidence.schema.json",
       ".intentos/schemas/artifacts/controlled-native-adoption-review.schema.json",
       ".intentos/schemas/artifacts/execution-assurance.schema.json",
@@ -6469,6 +6531,7 @@
       ".intentos/templates/baseline-state-report.md",
       ".intentos/templates/beginner-entry-card.md",
       ".intentos/templates/business-rule-closure-card.md",
+      ".intentos/templates/business-universe-coverage-report.md",
       ".intentos/templates/change-boundary-report.md",
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/claim-control-report.md",
@@ -6550,6 +6613,7 @@
       "baseline-state-reports",
       "beginner-entry-cards",
       "business-rule-closures",
+      "business-universe-coverage-reports",
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
@@ -6625,6 +6689,7 @@
       "scripts/check-baseline-state.mjs",
       "scripts/check-beginner-entry.mjs",
       "scripts/check-business-rule-closure.mjs",
+      "scripts/check-business-universe-coverage.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
@@ -6704,6 +6769,7 @@
       "scripts/lib/args.mjs",
       "scripts/lib/artifact-schema.mjs",
       "scripts/lib/baseline-selection.mjs",
+      "scripts/lib/business-universe.mjs",
       "scripts/lib/check-result.mjs",
       "scripts/lib/evidence-authority.mjs",
       "scripts/lib/frontmatter.mjs",
@@ -6730,6 +6796,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-business-rule-closure.mjs",
+      "scripts/resolve-business-universe-coverage.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-completion-evidence.mjs",
@@ -6801,6 +6868,7 @@
       ".intentos/checklists/baseline-state-review.md",
       ".intentos/checklists/beginner-entry-review.md",
       ".intentos/checklists/business-rule-closure-review.md",
+      ".intentos/checklists/business-universe-coverage-review.md",
       ".intentos/checklists/change-boundary-review.md",
       ".intentos/checklists/change-impact-coverage-review.md",
       ".intentos/checklists/claim-control-review.md",
@@ -6864,6 +6932,7 @@
       ".intentos/core/beginner-entry.md",
       ".intentos/core/behavior-complete-existing-project-adoption.md",
       ".intentos/core/business-rule-closure.md",
+      ".intentos/core/business-universe-coverage.md",
       ".intentos/core/change-boundary.md",
       ".intentos/core/change-impact-coverage.md",
       ".intentos/core/claim-control.md",
@@ -6938,6 +7007,7 @@
       ".intentos/docs/beginner-entry.md",
       ".intentos/docs/behavior-complete-existing-project-adoption.md",
       ".intentos/docs/business-rule-closure.md",
+      ".intentos/docs/business-universe-coverage.md",
       ".intentos/docs/change-boundary.md",
       ".intentos/docs/change-impact-coverage.md",
       ".intentos/docs/claim-control.md",
@@ -7019,6 +7089,7 @@
       ".intentos/prompts/beginner-entry-agent.md",
       ".intentos/prompts/bootstrap-agent.md",
       ".intentos/prompts/business-rule-closure-agent.md",
+      ".intentos/prompts/business-universe-coverage-agent.md",
       ".intentos/prompts/change-boundary-agent.md",
       ".intentos/prompts/change-impact-coverage-agent.md",
       ".intentos/prompts/claim-control-agent.md",
@@ -7067,6 +7138,7 @@
       ".intentos/prompts/workflow-concierge-agent.md",
       ".intentos/schemas/artifacts/apply-execution-receipt.schema.json",
       ".intentos/schemas/artifacts/business-rule-closure.schema.json",
+      ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
       ".intentos/schemas/artifacts/existing-project-adoption-autopilot.schema.json",
       ".intentos/schemas/artifacts/existing-rule-reconciliation.schema.json",
       ".intentos/schemas/artifacts/launch-review-view.schema.json",
@@ -7099,6 +7171,7 @@
       ".intentos/templates/beginner-entry-card.md",
       ".intentos/templates/business-rule-closure-card.md",
       ".intentos/templates/business-spec-index.md",
+      ".intentos/templates/business-universe-coverage-report.md",
       ".intentos/templates/change-boundary-report.md",
       ".intentos/templates/change-impact-coverage-report.md",
       ".intentos/templates/claim-control-report.md",
@@ -7183,6 +7256,7 @@
       "baseline-state-reports",
       "beginner-entry-cards",
       "business-rule-closures",
+      "business-universe-coverage-reports",
       "change-boundary-reports",
       "change-impact-coverage-reports",
       "closure-decisions",
@@ -7250,6 +7324,7 @@
       "scripts/check-baseline-state.mjs",
       "scripts/check-beginner-entry.mjs",
       "scripts/check-business-rule-closure.mjs",
+      "scripts/check-business-universe-coverage.mjs",
       "scripts/check-change-boundary.mjs",
       "scripts/check-change-impact-coverage.mjs",
       "scripts/check-claim-control.mjs",
@@ -7315,6 +7390,7 @@
       "scripts/check-workflow-guidance.mjs",
       "scripts/check-workflow-version.mjs",
       "scripts/cli.mjs",
+      "scripts/lib/business-universe.mjs",
       "scripts/lib/risk-surfaces.mjs",
       "scripts/lib/verification-runtime-adapters.mjs",
       "scripts/lib/verification-runtime-consumer.mjs",
@@ -7325,6 +7401,7 @@
       "scripts/resolve-baseline-packs.mjs",
       "scripts/resolve-beginner-entry.mjs",
       "scripts/resolve-business-rule-closure.mjs",
+      "scripts/resolve-business-universe-coverage.mjs",
       "scripts/resolve-change-impact-coverage.mjs",
       "scripts/resolve-closure-decision.mjs",
       "scripts/resolve-controlled-apply-readiness.mjs",
@@ -7385,34 +7462,6 @@
   "copyRules": {
     "directories": [
       {
-        "source": "checklists",
-        "target": ".intentos/checklists"
-      },
-      {
-        "source": "core",
-        "target": ".intentos/core"
-      },
-      {
-        "source": "profiles",
-        "target": ".intentos/profiles"
-      },
-      {
-        "source": "prompts",
-        "target": ".intentos/prompts"
-      },
-      {
-        "source": "schemas/artifacts",
-        "target": ".intentos/schemas/artifacts"
-      },
-      {
-        "source": "standard-baseline-packs",
-        "target": ".intentos/standard-baseline-packs"
-      },
-      {
-        "source": "templates",
-        "target": ".intentos/templates"
-      },
-      {
         "source": "adoption-assurance-reports",
         "target": "adoption-assurance-reports"
       },
@@ -7457,12 +7506,20 @@
         "target": "business-rule-closures"
       },
       {
+        "source": "business-universe-coverage-reports",
+        "target": "business-universe-coverage-reports"
+      },
+      {
         "source": "change-boundary-reports",
         "target": "change-boundary-reports"
       },
       {
         "source": "change-impact-coverage-reports",
         "target": "change-impact-coverage-reports"
+      },
+      {
+        "source": "checklists",
+        "target": ".intentos/checklists"
       },
       {
         "source": "closure-decisions",
@@ -7475,6 +7532,10 @@
       {
         "source": "controlled-apply-candidates",
         "target": "controlled-apply-candidates"
+      },
+      {
+        "source": "core",
+        "target": ".intentos/core"
       },
       {
         "source": "delivery-path-reports",
@@ -7553,6 +7614,14 @@
         "target": "product-completeness-reports"
       },
       {
+        "source": "profiles",
+        "target": ".intentos/profiles"
+      },
+      {
+        "source": "prompts",
+        "target": ".intentos/prompts"
+      },
+      {
         "source": "real-adoption-trials",
         "target": "real-adoption-trials"
       },
@@ -7585,10 +7654,6 @@
         "target": "release-execution-topologies"
       },
       {
-        "source": "release-topology-migrations",
-        "target": "release-topology-migrations"
-      },
-      {
         "source": "release-guides",
         "target": "release-guides"
       },
@@ -7605,8 +7670,20 @@
         "target": "release-recipes"
       },
       {
+        "source": "release-topology-migrations",
+        "target": "release-topology-migrations"
+      },
+      {
         "source": "review-surface-cards",
         "target": "review-surface-cards"
+      },
+      {
+        "source": "schemas/artifacts",
+        "target": ".intentos/schemas/artifacts"
+      },
+      {
+        "source": "standard-baseline-packs",
+        "target": ".intentos/standard-baseline-packs"
       },
       {
         "source": "standard-baseline-selections",
@@ -7615,6 +7692,10 @@
       {
         "source": "task-governance-reports",
         "target": "task-governance-reports"
+      },
+      {
+        "source": "templates",
+        "target": ".intentos/templates"
       },
       {
         "source": "test-evidence-reports",
@@ -7646,10 +7727,6 @@
       }
     ],
     "files": [
-      {
-        "source": "platforms/github/ci-ai-workflow.yml",
-        "target": ".github/workflows/ai-workflow-checks.yml"
-      },
       {
         "source": "docs/adoption-execution-assurance.md",
         "target": ".intentos/docs/adoption-execution-assurance.md"
@@ -7693,6 +7770,10 @@
       {
         "source": "docs/business-rule-closure.md",
         "target": ".intentos/docs/business-rule-closure.md"
+      },
+      {
+        "source": "docs/business-universe-coverage.md",
+        "target": ".intentos/docs/business-universe-coverage.md"
       },
       {
         "source": "docs/change-boundary.md",
@@ -7919,14 +8000,6 @@
         "target": ".intentos/docs/release-execution-topology.md"
       },
       {
-        "source": "docs/release-topology-consumer-binding.md",
-        "target": ".intentos/docs/release-topology-consumer-binding.md"
-      },
-      {
-        "source": "docs/release-topology-migration.md",
-        "target": ".intentos/docs/release-topology-migration.md"
-      },
-      {
         "source": "docs/release-guide.md",
         "target": ".intentos/docs/release-guide.md"
       },
@@ -7937,6 +8010,14 @@
       {
         "source": "docs/release-path-hardening.md",
         "target": ".intentos/docs/release-path-hardening.md"
+      },
+      {
+        "source": "docs/release-topology-consumer-binding.md",
+        "target": ".intentos/docs/release-topology-consumer-binding.md"
+      },
+      {
+        "source": "docs/release-topology-migration.md",
+        "target": ".intentos/docs/release-topology-migration.md"
       },
       {
         "source": "docs/review-surface-governance.md",
@@ -8007,6 +8088,10 @@
         "target": ".intentos/intentos-manifest.json"
       },
       {
+        "source": "platforms/github/ci-ai-workflow.yml",
+        "target": ".github/workflows/ai-workflow-checks.yml"
+      },
+      {
         "source": "scripts/baseline-project.mjs",
         "target": "scripts/baseline-project.mjs"
       },
@@ -8053,6 +8138,10 @@
       {
         "source": "scripts/check-business-rule-closure.mjs",
         "target": "scripts/check-business-rule-closure.mjs"
+      },
+      {
+        "source": "scripts/check-business-universe-coverage.mjs",
+        "target": "scripts/check-business-universe-coverage.mjs"
       },
       {
         "source": "scripts/check-change-boundary.mjs",
@@ -8263,10 +8352,6 @@
         "target": "scripts/check-release-execution-topology.mjs"
       },
       {
-        "source": "scripts/check-release-topology-migration.mjs",
-        "target": "scripts/check-release-topology-migration.mjs"
-      },
-      {
         "source": "scripts/check-release-execution.mjs",
         "target": "scripts/check-release-execution.mjs"
       },
@@ -8281,6 +8366,10 @@
       {
         "source": "scripts/check-release-plan.mjs",
         "target": "scripts/check-release-plan.mjs"
+      },
+      {
+        "source": "scripts/check-release-topology-migration.mjs",
+        "target": "scripts/check-release-topology-migration.mjs"
       },
       {
         "source": "scripts/check-review-context-authority.mjs",
@@ -8385,6 +8474,10 @@
       {
         "source": "scripts/lib/baseline-selection.mjs",
         "target": "scripts/lib/baseline-selection.mjs"
+      },
+      {
+        "source": "scripts/lib/business-universe.mjs",
+        "target": "scripts/lib/business-universe.mjs"
       },
       {
         "source": "scripts/lib/check-result.mjs",
@@ -8505,6 +8598,10 @@
       {
         "source": "scripts/resolve-business-rule-closure.mjs",
         "target": "scripts/resolve-business-rule-closure.mjs"
+      },
+      {
+        "source": "scripts/resolve-business-universe-coverage.mjs",
+        "target": "scripts/resolve-business-universe-coverage.mjs"
       },
       {
         "source": "scripts/resolve-change-impact-coverage.mjs",
@@ -8639,10 +8736,6 @@
         "target": "scripts/resolve-release-execution-topology.mjs"
       },
       {
-        "source": "scripts/resolve-release-topology-migration.mjs",
-        "target": "scripts/resolve-release-topology-migration.mjs"
-      },
-      {
         "source": "scripts/resolve-release-execution.mjs",
         "target": "scripts/resolve-release-execution.mjs"
       },
@@ -8657,6 +8750,10 @@
       {
         "source": "scripts/resolve-release-plan.mjs",
         "target": "scripts/resolve-release-plan.mjs"
+      },
+      {
+        "source": "scripts/resolve-release-topology-migration.mjs",
+        "target": "scripts/resolve-release-topology-migration.mjs"
       },
       {
         "source": "scripts/resolve-review-surface.mjs",

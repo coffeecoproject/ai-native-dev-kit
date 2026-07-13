@@ -139,7 +139,7 @@ export function validatePlanReviewSourceEvidence(projectRoot, reportFile, eviden
     const acceptedDigests = new Set([canonicalFileDigest(resolved.file)]);
     const sourceEvidence = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
     if (sourceEvidence?.ok && sourceEvidence.value && typeof sourceEvidence.value === "object") {
-      for (const field of ["plan_digest", "artifact_digest", "evidence_digest"]) {
+      for (const field of Object.keys(sourceEvidence.value).filter((field) => field.endsWith("_digest"))) {
         const declaredDigest = sourceEvidence.value[field];
         if (typeof declaredDigest !== "string") continue;
         if (declaredDigest === evidenceDigest(sourceEvidence.value, [field])) acceptedDigests.add(declaredDigest);

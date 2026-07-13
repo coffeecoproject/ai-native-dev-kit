@@ -151,7 +151,11 @@ test("release preparation remains automatic while real-world consent stays expli
 test("permission task remains a technical responsibility domain instead of a people-selection task", () => withRoot("intentos-operating-permission-", (root) => {
   makeExistingProject(root);
   makeCurrentWorkQueue(root);
-  const report = runWork(root, "新增管理员权限并限制敏感数据访问");
+  fs.writeFileSync(
+    path.join(root, "src/administrator-permission.js"),
+    "export function validateAdministratorPermissionAndSensitiveDatabaseAccess() { return true; }\n",
+  );
+  const report = runWork(root, "Add administrator permission and restrict sensitive database access");
   assert.equal(report.operatingLoop.operation, "CONTINUE_TASK");
   assert.match(report.operatingLoop.taskImpact, /HIGH|POSSIBLE_HIGH/);
   assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");
@@ -428,16 +432,47 @@ test("possible-high task selects read-only risk inspection", () => withRoot("int
 test("medium task selects targeted implementation-review preparation", () => withRoot("intentos-operating-medium-", (root) => {
   makeExistingProject(root);
   makeCurrentWorkQueue(root);
-  const report = runWork(root, "调整局部列表筛选展示");
+  fs.writeFileSync(
+    path.join(root, "src/local-panel.js"),
+    "export function handler() { const localPanelInteraction = 'bounded local behavior'; return localPanelInteraction; }\n",
+  );
+  const report = runWork(root, "Update local panel handler interaction");
   assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_IMPLEMENTATION_REVIEW");
   assert.equal(report.operatingDecision.decisionStatus, "READY_FOR_REVIEW_PREPARATION");
 }));
 
+test("medium selection behavior pauses for bounded omission-risk inspection", () => withRoot("intentos-operating-medium-inspection-", (root) => {
+  makeExistingProject(root);
+  makeCurrentWorkQueue(root);
+  const report = runWork(root, "调整局部列表筛选展示");
+  assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
+  assert.equal(report.operatingDecision.actionCode, "INSPECT_BUSINESS_UNIVERSE_RISK");
+  assert.equal(report.operatingDecision.decisionStatus, "READ_ONLY_ACTION_REQUIRED");
+  assert.equal(report.operatingDecision.requiresHumanDecisionNow, "No");
+}));
+
+test("evidenced medium shared behavior prepares Business Universe before Business Rule", () => withRoot("intentos-operating-medium-universe-", (root) => {
+  makeExistingProject(root);
+  makeCurrentWorkQueue(root);
+  fs.writeFileSync(
+    path.join(root, "src/member-guest-list.js"),
+    "export function filterMemberAndGuestListWithSharedDisplayRule() { return true; }\n",
+  );
+  const report = runWork(root, "Member and guest use the same local list filter");
+  assert.equal(report.operatingLoop.taskImpact, "MEDIUM");
+  assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_UNIVERSE_COVERAGE");
+  assert.equal(report.operatingDecision.decisionStatus, "ACTION_REQUIRED");
+}));
+
 test("high task selects the first authoritative governance prerequisite", () => withRoot("intentos-operating-high-", (root) => {
   makeExistingProject(root);
   makeCurrentWorkQueue(root);
-  const report = runWork(root, "新增管理员权限");
+  fs.writeFileSync(
+    path.join(root, "src/administrator-permission.js"),
+    "export function validateAdministratorPermission() { return true; }\n",
+  );
+  const report = runWork(root, "Add administrator permission validation");
   assert.equal(report.operatingLoop.taskImpact, "HIGH");
   assert.equal(report.operatingDecision.actionCode, "PREPARE_BUSINESS_RULE_CLOSURE");
   assert.ok(report.operatingDecision.blockedBy.includes("missing affected-surface map"));

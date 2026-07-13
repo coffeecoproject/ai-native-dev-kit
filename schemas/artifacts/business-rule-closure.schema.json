@@ -29,7 +29,7 @@
     "boundaries"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.75.0"] },
+    "schema_version": { "type": "string", "enum": ["1.75.0", "1.108.0"] },
     "artifact_type": { "type": "string", "enum": ["business_rule_closure"] },
     "task_ref": { "type": "string" },
     "user_request": { "type": "string" },
@@ -73,6 +73,43 @@
     "risk_domains": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "business_universe_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required", "routing_result", "reason_codes", "business_universe_ref",
+        "business_universe_digest", "business_universe_state", "coverage_scenario_ids",
+        "coverage_mapping_status", "current_task_match", "intent_match", "not_required_reason"
+      ],
+      "properties": {
+        "required": { "enum": ["Yes", "No", "Unknown"] },
+        "routing_result": { "enum": ["REQUIRED_WITH_EVIDENCE", "TECHNICAL_INSPECTION_REQUIRED", "NOT_REQUIRED_WITH_REASON"] },
+        "reason_codes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "business_universe_ref": { "type": "string", "minLength": 1 },
+        "business_universe_digest": { "type": "string", "minLength": 1 },
+        "business_universe_state": { "enum": ["COVERAGE_READY", "BLOCKED_INCOMPLETE_UNIVERSE", "BUSINESS_FACT_NEEDED", "EXTERNAL_FACT_NEEDED", "NOT_REQUIRED_WITH_REASON", "TECHNICAL_INSPECTION_REQUIRED", "MISSING"] },
+        "coverage_scenario_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "coverage_mapping_status": { "enum": ["COMPLETE", "NOT_REQUIRED", "BLOCKED"] },
+        "current_task_match": { "enum": ["Yes", "No", "N/A"] },
+        "intent_match": { "enum": ["Yes", "No", "N/A"] },
+        "not_required_reason": { "type": "string" }
+      }
+    },
+    "business_rule_scenario_mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["business_rule_mapping_id", "source_coverage_scenario_ids", "mapped_dimensions", "rule_summary", "mapping_state"],
+        "properties": {
+          "business_rule_mapping_id": { "type": "string", "pattern": "^business-rule-mapping:[a-z0-9][a-z0-9._-]*$" },
+          "source_coverage_scenario_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "mapped_dimensions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "rule_summary": { "type": "string", "minLength": 1 },
+          "mapping_state": { "enum": ["MAPPED", "BLOCKED"] }
+        }
+      }
     },
     "state": {
       "type": "string",
@@ -255,5 +292,11 @@
       "additionalProperties": false
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "schema_version": { "const": "1.108.0" } } },
+      "then": { "required": ["business_universe_binding", "business_rule_scenario_mappings"] }
+    }
+  ],
   "additionalProperties": false
 }

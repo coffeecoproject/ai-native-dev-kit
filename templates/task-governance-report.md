@@ -34,12 +34,24 @@ It does not authorize implementation.
 | --- | --- | --- |
 | API contract | `Yes` | `<reason>` |
 
+## Business Universe Routing
+
+| Field | Value |
+| --- | --- |
+| Required | `<Yes/No>` |
+| Routing result | `<REQUIRED/NOT_REQUIRED_WITH_REASON>` |
+| Reason codes | `<reason codes or none>` |
+| Trigger evidence | `<evidence or none>` |
+| Not-required reason | `<reason or N/A>` |
+| Technical terms required from user | `No` |
+
 ## Required Before Implementation Review
 
 | Requirement | Required |
 | --- | --- |
 | Scope check | `<Yes/No>` |
 | Short plan | `<Yes/No>` |
+| Business Universe Coverage | `<Yes/No>` |
 | Business Rule Closure | `<Yes/No>` |
 | Change Impact Coverage | `<Yes/No>` |
 | Execution Plan | `<Yes/No>` |
@@ -113,7 +125,7 @@ It does not authorize implementation.
 
 ```json
 {
-  "schema_version": "1.83.3",
+  "schema_version": "1.108.0",
   "artifact_type": "task_governance",
   "intent": "<intent>",
   "intent_digest": "sha256:<64 hex>",
@@ -146,9 +158,18 @@ It does not authorize implementation.
     },
     "upgrade_history": []
   },
+  "business_universe_routing": {
+    "required": "No",
+    "routing_result": "NOT_REQUIRED_WITH_REASON",
+    "reason_codes": [],
+    "trigger_evidence": [],
+    "not_required_reason": "No business-category omission signal was found.",
+    "technical_terms_required_from_user": "No"
+  },
   "required_before_implementation_review": {
     "scope_check_required": "Yes",
     "short_plan_required": "No",
+    "business_universe_coverage_required": "No",
     "business_rule_closure_required": "Yes",
     "change_impact_coverage_required": "Yes",
     "execution_plan_required": "Yes",

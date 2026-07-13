@@ -202,6 +202,18 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "business-universe": {
+    description: "Build the conditional internal Business Universe evidence required by Task Governance.",
+    script: "scripts/resolve-business-universe-coverage.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "business-universe-check": {
+    description: "Strictly check task-bound Business Universe Coverage without making it a public user workflow.",
+    script: "scripts/check-business-universe-coverage.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "delivery-path": {
     description: "Report how far a project is from useful use without approving release.",
     script: "scripts/resolve-delivery-path.mjs",

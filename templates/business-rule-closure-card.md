@@ -34,6 +34,20 @@ Appointment requests must include a service time.
 | Business Rule Digest | `sha256:<digest>` |
 | Closure Digest | `sha256:<digest>` |
 
+## Business Universe Binding
+
+| Field | Value |
+| --- | --- |
+| Required | `<Yes/No>` |
+| Routing result | `<REQUIRED/NOT_REQUIRED_WITH_REASON>` |
+| Reason codes | `<reason codes or none>` |
+| Coverage ref | `<artifact ref or N/A>` |
+| Coverage digest | `<sha256 or N/A>` |
+| Coverage state | `<state>` |
+| Current task match | `<Yes/No/N/A>` |
+| Intent match | `<Yes/No/N/A>` |
+| Not-required reason | `<reason or N/A>` |
+
 ## Business Rule Dimensions
 
 | Dimension | Status | Summary | Evidence / Decision |
@@ -91,7 +105,7 @@ internal trial evidence is expected before release review when available.
 
 ```json
 {
-  "schema_version": "1.75.0",
+  "schema_version": "1.108.0",
   "artifact_type": "business_rule_closure",
   "task_ref": "tasks/001-appointment-service-time.md",
   "user_request": "Appointment requests must include a service time.",
@@ -103,6 +117,17 @@ internal trial evidence is expected before release review when available.
   "primary_business_rule_type": "VALIDATION_RULE",
   "business_rule_types": ["VALIDATION_RULE"],
   "risk_domains": ["appointment-scheduling"],
+  "business_universe_binding": {
+    "required": "No",
+    "routing_result": "NOT_REQUIRED_WITH_REASON",
+    "reason_codes": [],
+    "coverage_ref": "N/A",
+    "coverage_digest": "N/A",
+    "coverage_state": "NOT_REQUIRED_WITH_REASON",
+    "current_task_match": "N/A",
+    "intent_match": "N/A",
+    "not_required_reason": "One bounded validation path has no category-omission signal."
+  },
   "state": "NEEDS_USER_CONFIRMATION",
   "can_enter_impact_coverage": "No",
   "can_codex_write_now": "No",

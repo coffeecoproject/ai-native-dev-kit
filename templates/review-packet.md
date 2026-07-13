@@ -8,9 +8,9 @@ This packet does not approve the change. It packages context, evidence, known ri
 
 Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
 
-Context version: `1.107.1`
+Context version: `1.108.0`
 
-Context digest: `sha256:93358a582605aebfc5d321d39fb4f045357fcdc6b4e303efdf95b5c78b77c5a8`
+Context digest: `sha256:ef0c338fc0efea953db446a3ef843b9391c48ae503549a1a47547e07ec8f2191`
 
 This binding identifies the product-direction contract used to prepare this
 review input. It is not implementation, apply, release, or production approval.

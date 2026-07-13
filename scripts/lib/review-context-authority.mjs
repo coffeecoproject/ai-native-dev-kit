@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.107.1";
+export const REVIEW_CONTEXT_VERSION = "1.108.0";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
 export const USER_DECISION_CLASSES = Object.freeze([
   "NO_USER_ACTION",

@@ -73,6 +73,7 @@ Use this page as the documentation front door. Use `docs/index.md` when you need
 - [Guided Decision & Delivery Loop](guided-decision-delivery-loop.md)
 - [Review Surface Governance](review-surface-governance.md)
 - [Business Rule Closure](business-rule-closure.md)
+- [Business Universe Coverage](business-universe-coverage.md)
 - [Change Impact Coverage](change-impact-coverage.md)
 - [Behavior-Complete Existing Project Adoption](behavior-complete-existing-project-adoption.md)
 - [Existing Project Work Queue Takeover](existing-project-work-queue-takeover.md)

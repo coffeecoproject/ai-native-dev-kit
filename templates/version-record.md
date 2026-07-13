@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.107.1`
+`1.108.0`
 
 ## Project Version File
 
@@ -17,6 +17,11 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.108.0` conditionally requires evidence-bound Business Universe Coverage
+  when a task can omit business categories, entry paths, filters, or
+  reconciliation groups. Ordinary bounded tasks stay on their existing light
+  path, and final completion authority remains with Unified Closure.
 
 - `1.107.1` recursively checks the effective Codex guidance graph and generated
   migration output, keeps Claude/Cursor compatibility-only, and prevents

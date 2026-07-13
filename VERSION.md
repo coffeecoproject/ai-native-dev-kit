@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.107.1`
+Current version: `1.108.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,20 @@ Current version: `1.107.1`
 
 ## Current Release
 
-`1.107.1`
+`1.108.0`
 
 Includes:
+
+- Business Universe Coverage `1.108.0`: conditionally derives task-relevant
+  categories, participants, origins, processing paths, lifecycle branches,
+  selection points, consistency relationships, and verification scenarios when
+  Task Governance finds evidence-backed omission risk.
+- `1.108.0` binds exact category evidence through Business Rule Closure,
+  Change Impact Coverage, Plan Review, Verification Plan, Test Evidence, and
+  Completion Evidence without adding a public workflow or completion authority.
+- Non-behavioral tasks remain lightweight. Missing technical scan evidence is
+  Codex-owned work; only unavailable business or external facts can be surfaced
+  to the zero-experience user.
 
 - Active Guidance Distribution Close-Out `1.107.1`: recursively checks the
   effective Codex guidance graph, generated Codex assets, and existing-project

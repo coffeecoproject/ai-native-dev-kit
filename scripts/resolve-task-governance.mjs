@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { deriveBusinessUniverseRouting } from "./lib/business-universe.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set(["json", "format", "intent", "out", "task-kind"]);
@@ -39,17 +40,31 @@ if (outputFormat === "json") {
 }
 
 function buildReport() {
-  const classification = classifyIntent(intent, explicitTaskKind);
+  let classification = classifyIntent(intent, explicitTaskKind);
   const adoptionReview = adoptionReviewFor(projectRoot);
-  const requiredBeforeImplementation = requirementsBeforeImplementation(classification.task_impact);
-  const requiredBeforeCompletion = requirementsBeforeCompletion(classification.task_impact);
+  let businessUniverseRouting = deriveBusinessUniverseRouting({
+    intent,
+    projectRoot,
+    taskImpact: classification.task_impact,
+    taskKind: classification.task_kind,
+  });
+  classification = stabilizeClassification(classification, businessUniverseRouting);
+  businessUniverseRouting = deriveBusinessUniverseRouting({
+    intent,
+    projectRoot,
+    taskImpact: classification.task_impact,
+    taskKind: classification.task_kind,
+    preflight: businessUniverseRouting.preflight,
+  });
+  const requiredBeforeImplementation = requirementsBeforeImplementation(classification.task_impact, businessUniverseRouting);
+  const requiredBeforeCompletion = requirementsBeforeCompletion(classification.task_impact, businessUniverseRouting);
   const existingProjectMapping = existingProjectMappingFor(classification.task_impact);
-  const blockedBy = blockersFor(classification.task_impact, adoptionReview, requiredBeforeImplementation, requiredBeforeCompletion, existingProjectMapping);
+  const blockedBy = blockersFor(classification.task_impact, adoptionReview, requiredBeforeImplementation, requiredBeforeCompletion, existingProjectMapping, businessUniverseRouting);
   const taskGovernanceRef = outputPath
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "task-governance-reports/generated.md";
   const baseEvidence = {
-    schema_version: "1.83.3",
+    schema_version: "1.108.0",
     artifact_type: "task_governance",
     intent,
     intent_digest: digest(intent),
@@ -59,9 +74,10 @@ function buildReport() {
     project_adoption_mode: projectAdoptionModeFor(adoptionReview),
     adoption_review: adoptionReview,
     impact_classification: classification,
+    business_universe_routing: businessUniverseRouting,
     required_before_implementation_review: requiredBeforeImplementation,
     required_before_completion_claim: requiredBeforeCompletion,
-    review_policy: reviewPolicyFor(classification.task_impact),
+    review_policy: reviewPolicyFor(classification.task_impact, businessUniverseRouting),
     source_chain: sourceChainFor(intent, classification, adoptionReview),
     existing_project_mapping: existingProjectMapping,
     readiness: {
@@ -86,7 +102,7 @@ function buildReport() {
   };
   return {
     reportType: "TASK_GOVERNANCE",
-    schemaVersion: "1.83.3",
+    schemaVersion: "1.108.0",
     generatedBy: "scripts/resolve-task-governance.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -99,6 +115,7 @@ function buildReport() {
       canClaimDone: "No",
     },
     impactClassification: classification,
+    businessUniverseRouting,
     requiredBeforeImplementation,
     requiredBeforeCompletion,
     reviewPolicy: structuredEvidence.review_policy,
@@ -172,40 +189,67 @@ function classifyIntent(value, taskKindOverride) {
   };
 }
 
-function requirementsBeforeImplementation(impact) {
+function stabilizeClassification(classification, routing) {
+  if (routing.routing_result !== "REQUIRED_WITH_EVIDENCE" || classification.task_impact !== "LOW") return classification;
+  return {
+    ...classification,
+    task_impact: "MEDIUM",
+    confidence: "medium",
+    triggered_surfaces: [...new Set([...classification.triggered_surfaces, "evidence-backed business-universe coverage"])],
+    trigger_evidence: [...new Set([...classification.trigger_evidence, "Lightweight omission-risk preflight found a structural relationship shared by task-relevant behavior."])],
+    low_impact_reason: "",
+    medium_impact_reason: "A structural omission-risk relationship upgrades the task from LOW to MEDIUM without forcing the HIGH artifact topology.",
+    possible_high_resolution: {
+      initial_state: "N/A",
+      resolution: "N/A",
+      inspection_ref: "",
+      inspection_digest: "",
+      reason: "",
+    },
+    upgrade_history: [...classification.upgrade_history, "LOW->MEDIUM: business-universe structural evidence"],
+  };
+}
+
+function requirementsBeforeImplementation(impact, businessUniverseRouting) {
+  const universeRequired = businessUniverseRouting.required;
+  const universeChainRequired = universeRequired === "Yes" ? "Yes" : "No";
   if (impact === "LOW") {
     return {
       scope_check_required: "Yes",
       short_plan_required: "No",
-      business_rule_closure_required: "No",
-      change_impact_coverage_required: "No",
+      business_universe_coverage_required: universeRequired,
+      business_rule_closure_required: universeChainRequired,
+      change_impact_coverage_required: universeChainRequired,
       execution_plan_required: "No",
-      verification_plan_required: "No",
+      verification_plan_required: universeChainRequired,
     };
   }
   if (impact === "MEDIUM") {
     return {
       scope_check_required: "Yes",
       short_plan_required: "Yes",
-      business_rule_closure_required: "No",
-      change_impact_coverage_required: "No",
+      business_universe_coverage_required: universeRequired,
+      business_rule_closure_required: universeChainRequired,
+      change_impact_coverage_required: universeChainRequired,
       execution_plan_required: "No",
-      verification_plan_required: "No",
+      verification_plan_required: universeChainRequired,
     };
   }
   if (impact === "POSSIBLE_HIGH") {
     return {
       scope_check_required: "Yes",
       short_plan_required: "Yes",
-      business_rule_closure_required: "No",
-      change_impact_coverage_required: "No",
+      business_universe_coverage_required: universeRequired,
+      business_rule_closure_required: universeChainRequired,
+      change_impact_coverage_required: universeChainRequired,
       execution_plan_required: "No",
-      verification_plan_required: "No",
+      verification_plan_required: universeChainRequired,
     };
   }
   return {
     scope_check_required: "Yes",
     short_plan_required: "No",
+    business_universe_coverage_required: universeRequired,
     business_rule_closure_required: "Yes",
     change_impact_coverage_required: "Yes",
     execution_plan_required: "Yes",
@@ -213,8 +257,8 @@ function requirementsBeforeImplementation(impact) {
   };
 }
 
-function requirementsBeforeCompletion(impact) {
-  if (impact === "HIGH") {
+function requirementsBeforeCompletion(impact, businessUniverseRouting) {
+  if (impact === "HIGH" || businessUniverseRouting.required === "Yes") {
     return {
       test_evidence_required: "Yes",
       execution_assurance_required: "Yes",
@@ -228,7 +272,7 @@ function requirementsBeforeCompletion(impact) {
   };
 }
 
-function reviewPolicyFor(impact) {
+function reviewPolicyFor(impact, businessUniverseRouting) {
   if (impact === "LOW") {
     return {
       review_level: "LIGHTWEIGHT",
@@ -246,6 +290,9 @@ function reviewPolicyFor(impact) {
     };
   }
   if (impact === "MEDIUM") {
+    const coverage = businessUniverseRouting.required === "Yes"
+      ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"]
+      : [];
     return {
       review_level: "TARGETED",
       codex_self_check_required: "Yes",
@@ -254,6 +301,7 @@ function reviewPolicyFor(impact) {
       review_must_cover: [
         "short plan",
         "bounded impact surface",
+        ...coverage,
         "excluded high-impact surfaces",
         "targeted verification",
         "unrelated edits check",
@@ -263,6 +311,9 @@ function reviewPolicyFor(impact) {
     };
   }
   if (impact === "POSSIBLE_HIGH") {
+    const coverage = businessUniverseRouting.required === "Yes"
+      ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"]
+      : [];
     return {
       review_level: "BLOCKING_CLARIFICATION",
       codex_self_check_required: "Yes",
@@ -272,34 +323,44 @@ function reviewPolicyFor(impact) {
         "clarification or read-only inspection",
         "high-impact surface decision",
         "upgrade or downgrade rationale",
+        ...coverage,
       ],
       review_source: "human_or_read_only_inspection",
       skip_full_review_reason: "POSSIBLE_HIGH tasks cannot skip full review until clarification proves the task is not high impact.",
     };
   }
+  const fullCoverage = [
+    ...(businessUniverseRouting.required === "Yes" ? ["business universe coverage"] : []),
+    "business rule closure",
+    "change impact coverage",
+    "execution plan",
+    "verification plan",
+    "test evidence",
+    "execution assurance",
+    "completion evidence",
+  ];
   return {
     review_level: "FULL",
     codex_self_check_required: "Yes",
     independent_review_required: "Yes",
     review_must_happen_before: "implementation_and_completion",
-    review_must_cover: [
-      "business rule closure",
-      "change impact coverage",
-      "execution plan",
-      "verification plan",
-      "test evidence",
-      "execution assurance",
-      "completion evidence",
-    ],
+    review_must_cover: fullCoverage,
     review_source: "review_loop_or_project_native_review",
     skip_full_review_reason: "HIGH tasks cannot skip the full review chain.",
   };
 }
 
-function blockersFor(impact, adoptionReview, beforeImplementation, beforeCompletion, existingProjectMapping = []) {
+function blockersFor(impact, adoptionReview, beforeImplementation, beforeCompletion, existingProjectMapping = [], businessUniverseRouting = {}) {
   const blocked = [];
   if (adoptionReview.blocks_task_governance === "Yes") blocked.push("blocked by current adoption review source");
   if (impact === "POSSIBLE_HIGH") blocked.push("needs clarification or read-only inspection before implementation");
+  if (businessUniverseRouting.required === "Yes") blocked.push("missing evidence-backed Business Universe Coverage");
+  if (businessUniverseRouting.routing_result === "TECHNICAL_INSPECTION_REQUIRED") blocked.push("Codex must continue read-only omission-risk inspection");
+  if (businessUniverseRouting.required === "Yes") {
+    blocked.push("missing Business Rule Closure mapped to coverage scenarios");
+    blocked.push("missing Change Impact Coverage mapped to coverage scenarios");
+    blocked.push("missing Verification Plan mapped to coverage scenarios");
+  }
   if (impact === "HIGH") {
     if (beforeImplementation.business_rule_closure_required === "Yes" && !hasMatchedProjectNativeBehavior(existingProjectMapping, "Business Rule Closure")) {
       blocked.push("missing clear business rule or project-native equivalent");
@@ -507,12 +568,27 @@ This report classifies task impact and routes required governance. It does not a
 | --- | --- | --- |
 ${excludedRows}
 
+## Business Universe Routing
+
+| Field | Value |
+| --- | --- |
+| Required | \`${evidence.business_universe_routing.required}\` |
+| Routing result | \`${evidence.business_universe_routing.routing_result}\` |
+| Reason codes | ${evidence.business_universe_routing.reason_codes.join(", ") || "none"} |
+| Relationship IDs | ${evidence.business_universe_routing.relationship_ids.join(", ") || "none"} |
+| Trigger evidence locators | ${evidence.business_universe_routing.trigger_evidence_locator_refs.join(", ") || "none"} |
+| Preflight digest | \`${evidence.business_universe_routing.preflight.preflight_digest}\` |
+| Not-required reason | ${evidence.business_universe_routing.not_required_reason || "N/A"} |
+| Technical inspection reason | ${evidence.business_universe_routing.technical_inspection_reason || "N/A"} |
+| Technical terms required from user | \`${evidence.business_universe_routing.technical_terms_required_from_user}\` |
+
 ## Required Before Implementation Review
 
 | Requirement | Required |
 | --- | --- |
 | Scope check | \`${evidence.required_before_implementation_review.scope_check_required}\` |
 | Short plan | \`${evidence.required_before_implementation_review.short_plan_required}\` |
+| Business Universe Coverage | \`${evidence.required_before_implementation_review.business_universe_coverage_required}\` |
 | Business Rule Closure | \`${evidence.required_before_implementation_review.business_rule_closure_required}\` |
 | Change Impact Coverage | \`${evidence.required_before_implementation_review.change_impact_coverage_required}\` |
 | Execution Plan | \`${evidence.required_before_implementation_review.execution_plan_required}\` |

@@ -39,7 +39,7 @@
     "outcome"
   ],
   "properties": {
-    "schema_version": { "const": "1.88.0" },
+    "schema_version": { "enum": ["1.88.0", "1.108.0"] },
     "artifact_type": { "const": "plan_review" },
     "plan_review_ref": { "type": "string", "minLength": 1 },
     "plan_review_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
@@ -70,6 +70,50 @@
         "task_impact": { "enum": ["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH", "Unknown"] },
         "plan_review_required": { "enum": ["Yes", "No", "Unknown"] },
         "current_task_match": { "enum": ["Yes", "No", "Unknown", "N/A"] }
+      }
+    },
+    "business_universe_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required", "routing_result", "business_universe_ref", "business_universe_digest", "business_universe_state",
+        "coverage_scenario_ids", "coverage_mapping_status", "scenario_review_status",
+        "lifecycle_review_status", "provenance_review_status",
+        "challenger_required", "challenger_status"
+      ],
+      "properties": {
+        "required": { "enum": ["Yes", "No", "Unknown"] },
+        "routing_result": { "enum": ["REQUIRED_WITH_EVIDENCE", "TECHNICAL_INSPECTION_REQUIRED", "NOT_REQUIRED_WITH_REASON"] },
+        "business_universe_ref": { "type": "string", "minLength": 1 },
+        "business_universe_digest": { "type": "string", "minLength": 1 },
+        "business_universe_state": { "type": "string", "minLength": 1 },
+        "coverage_scenario_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "coverage_mapping_status": { "enum": ["COMPLETE", "NOT_REQUIRED", "BLOCKED"] },
+        "scenario_review_status": { "enum": ["COMPLETE", "NOT_REQUIRED", "BLOCKED"] },
+        "lifecycle_review_status": { "enum": ["COMPLETE", "NOT_REQUIRED", "BLOCKED"] },
+        "provenance_review_status": { "enum": ["COMPLETE", "NOT_REQUIRED", "BLOCKED"] },
+        "challenger_required": { "enum": ["Yes", "No"] },
+        "challenger_status": { "type": "string", "minLength": 1 }
+      }
+    },
+    "plan_scenario_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "plan_scenario_review_id", "source_coverage_scenario_ids", "reviewed_surfaces",
+          "lifecycle_reviewed", "provenance_reviewed", "negative_or_reverse_reviewed", "review_state"
+        ],
+        "properties": {
+          "plan_scenario_review_id": { "type": "string", "pattern": "^plan-scenario-review:[a-z0-9][a-z0-9._-]*$" },
+          "source_coverage_scenario_ids": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "reviewed_surfaces": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "lifecycle_reviewed": { "enum": ["Yes", "No"] },
+          "provenance_reviewed": { "enum": ["Yes", "No"] },
+          "negative_or_reverse_reviewed": { "enum": ["Yes", "No"] },
+          "review_state": { "enum": ["REVIEWED", "BLOCKED"] }
+        }
       }
     },
     "source_chain": {
@@ -304,6 +348,11 @@
       }
     },
     "outcome": { "type": "string", "minLength": 1 }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "schema_version": { "const": "1.108.0" } } },
+      "then": { "required": ["business_universe_binding", "plan_scenario_reviews"] }
+    }
+  ]
 }
-

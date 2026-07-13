@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 
@@ -203,6 +203,12 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} can_claim_done must be No`);
   checkUserPromptBurden(label, evidence);
 
+  if (evidence.schema_version === "1.108.0") {
+    if (sectionBody(content, "Business Universe Routing")) pass(`${label} includes Business Universe Routing`);
+    else fail(`${label} 1.108.0 report missing Business Universe Routing`);
+    checkBusinessUniverseRouting(label, evidence);
+  }
+
   const impact = evidence.impact_classification?.task_impact;
   if (["LOW", "MEDIUM", "POSSIBLE_HIGH", "HIGH"].includes(impact)) pass(`${label} task impact is ${impact}`);
   else fail(`${label} task impact must be LOW, MEDIUM, POSSIBLE_HIGH, or HIGH`);
@@ -244,6 +250,11 @@ function checkTierRules(label, evidence) {
     ...(classification.trigger_evidence || []),
   ].join("\n");
   const rawIntentHighSurface = hasHighSurface(evidence.intent || "");
+  const universeRequired = evidence.business_universe_routing?.required || "No";
+
+  if (evidence.schema_version === "1.108.0") {
+    requireRequirement(label, beforeImplementation, "business_universe_coverage_required", universeRequired);
+  }
 
   if (evidence.adoption_review?.blocks_task_governance === "Yes") {
     if (evidence.outcome === "BLOCKED_BY_ADOPTION_REVIEW") pass(`${label} adoption blocker drives blocked outcome`);
@@ -402,21 +413,37 @@ function checkReviewPolicy(label, evidence) {
       independent_review_required: "Conditional",
       review_must_happen_before: "completion_claim",
       review_source: "targeted_checker_or_project_review",
-      coverage: ["short plan", "bounded impact surface", "excluded high-impact surfaces", "targeted verification", "unrelated edits check"],
+      coverage: [
+        "short plan", "bounded impact surface",
+        ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"] : []),
+        "excluded high-impact surfaces", "targeted verification", "unrelated edits check",
+      ],
     },
     POSSIBLE_HIGH: {
       review_level: "BLOCKING_CLARIFICATION",
       independent_review_required: "Yes",
       review_must_happen_before: "implementation_review",
       review_source: "human_or_read_only_inspection",
-      coverage: ["clarification or read-only inspection", "high-impact surface decision", "upgrade or downgrade rationale"],
+      coverage: [
+        "clarification or read-only inspection", "high-impact surface decision", "upgrade or downgrade rationale",
+        ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage", "business rule closure", "change impact coverage", "verification plan"] : []),
+      ],
     },
     HIGH: {
       review_level: "FULL",
       independent_review_required: "Yes",
       review_must_happen_before: "implementation_and_completion",
       review_source: "review_loop_or_project_native_review",
-      coverage: ["business rule closure", "change impact coverage", "execution plan", "verification plan", "test evidence", "execution assurance", "completion evidence"],
+      coverage: [
+        ...(evidence.business_universe_routing?.required === "Yes" ? ["business universe coverage"] : []),
+        "business rule closure",
+        "change impact coverage",
+        "execution plan",
+        "verification plan",
+        "test evidence",
+        "execution assurance",
+        "completion evidence",
+      ],
     },
   }[impact];
 
@@ -437,6 +464,50 @@ function checkReviewPolicy(label, evidence) {
   }
   if (policy.skip_full_review_reason) pass(`${label} review policy explains full-review boundary`);
   else fail(`${label} review policy must explain full-review boundary`);
+}
+
+function checkBusinessUniverseRouting(label, evidence) {
+  const routing = evidence.business_universe_routing;
+  if (!routing) {
+    fail(`${label} 1.108.0 requires business_universe_routing`);
+    return;
+  }
+  if (routing.technical_terms_required_from_user === "No") pass(`${label} Business Universe routing keeps technical terms away from the user`);
+  else fail(`${label} Business Universe routing must not require technical terms from the user`);
+  const preflight = routing.preflight || {};
+  const preflightBase = { ...preflight };
+  delete preflightBase.preflight_digest;
+  if (preflight.preflight_digest === evidenceDigest(preflightBase, [])) pass(`${label} Business Universe preflight digest is canonical`);
+  else fail(`${label} Business Universe preflight digest must match its bounded evidence`);
+  if (preflight.discovery_boundary_digest === preflight.discovery_projection?.discovery_boundary_digest) pass(`${label} preflight discovery boundary is internally consistent`);
+  else fail(`${label} preflight discovery boundary must match its discovery projection`);
+  if (routing.required === "Yes") {
+    if (routing.routing_result === "REQUIRED_WITH_EVIDENCE") pass(`${label} required Business Universe routing uses REQUIRED_WITH_EVIDENCE`);
+    else fail(`${label} required Business Universe routing must use REQUIRED_WITH_EVIDENCE`);
+    if ((routing.reason_codes || []).length > 0 && (routing.relationship_ids || []).length > 0) pass(`${label} required Business Universe routing has structural reasons and relationships`);
+    else fail(`${label} required Business Universe routing needs reason codes and structural relationship ids`);
+    const evidenced = (preflight.structural_relationships || []).filter((item) => item.evidence_state === "EVIDENCE_BOUND");
+    if (evidenced.length > 0) pass(`${label} required routing is backed by an evidence-bound structural relationship`);
+    else fail(`${label} required routing cannot be produced from lexical candidates alone`);
+    if ((routing.reason_codes || []).some((item) => item !== "HIGH_RISK_OMISSION_AMPLIFIER")) pass(`${label} high-risk amplifier is not the only trigger`);
+    else fail(`${label} HIGH impact alone cannot trigger Business Universe Coverage`);
+    if (!routing.not_required_reason) pass(`${label} required Business Universe routing has no conflicting not-required reason`);
+    else fail(`${label} required Business Universe routing must not include not_required_reason`);
+    if (!routing.technical_inspection_reason) pass(`${label} required Business Universe routing has no conflicting inspection reason`);
+    else fail(`${label} required Business Universe routing must not retain an inspection reason`);
+    if ((evidence.readiness?.blocked_by || []).some((item) => /Business Universe Coverage/i.test(item))) pass(`${label} required Business Universe routing blocks until evidence exists`);
+    else fail(`${label} required Business Universe routing must add a coverage blocker`);
+  } else if (routing.required === "Unknown") {
+    if (routing.routing_result === "TECHNICAL_INSPECTION_REQUIRED" && routing.technical_inspection_reason) pass(`${label} ambiguous Business Universe routing remains Codex-owned technical inspection`);
+    else fail(`${label} ambiguous Business Universe routing must use TECHNICAL_INSPECTION_REQUIRED with a reason`);
+    if ((evidence.readiness?.blocked_by || []).some((item) => /read-only omission-risk inspection/i.test(item))) pass(`${label} technical inspection blocks implementation review`);
+    else fail(`${label} technical inspection must block implementation review without asking the user for technical classification`);
+  } else {
+    if (routing.routing_result === "NOT_REQUIRED_WITH_REASON" && routing.not_required_reason) pass(`${label} non-required Business Universe routing has a reason`);
+    else fail(`${label} non-required Business Universe routing must use NOT_REQUIRED_WITH_REASON with a reason`);
+    if ((routing.reason_codes || []).length === 0 && (routing.relationship_ids || []).length === 0) pass(`${label} non-required Business Universe routing has no synthetic trigger`);
+    else fail(`${label} non-required Business Universe routing must not carry trigger reasons`);
+  }
 }
 
 function checkProjectNativeEvidenceBinding(label, mapping) {

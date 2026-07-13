@@ -125,7 +125,11 @@ function checkBusinessAndImpactEntry() {
   withTemporaryProject("intentos-solo-business-", (root) => {
     makeExistingProject(root);
     const business = runJson(["scripts/resolve-business-rule-closure.mjs", root, "--intent", "appointment requests must include a service time"]);
-    if (business.outcome === "READY_FOR_IMPACT_COVERAGE"
+    const coverageHandledInternally = business.outcome === "READY_FOR_IMPACT_COVERAGE"
+      || (business.outcome === "BLOCKED_INCOMPLETE_RULE"
+        && ["Yes", "Unknown"].includes(business.businessUniverseBinding?.required)
+        && /Codex must complete the internal coverage inspection/i.test(business.humanSummary?.safeNextStep || ""));
+    if (coverageHandledInternally
       && business.userConfirmationQuestions?.length === 0
       && !/domain owner|release owner|choose.*(?:UI|backend|API)/i.test(JSON.stringify(business.humanSummary || {}))) {
       pass("ordinary business-rule closure uses complete safe defaults without a technical user question");

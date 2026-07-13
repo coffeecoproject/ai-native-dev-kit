@@ -33,7 +33,7 @@
     "next_step"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.76.0"] },
+    "schema_version": { "type": "string", "enum": ["1.76.0", "1.108.0"] },
     "artifact_type": { "type": "string", "enum": ["verification_plan"] },
     "task_ref": { "type": "string" },
     "intent": { "type": "string" },
@@ -43,6 +43,23 @@
     "business_rule_ref": { "type": "string" },
     "business_rule_digest": { "type": "string" },
     "business_rule_state": { "type": "string" },
+    "business_universe_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required", "routing_result", "business_universe_ref", "business_universe_digest",
+        "business_universe_state", "coverage_scenario_ids", "coverage_mapping_status"
+      ],
+      "properties": {
+        "required": { "enum": ["Yes", "No", "Unknown"] },
+        "routing_result": { "enum": ["REQUIRED_WITH_EVIDENCE", "TECHNICAL_INSPECTION_REQUIRED", "NOT_REQUIRED_WITH_REASON"] },
+        "business_universe_ref": { "type": "string", "minLength": 1 },
+        "business_universe_digest": { "type": "string", "minLength": 1 },
+        "business_universe_state": { "type": "string", "minLength": 1 },
+        "coverage_scenario_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "coverage_mapping_status": { "enum": ["COMPLETE", "NOT_REQUIRED", "BLOCKED"] }
+      }
+    },
     "impact_ref": { "type": "string" },
     "impact_digest": { "type": "string" },
     "source_systems": {
@@ -55,6 +72,7 @@
             "type": "string",
             "enum": [
               "business_rule_closure",
+              "business_universe_coverage",
               "change_impact_coverage",
               "existing_project_rule",
               "human_decision"
@@ -188,7 +206,21 @@
           },
           "owner": { "type": "string" },
           "decision_ref": { "type": "string" },
-          "not_applicable_reason": { "type": "string" }
+          "not_applicable_reason": { "type": "string" },
+          "source_coverage_scenario_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "required_proof_strength": {
+            "enum": [
+              "STRUCTURAL_SOURCE_PROOF",
+              "PROJECT_NATIVE_BEHAVIOR_PROOF",
+              "RUNTIME_TRUSTED_BEHAVIOR_PROOF",
+              "EXTERNAL_FACT_PROOF",
+              "NOT_APPLICABLE"
+            ]
+          }
         },
         "additionalProperties": false
       }
@@ -257,6 +289,12 @@
     "authority_binding": { "$ref": "#/$defs/authorityBinding" },
     "next_step": { "type": "string" }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "schema_version": { "const": "1.108.0" } } },
+      "then": { "required": ["business_universe_binding"] }
+    }
+  ],
   "additionalProperties": false,
   "$defs": {
     "authorityBinding": {

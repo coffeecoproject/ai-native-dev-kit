@@ -7181,14 +7181,17 @@ function checkExecutionAssuranceChainProtocol() {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "EXECUTION_ASSURANCE"
         && parsed.readOnly === true
-        && parsed.schemaVersion === "1.104.0"
+        && parsed.schemaVersion === "1.108.0"
         && parsed.structuredEvidence?.artifact_type === "execution_assurance_report"
+        && parsed.structuredEvidence?.schema_version === "1.108.0"
         && parsed.structuredEvidence?.can_codex_write_now === "No"
         && parsed.structuredEvidence?.completion_contract
         && parsed.structuredEvidence?.planned_impact_map
         && parsed.structuredEvidence?.actual_diff
         && parsed.structuredEvidence?.patch_assessment
-        && parsed.structuredEvidence?.runtime_trust_binding?.status === "BLOCKED"
+        && parsed.structuredEvidence?.runtime_trust_binding?.requirement === "NOT_REQUIRED"
+        && parsed.structuredEvidence?.runtime_trust_binding?.status === "NOT_REQUIRED"
+        && parsed.structuredEvidence?.business_universe_binding?.coverage_mapping_status === "BLOCKED"
         && parsed.structuredEvidence?.boundary?.approves_commit_or_push === "No") {
         pass("1.72-1.74 execution assurance resolver JSON includes safe evidence fields");
       } else {
@@ -8968,13 +8971,11 @@ function checkBusinessRuleClosureProtocol() {
       "--require-business-rule-ref",
       "--require-business-rule-ready",
     ]);
-    if (strictImpact.status === 0
-      && strictImpact.stdout.includes("business_rule_ref resolves")
-      && strictImpact.stdout.includes("business_rule_digest matches referenced Business Rule Closure")
-      && strictImpact.stdout.includes("referenced Business Rule Closure is READY_FOR_IMPACT_COVERAGE")) {
-      pass("1.75 business-rule-linked Change Impact Coverage passes strict ready binding");
+    if (strictImpact.status !== 0
+      && `${strictImpact.stderr}\n${strictImpact.stdout}`.includes("requires exact Business Universe bindings")) {
+      pass("1.108 current Change Impact refuses a historical Business Rule that lacks exact Business Universe routing evidence");
     } else {
-      fail(`1.75 business-rule-linked Change Impact Coverage strict ready binding failed: ${strictImpact.stderr || strictImpact.stdout}`);
+      fail(`1.108 current Change Impact must fail closed on a historical Business Rule without exact Business Universe routing evidence: ${strictImpact.stderr || strictImpact.stdout}`);
     }
   }
 
@@ -9525,9 +9526,9 @@ function checkTestEvidenceBindingProtocol() {
   ]);
   if (resolver.status === 0
     && resolver.stdout.includes("Test Evidence Report")
-    && resolver.stdout.includes("TEST_EVIDENCE_BLOCKED")
+    && resolver.stdout.includes("TEST_EVIDENCE_COMPLETE")
     && resolver.stdout.includes("This report executes tests: No")) {
-    pass("1.104 test evidence resolver blocks a current claim without Runtime Trust");
+    pass("1.108 historical Verification Plan keeps bounded NOT_REQUIRED Runtime Trust semantics");
   } else {
     fail(`1.77 test evidence resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
@@ -9547,11 +9548,15 @@ function checkTestEvidenceBindingProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "TEST_EVIDENCE_REPORT"
-        && parsed.schemaVersion === "1.104.0"
+        && parsed.schemaVersion === "1.108.0"
         && parsed.structuredEvidence?.artifact_type === "test_evidence"
-        && parsed.structuredEvidence?.schema_version === "1.104.0"
+        && parsed.structuredEvidence?.schema_version === "1.108.0"
         && parsed.structuredEvidence?.test_evidence_digest
-        && parsed.structuredEvidence?.runtime_trust_binding?.status === "BLOCKED"
+        && parsed.structuredEvidence?.runtime_trust_binding?.requirement === "NOT_REQUIRED"
+        && parsed.structuredEvidence?.runtime_trust_binding?.status === "NOT_REQUIRED"
+        && parsed.structuredEvidence?.business_universe_binding?.required === "No"
+        && parsed.structuredEvidence?.business_universe_binding?.routing_result === "NOT_REQUIRED_WITH_REASON"
+        && parsed.structuredEvidence?.scenario_coverage_map?.length === 0
         && parsed.structuredEvidence?.evidence_items?.every((item) => item.exit_code === 0 && item.failure_reason === "not recorded")
         && parsed.structuredEvidence?.source_systems?.some((item) => item.name === "verification_plan")
         && parsed.structuredEvidence?.coverage_map?.every((item) => item.coverage_state === "COVERED")
@@ -9787,9 +9792,9 @@ function checkCompletionEvidenceGateProtocol() {
   ]);
   if (resolver.status === 0
     && resolver.stdout.includes("Completion Evidence Gate Report")
-    && resolver.stdout.includes("BLOCKED_BY_RUNTIME_TRUST")
+    && resolver.stdout.includes("BLOCKED_BY_BUSINESS_UNIVERSE")
     && resolver.stdout.includes("This report runs tests: No")) {
-    pass("1.104 completion evidence resolver blocks a current claim without Runtime Trust");
+    pass("1.108 current completion fails closed when historical sources lack exact Business Universe evidence");
   } else {
     fail(`1.78 completion evidence resolver failed: ${resolver.stderr || resolver.stdout}`);
   }
@@ -9813,16 +9818,19 @@ function checkCompletionEvidenceGateProtocol() {
     try {
       const parsed = JSON.parse(resolverJson.stdout);
       if (parsed.reportType === "COMPLETION_EVIDENCE_GATE"
-        && parsed.schemaVersion === "1.104.0"
+        && parsed.schemaVersion === "1.108.0"
         && parsed.structuredEvidence?.artifact_type === "completion_evidence_gate"
-        && parsed.structuredEvidence?.completion_state === "BLOCKED_BY_RUNTIME_TRUST"
+        && parsed.structuredEvidence?.schema_version === "1.108.0"
+        && parsed.structuredEvidence?.completion_state === "BLOCKED_BY_BUSINESS_UNIVERSE"
         && parsed.structuredEvidence?.can_claim_complete === "No"
-        && parsed.structuredEvidence?.runtime_trust_binding?.status === "BLOCKED"
+        && parsed.structuredEvidence?.runtime_trust_binding?.requirement === "NOT_REQUIRED"
+        && parsed.structuredEvidence?.runtime_trust_binding?.status === "NOT_REQUIRED"
+        && parsed.structuredEvidence?.business_universe_binding?.coverage_mapping_status === "BLOCKED"
         && parsed.structuredEvidence?.source_chain?.length === 4
         && parsed.structuredEvidence?.source_chain?.every((item) => typeof item.intent_digest === "string" && item.intent_digest.startsWith("sha256:"))
-        && parsed.structuredEvidence?.gate_checks?.some((item) => item.id === "check:runtime-trust" && item.status === "FAIL")
+        && parsed.structuredEvidence?.gate_checks?.some((item) => item.id === "check:business-universe" && item.status === "FAIL")
         && parsed.structuredEvidence?.boundary?.runs_tests === "No") {
-        pass("1.104 completion evidence resolver JSON includes runtime-blocked source chain");
+        pass("1.108 completion evidence JSON includes Business-Universe-blocked historical source chain");
       } else {
         fail(`1.78 completion evidence resolver JSON missing expected fields: ${resolverJson.stdout}`);
       }
@@ -15411,11 +15419,12 @@ function checkGeneratedProjectE2E() {
   ]);
   if (generatedImpactResolve.status !== 0
     || !generatedImpactResolve.stdout.includes(generatedBusinessRuleRef)
-    || !generatedImpactResolve.stdout.includes("Business rule state: READY_FOR_IMPACT_COVERAGE")
+    || !generatedImpactResolve.stdout.includes("Business rule state: BLOCKED_INCOMPLETE_RULE")
+    || !generatedImpactResolve.stdout.includes("Business Universe ref: N/A")
     || !generatedImpactResolve.stdout.includes("## Human Decisions Needed")
     || !generatedImpactResolve.stdout.includes("Codex derives technical surface coverage")
     || !generatedImpactResolve.stdout.includes("This report authorizes implementation: No")) {
-    fail(`generated project must preserve unconfirmed Business Rule Closure in a non-authorizing impact report: ${generatedImpactResolve.stderr || generatedImpactResolve.stdout}`);
+    fail(`generated project must preserve Business-Universe-blocked Business Rule Closure in a non-authorizing impact report: ${generatedImpactResolve.stderr || generatedImpactResolve.stdout}`);
     return;
   }
   pass("generated project consumes saved Business Rule Closure and keeps impact analysis non-authorizing without technical user questions");
@@ -15440,8 +15449,9 @@ function checkGeneratedProjectE2E() {
   if (generatedVerificationResolve.status !== 0
     || !fs.existsSync(path.join(target, generatedVerificationReport))
     || !generatedVerificationResolve.stdout.includes("Verification Plan")
-    || !generatedVerificationResolve.stdout.includes("VERIFICATION_PLAN_READY")) {
-    fail(`generated project verification plan resolver should write a source-bound report: ${generatedVerificationResolve.stderr || generatedVerificationResolve.stdout}`);
+    || !generatedVerificationResolve.stdout.includes("NEEDS_BUSINESS_RULE_CLOSURE")
+    || !generatedVerificationResolve.stdout.includes("Create or resolve a READY Business Rule Closure")) {
+    fail(`generated project Verification Plan must preserve the Business-Universe-blocked Business Rule state: ${generatedVerificationResolve.stderr || generatedVerificationResolve.stdout}`);
     return;
   }
   const generatedVerificationStrictCheck = runNode([
@@ -18253,7 +18263,7 @@ function checkOperatingModelConsolidationProtocol() {
   }
 
   const tests = runNode(["--test", "tests/operating-model.test.mjs"]);
-  if (tests.status === 0 && tests.stdout.includes("pass 34") && tests.stdout.includes("fail 0")) {
+  if (tests.status === 0 && tests.stdout.includes("pass 36") && tests.stdout.includes("fail 0")) {
     pass("1.95 Operating Model and current decision-contract regression tests");
   } else {
     fail(`1.95 Operating Model tests failed: ${tests.stderr || tests.stdout}`);
@@ -18598,6 +18608,150 @@ function checkActiveGuidanceDistributionCloseoutProtocol() {
   const focused = runNode(["--test", "tests/active-guidance-distribution-closeout.test.mjs"]);
   if (focused.status === 0) pass("1.107.1 source and generated guidance distribution regressions");
   else fail(`1.107.1 guidance distribution regressions failed: ${focused.stderr || focused.stdout}`);
+}
+
+function checkBusinessUniverseCoverageProtocol() {
+  const assets = [
+    "core/business-universe-coverage.md",
+    "docs/business-universe-coverage.md",
+    "docs/plans/business-universe-coverage-1.108-plan.md",
+    "checklists/business-universe-coverage-review.md",
+    "prompts/business-universe-coverage-agent.md",
+    "templates/business-universe-coverage-report.md",
+    "schemas/artifacts/business-universe-coverage.schema.json",
+    "scripts/lib/business-universe.mjs",
+    "scripts/resolve-business-universe-coverage.mjs",
+    "scripts/check-business-universe-coverage.mjs",
+    "tests/business-universe-consumer-chain.test.mjs",
+    "tests/business-universe-coverage.test.mjs",
+    "tests/business-universe-existing-project-scan.test.mjs",
+    "tests/verification-runtime-consumer.test.mjs",
+    "business-universe-coverage-reports/.gitkeep",
+    "examples/1.108-business-universe-coverage/README.md",
+    "releases/1.108.0/release-record.md",
+    "releases/1.108.0/known-limitations.md",
+    "releases/1.108.0/self-check-report.md",
+  ];
+  for (const file of assets) {
+    if (exists(file)) pass(`1.108 business universe asset exists: ${file}`);
+    else fail(`1.108 business universe asset missing: ${file}`);
+  }
+
+  const core = read("core/business-universe-coverage.md");
+  for (const marker of [
+    "conditional internal evidence",
+    "NOT_REQUIRED_WITH_REASON",
+    "Business Rule Closure",
+    "Unified Closure",
+    "zero-experience",
+  ]) {
+    if (core.includes(marker)) pass(`1.108 business universe core includes ${marker}`);
+    else fail(`1.108 business universe core missing ${marker}`);
+  }
+
+  const focused = runNode(["--test", "tests/business-universe-coverage.test.mjs"]);
+  if (focused.status === 0) pass("1.108 business universe regressions");
+  else fail(`1.108 business universe regressions failed: ${focused.stderr || focused.stdout}`);
+  const consumerFocused = runNode(["--test", "tests/business-universe-consumer-chain.test.mjs"]);
+  if (consumerFocused.status === 0) pass("1.108 risk-proportionate consumer-chain regressions");
+  else fail(`1.108 consumer-chain regressions failed: ${consumerFocused.stderr || consumerFocused.stdout}`);
+  const existingProjectFocused = runNode(["--test", "tests/business-universe-existing-project-scan.test.mjs"]);
+  if (existingProjectFocused.status === 0) pass("1.108 existing-project discovery regressions");
+  else fail(`1.108 existing-project discovery regressions failed: ${existingProjectFocused.stderr || existingProjectFocused.stdout}`);
+  const runtimeConsumerFocused = runNode(["--test", "tests/verification-runtime-consumer.test.mjs"]);
+  if (runtimeConsumerFocused.status === 0) pass("1.108 proof-strength runtime consumer regressions");
+  else fail(`1.108 runtime consumer regressions failed: ${runtimeConsumerFocused.stderr || runtimeConsumerFocused.stdout}`);
+
+  const compatibilityEmpty = runNode(["scripts/check-business-universe-coverage.mjs", ".", "--allow-empty"]);
+  if (compatibilityEmpty.status === 0) pass("1.108 explicit compatibility empty state remains readable");
+  else fail(`1.108 compatibility empty-state check failed: ${compatibilityEmpty.stderr || compatibilityEmpty.stdout}`);
+  const strictEmpty = runNode([
+    "scripts/check-business-universe-coverage.mjs", ".", "--allow-empty", "--require-ready",
+  ]);
+  if (strictEmpty.status !== 0) pass("1.108 strict business universe requirement cannot be bypassed by allow-empty");
+  else fail("1.108 strict business universe requirement was bypassed by allow-empty");
+
+  const generatedAssets = [
+    ".intentos/core/business-universe-coverage.md",
+    ".intentos/docs/business-universe-coverage.md",
+    ".intentos/checklists/business-universe-coverage-review.md",
+    ".intentos/prompts/business-universe-coverage-agent.md",
+    ".intentos/templates/business-universe-coverage-report.md",
+    ".intentos/schemas/artifacts/business-universe-coverage.schema.json",
+    "scripts/lib/business-universe.mjs",
+    "scripts/resolve-business-universe-coverage.mjs",
+    "scripts/check-business-universe-coverage.mjs",
+    "business-universe-coverage-reports/.gitkeep",
+  ];
+  for (const starter of ["generic-project", "codex-web-app", "codex-ios-app", "codex-android-app"]) {
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), `intentos-1.108-${starter}-`));
+    const init = runNode([
+      path.join(kitRoot, "scripts/init-project.mjs"),
+      "--target", target,
+      "--starter", starter,
+    ]);
+    if (init.status !== 0) {
+      fail(`1.108 ${starter} initialization failed: ${init.stderr || init.stdout}`);
+      continue;
+    }
+    const missing = generatedAssets.filter((file) => !fs.existsSync(path.join(target, file)));
+    if (missing.length === 0) pass(`1.108 ${starter} distributes complete business universe assets`);
+    else fail(`1.108 ${starter} is missing generated assets: ${missing.join(", ")}`);
+  }
+
+  const profileFixtures = [
+    ["wechat-miniprogram", "miniprogram/pages/form/index.js"],
+    ["backend-api", "services/api/handlers/rule.ts"],
+    ["internal-admin", "src/admin/workflows/rule.ts"],
+  ];
+  for (const [profile, sourcePath] of profileFixtures) {
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), `intentos-1.108-${profile}-`));
+    const init = runNode([
+      path.join(kitRoot, "scripts/init-project.mjs"),
+      "--target", target,
+      "--starter", "generic-project",
+    ]);
+    if (init.status !== 0) {
+      fail(`1.108 ${profile} generated profile fixture initialization failed: ${init.stderr || init.stdout}`);
+      continue;
+    }
+    const sourceFile = path.join(target, sourcePath);
+    fs.mkdirSync(path.dirname(sourceFile), { recursive: true });
+    fs.writeFileSync(sourceFile, "export function validateAlphaBeta() { return 'alpha beta shared validation'; }\n");
+    if (profile === "wechat-miniprogram") {
+      fs.writeFileSync(path.join(target, "project.config.json"), "{\"miniprogramRoot\":\"miniprogram\"}\n");
+    }
+    const intent = "Update label: alpha, beta use same validation";
+    const governanceRef = "task-governance-reports/1.108-profile-smoke.md";
+    const governance = runNode([
+      path.join(target, "scripts/resolve-task-governance.mjs"), target,
+      "--intent", intent,
+      "--out", governanceRef,
+    ]);
+    const governanceEvidence = governance.status === 0
+      ? extractMachineReadableEvidence(fs.readFileSync(path.join(target, governanceRef), "utf8"))
+      : null;
+    const coverageRef = "business-universe-coverage-reports/1.108-profile-smoke.md";
+    const coverage = runNode([
+      path.join(target, "scripts/resolve-business-universe-coverage.mjs"), target,
+      "--intent", intent,
+      "--task-governance-ref", `artifact:${governanceRef}`,
+      "--out", coverageRef,
+    ]);
+    const coverageEvidence = coverage.status === 0
+      ? extractMachineReadableEvidence(fs.readFileSync(path.join(target, coverageRef), "utf8"))
+      : null;
+    if (governanceEvidence?.ok
+      && governanceEvidence.value.impact_classification?.task_impact === "MEDIUM"
+      && governanceEvidence.value.business_universe_routing?.routing_result === "REQUIRED_WITH_EVIDENCE"
+      && coverageEvidence?.ok
+      && coverageEvidence.value.outcome === "BLOCKED_INCOMPLETE_UNIVERSE"
+      && (coverageEvidence.value.discovery_projection?.candidate_sources || []).some((ref) => ref.endsWith(sourcePath))) {
+      pass(`1.108 ${profile} generated profile fixture executes routing and semantic discovery`);
+    } else {
+      fail(`1.108 ${profile} generated profile fixture did not execute the Business Universe contract: ${governance.stderr || coverage.stderr || governance.stdout || coverage.stdout}`);
+    }
+  }
 }
 
 function checkExecutionAuthorityConsumerHardcutProtocol() {
@@ -19004,6 +19158,7 @@ checkProjectIdentityProjectionProtocol();
 checkReviewContextAuthorityProtocol();
 checkActiveGuidanceSemanticHardcutProtocol();
 checkActiveGuidanceDistributionCloseoutProtocol();
+checkBusinessUniverseCoverageProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
 checkExecutionAuthorityConsumerHardcutProtocol();
 checkReleaseExecutionTopologyProtocol();

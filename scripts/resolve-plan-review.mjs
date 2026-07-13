@@ -4,7 +4,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { evidenceDigest } from "./lib/artifact-schema.mjs";
+import { evidenceDigest, extractMachineReadableEvidence } from "./lib/artifact-schema.mjs";
+import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -14,6 +15,11 @@ const knownFlags = new Set([
   "out",
   "plan",
   "task-governance",
+  "business-universe",
+  "business-rule",
+  "impact",
+  "verification-plan",
+  "review-surface",
   "work-queue-item",
   "mode",
   "source",
@@ -25,6 +31,11 @@ const outputFormat = args.json ? "json" : String(args.format || "human");
 const intent = String(args.intent || "review implementation plan before coding").trim();
 const planArg = args.plan ? String(args.plan) : "";
 const taskGovernanceArg = args["task-governance"] ? String(args["task-governance"]) : "";
+const businessUniverseArg = args["business-universe"] ? String(args["business-universe"]) : "";
+const businessRuleArg = args["business-rule"] ? String(args["business-rule"]) : "";
+const impactArg = args.impact ? String(args.impact) : "";
+const verificationPlanArg = args["verification-plan"] ? String(args["verification-plan"]) : "";
+const reviewSurfaceArg = args["review-surface"] ? String(args["review-surface"]) : "";
 const workQueueArg = args["work-queue-item"] ? String(args["work-queue-item"]) : "";
 const mode = String(args.mode || "review");
 const outputPath = args.out ? resolveOutputPath(projectRoot, String(args.out)) : "";
@@ -67,26 +78,35 @@ function buildReport() {
   const plan = readPlan(projectRoot, planArg);
   const classification = classify(intent, plan.content);
   const taskGovernance = taskGovernanceFor(classification);
-  const surfaces = surfacesFor(classification, plan.content);
+  classification.task_impact = taskGovernance.task_impact;
+  classification.plan_review_required = taskGovernance.plan_review_required;
+  classification.task_ref = taskGovernance.task_ref;
+  const businessUniverse = businessUniverseFor(taskGovernance);
+  const surfaces = surfacesFor(classification, plan.content, businessUniverse);
   const findings = findingsFor(classification, plan, surfaces);
-  const state = stateFor(classification, plan, findings);
+  const planScenarioReviews = planScenarioReviewsFor(businessUniverse, plan.content, surfaces);
+  const businessUniverseBinding = businessUniverseBindingFor(businessUniverse, planScenarioReviews);
+  const sourceAuthority = sourceAuthorityFor(classification, surfaces, taskGovernance, businessUniverse);
+  const state = stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, sourceAuthority);
   const prerequisiteSatisfied = state === "PLAN_REVIEW_PASSED" ? "Yes" : "No";
   const planReviewRef = outputPath
     ? path.relative(projectRoot, outputPath).replaceAll(path.sep, "/")
     : "plan-review-reports/generated.md";
-  const sourceChain = sourceChainFor(classification, surfaces);
+  const sourceChain = sourceChainFor(sourceAuthority);
   const subagent = subagentRoutingFor(classification, surfaces, state);
   const skip = skipReviewFor(classification, state);
   const baseEvidence = {
-    schema_version: "1.88.0",
+    schema_version: "1.108.0",
     artifact_type: "plan_review",
     plan_review_ref: planReviewRef,
     plan_review_digest: "",
     task_ref: taskGovernance.task_ref,
     work_queue_item_ref: workQueueArg || "N/A",
     work_queue_item_digest: workQueueArg ? digest(workQueueArg) : "N/A",
-    review_surface_analysis: reviewSurfaceAnalysisFor(classification, surfaces),
+    review_surface_analysis: reviewSurfaceAnalysisFor(classification, plan, sourceAuthority.reviewSurface),
     task_governance: taskGovernance,
+    business_universe_binding: businessUniverseBinding,
+    plan_scenario_reviews: planScenarioReviews,
     source_chain: sourceChain,
     plan_ref: plan.ref,
     plan_digest: plan.digest,
@@ -129,7 +149,7 @@ function buildReport() {
   };
   return {
     reportType: "PLAN_REVIEW",
-    schemaVersion: "1.88.0",
+    schemaVersion: "1.108.0",
     generatedBy: "scripts/resolve-plan-review.mjs",
     generatedAt: new Date().toISOString(),
     projectRoot,
@@ -243,6 +263,23 @@ function classify(userIntent, planContent) {
 }
 
 function taskGovernanceFor(classification) {
+  const resolved = readStructuredArtifact(taskGovernanceArg, "task_governance");
+  if (resolved.evidence) {
+    const result = {
+      ref: taskGovernanceArg,
+      digest: resolved.evidence.task_governance_digest,
+      task_ref: resolved.evidence.task_ref,
+      task_impact: resolved.evidence.impact_classification?.task_impact || classification.task_impact,
+      plan_review_required: resolved.evidence.requirements_before_implementation?.plan_review_required || classification.plan_review_required,
+      current_task_match: "Yes",
+    };
+    Object.defineProperty(result, "_businessUniverseRouting", {
+      value: resolved.evidence.business_universe_routing || null,
+      enumerable: false,
+    });
+    Object.defineProperty(result, "_artifact", { value: resolved, enumerable: false });
+    return result;
+  }
   return {
     ref: taskGovernanceArg || "artifact:task-governance-reports/generated.md",
     digest: taskGovernanceArg ? digest(taskGovernanceArg) : digest(`${classification.task_ref}:${classification.task_impact}`),
@@ -253,7 +290,226 @@ function taskGovernanceFor(classification) {
   };
 }
 
-function surfacesFor(classification, planContent) {
+function businessUniverseFor(taskGovernance) {
+  const routing = taskGovernance._businessUniverseRouting;
+  if (!routing) {
+    const low = taskGovernance.task_impact === "LOW";
+    return {
+      required: low ? "No" : "Unknown",
+      routingResult: low ? "NOT_REQUIRED_WITH_REASON" : "TECHNICAL_INSPECTION_REQUIRED",
+      reasonCodes: [],
+      ref: "N/A",
+      digest: "N/A",
+      state: low ? "NOT_REQUIRED_WITH_REASON" : "TECHNICAL_INSPECTION_REQUIRED",
+      scenarios: [],
+      challengerRequired: false,
+      challengerStatus: "NOT_REQUIRED",
+    };
+  }
+  if (routing.required !== "Yes") return {
+    required: routing.required,
+    routingResult: routing.routing_result,
+    reasonCodes: routing.reason_codes || [],
+    ref: "N/A",
+    digest: "N/A",
+    state: routing.routing_result,
+    scenarios: [],
+    challengerRequired: false,
+    challengerStatus: "NOT_REQUIRED",
+  };
+  const resolved = findStructuredArtifact(
+    businessUniverseArg,
+    "business-universe-coverage-reports",
+    "business_universe_coverage",
+    taskGovernance.task_ref,
+  );
+  const result = {
+    required: "Yes",
+    routingResult: "REQUIRED_WITH_EVIDENCE",
+    reasonCodes: routing.reason_codes || [],
+    ref: businessUniverseArg || "N/A",
+    digest: resolved.evidence?.coverage_digest || "N/A",
+    state: resolved.evidence?.outcome || "UNRESOLVED",
+    scenarios: resolved.evidence?.coverage_scenarios || [],
+    challengerRequired: resolved.evidence?.challenger_review?.required === "Yes",
+    challengerStatus: resolved.evidence?.challenger_review?.status || "PENDING",
+  };
+  Object.defineProperty(result, "_artifact", { value: resolved, enumerable: false });
+  return result;
+}
+
+function planScenarioReviewsFor(businessUniverse, planContent, surfaces) {
+  if (businessUniverse.required !== "Yes") return [];
+  const planText = String(planContent || "");
+  const reviewedSurfaces = surfaces.filter((item) => item.reviewed === "Yes").map((item) => item.surface);
+  return businessUniverse.scenarios.map((scenario, index) => {
+    const scenarioPresent = planText.includes(scenario.coverage_scenario_id);
+    const lifecycleReviewed = scenarioPresent && planText.includes(scenario.lifecycle_stage);
+    const provenanceReviewed = scenarioPresent && planText.includes(scenario.path_provenance);
+    const negativeReviewed = scenarioPresent
+      && String(scenario.negative_or_reverse_behavior || "").trim().length > 0
+      && planText.includes(String(scenario.negative_or_reverse_behavior));
+    const complete = scenarioPresent && lifecycleReviewed && provenanceReviewed && negativeReviewed && reviewedSurfaces.length > 0;
+    return {
+      plan_scenario_review_id: `plan-scenario-review:${index + 1}-${scenario.coverage_scenario_id.slice(-8)}`,
+      source_coverage_scenario_ids: [scenario.coverage_scenario_id],
+      reviewed_surfaces: reviewedSurfaces.length > 0 ? reviewedSurfaces : ["scope"],
+      lifecycle_reviewed: lifecycleReviewed ? "Yes" : "No",
+      provenance_reviewed: provenanceReviewed ? "Yes" : "No",
+      negative_or_reverse_reviewed: negativeReviewed ? "Yes" : "No",
+      review_state: complete ? "REVIEWED" : "BLOCKED",
+    };
+  });
+}
+
+function businessUniverseBindingFor(businessUniverse, scenarioReviews) {
+  if (businessUniverse.required === "No") {
+    return {
+      required: "No",
+      routing_result: businessUniverse.routingResult,
+      business_universe_ref: "N/A",
+      business_universe_digest: "N/A",
+      business_universe_state: "NOT_REQUIRED_WITH_REASON",
+      coverage_scenario_ids: [],
+      coverage_mapping_status: "NOT_REQUIRED",
+      scenario_review_status: "NOT_REQUIRED",
+      lifecycle_review_status: "NOT_REQUIRED",
+      provenance_review_status: "NOT_REQUIRED",
+      challenger_required: "No",
+      challenger_status: "NOT_REQUIRED",
+    };
+  }
+  if (businessUniverse.required === "Unknown") {
+    return {
+      required: "Unknown",
+      routing_result: "TECHNICAL_INSPECTION_REQUIRED",
+      business_universe_ref: "N/A",
+      business_universe_digest: "N/A",
+      business_universe_state: "TECHNICAL_INSPECTION_REQUIRED",
+      coverage_scenario_ids: [],
+      coverage_mapping_status: "BLOCKED",
+      scenario_review_status: "BLOCKED",
+      lifecycle_review_status: "BLOCKED",
+      provenance_review_status: "BLOCKED",
+      challenger_required: "No",
+      challenger_status: "NOT_REQUIRED",
+    };
+  }
+  const scenarioIds = businessUniverse.scenarios.map((item) => item.coverage_scenario_id);
+  const exactMapping = scenarioIds.length > 0
+    && sameStringSet(scenarioIds, scenarioReviews.flatMap((item) => item.source_coverage_scenario_ids));
+  const completeReviews = exactMapping && scenarioReviews.every((item) => item.review_state === "REVIEWED");
+  return {
+    required: "Yes",
+    routing_result: "REQUIRED_WITH_EVIDENCE",
+    business_universe_ref: businessUniverse.ref,
+    business_universe_digest: businessUniverse.digest,
+    business_universe_state: businessUniverse.state,
+    coverage_scenario_ids: scenarioIds,
+    coverage_mapping_status: businessUniverse.state === "COVERAGE_READY" && scenarioIds.length > 0 ? "COMPLETE" : "BLOCKED",
+    scenario_review_status: completeReviews ? "COMPLETE" : "BLOCKED",
+    lifecycle_review_status: completeReviews && scenarioReviews.every((item) => item.lifecycle_reviewed === "Yes") ? "COMPLETE" : "BLOCKED",
+    provenance_review_status: completeReviews && scenarioReviews.every((item) => item.provenance_reviewed === "Yes") ? "COMPLETE" : "BLOCKED",
+    challenger_required: businessUniverse.challengerRequired ? "Yes" : "No",
+    challenger_status: businessUniverse.challengerStatus,
+  };
+}
+
+function sameStringSet(left, right) {
+  const a = [...new Set((left || []).map(String))].sort();
+  const b = [...new Set((right || []).map(String))].sort();
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function readStructuredArtifact(ref, artifactType) {
+  if (!ref) return { file: "", evidence: null };
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", ref);
+  if (!resolved.ok) return { file: "", evidence: null };
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  const base = {
+    file: resolved.file,
+    ref: `artifact:${resolved.relativePath}`,
+    fileDigest: canonicalFileDigest(resolved.file),
+  };
+  if (!extracted?.ok || extracted.value?.artifact_type !== artifactType) return { ...base, evidence: null };
+  return { ...base, evidence: extracted.value };
+}
+
+function findStructuredArtifact(explicitRef, directory, artifactType, taskRef) {
+  if (explicitRef) return readStructuredArtifact(explicitRef, artifactType);
+  const root = path.join(projectRoot, directory);
+  if (!fs.existsSync(root)) return { file: "", evidence: null };
+  const candidates = fs.readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+    .map((entry) => path.join(root, entry.name))
+    .sort((left, right) => fs.statSync(right).mtimeMs - fs.statSync(left).mtimeMs);
+  for (const file of candidates) {
+    const ref = `artifact:${path.relative(projectRoot, file).replaceAll(path.sep, "/")}`;
+    const artifact = readStructuredArtifact(ref, artifactType);
+    if (artifact.evidence?.task_ref === taskRef) return artifact;
+  }
+  return { file: "", evidence: null };
+}
+
+function readProjectArtifact(ref) {
+  if (!ref) return { file: "", ref: "", fileDigest: "", evidence: null };
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, "", ref, { markdownOnly: true });
+  if (!resolved.ok) return { file: "", ref: "", fileDigest: "", evidence: null };
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  return {
+    file: resolved.file,
+    ref: `artifact:${resolved.relativePath}`,
+    fileDigest: canonicalFileDigest(resolved.file),
+    evidence: extracted?.ok ? extracted.value : null,
+  };
+}
+
+function sourceAuthorityFor(classification, surfaces, taskGovernance, businessUniverse) {
+  const taskGovernanceArtifact = taskGovernance._artifact || { file: "", evidence: null };
+  const reviewSurface = readProjectArtifact(reviewSurfaceArg);
+  const businessRule = findStructuredArtifact(
+    businessRuleArg,
+    "business-rule-closures",
+    "business_rule_closure",
+    classification.task_ref,
+  );
+  const impact = findStructuredArtifact(
+    impactArg,
+    "change-impact-coverage-reports",
+    "change_impact_coverage",
+    classification.task_ref,
+  );
+  const verificationPlan = findStructuredArtifact(
+    verificationPlanArg,
+    "verification-plans",
+    "verification_plan",
+    classification.task_ref,
+  );
+  const required = new Set();
+  if (["HIGH", "POSSIBLE_HIGH"].includes(classification.task_impact) || businessUniverse.required === "Yes") {
+    required.add("taskGovernance");
+    required.add("reviewSurface");
+    required.add("verificationPlan");
+  }
+  if (surfaces.some((item) => item.surface === "permission" || item.surface === "business_rule")) required.add("businessRule");
+  if (surfaces.some((item) => item.surface === "data_destructive" || item.surface === "frontend_backend_consistency")) required.add("impact");
+  if (businessUniverse.required === "Yes") required.add("businessUniverse");
+  const artifacts = {
+    taskGovernance: taskGovernanceArtifact,
+    reviewSurface,
+    verificationPlan,
+    businessRule,
+    impact,
+    businessUniverse: businessUniverse._artifact || { file: "", evidence: null },
+  };
+  return {
+    ...artifacts,
+    required,
+    missingRequired: [...required].filter((name) => !artifacts[name]?.file),
+  };
+}
+
+function surfacesFor(classification, planContent, businessUniverse) {
   const text = planContent.toLowerCase();
   const surfaces = new Map();
   const add = (surface, required = "Yes", reviewed = "Yes", human = "No") => {
@@ -278,6 +534,7 @@ function surfacesFor(classification, planContent) {
   if (classification.task_impact === "HIGH" || /business|workflow|state|审核|业务/.test(text)) add("business_rule", "Yes", planContent ? "Yes" : "No", "Yes");
   if (/frontend|backend|api|ui|button|capability|前端|后端|接口/.test(text)) add("frontend_backend_consistency", "Yes", planContent ? "Yes" : "No");
   if (/release|production|deploy|发布|上线|生产/.test(text)) add("release", "Yes", planContent ? "Yes" : "No", "Yes");
+  if (businessUniverse.required === "Yes") add("business_universe_scenario_review", "Yes", businessUniverse.state === "COVERAGE_READY" && planContent ? "Yes" : "No");
   return [...surfaces.values()];
 }
 
@@ -316,9 +573,18 @@ function findingsFor(classification, plan, surfaces) {
   return findings;
 }
 
-function stateFor(classification, plan, findings) {
+function stateFor(classification, plan, findings, businessUniverse, businessUniverseBinding, sourceAuthority) {
   if (classification.task_impact === "LOW" && classification.plan_review_required === "No" && !plan.exists) return "NO_PLAN_REQUIRED";
   if (classification.plan_review_required === "Yes" && !plan.exists) return "PLAN_REQUIRED";
+  if (businessUniverse.required === "Unknown") return "BLOCKED_BY_INCOMPLETE_REVIEW";
+  if (businessUniverse.required === "Yes" && businessUniverse.state !== "COVERAGE_READY") return "BLOCKED_BY_INCOMPLETE_REVIEW";
+  if (businessUniverse.required === "Yes" && [
+    businessUniverseBinding.scenario_review_status,
+    businessUniverseBinding.lifecycle_review_status,
+    businessUniverseBinding.provenance_review_status,
+  ].some((status) => status !== "COMPLETE")) return "BLOCKED_BY_INCOMPLETE_REVIEW";
+  if (businessUniverse.challengerRequired && businessUniverse.challengerStatus !== "PASSED") return "BLOCKED_BY_INCOMPLETE_REVIEW";
+  if (sourceAuthority.missingRequired.length > 0) return "BLOCKED_BY_INCOMPLETE_REVIEW";
   if (plan.content.includes("STALE_PLAN_MARKER")) return "BLOCKED_BY_STALE_PLAN";
   if (findings.some((item) => ["P0", "P1"].includes(item.severity) && item.resolved !== "Yes")) return "PLAN_REVISION_REQUIRED";
   if (findings.some((item) => item.severity === "P2" && item.resolved !== "Yes" && item.accepted !== "Yes")) {
@@ -327,7 +593,7 @@ function stateFor(classification, plan, findings) {
   return "PLAN_REVIEW_PASSED";
 }
 
-function reviewSurfaceAnalysisFor(classification, surfaces) {
+function reviewSurfaceAnalysisFor(classification, plan, reviewSurface) {
   if (classification.task_impact === "LOW") return {
     ref: "N/A",
     digest: "N/A",
@@ -336,31 +602,55 @@ function reviewSurfaceAnalysisFor(classification, surfaces) {
     current_task_match: "N/A",
     user_selected_surfaces: "No",
   };
-  return {
-    ref: "artifact:review-surface-cards/generated.md",
-    digest: digest(surfaces),
+  if (reviewSurface.file) return {
+    ref: reviewSurface.ref,
+    digest: reviewSurface.fileDigest,
     source: "review_surface_card",
     derived_by_plan_review: "No",
     current_task_match: "Yes",
     user_selected_surfaces: "No",
   };
+  return {
+    ref: plan.exists ? plan.ref : "N/A",
+    digest: plan.exists ? plan.digest : "N/A",
+    source: plan.exists ? "derived_plan_review_matrix" : "N/A",
+    derived_by_plan_review: plan.exists ? "Yes" : "No",
+    current_task_match: plan.exists ? "Unknown" : "N/A",
+    user_selected_surfaces: "No",
+  };
 }
 
-function sourceChainFor(classification, surfaces) {
-  if (!["HIGH", "POSSIBLE_HIGH"].includes(classification.task_impact)) return [];
-  const kinds = new Set(["task_governance", "review_surface_card", "verification_plan"]);
-  if (surfaces.some((item) => item.surface === "permission" || item.surface === "business_rule")) kinds.add("business_rule_closure");
-  if (surfaces.some((item) => item.surface === "data_destructive" || item.surface === "frontend_backend_consistency")) kinds.add("change_impact_coverage");
-  return [...kinds].map((sourceKind) => ({
-    source_kind: sourceKind,
-    source_ref: `artifact:${sourceKind}/generated.md`,
-    source_digest: digest(`${classification.task_ref}:${sourceKind}`),
-    source_state: "READY",
-    current_task_match: "Yes",
-    project_native_equivalent: sourceKind === "task_governance" ? "Yes" : "No",
-    owner: sourceKind === "business_rule_closure" ? "domain-owner" : "codex",
-    contradicts_plan: "No",
-  }));
+function sourceChainFor(sourceAuthority) {
+  const definitions = [
+    ["taskGovernance", "task_governance", "intentos-governance", "No"],
+    ["reviewSurface", "review_surface_card", "project-review-evidence", "Yes"],
+    ["verificationPlan", "verification_plan", "codex", "No"],
+    ["businessRule", "business_rule_closure", "project-business-evidence", "No"],
+    ["impact", "change_impact_coverage", "codex", "No"],
+    ["businessUniverse", "business_universe_coverage", "codex", "No"],
+  ];
+  return definitions.flatMap(([name, kind, owner, projectNativeEquivalent]) => {
+    const artifact = sourceAuthority[name];
+    if (!sourceAuthority.required.has(name) || !artifact?.file) return [];
+    return [{
+      source_kind: kind,
+      source_ref: artifact.ref,
+      source_digest: artifact.fileDigest,
+      source_state: artifactState(artifact.evidence),
+      current_task_match: "Yes",
+      project_native_equivalent: projectNativeEquivalent,
+      owner,
+      contradicts_plan: "No",
+    }];
+  });
+}
+
+function artifactState(value) {
+  if (!value || typeof value !== "object") return "RECORDED";
+  for (const field of ["outcome", "verification_plan_state", "rule_closure_state", "impact_state", "task_governance_state"]) {
+    if (typeof value[field] === "string" && value[field]) return value[field];
+  }
+  return "RECORDED";
 }
 
 function verificationCommandReviewFor(planContent, state) {
@@ -470,6 +760,30 @@ function humanReportText(report) {
     `| Task impact | ${evidence.task_governance.task_impact} |`,
     `| Plan review required | ${evidence.task_governance.plan_review_required} |`,
     `| Current task match | ${evidence.task_governance.current_task_match} |`,
+    "",
+    "## Business Universe Binding",
+    "",
+    "| Field | Value |",
+    "| --- | --- |",
+    `| Required | ${evidence.business_universe_binding.required} |`,
+    `| Routing result | ${evidence.business_universe_binding.routing_result} |`,
+    `| Coverage ref | ${evidence.business_universe_binding.business_universe_ref} |`,
+    `| Coverage digest | ${evidence.business_universe_binding.business_universe_digest} |`,
+    `| Coverage state | ${evidence.business_universe_binding.business_universe_state} |`,
+    `| Coverage scenarios | ${evidence.business_universe_binding.coverage_scenario_ids.join(", ") || "N/A"} |`,
+    `| Scenario review | ${evidence.business_universe_binding.scenario_review_status} |`,
+    `| Lifecycle review | ${evidence.business_universe_binding.lifecycle_review_status} |`,
+    `| Provenance review | ${evidence.business_universe_binding.provenance_review_status} |`,
+    `| Challenger required | ${evidence.business_universe_binding.challenger_required} |`,
+    `| Challenger status | ${evidence.business_universe_binding.challenger_status} |`,
+    "",
+    "## Business Universe Scenario Reviews",
+    "",
+    "| Review ID | Source scenarios | Surfaces | Lifecycle | Provenance | Negative/reverse | State |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+    ...(evidence.plan_scenario_reviews.length
+      ? evidence.plan_scenario_reviews.map((item) => `| ${item.plan_scenario_review_id} | ${item.source_coverage_scenario_ids.join(", ")} | ${item.reviewed_surfaces.join(", ")} | ${item.lifecycle_reviewed} | ${item.provenance_reviewed} | ${item.negative_or_reverse_reviewed} | ${item.review_state} |`)
+      : ["| N/A | N/A | N/A | N/A | N/A | N/A | NOT_REQUIRED |"]),
     "",
     "## Review Surface Analysis",
     "",

@@ -6,7 +6,11 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { extractMachineReadableEvidence } from "../scripts/lib/artifact-schema.mjs";
-import { resolveRuntimeTrustBinding } from "../scripts/lib/verification-runtime-consumer.mjs";
+import {
+  resolveRuntimeTrustBinding,
+  runtimeTrustBindingsAgree,
+  validateRuntimeTrustBinding,
+} from "../scripts/lib/verification-runtime-consumer.mjs";
 
 const kitRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const intent = "appointment requests must include a service time";
@@ -224,6 +228,42 @@ test("1.104 strict Runtime Trust cannot be bypassed with allow-empty or historic
   ]);
   assert.notEqual(historical.status, 0);
   assert.match(`${historical.stdout}\n${historical.stderr}`, /schema 1\.104\.0|Runtime Trust Binding/);
+});
+
+test("1.108 records an exact NOT_REQUIRED binding when no scenario needs runtime proof", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-runtime-not-required-"));
+  const resolved = resolveRuntimeTrustBinding(root, {
+    required: false,
+    notRequiredReason: "Only structural and project-native verification obligations apply.",
+  });
+  assert.equal(resolved.ok, true);
+  assert.equal(resolved.manifest, null);
+  assert.equal(resolved.binding.requirement, "NOT_REQUIRED");
+  assert.equal(resolved.binding.status, "NOT_REQUIRED");
+  assert.equal(resolved.binding.run_manifest_ref, "N/A");
+  assert.equal(resolved.binding.checker, "N/A");
+
+  const checked = validateRuntimeTrustBinding(root, resolved.binding, { required: false });
+  assert.equal(checked.ok, true, checked.errors.join("; "));
+  const agreement = runtimeTrustBindingsAgree([resolved.binding, { ...resolved.binding }]);
+  assert.equal(agreement.ok, true, agreement.errors.join("; "));
+});
+
+test("1.108 rejects NOT_REQUIRED when a consumer requires runtime-trusted proof", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-runtime-required-"));
+  const optional = resolveRuntimeTrustBinding(root, { required: false }).binding;
+  const checked = validateRuntimeTrustBinding(root, optional, { required: true });
+  assert.equal(checked.ok, false);
+  assert.match(checked.errors.join("\n"), /cannot be NOT_REQUIRED|is required/i);
+
+  const required = resolveRuntimeTrustBinding(root, { required: true });
+  assert.equal(required.ok, false);
+  assert.equal(required.binding.requirement, "REQUIRED");
+  assert.equal(required.binding.status, "BLOCKED");
+
+  const agreement = runtimeTrustBindingsAgree([optional, required.binding]);
+  assert.equal(agreement.ok, false);
+  assert.match(agreement.errors.join("\n"), /requirement/i);
 });
 
 function evidence(file) {

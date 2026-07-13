@@ -13,6 +13,7 @@ import {
   validateSchema,
 } from "./lib/artifact-schema.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
+import { resolveBoundBusinessUniverse } from "./lib/business-universe.mjs";
 import { sectionBody, splitMarkdownRow, stripMarkdown } from "./lib/markdown.mjs";
 
 const args = parseArgs(process.argv.slice(2));
@@ -49,6 +50,7 @@ const requireCoverageReport = Boolean(
 );
 const structuredEvidenceSchema = loadSchema(projectRoot, "schemas/artifacts/change-impact-coverage.schema.json");
 const businessRuleClosureSchema = loadSchema(projectRoot, "schemas/artifacts/business-rule-closure.schema.json");
+const businessUniverseSchema = loadSchema(projectRoot, "schemas/artifacts/business-universe-coverage.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -273,6 +275,7 @@ function checkReport(file) {
   checkCrossSurfaceCoverage(content, label, mapRows, coverageRows, verificationRows, {
     mode: effectiveMode,
     changedFiles,
+    universeBound: structured?.business_universe_binding?.required === "Yes",
   });
 }
 
@@ -283,7 +286,7 @@ function checkCrossSurfaceCoverage(content, label, mapRows, coverageRows, verifi
   const coverage = new Map(coverageRows.map((row) => [row.surface, row]));
   const changedSurfaces = inferChangedFileSurfaces(options.changedFiles || []);
 
-  if (isRuleChange) {
+  if (isRuleChange && !options.universeBound) {
     for (const surface of ["USER_FLOW", "FRONTEND_UI", "API_CONTRACT", "BACKEND_RULE", "ERROR_COPY", "TEST_COVERAGE", "DOCS_HANDOFF"]) {
       if (!map.has(surface)) fail(`${label} rule change missing affected surface ${surface}`);
       if (!coverage.has(surface)) fail(`${label} rule change missing implementation coverage ${surface}`);
@@ -297,14 +300,14 @@ function checkCrossSurfaceCoverage(content, label, mapRows, coverageRows, verifi
   const frontendDone = coverage.get("FRONTEND_UI")?.status === "DONE";
   const apiDone = coverage.get("API_CONTRACT")?.status === "DONE";
 
-  if (isRuleChange && backendDone) {
+  if (isRuleChange && !options.universeBound && backendDone) {
     for (const surface of ["FRONTEND_UI", "API_CONTRACT", "ERROR_COPY", "TEST_COVERAGE"]) {
       const row = coverage.get(surface);
       if (!closedOrPendingDecision(row, false)) fail(`${label} backend rule change must close ${surface}`);
     }
   }
 
-  if (isRuleChange && frontendDone) {
+  if (isRuleChange && !options.universeBound && frontendDone) {
     for (const surface of ["BACKEND_RULE", "API_CONTRACT", "TEST_COVERAGE"]) {
       const row = coverage.get(surface);
       if (!closedOrPendingDecision(row, false)) fail(`${label} frontend rule change must close ${surface}`);
@@ -569,6 +572,90 @@ function checkBusinessRuleBinding(label, reportFile, evidence) {
       else fail(`${label} referenced Business Rule Closure boundary ${field} must be No`);
     }
   }
+  checkBusinessUniverseCoverage(label, resolved, businessRule, evidence);
+}
+
+function checkBusinessUniverseCoverage(label, businessRuleFile, businessRule, impactEvidence) {
+  const binding = businessRule.business_universe_binding;
+  const impactBinding = impactEvidence.business_universe_binding;
+  if (!binding || !impactBinding) {
+    fail(`${label} 1.108.0 requires exact Business Universe bindings in Business Rule and Change Impact evidence`);
+    return;
+  }
+  const universe = resolveBoundBusinessUniverse(projectRoot, businessRuleFile, businessRule);
+  if (binding.required === "No") {
+    if (impactBinding.required === "No"
+      && impactBinding.routing_result === "NOT_REQUIRED_WITH_REASON"
+      && impactBinding.business_universe_ref === "N/A"
+      && impactBinding.business_universe_digest === "N/A"
+      && impactBinding.coverage_mapping_status === "NOT_REQUIRED"
+      && (impactEvidence.impact_scenario_mappings || []).length === 0) {
+      pass(`${label} non-required Business Universe remains non-required without synthetic scenarios`);
+    } else {
+      fail(`${label} non-required Business Universe must not fabricate an impact scenario chain`);
+    }
+    return;
+  }
+  if (binding.required === "Unknown") {
+    if (impactBinding.required === "Unknown"
+      && impactBinding.routing_result === "TECHNICAL_INSPECTION_REQUIRED"
+      && impactBinding.coverage_mapping_status === "BLOCKED"
+      && impactEvidence.outcome === "BLOCKED") {
+      pass(`${label} unresolved Business Universe inspection blocks Change Impact`);
+    } else {
+      fail(`${label} unresolved Business Universe inspection must remain blocked`);
+    }
+    return;
+  }
+  if (!universe.evidence) {
+    fail(`${label} required Business Universe cannot be resolved: ${universe.error}`);
+    return;
+  }
+  const validation = validateSchema(universe.evidence, businessUniverseSchema, { label: `${label} Business Universe` });
+  if (validation.ok) pass(`${label} required Business Universe has valid structured evidence`);
+  else validation.errors.forEach(fail);
+  if (universe.evidence.coverage_digest === universe.binding.business_universe_digest
+    && universe.evidence.outcome === "COVERAGE_READY") {
+    pass(`${label} Business Universe binding is exact and ready`);
+  } else {
+    fail(`${label} Business Universe binding must match a COVERAGE_READY report`);
+  }
+  for (const field of [
+    "required",
+    "routing_result",
+    "business_universe_ref",
+    "business_universe_digest",
+    "business_universe_state",
+    "coverage_mapping_status",
+  ]) {
+    if (impactBinding[field] === binding[field]) pass(`${label} Business Universe ${field} matches Business Rule Closure`);
+    else fail(`${label} Business Universe ${field} must match Business Rule Closure`);
+  }
+  const universeScenarioIds = uniqueStrings((universe.evidence.coverage_scenarios || []).map((item) => item.coverage_scenario_id));
+  if (sameStringSet(impactBinding.coverage_scenario_ids, binding.coverage_scenario_ids)
+    && sameStringSet(impactBinding.coverage_scenario_ids, universeScenarioIds)
+    && universeScenarioIds.length > 0) {
+    pass(`${label} Change Impact binds the exact Business Universe scenario set`);
+  } else {
+    fail(`${label} Change Impact must bind the exact non-empty Business Universe scenario set`);
+  }
+  const mappings = impactEvidence.impact_scenario_mappings || [];
+  const mappedScenarioIds = uniqueStrings(mappings.flatMap((item) => item.source_coverage_scenario_ids || []));
+  const unknownScenarioIds = mappedScenarioIds.filter((id) => !universeScenarioIds.includes(id));
+  const missingScenarioIds = universeScenarioIds.filter((id) => !mappedScenarioIds.includes(id));
+  if (unknownScenarioIds.length === 0) pass(`${label} impact mappings do not invent Business Universe scenarios`);
+  else fail(`${label} impact mappings contain unknown scenarios: ${unknownScenarioIds.join(", ")}`);
+  if (missingScenarioIds.length === 0 && mappings.length > 0) pass(`${label} every Business Universe scenario reaches Change Impact`);
+  else fail(`${label} Change Impact drops Business Universe scenarios: ${missingScenarioIds.join(", ") || "all"}`);
+  const knownSurfaces = new Set((impactEvidence.affected_surface_map || []).map((item) => item.surface));
+  if (mappings.every((item) => item.mapping_state === "MAPPED"
+    && (item.source_coverage_scenario_ids || []).length > 0
+    && (item.affected_surfaces || []).length > 0
+    && item.affected_surfaces.every((surface) => knownSurfaces.has(surface)))) {
+    pass(`${label} every impact scenario maps to declared affected surfaces`);
+  } else {
+    fail(`${label} impact scenario mappings must be complete and reference declared affected surfaces`);
+  }
 }
 
 function normalizeOptionalRef(value) {
@@ -619,8 +706,20 @@ function businessRuleModelFrom(evidence) {
     conflicts: evidence.conflicts,
     unknown_authority_items: evidence.unknown_authority_items,
     real_environment_validation: evidence.real_environment_validation,
+    business_universe_binding: evidence.business_universe_binding,
+    business_rule_scenario_mappings: evidence.business_rule_scenario_mappings,
     state: evidence.state,
   };
+}
+
+function uniqueStrings(values) {
+  return [...new Set((values || []).map((value) => String(value || "").trim()).filter(Boolean))].sort();
+}
+
+function sameStringSet(left, right) {
+  const a = uniqueStrings(left);
+  const b = uniqueStrings(right);
+  return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
 function compareStructuredRows(label, name, structuredRows = [], markdownRows = []) {

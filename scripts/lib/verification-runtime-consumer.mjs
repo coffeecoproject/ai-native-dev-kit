@@ -10,6 +10,9 @@ const checkerPath = path.resolve(__dirname, "..", "check-verification-run-manife
 const bindingChecker = "scripts/check-verification-run-manifest.mjs --require-complete";
 
 export function resolveRuntimeTrustBinding(projectRoot, options = {}) {
+  if (options.required === false) {
+    return notRequiredBinding(options.notRequiredReason);
+  }
   const root = path.resolve(projectRoot);
   const candidates = runtimeManifestCandidates(root, options.manifestRef);
   if (candidates.length === 0) {
@@ -29,6 +32,9 @@ export function resolveRuntimeTrustBinding(projectRoot, options = {}) {
 export function validateRuntimeTrustBinding(projectRoot, binding, options = {}) {
   const errors = runtimeTrustBindingErrors(binding, options);
   if (errors.length > 0) return { ok: false, errors, binding: blockedBinding(errors[0]).binding };
+  if (binding.requirement === "NOT_REQUIRED") {
+    return { ok: true, errors: [], binding, manifest: null, file: "" };
+  }
   const resolved = resolveRuntimeTrustBinding(projectRoot, {
     ...options,
     manifestRef: binding.run_manifest_ref,
@@ -44,7 +50,23 @@ export function validateRuntimeTrustBinding(projectRoot, binding, options = {}) 
 export function runtimeTrustBindingErrors(binding, options = {}) {
   const errors = [];
   if (!binding || typeof binding !== "object" || Array.isArray(binding)) return ["runtime_trust_binding is required"];
-  if (binding.requirement !== "REQUIRED") errors.push("runtime_trust_binding.requirement must be REQUIRED");
+  if (!["REQUIRED", "NOT_REQUIRED"].includes(binding.requirement)) {
+    errors.push("runtime_trust_binding.requirement must be REQUIRED or NOT_REQUIRED");
+    return errors;
+  }
+  if (binding.requirement === "NOT_REQUIRED") {
+    if (options.required === true) errors.push("runtime_trust_binding cannot be NOT_REQUIRED when Runtime Trust is required");
+    if (binding.status !== "NOT_REQUIRED") errors.push("runtime_trust_binding.status must be NOT_REQUIRED");
+    if (binding.checker !== "N/A") errors.push("runtime_trust_binding.checker must be N/A when Runtime Trust is not required");
+    for (const key of runtimeIdentityKeys()) {
+      if (binding[key] !== "N/A") errors.push(`runtime_trust_binding.${key} must be N/A when Runtime Trust is not required`);
+    }
+    for (const key of ["current_project_match", "current_task_match", "current_intent_match", "current_verification_plan_match"]) {
+      if (binding[key] !== "N/A") errors.push(`runtime_trust_binding.${key} must be N/A when Runtime Trust is not required`);
+    }
+    if (!String(binding.reason || "").trim()) errors.push("runtime_trust_binding.reason is required");
+    return errors;
+  }
   if (binding.status !== "VERIFIED") errors.push("runtime_trust_binding.status must be VERIFIED");
   if (binding.checker !== bindingChecker) errors.push(`runtime_trust_binding.checker must be ${bindingChecker}`);
   for (const key of [
@@ -74,11 +96,47 @@ export function runtimeTrustBindingsAgree(bindings) {
   const errors = [];
   const expected = present[0];
   for (const binding of present.slice(1)) {
+    if (binding.requirement !== expected.requirement) {
+      errors.push("Runtime Trust consumers disagree on requirement");
+      continue;
+    }
+    if (binding.status !== expected.status) errors.push("Runtime Trust consumers disagree on status");
+    if (expected.requirement === "NOT_REQUIRED") continue;
     for (const key of runtimeIdentityKeys()) {
       if (binding[key] !== expected[key]) errors.push(`Runtime Trust consumers disagree on ${key}`);
     }
   }
   return { ok: errors.length === 0, errors };
+}
+
+function notRequiredBinding(reason) {
+  return {
+    ok: true,
+    file: "",
+    manifest: null,
+    binding: {
+      requirement: "NOT_REQUIRED",
+      status: "NOT_REQUIRED",
+      run_manifest_ref: "N/A",
+      run_manifest_digest: "N/A",
+      run_id: "N/A",
+      task_ref: "N/A",
+      intent_digest: "N/A",
+      runtime_trust_level: "N/A",
+      runtime_plan_ref: "N/A",
+      runtime_plan_digest: "N/A",
+      lifecycle_plan_ref: "N/A",
+      lifecycle_plan_digest: "N/A",
+      verification_plan_ref: "N/A",
+      verification_plan_digest: "N/A",
+      current_project_match: "N/A",
+      current_task_match: "N/A",
+      current_intent_match: "N/A",
+      current_verification_plan_match: "N/A",
+      checker: "N/A",
+      reason: String(reason || "Current verification obligations do not require trusted runtime behavior proof."),
+    },
+  };
 }
 
 export function runtimeEvidenceItems(manifest) {

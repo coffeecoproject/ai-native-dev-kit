@@ -3,8 +3,11 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
+import { extractMachineReadableEvidence, loadSchema, validateEvidenceBlock, validateSchema } from "./lib/artifact-schema.mjs";
+import { canonicalFileDigest, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { validatePlanReviewSourceEvidence } from "./lib/plan-review-binding.mjs";
@@ -19,6 +22,7 @@ const requireReport = Boolean(args["require-report"]);
 const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/plan-review.schema.json");
+const businessUniverseSchema = loadSchema(projectRoot, "schemas/artifacts/business-universe-coverage.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
 const shouldRequireAssets = isSourceRepo
@@ -110,6 +114,7 @@ checkReports();
 emitAndExit();
 
 function checkCoreContent() {
+  if (!shouldRequireAssets) return;
   const combined = [
     readResolved("core/plan-review-gate.md"),
     readResolved("docs/plan-review-gate.md"),
@@ -196,6 +201,7 @@ function checkStructuredEvidence(content, label, file, evidence) {
   checkUserFacingText(label, evidence);
   checkPlanIdentity(label, file, evidence);
   checkTaskGovernance(label, evidence);
+  checkBusinessUniverseBinding(label, file, evidence);
   checkSkipRules(label, evidence);
   checkReviewSurfaces(label, evidence);
   checkSourceChain(label, evidence);
@@ -208,6 +214,128 @@ function checkStructuredEvidence(content, label, file, evidence) {
   checkRevisionLoop(label, evidence);
   checkPassRules(label, evidence);
   checkMarkdownConsistency(content, label, evidence);
+}
+
+function checkBusinessUniverseBinding(label, reportFile, evidence) {
+  const binding = evidence.business_universe_binding;
+  if (evidence.schema_version !== "1.108.0") return;
+  if (!binding) {
+    fail(`${label} 1.108 plan review requires business_universe_binding`);
+    return;
+  }
+  if (binding.required === "No") {
+    if (binding.routing_result === "NOT_REQUIRED_WITH_REASON"
+      && binding.business_universe_ref === "N/A"
+      && binding.business_universe_digest === "N/A"
+      && binding.coverage_mapping_status === "NOT_REQUIRED"
+      && binding.scenario_review_status === "NOT_REQUIRED"
+      && (evidence.plan_scenario_reviews || []).length === 0) pass(`${label} non-required Business Universe uses a bounded N/A binding`);
+    else fail(`${label} non-required Business Universe must use N/A ref and digest`);
+    return;
+  }
+  if (binding.required === "Unknown") {
+    if (binding.routing_result === "TECHNICAL_INSPECTION_REQUIRED"
+      && binding.coverage_mapping_status === "BLOCKED"
+      && binding.scenario_review_status === "BLOCKED"
+      && evidence.plan_review_state === "BLOCKED_BY_INCOMPLETE_REVIEW") {
+      pass(`${label} unresolved Business Universe inspection blocks Plan Review`);
+    } else {
+      fail(`${label} unresolved Business Universe inspection must remain blocked`);
+    }
+    return;
+  }
+  if (binding.routing_result !== "REQUIRED_WITH_EVIDENCE") fail(`${label} required Business Universe must use evidence-backed routing`);
+  const resolved = resolveAuthoritativeEvidenceReference(projectRoot, reportFile, binding.business_universe_ref);
+  if (!resolved.ok) {
+    fail(`${label} Business Universe ref is unsafe or unresolved: ${binding.business_universe_ref}`);
+    return;
+  }
+  const extracted = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  if (!extracted?.ok || extracted.value?.artifact_type !== "business_universe_coverage") {
+    fail(`${label} Business Universe ref has no valid structured evidence`);
+    return;
+  }
+  const universe = extracted.value;
+  const validation = validateSchema(universe, businessUniverseSchema, { label: `${label} Business Universe` });
+  if (validation.ok) pass(`${label} Business Universe structured evidence is valid`);
+  else validation.errors.forEach(fail);
+  const checker = path.join(path.dirname(fileURLToPath(import.meta.url)), "check-business-universe-coverage.mjs");
+  const universeReportRef = resolved.relativePath;
+  const checkResult = spawnSync(process.execPath, [checker, projectRoot, "--report", universeReportRef, "--require-structured-evidence", "--require-ready"], {
+    cwd: projectRoot,
+    encoding: "utf8",
+  });
+  if (checkResult.status === 0) pass(`${label} Business Universe passes strict ready validation`);
+  else fail(`${label} Business Universe failed strict ready validation: ${(checkResult.stderr || checkResult.stdout).trim()}`);
+  if (binding.business_universe_digest === universe.coverage_digest && binding.business_universe_state === universe.outcome) {
+    pass(`${label} Business Universe ref, digest, and state are exact`);
+  } else {
+    fail(`${label} Business Universe digest or state does not match the referenced report`);
+  }
+  if (universe.outcome === "COVERAGE_READY") pass(`${label} Business Universe is COVERAGE_READY`);
+  else fail(`${label} required Business Universe must be COVERAGE_READY`);
+  if (universe.task_ref === evidence.task_ref) pass(`${label} Business Universe task matches Plan Review task`);
+  else fail(`${label} Business Universe task must match Plan Review task`);
+  const universeScenarioIds = uniqueStrings((universe.coverage_scenarios || []).map((item) => item.coverage_scenario_id));
+  if (sameStringSet(binding.coverage_scenario_ids, universeScenarioIds) && universeScenarioIds.length > 0) {
+    pass(`${label} Plan Review binds the exact Business Universe scenario set`);
+  } else {
+    fail(`${label} Plan Review must bind the exact non-empty Business Universe scenario set`);
+  }
+  const reviews = evidence.plan_scenario_reviews || [];
+  const mappedScenarioIds = uniqueStrings(reviews.flatMap((item) => item.source_coverage_scenario_ids || []));
+  if (sameStringSet(mappedScenarioIds, universeScenarioIds) && reviews.length > 0) {
+    pass(`${label} every Business Universe scenario has a Plan Review row`);
+  } else {
+    fail(`${label} Plan Review scenario rows must cover every and only Business Universe scenario`);
+  }
+  const knownSurfaces = new Set((evidence.review_surface_matrix || []).map((item) => item.surface));
+  if (reviews.every((item) => item.review_state === "REVIEWED"
+    && item.lifecycle_reviewed === "Yes"
+    && item.provenance_reviewed === "Yes"
+    && item.negative_or_reverse_reviewed === "Yes"
+    && (item.reviewed_surfaces || []).length > 0
+    && item.reviewed_surfaces.every((surface) => knownSurfaces.has(surface)))) {
+    pass(`${label} Plan Review covers lifecycle, provenance, reverse behavior, and declared review surfaces`);
+  } else {
+    fail(`${label} every Business Universe scenario requires complete lifecycle, provenance, reverse, and surface review`);
+  }
+  if ([binding.coverage_mapping_status, binding.scenario_review_status, binding.lifecycle_review_status, binding.provenance_review_status]
+    .every((status) => status === "COMPLETE")) {
+    pass(`${label} Business Universe review projections are complete`);
+  } else {
+    fail(`${label} all Business Universe review projections must be COMPLETE`);
+  }
+  const expectedChallengerRequired = universe.challenger_review?.required === "Yes" ? "Yes" : "No";
+  const expectedChallengerStatus = universe.challenger_review?.status || "NOT_REQUIRED";
+  if (binding.challenger_required !== expectedChallengerRequired || binding.challenger_status !== expectedChallengerStatus) {
+    fail(`${label} Challenger projection must match Business Universe evidence`);
+  } else if (binding.challenger_required === "Yes" && binding.challenger_status !== "PASSED") {
+    fail(`${label} required Business Universe Challenger must pass`);
+  } else {
+    pass(`${label} Challenger projection is exact and non-blocking`);
+  }
+  const chain = (evidence.source_chain || []).find((item) => item.source_kind === "business_universe_coverage");
+  const sameRef = chain && normalizeEvidenceRef(chain.source_ref) === normalizeEvidenceRef(binding.business_universe_ref);
+  if (sameRef && chain.source_digest === canonicalFileDigest(resolved.file)) {
+    pass(`${label} source_chain preserves Business Universe binding`);
+  } else {
+    fail(`${label} source_chain must include the exact Business Universe report and file digest`);
+  }
+}
+
+function normalizeEvidenceRef(value) {
+  return String(value || "").trim().replace(/^(artifact|file):/, "");
+}
+
+function uniqueStrings(values) {
+  return [...new Set((values || []).map((value) => String(value || "").trim()).filter(Boolean))].sort();
+}
+
+function sameStringSet(left, right) {
+  const a = uniqueStrings(left);
+  const b = uniqueStrings(right);
+  return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
 function checkBoundaries(label, evidence) {

@@ -6,7 +6,11 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { parseArgs, unknownOptions } from "./lib/args.mjs";
-import { createEvidenceAuthorityBinding, isFileEvidenceRef } from "./lib/evidence-authority.mjs";
+import {
+  createEvidenceAuthorityBinding,
+  isFileEvidenceRef,
+  resolveAuthoritativeEvidenceReference,
+} from "./lib/evidence-authority.mjs";
 import { resolveRuntimeTrustBinding, runtimeBindingMarkdown } from "./lib/verification-runtime-consumer.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,7 +20,7 @@ const knownFlags = new Set(["json", "format", "intent", "task", "kind", "base", 
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const outputFormat = args.json ? "json" : String(args.format || "human");
-const schemaVersion = "1.104.0";
+const schemaVersion = "1.108.0";
 const outputPath = args.out ? resolveOutputPath(projectRoot, args.out) : "";
 
 if (unknown.length > 0) {
@@ -57,12 +61,16 @@ function buildReport(root, options) {
   const plannedImpactMap = buildImpactMap(executionKind, sourceSystems);
   const evidenceBindings = buildEvidenceBindings(completionContract);
   const review = buildReview(root, executionKind, sourceSystems);
+  const runtimeTrustRequired = Boolean(options.runtimeManifestRef)
+    || runtimeTrustRequiredFor(root, sourceSystems, options);
   const runtimeTrust = resolveRuntimeTrustBinding(root, {
+    required: runtimeTrustRequired,
+    notRequiredReason: "The current Test Evidence and scenario obligations do not require runtime-trusted behavior proof.",
     manifestRef: options.runtimeManifestRef,
     taskRef: options.task,
     intentDigest: digest(options.intent),
   });
-  if (runtimeTrust.ok) {
+  if (runtimeTrust.manifest) {
     sourceSystems.push({
       name: "verification_run_manifest",
       status: "RECORDED",
@@ -81,7 +89,19 @@ function buildReport(root, options) {
       current_task_match: "Yes",
     });
   }
-  const state = chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review, runtimeTrustBinding: runtimeTrust.binding });
+  const businessUniverse = businessUniverseAssuranceFor(root, sourceSystems, options);
+  const state = chooseState({
+    executionKind,
+    actualDiff,
+    sourceSystems,
+    patchAssessment,
+    completionContract,
+    plannedImpactMap,
+    evidenceBindings,
+    review,
+    runtimeTrustBinding: runtimeTrust.binding,
+    businessUniverse,
+  });
   const canClaimDone = state === "VERIFIED_DONE" ? "Yes" : "No";
   const safeNextStep = nextStepFor(state);
   const structuredEvidence = {
@@ -114,6 +134,8 @@ function buildReport(root, options) {
     patch_assessment: patchAssessment,
     source_systems: sourceSystems,
     runtime_trust_binding: runtimeTrust.binding,
+    business_universe_binding: businessUniverse.binding,
+    scenario_assurance_map: businessUniverse.scenarios,
     pending_human_decisions: pendingDecisionsFor(state),
     forbidden_claims: [],
     boundary: {
@@ -253,10 +275,12 @@ function collectSourceSystems(root, options) {
   return systems.map(([name, dir]) => {
     const files = markdownFiles(path.join(root, dir));
     if (files.length > 0) {
-      const file = files[0];
+      const records = files.map((file) => ({ file, evidence: extractMachineReadableEvidence(fs.readFileSync(file, "utf8")) }));
+      const selected = records.find((record) => record.evidence?.task_ref === options.task) || records[0];
+      const file = selected.file;
       const relative = path.relative(root, file);
       const content = fs.readFileSync(file, "utf8");
-      const sourceEvidence = extractMachineReadableEvidence(content);
+      const sourceEvidence = selected.evidence;
       const sourceTaskRef = String(sourceEvidence?.task_ref || "UNKNOWN");
       const sourceOutcome = String(sourceEvidence?.outcome || sourceEvidence?.assurance_state || "RECORDED");
       return {
@@ -283,6 +307,82 @@ function collectSourceSystems(root, options) {
       contribution: `${dir} evidence not recorded for ${options.task}.`,
     };
   });
+}
+
+function businessUniverseAssuranceFor(root, sourceSystems, options) {
+  const fallback = {
+    required: "Unknown",
+    routing_result: "TECHNICAL_INSPECTION_REQUIRED",
+    business_universe_ref: "N/A",
+    business_universe_digest: "N/A",
+    business_universe_state: "TECHNICAL_INSPECTION_REQUIRED",
+    coverage_scenario_ids: [],
+    coverage_mapping_status: "BLOCKED",
+  };
+  const source = sourceSystems.find((item) => item.name === "test_evidence" && item.status === "RECORDED");
+  if (!source) return { binding: fallback, scenarios: [] };
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", source.ref, { markdownOnly: true });
+  if (!resolved.ok) return { binding: fallback, scenarios: [] };
+  const evidence = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  if (!evidence || evidence.task_ref !== options.task || evidence.intent_digest !== digest(options.intent)) {
+    return { binding: fallback, scenarios: [] };
+  }
+  const binding = evidence.business_universe_binding;
+  if (!binding) return { binding: fallback, scenarios: [] };
+  if (binding.required === "No") return { binding, scenarios: [] };
+  if (binding.required !== "Yes") return { binding: { ...binding, coverage_mapping_status: "BLOCKED" }, scenarios: [] };
+  const byId = new Map((evidence.scenario_coverage_map || []).map((item) => [item.coverage_scenario_id, item]));
+  const scenarios = (binding.coverage_scenario_ids || []).map((scenarioId) => {
+    const row = byId.get(scenarioId);
+    const requiredIds = row?.required_obligation_ids || [];
+    const coveredIds = row?.covered_obligation_ids || [];
+    const evidenceIds = row?.evidence_ids || [];
+    const exactCoverage = row
+      && requiredIds.length >= 2
+      && requiredIds.every((id) => coveredIds.includes(id))
+      && evidenceIds.length > 0
+      && row.coverage_state === "COVERED";
+    const runtimeProofMissing = row?.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF"
+      && evidence.runtime_trust_binding?.status !== "VERIFIED";
+    return {
+      coverage_scenario_id: scenarioId,
+      required_obligation_ids: requiredIds,
+      covered_obligation_ids: coveredIds,
+      test_evidence_ids: evidenceIds,
+      required_proof_strength: row?.required_proof_strength || "STRUCTURAL_SOURCE_PROOF",
+      test_evidence_state: row?.coverage_state || "NOT_COVERED",
+      assurance_state: !row
+        ? "BLOCKED_SOURCE_MISMATCH"
+        : runtimeProofMissing
+          ? "BLOCKED_WEAK_PROOF"
+          : exactCoverage
+            ? "ASSURED"
+            : "BLOCKED_MISSING_TEST_EVIDENCE",
+    };
+  });
+  const exactScenarioSet = scenarios.length === (binding.coverage_scenario_ids || []).length
+    && scenarios.every((item) => item.assurance_state === "ASSURED");
+  return {
+    binding: {
+      ...binding,
+      coverage_mapping_status: binding.business_universe_state === "COVERAGE_READY" && exactScenarioSet
+        ? "COMPLETE"
+        : "BLOCKED",
+    },
+    scenarios,
+  };
+}
+
+function runtimeTrustRequiredFor(root, sourceSystems, options) {
+  const source = sourceSystems.find((item) => item.name === "test_evidence" && item.status === "RECORDED");
+  if (!source) return false;
+  const resolved = resolveAuthoritativeEvidenceReference(root, "", source.ref, { markdownOnly: true });
+  if (!resolved.ok) return false;
+  const evidence = extractMachineReadableEvidence(fs.readFileSync(resolved.file, "utf8"));
+  if (!evidence || evidence.task_ref !== options.task || evidence.intent_digest !== digest(options.intent)) return false;
+  return evidence.runtime_trust_binding?.requirement === "REQUIRED"
+    || (evidence.scenario_coverage_map || [])
+      .some((item) => item.required_proof_strength === "RUNTIME_TRUSTED_BEHAVIOR_PROOF");
 }
 
 function extractMachineReadableEvidence(content) {
@@ -373,8 +473,19 @@ function buildReview(root, executionKind, sourceSystems) {
   };
 }
 
-function chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review, runtimeTrustBinding }) {
-  if (runtimeTrustBinding?.status !== "VERIFIED") return "BLOCKED_BY_MISSING_EVIDENCE";
+function chooseState({ executionKind, actualDiff, sourceSystems, patchAssessment, completionContract, plannedImpactMap, evidenceBindings, review, runtimeTrustBinding, businessUniverse }) {
+  if (runtimeTrustBinding?.requirement === "REQUIRED" && runtimeTrustBinding.status !== "VERIFIED") {
+    return "BLOCKED_BY_MISSING_EVIDENCE";
+  }
+  if (runtimeTrustBinding?.requirement === "NOT_REQUIRED" && runtimeTrustBinding.status !== "NOT_REQUIRED") {
+    return "BLOCKED_BY_MISSING_EVIDENCE";
+  }
+  if (businessUniverse.binding.required === "Unknown") return "BLOCKED_BY_MISSING_EVIDENCE";
+  if (businessUniverse.binding.required === "Yes"
+    && (businessUniverse.binding.coverage_mapping_status !== "COMPLETE"
+      || businessUniverse.scenarios.some((item) => item.assurance_state !== "ASSURED"))) {
+    return "BLOCKED_BY_MISSING_EVIDENCE";
+  }
   if (executionKind === "UNKNOWN") return "NEEDS_HUMAN_DECISION";
   if (actualDiff.target_diff_status === "UNEXPECTED_DIFF") return "BLOCKED_BY_UNEXPECTED_DIFF";
   if (["PATCH_SMELL", "BLOCKED_PATCH"].includes(patchAssessment.state)) return "BLOCKED_BY_PATCH_SMELL";
@@ -537,6 +648,26 @@ function humanReportText(report) {
   push("## Runtime Trust Binding");
   push("");
   push(runtimeBindingMarkdown(evidence.runtime_trust_binding));
+  push("");
+  push("## Business Universe Assurance");
+  push("");
+  push("| Field | Value |");
+  push("| --- | --- |");
+  push(`| Required | \`${evidence.business_universe_binding.required}\` |`);
+  push(`| Routing Result | \`${evidence.business_universe_binding.routing_result}\` |`);
+  push(`| Coverage Ref | \`${evidence.business_universe_binding.business_universe_ref}\` |`);
+  push(`| Coverage State | \`${evidence.business_universe_binding.business_universe_state}\` |`);
+  push(`| Mapping Status | \`${evidence.business_universe_binding.coverage_mapping_status}\` |`);
+  push("");
+  push("| Coverage Scenario | Required Obligations | Covered Obligations | Test Evidence | Required Proof | Test State | Assurance State |");
+  push("| --- | --- | --- | --- | --- | --- | --- |");
+  if (evidence.scenario_assurance_map.length === 0) {
+    push("| N/A | N/A | N/A | N/A | N/A | N/A | NOT_REQUIRED |");
+  } else {
+    for (const item of evidence.scenario_assurance_map) {
+      push(`| \`${item.coverage_scenario_id}\` | \`${item.required_obligation_ids.join(", ")}\` | \`${item.covered_obligation_ids.join(", ") || "none"}\` | \`${item.test_evidence_ids.join(", ") || "none"}\` | \`${item.required_proof_strength}\` | \`${item.test_evidence_state}\` | \`${item.assurance_state}\` |`);
+    }
+  }
   push("");
   push("## Independent Review Binding");
   push("");

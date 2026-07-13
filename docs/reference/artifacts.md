@@ -20,6 +20,7 @@ Use `docs/artifact-lifecycle.md` before creating new artifacts. Use `docs/o0-bl0
 | Directory | Purpose |
 |---|---|
 | `review-surface-cards/` | Selected review surfaces before execution and post-execution close-out contract |
+| `business-universe-coverage-reports/` | Conditional, task-bound evidence for scenario categories, participants, origins, lifecycle applicability, project-path provenance, selection/consistency relationships, proof strength, and deterministic resumable discovery |
 | `business-rule-closures/` | Business Rule Closure cards that close rule dimensions, safe defaults, limited user decisions, and real-environment validation expectations before impact coverage |
 | `change-impact-coverage-reports/` | Affected-surface coverage for validation, rule, API, backend, data, permission, copy, and business-behavior changes |
 | `verification-plans/` | Source-bound verification plans that translate business rule closure and impact coverage into concrete checks, test-correctness controls, and manual verification ownership |
