@@ -245,13 +245,13 @@ Before implementation, the task should prove:
 - the project baseline is ready
 - the task level matches the risk
 - Risk Gate labels are checked when high-risk areas appear in the task or related spec
-- Risk Gate exclusions are explicit and human accepted when a risk term is mentioned but out of scope
+- Risk Gate exclusions are explicit and internally evidenced when a risk term is mentioned but out of scope
 - Human Approval is present when a checked risk requires it
 - the eval names the evidence required by selected industrial packs
 
 If a high-risk area appears in the task or related spec but Risk Gate is not checked, ready mode should warn and implementation mode should fail.
 
-If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete reason and human acceptance. Do not make the wording vague just to pass the checker. More than three accepted exclusions is a signal to review scope quality; implementation then needs Human Approval scope to explicitly cover those exclusions.
+If a high-risk term appears only as an explicit non-goal or out-of-scope note, record it in `Risk Gate Exclusions` with a concrete evidence-backed reason. Do not make the wording vague just to pass the checker. More than three exclusions triggers stricter internal scope review; compatibility approval fields do not turn this into a user technical decision.
 
 ## Change Boundary
 
@@ -282,7 +282,7 @@ CONFIRMED
 NOT_APPLICABLE
 ```
 
-Codex may propose or draft baselines. It must not claim that a no-code/new-project baseline is implemented, verified, production-ready, or confirmed unless a human-confirmed source or real evidence exists.
+Codex may propose or draft baselines. It must not claim that a no-code/new-project baseline is implemented, verified, production-ready, or confirmed unless project-owned evidence or a verifiable external fact exists.
 
 ## Review Packet
 
@@ -398,7 +398,7 @@ Starting any project?
   Use core workflow.
 
 Target runtime matters?
-  Select profiles.
+  Codex derives profiles from the delivery target and project evidence.
 
 Production, sensitive, permission, payment, destructive, or release risk?
   Consider BL2.
@@ -407,7 +407,7 @@ BL2 selected?
   Install selected industrial packs and require evidence.
 
 Single task touches a risky area?
-  Raise task level, check Risk Gate, and require Human Approval where needed.
+  Raise task level, check Risk Gate, and require stricter internal evidence/review; ask the user only for missing business reality or an exact prepared real-world effect.
 
 Reporting status to a human?
   Start with Output Experience, then include technical details.

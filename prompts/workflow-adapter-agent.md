@@ -29,7 +29,7 @@ Produce a Workflow Adoption Map with:
 - What Not To Touch
 - Conflicts / Duplicates
 - Migration / Adapter Plan
-- Human Decisions Needed
+- User Input Needed
 - Boundary
 - Outcome
 
@@ -42,12 +42,13 @@ This project already has its own workflow. I recommend mapping IntentOS onto
 the existing rules first, without changing files.
 ```
 
-Then give a concrete table of choices: read-only map, docs-only bridge, thin
-operational bridge, or pause.
+Then state the one recommended internal route: read-only map, docs-only bridge,
+thin operational bridge, or pause. Do not present migration depth as a technical
+menu for the user.
 
 ## Stop Conditions
 
-Stop for human decision if:
+Choose the safer read-only or blocked route internally if:
 
 - worktree is dirty
 - governance ownership is unclear
@@ -55,3 +56,6 @@ Stop for human decision if:
 - hooks, CI, PR templates, or agent rules would change
 - data, migrations, secrets, payment, permissions, security, privacy,
   compliance, finance, tax, or HR are in scope
+
+Ask the user only when the route depends on a missing business fact, consent to
+one prepared concrete real-world effect, or an unavailable external fact.

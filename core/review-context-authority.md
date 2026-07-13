@@ -11,6 +11,17 @@ real business goals, unavailable business facts, product preferences, and
 consent to one prepared concrete real-world effect. IntentOS and Codex own all
 technical judgment and internal workflow.
 
+Every current user-facing decision resolves to one of four classes:
+
+- `NO_USER_ACTION`
+- `BUSINESS_FACT_NEEDED`
+- `REAL_WORLD_CONSENT_NEEDED`
+- `EXTERNAL_FACT_NEEDED`
+
+Architecture, stack, profile, baseline, BL level, industrial packs, tests,
+reviewers, subagents, hooks, checkers, and workflow states are never user
+decision classes.
+
 Industrial safeguards describe engineering depth. They do not imply an
 enterprise audience, a team, departments, or additional people.
 
@@ -33,6 +44,9 @@ Unknown files do not inherit product-direction authority. A runtime asset may
 remain current for execution while still being `UNCLASSIFIED` when interpreted
 as product-direction guidance. Active public, reviewer, GPT, and Agent guidance
 surfaces must be explicitly registered and must remain classified as `CURRENT`.
+Runtime entry scripts that render user decisions are active guidance too; code
+strings, menus, tables, and question cards receive the same semantic checks as
+Markdown guidance.
 
 ## Review Rule
 

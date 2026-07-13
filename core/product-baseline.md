@@ -1,13 +1,14 @@
 # Product Baseline
 
-## Human Summary
+## User Summary
 
 Product Baseline constrains how IntentOS itself may evolve. It keeps upgrades aligned with guided delivery instead of letting the system grow heavier, louder, or less controlled.
 
 ## Product Principles
 
-- Human decides.
-- AI drafts, executes approved work, verifies, and reports.
+- The user supplies business goals, unavailable business facts, product preferences, exact consent to prepared real-world effects, and unavailable external facts.
+- IntentOS/Codex makes technical decisions, plans, executes within bounded authority, verifies, reviews, repairs, and reports.
+- Internal technical recommendations are not write, apply, release, or production authority.
 - Reports are not approvals.
 - Review Packets are not approvals.
 - Goal Cards are not approvals.
@@ -18,7 +19,7 @@ Product Baseline constrains how IntentOS itself may evolve. It keeps upgrades al
 - Unknown, dirty, governed, and production-sensitive projects default to read-only assessment.
 - Existing project writes are plan-first.
 - Baseline files record confirmed facts, pending decisions, and not-applicable items.
-- AI assumptions must be marked and routed to humans when they affect decisions.
+- AI assumptions must be marked and resolved from evidence; ask the user only when a business fact, exact real-world consent, or external fact is unavailable.
 
 ## Upgrade Rules
 
@@ -75,8 +76,8 @@ Every release record for a meaningful phase should include:
 
 Product Baseline review checks whether the change:
 
-- keeps humans responsible for judgment and approval
-- keeps AI inside execution and reporting authority
+- keeps technical judgment with IntentOS/Codex
+- keeps user responsibility limited to business reality, exact real-world consent, and external facts
 - avoids unbounded automation
 - avoids default industrial expansion
 - avoids overclaiming evidence

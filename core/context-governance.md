@@ -2,11 +2,11 @@
 
 ## Human Summary
 
-Context Governance keeps project memory accurate, auditable, and human-confirmed. Codex can notice context gaps and draft candidates, but unconfirmed inference must not become project fact.
+Context Governance keeps project memory accurate, auditable, and evidence-bound. Codex can notice context gaps and draft candidates, but unsupported inference must not become project fact.
 
 ## Core Rule
 
-Codex drafts. Humans confirm. Confirmed context becomes source of truth only when it is written to the correct Git-backed destination.
+Codex derives technical context from project evidence and reviews it before promotion. Business facts, product preferences, concrete real-world consent, and unavailable external facts come from the user or verifiable external evidence. Context becomes source of truth only when it is evidence-backed and written to the correct Git-backed destination.
 
 ## What Counts As Project Context
 
@@ -19,7 +19,7 @@ Project context includes:
 - permission, data, release, rollback, and risk rules
 - accepted decision briefs
 - accepted context corrections
-- repeated failure modes that humans approve as durable knowledge
+- repeated failure modes that pass evidence-backed context review
 
 ## Context Status
 
@@ -27,9 +27,9 @@ Use these statuses when context may affect future work:
 
 | Status | Meaning | Can become project rule? |
 |---|---|---|
-| `CONFIRMED` | Human-confirmed and evidence-backed | Yes |
+| `CONFIRMED` | Evidence-backed, with user or external input only when the fact cannot be derived | Yes |
 | `INFERRED` | AI or reviewer inferred it from evidence | No |
-| `PENDING_CONFIRMATION` | Needs a human decision before use as fact | No |
+| `PENDING_CONFIRMATION` | Compatibility state: needs evidence, a business fact, exact real-world consent, or an external fact before use | No |
 | `NOT_APPLICABLE` | Explicitly not relevant, with reason | No |
 | `REJECTED` | Human rejected the candidate | No |
 
@@ -111,7 +111,7 @@ Do not put raw observations, chat logs, secrets, or local machine details into s
 Codex must not:
 
 - call unconfirmed inference `CONFIRMED`
-- write learning candidates into baselines without human approval
+- write learning candidates into baselines without a bounded correction plan and internal verification
 - treat a review packet, final report, or AI log as approval
 - use model memory to override Git-backed context
 - persist secrets or local machine fingerprints as project memory

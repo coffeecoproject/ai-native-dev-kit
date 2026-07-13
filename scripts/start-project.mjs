@@ -98,7 +98,7 @@ function buildRecommendation(workflow, coreCheck) {
       writesTargetProjectFiles: "No",
       startsAdoptionAutopilot: "No",
       appliesWorkflowAssets: "No",
-      requiredWriteEntry: "A later Unified Apply Plan plus explicit approval, never start.",
+      requiredWriteEntry: "A later Unified Apply Plan plus controlled readiness, never start.",
     },
     projectRoot: workflow.projectRoot,
     classification,
@@ -218,7 +218,7 @@ function pathForClassification(classification, workflow) {
     "Do not write workflow assets from start; start is read-only by default.",
     "Do not treat start as the adoption/apply entry; use adopt for existing-project safe adoption.",
     "Do not install all industrial packs by default.",
-    "Do not enable BL2 or any industrial pack without explicit human confirmation.",
+    "Do not enable BL2 or any industrial pack without evidence, compatibility, and internal baseline gates.",
     "Do not change business code, deployment settings, secrets, migrations, permissions, or production configuration during adoption recommendation.",
   ];
 
@@ -244,7 +244,7 @@ function pathForClassification(classification, workflow) {
         "start can orient the project, but setup still requires explicit setup intent and a separate reviewed plan before writing.",
       ],
       decisionsNeededFromHuman: [
-        "Confirm the plain-language product goal and accept or reject Codex's recommended setup when it materially changes cost or risk.",
+        "Provide only an unavailable business goal detail; Codex derives the technical setup. Exact consent is requested later only for a prepared cost or other real-world effect.",
       ],
       safeNextActions: [
         action("Stay in read-only orientation", `node scripts/cli.mjs start ${shellQuote(workflow.projectRoot)}`, "No", "No"),
@@ -253,7 +253,7 @@ function pathForClassification(classification, workflow) {
       ],
       actionsAiMustNotTakeYet: commonMustNot,
       generatedPlanReportRefs: baseRefs,
-      finalRecommendation: "Codex should choose the technical profile, baseline level, and concrete packs from the product goal, prepare the exact controlled plan, and ask only for one meaningful approval before apply. start itself remains read-only.",
+      finalRecommendation: "Codex should choose the technical profile, baseline level, and concrete packs from the product goal, then continue through the controlled plan and readiness chain. start itself remains read-only.",
     };
   }
 
@@ -274,7 +274,7 @@ function pathForClassification(classification, workflow) {
         "The safe path is to write a reviewable adoption plan before adding workflow assets.",
       ],
       decisionsNeededFromHuman: [
-        "Confirm only an unresolved product, ownership, or material-risk decision that project evidence cannot answer.",
+        "Provide only an unresolved business fact that project evidence cannot answer; technical ownership and risk treatment remain internal.",
       ],
       safeNextActions: [
         action("Run safe adoption autopilot", `node scripts/cli.mjs adopt ${shellQuote(workflow.projectRoot)} --intent "connect this existing project under IntentOS"`, "No", "No"),
@@ -283,7 +283,7 @@ function pathForClassification(classification, workflow) {
       ],
       actionsAiMustNotTakeYet: commonMustNot,
       generatedPlanReportRefs: baseRefs,
-      finalRecommendation: "Use adopt as the safe old-project adoption entry. Prepare any write plan only after the adoption card, rule comparison, apply plan, and approval exist.",
+      finalRecommendation: "Use adopt as the safe old-project adoption entry. Prepare writes only after the adoption card, rule comparison, bounded apply plan, rollback, and controlled readiness exist.",
     };
   }
 
@@ -298,7 +298,7 @@ function pathForClassification(classification, workflow) {
   if (classification.projectType === "DIRTY_WORKTREE_PROJECT") {
     return {
       ...governedPath(classification, workflow, "The git worktree has existing changes or untracked files."),
-      finalRecommendation: "Stop write actions. Ask the human to decide how to handle the dirty worktree before adoption or task execution.",
+      finalRecommendation: "Stop writes, preserve all existing changes, derive ownership and scope read-only, then continue only through a bounded non-destructive path.",
     };
   }
 
@@ -319,8 +319,7 @@ function pathForClassification(classification, workflow) {
         "The next safe step should follow workflow-next and the current task goal, not reinstall the kit.",
       ],
       decisionsNeededFromHuman: [
-        "Confirm whether the next action is project maintenance, a new request, or a specific task.",
-        "Confirm any pending baseline, onboarding, migration, or industrial-pack decision before execution.",
+        "State the next business goal if it is not already present; Codex derives maintenance, request, or task routing and resolves pending technical setup internally.",
       ],
       safeNextActions: [
         action("Run doctor", `node scripts/cli.mjs doctor ${shellQuote(workflow.projectRoot)}`, "No", "No"),
@@ -377,12 +376,10 @@ function pathForClassification(classification, workflow) {
     },
     why: [
       "The project cannot be classified confidently from available signals.",
-      "A short human clarification is safer than guessing.",
+      "One missing business fact is safer to request than inventing it; technical classification remains Codex-owned.",
     ],
     decisionsNeededFromHuman: [
-      "Confirm the correct project path.",
-      "Confirm whether this is a new project, existing project, production project, or already governed project.",
-      "Confirm whether AI should assess only or prepare a plan.",
+      "Provide the intended project path only when it cannot be derived from the current workspace.",
     ],
     safeNextActions: [
       action("Discuss only", "Ask focused clarification questions before running setup.", "No", "Yes"),
@@ -400,7 +397,7 @@ function governedPath(classification, workflow, reason) {
       oLevel: "O0/O1 read-only adoption",
       blLevel: "Codex maps and compares existing governance before recommending selected baseline gaps",
       profiles: "Codex derives profiles from project-owned evidence; the user does not select technical IDs",
-      industrialPacks: "None by default; BL2 requires explicit human confirmation",
+      industrialPacks: "None by default; BL2 requires evidence, compatibility, and internal baseline gates",
       intentosOperatingMode: "ACTIVE",
       projectAssetMigrationDepth: "ADAPTER_ONLY",
       existingRuleComparisonRequired: true,
@@ -415,7 +412,7 @@ function governedPath(classification, workflow, reason) {
       "Project asset migration remains adapter-only until existing rules are reconciled and an apply plan is approved.",
     ],
     decisionsNeededFromHuman: [
-      "Confirm only an unresolved owner decision or material-risk recommendation that cannot be proven from project evidence.",
+      "Provide only an unavailable business or external fact; Codex resolves technical authority and material-risk treatment from project evidence.",
     ],
     safeNextActions: [
       action("Run safe adoption autopilot", `node scripts/cli.mjs adopt ${shellQuote(workflow.projectRoot)} --intent "connect this existing project under IntentOS"`, "No", "No"),
@@ -427,7 +424,7 @@ function governedPath(classification, workflow, reason) {
       "Do not run direct init or direct update.",
       "Do not overwrite AGENTS.md, CI, PR template, or existing governance files.",
       "Do not change code, database, production settings, secrets, deployment files, or permissions.",
-      "Do not enable BL2 or any industrial pack without explicit human confirmation.",
+      "Do not enable BL2 or any industrial pack without evidence, compatibility, and internal baseline gates.",
       "Do not install all industrial packs by default.",
     ],
     generatedPlanReportRefs: [
@@ -438,7 +435,7 @@ function governedPath(classification, workflow, reason) {
       ".intentos/templates/patch-classification-report.md",
       "docs/first-hour.md",
     ],
-    finalRecommendation: "Use IntentOS Operating Mode now for planning, routing, review, and comparison. Do not change project assets until Native Migration, Existing Rule Reconciliation, apply plan, and approval are complete.",
+    finalRecommendation: "Use IntentOS Operating Mode now for planning, routing, review, and comparison. Do not change project assets until Native Migration, Existing Rule Reconciliation, bounded apply plan, rollback, and controlled readiness are complete.",
   };
 }
 
@@ -455,21 +452,17 @@ function printRecommendation(report) {
   const decision = buildStartDecisionSummary(report);
   console.log("# Guided Adoption Recommendation");
   console.log("");
-  console.log("## Human Decision Summary");
+  console.log("## Decision Responsibility Summary");
   console.log("");
   console.log(`Conclusion: ${decision.conclusion}`);
   console.log("");
-  console.log(`Recommended choice: ${decision.recommendedChoice}`);
+  console.log(`Next automatic action: ${decision.recommendedChoice}`);
   console.log("");
   console.log(`Can AI continue now: ${decision.canAiContinue}`);
   console.log("");
-  console.log(`What I need from you: ${decision.needFromHuman}`);
+  console.log(`User decision class: ${decision.userDecisionClass}`);
   console.log("");
-  console.log("| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |");
-  console.log("| --- | --- | --- | --- | --- | --- |");
-  for (const option of decision.options) {
-    console.log(`| ${mdCell(option.option)} | ${mdCell(option.meaning)} | ${mdCell(option.aiWillDo)} | ${mdCell(option.writes)} | ${mdCell(option.risk)} | ${mdCell(option.when)} |`);
-  }
+  console.log(`What I need from you: ${decision.needFromHuman}`);
   console.log("");
   console.log(`Recommended reason: ${decision.reason}`);
   console.log("");
@@ -510,16 +503,16 @@ function printRecommendation(report) {
   console.log("");
   for (const item of report.why) console.log(`- ${item}`);
   console.log("");
-  console.log("## Decisions Needed From Human");
+  console.log("## User Input Needed");
   console.log("");
   for (const item of report.decisionsNeededFromHuman) console.log(`- ${item}`);
   console.log("");
-  console.log("## Safe Next Actions");
+  console.log("## Internal Next Actions");
   console.log("");
-  console.log("| Action | Command | Writes | Requires human confirmation |");
+  console.log("| Action | Command | Writes | Internal readiness required |");
   console.log("| --- | --- | --- | --- |");
   for (const item of report.safeNextActions) {
-    console.log(`| ${item.label} | \`${item.command}\` | ${item.writes} | ${item.requiresHumanConfirmation} |`);
+    console.log(`| ${item.label} | \`${item.command}\` | ${item.writes} | ${item.requiresHumanConfirmation === "Yes" ? "Yes" : "No"} |`);
   }
   console.log("");
   console.log("## Actions AI Must Not Take Yet");
@@ -572,15 +565,24 @@ function buildStartDecisionSummary(report) {
 
   return {
     conclusion: `This project is classified as ${report.classification.projectType}; the recommended adoption mode is ${report.classification.adoptionMode}.`,
-    recommendedChoice: recommended ? `${optionLetterFor(options, recommended)} - ${recommended.label}` : "A - Review the recommendation",
+    recommendedChoice: recommended?.label || "Review the recommendation",
     canAiContinue: report.classification.canAiWriteNow === "Yes" ? "yes" : "limited",
-    needFromHuman: report.decisionsNeededFromHuman?.[0] || "Confirm the recommended adoption path.",
+    userDecisionClass: startUserDecisionClass(report),
+    needFromHuman: report.decisionsNeededFromHuman?.[0] || "Nothing. Codex continues through the internal adoption path.",
     options,
     reason: report.finalRecommendation,
     ifNothing: report.classification.canAiWriteNow === "Yes"
       ? "Codex should wait for setup intent before writing workflow assets."
       : "Codex should remain read-only and avoid project writes.",
   };
+}
+
+function startUserDecisionClass(report) {
+  const text = (report.decisionsNeededFromHuman || []).join(" ");
+  if (/business|product goal|project path/i.test(text)) return "BUSINESS_FACT_NEEDED";
+  if (/production|cost|real-world|external account|irreversible/i.test(text)) return "REAL_WORLD_CONSENT_NEEDED";
+  if (/legal|tax|compliance|provider|third-party/i.test(text)) return "EXTERNAL_FACT_NEEDED";
+  return "NO_USER_ACTION";
 }
 
 function chooseRecommendedStartAction(report, actions) {

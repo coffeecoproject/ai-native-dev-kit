@@ -36,4 +36,5 @@ Use plain language for the human summary.
 - Do not mark functional or code review as pass only because changed files exist.
 - Use Evidence Links to show what supports each pass.
 - Keep closure limited when evidence refs are missing.
-- Stop for human decision when high-risk evidence is missing.
+- When high-risk evidence is missing, return an incomplete or blocked closure and route the missing proof to Codex verification/review. Do not delegate technical evidence judgment to the user.
+- Ask the user only for a missing business fact, consent to one prepared real-world effect, or an unavailable external fact.

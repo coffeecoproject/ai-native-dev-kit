@@ -26,13 +26,13 @@ Review whether project context is being treated as source-of-truth correctly.
 
 Return:
 
-- Human Decision Summary
+- Decision Responsibility Summary
 - Findings
 - Evidence
 - Suggested artifact type
-- Required human decision
+- User input class and question, if any
 - Whether the issue is safe for deterministic AUTO_FIX
 
-The Human Decision Summary must explain whether the context should stay unchanged, become a Learning Candidate, become a Context Correction Report, or stop for human decision. Say whether any project file would be written and what happens if no decision is made.
+The summary must explain whether the context should stay unchanged, become a Learning Candidate, become a Context Correction Report, or remain blocked for evidence. Codex chooses the technical context route; ask the user only for a missing business fact, prepared real-world consent, or unavailable external fact. Say whether any project file would be written and what happens if no input is provided.
 
-Use `NEEDS_HUMAN_DECISION` when confirmation, risk, release, permission, production, payment, data migration, or secret handling is involved.
+Use compatibility state `NEEDS_HUMAN_DECISION` only when a business fact, exact prepared production/payment effect, or external authority fact is missing. Technical risk, permission, migration, and secret uncertainty remains blocked for Codex evidence and review.

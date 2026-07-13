@@ -14,8 +14,8 @@ Every important workflow, baseline, adoption, review, release, or automation out
 
 Use this order when the output asks for a decision, reports a blocked state, reports review results, or summarizes a task:
 
-1. Human Decision Summary
-2. Human Summary
+1. Decision Responsibility Summary
+2. User Summary
 3. Current Status
 4. What I Need From You
 5. Recommended Next Step
@@ -28,32 +28,23 @@ Use this order when the output asks for a decision, reports a blocked state, rep
 
 Do not hide risk to make output shorter. Explain risk simply and keep the technical basis below it.
 
-## Human Decision Summary
+## Decision Responsibility Summary
 
-Use this section first when the output contains more than one valid path, asks for confirmation, blocks execution, recommends migration, proposes adoption, classifies a patch, or summarizes a launch/review decision.
+Use this section first when output needs to explain what Codex selected, why it can or cannot continue, and whether any permitted user input is genuinely missing. Technical alternatives remain in Technical Details and are not a user menu.
 
 It should answer in plain language:
 
 - What is the conclusion?
-- Which option is recommended?
+- Which technical path did Codex select?
 - Can AI continue now: yes / limited / no?
-- What does the human need to decide?
+- Is user input `NO_USER_ACTION`, `BUSINESS_FACT_NEEDED`, `REAL_WORLD_CONSENT_NEEDED`, or `EXTERNAL_FACT_NEEDED`?
 - Will the recommended option write project files?
 - What is the risk?
 - What happens if the human does nothing?
 
-Use a compact options table when the human has to choose.
+There must be one Codex-selected route unless evidence requires a blocked or read-only state. If it writes files, state which files and authority permit the write. Do not present Profile, architecture, stack, baseline, BL, pack, test, reviewer, subagent, hook, checker, workflow, Git handling, or technical risk as user options.
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-|---|---|---|---|---|---|
-| A | Inspect only | Read and report | No | low | Choose when you only want diagnosis |
-| B | Controlled plan | Draft or update a plan/report | Plan/report only | low/medium | Choose when you want a durable decision record |
-| C | Apply approved change | Modify approved workflow assets | Yes | medium/high | Choose only after reviewing the plan |
-| D | Pause | Stop and wait | No | low | Choose when the decision is not ready |
-
-There should be exactly one recommended option unless the safest answer is to pause. If an option writes files, say which kind of files it writes and whether it changes business code, workflow assets, CI, release, or production configuration.
-
-## Human Summary
+## User Summary
 
 Use one short paragraph.
 
@@ -82,7 +73,7 @@ The project selected strict BL2 governance, but the required evidence records ar
 State must be one of:
 
 - Can continue
-- Needs confirmation
+- Needs permitted user input
 - Needs missing information
 - Needs missing evidence
 - Must stop
@@ -96,31 +87,23 @@ Include:
 
 ## What I Need From You
 
-List only decisions that humans actually own.
+List only inputs the user actually owns:
 
-Humans decide:
+- an unavailable business rule or product preference;
+- exact consent to one prepared concrete production, cost, payment, real-user,
+  external-account, customer-promise, or irreversible-data effect;
+- a legal, tax, compliance, provider, account, or third-party fact that project
+  evidence cannot establish.
 
-- scope changes
-- risk acceptance
-- Human Approval and Approval scope
-- baseline level
-- selected profiles and industrial packs
-- architecture changes
-- dependency choices
-- migration decisions
-- production configuration
-- release, rollback, or customer handoff decisions
-- whether to apply migration reports
-- whether to create, enable, update, or run active Skills or automations
-
-Do not ask humans to manually fill routine templates when AI can draft them. Ask for focused confirmation instead.
+All other cases are `NO_USER_ACTION`. Do not ask the user to fill templates,
+choose technical controls, approve technical risk, or interpret internal states.
 
 Do not push professional judgment back to a non-expert user as raw technical choices. Use `core/decision-delegation-boundary.md`:
 
 - `D0`: AI handles directly.
-- `D1`: AI recommends a default and asks for product-direction confirmation.
-- `D2`: AI gives 2-3 understandable options and recommends one.
-- `D3`: AI drafts a Decision Brief or expert-owner review path and stops implementation.
+- `D1`: Codex selects the evidence-backed default and explains it.
+- `D2`: Codex compares technical options internally, selects one, and records the tradeoff.
+- `D3`: Codex drafts a Decision Brief or independent review path and keeps implementation blocked until the technical gate passes.
 - `D4`: AI does not continue.
 
 Bad:
@@ -132,7 +115,7 @@ Should this be enum, lookup table, or state machine?
 Good:
 
 ```text
-I recommend a simple fixed first version because this first slice only needs visible statuses. If operators need configurable statuses later, I will park that as a separate decision. Please confirm whether the first version can stay simple.
+I selected a simple fixed first version because this slice only needs visible statuses. I will verify that behavior and park configurable statuses as separate future scope. No technical input is needed from you.
 ```
 
 ## Recommended Next Step
@@ -143,16 +126,16 @@ Use `core/next-step-boundary.md` when suggesting follow-up work. The next safe a
 
 When a command is useful, include exactly the command and the condition for using it.
 
-When the next action requires approval, say what approval is needed before the command is safe.
+When the next action requires authority, state the missing evidence or exact real-world consent before the command is safe.
 
 ## What AI Can Do Safely
 
-List actions AI may take without new approval.
+List actions Codex may take within the current task and bounded authority.
 
 Examples:
 
 - read workflow assets
-- draft request, preflight, spec, eval, task, or report files
+- draft or update required workflow artifacts inside the current task boundary
 - run non-destructive local checks
 - prepare adoption assessment in read-only mode
 - summarize migration reports
@@ -166,10 +149,10 @@ Examples:
 
 - modify business code during bootstrap
 - run workflow asset updates for read-only adoption mode
-- apply AGENTS.md or PR template migration reports without approval
+- apply AGENTS.md or PR template migration reports without a reviewed bounded plan and controlled readiness
 - widen task scope
-- weaken Risk Gate, Human Approval, or Approval scope
-- change architecture, dependencies, migrations, production config, release, rollback, or active automation without approval
+- weaken Risk Gate, bounded authority, or evidence requirements
+- change architecture, dependencies, migrations, production config, release, rollback, or active automation outside reviewed task scope and controlled readiness
 - paste secrets or sensitive runtime data into external review prompts
 
 ## Next-Step Suggestions

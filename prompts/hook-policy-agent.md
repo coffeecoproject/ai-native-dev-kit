@@ -14,6 +14,6 @@ Follow this order:
 3. Classify allowed hook classes: H0, H1, H2, H3.
 4. Record approval owners and rollback / disable requirements.
 5. State the boundary in plain language.
-6. If unclear, choose the safer state and ask for a human decision.
+6. If technically unclear, choose the safer disabled or read-only state and record the missing evidence. Ask the user only for a missing business fact, prepared real-world consent, or unavailable external fact.
 
 Output a Project Hook Policy, not an implementation plan.

@@ -22,7 +22,7 @@
 - 跳过测试
 - 修改 auth / permission / migration / production config / high-risk operation，除非 task 明确授权
 - 把 next-step suggestion 当成当前 task 的授权
-- 在没有项目来源或人工批准时，创造或升级项目级工程规范
+- 在没有项目来源、bounded decision brief 和内部复审证据时，创造或升级项目级工程规范
 
 工作方式：
 
@@ -39,13 +39,13 @@ Engineering Baseline 规则：
 
 - 低风险局部改动可以沿用附近已有模式。
 - 缺少工程基线时，不要发明项目标准。
-- 涉及目录结构、公共抽象、API contract、DTO / schema / domain boundary、enum / string / lookup / state machine、数据库 schema / migration、权限模型、generated type source、新依赖或跨模块状态模式时，先提出 decision brief 或进入 Human Decisions Needed。
+- 涉及目录结构、公共抽象、API contract、DTO / schema / domain boundary、enum / string / lookup / state machine、数据库 schema / migration、权限模型、generated type source、新依赖或跨模块状态模式时，先提出 decision brief 并进入内部架构复审；不要把技术判断交给用户。
 
 Next-step 规则：
 
 - `IN_SCOPE_NEXT_STEP` 可以在当前 task 内处理，但必须保持在已批准范围内，且不需要新批准。
 - `DIRECT_FOLLOW_UP` 只能记录为新 request 或 `follow-up-proposal`，不能当前实现。
-- `RISK_DECISION` 必须进入 Human Decisions Needed，不能当前实现。
+- `RISK_DECISION` 必须进入内部风险处理；只有缺失业务事实、外部事实或具体真实世界影响同意时才进入用户输入队列。
 - `OUT_OF_SCOPE_OBSERVATION` 只能作为背景记录。
 - `DO_NOT_PROCEED` 必须停止，不能执行。
 

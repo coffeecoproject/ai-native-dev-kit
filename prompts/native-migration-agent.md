@@ -19,7 +19,7 @@ Your job:
 11. include Machine-Readable Evidence when the plan may drive real governance replacement
 12. keep Markdown rule rows and Machine-Readable Evidence aligned by `rule_id`
 13. keep Markdown proposed actions and structured `proposed_actions` aligned
-14. require human approval before apply
+14. require verified controlled-apply readiness and bounded authority before apply; request user consent only for a prepared concrete real-world effect
 
 You must not:
 

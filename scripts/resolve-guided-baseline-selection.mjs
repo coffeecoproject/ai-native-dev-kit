@@ -60,6 +60,7 @@ export function buildGuidedBaselineDecision(root) {
     readOnly: true,
     canAiWriteTargetFilesNow: "No",
     projectRoot,
+    userDecisionClass: baselineDecisionResponsibility(projectState, profiles, risk),
     humanSummary: humanSummary(projectState, baselineLevel, profiles, risk),
     projectState,
     platformAndScope: {
@@ -226,7 +227,7 @@ function classifyProject(workflow, git, signals) {
       internal: "DIRTY_WORKTREE_PROJECT",
       defaultAdoptionMode: "read-only",
       canCodexWriteNow: "No",
-      why: "Uncommitted changes exist, so Codex must not write before the human decides how to handle current work.",
+      why: "Uncommitted changes exist, so Codex preserves them and stays read-only until ownership and scope are derived from Git and project evidence.",
     };
   }
   if (tags.has("PRODUCTION_GOVERNED_PROJECT") || signals.hasReleaseSignals) {
@@ -251,7 +252,7 @@ function classifyProject(workflow, git, signals) {
     return {
       label: "New empty project",
       internal: "NEW_EMPTY_PROJECT",
-      defaultAdoptionMode: "guided-init after confirmation",
+      defaultAdoptionMode: "guided-init after internal checks",
       canCodexWriteNow: "No",
       why: "The target appears empty, missing, or not yet configured.",
     };
@@ -270,7 +271,7 @@ function classifyProject(workflow, git, signals) {
     internal: "UNKNOWN",
     defaultAdoptionMode: "discuss-only",
     canCodexWriteNow: "No",
-    why: "Codex needs the human to confirm project state before baseline setup.",
+    why: "Codex needs more project or business evidence before baseline setup; it must not ask the user to classify the technical state.",
   };
 }
 
@@ -329,7 +330,7 @@ function recommendBaselineLevel(projectState, profiles, risk, workflow) {
     return {
       level: "BL2_INDUSTRIAL",
       userLabel: "Industrial",
-      why: "High-risk or production-sensitive signals exist. BL2 is a candidate recommendation and still needs human confirmation plus evidence.",
+      why: "High-risk or production-sensitive signals exist. BL2 is activated only after evidence, compatibility, and internal baseline gates pass.",
       currentSafeAction: "BL1_STANDARD_READ_ONLY_MAPPING",
       targetCandidateLevel: "BL2_INDUSTRIAL",
       currentSelectedLevel: current || "none",
@@ -351,7 +352,7 @@ function recommendBaselineLevel(projectState, profiles, risk, workflow) {
     return {
       level: "BL0_LIGHTWEIGHT",
       userLabel: "Lightweight",
-      why: "The platform is not confirmed yet, so start lightweight and ask the human to confirm scope.",
+      why: "The delivery surface cannot yet be derived, so start lightweight and ask only where people need to use the product if that business fact is unavailable.",
       currentSafeAction: "BL0_LIGHTWEIGHT_DISCOVERY",
       targetCandidateLevel: null,
       currentSelectedLevel: current || "none",
@@ -521,7 +522,7 @@ function notSelectedStandardReason(id, profiles, platformStates = []) {
   const profileId = profileForStandardPack(id);
   const state = platformStates.find((item) => item.profile === profileId);
   if (state && state.state !== "selected-confirmed" && state.state !== "selected-inferred" && state.state !== "not-detected") {
-    return `${state.state}; confirm this profile before selecting the pack.`;
+    return `${state.state}; derive and verify this profile before selecting the pack.`;
   }
   if (id === "backend-api-standard" && !profiles.some((item) => item.id === "backend-api")) return "not selected until backend/API scope is confirmed.";
   if (id === "release-rollback-standard") return "not selected until release or rollback scope is confirmed.";
@@ -541,15 +542,15 @@ function profileForStandardPack(id) {
 }
 
 function notSelectedIndustrialReason(id, risk, baselineLevel) {
-  if (baselineLevel.level !== "BL2_INDUSTRIAL") return "not selected because BL2 is not confirmed.";
+  if (baselineLevel.level !== "BL2_INDUSTRIAL") return "not selected because BL2 is not evidenced as required.";
   if (id === "payment-value-transfer-industrial" && !/payment|finance|tax/i.test(risk.highRiskScope)) return "not selected because payment, finance, tax, or value transfer scope is not confirmed.";
   if (id === "auth-permission-industrial" && !/permission/i.test(risk.highRiskScope)) return "not selected because permission risk is not confirmed.";
-  return "not selected until explicit BL2 evidence and human approval require it.";
+  return "not selected until explicit BL2 evidence and compatibility require it.";
 }
 
 function humanSummary(projectState, baselineLevel, profiles, risk) {
   const platform = platformLabel(profiles);
-  const riskText = risk.hasHighRisk ? "High-risk or production-sensitive signals need confirmation." : "No high-risk scope is confirmed yet.";
+  const riskText = risk.hasHighRisk ? "High-risk or production-sensitive signals require stricter internal evidence." : "No high-risk scope is evidenced yet.";
   const recommendation = baselineLevel.targetCandidateLevel
     ? `Current safe action is ${baselineLevel.currentSafeAction}; ${baselineLevel.targetCandidateLevel} is ${baselineLevel.bl2Status}.`
     : `I recommend ${baselineLevel.level} for this phase.`;
@@ -574,30 +575,24 @@ function backendScope(profiles, signals) {
 
 function humanDecisions(projectState, profiles, risk, baselineLevel) {
   if (projectState.internal === "INTENTOS_REPOSITORY") {
-    return [
-      "Is this work maintaining the intentos itself rather than adopting a target project?",
-      "Should Codex run intentos verification before any code change?",
-    ];
+    return ["No user action. Codex uses the IntentOS maintenance route and runs repository verification."];
   }
   if (projectState.internal === "DIRTY_WORKTREE_PROJECT") {
-    return [
-      "Should Codex continue read-only, create a plan only, or wait until current changes are committed?",
-      "Which current changes belong to the user and must not be touched?",
-      "May Codex generate a baseline decision card file after the worktree is clean?",
-    ];
+    return ["No technical user choice. Codex preserves all existing changes and continues read-only until ownership and scope are evidenced."];
   }
-  const questions = [
-    "Is this project already serving real users?",
-    "Does this phase include backend/API/database changes?",
-    "Does this phase include permission, payment, finance, HR, tax, migration, or irreversible data changes?",
-    `Do you confirm ${baselineLevel.level} for this phase, or should it be lighter?`,
-    "May Codex write baseline/workflow files after you review the plan, or should it stay read-only?",
-  ];
+  const questions = [];
   if (profiles.some((item) => item.id === "unknown")) {
-    questions[1] = "Which platform should this project use: Web, Mini Program, iOS, Android, backend, admin, or mixed?";
+    questions.push("Where and by whom will this product be used? Describe the real usage in ordinary language; Codex will derive the platform profile.");
   }
-  if (!risk.hasHighRisk) return questions.slice(0, 4);
+  if (risk.productionSensitivity === "not detected") questions.push("Is this project already serving real users? Answer only if project evidence cannot establish it.");
+  if (questions.length === 0) questions.push("No user action. Codex derives the baseline level and pack set from project evidence.");
   return questions;
+}
+
+function baselineDecisionResponsibility(projectState, profiles, risk) {
+  if (profiles.some((item) => item.id === "unknown")) return "BUSINESS_FACT_NEEDED";
+  if (risk.productionSensitivity === "not detected" && projectState.internal !== "INTENTOS_REPOSITORY") return "EXTERNAL_FACT_NEEDED";
+  return "NO_USER_ACTION";
 }
 
 function safeNextActions(projectState, baselineLevel, standardPacks, industrialCandidates) {
@@ -609,8 +604,8 @@ function safeNextActions(projectState, baselineLevel, standardPacks, industrialC
   }
   if (projectState.internal === "DIRTY_WORKTREE_PROJECT") {
     const actions = [
-      "Codex should stay read-only until the human decides how to handle uncommitted changes.",
-      "After that decision, Codex can prepare a write plan instead of applying changes directly.",
+      "Codex stays read-only, preserves all uncommitted changes, and derives ownership before preparing a bounded plan.",
+      "After ownership is evidenced, Codex can prepare a write plan instead of applying changes directly.",
     ];
     if (baselineLevel.targetCandidateLevel) actions.push(`${baselineLevel.targetCandidateLevel} remains a candidate only after the dirty-worktree decision is resolved.`);
     return actions;
@@ -618,7 +613,7 @@ function safeNextActions(projectState, baselineLevel, standardPacks, industrialC
   if (projectState.internal === "PRODUCTION_SENSITIVE_PROJECT") {
     return [
       "Codex can prepare a read-only governance map before any controlled apply.",
-      "Codex must not run direct init/update, add gates, or change release flow without explicit approval.",
+      "Codex must not run direct init/update, add gates, or change release flow outside a reconciled bounded plan and controlled readiness.",
     ];
   }
   if (baselineLevel.level === "BL2_INDUSTRIAL") {
@@ -665,9 +660,10 @@ export function renderDecisionCard(decision) {
   return [
     "# Baseline Decision Card",
     "",
-    "## Human Summary",
+    "## Decision Responsibility Summary",
     "",
     ...decision.humanSummary,
+    `User decision class: ${decision.userDecisionClass}`,
     "",
     "## Project State",
     "",
@@ -697,7 +693,7 @@ export function renderDecisionCard(decision) {
     "",
     "| Profile | State | Reason |",
     "|---|---|---|",
-    ...decision.platformStates.map((row) => `| ${row.profile} | ${row.state} | ${row.reason} |`),
+    ...decision.platformStates.map((row) => `| ${row.profile} | ${publicPlatformState(row.state)} | ${row.reason} |`),
     "",
     "## Recommended Standard Packs",
     "",
@@ -715,7 +711,7 @@ export function renderDecisionCard(decision) {
     "|---|---|",
     ...(decision.notSelected.length > 0 ? decision.notSelected.map((row) => `| ${row.pack} | ${row.reason} |`) : ["| none | no additional pack considered |"]),
     "",
-    "## Human Decisions Needed",
+    "## User Input Needed",
     "",
     ...decision.humanDecisionsNeeded.map((item, index) => `${index + 1}. ${item}`),
     "",
@@ -727,7 +723,7 @@ export function renderDecisionCard(decision) {
     "",
     ...decision.boundary.map((item) => `- ${item}`),
     "",
-    "This card is a recommendation only. Human confirmation is still required before Codex writes baseline files, enables BL2, applies industrial packs, changes business code, changes CI, changes release flow, or touches production-sensitive configuration.",
+    "This card is read-only. Codex may continue only through the bounded plan and controlled-readiness chain; exact user consent is required only before a prepared production, cost, real-user, external-account, or irreversible-data effect.",
     "",
     "## Evidence",
     "",
@@ -735,6 +731,10 @@ export function renderDecisionCard(decision) {
     "|---|---|---|",
     ...decision.evidence.map((row) => `| ${row.evidence} | ${row.ref} | ${row.status} |`),
   ].join("\n");
+}
+
+function publicPlatformState(state) {
+  return state === "present-needs-confirmation" ? "present-needs-evidence" : state;
 }
 
 function listOrNone(values) {

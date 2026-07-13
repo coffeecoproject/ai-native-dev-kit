@@ -14,18 +14,14 @@ node scripts/cli.mjs baseline <project>
 
 Use `start` only to classify adoption path. Use `baseline` to recommend engineering and environment rules.
 
-## Human Decisions
+## Decision Responsibility
 
-Ask the human to confirm:
-
-- project goal
-- platform profile
-- risk level
-- BL0 / BL1 / BL2 target
-- engineering decisions that Codex must follow
-- environment, release, rollback, secret, and production assumptions
-
-When reporting these decisions, start with `Human Decision Summary`. Include the recommended option, alternatives, whether each option writes project files, risk, and what happens if the human does nothing. Do not ask the human to fill blank baseline templates when Codex can draft them from evidence.
+Codex derives platform profile, risk level, BL level, engineering decisions,
+environment controls, release safeguards, rollback, and secret-handling rules
+from project evidence. Ask only for an unavailable business fact, exact consent
+to a prepared real-world effect, or an external fact. Report one of the four
+canonical user-decision classes and never ask the user to fill or approve a
+technical baseline.
 
 ## Write Flow
 

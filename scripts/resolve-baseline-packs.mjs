@@ -143,7 +143,7 @@ function safeNextActions(state, industrial) {
   if (industrial.baselineLevel !== "BL2_INDUSTRIAL") {
     return [
       "Continue with selected profiles and BL0/BL1 rules.",
-      "Do not install industrial packs unless project risk justifies BL2 and the human approves.",
+      "Do not install industrial packs unless project risk justifies BL2 and internal evidence and compatibility gates pass.",
     ];
   }
   return [
@@ -159,7 +159,7 @@ function notSelected(entries, selectedPackIds) {
     .filter((entry) => !selectedSet.has(entry.id))
     .map((entry) => ({
       id: entry.id,
-      reason: "Not selected unless project scope, capability, or risk requires it and the human approves.",
+      reason: "Not selected unless project scope, capability, risk, evidence, and compatibility require it.",
     }));
 }
 
@@ -192,7 +192,7 @@ function buildRecommendation(root) {
     safeNextActions: safeNextActions(state, industrial),
     forbiddenActions: [
       "Do not select all packs by default.",
-      "Do not enable BL2 without explicit human confirmation.",
+      "Do not enable BL2 without evidence, compatibility, and internal baseline gates.",
       "Do not treat draft packs as stable.",
       "Do not treat pack files as real project evidence.",
       "Do not approve target-project writes, implementation, release, production, security, privacy, compliance, payment, or migration decisions.",
@@ -223,7 +223,7 @@ function printHuman(result) {
   console.log(`BASELINE_LEVEL: ${result.baselineLevel || "none"}`);
   console.log(`SELECTED_PROFILES: ${result.selectedProfiles.length > 0 ? result.selectedProfiles.join(", ") : "none"}`);
   console.log(`SELECTED_INDUSTRIAL_PACKS: ${result.selectedIndustrialPacks.length > 0 ? result.selectedIndustrialPacks.join(", ") : "none"}`);
-  console.log(`HUMAN_APPROVAL_STATUS: ${result.humanApprovalStatus || "none"}`);
+  console.log(`COMPATIBILITY_APPROVAL_STATUS: ${result.humanApprovalStatus || "not used for technical selection"}`);
   console.log("CAN_AI_ENABLE_PACKS_NOW: No");
   console.log("");
   printPackList("Primary Platform Candidates", result.candidates.primaryPlatformCandidates);

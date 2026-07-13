@@ -39,9 +39,10 @@ const requiredFiles = [
 
 const contentMarkers = {
   "core/outcome-baseline.md": [
-    "Humans decide",
+    "IntentOS/Codex owns technical judgment",
+    "The zero-experience solo user supplies",
     "AI may",
-    "Delivery does not mean production approval",
+    "Delivery does not authorize production",
   ],
   "core/product-baseline.md": [
     "Reports are not approvals",
@@ -61,7 +62,7 @@ const contentMarkers = {
   ],
   "core/assumption-register.md": [
     "must not become an approved engineering or environment baseline rule",
-    "Needs human confirmation",
+    "User input class",
     "PENDING_CONFIRMATION",
   ],
   "templates/final-report.md": [

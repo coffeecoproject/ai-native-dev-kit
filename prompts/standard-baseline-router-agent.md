@@ -33,5 +33,5 @@ Return:
 - optional industrial overlays
 - deliberately not selected packs
 - evidence gaps
-- human decisions needed
+- user input needed, using the four current decision classes
 - next safe action

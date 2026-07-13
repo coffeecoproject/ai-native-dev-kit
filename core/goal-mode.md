@@ -25,7 +25,7 @@ Goal Mode must reduce human prompt burden without weakening governance.
 | `IMPLEMENT_TASK` | A valid task card exists and the user asks to execute it | Implement exactly one approved task, run verification, report evidence | Expand scope, bypass Risk Gate, skip Engineering Baseline, or self-approve high-risk work |
 | `REVIEW_TASK` | The user asks to inspect completed work or a task needs independent review | Create or read Review Packet, run read-only review, record findings | Edit files as reviewer, approve release, change risk acceptance |
 | `REPAIR_TASK` | Review findings are deterministic and inside approved task scope | Fix `AUTO_FIX` findings, at most 2 rounds, then verify | Repair `NEEDS_HUMAN_DECISION`, scope expansion, dependencies, migrations, production config, architecture, permission model, Human Approval, or Approval scope |
-| `BASELINE_DECISION` | Work depends on project-wide engineering, platform, BL level, industrial pack, risk, release, or approval decisions | Draft Decision Brief, compare options, list tradeoffs and next safe step | Decide for the human or change the baseline before confirmation |
+| `BASELINE_DECISION` | Work depends on project-wide engineering, platform, BL level, industrial pack, risk, release, or authority decisions | Draft Decision Brief, choose the evidence-backed technical route, and list the next safe step | Invent business or external facts, treat a recommendation as write authority, or bypass exact real-world consent |
 | `HANDOFF_OR_REPORT` | The user needs a human-readable status, review summary, delivery note, or durable final report | Create status report, review summary, customer handoff, or final report | Treat a report as approval or start follow-up implementation |
 
 ## Goal Card
@@ -115,7 +115,7 @@ For high-risk implementation:
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>
 ```
 
-Implementation must respect Engineering Baseline, Platform Baseline, Industrial Baseline, Risk Gate, Human Approval, and Approval scope.
+Implementation must respect Engineering Baseline, Platform Baseline, Industrial Baseline, Risk Gate, evidence authority, and bounded approval scope. Compatibility approval fields never delegate technical judgment to the user.
 
 ### Review Is Read-only
 

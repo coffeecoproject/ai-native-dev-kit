@@ -141,7 +141,7 @@ function splitIndustrialOverlays(entries, industrial, selectedProfiles) {
       maturityStage: entry.maturityStage || entry.status || "draft",
       baselineLayer: "industrial",
       appliesToProfiles: appliesTo,
-      reason: "Optional BL2 overlay; inactive unless human-approved.",
+      reason: "Optional BL2 overlay; inactive until evidence and compatibility gates pass.",
     };
     if (selectedSet.has(entry.id)) {
       selected.push(item);
@@ -153,7 +153,7 @@ function splitIndustrialOverlays(entries, industrial, selectedProfiles) {
     }
     notSelected.push({
       id: entry.id,
-      reason: "Not selected unless BL2 risk, capability, and human approval require it.",
+      reason: "Not selected unless BL2 risk, capability, evidence, and compatibility require it.",
     });
   }
 
@@ -187,13 +187,13 @@ function safeNextActions(state, industrial) {
   if (industrial.baselineLevel === "BL2_INDUSTRIAL") {
     return [
       "Record selected standard packs in a Standard Baseline Selection Report.",
-      "Review optional industrial overlays separately; do not enable them without human approval.",
+      "Review optional industrial overlays internally; enable only those supported by BL2 evidence and compatibility.",
       "Run node scripts/check-standard-baseline-selection.mjs <project> before proceeding.",
     ];
   }
   return [
     "Record selected standard packs in a Standard Baseline Selection Report.",
-    "Keep industrial overlays inactive unless project risk justifies BL2 and the human approves.",
+    "Keep industrial overlays inactive unless project risk justifies BL2 and internal evidence and compatibility gates pass.",
     "Run node scripts/check-standard-baseline-selection.mjs <project> before treating the selection as ready.",
   ];
 }
@@ -204,7 +204,7 @@ function notSelectedStandard(entries, selectedIds) {
     .filter((entry) => !selectedSet.has(entry.id))
     .map((entry) => ({
       id: entry.id,
-      reason: "Not selected unless project profile, BL level, scope, and human decision require it.",
+      reason: "Not selected unless project profile, BL level, scope, and verified evidence require it.",
     }));
 }
 
@@ -247,7 +247,7 @@ export function buildStandardBaselineRecommendation(root, options = {}) {
     forbiddenActions: [
       "Do not select all standard packs by default.",
       "Do not treat recommendedForBL as activeByDefault.",
-      "Do not enable BL2 without explicit human confirmation.",
+      "Do not enable BL2 without evidence, compatibility, and internal baseline gates.",
       "Do not treat draft packs as stable.",
       "Do not treat pack files as real project evidence.",
       "Do not approve target-project writes, implementation, release, production, security, privacy, compliance, payment, or migration decisions.",
@@ -285,14 +285,14 @@ function printHuman(result) {
   if (result.umbrella) {
     console.log("This is an umbrella read-only recommendation.");
     console.log("Standard packs are shown first.");
-    console.log("Industrial overlays are optional and inactive unless human-approved.");
+    console.log("Industrial overlays are optional and inactive until evidence and compatibility gates pass.");
     console.log("");
   }
   console.log(`PROJECT_ROOT: ${result.projectRoot}`);
   console.log(`STATE: ${result.state}`);
   console.log(`BASELINE_LEVEL: ${result.baselineLevel || "none"}`);
   console.log(`SELECTED_PROFILES: ${result.selectedProfiles.length > 0 ? result.selectedProfiles.join(", ") : "none"}`);
-  console.log(`HUMAN_APPROVAL_STATUS: ${result.humanApprovalStatus || "none"}`);
+  console.log(`COMPATIBILITY_APPROVAL_STATUS: ${result.humanApprovalStatus || "not used for technical selection"}`);
   console.log("CAN_AI_ENABLE_PACKS_NOW: No");
   console.log("CAN_AI_WRITE_TARGET_FILES_NOW: No");
   console.log("");

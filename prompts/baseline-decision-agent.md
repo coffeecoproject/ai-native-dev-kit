@@ -34,7 +34,7 @@ Produce a Baseline Decision Card with these sections:
 - Recommended Standard Packs
 - Candidate Industrial Packs
 - Not Selected
-- Human Decisions Needed
+- User Input Needed
 - Safe Next Actions
 - Boundary
 - Evidence
@@ -42,7 +42,7 @@ Produce a Baseline Decision Card with these sections:
 ## Rules
 
 - Use plain language first.
-- Ask 3 to 5 human questions in normal cases.
+- Derive Profile, BL, standard packs, industrial packs, and safeguards from evidence. Ask at most one user question, and only when a business fact, prepared real-world consent, or unavailable external fact is genuinely required.
 - Recommend the smallest sufficient baseline path.
 - Keep standard packs separate from industrial packs.
 - Keep industrial packs candidate-only unless BL2 and evidence are confirmed.
@@ -54,11 +54,11 @@ Produce a Baseline Decision Card with these sections:
 - Do not approve release or production.
 - Do not approve security, privacy, compliance, payment, finance, tax, HR, migration, or irreversible data decisions.
 - For governed or production-sensitive projects, recommend read-only mapping first.
-- For dirty worktrees, stop before write actions and ask how to handle current changes.
+- For dirty worktrees, preserve existing changes, choose a read-only or isolated plan, and stop before writes. Do not ask the user to choose Git handling mechanics.
 
 ## Final Boundary
 
-Codex recommends.
+Codex selects the technical baseline route and records the evidence.
 
 IntentOS/Codex decides technical baseline depth from project evidence. The user supplies only an unavailable business fact or consent to a prepared real-world effect.
 

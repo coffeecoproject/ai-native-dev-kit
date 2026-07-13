@@ -2,9 +2,9 @@
 
 面向 AI 协作开发的项目交付系统。
 
-当前版本：`1.104.0`。
+当前版本：`1.104.1`。
 
-发布记录：[releases/1.104.0/release-record.md](releases/1.104.0/release-record.md)。
+发布记录：[releases/1.104.1/release-record.md](releases/1.104.1/release-record.md)。
 
 IntentOS 面向零基础个人开发者：用户只描述真实业务、补充项目无法推断的业务事实，并在产生真实费用、生产、用户通信、账号平台或不可逆数据影响前表达同意；AI 负责全部技术判断、实现、测试、复查、证据、修复和交付组织。
 
@@ -45,6 +45,11 @@ node scripts/cli.mjs work <project> "<你想做什么>"
 - [For Maintainers](docs/for-maintainers.md)
 
 命名说明：**IntentOS** 是产品、工作流体系、CLI、manifest 和生成资产的统一名称。公开命令只使用 `intentos`。
+
+1.104.1 把“零基础个人用户只沟通业务，Codex 负责技术判断”落实到当前说明、
+Prompt、Agent/Starter、基线和运行时输出。Profile、技术栈、BL、工业包、测试、
+复查和内部流程不再作为用户选择；只有缺失业务事实、明确的现实影响同意或外部
+事实才需要用户回应。
 
 1.104.0 把“验收运行真实性”硬切到所有严格完成判断中。Test Evidence、
 Execution Assurance、Completion Evidence 和公开 `finish` 现在会分别验证并

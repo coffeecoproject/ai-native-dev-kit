@@ -13,6 +13,7 @@ import {
   reviewContextBinding,
   reviewContextBindingFromMarkdown,
   REVIEW_CONTEXT_VERSION,
+  USER_DECISION_CLASSES,
   validateReviewContextBinding,
 } from "./lib/review-context-authority.mjs";
 
@@ -63,6 +64,7 @@ check(authority.classificationFallback === "UNCLASSIFIED", "unknown context sour
 check(authority.currentProductContract?.operatingModel === "ZERO_EXPERIENCE_SOLO_DEVELOPER", "registry binds the solo operating model");
 check(authority.currentProductContract?.defaultUserCount === 1, "registry binds one default user");
 check(authority.currentProductContract?.technicalDecisionOwner === "INTENTOS_CODEX", "registry delegates technical decisions to IntentOS/Codex");
+check(JSON.stringify(authority.currentProductContract?.userDecisionClasses) === JSON.stringify(USER_DECISION_CLASSES), "registry exposes exactly four user decision classes");
 check(authority.currentProductContract?.industrialDepthImpliesMultiplePeople === false, "industrial depth does not imply people");
 check(JSON.stringify(authority.precedence) === JSON.stringify([
   "CURRENT_PRODUCT_CONTRACT",
@@ -125,6 +127,23 @@ check(
   analyzeActiveGuidanceConflicts("IntentOS must not add Solo / Team / Enterprise modes.").length === 0,
   "explicit prohibition is not misclassified as conflicting guidance",
 );
+for (const guidance of [
+  "Which platform profile should apply?",
+  "BL2 requires explicit human confirmation.",
+  "AI drafts. Humans decide.",
+  "Choose BL0, BL1, or BL2 before continuing.",
+  "If any Risk Gate item is checked, Human Approval must be recorded before implementation.",
+  "## Human-Only Decisions\n\n- technology stack approval\n- first vertical slice approval",
+]) {
+  check(analyzeActiveGuidanceConflicts(guidance).length > 0, `implicit technical-decision drift rejected: ${guidance.split("\n")[0]}`);
+}
+for (const guidance of [
+  "Codex selects the profile and baseline; do not ask the user to confirm technical choices.",
+  "Ask for consent only before the prepared production deployment with rollback evidence.",
+  "Ask which refund period the business requires.",
+]) {
+  check(analyzeActiveGuidanceConflicts(guidance).length === 0, `valid responsibility guidance accepted: ${guidance}`);
+}
 
 const expectedBinding = reviewContextBinding(authority);
 check(/^sha256:[a-f0-9]{64}$/.test(expectedBinding.context_digest), "review context contract has a sha256 digest");

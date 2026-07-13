@@ -186,9 +186,9 @@ Do not:
 - leave `RUNNING` agents in a committed run plan
 - run multiple writers on the same files
 - let reviewers edit files
-- let repair agents handle `NEEDS_HUMAN_DECISION`
+- let repair agents handle a true `NEEDS_HUMAN_DECISION` business, real-world-consent, or external-fact item
 - let reporter output approve continuation
-- use subagents to bypass Goal Mode, Request, Preflight, Spec, Eval, Task, Engineering Baseline, Review Loop, Risk Gate, Human Approval, or Approval scope
+- use subagents to bypass Goal Mode, Request, Preflight, Spec, Eval, Task, Engineering Baseline, Review Loop, Risk Gate, evidence authority, or bounded approval scope
 - create persistent monitors or scheduled agents from a subagent run plan
 - use external GPT/API reviewer automation from this protocol
 

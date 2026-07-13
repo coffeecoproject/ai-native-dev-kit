@@ -102,7 +102,8 @@ function checkCoreContent() {
   const core = readResolved("core/safe-launch.md");
   if (!core) return;
   for (const marker of [
-    "Humans approve release",
+    "Codex determines technical readiness from current evidence",
+    "exact consent only to a prepared concrete release",
     "Readiness States",
     "BL0 must not be described as production-ready",
     "Evidence Boundary",

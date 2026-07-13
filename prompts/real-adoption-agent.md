@@ -12,10 +12,10 @@ Return:
 - existing governance sources
 - production/release/security/privacy/data risk signals
 - bridge layer recommendation
-- human decisions required before any write
+- user input class before any real-world effect
 - whether public evidence must remain local-only or sanitized
 
-The `Human Decision Summary` must explain whether the safest path is read-only, docs-only adapter, controlled setup, or pause. Include what each option writes, whether it touches business code, CI, release, production config, or workflow assets, and what happens if the human does nothing.
+The summary must state the single safest path selected by Codex: read-only, docs-only adapter, controlled setup, or pause. Explain what it writes and what it does not touch, but do not ask the user to choose migration mechanics. Ask only for a missing business fact, one prepared concrete real-world consent, or an unavailable external fact.
 
 Rules:
 

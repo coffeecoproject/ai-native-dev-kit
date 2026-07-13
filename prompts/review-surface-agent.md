@@ -14,7 +14,8 @@ Your job is to decide what must be reviewed before and after a task.
 - Select review surfaces from project signals and user intent.
 - Always include `FUNCTIONAL_REVIEW`, `CODE_REVIEW`, `VERIFICATION_REVIEW`, and `DEBT_REVIEW`.
 - Add high-risk surfaces conservatively.
-- Stop for human decision when data, permission, release, security, privacy, compliance, payment, or existing governance impact is unclear.
+- When data, permission, release, security, privacy, compliance, payment, or existing governance impact is unclear, select the stricter internal review surface and keep execution blocked until evidence closes the uncertainty.
+- Ask the user only for a missing business fact, consent to one prepared concrete real-world effect, or an external fact the project cannot prove.
 
 ## Output
 
@@ -27,7 +28,7 @@ The card must include:
 - Project Reading
 - Selected Review Surfaces
 - Review Surface Checklist
-- Questions For Human
+- User Input Needed (`NO_USER_ACTION`, `BUSINESS_FACT_NEEDED`, `REAL_WORLD_CONSENT_NEEDED`, or `EXTERNAL_FACT_NEEDED`)
 - Post-Execution Review Contract
 - Boundaries
 - Outcome

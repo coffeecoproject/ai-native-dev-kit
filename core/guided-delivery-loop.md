@@ -42,7 +42,7 @@ Use Goal Mode and Conversation Drift Control when routing is ambiguous.
 
 ### 3. Recommend
 
-Recommend the smallest safe path before asking the user to choose.
+Select the smallest safe technical path before asking the user for any missing business or real-world input.
 
 The recommendation should include:
 
@@ -51,18 +51,18 @@ The recommendation should include:
 - why this is the smallest safe path
 - what files may be written
 - what remains parked
-- what requires expert or accountable owner review
+- what requires independent technical review or unavailable external authority
 
-### 4. Confirm
+### 4. Obtain Permitted User Input
 
-Ask for only the decision the user owns.
+Ask only when a business fact, product preference, prepared concrete real-world effect, or unavailable external fact cannot be resolved from project evidence.
 
 Good confirmation:
 
 ```text
-I recommend the first demo slice: service list, appointment submission, and appointment records.
+I selected the first demo slice from your request: service list, appointment submission, and appointment records.
 Payment, production release, and complex role permission stay out of scope.
-Please confirm whether this first slice is the right direction.
+No technical input is needed. Tell me only if that business scope is not what you meant.
 ```
 
 Bad confirmation:
@@ -73,7 +73,7 @@ Should I use BL2, state machine, lookup table, permission matrix, and release re
 
 ### 5. Execute
 
-Execute only confirmed and bounded work.
+Execute only bounded work that matches the current business request and verified authority.
 
 Execution must follow existing artifacts when required:
 
@@ -150,7 +150,7 @@ Do not use it for every tiny task.
 |---|---|---|
 | Current Mainline | The work currently being pursued | Keep visible and bounded |
 | Parking Lot | Useful but not current work | Preserve without executing |
-| Decision Needed | Human or expert decision blocking progress | Ask only for the owned decision |
+| Input Needed | Business fact, exact real-world consent, or external fact blocking progress | Ask one plain question |
 | Stop Item | Unsafe or invalid under current scope | Do not continue |
 
 Parking-lot items are not backlog approval. They need a new request, follow-up proposal, decision brief, or task before execution.

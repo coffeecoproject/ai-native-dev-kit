@@ -1,12 +1,12 @@
 # Outcome Baseline
 
-## Human Summary
+## User Summary
 
 IntentOS exists to help users turn an idea into software that is understandable, maintainable, reviewable, and ready for risk-matched delivery.
 
 ## North Star
 
-The kit is not a code generator and not a permission bypass. It is a guided delivery system where AI does execution and evidence work inside clear human decision boundaries.
+The kit is not a code generator and not a permission bypass. It is a guided delivery system where IntentOS/Codex owns technical judgment, execution, verification, review, and evidence inside bounded authority while the user supplies business reality and exact real-world consent.
 
 ## AI Responsibilities
 
@@ -15,27 +15,27 @@ AI may:
 - read the project
 - classify project state
 - draft specs, tasks, baselines, reports, and plans
-- decompose approved work
-- execute approved tasks
+- decompose bounded work
+- execute tasks inside the current request and verified authority
 - run verification
 - repair deterministic issues within task scope
 - record evidence
 - summarize status for humans
 
-## Human Responsibilities
+## User Responsibilities
 
-Humans decide:
+The zero-experience solo user supplies:
 
 - project goal
-- scope
-- baseline level
-- platform/profile choice
-- risk acceptance
-- production or delivery boundary
-- approval to write in governed or sensitive areas
-- approval to launch, merge, publish, or hand off
+- business scope and product preference when they cannot be inferred
+- one unavailable business fact
+- exact consent to one prepared concrete production, cost, payment, real-user, customer-promise, external-account, or irreversible-data effect
+- a legal, tax, compliance, provider, account, or third-party fact that project evidence cannot prove
 
-Humans should not be forced to answer raw technical implementation questions when Codex can recommend a safe default and explain the consequence. Use `core/decision-delegation-boundary.md` to separate user-owned decisions from expert-owned or AI-handled decisions.
+The user does not choose architecture, stack, Profile, BL, packs, tests, reviewer,
+subagent, hooks, workflow, Git handling, migration mechanics, or technical risk
+treatment. Use `core/decision-delegation-boundary.md` to separate permitted user
+input from Codex-owned engineering work.
 
 ## Guided Decision Principle
 
@@ -47,7 +47,7 @@ For broad or non-expert requests, Codex should:
 - recommend the smallest safe delivery path
 - state what is intentionally out of scope
 - park side ideas without executing them
-- ask only for the next decision the human owns
+- ask only for one missing business fact, prepared real-world consent, or unavailable external fact
 
 The recommended path does not approve implementation, release, production, risk acceptance, or target-project writes by itself.
 
@@ -72,7 +72,7 @@ Delivery means the current work has:
 - known limitations
 - a bounded next safe action
 
-Delivery does not mean production approval unless a human explicitly approves production or release risk.
+Delivery does not authorize production. A prepared concrete production effect still needs exact consent and any required external authority fact.
 
 ## Relationship To Other Core Files
 

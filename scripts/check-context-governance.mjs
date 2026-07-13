@@ -128,7 +128,7 @@ function checkCoreContent() {
   const context = readResolved("core/context-governance.md");
   if (context) {
     for (const marker of [
-      "Codex drafts. Humans confirm.",
+      "Codex derives technical context from project evidence",
       "Context Authority Order",
       "Git-backed source of truth",
       "Only `CONFIRMED` context can become a project rule",

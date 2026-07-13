@@ -1,8 +1,8 @@
 # Product Baseline Guide
 
-## Human Summary
+## User Summary
 
-Product Baseline keeps IntentOS from growing into an over-automated system that asks less from humans but also hides risk.
+Product Baseline keeps IntentOS from hiding risk while it removes technical judgment from the zero-experience user's responsibilities.
 
 ## When To Use
 
@@ -22,7 +22,7 @@ Use Product Baseline review when changing:
 
 If a change increases what AI can do, it must also say:
 
-- what humans still decide
+- what business, real-world consent, or external input the user still supplies
 - what AI still must not do
 - what evidence supports the change
 - what evidence is still missing
@@ -40,7 +40,7 @@ The output should remain understandable:
 ```text
 what happened
 what is safe
-what needs confirmation
+what evidence or permitted user input is missing
 what AI can do
 what AI must not do
 what evidence exists

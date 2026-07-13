@@ -277,7 +277,7 @@ project-owned rules.
 
 `scripts/resolve-apply-plan.mjs` is the 1.34 unified apply-plan entry. It reads project state, user intent, proposed action types, target paths, and optional evidence refs, then prints one Unified Apply Plan with proposed writes, human-only or blocked actions, preconditions, backup, rollback, verification, and explicit no-write/no-apply boundaries. It does not write target-project files or authorize apply.
 
-`scripts/check-apply-plan.mjs` checks recorded Unified Apply Plans. It rejects write-now claims, apply authorization, implementation approval, release/production approval, CI/hook/archive/source-of-truth changes now, high-risk actions without human-only or approval-required status, missing rollback, missing verification planning, and invalid structured evidence digests. Use `--require-structured-evidence` when a report must exist and include a valid `Machine-Readable Evidence` block.
+`scripts/check-apply-plan.mjs` checks recorded Unified Apply Plans. It rejects write-now claims, apply authorization, implementation approval, release/production approval, immediate CI/hook/archive/source-of-truth changes, high-risk actions without internal blocking or exact real-world-consent classification, missing rollback, missing verification planning, and invalid structured evidence digests. Use `--require-structured-evidence` when a report must exist and include a valid `Machine-Readable Evidence` block.
 
 `scripts/resolve-controlled-apply-readiness.mjs` is the 1.38 controlled apply readiness entry. It reads one Unified Apply Plan and reports whether the plan is not ready, human-only, blocked, or a low-risk candidate for future human-approved apply. It does not write target-project files or authorize apply.
 
@@ -301,7 +301,7 @@ project-owned rules.
 
 `scripts/check-baseline-pack-selection.mjs` checks Baseline Pack Selection Reports so pack recommendations stay separated from human approval, target-project writes, implementation approval, release approval, production approval, and draft-pack stability claims.
 
-`scripts/check-product-baseline.mjs` checks the guided delivery product boundary: humans keep judgment and approval, reports are not approvals, simulated evidence is not production evidence, and industrial packs remain selected-only.
+`scripts/check-product-baseline.mjs` checks the guided delivery product boundary: the user supplies business reality and exact real-world consent, Codex owns technical judgment, reports are not authority, simulated evidence is not production evidence, and industrial packs remain selected-only.
 
 `scripts/check-claim-control.mjs` checks README, release records, final reports, and handoffs for overclaims and missing assumption boundaries.
 
@@ -383,7 +383,7 @@ project-owned rules.
 
 `scripts/check-change-boundary.mjs` checks Change Boundary Reports so intended scope, allowed paths, forbidden paths, actual changed files, boundary result, and claim boundary are explicit. Use `--report <file>` for a specific report and `--cached` or `--base <ref>` when git diff comparison should be included.
 
-`scripts/check-baseline-state.mjs` checks Baseline State Reports so no-code/new-project baselines are not marked confirmed without evidence or human-confirmed source. Use `--report <file>` for a specific report.
+`scripts/check-baseline-state.mjs` checks Baseline State Reports so no-code/new-project baselines are not marked confirmed without project-owned evidence or a verifiable external fact. Use `--report <file>` for a specific report.
 
 `scripts/workflow-next.mjs` reads project state and reports:
 
@@ -441,7 +441,7 @@ Use `active-work-thread` only when broad conversation, side ideas, or repeated d
 
 Use `change-boundary-report` when actual changed files need to be checked against intended scope. Use `baseline-state-report` when Codex drafts or reviews baselines before real project evidence exists.
 
-Use `baseline-pack-selection-report` when Codex recommends BL level and industrial pack candidates before a human confirms the pack set.
+Use `baseline-pack-selection-report` when Codex derives BL level and industrial pack candidates before internal evidence and compatibility gates activate the pack set.
 
 Use `change-impact-coverage-report` when a rule, validation, form, API, backend, data, permission, error-copy, or business-behavior change needs cross-surface coverage before it can be considered complete.
 

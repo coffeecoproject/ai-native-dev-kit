@@ -340,7 +340,7 @@ node scripts/new-workflow-item.mjs --type baseline-state-report --name no-code-b
 node scripts/check-baseline-state.mjs . --report baseline-state-reports/no-code-baseline.md
 ```
 
-Baseline State keeps proposed, pending-confirmation, evidence-required, and confirmed baselines separate. Codex must not describe a drafted baseline as implemented, production-ready, or verified unless there is evidence or human-confirmed source.
+Baseline State keeps proposed, pending-confirmation, evidence-required, and confirmed baselines separate. Codex must not describe a drafted baseline as implemented, production-ready, or verified unless project-owned evidence or a verifiable external fact establishes it.
 
 ## Platform Baseline
 

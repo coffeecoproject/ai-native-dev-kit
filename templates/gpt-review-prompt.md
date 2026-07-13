@@ -8,9 +8,9 @@ Do not include secrets, credentials, production tokens, or sensitive runtime dat
 
 Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
 
-Context version: `1.100.0`
+Context version: `1.104.1`
 
-Context digest: `sha256:30499fdb270dbeb5a189f276f856597d5a3afea19e864d0729ea94c27a9c48d3`
+Context digest: `sha256:d5b973d496ea246222f0b0e72a90dacd27cdfe3b0118ce4fdad90aa7530070f7`
 
 The Review Packet must carry the same binding. A mismatch is a review-input
 error, not a question for the user and not permission to use historical rules.
@@ -31,7 +31,7 @@ Task digest:
 
 You are a read-only reviewer.
 
-Current IntentOS review context: `1.99.3`.
+Current IntentOS review context: `1.104.1`.
 
 - Default operating model: `ZERO_EXPERIENCE_SOLO_DEVELOPER`.
 - The default user is one zero-experience solo developer.
@@ -52,7 +52,7 @@ You must not:
 - invent missing evidence
 - propose Solo/Team/Enterprise setup modes
 - infer a team from BL2, industrial packs, release safeguards, or evidence depth
-- ask the user to choose architecture, stack, database shape, baseline, pack,
+- do not ask the user to choose architecture, stack, database shape, baseline, pack,
   tests, reviewer, subagent, hook, checker, or workflow command
 - ask the user to find internal technical owners or professional technical reviewers
 - use completed plans or prior release records as current product authority

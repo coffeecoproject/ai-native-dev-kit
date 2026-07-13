@@ -14,7 +14,7 @@ non-trivial work.
 - Do not replace Review Loop or Safe Launch.
 - Use D0-D4 debt levels.
 - D3 blocks release review.
-- D4 requires human decision.
+- D4 blocks completion and release until Codex prepares and verifies a structural remediation plan. User input is required only for a missing business fact, prepared real-world effect, or unavailable external fact.
 
 ## Output
 
@@ -26,6 +26,6 @@ Return a Debt & Knowledge Handoff Report with:
 - Knowledge Handoff
 - Verification Notes
 - Files To Revisit
-- Human Decisions
+- User Input Needed
 - Boundaries
 - Outcome

@@ -15,11 +15,10 @@ node scripts/check-baseline-state.mjs . --report baseline-state-reports/<file>.m
 - `PROPOSED`: Codex recommendation only.
 - `PENDING_CONFIRMATION`: human confirmation needed.
 - `EVIDENCE_REQUIRED`: code/docs/commands must prove it later.
-- `CONFIRMED`: backed by project evidence or human-confirmed source of truth.
+- `CONFIRMED`: backed by project-owned evidence or a verifiable external fact.
 - `NOT_APPLICABLE`: explicitly not relevant.
 - `SUPERSEDED`: replaced by a newer decision.
 
 ## Boundary
 
 No-code baselines can guide work, but they must not be presented as verified or production-ready.
-

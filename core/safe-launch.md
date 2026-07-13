@@ -10,9 +10,12 @@ What can this work safely be used for right now?
 
 ## Core Rule
 
-Codex may recommend readiness.
+Codex determines technical readiness from current evidence but cannot authorize a real-world effect by recommendation alone.
 
-Humans approve release, production launch, legal/compliance acceptance, payment changes, privacy changes, migration, irreversible operations, and customer promises.
+The user gives exact consent only to a prepared concrete release, production,
+payment, real-user communication, customer promise, or irreversible operation.
+Legal, compliance, provider, account, and third-party authority remain external
+facts that IntentOS cannot invent.
 
 ## Required Inputs
 
@@ -46,17 +49,17 @@ Before a Launch Readiness Report can mark work ready, it must reference availabl
 
 BL0 must not be described as production-ready.
 
-## Human Decision Stops
+## User Input Stops
 
-Stop and ask for a decision when the report includes:
+Stop and ask one plain question only when the report includes:
 
-- pending risk acceptance
-- production deployment
-- permissions or data exposure change
-- payment, tax, privacy, security, or compliance concern
-- data migration or destructive operation
-- external customer promise
-- missing verification for a ready state
+- one unavailable business rule or product preference;
+- one prepared concrete production, payment, real-user, customer-promise, or irreversible-data effect;
+- one legal, tax, compliance, provider, account, or third-party fact unavailable from project evidence.
+
+Missing verification, technical risk, permissions, security, privacy,
+migration mechanics, and release mechanics remain internal blocked states for
+Codex to resolve; they are not user technical decisions.
 
 ## Evidence Boundary
 

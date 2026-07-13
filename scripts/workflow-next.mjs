@@ -1000,7 +1000,7 @@ function buildResult() {
   if (industrialBaseline.state === "PACKS_NOT_AVAILABLE") notes.push("One or more selected industrial packs are planned but not executable yet.");
   if (industrialBaseline.state === "PACKS_INCOMPATIBLE") notes.push("One or more selected industrial packs do not match selected platform profiles.");
   if (industrialBaseline.state === "EVIDENCE_MISSING") notes.push(`${industrialBaseline.missingProjectDocs.length} BL2 project evidence doc(s) are missing.`);
-  if (industrialBaseline.state === "NEEDS_HUMAN_APPROVAL") notes.push("BL2 industrial baseline still needs explicit human approval.");
+  if (industrialBaseline.state === "NEEDS_HUMAN_APPROVAL") notes.push("BL2 compatibility approval is present as a legacy state, but current activation still requires evidence, compatibility, and internal baseline gates.");
   if (artifactCount > 0) notes.push(`${artifactCount} workflow artifact file(s) exist.`);
   if (!nativeNewProject && signals.isGovernedExisting) notes.push(`${signals.basicSignals.length} existing governance signal(s) detected.`);
   if (signals.isProductionGoverned) notes.push(`${signals.productionSignals.length} production governance signal(s) detected.`);
@@ -1072,28 +1072,20 @@ if (enforce && enforceFailures.length > 0) {
 
 function printHumanOutput(result) {
   const human = buildHumanOutput(result);
-  const decision = buildHumanDecisionSummary(result, human);
-  console.log("## Human Decision Summary");
+  const responsibility = workflowDecisionResponsibility(result, human);
+  console.log("## Decision Responsibility Summary");
   console.log("");
-  console.log(`Conclusion: ${decision.conclusion}`);
+  console.log(`Conclusion: ${human.summary}`);
   console.log("");
-  console.log(`Recommended choice: ${decision.recommendedChoice}`);
+  console.log(`Next automatic action: ${human.nextStep}`);
   console.log("");
-  console.log(`Can AI continue now: ${decision.canAiContinue}`);
+  console.log(`Can AI continue now: ${human.canAiContinue}`);
   console.log("");
-  console.log(`What I need from you: ${decision.needFromHuman}`);
+  console.log(`User decision class: ${responsibility.classification}`);
   console.log("");
-  console.log("| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |");
-  console.log("|---|---|---|---|---|---|");
-  for (const option of decision.options) {
-    console.log(`| ${cell(option.option)} | ${cell(option.meaning)} | ${cell(option.aiWillDo)} | ${cell(option.writes)} | ${cell(option.risk)} | ${cell(option.when)} |`);
-  }
+  console.log(`What I need from you: ${responsibility.input}`);
   console.log("");
-  console.log(`Recommended reason: ${decision.reason}`);
-  console.log("");
-  console.log(`What happens if you do nothing: ${decision.ifNothing}`);
-  console.log("");
-  console.log("## Human Summary");
+  console.log("## Plain Summary");
   console.log("");
   console.log(human.summary);
   console.log("");
@@ -1104,9 +1096,9 @@ function printHumanOutput(result) {
   console.log(`- Risk level: ${human.riskLevel}`);
   console.log(`- Can AI continue: ${human.canAiContinue}`);
   console.log("");
-  console.log("## What I Need From You");
+  console.log("## User Input Needed");
   console.log("");
-  for (const item of human.decisions) console.log(`- ${item}`);
+  console.log(`- ${responsibility.input}`);
   console.log("");
   console.log("## Recommended Next Step");
   console.log("");
@@ -1125,6 +1117,20 @@ function printHumanOutput(result) {
   console.log("## What AI Must Not Do");
   console.log("");
   for (const item of human.aiMustNotDo) console.log(`- ${item}`);
+}
+
+function workflowDecisionResponsibility(result, human) {
+  const text = `${human.summary} ${(human.decisions || []).join(" ")}`;
+  if (/correct project path|product goal|business rule|real users/i.test(text)) {
+    return { classification: "BUSINESS_FACT_NEEDED", input: "Provide the missing business fact in ordinary language; Codex derives the technical route." };
+  }
+  if (/prepared production|real cost|real-user|external account|irreversible/i.test(text)) {
+    return { classification: "REAL_WORLD_CONSENT_NEEDED", input: "Consent only to the exact prepared real-world effect shown by Codex." };
+  }
+  if (/legal|tax|compliance|provider|third-party/i.test(text)) {
+    return { classification: "EXTERNAL_FACT_NEEDED", input: "Provide only the unavailable external fact." };
+  }
+  return { classification: "NO_USER_ACTION", input: "Nothing. Codex continues through the internal workflow and evidence gates." };
 }
 
 function cell(value) {
@@ -1296,7 +1302,7 @@ function buildHumanDecisionSummary(result, human) {
         option("C", "Install selected packs after approval", "Apply only approved industrial pack assets", "Yes, selected workflow assets only", "high", "Choose after explicit BL2 approval"),
         option("D", "Pause", "Stop and wait", "No", "low", "Choose when risk ownership is unclear"),
       ],
-      reason: "BL2 and industrial packs are selected-only and require evidence plus human approval.",
+      reason: "BL2 and industrial packs are selected-only and require evidence, compatibility, and internal baseline readiness.",
       ifNothing: "Codex should not assume BL2 or install industrial packs.",
     };
   }
@@ -1400,9 +1406,9 @@ function enforceReasons(result) {
 
 function buildHumanOutput(result) {
   const common = {
-    decisions: ["No human decision is needed for the current next action."],
+    decisions: ["No user action is needed for the current next action."],
     aiCanDo: ["Read workflow files and report status.", "Run non-destructive local checks when requested."],
-    aiMustNotDo: ["Do not expand scope or change risk approvals without explicit human confirmation."],
+    aiMustNotDo: ["Do not expand the requested business scope or execute an unprepared real-world effect."],
   };
 
   const action = result.nextAction;
@@ -1438,16 +1444,13 @@ function buildHumanOutput(result) {
 
   if (action === "RUN_ADOPTION_ASSESSMENT") {
     return {
-      summary: "This looks like an existing governed, production-sensitive, or dirty project. Codex can work in IntentOS Operating Mode, but project asset migration must stay adapter-only until existing rules are compared and approved.",
-      status: "Needs confirmation",
-      reason: "Existing governance or worktree risk was detected; working mode and write permission are separated.",
+      summary: "This looks like an existing governed, production-sensitive, or dirty project. Codex enters IntentOS Operating Mode and compares existing rules before any bounded migration.",
+      status: "Internal reconciliation",
+      reason: "Existing governance or worktree risk was detected; Codex must preserve authority while deriving the migration path.",
       riskLevel: "high",
       canAiContinue: "limited",
-      decisions: [
-        "Confirm whether Native Migration and Existing Rule Reconciliation should stay in chat or be written to approved report locations.",
-        "Confirm whether any adapter setup or governance asset change is allowed after the comparison is reviewed.",
-      ],
-      nextStep: "Keep Codex in IntentOS Operating Mode, prepare Native Migration and Existing Rule Reconciliation, then wait for an approved apply plan before setup writes.",
+      decisions: ["No technical user choice. Codex prepares Native Migration, Existing Rule Reconciliation, and a bounded controlled apply plan."],
+      nextStep: "Keep Codex in IntentOS Operating Mode, reconcile existing rules, then continue through rollback and controlled readiness before setup writes.",
       aiCanDo: [
         "Read existing governance files.",
         "Work under IntentOS planning, task-routing, review, and comparison rules.",
@@ -1456,7 +1459,7 @@ function buildHumanOutput(result) {
       ],
       aiMustNotDo: [
         "Do not run init-project or update workflow assets.",
-        "Do not create migration reports or modify project files without approval.",
+        "Do not modify project files outside a reconciled bounded plan and controlled readiness.",
         "Do not treat IntentOS Operating Mode as write permission.",
         "Do not change business code, CI, release, production config, or agent rules.",
       ],
@@ -1470,39 +1473,36 @@ function buildHumanOutput(result) {
       reason: "Dirty worktree protection is active.",
       riskLevel: "high",
       canAiContinue: "no",
-      decisions: [
-        "Confirm who owns the existing changes.",
-        "Choose whether to continue, split, stash, commit, or package the changes for review.",
-      ],
-      nextStep: "Review git status with the human before creating artifacts or executing a task.",
-      aiCanDo: ["Summarize changed files.", "Prepare a review packet if the human asks for one."],
-      aiMustNotDo: ["Do not create new task artifacts or edit files until the current changes are confirmed."],
+      decisions: ["No technical user choice. Codex preserves all existing changes and derives ownership and scope read-only."],
+      nextStep: "Inspect Git ownership and scope, then prepare a non-destructive continuation without stashing, committing, or discarding user work.",
+      aiCanDo: ["Summarize changed files.", "Prepare an ownership map and review packet."],
+      aiMustNotDo: ["Do not create task artifacts or edit files until current changes are safely separated by evidence."],
     };
   }
 
   if (action === "REVIEW_GOVERNANCE_MIGRATION") {
     return {
-      summary: "Workflow assets are present, but one or more governance migration reports need human approval before they can be applied.",
-      status: "Needs confirmation",
+      summary: "Workflow assets are present, but governance migration reports require internal authority reconciliation and controlled readiness before apply.",
+      status: "Internal reconciliation",
       reason: "Applying AGENTS.md or PR template governance changes can affect project rules.",
       riskLevel: "medium",
       canAiContinue: "limited",
-      decisions: ["Review the pending migration reports and approve, reject, or manually merge them."],
-      nextStep: "Summarize the migration reports and wait for explicit approval before applying them.",
+      decisions: ["No technical user choice. Codex compares, narrows, verifies, and either applies safe actions or leaves conflicting actions blocked."],
+      nextStep: "Reconcile migration reports against project authority, rollback, and evidence before controlled apply.",
       aiCanDo: ["Read and summarize migration reports.", "Explain the proposed appendix and missing markers."],
-      aiMustNotDo: ["Do not apply AGENTS.md or PR template migrations without explicit approval."],
+      aiMustNotDo: ["Do not apply AGENTS.md or PR template migrations outside a bounded, reversible, verified plan."],
     };
   }
 
   if (action === "INIT_WITH_STARTER") {
     return {
-      summary: "This appears to be a new project location. AI can initialize the workflow starter if the user intended setup.",
+      summary: "This appears to be a new project location. Codex can derive and initialize the compatible workflow starter from the business goal.",
       status: "Can continue",
       reason: "No existing project or governance signals were detected.",
       riskLevel: "low",
       canAiContinue: "yes",
-      decisions: ["Confirm the intended starter if a platform-specific starter is preferred."],
-      nextStep: "Initialize the generic starter, or choose a platform starter first.",
+      decisions: ["Provide only the product's real usage surface if it is not already known; Codex selects the starter."],
+      nextStep: "Derive the platform profile and initialize the smallest compatible starter.",
       aiCanDo: ["Create workflow assets and starter files.", "Run onboarding checks after setup."],
       aiMustNotDo: ["Do not add business implementation before project onboarding and the first task chain."],
     };
@@ -1510,13 +1510,13 @@ function buildHumanOutput(result) {
 
   if (action === "RUN_WORKFLOW_ASSET_UPDATE") {
     return {
-      summary: "The project has IntentOS workflow assets, but they are missing or not current. AI can update workflow assets if setup intent is confirmed.",
+      summary: "The project has IntentOS workflow assets, but they are missing or not current. Codex can reconcile and update bounded workflow assets under the original setup intent.",
       status: "Can continue",
       reason: stateReason,
       riskLevel: "medium",
       canAiContinue: "limited",
-      decisions: ["Confirm that workflow asset update is allowed for this project."],
-      nextStep: "Run workflow asset update, then review any migration reports before applying them.",
+      decisions: ["No technical user choice. Codex limits updates to reconciled workflow assets and preserves project-owned governance."],
+      nextStep: "Prepare and verify the bounded workflow asset update, then reconcile any migration reports.",
       aiCanDo: ["Refresh .intentos assets and workflow scripts.", "Create migration reports for existing governance files."],
       aiMustNotDo: ["Do not overwrite existing project docs, task files, logs, specs, or business code."],
     };
@@ -1524,13 +1524,13 @@ function buildHumanOutput(result) {
 
   if (action === "RUN_PROJECT_ONBOARDING") {
     return {
-      summary: "The workflow is installed, but project context still needs confirmation before normal implementation.",
-      status: "Needs confirmation",
+      summary: "The workflow is installed, but Codex must finish deriving and verifying project context before normal implementation.",
+      status: "Internal derivation",
       reason: "Project onboarding is missing or still has pending decisions.",
       riskLevel: "medium",
       canAiContinue: "limited",
-      decisions: ["Confirm project direction, selected profiles, technology strategy, risk boundaries, and first vertical slice."],
-      nextStep: "Let AI draft onboarding docs from the conversation, then ask for focused confirmation.",
+      decisions: ["Provide only a missing business rule or product preference; Codex derives profiles, stack, risk treatment, and first vertical slice."],
+      nextStep: "Draft onboarding from conversation and project evidence, then verify it internally.",
       aiCanDo: ["Draft onboarding docs.", "Ask focused questions.", "Run onboarding checks."],
       aiMustNotDo: ["Do not start broad feature implementation until onboarding is ready or an explicit narrow exception is approved."],
     };
@@ -1538,29 +1538,29 @@ function buildHumanOutput(result) {
 
   if (action === "RUN_PLATFORM_BASELINE_SETUP") {
     return {
-      summary: "Project context exists, but the runtime profile baseline is not ready yet.",
-      status: "Needs confirmation",
+      summary: "Project context exists, but Codex must finish deriving and verifying the runtime profile baseline.",
+      status: "Internal derivation",
       reason: "Selected profiles or required platform baseline docs are missing.",
       riskLevel: "medium",
       canAiContinue: "limited",
-      decisions: ["Confirm which project profiles apply and whether required docs are acceptable."],
-      nextStep: "Select profiles in docs/project-profile.md and run the platform baseline check.",
+      decisions: ["No technical user choice. Codex derives project profiles and verifies required baseline documents."],
+      nextStep: "Derive profiles in docs/project-profile.md and run the platform baseline check.",
       aiCanDo: ["Recommend profiles from project context.", "Draft missing baseline docs.", "Run platform baseline checks."],
-      aiMustNotDo: ["Do not assume a platform profile or weaken required verification without confirmation."],
+      aiMustNotDo: ["Do not guess a platform profile or weaken required verification when evidence is missing."],
     };
   }
 
   if (action === "RUN_INDUSTRIAL_BASELINE_SETUP") {
     return {
-      summary: "The project selected or needs strict industrial governance, but baseline selection, packs, evidence, or approval is not ready yet.",
-      status: result.industrialBaselineState === "EVIDENCE_MISSING" ? "Needs missing evidence" : "Needs confirmation",
-      reason: "BL2 work requires selected packs, evidence, and human approval before strict execution.",
+      summary: "The project selected or needs strict industrial governance, but baseline selection, packs, evidence, or internal readiness is not complete.",
+      status: result.industrialBaselineState === "EVIDENCE_MISSING" ? "Needs missing evidence" : "Internal derivation",
+      reason: "BL2 work requires the smallest compatible packs and verified evidence before strict execution.",
       riskLevel: "high",
       canAiContinue: "limited",
-      decisions: ["Confirm BL level, selected industrial packs, exceptions, residual risks, and Human Approval."],
-      nextStep: "Use the industrial pack selection guide, draft baseline selection/evidence, install selected packs, then run BL2 checks.",
+      decisions: ["No technical user choice. Codex derives BL level, selected packs, exceptions, and residual-risk treatment."],
+      nextStep: "Use the selection guide, derive baseline selection/evidence, install only verified compatible packs, then run BL2 checks.",
       aiCanDo: ["Read the selection guide.", "Recommend the smallest relevant pack set.", "Draft baseline evidence and explain gaps."],
-      aiMustNotDo: ["Do not treat BL2 or any industrial pack as accepted until the human confirms it."],
+      aiMustNotDo: ["Do not treat BL2 or any industrial pack as active until evidence, compatibility, and internal baseline gates pass."],
     };
   }
 
@@ -1571,7 +1571,7 @@ function buildHumanOutput(result) {
       reason: "No blocking setup issue was detected, but no workflow artifact exists yet.",
       riskLevel: "low",
       canAiContinue: "yes",
-      decisions: ["Confirm the first small request or vertical slice."],
+      decisions: ["State the first business goal in ordinary language if it is not already present; Codex derives the vertical slice."],
       nextStep: "Create the first request card and continue through preflight, spec, eval, and task.",
       aiCanDo: ["Create the first request card.", "Draft preflight, spec, eval, and task after the request is clear."],
       aiMustNotDo: ["Do not skip spec/eval/task for non-trivial implementation."],
@@ -1585,8 +1585,8 @@ function buildHumanOutput(result) {
       reason: "No blocking workflow setup issue was detected.",
       riskLevel: "medium",
       canAiContinue: "yes",
-      decisions: ["Confirm which task card should be executed next if more than one exists."],
-      nextStep: "Use the selected task card, run artifact checks, implement within scope, verify, and record the result.",
+      decisions: ["No technical user choice. Codex uses the single current Work Queue item and resolves queue conflicts before execution."],
+      nextStep: "Use the current Work Queue task, run artifact checks, implement within scope, verify, and record the result.",
       aiCanDo: ["Execute one approved task card.", "Run verification.", "Create AI task log and review assets when required."],
       aiMustNotDo: ["Do not widen scope, bypass Risk Gate, or self-approve high-risk decisions."],
     };

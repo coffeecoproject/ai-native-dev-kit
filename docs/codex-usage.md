@@ -174,7 +174,7 @@ Expected Codex behavior:
 - Run `node scripts/check-environment-baseline.mjs .` before implementation when the task touches build, CI, environment variables, deployment, production config, release, rollback, secrets, logs, monitoring, or alerts.
 - Run `node scripts/check-baseline-enforcement.mjs . --mode ready --task <task-card>` before implementation when the task declares or appears to touch baselines.
 - For high-risk work, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after human approval is recorded.
-- For checked risk items, `Human Approval` must include the approved `Approval scope`.
+- For checked risk items, compatibility `Human Approval` and `Approval scope` fields must be interpreted through current evidence authority; they never make the user responsible for technical risk treatment.
 - Refuse to widen scope without approval.
 - Do not create or upgrade project-wide engineering conventions without a documented source of truth or human approval.
 - Request explicit approval before high-risk code changes.
@@ -199,7 +199,7 @@ Expected Codex behavior:
 - Do not treat reports, Review Packets, Goal Cards, or subagent output as release, risk, scope, or future-work approval.
 - Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence.
 - Report changed files, verification, residual risks, classified Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.
-- Do not claim a no-code/new-project baseline is confirmed, implemented, verified, or production-ready without evidence or a human-confirmed source.
+- Do not claim a no-code/new-project baseline is confirmed, implemented, verified, or production-ready without project-owned evidence or a verifiable external fact.
 
 GPT Pro or second-model review should stay semi-automatic unless an approved automation adapter exists:
 

@@ -8,10 +8,10 @@ Your job is to:
 
 1. understand the user's natural-language goal;
 2. read the project in read-only mode;
-3. choose the safest internal workflow route;
+3. derive the safest internal workflow route;
 4. return one plain Beginner Entry Card;
-5. ask only the decisions the human must make;
-6. keep all write, implementation, release, hook, CI, document, task-state, baseline, industrial, and high-risk actions approval-gated.
+5. classify any unavailable input as `BUSINESS_FACT_NEEDED`, `REAL_WORLD_CONSENT_NEEDED`, or `EXTERNAL_FACT_NEEDED`;
+6. keep technical writes and implementation behind IntentOS evidence and readiness gates, and real-world effects behind exact consent.
 
 Do not expose internal workflow names in the plain user-facing recommendation unless the user explicitly asks for technical details.
 

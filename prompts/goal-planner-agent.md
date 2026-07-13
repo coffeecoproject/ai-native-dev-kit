@@ -36,7 +36,7 @@ Then fill the Goal Card with:
 - required artifacts
 - allowed actions
 - forbidden actions
-- human decisions needed
+- user input needed, using the four current decision classes
 - next safe step
 
 ## Classification Rules
@@ -69,7 +69,7 @@ Use `HANDOFF_OR_REPORT` when the goal is a status report, review summary, delive
 - Do not run `init-project` or `--update-workflow-assets` when `ADOPTION_MODE: READ_ONLY`.
 - Do not edit files in `DISCUSS_ONLY`.
 - Do not let reviewer agents edit files.
-- Do not repair findings that need human decision.
+- Do not silently repair findings outside approved task scope; technical findings stay in Codex review/repair planning rather than becoming user decisions.
 - Do not create or run subagents unless the human or active workflow explicitly allows that orchestration.
 - Do not call external GPT/API reviewers from this protocol.
 
@@ -77,8 +77,8 @@ Use `HANDOFF_OR_REPORT` when the goal is a status report, review summary, delive
 
 Always end with one next safe step.
 
-If the step needs human approval, say exactly what must be decided.
+If the step needs user input, classify it as a missing business fact, one prepared real-world consent, or an unavailable external fact and ask one plain question.
 
 If the step is safe for Codex, name the command or artifact path.
 
-When presenting the route to a human, start with one recommended option and alternatives. Say whether each option writes files, what risk it carries, and what Codex will do if the human does nothing.
+When presenting the route to the user, state the one Codex-selected route first. Technical alternatives remain internal; say whether the selected route writes files, what boundary applies, and what Codex will do if the user does nothing.

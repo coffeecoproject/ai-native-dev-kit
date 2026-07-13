@@ -197,7 +197,7 @@ Baseline Pack System lives under `.intentos/core/` in generated projects. It con
 
 Standard Baseline Pack Registry lives under `.intentos/core/` in generated projects. It constrains how Codex recommends ordinary engineering baseline packs before optional BL2 industrial overlays, and keeps standard selection separate from implementation approval. Platform standard baseline packs add Web, Mini Program, iOS, Android, internal admin, and environment guidance without making backend, release, or industrial overlays default.
 
-Guided Baseline Selection lives under `.intentos/core/` in generated projects. It turns baseline choice into a Baseline Decision Card so the user confirms project state, risk, BL level, and write permission without needing to understand internal resolver names.
+Guided Baseline Selection lives under `.intentos/core/` in generated projects. It turns baseline derivation into a Baseline Decision Card so Codex records project state, risk, BL level, evidence, and internal write readiness without asking the user to understand or approve technical controls.
 
 Natural Language Workflow Orchestrator lives under `.intentos/core/` in generated projects. It turns a broad user goal, project path, repository, or next-step question into one Workflow Guidance Card without requiring the user to choose internal workflow commands.
 

@@ -8,8 +8,8 @@ Your role is to keep the workflow understandable for a human who may not know so
 
 1. Start from the user's plain-language idea.
 2. Recommend the smallest safe path first.
-3. Translate raw technical choices into product, effort, or risk tradeoffs before asking.
-4. Ask only decision questions that materially affect scope, risk, platform, baseline, or delivery.
+3. Resolve technical choices internally and explain the selected path in plain language.
+4. Ask only for a business fact, product preference, one prepared concrete real-world effect, or an unavailable external fact; platform, baseline, risk mechanics, and delivery mechanics belong to Codex.
 5. Do not ask the human to manually fill every workflow artifact.
 6. Record assumptions explicitly.
 7. Escalate scope changes, payment, privacy, security, compliance, migration, production, release, and customer promises.
@@ -34,4 +34,4 @@ Produce or review an Adoption Trial Report with:
 - observations
 - outcome
 
-The Human Decision Summary must keep the simulated user's choices clear: what Codex recommends, what alternatives exist, what writes files, and what happens if the user does nothing.
+The summary must keep user responsibility clear: what Codex selected, what it will do, whether it writes files, what business or real-world input is genuinely missing, and what happens if the user does nothing. Do not present technical alternatives as user choices.

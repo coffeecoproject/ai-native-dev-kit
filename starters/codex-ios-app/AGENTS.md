@@ -36,7 +36,7 @@ merely because industrial safeguards exist.
 - L0: docs, formatting, simple low-risk local view change; direct implementation plus verification.
 - L1: ordinary local Swift/SwiftUI/UIKit behavior; spec, task, verification.
 - L2: cross-module state, networking contract, persistence, permission, dependency, or release risk; preflight, spec, eval, review.
-- L3: signing, entitlements, Keychain, sensitive permissions, destructive migration, value-transfer, regulated data, production config, archive/upload/release; full workflow and explicit human approval.
+- L3: signing, entitlements, Keychain, sensitive permissions, destructive migration, value-transfer, regulated data, production config, archive/upload/release; full internal workflow, with exact user consent only for the prepared real-world effect.
 
 If unsure, use the higher level.
 
@@ -54,7 +54,7 @@ For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when presen
 node scripts/workflow-next.mjs .
 ```
 
-Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
+Follow the reported `NEXT_ACTION`. Apply a migration report only after bounded-plan, authority, rollback, and controlled-readiness checks pass; do not ask the user to approve technical contents.
 
 ## Beginner Entry
 
@@ -148,7 +148,7 @@ node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <cle
 node scripts/cli.mjs apply-readiness-check .
 ```
 
-Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversible, verifiable, and still requires explicit human approval. It does not execute writes, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
+Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversible, verifiable, and authorized by the requested outcome. It does not authorize production or external effects by itself.
 
 ## Project Hook Policy
 
@@ -178,7 +178,7 @@ Use `.intentos/prompts/project-onboarding-agent.md` and `.intentos/core/project-
 
 AI owns drafting, comparison, consistency checks, and document updates. Humans own decisions.
 
-Do not ask the human to manually fill all onboarding files. Ask focused questions, propose options, record assumptions, and request confirmation.
+Do not ask the user to manually fill onboarding files or confirm technical choices. Derive them from evidence and ask only for unavailable business facts, product preferences, exact real-world consent, or external facts.
 
 Do not start broad feature implementation until onboarding is ready or the user explicitly approves a narrow L0/L1 exception.
 
@@ -201,7 +201,7 @@ node scripts/check-engineering-baseline.mjs .
 
 Codex may follow existing local patterns for low-risk local changes.
 
-Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval.
+Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth, bounded decision brief, and required internal review evidence.
 
 If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.
 
@@ -230,7 +230,7 @@ Run:
 node scripts/check-platform-baseline.mjs .
 ```
 
-Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Use strict mode only after humans confirm selected profiles and project docs.
+Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Use strict mode only after selected profiles and project documents are derived and verified from evidence.
 
 ## Industrial Baseline
 
@@ -244,7 +244,7 @@ node scripts/resolve-industrial-baseline.mjs .
 node scripts/check-industrial-baseline.mjs .
 ```
 
-Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is no worse than pending. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` as project docs only after that decision.
+Do not treat BL2 or any industrial pack as active until baseline level, selected packs, exceptions, residual risks, compatibility, and evidence pass the internal baseline gates. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` to record that derivation.
 
 ## Standard Baseline Packs
 
@@ -265,7 +265,7 @@ Before recommending standard packs, read `.intentos/standard-baseline-packs/sele
 
 Use `.intentos/core/baseline-pack-system.md` and `.intentos/docs/baseline-pack-system.md` when project profile, BL level, standard packs, industrial packs, or risk overlays need to be selected.
 
-Codex may recommend candidate packs, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without explicit human decision. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays.
+Codex selects the smallest evidence-backed candidate pack set. It must not select all packs, treat draft packs as stable, or treat pack files as real project evidence. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays enabled only by internal evidence and compatibility gates.
 
 Optional artifacts:
 
@@ -292,7 +292,7 @@ For high-risk implementation, run:
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>
 ```
 
-If any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation.
+If any Risk Gate item is checked, derive the stricter task route, verification, review, evidence, rollback, and apply boundaries before implementation. Ask the user only for an unavailable business fact or one prepared real-world effect.
 
 If artifact quality fails, fix the workflow artifacts before writing code.
 
@@ -327,7 +327,7 @@ node scripts/check-change-boundary.mjs . --report <change-boundary-report>
 node scripts/check-baseline-state.mjs . --report <baseline-state-report>
 ```
 
-Do not claim a no-code or new-project baseline is implemented, verified, production-ready, or confirmed without evidence or a human-confirmed source.
+Do not claim a no-code or new-project baseline is implemented, verified, production-ready, or confirmed without project-owned evidence or a verifiable external fact.
 
 ## Goal Mode
 
@@ -559,7 +559,7 @@ Update `scripts/verify.sh` after scheme, workspace/project, and simulator destin
 3. Milestones or meaningful task batches should create `workflow-retros/` entries.
 4. Repeated workflow problems should create `workflow-improvements/` entries.
 5. Repeated execution patterns may create `skill-candidates/` entries.
-6. Skill candidates must not create, update, install, enable, or rely on active Skills without explicit human approval.
+6. Skill candidates must not install or enable active Skills without a bounded plan and internal verification; ask for consent only when the action changes a persistent environment, external account, cost, or other concrete real-world effect.
 7. Proposed changes back to the shared IntentOS must be written as `intentos-proposals/` first.
 8. Project-specific lessons stay in project docs or project `AGENTS.md`.
 9. Core workflow changes require core purity review and `check-intentos.mjs`.
@@ -588,7 +588,7 @@ Use `.intentos/templates/skill-candidate.md` for candidate drafts and `.intentos
 
 Codex may propose project-scoped automations during setup, release preparation, or workflow review.
 
-Use `automation-proposals/` and `.intentos/templates/project-automation-proposal.md` before creating or updating any Codex App automation. Do not create, update, resume, delete, or enable automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.
+Use `automation-proposals/` and `.intentos/templates/project-automation-proposal.md` before creating or updating any Codex App automation. Prepare the exact project root, schedule, prompt, allowed writes, initial status, rollback, and effect, then ask for consent to that concrete scheduled effect rather than technical configuration approval.
 
 ## Review Focus
 

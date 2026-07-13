@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.104.0`
+Current version: `1.104.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,17 @@ Current version: `1.104.0`
 
 ## Current Release
 
-`1.104.0`
+`1.104.1`
 
 Includes:
+
+- Active Guidance Semantic Hardcut `1.104.1`: binds all current user-facing
+  decisions to four plain classes, rejects implicit technical delegation, and
+  aligns entry docs, prompts, Agent/Starter assets, baseline guidance, and
+  runtime cards with the zero-experience solo contract.
+- `1.104.1` keeps exact consent for prepared real-world effects and external
+  facts while moving Profile, stack, BL, pack, test, review, workflow, and
+  technical risk decisions fully inside IntentOS/Codex.
 
 - Runtime Trust Consumer Hardcut `1.104.0`: requires Test Evidence, Execution
   Assurance, Completion Evidence, and public `finish` to independently validate

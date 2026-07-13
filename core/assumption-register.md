@@ -1,6 +1,6 @@
 # Assumption Register
 
-## Human Summary
+## User Summary
 
 Assumption Register makes AI uncertainty visible. It prevents inferred project facts from silently becoming rules.
 
@@ -10,15 +10,15 @@ Any assumption that affects scope, architecture, environment, release, security,
 
 ## Format
 
-| Assumption | Evidence | Confidence | Can proceed? | Needs human confirmation? | Owner | Status |
+| Assumption | Evidence | Confidence | Can proceed? | User input class | Evidence owner | Status |
 |---|---|---|---|---|---|---|
-|  |  | high / medium / low | Yes / No | Yes / No | AI / human | CONFIRMED / INFERRED / PENDING_CONFIRMATION / NOT_APPLICABLE |
+|  |  | high / medium / low | Yes / No | NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED | project / Codex / user / external | CONFIRMED / INFERRED / PENDING_CONFIRMATION / NOT_APPLICABLE |
 
 ## Status Meaning
 
-- `CONFIRMED`: human-confirmed or directly proven by project artifact.
+- `CONFIRMED`: directly proven by project/external evidence or supported by permitted user input when the fact cannot be derived.
 - `INFERRED`: reasonable inference from evidence, but not a project rule.
-- `PENDING_CONFIRMATION`: must be confirmed before it affects a decision.
+- `PENDING_CONFIRMATION`: compatibility state; evidence or one permitted user input is still missing.
 - `NOT_APPLICABLE`: explicitly not relevant, with reason.
 
 ## Baseline Boundary
@@ -35,17 +35,11 @@ Formal baseline files should use:
 
 ## High-risk Assumptions
 
-These assumptions usually require human confirmation:
+These assumptions require project/external evidence or the indicated bounded user input; they are not raw technical questions for the user:
 
-- staging or production environment exists
-- rollback process exists
-- release owner exists
-- monitoring or alerting exists
-- secrets are stored in a specific service
-- payment, permission, tax, or financial logic is safe to change
-- migration can run safely
-- CI/CD can be modified
-- customer delivery can proceed
+- staging, production, rollback, monitoring, secret storage, migration, and CI/CD facts: Codex derives and verifies them or keeps the task blocked;
+- payment, tax, financial, customer, provider, legal, and compliance facts: request only the unavailable business or external fact;
+- prepared production, payment, customer communication, and irreversible-data effects: request exact bounded consent only after technical readiness passes.
 
 ## Output Placement
 

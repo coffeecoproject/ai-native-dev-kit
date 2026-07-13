@@ -2,7 +2,7 @@
 
 Baseline State separates proposed project guidance from confirmed project facts.
 
-It allows Codex to draft useful baselines for no-code and new-project work without pretending those baselines are already verified by code, commands, CI, or human-confirmed source of truth.
+It allows Codex to draft useful baselines for no-code and new-project work without pretending those baselines are already verified by code, commands, CI, project-owned evidence, or a verifiable external fact.
 
 ## Core Rule
 
@@ -15,7 +15,7 @@ Codex may draft proposed baselines before code exists, but must not mark them as
 | `PROPOSED` | recommended by Codex before evidence or confirmation | Advisory only |
 | `PENDING_CONFIRMATION` | needs human confirmation | Not for high-impact work |
 | `EVIDENCE_REQUIRED` | plausible but needs code/docs/command evidence | Not until evidence exists |
-| `CONFIRMED` | supported by project evidence or human-confirmed source of truth | Yes, within approved scope |
+| `CONFIRMED` | supported by project-owned evidence or a verifiable external fact | Yes, within bounded verified scope |
 | `NOT_APPLICABLE` | explicitly does not apply | Yes as exclusion evidence |
 | `SUPERSEDED` | replaced by a newer baseline decision | No |
 
@@ -35,7 +35,7 @@ They must not be called:
 - industrial-grade
 - verified
 
-unless evidence or human-confirmed source of truth exists.
+unless project-owned evidence or a verifiable external fact exists.
 
 ## Existing Project Rule
 
@@ -68,5 +68,4 @@ Baseline Enforcement checks whether a task references baselines when touched are
 
 Baseline State checks whether the baseline's evidence state is being overstated.
 
-Baseline State does not replace engineering baseline, environment baseline, platform baseline, industrial baseline, or human approval.
-
+Baseline State does not replace engineering, environment, platform, or industrial baselines, evidence authority, internal readiness, or exact real-world consent.

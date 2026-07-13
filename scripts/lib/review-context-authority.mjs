@@ -6,8 +6,14 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.100.0";
+export const REVIEW_CONTEXT_VERSION = "1.104.1";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
+export const USER_DECISION_CLASSES = Object.freeze([
+  "NO_USER_ACTION",
+  "BUSINESS_FACT_NEEDED",
+  "REAL_WORLD_CONSENT_NEEDED",
+  "EXTERNAL_FACT_NEEDED",
+]);
 
 export function normalizeReviewContextPath(relativePath) {
   const raw = String(relativePath || "").trim().replaceAll("\\", "/");
@@ -160,6 +166,31 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
     message: "Active guidance delegates a technical decision to the user.",
   },
   {
+    code: "TECHNICAL_CONFIRMATION_REQUIRED",
+    pattern: /\b(?:human|humans|user|users|the user)\b.{0,45}(?:must|should|needs?\s+to|is\s+required\s+to|requires?|explicit(?:ly)?|必须|应该|需要|要求|明确).{0,20}(?:confirm|approve|decide|choose|select|确认|批准|决定|选择).{0,80}(?:architecture|stack|profile|baseline|BL[012]|industrial pack|pack selection|test strategy|reviewer|subagent|hook|checker|workflow|risk gate|approval scope|架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流|风险门禁|批准范围)|(?:人工|人类|用户).{0,35}(?:必须|应该|需要|要求|明确).{0,15}(?:确认|批准|决定|选择).{0,60}(?:架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流|风险门禁|批准范围)/i,
+    message: "Active guidance requires user confirmation for a technical decision.",
+  },
+  {
+    code: "TECHNICAL_CONFIRMATION_REQUIRED",
+    pattern: /(?:architecture|stack|profile|baseline|BL[012]|industrial pack|pack selection|test strategy|reviewer|subagent|hook|checker|workflow|risk gate|approval scope|架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流|风险门禁|批准范围).{0,70}(?:requires?|needs?|must|only\s+after|until|before|without|要求|需要|必须|仅在|直到|之前|未经).{0,30}(?:\b(?:human|humans|user|users|the user)\b|人工|人类|用户).{0,20}(?:confirm|confirmation|approve|approval|确认|批准)/i,
+    message: "Active guidance requires user confirmation for a technical decision.",
+  },
+  {
+    code: "TECHNICAL_CHOICE_QUESTION",
+    pattern: /^(?:[-*]\s*)?(?:(?:which|choose|select|confirm|decide|which one)\b|(?:请选择|选择|确认|决定)).{0,80}(?:architecture|stack|profile|baseline|BL[012]|industrial pack|pack|test strategy|reviewer|subagent|hook|checker|workflow|架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流)|(?:ask|require|prompt|tell).{0,20}(?:the\s+)?(?:user|human).{0,20}(?:to\s+)?(?:choose|select|confirm|decide).{0,80}(?:architecture|stack|profile|baseline|BL[012]|industrial pack|pack|test strategy|reviewer|subagent|hook|checker|workflow)/i,
+    message: "Active guidance exposes a technical choice to the user.",
+  },
+  {
+    code: "TECHNICAL_CHOICE_TABLE",
+    pattern: /^\|[^\n]*(?:architecture|stack|profile|baseline|BL[012]|industrial pack|test strategy|reviewer|subagent|hook|checker|workflow|架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流)[^\n]*\|[^\n]*(?:user|human|用户|人工)[^\n]*(?:choose|select|confirm|approve|选择|确认|批准)[^\n]*\|/i,
+    message: "Active guidance exposes a technical-choice table to the user.",
+  },
+  {
+    code: "BLANKET_TECHNICAL_APPROVAL_GATE",
+    pattern: /(?:any|every|任意|任何).{0,25}(?:risk gate|风险门禁).{0,70}(?:human approval|human confirmation|人工批准|人工确认).{0,35}(?:before implementation|before coding|实现前|编码前)|(?:risk gate|风险门禁).{0,45}(?:requires?|must|要求|必须).{0,20}(?:human approval|human confirmation|人工批准|人工确认)/i,
+    message: "Active guidance makes a generic technical risk gate depend on human approval.",
+  },
+  {
     code: "INTERNAL_DOMAIN_REQUIRES_SEPARATE_PERSON",
     pattern: /(?:the\s+user|user|用户|你).{0,24}(?:must|should|needs?\s+to|必须|应该|需要).{0,24}(?:find|assign|appoint|consult|找|指定|安排|咨询).{0,30}(?:release owner|security owner|data owner|technical owner|professional reviewer|technical expert|发布负责人|安全负责人|数据负责人|技术负责人|专业人员|技术专家)/i,
     message: "Active guidance requires the user to find an internal technical role.",
@@ -172,17 +203,82 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
 ];
 
 export function analyzeActiveGuidanceConflicts(text) {
-  const segments = String(text || "").split(/(?<=[.!?。！？])|\r?\n/).map((item) => item.trim()).filter(Boolean);
+  const value = String(text || "");
+  const segments = semanticSegments(value);
   const findings = [];
   for (const rule of ACTIVE_GUIDANCE_CONFLICT_RULES) {
-    const matched = segments.find((segment) => rule.pattern.test(segment) && !isExplicitSafetyNegation(segment));
+    const matched = segments.find((segment) => rule.pattern.test(segment)
+      && (!isExplicitSafetyNegation(segment) || negatedTechnicalPermissionGate(segment)));
     if (matched) findings.push({ code: rule.code, message: rule.message, evidence: matched });
+  }
+  const ambiguousAuthority = value.match(/\b(?:AI|Codex)\s+drafts?\s*[.!?;,:-]?\s*humans?\s+(?:decide|confirm)\b|\bAI\s+proposes?\s*[.!?;,:-]?\s*humans?\s+approve\b|AI\s*起草.{0,12}(?:人|用户).{0,8}(?:决定|批准)/i);
+  if (ambiguousAuthority && !isExplicitSafetyNegation(ambiguousAuthority[0])) {
+    findings.push({
+      code: "AMBIGUOUS_HUMAN_TECHNICAL_AUTHORITY",
+      message: "Active guidance gives humans ambiguous authority over technical work.",
+      evidence: ambiguousAuthority[0],
+    });
+  }
+  for (const section of humanOnlyDecisionSections(value)) {
+    const technical = section.body.split(/\r?\n/).find((line) => technicalDecisionTerm(line) && !isExplicitSafetyNegation(line));
+    if (technical) {
+      findings.push({
+        code: "TECHNICAL_DECISION_IN_HUMAN_ONLY_SECTION",
+        message: "A human-only decision section contains a technical decision.",
+        evidence: `${section.heading}: ${technical.trim()}`,
+      });
+      break;
+    }
   }
   return findings;
 }
 
+function semanticSegments(text) {
+  const blocks = [];
+  let current = "";
+  const flush = () => {
+    if (current.trim()) blocks.push(current.trim());
+    current = "";
+  };
+  for (const rawLine of String(text || "").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) {
+      flush();
+      continue;
+    }
+    if (/^(?:#{1,6}\s+|[-*+]\s+|\d+[.)]\s+|\|)/.test(line)) {
+      flush();
+      current = line;
+      continue;
+    }
+    current = current ? `${current} ${line}` : line;
+  }
+  flush();
+  return blocks.flatMap((block) => block.split(/(?<=[.!?。！？])\s+/).map((item) => item.trim()).filter(Boolean));
+}
+
+function humanOnlyDecisionSections(text) {
+  const lines = String(text || "").split(/\r?\n/);
+  const sections = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!/^#{1,6}\s+(?:Human-Only Decisions|Human Decisions|Decisions For The Human|用户决定|仅限人工决定)\s*$/i.test(lines[index].trim())) continue;
+    const body = [];
+    for (let cursor = index + 1; cursor < lines.length && !/^#{1,6}\s+/.test(lines[cursor].trim()); cursor += 1) body.push(lines[cursor]);
+    sections.push({ heading: lines[index].trim(), body: body.join("\n") });
+  }
+  return sections;
+}
+
+function technicalDecisionTerm(text) {
+  return /(?:architecture|technical stack|technology stack|stack approval|database|schema|profile|baseline|BL[012]|industrial pack|test strategy|reviewer|subagent|hook|checker|workflow|risk acceptance|high-risk boundar|first vertical slice approval|onboarding is ready|goal mode|工程架构|技术栈|数据库|数据结构|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流|风险接受|高风险边界)/i.test(String(text || ""));
+}
+
 function isExplicitSafetyNegation(text) {
   return /\b(?:must|should|does|do|is|are|can|cannot|can't|need)\s+not\b|\b(?:does not|do not|must not|should not|cannot|not required|never|no longer)\b|(?:不得|不应|不能|不需要|无需|禁止|不会|并不|不再)/i.test(text);
+}
+
+function negatedTechnicalPermissionGate(text) {
+  return /(?:do not|must not|cannot|不得|不能|禁止).{0,80}(?:architecture|stack|profile|baseline|BL[012]|industrial pack|pack|test strategy|reviewer|subagent|hook|checker|workflow|架构|技术栈|平台档案|基线|工业包|测试策略|审查方式|子代理|钩子|检查器|工作流).{0,45}(?:without|until|before|未经|直到|之前).{0,25}(?:\b(?:human|user)\b|人工|用户).{0,15}(?:confirm|confirmation|approve|approval|确认|批准)/i.test(String(text || ""));
 }
 
 function contextContractPayload(authority) {

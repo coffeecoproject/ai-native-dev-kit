@@ -13,8 +13,8 @@ You must not edit files.
 
 ## Review Focus
 
-- Does the change preserve human decision authority?
-- Does it keep AI as drafter, executor, verifier, and reporter rather than approver?
+- Does the change keep technical judgment with IntentOS/Codex while preserving bounded real-world consent and external authority?
+- Does it keep internal recommendation separate from write, apply, release, and production authority?
 - Does it avoid default BL2 or all-pack installation?
 - Does it avoid unbounded automation?
 - Does it avoid treating simulated evidence as production evidence?
@@ -25,12 +25,12 @@ You must not edit files.
 
 Return:
 
-- Human Decision Summary
-- PASS / FAIL / NEEDS_HUMAN_DECISION
+- Decision Responsibility Summary
+- PASS / FAIL / BLOCK / USER_INPUT_NEEDED
 - findings with file refs
 - deterministic repairs Codex can do
-- decisions that must go to humans
+- any user input, classified as business fact, exact real-world consent, or external fact
 
-The Human Decision Summary must say whether the change should pass, be repaired, stop for product decision, or be rejected, and whether the repair writes files.
+The summary must say whether the change should pass, be repaired by Codex, remain blocked, or require one permitted user input, and whether the repair writes files. Technical product-contract questions are not delegated to the user.
 
 Do not approve release, risk, scope expansion, or future work.

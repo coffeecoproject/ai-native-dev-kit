@@ -82,9 +82,9 @@ If `workflow-next` returns `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT` or `ADOPTION_M
 8. Produce or describe an existing governance map using `templates/existing-governance-map.md`.
 9. Continue through internal reconciliation and controlled-apply gates for reversible technical setup. Ask the user only when an unavailable business fact, protected project authority, or a prepared real-world effect requires bounded consent.
 
-For governed existing projects, the goal is not to initialize a parallel workflow. The goal is to map IntentOS concepts to existing governance, identify gaps, and wait for human approval.
+For governed existing projects, the goal is not to initialize a parallel workflow. Map IntentOS concepts to existing governance, compare rules, identify gaps, and continue through bounded controlled readiness without delegating technical reconciliation to the user.
 
-If `workflow-next` returns `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, Codex must not create workflow artifacts, execute task cards, or edit project files yet. First report the dirty worktree state, changed file count, changed file sample when available, and ask the human to confirm whether the existing changes should be committed, split, ignored, stashed, or reviewed through a Review Packet.
+If `workflow-next` returns `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, Codex must not create workflow artifacts, execute task cards, or edit project files yet. Inspect ownership and scope read-only, preserve all existing changes, and prepare the safest non-destructive continuation. Ask the user only when an unavailable business fact prevents ownership classification.
 
 ## Execution Bootstrap Flow
 
@@ -92,11 +92,11 @@ If `workflow-next` returns `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MOD
 2. If the intentos is only provided as a URL and network access or authentication is required, explain the needed access before fetching it.
 3. Run or emulate `scripts/workflow-next.mjs <project-root>` to identify project state.
 4. If `workflow-next` reports `RUN_ADOPTION_ASSESSMENT`, stop the bootstrap flow and produce a read-only adoption assessment.
-5. If `workflow-next` reports `REVIEW_DIRTY_WORKTREE`, stop before file writes and ask the human to decide how to handle existing changes.
-6. For an empty new project, initialize with the most specific approved starter; use `generic-project` if the platform is not yet confirmed.
+5. If `workflow-next` reports `REVIEW_DIRTY_WORKTREE`, stop before file writes, preserve existing changes, derive ownership from Git and project evidence, and continue read-only until a bounded non-destructive path is proven.
+6. For an empty new project, derive and initialize the most specific compatible starter; use `generic-project` only when the delivery surface cannot be derived from the business goal or project evidence.
 7. For an existing project that is not in governed-project protection, run workflow asset update only; do not overwrite existing project docs, specs, tasks, logs, or business code.
 8. For a bootstrapped project, check version, missing workflow assets, onboarding status, and migration reports.
-9. If migration reports require approval, summarize the report and stop before applying the migration.
+9. If migration reports exist, reconcile authority, scope, rollback, and evidence, then apply only those actions that pass controlled readiness; exact consent is required only for a prepared real-world effect.
 10. If onboarding is missing or pending, use `project-onboarding-agent.md` to draft or update onboarding documents from conversation and project evidence.
 11. If the post-bootstrap goal is broad, ambiguous, high-risk, or can route into multiple workflows, use `goal-planner-agent.md` and create a Goal Card before implementation.
 12. Run baseline checks after setup when scripts are available.
@@ -136,30 +136,23 @@ Do not change:
 - active Skills
 - active automations
 - existing product docs unless the user explicitly asks
-- existing pull request template or existing `AGENTS.md` without explicit approval for the proposed migration
+- existing pull request template or existing `AGENTS.md` outside a bounded, reconciled, reversible migration plan
 
-## Human-Only Decisions
+## User Input Boundary
 
-The human must confirm:
+Codex owns starter, profile, onboarding depth, stack, engineering conventions,
+risk routing, Goal Mode, governance reconciliation, and reversible technical
+apply decisions. Ask the user only for:
 
-- target platform or starter when it materially changes setup
-- project profile and onboarding level
-- technology stack strategy
-- project-wide engineering conventions
-- high-risk boundaries
-- sample policy
-- first vertical slice
-- selected Goal Mode when write authority, task route, or risk level is unclear
-- PR template governance migration
-- `AGENTS.md` governance migration
-- governed existing project adapter setup
-- active Skill or automation creation
+- an unavailable business rule or product preference;
+- consent to one prepared production, cost, real-user communication, external-account, persistent-automation, or irreversible real-data effect;
+- an unavailable legal, tax, compliance, provider, account, or third-party fact.
 
 ## Final Output
 
 End with:
 
-- `Human Decision Summary` first
+- `Decision Responsibility Summary` first
 - detected intent
 - detected project state
 - adoption mode
@@ -170,4 +163,4 @@ End with:
 - onboarding decisions still pending
 - next recommended action
 
-The `Human Decision Summary` must include one recommended option, alternatives, whether each option writes files, the risk of each option, what Codex may do safely, what Codex must not do, and what happens if the human does nothing. Do not present technical status fields as the decision itself.
+The `Decision Responsibility Summary` must use exactly one of `NO_USER_ACTION`, `BUSINESS_FACT_NEEDED`, `REAL_WORLD_CONSENT_NEEDED`, or `EXTERNAL_FACT_NEEDED`. It must state the Codex recommendation and next automatic action without presenting technical options for the user to choose.

@@ -55,6 +55,31 @@ test("direct contradictory active guidance fails closed", () => {
   ), []);
 });
 
+test("implicit technical decisions in questions, menus, slogans, and sections fail closed", () => {
+  const contradictory = [
+    "Which platform profile should apply?",
+    "BL2 requires explicit human confirmation.",
+    "AI drafts. Humans decide.",
+    "Codex drafts. Humans confirm.",
+    "Choose BL0, BL1, or BL2 before continuing.",
+    "| Technical choice | User action |\n|---|---|\n| Platform profile | User confirms the selection |",
+    "If any Risk Gate item is checked, Human Approval must be recorded before implementation.",
+    "## Human-Only Decisions\n\n- technology stack approval\n- first vertical slice approval",
+  ];
+  for (const guidance of contradictory) {
+    assert.notEqual(analyzeActiveGuidanceConflicts(guidance).length, 0, guidance);
+  }
+});
+
+test("semantic hardcut preserves technical delegation and bounded real-world consent", () => {
+  const aligned = [
+    "Codex selects the profile and baseline; do not ask the user to confirm technical choices.",
+    "Ask for consent only before the prepared production deployment with rollback evidence.",
+    "Ask which refund period the business requires.",
+  ];
+  for (const guidance of aligned) assert.deepEqual(analyzeActiveGuidanceConflicts(guidance), [], guidance);
+});
+
 test("review inputs bind to the current context contract", () => {
   const binding = reviewContextBinding(authority);
   assert.match(binding.context_digest, /^sha256:[a-f0-9]{64}$/);

@@ -3010,11 +3010,8 @@ function checkOutputExperienceProtocol() {
   const combined = Object.values(files).join("\n");
   const requiredMarkers = [
     "Human first. Technical second. Machine last.",
-    "Human Decision Summary",
-    "Recommended choice",
-    "Writes project files?",
-    "What happens if you do nothing",
-    "Human Summary",
+    "Decision Responsibility Summary",
+    "User Summary",
     "Current Status",
     "What I Need From You",
     "Recommended Next Step",
@@ -3023,10 +3020,11 @@ function checkOutputExperienceProtocol() {
     "Technical Details",
     "Audit Notes",
     "Machine-readable Output",
-    "owner",
-    "developer",
-    "reviewer",
-    "audit",
+    "NO_USER_ACTION",
+    "BUSINESS_FACT_NEEDED",
+    "REAL_WORLD_CONSENT_NEEDED",
+    "EXTERNAL_FACT_NEEDED",
+    "Technical alternatives remain in Technical Details and are not a user menu",
     "Must stop",
     "Approval scope",
     "Review Packet",
@@ -3044,7 +3042,7 @@ function checkOutputExperienceProtocol() {
   }
 
   const workflowNext = read("scripts/workflow-next.mjs");
-  for (const marker of ["--format human", "--format technical", "## Human Decision Summary", "## Human Summary", "## Technical Details"]) {
+  for (const marker of ["--format human", "--format technical", "## Decision Responsibility Summary", "## User Input Needed", "## Technical Details"]) {
     if (workflowNext.includes(marker)) {
       pass(`workflow-next supports output marker ${marker}`);
     } else {
@@ -4298,7 +4296,7 @@ function checkGuidedDeliveryBaselineProtocol() {
 
   const productBaseline = read("core/product-baseline.md");
   for (const marker of [
-    "Human decides",
+    "IntentOS/Codex makes technical decisions",
     "Reports are not approvals",
     "Simulated evidence is not production evidence",
     "Industrial packs are selected-only",
@@ -4318,7 +4316,7 @@ function checkGuidedDeliveryBaselineProtocol() {
   }
 
   const assumptionRegister = read("core/assumption-register.md");
-  for (const marker of ["must not become", "PENDING_CONFIRMATION", "Needs human confirmation"]) {
+  for (const marker of ["must not become", "PENDING_CONFIRMATION", "User input class"]) {
     if (assumptionRegister.includes(marker)) pass(`assumption register includes ${marker}`);
     else fail(`assumption register missing ${marker}`);
   }
@@ -4429,7 +4427,7 @@ function checkProjectMemoryContextGovernanceProtocol() {
 
   const contextGovernance = read("core/context-governance.md");
   for (const marker of [
-    "Codex drafts. Humans confirm.",
+    "Codex derives technical context from project evidence",
     "Context Authority Order",
     "Only `CONFIRMED` context can become a project rule",
     "Model memory must not override Git-backed context",
@@ -4494,8 +4492,8 @@ function checkSafeLaunchProtocol() {
 
   const safeLaunch = read("core/safe-launch.md");
   for (const marker of [
-    "Codex may recommend readiness",
-    "Humans approve release",
+    "Codex determines technical readiness from current evidence",
+    "exact consent only to a prepared concrete release",
     "READY_FOR_DEMO",
     "READY_FOR_INTERNAL_HANDOFF",
     "READY_FOR_RELEASE_REVIEW",
@@ -18519,6 +18517,50 @@ function checkReviewContextAuthorityProtocol() {
   else fail(`1.99.2 review-context authority regression tests failed: ${tests.stderr || tests.stdout}`);
 }
 
+function checkActiveGuidanceSemanticHardcutProtocol() {
+  const required = [
+    "docs/plans/active-guidance-semantic-hardcut-1.104.1-plan.md",
+    "tests/active-guidance-semantic-hardcut.test.mjs",
+    "releases/1.104.1/release-record.md",
+    "releases/1.104.1/known-limitations.md",
+    "releases/1.104.1/self-check-report.md",
+  ];
+  for (const file of required) {
+    if (exists(file)) pass(`1.104.1 semantic hardcut asset exists: ${file}`);
+    else fail(`1.104.1 semantic hardcut asset missing: ${file}`);
+  }
+
+  const authority = JSON.parse(read("core/review-context-authority.json"));
+  const expectedClasses = [
+    "NO_USER_ACTION",
+    "BUSINESS_FACT_NEEDED",
+    "REAL_WORLD_CONSENT_NEEDED",
+    "EXTERNAL_FACT_NEEDED",
+  ];
+  if (authority.schemaVersion === "1.104.1") pass("1.104.1 review-context authority version is exact");
+  else fail("1.104.1 review-context authority version is not exact");
+  if (JSON.stringify(authority.currentProductContract?.userDecisionClasses) === JSON.stringify(expectedClasses)) {
+    pass("1.104.1 user decision classes are exact");
+  } else {
+    fail("1.104.1 user decision classes drifted");
+  }
+
+  for (const marker of [
+    "TECHNICAL_DECISION_DELEGATED_TO_USER",
+    "TECHNICAL_CONFIRMATION_REQUIRED",
+    "TECHNICAL_CHOICE_QUESTION",
+    "TECHNICAL_CHOICE_TABLE",
+    "BLANKET_TECHNICAL_APPROVAL_GATE",
+  ]) {
+    if (authority.forbiddenReviewInferences?.includes(marker)) pass(`1.104.1 authority forbids ${marker}`);
+    else fail(`1.104.1 authority does not forbid ${marker}`);
+  }
+
+  const focused = runNode(["--test", "tests/active-guidance-semantic-hardcut.test.mjs"]);
+  if (focused.status === 0) pass("1.104.1 active-guidance semantic regressions");
+  else fail(`1.104.1 active-guidance semantic regressions failed: ${focused.stderr || focused.stdout}`);
+}
+
 function checkExecutionAuthorityConsumerHardcutProtocol() {
   for (const file of [
     "docs/plans/execution-authority-consumer-hardcut-1.100-plan.md",
@@ -18799,6 +18841,7 @@ checkOperatingModelConsolidationProtocol();
 checkOperatingDecisionContractProtocol();
 checkProjectIdentityProjectionProtocol();
 checkReviewContextAuthorityProtocol();
+checkActiveGuidanceSemanticHardcutProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
 checkExecutionAuthorityConsumerHardcutProtocol();
 checkVerificationRuntimeTrustProtocol();

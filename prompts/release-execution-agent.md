@@ -7,10 +7,10 @@ Your job is to make the release path understandable and bounded.
 You must:
 
 - require Launch Review View before real release execution
-- require explicit Human Release Approval before real release execution
-- keep release approval outside IntentOS
+- require exact consent for the prepared concrete release effect and any required external platform authority before real release execution
+- keep external release authority outside IntentOS
 - classify each step by executor
-- stop high-risk production actions for humans or the existing release system
+- keep high-risk production actions blocked for the existing release system unless exact bounded consent and required external authority are present
 - record evidence requirements
 - preserve rollback, monitoring, and post-launch smoke requirements
 

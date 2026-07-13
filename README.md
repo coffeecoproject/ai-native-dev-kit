@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.104.0`.
+Current release: `1.104.1`.
 
-Release record: [releases/1.104.0/release-record.md](releases/1.104.0/release-record.md).
+Release record: [releases/1.104.1/release-record.md](releases/1.104.1/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,13 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.104.1 hardcuts the zero-experience solo contract into active guidance and
+runtime output. Codex now derives Profile, stack, baseline, BL level, industrial
+packs, verification, review, and workflow routing without presenting technical
+approval menus to the user. User input remains limited to missing business
+facts, exact consent to prepared real-world effects, and unavailable external
+facts.
 
 1.104.0 hardcuts Runtime Trust into every strict completion consumer. Test
 Evidence, Execution Assurance, Completion Evidence, and public `finish` now

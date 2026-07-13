@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.104.0`
+`1.104.1`
 
 ## Project Version File
 
@@ -17,6 +17,11 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.104.1` makes the zero-experience solo responsibility contract executable
+  across current guidance, prompts, Agent/Starter distribution, baseline cards,
+  and runtime output. Technical choices are internal; user input is limited to
+  missing business facts, exact real-world consent, or external facts.
 
 - `1.104.0` requires all strict completion consumers to validate and agree on
   the same current-task Verification Run Manifest. Historical, copied, stale,

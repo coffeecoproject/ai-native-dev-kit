@@ -37,12 +37,12 @@ node scripts/check-review-loop.mjs . --mode implementation --task tasks/<task>.m
 
 | Task Level | Review Loop Rule |
 | --- | --- |
-| L0 | Review Packet is not required. Final report is enough unless the human asks for review. |
+| L0 | Review Packet is not required. Final report is enough unless evidence or the user explicitly requests extra review. |
 | L1 | Codex self-check and verification are required. Review Loop is optional. |
 | L2 | Review Packet is required. One read-only reviewer pass is required. AUTO_FIX is limited to 2 rounds. |
-| L3 | Review Packet is required. Independent reviewer, GPT Pro, or human review is required. Codex may only fix deterministic issues. Risk, release, architecture, permission, migration, and production decisions require human approval. |
+| L3 | Review Packet is required. An independent reviewer, isolated subagent, second model, or project-native external reviewer is required. Codex may fix only bounded findings. Technical risk, architecture, permission, and migration treatment stays internal; exact user consent is required only before a prepared real-world effect. |
 
-If the task level is unclear, use the stricter applicable rule until the human confirms otherwise.
+If the task level is unclear, use the stricter applicable rule until evidence resolves it.
 
 For L2/L3 tasks, `scripts/check-workflow-artifacts.mjs --mode implementation --task <task>` also expects a matching Review Packet and Review Loop Report.
 
@@ -51,7 +51,7 @@ For L2/L3 tasks, `scripts/check-workflow-artifacts.mjs --mode implementation --t
 Every finding must use one of these categories:
 
 - AUTO_FIX: deterministic, low-risk fix inside approved task scope.
-- NEEDS_HUMAN_DECISION: requires scope, risk, approval, architecture, release, migration, dependency, or production judgment.
+- NEEDS_HUMAN_DECISION: compatibility category used only when a business fact, exact real-world consent, or external fact is unavailable.
 - NEEDS_CLARIFICATION: reviewer cannot decide from available evidence.
 - NO_ACTION: noted issue does not require a change; reason must be recorded.
 
@@ -105,21 +105,13 @@ Allowed examples:
 
 ## Forbidden Auto-Fix
 
-Convert to NEEDS_HUMAN_DECISION instead of auto-fixing when the finding needs:
+Keep technical findings inside internal review or mark them blocked by evidence. Convert to `NEEDS_HUMAN_DECISION` only when the finding needs:
 
-- scope expansion
-- new dependency
-- architecture change
-- permission model change
-- payment or value-transfer behavior
-- database migration
-- production configuration
-- release or rollback policy
-- Human Approval scope change
-- risk acceptance
-- Risk Gate bypass or rule weakening
+- an unavailable business rule or product preference
+- exact consent to a prepared production, cost, real-user, external-account, payment/value-transfer, or irreversible-data effect
+- an unavailable legal, tax, compliance, provider, account, or third-party fact
 
-If an auto-fix would modify Risk Gate, Human Approval, Approval scope, or any approval boundary, stop and route it to NEEDS_HUMAN_DECISION.
+If an auto-fix would weaken Risk Gate, evidence, or an approval boundary, stop automatic repair and route it to stricter internal review. Do not turn the technical question into a user decision.
 
 ## Rounds
 

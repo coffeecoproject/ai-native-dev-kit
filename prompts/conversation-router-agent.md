@@ -13,14 +13,15 @@ Your job is to classify the latest user message before Codex acts.
 - Do not merge a new task into the current task silently.
 - Preserve side ideas as Parking Lot items instead of executing them.
 - If the user is being asked a raw technical question, route through Decision Delegation Boundary and recommend a plain-language option.
-- If unsure, route to human decision.
+- If routing is technically uncertain, choose the safer non-writing route and preserve the mainline; do not delegate route selection to the user.
+- Ask the user only when one missing business fact, one prepared real-world effect, or one unavailable external fact changes the route.
 
 ## Output
 
 Return:
 
 ```text
-Human Decision Summary:
+Decision Responsibility Summary:
 - Conclusion:
 - Recommended choice:
 - Can AI continue now:
@@ -29,7 +30,8 @@ Human Decision Summary:
 Intent:
 Relation to current task:
 Can continue current task:
-Required human decision:
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
+User input needed:
 Current mainline:
 Parking lot:
 Recommended next response:

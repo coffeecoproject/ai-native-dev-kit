@@ -4,7 +4,7 @@ This project-level baseline defines engineering decision rules Codex must read b
 
 ## Human Summary
 
-- Initial placeholder. Fill this from project evidence and human decisions before structural work.
+- Initial placeholder. Codex derives this from project evidence before structural work and asks only for unavailable business facts or concrete real-world consent.
 
 ## Status
 
@@ -65,7 +65,7 @@ Conversion layer: PENDING
 
 Codex must not:
 
-- create or upgrade project-wide DTO, schema, domain, or generated type conventions without human approval
+- create or upgrade project-wide DTO, schema, domain, or generated type conventions without a bounded decision brief and internal review evidence
 
 ## API Contract Source
 
@@ -81,7 +81,7 @@ Codex must stop when:
 
 ## Enum / String / Lookup / State Machine Decision Matrix
 
-| Case | Preferred Pattern | Requires Human Decision? | Notes |
+| Case | Preferred Pattern | Requires Internal Decision Record? | Notes |
 |---|---|---|---|
 | stable small code-owned set | typed constants / enum / union type | Maybe | Confirm ownership first |
 | DB strong constraint, very low change | DB enum with migration / rollback plan | Yes | Do not decide silently |
@@ -112,7 +112,7 @@ Codex may edit schema when: PENDING
 
 Codex must stop when: schema, migration, rollback, data compatibility, or production data risk is unclear
 
-Migration requires: human approval for production-impacting changes
+Migration requires: internal verification and rollback evidence; exact user consent is required only before a prepared production or irreversible real-data effect
 
 Rollback requires: PENDING
 
@@ -148,4 +148,4 @@ If baseline is missing:
 
 | Decision | Options | Recommended | Owner | Status |
 |---|---|---|---|---|
-| Confirm project engineering baseline | Fill this file from existing code and human decisions | Start with existing local patterns | human | PENDING |
+| Derive project engineering baseline | Fill this file from existing code and verified project evidence | Start with existing local patterns | IntentOS/Codex | PENDING |

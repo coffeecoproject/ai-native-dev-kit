@@ -10,8 +10,8 @@ It exists so Codex can say:
 This project appears to be BL1 web + backend.
 These packs are candidates.
 These packs are not selected.
-These risks require human decision before BL2.
-AI cannot enable packs or write project files yet.
+These risks require stronger evidence before BL2.
+Codex cannot enable packs or write project files until internal gates pass.
 ```
 
 ## Core Rule
@@ -20,9 +20,9 @@ Baseline packs are selected by project need, not by availability.
 
 Codex must not:
 
-- select every pack by default
+- do not select every pack by default
 - treat draft packs as stable defaults
-- turn BL2 on without human confirmation
+- turn BL2 on without evidence, compatibility, and internal baseline gates
 - treat a recommendation as approval
 - treat a pack selection as target-project write approval
 - treat pack files as real project evidence
@@ -35,9 +35,9 @@ Codex must not:
 4. Primary platform packs
 5. Capability packs
 6. Risk overlay packs
-7. Evidence and human decision
+7. Evidence and internal baseline decision
 
-Each layer can narrow the next layer. A later layer must not silently override an earlier human decision.
+Each layer can narrow the next layer. A later layer must not silently override project-owned evidence or a stricter verified rule.
 
 ## Baseline Levels
 
@@ -45,7 +45,7 @@ Each layer can narrow the next layer. A later layer must not silently override a
 |---|---|
 | `BL0_LIGHTWEIGHT` | Keep packs off by default. Mention candidates only if a task touches relevant risk. |
 | `BL1_STANDARD` | Use selected profiles and project docs. Industrial packs may guide review but are not active unless selected. |
-| `BL2_INDUSTRIAL` | Require explicit selected packs, evidence refs, review loop, and human approval. |
+| `BL2_INDUSTRIAL` | Require explicit selected packs, evidence refs, review loop, compatibility, and internal readiness. |
 
 ## Pack Types
 
@@ -53,7 +53,7 @@ Each layer can narrow the next layer. A later layer must not silently override a
 |---|---|
 | Primary platform | Match the runtime being delivered. |
 | Capability | Select only when the capability exists in the project scope. |
-| Risk overlay | Select only when the risk exists and the human accepts the stricter path. |
+| Risk overlay | Select only when the risk exists and the stricter internal path is evidenced. |
 
 ## Required Report
 
@@ -61,23 +61,23 @@ When baseline pack selection affects a task, create a Baseline Pack Selection Re
 
 Minimum report sections:
 
-- Human Summary
+- Decision Responsibility Summary
 - Project Classification
 - Baseline Level
 - Selected Profiles
 - Recommended Pack Set
 - Not Selected
 - Evidence Required
-- Human Decision
+- Internal Decision And User Input Class
 - Boundary
 
-## Human Decision States
+## Compatibility Decision States
 
 | State | Meaning |
 |---|---|
-| `PENDING` | Codex may recommend, but cannot apply. |
-| `APPROVED` | Human accepted the recorded baseline pack decision. |
-| `REJECTED` | Human rejected the recorded decision. |
+| `PENDING` | Evidence or internal readiness is incomplete; Codex cannot apply. |
+| `APPROVED` | Legacy artifact says approved; current consumers must still verify evidence and may not treat this as technical user authority. |
+| `REJECTED` | Legacy artifact rejected the recorded decision. |
 
 `APPROVED` still does not approve implementation, release, production, payment, privacy, security, compliance, migrations, or target-project writes.
 
@@ -95,13 +95,12 @@ BL2 evidence normally includes:
 
 ## Output Rule
 
-Codex should give the human a small decision, not a technical burden:
+Codex gives one recommendation and continues internally rather than exposing a technical menu:
 
 ```text
 Recommended: BL1 with web-app and backend-api profiles.
 Do not enable BL2 yet.
 If this becomes production/customer-facing, consider web-app-industrial + backend-api-industrial + auth-permission-industrial.
-Human decision needed: confirm profile and BL level.
+User decision class: NO_USER_ACTION.
 AI can write now: No.
 ```
-

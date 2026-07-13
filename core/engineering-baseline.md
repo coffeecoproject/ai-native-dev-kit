@@ -83,12 +83,12 @@ L0 / L1:
 L2:
 
 - baseline must be checked when work touches structure, types, contracts, schema, state, permission, migration, or shared abstractions
-- missing critical baseline decisions should route to a Decision Brief or Human Decisions Needed
+- missing critical baseline decisions should route to a Decision Brief and internal review
 
 L3:
 
 - baseline must be checked
-- missing critical sections block implementation until humans confirm the decision or accepted exception
+- missing critical sections block implementation until project evidence, a bounded decision brief, and internal review establish the decision or exception
 
 ## Review Integration
 

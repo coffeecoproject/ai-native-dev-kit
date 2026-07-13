@@ -121,7 +121,7 @@ function buildRecommendation(targetRoot, workflow) {
       "Do not create or edit .env files.",
       "Do not record secret values, private keys, tokens, production credentials, or connection strings with embedded credentials.",
       "Do not modify CI/CD, deployment, production config, AGENTS.md, PR templates, migrations, permissions, or release paths through baseline setup.",
-      "Do not enable BL2 or install industrial packs without explicit human confirmation.",
+      "Do not enable BL2 or install industrial packs without evidence, compatibility, and internal baseline gates.",
       "Do not invent staging, production, rollback, monitoring, or release ownership when evidence is missing.",
     ],
     suggestedWritePlanCommand: `node scripts/baseline-project.mjs ${shellQuote(targetRoot)} --write-plan baseline-recommendations/baseline-plan.json`,
@@ -251,17 +251,17 @@ function recommendBaselineLevel(classification, profiles) {
     return {
       level: "BL1",
       safeActionLevel: classification === "DIRTY_WORKTREE_PROJECT" ? "READ_ONLY_UNTIL_WORKTREE_DECISION" : "BL1 read-only mapping",
-      targetCandidateLevel: "BL2 candidate after human confirmation and evidence",
-      reason: "Existing governance, production, or dirty-worktree signals require visible baseline decisions before implementation. Current safe action stays BL1/read-only; BL2 remains a candidate only after explicit evidence and human confirmation.",
+      targetCandidateLevel: "BL2 candidate after evidence and internal review",
+      reason: "Existing governance, production, or dirty-worktree signals require visible baseline decisions before implementation. Current safe action stays BL1/read-only; Codex activates BL2 only after evidence, compatibility, and internal review pass.",
       industrialPacks: "None by default",
     };
   }
   if (classification === "NEW_PROJECT") {
     return {
-      level: "BL0 first, then BL1 after platform and project goal confirmation",
+      level: "BL0 first, then BL1 after platform and project goal derivation",
       safeActionLevel: "BL0 discovery",
       targetCandidateLevel: "none",
-      reason: "New projects should start light, then confirm engineering and environment rules before non-trivial work.",
+      reason: "New projects should start light, then Codex derives and verifies engineering and environment rules before non-trivial work.",
       industrialPacks: "None by default",
     };
   }
@@ -299,8 +299,8 @@ function baselineGaps(level, engineeringBaseline, environmentBaseline) {
 function pendingHumanDecisions(classification, profiles, level, gaps) {
   const decisions = [];
   if (profiles.some((item) => item.id === "unknown")) decisions.push("Describe the product target in plain language because Codex cannot yet identify a platform safely.");
-  if (classification === "PRODUCTION_SENSITIVE_PROJECT") decisions.push("Confirm the unresolved production owner or material-risk recommendation before any apply.");
-  if (/BL2/.test(level.level)) decisions.push("Accept or reject Codex's plain-language BL2 recommendation and its concrete industrial scope.");
+  if (classification === "PRODUCTION_SENSITIVE_PROJECT") decisions.push("No technical user choice: Codex must reconcile production authority and material risk before apply; request exact consent only for a prepared production effect.");
+  if (/BL2/.test(level.level)) decisions.push("No technical user choice: Codex derives the smallest BL2 scope and proves it through internal baseline gates.");
   if (decisions.length === 0 && gaps.some((item) => /Engineering|Environment/.test(item))) {
     decisions.push("No technical choice is required from you now; Codex should prepare the bounded baseline gap plan and ask only if project evidence cannot resolve a material decision.");
   }
@@ -319,7 +319,7 @@ function highRiskAreas(classification, targetRoot) {
     ["secret", /\.env|secret|credential|key/i, "Secret or env file names detected. Values must not be read into baseline docs."],
   ];
   for (const [id, pattern, reason] of signals) {
-    if (rels.some((item) => pattern.test(item))) areas.push({ id, reason, status: "NEEDS_HUMAN_CONFIRMATION_BEFORE_WRITE" });
+    if (rels.some((item) => pattern.test(item))) areas.push({ id, reason, status: "NEEDS_INTERNAL_REVIEW_BEFORE_WRITE" });
   }
   if (classification === "PRODUCTION_SENSITIVE_PROJECT") {
     areas.push({ id: "production", reason: "Production-sensitive project classification.", status: "READ_ONLY_FIRST" });
@@ -349,7 +349,7 @@ function buildWritePlan(report) {
   const writes = [
     {
       path: "docs/engineering-baseline.md",
-      reason: "Draft or refresh project engineering baseline for human confirmation.",
+      reason: "Draft or refresh the project engineering baseline for internal evidence review.",
       overwrite: false,
       content: fillTemplate("templates/engineering-baseline.md", report),
     },
@@ -400,7 +400,7 @@ function fillTemplate(templateRel, report) {
   content = content.replace("<date>", new Date().toISOString().slice(0, 10));
   content = content.replace("<detected-profile-candidates>", report.detectedProfileCandidates.map((item) => `${item.id} (${item.status})`).join(", "));
   content = content.replace("<recommended-bl-level>", report.recommendedBaselineLevel.level);
-  content = content.replace("<baseline-generated-summary>", `Generated from baseline recommendation. Can AI write now: No. Human confirmation is required before use as an approved project standard.`);
+  content = content.replace("<baseline-generated-summary>", `Generated from baseline recommendation. It becomes active only after project evidence and internal baseline checks pass.`);
   return content;
 }
 
@@ -421,19 +421,17 @@ function renderRecommendationMarkdown(report) {
   const lines = [
     "# Baseline Recommendation",
     "",
-    "## Human Decision Summary",
+    "## Decision Responsibility Summary",
     "",
     `Conclusion: ${decision.conclusion}`,
     "",
-    `Recommended choice: ${decision.recommendedChoice}`,
+    `Next automatic action: ${decision.recommendedChoice}`,
     "",
     `Can AI continue now: ${decision.canAiContinue}`,
     "",
-    `What I need from you: ${decision.needFromHuman}`,
+    `User decision class: ${decision.userDecisionClass}`,
     "",
-    "| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |",
-    "|---|---|---|---|---|---|",
-    ...decision.options.map((item) => `| ${mdCell(item.option)} | ${mdCell(item.meaning)} | ${mdCell(item.aiWillDo)} | ${mdCell(item.writes)} | ${mdCell(item.risk)} | ${mdCell(item.when)} |`),
+    `What I need from you: ${decision.needFromHuman}`,
     "",
     `Recommended reason: ${decision.reason}`,
     "",
@@ -449,7 +447,7 @@ function renderRecommendationMarkdown(report) {
     "|---|---|",
     `| Can AI write now | ${report.canAiWriteNow} |`,
     "| Default behavior | Read-only recommendation |",
-    "| Write flow | write-plan -> human review -> apply-plan |",
+    "| Write flow | write-plan -> internal review/readiness -> apply-plan |",
     "",
     "## Profile Candidates",
     "",
@@ -468,7 +466,7 @@ function renderRecommendationMarkdown(report) {
     "",
     ...report.gapSummary.map((item) => `- ${item}`),
     "",
-    "## Pending Human Decisions",
+    "## User Input Needed",
     "",
     ...report.pendingHumanDecisions.map((item) => `- ${item}`),
     "",
@@ -478,7 +476,7 @@ function renderRecommendationMarkdown(report) {
     "",
     "## Safe Next Actions",
     "",
-    "| Action | Command | Writes | Requires human confirmation |",
+    "| Action | Command | Writes | Internal readiness required |",
     "|---|---|---|---|",
     ...report.safeNextActions.map((item) => `| ${item.label} | \`${item.command}\` | ${item.writes} | ${item.requiresHumanConfirmation} |`),
     "",
@@ -516,13 +514,23 @@ function buildBaselineDecisionSummary(report) {
   const recommendedAction = chooseRecommendedBaselineAction(report, actions);
   return {
     conclusion: `This project is classified as ${report.projectClassification}; current safe action is ${report.recommendedBaselineLevel.safeActionLevel || report.recommendedBaselineLevel.level}; target candidate level is ${report.recommendedBaselineLevel.targetCandidateLevel || "none"}.`,
-    recommendedChoice: recommendedAction ? `${optionLetterFor(options, recommendedAction)} - ${recommendedAction.label}` : "A - Read baseline recommendation",
+    recommendedChoice: recommendedAction?.label || "Read baseline recommendation",
     canAiContinue: report.canAiWriteNow === "Yes" ? "yes" : "limited",
-    needFromHuman: report.pendingHumanDecisions?.[0] || "Confirm the baseline path.",
+    userDecisionClass: baselineUserDecisionClass(report),
+    needFromHuman: report.pendingHumanDecisions?.find((item) => !item.startsWith("No technical user choice")) || "Nothing. Codex derives and verifies the baseline path.",
     options,
     reason: report.recommendedBaselineLevel.reason,
     ifNothing: "Codex should keep baseline setup read-only and avoid project-wide engineering, environment, release, or production assumptions.",
   };
+}
+
+function baselineUserDecisionClass(report) {
+  const input = (report.pendingHumanDecisions || []).find((item) => !item.startsWith("No technical user choice"));
+  if (!input) return "NO_USER_ACTION";
+  if (/product target|business/i.test(input)) return "BUSINESS_FACT_NEEDED";
+  if (/production|cost|real-world|irreversible/i.test(input)) return "REAL_WORLD_CONSENT_NEEDED";
+  if (/legal|tax|compliance|provider|third-party/i.test(input)) return "EXTERNAL_FACT_NEEDED";
+  return "BUSINESS_FACT_NEEDED";
 }
 
 function chooseRecommendedBaselineAction(report, actions) {

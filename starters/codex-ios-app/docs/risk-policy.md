@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define which changes are low-risk, which changes need review, and which changes require explicit human approval before implementation.
+Define which changes are low-risk, which need stricter internal review, and which prepared real-world effects require exact user consent before execution.
 
 ## Risk Levels
 

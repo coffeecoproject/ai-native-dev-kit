@@ -36,7 +36,7 @@ Use it when writing human-facing reports, decision briefs, onboarding notes, rev
 
 | Term | Plain meaning |
 |---|---|
-| Project Onboarding | The step where AI drafts project context and humans confirm direction, stack, risks, and first slice. |
+| Project Onboarding | The step where Codex derives project context, stack, risks, and first slice from business intent and project evidence; the user supplies only unavailable business or external facts. |
 | O0 | Lightweight onboarding for experiments and low-risk work. |
 | O1 | Standard onboarding for real projects. |
 | O2 | Strict onboarding for production, shared, sensitive, or long-lived projects. |

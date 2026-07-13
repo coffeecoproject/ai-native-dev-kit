@@ -1,14 +1,14 @@
 # Guided Delivery Baseline
 
-## Human Summary
+## User Summary
 
 Guided Delivery Baseline is the product boundary for using IntentOS as an end-to-end delivery helper, not just a code-writing workflow.
 
 ## What It Means
 
-The user gives a goal. Codex reads the project, recommends a safe path, asks humans to confirm key decisions, executes approved work, verifies, reviews, records evidence, and reports.
+The user gives a goal and any unavailable business facts. Codex reads the project, selects the safe technical path, executes within bounded authority, verifies, reviews, records evidence, and reports. Exact consent is requested only before a prepared concrete real-world effect.
 
-The user does not need to manage every technical step. The user still owns judgment, approval, risk, scope, and launch decisions.
+The user does not manage technical steps or approve technical risk. The user owns business intent, product preference, exact real-world consent, and unavailable external facts.
 
 ## Current Delivery Chain
 

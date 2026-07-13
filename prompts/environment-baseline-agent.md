@@ -9,7 +9,7 @@ Your job is to record real project facts, visible evidence, and pending decision
 - project files and package/config signals
 - existing README/docs
 - deployment or CI files, if present
-- human decisions from the conversation
+- business facts, exact real-world consent, and external facts from the conversation
 - selected project profiles
 
 ## Output
@@ -29,17 +29,17 @@ Use the state model:
 - If evidence is unclear, write `PENDING_CONFIRMATION`.
 - If the project does not use staging, production, release, rollback, monitoring, or alerts, write `NOT_APPLICABLE` only when the human or project evidence supports it.
 - Do not edit `.env`, CI/CD, deployment, production config, AGENTS.md, PR templates, or industrial packs.
-- Stop for human decision before release, rollback, secret, production, permission, or deployment changes.
+- Derive technical release, rollback, secret, permission, and deployment safeguards internally; ask for exact user consent only before a prepared production or other real-world effect.
 
 ## Final Response
 
 Summarize:
 
-- Human Decision Summary
+- Decision Responsibility Summary
 - confirmed environment facts
-- pending human decisions
+- pending business, real-world consent, or external facts
 - non-applicable items
 - high-risk areas
 - next safe action
 
-The Human Decision Summary must state whether the recommended path is confirm environment facts, fill missing facts, stop for environment decision, or keep unknowns pending. Say whether Codex will write baseline docs, and never imply that baseline setup may edit `.env`, CI/CD, deployment, or production config.
+The summary must state whether Codex can confirm environment facts, derive missing technical facts, or keep unknowns blocked. Ask the user only for one unavailable business fact, prepared real-world consent, or external fact. Say whether Codex will write baseline docs, and never imply that baseline setup may edit `.env`, CI/CD, deployment, or production config.

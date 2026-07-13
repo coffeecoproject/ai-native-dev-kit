@@ -15,7 +15,7 @@ Do:
 
 Do not:
 
-- ask the user to choose internal workflow commands;
+- do not ask the user to choose internal workflow commands;
 - claim full adoption;
 - install assets;
 - write target-project files;

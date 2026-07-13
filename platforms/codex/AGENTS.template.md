@@ -65,7 +65,7 @@ For bootstrap work, first use `.intentos/prompts/bootstrap-agent.md` when presen
 node scripts/start-project.mjs .
 ```
 
-Use `workflow-next` as the lower-level state detector when needed. Follow the reported `NEXT_ACTION`. Stop for human approval before applying any migration report.
+Use `workflow-next` as the lower-level state detector when needed. Follow the reported `NEXT_ACTION`. A migration report may be applied only after its bounded plan, authority comparison, rollback, and controlled-readiness checks pass; do not ask the user to approve its technical contents.
 
 If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not write target files. Create or update real adoption evidence first:
 
@@ -168,7 +168,7 @@ node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <cle
 node scripts/cli.mjs apply-readiness-check .
 ```
 
-Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversible, verifiable, and still requires explicit human approval. It does not execute writes, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
+Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversible, verifiable, and authorized by the user's requested outcome. It does not execute writes, authorize production or external effects, install hooks, modify CI, archive files, change source of truth, or enable industrial packs by itself.
 
 ## Project Hook Policy
 
@@ -213,9 +213,7 @@ When a task card exists:
 
 Before the first non-trivial implementation, use `.intentos/prompts/project-onboarding-agent.md` to draft project onboarding documents from conversation.
 
-AI drafts. Humans decide.
-
-Do not ask the human to manually fill all onboarding files. Ask focused questions, propose options, record assumptions, and request confirmation.
+Codex derives and verifies technical onboarding decisions. Do not ask the user to manually fill onboarding files or confirm profiles, stacks, baselines, or internal workflow choices. Ask only for an unavailable business fact, product preference, exact real-world consent, or external fact.
 
 Required docs:
 
@@ -246,7 +244,7 @@ node scripts/check-engineering-baseline.mjs .
 
 Codex may follow existing local patterns for low-risk local changes.
 
-Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval.
+Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth, a bounded decision brief, and the required internal review evidence.
 
 If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.
 
@@ -326,7 +324,7 @@ For high-risk implementation, run:
 node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>
 ```
 
-If any Risk Gate item is checked, `Human Approval` status and `Approval scope` must be recorded before implementation.
+If any Risk Gate item is checked, IntentOS must derive the stricter task route, verification, review, evidence, rollback, and apply boundaries before implementation. A user decision is required only for an unavailable business fact or one prepared real-world effect.
 
 If artifact quality fails, fix the workflow artifacts before writing code.
 
@@ -362,7 +360,7 @@ node scripts/check-change-boundary.mjs . --report <change-boundary-report>
 node scripts/check-baseline-state.mjs . --report <baseline-state-report>
 ```
 
-Do not claim a no-code or new-project baseline is implemented, verified, production-ready, or confirmed without evidence or a human-confirmed source.
+Do not claim a no-code or new-project baseline is implemented, verified, production-ready, or confirmed without project-owned evidence or a verifiable external fact.
 
 ## Goal Mode
 
@@ -567,7 +565,7 @@ For dirty production-governed projects, respect `workflow-next` when it returns 
 - L1/L2/L3 work should create an AI task log.
 - Daily automation should be scoped to this project root and may run `scripts/workflow-daily-summary.mjs`, but should only create draft workflow files when it reports `ACTION_REQUIRED`.
 - Repeated workflow problems should become workflow improvements before intentos changes.
-- Repeated execution patterns may become Skill candidates, but active Skills must not be created, updated, installed, or enabled without explicit human approval.
+- Repeated execution patterns may become Skill candidates. Installing or enabling an active Skill requires a bounded plan and internal verification; ask for user consent only when it changes an external account, persistent environment, cost, or other concrete real-world effect.
 - Proposed intentos changes must pass proposal review and `check-intentos.mjs`.
 
 ## Skill Governance
@@ -578,7 +576,7 @@ Use `.intentos/templates/skill-candidate.md` for candidate drafts and `.intentos
 
 - Codex may propose project-scoped automations during setup, release preparation, or workflow review.
 - Proposals must be written in `automation-proposals/` using `.intentos/templates/project-automation-proposal.md`.
-- Do not create, update, resume, delete, or enable Codex App automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.
+- Do not create, update, resume, delete, or enable a Codex App automation until its exact project root, schedule, prompt, allowed writes, initial status, rollback, and real-world effect are prepared. Ask the user for consent to that concrete scheduled effect, not for technical configuration choices.
 - Do not attach project automation to a parent directory unless the user explicitly approves a multi-project monitor.
 
 ## Final Report

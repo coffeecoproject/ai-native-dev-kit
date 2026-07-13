@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.104.0",
+  "intentOSVersion": "1.104.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.104.0"
+    "phase": "1.104.1"
   },
   "groups": {
     "sourceRequired": [
@@ -3020,7 +3020,12 @@
       "releases/1.104.0/release-record.md",
       "releases/1.104.0/self-check-report.md",
       "scripts/lib/verification-runtime-consumer.mjs",
-      "tests/verification-runtime-consumer.test.mjs"
+      "tests/verification-runtime-consumer.test.mjs",
+      "tests/active-guidance-semantic-hardcut.test.mjs",
+      "docs/plans/active-guidance-semantic-hardcut-1.104.1-plan.md",
+      "releases/1.104.1/known-limitations.md",
+      "releases/1.104.1/release-record.md",
+      "releases/1.104.1/self-check-report.md"
     ],
     "targetCore": [
       ".github/pull_request_template.md",

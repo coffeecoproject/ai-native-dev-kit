@@ -23,13 +23,13 @@ The output is a Baseline Decision Card.
 The card answers:
 
 - what Codex thinks the project is
-- which baseline level is recommended
+- the evidence-derived recommended baseline level
 - the current safe action versus any target candidate level
-- which platform profiles are selected, present but unconfirmed, deferred, or not detected
-- which standard packs are recommended
-- which industrial packs are candidate-only
-- which packs are deliberately not selected
-- which decisions the human must confirm
+- the evidence-derived platform states: selected, present but not evidenced, deferred, or not detected
+- the standard packs Codex selected
+- the industrial packs that remain candidate-only
+- the packs Codex deliberately did not select
+- whether one business fact, exact real-world consent, or external fact is unavailable
 - what Codex can safely do next
 - what Codex must not do
 
@@ -56,7 +56,7 @@ Codex must not treat a recommendation as approval.
 Codex must not:
 
 - enable BL2 by default
-- select all packs by default
+- treat every pack as selected by default
 - approve target-project writes
 - approve implementation
 - approve release or production
@@ -72,13 +72,13 @@ Codex must not:
 | Standard | `BL1_STANDARD` | Normal project baseline for serious Web, app, Mini Program, backend, or admin work. |
 | Industrial | `BL2_INDUSTRIAL` | Stronger governance for production, customer data, permission, payment, release, migration, or high-risk work. |
 
-BL2 is never a quality badge. It is a heavier governance mode that requires evidence and human confirmation.
+BL2 is never a quality badge. It is a heavier governance mode that requires evidence, compatibility, and internal baseline readiness.
 
 For production-sensitive, governed, dirty, or high-risk projects, the card must separate:
 
 ```text
 current safe action: usually BL1/read-only mapping or read-only until worktree decision
-target candidate level: BL2_INDUSTRIAL only after evidence and human confirmation
+target candidate level: BL2_INDUSTRIAL only after evidence and internal readiness
 ```
 
 This avoids presenting BL2 as already selected.
@@ -91,9 +91,9 @@ Use these states:
 
 | State | Meaning |
 |---|---|
-| `selected-confirmed` | Human/project docs already selected the profile. |
+| `selected-confirmed` | Project-owned evidence already selected the profile. |
 | `selected-inferred` | Codex inferred the profile from strong project evidence. |
-| `present-needs-confirmation` | The platform appears in the repo, but this phase does not confirm it should be active. |
+| `present-needs-evidence` | The platform appears in the repo, but current evidence does not establish it as active. |
 | `present-inactive-or-deferred` | The platform appears in the repo and local evidence suggests it is not active in this phase. |
 | `not-detected` | No meaningful signal was found. |
 
@@ -103,17 +103,17 @@ Do not treat every platform directory in a monorepo as active for the current ta
 
 | User label | Default Codex behavior |
 |---|---|
-| New empty project | Recommend platform and rigor, then ask before initialization. |
+| New empty project | Derive platform and rigor, then initialize after internal checks. |
 | Existing light project | Review gaps first; avoid full overwrite. |
 | Existing governed project | Read existing governance and map to it first. |
-| Production-sensitive project | Stay read-only unless controlled apply is approved. |
-| Dirty worktree | Stop before writes and ask how to handle current changes. |
+| Production-sensitive project | Stay read-only until controlled apply readiness passes. |
+| Dirty worktree | Preserve all current changes and stay read-only until ownership and scope are evidenced. |
 
 ## Decision Card Rules
 
 Every Baseline Decision Card must include:
 
-- `Human Summary`
+- `Decision Responsibility Summary`
 - `Project State`
 - `Platform And Scope`
 - `Platform States`
@@ -121,12 +121,12 @@ Every Baseline Decision Card must include:
 - `Recommended Standard Packs`
 - `Candidate Industrial Packs`
 - `Not Selected`
-- `Human Decisions Needed`
+- `User Input Needed`
 - `Safe Next Actions`
 - `Boundary`
 - `Evidence`
 
-Normal cards should ask 3 to 5 human questions.
+Normal cards should ask no technical questions. They may ask one concise business, real-world-consent, or external-fact question only when evidence cannot supply it.
 
 The card must always state that it does not approve target-project writes, implementation, release, production, high-risk domain decisions, or real-project evidence.
 
@@ -136,13 +136,13 @@ Standard packs can be recommended from project signals.
 
 Industrial packs can be candidates from risk signals.
 
-Industrial packs are not active until BL2, selected pack set, evidence gaps, residual risk, and human confirmation are recorded.
+Industrial packs are not active until BL2, selected pack set, evidence gaps, residual risk, compatibility, and internal readiness are recorded.
 
 ## Final Boundary
 
-Codex recommends.
+Codex derives, recommends, and verifies technical controls.
 
-Human decides.
+The user supplies business reality and exact real-world consent only.
 
 Workflow controls whether Codex may write.
 
