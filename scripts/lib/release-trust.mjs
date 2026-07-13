@@ -13,6 +13,7 @@ import {
 } from "./evidence-authority.mjs";
 import { sectionBody } from "./markdown.mjs";
 import { validateSpecificHumanApprover } from "./approval-record-validation.mjs";
+import { validateReleaseTopologySource } from "./release-topology-consumer.mjs";
 
 export const REQUIRED_BLOCKED_RELEASE_ACTIONS = [
   "PRODUCTION_DEPLOY",
@@ -111,6 +112,17 @@ export function validateReleaseApprovalTrust(projectRoot, approvalFile, evidence
     const resolved = resolveBoundFile(projectRoot, approvalFile, source?.ref, source?.digest, label, errors);
     if (resolved) resolvedSources[key] = resolved;
   }
+  const topologySource = evidence.trust_sources?.release_execution_topology;
+  if (options.requireTopology && !topologySource) {
+    errors.push("Release Execution Topology trust source is required");
+  } else if (topologySource) {
+    const topology = validateReleaseTopologySource(projectRoot, approvalFile, topologySource, {
+      expectedSourceRevision: evidence.release_candidate?.source_revision,
+      requireReady: true,
+    });
+    if (topology.ok) resolvedSources.releaseTopology = topology.resolved;
+    else errors.push(...topology.errors);
+  }
   for (const [key, source, label] of [
     ["platformRecipe", evidence.trust_sources?.platform_recipe, "Platform Release Recipe"],
     ["releaseHandoff", evidence.trust_sources?.release_handoff_pack, "Release Handoff Pack"],
@@ -138,8 +150,30 @@ export function validateReleaseApprovalTrust(projectRoot, approvalFile, evidence
   checkReleaseChannel(evidence, resolvedSources.releaseChannel, errors);
   checkPlatformRecipe(evidence, resolvedSources.platformRecipe, errors);
   checkReleaseHandoff(evidence, resolvedSources.releaseHandoff, errors);
+  checkTopologyAgreement(evidence, resolvedSources.releaseEvidence, resolvedSources.runtimeHygiene, errors, options.requireTopology);
 
   return { ok: errors.length === 0, errors, resolvedSources };
+}
+
+function checkTopologyAgreement(approval, releaseEvidenceResolved, runtimeResolved, errors, required) {
+  const expected = approval.trust_sources?.release_execution_topology;
+  if (!expected) return;
+  for (const [label, resolved] of [["Release Evidence Gate", releaseEvidenceResolved], ["Runtime Hygiene", runtimeResolved]]) {
+    const evidence = readEvidence(resolved, label, errors);
+    const actual = label === "Release Evidence Gate"
+      ? (evidence?.source_chain || []).find((item) => item.name === "release_execution_topology")
+      : evidence?.release_trust_binding && {
+        ref: evidence.release_trust_binding.release_execution_topology_ref,
+        digest: evidence.release_trust_binding.release_execution_topology_digest,
+      };
+    if (!actual?.ref || !actual?.digest) {
+      if (required) errors.push(`${label} does not bind Release Execution Topology`);
+      continue;
+    }
+    if (normalizeComparableRef(actual.ref) !== normalizeComparableRef(expected.ref) || actual.digest !== expected.digest) {
+      errors.push(`${label} Release Execution Topology binding does not match approval`);
+    }
+  }
 }
 
 export function normalizeArtifactRef(value) {

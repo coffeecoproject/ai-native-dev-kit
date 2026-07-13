@@ -104,6 +104,8 @@ exact evidence work. Ordinary users should not choose among them.
 | `node scripts/cli.mjs release-evidence-check <project>` | Check recorded Release Evidence Gate reports for release candidate identity, target-specific evidence, source binding, owner/approval split, and no-release-approval boundaries | No |
 | `node scripts/cli.mjs release-channel <project> --intent "<goal>"` | Decide release-channel policy while keeping Git/GitHub source identity separate from release package and release execution | No by default; writes only the requested report file with `--out` |
 | `node scripts/cli.mjs release-channel-check <project>` | Check recorded Release Channel Policy reports for source/release separation, owner timing, cost/retention boundaries, and optional strict source binding | No |
+| `node scripts/cli.mjs release-topology <project> --intent "<goal>"` | Derive the six-plane release execution topology without treating transport as the executor | No by default; writes only the requested report under `release-execution-topologies/` with `--out` |
+| `node scripts/cli.mjs release-topology-check <project>` | Strictly validate topology identity, source digests, capabilities, and no-authority boundaries | No |
 | `node scripts/cli.mjs conversation-drift <project>` | Check conversation turn routing and scope-change governance | No |
 | `node scripts/cli.mjs guided-delivery <project>` | Check active work thread, parking lot, and guided decision boundaries | No |
 | `node scripts/cli.mjs first-delivery <project>` | Check First Delivery Walkthrough and Adoption Trial evidence | No |
@@ -540,3 +542,11 @@ Target projects normally do not need to run intentos-only checks.
 Strict consumer checks use `--require-runtime-trust` on Test Evidence,
 Execution Assurance, and Completion Evidence. Public `finish` consumes Runtime
 Trust automatically and does not ask the ordinary user to select evidence.
+
+## Release Topology Governance
+
+- `scripts/resolve-release-execution-topology.mjs`: derives the current six-plane release topology.
+- `scripts/check-release-execution-topology.mjs`: validates topology identity, capabilities, source chain, and no-authority boundaries.
+- `scripts/lib/release-topology-consumer.mjs`: gives strict release consumers one shared current-topology validator.
+- `scripts/resolve-release-topology-migration.mjs`: prepares a read-only migration-stage report.
+- `scripts/check-release-topology-migration.mjs`: validates stage-specific apply, rehearsal, cutover, post-cutover, and retirement evidence.

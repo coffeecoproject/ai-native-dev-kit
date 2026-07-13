@@ -27,6 +27,8 @@ const knownFlags = new Set([
   "release-plan-ref",
   "platform-recipe-ref",
   "release-handoff-ref",
+  "release-topology-ref",
+  "require-release-topology",
   "existing-release-rule-ref",
   "existing-release-rule-state",
   "build-artifact-ref",
@@ -243,6 +245,7 @@ function buildSourceChain(root, completionRefs) {
     ["release_plan", args["release-plan-ref"]],
     ["platform_release_recipe", args["platform-recipe-ref"]],
     ["release_handoff_pack", args["release-handoff-ref"]],
+    ["release_execution_topology", args["release-topology-ref"]],
     ["existing_release_rule", args["existing-release-rule-ref"]],
     ["human_decision", args["release-owner-review-ref"] || args["release-approval-ref"]],
   ];
@@ -305,6 +308,7 @@ function missingEvidenceFor(input) {
   if (required.has("environment-config") && input.environment.blocked_by_environment_config === "Yes") missing.push("environment-config");
   if (required.has("platform-recipe") && !hasRecordedSource(input.sourceChain, "platform_release_recipe")) missing.push("platform-recipe");
   if (required.has("release-handoff-pack") && !hasRecordedSource(input.sourceChain, "release_handoff_pack")) missing.push("release-handoff-pack");
+  if (args["require-release-topology"] && !hasRecordedSource(input.sourceChain, "release_execution_topology")) missing.push("release-execution-topology");
   if (required.has("data-migration-decision") && input.migration.migration_required === "Unknown") missing.push("data-migration-decision");
   if (isProductionLike(input.releaseTarget) && input.releaseScope.dirtyStatus !== "clean") missing.push("clean-source-revision");
   if (isProductionLike(input.releaseTarget) && input.releaseScope.sourceRevision === "unknown") missing.push("known-source-revision");

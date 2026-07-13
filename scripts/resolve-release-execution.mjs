@@ -27,6 +27,7 @@ const knownFlags = new Set([
   "monitoring",
   "post-launch-smoke",
   "deployment",
+  "require-release-topology",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -58,6 +59,7 @@ const context = {
   monitoring: stringArg("monitoring"),
   postLaunchSmoke: stringArg("post-launch-smoke"),
   deployment: stringArg("deployment"),
+  requireReleaseTopology: Boolean(args["require-release-topology"]),
 };
 
 const report = buildReleaseExecutionPlan(projectRoot, context);
@@ -187,7 +189,7 @@ function launchSurfaceStatus(content, surface) {
 
 function resolveApproval(root, options) {
   if (!options.approvalRef) return { approvalStatus: "MISSING", owner: "N/A", ref: "N/A", scope: "N/A", verified: false, evidence: null, errors: ["structured release approval record is missing"] };
-  const checked = readReleaseApprovalRecord(root, options.approvalRef, { requireApproved: true });
+  const checked = readReleaseApprovalRecord(root, options.approvalRef, { requireApproved: true, requireTopology: options.requireReleaseTopology });
   if (!checked.ok) {
     return {
       approvalStatus: "INVALID",
@@ -206,6 +208,7 @@ function resolveApproval(root, options) {
     checked.relativePath,
     "--require-structured-evidence",
     "--require-approved",
+    ...(options.requireReleaseTopology ? ["--require-release-topology"] : []),
   ], { encoding: "utf8", timeout: 30000, maxBuffer: 1024 * 1024 * 20 });
   if (strictCheck.status !== 0) {
     return {
@@ -238,6 +241,7 @@ function collectPreconditions(options, launchReview, approval) {
     precondition("Release Evidence Gate", approval.verified, sources.release_evidence_gate?.ref, "Strict current release evidence required."),
     precondition("Runtime Hygiene", approval.verified, sources.runtime_hygiene?.ref, "Current candidate runtime preflight required."),
     precondition("Release Channel Policy", approval.verified, sources.release_channel_policy?.ref, "Strict channel and package identity required."),
+    precondition("Release Execution Topology", !options.requireReleaseTopology || (approval.verified && Boolean(sources.release_execution_topology?.ref)), sources.release_execution_topology?.ref, "Current six-plane release topology required for strict topology consumption."),
     precondition("Real-world release consent", approval.verified, approval.ref, "Consent must be structured, current, supplied by the current user or another specific confirmer, and scoped to the concrete effect."),
     precondition("Consent confirmer", approval.verified && Boolean(controls.release_owner_ref), controls.release_owner_ref, "A specific confirmer reference is required; this does not imply a separate enterprise role."),
     precondition("Release SOP", approval.verified && Boolean(controls.release_sop_ref), controls.release_sop_ref, "Project release procedure required."),
@@ -316,6 +320,7 @@ function buildEvidenceCapture(launchReview, approval, options) {
     evidence("Release Evidence Gate", "Yes", sources.release_evidence_gate?.ref || "N/A"),
     evidence("Runtime Hygiene", "Yes", sources.runtime_hygiene?.ref || "N/A"),
     evidence("Release Channel Policy", "Yes", sources.release_channel_policy?.ref || "N/A"),
+    evidence("Release Execution Topology", options.requireReleaseTopology ? "Yes" : "Conditional", sources.release_execution_topology?.ref || "N/A"),
     evidence("Platform Release Recipe", sources.platform_recipe?.required || "Conditional", sources.platform_recipe?.ref || "N/A"),
     evidence("Release Handoff Pack", sources.release_handoff_pack?.required || "Conditional", sources.release_handoff_pack?.ref || "N/A"),
     evidence("Preflight verification", "Yes", options.verification || "N/A"),
@@ -365,6 +370,8 @@ function buildMachineEvidence(root, report, approval) {
       runtime_hygiene_digest: sources.runtime_hygiene?.digest || "N/A",
       release_channel_policy_ref: sources.release_channel_policy?.ref || "N/A",
       release_channel_policy_digest: sources.release_channel_policy?.digest || "N/A",
+      release_execution_topology_ref: sources.release_execution_topology?.ref || "N/A",
+      release_execution_topology_digest: sources.release_execution_topology?.digest || "N/A",
       platform_recipe_ref: sources.platform_recipe?.ref || "N/A",
       platform_recipe_digest: sources.platform_recipe?.digest || "N/A",
       release_handoff_pack_ref: sources.release_handoff_pack?.ref || "N/A",

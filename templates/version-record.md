@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.104.1`
+`1.107.0`
 
 ## Project Version File
 
@@ -17,6 +17,16 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.107.0` adds evidence-bound release topology migration, rehearsal,
+  cutover, post-cutover, and retirement stages without granting execution
+  authority.
+
+- `1.106.0` binds strict release consumers to one exact current topology,
+  source, candidate, package, and action identity.
+
+- `1.105.0` adds the read-only six-plane Release Execution Topology Core and
+  keeps the technical recommendation inside IntentOS/Codex.
 
 - `1.104.1` makes the zero-experience solo responsibility contract executable
   across current guidance, prompts, Agent/Starter distribution, baseline cards,

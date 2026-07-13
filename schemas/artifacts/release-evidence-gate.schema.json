@@ -34,11 +34,24 @@
     "next_step"
   ],
   "properties": {
-    "schema_version": { "const": "1.80.0" },
-    "artifact_type": { "const": "release_evidence_gate" },
-    "intent": { "type": "string", "minLength": 1 },
-    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-    "release_evidence_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "schema_version": {
+      "const": "1.80.0"
+    },
+    "artifact_type": {
+      "const": "release_evidence_gate"
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "release_evidence_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
     "release_target": {
       "enum": [
         "preview",
@@ -65,24 +78,48 @@
         "build_artifact_digest"
       ],
       "properties": {
-        "release_candidate_ref": { "type": "string", "minLength": 1 },
-        "release_candidate_digest": { "type": "string" },
-        "source_revision": { "type": "string", "minLength": 1 },
-        "dirty_worktree_status": { "enum": ["clean", "dirty", "unknown"] },
+        "release_candidate_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release_candidate_digest": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dirty_worktree_status": {
+          "enum": [
+            "clean",
+            "dirty",
+            "unknown"
+          ]
+        },
         "included_task_refs": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "included_completion_evidence_refs": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "excluded_known_items": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "build_artifact_ref": { "type": "string" },
-        "build_artifact_digest": { "type": "string" }
+        "build_artifact_ref": {
+          "type": "string"
+        },
+        "build_artifact_digest": {
+          "type": "string"
+        }
       }
     },
     "gate_state": {
@@ -95,14 +132,29 @@
         "OUT_OF_SCOPE_FOR_RELEASE_GATE"
       ]
     },
-    "can_handoff_to_release_owner": { "enum": ["Yes", "No"] },
-    "release_or_production_approved": { "const": "No" },
+    "can_handoff_to_release_owner": {
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "release_or_production_approved": {
+      "const": "No"
+    },
     "source_chain": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "status", "ref", "digest", "source_outcome", "current_release_match", "reason"],
+        "required": [
+          "name",
+          "status",
+          "ref",
+          "digest",
+          "source_outcome",
+          "current_release_match",
+          "reason"
+        ],
         "properties": {
           "name": {
             "enum": [
@@ -115,15 +167,40 @@
               "platform_release_recipe",
               "release_handoff_pack",
               "existing_release_rule",
-              "human_decision"
+              "human_decision",
+              "release_execution_topology"
             ]
           },
-          "status": { "enum": ["RECORDED", "NOT_PROVIDED", "UNRESOLVED", "INVALID", "OPTIONAL"] },
-          "ref": { "type": "string" },
-          "digest": { "type": "string" },
-          "source_outcome": { "type": "string" },
-          "current_release_match": { "enum": ["Yes", "No", "Unknown", "N/A"] },
-          "reason": { "type": "string", "minLength": 1 }
+          "status": {
+            "enum": [
+              "RECORDED",
+              "NOT_PROVIDED",
+              "UNRESOLVED",
+              "INVALID",
+              "OPTIONAL"
+            ]
+          },
+          "ref": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "source_outcome": {
+            "type": "string"
+          },
+          "current_release_match": {
+            "enum": [
+              "Yes",
+              "No",
+              "Unknown",
+              "N/A"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
@@ -133,23 +210,36 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["target", "required_evidence_ids"],
+        "required": [
+          "target",
+          "required_evidence_ids"
+        ],
         "properties": {
-          "target": { "type": "string", "minLength": 1 },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
           "required_evidence_ids": {
             "type": "array",
-            "items": { "type": "string", "minLength": 1 }
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       }
     },
     "required_evidence": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "missing_evidence": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "completion_evidence_set": {
       "type": "array",
@@ -170,17 +260,59 @@
           "reason"
         ],
         "properties": {
-          "ref": { "type": "string", "minLength": 1 },
-          "status": { "enum": ["RECORDED", "UNRESOLVED", "INVALID"] },
-          "digest": { "type": "string" },
-          "task_ref": { "type": "string" },
-          "intent_digest": { "type": "string" },
-          "completion_state": { "type": "string" },
-          "can_claim_complete": { "enum": ["Yes", "No"] },
-          "strict_check": { "enum": ["PASS", "FAIL"] },
-          "current_release_match": { "enum": ["Yes", "No", "Unknown"] },
-          "task_ref_in_release_scope": { "enum": ["Yes", "No", "Unknown"] },
-          "reason": { "type": "string", "minLength": 1 }
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "RECORDED",
+              "UNRESOLVED",
+              "INVALID"
+            ]
+          },
+          "digest": {
+            "type": "string"
+          },
+          "task_ref": {
+            "type": "string"
+          },
+          "intent_digest": {
+            "type": "string"
+          },
+          "completion_state": {
+            "type": "string"
+          },
+          "can_claim_complete": {
+            "enum": [
+              "Yes",
+              "No"
+            ]
+          },
+          "strict_check": {
+            "enum": [
+              "PASS",
+              "FAIL"
+            ]
+          },
+          "current_release_match": {
+            "enum": [
+              "Yes",
+              "No",
+              "Unknown"
+            ]
+          },
+          "task_ref_in_release_scope": {
+            "enum": [
+              "Yes",
+              "No",
+              "Unknown"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
@@ -197,51 +329,133 @@
         "release_or_production_approved"
       ],
       "properties": {
-        "release_owner_ref": { "type": "string" },
-        "release_owner_review_ref": { "type": "string" },
-        "risk_owner_ref": { "type": "string" },
-        "environment_owner_ref": { "type": "string" },
-        "release_approval_ref": { "type": "string" },
-        "release_approval_state": { "enum": ["out_of_scope", "pending", "human_decision_recorded", "invalid"] },
-        "release_or_production_approved": { "const": "No" }
+        "release_owner_ref": {
+          "type": "string"
+        },
+        "release_owner_review_ref": {
+          "type": "string"
+        },
+        "risk_owner_ref": {
+          "type": "string"
+        },
+        "environment_owner_ref": {
+          "type": "string"
+        },
+        "release_approval_ref": {
+          "type": "string"
+        },
+        "release_approval_state": {
+          "enum": [
+            "out_of_scope",
+            "pending",
+            "human_decision_recorded",
+            "invalid"
+          ]
+        },
+        "release_or_production_approved": {
+          "const": "No"
+        }
       }
     },
     "owner_decisions": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "runtime_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["runtime_smoke_ref", "runtime_smoke_digest", "runtime_smoke_evidence_type", "runtime_smoke_user_note_only"],
+      "required": [
+        "runtime_smoke_ref",
+        "runtime_smoke_digest",
+        "runtime_smoke_evidence_type",
+        "runtime_smoke_user_note_only"
+      ],
       "properties": {
-        "runtime_smoke_ref": { "type": "string" },
-        "runtime_smoke_digest": { "type": "string" },
-        "runtime_smoke_evidence_type": { "enum": ["artifact", "command-output", "manual-report", "missing", "not_applicable"] },
-        "runtime_smoke_user_note_only": { "enum": ["Yes", "No"] }
+        "runtime_smoke_ref": {
+          "type": "string"
+        },
+        "runtime_smoke_digest": {
+          "type": "string"
+        },
+        "runtime_smoke_evidence_type": {
+          "enum": [
+            "artifact",
+            "command-output",
+            "manual-report",
+            "missing",
+            "not_applicable"
+          ]
+        },
+        "runtime_smoke_user_note_only": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        }
       }
     },
     "rollback_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["rollback_ref", "rollback_digest", "rollback_window", "blocked_by_missing_rollback"],
+      "required": [
+        "rollback_ref",
+        "rollback_digest",
+        "rollback_window",
+        "blocked_by_missing_rollback"
+      ],
       "properties": {
-        "rollback_ref": { "type": "string" },
-        "rollback_digest": { "type": "string" },
-        "rollback_window": { "enum": ["defined", "missing", "not_applicable"] },
-        "blocked_by_missing_rollback": { "enum": ["Yes", "No"] }
+        "rollback_ref": {
+          "type": "string"
+        },
+        "rollback_digest": {
+          "type": "string"
+        },
+        "rollback_window": {
+          "enum": [
+            "defined",
+            "missing",
+            "not_applicable"
+          ]
+        },
+        "blocked_by_missing_rollback": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        }
       }
     },
     "monitoring_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["monitoring_ref", "monitoring_digest", "incident_owner_ref", "support_handoff_ref", "blocked_by_missing_monitoring"],
+      "required": [
+        "monitoring_ref",
+        "monitoring_digest",
+        "incident_owner_ref",
+        "support_handoff_ref",
+        "blocked_by_missing_monitoring"
+      ],
       "properties": {
-        "monitoring_ref": { "type": "string" },
-        "monitoring_digest": { "type": "string" },
-        "incident_owner_ref": { "type": "string" },
-        "support_handoff_ref": { "type": "string" },
-        "blocked_by_missing_monitoring": { "enum": ["Yes", "No"] }
+        "monitoring_ref": {
+          "type": "string"
+        },
+        "monitoring_digest": {
+          "type": "string"
+        },
+        "incident_owner_ref": {
+          "type": "string"
+        },
+        "support_handoff_ref": {
+          "type": "string"
+        },
+        "blocked_by_missing_monitoring": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        }
       }
     },
     "environment_readiness": {
@@ -256,37 +470,98 @@
         "blocked_by_environment_config"
       ],
       "properties": {
-        "target_environment": { "enum": ["preview", "staging", "production-like", "unknown"] },
-        "config_owner": { "type": "string" },
-        "secrets_required": { "enum": ["Yes", "No", "Unknown"] },
-        "secrets_values_recorded": { "const": "No" },
-        "dns_or_callback_changes_required": { "enum": ["Yes", "No", "Unknown"] },
-        "blocked_by_environment_config": { "enum": ["Yes", "No"] }
+        "target_environment": {
+          "enum": [
+            "preview",
+            "staging",
+            "production-like",
+            "unknown"
+          ]
+        },
+        "config_owner": {
+          "type": "string"
+        },
+        "secrets_required": {
+          "enum": [
+            "Yes",
+            "No",
+            "Unknown"
+          ]
+        },
+        "secrets_values_recorded": {
+          "const": "No"
+        },
+        "dns_or_callback_changes_required": {
+          "enum": [
+            "Yes",
+            "No",
+            "Unknown"
+          ]
+        },
+        "blocked_by_environment_config": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        }
       }
     },
     "data_migration_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["migration_required", "migration_plan_ref", "backup_or_restore_ref", "data_owner_ref", "codex_may_execute_migration"],
+      "required": [
+        "migration_required",
+        "migration_plan_ref",
+        "backup_or_restore_ref",
+        "data_owner_ref",
+        "codex_may_execute_migration"
+      ],
       "properties": {
-        "migration_required": { "enum": ["Yes", "No", "Unknown"] },
-        "migration_plan_ref": { "type": "string" },
-        "backup_or_restore_ref": { "type": "string" },
-        "data_owner_ref": { "type": "string" },
-        "codex_may_execute_migration": { "const": "No" }
+        "migration_required": {
+          "enum": [
+            "Yes",
+            "No",
+            "Unknown"
+          ]
+        },
+        "migration_plan_ref": {
+          "type": "string"
+        },
+        "backup_or_restore_ref": {
+          "type": "string"
+        },
+        "data_owner_ref": {
+          "type": "string"
+        },
+        "codex_may_execute_migration": {
+          "const": "No"
+        }
       }
     },
     "cost_quota_readiness": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cost_owner_ref", "quota_risks", "blocked_by_unknown_quota"],
+      "required": [
+        "cost_owner_ref",
+        "quota_risks",
+        "blocked_by_unknown_quota"
+      ],
       "properties": {
-        "cost_owner_ref": { "type": "string" },
+        "cost_owner_ref": {
+          "type": "string"
+        },
         "quota_risks": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "blocked_by_unknown_quota": { "enum": ["Yes", "No"] }
+        "blocked_by_unknown_quota": {
+          "enum": [
+            "Yes",
+            "No"
+          ]
+        }
       }
     },
     "existing_release_rule_mapping": {
@@ -294,19 +569,37 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["project_rule_ref", "intentos_requirement", "mapping_state"],
+        "required": [
+          "project_rule_ref",
+          "intentos_requirement",
+          "mapping_state"
+        ],
         "properties": {
-          "project_rule_ref": { "type": "string" },
-          "intentos_requirement": { "type": "string", "minLength": 1 },
+          "project_rule_ref": {
+            "type": "string"
+          },
+          "intentos_requirement": {
+            "type": "string",
+            "minLength": 1
+          },
           "mapping_state": {
-            "enum": ["PROJECT_STRONGER_RULE", "PROJECT_WEAKER_RULE", "MATCHED", "MISSING", "NEEDS_OWNER", "NOT_APPLICABLE"]
+            "enum": [
+              "PROJECT_STRONGER_RULE",
+              "PROJECT_WEAKER_RULE",
+              "MATCHED",
+              "MISSING",
+              "NEEDS_OWNER",
+              "NOT_APPLICABLE"
+            ]
           }
         }
       }
     },
     "forbidden_actions": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "boundaries": {
       "type": "object",
@@ -322,16 +615,35 @@
         "proves_real_user_stability"
       ],
       "properties": {
-        "writes_target_files": { "const": "No" },
-        "approves_release_or_production": { "const": "No" },
-        "executes_deployment": { "const": "No" },
-        "executes_migration": { "const": "No" },
-        "uses_or_records_secrets": { "const": "No" },
-        "submits_to_app_store_or_mini_program": { "const": "No" },
-        "changes_dns_payment_provider_or_ci": { "const": "No" },
-        "proves_real_user_stability": { "const": "No" }
+        "writes_target_files": {
+          "const": "No"
+        },
+        "approves_release_or_production": {
+          "const": "No"
+        },
+        "executes_deployment": {
+          "const": "No"
+        },
+        "executes_migration": {
+          "const": "No"
+        },
+        "uses_or_records_secrets": {
+          "const": "No"
+        },
+        "submits_to_app_store_or_mini_program": {
+          "const": "No"
+        },
+        "changes_dns_payment_provider_or_ci": {
+          "const": "No"
+        },
+        "proves_real_user_stability": {
+          "const": "No"
+        }
       }
     },
-    "next_step": { "type": "string", "minLength": 1 }
+    "next_step": {
+      "type": "string",
+      "minLength": 1
+    }
   }
 }

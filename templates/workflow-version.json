@@ -1,5 +1,5 @@
 {
-  "intentOSVersion": "1.104.1",
+  "intentOSVersion": "1.107.0",
   "starter": "<starter-name>",
   "projectEntryOrigin": "<NEW_PROJECT|EXISTING_PROJECT|UNKNOWN_PROJECT_ORIGIN>",
   "initializedAt": "<ISO-8601 timestamp>",

@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coffeecoproject.dev/schemas/release-execution-topology.schema.json",
+  "title": "Release Execution Topology Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "topology_ref", "topology_digest",
+    "intent", "intent_digest", "project_identity", "planes",
+    "mandatory_capabilities", "source_chain", "conflicts", "recommendation",
+    "legacy_compatibility", "boundaries", "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.105.0" },
+    "artifact_type": { "const": "release_execution_topology" },
+    "topology_ref": { "type": "string", "minLength": 1 },
+    "topology_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "project_identity": { "$ref": "#/$defs/projectIdentity" },
+    "planes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_control", "orchestration", "execution_backend", "package_transport", "evidence_store", "production_target"],
+      "properties": {
+        "source_control": { "$ref": "#/$defs/plane" },
+        "orchestration": { "$ref": "#/$defs/plane" },
+        "execution_backend": { "$ref": "#/$defs/executionPlane" },
+        "package_transport": { "$ref": "#/$defs/plane" },
+        "evidence_store": { "$ref": "#/$defs/plane" },
+        "production_target": { "$ref": "#/$defs/plane" }
+      }
+    },
+    "mandatory_capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "required", "satisfied", "evidence_ref"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "required": { "enum": ["Yes", "No"] },
+          "satisfied": { "enum": ["Yes", "No", "Unknown"] },
+          "evidence_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "source_chain": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["plane", "ref", "digest", "confidence"],
+        "properties": {
+          "plane": { "enum": ["source_control", "orchestration", "execution_backend", "package_transport", "evidence_store", "production_target", "legacy_policy"] },
+          "ref": { "type": "string", "minLength": 1 },
+          "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "confidence": { "$ref": "#/$defs/confidence" }
+        }
+      }
+    },
+    "conflicts": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "plain_summary", "selected_candidate", "rejected_candidates", "user_input_class"],
+      "properties": {
+        "state": { "enum": ["KEEP_CURRENT_TOPOLOGY", "RECOMMEND_BOUNDED_MIGRATION", "RECOMMEND_PROVIDER_ADAPTER", "NEEDS_PROJECT_FACT_DISCOVERY", "NEEDS_CONCRETE_USER_CONSENT", "BLOCKED_BY_MISSING_CAPABILITY", "BLOCKED_BY_PROJECT_AUTHORITY", "BLOCKED_BY_UNSAFE_CUTOVER", "BLOCKED_BY_UNKNOWN_PRODUCTION_EFFECT"] },
+        "plain_summary": { "type": "string", "minLength": 1 },
+        "selected_candidate": { "type": "string", "minLength": 1 },
+        "rejected_candidates": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "user_input_class": { "enum": ["NO_USER_ACTION", "BUSINESS_FACT_NEEDED", "REAL_WORLD_CONSENT_NEEDED", "EXTERNAL_FACT_NEEDED"] }
+      }
+    },
+    "legacy_compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_channel_policy_ref", "translated", "can_establish_readiness"],
+      "properties": {
+        "release_channel_policy_ref": { "type": "string", "minLength": 1 },
+        "translated": { "enum": ["Yes", "No"] },
+        "can_establish_readiness": { "const": "No" }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["writes_project_files", "approves_implementation", "approves_release_or_production", "executes_release_or_cutover", "moves_secrets_or_provider_state", "embedded_consent_is_authority"],
+      "properties": {
+        "writes_project_files": { "const": "No" },
+        "approves_implementation": { "const": "No" },
+        "approves_release_or_production": { "const": "No" },
+        "executes_release_or_cutover": { "const": "No" },
+        "moves_secrets_or_provider_state": { "const": "No" },
+        "embedded_consent_is_authority": { "const": "No" }
+      }
+    },
+    "outcome": { "enum": ["RELEASE_TOPOLOGY_RECORDED", "RELEASE_TOPOLOGY_BLOCKED"] }
+  },
+  "$defs": {
+    "confidence": { "enum": ["OBSERVED", "DECLARED", "INFERRED", "UNKNOWN"] },
+    "projectIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "fingerprint", "revision"],
+      "properties": {
+        "kind": { "enum": ["GIT", "NON_GIT"] },
+        "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "plane": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "identity_ref", "confidence", "evidence_ref", "controls"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "identity_ref": { "type": "string", "minLength": 1 },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "controls": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "executionPlane": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "identity_ref", "confidence", "evidence_ref", "controls", "backend_class"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "identity_ref": { "type": "string", "minLength": 1 },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "controls": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "backend_class": { "enum": ["HOSTED_CI_RUNNER", "SELF_HOSTED_CI_RUNNER", "LOCAL_CONTROLLED_EXECUTOR", "REMOTE_PROJECT_EXECUTOR", "PROVIDER_MANAGED_EXECUTOR", "PLATFORM_SUBMISSION_EXECUTOR", "PROJECT_NATIVE_EXECUTOR", "HYBRID_EXECUTOR", "UNKNOWN"] }
+      }
+    }
+  }
+}

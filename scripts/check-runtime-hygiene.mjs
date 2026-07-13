@@ -8,6 +8,7 @@ import { sectionBody, stripMarkdown } from "./lib/markdown.mjs";
 import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { checkTaskEntryBinding } from "./lib/task-entry-binding.mjs";
 import { canonicalFileDigest, projectIdentity, resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
+import { validateReleaseTopologySource } from "./lib/release-topology-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -19,6 +20,7 @@ const knownFlags = new Set([
   "require-task-entry",
   "strict-task-entry",
   "require-runtime-sources",
+  "require-release-topology",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -29,6 +31,8 @@ const requireStructuredEvidence = Boolean(args["require-structured-evidence"]);
 const requireTaskEntry = Boolean(args["require-task-entry"] || args["strict-task-entry"]);
 const strictTaskEntry = Boolean(args["strict-task-entry"]);
 const requireRuntimeSources = Boolean(args["require-runtime-sources"]);
+const requireReleaseTopology = Boolean(args["require-release-topology"]);
+const strictRequested = requireReport || requireStructuredEvidence || requireTaskEntry || requireRuntimeSources || requireReleaseTopology || Boolean(args.report);
 const explicitReport = args.report ? path.resolve(projectRoot, String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/runtime-hygiene.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -143,8 +147,8 @@ function checkCoreContent() {
 function checkReports() {
   const files = explicitReport ? [explicitReport] : markdownFiles("runtime-hygiene-reports");
   if (files.length === 0) {
-    if (allowEmpty) pass("runtime hygiene check skipped by explicit --allow-empty: no reports");
-    else if (requireReport || explicitReport) fail("no Runtime Hygiene reports found");
+    if (allowEmpty && !strictRequested) pass("runtime hygiene check skipped by explicit --allow-empty: no reports");
+    else if (strictRequested) fail("no Runtime Hygiene reports found");
     else pass("SKIPPED_NO_REPORT: no Runtime Hygiene reports found");
     return;
   }
@@ -221,6 +225,18 @@ function checkStructuredEvidence(content, label, file, evidence) {
   else fail(`${label} runtime hygiene must keep the task open`);
 
   checkRuntimeConsistency(label, evidence);
+  if (requireReleaseTopology && evidence.operation === "release") {
+    const binding = evidence.release_trust_binding || {};
+    const topology = validateReleaseTopologySource(projectRoot, file, {
+      ref: binding.release_execution_topology_ref,
+      digest: binding.release_execution_topology_digest,
+    }, {
+      expectedSourceRevision: binding.source_revision,
+      requireReady: true,
+    });
+    if (topology.ok) pass(`${label} consumes the exact current Release Execution Topology`);
+    else topology.errors.forEach((error) => fail(`${label} ${error}`));
+  }
   checkRuntimeSourceTrace(label, evidence);
   checkTaskEntryBinding({
     content,

@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intentos.dev/schemas/artifacts/release-topology-migration.schema.json",
+  "title": "IntentOS Release Topology Migration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "artifact_type", "migration_ref", "migration_digest",
+    "intent", "intent_digest", "project_identity", "stage",
+    "current_topology", "target_topology", "dependency_map", "apply_chain",
+    "rehearsal", "cutover", "post_cutover", "retirement", "recommendation",
+    "boundaries", "outcome"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.107.0" },
+    "artifact_type": { "const": "release_topology_migration" },
+    "migration_ref": { "type": "string", "minLength": 1 },
+    "migration_digest": { "$ref": "#/$defs/digest" },
+    "intent": { "type": "string", "minLength": 1 },
+    "intent_digest": { "$ref": "#/$defs/digest" },
+    "project_identity": { "$ref": "#/$defs/projectIdentity" },
+    "stage": {
+      "enum": ["DISCOVERY", "PLAN", "APPLY_REVIEW", "REHEARSAL", "CUTOVER_READINESS", "CUTOVER_REVIEW", "POST_CUTOVER_PROOF", "RETIREMENT_REVIEW"]
+    },
+    "current_topology": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ref", "digest", "topology_digest"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "$ref": "#/$defs/digest" },
+        "topology_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "target_topology": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "candidate_digest", "summary", "capability_state"],
+      "properties": {
+        "candidate_id": { "type": "string", "minLength": 1 },
+        "candidate_digest": { "$ref": "#/$defs/digest" },
+        "summary": { "type": "string", "minLength": 1 },
+        "capability_state": { "enum": ["COMPLETE", "INCOMPLETE", "UNKNOWN"] }
+      }
+    },
+    "dependency_map": {
+      "type": "array", "minItems": 6,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["plane", "current_identity_ref", "target_identity_ref", "change_kind", "evidence_ref"],
+        "properties": {
+          "plane": { "enum": ["source_control", "orchestration", "execution_backend", "package_transport", "evidence_store", "production_target"] },
+          "current_identity_ref": { "type": "string", "minLength": 1 },
+          "target_identity_ref": { "type": "string", "minLength": 1 },
+          "change_kind": { "enum": ["KEEP", "CHANGE", "UNKNOWN"] },
+          "evidence_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "apply_chain": { "$ref": "#/$defs/applyChain" },
+    "rehearsal": { "$ref": "#/$defs/rehearsal" },
+    "cutover": { "$ref": "#/$defs/cutover" },
+    "post_cutover": { "$ref": "#/$defs/postCutover" },
+    "retirement": { "$ref": "#/$defs/retirement" },
+    "recommendation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["state", "plain_summary", "user_input_class", "next_step"],
+      "properties": {
+        "state": { "enum": ["KEEP_CURRENT_TOPOLOGY", "PREPARE_BOUNDED_PLAN", "NEEDS_PROJECT_FACT_DISCOVERY", "NEEDS_CONCRETE_USER_CONSENT", "BLOCKED_BY_EVIDENCE", "BLOCKED_BY_PROJECT_AUTHORITY", "BLOCKED_BY_UNSAFE_CUTOVER"] },
+        "plain_summary": { "type": "string", "minLength": 1 },
+        "user_input_class": { "enum": ["NO_USER_ACTION", "BUSINESS_FACT_NEEDED", "REAL_WORLD_CONSENT_NEEDED", "EXTERNAL_FACT_NEEDED"] },
+        "next_step": { "type": "string", "minLength": 1 }
+      }
+    },
+    "boundaries": {
+      "type": "object", "additionalProperties": false,
+      "required": ["writes_project_files", "approves_apply", "executes_rehearsal", "approves_cutover", "executes_cutover", "approves_release", "retires_legacy_backend", "moves_secrets", "treats_embedded_consent_as_authority"],
+      "properties": {
+        "writes_project_files": { "const": "No" },
+        "approves_apply": { "const": "No" },
+        "executes_rehearsal": { "const": "No" },
+        "approves_cutover": { "const": "No" },
+        "executes_cutover": { "const": "No" },
+        "approves_release": { "const": "No" },
+        "retires_legacy_backend": { "const": "No" },
+        "moves_secrets": { "const": "No" },
+        "treats_embedded_consent_as_authority": { "const": "No" }
+      }
+    },
+    "outcome": { "enum": ["MIGRATION_DISCOVERED", "MIGRATION_PLAN_READY", "MIGRATION_STAGE_EVIDENCED", "MIGRATION_BLOCKED"] }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "projectIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "fingerprint", "revision"],
+      "properties": {
+        "kind": { "enum": ["GIT", "NON_GIT"] },
+        "fingerprint": { "$ref": "#/$defs/digest" },
+        "revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ref", "digest"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 }
+      }
+    },
+    "applyChain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["plan_review", "apply_plan", "approval", "readiness", "receipt", "rollback"],
+      "properties": {
+        "plan_review": { "$ref": "#/$defs/reference" },
+        "apply_plan": { "$ref": "#/$defs/reference" },
+        "approval": { "$ref": "#/$defs/reference" },
+        "readiness": { "$ref": "#/$defs/reference" },
+        "receipt": { "$ref": "#/$defs/reference" },
+        "rollback": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "rehearsal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "environment", "runtime_plan", "run_manifest", "package_identity", "duplicate_production_effect", "cleanup_proof"],
+      "properties": {
+        "status": { "enum": ["NOT_STARTED", "READY", "PASSED", "FAILED", "BLOCKED"] },
+        "environment": { "enum": ["N/A", "NON_PRODUCTION", "PRODUCTION"] },
+        "runtime_plan": { "$ref": "#/$defs/reference" },
+        "run_manifest": { "$ref": "#/$defs/reference" },
+        "package_identity": { "$ref": "#/$defs/reference" },
+        "duplicate_production_effect": { "enum": ["No", "Yes", "Unknown"] },
+        "cleanup_proof": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "cutover": {
+      "type": "object", "additionalProperties": false,
+      "required": ["readiness_status", "consent", "release_consent", "rollback_ref", "external_effect"],
+      "properties": {
+        "readiness_status": { "enum": ["NOT_READY", "READY_FOR_REVIEW", "BLOCKED"] },
+        "consent": { "$ref": "#/$defs/reference" },
+        "release_consent": { "$ref": "#/$defs/reference" },
+        "rollback_ref": { "type": "string", "minLength": 1 },
+        "external_effect": { "type": "string", "minLength": 1 }
+      }
+    },
+    "postCutover": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "target_active_proof", "old_backend_nonpublish_proof", "source_package_binding"],
+      "properties": {
+        "status": { "enum": ["NOT_STARTED", "OBSERVED", "FAILED", "BLOCKED"] },
+        "target_active_proof": { "$ref": "#/$defs/reference" },
+        "old_backend_nonpublish_proof": { "$ref": "#/$defs/reference" },
+        "source_package_binding": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "retirement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "authority", "fallback_evidence", "historical_evidence_preserved"],
+      "properties": {
+        "status": { "enum": ["NOT_STARTED", "READY_FOR_REVIEW", "COMPLETED", "BLOCKED"] },
+        "authority": { "$ref": "#/$defs/reference" },
+        "fallback_evidence": { "$ref": "#/$defs/reference" },
+        "historical_evidence_preserved": { "enum": ["Yes", "No", "Unknown"] }
+      }
+    }
+  }
+}

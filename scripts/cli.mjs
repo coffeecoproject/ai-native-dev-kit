@@ -544,6 +544,30 @@ const commandRegistry = {
     writes: false,
     buildArgs: (args) => withDefaultTarget(args),
   },
+  "release-topology": {
+    description: "Derive one read-only six-plane release topology without asking the user to choose technical infrastructure.",
+    script: "scripts/resolve-release-execution-topology.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-topology-check": {
+    description: "Strictly check recorded Release Execution Topology reports, source identity, capabilities, and no-authority boundaries.",
+    script: "scripts/check-release-execution-topology.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-topology-migration": {
+    description: "Prepare one read-only release topology migration view without executing apply, rehearsal, cutover, release, or retirement.",
+    script: "scripts/resolve-release-topology-migration.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
+  "release-topology-migration-check": {
+    description: "Strictly check current-project migration stage evidence and no-authority boundaries.",
+    script: "scripts/check-release-topology-migration.mjs",
+    writes: false,
+    buildArgs: (args) => withDefaultTarget(args),
+  },
   "conversation-drift": {
     description: "Check conversation turn routing and scope-change governance.",
     script: "scripts/check-conversation-drift.mjs",

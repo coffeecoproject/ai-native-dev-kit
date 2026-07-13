@@ -363,3 +363,24 @@ In the `1.104.0` strict completion chain, `check-test-evidence.mjs`,
 and verifies current project, task, intent, plan, ref, and digest identity.
 `check-closure-decision.mjs` independently rejects `DONE` when the current
 Runtime Trust input is missing or invalid.
+
+## Release Execution Topology Checker
+
+`check-release-execution-topology.mjs` validates the six independent release
+planes, canonical topology digest, current project identity, source-file
+digests, capability coverage, and no-authority boundaries. Strict modes fail
+when no report exists; `--allow-empty` is only an explicit compatibility check
+and cannot override `--require-structured-evidence` or `--require-ready`.
+
+## Release Topology Consumer And Migration Checkers
+
+`check-release-evidence-gate.mjs`, `check-release-approval-record.mjs`,
+`check-release-execution.mjs`, and `check-runtime-hygiene.mjs` accept
+`--require-release-topology`. Strict mode validates the exact current-project
+topology ref, file digest, canonical topology digest, source revision,
+candidate, package, and action binding.
+
+`check-release-topology-migration.mjs` validates one current-project migration
+record. Later stages fail closed unless separately authoritative Apply,
+Runtime Trust, rehearsal, cutover consent, post-cutover observation, rollback,
+and retirement evidence is present. The checker never executes those effects.

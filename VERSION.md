@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.104.1`
+Current version: `1.107.0`
 
 ## Versioning Policy
 
@@ -10,9 +10,24 @@ Current version: `1.104.1`
 
 ## Current Release
 
-`1.104.1`
+`1.107.0`
 
 Includes:
+
+- Release Topology Migration And Calibration `1.107.0`: separates read-only
+  discovery, bounded project-file apply, non-production rehearsal, cutover,
+  post-cutover proof, and old-backend retirement into distinct evidence-bound
+  stages. The migration report cannot authorize or execute any of them.
+- Release Topology Consumer Binding `1.106.0`: requires strict Release
+  Evidence, Approval, Execution, and Runtime Hygiene consumers to bind the
+  exact current topology, source, candidate, package, and action identity.
+
+- Release Execution Topology Core `1.105.0`: separates source control,
+  orchestration, execution backend, package transport, evidence store, and
+  production target into one read-only platform-neutral projection.
+- `1.105.0` derives mandatory capabilities and one technical recommendation,
+  keeps Release Channel Policy as compatibility input only, and does not
+  approve release, migration, cutover, or production.
 
 - Active Guidance Semantic Hardcut `1.104.1`: binds all current user-facing
   decisions to four plain classes, rejects implicit technical delegation, and

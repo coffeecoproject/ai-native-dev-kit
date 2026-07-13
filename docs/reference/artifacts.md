@@ -282,3 +282,6 @@ Short rule:
 - need to close work: final report
 - need to define how a trusted local verification run may execute: verification runtime lifecycle plan
 - need to prove which exact code, process, resources, outputs, and cleanup produced test evidence: verification run manifest
+- need to distinguish source control, orchestration, execution backend, package transport, evidence store, and production target before release-path decisions: release execution topology report
+- need to verify that strict release consumers use the same current topology, source, candidate, package, and action: release topology consumer binding
+- need to govern a release-path change through separate apply, rehearsal, cutover, post-cutover, and retirement stages: release topology migration report

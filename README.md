@@ -2,9 +2,9 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.104.1`.
+Current release: `1.107.0`.
 
-Release record: [releases/1.104.1/release-record.md](releases/1.104.1/release-record.md).
+Release record: [releases/1.107.0/release-record.md](releases/1.107.0/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
@@ -52,6 +52,20 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.107.0 completes release-topology migration governance. IntentOS can now
+separate project-file changes, non-production rehearsal, cutover, release,
+post-cutover proof, and old-path retirement, while binding every claimed stage
+to current evidence. These reports do not deploy or authorize production.
+
+1.106.0 binds strict release consumers to the exact current topology, source,
+candidate, package, and action. Copied, stale, missing, legacy-only, or
+conflicting topology evidence cannot unlock strict release readiness.
+
+1.105.0 adds a platform-neutral release topology view. IntentOS now separates
+source, orchestration, execution, package transport, evidence storage, and the
+real target before recommending a release path. It does not ask the user to
+choose technical plumbing and does not authorize release or production.
 
 1.104.1 hardcuts the zero-experience solo contract into active guidance and
 runtime output. Codex now derives Profile, stack, baseline, BL level, industrial

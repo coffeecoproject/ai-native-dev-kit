@@ -8,14 +8,15 @@ import { parseArgs, unknownOptions } from "./lib/args.mjs";
 import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-approved"]);
+const knownFlags = new Set(["json", "allow-empty", "report", "require-report", "require-structured-evidence", "require-approved", "require-release-topology"]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const outputJson = Boolean(args.json);
 const allowEmpty = Boolean(args["allow-empty"]);
-const requireReport = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-approved"]);
+const requireReport = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-approved"] || args["require-release-topology"]);
 const requireApproved = Boolean(args["require-approved"]);
+const requireReleaseTopology = Boolean(args["require-release-topology"]);
 const explicitReport = args.report ? safeReportPath(String(args.report)) : "";
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
   && fs.existsSync(path.join(projectRoot, "core", "workflow.md"));
@@ -35,6 +36,8 @@ if (shouldRequireAssets) {
     "templates/release-approval-record.md",
     "schemas/artifacts/release-approval-record.schema.json",
     "scripts/lib/release-trust.mjs",
+    "scripts/lib/release-topology-consumer.mjs",
+    "schemas/artifacts/release-execution-topology.schema.json",
     "scripts/check-release-approval-record.mjs",
   ]) {
     if (resolveAsset(file)) pass(`${file} exists`);
@@ -61,7 +64,7 @@ if (!outputJson) console.log("Release Approval Record check passed.");
 
 function checkReport(file) {
   const relative = path.relative(projectRoot, file).replaceAll(path.sep, "/");
-  const result = readReleaseApprovalRecord(projectRoot, `artifact:${relative}`, { requireApproved });
+  const result = readReleaseApprovalRecord(projectRoot, `artifact:${relative}`, { requireApproved, requireTopology: requireReleaseTopology });
   if (!result.ok) {
     for (const error of result.errors) fail(`${relative}: ${error}`);
     return;
@@ -74,10 +77,12 @@ function runUpstreamChecks(label, result) {
   const sources = result.resolvedSources;
   runAuthorityChecker(label, "Release Evidence Gate", "check-release-evidence-gate.mjs", sources.releaseEvidence, [
     "--require-report", "--require-structured-evidence", "--require-ready", "--strict-source-binding",
+    ...(requireReleaseTopology ? ["--require-release-topology"] : []),
     ...(result.evidence.trust_sources?.platform_recipe?.required === "Yes" ? ["--require-platform-recipe"] : []),
   ]);
   runAuthorityChecker(label, "Runtime Hygiene", "check-runtime-hygiene.mjs", sources.runtimeHygiene, [
     "--require-report", "--require-structured-evidence", "--require-runtime-sources",
+    ...(requireReleaseTopology ? ["--require-release-topology"] : []),
   ]);
   runAuthorityChecker(label, "Release Channel Policy", "check-release-channel-policy.mjs", sources.releaseChannel, [
     "--require-report", "--require-structured-evidence", "--strict-source-binding",

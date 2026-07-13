@@ -11,6 +11,7 @@ import { containsSecretLikeValue } from "./lib/risk-surfaces.mjs";
 import { extractMachineReadableEvidence, loadSchema, validateEvidenceBlock } from "./lib/artifact-schema.mjs";
 import { resolveAuthoritativeEvidenceReference } from "./lib/evidence-authority.mjs";
 import { releaseEvidenceRequirementsFor } from "./lib/release-evidence-requirements.mjs";
+import { validateReleaseTopologySource } from "./lib/release-topology-consumer.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const knownFlags = new Set([
@@ -23,6 +24,7 @@ const knownFlags = new Set([
   "strict-source-binding",
   "require-platform-recipe",
   "require-ready",
+  "require-release-topology",
 ]);
 const unknown = unknownOptions(args, knownFlags);
 const projectRoot = path.resolve(process.cwd(), args._[0] || ".");
@@ -34,8 +36,9 @@ const requireCurrentCompletion = Boolean(args["require-current-completion"] || a
 const strictSourceBinding = Boolean(args["strict-source-binding"] || args["require-ready"]);
 const requirePlatformRecipe = Boolean(args["require-platform-recipe"]);
 const requireReady = Boolean(args["require-ready"]);
+const requireReleaseTopology = Boolean(args["require-release-topology"]);
 const strictRequested = requireReport || requireStructuredEvidence || requireCurrentCompletion
-  || strictSourceBinding || requirePlatformRecipe || requireReady || Boolean(args.report);
+  || strictSourceBinding || requirePlatformRecipe || requireReady || requireReleaseTopology || Boolean(args.report);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const schema = loadSchema(projectRoot, "schemas/artifacts/release-evidence-gate.schema.json");
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -202,7 +205,7 @@ function checkReport(file) {
   pass(`${label} has valid structured evidence`);
   checkSummary(content, label, evidence);
   checkMarkdownJsonConsistency(content, label, evidence);
-  checkStructuredEvidence(label, evidence);
+  checkStructuredEvidence(label, evidence, file);
 }
 
 function checkSummary(content, label, evidence) {
@@ -300,7 +303,7 @@ function checkMarkdownJsonConsistency(content, label, evidence) {
   expectListValue(missing, expectedMissing, label, "Missing Evidence");
 }
 
-function checkStructuredEvidence(label, evidence) {
+function checkStructuredEvidence(label, evidence, file) {
   if (evidence.release_or_production_approved === "No") pass(`${label} does not approve release or production`);
   else fail(`${label} must not approve release or production`);
   if (evidence.boundaries?.approves_release_or_production === "No") pass(`${label} boundary does not approve release`);
@@ -328,6 +331,21 @@ function checkStructuredEvidence(label, evidence) {
   else fail(`${label} must record included Completion Evidence refs`);
 
   const sourceByName = new Map((evidence.source_chain || []).map((source) => [source.name, source]));
+  const topology = sourceByName.get("release_execution_topology");
+  if (requireReleaseTopology) {
+    if (topology?.status !== "RECORDED") {
+      fail(`${label} requires a recorded Release Execution Topology source`);
+    } else {
+      const checkedTopology = validateReleaseTopologySource(projectRoot, file, topology, {
+        expectedSourceRevision: evidence.release_scope?.source_revision,
+        requireReady: true,
+      });
+      if (checkedTopology.ok) pass(`${label} Release Execution Topology strict source passed`);
+      else checkedTopology.errors.forEach((error) => fail(`${label} ${error}`));
+    }
+  } else if (topology?.status === "RECORDED") {
+    pass(`${label} records Release Execution Topology as compatibility evidence`);
+  }
   const completion = sourceByName.get("completion_evidence");
   if (completion?.status === "RECORDED") pass(`${label} includes recorded Completion Evidence source`);
   else if (requireCurrentCompletion || readyStates.has(evidence.gate_state)) fail(`${label} requires recorded Completion Evidence source`);

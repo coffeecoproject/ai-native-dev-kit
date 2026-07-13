@@ -13,15 +13,16 @@ import { releaseStepAuthorityErrors } from "./lib/release-action-authority.mjs";
 import { readReleaseApprovalRecord } from "./lib/release-trust.mjs";
 
 const args = parseArgs(process.argv.slice(2));
-const knownFlags = new Set(["json", "report", "require-report", "require-structured-evidence", "require-release-trust"]);
+const knownFlags = new Set(["json", "report", "require-report", "require-structured-evidence", "require-release-trust", "require-release-topology"]);
 const unknown = unknownOptions(args, knownFlags);
 const requestedProjectRoot = path.resolve(process.cwd(), args._[0] || ".");
 const projectRoot = fs.existsSync(requestedProjectRoot) ? fs.realpathSync(requestedProjectRoot) : requestedProjectRoot;
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const outputJson = Boolean(args.json);
-const requireReport = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-release-trust"]);
-const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-release-trust"]);
+const requireReport = Boolean(args["require-report"] || args["require-structured-evidence"] || args["require-release-trust"] || args["require-release-topology"]);
+const requireStructuredEvidence = Boolean(args["require-structured-evidence"] || args["require-release-trust"] || args["require-release-topology"]);
 const requireReleaseTrust = Boolean(args["require-release-trust"]);
+const requireReleaseTopology = Boolean(args["require-release-topology"]);
 const explicitReport = args.report ? resolveReportPath(String(args.report)) : "";
 const releaseExecutionSchema = loadSchema(projectRoot, "schemas/artifacts/release-execution-plan.schema.json");
 const isSourceRepo = fs.existsSync(path.join(projectRoot, "intentos-manifest.json"))
@@ -262,7 +263,7 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
   }
 
   const approvalRef = evidence.trust_inputs?.release_approval_ref;
-  const approval = readReleaseApprovalRecord(projectRoot, approvalRef, { fromFile: file, requireApproved: true });
+  const approval = readReleaseApprovalRecord(projectRoot, approvalRef, { fromFile: file, requireApproved: true, requireTopology: requireReleaseTopology });
   if (!approval.ok) {
     approval.errors.forEach((error) => fail(`${label}: ${error}`));
     return;
@@ -285,6 +286,10 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
     release_handoff_pack_ref: approval.evidence.trust_sources.release_handoff_pack.ref,
     release_handoff_pack_digest: approval.evidence.trust_sources.release_handoff_pack.digest,
   };
+  if (requireReleaseTopology) {
+    expectedTrust.release_execution_topology_ref = approval.evidence.trust_sources.release_execution_topology?.ref;
+    expectedTrust.release_execution_topology_digest = approval.evidence.trust_sources.release_execution_topology?.digest;
+  }
   for (const [key, expected] of Object.entries(expectedTrust)) {
     if (evidence.trust_inputs?.[key] === expected) pass(`${label} ${key} matches approval`);
     else fail(`${label} ${key} does not match approval`);
@@ -299,6 +304,7 @@ function checkReleaseTrust(content, file, label, evidence, mode, realAllowed, ou
     approval.relativePath,
     "--require-structured-evidence",
     "--require-approved",
+    ...(requireReleaseTopology ? ["--require-release-topology"] : []),
   ], { encoding: "utf8" });
   if (approvalCheck.status === 0) pass(`${label} Release Approval authority chain passed strict checkers`);
   else fail(`${label} Release Approval authority chain failed: ${firstUsefulLine(approvalCheck.stderr || approvalCheck.stdout)}`);

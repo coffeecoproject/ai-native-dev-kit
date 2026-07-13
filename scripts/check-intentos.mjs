@@ -18537,8 +18537,8 @@ function checkActiveGuidanceSemanticHardcutProtocol() {
     "REAL_WORLD_CONSENT_NEEDED",
     "EXTERNAL_FACT_NEEDED",
   ];
-  if (authority.schemaVersion === "1.104.1") pass("1.104.1 review-context authority version is exact");
-  else fail("1.104.1 review-context authority version is not exact");
+  if (authority.schemaVersion === currentVersion()) pass("1.104.1 review-context authority follows the current product version");
+  else fail("1.104.1 review-context authority does not follow the current product version");
   if (JSON.stringify(authority.currentProductContract?.userDecisionClasses) === JSON.stringify(expectedClasses)) {
     pass("1.104.1 user decision classes are exact");
   } else {
@@ -18633,6 +18633,128 @@ function checkExecutionAuthorityConsumerHardcutProtocol() {
     pass("1.100 controlled apply restores all attempted writes after a later action fails");
   } else {
     fail(`1.100 controlled apply rollback was not atomic: ${apply?.stderr || apply?.stdout || "no apply result"}`);
+  }
+}
+
+function checkReleaseExecutionTopologyProtocol() {
+  const assets = [
+    "core/release-execution-topology.md",
+    "docs/release-execution-topology.md",
+    "templates/release-execution-topology-report.md",
+    "checklists/release-execution-topology-review.md",
+    "prompts/release-execution-topology-agent.md",
+    "schemas/artifacts/release-execution-topology.schema.json",
+    "scripts/lib/release-execution-topology.mjs",
+    "scripts/resolve-release-execution-topology.mjs",
+    "scripts/check-release-execution-topology.mjs",
+    "tests/release-execution-topology.test.mjs",
+    "release-execution-topologies/.gitkeep",
+    "core/release-topology-consumer-binding.md",
+    "docs/release-topology-consumer-binding.md",
+    "checklists/release-topology-consumer-review.md",
+    "scripts/lib/release-topology-consumer.mjs",
+    "tests/release-topology-consumer.test.mjs",
+    "core/release-topology-migration.md",
+    "docs/release-topology-migration.md",
+    "templates/release-topology-migration-report.md",
+    "checklists/release-topology-migration-review.md",
+    "prompts/release-topology-migration-agent.md",
+    "schemas/artifacts/release-topology-migration.schema.json",
+    "scripts/lib/release-topology-migration.mjs",
+    "scripts/resolve-release-topology-migration.mjs",
+    "scripts/check-release-topology-migration.mjs",
+    "tests/release-topology-migration.test.mjs",
+    "release-topology-migrations/.gitkeep",
+  ];
+  for (const file of assets) {
+    if (exists(file)) pass(`1.105 release topology asset exists: ${file}`);
+    else fail(`1.105 release topology asset missing: ${file}`);
+  }
+
+  const core = read("core/release-execution-topology.md");
+  for (const marker of ["Source Control", "Orchestrator", "Execution Backend", "Package Transport", "Evidence Store", "Production Target", "zero-experience", "read-only"]) {
+    if (core.includes(marker)) pass(`1.105 release topology core includes ${marker}`);
+    else fail(`1.105 release topology core missing ${marker}`);
+  }
+  if (/user[^\n]{0,80}(choose|select|confirm)[^\n]{0,80}(runner|orchestrator|backend|transport|store|protocol)/i.test(core)) {
+    fail("1.105 release topology asks the user to choose technical topology");
+  } else {
+    pass("1.105 release topology keeps technical topology Codex-owned");
+  }
+
+  const cli = read("scripts/cli.mjs");
+  for (const command of ["release-topology", "release-topology-check"]) {
+    if (cli.includes(`\"${command}\"`)) pass(`1.105 advanced CLI exposes ${command}`);
+    else fail(`1.105 advanced CLI missing ${command}`);
+  }
+  const focused = runNode(["--test", "tests/release-execution-topology.test.mjs"]);
+  if (focused.status === 0) pass("1.105 release topology regressions");
+  else fail(`1.105 release topology regressions failed: ${focused.stderr || focused.stdout}`);
+  const consumerFocused = runNode(["--test", "tests/release-topology-consumer.test.mjs"]);
+  if (consumerFocused.status === 0) pass("1.106 release topology consumer regressions");
+  else fail(`1.106 release topology consumer regressions failed: ${consumerFocused.stderr || consumerFocused.stdout}`);
+  const migrationFocused = runNode(["--test", "tests/release-topology-migration.test.mjs"]);
+  if (migrationFocused.status === 0) pass("1.107 release topology migration regressions");
+  else fail(`1.107 release topology migration regressions failed: ${migrationFocused.stderr || migrationFocused.stdout}`);
+
+  const empty = runNode(["scripts/check-release-execution-topology.mjs", ".", "--allow-empty"]);
+  if (empty.status === 0) pass("1.105 release topology accepts explicit compatibility empty state");
+  else fail(`1.105 release topology empty-state check failed: ${empty.stderr || empty.stdout}`);
+  const strictEmpty = runNode(["scripts/check-release-execution-topology.mjs", ".", "--allow-empty", "--require-structured-evidence"]);
+  if (strictEmpty.status !== 0) pass("1.105 strict topology cannot be bypassed by allow-empty");
+  else fail("1.105 strict topology was bypassed by allow-empty");
+
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), "intentos-1.105-generated-"));
+  const init = runNode([path.join(kitRoot, "scripts/init-project.mjs"), "--target", target, "--starter", "generic-project"]);
+  if (init.status !== 0) {
+    fail(`1.105 generated project initialization failed: ${init.stderr || init.stdout}`);
+    return;
+  }
+  for (const file of [
+    ".intentos/core/release-execution-topology.md",
+    ".intentos/schemas/artifacts/release-execution-topology.schema.json",
+    "scripts/lib/release-execution-topology.mjs",
+    "scripts/lib/release-topology-consumer.mjs",
+    "scripts/lib/release-topology-migration.mjs",
+    "scripts/resolve-release-execution-topology.mjs",
+    "scripts/check-release-execution-topology.mjs",
+    "scripts/resolve-release-topology-migration.mjs",
+    "scripts/check-release-topology-migration.mjs",
+    "release-execution-topologies/.gitkeep",
+    "release-topology-migrations/.gitkeep",
+    ".intentos/core/release-topology-consumer-binding.md",
+    ".intentos/core/release-topology-migration.md",
+    ".intentos/docs/release-topology-consumer-binding.md",
+    ".intentos/docs/release-topology-migration.md",
+    ".intentos/schemas/artifacts/release-topology-migration.schema.json",
+  ]) {
+    if (fs.existsSync(path.join(target, file))) pass(`1.105 generated project includes ${file}`);
+    else fail(`1.105 generated project missing ${file}`);
+  }
+  fs.mkdirSync(path.join(target, ".github/workflows"), { recursive: true });
+  fs.writeFileSync(path.join(target, ".github/workflows/release.yml"), "runs-on: ubuntu-latest\nenvironment: production\nconcurrency: release\n- uses: actions/upload-artifact@v4\n");
+  fs.writeFileSync(path.join(target, "docs/release-sop.md"), "staging rollback smoke monitoring cleanup retention\n");
+  const resolved = runNode([path.join(target, "scripts/resolve-release-execution-topology.mjs"), target, "--out", "release-execution-topologies/generated.md"]);
+  const checked = runNode([path.join(target, "scripts/check-release-execution-topology.mjs"), target, "--report", "release-execution-topologies/generated.md", "--require-structured-evidence", "--require-current-project"]);
+  if (resolved.status === 0 && checked.status === 0) pass("1.105 generated project resolves and verifies current topology evidence");
+  else fail(`1.105 generated project topology parity failed: ${resolved.stderr || resolved.stdout || checked.stderr || checked.stdout}`);
+  const migrated = runNode([
+    path.join(target, "scripts/resolve-release-topology-migration.mjs"), target,
+    "--stage", "DISCOVERY",
+    "--topology-ref", "release-execution-topologies/generated.md",
+    "--out", "release-topology-migrations/generated.md",
+  ]);
+  const migrationChecked = runNode([
+    path.join(target, "scripts/check-release-topology-migration.mjs"), target,
+    "--report", "release-topology-migrations/generated.md",
+    "--require-structured-evidence", "--require-current-project",
+  ]);
+  if (migrated.status === 0 && migrationChecked.status === 0) pass("1.107 generated project resolves and verifies current migration evidence");
+  else fail(`1.107 generated project migration parity failed: ${migrated.stderr || migrated.stdout || migrationChecked.stderr || migrationChecked.stdout}`);
+  for (const script of ["check-release-evidence-gate.mjs", "check-release-approval-record.mjs", "check-release-execution.mjs", "check-runtime-hygiene.mjs"]) {
+    const strict = runNode([path.join(target, "scripts", script), target, "--allow-empty", "--require-release-topology"]);
+    if (strict.status !== 0) pass(`1.106 generated strict topology consumer fails closed: ${script}`);
+    else fail(`1.106 generated strict topology consumer passed empty evidence: ${script}`);
   }
 }
 
@@ -18844,6 +18966,7 @@ checkReviewContextAuthorityProtocol();
 checkActiveGuidanceSemanticHardcutProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
 checkExecutionAuthorityConsumerHardcutProtocol();
+checkReleaseExecutionTopologyProtocol();
 checkVerificationRuntimeTrustProtocol();
 checkDecisionExplainTraceProtocol();
 checkLaunchReviewViewProtocol();
