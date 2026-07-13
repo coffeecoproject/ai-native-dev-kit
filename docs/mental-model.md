@@ -70,7 +70,7 @@ It answers:
 - Is this existing project adoption?
 - Should Codex define work before implementation?
 - Is there an approved task to implement?
-- Is the user asking for review, repair, a baseline decision, or a report?
+- Does the intent require review, repair, an internally derived baseline decision, or a report?
 
 Goal Mode can create `goal-cards/` for durable route records. It is not approval to implement and does not replace task cards, Engineering Baseline, Review Loop, or Human Approval.
 

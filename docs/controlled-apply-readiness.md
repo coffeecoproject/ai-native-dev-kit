@@ -88,7 +88,7 @@ What would change?
 Controlled Apply Readiness answers:
 
 ```text
-Is this plan eligible for a future human-approved controlled apply?
+Is this plan eligible for bounded controlled apply after authority, scope, rollback, and verification evidence pass?
 ```
 
 Approval Record Governance answers:

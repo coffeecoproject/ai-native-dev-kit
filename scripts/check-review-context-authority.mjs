@@ -9,6 +9,7 @@ import {
   analyzeReviewRecommendation,
   classifyReviewContextAsset,
   evaluateCurrentConversationAuthority,
+  effectiveGuidanceGraph,
   loadReviewContextAuthority,
   reviewContextBinding,
   reviewContextBindingFromMarkdown,
@@ -64,6 +65,8 @@ check(authority.classificationFallback === "UNCLASSIFIED", "unknown context sour
 check(authority.currentProductContract?.operatingModel === "ZERO_EXPERIENCE_SOLO_DEVELOPER", "registry binds the solo operating model");
 check(authority.currentProductContract?.defaultUserCount === 1, "registry binds one default user");
 check(authority.currentProductContract?.technicalDecisionOwner === "INTENTOS_CODEX", "registry delegates technical decisions to IntentOS/Codex");
+check(JSON.stringify(authority.currentProductContract?.formalAgentPlatforms) === JSON.stringify(["CODEX"]), "Codex is the only formal agent platform");
+check(JSON.stringify(authority.currentProductContract?.compatibilityAgentPlatforms) === JSON.stringify(["CLAUDE", "CURSOR"]), "Claude and Cursor are compatibility-only platforms");
 check(JSON.stringify(authority.currentProductContract?.userDecisionClasses) === JSON.stringify(USER_DECISION_CLASSES), "registry exposes exactly four user decision classes");
 check(authority.currentProductContract?.industrialDepthImpliesMultiplePeople === false, "industrial depth does not imply people");
 check(JSON.stringify(authority.precedence) === JSON.stringify([
@@ -76,12 +79,14 @@ check(JSON.stringify(authority.precedence) === JSON.stringify([
 const classificationCases = [
   ["core/review-context-authority.md", "CURRENT"],
   ["prompts/reviewer-agent.md", "CURRENT"],
-  ["releases/1.100.0/release-record.md", "CURRENT"],
+  ["releases/1.107.1/release-record.md", "CURRENT"],
+  ["releases/1.100.0/release-record.md", "HISTORICAL"],
   ["releases/1.99.3/release-record.md", "HISTORICAL"],
   ["releases/1.99.2/release-record.md", "HISTORICAL"],
   ["releases/1.99.1/release-record.md", "HISTORICAL"],
   ["releases/1.80.0/release-record.md", "HISTORICAL"],
-  ["docs/plans/execution-authority-consumer-hardcut-1.100-plan.md", "CURRENT"],
+  ["docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md", "CURRENT"],
+  ["docs/plans/execution-authority-consumer-hardcut-1.100-plan.md", "HISTORICAL"],
   ["docs/plans/review-execution-trust-closeout-1.99.3-plan.md", "HISTORICAL"],
   ["docs/plans/review-context-enforcement-1.99.2-plan.md", "HISTORICAL"],
   ["docs/plans/review-context-authority-1.99.1-plan.md", "HISTORICAL"],
@@ -98,6 +103,9 @@ check(
   "unregistered current runtime prompt has no product-direction authority",
 );
 
+const effectiveGraph = effectiveGuidanceGraph(authority, installedLayout, root);
+check(effectiveGraph.nodes.some((node) => node.registration === "REFERENCE"), "effective guidance graph resolves referenced guidance");
+if (!installedLayout) check(effectiveGraph.nodes.some((node) => node.source === "scripts/init-project.mjs" && node.registration === "GENERATOR"), "init-project is an active guidance producer");
 for (const file of activeGuidancePaths(authority, installedLayout, root)) {
   if (!fs.existsSync(path.join(root, file))) {
     fail(`active guidance path is missing: ${file}`);
@@ -108,13 +116,11 @@ for (const file of activeGuidancePaths(authority, installedLayout, root)) {
     continue;
   }
   const content = read(file);
-  const classification = classifyReviewContextAsset(file, authority, {
-    content,
-    productDirection: true,
-    root,
-    installedLayout,
-  });
-  check(classification === "CURRENT", `${file} is registered, current, and non-conflicting`, `${file} active guidance classification is ${classification}`);
+  const conflicts = analyzeActiveGuidanceConflicts(content);
+  check(conflicts.length === 0, `${file} is effective and non-conflicting`, `${file} effective guidance conflict: ${conflicts.map((item) => item.code).join(", ")}`);
+}
+for (const file of ["platforms/claude/instructions.md", "platforms/cursor/rules-template.md"]) {
+  if (!installedLayout) check(classifyReviewContextAsset(file, authority) === "COMPATIBILITY", `${file} is compatibility-only`);
 }
 
 const conflictingGuidance = "IntentOS supports Solo / Team / Enterprise modes.";

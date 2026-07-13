@@ -193,11 +193,11 @@ outcome: BLOCKED
 Selected native adoption is not allowed until omitted rules are reviewed.
 
 If native adoption is blocked, `can_recommend_apply_plan_now` must be `No`.
-Codex may only recommend an apply plan after the block is resolved and a human
-confirms the reviewed path.
+Codex may only recommend an apply plan after the block is resolved and the
+evidence-backed migration path passes internal review.
 
-## Human Role
+## User Input Boundary
 
-The human decides whether a recommendation is acceptable. Codex may prepare a
-future apply plan only after the report is reviewed and the exact action is
-approved.
+Codex owns technical reconciliation and apply-plan preparation. Ask the user
+only for a missing business fact, product preference, exact real-world consent,
+or unavailable external authority fact.

@@ -22,8 +22,8 @@ const requiredHeadings = [
   "## Project Classification",
   "## Recommended Adoption Path",
   "## Why This Path",
-  "## Decisions Needed From Human",
-  "## Safe Next Actions",
+  "## User Input Needed",
+  "## Internal Next Actions",
   "## Actions AI Must Not Take Yet",
   "## Generated Plan / Report Refs",
   "## Technical Evidence",
@@ -112,10 +112,10 @@ function validateReport(file) {
     fail(`${label} must record that start wrote no target files`);
   }
 
-  if (/## Decisions Needed From Human[\s\S]*-\s+\S/.test(content)) {
-    pass(`${label} lists human decisions`);
+  if (/## User Input Needed[\s\S]*-\s+(?:NO_USER_ACTION|BUSINESS_FACT_NEEDED|REAL_WORLD_CONSENT_NEEDED|EXTERNAL_FACT_NEEDED)\b/.test(content)) {
+    pass(`${label} uses a bounded user-input class`);
   } else {
-    fail(`${label} must list at least one human decision`);
+    fail(`${label} must use one bounded user-input class`);
   }
 
   if (/Do not install all industrial packs by default|Do not default-enable all industrial packs/i.test(content)) {
@@ -125,10 +125,10 @@ function validateReport(file) {
   }
 
   if (/\bBL2\b|industrial pack/i.test(content)) {
-    if (/explicit human confirmation|human confirmation/i.test(content)) {
-      pass(`${label} gates BL2 or industrial packs behind human confirmation`);
+    if (/evidence-backed selection|evidence, compatibility, and internal baseline gates|strict internal review/i.test(content)) {
+      pass(`${label} gates BL2 or industrial packs behind internal evidence and readiness`);
     } else {
-      fail(`${label} mentions BL2 or industrial packs without explicit human confirmation`);
+      fail(`${label} mentions BL2 or industrial packs without internal evidence and readiness`);
     }
   }
 

@@ -10,9 +10,9 @@ agent rules, docs, gates, release process, evidence, hooks, and task flow. Then
 it should recommend which IntentOS workflow pieces to use, which existing
 assets stay authoritative, and what must not be touched.
 
-The user should only make decisions such as "keep read-only", "allow a docs-only
-adapter", or "pause". The user should not need to understand every script or
-file path before Codex can explain the safe path.
+Codex derives whether the safe next step is read-only mapping, a docs-only
+bridge, a thin operational bridge, or a native migration plan. The user does
+not choose scripts, migration depth, workflow assets, or technical risk routes.
 
 From 1.62 onward, this map is not the final answer when the user says "configure
 yourself", "use IntentOS here", or "switch this old project into the new
@@ -47,10 +47,10 @@ or workflow asset installation.
 ```text
 workflow-map
 -> workflow adoption map report
--> if user wants IntentOS adoption, native-migration
--> human chooses native migration / docs-only / pause
--> optional reviewed plan
--> controlled apply only if approved
+-> when the stated goal requires IntentOS adoption, native-migration
+-> Codex derives native migration / docs-only / pause from project evidence
+-> bounded reviewed plan
+-> controlled apply only after authority, rollback, and verification readiness
 ```
 
 ## What The Map Should Tell Codex
@@ -61,16 +61,16 @@ workflow-map
 | What workflow already exists? | agent rules, docs, gates, release process, evidence, hooks |
 | What IntentOS workflows should be used? | request/spec/task, baseline decision, change boundary, patch classification, review loop, launch readiness |
 | What should be reused? | existing authority and project-specific process |
-| What can be added later? | only approved docs or selected bridge assets |
+| What can be added later? | only bounded docs or selected bridge assets whose authority, rollback, and verification are ready |
 | What must not be touched? | CI, hooks, release, AGENTS, business code, data, secrets, production |
 
-## User Choices
+## Codex Routing Outcomes
 
-| Choice | Meaning | Writes |
+| Outcome | Meaning | Writes |
 |---|---|---|
 | A. Read-only map | Keep the result as guidance only | No |
-| B. Docs-only bridge | Save an approved adapter doc | Docs only |
-| C. Thin operational bridge | Add selected reviewed assets that point to existing authority | Approved assets only |
+| B. Docs-only bridge | Save an authority-compatible adapter doc through controlled apply | Docs only |
+| C. Thin operational bridge | Add selected reviewed assets that point to existing authority | Bounded assets only |
 | D. Pause | Stop until ownership or risk is clearer | No |
 | E. Native migration plan | Use IntentOS as the planning workflow while preserving project authority | Plan only |
 
@@ -92,5 +92,9 @@ It does not:
 - approve production or release work
 - replace a reviewed Native Migration Plan
 
-If Codex wants to do any of those, it must present a separate reviewed plan and
-wait for human approval.
+If the stated goal requires any of those, Codex must prepare a separate bounded
+plan, reconcile project authority, prove rollback and verification readiness,
+and proceed only within the resulting controlled-apply boundary. User input is
+limited to a missing business fact, a product preference that cannot be
+inferred, exact consent for a prepared real-world effect, or an unavailable
+external fact.

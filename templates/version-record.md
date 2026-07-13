@@ -2,7 +2,7 @@
 
 ## Current IntentOS Version
 
-`1.107.0`
+`1.107.1`
 
 ## Project Version File
 
@@ -17,6 +17,10 @@ node intentos/scripts/init-project.mjs --target <project> --update-workflow-asse
 ```
 
 ## Notes
+
+- `1.107.1` recursively checks the effective Codex guidance graph and generated
+  migration output, keeps Claude/Cursor compatibility-only, and prevents
+  technical responsibility from being returned to the zero-experience user.
 
 - `1.107.0` adds evidence-bound release topology migration, rehearsal,
   cutover, post-cutover, and retirement stages without granting execution

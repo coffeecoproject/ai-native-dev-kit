@@ -2626,7 +2626,7 @@ function checkGuidedAdoptionEntry() {
     "Can AI write now | No",
     "start is read-only by default",
     "target files written by start | No",
-    "explicit human confirmation",
+    "strict internal review",
     "Do not install all industrial packs by default",
   ]) {
     if (template.includes(marker)) pass(`guided adoption template includes ${marker}`);
@@ -3920,7 +3920,7 @@ function checkGuidedBaselineSelectionEntryProtocol() {
     "BL0_LIGHTWEIGHT",
     "BL1_STANDARD",
     "BL2_INDUSTRIAL",
-    "candidate path for human review",
+    "candidate path for internal review",
     "Candidate only, not selected",
     "authorizes target-project writes: No",
     "approves implementation: No",
@@ -18561,6 +18561,45 @@ function checkActiveGuidanceSemanticHardcutProtocol() {
   else fail(`1.104.1 active-guidance semantic regressions failed: ${focused.stderr || focused.stdout}`);
 }
 
+function checkActiveGuidanceDistributionCloseoutProtocol() {
+  for (const file of [
+    "docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md",
+    "tests/active-guidance-distribution-closeout.test.mjs",
+    "releases/1.107.1/release-record.md",
+    "releases/1.107.1/known-limitations.md",
+    "releases/1.107.1/self-check-report.md",
+  ]) {
+    if (exists(file)) pass(`1.107.1 guidance distribution asset exists: ${file}`);
+    else fail(`1.107.1 guidance distribution asset missing: ${file}`);
+  }
+
+  const authority = JSON.parse(read("core/review-context-authority.json"));
+  const formal = authority.currentProductContract?.formalAgentPlatforms || [];
+  const compatibility = authority.currentProductContract?.compatibilityAgentPlatforms || [];
+  if (JSON.stringify(formal) === JSON.stringify(["CODEX"])) pass("1.107.1 Codex is the only formal agent platform");
+  else fail("1.107.1 formal agent platform set drifted");
+  if (JSON.stringify(compatibility) === JSON.stringify(["CLAUDE", "CURSOR"])) pass("1.107.1 Claude and Cursor are compatibility-only");
+  else fail("1.107.1 compatibility platform set drifted");
+  if ((authority.activeGuidanceProducers || []).some((row) => row.source === "scripts/init-project.mjs")) {
+    pass("1.107.1 init-project is an active guidance producer");
+  } else {
+    fail("1.107.1 init-project is missing from active guidance producers");
+  }
+
+  const manifest = JSON.parse(read("intentos-manifest.json"));
+  const adapters = manifest.groups?.platformAdapters || [];
+  if (adapters.some((value) => value.startsWith("platforms/codex/"))
+    && !adapters.some((value) => value.startsWith("platforms/claude/") || value.startsWith("platforms/cursor/"))) {
+    pass("1.107.1 manifest exposes Codex without Claude/Cursor parity claims");
+  } else {
+    fail("1.107.1 formal platform adapter distribution drifted");
+  }
+
+  const focused = runNode(["--test", "tests/active-guidance-distribution-closeout.test.mjs"]);
+  if (focused.status === 0) pass("1.107.1 source and generated guidance distribution regressions");
+  else fail(`1.107.1 guidance distribution regressions failed: ${focused.stderr || focused.stdout}`);
+}
+
 function checkExecutionAuthorityConsumerHardcutProtocol() {
   for (const file of [
     "docs/plans/execution-authority-consumer-hardcut-1.100-plan.md",
@@ -18964,6 +19003,7 @@ checkOperatingDecisionContractProtocol();
 checkProjectIdentityProjectionProtocol();
 checkReviewContextAuthorityProtocol();
 checkActiveGuidanceSemanticHardcutProtocol();
+checkActiveGuidanceDistributionCloseoutProtocol();
 checkZeroExperienceSoloOperatingModelProtocol();
 checkExecutionAuthorityConsumerHardcutProtocol();
 checkReleaseExecutionTopologyProtocol();

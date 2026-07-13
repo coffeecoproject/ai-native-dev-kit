@@ -6,14 +6,14 @@ It allows Codex to draft useful baselines for no-code and new-project work witho
 
 ## Core Rule
 
-Codex may draft proposed baselines before code exists, but must not mark them as confirmed or verified without evidence or explicit human confirmation.
+Codex may draft proposed baselines before code exists, but must not mark them as confirmed or verified without project-owned evidence or a verifiable external fact.
 
 ## State Model
 
 | State | Meaning | May Use For Implementation? |
 |---|---|---|
 | `PROPOSED` | recommended by Codex before evidence or confirmation | Advisory only |
-| `PENDING_CONFIRMATION` | needs human confirmation | Not for high-impact work |
+| `PENDING_CONFIRMATION` | compatibility state: a bounded business or external fact is unavailable | Not for high-impact work |
 | `EVIDENCE_REQUIRED` | plausible but needs code/docs/command evidence | Not until evidence exists |
 | `CONFIRMED` | supported by project-owned evidence or a verifiable external fact | Yes, within bounded verified scope |
 | `NOT_APPLICABLE` | explicitly does not apply | Yes as exclusion evidence |

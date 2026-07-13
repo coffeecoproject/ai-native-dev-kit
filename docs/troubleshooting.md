@@ -11,13 +11,14 @@ Create a read-only adoption assessment and governance map first:
 - `templates/adoption-assessment.md`
 - `templates/existing-governance-map.md`
 
-Then ask for a human decision.
+Then let Codex derive the safe adoption route and request only bounded business,
+external-fact, or real-world-consent input when required.
 
 ## `workflow-next` says `REVIEW_DIRTY_WORKTREE`
 
 Stop before creating new artifacts or changing files.
 
-Confirm:
+Codex must determine:
 
 - who owns the current changes
 - whether they should be committed, split, stashed, ignored, or reviewed
@@ -54,7 +55,7 @@ Common causes:
 - L2/L3 task has no Review Packet
 - Review Loop Report has too many AUTO_FIX rounds
 - verification after fix is missing
-- a risk finding is not routed to human decision
+- a risk finding is not routed to the required evidence and review path
 
 Fix only deterministic findings inside the current task scope. Escalate risk decisions.
 
@@ -63,7 +64,7 @@ Fix only deterministic findings inside the current task scope. Escalate risk dec
 Common causes:
 
 - final report suggests work outside the current task without a follow-up proposal
-- a risk decision is marked as something AI can do now
+- a risk treatment lacks the required evidence or review
 - `DO_NOT_PROCEED` is mixed with execution advice
 
 Move future work into `follow-up-proposals/` or ask for a new request.
@@ -83,7 +84,7 @@ Close or mark skipped helpers before final response, commit, or handoff.
 
 Use selected-only checks for target projects.
 
-Do not enable every pack. Select the pack that matches the real risk.
+Do not enable every pack. Codex selects the smallest pack set that matches the real risk.
 
 ## README feels too short
 

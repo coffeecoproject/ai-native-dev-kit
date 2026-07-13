@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "intentOSVersion": "1.107.0",
+  "intentOSVersion": "1.107.1",
   "mode": "authoritative",
   "compatibilityPolicy": {
     "readOnly": false,
     "authoritative": true,
     "changesRuntimeBehavior": true,
-    "phase": "1.107.0"
+    "phase": "1.107.1"
   },
   "groups": {
     "sourceRequired": [
@@ -15,6 +15,7 @@
       ".github/workflows/intentos-pr-checks.yml",
       ".github/workflows/intentos-release-checks.yml",
       "CONTRIBUTING.md",
+      "docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md",
       "LICENSE-COMMERCIAL.md",
       "LICENSE-FAQ.md",
       "LICENSE.md",
@@ -1396,6 +1397,9 @@
       "releases/1.107.0/known-limitations.md",
       "releases/1.107.0/release-record.md",
       "releases/1.107.0/self-check-report.md",
+      "releases/1.107.1/known-limitations.md",
+      "releases/1.107.1/release-record.md",
+      "releases/1.107.1/self-check-report.md",
       "releases/1.11.0/known-limitations.md",
       "releases/1.11.0/release-record.md",
       "releases/1.11.0/self-check-report.md",
@@ -5281,10 +5285,8 @@
       "scripts/workflow-next.mjs"
     ],
     "platformAdapters": [
-      "platforms/claude/instructions.md",
       "platforms/codex/AGENTS.template.md",
       "platforms/codex/quickstart.md",
-      "platforms/cursor/rules-template.md",
       "platforms/github/ci-ai-workflow.yml",
       "platforms/github/pull_request_template.md"
     ],

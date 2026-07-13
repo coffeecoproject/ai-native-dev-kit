@@ -162,10 +162,11 @@ can_recommend_apply_plan_now: No
 - `GAP_SUGGESTION`: documentation or evidence gap only; not release approval.
 - `NEEDS_HUMAN_DECISION`: stop and ask the owner.
 
-## Human Confirmation Boundary
+## User Input Boundary
 
-The AI should recommend the technical path. The human confirms whether Codex may
-prepare a reviewable apply plan for that recommendation.
+Codex derives and reviews the technical path, then prepares a bounded apply plan
+when project authority, rollback, and verification evidence permit it. The user
+is asked only for one of the four bounded input classes.
 
 The report must not ask a non-technical user to personally decide whether a
 release gate, CI guard, baseline rule, or hook policy is technically stricter.

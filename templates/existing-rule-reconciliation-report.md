@@ -84,7 +84,7 @@ This is a recommendation report, not permission to change files.
 | Confidence | `LOW` |
 | Can Codex write now | `No` |
 | Default Path | prepare apply plan after review |
-| Human Confirmation | Allow Codex to prepare a reviewable apply plan for the recommended migration path. |
+| User Input | `NO_USER_ACTION` unless a missing business fact, prepared real-world consent, or external authority fact is identified. |
 
 | Decision Part | Items |
 | --- | --- |

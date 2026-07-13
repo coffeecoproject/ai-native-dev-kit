@@ -7,8 +7,8 @@ The Standard Baseline Pack Registry separates ordinary engineering guardrails fr
 ```text
 standard baseline packs first
 industrial overlays only when risk justifies them
-human decision before selection
-separate task approval before writes
+Codex selects from evidence
+controlled task readiness before writes
 ```
 
 ## Definitions
@@ -39,15 +39,17 @@ Codex may not:
 - treat draft packs as stable
 - treat pack files as real project evidence
 
-## Human Decisions
+## Responsibility Boundary
 
-Human confirms:
+Codex derives and records:
 
 - selected profiles
 - BL level
 - selected standard packs
 - optional industrial overlays
 - missing evidence acceptance
-- whether a separate implementation task may write files
+- whether a separate implementation task has sufficient authority and readiness to write files
 
-Approving standard baseline selection does not approve a specific implementation task.
+Baseline selection does not authorize a specific implementation task, release,
+or production action. The user is asked only for bounded business facts,
+product preferences, exact real-world consent, or external facts.

@@ -48,7 +48,7 @@ exact evidence work. Ordinary users should not choose among them.
 | `node scripts/cli.mjs product-completeness <project> --evidence <file>` | Include explicit local smoke/demo evidence in the product completeness report; text and structured JSON are supported | No |
 | `node scripts/cli.mjs product-completeness-check <project>` | Check recorded Product Completeness Reports | No |
 | `node scripts/cli.mjs mvp-example-check [example]` | Check a built-in local MVP example, metadata, evidence, and smoke test | No |
-| `node scripts/cli.mjs apply-candidate <project> --intent "<change>" --path <file>` | Record whether a proposed small change is low risk enough for later human-approved apply planning | No |
+| `node scripts/cli.mjs apply-candidate <project> --intent "<change>" --path <file>` | Record whether a proposed small change is low risk enough for bounded apply planning | No |
 | `node scripts/cli.mjs apply-candidate-check <project>` | Check recorded Low-Risk Controlled Apply Candidate records | No |
 | `node scripts/cli.mjs debt-handoff <project>` | Record debt and handoff context for paused, interrupted, or unfinished work | No |
 | `node scripts/cli.mjs debt-handoff-check <project>` | Check recorded Debt & Knowledge Handoff Reports | No |
@@ -127,7 +127,7 @@ exact evidence work. Ordinary users should not choose among them.
 | `node scripts/cli.mjs archive-apply-check <project>` | Check recorded Document Archive Apply Plans | No |
 | `node scripts/cli.mjs apply-plan <project> --intent "<goal>"` | Turn proposed project writes into one reviewable Unified Apply Plan | No |
 | `node scripts/cli.mjs apply-plan-check <project>` | Check recorded Unified Apply Plans | No |
-| `node scripts/cli.mjs apply-readiness <project> --plan <apply-plan>` | Evaluate whether an apply plan is eligible for a future human-approved controlled apply step | No |
+| `node scripts/cli.mjs apply-readiness <project> --plan <apply-plan>` | Evaluate whether an apply plan is eligible for bounded controlled apply after authority, rollback, and verification checks | No |
 | `node scripts/cli.mjs apply-readiness-check <project>` | Check recorded Controlled Apply Readiness Reports | No |
 | `node scripts/cli.mjs approval-record-check <project>` | Check recorded Approval Records for human-owned bounded approval evidence | No |
 | `node scripts/cli.mjs apply-receipt-check <project>` | Verify that a controlled apply replayed the approved graph, changed only approved targets, preserved current hashes, and activated IntentOS read-only behavior | No |
@@ -257,7 +257,7 @@ project-owned rules.
 
 `scripts/check-mvp-example.mjs` is the 1.44 real MVP example evidence checker. It checks built-in local MVP examples, metadata markers, first-slice cards, completeness reports, final reports, explicit smoke evidence, and local smoke tests.
 
-`scripts/resolve-low-risk-apply-candidate.mjs` is the 1.45 low-risk controlled apply candidate entry, hardened in 1.46 with shared risk surfaces and machine-readable evidence. It records whether a proposed small change is exact, local, reversible, and testable enough to ask for later human approval. It does not write files or authorize apply.
+`scripts/resolve-low-risk-apply-candidate.mjs` is the 1.45 low-risk controlled apply candidate entry, hardened in 1.46 with shared risk surfaces and machine-readable evidence. It records whether a proposed small change is exact, local, reversible, and testable enough for bounded apply planning. It does not write files or authorize apply.
 
 `scripts/check-low-risk-apply-candidate.mjs` checks recorded Low-Risk Controlled Apply Candidate records. It rejects unsafe paths, high-risk surfaces without no-authority boundaries, missing rollback, missing verification, apply authorization, implementation approval, release/production approval, and CI/hook changes. Use `--require-structured-evidence` when new records must include a valid `Machine-Readable Evidence` block.
 
@@ -281,7 +281,7 @@ project-owned rules.
 
 `scripts/check-apply-plan.mjs` checks recorded Unified Apply Plans. It rejects write-now claims, apply authorization, implementation approval, release/production approval, immediate CI/hook/archive/source-of-truth changes, high-risk actions without internal blocking or exact real-world-consent classification, missing rollback, missing verification planning, and invalid structured evidence digests. Use `--require-structured-evidence` when a report must exist and include a valid `Machine-Readable Evidence` block.
 
-`scripts/resolve-controlled-apply-readiness.mjs` is the 1.38 controlled apply readiness entry. It reads one Unified Apply Plan and reports whether the plan is not ready, human-only, blocked, or a low-risk candidate for future human-approved apply. It does not write target-project files or authorize apply.
+`scripts/resolve-controlled-apply-readiness.mjs` is the 1.38 controlled apply readiness entry. It reads one Unified Apply Plan and reports whether the plan is not ready, external-consent-only, blocked, or a low-risk candidate for bounded controlled apply. It does not write target-project files or authorize apply.
 
 `scripts/check-controlled-apply-readiness.mjs` checks recorded Controlled Apply Readiness Reports. It rejects apply authorization, write-now claims, proceeding without new approval, high-risk actions marked ready, missing rollback, missing verification, release/production/hook/CI/source-of-truth overclaims, structured readiness records with empty actions outside `NO_APPLY_PLAN`, and structured plan digest mismatches. Use `--require-structured-evidence` to require structured evidence and local apply-plan reference resolution.
 

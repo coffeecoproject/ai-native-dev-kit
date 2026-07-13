@@ -1,6 +1,6 @@
 # Low-Risk Controlled Apply Candidate
 
-This protocol records whether a proposed change is small enough to be considered for a future human-approved controlled apply step.
+This protocol records whether a proposed change is small enough to be considered for bounded controlled apply after internal authority, rollback, and verification checks.
 
 It is not an apply runner. It does not write files, approve implementation, approve release, install hooks, change CI, or touch production-sensitive surfaces.
 

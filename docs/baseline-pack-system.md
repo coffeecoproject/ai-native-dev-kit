@@ -12,7 +12,7 @@ There are three decisions:
 
 1. What kind of project is this?
 2. How strict should the project be?
-3. Which platform, capability, or risk packs are actually needed?
+3. Codex derives the platform, capability, and risk packs actually needed.
 
 The system should help Codex explain the answer clearly. It should not make the user understand every script.
 
@@ -61,17 +61,19 @@ Do not install or enable all packs.
 
 Use only the smallest pack set that matches the real project.
 
-## Human Role
+## Responsibility Boundary
 
-The human decides:
+Codex derives:
 
-- project type
-- BL level
-- whether draft packs are accepted
-- whether missing evidence blocks the next task
-- whether a risky change may proceed
+- project type and Profile from project evidence;
+- BL level and the smallest applicable pack set;
+- whether draft packs are usable;
+- whether missing evidence blocks the dependent task;
+- the required risk treatment, verification, and review path.
 
-Codex can recommend and prepare a report. Codex cannot silently approve.
+The user supplies only bounded business facts, product preferences, exact
+real-world consent, or external facts. A report does not authorize writes,
+release, or production.
 
 ## Commands
 
@@ -84,7 +86,7 @@ node scripts/cli.mjs baseline-packs <project>
 
 `standard-baseline` shows standard packs only. `baseline-packs` is an umbrella read-only view that shows standard packs first, then optional industrial overlays.
 
-1.15.0 extends standard baseline recommendations with platform packs for Mini Program, iOS, Android, internal admin, and environment setup. Backend and release packs remain conditional; industrial overlays remain optional and inactive unless human-approved.
+1.15.0 extends standard baseline recommendations with platform packs for Mini Program, iOS, Android, internal admin, and environment setup. Backend and release packs remain conditional; industrial overlays remain optional and inactive until evidence-backed selection and internal review pass.
 
 Check recorded pack selection reports:
 

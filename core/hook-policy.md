@@ -1,7 +1,7 @@
 # Project Hook Policy Governance
 
-Project Hook Policy Governance defines which hooks a project allows, who must
-approve them, and how they are disabled or rolled back.
+Project Hook Policy Governance defines which hooks a project allows, which
+evidence authority applies, and how they are disabled or rolled back.
 
 It hardens Hook Orchestration. Hook Orchestration answers "what hook could be
 useful?" Project Hook Policy answers "what hook is allowed in this project?"
@@ -28,7 +28,7 @@ installation work.
 `POLICY_REVIEW_REQUIRED`
 
 The project has existing hooks, CI workflows, scheduled jobs, hook tooling, or
-release automation signals. A human must review the policy before any hook work.
+release automation signals. Codex must run the stricter internal review before any hook work.
 
 `GOVERNED_POLICY_PRESENT`
 
@@ -38,7 +38,9 @@ must map to it instead of replacing it.
 `BLOCKED_BY_EXISTING_HOOK_RISK`
 
 Existing hook behavior appears blocking, external, release-related, secret-like,
-or production-sensitive. Codex must stop for a human decision.
+or production-sensitive. Codex must stop the dependent action until evidence,
+rollback, and review are sufficient; exact user consent is needed only for a
+prepared real-world effect.
 
 ## Hook Class Policy
 
@@ -55,16 +57,18 @@ permission to install hooks.
 
 `H2_REQUIRES_CONFIRMATION`
 
-Requires human confirmation before any project-file change, local Git hook,
-Husky/Lefthook/pre-commit configuration, non-blocking workflow step, or package
-script hook is added.
+Compatibility label for project-file changes, local Git hooks,
+Husky/Lefthook/pre-commit configuration, non-blocking workflow steps, or package
+script hooks. These require controlled apply, rollback, and verification rather
+than user technical judgment.
 
 `H3_EXPLICIT_APPROVAL_REQUIRED`
 
-Requires explicit human approval, named owner, rollback plan, and evidence
-before any blocking gate, CI mutation, scheduled job, external API call,
-auto-fix behavior, release hook, production-adjacent hook, or token/secret
-storage is added.
+Compatibility label for blocking gates, CI mutation, scheduled jobs, external
+API calls, auto-fix behavior, release hooks, production-adjacent hooks, or
+token/secret storage. These require strict internal review, rollback, and
+evidence; exact user consent is additionally required for the prepared external
+effect.
 
 ## Required Policy Contents
 
@@ -73,11 +77,11 @@ A Project Hook Policy must include:
 - policy state
 - existing hook / CI / scheduler / script sources
 - allowed hook classes
-- approval matrix
+- evidence-authority and consent matrix
 - rollback / disable policy
 - forbidden automatic actions
 - relationship to Hook Orchestration
-- human decisions needed
+- bounded user input needed
 - boundary statement
 
 ## Boundary

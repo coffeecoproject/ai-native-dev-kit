@@ -13,7 +13,7 @@ node scripts/check-baseline-state.mjs . --report baseline-state-reports/<file>.m
 ## Common States
 
 - `PROPOSED`: Codex recommendation only.
-- `PENDING_CONFIRMATION`: human confirmation needed.
+- `PENDING_CONFIRMATION`: compatibility state for an unavailable bounded business or external fact.
 - `EVIDENCE_REQUIRED`: code/docs/commands must prove it later.
 - `CONFIRMED`: backed by project-owned evidence or a verifiable external fact.
 - `NOT_APPLICABLE`: explicitly not relevant.

@@ -4,7 +4,7 @@
 
 I think this is a production-sensitive project.
 
-I recommend BL2_INDUSTRIAL only as a candidate path pending evidence and human confirmation.
+I recommend BL2_INDUSTRIAL only as a candidate path pending evidence and internal readiness.
 
 Codex can recommend next steps, but this card does not approve writes or implementation.
 

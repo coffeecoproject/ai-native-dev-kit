@@ -20,8 +20,8 @@ Project type: EXISTING_LIGHT_PROJECT. Recommended mode: plan-first. start is rea
 | --- | --- |
 | O level | O1 |
 | BL level | BL0 first; BL1 after current stack is understood |
-| Profiles | Infer candidate profiles from code, then ask human to confirm |
-| Industrial packs | None by default; BL2 requires explicit human confirmation |
+| Profiles | Codex derives candidate profiles from code and project evidence |
+| Industrial packs | None by default; BL2 requires evidence-backed selection and strict internal review |
 | Goal mode | ADOPTION |
 | Plan first required | true |
 | Adoption mode | plan-first |
@@ -30,17 +30,15 @@ Project type: EXISTING_LIGHT_PROJECT. Recommended mode: plan-first. start is rea
 ## Why This Path
 
 - The target has existing project signals but no strong governance or production-sensitive markers.
-- A write plan lets the human review exactly what would be added before adoption.
+- A bounded write plan lets Codex prove exactly what would be added before controlled adoption.
 
-## Decisions Needed From Human
+## User Input Needed
 
-- Confirm whether AI should only assess first or prepare a write plan.
-- Confirm which project areas are in scope for initial workflow adoption.
-- Confirm platform profile candidates before any baseline setup.
+- NO_USER_ACTION by default; request only an unavailable business fact or external fact.
 
-## Safe Next Actions
+## Internal Next Actions
 
-| Action | Command | Writes | Requires human confirmation |
+| Action | Command | Writes | Internal readiness required |
 | --- | --- | --- | --- |
 | Inspect only | `node scripts/cli.mjs start <project>` | No | No |
 | Write adoption plan | `node scripts/init-project.mjs --target <project> --update-workflow-assets --write-plan adoption-plan.json` | Plan file only | Yes |
@@ -50,7 +48,7 @@ Project type: EXISTING_LIGHT_PROJECT. Recommended mode: plan-first. start is rea
 
 - Do not write workflow assets from start; start is read-only by default.
 - Do not install all industrial packs by default.
-- Do not enable BL2 or any industrial pack without explicit human confirmation.
+- Do not enable BL2 or any industrial pack without evidence-backed selection and strict internal review.
 - Do not change business code, deployment settings, secrets, migrations, permissions, or production configuration during adoption recommendation.
 
 ## Generated Plan / Report Refs
@@ -72,4 +70,4 @@ Project type: EXISTING_LIGHT_PROJECT. Recommended mode: plan-first. start is rea
 
 ## Final Recommendation
 
-Prepare a write plan only after the human confirms the existing project should be adopted.
+Codex prepares a bounded adoption plan when the stated goal requires adoption, then verifies authority, rollback, and readiness before apply.

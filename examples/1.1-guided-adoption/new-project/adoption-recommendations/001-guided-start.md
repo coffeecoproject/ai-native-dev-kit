@@ -19,9 +19,9 @@ Project type: NEW_PROJECT. Recommended mode: guided-init. start is read-only by 
 | Field | Value |
 | --- | --- |
 | O level | O0/O1 |
-| BL level | BL0 first; BL1 or BL2 only after platform and risk confirmation |
-| Profiles | Decide platform profile from project intent before init |
-| Industrial packs | None by default; BL2 requires explicit human confirmation |
+| BL level | Codex selects BL1 by default for maintained products and BL2 only for concrete industrial risk |
+| Profiles | Codex derives platform profiles from the product goal before init |
+| Industrial packs | None by default; BL2 requires evidence-backed selection and strict internal review |
 | Goal mode | ADOPTION |
 | Plan first required | false |
 | Adoption mode | guided-init |
@@ -30,17 +30,15 @@ Project type: NEW_PROJECT. Recommended mode: guided-init. start is read-only by 
 ## Why This Path
 
 - The target is empty enough to treat as a new project.
-- AI can prepare the init command, but the human still confirms platform and intent before writing.
+- Codex derives the platform and technical setup, then uses the controlled plan and readiness chain before writing.
 
-## Decisions Needed From Human
+## User Input Needed
 
-- Confirm this is the intended new project directory.
-- Choose platform scope.
-- Confirm whether to initialize workflow assets now.
+- NO_USER_ACTION by default; request only an unavailable business goal detail.
 
-## Safe Next Actions
+## Internal Next Actions
 
-| Action | Command | Writes | Requires human confirmation |
+| Action | Command | Writes | Internal readiness required |
 | --- | --- | --- | --- |
 | Preview init | `node scripts/cli.mjs init --target <project> --dry-run` | No | No |
 | Write init plan | `node scripts/init-project.mjs --target <project> --write-plan adoption-plan.json` | Plan file only | Yes |
@@ -50,7 +48,7 @@ Project type: NEW_PROJECT. Recommended mode: guided-init. start is read-only by 
 
 - Do not write workflow assets from start; start is read-only by default.
 - Do not install all industrial packs by default.
-- Do not enable BL2 or any industrial pack without explicit human confirmation.
+- Do not enable BL2 or any industrial pack without evidence-backed selection and strict internal review.
 - Do not change business code, deployment settings, secrets, migrations, permissions, or production configuration during adoption recommendation.
 
 ## Generated Plan / Report Refs
@@ -72,4 +70,4 @@ Project type: NEW_PROJECT. Recommended mode: guided-init. start is read-only by 
 
 ## Final Recommendation
 
-Ask the human to confirm project type and platform, then create an init plan before applying anything.
+Codex derives project type and platform, then creates and validates an init plan before controlled apply.

@@ -203,7 +203,7 @@ Natural Language Workflow Orchestrator lives under `.intentos/core/` in generate
 
 Conversation-Native Ask lives under `.intentos/core/` in generated projects. It makes a plain user goal equivalent to Beginner Entry behavior in conversation, without requiring the user to know or run CLI commands first.
 
-Controlled Apply Readiness lives under `.intentos/core/` in generated projects. It checks whether a Unified Apply Plan is eligible for a future human-approved controlled apply step, while keeping actual apply, implementation, release, production, hooks, CI, archive, and high-risk decisions unauthorized.
+Controlled Apply Readiness lives under `.intentos/core/` in generated projects. It checks whether a Unified Apply Plan is eligible for a bounded controlled apply after authority, scope, rollback, and verification evidence pass, while keeping production, real-world release effects, hooks, CI, archive, and unresolved high-risk actions blocked.
 
 Approval Record Governance lives under `.intentos/core/` in generated projects. It records what a human explicitly approved after readiness: exact action IDs, target paths, plan hash, expiry, rollback acknowledgement, and verification acknowledgement. It does not execute writes, authorize automatic apply, approve implementation, approve release/production, install hooks, change CI, or enable high-risk actions.
 

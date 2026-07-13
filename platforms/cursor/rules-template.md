@@ -1,5 +1,9 @@
 # Cursor Rules Template
 
+> Compatibility reference only. IntentOS 1.107.1 formally supports Codex as
+> its agent platform. This file is not active guidance, is not installed by
+> default, and does not claim current IntentOS behavior parity.
+
 This project uses an AI-native, spec-first workflow.
 
 ## Core Rules
@@ -76,7 +80,7 @@ Before non-trivial work, read:
 
 ## Controlled Apply Readiness
 
-- Run `node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <clean|dirty>` after a Unified Apply Plan exists and before any future human-approved controlled apply step.
+- Run `node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <clean|dirty>` after a Unified Apply Plan exists and before any controlled apply step permitted by the bounded plan and project authority.
 - Run `node scripts/cli.mjs apply-readiness-check .` when Controlled Apply Readiness Reports exist.
 - Do not treat readiness reports as permission to write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
 

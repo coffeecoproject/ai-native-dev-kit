@@ -9,12 +9,12 @@ The automation `cwd` must be the project root that contains:
 
 Do not attach this automation to the shared intentos directory or a broad parent directory unless the user explicitly wants a multi-project monitor.
 
-Before this automation is created or updated, there should be an approved `automation-proposals/` entry for the exact project root, schedule, prompt, allowed writes, and initial status.
+Before this automation is created or updated, the user must have explicitly requested the persistent automation and the `automation-proposals/` entry must record the prepared recurring effect, exact consent, project root, schedule, prompt, allowed writes, and initial status.
 
 ```text
 Run the IntentOS daily workflow summary for this project.
 
-1. Confirm the current directory contains `.intentos/version.json` and `scripts/workflow-daily-summary.mjs`.
+1. Verify the current directory contains `.intentos/version.json` and `scripts/workflow-daily-summary.mjs`.
 2. Run `node scripts/workflow-daily-summary.mjs . --write-state`.
 3. If the decision is `NO_ACTION`, do not edit files.
 4. If the decision is `ACTION_REQUIRED`, create or update only the relevant draft workflow files:
@@ -30,5 +30,5 @@ Guardrails:
 - Do not create, update, install, or enable active Skills.
 - Do not write to `.codex/skills/`.
 - Do not change shared intentos files unless the task is explicitly about the intentos.
-- Keep output concise: list the project checked, decision, files created or updated, and human decisions needed.
+- Keep output concise: list the project checked, decision, files created or updated, and bounded user input needed.
 ```

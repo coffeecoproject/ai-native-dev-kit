@@ -1,27 +1,22 @@
 # Guided Adoption Recommendation
 
-## Human Decision Summary
+## Decision Responsibility Summary
 
 Conclusion:
 
-Recommended choice: A / B / C / D
+Next automatic action:
 
 Can AI continue now: yes / limited / no
 
-What I need from you:
+User decision class: <NO_USER_ACTION | BUSINESS_FACT_NEEDED | REAL_WORLD_CONSENT_NEEDED | EXTERNAL_FACT_NEEDED>
 
-| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |
-| --- | --- | --- | --- | --- | --- |
-| A | Inspect only | Read and report current adoption path | No | low | Choose when you only want diagnosis |
-| B | Plan first | Draft an adoption plan or adapter report | Plan/report only | low/medium | Choose when the project should keep a durable decision record |
-| C | Apply reviewed setup | Apply approved workflow assets or migration reports | Yes, approved assets only | medium/high | Choose only after reviewing the plan |
-| D | Pause | Stop adoption and wait | No | low | Choose when the decision is not ready |
+What I need from you: <plain bounded input or nothing>
 
 Recommended reason:
 
 What happens if you do nothing:
 
-## Human Summary
+## Plain Summary
 
 Project type: <NEW_PROJECT | EXISTING_LIGHT_PROJECT | GOVERNED_EXISTING_PROJECT | PRODUCTION_SENSITIVE_PROJECT | DIRTY_WORKTREE_PROJECT | ALREADY_BOOTSTRAPPED_PROJECT | UNKNOWN_NEEDS_DISCUSSION>. Recommended mode: <mode>. start is read-only by default; no target project files were written.
 
@@ -42,7 +37,7 @@ Project type: <NEW_PROJECT | EXISTING_LIGHT_PROJECT | GOVERNED_EXISTING_PROJECT 
 | O level | <O0/O1/O2/O3> |
 | BL level | <BL0/BL1/BL2 decision> |
 | Profiles | <candidate platform profiles or none yet> |
-| Industrial packs | None by default; BL2 requires explicit human confirmation |
+| Industrial packs | None by default; Codex selects only evidence-backed BL2 overlays |
 | Goal mode | <ADOPTION | ADOPTION_READ_ONLY | TASK_OR_ADOPTION | DISCUSS_ONLY> |
 | Plan first required | <true | false> |
 | Adoption mode | <mode> |
@@ -52,22 +47,22 @@ Project type: <NEW_PROJECT | EXISTING_LIGHT_PROJECT | GOVERNED_EXISTING_PROJECT 
 
 - <evidence-based reason>
 
-## Decisions Needed From Human
+## User Input Needed
 
-- <decision the human must make>
+- <one of the four user-input classes, or NO_USER_ACTION>
 
-## Safe Next Actions
+## Internal Next Actions
 
-| Action | Command | Writes | Requires human confirmation |
+| Action | Command | Writes | Internal readiness required |
 | --- | --- | --- | --- |
 | Inspect only | `node scripts/cli.mjs start <project>` | No | No |
-| Write plan | `node scripts/init-project.mjs --target <project> --write-plan adoption-plan.json` | Plan file only | Yes |
+| Write plan | `node scripts/init-project.mjs --target <project> --write-plan adoption-plan.json` | Plan file only | Internal plan evidence |
 
 ## Actions AI Must Not Take Yet
 
 - Do not write workflow assets from start; start is read-only by default.
 - Do not install all industrial packs by default.
-- Do not enable BL2 or any industrial pack without explicit human confirmation.
+- Do not enable BL2 or any industrial pack without evidence-backed selection and strict internal review.
 - Do not change business code, deployment settings, secrets, migrations, permissions, or production configuration during adoption recommendation.
 
 ## Generated Plan / Report Refs

@@ -8,7 +8,7 @@ It is not hook automation. It does not require an external model API. Hook-based
 
 - Implementing agent: changes files inside the approved task scope.
 - Reviewer agent: performs read-only review and writes structured findings only.
-- Human: decides scope expansion, risk acceptance, architecture changes, production decisions, and final merge or release judgment.
+- Codex: replans scope and architecture, treats technical risk with evidence, and decides internal merge readiness. The user supplies missing business scope or exact consent only for a prepared real-world production or release effect.
 
 The reviewer must not edit files, approve risk, approve release, expand scope, or change the task goal.
 

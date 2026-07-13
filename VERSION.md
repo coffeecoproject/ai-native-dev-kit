@@ -1,6 +1,6 @@
 # IntentOS Version
 
-Current version: `1.107.0`
+Current version: `1.107.1`
 
 ## Versioning Policy
 
@@ -10,9 +10,16 @@ Current version: `1.107.0`
 
 ## Current Release
 
-`1.107.0`
+`1.107.1`
 
 Includes:
+
+- Active Guidance Distribution Close-Out `1.107.1`: recursively checks the
+  effective Codex guidance graph, generated Codex assets, and existing-project
+  migration reports against the zero-experience solo responsibility contract.
+- `1.107.1` makes Codex the only formal agent platform, retains Claude/Cursor as
+  compatibility references, and replaces technical user approvals with
+  Codex-owned authority reconciliation, bounded planning, and verification.
 
 - Release Topology Migration And Calibration `1.107.0`: separates read-only
   discovery, bounded project-file apply, non-production rehearsal, cutover,

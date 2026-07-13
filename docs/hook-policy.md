@@ -18,7 +18,7 @@ scheduled checks, daily summaries, review loops, or external reviewer hooks.
 - lists existing hook and CI sources
 - separates read-only checks from hook installation
 - states which hook classes are allowed
-- states who approves H2 and H3 hooks
+- states the evidence authority and consent boundary for H2 and H3 hooks
 - requires rollback and disable steps before risky hooks
 - prevents "hook suggestion" from becoming "hook installed"
 
@@ -52,8 +52,9 @@ replacing CI, release, or agent governance.
 
 ## Relationship To Hook Orchestration
 
-Use Hook Orchestration when deciding candidate triggers and risk levels. Use
-Project Hook Policy when deciding what the project allows by default and what
-requires human approval.
+Use Hook Orchestration when deriving candidate triggers and risk levels. Use
+Project Hook Policy when determining what project authority permits by default,
+what needs controlled apply, and what concrete external effect needs exact
+consent.
 
 Project Hook Policy does not replace Hook Orchestration. It constrains it.

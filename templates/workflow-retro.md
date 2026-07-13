@@ -1,6 +1,6 @@
 # Workflow Retro: <period-or-milestone>
 
-## Human Decision Summary
+## User Input Summary
 
 Conclusion:
 
@@ -14,20 +14,20 @@ What I need from you:
 |---|---|---|---|---|---|
 | A | Keep workflow | Record retro with no process change | Retro only | low | Choose when issues are one-off |
 | B | Create improvement | Draft a workflow improvement or intentos proposal | Proposal/report only | low/medium | Choose when repeated problems appear |
-| C | Route human decision | Stop before changing governance, baseline, or automation | Decision/proposal only | medium/high | Choose when a process change affects authority or risk |
+| C | Route bounded input | Stop only when a business fact, exact real-world consent, or external fact is required | Input/proposal only | medium/high | Use when internal evidence cannot resolve the input |
 | D | Watch only | Track signals without acting | Retro only | low | Choose when evidence is too weak |
 
 Recommended reason:
 
 What happens if you do nothing:
 
-## Human Summary
+## Plain Summary
 
 One-sentence conclusion:
 
-## Decision Needed
+## User Input Needed
 
-Which workflow change, if any, needs human approval:
+User input class for any unresolved item: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
 ## Next Safe Step
 
@@ -54,7 +54,7 @@ Tasks reviewed:
 - Abandoned:
 - Total AI runs:
 - Total repair runs:
-- Human review time:
+- Independent review time:
 
 ## Repeated Problems
 

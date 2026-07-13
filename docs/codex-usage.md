@@ -22,15 +22,17 @@ Codex should do five things:
 4. Run verification and report evidence.
 5. Propose workflow improvements without applying governance changes automatically.
 
-Humans decide:
+The user supplies only:
 
-- project onboarding acceptance
-- project-wide engineering conventions
-- material product priority or scope tradeoffs
-- high-risk approval
-- technology strategy
-- release readiness
-- active Skill or automation creation
+- the business goal and unavailable business facts;
+- material product preferences or scope tradeoffs;
+- exact consent for a prepared real-world action;
+- external facts that project evidence cannot prove.
+
+Codex derives onboarding readiness, engineering conventions, technology
+strategy, baseline depth, technical risk treatment, verification, review, and
+release readiness. These technical decisions require evidence and the
+applicable internal gates, not user expertise.
 
 ## Bootstrap Prompt
 
@@ -40,7 +42,8 @@ Use this when you want Codex to configure a new, existing, or already bootstrapp
 Read this IntentOS and configure the current project yourself.
 Detect whether this is a new project, existing project, or already bootstrapped project.
 Do not modify business code during bootstrap.
-Stop for any migration report that needs my approval.
+Continue through reversible project setup when controlled evidence authorizes
+it. Ask me only for an unavailable business fact or exact real-world consent.
 ```
 
 Expected Codex behavior:
@@ -57,7 +60,7 @@ Expected Codex behavior:
 - Use `scripts/workflow-next.mjs <project-root>` as the lower-level technical state detector when needed.
 - Report `workflow-next` results with `Human Decision Summary` first, then human summary, then technical state fields. The decision summary must include the recommended option, alternatives, whether each option writes files, risk, and what happens if the human does nothing. Use `--format technical` only when the user or automation asks for raw technical output.
 - If `workflow-next` reports `ADOPTION_MODE: READ_ONLY` or `NEXT_ACTION: RUN_ADOPTION_ASSESSMENT`, do not run setup commands or write files. Produce a real adoption report, existing governance map, and patch classification first.
-- If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, do not create workflow artifacts, execute task cards, or edit files until the human confirms how to handle existing changes.
+- If `workflow-next` reports `NEXT_ACTION: REVIEW_DIRTY_WORKTREE` or `ADOPTION_MODE: GUARDED`, preserve unrelated changes, classify ownership, and select a safe isolated or bounded route. Ask the user only when an unavailable ownership fact prevents a safe route.
 - When the user is non-expert or the request is broad, use Guided Decision & Delivery Loop. Recommend the smallest safe path before asking for confirmation, keep one current mainline, park side ideas, and avoid raw technical questions such as enum-vs-lookup unless they are translated into product choices.
 - Follow `NEXT_ACTION`.
 - Use `init-project.mjs` for initialization or workflow asset updates.
@@ -112,8 +115,8 @@ Expected Codex behavior:
 - For lower-level standard baseline decisions, run `node scripts/cli.mjs standard-baseline .` and create a Standard Baseline Selection Report when the recommendation affects the task.
 - For platform baseline decisions, use the platform matrix: recommend platform runtime packs first, keep backend and release conditional, keep `environment-standard` proportional to BL level, and keep industrial overlays separate.
 - Use `node scripts/cli.mjs baseline-packs .` for the umbrella read-only view: standard packs first, optional industrial overlays second.
-- For BL2 industrial work, read `industrial-packs/selection-guide.md`, recommend selected industrial overlays, wait for human confirmation of BL2 and draft pack acceptance, install only selected packs with `init-project --industrial-packs <pack-id>`, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-standard-baseline-selection.mjs .`, `node scripts/check-baseline-pack-selection.mjs .`, `node scripts/check-industrial-pack.mjs . --selected-only`, and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
-- Ask for human decisions only where the workflow requires confirmation.
+- For BL2 industrial work, read `industrial-packs/selection-guide.md`, select only evidence-backed industrial overlays, install them through the controlled plan, draft `docs/baseline-selection.md` / `docs/baseline-evidence.md`, then run `node scripts/check-standard-baseline-selection.mjs .`, `node scripts/check-baseline-pack-selection.mjs .`, `node scripts/check-industrial-pack.mjs . --selected-only`, and `node scripts/check-industrial-baseline.mjs . --bl2-only`.
+- Request user input only through `BUSINESS_FACT_NEEDED`, `REAL_WORLD_CONSENT_NEEDED`, or `EXTERNAL_FACT_NEEDED`; otherwise report `NO_USER_ACTION`.
 
 ## Goal Mode Prompt
 
@@ -173,11 +176,11 @@ Expected Codex behavior:
 - Run `node scripts/check-engineering-baseline.mjs .` before implementation when the task touches structure, API contracts, DTO / schema / domain boundaries, enum / string / lookup / state-machine choices, schema or migrations, permission model, generated type source, dependencies, or cross-module state.
 - Run `node scripts/check-environment-baseline.mjs .` before implementation when the task touches build, CI, environment variables, deployment, production config, release, rollback, secrets, logs, monitoring, or alerts.
 - Run `node scripts/check-baseline-enforcement.mjs . --mode ready --task <task-card>` before implementation when the task declares or appears to touch baselines.
-- For high-risk work, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after human approval is recorded.
+- For high-risk work, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after the required internal evidence authority is recorded.
 - For checked risk items, compatibility `Human Approval` and `Approval scope` fields must be interpreted through current evidence authority; they never make the user responsible for technical risk treatment.
-- Refuse to widen scope without approval.
-- Do not create or upgrade project-wide engineering conventions without a documented source of truth or human approval.
-- Request explicit approval before high-risk code changes.
+- Refuse to widen scope beyond the communicated goal without a new bounded task.
+- Do not create or upgrade project-wide engineering conventions without a documented source of truth, evidence-backed derivation, and the required internal review.
+- Require stricter plans, verification, independent review, and rollback evidence before high-risk code changes.
 - Generate `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` when the change needs independent human, GPT Pro, or second-model review.
 - Generate `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` for L2/L3 work or when review findings need automatic-fix and re-review tracking.
 - Generate `node scripts/new-workflow-item.mjs --type gpt-review-prompt --task <task-card>` only as a read-only reviewer prompt paired with a Review Packet.
@@ -193,12 +196,12 @@ Expected Codex behavior:
 - Run `node scripts/check-change-boundary.mjs . --report <change-boundary-report>` when a Change Boundary Report exists.
 - Run `node scripts/check-baseline-state.mjs . --report <baseline-state-report>` when a Baseline State Report exists.
 - Auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds.
-- Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to the human.
-- Route missing engineering baseline decisions to a Decision Brief or Human Decisions Needed instead of silently choosing.
-- Route missing environment baseline decisions to a Decision Brief or Human Decisions Needed instead of inventing environment facts.
+- Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, compatibility `Human Approval`, and Approval scope changes through the applicable internal evidence and review chain. Ask the user only for a missing business fact, exact real-world consent, or external authority fact.
+- Route missing engineering baseline evidence to a Decision Brief, derive the technical choice, and block only the dependent action when evidence remains insufficient.
+- Route missing environment facts to a Decision Brief or `EXTERNAL_FACT_NEEDED` instead of inventing them.
 - Do not treat reports, Review Packets, Goal Cards, or subagent output as release, risk, scope, or future-work approval.
 - Do not describe simulated dogfood, generated-project smoke, or draft packs as production evidence.
-- Report changed files, verification, residual risks, classified Next-Step Suggestions, Human Decisions Needed, and Next Safe Action.
+- Report changed files, verification, residual risks, classified Next-Step Suggestions, bounded User Input Needed, and Next Safe Action.
 - Do not claim a no-code/new-project baseline is confirmed, implemented, verified, or production-ready without project-owned evidence or a verifiable external fact.
 
 GPT Pro or second-model review should stay semi-automatic unless an approved automation adapter exists:
@@ -279,15 +282,18 @@ ADOPTION_MODE: GUARDED
 NEXT_ACTION: REVIEW_DIRTY_WORKTREE
 ```
 
-When that happens, Codex should summarize the dirty worktree state and ask the human whether to continue, split, stash, commit, or generate a Review Packet before task execution.
+When that happens, Codex should preserve the dirty worktree, identify unrelated
+changes, and select the safest bounded route. It must not ask a zero-experience
+user to choose Git mechanics. If ownership cannot be established from project
+evidence, request only that missing fact.
 
-If `.intentos/migration-reports/agents-governance.md` is created, Codex should summarize it and wait for human approval before applying the AGENTS.md governance appendix:
+If `.intentos/migration-reports/agents-governance.md` is created, Codex should reconcile it with project authority and apply it only through the controlled plan, readiness, rollback, and receipt chain:
 
 ```bash
 node intentos/scripts/init-project.mjs --target . --update-workflow-assets --apply-agent-governance
 ```
 
-If `.intentos/migration-reports/pr-template-governance.md` is created, Codex should summarize it and wait for human approval before applying the PR template governance appendix:
+If `.intentos/migration-reports/pr-template-governance.md` is created, Codex should reconcile it with project authority and apply it only through the controlled plan, readiness, rollback, and receipt chain:
 
 ```bash
 node intentos/scripts/init-project.mjs --target . --update-workflow-assets --apply-pr-template-governance
@@ -314,8 +320,8 @@ Codex should stop and report when:
 
 - the task card is missing or contradictory
 - the requested implementation exceeds approved scope
-- high-risk changes need human approval
-- an `AGENTS.md` or PR template migration report needs approval
+- high-risk changes lack required evidence, review, verification, or rollback readiness
+- an `AGENTS.md` or PR template migration conflicts with stronger project authority
 - production secrets, data, or config are required
 - `workflow-next` reports `REVIEW_DIRTY_WORKTREE`
 - the same verification failure repeats
@@ -325,4 +331,4 @@ Codex should stop and report when:
 
 For web, iOS, Android, backend, internal admin, or high-risk projects, choose the matching project profile and starter. The core workflow stays the same; platform-specific rules live in profiles, starter docs, and `AGENTS.md`.
 
-Use `baseline-decision` first when a human needs to choose a level or understand what Codex recommends. Standard baseline packs are ordinary engineering guardrails. Use `resolve-standard-baseline.mjs` only when lower-level pack evidence is needed. Industrial packs are BL2 governance overlays. They should be recommended for production, customer delivery, long-lived, regulated, or high-risk projects, but they must not be silently treated as accepted without human confirmation. Use `resolve-baseline-packs.mjs` only when lower-level industrial pack evidence is needed, `resolve-industrial-baseline.mjs` to inspect selected packs, and `check-industrial-baseline.mjs --strict` only after baseline level, exceptions, and residual risks are approved.
+Use `baseline-decision` first so Codex can derive and explain the appropriate level. Standard baseline packs are ordinary engineering guardrails. Use `resolve-standard-baseline.mjs` only when lower-level pack evidence is needed. Industrial packs are BL2 governance overlays selected for production, customer delivery, long-lived, regulated, or high-risk projects when evidence supports them. Use `resolve-baseline-packs.mjs` only when lower-level industrial pack evidence is needed, `resolve-industrial-baseline.mjs` to inspect selected packs, and `check-industrial-baseline.mjs --strict` only after baseline evidence, exceptions, and residual risks have passed internal review.

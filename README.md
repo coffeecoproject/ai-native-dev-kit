@@ -2,15 +2,15 @@
 
 An AI-native system for guided software delivery.
 
-Current release: `1.107.0`.
+Current release: `1.107.1`.
 
-Release record: [releases/1.107.0/release-record.md](releases/1.107.0/release-record.md).
+Release record: [releases/1.107.1/release-record.md](releases/1.107.1/release-record.md).
 
 IntentOS lets one zero-experience solo developer describe real business goals
 while the AI handles technical planning, implementation, testing, review,
 evidence, repair, migration, and delivery coordination.
 
-It is not a prompt collection, code template, framework starter, or deploy tool. It is a workflow and governance layer for Codex and other AI coding agents.
+It is not a prompt collection, code template, framework starter, or deploy tool. It is a workflow and governance layer formally supported for Codex. Claude and Cursor files are compatibility references, not current behavior-parity claims.
 
 > You describe the goal and the real business. AI makes the technical decisions and completes
 > the internal workflow. You supply only missing business facts and consent to
@@ -52,6 +52,12 @@ Start here:
 - [For Maintainers](docs/for-maintainers.md)
 
 Naming note: **IntentOS** is the product, workflow-system, CLI, manifest, and generated-asset identity. The public command is `intentos`.
+
+1.107.1 closes Active Guidance distribution drift. IntentOS now checks the
+guidance Codex actually reads or generates, not only a manual registry. Codex
+is the only formal agent platform; Claude and Cursor remain compatibility
+references. Existing-project migration reports no longer ask the user to make
+technical governance choices.
 
 1.107.0 completes release-topology migration governance. IntentOS can now
 separate project-file changes, non-production rehearsal, cutover, release,

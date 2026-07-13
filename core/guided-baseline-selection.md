@@ -33,23 +33,17 @@ The card answers:
 - what Codex can safely do next
 - what Codex must not do
 
-## User Role
+## User Input Boundary
 
-The human decides:
-
-- project state
-- platform scope
-- backend/API scope
-- production sensitivity
-- money, permission, customer data, migration, finance, HR, tax, or other high-risk scope
-- baseline level
-- whether Codex may write baseline or workflow files
-
-The human does not need to choose internal scripts, registry names, or checker names.
+Codex derives project state, platform and backend scope, production sensitivity,
+baseline level, pack selection, and write routing from the stated goal and
+project evidence. User input is limited to an unavailable business fact, a
+product preference that cannot be inferred, exact consent for a prepared
+real-world effect, or an unavailable external fact.
 
 ## Codex Role
 
-Codex reads, recommends, explains, records, and checks.
+Codex reads, decides, explains, records, and checks technical baseline choices.
 
 Codex must not treat a recommendation as approval.
 

@@ -4,7 +4,7 @@
 
 I think this is a Web admin project with permission and data risk.
 
-I recommend BL2_INDUSTRIAL only as a candidate path pending evidence and human confirmation.
+I recommend BL2_INDUSTRIAL only as a candidate path pending evidence and internal readiness.
 
 Codex can recommend next steps, but this card does not approve writes or implementation.
 
@@ -38,7 +38,7 @@ Codex can recommend next steps, but this card does not approve writes or impleme
 | wechat-miniprogram | not-detected | Mini Program scope is not part of this card. |
 | ios-app | not-detected | iOS scope is not part of this card. |
 | android-app | not-detected | Android scope is not part of this card. |
-| backend-api | present-needs-confirmation | Backend/API scope is possible and needs human confirmation. |
+| backend-api | present-needs-confirmation | Compatibility state: Backend/API scope is possible but lacks project-owned evidence. |
 | internal-admin | selected-confirmed | Internal admin scope is explicit. |
 
 ## Recommended Standard Packs
@@ -75,7 +75,7 @@ Candidate only, not selected:
 ## Safe Next Actions
 
 - Codex can prepare a BL2 evidence gap report before enabling any industrial pack.
-- Candidate industrial packs stay inactive until human confirmation and evidence exist.
+- Candidate industrial packs stay inactive until evidence, compatibility, and internal readiness exist.
 
 ## Boundary
 

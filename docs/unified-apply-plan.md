@@ -97,8 +97,8 @@ Typical sequence:
 guide / start / workflow-map / baseline-decision
 -> unified apply plan
 -> controlled apply readiness
--> approval record if a human approves exact action IDs
--> specialized apply command or manual controlled change, if separately authorized
+-> bounded authority record when exact real-world consent or an external authority fact is required
+-> specialized apply command or controlled change after internal readiness passes
 -> verification
 -> execution closure
 ```

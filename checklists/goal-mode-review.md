@@ -13,7 +13,7 @@ Use this checklist when reviewing a Goal Card or a Goal Mode decision.
 
 - [ ] `DISCUSS_ONLY` is read-only.
 - [ ] `ADOPT_PROJECT` respects `ADOPTION_MODE: READ_ONLY` when governed-project protection is active.
-- [ ] Existing governed, production, or dirty projects do not run `init-project` or `--update-workflow-assets` before human approval.
+- [ ] Existing governed, production, or dirty projects do not run `init-project` or `--update-workflow-assets` before reconciliation, controlled readiness, and rollback evidence pass.
 - [ ] `IMPLEMENT_TASK` has a selected task card.
 - [ ] `REVIEW_TASK` is read-only unless the human explicitly switches to repair or implementation.
 - [ ] `REPAIR_TASK` is limited to `AUTO_FIX` findings.
@@ -22,7 +22,7 @@ Use this checklist when reviewing a Goal Card or a Goal Mode decision.
 
 - [ ] Broad or vague work routes through request, preflight, spec, eval, and task.
 - [ ] L2/L3 work plans Review Packet and Review Loop Report before closure.
-- [ ] Baseline decisions route to Decision Brief or explicit human decision.
+- [ ] Baseline decisions route to an evidence-backed Decision Brief and bounded user input only when one of the four classes applies.
 - [ ] Handoff/report work does not start follow-up implementation by itself.
 
 ## Governance Boundaries

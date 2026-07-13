@@ -5,7 +5,7 @@ Engineering Baseline is the pre-coding governance layer for structural engineeri
 It answers one question:
 
 ```text
-Before Codex writes code, which engineering rules may it follow, which rules must it look up, and which decisions require human approval?
+Before Codex writes code, which engineering rules may it follow, which rules must it look up, and which decisions require stronger project evidence or external facts?
 ```
 
 It is not a coding style guide, platform best-practice catalog, or directory convention mandate.
@@ -25,7 +25,9 @@ Engineering Baseline constrains project-wide decisions before implementation sta
 
 Codex may follow existing local project patterns for low-risk local changes.
 
-Codex must not create, change, or upgrade project-wide engineering conventions without an explicit project source of truth or human approval.
+Codex must not create, change, or upgrade project-wide engineering conventions
+without an explicit project source of truth or a bounded plan backed by current
+project evidence, impact coverage, rollback, and verification.
 
 This includes:
 

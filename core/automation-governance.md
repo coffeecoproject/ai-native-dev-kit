@@ -4,21 +4,24 @@
 
 Define how Codex may propose, create, update, pause, or enable recurring project automations.
 
-Project automations are continuous execution capabilities. They may read project files and may write workflow artifacts on a schedule, so they require explicit human approval before creation, update, or enablement.
+Project automations are continuous execution capabilities. They may read project files and write workflow artifacts on a schedule, so the user's stated goal must explicitly request the persistent automation. Codex owns the technical configuration and presents the prepared recurring effect for exact consent.
 
 ## Core Rule
 
 Codex may propose project-scoped automations during project setup, release preparation, or workflow review.
 
-Codex must not create, update, enable, resume, or delete an automation without explicit human approval for the exact automation name, project root, schedule, prompt, allowed writes, and forbidden actions.
+Codex must not create, update, enable, resume, or delete an automation unless the
+user requested that persistent capability and gave exact consent to the
+prepared recurring effect. Codex derives and verifies the automation name,
+project root, schedule, prompt, allowed writes, and forbidden actions.
 
 ## Lifecycle
 
 ```text
 Project Setup / Release Preparation / Workflow Review
   -> Automation Proposal
-  -> Human Automation Review
-  -> Explicit Approval
+  -> Internal Automation Review
+  -> Exact Recurring-Effect Consent
   -> Codex App Automation Create / Update
   -> Periodic Review
   -> Pause / Update / Delete when no longer valid
@@ -30,7 +33,7 @@ Generated projects must keep:
 
 - `automation-proposals/` for proposed or reviewed project automations
 
-Active automation records live in the Codex App automation system, not in project source files. Project files should record the proposal, approval, and review evidence.
+Active automation records live in the Codex App automation system, not in project source files. Project files should record the proposal, consent, and review evidence.
 
 ## Allowed Automation Types
 
@@ -56,7 +59,7 @@ Forbidden:
 
 ### Project-specific Monitor
 
-Allowed only when a project explicitly defines the monitored source, expected output, and human review path.
+Allowed only when project evidence defines the monitored source, expected output, and internal review path.
 
 Forbidden by default:
 
@@ -80,7 +83,8 @@ Do not attach a project automation to:
 - a broad parent directory
 - a directory containing unrelated projects
 
-Multi-project monitoring is allowed only as a separate, explicit proposal with its own human approval.
+Multi-project monitoring is allowed only when the user explicitly requests that
+persistent scope and gives exact consent to the prepared multi-project effect.
 
 ## Required Proposal Fields
 
@@ -96,13 +100,14 @@ An automation proposal must define:
 - allowed writes
 - forbidden actions
 - expected no-action behavior
-- human approval record
+- exact recurring-effect consent record
 - review cadence
 - pause/delete conditions
 
-## Human Approval Boundary
+## User Consent Boundary
 
-Before Codex calls an automation tool to create, update, resume, or delete an automation, the user must approve:
+Before Codex calls an automation tool to create, update, resume, or delete an
+automation, it must derive and present:
 
 - exact project root
 - exact schedule
@@ -111,7 +116,9 @@ Before Codex calls an automation tool to create, update, resume, or delete an au
 - forbidden actions
 - whether automation starts `ACTIVE` or `PAUSED`
 
-If any of these change, approval is required again.
+The user gives one exact consent to that prepared recurring effect. If the
+external effect materially changes, consent is required again; technical
+configuration details remain Codex's responsibility.
 
 ## Release Gate Integration
 
@@ -121,7 +128,7 @@ Before project release or handoff, review:
 - whether it should be active or paused
 - whether its project root is correct
 - whether its allowed writes are still valid
-- whether any pending automation proposal requires a decision
+- whether any pending automation proposal requires bounded user input
 
 The absence of an automation is acceptable when the project does not need scheduled workflow review.
 
@@ -129,14 +136,14 @@ The absence of an automation is acceptable when the project does not need schedu
 
 Codex must not automatically:
 
-- create, update, resume, or delete automations without explicit approval
+- create, update, resume, or delete automations without an explicit user request and exact recurring-effect consent
 - attach project automation to a parent directory by default
 - create automations that modify business code
 - create automations that deploy, release, migrate, or change production config
 - create automations that handle secrets or credentials
 - create automations that write to `.codex/skills/`
 - create automations that enable active Skills
-- convert a one-off reminder into a recurring automation without approval
+- convert a one-off reminder into a recurring automation without exact recurring-effect consent
 
 ## Periodic Review
 
@@ -150,4 +157,3 @@ Review project automations when:
 - Skill governance or self-iteration rules change
 
 Pause or delete automations that no longer have a clear owner, valid project root, or useful signal.
-

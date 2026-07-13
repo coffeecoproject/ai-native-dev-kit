@@ -22,7 +22,7 @@ Machine-checkable boundary:
 
 ## Purpose
 
-Use this protocol when a human has reviewed or is close to reviewing a Unified Apply Plan and asks what is still needed before any controlled apply can be considered.
+Use this protocol after Codex has prepared a Unified Apply Plan and must prove what is still needed before any bounded controlled apply can be considered.
 
 The report should classify the plan into one of these states:
 

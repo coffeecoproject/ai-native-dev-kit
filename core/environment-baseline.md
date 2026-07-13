@@ -65,7 +65,7 @@ Codex may:
 - draft baseline recommendations
 - mark unknown items as `PENDING_CONFIRMATION`
 - mark irrelevant items as `NOT_APPLICABLE`
-- prepare a baseline write plan for human review
+- prepare and internally review a baseline write plan; ask the user only for an unavailable external environment fact or a concrete real-world effect
 
 Codex must not:
 

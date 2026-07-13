@@ -1,6 +1,6 @@
 # Baseline Evidence
 
-## Human Decision Summary
+## User Input Summary
 
 Conclusion:
 
@@ -21,13 +21,13 @@ Recommended reason:
 
 What happens if you do nothing:
 
-## Human Summary
+## Plain Summary
 
 One-sentence conclusion:
 
-## Decision Needed
+## User Input Needed
 
-Does baseline evidence need human confirmation before AI continues: Yes / No
+User input class: NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED
 
 Decision:
 
@@ -39,7 +39,7 @@ Next action:
 
 Draft status: DRAFT / CONFIRMED
 
-Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
+User input status: NOT_NEEDED / PENDING / PROVIDED / BLOCKED
 
 ## Evidence Index
 

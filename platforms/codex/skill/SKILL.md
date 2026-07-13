@@ -36,7 +36,9 @@ Rules:
 - run `workflow-next.mjs` to detect project state
 - configure workflow and governance assets only
 - do not modify business code during bootstrap
-- stop for human approval before applying migration reports
+- reconcile migration reports with project authority and use controlled apply,
+  rollback, and receipt verification; ask the user only for bounded business,
+  external-fact, or real-world-consent input
 
 ### Preflight Mode
 
@@ -71,7 +73,7 @@ Rules:
 
 - implement one task only
 - respect allowed/forbidden scope
-- avoid unapproved dependencies
+- add dependencies only when the evidence-backed plan and verification path support them
 - stop on repeated verification failure
 
 ### Reviewer Mode

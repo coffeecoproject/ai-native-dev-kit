@@ -20,8 +20,8 @@ Project type: GOVERNED_EXISTING_PROJECT. Recommended mode: read-only-first. star
 | --- | --- |
 | O level | O0/O1 read-only adoption |
 | BL level | Do not change baseline until existing governance is mapped |
-| Profiles | Infer only; confirm with human before writing |
-| Industrial packs | None by default; BL2 requires explicit human confirmation |
+| Profiles | Codex derives profiles from project-owned evidence before writing |
+| Industrial packs | None by default; BL2 requires evidence-backed selection and strict internal review |
 | Goal mode | ADOPTION_READ_ONLY |
 | Plan first required | true |
 | Adoption mode | read-only-first |
@@ -32,15 +32,13 @@ Project type: GOVERNED_EXISTING_PROJECT. Recommended mode: read-only-first. star
 - Existing governance signals were detected.
 - The safe path is assessment first, then a reviewable plan, then optional apply.
 
-## Decisions Needed From Human
+## User Input Needed
 
-- Confirm who owns the existing governance rules and current changes.
-- Confirm whether AI may prepare a read-only adoption assessment.
-- Confirm whether any workflow write plan is allowed after assessment.
+- NO_USER_ACTION by default; request only a missing business fact, exact prepared real-world consent, or unavailable external authority fact.
 
-## Safe Next Actions
+## Internal Next Actions
 
-| Action | Command | Writes | Requires human confirmation |
+| Action | Command | Writes | Internal readiness required |
 | --- | --- | --- | --- |
 | Read-only assessment | `node scripts/cli.mjs next <project>` | No | No |
 | Prepare adoption assessment | `Use .intentos/templates/adoption-assessment.md after assets are available, or draft the same structure manually.` | Report only | Yes |
@@ -51,7 +49,7 @@ Project type: GOVERNED_EXISTING_PROJECT. Recommended mode: read-only-first. star
 - Do not run direct init or direct update.
 - Do not overwrite AGENTS.md, CI, PR template, or existing governance files.
 - Do not change code, database, production settings, secrets, deployment files, or permissions.
-- Do not enable BL2 or any industrial pack without explicit human confirmation.
+- Do not enable BL2 or any industrial pack without evidence-backed selection and strict internal review.
 - Do not install all industrial packs by default.
 
 ## Generated Plan / Report Refs
@@ -75,4 +73,4 @@ Project type: GOVERNED_EXISTING_PROJECT. Recommended mode: read-only-first. star
 
 ## Final Recommendation
 
-Stay read-only. Produce an adoption assessment and ask for human confirmation before any write plan.
+Stay read-only while Codex produces the adoption assessment, reconciles project authority, and prepares a bounded write plan only when readiness is proven.

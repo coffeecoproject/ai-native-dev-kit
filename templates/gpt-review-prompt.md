@@ -8,9 +8,9 @@ Do not include secrets, credentials, production tokens, or sensitive runtime dat
 
 Contract ID: `ZERO_EXPERIENCE_SOLO_DEVELOPER`
 
-Context version: `1.107.0`
+Context version: `1.107.1`
 
-Context digest: `sha256:7362b397ad55657820c0ba8bb99e95cde175480f5fa626bdb1a0636f341a1403`
+Context digest: `sha256:93358a582605aebfc5d321d39fb4f045357fcdc6b4e303efdf95b5c78b77c5a8`
 
 The Review Packet must carry the same binding. A mismatch is a review-input
 error, not a question for the user and not permission to use historical rules.

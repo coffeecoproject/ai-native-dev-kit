@@ -140,7 +140,7 @@ function checkCoreContent() {
     "THIN_OPERATIONAL_BRIDGE",
     "BLOCKED_NEEDS_OWNER",
     "What Not To Touch",
-    "Human Decision Boundary",
+    "Bounded User Input",
   ]) {
     if (core.includes(marker)) pass(`workflow adapter core includes ${marker}`);
     else fail(`workflow adapter core missing ${marker}`);

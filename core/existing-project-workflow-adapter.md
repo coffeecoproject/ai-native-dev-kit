@@ -28,11 +28,11 @@ should not be replaced.
 The goal is to answer:
 
 ```text
-What workflow already exists?
-Which IntentOS workflow pieces should be used?
-Which existing project assets remain authoritative?
-What can be added only after human approval?
-What must not be touched?
+Codex inventories the workflow that already exists.
+Codex derives which IntentOS workflow pieces should be used.
+Codex identifies which existing project assets remain authoritative.
+Codex identifies what can be added only through controlled apply.
+Codex identifies what must not be touched.
 ```
 
 ## Default Rule
@@ -46,7 +46,7 @@ Workflow Adoption Map
 Native Migration Plan
 Unified Apply Plan
 Controlled Apply Readiness
-Approval Record
+Evidence Authority Record
 approved governance-file edits only
 ```
 
@@ -64,8 +64,8 @@ recommended IntentOS usage. It does not authorize:
 | Mode | Meaning | Writes |
 |---|---|---|
 | `READ_ONLY_MAP` | Inspect and map existing workflow only | none |
-| `DOCS_ONLY_BRIDGE` | Add an approved adapter document without changing gates or code | docs only, after approval |
-| `THIN_OPERATIONAL_BRIDGE` | Add selected workflow references or scripts that point to existing authority | approved assets only |
+| `DOCS_ONLY_BRIDGE` | Add an authority-compatible adapter document without changing gates or code | docs only, after controlled readiness |
+| `THIN_OPERATIONAL_BRIDGE` | Add selected workflow references or scripts that point to existing authority | authority-bound assets only |
 | `BLOCKED_NEEDS_OWNER` | Ownership, risk, dirty worktree, or conflicting governance blocks adoption | none |
 | `NOT_APPLICABLE` | The target is new, not a project, or is the intentos source repo | none |
 
@@ -109,8 +109,8 @@ say "recommended later" instead of pretending it exists in the target project.
 
 ## What To Reuse
 
-Existing project authority remains primary unless a human explicitly approves an
-adapter change. The adapter should reuse:
+Existing project authority remains primary unless rule reconciliation and an
+exact controlled action prove the change is stronger and compatible. The adapter should reuse:
 
 - existing agent rules
 - existing engineering and environment baselines
@@ -130,8 +130,8 @@ Codex may recommend additions only as proposals:
 - selected checker commands
 - a reviewed plan for future bridge assets
 
-The recommendation must name the exact files, owner, and approval needed before
-anything is written.
+The recommendation must name the exact files, internal responsibility,
+evidence authority, rollback, and verification needed before anything is written.
 
 ## What Not To Touch
 
@@ -146,16 +146,16 @@ Codex must not overwrite, weaken, or bypass:
 - release evidence, audit evidence, historical session records, or signed-off
   reports
 
-## Human Decision Boundary
+## Bounded User Input
 
-Human approval is required before:
+Codex owns migration depth, rule comparison, file selection, technical risk,
+and controlled apply. User input is limited to:
 
-- writing adapter docs into the target project
-- applying any workflow assets
-- changing hooks, CI, gates, PR templates, or release process
-- converting a recommendation into an implementation task
-- using real project names in public evidence
-- resolving conflicts between existing governance and IntentOS governance
+- unavailable business facts;
+- product preferences that cannot be inferred from the stated goal;
+- exact consent for a prepared external, release, production, public-evidence,
+  paid, or irreversible effect;
+- external authority facts that project evidence cannot prove.
 
 ## Claims
 
@@ -164,7 +164,7 @@ Allowed:
 - Existing workflow was inspected read-only.
 - Existing assets were inventoried.
 - A recommended IntentOS workflow usage map was produced.
-- Writes remain blocked until human approval.
+- Writes remain blocked until controlled readiness and current evidence authority.
 
 Forbidden:
 

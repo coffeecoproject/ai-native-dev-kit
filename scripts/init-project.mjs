@@ -338,7 +338,7 @@ function pullRequestTemplateGovernanceAppendix() {
       "- [ ] Unified Apply Plan is linked or marked not applicable before applying workflow assets, baseline docs, AGENTS/PR template governance, archive actions, hooks, CI, industrial packs, or other target-project writes",
     "- [ ] Apply Execution Receipt is linked after any controlled IntentOS init/update apply, or marked not applicable when no target writes occurred",
     "- [ ] Release Approval Record is linked and strictly checked before any real release handoff or assisted execution state",
-    "- [ ] Controlled Apply Readiness is linked or marked not applicable after a Unified Apply Plan is reviewed and before any future human-approved controlled apply step",
+    "- [ ] Controlled Apply Readiness is linked or marked not applicable after a Unified Apply Plan is reviewed and before Codex performs any controlled apply step permitted by the bounded plan and project authority",
     "- [ ] Project Hook Policy is linked or marked not applicable before any hook installation, CI hook change, blocking gate, scheduled job, external reviewer hook, token use, or auto-fix hook is proposed",
     "- [ ] Bootstrap state was checked with `workflow-next` when workflow assets or project setup changed",
     "- [ ] Project onboarding is confirmed or not applicable for this change",
@@ -387,47 +387,46 @@ function agentsGovernanceMigrationReportPath(targetPath) {
   return path.join(targetPath, ".intentos", "migration-reports", "agents-governance.md");
 }
 
-function migrationHumanDecisionSummary({ status, targetLabel, applyCommand }) {
-  const recommended = status === "PENDING_HUMAN_APPROVAL"
-    ? "B - Review and merge deliberately"
-    : "A - Keep current resolved state";
-  const canContinue = status === "PENDING_HUMAN_APPROVAL" ? "limited" : "yes";
-  const need = status === "PENDING_HUMAN_APPROVAL"
-    ? `Approve, reject, or manually merge the proposed ${targetLabel} governance appendix.`
-    : `No decision is needed for ${targetLabel} at this status.`;
+function migrationControlSummary({ status, targetLabel, applyCommand }) {
+  const pending = status === "PENDING_CONTROLLED_APPLY" || status === "PENDING_HUMAN_APPROVAL";
+  const recommended = pending
+    ? "Codex reconciles project authority, prepares a bounded apply plan, and verifies rollback before writing"
+    : "Keep the resolved project state";
+  const canWrite = pending ? "no" : "not needed";
+  const userInput = pending
+    ? "No technical choice is required. Codex asks only if a missing business fact or a concrete real-world effect requires consent."
+    : `No user input is needed for ${targetLabel} at this status.`;
   return [
-    "## Human Decision Summary",
+    "## Controlled Migration Summary",
     "",
     `Conclusion: ${targetLabel} governance migration status is ${status}.`,
     "",
-    `Recommended choice: ${recommended}`,
+    `Codex recommendation: ${recommended}.`,
     "",
-    `Can AI continue now: ${canContinue}`,
+    "Can Codex continue assessment and planning now: yes",
     "",
-    `What I need from you: ${need}`,
+    `Can Codex write ${targetLabel} now: ${canWrite}`,
     "",
-    "| Option | What it means | What AI will do | Writes project files? | Risk | When to choose |",
-    "|---|---|---|---|---|---|",
-    `| A | Keep migration pending | Leave ${targetLabel} unchanged and keep this report as the decision record | Report only | low | Choose when you are not ready to change governance |`,
-    `| B | Review and merge deliberately | Explain the appendix and wait for explicit approval or manual merge | No direct write until approved | medium | Choose when existing governance should be preserved while adopting selected rules |`,
-    `| C | Apply approved migration | Run \`${applyCommand}\` | Yes, ${targetLabel} only | medium/high | Choose only after reviewing the proposed appendix |`,
-    `| D | Reject migration | Keep current ${targetLabel} and document that the appendix is not accepted | Report only | low/medium | Choose when governance belongs elsewhere |`,
+    `User input: ${userInput}`,
     "",
-    "Recommended reason: Governance files define how Codex and reviewers operate, so changes need explicit human approval or manual merge.",
+    "Codex must preserve stronger project rules, classify conflicts, limit the target set, prepare rollback, pass plan review and controlled readiness, and verify the resulting file before using the internal apply command:",
     "",
-    "What happens if you do nothing: The migration remains pending and full workflow checks may continue to block until it is resolved.",
+    `\`${applyCommand}\``,
+    "",
+    "This command is an internal execution mechanism, not a technical decision for the user. A pending report keeps the target unchanged and blocks a full-adoption claim.",
     "",
   ];
 }
 
 function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, options = {}) {
-  const status = options.status || (options.applied ? "APPLIED" : "PENDING_HUMAN_APPROVAL");
+  const status = options.status || (options.applied ? "APPLIED" : "PENDING_CONTROLLED_APPLY");
   const reportPath = pullRequestTemplateMigrationReportPath(targetPath);
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   const existed = fs.existsSync(reportPath);
   const statusNotes = {
-    PENDING_HUMAN_APPROVAL: "The PR template was left unchanged. Review the proposed appendix before applying it.",
-    APPLIED: "The proposed appendix was applied by explicit command approval.",
+    PENDING_CONTROLLED_APPLY: "The PR template was left unchanged. Codex must reconcile authority and pass bounded apply readiness before applying it.",
+    PENDING_HUMAN_APPROVAL: "Compatibility status from an older report. Treat it as PENDING_CONTROLLED_APPLY; do not ask the user for a technical decision.",
+    APPLIED: "The proposed appendix was applied through the controlled migration path.",
     RESOLVED_MANUALLY: "The PR template already contains all required governance markers. No script change to the PR template was needed.",
   };
   const reasonLines = status === "RESOLVED_MANUALLY"
@@ -439,12 +438,12 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
     : [
         "The project already has a pull request template, but it is missing IntentOS workflow governance markers.",
         "",
-        "The update command does not modify an existing project PR template unless the human explicitly approves that migration.",
+        "The update command does not modify an existing project PR template until Codex proves project-authority reconciliation, bounded scope, rollback, and controlled apply readiness.",
       ];
   const missingMarkerLines = missingMarkers.length > 0 ? missingMarkers.map((marker) => `- ${marker}`) : ["- none"];
-  const applyLines = status === "PENDING_HUMAN_APPROVAL"
+  const applyLines = status === "PENDING_CONTROLLED_APPLY" || status === "PENDING_HUMAN_APPROVAL"
     ? [
-        "After human review, either merge the proposed appendix manually or run:",
+        "After Codex completes rule reconciliation, plan review, rollback preparation, and controlled apply readiness, it may run:",
         "",
         "```bash",
         "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
@@ -457,14 +456,14 @@ function writePullRequestTemplateMigrationReport(targetPath, missingMarkers, opt
     `Status: ${status}`,
     `IntentOS version: ${currentIntentOSVersion}`,
     "",
-    ...migrationHumanDecisionSummary({
+    ...migrationControlSummary({
       status,
       targetLabel: "PR template",
       applyCommand: "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-pr-template-governance",
     }),
     "## Status Notes",
     "",
-    statusNotes[status] || statusNotes.PENDING_HUMAN_APPROVAL,
+    statusNotes[status] || statusNotes.PENDING_CONTROLLED_APPLY,
     "",
     "## Target",
     "",
@@ -513,7 +512,7 @@ function ensurePullRequestTemplate(targetPath, starter, options = {}) {
     const reportPath = pullRequestTemplateMigrationReportPath(targetPath);
     if (fs.existsSync(reportPath)) {
       const report = fs.readFileSync(reportPath, "utf8");
-      if (report.includes("PENDING_HUMAN_APPROVAL")) {
+      if (report.includes("PENDING_HUMAN_APPROVAL") || report.includes("PENDING_CONTROLLED_APPLY")) {
         writePullRequestTemplateMigrationReport(targetPath, [], { ...options, status: "RESOLVED_MANUALLY" });
       }
     }
@@ -530,7 +529,7 @@ function ensurePullRequestTemplate(targetPath, starter, options = {}) {
   backupFileIfNeeded(dest, { ...options, targetPath });
   fs.appendFileSync(dest, `${content.endsWith("\n") ? "" : "\n"}${pullRequestTemplateGovernanceAppendix()}`);
   writePullRequestTemplateMigrationReport(targetPath, missingMarkers, { ...options, applied: true });
-  console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix after explicit approval`);
+  console.log(`updated ${path.relative(process.cwd(), dest)} with IntentOS workflow governance appendix through controlled apply`);
 }
 
 function agentGovernanceSectionContent() {
@@ -668,7 +667,7 @@ function agentGovernanceSectionContent() {
       "",
       "Before the first non-trivial implementation, run project onboarding.",
       "",
-      "Use `.intentos/prompts/project-onboarding-agent.md` and `.intentos/core/project-onboarding.md` to draft project onboarding docs. AI drafts; humans decide.",
+      "Use `.intentos/prompts/project-onboarding-agent.md` and `.intentos/core/project-onboarding.md` to derive project onboarding from the user's business goal and project evidence. Codex owns technical onboarding decisions and requests only bounded business or external input.",
       "",
       "Run:",
       "",
@@ -689,7 +688,7 @@ function agentGovernanceSectionContent() {
       "node scripts/check-engineering-baseline.mjs .",
       "```",
       "",
-      "Codex may follow existing local patterns for low-risk local changes. Codex must not create or upgrade project-wide engineering conventions without a documented project source of truth or human approval. If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.",
+      "Codex may follow existing local patterns for low-risk local changes. Codex must not create or upgrade project-wide engineering conventions without a documented source of truth, evidence-backed derivation, and the required internal review. If the engineering baseline is missing or ambiguous, record the gap and create a Decision Brief before changing structure, contracts, schema, permission, generated type sources, dependencies, migrations, or cross-module state patterns.",
       "",
     ].join("\n")],
     ["Environment Baseline", [
@@ -704,7 +703,7 @@ function agentGovernanceSectionContent() {
       "node scripts/check-baseline-enforcement.mjs . --mode ready",
       "```",
       "",
-      "Codex may draft missing environment facts as `PENDING_CONFIRMATION` and mark irrelevant items as `NOT_APPLICABLE`. Codex must not create or edit `.env`, record secret values, invent production/release/rollback/monitoring facts, or change CI/CD, deployment, or production config without explicit approval.",
+      "Codex may draft missing environment facts as `PENDING_CONFIRMATION` and mark irrelevant items as `NOT_APPLICABLE`. Codex must not create or edit `.env`, record secret values, or invent production/release/rollback/monitoring facts. A prepared CI/CD, deployment, or production action requires exact real-world consent only when it has an external effect; Codex still owns the technical plan and readiness judgment.",
       "",
     ].join("\n")],
     ["Platform Baseline", [
@@ -718,7 +717,7 @@ function agentGovernanceSectionContent() {
       "node scripts/check-platform-baseline.mjs .",
       "```",
       "",
-      "Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Use strict mode only after humans confirm selected profiles and project docs.",
+      "Use `node scripts/resolve-platform-baseline.mjs .` to inspect the effective baseline. Codex selects profiles from project evidence and uses strict mode after the selection and project docs are evidence-backed.",
       "",
     ].join("\n")],
     ["Industrial Baseline", [
@@ -734,7 +733,7 @@ function agentGovernanceSectionContent() {
       "node scripts/check-industrial-baseline.mjs . --bl2-only",
       "```",
       "",
-      "Concrete industrial packs are installed only when selected or explicitly requested with `init-project --industrial-packs <pack-id>`. Do not treat BL2 or any industrial pack as accepted until humans confirm baseline level, selected packs, exceptions, residual risk acceptance, and `check-industrial-baseline` is ready. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` as project docs only after that decision.",
+      "Concrete industrial packs are installed only when Codex selects them from platform, lifecycle, risk, and project evidence. Do not treat BL2 or any industrial pack as ready until baseline level, selected packs, exceptions, residual-risk treatment, and `check-industrial-baseline` pass the required internal review. Use `.intentos/templates/baseline-selection.md` and `.intentos/templates/baseline-evidence.md` to record that evidence-backed decision.",
       "",
     ].join("\n")],
     ["Standard Baseline Packs", [
@@ -763,13 +762,13 @@ function agentGovernanceSectionContent() {
       "node scripts/check-workflow-artifacts.mjs . --mode ready",
       "```",
       "",
-      "For high-risk implementation, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after `Human Approval` records status and scope.",
+      "For high-risk implementation, run `node scripts/check-workflow-artifacts.mjs . --mode implementation --task <task-card>` after compatibility `Human Approval` fields have been resolved through current evidence authority and the required internal gates.",
       "",
       "If artifact quality fails, fix the workflow artifacts before writing code.",
       "",
       "When independent review is needed, create a review packet with `node scripts/new-workflow-item.mjs --type review-packet --task <task-card>` and fill evidence, diff summary, risks, and open questions before handing it to a human reviewer or second model.",
       "",
-      "For L2/L3 work or when review creates findings, create `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` to record review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items. AUTO_FIX is limited to 2 rounds and cannot change scope, risk acceptance, Human Approval, architecture, dependencies, migrations, production config, release, or rollback decisions.",
+      "For L2/L3 work or when review creates findings, create `node scripts/new-workflow-item.mjs --type review-loop-report --task <task-card>` to record review rounds, AUTO_FIX attempts, verification, repeated issues, and bounded user-input items. AUTO_FIX is limited to 2 rounds and cannot silently change scope or evidence authority; architecture, dependencies, migrations, production config, release, or rollback findings require a revised plan and re-review.",
       "",
       "When a next-step suggestion is related but outside current scope, create `node scripts/new-workflow-item.mjs --type follow-up-proposal --task <task-card>`. When a task result needs durable reporting, create `node scripts/new-workflow-item.mjs --type final-report --task <task-card>`.",
       "",
@@ -878,7 +877,7 @@ function agentGovernanceSectionContent() {
       "",
       "Review Packet is the input. GPT Review Prompt is read-only reviewer instruction. Review Loop Report records review rounds, AUTO_FIX attempts, verification, repeated issues, and human-decision items.",
       "",
-      "Reviewer agents are read-only. Codex may auto-fix only deterministic, low-risk findings inside approved task scope, for at most 2 rounds. Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, Human Approval, and Approval scope changes to humans.",
+      "Reviewer agents are read-only. Codex may auto-fix only deterministic, low-risk findings inside the bounded task, for at most 2 rounds. Route scope, risk, permission, architecture, dependency, migration, production config, release, rollback, compatibility `Human Approval`, and Approval scope changes through replanning, evidence authority, and re-review; ask the user only for bounded business, external-fact, or real-world-consent input.",
       "",
     ].join("\n")],
     ["Bounded Next-Step", [
@@ -888,7 +887,7 @@ function agentGovernanceSectionContent() {
       "",
       "Codex may suggest next steps, but suggestions must be bounded, classified, and actionable. Suggestions must use one of: `IN_SCOPE_NEXT_STEP`, `DIRECT_FOLLOW_UP`, `RISK_DECISION`, `OUT_OF_SCOPE_OBSERVATION`, or `DO_NOT_PROCEED`.",
       "",
-      "Only `IN_SCOPE_NEXT_STEP` may be done inside the current task, and only when it stays inside approved scope and needs no new approval. All other suggestion types require a new request, follow-up proposal, human decision, or explicit stop.",
+      "Only `IN_SCOPE_NEXT_STEP` may be done inside the current task, and only when it stays inside the bounded scope and needs no new evidence authority. All other suggestion types require a new request, follow-up proposal, bounded user input, or explicit stop.",
       "",
     ].join("\n")],
     ["Output Experience", [
@@ -954,7 +953,7 @@ function agentGovernanceSectionContent() {
       "",
       "Use `.intentos/core/guided-baseline-selection.md` and `.intentos/docs/guided-baseline-selection-entry.md` first when the user needs a plain-language baseline decision instead of internal pack details.",
       "",
-      "Codex may recommend candidate packs, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without explicit human decision. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays.",
+      "Codex selects candidate packs from project evidence, but it must not enable BL2, select all packs, treat draft packs as stable, or treat pack files as real project evidence without strict baseline checks and internal review. Standard packs are normal engineering guardrails; industrial packs are optional BL2 overlays.",
       "",
       "Optional artifacts:",
       "",
@@ -1020,7 +1019,7 @@ function agentGovernanceSectionContent() {
       "",
       "Use `.intentos/core/controlled-apply-readiness.md` and `.intentos/docs/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future controlled apply is considered.",
       "",
-      "Controlled Apply Readiness checks whether the plan is low-risk, bounded, reversible, verifiable, and still requires explicit human approval. It does not execute writes, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.",
+      "Controlled Apply Readiness checks whether the plan is bounded, reversible, verifiable, authority-compatible, and backed by the required consent only for concrete real-world effects. It does not execute writes, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.",
       "",
       "Optional artifacts:",
       "",
@@ -1096,7 +1095,7 @@ function agentGovernanceSectionContent() {
       "",
       "Use `.intentos/core/hook-orchestration.md` and `.intentos/docs/hook-orchestration.md` when the project needs automatic trigger planning.",
       "",
-      "Codex may run H0 read-only checks and create H1 suggestions, but must not install hooks, modify CI, add blocking gates, call external APIs, enable auto-fix, or change release behavior without human approval.",
+      "Codex may run H0 read-only checks and create H1 suggestions. Hook installation, CI changes, blocking gates, external APIs, auto-fix, or release behavior require an evidence-backed controlled plan; concrete external effects additionally require exact real-world consent.",
       "",
       "Optional artifacts:",
       "",
@@ -1154,7 +1153,7 @@ function agentGovernanceSectionContent() {
       "",
       "Codex may propose project-scoped automations during setup, release preparation, or workflow review.",
       "",
-      "Use `automation-proposals/` and `.intentos/templates/project-automation-proposal.md` before creating or updating any Codex App automation. Do not create, update, resume, delete, or enable automations without explicit human approval for the exact project root, schedule, prompt, allowed writes, and initial status.",
+      "Use `automation-proposals/` and `.intentos/templates/project-automation-proposal.md` before creating or updating any Codex App automation. Create, update, resume, delete, or enable an automation only when the user's stated goal explicitly requests that persistent automation; Codex derives the project root, schedule, prompt, allowed writes, and safe initial status and presents the prepared effect for exact consent.",
       "",
     ].join("\n")],
     ["Final Report", [
@@ -1188,13 +1187,14 @@ function agentGovernanceAppendix(missingMarkers) {
 }
 
 function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, options = {}) {
-  const status = options.status || (options.applied ? "APPLIED" : "PENDING_HUMAN_APPROVAL");
+  const status = options.status || (options.applied ? "APPLIED" : "PENDING_CONTROLLED_APPLY");
   const reportPath = agentsGovernanceMigrationReportPath(targetPath);
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   const existed = fs.existsSync(reportPath);
   const statusNotes = {
-    PENDING_HUMAN_APPROVAL: "The AGENTS.md file was left unchanged. Review the proposed governance appendix before applying it.",
-    APPLIED: "The proposed governance appendix was applied by explicit command approval.",
+    PENDING_CONTROLLED_APPLY: "The AGENTS.md file was left unchanged. Codex must reconcile authority and pass bounded apply readiness before applying it.",
+    PENDING_HUMAN_APPROVAL: "Compatibility status from an older report. Treat it as PENDING_CONTROLLED_APPLY; do not ask the user for a technical decision.",
+    APPLIED: "The proposed governance appendix was applied through the controlled migration path.",
     RESOLVED_MANUALLY: "AGENTS.md already contains all required governance markers. No script change to AGENTS.md was needed.",
   };
   const reasonLines = status === "RESOLVED_MANUALLY"
@@ -1206,12 +1206,12 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
     : [
         "The project already has AGENTS.md, but it is missing IntentOS workflow governance markers.",
         "",
-        "The update command does not modify an existing project AGENTS.md unless the human explicitly approves that migration.",
+        "The update command does not modify an existing project AGENTS.md until Codex proves project-authority reconciliation, bounded scope, rollback, and controlled apply readiness.",
       ];
   const missingMarkerLines = missingMarkers.length > 0 ? missingMarkers.map((marker) => `- ${marker}`) : ["- none"];
-  const applyLines = status === "PENDING_HUMAN_APPROVAL"
+  const applyLines = status === "PENDING_CONTROLLED_APPLY" || status === "PENDING_HUMAN_APPROVAL"
     ? [
-        "After human review, either merge the proposed appendix manually or run:",
+        "After Codex completes rule reconciliation, plan review, rollback preparation, and controlled apply readiness, it may run:",
         "",
         "```bash",
         "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
@@ -1224,14 +1224,14 @@ function writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, option
     `Status: ${status}`,
     `IntentOS version: ${currentIntentOSVersion}`,
     "",
-    ...migrationHumanDecisionSummary({
+    ...migrationControlSummary({
       status,
       targetLabel: "AGENTS.md",
       applyCommand: "node intentos/scripts/init-project.mjs --target <project> --update-workflow-assets --apply-agent-governance",
     }),
     "## Status Notes",
     "",
-    statusNotes[status] || statusNotes.PENDING_HUMAN_APPROVAL,
+    statusNotes[status] || statusNotes.PENDING_CONTROLLED_APPLY,
     "",
     "## Target",
     "",
@@ -1279,7 +1279,7 @@ function ensureAgentsGovernance(targetPath, options = {}) {
     const reportPath = agentsGovernanceMigrationReportPath(targetPath);
     if (fs.existsSync(reportPath)) {
       const report = fs.readFileSync(reportPath, "utf8");
-      if (report.includes("PENDING_HUMAN_APPROVAL")) {
+      if (report.includes("PENDING_HUMAN_APPROVAL") || report.includes("PENDING_CONTROLLED_APPLY")) {
         writeAgentsGovernanceMigrationReport(targetPath, [], { ...options, status: "RESOLVED_MANUALLY" });
       }
     }
@@ -1296,7 +1296,7 @@ function ensureAgentsGovernance(targetPath, options = {}) {
   backupFileIfNeeded(dest, { ...options, targetPath });
   fs.appendFileSync(dest, `${content.endsWith("\n") ? "" : "\n"}${agentGovernanceAppendix(missingMarkers)}`);
   writeAgentsGovernanceMigrationReport(targetPath, missingMarkers, { ...options, applied: true });
-  console.log(`updated ${path.relative(process.cwd(), dest)} with AI workflow governance appendix after explicit approval`);
+  console.log(`updated ${path.relative(process.cwd(), dest)} with IntentOS workflow governance appendix through controlled apply`);
 }
 
 function ensureProjectOnboardingDocs(targetPath) {
@@ -3028,7 +3028,7 @@ function printNextSteps() {
   console.log("Next steps:");
   console.log("1. Tell Codex the product goal in plain language.");
   console.log("2. Codex reads the project, derives the platform and baseline, and prepares any required controlled setup plan.");
-  console.log("3. You confirm only a meaningful product, cost, ownership, or material-risk recommendation when one is needed.");
+  console.log("3. You provide only a missing business fact, product preference, exact real-world consent, or unavailable external fact when one is needed.");
   console.log("4. Codex completes onboarding, builds the first useful slice, runs the required review and verification, and records evidence.");
   console.log("5. Codex reports one plain result: done, limited, blocked, or one decision needed.");
 }

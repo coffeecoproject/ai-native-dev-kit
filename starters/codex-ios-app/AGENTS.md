@@ -139,7 +139,7 @@ Before any real release handoff or assisted execution state, run `node scripts/c
 
 ## Controlled Apply Readiness
 
-Use `.intentos/core/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any future human-approved controlled apply step.
+Use `.intentos/core/controlled-apply-readiness.md` after a Unified Apply Plan exists and before any bounded controlled apply. Codex owns the internal technical decision; ask the user only for missing business facts or a prepared real-world effect.
 
 Run:
 

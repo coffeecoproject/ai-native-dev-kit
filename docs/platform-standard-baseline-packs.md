@@ -13,7 +13,7 @@ For this platform and BL level, which normal baseline packs should be recommende
 - Platform packs are ordinary project baselines.
 - Industrial packs are optional risk overlays.
 - Backend and release packs are conditional.
-- Human confirmation is still required.
+- Project evidence, compatibility, and internal readiness are still required.
 - Baseline selection does not approve implementation or target-project writes.
 
 ## Current Platform Packs

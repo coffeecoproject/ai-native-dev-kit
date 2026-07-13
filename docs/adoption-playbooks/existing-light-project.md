@@ -36,7 +36,7 @@ node scripts/cli.mjs update --target ../project --dry-run
 node scripts/init-project.mjs --target ../project --update-workflow-assets --write-plan migration-plan.json
 ```
 
-4. Review the plan before applying.
+4. Run internal review, authority reconciliation, and controlled readiness before applying.
 
 5. Fill missing context docs:
 
@@ -52,15 +52,18 @@ node scripts/init-project.mjs --target ../project --update-workflow-assets --wri
 
 7. For old code debt, fix only the area touched by the current approved task.
 
-## Human Decisions
+## User Input Boundary
 
-Humans confirm:
+Codex determines:
 
 - which existing rules are source of truth
 - what must not be touched
 - which checks are real
 - which old debt is intentionally deferred
-- whether generated workflow files may be applied
+- whether generated workflow files pass controlled readiness and may be applied
+
+The user is asked only for an unavailable business fact, product preference,
+exact real-world consent, or external fact.
 
 ## Stop Conditions
 

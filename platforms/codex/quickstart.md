@@ -24,7 +24,7 @@ Then ask for baseline recommendation:
 node intentos/scripts/cli.mjs baseline .
 ```
 
-`baseline` is also read-only. It tells you which engineering and environment decisions need confirmation before tasks.
+`baseline` is also read-only. It tells Codex which engineering and environment evidence must be resolved before tasks.
 
 If you ask Codex to review or discuss first, it should not write files.
 
@@ -55,9 +55,11 @@ Draft the project profile, technology strategy, business spec index, sample poli
 Do not implement code yet.
 ```
 
-The expected result is a set of onboarding document drafts and a short list of human decisions.
+The expected result is a completed onboarding set plus bounded user input only
+when a business fact, product preference, real-world consent, or external fact
+is unavailable.
 
-Before the first non-trivial implementation, Codex should also draft or confirm:
+Before the first non-trivial implementation, Codex should also derive and verify:
 
 - `docs/engineering-baseline.md`
 - `docs/environment-baseline.md`
@@ -72,7 +74,7 @@ node scripts/check-baseline-enforcement.mjs . --mode ready
 
 ## First Implementation Conversation
 
-After onboarding is accepted, create a workflow package:
+After onboarding passes its evidence checks, create a workflow package:
 
 ```bash
 node scripts/new-workflow-item.mjs --type request --name first-slice
@@ -88,7 +90,8 @@ Ask Codex to fill the artifacts from conversation. Then run:
 node scripts/check-workflow-artifacts.mjs . --mode ready
 ```
 
-Implementation should happen only after the task card is approved.
+Implementation should happen only after the task card passes the applicable
+evidence authority, plan review, and task-entry checks.
 
 ## Review
 

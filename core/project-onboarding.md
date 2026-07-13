@@ -4,29 +4,28 @@
 
 Project onboarding turns a broad project idea into confirmed project context before the first implementation task.
 
-It exists to keep humans in the communication and decision role, while AI handles drafting, comparison, structuring, and consistency checks.
+It keeps the user in the business communication role while IntentOS/Codex owns
+technical derivation, documentation, consistency, verification, and review.
 
 ## Principle
 
-Humans decide. AI drafts.
+The user communicates business reality. IntentOS/Codex derives the technical
+onboarding path and proves readiness.
 
-AI should not ask the human to manually fill a large set of files. AI should interview the human, propose options, draft project documents, identify open decisions, and ask for confirmation.
+The user may provide:
 
-The human is responsible for:
+- the business goal and unavailable business facts;
+- a product preference when more than one valid product outcome exists;
+- exact consent for a prepared real-world action;
+- an external fact that project evidence cannot prove.
 
-- confirming product direction
-- choosing between options
-- approving risk boundaries
-- approving technology choices
-- accepting or rejecting assumptions
-- approving when onboarding is ready for first request/spec/task work
-
-AI is responsible for:
+IntentOS/Codex is responsible for:
 
 - asking focused questions
 - producing structured drafts
 - keeping documents internally consistent
-- flagging missing decisions
+- deriving platforms, stack, baseline, risk treatment, and verification strategy
+- classifying missing input through the four current user-input classes
 - proposing the first vertical slice
 - refusing to implement before onboarding is ready when context is missing
 
@@ -46,7 +45,10 @@ Use the lightest level that still makes the project safe to work on.
 | O1 | Normal app or service project | full onboarding docs, first vertical slice, verification strategy |
 | O2 | High-risk, multi-platform, regulated, production-sensitive, identity, payment, migration, or security-heavy work | full onboarding docs, risk policy, release policy, explicit approval gates |
 
-Default to O1 for new projects. Use O0 only when the human explicitly wants a lightweight adoption path. Use O2 when in doubt about risk.
+Default to O1 for new projects. Codex may select O0 when project evidence proves
+the work is narrow and low-risk. Select O2 when production sensitivity,
+regulated data, identity, payment, migration, security, or equivalent risk is
+present or cannot yet be ruled out.
 
 ## Required Outputs
 
@@ -68,7 +70,7 @@ These documents are project facts, not shared workflow rules. They must not be p
 ```text
 Conversation
   -> AI onboarding draft
-  -> human decisions
+  -> bounded business or external input when required
   -> document update
   -> onboarding review
   -> first request card
@@ -78,13 +80,15 @@ Conversation
 
 AI should ask only the smallest useful set of questions at each step.
 
-Prefer decision prompts over blank-document requests:
+Do not ask the user to select a stack, baseline, platform Profile, risk treatment,
+verification strategy, reviewer, or first technical slice. Codex derives these
+from the goal and project evidence. Ask focused questions only for unavailable
+business facts, product preferences, exact real-world consent, or external
+facts.
 
-- "Choose one of these two stack strategies" instead of "fill the stack document"
-- "Confirm whether this is the first vertical slice" instead of "write a roadmap"
-- "Approve these risk boundaries" instead of "write a risk policy"
-
-If information is missing, AI should create a documented assumption and mark it as pending confirmation.
+If a required fact is missing, create a documented assumption with the exact
+user-input class. Technical uncertainty routes to evidence gathering, stricter
+review, or a blocked dependent action rather than user judgment.
 
 ## Completion Gate
 
@@ -93,23 +97,26 @@ Onboarding is ready when:
 - project type is clear
 - target platform or platforms are clear
 - first user/problem area is clear
-- selected technology strategy is approved or intentionally deferred
-- high-risk boundaries are approved
+- selected technology strategy is evidence-backed or intentionally deferred
+- high-risk boundaries and treatment are evidence-backed and reviewed
 - verification strategy is defined enough for first work
 - first vertical slice is identified
-- unresolved decisions are listed with owners
+- unresolved inputs are classified and limited to the dependent action
 
 If these are not true, the next step is more communication, not implementation.
 
 ## Stop Conditions
 
-Stop and ask for human decision before:
+Stop only the dependent action when:
 
-- choosing a production technology stack
-- committing to an auth, permission, data, payment, release, or regulated-data strategy
-- treating an assumption as approved
-- generating business-specific examples as reusable templates
-- starting implementation from broad project intent
+- an unavailable business fact changes the required behavior;
+- a material product preference cannot be inferred from the stated goal;
+- a prepared production, payment, external-account, real-user communication, or irreversible-data action needs exact consent;
+- a legal, regulatory, provider, or other external fact cannot be proven;
+- the technical route lacks sufficient evidence, verification, review, or rollback readiness.
+
+Codex must not treat an assumption as fact, generate business-specific examples
+as reusable templates, or implement directly from unresolved broad intent.
 
 ## Relationship To Later Workflow
 

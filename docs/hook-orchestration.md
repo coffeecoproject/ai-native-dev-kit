@@ -4,7 +4,7 @@ Hook orchestration means deciding what should happen automatically when a trigge
 
 Plain-language rule:
 
-> Codex can automatically check and suggest. Codex cannot automatically install hooks, change CI, or add blockers.
+> Codex can automatically check and suggest. Persistent changes require a controlled plan; concrete external effects require exact consent.
 
 ## What Is A Hook?
 
@@ -33,11 +33,13 @@ Examples:
 - inspect current workflow state
 - generate a recommendation
 - classify hook candidates
-- create a plan for human review
+- create a plan for internal review
 
-### Needs Human Confirmation
+### Needs Controlled Apply Or Exact Consent
 
-Anything that changes project behavior needs approval.
+Anything that changes project behavior needs an evidence-backed controlled
+plan. Only a concrete external, scheduled, paid, release, or production effect
+needs exact user consent.
 
 Examples:
 
@@ -55,8 +57,8 @@ Examples:
 |---|---|---|
 | `H0_AUTO_READ_ONLY` | Read-only local check | Codex may run |
 | `H1_AUTO_SUGGESTION` | Generate recommendation or plan | Codex may generate |
-| `H2_REQUIRES_CONFIRMATION` | Non-blocking installation or file change | Human confirms first |
-| `H3_EXPLICIT_APPROVAL_REQUIRED` | Blocking, CI, API, release, auto-fix, or production-related | Explicit approval first |
+| `H2_REQUIRES_CONFIRMATION` | Compatibility name for non-blocking installation or file change | Controlled apply first |
+| `H3_EXPLICIT_APPROVAL_REQUIRED` | Compatibility name for blocking, CI, API, release, auto-fix, or production-related work | Strict review; exact consent for external effects |
 
 ## Commands
 
@@ -79,8 +81,8 @@ node scripts/cli.mjs hook-plan-check .
 2. Codex inventories existing hooks and CI.
 3. Codex classifies candidate hooks as H0-H3.
 4. Codex prints a plan.
-5. Human chooses whether any H2/H3 hook should be installed.
-6. A separate reviewed task handles installation if approved.
+5. Codex validates project authority, rollback, and verification for H2/H3 work.
+6. A separate reviewed task handles installation; the user is involved only for a prepared external effect.
 
 ## Incorrect Use
 
@@ -93,4 +95,3 @@ Do not use Hook Orchestration to silently:
 - enable external reviewer APIs
 - run auto-fixes
 - approve release or production
-

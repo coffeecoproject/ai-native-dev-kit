@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(moduleDir, "../..");
 
-export const REVIEW_CONTEXT_VERSION = "1.107.0";
+export const REVIEW_CONTEXT_VERSION = "1.107.1";
 export const CURRENT_OPERATING_MODEL = "ZERO_EXPERIENCE_SOLO_DEVELOPER";
 export const USER_DECISION_CLASSES = Object.freeze([
   "NO_USER_ACTION",
@@ -92,6 +92,105 @@ function activeGuidanceRows(authority, root = defaultRoot, installedLayout = fal
   return rows;
 }
 
+function baseGuidanceClassification(value, authority) {
+  const rows = Array.isArray(authority.classifications) ? authority.classifications : [];
+  const current = rows.find((row) => row.status === "CURRENT") || {};
+  const compatibility = rows.find((row) => row.status === "COMPATIBILITY") || {};
+  const historical = rows.find((row) => row.status === "HISTORICAL") || {};
+  if ((current.exact || []).includes(value)) return "CURRENT";
+  if (startsWithAny(value, historical.versionedPrefixes)) return "HISTORICAL";
+  if (startsWithAny(value, compatibility.prefixes)) return "COMPATIBILITY";
+  if (startsWithAny(value, current.prefixes)) return "CURRENT";
+  if (startsWithAny(value, historical.prefixes)) return "HISTORICAL";
+  return authority.classificationFallback || "UNCLASSIFIED";
+}
+
+function guidanceReferences(content) {
+  const matches = String(content || "").match(
+    /(?:\.intentos\/)?(?:core|docs|prompts|templates|checklists|platforms)\/[A-Za-z0-9._/-]+\.(?:md|json|ya?ml)/g,
+  ) || [];
+  return [...new Set(matches.map((value) => normalizeReviewContextPath(value)))];
+}
+
+function sourcePathForGuidanceReference(reference) {
+  const normalized = normalizeReviewContextPath(reference);
+  return normalized.startsWith(".intentos/") ? normalized.slice(".intentos/".length) : normalized;
+}
+
+function installedPathForGuidanceReference(reference, source, root) {
+  const normalized = normalizeReviewContextPath(reference);
+  if (normalized.startsWith(".intentos/")) return normalized;
+  if (fs.existsSync(path.join(root, normalized))) return normalized;
+  const managed = `.intentos/${source}`;
+  return fs.existsSync(path.join(root, managed)) ? managed : normalized;
+}
+
+export function effectiveGuidanceGraph(
+  authority = loadReviewContextAuthority(),
+  installedLayout = false,
+  root = defaultRoot,
+) {
+  const resolvedRoot = path.resolve(root);
+  const prefixes = (authority.effectiveGuidanceReferencePrefixes || [])
+    .map(normalizeReviewContextPath)
+    .filter(Boolean);
+  const nodes = new Map();
+  const edges = [];
+  const queue = [];
+
+  const addNode = (source, file, registration, discoveredFrom = null) => {
+    const normalizedSource = normalizeReviewContextPath(source);
+    const normalizedFile = normalizeReviewContextPath(file);
+    if (!normalizedSource || !normalizedFile || nodes.has(normalizedFile)) return;
+    nodes.set(normalizedFile, {
+      source: normalizedSource,
+      path: normalizedFile,
+      registration,
+      discoveredFrom,
+      classification: baseGuidanceClassification(normalizedSource, authority),
+    });
+    queue.push(normalizedFile);
+  };
+
+  for (const row of activeGuidanceRows(authority, resolvedRoot, installedLayout)) {
+    const file = installedLayout ? row.installed : row.source;
+    if (file) addNode(row.source, file, "ACTIVE_ROOT");
+  }
+  if (!installedLayout) {
+    for (const producer of authority.activeGuidanceProducers || []) {
+      addNode(producer.source, producer.source, "GENERATOR");
+    }
+  }
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const fromPath = queue[index];
+    const from = nodes.get(fromPath);
+    const absolute = path.join(resolvedRoot, from.path);
+    if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) continue;
+    for (const reference of guidanceReferences(fs.readFileSync(absolute, "utf8"))) {
+      const source = sourcePathForGuidanceReference(reference);
+      const allowed = prefixes.some((prefix) => source.startsWith(prefix));
+      if (!allowed) continue;
+      const classification = baseGuidanceClassification(source, authority);
+      const targetPath = installedLayout
+        ? installedPathForGuidanceReference(reference, source, resolvedRoot)
+        : source;
+      const referenceIsManaged = reference.startsWith(".intentos/");
+      const targetExists = fs.existsSync(path.join(resolvedRoot, targetPath));
+      if (!referenceIsManaged && !targetExists) continue;
+      const active = !["HISTORICAL", "COMPATIBILITY"].includes(classification);
+      edges.push({ from: from.path, to: targetPath, source, classification, active });
+      if (active) addNode(source, targetPath, "REFERENCE", from.path);
+    }
+  }
+
+  return {
+    nodes: [...nodes.values()],
+    edges,
+    activePaths: [...nodes.keys()],
+  };
+}
+
 function canonicalGuidanceSource(value, authority, options = {}) {
   const normalized = normalizeReviewContextPath(value);
   const root = path.resolve(options.root || defaultRoot);
@@ -118,17 +217,7 @@ export function classifyReviewContextAsset(relativePath, authority = loadReviewC
   if (!input) return "UNCLASSIFIED";
   const registeredSource = canonicalGuidanceSource(input, authority, options);
   const value = registeredSource || input;
-  const rows = Array.isArray(authority.classifications) ? authority.classifications : [];
-  const current = rows.find((row) => row.status === "CURRENT") || {};
-  const compatibility = rows.find((row) => row.status === "COMPATIBILITY") || {};
-  const historical = rows.find((row) => row.status === "HISTORICAL") || {};
-
-  let classification = authority.classificationFallback || "UNCLASSIFIED";
-  if ((current.exact || []).includes(value)) classification = "CURRENT";
-  else if (startsWithAny(value, historical.versionedPrefixes)) classification = "HISTORICAL";
-  else if (startsWithAny(value, compatibility.prefixes)) classification = "COMPATIBILITY";
-  else if (startsWithAny(value, current.prefixes)) classification = "CURRENT";
-  else if (startsWithAny(value, historical.prefixes)) classification = "HISTORICAL";
+  let classification = baseGuidanceClassification(value, authority);
 
   if (options.productDirection === true) {
     if (!registeredSource) return "UNCLASSIFIED";
@@ -143,10 +232,7 @@ export function classifyReviewContextAsset(relativePath, authority = loadReviewC
 }
 
 export function activeGuidancePaths(authority = loadReviewContextAuthority(), installedLayout = false, root = defaultRoot) {
-  return [...new Set(activeGuidanceRows(authority, root, installedLayout)
-    .map((row) => installedLayout ? row.installed : row.source)
-    .filter(Boolean)
-    .map(normalizeReviewContextPath))];
+  return effectiveGuidanceGraph(authority, installedLayout, root).activePaths;
 }
 
 const ACTIVE_GUIDANCE_CONFLICT_RULES = [
@@ -191,6 +277,11 @@ const ACTIVE_GUIDANCE_CONFLICT_RULES = [
     message: "Active guidance makes a generic technical risk gate depend on human approval.",
   },
   {
+    code: "INTERNAL_TECHNICAL_ROUTE_DELEGATED_TO_USER",
+    pattern: /(?:\b(?:human|humans|user|users|the user)\b|人工|人类|用户).{0,45}(?:choose|select|decide|approve|confirm|review|merge|选择|决定|批准|确认|审查|合并).{0,90}(?:project profile|platform profile|architecture|technology strategy|technical stack|baseline|BL[012]|industrial pack|workflow asset|governance appendix|agent instructions|PR template|native migration|adapter docs?|apply plan|hook policy|archive plan|work queue takeover|release readiness|项目档案|平台档案|架构|技术策略|技术栈|基线|工业包|工作流资产|治理附录|代理指令|迁移路径|适配文档|应用计划|钩子策略|归档计划|任务队列接管|发布准备度)|(?:project profile|platform profile|architecture|technology strategy|technical stack|baseline|BL[012]|industrial pack|workflow asset|governance appendix|agent instructions|PR template|native migration|adapter docs?|apply plan|hook policy|archive plan|work queue takeover|release readiness|项目档案|平台档案|架构|技术策略|技术栈|基线|工业包|工作流资产|治理附录|代理指令|迁移路径|适配文档|应用计划|钩子策略|归档计划|任务队列接管|发布准备度).{0,90}(?:\b(?:human|humans|user|users|the user)\b|人工|人类|用户).{0,35}(?:choose|select|decide|approve|confirm|review|merge|选择|决定|批准|确认|审查|合并)/i,
+    message: "Active guidance delegates an internal technical route or readiness judgment to the user.",
+  },
+  {
     code: "INTERNAL_DOMAIN_REQUIRES_SEPARATE_PERSON",
     pattern: /(?:the\s+user|user|用户|你).{0,24}(?:must|should|needs?\s+to|必须|应该|需要).{0,24}(?:find|assign|appoint|consult|找|指定|安排|咨询).{0,30}(?:release owner|security owner|data owner|technical owner|professional reviewer|technical expert|发布负责人|安全负责人|数据负责人|技术负责人|专业人员|技术专家)/i,
     message: "Active guidance requires the user to find an internal technical role.",
@@ -211,7 +302,7 @@ export function analyzeActiveGuidanceConflicts(text) {
       && (!isExplicitSafetyNegation(segment) || negatedTechnicalPermissionGate(segment)));
     if (matched) findings.push({ code: rule.code, message: rule.message, evidence: matched });
   }
-  const ambiguousAuthority = value.match(/\b(?:AI|Codex)\s+drafts?\s*[.!?;,:-]?\s*humans?\s+(?:decide|confirm)\b|\bAI\s+proposes?\s*[.!?;,:-]?\s*humans?\s+approve\b|AI\s*起草.{0,12}(?:人|用户).{0,8}(?:决定|批准)/i);
+  const ambiguousAuthority = value.match(/\b(?:AI|Codex)\s+drafts?\s*[.!?;,:-]?\s*humans?\s+(?:decide|confirm)\b|\bhumans?\s+(?:decide|confirm)\s*[.!?;,:-]?\s*(?:AI|Codex)\s+drafts?\b|\bAI\s+proposes?\s*[.!?;,:-]?\s*humans?\s+approve\b|AI\s*起草.{0,12}(?:人|用户).{0,8}(?:决定|批准)|(?:人|用户).{0,8}(?:决定|批准).{0,12}AI\s*起草/i);
   if (ambiguousAuthority && !isExplicitSafetyNegation(ambiguousAuthority[0])) {
     findings.push({
       code: "AMBIGUOUS_HUMAN_TECHNICAL_AUTHORITY",
@@ -261,10 +352,16 @@ function humanOnlyDecisionSections(text) {
   const lines = String(text || "").split(/\r?\n/);
   const sections = [];
   for (let index = 0; index < lines.length; index += 1) {
-    if (!/^#{1,6}\s+(?:Human-Only Decisions|Human Decisions|Decisions For The Human|用户决定|仅限人工决定)\s*$/i.test(lines[index].trim())) continue;
+    const line = lines[index].trim();
+    const heading = /^#{1,6}\s+(?:Human-Only Decisions|Human Decisions|Decisions For The Human|用户决定|仅限人工决定)\s*$/i.test(line);
+    const label = /^(?:\*\*)?(?:Humans? decides?|The human decides?|The human is responsible for|Decisions for the human|Human decisions|用户决定|用户负责|人工决定)(?:\*\*)?\s*:\s*$/i.test(line);
+    if (!heading && !label) continue;
     const body = [];
-    for (let cursor = index + 1; cursor < lines.length && !/^#{1,6}\s+/.test(lines[cursor].trim()); cursor += 1) body.push(lines[cursor]);
-    sections.push({ heading: lines[index].trim(), body: body.join("\n") });
+    for (let cursor = index + 1; cursor < lines.length && !/^#{1,6}\s+/.test(lines[cursor].trim()); cursor += 1) {
+      if (label && lines[cursor].trim() && !/^[-*+]\s+|^\d+[.)]\s+/.test(lines[cursor].trim())) break;
+      body.push(lines[cursor]);
+    }
+    sections.push({ heading: line, body: body.join("\n") });
   }
   return sections;
 }
@@ -274,7 +371,7 @@ function technicalDecisionTerm(text) {
 }
 
 function isExplicitSafetyNegation(text) {
-  return /\b(?:must|should|does|do|is|are|can|cannot|can't|need)\s+not\b|\b(?:does not|do not|must not|should not|cannot|not required|never|no longer)\b|(?:不得|不应|不能|不需要|无需|禁止|不会|并不|不再)/i.test(text);
+  return /\b(?:must|should|does|do|is|are|can|cannot|can't|need)\s+not\b|\b(?:does not|do not|must not|should not|cannot|not required|not user[- ]selected|separated from human selection|never|no longer)\b|(?:不得|不应|不能|不需要|无需|禁止|不会|并不|不再)/i.test(text);
 }
 
 function negatedTechnicalPermissionGate(text) {
@@ -291,6 +388,8 @@ function contextContractPayload(authority) {
     classifications: authority.classifications,
     activeGuidance: authority.activeGuidance,
     activeGuidanceFamilies: authority.activeGuidanceFamilies,
+    activeGuidanceProducers: authority.activeGuidanceProducers,
+    effectiveGuidanceReferencePrefixes: authority.effectiveGuidanceReferencePrefixes,
     reviewBinding: authority.reviewBinding,
     compatibilityFields: authority.compatibilityFields,
     forbiddenReviewInferences: authority.forbiddenReviewInferences,

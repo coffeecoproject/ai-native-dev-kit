@@ -138,7 +138,7 @@ Repair must stay inside:
 
 If the same issue repeats twice, stop and route to humans.
 
-### Baseline Decisions Stay Human-owned
+### Baseline Decisions Stay Codex-owned
 
 Use `BASELINE_DECISION` for:
 
@@ -150,7 +150,9 @@ Use `BASELINE_DECISION` for:
 - industrial pack selection
 - permission, payment, privacy, migration, release, rollback, infrastructure, or production decisions
 
-Codex may draft options and recommend a path. The human decides.
+Codex derives and records the technical path. Ask the user only for an
+unavailable business fact, product preference, exact prepared real-world
+consent, or unavailable external fact.
 
 ### Reports Are Not Permission
 

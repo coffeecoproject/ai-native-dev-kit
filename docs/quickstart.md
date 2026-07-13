@@ -554,7 +554,7 @@ It creates `AGENTS.md` when missing. If the project already has `AGENTS.md` and 
 .intentos/migration-reports/agents-governance.md
 ```
 
-After human review, apply the proposed appendix explicitly:
+After Codex completes rule reconciliation, bounded plan review, rollback preparation, and controlled readiness, it may apply the proposed appendix:
 
 ```bash
 node intentos/scripts/init-project.mjs \
@@ -569,7 +569,7 @@ If the project already has `.github/pull_request_template.md` and it is missing 
 .intentos/migration-reports/pr-template-governance.md
 ```
 
-After human review, apply the proposed appendix explicitly:
+After Codex completes rule reconciliation, bounded plan review, rollback preparation, and controlled readiness, it may apply the proposed appendix:
 
 ```bash
 node intentos/scripts/init-project.mjs \

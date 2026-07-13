@@ -1,6 +1,6 @@
 # Project Hook Policy: <project-name>
 
-## Human Decision Summary
+## User Input Summary
 
 Conclusion: <what hook policy is needed>
 
@@ -8,7 +8,7 @@ Recommended choice: <keep read-only / draft policy / review existing policy / st
 
 Can AI continue now: <yes / limited / no>
 
-Need from human: <decision needed>
+User input class: <NO_USER_ACTION / BUSINESS_FACT_NEEDED / REAL_WORLD_CONSENT_NEEDED / EXTERNAL_FACT_NEEDED>
 
 If nothing is decided: No hooks are installed, no CI is changed, and no blocking gates are added.
 
@@ -34,8 +34,8 @@ If nothing is decided: No hooks are installed, no CI is changed, and no blocking
 |---|---|---|---|
 | `H0_AUTO_READ_ONLY` | Allowed | Read-only local checks and recommendations | Not required |
 | `H1_AUTO_SUGGESTION` | Allowed | Generate plans, prompts, reports, and suggestions | Not required for suggestion |
-| `H2_REQUIRES_CONFIRMATION` | Confirmation required | Non-blocking hook installation or project-file change | Human confirmation |
-| `H3_EXPLICIT_APPROVAL_REQUIRED` | Explicit approval required | Blocking, CI-changing, external, release, production, token, or auto-fix hook | Explicit human approval |
+| `H2_REQUIRES_CONFIRMATION` | Compatibility label | Non-blocking hook installation or project-file change | Controlled apply |
+| `H3_EXPLICIT_APPROVAL_REQUIRED` | Compatibility label | Blocking, CI-changing, external, release, production, token, or auto-fix hook | Strict review; exact consent for external effects |
 
 ## Approval Matrix
 
@@ -43,15 +43,15 @@ If nothing is decided: No hooks are installed, no CI is changed, and no blocking
 |---|---|---|---|
 | `H0_AUTO_READ_ONLY` | Codex may run read-only | Command output or report | Allow read-only only |
 | `H1_AUTO_SUGGESTION` | Codex may suggest | Plan or recommendation | Suggest only |
-| `H2_REQUIRES_CONFIRMATION` | Human project owner | Reviewed plan and rollback path | Defer |
-| `H3_EXPLICIT_APPROVAL_REQUIRED` | Human risk owner | Explicit approval, rollback path, evidence, owner, expiry | Stop |
+| `H2_REQUIRES_CONFIRMATION` | IntentOS evidence authority | Reviewed plan and rollback path | Defer |
+| `H3_EXPLICIT_APPROVAL_REQUIRED` | IntentOS evidence authority plus bounded consent when external | Strict review, rollback path, evidence, expiry | Stop |
 
 ## Rollback / Disable Policy
 
 | Hook class | Disable path | Restore command or file | Owner | Evidence needed |
 |---|---|---|---|---|
-| `H2_REQUIRES_CONFIRMATION` | Remove hook/config after approval | Restore previous config from git diff or backup | Human project owner | Diff, command output, rollback note |
-| `H3_EXPLICIT_APPROVAL_REQUIRED` | Disable gate/API/schedule before merge or release | Restore CI/release/secrets config from approved rollback plan | Human risk owner | Explicit approval, rollback evidence, expiry |
+| `H2_REQUIRES_CONFIRMATION` | Remove hook/config through controlled rollback | Restore previous config from git diff or backup | IntentOS execution responsibility | Diff, command output, rollback note |
+| `H3_EXPLICIT_APPROVAL_REQUIRED` | Disable gate/API/schedule before merge or release | Restore CI/release/secrets config from authority-bound rollback plan | IntentOS execution responsibility | Evidence authority, bounded consent when external, rollback evidence, expiry |
 
 ## Forbidden Automatic Actions
 
@@ -70,12 +70,12 @@ If nothing is decided: No hooks are installed, no CI is changed, and no blocking
 - This policy does not replace Hook Orchestration.
 - A Hook Orchestration Plan is still required before any hook installation task.
 
-## Human Decisions Needed
+## Bounded User Input Needed
 
-| Decision | Options | Recommended default | Owner | Status |
+| Input | Class | Recommended default | Responsibility | Status |
 |---|---|---|---|---|
-| Approve H2 hook installation? | approve / reject / defer | defer | human | PENDING |
-| Approve H3 hook behavior? | approve / reject / stop | stop | human risk owner | PENDING |
+| Prepared H2 action | `NO_USER_ACTION` unless a real-world effect exists | controlled review | IntentOS/Codex | NOT_NEEDED |
+| Prepared H3 external effect | `REAL_WORLD_CONSENT_NEEDED` when applicable | stop until exact consent | current conversation user | PENDING / NOT_NEEDED |
 
 ## Boundary
 

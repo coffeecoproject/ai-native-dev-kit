@@ -27,7 +27,7 @@ node scripts/check-ai-workflow.mjs . --mode core
 node scripts/workflow-next.mjs .
 ```
 
-4. Fill onboarding docs:
+4. Codex derives and fills onboarding docs:
 
 - `docs/project-onboarding.md`
 - `docs/project-profile.md`
@@ -38,7 +38,7 @@ node scripts/workflow-next.mjs .
 - `docs/verification-matrix.md`
 - `docs/engineering-baseline.md`
 
-5. Select platform profile:
+5. Codex selects the platform Profile:
 
 - Web
 - iOS
@@ -48,7 +48,7 @@ node scripts/workflow-next.mjs .
 - internal admin
 - high-risk change
 
-6. Select baseline level:
+6. Codex selects the baseline level:
 
 - `O0 + BL0` for lightweight work
 - `O1 + BL1` for normal product work
@@ -60,17 +60,20 @@ node scripts/workflow-next.mjs .
 Request -> Preflight -> Spec -> Eval -> Task -> Verify -> Review -> Final Report
 ```
 
-## Human Decisions
+## User Input Boundary
 
-Humans must confirm:
+The user supplies only:
 
-- project goal
-- platform
-- first slice
-- verification command
-- risk level
-- any BL2 industrial pack selection
+- the project goal and unavailable business facts;
+- a material product preference;
+- exact consent for a prepared real-world effect;
+- an external fact that project evidence cannot prove.
+
+Codex derives platform, first slice, verification, risk level, BL level, and
+industrial packs.
 
 ## Stop Conditions
 
-Stop if the project turns out to be production, governed, dirty, or dependent on secrets, release config, payment, or regulated data before onboarding decisions exist.
+Stop the dependent action if the project turns out to be production, governed,
+dirty, or dependent on secrets, release config, payment, or regulated data
+before the required evidence and controlled route exist.

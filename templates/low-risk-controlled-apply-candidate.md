@@ -23,8 +23,8 @@ Describe the proposed change in one or two plain-language sentences.
 
 ## Allowed Actions
 
-- Ask the human whether this candidate may become a reviewed apply plan.
-- Prepare a separate apply plan if the human agrees.
+- Let Codex decide whether this candidate may become a reviewed apply plan from project authority and evidence.
+- Prepare a separate apply plan when the internal eligibility checks pass.
 
 ## Forbidden Actions
 

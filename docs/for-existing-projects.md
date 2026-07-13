@@ -6,7 +6,7 @@ The correct posture is:
 
 ```text
 Codex works under IntentOS immediately.
-Project assets change only after comparison and approval.
+Project assets change only after comparison, controlled readiness, and rollback proof.
 ```
 
 ## What This Means
@@ -96,11 +96,11 @@ node scripts/cli.mjs convergence-check <project>
 
 This is still a derived read-only view. It helps Codex summarize:
 
-- which daily workflow behaviors can converge toward IntentOS;
-- which baseline, release, CI, hook, document, work queue, and audit rules should be kept, merged, or reviewed;
+- the daily workflow behaviors that can converge toward IntentOS;
+- the baseline, release, CI, hook, document, work queue, and audit rules that Codex should keep, merge, or review;
 - where old history becomes historical evidence instead of something to rewrite;
 - when `ai-logs` are appropriate and when they would become noise;
-- why every target-project write still requires a Unified Apply Plan and approval.
+- why every target-project write still requires a Unified Apply Plan and current evidence authority.
 
 Governance Convergence should make the professional recommendation for the user. The user should not need to decide whether a project CI guard is stricter than an IntentOS reference rule.
 
@@ -123,7 +123,7 @@ The answer is `Yes` only when the state is `VERIFIED_ACTIVE`.
 
 If the state is partial or blocked, Codex can still work in IntentOS mode, but it must stay plan-first and list the missing surfaces. Assurance does not write project files, approve release, mutate CI/hooks, replace release SOPs, or transfer project authority to IntentOS.
 
-## AI Recommendation, Human Confirmation
+## Codex Recommendation And Bounded Input
 
 For old projects, Codex should provide the professional recommendation first:
 
@@ -135,9 +135,12 @@ BLOCKED_NEEDS_OWNER
 BLOCKED_BY_DIRTY_WORKTREE
 ```
 
-The recommendation should say what to preserve, merge, replace after approval, or block.
+The recommendation should say what to preserve, merge, replace through controlled apply, or block.
 
-The human should confirm the goal, authority, and risk acceptance. The human should not be asked to decide technical details such as whether a CI rule is stricter than an IntentOS baseline.
+Codex derives authority compatibility and technical risk treatment. The user is
+asked only for an unavailable business fact, product preference, exact consent
+to a prepared real-world effect, or an external fact. The user must not decide
+whether a CI rule is stricter than an IntentOS baseline.
 
 ## When Writes Become Possible
 
@@ -146,11 +149,11 @@ Project asset changes require:
 1. Native Migration Plan;
 2. Existing Rule Reconciliation;
 3. an executable, project-bound apply plan with exact source and target digests;
-4. explicit human approval;
+4. current evidence authority and any exact consent required for a concrete real-world effect;
 5. Controlled Apply Readiness;
-6. exact approved-graph replay;
+6. exact authority-bound graph replay;
 7. an Apply Execution Receipt that still matches the current project, Git identity, target hashes, and read-only activation result.
 
 Until then, IntentOS Operating Mode is active for work guidance only.
 
-Direct `--update-workflow-assets` is no longer a migration shortcut. Init and update writes must use the same plan, approval, readiness, replay, and receipt chain. Existing project CI, release, runtime, business rules, and other protected authority remain project-owned unless an exact approved action says otherwise.
+Direct `--update-workflow-assets` is no longer a migration shortcut. Init and update writes must use the same plan, evidence authority, readiness, replay, and receipt chain. Existing project CI, release, runtime, business rules, and other protected authority remain project-owned unless an exact reconciled action says otherwise.

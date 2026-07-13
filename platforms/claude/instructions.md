@@ -1,5 +1,9 @@
 # Claude Project Instructions
 
+> Compatibility reference only. IntentOS 1.107.1 formally supports Codex as
+> its agent platform. This file is not active guidance, is not installed by
+> default, and does not claim current IntentOS behavior parity.
+
 Use the IntentOS Development Workflow:
 
 ```text
@@ -80,7 +84,7 @@ For unified apply plans:
 
 For controlled apply readiness:
 
-- run `node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <clean|dirty>` after a Unified Apply Plan exists and before any future human-approved controlled apply step
+- run `node scripts/cli.mjs apply-readiness . --plan <apply-plan-path> --git-state <clean|dirty>` after a Unified Apply Plan exists and before any controlled apply step permitted by the bounded plan and project authority
 - run `node scripts/cli.mjs apply-readiness-check .` when Controlled Apply Readiness Reports exist
 - do not treat readiness reports as permission to write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions
 

@@ -8,6 +8,7 @@ import {
   analyzeActiveGuidanceConflicts,
   analyzeReviewRecommendation,
   classifyReviewContextAsset,
+  effectiveGuidanceGraph,
   evaluateCurrentConversationAuthority,
   loadReviewContextAuthority,
   reviewContextBindingFromMarkdown,
@@ -19,12 +20,14 @@ const authority = loadReviewContextAuthority();
 
 test("current product contract overrides compatibility and historical material", () => {
   assert.equal(classifyReviewContextAsset("core/review-context-authority.md", authority), "CURRENT");
-  assert.equal(classifyReviewContextAsset("docs/plans/execution-authority-consumer-hardcut-1.100-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("docs/plans/execution-authority-consumer-hardcut-1.100-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/review-execution-trust-closeout-1.99.3-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-enforcement-1.99.2-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/review-context-authority-1.99.1-plan.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("docs/plans/zero-experience-solo-operating-model-1.99-plan.md", authority), "HISTORICAL");
-  assert.equal(classifyReviewContextAsset("releases/1.100.0/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.107.1/release-record.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("releases/1.100.0/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.99.3/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.99.2/release-record.md", authority), "HISTORICAL");
   assert.equal(classifyReviewContextAsset("releases/1.99.1/release-record.md", authority), "HISTORICAL");
@@ -33,6 +36,17 @@ test("current product contract overrides compatibility and historical material",
   assert.equal(classifyReviewContextAsset("docs/unregistered-product-direction.md", authority), "UNCLASSIFIED");
   assert.equal(classifyReviewContextAsset("prompts/new-reviewer.md", authority), "CURRENT");
   assert.equal(classifyReviewContextAsset("prompts/new-reviewer.md", authority, { productDirection: true }), "UNCLASSIFIED");
+  assert.equal(classifyReviewContextAsset("platforms/codex/quickstart.md", authority), "CURRENT");
+  assert.equal(classifyReviewContextAsset("platforms/claude/instructions.md", authority), "COMPATIBILITY");
+  assert.equal(classifyReviewContextAsset("platforms/cursor/rules-template.md", authority), "COMPATIBILITY");
+});
+
+test("effective guidance follows current references and stops at compatibility boundaries", () => {
+  const graph = effectiveGuidanceGraph(authority, false, path.resolve("."));
+  assert.ok(graph.nodes.some((node) => node.source === "core/project-onboarding.md" && node.registration === "REFERENCE"));
+  assert.ok(graph.nodes.some((node) => node.source === "scripts/init-project.mjs" && node.registration === "GENERATOR"));
+  assert.ok(!graph.nodes.some((node) => node.source === "platforms/claude/instructions.md"));
+  assert.ok(!graph.nodes.some((node) => node.source === "platforms/cursor/rules-template.md"));
 });
 
 test("direct contradictory active guidance fails closed", () => {
@@ -60,6 +74,9 @@ test("implicit technical decisions in questions, menus, slogans, and sections fa
     "Which platform profile should apply?",
     "BL2 requires explicit human confirmation.",
     "AI drafts. Humans decide.",
+    "Humans decide. AI drafts.",
+    "After human review, apply the proposed governance appendix.",
+    "The human chooses native migration, docs-only adoption, or pause.",
     "Codex drafts. Humans confirm.",
     "Choose BL0, BL1, or BL2 before continuing.",
     "| Technical choice | User action |\n|---|---|\n| Platform profile | User confirms the selection |",

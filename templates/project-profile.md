@@ -4,7 +4,7 @@
 
 Draft status: DRAFT / CONFIRMED
 
-Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
+User input status: NOT_NEEDED / PENDING / PROVIDED / BLOCKED
 
 ## Project Type
 
@@ -19,9 +19,9 @@ Human decision status: PENDING_CONFIRMATION / CONFIRMED / BLOCKED
 
 ## Profile Rationale
 
-| Profile | Why it applies | Human confirmed |
+| Profile | Why it applies | Evidence status |
 |---|---|---|
-|  |  | Yes / No |
+|  |  | VERIFIED / PENDING / BLOCKED |
 
 ## Purpose
 
@@ -78,6 +78,6 @@ Stop before:
 
 ## Open Assumptions
 
-| Assumption | Impact | Needs human confirmation |
+| Assumption | Impact | User input class |
 |---|---|---|
-|  |  | Yes / No |
+|  |  | NO_USER_ACTION / BUSINESS_FACT_NEEDED / EXTERNAL_FACT_NEEDED |

@@ -84,9 +84,9 @@ node scripts/cli.mjs apply-readiness <project> --plan <apply-plan>
 node scripts/cli.mjs apply-readiness-check <project>
 ```
 
-Controlled Apply Readiness is still read-only. It can classify a plan as not ready, blocked, human-only, or a low-risk candidate for future human-approved apply. It does not write files, authorize apply, approve implementation, approve release/production, install hooks, modify CI, archive files, change source of truth, enable industrial packs, or approve high-risk decisions.
+Controlled Apply Readiness is still read-only. It can classify a plan as not ready, blocked, external-consent-only, or a low-risk candidate for bounded controlled apply. It does not write files, authorize apply, approve production effects, install hooks, modify CI, archive files, change source of truth, or enable industrial packs.
 
-When a human explicitly approves exact action IDs from a readiness-reviewed plan, record that approval separately:
+When an exact real-world effect needs user consent, or an external authority fact is supplied, record that bounded input separately; reversible project-local technical actions continue through Codex-owned readiness:
 
 ```bash
 node scripts/new-workflow-item.mjs --type approval-record --name <apply-scope>
@@ -101,7 +101,7 @@ For platform standard baseline recommendations:
 node scripts/cli.mjs baseline-decision <project>
 ```
 
-Use `baseline-decision` when the human needs the decision in plain language. It should summarize the recommended BL level, ordinary standard packs, optional industrial candidates, missing human confirmations, and safe next actions. It does not approve target-project writes, implementation, release, production, BL2 activation, or high-risk domain decisions.
+Use `baseline-decision` when the user needs the result in plain language. It should summarize the Codex-derived BL level, ordinary standard packs, optional industrial candidates, missing evidence or external facts, and safe next actions. It does not approve target-project writes, implementation, release, production, BL2 activation, or real-world effects.
 
 `baseline-decision` prints only. Persist a record only after the human wants to keep the decision:
 
@@ -110,7 +110,7 @@ node scripts/new-workflow-item.mjs --type baseline-decision-card --name project-
 node scripts/cli.mjs baseline-decision-check <project>
 ```
 
-If the recommendation mentions BL2, phrase it as a candidate path for human review, not as an active selection.
+If the recommendation mentions BL2, Codex must verify the evidence and select or defer it internally; do not ask the user to review the technical level.
 
 For lower-level platform standard baseline recommendations:
 
@@ -118,7 +118,7 @@ For lower-level platform standard baseline recommendations:
 node scripts/cli.mjs standard-baseline <project>
 ```
 
-Recommend ordinary platform packs first. Keep backend and release packs conditional. Keep industrial overlays separate until risk and human confirmation require them. A standard baseline recommendation does not approve target-project writes or implementation.
+Recommend ordinary platform packs first. Keep backend and release packs conditional. Keep industrial overlays separate until concrete risk, compatibility, and internal readiness require them. A standard baseline recommendation does not approve target-project writes or implementation.
 
 If `workflow-next` returns `ADOPTION_MODE: READ_ONLY`, `RUN_ADOPTION_ASSESSMENT`, or `REVIEW_DIRTY_WORKTREE`, stop write actions and follow the matching playbook.
 

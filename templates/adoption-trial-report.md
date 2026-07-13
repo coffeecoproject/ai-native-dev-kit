@@ -1,6 +1,6 @@
 # Adoption Trial Report
 
-## Human Decision Summary
+## User Input Summary
 
 Conclusion:
 
@@ -21,7 +21,7 @@ Recommended reason:
 
 What happens if you do nothing:
 
-## Human Summary
+## Plain Summary
 
 Describe what was tried and what the trial proves in plain language.
 
@@ -40,21 +40,21 @@ Record the original user message or project entry context.
 
 ## Codex Routing
 
-| Step | Codex action | Human role | Result |
+| Step | Codex action | User input class | Result |
 |---|---|---|---|
-| Start |  | choice / confirmation / decision |  |
-| Baseline |  | choice / confirmation / decision |  |
-| First slice |  | choice / confirmation / decision |  |
-| Risk / drift |  | choice / confirmation / decision |  |
-| Delivery |  | choice / confirmation / decision |  |
+| Start |  | NO_USER_ACTION / bounded input |  |
+| Baseline |  | NO_USER_ACTION / bounded input |  |
+| First slice |  | NO_USER_ACTION / bounded input |  |
+| Risk / drift |  | NO_USER_ACTION / bounded input |  |
+| Delivery |  | NO_USER_ACTION / bounded input |  |
 
 ## Guided Decision Path
 
-| Step | Recommendation | What human decided | What Codex did | What was parked |
+| Step | Recommendation | Bounded user input | What Codex did | What was parked |
 |---|---|---|---|---|
 | First slice |  |  |  |  |
 | Technical choice translated |  |  |  |  |
-| Risk / expert decision |  |  |  |  |
+| Risk / internal review |  |  |  |  |
 
 ## Baseline Path
 
@@ -79,14 +79,14 @@ Record the original user message or project entry context.
 | Launch Readiness |  |  |  |
 | Final Report |  |  |  |
 
-## Human Decisions
+## User Input Record
 
-| Decision | Status | Owner | Notes |
+| Input | Class | Status | Notes |
 |---|---|---|---|
-| First slice | `Pending` | human |  |
-| Baseline level | `Pending` | human |  |
-| Scope change | `Not Applicable` | human |  |
-| Release / production | `Not Approved` | human |  |
+| First slice | `NO_USER_ACTION` | `Not Needed` | Codex derives it |
+| Baseline level | `NO_USER_ACTION` | `Not Needed` | Codex derives it |
+| Material product preference | `BUSINESS_FACT_NEEDED` | `Pending / Provided / Not Needed` |  |
+| Release / production effect | `REAL_WORLD_CONSENT_NEEDED` | `Not Consented / Consented / Not Applicable` |  |
 
 ## Subagent Orchestration
 
@@ -126,4 +126,4 @@ List commands, checks, manual verification, or explicit simulation evidence.
 
 ## Outcome
 
-`SIMULATED_READY_FOR_DEMO` / `REAL_TRIAL_RECORDED` / `NEEDS_HUMAN_DECISION` / `BLOCKED`
+`SIMULATED_READY_FOR_DEMO` / `REAL_TRIAL_RECORDED` / `NEEDS_USER_INPUT` / `BLOCKED`

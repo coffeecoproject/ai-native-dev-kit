@@ -17,7 +17,7 @@ profile -> standard baseline packs -> optional industrial overlays
 - Standard baseline packs are normal project guardrails.
 - Industrial packs are heavier BL2 overlays for high-risk or production-sensitive work.
 - Recommendations are read-only.
-- Selection requires human confirmation.
+- Selection requires project evidence, compatibility, and internal readiness.
 - Selection does not approve implementation.
 
 ## First Three Packs

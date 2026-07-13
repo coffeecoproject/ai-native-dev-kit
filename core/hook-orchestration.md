@@ -47,7 +47,8 @@ Examples:
 
 `H2_REQUIRES_CONFIRMATION`
 
-Non-blocking hook installation or project-file changes require human confirmation.
+Non-blocking hook installation or project-file changes require controlled apply,
+rollback, and verification. They do not require the user to judge hook mechanics.
 
 Examples:
 
@@ -57,7 +58,9 @@ Examples:
 
 `H3_EXPLICIT_APPROVAL_REQUIRED`
 
-Blocking, external, release-related, CI-changing, API-calling, or writing hooks require explicit human approval and a rollback plan.
+Blocking, external, release-related, CI-changing, API-calling, or writing hooks
+require strict internal review and a rollback plan. A prepared external effect
+also requires exact user consent.
 
 Examples:
 
@@ -76,11 +79,11 @@ Codex may automatically:
 - classify hook candidates
 - generate a Hook Orchestration Plan
 - explain risk and tradeoffs
-- list required human decisions
+- list bounded user input only when a real-world or external fact is required
 
-## What Requires Human Confirmation
+## What Requires Controlled Apply Or Exact Consent
 
-Codex must stop before:
+Codex must stop the dependent action until controlled readiness exists for:
 
 - installing Git hooks
 - changing `.github/workflows`
@@ -103,7 +106,7 @@ A Hook Orchestration Plan must include:
 - whether the candidate writes files
 - whether the candidate blocks work
 - whether it calls external services
-- whether human approval is required
+- the applicable internal evidence authority and real-world-consent class
 - rollback / disable plan
 - boundary statement
 
@@ -119,4 +122,3 @@ Every Hook Orchestration Plan must state:
 - This plan enables auto-fix: No
 - This plan approves implementation, release, or production: No
 - This plan treats hook output as human approval: No
-

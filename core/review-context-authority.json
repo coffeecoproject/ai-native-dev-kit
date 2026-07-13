@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.107.0",
+  "schemaVersion": "1.107.1",
   "artifactType": "review_context_authority",
   "contractId": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
   "currentVersionSource": "VERSION.md",
@@ -8,6 +8,13 @@
     "operatingModel": "ZERO_EXPERIENCE_SOLO_DEVELOPER",
     "defaultUserCount": 1,
     "technicalDecisionOwner": "INTENTOS_CODEX",
+    "formalAgentPlatforms": [
+      "CODEX"
+    ],
+    "compatibilityAgentPlatforms": [
+      "CLAUDE",
+      "CURSOR"
+    ],
     "userResponsibilities": [
       "BUSINESS_GOAL",
       "UNAVAILABLE_BUSINESS_FACT",
@@ -78,12 +85,12 @@
         "docs/reference/artifacts.md",
         "docs/reference/checkers.md",
         "docs/reference/scripts.md",
-        "docs/plans/execution-authority-consumer-hardcut-1.100-plan.md",
+        "docs/plans/active-guidance-distribution-closeout-1.107.1-plan.md",
         "prompts/reviewer-agent.md",
         "templates/gpt-review-prompt.md",
-        "releases/1.100.0/release-record.md",
-        "releases/1.100.0/known-limitations.md",
-        "releases/1.100.0/self-check-report.md"
+        "releases/1.107.1/release-record.md",
+        "releases/1.107.1/known-limitations.md",
+        "releases/1.107.1/self-check-report.md"
       ],
       "prefixes": [
         "scripts/",
@@ -91,7 +98,7 @@
         "prompts/",
         "templates/",
         "checklists/",
-        "platforms/",
+        "platforms/codex/",
         "starters/",
         "standard-baseline-packs/",
         "industrial-packs/"
@@ -101,7 +108,9 @@
       "status": "COMPATIBILITY",
       "prefixes": [
         "schemas/",
-        "test-fixtures/"
+        "test-fixtures/",
+        "platforms/claude/",
+        "platforms/cursor/"
       ]
     },
     {
@@ -167,6 +176,8 @@
     { "source": "prompts/reviewer-agent.md", "installed": ".intentos/prompts/reviewer-agent.md" },
     { "source": "templates/gpt-review-prompt.md", "installed": ".intentos/templates/gpt-review-prompt.md" },
     { "source": "platforms/codex/AGENTS.template.md", "installed": "AGENTS.md" },
+    { "source": "platforms/codex/quickstart.md" },
+    { "source": "platforms/codex/skill/SKILL.md" },
     { "source": "scripts/start-project.mjs", "installed": "scripts/start-project.mjs" },
     { "source": "scripts/workflow-next.mjs", "installed": "scripts/workflow-next.mjs" },
     { "source": "scripts/baseline-project.mjs", "installed": "scripts/baseline-project.mjs" },
@@ -197,6 +208,23 @@
       "extension": ".md"
     }
   ],
+  "activeGuidanceProducers": [
+    {
+      "source": "scripts/init-project.mjs",
+      "generated": [
+        "AGENTS.md governance appendix",
+        ".github/pull_request_template.md governance appendix"
+      ]
+    }
+  ],
+  "effectiveGuidanceReferencePrefixes": [
+    "core/",
+    "docs/",
+    "prompts/",
+    "templates/",
+    "checklists/",
+    "platforms/codex/"
+  ],
   "reviewBinding": {
     "artifactTypes": ["review_packet", "gpt_review_prompt"],
     "requiredFields": ["contract_id", "context_version", "context_digest"],
@@ -219,6 +247,7 @@
     "TECHNICAL_CHOICE_QUESTION",
     "TECHNICAL_CHOICE_TABLE",
     "BLANKET_TECHNICAL_APPROVAL_GATE",
+    "INTERNAL_TECHNICAL_ROUTE_DELEGATED_TO_USER",
     "AMBIGUOUS_HUMAN_TECHNICAL_AUTHORITY",
     "TECHNICAL_DECISION_IN_HUMAN_ONLY_SECTION",
     "INTERNAL_DOMAIN_REQUIRES_SEPARATE_PERSON",

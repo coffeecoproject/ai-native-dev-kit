@@ -51,19 +51,19 @@ CAN_WRITE_WORKFLOW_ASSETS: no
 
 4. Identify conflicts.
 
-5. Ask for human decision before any workflow asset write.
+5. Reconcile authority and prepare a controlled plan before any workflow asset write.
 
-## Human Decisions
+## Codex Adoption Decision
 
-Humans decide:
+Codex derives whether to:
 
 - keep existing governance only
 - add IntentOS as adapter docs
 - add selected workflow assets
-- migrate gradually through reviewed plan
+- migrate gradually through a reviewed, authority-bound plan
 - do not adopt
 
-## Forbidden Before Decision
+## Forbidden Before Controlled Readiness
 
 - no init
 - no update

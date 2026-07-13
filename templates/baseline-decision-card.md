@@ -5,11 +5,11 @@ status: draft
 
 # Baseline Decision Card: <name>
 
-## Human Summary
+## Plain Summary
 
 I think this project is <project state>.
 
-I recommend <BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL candidate path for human review> for this phase.
+Codex selects <BL0_LIGHTWEIGHT / BL1_STANDARD / BL2_INDUSTRIAL> for this phase, subject to the recorded evidence and strict internal checks.
 
 Codex can recommend next steps, but this card does not approve writes or implementation.
 
@@ -59,10 +59,10 @@ Candidate only, not selected:
 |---|---|
 | <pack-id> | <why not selected> |
 
-## Human Decisions Needed
+## User Input Needed
 
-1. <question>
-2. <question>
+1. <one of the four user-input classes, or NO_USER_ACTION>
+2. <only a business, product-preference, exact-consent, or external-fact question>
 3. <question>
 
 ## Safe Next Actions
@@ -77,7 +77,11 @@ Candidate only, not selected:
 - This card approves security/privacy/compliance/payment/migration decisions: No
 - This card proves real project evidence exists: No
 
-This card is a recommendation only. Human confirmation is still required before Codex writes baseline files, enables BL2, applies industrial packs, changes business code, changes CI, changes release flow, or touches production-sensitive configuration.
+This card is a recommendation only. Baseline writes, BL2, industrial packs,
+business code, CI, release flow, and production-sensitive configuration still
+require the applicable plan, evidence authority, review, verification, and
+rollback chain. Exact user consent is required only for a prepared real-world
+effect.
 
 ## Evidence
 
